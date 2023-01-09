@@ -9,7 +9,7 @@ import EdgeBrowserContext from './EdgeBrowserContext'
 import EntityList from './EntityList'
 import { prettyId, prettyInvitationId, pluralizeString } from '../../lib/utils'
 import EditEdgeInviteEmail from './EditEdgeInviteEmail'
-import { transformName } from '../../lib/edge-utils'
+import { getInvitationPrefix, transformName } from '../../lib/edge-utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
 
@@ -110,9 +110,10 @@ export default function Column(props) {
     }
   }
 
-  const buildQuery = (invitationId, invQueryObj) => {
+  const buildQuery = (invitationId, invQueryObj, shouldSort = true) => {
     const apiQuery = {
       invitation: invitationId,
+      sort: shouldSort ? 'weight:desc' : undefined,
     }
     if (parentId) {
       apiQuery[otherType] = parentId
@@ -120,7 +121,11 @@ export default function Column(props) {
 
     Object.keys(invQueryObj).forEach((key) => {
       if (['head', 'tail', 'sort'].includes(key) && invQueryObj[key] === 'ignore') {
-        delete apiQuery[key]
+        if (key === 'sort') {
+          delete apiQuery[key]
+        } else {
+          apiQuery[key] = getInvitationPrefix(invitationId)
+        }
       } else {
         apiQuery[key] = invQueryObj[key]
       }
@@ -501,13 +506,9 @@ export default function Column(props) {
         getWritable,
         sort,
         promise: api
-          .get(
+          .getAll(
             '/edges',
-            buildQuery(invitation.id, {
-              ...invitation.query,
-              details: detailsParam,
-              groupBy: 'id',
-            }),
+            buildQuery(invitation.id, { ...invitation.query, details: detailsParam }, sort),
             { accessToken, version }
           )
           .catch((error) => promptError(error.message)),
@@ -572,7 +573,7 @@ export default function Column(props) {
       }
 
       api
-        .getAll('/edges', buildQuery(startInvitation.id, startInvitation.query), {
+        .getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false), {
           accessToken,
           version,
         })
@@ -614,29 +615,26 @@ export default function Column(props) {
     }
 
     const edgesPromiseMap = []
-    addToEdgesPromiseMap(traverseInvitation, 'traverse', edgesPromiseMap, true) // traverse does not need to getWritable, this is for the case edit == traverse
+    addToEdgesPromiseMap(traverseInvitation, 'traverse', edgesPromiseMap, true, true) // traverse does not need to getWritable, this is for the case edit == traverse
     editInvitations.forEach((editInvitation) =>
-      addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true)
+      addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true, false)
     )
-    addToEdgesPromiseMap(hideInvitation, 'hide', edgesPromiseMap, false)
+    addToEdgesPromiseMap(hideInvitation, 'hide', edgesPromiseMap, false, true)
     browseInvitations.forEach((browseInvitation) =>
-      addToEdgesPromiseMap(browseInvitation, 'browse', edgesPromiseMap, false)
+      addToEdgesPromiseMap(browseInvitation, 'browse', edgesPromiseMap, false, false)
     )
 
     // Load all edges related to parent and build lists of assigned items and
     // alternate items, adding edges to each cell
-    Promise.all(edgesPromiseMap.map((p) => p.promise)).then((groupedResults) => {
-      const result = groupedResults.map((q) => q.groupedEdges.map((r) => r.values[0]))
+    Promise.all(edgesPromiseMap.map((p) => p.promise)).then((result) => {
       let traverseEdges =
         result.find(
           (p, i) => edgesPromiseMap.findIndex((q) => q.invitations.includes('traverse')) === i
         ) || []
-      traverseEdges = _.sortBy(traverseEdges, (p) => p.weight * -1)
-      let hideEdges =
+      const hideEdges =
         result.find(
           (p, i) => edgesPromiseMap.findIndex((q) => q.invitations.includes('hide')) === i
         ) || []
-      hideEdges = _.sortBy(hideEdges, (p) => p.weight * -1)
       const editEdgeGroups = result.filter((p, i) =>
         edgesPromiseMap
           .map((q, j) => (q.invitations.includes('edit') ? j : -1))

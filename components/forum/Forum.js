@@ -626,7 +626,7 @@ export default function Forum({
     <div className="forum-container">
       <ForumNote note={parentNote} updateNote={updateParentNote} />
 
-      {parentNote.replyInvitations?.length > 0 && (
+      {parentNote.replyInvitations?.length > 0 && !parentNote.ddate && (
         <div className="invitations-container">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>

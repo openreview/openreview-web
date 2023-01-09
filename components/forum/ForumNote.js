@@ -1,4 +1,4 @@
-/* globals promptError: false */
+/* globals promptError, view2: false */
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -7,6 +7,7 @@ import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
+import useUser from '../../hooks/useUser'
 
 function ForumNote({ note, updateNote }) {
   const {
@@ -25,6 +26,7 @@ function ForumNote({ note, updateNote }) {
 
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeNote, setActiveNote] = useState(null)
+  const { user } = useUser()
 
   const openNoteEditor = (invitation, options) => {
     if (activeInvitation && activeInvitation.id !== invitation.id) {
@@ -111,7 +113,7 @@ function ForumNote({ note, updateNote }) {
         <ForumMeta note={note} />
 
         <div className="invitation-buttons">
-          {editInvitations?.length > 0 && (
+          {editInvitations?.length > 0 && !pastDue && (
             <div className="btn-group">
               <button
                 type="button"
@@ -143,13 +145,26 @@ function ForumNote({ note, updateNote }) {
             </div>
           )}
 
-          {deleteInvitation && !pastDue && (
+          {deleteInvitation && (
             <button
               type="button"
               className="btn btn-xs"
-              onClick={() => openNoteEditor(deleteInvitation)}
+              onClick={() => {
+                view2.deleteOrRestoreNote(
+                  note,
+                  deleteInvitation,
+                  content.title?.value,
+                  user,
+                  (newNote) => {
+                    updateNote(newNote)
+                  }
+                )
+              }}
             >
-              <Icon name="trash" tooltip={prettyInvitationId(deleteInvitation.id)} />
+              <Icon
+                name={`${pastDue ? 'repeat' : 'trash'}`}
+                tooltip={prettyInvitationId(deleteInvitation.id)}
+              />
             </button>
           )}
         </div>
@@ -202,7 +217,14 @@ function ForumMeta({ note }) {
     <div className="forum-meta">
       <span className="date item">
         <Icon name="calendar" />
-        {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year?.value, note.pdate)}
+        {forumDate(
+          note.cdate,
+          note.tcdate,
+          note.mdate,
+          note.tmdate,
+          note.content.year?.value,
+          note.pdate
+        )}
       </span>
 
       <span className="item">

@@ -2367,7 +2367,7 @@ module.exports = (function () {
           }
         } else if (
           Array.isArray(contentObj) ||
-          (contentObj.param?.hasOwnProperty('const') && presentationObj.type.endsWith('[]'))
+          (contentObj.param?.hasOwnProperty('const') && presentationObj.type?.endsWith('[]'))
         ) {
           // values
           if (k !== 'authorids') {
