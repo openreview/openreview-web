@@ -2194,7 +2194,7 @@ module.exports = (function () {
   const constructUpdatedEdit = (edit, invitation, formContent) => {
     const shouldSetValue = (fieldPath) => {
       const field = _.get(invitation, fieldPath)
-      return field && !field.const
+      return field && field.param
     }
 
     const editToPost = {}
@@ -2211,7 +2211,7 @@ module.exports = (function () {
     }
     const editNote = {}
     Object.keys(invitation.edit.note).forEach((p) => {
-      editNote[p] = edit.note[p]
+      if (shouldSetValue(`edit.note.${p}`)) editNote[p] = edit.note[p]
     })
 
     if (invitation.edit.note?.content) {
@@ -2533,4 +2533,4 @@ module.exports = (function () {
     deleteOrRestoreNote: deleteOrRestoreNote,
     constructEdit: constructEdit,
   }
-}())
+})()
