@@ -4522,16 +4522,14 @@ module.exports = (function () {
                 )
               }
               $progressBar.show()
-              var sendChunksPromiseRef = chunks.reduce(function (
-                oldPromises,
-                currentChunk,
-                i
-              ) {
-                return oldPromises.then(function (_) {
-                  return sendSingleChunk(currentChunk, i)
-                })
-              },
-              Promise.resolve())
+              var sendChunksPromiseRef = chunks.reduce(
+                function (oldPromises, currentChunk, i) {
+                  return oldPromises.then(function (_) {
+                    return sendSingleChunk(currentChunk, i)
+                  })
+                },
+                Promise.resolve()
+              )
               uploadInProgressFields.push({
                 fieldName,
                 noteRef: editNote,
@@ -4993,4 +4991,4 @@ module.exports = (function () {
     updatePdfSection: updatePdfSection,
     mkDropdownList: mkDropdownList,
   }
-})()
+}())
