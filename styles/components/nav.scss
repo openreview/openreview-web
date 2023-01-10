@@ -27,6 +27,12 @@ nav.navbar {
         background-color: constants.$orRedDark;
         cursor: pointer;
       }
+      .badge {
+        min-width: 20px;
+        line-height: 12px;
+        margin-top: -3px;
+        margin-left: 4px;
+      }
     }
 
     @media #{constants.$phone-only} {
@@ -75,7 +81,7 @@ nav.navbar {
 
     input {
       background-color: #ddd;
-      width: 400px;
+      width: 380px;
       height: 30px;
       border: 1px solid #ccc;
       border-radius: 0;

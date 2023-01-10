@@ -1,6 +1,7 @@
 /* globals DOMPurify, marked: false */
 
 import { useState, useEffect } from 'react'
+import upperFirst from 'lodash/upperFirst'
 import Table from './Table'
 import { formatTimestamp } from '../lib/utils'
 
@@ -29,7 +30,7 @@ const MessageRow = ({ message }) => (
       <span
         className={`status ${message.status === 'delivered' ? 'delivered' : 'not-delivered'}`}
       >
-        {message.status}
+        {upperFirst(message.status)}
       </span>
     </td>
 
@@ -60,7 +61,11 @@ const MessageRow = ({ message }) => (
           </div>
         )}
         <div className="email-sent pull-right">
-          Sent: <span>{formatTimestamp(message.timestamp * 1000 || message.cdate)}</span>
+          {(message.timestamp || message.cdate) ? (
+            <>
+              Sent: <span>{formatTimestamp(message.timestamp * 1000 || message.cdate)}</span>
+            </>
+          ) : 'Not Sent'}
         </div>
       </div>
 

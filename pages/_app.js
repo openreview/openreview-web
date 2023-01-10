@@ -7,12 +7,7 @@ import { nanoid } from 'nanoid'
 import random from 'lodash/random'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
-import {
-  auth,
-  getTokenPayload,
-  cookieExpiration,
-  refreshExpiration,
-} from '../lib/auth'
+import { auth, getTokenPayload, cookieExpiration, refreshExpiration } from '../lib/auth'
 import api from '../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 import mathjaxConfig from '../lib/mathjax-config'
@@ -29,8 +24,9 @@ export default class OpenReviewApp extends App {
 
     this.state = {
       user: null,
-      userLoading: true,
       accessToken: null,
+      userLoading: true,
+      unreadNotifications: 0,
       clientJsLoading: true,
       logoutRedirect: false,
       bannerHidden: false,
@@ -47,6 +43,8 @@ export default class OpenReviewApp extends App {
     this.loginUserWithToken = this.loginUserWithToken.bind(this)
     this.logoutUser = this.logoutUser.bind(this)
     this.updateUserName = this.updateUserName.bind(this)
+    this.setUnreadNotificationCount = this.setUnreadNotificationCount.bind(this)
+    this.decrementNotificationCount = this.decrementNotificationCount.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
     this.setEditBanner = this.setEditBanner.bind(this)
@@ -65,6 +63,8 @@ export default class OpenReviewApp extends App {
     // Need pass new accessToken to Webfield so legacy ajax functions work
     window.Webfield.setToken(userAccessToken)
     window.Webfield2.setToken(userAccessToken)
+
+    this.loadUnreadNotificationCount(authenticatedUser.profile.emails[0], userAccessToken)
 
     // Automatically refresh the accessToken 1m before it's set to expire.
     // Add randomness to prevent all open tabs from refreshing at the same time.
@@ -145,6 +145,31 @@ export default class OpenReviewApp extends App {
 
       return { user: null, accessToken: null }
     }
+  }
+
+  async loadUnreadNotificationCount(userEmail, accessToken) {
+    if (!userEmail || !accessToken) return
+
+    try {
+      const { messages, count } = await api.get(
+        '/messages',
+        { to: userEmail, viewed: false, transitiveMembers: true },
+        { accessToken }
+      )
+      this.setState({ unreadNotifications: count ?? 0 })
+    } catch (error) {
+      this.setState({ unreadNotifications: 0 })
+    }
+  }
+
+  setUnreadNotificationCount(count) {
+    this.setState({ unreadNotifications: count })
+  }
+
+  decrementNotificationCount() {
+    this.setState((state, props) => ({
+      unreadNotifications: state.unreadNotifications - 1,
+    }))
   }
 
   updateUserName(first, middle, last) {
@@ -292,6 +317,8 @@ export default class OpenReviewApp extends App {
       window.Webfield.setToken(token)
       window.Webfield2.setToken(token)
 
+      this.loadUnreadNotificationCount(user.profile.emails[0], token)
+
       // Automatically refresh the accessToken 1m before it's set to expire.
       // Add randomness to prevent all open tabs from refreshing at the same time.
       const timeToExpiration = expiration - Date.now() - 60000 - random(0, 300) * 100
@@ -376,6 +403,7 @@ export default class OpenReviewApp extends App {
     const { Component, pageProps } = this.props
     const userContext = {
       user: this.state.user,
+      unreadNotifications: this.state.unreadNotifications,
       userLoading: this.state.userLoading,
       accessToken: this.state.accessToken,
       loginUser: this.loginUser,
@@ -383,6 +411,8 @@ export default class OpenReviewApp extends App {
       logoutUser: this.logoutUser,
       logoutRedirect: this.state.logoutRedirect,
       updateUserName: this.updateUserName,
+      setUnreadNotificationCount: this.setUnreadNotificationCount,
+      decrementNotificationCount: this.decrementNotificationCount,
     }
     const appContext = {
       clientJsLoading: this.state.clientJsLoading,

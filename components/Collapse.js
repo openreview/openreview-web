@@ -5,7 +5,7 @@ import { useRef, useState } from 'react'
 const Collapse = ({ showLabel, hideLabel, onExpand, className, indent, children }) => {
   const [collapsed, setCollapsed] = useState(true)
   const collapseRef = useRef(null)
-  const id = nanoid()
+  const id = nanoid(6)
 
   return (
     <div className={`collapse-widget ${className ?? ''}`}>
