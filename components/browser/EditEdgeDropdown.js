@@ -5,7 +5,6 @@
 import { getTooltipTitle } from '../../lib/edge-utils'
 
 export default function EditEdgeDropdown(props) {
-  const defaultOption = props.default ? props.default : props.options[0]
   const showTrashButton = props.existingEdge?.writers?.length !== 0
 
   const handleHover = (target) => {
@@ -31,7 +30,9 @@ export default function EditEdgeDropdown(props) {
           aria-expanded="false"
         >
           <span className="edge-weight">
-            {props.selected ?? props.editEdgeTemplate?.defaultWeight}
+            {props.selected ??
+              props.editEdgeTemplate?.defaultWeight ??
+              props.editEdgeTemplate?.defaultLabel}
           </span>
           <span className="caret" />
         </button>
