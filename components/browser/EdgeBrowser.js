@@ -358,9 +358,6 @@ export default class EdgeBrowser extends React.Component {
     const invitations = {
       traverseInvitation: this.traverseInvitation,
       editInvitations: this.editInvitations,
-      ignoreHeadEditInvitations: this.editInvitations?.filter(
-        (p) => p?.query?.head === 'ignore'
-      ),
       browseInvitations: this.browseInvitations,
       ignoreHeadBrowseInvitations: this.browseInvitations?.filter(
         (p) => p?.query?.head === 'ignore'

@@ -17,13 +17,8 @@ import UserContext from '../UserContext'
 import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
 
 export default function NoteEntity(props) {
-  const {
-    editInvitations,
-    traverseInvitation,
-    availableSignaturesInvitationMap,
-    ignoreHeadEditInvitations,
-    version,
-  } = useContext(EdgeBrowserContext)
+  const { editInvitations, traverseInvitation, availableSignaturesInvitationMap, version } =
+    useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
   if (!props.note || !props.note.content) {
@@ -182,9 +177,7 @@ export default function NoteEntity(props) {
     const isEmergencyReviewerStage = editInvitations.some((p) => p.id.includes('/Assignment'))
     const isProposedAssignmentInvitation = editInvitation.id.includes('Proposed_Assignment')
     const isAssignmentInvitation = editInvitation.id.includes('/Assignment')
-    const isIgnoreHeadEditInvitation = ignoreHeadEditInvitations.find(
-      (p) => p.id === editInvitation.id
-    )
+    const isIgnoreHeadEditInvitation = editInvitation.query?.head === 'ignore'
     const isParentInvited = props.parentInfo.content?.isInvitedProfile
     // invited reviewers won't be in altGlobalEntityMap so check the props passed in
     const parentExistingLoad =
