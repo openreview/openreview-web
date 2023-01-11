@@ -19,6 +19,7 @@
 // Markdown Styles
 @mixin markdown-content-styles() {
   white-space: normal;
+  overflow-wrap: break-word;
 
   h1,
   h2,

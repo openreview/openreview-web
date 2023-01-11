@@ -7,7 +7,7 @@ import UserContext from './UserContext'
 import api from '../lib/api-client'
 
 const NavUserLinks = () => {
-  const { user, userLoading, logoutUser } = useContext(UserContext)
+  const { user, userLoading, logoutUser, unreadNotifications } = useContext(UserContext)
   const router = useRouter()
   const [loginPath, setLoginPath] = useState('/login')
 
@@ -59,6 +59,14 @@ const NavUserLinks = () => {
 
   return (
     <ul className="nav navbar-nav navbar-right">
+      <li className="hidden-sm">
+        <Link href="/notifications">
+          <a>
+            Notifications
+            {unreadNotifications > 0 && <span className="badge">{unreadNotifications}</span>}
+          </a>
+        </Link>
+      </li>
       <li className="hidden-sm">
         <Link href="/activity">
           <a>Activity</a>

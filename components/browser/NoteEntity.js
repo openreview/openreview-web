@@ -130,6 +130,7 @@ export default function NoteEntity(props) {
       ...(existingEdge ?? {
         ...editEdgeTemplate,
         defaultWeight: undefined,
+        defaultLabel: undefined,
         label: isInviteInvitation ? editInvitation.label?.default : editEdgeTemplate.label,
         head: maxLoadInvitationHead ?? editEdgeTemplate.head,
         readers: getValues(editInvitation.readers),
@@ -176,7 +177,7 @@ export default function NoteEntity(props) {
     const isEmergencyReviewerStage = editInvitations.some((p) => p.id.includes('/Assignment'))
     const isProposedAssignmentInvitation = editInvitation.id.includes('Proposed_Assignment')
     const isAssignmentInvitation = editInvitation.id.includes('/Assignment')
-    const isCustomLoadInviation = editInvitation.id.includes('Custom_Max_Papers')
+    const isIgnoreHeadEditInvitation = editInvitation.query?.head === 'ignore'
     const isParentInvited = props.parentInfo.content?.isInvitedProfile
     // invited reviewers won't be in altGlobalEntityMap so check the props passed in
     const parentExistingLoad =
@@ -191,8 +192,8 @@ export default function NoteEntity(props) {
     if (isParentInvited && !(isInviteInvitation || isProposedAssignmentInvitation)) return null
     // show existing invite edge for normal reviewers
     if (!isParentInvited && isInviteInvitation && !editEdge) return null
-    // head of custom load edge is reviewer group id and does not make sense for note
-    if (isCustomLoadInviation) return null
+    // head of head:ignore edge is group id and does not make sense for note
+    if (isIgnoreHeadEditInvitation) return null
     if (
       ((isReviewerAssignmentStage && (isProposedAssignmentInvitation || isInviteInvitation)) ||
         (isEmergencyReviewerStage && (isAssignmentInvitation || isInviteInvitation))) &&

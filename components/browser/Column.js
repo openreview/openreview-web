@@ -9,7 +9,7 @@ import EdgeBrowserContext from './EdgeBrowserContext'
 import EntityList from './EntityList'
 import { prettyId, prettyInvitationId, pluralizeString } from '../../lib/utils'
 import EditEdgeInviteEmail from './EditEdgeInviteEmail'
-import { transformName } from '../../lib/edge-utils'
+import { getInvitationPrefix, transformName } from '../../lib/edge-utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
 
@@ -101,8 +101,11 @@ export default function Column(props) {
       [type]: entityId,
       [otherType]: parentId,
       label: editInvitation.query.label,
-      ...(!isInviteInvitation && { weight }),
-      defaultWeight: editInvitation.weight.default,
+      ...(editInvitation.label && {
+        defaultLabel: editInvitation.label.default,
+      }),
+      ...(editInvitation.weight && { weight, defaultWeight: editInvitation.weight.default }),
+
       readers: editInvitation.readers, // reader/writer/nonreader/signature are completed in entity
       writers: editInvitation.writers,
       signatures: editInvitation.signatures,
@@ -121,7 +124,11 @@ export default function Column(props) {
 
     Object.keys(invQueryObj).forEach((key) => {
       if (['head', 'tail', 'sort'].includes(key) && invQueryObj[key] === 'ignore') {
-        delete apiQuery[key]
+        if (key === 'sort') {
+          delete apiQuery[key]
+        } else {
+          apiQuery[key] = getInvitationPrefix(invitationId)
+        }
       } else {
         apiQuery[key] = invQueryObj[key]
       }
