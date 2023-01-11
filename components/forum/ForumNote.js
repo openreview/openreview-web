@@ -8,6 +8,7 @@ import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
+import NoteEditor from '../NoteEditor'
 
 function ForumNote({ note, updateNote }) {
   const {
@@ -81,6 +82,7 @@ function ForumNote({ note, updateNote }) {
             }
           }}
         />
+        <NoteEditor note={activeNote} invitation={activeInvitation} />
       </div>
     )
   }

@@ -1,0 +1,35 @@
+@use '../utils/constants';
+
+.noteEditor {
+  display: flex;
+  flex-direction: column;
+
+  background: rgba(0, 0, 0, 0.04);
+  padding: 0.5rem;
+  margin-bottom: 1.875rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+}
+
+.title {
+  margin: 0;
+  font-weight: bold;
+  font-size: 1.375rem;
+  line-height: normal;
+}
+
+.requiredField {
+  margin-top: 0.25rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.75rem;
+  color: constants.$orRed;
+}
+
+.responseButtons {
+  display: flex;
+  margin-top: 1rem;
+}
+
+.submitButton {
+  margin-right: 0.25rem;
+}

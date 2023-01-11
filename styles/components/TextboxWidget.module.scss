@@ -1,0 +1,10 @@
+@use '../utils/constants';
+
+.textboxContainer {
+  max-width: 80%;
+}
+
+.textboxInput {
+  white-space: pre-wrap;
+  font-weight: 400;
+}

@@ -5,7 +5,15 @@ import EditorComponentContext from '../EditorComponentContext'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
 import WebFieldContext from '../WebFieldContext'
 
-const CharCounter = ({ regex, minLengthInvitation=0, maxLengthInvitation=0, contentLength, isV2Invitation }) => {
+import styles from '../../styles/components/Textarea.module.scss'
+
+const CharCounter = ({
+  regex,
+  minLengthInvitation = 0,
+  maxLengthInvitation = 0,
+  contentLength,
+  isV2Invitation,
+}) => {
   let minLength = minLengthInvitation
   let maxLength = maxLengthInvitation
   if (!isV2Invitation) {
@@ -158,6 +166,7 @@ export const TextAreaV2 = () => {
   const required = !field[fieldName].value?.param?.optional
   const scroll = field[fieldName].value?.param?.scroll
   const enableMarkdown = field[fieldName].value?.param?.markdown
+  const hidden = field[fieldName].value?.param?.hidden
 
   const [showCharCounter, setShowCharCounter] = useState(false)
 
@@ -172,7 +181,9 @@ export const TextAreaV2 = () => {
   }, [value])
 
   return (
-    <div className="textarea">
+    <div
+      className={`${isWebfield ? 'textarea' : `${styles.textarea}`}${hidden ? ' hidden' : ''}`}
+    >
       <div className="title">
         {required && <span className="required_field">*</span>}
         <span className="line_heading">{prettyField(fieldName)}</span>

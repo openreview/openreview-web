@@ -3,6 +3,7 @@ import NoteEditorForm from '../NoteEditorForm'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
+import NoteEditor from '../NoteEditor'
 
 export default function SubmissionButton({
   invitationId,
@@ -55,19 +56,22 @@ export default function SubmissionButton({
         </button>
       </div>
       {noteEditorOpen && (
-        <NoteEditorForm
-          invitation={invitation}
-          onNoteCreated={(newNote) => {
-            toggleSubmissionForm()
-            onNoteCreated(newNote)
-          }}
-          onNoteCancelled={toggleSubmissionForm}
-          onError={(isLoadingError) => {
-            if (isLoadingError) {
+        <>
+          <NoteEditorForm
+            invitation={invitation}
+            onNoteCreated={(newNote) => {
               toggleSubmissionForm()
-            }
-          }}
-        />
+              onNoteCreated(newNote)
+            }}
+            onNoteCancelled={toggleSubmissionForm}
+            onError={(isLoadingError) => {
+              if (isLoadingError) {
+                toggleSubmissionForm()
+              }
+            }}
+          />
+          <NoteEditor invitation={invitation} closeNoteEditor={toggleSubmissionForm} />
+        </>
       )}
     </>
   )
