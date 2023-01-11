@@ -30,8 +30,11 @@ const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreE
     const getAllSignatures = async () => {
       const result = await api.get(
         '/groups',
-        { prefix: invitation.edit.signatures.param.regex, signatory: user.id },
-        { accessToken, version: 2 }
+        {
+          regex: invitation.edit.signatures.param.regex,
+          signatory: user.id,
+        },
+        { accessToken }
       )
       setSignatureDropdownOptions(
         result.groups.flatMap((p, i) => {
