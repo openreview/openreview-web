@@ -660,17 +660,19 @@ const ReviewerConsole = ({ appContext }) => {
                     ))}
                   </Table>
                 </div>
-                {reviewerConsoleData.notes?.length > 0 && (
+
+                <div>
                   <DownloadPDFButton
-                    records={reviewerConsoleData.notes?.map((p) => ({ note: p }))}
+                    records={reviewerConsoleData.notes.map((p) => ({ note: p }))}
                     fileName={`${venueId}_pdfs.zip`}
                     extraClasses="reviewer-download-pdf"
                     text="Download all PDFs"
                   />
-                )}
+                </div>
               </>
             )}
           </TabPanel>
+
           <TabPanel id="reviewer-tasks">
             {showTasks && (
               <ReviewerConsoleTasks
