@@ -26,6 +26,7 @@ const NoteSummary = ({
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
   const authorsValue = getAuthorsValue(note, isV2Note)
   const authorIdsValue = isV2Note ? note.content?.authorids?.value : note.content?.authorids
+  const maxAuthors = 15
 
   const authorNames = authorsValue.map((authorName, i) => {
     const authorId = authorIdsValue[i]
@@ -87,8 +88,8 @@ const NoteSummary = ({
         <div className="note-authors">
           <ExpandableList
             items={authorNames}
-            maxItems={15}
-            expandLabel={`+ ${authorNames.length - 15} more authors`}
+            maxItems={maxAuthors}
+            expandLabel={`+ ${authorNames.length - maxAuthors} more authors`}
             collapseLabel="Hide authors"
           />
         </div>

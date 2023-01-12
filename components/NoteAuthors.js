@@ -7,6 +7,8 @@ import ExpandableList from './ExpandableList'
 import Icon from './Icon'
 import { prettyId } from '../lib/utils'
 
+const maxAuthorsToShow = 20
+
 const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
   // Use original note authors if available
   let displayAuthors
@@ -78,8 +80,8 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
   return (
     <ExpandableList
       items={authorsLinks}
-      maxItems={20}
-      expandLabel={`et al. (${authorsLinks.length - 20} additional authors not shown)`}
+      maxItems={maxAuthorsToShow}
+      expandLabel={`et al. (${authorsLinks.length - maxAuthorsToShow} additional authors not shown)`}
       collapseLabel="(hide authors)"
     >
       {showPrivateLabel && (
@@ -153,8 +155,8 @@ export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) =
   return (
     <ExpandableList
       items={authorsLinks}
-      maxItems={20}
-      expandLabel={`et al. (${authorsLinks.length - 20} additional authors not shown)`}
+      maxItems={maxAuthorsToShow}
+      expandLabel={`et al. (${authorsLinks.length - maxAuthorsToShow} additional authors not shown)`}
       collapseLabel="(hide authors)"
     >
       {showPrivateLabel && (
