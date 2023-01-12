@@ -4,6 +4,7 @@ import Collapse from '../Collapse'
 import Icon from '../Icon'
 import NoteContent, { NoteContentV2 } from '../NoteContent'
 import NoteReaders from '../NoteReaders'
+import ExpandableList from '../ExpandableList'
 
 const getAuthorsValue = (note, isV2Note) => {
   if (isV2Note) return note.content?.authors?.value
@@ -25,6 +26,34 @@ const NoteSummary = ({
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
   const authorsValue = getAuthorsValue(note, isV2Note)
   const authorIdsValue = isV2Note ? note.content?.authorids?.value : note.content?.authorids
+
+  const authorNames = authorsValue.map((authorName, i) => {
+    const authorId = authorIdsValue[i]
+    const authorProfile = profileMap?.[authorIdsValue[i]]
+    const errorTooltip = authorProfile
+      ? 'Profile not yet activated'
+      : 'Profile not yet created or email not confirmed'
+
+    return (
+      <span key={authorId}>
+        {authorName}
+        {profileMap &&
+          (authorProfile?.active ? (
+            <Icon
+              name="ok-sign"
+              tooltip="Profile is active and email confirmed"
+              extraClasses="pl-1 text-success"
+            />
+          ) : (
+            <Icon
+              name="remove-sign"
+              tooltip={errorTooltip}
+              extraClasses="pl-1 text-danger"
+            />
+          ))}
+      </span>
+    )
+  })
 
   return (
     <div className="note">
@@ -56,34 +85,12 @@ const NoteSummary = ({
 
       {authorsValue && (
         <div className="note-authors">
-          {authorsValue
-            .map((authorName, i) => {
-              const authorId = authorIdsValue[i]
-              const authorProfile = profileMap?.[authorIdsValue[i]]
-              const errorTooltip = authorProfile
-                ? 'Profile not yet activated'
-                : 'Profile not yet created or email not confirmed'
-              return (
-                <span key={authorId}>
-                  {authorName}
-                  {profileMap &&
-                    (authorProfile?.active ? (
-                      <Icon
-                        name="ok-sign"
-                        tooltip="Profile is active and email confirmed"
-                        extraClasses="pl-1 text-success"
-                      />
-                    ) : (
-                      <Icon
-                        name="remove-sign"
-                        tooltip={errorTooltip}
-                        extraClasses="pl-1 text-danger"
-                      />
-                    ))}
-                </span>
-              )
-            })
-            .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+          <ExpandableList
+            items={authorNames}
+            maxItems={15}
+            expandLabel={`+ ${authorNames.length - 15} more authors`}
+            collapseLabel="Hide authors"
+          />
         </div>
       )}
 
