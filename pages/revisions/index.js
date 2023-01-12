@@ -21,7 +21,7 @@ const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreE
   const [signature, setSignature] = useState(null)
   const [signatureDropdownOptions, setSignatureDropdownOptions] = useState([])
   const { edit, invitation } = editInfo ?? {}
-  const isSignatureRequired = !invitation?.edit?.signatures?.['values-regex']?.value?.optional
+  const isSignatureRequired = !invitation?.edit?.signatures?.param?.optional
   const showSignatureDropdown = signatureDropdownOptions.length > 0
 
   useEffect(() => {
@@ -30,7 +30,10 @@ const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreE
     const getAllSignatures = async () => {
       const result = await api.get(
         '/groups',
-        { regex: invitation.edit.signatures['values-regex'], signatory: user.id },
+        {
+          regex: invitation.edit.signatures.param.regex,
+          signatory: user.id,
+        },
         { accessToken }
       )
       setSignatureDropdownOptions(
@@ -46,8 +49,8 @@ const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreE
       )
     }
 
-    if (invitation.edit?.signatures?.['values-regex']) {
-      if (invitation.edit.signatures['values-regex'] === '.~') {
+    if (invitation.edit?.signatures?.param?.regex) {
+      if (invitation.edit.signatures.param.regex === '~.*') {
         setSignature(user.profile.preferredId ?? user.profile.id)
         setSignatureDropdownOptions([])
       } else {
@@ -71,6 +74,7 @@ const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreE
       primaryButtonText={`${edit.ddate ? 'Restore' : 'Delete'}`}
       primaryButtonDisabled={showSignatureDropdown && !signature}
       onPrimaryButtonClick={() => {
+        $('body').removeClass('modal-open')
         deleteRestoreEdit(edit, invitation, signature)
       }}
     >
@@ -219,16 +223,17 @@ const RevisionsList = ({
       return
     }
     const editToPost = {}
-    Object.keys(invitation.edit).forEach((p) => {
-      editToPost[p] = edit[p]
+    Object.entries(invitation.edit).forEach(([key, value]) => {
+      if (!value.param) return
+      editToPost[key] = edit[key]
     })
     editToPost.id = edit.id
     editToPost.ddate = edit.ddate ? { delete: true } : Date.now()
     editToPost.invitation = edit.invitation
     if (signature) editToPost.signatures = [signature]
     const editNote = {}
-    Object.keys(invitation.edit.note).forEach((p) => {
-      editNote[p] = edit.note[p]
+    Object.entries(invitation.edit.note).forEach(([key, value]) => {
+      if (key === 'content' || value?.param) editNote[key] = edit.note[key]
     })
     editToPost.note = editNote
     await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
