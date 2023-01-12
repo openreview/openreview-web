@@ -233,8 +233,7 @@ const RevisionsList = ({
     if (signature) editToPost.signatures = [signature]
     const editNote = {}
     Object.entries(invitation.edit.note).forEach(([key, value]) => {
-      if (!value?.param && key !== 'content') return
-      editNote[key] = edit.note[key]
+      if (key === 'content' || value?.param) editNote[key] = edit.note[key]
     })
     editToPost.note = editNote
     await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
