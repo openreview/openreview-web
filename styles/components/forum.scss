@@ -131,6 +131,10 @@ main.forum {
         z-index: 10;
       }
     }
+    .readers-filter-container .replies-filter {
+      display: inline-block;
+      margin-right: .5rem;
+    }
     .invitations-filter {
       width: 250px;
     }

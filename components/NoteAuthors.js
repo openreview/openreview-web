@@ -3,8 +3,11 @@ import uniqBy from 'lodash/uniqBy'
 import isEqual from 'lodash/isEqual'
 import zip from 'lodash/zip'
 import Link from 'next/link'
-import { prettyId } from '../lib/utils'
+import ExpandableList from './ExpandableList'
 import Icon from './Icon'
+import { prettyId } from '../lib/utils'
+
+const maxAuthorsToShow = 20
 
 const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
   // Use original note authors if available
@@ -33,55 +36,61 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
   // Make sure authors aren't repeated
   authorsList = uniqBy(authorsList, (authorInfo) => `${authorInfo[0]} ${authorInfo[1]}`)
 
-  const authorsLinks = authorsList
-    .map(([author, authorId]) => {
-      if (!author) return null
-      if (!authorId) {
-        return <span key={author}>{author}</span>
-      }
+  const authorsLinks = authorsList.map(([author, authorId]) => {
+    if (!author) return null
+    if (!authorId) {
+      return <span key={author}>{author}</span>
+    }
 
-      let param
-      if (authorId.indexOf('~') === 0) {
-        param = 'id'
-      } else if (authorId.includes('@')) {
-        param = 'email'
-      } else if (authorId.startsWith('https://dblp.org')) {
-        return (
-          <a
-            key={`${author} ${authorId}`}
-            href={authorId}
-            title={authorId}
-            data-toggle="tooltip"
-            data-placement="top"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {author}
-          </a>
-        )
-      } else {
-        return <span key={author}>{author}</span>
-      }
-
+    let param
+    if (authorId.indexOf('~') === 0) {
+      param = 'id'
+    } else if (authorId.includes('@')) {
+      param = 'email'
+    } else if (authorId.startsWith('https://dblp.org')) {
       return (
-        <Link
+        <a
           key={`${author} ${authorId}`}
-          href={`/profile?${param}=${encodeURIComponent(authorId)}`}
+          href={authorId}
+          title={authorId}
+          data-toggle="tooltip"
+          data-placement="top"
+          target="_blank"
+          rel="noopener noreferrer"
         >
-          <a title={authorId} data-toggle="tooltip" data-placement="top">
-            {author}
-          </a>
-        </Link>
+          {author}
+        </a>
       )
-    })
-    .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)
+    } else {
+      return <span key={author}>{author}</span>
+    }
 
-  const privateLabel = (
-    <span key="private-author-label" className="private-author-label">
-      (privately revealed to you)
-    </span>
+    return (
+      <Link
+        key={`${author} ${authorId}`}
+        href={`/profile?${param}=${encodeURIComponent(authorId)}`}
+      >
+        <a title={authorId} data-toggle="tooltip" data-placement="top">
+          {author}
+        </a>
+      </Link>
+    )
+  })
+
+  return (
+    <ExpandableList
+      items={authorsLinks}
+      maxItems={maxAuthorsToShow}
+      expandLabel={`et al. (${authorsLinks.length - maxAuthorsToShow} additional authors not shown)`}
+      collapseLabel="(hide authors)"
+    >
+      {showPrivateLabel && (
+        <span key="private-author-label" className="private-author-label">
+          (privately revealed to you)
+        </span>
+      )}
+    </ExpandableList>
   )
-  return showPrivateLabel ? authorsLinks.concat([' ', privateLabel]) : authorsLinks
 }
 
 export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) => {
@@ -102,60 +111,66 @@ export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) =
   // Make sure authors aren't repeated
   authorsList = uniqBy(authorsList, (authorInfo) => `${authorInfo[0]} ${authorInfo[1]}`)
 
-  const authorsLinks = authorsList
-    .map(([author, authorId]) => {
-      if (!author) return null
-      if (!authorId) {
-        return <span key={author}>{author}</span>
-      }
+  const authorsLinks = authorsList.map(([author, authorId]) => {
+    if (!author) return null
+    if (!authorId) {
+      return <span key={author}>{author}</span>
+    }
 
-      let param
-      if (authorId.indexOf('~') === 0) {
-        param = 'id'
-      } else if (authorId.includes('@')) {
-        param = 'email'
-      } else if (authorId.startsWith('https://dblp.org')) {
-        return (
-          <a
-            key={`${author} ${authorId}`}
-            href={authorId}
-            title={authorId}
-            data-toggle="tooltip"
-            data-placement="top"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {author}
-          </a>
-        )
-      } else {
-        return <span key={author}>{author}</span>
-      }
-
+    let param
+    if (authorId.indexOf('~') === 0) {
+      param = 'id'
+    } else if (authorId.includes('@')) {
+      param = 'email'
+    } else if (authorId.startsWith('https://dblp.org')) {
       return (
-        <Link
+        <a
           key={`${author} ${authorId}`}
-          href={`/profile?${param}=${encodeURIComponent(authorId)}`}
+          href={authorId}
+          title={authorId}
+          data-toggle="tooltip"
+          data-placement="top"
+          target="_blank"
+          rel="noopener noreferrer"
         >
-          <a title={authorId} data-toggle="tooltip" data-placement="top">
-            {author}
-          </a>
-        </Link>
+          {author}
+        </a>
       )
-    })
-    .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)
+    } else {
+      return <span key={author}>{author}</span>
+    }
 
-  const privateLabel = (
-    <Icon
-      key="private-label"
-      name="eye-open"
-      extraClasses="private-contents-icon"
-      tooltip={`Identities privately revealed to ${authorIds?.readers
-        ?.map((p) => prettyId(p))
-        .join(', ')}`}
-    />
+    return (
+      <Link
+        key={`${author} ${authorId}`}
+        href={`/profile?${param}=${encodeURIComponent(authorId)}`}
+      >
+        <a title={authorId} data-toggle="tooltip" data-placement="top">
+          {author}
+        </a>
+      </Link>
+    )
+  })
+
+  return (
+    <ExpandableList
+      items={authorsLinks}
+      maxItems={maxAuthorsToShow}
+      expandLabel={`et al. (${authorsLinks.length - maxAuthorsToShow} additional authors not shown)`}
+      collapseLabel="(hide authors)"
+    >
+      {showPrivateLabel && (
+        <Icon
+          key="private-label"
+          name="eye-open"
+          extraClasses="private-contents-icon"
+          tooltip={`Identities privately revealed to ${authorIds?.readers
+            ?.map((p) => prettyId(p))
+            .join(', ')}`}
+        />
+      )}
+    </ExpandableList>
   )
-  return showPrivateLabel ? authorsLinks.concat([' ', privateLabel]) : authorsLinks
 }
 
 export default NoteAuthors
