@@ -51,7 +51,7 @@ export default function Forum({
     excludedReaders: null,
   })
   const [activeInvitation, setActiveInvitation] = useState(null)
-  const [maxLength, setMaxLength] = useState(250)
+  const [maxLength, setMaxLength] = useState(10)
   const [scrolled, setScrolled] = useState(false)
   const router = useRouter()
   const query = useQuery()
@@ -62,6 +62,11 @@ export default function Forum({
 
   const numRepliesHidden = displayOptionsMap
     ? Object.values(displayOptionsMap).reduce((count, opt) => count + (opt.hidden ? 1 : 0), 0)
+    : 0
+  const numTopLevelRepliesVisible = repliesLoaded
+    ? orderedReplies.filter(
+        (note) => !displayOptionsMap[note.id]?.hidden
+      ).length
     : 0
 
   // API helper functions
@@ -691,22 +696,24 @@ export default function Forum({
               }}
             >
               {repliesLoaded ? (
-                orderedReplies.slice(0, maxLength).map((reply) => (
-                  <ForumReply
-                    key={reply.id}
-                    note={replyNoteMap[reply.id]}
-                    replies={reply.replies}
-                    replyDepth={1}
-                    parentId={id}
-                    updateNote={updateNote}
-                  />
-                ))
+                orderedReplies
+                  .slice(0, maxLength)
+                  .map((reply) => (
+                    <ForumReply
+                      key={reply.id}
+                      note={replyNoteMap[reply.id]}
+                      replies={reply.replies}
+                      replyDepth={1}
+                      parentId={id}
+                      updateNote={updateNote}
+                    />
+                  ))
               ) : (
                 <LoadingSpinner inline />
               )}
             </ForumReplyContext.Provider>
 
-            {repliesLoaded && maxLength < orderedReplies.length && (
+            {repliesLoaded && maxLength < numTopLevelRepliesVisible && (
               <div className="text-center">
                 <button
                   type="button"
