@@ -238,6 +238,9 @@ main.legacy-forum {
       &.no-margin {
         margin-right: 4px;
       }
+      a.show-all {
+        color: constants.$subtleGray;
+      }
     }
     h3 {
       margin-top: 0;

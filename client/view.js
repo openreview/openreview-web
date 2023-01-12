@@ -2123,77 +2123,95 @@ module.exports = (function () {
 
   var getAuthorText = function (note) {
     var notePastDue = note.ddate && note.ddate < Date.now()
-    var authorText
     if (notePastDue) {
       // Note trashed
-      authorText = '[Deleted]'
-    } else if (_.isArray(note.content.authors) && note.content.authors.length) {
-      // Probably a forum-level note (because it has authors)
-      if (_.isArray(note.content.authorids) && note.content.authorids.length) {
-        authorText = note.content.authors
-          .map(function (a, i) {
-            var aId = note.content.authorids[i]
-            if (!aId) {
-              return a
-            }
+      return $('<span>', { class: 'signatures' }).text('[Deleted]')
+    }
 
-            if (aId.indexOf('~') === 0) {
-              return (
-                '<a href="/profile?id=' +
-                encodeURIComponent(aId) +
-                '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="' +
-                aId +
-                '">' +
-                a +
-                '</a>'
-              )
-            } else if (aId.indexOf('@') !== -1) {
-              return (
-                '<a href="/profile?email=' +
-                encodeURIComponent(aId) +
-                '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="' +
-                aId +
-                '">' +
-                a +
-                '</a>'
-              )
-            } else if (aId.indexOf('http') === 0) {
-              return (
-                '<a href="' +
-                aId +
-                '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="' +
-                aId +
-                '">' +
-                a +
-                '</a>'
-              )
-            } else {
-              return a
-            }
-          })
-          .join(', ')
-      } else {
-        authorText = note.content.authors.join(', ')
-      }
-    } else {
-      // Note with no authors, just signatures, such as a forum comment
-      authorText = note.signatures
-        .map(function (signature) {
-          if (signature.indexOf('~') === 0) {
+    var authorList
+    if (note.content.authors?.length > 0) {
+      // Probably a forum-level note (because it has authors)
+      if (note.content.authorids?.length > 0) {
+        authorList = note.content.authors.map(function (a, i) {
+          var aId = note.content.authorids[i]
+          if (!aId) {
+            return a
+          }
+
+          if (aId.indexOf('~') === 0) {
             return (
               '<a href="/profile?id=' +
-              encodeURIComponent(signature) +
-              '" class="profile-link">' +
-              prettyId(signature) +
+              encodeURIComponent(aId) +
+              '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="' +
+              aId +
+              '">' +
+              a +
+              '</a>'
+            )
+          } else if (aId.indexOf('@') !== -1) {
+            return (
+              '<a href="/profile?email=' +
+              encodeURIComponent(aId) +
+              '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="' +
+              aId +
+              '">' +
+              a +
+              '</a>'
+            )
+          } else if (aId.indexOf('http') === 0) {
+            return (
+              '<a href="' +
+              aId +
+              '" class="profile-link" data-toggle="tooltip" data-placement="bottom" title="' +
+              aId +
+              '">' +
+              a +
               '</a>'
             )
           } else {
-            return prettyId(signature)
+            return a
           }
         })
-        .join(', ')
+      } else {
+        authorList = note.content.authors
+      }
+    } else {
+      // Note with no authors, just signatures, such as a forum comment
+      authorList = note.signatures.map(function (signature) {
+        if (signature.indexOf('~') === 0) {
+          return (
+            '<a href="/profile?id=' +
+            encodeURIComponent(signature) +
+            '" class="profile-link">' +
+            prettyId(signature) +
+            '</a>'
+          )
+        } else {
+          return prettyId(signature)
+        }
+      })
     }
-    return authorText
+
+    var maxAuthorsToShow = 20
+    if (authorList.length <= maxAuthorsToShow) {
+      return $('<span>', { class: 'signatures' }).html(authorList.join(', '))
+    }
+
+    var showAllLinkText = `et al. (${authorList.length - maxAuthorsToShow} additional authors not shown)`
+    var hideLinkText = '(hide authors)'
+    return $('<span>', { class: 'signatures' }).append(
+      authorList.slice(0, maxAuthorsToShow).join(', '),
+      $('<span>', { class: 'more-authors', style: 'display: none;' })
+        .html(', ' + authorList.slice(maxAuthorsToShow).join(', ')),
+      ' ',
+      $('<a>', { class: 'show-all', href: '#', role: 'button' })
+        .text(showAllLinkText)
+        .on('click', function (e) {
+          $(this).text($(this).text() === hideLinkText ? showAllLinkText : hideLinkText)
+          $(this).prev('span').toggle()
+          return false
+        })
+    )
   }
 
   var buildContent = function (note, params, additionalOmittedFields) {
@@ -2298,12 +2316,12 @@ module.exports = (function () {
       originalNote.content.authorids &&
       !_.isEqual(note.content.authorids, originalNote.content.authorids)
     ) {
-      var origAuthorText = getAuthorText(originalNote)
+      var $origAuthorText = getAuthorText(originalNote)
       $originalNote.append(
         // Add authors
         $('<div>', { class: 'meta_row note_contents' }).append(
           $('<span>', { class: 'note_content_field' }).html('Authors:'),
-          $('<span>', { class: 'signatures' }).html(origAuthorText)
+          $origAuthorText
         )
       )
     }
@@ -2543,9 +2561,7 @@ module.exports = (function () {
       )
     }
 
-    var authorText = getAuthorText(note)
-
-    var $contentSignatures = $('<span>', { class: 'signatures' }).html(authorText)
+    var $contentSignatures = getAuthorText(note)
     var $contentAuthors = $('<div>', { class: 'meta_row' }).append($contentSignatures)
 
     var trueAuthorText =
@@ -2556,7 +2572,7 @@ module.exports = (function () {
           prettyId(note.tauthor) +
           '</a>'
         : prettyId(note.tauthor)
-    if (!note.content.authors && trueAuthorText && trueAuthorText !== authorText) {
+    if (!note.content.authors && trueAuthorText && trueAuthorText !== $contentSignatures.html()) {
       $contentAuthors.append(
         '<span class="author no-margin">' + trueAuthorText + '</span>',
         '<span class="private-author-label">(privately revealed to you)</span>'
