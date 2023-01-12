@@ -51,7 +51,7 @@ export default function Forum({
     excludedReaders: null,
   })
   const [activeInvitation, setActiveInvitation] = useState(null)
-  const [maxLength, setMaxLength] = useState(10)
+  const [maxLength, setMaxLength] = useState(250)
   const [scrolled, setScrolled] = useState(false)
   const router = useRouter()
   const query = useQuery()
@@ -64,9 +64,7 @@ export default function Forum({
     ? Object.values(displayOptionsMap).reduce((count, opt) => count + (opt.hidden ? 1 : 0), 0)
     : 0
   const numTopLevelRepliesVisible = repliesLoaded
-    ? orderedReplies.filter(
-        (note) => !displayOptionsMap[note.id]?.hidden
-      ).length
+    ? orderedReplies.filter((note) => !displayOptionsMap[note.id]?.hidden).length
     : 0
 
   // API helper functions
