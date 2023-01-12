@@ -11,7 +11,7 @@
     </div>
   {{/if}}
   {{#if content.authors}}
-    <div class="note-authors">{{join content.authors}}</div>
+    <div class="note-authors">{{noteAuthors content signatures details}}</div>
   {{/if}}
   {{#if content.authorDomains}}
     <div class="note-authors">Conflict Domains: {{join content.authorDomains}}</div>

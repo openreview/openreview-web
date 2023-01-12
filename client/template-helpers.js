@@ -204,10 +204,13 @@ Handlebars.registerHelper('noteAuthors', function (content, signatures, details)
 
   var authors = content && content.authors
   var authorids = content && content.authorids
+  var numAdditionalAuthors
 
   if (_.isArray(authors) && authors.length) {
+    numAdditionalAuthors = authors.length - 20
     if (_.isArray(authorids) && authorids.length) {
       html = authors
+        .slice(0, 20)
         .map(function (author, i) {
           var authorId
 
@@ -250,13 +253,16 @@ Handlebars.registerHelper('noteAuthors', function (content, signatures, details)
         .join(', ')
     } else {
       html = authors
+        .slice(0, 20)
         .map(function (author, i) {
           return Handlebars.Utils.escapeExpression(author)
         })
         .join(', ')
     }
   } else if (_.isArray(signatures) && signatures.length) {
+    numAdditionalAuthors = signatures.length - 20
     html = signatures
+      .slice(0, 20)
       .map(function (authorId, i) {
         var author = view.prettyId(authorId)
         if (authorId && authorId.indexOf('~') === 0) {
@@ -284,6 +290,10 @@ Handlebars.registerHelper('noteAuthors', function (content, signatures, details)
         }
       })
       .join(', ')
+  }
+
+  if (numAdditionalAuthors > 0) {
+    html += ', <span class="more-authors">+ ' + numAdditionalAuthors + ' more authors</span>'
   }
 
   if (privateLabel) {
@@ -308,10 +318,13 @@ Handlebars.registerHelper('noteAuthorsV2', function (readers, content, signature
 
   var authors = content?.authors?.value
   var authorids = content?.authorids?.value
+  var numAdditionalAuthors
 
   if (_.isArray(authors) && authors.length) {
+    numAdditionalAuthors = authors.length - 20
     if (_.isArray(authorids) && authorids.length) {
       html = authors
+        .slice(0, 20)
         .map(function (author, i) {
           var authorId
 
@@ -354,13 +367,16 @@ Handlebars.registerHelper('noteAuthorsV2', function (readers, content, signature
         .join(', ')
     } else {
       html = authors
+        .slice(0, 20)
         .map(function (author, i) {
           return Handlebars.Utils.escapeExpression(author)
         })
         .join(', ')
     }
   } else if (_.isArray(signatures) && signatures.length) {
+    numAdditionalAuthors = signatures.length - 20
     html = signatures
+      .slice(0, 20)
       .map(function (authorId, i) {
         var author = view.prettyId(authorId)
         if (authorId && authorId.indexOf('~') === 0) {
@@ -388,6 +404,10 @@ Handlebars.registerHelper('noteAuthorsV2', function (readers, content, signature
         }
       })
       .join(', ')
+  }
+
+  if (numAdditionalAuthors > 0) {
+    html += ', <span class="more-authors">+ ' + numAdditionalAuthors + ' more authors</span>'
   }
 
   if (privateLabel) {
