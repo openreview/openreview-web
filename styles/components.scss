@@ -221,6 +221,9 @@ table.table-minimal {
       }
     }
 
+    .more-authors {
+      color: constants.$subtleGray;
+    }
     .private-author-label {
       color: constants.$subtleGray;
       font-style: italic;
