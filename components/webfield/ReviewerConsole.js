@@ -637,39 +637,28 @@ const ReviewerConsole = ({ appContext }) => {
                 process is complete.
               </p>
             ) : (
-              <>
-                <div className="table-container">
-                  <Table
-                    className="console-table table-striped"
-                    headings={[
-                      { id: 'number', content: '#', width: '55px' },
-                      { id: 'summary', content: 'Paper Summary', width: '46%' },
-                      { id: 'ratings', content: 'Your Ratings', width: 'auto' },
-                    ]}
-                  >
-                    {reviewerConsoleData.notes?.map((note) => (
-                      <AssignedPaperRow
-                        key={note.id}
-                        note={note}
-                        reviewerConsoleData={reviewerConsoleData}
-                        paperRankingId={paperRankingId}
-                        setReviewerConsoleData={setReviewerConsoleData}
-                        enablePaperRanking={enablePaperRanking}
-                        setEnablePaperRanking={setEnablePaperRanking}
-                      />
-                    ))}
-                  </Table>
-                </div>
-
-                <div>
-                  <DownloadPDFButton
-                    records={reviewerConsoleData.notes.map((p) => ({ note: p }))}
-                    fileName={`${venueId}_pdfs.zip`}
-                    extraClasses="reviewer-download-pdf"
-                    text="Download all PDFs"
-                  />
-                </div>
-              </>
+              <div className="table-container">
+                <Table
+                  className="console-table table-striped"
+                  headings={[
+                    { id: 'number', content: '#', width: '55px' },
+                    { id: 'summary', content: 'Paper Summary', width: '46%' },
+                    { id: 'ratings', content: 'Your Ratings', width: 'auto' },
+                  ]}
+                >
+                  {reviewerConsoleData.notes?.map((note) => (
+                    <AssignedPaperRow
+                      key={note.id}
+                      note={note}
+                      reviewerConsoleData={reviewerConsoleData}
+                      paperRankingId={paperRankingId}
+                      setReviewerConsoleData={setReviewerConsoleData}
+                      enablePaperRanking={enablePaperRanking}
+                      setEnablePaperRanking={setEnablePaperRanking}
+                    />
+                  ))}
+                </Table>
+              </div>
             )}
           </TabPanel>
 
