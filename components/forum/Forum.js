@@ -63,9 +63,16 @@ export default function Forum({
   const numRepliesHidden = displayOptionsMap
     ? Object.values(displayOptionsMap).reduce((count, opt) => count + (opt.hidden ? 1 : 0), 0)
     : 0
-  const numTopLevelRepliesVisible = repliesLoaded
-    ? orderedReplies.filter((note) => !displayOptionsMap[note.id]?.hidden).length
-    : 0
+  let numTopLevelRepliesVisible = 0
+  let maxVisibleIndex
+  if (repliesLoaded) {
+    const visibleReplies = orderedReplies.filter((note) => !displayOptionsMap[note.id]?.hidden)
+    numTopLevelRepliesVisible = visibleReplies.length
+    if (visibleReplies.length > maxLength) {
+      maxVisibleIndex =
+        orderedReplies.findIndex((n) => n.id === visibleReplies[maxLength - 1].id) + 1
+    }
+  }
 
   // API helper functions
   const getInvitationsByReplyForum = (forumId, includeTags) => {
@@ -695,7 +702,7 @@ export default function Forum({
             >
               {repliesLoaded ? (
                 orderedReplies
-                  .slice(0, maxLength)
+                  .slice(0, maxVisibleIndex)
                   .map((reply) => (
                     <ForumReply
                       key={reply.id}
