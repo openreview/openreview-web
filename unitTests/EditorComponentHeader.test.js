@@ -4,7 +4,7 @@ import { screen } from '@testing-library/react'
 // import { prettyDOM } from '@testing-library/dom'
 import '@testing-library/jest-dom'
 
-describe.skip('EditorComponentHeader', () => {
+describe('EditorComponentHeader', () => {
   test('pretty display mandatory field name of single word', () => {
     const providerProps = {
       value: {

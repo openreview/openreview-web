@@ -18,9 +18,7 @@ const EditorComponentHeader = ({ inline = false, fieldNameOverwrite, children })
       {description && (
         <div className={styles.description}>
           {scroll ? (
-            <textarea className={styles.scrollDescription} readOnly>
-              {description}
-            </textarea>
+            <textarea className={styles.scrollDescription} value={description} readOnly />
           ) : (
             <div className="disable-tex-rendering">{description}</div>
           )}
