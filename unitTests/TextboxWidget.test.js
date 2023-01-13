@@ -1,17 +1,19 @@
 import TextboxWidget from '../components/EditorComponents/TextboxWidget'
-import { render, screen } from '@testing-library/react'
-import EditorComponentContext from '../components/EditorComponentContext'
+import { screen } from '@testing-library/react'
+import { prettyDOM } from '@testing-library/dom'
+import { renderWithEditorComponentContext } from './util'
 
 describe('TextboxWidget', () => {
-  test.skip('render header text', () => {
-    render(
-      <EditorComponentContext.Provider
-        value={{
-          field: { reader: '' },
-        }}
-      >
-        <TextboxWidget />
-      </EditorComponentContext.Provider>
-    )
+  test('render header text', () => {
+    const providerProps = {
+      value: {
+        field: {
+          textbox_widget: {},
+        },
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+    console.log(prettyDOM())
+    expect(screen.getByText('* Textbox Widget'))
   })
 })
