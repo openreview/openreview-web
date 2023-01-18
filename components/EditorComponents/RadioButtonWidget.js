@@ -9,6 +9,8 @@ const RadioButtonWidget = () => {
   const fieldName = Object.keys(field)[0]
   const options = field[fieldName].value?.param?.enum
 
+  if (!Array.isArray(options)) return null
+
   return (
     <EditorComponentHeader>
       <div className={styles.radioButtonContainer}>
