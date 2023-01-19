@@ -87,7 +87,7 @@ const NavUserLinks = () => {
           aria-expanded="false"
         >
           <span>
-            {truncate(`${user.profile.first} ${user.profile.middle} ${user.profile.last}`, {
+            {truncate(`${user.profile.first} ${user.profile.middle ?? ''} ${user.profile.last ?? ''}`, {
               length: user.impersonator ? 15 : 22,
             })}
             {user.impersonator && ' (Impersonated)'}
