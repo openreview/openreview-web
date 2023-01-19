@@ -7,7 +7,7 @@ import Forum from '../components/forum/Forum'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
-import { getConferenceName, getJournalName } from '../lib/utils'
+import { getConferenceName, getJournalName, getIssn } from '../lib/utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 const ForumPage = ({ forumNote, query, appContext }) => {
@@ -49,6 +49,8 @@ const ForumPage = ({ forumNote, query, appContext }) => {
   const conferenceName = getConferenceName(content._bibtex)
   // eslint-disable-next-line no-underscore-dangle
   const journalName = forumNote.version === 2 ? getJournalName(content._bibtex) : null
+  // eslint-disable-next-line no-underscore-dangle
+  const issn = getIssn(content._bibtex)
 
   // Set banner link
   useEffect(() => {
@@ -108,6 +110,9 @@ const ForumPage = ({ forumNote, query, appContext }) => {
             )}
             {journalName && (
               <meta name="citation_journal_title" content={journalName} />
+            )}
+            {issn && (
+              <meta name="citation_issn" content={issn} />
             )}
           </>
         )}
