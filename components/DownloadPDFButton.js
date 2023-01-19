@@ -6,7 +6,7 @@ import api from '../lib/api-client'
 import SpinnerButton from './SpinnerButton'
 import WebFieldContext from './WebFieldContext'
 
-const DownloadPDFButton = ({ records, fileName, extraClasses, text = 'Download PDFs' }) => {
+const DownloadPDFButton = ({ records, fileName, text = 'Download PDFs' }) => {
   const [isLoading, setIsLoading] = useState(false)
   const { apiVersion } = useContext(WebFieldContext)
   const { accessToken } = useUser()
@@ -41,8 +41,8 @@ const DownloadPDFButton = ({ records, fileName, extraClasses, text = 'Download P
 
   return (
     <SpinnerButton
-      className={`btn btn-export-data ${extraClasses ?? ''}`}
-      disabled={!records?.some(hasPdf)}
+      className="btn btn-export-data"
+      disabled={!records?.some(hasPdf) || isLoading}
       loading={isLoading}
       onClick={handleDownloadPDFClick}
     >

@@ -28,7 +28,7 @@ const NoteSummary = ({
   const authorIdsValue = isV2Note ? note.content?.authorids?.value : note.content?.authorids
   const maxAuthors = 15
 
-  const authorNames = authorsValue.map((authorName, i) => {
+  const authorNames = authorsValue?.map((authorName, i) => {
     const authorId = authorIdsValue[i]
     const authorProfile = profileMap?.[authorIdsValue[i]]
     const errorTooltip = authorProfile
@@ -46,11 +46,7 @@ const NoteSummary = ({
               extraClasses="pl-1 text-success"
             />
           ) : (
-            <Icon
-              name="remove-sign"
-              tooltip={errorTooltip}
-              extraClasses="pl-1 text-danger"
-            />
+            <Icon name="remove-sign" tooltip={errorTooltip} extraClasses="pl-1 text-danger" />
           ))}
       </span>
     )
