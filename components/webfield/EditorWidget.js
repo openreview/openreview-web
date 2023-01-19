@@ -7,14 +7,14 @@ const TagsWidget = dynamic(() => import('../EditorComponents/TagsWidget'))
 const TextboxWidget = dynamic(() => import('../EditorComponents/TextboxWidget'))
 const TextAreaWidget = dynamic(() => import('../EditorComponents/TextAreaWidget'))
 const RadioButtonWidget = dynamic(() => import('../EditorComponents/RadioButtonWidget'))
-
+const CheckboxWidget = dynamic(() => import('../EditorComponents/CheckboxWidget'))
+const DropdownWidget = dynamic(() => import('../EditorComponents/DropdownWidget'))
+const CodeEditorWidget = dynamic(() => import('../EditorComponents/CodeEditorWidget'))
+const FileUploadWidget = dynamic(() => import('../EditorComponents/FileUploadWidget'))
+const DatePickerWidget = dynamic(() => import('../EditorComponents/DatePickerWidget'))
+const ToggleButtonWidget = dynamic(() => import('../EditorComponents/ToggleButtonWidget'))
 const ProfileSearchWidget = dynamic(() => import('../EditorComponents/ProfileSearchWidget'))
-const FileUploadWidget = dynamic(() => import('../EditorComponents/TagsWidget'))
-const CheckboxWidget = dynamic(() => import('../EditorComponents/TagsWidget'))
-const DropdownWidget = dynamic(() => import('../EditorComponents/TagsWidget'))
-const CodeEditorWidget = dynamic(() => import('../EditorComponents/TagsWidget'))
-const DatePickerWidget = dynamic(() => import('../EditorComponents/TagsWidget'))
-const ToggleButtonWidget = dynamic(() => import('../EditorComponents/TagsWidget'))
+
 // #endregion
 
 const EditorWidget = () => {

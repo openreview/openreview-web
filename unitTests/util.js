@@ -6,3 +6,9 @@ export const renderWithEditorComponentContext = (ui, providerProps) => {
     <EditorComponentContext.Provider {...providerProps}>{ui}</EditorComponentContext.Provider>
   )
 }
+
+export const reRenderWithEditorComponentContext = (rerender, ui, providerProps) => {
+  return rerender(
+    <EditorComponentContext.Provider {...providerProps}>{ui}</EditorComponentContext.Provider>
+  )
+}

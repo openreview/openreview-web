@@ -1,13 +1,21 @@
 import EditorWidget from '../components/webfield/EditorWidget'
-import { renderWithEditorComponentContext } from './util'
+import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import { prettyDOM } from '@testing-library/dom'
 import { screen } from '@testing-library/react'
-import { act } from 'react-dom/test-utils'
+import '@testing-library/jest-dom'
 
 jest.mock('../components/EditorComponents/TextboxWidget', () => () => <span>textbox</span>)
 jest.mock('../components/EditorComponents/TagsWidget', () => () => <span>tags</span>)
-jest.mock('../components/EditorComponents/RadioButtonWidget', () => () => (
-  <span>radio button</span>
+jest.mock('../components/EditorComponents/RadioButtonWidget', () => () => <span>radio</span>)
+jest.mock('../components/EditorComponents/CheckboxWidget', () => () => <span>checkbox</span>)
+jest.mock('../components/EditorComponents/DropdownWidget', () => () => <span>dropdown</span>)
+jest.mock('../components/EditorComponents/TextAreaWidget', () => () => <span>textarea</span>)
+jest.mock('../components/EditorComponents/CodeEditorWidget', () => () => <span>editor</span>)
+jest.mock('../components/EditorComponents/FileUploadWidget', () => () => <span>upload</span>)
+jest.mock('../components/EditorComponents/DatePickerWidget', () => () => <span>date</span>)
+jest.mock('../components/EditorComponents/ToggleButtonWidget', () => () => <span>toggle</span>)
+jest.mock('../components/EditorComponents/ProfileSearchWidget', () => () => (
+  <span>profile</span>
 ))
 
 jest.mock('next/dynamic', () => ({
@@ -19,66 +27,300 @@ jest.mock('next/dynamic', () => ({
   },
 }))
 
+let inputProviderProps
+let typeProviderProps
+
+beforeEach(() => {
+  inputProviderProps = {
+    value: {
+      field: {
+        field_name: {
+          value: {
+            param: {
+              input: null,
+            },
+          },
+        },
+      },
+    },
+  }
+
+  typeProviderProps = {
+    value: {
+      field: {
+        field_name: {
+          value: {
+            param: {
+              type: null,
+            },
+          },
+        },
+      },
+    },
+  }
+})
+
 describe.only('EditorWidget', () => {
-  test('render textbox for empty field', async () => {
+  test('render TextboxWidget for empty field', async () => {
     const providerProps = {
       value: {
         field: {
-          textbox: {},
+          field_name: {},
         },
       },
     }
-    await act(async () => {
-      renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    })
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
     expect(screen.getByText('textbox'))
   })
 
-  test('render textbox for string field', async () => {
+  test('render TextboxWidget for string field', async () => {
     const providerProps = {
       value: {
         field: {
-          textbox: 'text',
+          field_name: 'text',
         },
       },
     }
-    await act(async () => {
-      renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    })
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
     expect(screen.getByText('textbox'))
   })
 
-  test('render tags for array field', async () => {
+  test('render TagsWidget for array field', async () => {
     const providerProps = {
       value: {
         field: {
-          tags: [],
+          field_name: [],
         },
       },
     }
-    await act(async () => {
-      renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    })
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
     expect(screen.getByText('tags'))
   })
 
-  test('render radiobutton for input radio', async () => {
+  test('render RadioButtonWidget for input radio', async () => {
+    const providerProps = inputProviderProps
+    providerProps.value.field.field_name.value.param.input = 'radio'
+
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('radio'))
+  })
+
+  test('render CheckboxWidget for input checkbox', async () => {
+    const providerProps = inputProviderProps
+    providerProps.value.field.field_name.value.param.input = 'checkbox'
+
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('checkbox'))
+  })
+
+  test('render CheckboxWidget for input checkbox', async () => {
+    const providerProps = inputProviderProps
+    providerProps.value.field.field_name.value.param.input = 'checkbox'
+
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('checkbox'))
+  })
+
+  test('render DropdownWidget for input multiselect', async () => {
+    const providerProps = inputProviderProps
+    providerProps.value.field.field_name.value.param.input = 'multiselect'
+
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('dropdown'))
+  })
+
+  test('render DropdownWidget for input select', async () => {
+    const providerProps = inputProviderProps
+    providerProps.value.field.field_name.value.param.input = 'select'
+
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('dropdown'))
+  })
+
+  test('render TextAreaWidget for input textarea', async () => {
+    const providerProps = inputProviderProps
+    providerProps.value.field.field_name.value.param.input = 'textarea'
+
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('textarea'))
+  })
+
+  test('render TextboxWidget for input text', async () => {
+    const providerProps = inputProviderProps
+    providerProps.value.field.field_name.value.param.input = 'text'
+
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('textbox'))
+  })
+
+  test('render TextboxWidget for non-array const field', async () => {
     const providerProps = {
       value: {
         field: {
-          radio: {
+          field_name: {
             value: {
               param: {
-                input: 'radio',
+                const: 'some value',
               },
             },
           },
         },
       },
     }
-    await act(async () => {
-      renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    })
-    expect(screen.getByText('radio button'))
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('textbox'))
+  })
+
+  test('render TextboxWidget for non-array const field', async () => {
+    const providerProps = {
+      value: {
+        field: {
+          field_name: {
+            value: {
+              param: {
+                const: 'some value',
+              },
+            },
+          },
+        },
+      },
+    }
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('textbox'))
+  })
+
+  test('render CodeEditorWidget for type json/script/json[]/script[]', async () => {
+    const providerProps = typeProviderProps
+
+    providerProps.value.field.field_name.value.param.type = 'json'
+    const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('editor'))
+
+    providerProps.value.field.field_name.value.param.type = 'json[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('editor'))
+
+    providerProps.value.field.field_name.value.param.type = 'script'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('editor'))
+
+    providerProps.value.field.field_name.value.param.type = 'script[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('editor'))
+  })
+
+  test('render FileUploadWidget for type file/file[]', async () => {
+    const providerProps = typeProviderProps
+
+    providerProps.value.field.field_name.value.param.type = 'file'
+    const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('upload'))
+
+    providerProps.value.field.field_name.value.param.type = 'file[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('upload'))
+  })
+
+  test('render DatePickerWidget for type date/date[]', async () => {
+    const providerProps = typeProviderProps
+
+    providerProps.value.field.field_name.value.param.type = 'date'
+    const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('date'))
+
+    providerProps.value.field.field_name.value.param.type = 'date[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('date'))
+  })
+
+  test('render ToggleButtonWidget for type boolean/boolean[]', async () => {
+    const providerProps = typeProviderProps
+
+    providerProps.value.field.field_name.value.param.type = 'boolean'
+    const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('toggle'))
+
+    providerProps.value.field.field_name.value.param.type = 'boolean[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('toggle'))
+  })
+
+  test('render TextboxWidget for type integer/float/string/integer[]/float[]/string[]', async () => {
+    const providerProps = typeProviderProps
+
+    providerProps.value.field.field_name.value.param.type = 'integer'
+    const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('textbox'))
+
+    providerProps.value.field.field_name.value.param.type = 'float'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('textbox'))
+
+    providerProps.value.field.field_name.value.param.type = 'string'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('textbox'))
+
+    providerProps.value.field.field_name.value.param.type = 'integer[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('textbox'))
+
+    providerProps.value.field.field_name.value.param.type = 'float[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('textbox'))
+
+    providerProps.value.field.field_name.value.param.type = 'string[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('textbox'))
+  })
+
+  test('render ProfileSearchWidget for type group/group[]', async () => {
+    const providerProps = typeProviderProps
+
+    providerProps.value.field.field_name.value.param.type = 'group'
+    const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('profile'))
+
+    providerProps.value.field.field_name.value.param.type = 'group[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('profile'))
+  })
+
+  test('render nothing for type note/edit/edge/tag/note[]/edit[]/edge[]/tag[]', async () => {
+    const providerProps = typeProviderProps
+
+    providerProps.value.field.field_name.value.param.type = 'note'
+    const { rerender, container } = renderWithEditorComponentContext(
+      <EditorWidget />,
+      providerProps
+    )
+    expect(container).toBeEmptyDOMElement()
+
+    providerProps.value.field.field_name.value.param.type = 'edit'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(container).toBeEmptyDOMElement()
+
+    providerProps.value.field.field_name.value.param.type = 'edge'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(container).toBeEmptyDOMElement()
+
+    providerProps.value.field.field_name.value.param.type = 'tag'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(container).toBeEmptyDOMElement()
+
+    providerProps.value.field.field_name.value.param.type = 'note[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(container).toBeEmptyDOMElement()
+
+    providerProps.value.field.field_name.value.param.type = 'edit[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(container).toBeEmptyDOMElement()
+
+    providerProps.value.field.field_name.value.param.type = 'edge[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(container).toBeEmptyDOMElement()
+
+    providerProps.value.field.field_name.value.param.type = 'tag[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(container).toBeEmptyDOMElement()
   })
 })
