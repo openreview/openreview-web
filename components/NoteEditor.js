@@ -11,6 +11,7 @@ import LoadingSpinner from './LoadingSpinner'
 import api from '../lib/api-client'
 import Dropdown from './Dropdown'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
+import TagsWidget from './EditorComponents/TagsWidget'
 
 const NoteEditorNewNoteReaders = ({
   invitation,
@@ -25,7 +26,7 @@ const NoteEditorNewNoteReaders = ({
   const { accessToken } = useUser()
   const noteReadersDescription = invitation.edit.note.readers
 
-  const getRegexGroups = async () => {
+  const getRegexNewNoteReaders = async () => {
     setIsLoading(true)
     try {
       const regexGroupResult = await api.get(
@@ -33,7 +34,7 @@ const NoteEditorNewNoteReaders = ({
         { prefix: noteReadersDescription.param.regex },
         { accessToken, version: 2 }
       )
-      if (!regexGroupResult.groups)
+      if (!regexGroupResult.groups?.length)
         throw new Error('You do not have permission to create a note')
       const hasEveryoneGroup = regexGroupResult.groups.find((p) => p.id === 'everyone')
       const orderAdjustedGroups = hasEveryoneGroup
@@ -49,7 +50,7 @@ const NoteEditorNewNoteReaders = ({
     setIsLoading(false)
   }
 
-  const getEnumGroups = async () => {
+  const getEnumNewNoteReaders = async () => {
     setIsLoading(true)
     try {
       const options = noteReadersDescription.param.enum
@@ -137,89 +138,166 @@ const NoteEditorNewNoteReaders = ({
   }, [])
 
   useEffect(() => {
-    if (descriptionType === 'regex') getRegexGroups()
-    if (descriptionType === 'enum') getEnumGroups()
+    if (descriptionType === 'regex') getRegexNewNoteReaders()
+    if (descriptionType === 'enum') getEnumNewNoteReaders()
   }, [descriptionType])
 
   if (isLoading) return <LoadingSpinner />
   return renderNewNoteReaders()
 }
 
-const NoteEditorNoteSignatures = ({ invitation }) => {
+const NoteEditorNoteSignatures = ({
+  invitation,
+  closeNoteEditor,
+  noteEditorData,
+  setNoteEditorData,
+}) => {
   const [isLoading, setIsLoading] = useState(false)
   const [descriptionType, setDescriptionType] = useState(null)
+  const [signatureOptions, setSignatureOptions] = useState(null)
+  const { user, accessToken } = useUser()
   const noteSignaturesDescription = invitation.edit.note.signatures
+
+  const getRegexSignatureOptions = async () => {
+    setIsLoading(true)
+    try {
+      const regexGroupResult = await api.get(
+        '/groups',
+        { prefix: noteSignaturesDescription.param.regex, signatory: user.id },
+        { accessToken, version: 2 }
+      )
+      if (!regexGroupResult.groups?.length)
+        throw new Error('You do not have permission to create a note')
+      if (regexGroupResult.groups.length === 1) {
+        setSignatureOptions([regexGroupResult.groups[0].id])
+      } else {
+        setSignatureOptions(
+          regexGroupResult.groups
+            .filter(
+              (p, index) => regexGroupResult.groups.findIndex((q) => q.id === p.id) === index
+            )
+            .map((r) => {
+              let label = prettyId(r.id)
+              if (!r.id.startsWith('~') && r.members?.length === 1)
+                label = `${label} (${prettyId(r.members[0])})`
+              return { label: label, value: r.id }
+            })
+        )
+      }
+    } catch (error) {
+      promptError(error.message)
+      closeNoteEditor()
+    }
+    setIsLoading(false)
+  }
+
+  const getEnumSignatureOptions = async () => {
+    setIsLoading(true)
+    try {
+      const options = noteSignaturesDescription.param.enum
+      const optionsP = options.map((p) =>
+        p.includes('.*')
+          ? api
+              .get('/groups', { prefix: p, signatory: user.id }, { accessToken, version: 2 })
+              .then((result) => result.groups)
+          : api
+              .get('/groups', { id: p, signatory: user.id }, { accessToken, version: 2 })
+              .then((result) => result.groups)
+      )
+      let groupResults = await Promise.all(optionsP)
+      groupResults = groupResults.flat()
+      const uniqueGroupResults = groupResults.filter(
+        (p, index) => groupResults.findIndex((q) => q.id === p.id) === index
+      )
+      if (uniqueGroupResults.length === 1) {
+        setSignatureOptions([uniqueGroupResults[0].id])
+      } else {
+        setSignatureOptions(
+          uniqueGroupResults.map((p) => {
+            let label = prettyId(p.id)
+            if (!p.id.startsWith('~') && p.members?.length === 1)
+              label = `${label} (${prettyId(p.members[0])})`
+            return { label: label, value: p.id }
+          })
+        )
+      }
+    } catch (error) {
+      promptError(error.message)
+      closeNoteEditor()
+    }
+    setIsLoading(false)
+  }
 
   const renderNoteSignatures = () => {
     switch (descriptionType) {
-      case 'const':
+      case 'currentUser':
         return (
           <EditorComponentContext.Provider
             value={{
-              field: { signatures: noteSignaturesDescription },
+              field: { signatures: {} },
               isWebfield: false,
             }}
           >
-            <EditorWidget />
+            <TagsWidget values={[user.profile.id]} />
           </EditorComponentContext.Provider>
         )
       case 'regex':
-        return regexReaderOptions ? (
-          <EditorComponentContext.Provider
-            value={{
-              invitation,
-              field: { readers: {} },
-            }}
-          >
-            <EditorComponentHeader>
-              <Dropdown
-                options={regexReaderOptions}
-                onChange={(e) =>
-                  setNoteEditorData({ fieldName: 'noteReader', value: e.value })
-                }
-                value={regexReaderOptions.find((p) => p.value === noteEditorData.noteReader)}
-              />
-            </EditorComponentHeader>
-          </EditorComponentContext.Provider>
-        ) : null
       case 'enum':
-        return enumReaderOptions ? (
+        if (!signatureOptions) return null
+        if (signatureOptions.length === 1)
+          return (
+            <EditorComponentContext.Provider
+              value={{
+                field: { signatures: {} },
+                isWebfield: false,
+              }}
+            >
+              <TagsWidget values={signatureOptions} />
+            </EditorComponentContext.Provider>
+          )
+        return (
           <EditorComponentContext.Provider
             value={{
               invitation,
-              field: { readers: {} },
+              field: { signatures: {} },
             }}
           >
             <EditorComponentHeader>
               <Dropdown
-                options={enumReaderOptions}
+                options={signatureOptions}
                 onChange={(e) =>
-                  setNoteEditorData({ fieldName: 'noteReader', value: e.value })
+                  setNoteEditorData({ fieldName: 'noteSignature', value: e.value })
                 }
-                value={enumReaderOptions.find((p) => p.value === noteEditorData.noteReader)}
+                value={signatureOptions.find((p) => p.value === noteEditorData.noteSignature)}
               />
             </EditorComponentHeader>
           </EditorComponentContext.Provider>
-        ) : null
+        )
       default:
         return null
     }
   }
 
   useEffect(() => {
+    // currentUser,regex,enum of regexes, enum of values
     if (!noteSignaturesDescription) return
-    if (!noteSignaturesDescription.param) {
-      setDescriptionType('const')
-    } else if (noteSignaturesDescription.param.regex) {
-      setDescriptionType('regex')
-    } else if (noteSignaturesDescription.param.enum) {
+    if (noteSignaturesDescription.param?.regex) {
+      if (noteSignaturesDescription.param.regex === '~.*') {
+        setDescriptionType('currentUser')
+      } else {
+        setDescriptionType('regex')
+      }
+      return
+    }
+    if (noteSignaturesDescription.param?.enum) {
       setDescriptionType('enum')
+      return
     }
   }, [])
 
   useEffect(() => {
-    if (descriptionType === 'regex') getRegexGroups()
-    if (descriptionType === 'enum') getEnumGroups()
+    if (descriptionType === 'regex') getRegexSignatureOptions()
+    if (descriptionType === 'enum') getEnumSignatureOptions()
   }, [descriptionType])
 
   if (isLoading) return <LoadingSpinner />
@@ -324,18 +402,23 @@ const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor }) => {
       {note && <hr />}
       {fields.map((field) => renderField(field))}
       {renderNoteReaders()}
-      <NoteEditorNoteSignatures invitation={invitation} />
+      <NoteEditorNoteSignatures
+        invitation={invitation}
+        closeNoteEditor={closeNoteEditor}
+        noteEditorData={noteEditorData}
+        setNoteEditorData={setNoteEditorData}
+      />
       {/* {renderField({ fieldName: 'Writers', fieldDescription: invitation.edit.note.writers })} */}
       {/* {renderField({
         fieldName: 'Signatures',
         fieldDescription: invitation.edit.note.signatures,
       })} */}
-      {renderField({ fieldName: 'Edit Readers', fieldDescription: invitation.edit.readers })}
+      {/* {renderField({ fieldName: 'Edit Readers', fieldDescription: invitation.edit.readers })} */}
       {/* {renderField({ fieldName: 'Edit Writers', fieldDescription: invitation.edit.writers })} */}
-      {renderField({
+      {/* {renderField({
         fieldName: 'Edit Signatures',
         fieldDescription: invitation.edit.signatures,
-      })}
+      })} */}
       <div className={styles.responseButtons}>
         <SpinnerButton
           className={styles.submitButton}
