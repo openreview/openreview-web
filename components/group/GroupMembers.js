@@ -554,7 +554,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   useEffect(() => {
     getMemberAnonIds()
     $('[data-toggle="tooltip"]').tooltip()
-  }, [])
+  }, [groupMembers])
 
   return (
     <>
