@@ -13,25 +13,24 @@ import Dropdown from './Dropdown'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import TagsWidget from './EditorComponents/TagsWidget'
 
-const NoteEditorNewNoteReaders = ({
-  invitation,
+const NewNoteReaders = ({
+  fieldDescription,
+  fieldName,
   closeNoteEditor,
   noteEditorData,
   setNoteEditorData,
 }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [descriptionType, setDescriptionType] = useState(null)
-  const [regexReaderOptions, setRegexReaderOptions] = useState(null)
-  const [enumReaderOptions, setEnumReaderOptions] = useState(null)
+  const [readerOptions, setReaderOptions] = useState(null)
   const { accessToken } = useUser()
-  const noteReadersDescription = invitation.edit.note.readers
 
-  const getRegexNewNoteReaders = async () => {
+  const getRegexReaders = async () => {
     setIsLoading(true)
     try {
       const regexGroupResult = await api.get(
         '/groups',
-        { prefix: noteReadersDescription.param.regex },
+        { prefix: fieldDescription.param.regex },
         { accessToken, version: 2 }
       )
       if (!regexGroupResult.groups?.length)
@@ -40,7 +39,7 @@ const NoteEditorNewNoteReaders = ({
       const orderAdjustedGroups = hasEveryoneGroup
         ? [hasEveryoneGroup, ...regexGroupResult.groups.filter((p) => p.id !== 'everyone')]
         : regexGroupResult.groups
-      setRegexReaderOptions(
+      setReaderOptions(
         orderAdjustedGroups.map((p) => ({ label: prettyId(p.id), value: p.id }))
       )
     } catch (error) {
@@ -50,10 +49,10 @@ const NoteEditorNewNoteReaders = ({
     setIsLoading(false)
   }
 
-  const getEnumNewNoteReaders = async () => {
+  const getEnumReaders = async () => {
     setIsLoading(true)
     try {
-      const options = noteReadersDescription.param.enum
+      const options = fieldDescription.param.enum
       const optionsP = options.map((p) =>
         p.includes('.*')
           ? api
@@ -62,7 +61,7 @@ const NoteEditorNewNoteReaders = ({
           : Promise.resolve([p])
       )
       const groupResults = await Promise.all(optionsP)
-      setEnumReaderOptions(groupResults.flat().map((p) => ({ label: prettyId(p), value: p })))
+      setReaderOptions(groupResults.flat().map((p) => ({ label: prettyId(p), value: p })))
     } catch (error) {
       promptError(error.message)
       closeNoteEditor()
@@ -70,13 +69,13 @@ const NoteEditorNewNoteReaders = ({
     setIsLoading(false)
   }
 
-  const renderNewNoteReaders = () => {
+  const renderReaders = () => {
     switch (descriptionType) {
       case 'const':
         return (
           <EditorComponentContext.Provider
             value={{
-              field: { readers: noteReadersDescription },
+              field: { readers: fieldDescription },
               isWebfield: false,
             }}
           >
@@ -84,42 +83,24 @@ const NoteEditorNewNoteReaders = ({
           </EditorComponentContext.Provider>
         )
       case 'regex':
-        return regexReaderOptions ? (
-          <EditorComponentContext.Provider
-            value={{
-              invitation,
-              field: { readers: {} },
-            }}
-          >
-            <EditorComponentHeader>
-              <Dropdown
-                options={regexReaderOptions}
-                onChange={(e) =>
-                  setNoteEditorData({ fieldName: 'noteReader', value: e.value })
-                }
-                value={regexReaderOptions.find((p) => p.value === noteEditorData.noteReader)}
-              />
-            </EditorComponentHeader>
-          </EditorComponentContext.Provider>
+        return readerOptions ? (
+          <EditorComponentHeader fieldNameOverwrite="Readers">
+            <Dropdown
+              options={readerOptions}
+              onChange={(e) => setNoteEditorData({ fieldName: fieldName, value: e.value })}
+              value={readerOptions.find((p) => p.value === noteEditorData[fieldName])}
+            />
+          </EditorComponentHeader>
         ) : null
       case 'enum':
-        return enumReaderOptions ? (
-          <EditorComponentContext.Provider
-            value={{
-              invitation,
-              field: { readers: {} },
-            }}
-          >
-            <EditorComponentHeader>
-              <Dropdown
-                options={enumReaderOptions}
-                onChange={(e) =>
-                  setNoteEditorData({ fieldName: 'noteReader', value: e.value })
-                }
-                value={enumReaderOptions.find((p) => p.value === noteEditorData.noteReader)}
-              />
-            </EditorComponentHeader>
-          </EditorComponentContext.Provider>
+        return readerOptions ? (
+          <EditorComponentHeader fieldNameOverwrite="Readers">
+            <Dropdown
+              options={readerOptions}
+              onChange={(e) => setNoteEditorData({ fieldName: fieldName, value: e.value })}
+              value={readerOptions.find((p) => p.value === noteEditorData[fieldName])}
+            />
+          </EditorComponentHeader>
         ) : null
       default:
         return null
@@ -127,27 +108,30 @@ const NoteEditorNewNoteReaders = ({
   }
 
   useEffect(() => {
-    if (!noteReadersDescription) return // not essentially an error
-    if (!noteReadersDescription.param) {
+    if (!fieldDescription) return // not essentially an error
+    if (!fieldDescription.param) {
       setDescriptionType('const')
-    } else if (noteReadersDescription.param.regex) {
+    } else if (fieldDescription.param.regex) {
       setDescriptionType('regex')
-    } else if (noteReadersDescription.param.enum) {
+    } else if (fieldDescription.param.enum) {
       setDescriptionType('enum')
     }
   }, [])
 
   useEffect(() => {
-    if (descriptionType === 'regex') getRegexNewNoteReaders()
-    if (descriptionType === 'enum') getEnumNewNoteReaders()
+    if (descriptionType === 'regex') getRegexReaders()
+    if (descriptionType === 'enum') getEnumReaders()
   }, [descriptionType])
 
   if (isLoading) return <LoadingSpinner />
-  return renderNewNoteReaders()
+  return renderReaders()
 }
 
-const NoteEditorNoteSignatures = ({
-  invitation,
+const EditReaders = NewNoteReaders
+
+const Signatures = ({
+  fieldDescription,
+  fieldName,
   closeNoteEditor,
   noteEditorData,
   setNoteEditorData,
@@ -156,14 +140,13 @@ const NoteEditorNoteSignatures = ({
   const [descriptionType, setDescriptionType] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState(null)
   const { user, accessToken } = useUser()
-  const noteSignaturesDescription = invitation.edit.note.signatures
 
   const getRegexSignatureOptions = async () => {
     setIsLoading(true)
     try {
       const regexGroupResult = await api.get(
         '/groups',
-        { prefix: noteSignaturesDescription.param.regex, signatory: user.id },
+        { prefix: fieldDescription.param.regex, signatory: user.id },
         { accessToken, version: 2 }
       )
       if (!regexGroupResult.groups?.length)
@@ -194,7 +177,7 @@ const NoteEditorNoteSignatures = ({
   const getEnumSignatureOptions = async () => {
     setIsLoading(true)
     try {
-      const options = noteSignaturesDescription.param.enum
+      const options = fieldDescription.param.enum
       const optionsP = options.map((p) =>
         p.includes('.*')
           ? api
@@ -232,46 +215,27 @@ const NoteEditorNoteSignatures = ({
     switch (descriptionType) {
       case 'currentUser':
         return (
-          <EditorComponentContext.Provider
-            value={{
-              field: { signatures: {} },
-              isWebfield: false,
-            }}
-          >
+          <EditorComponentHeader fieldNameOverwrite="Signatures">
             <TagsWidget values={[user.profile.id]} />
-          </EditorComponentContext.Provider>
+          </EditorComponentHeader>
         )
       case 'regex':
       case 'enum':
         if (!signatureOptions) return null
         if (signatureOptions.length === 1)
           return (
-            <EditorComponentContext.Provider
-              value={{
-                field: { signatures: {} },
-                isWebfield: false,
-              }}
-            >
+            <EditorComponentHeader fieldNameOverwrite="Signatures">
               <TagsWidget values={signatureOptions} />
-            </EditorComponentContext.Provider>
+            </EditorComponentHeader>
           )
         return (
-          <EditorComponentContext.Provider
-            value={{
-              invitation,
-              field: { signatures: {} },
-            }}
-          >
-            <EditorComponentHeader>
-              <Dropdown
-                options={signatureOptions}
-                onChange={(e) =>
-                  setNoteEditorData({ fieldName: 'noteSignature', value: e.value })
-                }
-                value={signatureOptions.find((p) => p.value === noteEditorData.noteSignature)}
-              />
-            </EditorComponentHeader>
-          </EditorComponentContext.Provider>
+          <EditorComponentHeader fieldNameOverwrite="Signatures">
+            <Dropdown
+              options={signatureOptions}
+              onChange={(e) => setNoteEditorData({ fieldName, value: e.value })}
+              value={signatureOptions.find((p) => p.value === noteEditorData[fieldName])}
+            />
+          </EditorComponentHeader>
         )
       default:
         return null
@@ -280,16 +244,16 @@ const NoteEditorNoteSignatures = ({
 
   useEffect(() => {
     // currentUser,regex,enum of regexes, enum of values
-    if (!noteSignaturesDescription) return
-    if (noteSignaturesDescription.param?.regex) {
-      if (noteSignaturesDescription.param.regex === '~.*') {
+    if (!fieldDescription) return
+    if (fieldDescription.param?.regex) {
+      if (fieldDescription.param.regex === '~.*') {
         setDescriptionType('currentUser')
       } else {
         setDescriptionType('regex')
       }
       return
     }
-    if (noteSignaturesDescription.param?.enum) {
+    if (fieldDescription.param?.enum) {
       setDescriptionType('enum')
       return
     }
@@ -303,6 +267,9 @@ const NoteEditorNoteSignatures = ({
   if (isLoading) return <LoadingSpinner />
   return renderNoteSignatures()
 }
+
+const NoteSignatures = Signatures
+const EditSignatures = Signatures
 
 // for v2 only
 const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor }) => {
@@ -361,8 +328,9 @@ const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor }) => {
   const renderNoteReaders = () => {
     if (!note && !replyToId)
       return (
-        <NoteEditorNewNoteReaders
-          invitation={invitation}
+        <NewNoteReaders
+          fieldDescription={invitation.edit.note.readers}
+          fieldName="noteReaders"
           closeNoteEditor={closeNoteEditor}
           noteEditorData={noteEditorData}
           setNoteEditorData={setNoteEditorData}
@@ -381,6 +349,7 @@ const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor }) => {
   const handleSubmitClick = () => {
     setIsSubmitting(true)
     // get note reader/writer/signature and edit reader/writer/signature
+    console.log('noteEditorData', noteEditorData)
     setIsSubmitting(false)
   }
 
@@ -402,23 +371,27 @@ const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor }) => {
       {note && <hr />}
       {fields.map((field) => renderField(field))}
       {renderNoteReaders()}
-      <NoteEditorNoteSignatures
-        invitation={invitation}
+      <NoteSignatures
+        fieldDescription={invitation.edit.note.signatures}
+        fieldName="noteSignatures"
         closeNoteEditor={closeNoteEditor}
         noteEditorData={noteEditorData}
         setNoteEditorData={setNoteEditorData}
       />
-      {/* {renderField({ fieldName: 'Writers', fieldDescription: invitation.edit.note.writers })} */}
-      {/* {renderField({
-        fieldName: 'Signatures',
-        fieldDescription: invitation.edit.note.signatures,
-      })} */}
-      {/* {renderField({ fieldName: 'Edit Readers', fieldDescription: invitation.edit.readers })} */}
-      {/* {renderField({ fieldName: 'Edit Writers', fieldDescription: invitation.edit.writers })} */}
-      {/* {renderField({
-        fieldName: 'Edit Signatures',
-        fieldDescription: invitation.edit.signatures,
-      })} */}
+      <EditReaders
+        fieldDescription={invitation.edit.readers}
+        fieldName="editReaders"
+        closeNoteEditor={closeNoteEditor}
+        noteEditorData={noteEditorData}
+        setNoteEditorData={setNoteEditorData}
+      />
+      <EditSignatures
+        fieldDescription={invitation.edit.signatures}
+        fieldName="editSignatures"
+        closeNoteEditor={closeNoteEditor}
+        noteEditorData={noteEditorData}
+        setNoteEditorData={setNoteEditorData}
+      />
       <div className={styles.responseButtons}>
         <SpinnerButton
           className={styles.submitButton}

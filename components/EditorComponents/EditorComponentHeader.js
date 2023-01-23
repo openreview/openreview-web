@@ -5,7 +5,8 @@ import EditorComponentContext from '../EditorComponentContext'
 import styles from '../../styles/components/EditorComponentHeader.module.scss'
 
 const EditorComponentHeader = ({ inline = false, fieldNameOverwrite, children }) => {
-  const { field } = useContext(EditorComponentContext)
+  const editorComponentContext = useContext(EditorComponentContext)
+  const { field } = editorComponentContext ?? { field: { [fieldNameOverwrite]: {} } }
   const fieldName = Object.keys(field)[0]
   const { description } = field[fieldName] ?? {}
   const { optional, scroll, hidden } = field[fieldName].value?.param ?? {}
