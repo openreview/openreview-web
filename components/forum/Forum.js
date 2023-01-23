@@ -2,7 +2,7 @@
 /* globals typesetMathJax: false */
 /* globals promptError: false */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
 import escapeRegExp from 'lodash/escapeRegExp'
@@ -51,7 +51,7 @@ export default function Forum({
     excludedReaders: null,
   })
   const [activeInvitation, setActiveInvitation] = useState(null)
-  const [maxLength, setMaxLength] = useState(250)
+  const [maxLength, setMaxLength] = useState(10)
   const [scrolled, setScrolled] = useState(false)
   const router = useRouter()
   const query = useQuery()
@@ -60,19 +60,18 @@ export default function Forum({
   const replyForumViews = details.invitation?.replyForumViews // TODO: get this from somewhere else
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
 
-  const numRepliesHidden = displayOptionsMap
-    ? Object.values(displayOptionsMap).reduce((count, opt) => count + (opt.hidden ? 1 : 0), 0)
-    : 0
-  let numTopLevelRepliesVisible = 0
-  let maxVisibleIndex
-  if (repliesLoaded) {
-    const visibleReplies = orderedReplies.filter((note) => !displayOptionsMap[note.id]?.hidden)
-    numTopLevelRepliesVisible = visibleReplies.length
-    if (visibleReplies.length > maxLength) {
-      maxVisibleIndex =
-        orderedReplies.findIndex((n) => n.id === visibleReplies[maxLength - 1].id) + 1
-    }
-  }
+  const numRepliesHidden = useMemo(() => {
+    if (!displayOptionsMap) return 0
+    return Object.values(displayOptionsMap).reduce(
+      (count, opt) => count + (opt.hidden ? 1 : 0),
+      0
+    )
+  }, [displayOptionsMap])
+
+  const numTopLevelRepliesVisible = useMemo(() => {
+    if (!displayOptionsMap || !orderedReplies) return 0
+    return orderedReplies.filter((note) => !displayOptionsMap[note.id]?.hidden).length
+  }, [displayOptionsMap, orderedReplies])
 
   // API helper functions
   const getInvitationsByReplyForum = (forumId, includeTags) => {
@@ -619,6 +618,42 @@ export default function Forum({
     }
   }, [query])
 
+  // Build array of replies to display
+  let truncatedRepliesArr = null
+  if (repliesLoaded && numTopLevelRepliesVisible > maxLength) {
+    let i = 0
+    let count = 0
+    truncatedRepliesArr = []
+    while (count < maxLength) {
+      const reply = orderedReplies[i]
+      truncatedRepliesArr.push(
+        <ForumReply
+          key={reply.id}
+          note={replyNoteMap[reply.id]}
+          replies={reply.replies}
+          replyDepth={1}
+          parentId={id}
+          updateNote={updateNote}
+        />
+      )
+      if (!displayOptionsMap[reply.id].hidden) {
+        count += 1
+      }
+      i += 1
+    }
+  } else if (repliesLoaded) {
+    truncatedRepliesArr = orderedReplies.map((reply) => (
+      <ForumReply
+        key={reply.id}
+        note={replyNoteMap[reply.id]}
+        replies={reply.replies}
+        replyDepth={1}
+        parentId={id}
+        updateNote={updateNote}
+      />
+    ))
+  }
+
   return (
     <div className="forum-container">
       <ForumNote note={parentNote} updateNote={updateParentNote} />
@@ -700,22 +735,7 @@ export default function Forum({
                 setHidden,
               }}
             >
-              {repliesLoaded ? (
-                orderedReplies
-                  .slice(0, maxVisibleIndex)
-                  .map((reply) => (
-                    <ForumReply
-                      key={reply.id}
-                      note={replyNoteMap[reply.id]}
-                      replies={reply.replies}
-                      replyDepth={1}
-                      parentId={id}
-                      updateNote={updateNote}
-                    />
-                  ))
-              ) : (
-                <LoadingSpinner inline />
-              )}
+              {truncatedRepliesArr || <LoadingSpinner inline />}
             </ForumReplyContext.Provider>
 
             {repliesLoaded && maxLength < numTopLevelRepliesVisible && (
