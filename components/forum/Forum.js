@@ -51,7 +51,7 @@ export default function Forum({
     excludedReaders: null,
   })
   const [activeInvitation, setActiveInvitation] = useState(null)
-  const [maxLength, setMaxLength] = useState(10)
+  const [maxLength, setMaxLength] = useState(250)
   const [scrolled, setScrolled] = useState(false)
   const router = useRouter()
   const query = useQuery()
