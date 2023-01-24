@@ -1100,6 +1100,32 @@ module.exports = (function () {
     })
   }
 
+  var sendFileChunk = function (data, $progressBar) {
+    var baseUrl = window.OR_API_V2_URL ? window.OR_API_V2_URL : ''
+    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
+    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
+    return $.ajax({
+      url: baseUrl + '/attachment/chunk',
+      type: 'put',
+      contentType: false,
+      processData: false,
+      data: data,
+      headers: Object.assign(defaultHeaders, authHeaders),
+      xhrFields: {
+        withCredentials: true,
+      },
+      success: function (result) {
+        if (!result.url) {
+          var progress = `${(
+            (Object.values(result).filter((p) => p === 'completed').length * 100) /
+            Object.values(result).length
+          ).toFixed(0)}%`
+          $progressBar.find('.progress-bar').css('width', progress).text(progress)
+        }
+      },
+    })
+  }
+
   var searchSubmissions = function (term, options) {
     var defaults = {
       pageSize: 100,
@@ -1488,7 +1514,7 @@ module.exports = (function () {
     }
 
     // Wrap in IIFE to prevent memory leaks
-    (function () {
+    ;(function () {
       var submissionListHtml = Handlebars.templates['components/submissions']({
         heading: options.heading,
         notes: options.pageSize ? notes.slice(0, options.pageSize) : notes,
@@ -1502,7 +1528,7 @@ module.exports = (function () {
       } else {
         $container.append(submissionListHtml)
       }
-    }())
+    })()
 
     if (options.search.enabled) {
       if (!_.isEmpty(options.search.subjectAreas)) {
@@ -1788,7 +1814,7 @@ module.exports = (function () {
             readers: readers,
             nonreaders: nonreaders,
             writers: writers,
-            ddate: ddate
+            ddate: ddate,
           }
           post('/edges', requestBody, { handleErrors: false }).then(apiSuccess, apiError)
         }
@@ -2185,6 +2211,7 @@ module.exports = (function () {
     delete: xhrDelete,
     getAll: getAll,
     sendFile: sendFile,
+    sendFileChunk: sendFileChunk,
     setToken: setToken,
     getErrorFromJqXhr: Webfield.getErrorFromJqXhr,
 
@@ -2223,4 +2250,4 @@ module.exports = (function () {
       getRepliesfromSubmission: getRepliesfromSubmission,
     },
   }
-}())
+})()
