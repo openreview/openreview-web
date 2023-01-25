@@ -38,9 +38,9 @@ const Tag = ({ value }) => {
   )
 }
 
-const TagsWidget = ({ values }) => {
+const TagsWidget = ({ values, fieldNameOverwrite }) => {
   return (
-    <EditorComponentHeader>
+    <EditorComponentHeader fieldNameOverwrite={fieldNameOverwrite}>
       <div className={styles.container}>
         {values.map((value, index) => {
           return <Tag key={index} value={value} />

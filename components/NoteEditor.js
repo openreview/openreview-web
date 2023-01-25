@@ -214,20 +214,12 @@ const Signatures = ({
   const renderNoteSignatures = () => {
     switch (descriptionType) {
       case 'currentUser':
-        return (
-          <EditorComponentHeader fieldNameOverwrite="Signatures">
-            <TagsWidget values={[user.profile.id]} />
-          </EditorComponentHeader>
-        )
+        return <TagsWidget values={[user.profile.id]} fieldNameOverwrite="Signatures" />
       case 'regex':
       case 'enum':
         if (!signatureOptions) return null
         if (signatureOptions.length === 1)
-          return (
-            <EditorComponentHeader fieldNameOverwrite="Signatures">
-              <TagsWidget values={signatureOptions} />
-            </EditorComponentHeader>
-          )
+          return <TagsWidget values={signatureOptions} fieldNameOverwrite="Signatures" />
         return (
           <EditorComponentHeader fieldNameOverwrite="Signatures">
             <Dropdown
