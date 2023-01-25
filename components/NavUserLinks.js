@@ -102,6 +102,14 @@ const NavUserLinks = () => {
             </Link>
           </li>
           <li className="visible-sm-block">
+            <Link href="/notifications">
+              <a>
+                Notifications
+                {unreadNotifications > 0 && <span className="badge">{unreadNotifications}</span>}
+              </a>
+            </Link>
+          </li>
+          <li className="visible-sm-block">
             <Link href="/activity">
               <a>Activity</a>
             </Link>

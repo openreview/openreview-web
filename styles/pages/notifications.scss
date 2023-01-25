@@ -7,17 +7,26 @@ main.notifications {
   }
 
   .filters-col {
-    float: left;
-    width: 245px;
     margin-left: 15px;
-    margin-right: .5rem;
-  }
-  .messages-col {
-    float: left;
-    width: calc(100% - 245px - 30px - 1rem);
-    margin-left: .5rem;
     margin-right: 15px;
   }
+  .messages-col {
+    margin-left: 15px;
+    margin-right: 15px;
+  }
+  @media #{constants.$desktop} {
+    .filters-col {
+      float: left;
+      width: 245px;
+      margin-right: .5rem;
+    }
+    .messages-col {
+      float: left;
+      width: calc(100% - 245px - 30px - 1rem);
+      margin-left: .5rem;
+    }
+  }
+
   table.messages-table {
     border-bottom: 0;
     td.viewed {
