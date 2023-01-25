@@ -70,6 +70,13 @@ nav.navbar {
       &:hover {
         background-color: constants.$backgroundGray;
       }
+
+      .badge {
+        min-width: 20px;
+        line-height: 12px;
+        margin-top: -3px;
+        margin-left: 6px;
+      }
     }
   }
 
