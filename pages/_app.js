@@ -64,7 +64,9 @@ export default class OpenReviewApp extends App {
     window.Webfield.setToken(userAccessToken)
     window.Webfield2.setToken(userAccessToken)
 
-    this.loadUnreadNotificationCount(authenticatedUser.profile.emails[0], userAccessToken)
+    if (authenticatedUser.id !== process.env.SUPER_USER) {
+      this.loadUnreadNotificationCount(authenticatedUser.profile.emails[0], userAccessToken)
+    }
 
     // Automatically refresh the accessToken 1m before it's set to expire.
     // Add randomness to prevent all open tabs from refreshing at the same time.
@@ -151,7 +153,7 @@ export default class OpenReviewApp extends App {
     if (!userEmail || !accessToken) return
 
     try {
-      const { messages, count } = await api.get(
+      const { count } = await api.get(
         '/messages',
         { to: userEmail, viewed: false, transitiveMembers: true },
         { accessToken }
@@ -317,7 +319,9 @@ export default class OpenReviewApp extends App {
       window.Webfield.setToken(token)
       window.Webfield2.setToken(token)
 
-      this.loadUnreadNotificationCount(user.profile.emails[0], token)
+      if (user.id !== process.env.SUPER_USER) {
+        this.loadUnreadNotificationCount(user.profile.emails[0], token)
+      }
 
       // Automatically refresh the accessToken 1m before it's set to expire.
       // Add randomness to prevent all open tabs from refreshing at the same time.
