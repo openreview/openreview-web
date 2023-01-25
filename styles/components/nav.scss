@@ -35,6 +35,12 @@ nav.navbar {
       }
     }
 
+    @media #{constants.$desktop-only} {
+      > li > a {
+        padding-left: .5rem;
+        padding-right: .5rem;
+      }
+    }
     @media #{constants.$phone-only} {
       margin-top: 7px;
 
@@ -47,7 +53,7 @@ nav.navbar {
   #user-menu .dropdown-toggle {
     display: block;
     text-overflow: ellipsis;
-    max-width: 360px;
+    max-width: 295px;
     white-space: nowrap;
     overflow: hidden;
 
@@ -97,11 +103,10 @@ nav.navbar {
       transition: background-color 0.5s linear, box-shadow 0.4s 0.2s ease;
 
       @media #{constants.$desktop-only} {
-        width: 300px;
+        width: 250px;
       }
-
       @media #{constants.$tablet-only} {
-        width: 225px;
+        width: 250px;
       }
       @media #{constants.$phone-only} {
         width: 100%;
@@ -165,7 +170,8 @@ nav.navbar {
   .navbar-form {
     border-top: 0;
     margin-top: 0;
-    margin-bottom: 0px;
+    margin-bottom: 0;
+    padding-right: 0;
   }
 
   @media #{constants.$phone-only} {
