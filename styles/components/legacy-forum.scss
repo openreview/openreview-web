@@ -497,6 +497,10 @@ main.legacy-forum {
           border-color: constants.$subtleGray;
         }
       }
+
+      img {
+        margin-top: -4px;
+      }
     }
 
     .collapse-comment-tree.expand-link {
