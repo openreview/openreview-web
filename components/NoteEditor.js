@@ -61,7 +61,17 @@ const NewNoteReaders = ({
           : Promise.resolve([p])
       )
       const groupResults = await Promise.all(optionsP)
-      setReaderOptions(groupResults.flat().map((p) => ({ label: prettyId(p), value: p })))
+      switch (groupResults.flat().length) {
+        case 0:
+          throw new Error('You do not have permission to create a note')
+        case 1:
+          setDescriptionType('singleValueEnum')
+          setReaderOptions([groupResults.flat()[0]])
+          setNoteEditorData({ fieldName: fieldName, value: [groupResults.flat()[0]] })
+          break
+        default:
+          setReaderOptions(groupResults.flat().map((p) => ({ label: prettyId(p), value: p })))
+      }
     } catch (error) {
       promptError(error.message)
       closeNoteEditor()
@@ -72,22 +82,13 @@ const NewNoteReaders = ({
   const renderReaders = () => {
     switch (descriptionType) {
       case 'const':
-        return (
-          <EditorComponentContext.Provider
-            value={{
-              field: { readers: fieldDescription },
-              isWebfield: false,
-            }}
-          >
-            <EditorWidget />
-          </EditorComponentContext.Provider>
-        )
+        return <TagsWidget values={fieldDescription} fieldNameOverwrite="Readers" />
       case 'regex':
         return readerOptions ? (
           <EditorComponentHeader fieldNameOverwrite="Readers">
             <Dropdown
               options={readerOptions}
-              onChange={(e) => setNoteEditorData({ fieldName: fieldName, value: e.value })}
+              onChange={(e) => setNoteEditorData({ fieldName: fieldName, value: [e.value] })}
               value={readerOptions.find((p) => p.value === noteEditorData[fieldName])}
             />
           </EditorComponentHeader>
@@ -97,10 +98,14 @@ const NewNoteReaders = ({
           <EditorComponentHeader fieldNameOverwrite="Readers">
             <Dropdown
               options={readerOptions}
-              onChange={(e) => setNoteEditorData({ fieldName: fieldName, value: e.value })}
+              onChange={(e) => setNoteEditorData({ fieldName: fieldName, value: [e.value] })}
               value={readerOptions.find((p) => p.value === noteEditorData[fieldName])}
             />
           </EditorComponentHeader>
+        ) : null
+      case 'singleValueEnum':
+        return readerOptions ? (
+          <TagsWidget values={readerOptions} fieldNameOverwrite="Readers" />
         ) : null
       default:
         return null
@@ -111,6 +116,10 @@ const NewNoteReaders = ({
     if (!fieldDescription) return // not essentially an error
     if (!fieldDescription.param) {
       setDescriptionType('const')
+      setNoteEditorData({
+        fieldName: fieldName,
+        value: Array.isArray(fieldDescription) ? fieldDescription : [fieldDescription],
+      })
     } else if (fieldDescription.param.regex) {
       setDescriptionType('regex')
     } else if (fieldDescription.param.enum) {
@@ -153,6 +162,7 @@ const Signatures = ({
         throw new Error('You do not have permission to create a note')
       if (regexGroupResult.groups.length === 1) {
         setSignatureOptions([regexGroupResult.groups[0].id])
+        setNoteEditorData({ fieldName, value: [regexGroupResult.groups[0].id] })
       } else {
         setSignatureOptions(
           regexGroupResult.groups
@@ -194,6 +204,7 @@ const Signatures = ({
       )
       if (uniqueGroupResults.length === 1) {
         setSignatureOptions([uniqueGroupResults[0].id])
+        setNoteEditorData({ fieldName, value: [uniqueGroupResults[0].id] })
       } else {
         setSignatureOptions(
           uniqueGroupResults.map((p) => {
@@ -240,6 +251,7 @@ const Signatures = ({
     if (fieldDescription.param?.regex) {
       if (fieldDescription.param.regex === '~.*') {
         setDescriptionType('currentUser')
+        setNoteEditorData({ fieldName, value: [user.profile.id] })
       } else {
         setDescriptionType('regex')
       }
@@ -264,8 +276,8 @@ const NoteSignatures = Signatures
 const EditSignatures = Signatures
 
 // for v2 only
-const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor }) => {
-  const { user } = useUser()
+const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor, onNoteCreated }) => {
+  const { user, accessToken } = useUser()
   const [fields, setFields] = useState([])
   const saveDraft = useCallback(
     debounce((fieldName, value) => {
@@ -322,7 +334,7 @@ const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor }) => {
       return (
         <NewNoteReaders
           fieldDescription={invitation.edit.note.readers}
-          fieldName="noteReaders"
+          fieldName="noteReaderValues"
           closeNoteEditor={closeNoteEditor}
           noteEditorData={noteEditorData}
           setNoteEditorData={setNoteEditorData}
@@ -338,10 +350,62 @@ const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor }) => {
     closeNoteEditor()
   }
 
-  const handleSubmitClick = () => {
+  const getNoteReaderValues = () => {
+    return noteEditorData.noteReaderValues
+  }
+
+  const getEditWriterValues = () => {
+    const writerDescription = invitation.edit.writers
+    if (Array.isArray(writerDescription) || writerDescription?.param?.const) {
+      return undefined
+    }
+
+    if (writers?.param?.regex === '~.*') {
+      return [user.profile.id]
+    }
+
+    return noteEditorData.editSignatureInputValues
+  }
+
+  const getCreatedNote = async (noteCreated) => {
+    const constructedNote = {
+      ...noteCreated,
+      invitations: [invitation.id],
+      details: { invitation, writable: true },
+    }
+    try {
+      const result = await api.get(
+        '/notes',
+        { id: noteCreated.id, details: 'invitation,presentation,writable' },
+        { accessToken, version: 2 }
+      )
+      return result.notes?.[0] ? result.notes[0] : constructedNote
+    } catch (error) {
+      if (error.name === 'ForbiddenError') return constructedNote
+      throw error
+    }
+  }
+
+  const handleSubmitClick = async () => {
     setIsSubmitting(true)
     // get note reader/writer/signature and edit reader/writer/signature
-    console.log('noteEditorData', noteEditorData)
+    try {
+      const editToPost = view2.constructEdit({
+        formData: {
+          ...noteEditorData,
+          noteReaderValues: getNoteReaderValues(),
+          editWriterValues: getEditWriterValues(),
+        },
+        invitationObj: invitation,
+      })
+      const result = await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
+      const createdNote = await getCreatedNote(result.note)
+      closeNoteEditor()
+      onNoteCreated(createdNote)
+    } catch (error) {
+      promptError(error.message)
+    }
+
     setIsSubmitting(false)
   }
 
@@ -365,21 +429,21 @@ const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor }) => {
       {renderNoteReaders()}
       <NoteSignatures
         fieldDescription={invitation.edit.note.signatures}
-        fieldName="noteSignatures"
+        fieldName="noteSignatureInputValues"
         closeNoteEditor={closeNoteEditor}
         noteEditorData={noteEditorData}
         setNoteEditorData={setNoteEditorData}
       />
       <EditReaders
         fieldDescription={invitation.edit.readers}
-        fieldName="editReaders"
+        fieldName="editReaderValues"
         closeNoteEditor={closeNoteEditor}
         noteEditorData={noteEditorData}
         setNoteEditorData={setNoteEditorData}
       />
       <EditSignatures
         fieldDescription={invitation.edit.signatures}
-        fieldName="editSignatures"
+        fieldName="editSignatureInputValues"
         closeNoteEditor={closeNoteEditor}
         noteEditorData={noteEditorData}
         setNoteEditorData={setNoteEditorData}

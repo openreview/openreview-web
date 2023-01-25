@@ -70,7 +70,13 @@ export default function SubmissionButton({
               }
             }}
           />
-          <NoteEditor invitation={invitation} closeNoteEditor={toggleSubmissionForm} />
+          <NoteEditor
+            invitation={invitation}
+            closeNoteEditor={toggleSubmissionForm}
+            onNoteCreated={(newNote) => {
+              onNoteCreated(newNote)
+            }}
+          />
         </>
       )}
     </>
