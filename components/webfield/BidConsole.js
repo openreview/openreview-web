@@ -481,6 +481,8 @@ const BidOptionTab = ({
   invitation,
   setBidEdges,
   apiVersion,
+  submissionInvitationId,
+  submissionVenueId,
 }) => {
   const [notes, setNotes] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -502,7 +504,25 @@ const BidOptionTab = ({
         },
         { accessToken, version: apiVersion }
       )
-      setNotes(noteSearchResults.notes)
+      const inActiveSubmissionIds = noteSearchResults.notes.flatMap((p) => {
+        if (
+          apiVersion === 2
+            ? p.content?.venueid?.value !== submissionVenueId
+            : p.invitation !== submissionInvitationId
+        )
+          return p.id
+        return []
+      })
+      if (inActiveSubmissionIds.length) {
+        setBidEdges(
+          bidEdges.filter(
+            (p) => !(p.label === bidOption && inActiveSubmissionIds.includes(p.head))
+          )
+        )
+        setNotes(noteSearchResults.notes.filter((p) => !inActiveSubmissionIds.includes(p.id)))
+      } else {
+        setNotes(noteSearchResults.notes)
+      }
     } catch (error) {
       promptError(error.message)
     }
@@ -588,9 +608,10 @@ const BidConsole = ({ appContext }) => {
     conflictInvitationId,
   } = useContext(WebFieldContext)
 
-  const bidOptions = apiVersion === 2
-    ? invitation.edge?.label?.param?.enum
-    : invitation.reply?.content?.label?.['value-radio']
+  const bidOptions =
+    apiVersion === 2
+      ? invitation.edge?.label?.param?.enum
+      : invitation.reply?.content?.label?.['value-radio']
   const bidOptionsWithDefaultTabs = ['All Papers', ...(bidOptions ?? []), 'No Bid']
   const getActiveTabIndex = () => {
     const tabIndex = bidOptionsWithDefaultTabs.findIndex(
@@ -681,6 +702,8 @@ const BidConsole = ({ appContext }) => {
           invitation={invitation}
           setBidEdges={setBidEdges}
           apiVersion={apiVersion}
+          submissionInvitationId={submissionInvitationId}
+          submissionVenueId={submissionVenueId}
         />
       </TabPanel>
     )
