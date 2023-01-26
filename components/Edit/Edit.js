@@ -32,7 +32,7 @@ function EditFields({ editId, displayObj, omitFields = [], label = 'Edit' }) {
           : displayObj[fieldName]
         const isJsonValue = field instanceof Object && !Array.isArray(field)
         const isEmptyValue = field === null ||
-          (field instanceof Object && !Array.isArray(field) && (field.value === undefined || field.value === null))
+          (field instanceof Object && !Array.isArray(field) && Object.keys(field).length === 0)
         const isEmptyArray = Array.isArray(field) && field.length === 0
         const enableMarkdown = fieldName === 'members' && !field.startsWith('(empty')
 
@@ -116,8 +116,8 @@ export default function Edit({ edit, type, className, showContents }) {
         <EditFields
           editId={edit.id}
           displayObj={edit.invitation.edit}
-          exclude={['note']}
-          label="Invitation - Edit"
+          omitFields={['note']}
+          label="Invitation / Edit"
         />
       )}
 
@@ -125,13 +125,8 @@ export default function Edit({ edit, type, className, showContents }) {
         <EditFields
           editId={edit.id}
           displayObj={edit.invitation.edit.note}
-          exclude={['content']}
-          label="Edit - Invitation - Note"
+          label="Invitation / Edit / Note"
         />
-      )}
-
-      {showContents && type === 'invitation' && edit.invitation.edit?.note?.content && (
-        <EditContent edit={edit.invitation.edit} type={'note'} />
       )}
 
       <div className="edit_info">
