@@ -116,8 +116,22 @@ export default function Edit({ edit, type, className, showContents }) {
         <EditFields
           editId={edit.id}
           displayObj={edit.invitation.edit}
-          label="Edit"
+          exclude={['note']}
+          label="Invitation - Edit"
         />
+      )}
+
+      {type === 'invitation' && edit.invitation.edit?.note && (
+        <EditFields
+          editId={edit.id}
+          displayObj={edit.invitation.edit.note}
+          exclude={['content']}
+          label="Edit - Invitation - Note"
+        />
+      )}
+
+      {showContents && type === 'invitation' && edit.invitation.edit?.note?.content && (
+        <EditContent edit={edit.invitation.edit} type={'note'} />
       )}
 
       <div className="edit_info">
