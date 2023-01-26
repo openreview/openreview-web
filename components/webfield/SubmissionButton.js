@@ -40,7 +40,7 @@ export default function SubmissionButton({
     if (userLoading) return
 
     loadInvitation()
-  }, [userLoading])
+  }, [userLoading, invitationId])
 
   if (!invitation || invitationPastDue) return null
 
