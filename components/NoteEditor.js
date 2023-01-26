@@ -4,12 +4,12 @@ import EditorWidget from './webfield/EditorWidget'
 import styles from '../styles/components/NoteEditor.module.scss'
 import debounce from 'lodash/debounce'
 import { getAutoStorageKey, prettyId, prettyInvitationId } from '../lib/utils'
-import useUser from '../hooks/useUser'
+import useLoginRedirect from '../hooks/useLoginRedirect'
 import { getNoteContent } from '../lib/webfield-utils'
 import SpinnerButton from './SpinnerButton'
 import LoadingSpinner from './LoadingSpinner'
 import api from '../lib/api-client'
-import Dropdown from './Dropdown'
+import MultiSelectorDropdown from './MultiSelectorDropdown'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import TagsWidget from './EditorComponents/TagsWidget'
 
@@ -23,7 +23,7 @@ const NewNoteReaders = ({
   const [isLoading, setIsLoading] = useState(false)
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
-  const { accessToken } = useUser()
+  const { accessToken } = useLoginRedirect()
 
   const getRegexReaders = async () => {
     setIsLoading(true)
@@ -84,22 +84,17 @@ const NewNoteReaders = ({
       case 'const':
         return <TagsWidget values={fieldDescription} fieldNameOverwrite="Readers" />
       case 'regex':
-        return readerOptions ? (
-          <EditorComponentHeader fieldNameOverwrite="Readers">
-            <Dropdown
-              options={readerOptions}
-              onChange={(e) => setNoteEditorData({ fieldName: fieldName, value: [e.value] })}
-              value={readerOptions.find((p) => p.value === noteEditorData[fieldName])}
-            />
-          </EditorComponentHeader>
-        ) : null
       case 'enum':
         return readerOptions ? (
           <EditorComponentHeader fieldNameOverwrite="Readers">
-            <Dropdown
+            <MultiSelectorDropdown
               options={readerOptions}
-              onChange={(e) => setNoteEditorData({ fieldName: fieldName, value: [e.value] })}
-              value={readerOptions.find((p) => p.value === noteEditorData[fieldName])}
+              setSelectedValues={(values) =>
+                setNoteEditorData({ fieldName: fieldName, value: values })
+              }
+              selectedValues={readerOptions.filter((p) =>
+                noteEditorData[fieldName].find((q) => q === p.value)
+              )}
             />
           </EditorComponentHeader>
         ) : null
@@ -148,14 +143,14 @@ const Signatures = ({
   const [isLoading, setIsLoading] = useState(false)
   const [descriptionType, setDescriptionType] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState(null)
-  const { user, accessToken } = useUser()
+  const { user, accessToken } = useLoginRedirect()
 
   const getRegexSignatureOptions = async () => {
     setIsLoading(true)
     try {
       const regexGroupResult = await api.get(
         '/groups',
-        { prefix: fieldDescription.param.regex, signatory: user.id },
+        { prefix: fieldDescription.param.regex, signatory: user?.id },
         { accessToken, version: 2 }
       )
       if (!regexGroupResult.groups?.length)
@@ -191,10 +186,10 @@ const Signatures = ({
       const optionsP = options.map((p) =>
         p.includes('.*')
           ? api
-              .get('/groups', { prefix: p, signatory: user.id }, { accessToken, version: 2 })
+              .get('/groups', { prefix: p, signatory: user?.id }, { accessToken, version: 2 })
               .then((result) => result.groups)
           : api
-              .get('/groups', { id: p, signatory: user.id }, { accessToken, version: 2 })
+              .get('/groups', { id: p, signatory: user?.id }, { accessToken, version: 2 })
               .then((result) => result.groups)
       )
       let groupResults = await Promise.all(optionsP)
@@ -225,7 +220,7 @@ const Signatures = ({
   const renderNoteSignatures = () => {
     switch (descriptionType) {
       case 'currentUser':
-        return <TagsWidget values={[user.profile.id]} fieldNameOverwrite="Signatures" />
+        return <TagsWidget values={[user.profile?.id]} fieldNameOverwrite="Signatures" />
       case 'regex':
       case 'enum':
         if (!signatureOptions) return null
@@ -233,10 +228,12 @@ const Signatures = ({
           return <TagsWidget values={signatureOptions} fieldNameOverwrite="Signatures" />
         return (
           <EditorComponentHeader fieldNameOverwrite="Signatures">
-            <Dropdown
+            <MultiSelectorDropdown
               options={signatureOptions}
-              onChange={(e) => setNoteEditorData({ fieldName, value: e.value })}
-              value={signatureOptions.find((p) => p.value === noteEditorData[fieldName])}
+              setSelectedValues={(values) => setNoteEditorData({ fieldName, value: values })}
+              selectedValues={signatureOptions.filter((p) =>
+                noteEditorData[fieldName].find((q) => q === p.value)
+              )}
             />
           </EditorComponentHeader>
         )
@@ -277,7 +274,7 @@ const EditSignatures = Signatures
 
 // for v2 only
 const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor, onNoteCreated }) => {
-  const { user, accessToken } = useUser()
+  const { user, accessToken } = useLoginRedirect()
   const [fields, setFields] = useState([])
   const saveDraft = useCallback(
     debounce((fieldName, value) => {
@@ -351,7 +348,13 @@ const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor, onNoteCreate
   }
 
   const getNoteReaderValues = () => {
+    if (Array.isArray(invitation.edit.note.readers)) return undefined
     return noteEditorData.noteReaderValues
+  }
+
+  const getEditReaderValues = () => {
+    if (Array.isArray(invitation.edit.readers)) return undefined
+    return noteEditorData.editReaderValues
   }
 
   const getEditWriterValues = () => {
@@ -361,7 +364,7 @@ const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor, onNoteCreate
     }
 
     if (writers?.param?.regex === '~.*') {
-      return [user.profile.id]
+      return [user.profile?.id]
     }
 
     return noteEditorData.editSignatureInputValues
