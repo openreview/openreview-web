@@ -17,7 +17,7 @@ const RejectedWithdrawnPaperRow = ({ rowData, referrerUrl }) => {
         <strong>{number}</strong>
       </td>
       <td>
-        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={false} />
+        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={note.version === 2} />
       </td>
       <td>
         <strong className="note-number">{reason}</strong>
@@ -31,6 +31,8 @@ const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
   const {
     withdrawnSubmissionId,
     deskRejectedSubmissionId,
+    withdrawnVenueId,
+    deskRejectedVenueId,
     shortPhrase,
     enableQuerySearch,
     venueId,
@@ -63,20 +65,35 @@ const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
 
   const loadRejectedWithdrawnPapers = async () => {
     try {
-      const results = await Promise.all(
-        [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) =>
-          id
-            ? api.getAll(
-                '/notes',
-                {
-                  invitation: id,
-                  details: 'original',
-                },
-                { accessToken }
+      const results =
+        apiVersion === 2
+          ? await Promise.all(
+              [deskRejectedVenueId, withdrawnVenueId].map((id) =>
+                id
+                  ? api.getAll(
+                      '/notes',
+                      {
+                        'content.venueid': id,
+                      },
+                      { accessToken, version: apiVersion }
+                    )
+                  : Promise.resolve([])
               )
-            : Promise.resolve([])
-        )
-      )
+            )
+          : await Promise.all(
+              [deskRejectedSubmissionId, withdrawnSubmissionId].map((id) =>
+                id
+                  ? api.getAll(
+                      '/notes',
+                      {
+                        invitation: id,
+                        details: 'original',
+                      },
+                      { accessToken }
+                    )
+                  : Promise.resolve([])
+              )
+            )
       const tableRows = formatTableRows(results[0], results[1])
       setRejectedPaperTabData({
         tableRowsAll: tableRows,

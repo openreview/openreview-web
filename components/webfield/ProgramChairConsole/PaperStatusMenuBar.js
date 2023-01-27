@@ -44,9 +44,6 @@ const PaperStatusMenuBar = ({
     confidenceMin: ['reviewProgressData.confidenceMin'],
     replyCount: ['reviewProgressData.replyCount'],
     decision: ['decision'],
-    ...(apiVersion === 2 && {
-      venue: ['venue'],
-    }),
     ...(recommendationName && {
       [recommendationName]: [`metaReviewData.metaReviews.${recommendationName}`],
     }),
@@ -203,15 +200,6 @@ const PaperStatusMenuBar = ({
       value: 'Decision',
       getValue: (p) => p.decision,
     },
-    ...(apiVersion === 2
-      ? [
-          {
-            label: 'Venue',
-            value: 'Venue',
-            getValue: (p) => p.venue,
-          },
-        ]
-      : []),
   ]
   const basicSearchFunction = (row, term) => {
     const noteTitle =
