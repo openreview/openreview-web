@@ -111,14 +111,10 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
 
 const SubmissionsStatsRow = ({ pcConsoleData }) => {
   const [submissionByStatus, setSubmissionByStatus] = useState({})
-  const { submissionVenueId, withdrawnVenueId, deskRejectedVenueId } =
-    useContext(WebFieldContext)
 
   useEffect(() => {
     if (!pcConsoleData) return
-    const withdrawnNotes = pcConsoleData.withdrawnNotes
-    const deskRejectedNotes = pcConsoleData.deskRejectedNotes
-    const activeSubmissions = pcConsoleData.notes
+    const { withdrawnNotes, deskRejectedNotes, notes: activeSubmissions } = pcConsoleData
     setSubmissionByStatus({ activeSubmissions, deskRejectedNotes, withdrawnNotes })
   }, [pcConsoleData])
   return (
