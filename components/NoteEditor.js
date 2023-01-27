@@ -9,6 +9,7 @@ import { getNoteContent } from '../lib/webfield-utils'
 import SpinnerButton from './SpinnerButton'
 import LoadingSpinner from './LoadingSpinner'
 import api from '../lib/api-client'
+import Dropdown from './Dropdown'
 import MultiSelectorDropdown from './MultiSelectorDropdown'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import TagsWidget from './EditorComponents/TagsWidget'
@@ -92,9 +93,9 @@ const NewNoteReaders = ({
               setSelectedValues={(values) =>
                 setNoteEditorData({ fieldName: fieldName, value: values })
               }
-              selectedValues={readerOptions.filter((p) =>
-                noteEditorData[fieldName].find((q) => q === p.value)
-              )}
+              selectedValues={readerOptions
+                .filter((p) => noteEditorData[fieldName]?.includes(p.value))
+                .map((q) => q.value)}
             />
           </EditorComponentHeader>
         ) : null
@@ -228,12 +229,10 @@ const Signatures = ({
           return <TagsWidget values={signatureOptions} fieldNameOverwrite="Signatures" />
         return (
           <EditorComponentHeader fieldNameOverwrite="Signatures">
-            <MultiSelectorDropdown
+            <Dropdown
               options={signatureOptions}
-              setSelectedValues={(values) => setNoteEditorData({ fieldName, value: values })}
-              selectedValues={signatureOptions.filter((p) =>
-                noteEditorData[fieldName].find((q) => q === p.value)
-              )}
+              onChange={(e) => setNoteEditorData({ fieldName, value: e.value })}
+              value={signatureOptions.find((p) => p.value === noteEditorData[fieldName])}
             />
           </EditorComponentHeader>
         )
@@ -349,6 +348,12 @@ const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor, onNoteCreate
 
   const getNoteReaderValues = () => {
     if (Array.isArray(invitation.edit.note.readers)) return undefined
+    const constNoteSignature = // when note signature is edit signature, note reader should use edit signatures
+      invitation.edit.note?.signatures?.[0]?.includes('/signatures}') ||
+      invitation.edit.note?.signatures?.param?.const?.[0]?.includes('/signatures}')
+    const signatureInputValues = constNoteSignature
+      ? noteEditorData.editSignatureInputValues
+      : noteEditorData.noteSignatureInputValues
     return noteEditorData.noteReaderValues
   }
 
