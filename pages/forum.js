@@ -37,7 +37,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
     Array.isArray(content.authors) || typeof content.authors === 'string'
       ? [content.authors].flat()
       : []
-  const creationDate = new Date(forumNote.cdate || forumNote.tcdate || Date.now())
+  const creationDate = new Date(forumNote.odate || forumNote.cdate || forumNote.tcdate || Date.now())
     .toISOString()
     .slice(0, 10)
     .replace(/-/g, '/')
