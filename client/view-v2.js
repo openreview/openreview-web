@@ -1316,7 +1316,6 @@ module.exports = (function () {
 
       var saveNote = function (formContent, invitation) {
         const editToPost = constructEdit({ formData: formContent, invitationObj: invitation })
-        console.log('editToPost', editToPost)
         Webfield2.post('/notes/edits', editToPost, { handleErrors: false }).then(
           function (result) {
             if (params.onNoteCreated) {

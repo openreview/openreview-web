@@ -112,10 +112,10 @@ const NewNoteReaders = ({
     if (!fieldDescription) return // not essentially an error
     if (!fieldDescription.param) {
       setDescriptionType('const')
-      setNoteEditorData({
-        fieldName: fieldName,
-        value: Array.isArray(fieldDescription) ? fieldDescription : [fieldDescription],
-      })
+      // setNoteEditorData({
+      //   fieldName: fieldName,
+      //   value: Array.isArray(fieldDescription) ? fieldDescription : [fieldDescription],
+      // })
     } else if (fieldDescription.param.regex) {
       setDescriptionType('regex')
     } else if (fieldDescription.param.enum) {
@@ -220,6 +220,8 @@ const Signatures = ({
 
   const renderNoteSignatures = () => {
     switch (descriptionType) {
+      case 'const':
+        return <TagsWidget values={fieldDescription} fieldNameOverwrite="Signatures" />
       case 'currentUser':
         return <TagsWidget values={[user.profile?.id]} fieldNameOverwrite="Signatures" />
       case 'regex':
@@ -242,8 +244,12 @@ const Signatures = ({
   }
 
   useEffect(() => {
-    // currentUser,regex,enum of regexes, enum of values
+    ;``
     if (!fieldDescription) return
+    if (!fieldDescription.param) {
+      setDescriptionType('const')
+      return
+    }
     if (fieldDescription.param?.regex) {
       if (fieldDescription.param.regex === '~.*') {
         setDescriptionType('currentUser')
@@ -272,7 +278,14 @@ const NoteSignatures = Signatures
 const EditSignatures = Signatures
 
 // for v2 only
-const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor, onNoteCreated }) => {
+const NoteEditor = ({
+  invitation,
+  note,
+  replyToId,
+  replyToNote,
+  closeNoteEditor,
+  onNoteCreated,
+}) => {
   const { user, accessToken } = useLoginRedirect()
   const [fields, setFields] = useState([])
   const saveDraft = useCallback(
@@ -348,12 +361,13 @@ const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor, onNoteCreate
 
   const getNoteReaderValues = () => {
     if (Array.isArray(invitation.edit.note.readers)) return undefined
-    const constNoteSignature = // when note signature is edit signature, note reader should use edit signatures
-      invitation.edit.note?.signatures?.[0]?.includes('/signatures}') ||
-      invitation.edit.note?.signatures?.param?.const?.[0]?.includes('/signatures}')
-    const signatureInputValues = constNoteSignature
-      ? noteEditorData.editSignatureInputValues
-      : noteEditorData.noteSignatureInputValues
+    // const constNoteSignature = // when note signature is edit signature, note reader should use edit signatures
+    //   invitation.edit.note?.signatures?.[0]?.includes('/signatures}') ||
+    //   invitation.edit.note?.signatures?.param?.const?.[0]?.includes('/signatures}')
+    // const signatureInputValues = constNoteSignature
+    //   ? noteEditorData.editSignatureInputValues
+    //   : noteEditorData.noteSignatureInputValues
+    // if(signatureInputValues && !noteEditorData.noteReaderValues.includes('everyone'))
     return noteEditorData.noteReaderValues
   }
 
@@ -402,9 +416,11 @@ const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor, onNoteCreate
         formData: {
           ...noteEditorData,
           noteReaderValues: getNoteReaderValues(),
+          editReaderValues: getEditReaderValues(),
           editWriterValues: getEditWriterValues(),
         },
         invitationObj: invitation,
+        noteObj: note,
       })
       const result = await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
       const createdNote = await getCreatedNote(result.note)
@@ -427,6 +443,8 @@ const NoteEditor = ({ invitation, note, replyToId, closeNoteEditor, onNoteCreate
       }))
     setFields(orderedFields)
   }, [invitation])
+
+  if (!invitation) return null
 
   return (
     <div className={styles.noteEditor}>

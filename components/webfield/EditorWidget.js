@@ -22,9 +22,12 @@ const EditorWidget = () => {
   const fieldName = Object.keys(field)[0]
 
   const renderConstant = (value) => {
-    if (!value) return <TagsWidget values={field[fieldName].readers} readonly={true} />
     if (Array.isArray(value)) return <TagsWidget values={value} readonly={true} />
-    return <TextboxWidget value={value} readonly={true} />
+    return <TextboxWidget readOnlyValue={value} readOnly={true} />
+  }
+
+  const renderReaders = () => {
+    return <TagsWidget values={field[fieldName].readers} readonly={true} />
   }
 
   const renderInput = (value) => {
@@ -94,8 +97,13 @@ const EditorWidget = () => {
     }
   }
 
-  if (!field[fieldName].value?.param)
-    return renderConstant(field[fieldName].value ?? field[fieldName])
+  if (!field[fieldName].value?.param) {
+    if (!field[fieldName].value && field[fieldName].readers) {
+      return renderReaders()
+    } else {
+      return renderConstant(field[fieldName].value ?? field[fieldName])
+    }
+  }
   if (field[fieldName].value.param.input) return renderInput(field[fieldName].value)
   return renderType(field[fieldName].value)
 }

@@ -3,6 +3,7 @@ import { screen } from '@testing-library/react'
 import { prettyDOM } from '@testing-library/dom'
 import { renderWithEditorComponentContext } from './util'
 import userEvent from '@testing-library/user-event'
+import '@testing-library/jest-dom'
 
 describe('TextboxWidget', () => {
   test('render header text', () => {
@@ -15,6 +16,21 @@ describe('TextboxWidget', () => {
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
     expect(screen.getByText('* Textbox Widget'))
+  })
+
+  test('render readonly input if readonly is true', () => {
+    const providerProps = {
+      value: {
+        field: {
+          textbox_widget: {},
+        },
+      },
+    }
+    renderWithEditorComponentContext(
+      <TextboxWidget readOnly={true} readOnlyValue="read only" />,
+      providerProps
+    )
+    expect(screen.getByDisplayValue('read only')).toHaveAttribute('readonly')
   })
 
   test('show empty input if no existing value', () => {

@@ -27,6 +27,7 @@ import {
   parseFilterQuery,
   replaceFilterWildcards,
 } from '../../lib/forum-utils'
+import NoteEditor from '../NoteEditor'
 
 export default function Forum({
   forumNote,
@@ -663,6 +664,16 @@ export default function Forum({
               }
             }}
           />
+          {/* <NoteEditor
+            replyToNote={parentNote}
+            invitation={activeInvitation}
+            closeNoteEditor={null}
+            onNoteCreated={(note) => {
+              updateNote(note)
+              setActiveInvitation(null)
+              scrollToElement('#forum-replies')
+            }}
+          /> */}
         </div>
       )}
 

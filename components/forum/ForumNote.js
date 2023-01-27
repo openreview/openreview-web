@@ -82,7 +82,14 @@ function ForumNote({ note, updateNote }) {
             }
           }}
         />
-        {/* <NoteEditor note={activeNote} invitation={activeInvitation} /> */}
+        <NoteEditor
+          note={activeNote}
+          invitation={activeInvitation}
+          closeNoteEditor={closeNoteEditor}
+          onNoteCreated={(newNote) => {
+            updateNote(newNote)
+          }}
+        />
       </div>
     )
   }

@@ -13,6 +13,7 @@ import useUser from '../../hooks/useUser'
 import { prettyId, prettyInvitationId, forumDate, buildNoteTitle } from '../../lib/utils'
 import { getInvitationColors } from '../../lib/forum-utils'
 import Icon from '../Icon'
+import NoteEditor from '../NoteEditor'
 
 export default function ForumReply({ note, replies, replyDepth, parentId, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
@@ -134,6 +135,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
             }
           }}
         />
+        {/* <NoteEditor invitation={activeEditInvitation} note={note} /> */}
 
         {!allRepliesHidden && (
           <>
@@ -283,11 +285,20 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
                           {prettyId(q, true)}
                         </a>
                       ))
-                      .concat(signatureGroup.members.length > 4 ? (
-                        <a key="others" href={`/group/info?id=${signatureGroup.id}`} target="_blank" rel="noreferrer">
-                          +{signatureGroup.members.length - 4} more
-                        </a>
-                      ) : [])
+                      .concat(
+                        signatureGroup.members.length > 4 ? (
+                          <a
+                            key="others"
+                            href={`/group/info?id=${signatureGroup.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            +{signatureGroup.members.length - 4} more
+                          </a>
+                        ) : (
+                          []
+                        )
+                      )
                       .reduce(
                         (accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]),
                         null

@@ -97,6 +97,18 @@ describe.only('EditorWidget', () => {
     expect(screen.getByText('tags'))
   })
 
+  test('render TagsWidget for field with only readers', async () => {
+    const providerProps = {
+      value: {
+        field: {
+          field_name: { readers: ['some readers'] },
+        },
+      },
+    }
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('tags'))
+  })
+
   test('render RadioButtonWidget for input radio', async () => {
     const providerProps = inputProviderProps
     providerProps.value.field.field_name.value.param.input = 'radio'
