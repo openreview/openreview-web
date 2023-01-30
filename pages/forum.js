@@ -7,7 +7,7 @@ import Forum from '../components/forum/Forum'
 import withError from '../components/withError'
 import api from '../lib/api-client'
 import { auth } from '../lib/auth'
-import { getConferenceName, getJournalName } from '../lib/utils'
+import { getConferenceName, getJournalName, getIssn } from '../lib/utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 const ForumPage = ({ forumNote, query, appContext }) => {
@@ -37,7 +37,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
     Array.isArray(content.authors) || typeof content.authors === 'string'
       ? [content.authors].flat()
       : []
-  const creationDate = new Date(forumNote.cdate || forumNote.tcdate || Date.now())
+  const onlineDate = new Date(forumNote.odate || forumNote.cdate || forumNote.tcdate || Date.now())
     .toISOString()
     .slice(0, 10)
     .replace(/-/g, '/')
@@ -49,6 +49,8 @@ const ForumPage = ({ forumNote, query, appContext }) => {
   const conferenceName = getConferenceName(content._bibtex)
   // eslint-disable-next-line no-underscore-dangle
   const journalName = forumNote.version === 2 ? getJournalName(content._bibtex) : null
+  // eslint-disable-next-line no-underscore-dangle
+  const issn = getIssn(content._bibtex)
 
   // Set banner link
   useEffect(() => {
@@ -95,7 +97,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
               <meta key={author} name="citation_author" content={author} />
             ))}
             <meta name="citation_publication_date" content={modificationDate} />
-            <meta name="citation_online_date" content={creationDate} />
+            <meta name="citation_online_date" content={onlineDate} />
             {content.pdf && (
               <meta
                 name="citation_pdf_url"
@@ -108,6 +110,9 @@ const ForumPage = ({ forumNote, query, appContext }) => {
             )}
             {journalName && (
               <meta name="citation_journal_title" content={journalName} />
+            )}
+            {issn && (
+              <meta name="citation_issn" content={issn} />
             )}
           </>
         )}

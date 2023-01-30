@@ -6,7 +6,7 @@ import api from '../lib/api-client'
 import SpinnerButton from './SpinnerButton'
 import WebFieldContext from './WebFieldContext'
 
-const DownloadPDFButton = ({ records, fileName }) => {
+const DownloadPDFButton = ({ records, fileName, text = 'Download PDFs' }) => {
   const [isLoading, setIsLoading] = useState(false)
   const { apiVersion } = useContext(WebFieldContext)
   const { accessToken } = useUser()
@@ -26,7 +26,7 @@ const DownloadPDFButton = ({ records, fileName }) => {
       const zipBlob = await api.get(
         '/attachment',
         { [ids.length === 1 ? 'id' : 'ids']: ids, name: 'pdf' },
-        { accessToken, contentType: 'blob' }
+        { accessToken, contentType: 'blob', version: apiVersion }
       )
       const url = window.URL || window.webkitURL
       const link = document.createElement('a')
@@ -42,11 +42,11 @@ const DownloadPDFButton = ({ records, fileName }) => {
   return (
     <SpinnerButton
       className="btn btn-export-data"
-      disabled={!records?.some(hasPdf)}
+      disabled={!records?.some(hasPdf) || isLoading}
       loading={isLoading}
       onClick={handleDownloadPDFClick}
     >
-      Download PDFs
+      {text}
     </SpinnerButton>
   )
 }

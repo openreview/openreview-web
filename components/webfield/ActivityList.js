@@ -14,8 +14,6 @@ export default function ActivityList({ venueId, apiVersion, invitation, pageSize
   const { accessToken } = useUser()
 
   useEffect(() => {
-    if (!accessToken) return
-
     const loadActivityNotes = () => api
       .get(
         '/notes',

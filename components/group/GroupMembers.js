@@ -549,10 +549,10 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
 
   useEffect(() => {
     setGroupMembers({ type: 'INIT' })
+    getMemberAnonIds()
   }, [group.id])
 
   useEffect(() => {
-    getMemberAnonIds()
     $('[data-toggle="tooltip"]').tooltip()
   }, [])
 

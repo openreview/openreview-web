@@ -50,6 +50,12 @@ export default function FilterForm({
       return selectedSig === sigOption.value
     })
   )
+  const selectedReadersOptions = readersToggleOptions.filter((invOption) =>
+    selectedFilters.readers?.includes(invOption.value)
+  )
+  const selectedExReadersOptions = readersToggleOptions.filter((invOption) =>
+    selectedFilters.excludedReaders?.includes(invOption.value)
+  )
 
   const updateFilters = (modifiedFilters) => {
     setSelectedFilters({
@@ -273,27 +279,73 @@ export default function FilterForm({
         <label className="control-label icon-label">
           <Icon name="eye-open" tooltip="Visible to" />
         </label>
-        <div className="form-group readers-filter-container">
-          <ToggleButtonGroup
-            name="readers-filter"
-            className="readers-filter"
-            options={readersToggleOptions}
-            values={[selectedFilters.readers ?? [], selectedFilters.excludedReaders ?? []]}
-            onChange={([selectedOptions, unselectedOptions]) => {
-              updateFilters({
-                readers:
-                  selectedOptions.length > 0
-                    ? selectedOptions.map((option) => option.value)
-                    : null,
-                excludedReaders:
-                  unselectedOptions.length > 0
-                    ? unselectedOptions.map((option) => option.value)
-                    : null,
-              })
-            }}
-            includeReset
-          />
-        </div>
+
+        {filterOptions.readers.length > 25 ? (
+          <div className="form-group readers-filter-container">
+            <Dropdown
+              name="readers-filter"
+              className="replies-filter"
+              options={readersToggleOptions}
+              value={selectedReadersOptions}
+              isDisabled={!filterOptions}
+              onChange={(selectedOptions) => {
+                updateFilters({
+                  readers:
+                    selectedOptions.length > 0
+                      ? selectedOptions.map((option) => option.value)
+                      : null,
+                })
+              }}
+              placeholder="Visible to..."
+              instanceId="readers-filter"
+              height={32}
+              isMulti
+              isSearchable
+            />
+            <Dropdown
+              name="readers-filter"
+              className="replies-filter"
+              options={readersToggleOptions}
+              value={selectedExReadersOptions}
+              isDisabled={!filterOptions}
+              onChange={(selectedOptions) => {
+                updateFilters({
+                  excludedReaders:
+                    selectedOptions.length > 0
+                        ? selectedOptions.map((option) => option.value)
+                        : null,
+                })
+              }}
+              placeholder="Hidden from..."
+              instanceId="excluded-readers-filter"
+              height={32}
+              isMulti
+              isSearchable
+            />
+          </div>
+        ) : (
+          <div className="form-group readers-filter-container">
+            <ToggleButtonGroup
+              name="readers-filter"
+              className="readers-filter"
+              options={readersToggleOptions}
+              values={[selectedFilters.readers ?? [], selectedFilters.excludedReaders ?? []]}
+              onChange={([selectedOptions, unselectedOptions]) => {
+                updateFilters({
+                  readers:
+                    selectedOptions.length > 0
+                      ? selectedOptions.map((option) => option.value)
+                      : null,
+                  excludedReaders:
+                    unselectedOptions.length > 0
+                      ? unselectedOptions.map((option) => option.value)
+                      : null,
+                })
+              }}
+              includeReset
+            />
+          </div>
+        )}
 
         <div className="form-group filtered-reply-count">
           <em className="control-label filter-count">

@@ -23,6 +23,7 @@ import useQuery from '../../hooks/useQuery'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import ErrorDisplay from '../ErrorDisplay'
 import { filterAssignedInvitations, filterHasReplyTo } from '../../lib/webfield-utils'
+import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 
 const AreaChairInfo = ({ areaChairName, areaChairId }) => (
   <div className="note-area-chairs">
@@ -637,6 +638,10 @@ const ReviewerConsole = ({ appContext }) => {
               </p>
             ) : (
               <div className="table-container">
+                <ReviewerConsoleMenuBar
+                  venueId={venueId}
+                  records={reviewerConsoleData.notes}
+                />
                 <Table
                   className="console-table table-striped"
                   headings={[
@@ -660,6 +665,7 @@ const ReviewerConsole = ({ appContext }) => {
               </div>
             )}
           </TabPanel>
+
           <TabPanel id="reviewer-tasks">
             {showTasks && (
               <ReviewerConsoleTasks

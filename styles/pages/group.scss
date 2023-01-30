@@ -401,6 +401,10 @@ main.invitation {
     }
   }
 
+  .space-taker {
+    flex-grow: 1;
+  }
+
   .areachair-console-table,
   .pc-console-paper-status {
     table-layout: auto;

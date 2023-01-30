@@ -15,6 +15,8 @@ export default function SubmissionButton({
   const [noteEditorOpen, setNoteEditorOpen] = useState(false)
   const { accessToken, userLoading } = useUser()
 
+  const invitationPastDue = invitation?.duedate && invitation.duedate < Date.now()
+
   const loadInvitation = async () => {
     try {
       const { invitations } = await api.get(
@@ -39,9 +41,9 @@ export default function SubmissionButton({
     if (userLoading) return
 
     loadInvitation()
-  }, [userLoading])
+  }, [userLoading, invitationId])
 
-  if (!invitation) return null
+  if (!invitation || invitationPastDue) return null
 
   return (
     <>
