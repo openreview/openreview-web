@@ -466,7 +466,7 @@ table.table-minimal {
 
     .explanation {
       float: left;
-      width: calc(100% - 160px);
+      width: calc(100% - 185px);
       span.sig {
         font-style: italic;
         color: constants.$darkBlue;
@@ -482,7 +482,7 @@ table.table-minimal {
     .date {
       float: right;
       text-align: right;
-      width: 160px;
+      width: 185px;
     }
   }
 
