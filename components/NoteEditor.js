@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useState } from 'react'
 import EditorComponentContext from './EditorComponentContext'
 import EditorWidget from './webfield/EditorWidget'
 import styles from '../styles/components/NoteEditor.module.scss'
@@ -13,6 +13,7 @@ import Dropdown from './Dropdown'
 import MultiSelectorDropdown from './MultiSelectorDropdown'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import TagsWidget from './EditorComponents/TagsWidget'
+import { isEqual } from 'lodash'
 
 const NewNoteReaders = ({
   fieldDescription,
@@ -83,7 +84,12 @@ const NewNoteReaders = ({
   const renderReaders = () => {
     switch (descriptionType) {
       case 'const':
-        return <TagsWidget values={fieldDescription} fieldNameOverwrite="Readers" />
+        return (
+          <TagsWidget
+            values={fieldDescription.param?.const ?? fieldDescription}
+            fieldNameOverwrite="Readers"
+          />
+        )
       case 'regex':
       case 'enum':
         return readerOptions ? (
@@ -110,7 +116,7 @@ const NewNoteReaders = ({
 
   useEffect(() => {
     if (!fieldDescription) return // not essentially an error
-    if (!fieldDescription.param) {
+    if (Array.isArray(fieldDescription) || fieldDescription.param.const) {
       setDescriptionType('const')
       // setNoteEditorData({
       //   fieldName: fieldName,
@@ -126,6 +132,156 @@ const NewNoteReaders = ({
   useEffect(() => {
     if (descriptionType === 'regex') getRegexReaders()
     if (descriptionType === 'enum') getEnumReaders()
+  }, [descriptionType])
+
+  if (isLoading) return <LoadingSpinner />
+  return renderReaders()
+}
+
+const NewReplyNoteReaders = ({
+  replyToNote,
+  fieldDescription,
+  fieldName,
+  closeNoteEditor,
+  noteEditorData,
+  setNoteEditorData,
+}) => {
+  const [isLoading, setIsLoading] = useState(false)
+  const [descriptionType, setDescriptionType] = useState(null)
+  const [readerOptions, setReaderOptions] = useState(null)
+  const { accessToken } = useLoginRedirect()
+
+  const getRegexReaders = async () => {
+    setIsLoading(true)
+    try {
+      const regexGroupResult = await api.get(
+        '/groups',
+        { prefix: fieldDescription.param.regex },
+        { accessToken, version: 2 }
+      )
+      if (!regexGroupResult.groups?.length)
+        throw new Error('You do not have permission to create a note')
+      const hasEveryoneGroup = regexGroupResult.groups.find((p) => p.id === 'everyone')
+      const orderAdjustedGroups = hasEveryoneGroup
+        ? [hasEveryoneGroup, ...regexGroupResult.groups.filter((p) => p.id !== 'everyone')]
+        : regexGroupResult.groups
+      setReaderOptions(
+        orderAdjustedGroups.map((p) => ({ label: prettyId(p.id), value: p.id }))
+      )
+    } catch (error) {
+      promptError(error.message)
+      closeNoteEditor()
+    }
+    setIsLoading(false)
+  }
+
+  const getEnumReaders = async () => {
+    setIsLoading(true)
+    try {
+      const options = fieldDescription.param.enum
+      const optionsP = options.map((p) =>
+        p.includes('.*')
+          ? api
+              .get('/groups', { prefix: p }, { accessToken, version: 2 })
+              .then((result) => result.groups.map((q) => q.id))
+          : Promise.resolve([p])
+      )
+      const groupResults = await Promise.all(optionsP)
+      switch (groupResults.flat().length) {
+        case 0:
+          throw new Error('You do not have permission to create a note')
+        case 1:
+          setDescriptionType('singleValueEnum')
+          setReaderOptions([groupResults.flat()[0]])
+          setNoteEditorData({ fieldName: fieldName, value: [groupResults.flat()[0]] })
+          break
+        default:
+          setReaderOptions(groupResults.flat().map((p) => ({ label: prettyId(p), value: p })))
+      }
+    } catch (error) {
+      promptError(error.message)
+      closeNoteEditor()
+    }
+    setIsLoading(false)
+  }
+
+  const getConstReaders = () => {
+    const parentReaders = replyToNote.readers
+    const replyReaders = Array.isArray(fieldDescription)
+      ? fieldDescription
+      : fieldDescription.param.const
+
+    if (replyReaders[0] === '${{note.replyto}.readers}') {
+      setReaderOptions(parentReaders)
+      return
+    }
+    if (parentReaders.includes('everyone')) {
+      setReaderOptions(replyReaders)
+      return
+    }
+    if (isEqualOrSubset(replyReaders, parentReaders)) {
+      setReaderOptions(replyReaders)
+    } else {
+      promptError('Can not create note, readers must match parent note')
+      closeNoteEditor()
+    }
+  }
+
+  const isEqualOrSubset = (replyReaders, parentReaders) => {
+    if (isEqual(replyReaders, parentReaders)) return true
+    return replyReaders.every((value) => {
+      if (parentReaders.includes(value)) return true
+      if (value.includes('/Reviewer_'))
+        return parentReaders.find((p) => p.includes('/Reviewers'))
+      return false
+    })
+  }
+
+  const renderReaders = () => {
+    switch (descriptionType) {
+      case 'const':
+        return readerOptions ? (
+          <TagsWidget values={readerOptions} fieldNameOverwrite="Readers" />
+        ) : null
+      case 'regex':
+      case 'enum':
+        return readerOptions ? (
+          <EditorComponentHeader fieldNameOverwrite="Readers">
+            <MultiSelectorDropdown
+              options={readerOptions}
+              setSelectedValues={(values) =>
+                setNoteEditorData({ fieldName: fieldName, value: values })
+              }
+              selectedValues={readerOptions
+                .filter((p) => noteEditorData[fieldName]?.includes(p.value))
+                .map((q) => q.value)}
+            />
+          </EditorComponentHeader>
+        ) : null
+      case 'singleValueEnum':
+        return readerOptions ? (
+          <TagsWidget values={readerOptions} fieldNameOverwrite="Readers" />
+        ) : null
+      default:
+        return null
+    }
+  }
+
+  useEffect(() => {
+    if (!fieldDescription) return // not essentially an error
+    if (Array.isArray(fieldDescription) || fieldDescription.param.const) {
+      setDescriptionType('const')
+    } else if (fieldDescription.param.regex) {
+      setDescriptionType('regex')
+    } else if (fieldDescription.param.enum) {
+      setDescriptionType('enum')
+    }
+  }, [])
+
+  useEffect(() => {
+    if (descriptionType === 'regex') getRegexReaders()
+    if (descriptionType === 'enum') getEnumReaders()
+    if (descriptionType === 'const') getConstReaders()
   }, [descriptionType])
 
   if (isLoading) return <LoadingSpinner />
@@ -288,13 +444,14 @@ const NoteEditor = ({
 }) => {
   const { user, accessToken } = useLoginRedirect()
   const [fields, setFields] = useState([])
-  const saveDraft = useCallback(
-    debounce((fieldName, value) => {
-      const keyOfSavedText = getAutoStorageKey(user, invitation.id, note?.id, fieldName)
-      localStorage.setItem(keyOfSavedText, value)
-      setAutoStorageKeys((keys) => [...keys, keyOfSavedText])
-    }, 2000),
-    []
+  const saveDraft = useMemo(
+    () =>
+      debounce((fieldName, value) => {
+        const keyOfSavedText = getAutoStorageKey(user, invitation.id, note?.id, fieldName)
+        localStorage.setItem(keyOfSavedText, value)
+        setAutoStorageKeys((keys) => [...keys, keyOfSavedText])
+      }, 2000),
+    [invitation, note, replyToNote]
   )
 
   const noteEditorDataReducer = (state, action) => {
@@ -336,10 +493,10 @@ const NoteEditor = ({
 
   const renderExistingNoteReaders = () => {}
 
-  const renderNewReplyNoteReaders = () => {}
+  // const renderNewReplyNoteReaders = () => {}
 
   const renderNoteReaders = () => {
-    if (!note && !replyToId)
+    if (!note && !replyToNote)
       return (
         <NewNoteReaders
           fieldDescription={invitation.edit.note.readers}
@@ -350,7 +507,17 @@ const NoteEditor = ({
         />
       )
     if (note) return renderExistingNoteReaders()
-    if (replyToId) return renderNewReplyNoteReaders()
+    if (replyToNote)
+      return (
+        <NewReplyNoteReaders
+          replyToNote={replyToNote}
+          fieldDescription={invitation.edit.note.readers}
+          fieldName="noteReaderValues"
+          closeNoteEditor={closeNoteEditor}
+          noteEditorData={noteEditorData}
+          setNoteEditorData={setNoteEditorData}
+        />
+      )
     return null
   }
 
@@ -449,8 +616,11 @@ const NoteEditor = ({
   return (
     <div className={styles.noteEditor}>
       {note && <h2 className={styles.title}>{`Edit ${prettyInvitationId(invitation.id)}`}</h2>}
+      {replyToNote && (
+        <h2 className={styles.title}>{`New ${prettyInvitationId(invitation.id)}`}</h2>
+      )}
       <div className={styles.requiredField}>* denotes a required field</div>
-      {note && <hr />}
+      {(note || replyToNote) && <hr />}
       {fields.map((field) => renderField(field))}
       {renderNoteReaders()}
       <NoteSignatures

@@ -664,16 +664,18 @@ export default function Forum({
               }
             }}
           />
-          {/* <NoteEditor
+          <NoteEditor
             replyToNote={parentNote}
             invitation={activeInvitation}
-            closeNoteEditor={null}
+            closeNoteEditor={() => {
+              setActiveInvitation(null)
+            }}
             onNoteCreated={(note) => {
               updateNote(note)
               setActiveInvitation(null)
               scrollToElement('#forum-replies')
             }}
-          /> */}
+          />
         </div>
       )}
 

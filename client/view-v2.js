@@ -1648,7 +1648,9 @@ module.exports = (function () {
           done($readers)
         }
       )
-    } else if (
+    }
+    //#region
+    else if (
       (_.has(fieldDescription, 'param') && _.has(fieldDescription, 'const')) ||
       Array.isArray(fieldDescription)
     ) {
@@ -1684,6 +1686,7 @@ module.exports = (function () {
             $readers.find('.small_heading').prepend(requiredText)
             done($readers)
           } else {
+            console.log('1')
             done(undefined, 'Can not create note, readers must match parent note')
           }
         }
@@ -1693,6 +1696,7 @@ module.exports = (function () {
       $readers.find('.small_heading').prepend(requiredText)
       done($readers)
     }
+    //#endregion
   }
 
   function buildSignatures(fieldDescription, fieldValue, user, headingText = 'signatures') {

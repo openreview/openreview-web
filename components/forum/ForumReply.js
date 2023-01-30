@@ -366,7 +366,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
             ))}
           </div>
 
-          <NoteEditorForm
+          {/* <NoteEditorForm
             forumId={note.forum}
             invitation={activeInvitation}
             replyToId={note.id}
@@ -386,6 +386,18 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
               if (isLoadingError) {
                 setActiveInvitation(null)
               }
+            }}
+          /> */}
+          <NoteEditor
+            invitation={activeInvitation}
+            replyToNote={note}
+            closeNoteEditor={() => {
+              setActiveInvitation(null)
+            }}
+            onNoteCreated={(newNote) => {
+              updateNote(newNote)
+              setActiveInvitation(null)
+              scrollToNote(newNote.id)
             }}
           />
         </div>
@@ -474,7 +486,12 @@ function CopyLinkButton({ forumId, noteId }) {
 
   return (
     <button type="button" className="btn btn-xs permalink-btn" onClick={copyNoteUrl}>
-      <Icon name="link" tooltip="Copy reply URL" />
+      <a
+        onClick={(e) => e.preventDefault()}
+        href={`${window.location.origin}${window.location.pathname}?id=${forumId}&noteId=${noteId}`}
+      >
+        <Icon name="link" tooltip="Copy reply URL" />
+      </a>
     </button>
   )
 }
