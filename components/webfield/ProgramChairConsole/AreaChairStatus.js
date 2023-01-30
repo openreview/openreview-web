@@ -17,6 +17,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
   const { id, preferredName, preferredEmail } = rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
   const {
+    apiVersion,
     seniorAreaChairsId,
     areaChairsId,
     reviewersId,
@@ -31,14 +32,16 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
     invitations,
     areaChairsId,
     bidName,
-    scoresName
+    scoresName,
+    apiVersion
   )
   const edgeBrowserRecsUrl = buildEdgeBrowserUrl(
     `signatory:${id}`,
     invitations,
     reviewersId,
     recommendationName,
-    scoresName
+    scoresName,
+    apiVersion
   )
 
   return (

@@ -13,12 +13,14 @@ import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, preferredEmail } = rowData.reviewerProfile ?? {}
   const { completedBids, reviewerProfileId } = rowData
-  const { reviewersId, bidName } = useContext(WebFieldContext)
+  const { apiVersion, reviewersId, bidName } = useContext(WebFieldContext)
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
     `tail:${id}`,
     invitations,
     reviewersId,
-    bidName
+    bidName,
+    null,
+    apiVersion
   )
   return (
     <div className="note">

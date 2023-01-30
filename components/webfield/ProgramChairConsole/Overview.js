@@ -534,6 +534,7 @@ const DescriptionTimelineOtherConfigRow = ({
   recommendationEnabled,
 }) => {
   const {
+    apiVersion,
     venueId,
     areaChairsId,
     seniorAreaChairsId,
@@ -860,7 +861,8 @@ const DescriptionTimelineOtherConfigRow = ({
                     invitations,
                     reviewersId,
                     bidName,
-                    scoresName
+                    scoresName,
+                    apiVersion
                   )}
                 >
                   <a>Reviewer Bids</a>
@@ -874,7 +876,8 @@ const DescriptionTimelineOtherConfigRow = ({
                       invitations,
                       seniorAreaChairsId,
                       bidName,
-                      scoresName
+                      scoresName,
+                      apiVersion
                     )}
                   >
                     <a>Senior Area Chair Bids</a>
@@ -890,7 +893,8 @@ const DescriptionTimelineOtherConfigRow = ({
                         invitations,
                         areaChairsId,
                         bidName,
-                        scoresName
+                        scoresName,
+                        apiVersion
                       )}
                     >
                       <a>Area Chair Bid</a>
@@ -904,7 +908,8 @@ const DescriptionTimelineOtherConfigRow = ({
                           invitations,
                           reviewersId,
                           recommendationName,
-                          scoresName
+                          scoresName,
+                          apiVersion
                         )}
                       >
                         <a>Area Chair Reviewer Recommendations</a>
