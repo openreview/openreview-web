@@ -1,6 +1,7 @@
 /* globals promptError: false */
 
 import { useState, useEffect, useContext } from 'react'
+import truncate from 'lodash/truncate'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import UserContext from './UserContext'
@@ -85,10 +86,11 @@ const NavUserLinks = () => {
           aria-haspopup="true"
           aria-expanded="false"
         >
-          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
           <span>
-            {user.profile.first} {user.profile.middle} {user.profile.last}{' '}
-            {user.impersonator && '(Impersonated)'}
+            {truncate(`${user.profile.first} ${user.profile.middle ?? ''} ${user.profile.last ?? ''}`, {
+              length: user.impersonator ? 15 : 22,
+            })}
+            {user.impersonator && ' (Impersonated)'}
           </span>{' '}
           <span className="caret" />
         </a>
@@ -97,6 +99,14 @@ const NavUserLinks = () => {
           <li>
             <Link href="/profile">
               <a>Profile</a>
+            </Link>
+          </li>
+          <li className="visible-sm-block">
+            <Link href="/notifications">
+              <a>
+                Notifications
+                {unreadNotifications > 0 && <span className="badge">{unreadNotifications}</span>}
+              </a>
             </Link>
           </li>
           <li className="visible-sm-block">

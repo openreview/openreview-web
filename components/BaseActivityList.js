@@ -19,7 +19,12 @@ export default function BaseActivityList({ notes, emptyMessage, showActionButton
         return
       }
 
-      const { forum, id } = note.apiVersion === 2 ? note.note : note
+      // eslint-disable-next-line prefer-const
+      let { forum, id } = note.apiVersion === 2 ? note.note : note
+      // TODO: Remove this workaround once note edits all contain forum
+      if (note.apiVersion === 2 && !forum && !note.note.replyto) {
+        forum = id
+      }
       if (!forum) return
 
       const noteAuthors = note.tauthor ? [note.tauthor] : note.signatures

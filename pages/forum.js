@@ -37,7 +37,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
     Array.isArray(content.authors) || typeof content.authors === 'string'
       ? [content.authors].flat()
       : []
-  const creationDate = new Date(forumNote.cdate || forumNote.tcdate || Date.now())
+  const onlineDate = new Date(forumNote.odate || forumNote.cdate || forumNote.tcdate || Date.now())
     .toISOString()
     .slice(0, 10)
     .replace(/-/g, '/')
@@ -97,7 +97,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
               <meta key={author} name="citation_author" content={author} />
             ))}
             <meta name="citation_publication_date" content={modificationDate} />
-            <meta name="citation_online_date" content={creationDate} />
+            <meta name="citation_online_date" content={onlineDate} />
             {content.pdf && (
               <meta
                 name="citation_pdf_url"
