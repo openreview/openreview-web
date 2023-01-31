@@ -176,39 +176,22 @@ const ProgramChairConsole = ({ appContext }) => {
       // #endregion
 
       // #region getSubmissions
-      const notesP = api
-        .getAll(
-          '/notes',
-          {
-            invitation: submissionId,
-            details: 'invitation,tags,original,replyCount,directReplies',
-            select: 'id,number,forum,content,details,invitations,invitation,readers',
-            sort: 'number:asc',
-          },
-          { accessToken, version: apiVersion }
-        )
-        .then((notes) => {
-          if (apiVersion !== 2) return notes
-          return notes.filter((p) => p.content?.venueid?.value === submissionVenueId)
-        })
+      const notesP = api.getAll(
+        '/notes',
+        {
+          invitation: submissionId,
+          details: 'invitation,tags,original,replyCount,directReplies',
+          select: 'id,number,forum,content,details,invitations,invitation,readers',
+          sort: 'number:asc',
+        },
+        { accessToken, version: apiVersion }
+      )
       // #endregion
 
       // #region get withdrawn and rejected submissions
       const withdrawnRejectedSubmissionResultsP =
         apiVersion === 2
-          ? Promise.all(
-              [withdrawnVenueId, deskRejectedVenueId].map((id) =>
-                id
-                  ? api.getAll(
-                      '/notes',
-                      {
-                        'content.venueid': id,
-                      },
-                      { accessToken, version: 2 }
-                    )
-                  : Promise.resolve([])
-              )
-            )
+          ? Promise.resolve([])
           : Promise.all(
               [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) =>
                 id
@@ -296,7 +279,14 @@ const ProgramChairConsole = ({ appContext }) => {
       const requestForm = results[1]?.notes?.[0]
       const registrationForms = results[2].flatMap((p) => p ?? [])
       const committeeMemberResults = results[3]
-      const notes = results[4].map((note) => ({ ...note, version: apiVersion }))
+      const notes = results[4].flatMap((note) => {
+        if (
+          apiVersion === 2 &&
+          [withdrawnVenueId, deskRejectedVenueId].includes(note.content?.venueid?.value)
+        )
+          return []
+        return { ...note, version: apiVersion }
+      })
       const withdrawnRejectedSubmissionResults = results[5]
       const acRecommendationsCount = results[6]
       const bidCountResults = results[7]
@@ -433,8 +423,22 @@ const ProgramChairConsole = ({ appContext }) => {
         officialReviewsByPaperNumberMap,
         metaReviewsByPaperNumberMap,
         decisionByPaperNumberMap,
-        withdrawnNotes: withdrawnRejectedSubmissionResults[0],
-        deskRejectedNotes: withdrawnRejectedSubmissionResults[1],
+        withdrawnNotes:
+          apiVersion === 2
+            ? results[4].flatMap((note) => {
+                if (note.content?.venueid?.value === withdrawnVenueId)
+                  return { ...note, version: apiVersion }
+                return []
+              })
+            : withdrawnRejectedSubmissionResults[0],
+        deskRejectedNotes:
+          apiVersion === 2
+            ? results[4].flatMap((note) => {
+                if (note.content?.venueid?.value === deskRejectedVenueId)
+                  return { ...note, version: apiVersion }
+                return []
+              })
+            : withdrawnRejectedSubmissionResults[1],
         acRecommendationsCount,
         bidCounts: {
           reviewers: bidCountResults[0],
