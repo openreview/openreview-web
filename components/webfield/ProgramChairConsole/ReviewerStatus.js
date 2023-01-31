@@ -195,12 +195,8 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#reviewer-status)`
   )
-  const bidEnabled = pcConsoleData.invitations?.some((p) =>
-    [
-      `${seniorAreaChairsId}/-/${bidName}`,
-      `${areaChairsId}/-/${bidName}`,
-      `${reviewersId}/-/${bidName}`,
-    ].includes(p.id)
+  const bidEnabled = pcConsoleData.invitations?.find(
+    (p) => p.id === `${reviewersId}/-/${bidName}`
   )
 
   const loadReviewerData = async () => {

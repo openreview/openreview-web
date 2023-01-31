@@ -273,12 +273,8 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.areaChairs?.length ?? 0)
   const pageSize = 25
-  const bidEnabled = pcConsoleData.invitations?.some((p) =>
-    [
-      `${seniorAreaChairsId}/-/${bidName}`,
-      `${areaChairsId}/-/${bidName}`,
-      `${reviewersId}/-/${bidName}`,
-    ].includes(p.id)
+  const bidEnabled = pcConsoleData.invitations?.find(
+    (p) => p.id === `${areaChairsId}/-/${bidName}`
   )
   const recommendationEnabled = pcConsoleData.invitations?.some(
     (p) => p.id === `${reviewersId}/-/${recommendationName}`
