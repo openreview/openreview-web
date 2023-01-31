@@ -171,7 +171,13 @@ const SubmissionsStatsRow = ({ pcConsoleData }) => {
   )
 }
 
-const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) => {
+const BiddingStatsRow = ({
+  reviewersBidEnabled,
+  areaChairsBidEnabled,
+  seniorAreaChairsBidEnabled,
+  recommendationEnabled,
+  pcConsoleData,
+}) => {
   const { areaChairsId, seniorAreaChairsId, reviewersId, bidName, recommendationName } =
     useContext(WebFieldContext)
 
@@ -219,19 +225,25 @@ const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) =
       </>
     )
   }
-  if (!bidEnabled && !recommendationEnabled) return null
+  if (
+    !reviewersBidEnabled &&
+    !areaChairsBidEnabled &&
+    !seniorAreaChairsBidEnabled &&
+    !recommendationEnabled
+  )
+    return null
 
   return (
     <>
       <div className="row">
-        {bidEnabled && reviewersId && (
+        {reviewersBidEnabled && reviewersId && (
           <StatContainer
             title="Reviewer Bidding Progress"
             hint="% of Reviewers who have completed the required number of bids"
             value={calcBiddingProgress(reviewersId, 'reviewers')}
           />
         )}
-        {bidEnabled && areaChairsId && (
+        {areaChairsBidEnabled && areaChairsId && (
           <StatContainer
             title="AC Bidding Progress"
             hint="% of ACs who have completed the required number of bids"
@@ -245,7 +257,7 @@ const BiddingStatsRow = ({ bidEnabled, recommendationEnabled, pcConsoleData }) =
             value={calcRecommendationProgress()}
           />
         )}
-        {bidEnabled && seniorAreaChairsId && (
+        {seniorAreaChairsBidEnabled && seniorAreaChairsId && (
           <StatContainer
             title="SAC Bidding Progress"
             hint="% of SACs who have completed the required number of bids"
@@ -529,11 +541,14 @@ const DecisionStatsRow = ({ pcConsoleData }) => {
 }
 
 const DescriptionTimelineOtherConfigRow = ({
+  reviewersBidEnabled,
+  areaChairsBidEnabled,
+  seniorAreaChairsBidEnabled,
   pcConsoleData,
-  bidEnabled,
   recommendationEnabled,
 }) => {
   const {
+    apiVersion,
     venueId,
     areaChairsId,
     seniorAreaChairsId,
@@ -849,24 +864,27 @@ const DescriptionTimelineOtherConfigRow = ({
             </ul>
           </div>
         )}
-        {bidEnabled && (
+        {(reviewersBidEnabled || areaChairsBidEnabled || seniorAreaChairsBidEnabled) && (
           <div className="col-md-4 col-xs-6">
             <h4>Bids & Recommendations:</h4>
             <ul className="overview-list">
-              <li>
-                <Link
-                  href={buildEdgeBrowserUrl(
-                    null,
-                    invitations,
-                    reviewersId,
-                    bidName,
-                    scoresName
-                  )}
-                >
-                  <a>Reviewer Bids</a>
-                </Link>
-              </li>
-              {seniorAreaChairsId && (
+              {reviewersBidEnabled && (
+                <li>
+                  <Link
+                    href={buildEdgeBrowserUrl(
+                      null,
+                      invitations,
+                      reviewersId,
+                      bidName,
+                      scoresName,
+                      apiVersion
+                    )}
+                  >
+                    <a>Reviewer Bids</a>
+                  </Link>
+                </li>
+              )}
+              {seniorAreaChairsBidEnabled && (
                 <li>
                   <Link
                     href={buildEdgeBrowserUrl(
@@ -874,14 +892,15 @@ const DescriptionTimelineOtherConfigRow = ({
                       invitations,
                       seniorAreaChairsId,
                       bidName,
-                      scoresName
+                      scoresName,
+                      apiVersion
                     )}
                   >
                     <a>Senior Area Chair Bids</a>
                   </Link>
                 </li>
               )}
-              {areaChairsId && (
+              {areaChairsBidEnabled && (
                 <>
                   <li>
                     <Link
@@ -890,7 +909,8 @@ const DescriptionTimelineOtherConfigRow = ({
                         invitations,
                         areaChairsId,
                         bidName,
-                        scoresName
+                        scoresName,
+                        apiVersion
                       )}
                     >
                       <a>Area Chair Bid</a>
@@ -904,7 +924,8 @@ const DescriptionTimelineOtherConfigRow = ({
                           invitations,
                           reviewersId,
                           recommendationName,
-                          scoresName
+                          scoresName,
+                          apiVersion
                         )}
                       >
                         <a>Area Chair Reviewer Recommendations</a>
@@ -924,13 +945,13 @@ const DescriptionTimelineOtherConfigRow = ({
 const Overview = ({ pcConsoleData }) => {
   const { areaChairsId, seniorAreaChairsId, reviewersId, bidName, recommendationName } =
     useContext(WebFieldContext)
-  const bidEnabled = pcConsoleData.invitations?.find((p) =>
-    [
-      `${seniorAreaChairsId}/-/${bidName}`,
-      `${areaChairsId}/-/${bidName}`,
-      `${reviewersId}/-/${bidName}`,
-    ].includes(p.id)
-  )
+
+  const isBidEnabled = (groupId) =>
+    pcConsoleData.invitations?.find((p) => p.id === `${groupId}/-/${bidName}`)
+
+  const reviewersBidEnabled = isBidEnabled(reviewersId)
+  const areaChairsBidEnabled = isBidEnabled(areaChairsId)
+  const seniorAreaChairsBidEnabled = isBidEnabled(seniorAreaChairsId)
   const recommendationEnabled = pcConsoleData.invitations?.find(
     (p) => p.id === `${reviewersId}/-/${recommendationName}`
   )
@@ -939,7 +960,9 @@ const Overview = ({ pcConsoleData }) => {
       <RecruitmentStatsRow pcConsoleData={pcConsoleData} />
       <SubmissionsStatsRow pcConsoleData={pcConsoleData} />
       <BiddingStatsRow
-        bidEnabled={bidEnabled}
+        reviewersBidEnabled={reviewersBidEnabled}
+        areaChairsBidEnabled={areaChairsBidEnabled}
+        seniorAreaChairsBidEnabled={seniorAreaChairsBidEnabled}
         recommendationEnabled={recommendationEnabled}
         pcConsoleData={pcConsoleData}
       />
@@ -947,8 +970,10 @@ const Overview = ({ pcConsoleData }) => {
       <MetaReviewStatsRow pcConsoleData={pcConsoleData} />
       <DecisionStatsRow pcConsoleData={pcConsoleData} />
       <DescriptionTimelineOtherConfigRow
+        reviewersBidEnabled={reviewersBidEnabled}
+        areaChairsBidEnabled={areaChairsBidEnabled}
+        seniorAreaChairsBidEnabled={seniorAreaChairsBidEnabled}
         pcConsoleData={pcConsoleData}
-        bidEnabled={bidEnabled}
         recommendationEnabled={recommendationEnabled}
       />
     </>
