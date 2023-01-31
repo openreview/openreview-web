@@ -189,23 +189,22 @@ const ProgramChairConsole = ({ appContext }) => {
       // #endregion
 
       // #region get withdrawn and rejected submissions
-      const withdrawnRejectedSubmissionResultsP =
-        apiVersion === 2
-          ? Promise.resolve([])
-          : Promise.all(
-              [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) =>
-                id
-                  ? api.getAll(
-                      '/notes',
-                      {
-                        invitation: id,
-                        details: 'original',
-                      },
-                      { accessToken }
-                    )
-                  : Promise.resolve([])
-              )
+      const withdrawnRejectedSubmissionResultsP = isV2Console
+        ? Promise.resolve([])
+        : Promise.all(
+            [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) =>
+              id
+                ? api.getAll(
+                    '/notes',
+                    {
+                      invitation: id,
+                      details: 'original',
+                    },
+                    { accessToken }
+                  )
+                : Promise.resolve([])
             )
+          )
       // #endregion
 
       // #region get ac recommendation count
@@ -281,7 +280,7 @@ const ProgramChairConsole = ({ appContext }) => {
       const committeeMemberResults = results[3]
       const notes = results[4].flatMap((note) => {
         if (
-          apiVersion === 2 &&
+          isV2Console &&
           [withdrawnVenueId, deskRejectedVenueId].includes(note.content?.venueid?.value)
         )
           return []
@@ -423,22 +422,20 @@ const ProgramChairConsole = ({ appContext }) => {
         officialReviewsByPaperNumberMap,
         metaReviewsByPaperNumberMap,
         decisionByPaperNumberMap,
-        withdrawnNotes:
-          apiVersion === 2
-            ? results[4].flatMap((note) => {
-                if (note.content?.venueid?.value === withdrawnVenueId)
-                  return { ...note, version: apiVersion }
-                return []
-              })
-            : withdrawnRejectedSubmissionResults[0],
-        deskRejectedNotes:
-          apiVersion === 2
-            ? results[4].flatMap((note) => {
-                if (note.content?.venueid?.value === deskRejectedVenueId)
-                  return { ...note, version: apiVersion }
-                return []
-              })
-            : withdrawnRejectedSubmissionResults[1],
+        withdrawnNotes: isV2Console
+          ? results[4].flatMap((note) => {
+              if (note.content?.venueid?.value === withdrawnVenueId)
+                return { ...note, version: apiVersion }
+              return []
+            })
+          : withdrawnRejectedSubmissionResults[0],
+        deskRejectedNotes: isV2Console
+          ? results[4].flatMap((note) => {
+              if (note.content?.venueid?.value === deskRejectedVenueId)
+                return { ...note, version: apiVersion }
+              return []
+            })
+          : withdrawnRejectedSubmissionResults[1],
         acRecommendationsCount,
         bidCounts: {
           reviewers: bidCountResults[0],
