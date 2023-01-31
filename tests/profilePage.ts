@@ -216,6 +216,7 @@ test('import paper from dblp', async (t) => {
     // put persistent url of other people in page
     .typeText(Selector('input#dblp_url'), testPersistentUrl, { replace: true })
     .click(addDBLPPaperToProfileButton)
+    .wait(5000)
     .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText)
     .contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.')
     .click(dblpImportModalCancelButton)
