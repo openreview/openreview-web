@@ -51,7 +51,6 @@ export default function Forum({
     excludedReaders: null,
   })
   const [activeInvitation, setActiveInvitation] = useState(null)
-  const [maxLength, setMaxLength] = useState(250)
   const [scrolled, setScrolled] = useState(false)
   const router = useRouter()
   const query = useQuery()
@@ -67,11 +66,6 @@ export default function Forum({
       0
     )
   }, [displayOptionsMap])
-
-  const numTopLevelRepliesVisible = useMemo(() => {
-    if (!displayOptionsMap || !orderedReplies) return 0
-    return orderedReplies.filter((note) => !displayOptionsMap[note.id]?.hidden).length
-  }, [displayOptionsMap, orderedReplies])
 
   // API helper functions
   const getInvitationsByReplyForum = (forumId, includeTags) => {
@@ -618,42 +612,6 @@ export default function Forum({
     }
   }, [query])
 
-  // Build array of replies to display
-  let truncatedRepliesArr = null
-  if (repliesLoaded && numTopLevelRepliesVisible > maxLength) {
-    let i = 0
-    let count = 0
-    truncatedRepliesArr = []
-    while (count < maxLength) {
-      const reply = orderedReplies[i]
-      truncatedRepliesArr.push(
-        <ForumReply
-          key={reply.id}
-          note={replyNoteMap[reply.id]}
-          replies={reply.replies}
-          replyDepth={1}
-          parentId={id}
-          updateNote={updateNote}
-        />
-      )
-      if (!displayOptionsMap[reply.id].hidden) {
-        count += 1
-      }
-      i += 1
-    }
-  } else if (repliesLoaded) {
-    truncatedRepliesArr = orderedReplies.map((reply) => (
-      <ForumReply
-        key={reply.id}
-        note={replyNoteMap[reply.id]}
-        replies={reply.replies}
-        replyDepth={1}
-        parentId={id}
-        updateNote={updateNote}
-      />
-    ))
-  }
-
   return (
     <div className="forum-container">
       <ForumNote note={parentNote} updateNote={updateParentNote} />
@@ -735,20 +693,19 @@ export default function Forum({
                 setHidden,
               }}
             >
-              {truncatedRepliesArr || <LoadingSpinner inline />}
+              {repliesLoaded ? orderedReplies.map((reply) => (
+                <ForumReply
+                  key={reply.id}
+                  note={replyNoteMap[reply.id]}
+                  replies={reply.replies}
+                  replyDepth={1}
+                  parentId={id}
+                  updateNote={updateNote}
+                />
+              )) : (
+                <LoadingSpinner inline />
+              )}
             </ForumReplyContext.Provider>
-
-            {repliesLoaded && maxLength < numTopLevelRepliesVisible && (
-              <div className="text-center">
-                <button
-                  type="button"
-                  className="btn btn-xs btn-default"
-                  onClick={() => setMaxLength(maxLength + 100)}
-                >
-                  View More Replies &rarr;
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
