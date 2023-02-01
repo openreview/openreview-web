@@ -38,11 +38,23 @@ const ReviewSummary = ({
   const ratings = []
   const confidences = []
 
+  const getRatingValue = (reviewNote) => {
+    if (Array.isArray(reviewRatingName)) {
+      return reviewRatingName.reduce((prev, curr) => {
+        if (!prev) {
+          prev = isV2Note ? reviewNote.content[curr]?.value : reviewNote.content[curr]
+        }
+        return prev
+      }, null)
+    }
+    return isV2Note
+      ? reviewNote.content[reviewRatingName]?.value
+      : reviewNote.content[reviewRatingName]
+  }
+
   noteCompletedReviews.forEach((p) => {
     const ratingEx = /^(\d+): .*$/
-    const ratingValue = isV2Note
-      ? p.content[reviewRatingName]?.value
-      : p.content[reviewRatingName]
+    const ratingValue = getRatingValue(p)
     const ratingMatch = ratingValue?.match(ratingEx)
     ratings.push(ratingMatch ? parseInt(ratingMatch[1], 10) : null)
     const confidenceValue = isV2Note
@@ -74,9 +86,8 @@ const ReviewSummary = ({
 
       <ul className="list-unstyled">
         {noteCompletedReviews.map((review) => {
-          const reviewRatingValue = isV2Note
-            ? review.content?.[reviewRatingName]?.value
-            : review.content?.[reviewRatingName]
+          const reviewRatingValue = getRatingValue(review)
+
           const reviewConfidenceValue = isV2Note
             ? review.content?.[reviewConfidenceName]?.value
             : review.content?.[reviewConfidenceName]
