@@ -63,37 +63,25 @@ const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
         }))
       )
 
+  const loadAllNotes = (ids) =>
+    Promise.all(
+      ids.map((id) => {
+        if (!id) return Promise.resolve([])
+
+        const params =
+          apiVersion === 2
+            ? { 'content.venueid': id }
+            : { invitation: id, details: 'original' }
+        return api.getAll('/notes', params, { accessToken, version: apiVersion })
+      })
+    )
+
   const loadRejectedWithdrawnPapers = async () => {
     try {
       const results =
         apiVersion === 2
-          ? await Promise.all(
-              [deskRejectedVenueId, withdrawnVenueId].map((id) =>
-                id
-                  ? api.getAll(
-                      '/notes',
-                      {
-                        'content.venueid': id,
-                      },
-                      { accessToken, version: apiVersion }
-                    )
-                  : Promise.resolve([])
-              )
-            )
-          : await Promise.all(
-              [deskRejectedSubmissionId, withdrawnSubmissionId].map((id) =>
-                id
-                  ? api.getAll(
-                      '/notes',
-                      {
-                        invitation: id,
-                        details: 'original',
-                      },
-                      { accessToken }
-                    )
-                  : Promise.resolve([])
-              )
-            )
+          ? await loadAllNotes([deskRejectedVenueId, withdrawnVenueId])
+          : await loadAllNotes([deskRejectedSubmissionId, withdrawnSubmissionId])
       const tableRows = formatTableRows(results[0], results[1])
       setRejectedPaperTabData({
         tableRowsAll: tableRows,

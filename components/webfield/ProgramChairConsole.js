@@ -192,18 +192,14 @@ const ProgramChairConsole = ({ appContext }) => {
       const withdrawnRejectedSubmissionResultsP = isV2Console
         ? Promise.resolve([])
         : Promise.all(
-            [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) =>
-              id
-                ? api.getAll(
-                    '/notes',
-                    {
-                      invitation: id,
-                      details: 'original',
-                    },
-                    { accessToken }
-                  )
-                : Promise.resolve([])
-            )
+            [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) => {
+              if (!id) return Promise.resolve([])
+              return api.getAll(
+                '/notes',
+                { invitation: id, details: 'original' },
+                { accessToken }
+              )
+            })
           )
       // #endregion
 
