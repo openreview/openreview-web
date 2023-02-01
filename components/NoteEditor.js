@@ -13,7 +13,7 @@ import Dropdown from './Dropdown'
 import MultiSelectorDropdown from './MultiSelectorDropdown'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import TagsWidget from './EditorComponents/TagsWidget'
-import { isEqual } from 'lodash'
+import { difference, isEqual } from 'lodash'
 
 const NewNoteReaders = ({
   fieldDescription,
@@ -118,10 +118,6 @@ const NewNoteReaders = ({
     if (!fieldDescription) return // not essentially an error
     if (Array.isArray(fieldDescription) || fieldDescription.param.const) {
       setDescriptionType('const')
-      // setNoteEditorData({
-      //   fieldName: fieldName,
-      //   value: Array.isArray(fieldDescription) ? fieldDescription : [fieldDescription],
-      // })
     } else if (fieldDescription.param.regex) {
       setDescriptionType('regex')
     } else if (fieldDescription.param.enum) {
@@ -150,6 +146,21 @@ const NewReplyNoteReaders = ({
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
   const { accessToken } = useLoginRedirect()
+
+  const addEnumParentReaders = (groupResults, parentReaders) => {
+    if (parentReaders.includes('everyone')) return groupResults
+    const readersIntersection = parentReaders.filter((p) => groupResults.includes(p))
+    if (
+      readersIntersection.find((p) => p.endsWith('/Reviewers')) &&
+      !readersIntersection.find((p) => p.includes('/AnonReviewer') || p.includes('/Reviewer_'))
+    ) {
+      const readersIntersectionWithAnonReviewers = readersIntersection.concat(
+        groupResults.filter((p) => p.includes('AnonReviewer') || p.includes('Reviewer_'))
+      )
+      return readersIntersectionWithAnonReviewers
+    }
+    return readersIntersection
+  }
 
   const getRegexReaders = async () => {
     setIsLoading(true)
@@ -187,16 +198,35 @@ const NewReplyNoteReaders = ({
           : Promise.resolve([p])
       )
       const groupResults = await Promise.all(optionsP)
+      const optionWithParentReaders = addEnumParentReaders(
+        groupResults.flat(),
+        replyToNote.readers
+      )
       switch (groupResults.flat().length) {
         case 0:
           throw new Error('You do not have permission to create a note')
         case 1:
+          if (!optionWithParentReaders.length)
+            throw new Error('You do not have permission to create a note')
+          if (difference(optionWithParentReaders, fieldDescription.param.default).length)
+            throw new Error('Default reader is not in the list of readers')
+
           setDescriptionType('singleValueEnum')
-          setReaderOptions([groupResults.flat()[0]])
-          setNoteEditorData({ fieldName: fieldName, value: [groupResults.flat()[0]] })
+          setReaderOptions([optionWithParentReaders[0]])
+          setNoteEditorData({ fieldName: fieldName, value: [optionWithParentReaders[0]] })
           break
         default:
-          setReaderOptions(groupResults.flat().map((p) => ({ label: prettyId(p), value: p })))
+          if (!optionWithParentReaders.length)
+            throw new Error('You do not have permission to create a note')
+          if (difference(optionWithParentReaders, fieldDescription.param.default).length) {
+            throw new Error('Default reader is not in the list of readers')
+          }
+          setReaderOptions(
+            optionWithParentReaders.map((p) => ({
+              label: prettyId(p),
+              value: p,
+            }))
+          )
       }
     } catch (error) {
       promptError(error.message)
@@ -289,6 +319,7 @@ const NewReplyNoteReaders = ({
 }
 
 const EditReaders = NewNoteReaders
+const ExistingNoteReaders = NewReplyNoteReaders
 
 const Signatures = ({
   fieldDescription,
@@ -389,7 +420,7 @@ const Signatures = ({
           <EditorComponentHeader fieldNameOverwrite="Signatures">
             <Dropdown
               options={signatureOptions}
-              onChange={(e) => setNoteEditorData({ fieldName, value: e.value })}
+              onChange={(e) => setNoteEditorData({ fieldName, value: [e.value] })}
               value={signatureOptions.find((p) => p.value === noteEditorData[fieldName])}
             />
           </EditorComponentHeader>
@@ -434,14 +465,7 @@ const NoteSignatures = Signatures
 const EditSignatures = Signatures
 
 // for v2 only
-const NoteEditor = ({
-  invitation,
-  note,
-  replyToId,
-  replyToNote,
-  closeNoteEditor,
-  onNoteCreated,
-}) => {
+const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCreated }) => {
   const { user, accessToken } = useLoginRedirect()
   const [fields, setFields] = useState([])
   const saveDraft = useMemo(
@@ -506,7 +530,17 @@ const NoteEditor = ({
           setNoteEditorData={setNoteEditorData}
         />
       )
-    if (note) return renderExistingNoteReaders()
+    if (note)
+      return (
+        <ExistingNoteReaders
+          replyToNote={replyToNote}
+          fieldDescription={invitation.edit.note.readers}
+          fieldName="noteReaderValues"
+          closeNoteEditor={closeNoteEditor}
+          noteEditorData={noteEditorData}
+          setNoteEditorData={setNoteEditorData}
+        />
+      )
     if (replyToNote)
       return (
         <NewReplyNoteReaders

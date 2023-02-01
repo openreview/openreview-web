@@ -68,7 +68,7 @@ function ForumNote({ note, updateNote }) {
   if (activeInvitation) {
     return (
       <div className="forum-note">
-        <NoteEditorForm
+        {/* <NoteEditorForm
           note={activeNote}
           invitation={activeInvitation}
           onNoteEdited={(newNote) => {
@@ -81,14 +81,12 @@ function ForumNote({ note, updateNote }) {
               setActiveInvitation(null)
             }
           }}
-        />
+        /> */}
         <NoteEditor
           note={activeNote}
           invitation={activeInvitation}
           closeNoteEditor={closeNoteEditor}
-          onNoteCreated={(newNote) => {
-            updateNote(newNote)
-          }}
+          onNoteCreated={(newNote) => updateNote(newNote)}
         />
       </div>
     )

@@ -16,6 +16,7 @@ import Icon from '../Icon'
 import NoteEditor from '../NoteEditor'
 
 export default function ForumReply({ note, replies, replyDepth, parentId, updateNote }) {
+  // if (note.id === '6BEmcv6vBd' || note.id === 'bDfQGbODld') console.log('note', note)
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
   const { displayOptionsMap, layout, setCollapsed, setContentExpanded } =
@@ -135,8 +136,16 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
             }
           }}
         />
-        {/* <NoteEditor invitation={activeEditInvitation} note={note} /> */}
-
+        <NoteEditor
+          invitation={activeEditInvitation}
+          note={note}
+          closeNoteEditor={() => setActiveEditInvitation(null)}
+          onNoteCreated={(newNote) => {
+            updateNote(newNote)
+            setActiveEditInvitation(null)
+            scrollToNote(newNote.id)
+          }}
+        />
         {!allRepliesHidden && (
           <>
             <hr />

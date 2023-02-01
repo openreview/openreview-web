@@ -103,7 +103,7 @@ export function NoteContentValue({ content = '', enableMarkdown }) {
     } else {
       setSanitizedHtml(autoLinkContent(content))
     }
-  }, [])
+  }, [content])
 
   if (!sanitizedHtml) {
     return <span className="note-content-value">{content}</span>
