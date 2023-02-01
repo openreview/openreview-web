@@ -21,14 +21,14 @@ const NewNoteReaders = ({
   closeNoteEditor,
   noteEditorData,
   setNoteEditorData,
+  setLoading,
 }) => {
-  const [isLoading, setIsLoading] = useState(false)
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
   const { accessToken } = useLoginRedirect()
 
   const getRegexReaders = async () => {
-    setIsLoading(true)
+    setLoading((loading) => ({ ...loading, fieldName: true }))
     try {
       const regexGroupResult = await api.get(
         '/groups',
@@ -48,11 +48,11 @@ const NewNoteReaders = ({
       promptError(error.message)
       closeNoteEditor()
     }
-    setIsLoading(false)
+    setLoading((loading) => ({ ...loading, fieldName: false }))
   }
 
   const getEnumReaders = async () => {
-    setIsLoading(true)
+    setLoading((loading) => ({ ...loading, fieldName: true }))
     try {
       const options = fieldDescription.param.enum
       const optionsP = options.map((p) =>
@@ -78,7 +78,7 @@ const NewNoteReaders = ({
       promptError(error.message)
       closeNoteEditor()
     }
-    setIsLoading(false)
+    setLoading((loading) => ({ ...loading, fieldName: false }))
   }
 
   const renderReaders = () => {
@@ -130,19 +130,19 @@ const NewNoteReaders = ({
     if (descriptionType === 'enum') getEnumReaders()
   }, [descriptionType])
 
-  if (isLoading) return <LoadingSpinner />
   return renderReaders()
 }
 
-const NewReplyNoteReaders = ({
+// adding a reply note or editing a note
+const NewReplyEditNoteReaders = ({
   replyToNote,
   fieldDescription,
   fieldName,
   closeNoteEditor,
   noteEditorData,
   setNoteEditorData,
+  setLoading,
 }) => {
-  const [isLoading, setIsLoading] = useState(false)
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
   const { accessToken } = useLoginRedirect()
@@ -164,7 +164,7 @@ const NewReplyNoteReaders = ({
   }
 
   const getRegexReaders = async () => {
-    setIsLoading(true)
+    setLoading((loading) => ({ ...loading, fieldName: true }))
     try {
       const regexGroupResult = await api.get(
         '/groups',
@@ -184,11 +184,11 @@ const NewReplyNoteReaders = ({
       promptError(error.message)
       closeNoteEditor()
     }
-    setIsLoading(false)
+    setLoading((loading) => ({ ...loading, fieldName: false }))
   }
 
   const getEnumReaders = async () => {
-    setIsLoading(true)
+    setLoading((loading) => ({ ...loading, fieldName: true }))
     try {
       const options = fieldDescription.param.enum
       const optionsP = options.map((p) =>
@@ -233,7 +233,7 @@ const NewReplyNoteReaders = ({
       promptError(error.message)
       closeNoteEditor()
     }
-    setIsLoading(false)
+    setLoading((loading) => ({ ...loading, fieldName: false }))
   }
 
   const getConstReaders = () => {
@@ -319,11 +319,10 @@ const NewReplyNoteReaders = ({
     if (descriptionType === 'const') getConstReaders()
   }, [descriptionType])
 
-  if (isLoading) return <LoadingSpinner />
   return renderReaders()
 }
 
-const ExistingNoteReaders = NewReplyNoteReaders
+const ExistingNoteReaders = NewReplyEditNoteReaders
 
 const EditReaders = NewNoteReaders
 
@@ -333,14 +332,14 @@ const Signatures = ({
   closeNoteEditor,
   noteEditorData,
   setNoteEditorData,
+  setLoading,
 }) => {
-  const [isLoading, setIsLoading] = useState(true)
   const [descriptionType, setDescriptionType] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState(null)
   const { user, accessToken } = useLoginRedirect()
 
   const getRegexSignatureOptions = async () => {
-    setIsLoading(true)
+    setLoading((loading) => ({ ...loading, fieldName: true }))
     try {
       const regexGroupResult = await api.get(
         '/groups',
@@ -370,11 +369,11 @@ const Signatures = ({
       promptError(error.message)
       closeNoteEditor()
     }
-    setIsLoading(false)
+    setLoading((loading) => ({ ...loading, fieldName: false }))
   }
 
   const getEnumSignatureOptions = async () => {
-    setIsLoading(true)
+    setLoading((loading) => ({ ...loading, fieldName: true }))
     try {
       const options = fieldDescription.param.enum
       const optionsP = options.map((p) =>
@@ -408,7 +407,7 @@ const Signatures = ({
       promptError(error.message)
       closeNoteEditor()
     }
-    setIsLoading(false)
+    setLoading((loading) => ({ ...loading, fieldName: false }))
   }
 
   const renderNoteSignatures = () => {
@@ -463,7 +462,6 @@ const Signatures = ({
     if (descriptionType === 'enum') getEnumSignatureOptions()
   }, [descriptionType])
 
-  if (isLoading) return <LoadingSpinner inline={true} />
   return renderNoteSignatures()
 }
 
@@ -475,9 +473,9 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
   const { user, accessToken } = useLoginRedirect()
   const [fields, setFields] = useState([])
   const [loading, setLoading] = useState({
-    noteReaders: true,
-    noteSignatures: true,
-    editReaders: true,
+    noteReaders: false,
+    noteSignatures: false,
+    editReaders: false,
     editSignatures: false,
   })
 
@@ -537,6 +535,7 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
           closeNoteEditor={closeNoteEditor}
           noteEditorData={noteEditorData}
           setNoteEditorData={setNoteEditorData}
+          setLoading={setLoading}
         />
       )
     if (note)
@@ -548,17 +547,19 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
           closeNoteEditor={closeNoteEditor}
           noteEditorData={noteEditorData}
           setNoteEditorData={setNoteEditorData}
+          setLoading={setLoading}
         />
       )
     if (replyToNote)
       return (
-        <NewReplyNoteReaders
+        <NewReplyEditNoteReaders
           replyToNote={replyToNote}
           fieldDescription={invitation.edit.note.readers}
           fieldName="noteReaderValues"
           closeNoteEditor={closeNoteEditor}
           noteEditorData={noteEditorData}
           setNoteEditorData={setNoteEditorData}
+          setLoading={setLoading}
         />
       )
     return null
@@ -672,6 +673,7 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
         closeNoteEditor={closeNoteEditor}
         noteEditorData={noteEditorData}
         setNoteEditorData={setNoteEditorData}
+        setLoading={setLoading}
       />
       <EditReaders
         fieldDescription={invitation.edit.readers}
@@ -679,6 +681,7 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
         closeNoteEditor={closeNoteEditor}
         noteEditorData={noteEditorData}
         setNoteEditorData={setNoteEditorData}
+        setLoading={setLoading}
       />
       <EditSignatures
         fieldDescription={invitation.edit.signatures}
@@ -686,20 +689,25 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
         closeNoteEditor={closeNoteEditor}
         noteEditorData={noteEditorData}
         setNoteEditorData={setNoteEditorData}
+        setLoading={setLoading}
       />
-      <div className={styles.responseButtons}>
-        <SpinnerButton
-          className={styles.submitButton}
-          onClick={handleSubmitClick}
-          disabled={isSubmitting}
-          loading={isSubmitting}
-        >
-          Submit
-        </SpinnerButton>
-        <button className="btn btn-sm" onClick={handleCancelClick} disabled={isSubmitting}>
-          Cancel
-        </button>
-      </div>
+      {Object.values(loading).some((p) => p) ? (
+        <LoadingSpinner inline />
+      ) : (
+        <div className={styles.responseButtons}>
+          <SpinnerButton
+            className={styles.submitButton}
+            onClick={handleSubmitClick}
+            disabled={isSubmitting}
+            loading={isSubmitting}
+          >
+            Submit
+          </SpinnerButton>
+          <button className="btn btn-sm" onClick={handleCancelClick} disabled={isSubmitting}>
+            Cancel
+          </button>
+        </div>
+      )}
     </div>
   )
 }
