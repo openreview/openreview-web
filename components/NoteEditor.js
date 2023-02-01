@@ -148,6 +148,7 @@ const NewReplyNoteReaders = ({
   const { accessToken } = useLoginRedirect()
 
   const addEnumParentReaders = (groupResults, parentReaders) => {
+    if (!parentReaders?.length) return groupResults
     if (parentReaders.includes('everyone')) return groupResults
     const readersIntersection = parentReaders.filter((p) => groupResults.includes(p))
     if (
@@ -200,7 +201,7 @@ const NewReplyNoteReaders = ({
       const groupResults = await Promise.all(optionsP)
       const optionWithParentReaders = addEnumParentReaders(
         groupResults.flat(),
-        replyToNote.readers
+        replyToNote?.readers
       )
       switch (groupResults.flat().length) {
         case 0:
@@ -208,7 +209,7 @@ const NewReplyNoteReaders = ({
         case 1:
           if (!optionWithParentReaders.length)
             throw new Error('You do not have permission to create a note')
-          if (difference(optionWithParentReaders, fieldDescription.param.default).length)
+          if (difference(fieldDescription.param.default, optionWithParentReaders).length)
             throw new Error('Default reader is not in the list of readers')
 
           setDescriptionType('singleValueEnum')
@@ -218,7 +219,7 @@ const NewReplyNoteReaders = ({
         default:
           if (!optionWithParentReaders.length)
             throw new Error('You do not have permission to create a note')
-          if (difference(optionWithParentReaders, fieldDescription.param.default).length) {
+          if (difference(fieldDescription.param.default, optionWithParentReaders).length) {
             throw new Error('Default reader is not in the list of readers')
           }
           setReaderOptions(
@@ -236,11 +237,15 @@ const NewReplyNoteReaders = ({
   }
 
   const getConstReaders = () => {
-    const parentReaders = replyToNote.readers
     const replyReaders = Array.isArray(fieldDescription)
       ? fieldDescription
       : fieldDescription.param.const
 
+    if (!replyToNote) {
+      setReaderOptions(replyReaders)
+      return
+    }
+    const parentReaders = replyToNote.readers
     if (replyReaders[0] === '${{note.replyto}.readers}') {
       setReaderOptions(parentReaders)
       return
@@ -318,8 +323,9 @@ const NewReplyNoteReaders = ({
   return renderReaders()
 }
 
-const EditReaders = NewNoteReaders
 const ExistingNoteReaders = NewReplyNoteReaders
+
+const EditReaders = NewNoteReaders
 
 const Signatures = ({
   fieldDescription,
@@ -328,7 +334,7 @@ const Signatures = ({
   noteEditorData,
   setNoteEditorData,
 }) => {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [descriptionType, setDescriptionType] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState(null)
   const { user, accessToken } = useLoginRedirect()
@@ -457,7 +463,7 @@ const Signatures = ({
     if (descriptionType === 'enum') getEnumSignatureOptions()
   }, [descriptionType])
 
-  if (isLoading) return <LoadingSpinner />
+  if (isLoading) return <LoadingSpinner inline={true} />
   return renderNoteSignatures()
 }
 
@@ -468,6 +474,13 @@ const EditSignatures = Signatures
 const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCreated }) => {
   const { user, accessToken } = useLoginRedirect()
   const [fields, setFields] = useState([])
+  const [loading, setLoading] = useState({
+    noteReaders: true,
+    noteSignatures: true,
+    editReaders: true,
+    editSignatures: false,
+  })
+
   const saveDraft = useMemo(
     () =>
       debounce((fieldName, value) => {
@@ -487,10 +500,10 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
       [action.fieldName]: action.value,
     }
   }
-  const [noteEditorData, setNoteEditorData] = useReducer(
-    noteEditorDataReducer,
-    getNoteContent(note, true)
-  )
+  const [noteEditorData, setNoteEditorData] = useReducer(noteEditorDataReducer, {
+    ...getNoteContent(note, true),
+    ...(note && { noteReaderValues: note.readers }),
+  })
 
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -514,10 +527,6 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
       </EditorComponentContext.Provider>
     )
   }
-
-  const renderExistingNoteReaders = () => {}
-
-  // const renderNewReplyNoteReaders = () => {}
 
   const renderNoteReaders = () => {
     if (!note && !replyToNote)

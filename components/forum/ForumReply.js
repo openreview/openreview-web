@@ -115,7 +115,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         setContentExpanded={setContentExpanded}
         replyDepth={replyDepth}
       >
-        <NoteEditorForm
+        {/* <NoteEditorForm
           note={note}
           invitation={activeEditInvitation}
           onLoad={() => {
@@ -135,7 +135,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
               setActiveEditInvitation(null)
             }
           }}
-        />
+        /> */}
         <NoteEditor
           invitation={activeEditInvitation}
           note={note}
