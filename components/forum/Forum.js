@@ -2,7 +2,7 @@
 /* globals typesetMathJax: false */
 /* globals promptError: false */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
 import escapeRegExp from 'lodash/escapeRegExp'
@@ -51,7 +51,6 @@ export default function Forum({
     excludedReaders: null,
   })
   const [activeInvitation, setActiveInvitation] = useState(null)
-  const [maxLength, setMaxLength] = useState(250)
   const [scrolled, setScrolled] = useState(false)
   const router = useRouter()
   const query = useQuery()
@@ -60,12 +59,13 @@ export default function Forum({
   const replyForumViews = details.invitation?.replyForumViews // TODO: get this from somewhere else
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
 
-  const numRepliesHidden = displayOptionsMap
-    ? Object.values(displayOptionsMap).reduce((count, opt) => count + (opt.hidden ? 1 : 0), 0)
-    : 0
-  const numTopLevelRepliesVisible = repliesLoaded
-    ? orderedReplies.filter((note) => !displayOptionsMap[note.id]?.hidden).length
-    : 0
+  const numRepliesHidden = useMemo(() => {
+    if (!displayOptionsMap) return 0
+    return Object.values(displayOptionsMap).reduce(
+      (count, opt) => count + (opt.hidden ? 1 : 0),
+      0
+    )
+  }, [displayOptionsMap])
 
   // API helper functions
   const getInvitationsByReplyForum = (forumId, includeTags) => {
@@ -693,35 +693,19 @@ export default function Forum({
                 setHidden,
               }}
             >
-              {repliesLoaded ? (
-                orderedReplies
-                  .slice(0, maxLength)
-                  .map((reply) => (
-                    <ForumReply
-                      key={reply.id}
-                      note={replyNoteMap[reply.id]}
-                      replies={reply.replies}
-                      replyDepth={1}
-                      parentId={id}
-                      updateNote={updateNote}
-                    />
-                  ))
-              ) : (
+              {repliesLoaded ? orderedReplies.map((reply) => (
+                <ForumReply
+                  key={reply.id}
+                  note={replyNoteMap[reply.id]}
+                  replies={reply.replies}
+                  replyDepth={1}
+                  parentId={id}
+                  updateNote={updateNote}
+                />
+              )) : (
                 <LoadingSpinner inline />
               )}
             </ForumReplyContext.Provider>
-
-            {repliesLoaded && maxLength < numTopLevelRepliesVisible && (
-              <div className="text-center">
-                <button
-                  type="button"
-                  className="btn btn-xs btn-default"
-                  onClick={() => setMaxLength(maxLength + 100)}
-                >
-                  View More Replies &rarr;
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
