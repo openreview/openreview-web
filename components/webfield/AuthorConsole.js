@@ -39,18 +39,13 @@ const ReviewSummary = ({
   const confidences = []
 
   const getRatingValue = (reviewNote) => {
-    if (Array.isArray(reviewRatingName)) {
-      return reviewRatingName.reduce((prev, curr) => {
-        if (!prev) {
-          // eslint-disable-next-line no-param-reassign
-          prev = isV2Note ? reviewNote.content[curr]?.value : reviewNote.content[curr]
-        }
-        return prev
-      }, null)
-    }
-    return isV2Note
-      ? reviewNote.content[reviewRatingName]?.value
-      : reviewNote.content[reviewRatingName]
+    const ratingName = Array.isArray(reviewRatingName)
+      ? reviewRatingName.find((name) =>
+          isV2Note ? reviewNote.content[name]?.value : reviewNote.content[name]
+        )
+      : reviewRatingName
+
+    return isV2Note ? reviewNote.content[ratingName]?.value : reviewNote.content[ratingName]
   }
 
   noteCompletedReviews.forEach((p) => {
