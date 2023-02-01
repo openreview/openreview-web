@@ -42,6 +42,7 @@ const ReviewSummary = ({
     if (Array.isArray(reviewRatingName)) {
       return reviewRatingName.reduce((prev, curr) => {
         if (!prev) {
+          // eslint-disable-next-line no-param-reassign
           prev = isV2Note ? reviewNote.content[curr]?.value : reviewNote.content[curr]
         }
         return prev
