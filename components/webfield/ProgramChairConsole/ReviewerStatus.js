@@ -13,12 +13,14 @@ import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, preferredEmail } = rowData.reviewerProfile ?? {}
   const { completedBids, reviewerProfileId } = rowData
-  const { reviewersId, bidName } = useContext(WebFieldContext)
+  const { apiVersion, reviewersId, bidName } = useContext(WebFieldContext)
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
     `tail:${id}`,
     invitations,
     reviewersId,
-    bidName
+    bidName,
+    null,
+    apiVersion
   )
   return (
     <div className="note">
@@ -193,12 +195,8 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#reviewer-status)`
   )
-  const bidEnabled = pcConsoleData.invitations?.some((p) =>
-    [
-      `${seniorAreaChairsId}/-/${bidName}`,
-      `${areaChairsId}/-/${bidName}`,
-      `${reviewersId}/-/${bidName}`,
-    ].includes(p.id)
+  const bidEnabled = pcConsoleData.invitations?.find(
+    (p) => p.id === `${reviewersId}/-/${bidName}`
   )
 
   const loadReviewerData = async () => {

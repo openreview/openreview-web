@@ -16,6 +16,7 @@ const Collapse = ({ showLabel, hideLabel, onExpand, className, indent, children 
         aria-controls="collapseExample"
         onClick={(e) => {
           e.preventDefault()
+          if ($(collapseRef.current).hasClass('collapsing')) return
           $(collapseRef.current).collapse(collapsed ? 'show' : 'hide')
           if (collapsed && onExpand) onExpand()
           setCollapsed((p) => !p)
