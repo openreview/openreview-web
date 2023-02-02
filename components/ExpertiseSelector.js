@@ -187,10 +187,40 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
     loadEdges()
   }, [userLoading, user, shouldReload])
 
+  useEffect(() => {
+    // Mark task as complete if the invitation is an "Exclude" type and it's the
+    // first time the user is visiting the page
+    if (
+      invitationOption === 'Exclude' &&
+      userNotes &&
+      edgesMap &&
+      Object.keys(edgesMap).length === 0
+    ) {
+      try {
+        api.post(
+          '/edges',
+          {
+            invitation: invitation.id,
+            readers: [venueId, user.profile.id],
+            writers: [venueId, user.profile.id],
+            signatures: [user.profile.id],
+            head: 'xf0zSBd2iufMg', // OpenReview paper
+            tail: user.profile.id,
+            label: invitationOption,
+          },
+          { accessToken, version: apiVersion }
+        )
+      } catch (error) {
+        console.warn(`Error marking invitation as completed: ${error.message}`)
+      }
+    }
+  }, [invitation.id, userNotes, edgesMap])
+
   if (userLoading) return <LoadingSpinner />
 
-  if (!user)
+  if (!user) {
     return <ErrorAlert error={{ message: 'You must be logged in to select your expertise' }} />
+  }
 
   return (
     <Tabs className={styles.container}>

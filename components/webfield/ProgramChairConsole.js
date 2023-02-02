@@ -189,23 +189,18 @@ const ProgramChairConsole = ({ appContext }) => {
       // #endregion
 
       // #region get withdrawn and rejected submissions
-      const withdrawnRejectedSubmissionResultsP =
-        apiVersion === 2
-          ? Promise.resolve([])
-          : Promise.all(
-              [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) =>
-                id
-                  ? api.getAll(
-                      '/notes',
-                      {
-                        invitation: id,
-                        details: 'original',
-                      },
-                      { accessToken }
-                    )
-                  : Promise.resolve([])
+      const withdrawnRejectedSubmissionResultsP = isV2Console
+        ? Promise.resolve([])
+        : Promise.all(
+            [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) => {
+              if (!id) return Promise.resolve([])
+              return api.getAll(
+                '/notes',
+                { invitation: id, details: 'original' },
+                { accessToken }
               )
-            )
+            })
+          )
       // #endregion
 
       // #region get ac recommendation count
@@ -279,7 +274,14 @@ const ProgramChairConsole = ({ appContext }) => {
       const requestForm = results[1]?.notes?.[0]
       const registrationForms = results[2].flatMap((p) => p ?? [])
       const committeeMemberResults = results[3]
-      const notes = results[4].map((note) => ({ ...note, version: apiVersion }))
+      const notes = results[4].flatMap((note) => {
+        if (
+          isV2Console &&
+          [withdrawnVenueId, deskRejectedVenueId].includes(note.content?.venueid?.value)
+        )
+          return []
+        return { ...note, version: apiVersion }
+      })
       const withdrawnRejectedSubmissionResults = results[5]
       const acRecommendationsCount = results[6]
       const bidCountResults = results[7]
@@ -416,8 +418,20 @@ const ProgramChairConsole = ({ appContext }) => {
         officialReviewsByPaperNumberMap,
         metaReviewsByPaperNumberMap,
         decisionByPaperNumberMap,
-        withdrawnNotes: isV2Console ? null : withdrawnRejectedSubmissionResults[0], // v2 has no rejected papers tab
-        deskRejectedNotes: isV2Console ? null : withdrawnRejectedSubmissionResults[1],
+        withdrawnNotes: isV2Console
+          ? results[4].flatMap((note) => {
+              if (note.content?.venueid?.value === withdrawnVenueId)
+                return { ...note, version: apiVersion }
+              return []
+            })
+          : withdrawnRejectedSubmissionResults[0],
+        deskRejectedNotes: isV2Console
+          ? results[4].flatMap((note) => {
+              if (note.content?.venueid?.value === deskRejectedVenueId)
+                return { ...note, version: apiVersion }
+              return []
+            })
+          : withdrawnRejectedSubmissionResults[1],
         acRecommendationsCount,
         bidCounts: {
           reviewers: bidCountResults[0],
@@ -825,7 +839,10 @@ const ProgramChairConsole = ({ appContext }) => {
               Senior Area Chair Status
             </Tab>
           )}
-          {(withdrawnSubmissionId || deskRejectedSubmissionId) && apiVersion !== 2 && (
+          {(withdrawnSubmissionId ||
+            deskRejectedSubmissionId ||
+            withdrawnVenueId ||
+            deskRejectedVenueId) && (
             <Tab
               id="deskrejectwithdrawn-status"
               active={activeTabId === '#deskrejectwithdrawn-status' ? true : undefined}
@@ -873,7 +890,7 @@ const ProgramChairConsole = ({ appContext }) => {
             </TabPanel>
           )}
           <TabPanel id="deskrejectwithdrawn-status">
-            {activeTabId === '#deskrejectwithdrawn-status' && apiVersion !== 2 && (
+            {activeTabId === '#deskrejectwithdrawn-status' && (
               <RejectedWithdrawnPapers pcConsoleData={pcConsoleData} />
             )}
           </TabPanel>
