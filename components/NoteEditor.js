@@ -13,7 +13,7 @@ import Dropdown from './Dropdown'
 import MultiSelectorDropdown from './MultiSelectorDropdown'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import TagsWidget from './EditorComponents/TagsWidget'
-import { difference, isEqual } from 'lodash'
+import { difference, intersection, isEmpty, isEqual } from 'lodash'
 
 const NewNoteReaders = ({
   fieldDescription,
@@ -570,21 +570,78 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
     closeNoteEditor()
   }
 
+  const addMissingReaders = (
+    readersSelected,
+    readersDefinedInInvitation,
+    signatureInputValues
+  ) => {
+    if (signatureInputValues.length && !readersSelected.includes('everyone')) {
+      const signatureId = signatureInputValues[0]
+      const anonReviewerIndex = Math.max(
+        signatureId.indexOf('AnonReviewer'),
+        signatureId.indexOf('Reviewer_')
+      )
+      if (anonReviewerIndex > 0) {
+        const reviewersSubmittedGroupId = signatureId
+          .slice(0, anonReviewerIndex)
+          .concat('Reviewers/Submitted')
+        const reviewersGroupId = signatureId.slice(0, anonReviewerIndex).concat('Reviewers')
+        if (
+          // reader does not contain the signature so user won't be able to see the note/edit
+          isEmpty(
+            intersection(readersSelected, [
+              signatureId,
+              reviewersSubmittedGroupId,
+              reviewersGroupId,
+            ])
+          )
+        ) {
+          if (readersDefinedInInvitation?.includes(signatureId)) {
+            return [...readersSelected, signatureId]
+          } else if (readersDefinedInInvitation?.includes(reviewersSubmittedGroupId)) {
+            return [...readersSelected, reviewersSubmittedGroupId]
+          } else if (readersDefinedInInvitation?.includes(reviewersGroupId)) {
+            return [...readersSelected, reviewersGroupId]
+          }
+        }
+      } else {
+        const acIndex = Math.max(
+          signatureId.indexOf('Area_Chair1'),
+          signatureId.indexOf('Area_Chair_')
+        )
+        const acGroupId =
+          acIndex >= 0 ? signatureId.slice(0, acIndex).concat('Area_Chairs') : signatureId
+        return readersDefinedInInvitation?.includes(acGroupId)
+          ? [...readersSelected, acGroupId]
+          : readersSelected
+      }
+    }
+    return readersSelected
+  }
+
   const getNoteReaderValues = () => {
     if (Array.isArray(invitation.edit.note.readers)) return undefined
-    // const constNoteSignature = // when note signature is edit signature, note reader should use edit signatures
-    //   invitation.edit.note?.signatures?.[0]?.includes('/signatures}') ||
-    //   invitation.edit.note?.signatures?.param?.const?.[0]?.includes('/signatures}')
-    // const signatureInputValues = constNoteSignature
-    //   ? noteEditorData.editSignatureInputValues
-    //   : noteEditorData.noteSignatureInputValues
-    // if(signatureInputValues && !noteEditorData.noteReaderValues.includes('everyone'))
-    return noteEditorData.noteReaderValues
+    const constNoteSignature = // when note signature is edit signature, note reader should use edit signatures
+      invitation.edit.note?.signatures?.[0]?.includes('/signatures}') ||
+      invitation.edit.note?.signatures?.param?.const?.[0]?.includes('/signatures}')
+    const signatureInputValues = constNoteSignature
+      ? noteEditorData.editSignatureInputValues
+      : noteEditorData.noteSignatureInputValues
+
+    return addMissingReaders(
+      noteEditorData.noteReaderValues,
+      invitation.edit.note.readers?.param?.enum,
+      signatureInputValues
+    )
   }
 
   const getEditReaderValues = () => {
     if (Array.isArray(invitation.edit.readers)) return undefined
-    return noteEditorData.editReaderValues
+    return addMissingReaders(
+      noteEditorData.editReaderValues,
+      invitation.edit.readers?.param?.enum,
+      noteEditorData.editSignatureInputValues
+    )
   }
 
   const getEditWriterValues = () => {
