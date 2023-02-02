@@ -111,25 +111,10 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
 
 const SubmissionsStatsRow = ({ pcConsoleData }) => {
   const [submissionByStatus, setSubmissionByStatus] = useState({})
-  const { submissionVenueId, withdrawnVenueId, deskRejectedVenueId } =
-    useContext(WebFieldContext)
-
-  const getSubmissionByVenueId = (venueIdValue) => {
-    if (!venueIdValue) return []
-    return pcConsoleData.notes.filter((p) => p.content?.venueid?.value === venueIdValue)
-  }
 
   useEffect(() => {
     if (!pcConsoleData) return
-    const withdrawnNotes = pcConsoleData.isV2Console
-      ? getSubmissionByVenueId(withdrawnVenueId)
-      : pcConsoleData.withdrawnNotes
-    const deskRejectedNotes = pcConsoleData.isV2Console
-      ? getSubmissionByVenueId(deskRejectedVenueId)
-      : pcConsoleData.deskRejectedNotes
-    const activeSubmissions = pcConsoleData.isV2Console
-      ? getSubmissionByVenueId(submissionVenueId)
-      : pcConsoleData.notes
+    const { withdrawnNotes, deskRejectedNotes, notes: activeSubmissions } = pcConsoleData
     setSubmissionByStatus({ activeSubmissions, deskRejectedNotes, withdrawnNotes })
   }, [pcConsoleData])
   return (

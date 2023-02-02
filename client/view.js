@@ -637,7 +637,8 @@ module.exports = (function () {
         resultText = '"signatures" will be replaced with the edit signature shown below.'
       } else if (resultText.includes('/value}')) {
         const fieldName = resultText.split('/').slice(-2)[0]
-        resultText = '"' + fieldName + '" will be replaced with the value of the field ' + fieldName
+        resultText =
+          '"' + fieldName + '" will be replaced with the value of the field ' + fieldName
       }
       var $hoverResult = $('<div>', { class: 'hover_result' }).text(resultText).hide()
       $hoverItem.append($hoverResult).hover(
@@ -2197,12 +2198,15 @@ module.exports = (function () {
       return $('<span>', { class: 'signatures' }).html(authorList.join(', '))
     }
 
-    var showAllLinkText = `et al. (${authorList.length - maxAuthorsToShow} additional authors not shown)`
+    var showAllLinkText = `et al. (${
+      authorList.length - maxAuthorsToShow
+    } additional authors not shown)`
     var hideLinkText = '(hide authors)'
     return $('<span>', { class: 'signatures' }).append(
       authorList.slice(0, maxAuthorsToShow).join(', '),
-      $('<span>', { class: 'more-authors', style: 'display: none;' })
-        .html(', ' + authorList.slice(maxAuthorsToShow).join(', ')),
+      $('<span>', { class: 'more-authors', style: 'display: none;' }).html(
+        ', ' + authorList.slice(maxAuthorsToShow).join(', ')
+      ),
       ' ',
       $('<a>', { class: 'show-all', href: '#', role: 'button' })
         .text(showAllLinkText)
@@ -2572,7 +2576,11 @@ module.exports = (function () {
           prettyId(note.tauthor) +
           '</a>'
         : prettyId(note.tauthor)
-    if (!note.content.authors && trueAuthorText && trueAuthorText !== $contentSignatures.html()) {
+    if (
+      !note.content.authors &&
+      trueAuthorText &&
+      trueAuthorText !== $contentSignatures.html()
+    ) {
       $contentAuthors.append(
         '<span class="author no-margin">' + trueAuthorText + '</span>',
         '<span class="private-author-label">(privately revealed to you)</span>'
@@ -3754,7 +3762,7 @@ module.exports = (function () {
             )
             if (uploadInProgressField) {
               uploadInProgressField.noteRef = note
-              return uploadInProgressField.sendChunksPromiseRef
+              return uploadInProgressField.promiseRef
             }
             var $progressBar = $contentMap[fieldName].find('div.progress')
             var file = files[fieldName]
@@ -4469,7 +4477,7 @@ module.exports = (function () {
               )
               if (uploadInProgressField) {
                 uploadInProgressField.noteRef = editNote
-                return uploadInProgressField.sendChunksPromiseRef
+                return uploadInProgressField.promiseRef
               }
               var $progressBar = $contentMap[fieldName].find('div.progress')
               var file = files[fieldName]
@@ -4538,14 +4546,16 @@ module.exports = (function () {
                 )
               }
               $progressBar.show()
-              var sendChunksPromiseRef = chunks.reduce(
-                function (oldPromises, currentChunk, i) {
-                  return oldPromises.then(function (_) {
-                    return sendSingleChunk(currentChunk, i)
-                  })
-                },
-                Promise.resolve()
-              )
+              var sendChunksPromiseRef = chunks.reduce(function (
+                oldPromises,
+                currentChunk,
+                i
+              ) {
+                return oldPromises.then(function (_) {
+                  return sendSingleChunk(currentChunk, i)
+                })
+              },
+              Promise.resolve())
               uploadInProgressFields.push({
                 fieldName,
                 noteRef: editNote,
@@ -5007,4 +5017,4 @@ module.exports = (function () {
     updatePdfSection: updatePdfSection,
     mkDropdownList: mkDropdownList,
   }
-}())
+})()
