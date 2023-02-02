@@ -210,6 +210,7 @@ test('import paper from dblp', async (t) => {
     .click(persistentUrlInput) // to make sure input get focus
     .typeText(persistentUrlInput, testPersistentUrl)
     .click(showPapersButton)
+    .wait(5000)
     .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText)
     .contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.')
     .click(dblpImportModalCancelButton)
