@@ -17,7 +17,7 @@ const RejectedWithdrawnPaperRow = ({ rowData, referrerUrl }) => {
         <strong>{number}</strong>
       </td>
       <td>
-        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={false} />
+        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={note.version === 2} />
       </td>
       <td>
         <strong className="note-number">{reason}</strong>
@@ -31,6 +31,8 @@ const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
   const {
     withdrawnSubmissionId,
     deskRejectedSubmissionId,
+    withdrawnVenueId,
+    deskRejectedVenueId,
     shortPhrase,
     enableQuerySearch,
     venueId,
@@ -61,22 +63,25 @@ const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
         }))
       )
 
+  const loadAllNotes = (ids) =>
+    Promise.all(
+      ids.map((id) => {
+        if (!id) return Promise.resolve([])
+
+        const params =
+          apiVersion === 2
+            ? { 'content.venueid': id }
+            : { invitation: id, details: 'original' }
+        return api.getAll('/notes', params, { accessToken, version: apiVersion })
+      })
+    )
+
   const loadRejectedWithdrawnPapers = async () => {
     try {
-      const results = await Promise.all(
-        [withdrawnSubmissionId, deskRejectedSubmissionId].map((id) =>
-          id
-            ? api.getAll(
-                '/notes',
-                {
-                  invitation: id,
-                  details: 'original',
-                },
-                { accessToken }
-              )
-            : Promise.resolve([])
-        )
-      )
+      const results =
+        apiVersion === 2
+          ? await loadAllNotes([deskRejectedVenueId, withdrawnVenueId])
+          : await loadAllNotes([deskRejectedSubmissionId, withdrawnSubmissionId])
       const tableRows = formatTableRows(results[0], results[1])
       setRejectedPaperTabData({
         tableRowsAll: tableRows,
