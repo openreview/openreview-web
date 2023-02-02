@@ -25,7 +25,7 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
     reason: ['reason'],
   }
   const exportColumns = [
-    { header: 'number', getValue: (p) => p.originalNote.number ?? p.number },
+    { header: 'number', getValue: (p) => p.originalNote?.number ?? p.number },
     {
       header: 'forum',
       getValue: (p) =>
