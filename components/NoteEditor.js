@@ -525,6 +525,7 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
           value: noteEditorData[fieldName],
           key: fieldName,
           isWebfield: false,
+          isContentField: true,
         }}
       >
         <EditorWidget />

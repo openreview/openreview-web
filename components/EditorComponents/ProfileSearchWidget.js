@@ -43,7 +43,7 @@ const ProfileSearchWidget = () => {
   }
   return (
     <EditorComponentHeader fieldNameOverwrite="Authors">
-      <div className={styles.profileSearch}>123</div>
+      <div className={styles.profileSearch}>search widget</div>
     </EditorComponentHeader>
   )
 }
