@@ -18,7 +18,11 @@ import api from '../../lib/api-client'
 import { formatTasksData, prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import LoadingSpinner from '../LoadingSpinner'
-import { filterAssignedInvitations, filterHasReplyTo } from '../../lib/webfield-utils'
+import {
+  filterAssignedInvitations,
+  filterHasReplyTo,
+  getNoteContent,
+} from '../../lib/webfield-utils'
 
 const ReviewSummary = ({
   note,
@@ -113,6 +117,26 @@ const ReviewSummary = ({
   )
 }
 
+const IEEECopyrightForm = ({ note, isV2Note }) => {
+  const { IEEEPublicationTitle, IEEEArtSourceCode } = useContext(WebFieldContext)
+  const { user } = useUser()
+  const noteContent = getNoteContent(note, isV2Note)
+
+  if (!IEEEPublicationTitle || !IEEEArtSourceCode) return null
+  return (
+    <form action="https://ecopyright.ieee.org/ECTT/IntroPage.jsp" method="post">
+      <input type="hidden" name="PubTitle" value={IEEEPublicationTitle} />
+      <input type="hidden" name="ArtTitle" value={noteContent.title} />
+      <input type="hidden" name="AuthName" value={noteContent.authors.join(' and ')} />
+      <input type="hidden" name="ArtId" value={note.id} />
+      <input type="hidden" name="ArtSource" value={IEEEArtSourceCode} />
+      <input type="hidden" name="AuthEmail" value={user.profile.preferredEmail} />
+      <input type="hidden" name="rtrnurl" value={window.location.href} />
+      <input name="Submit" type="submit" value="Copyright Submission" />
+    </form>
+  )
+}
+
 const AuthorSubmissionRow = ({
   note,
   venueId,
@@ -123,6 +147,7 @@ const AuthorSubmissionRow = ({
   submissionName,
   authorName,
   profileMap,
+  showIEEECopyright,
 }) => {
   const isV2Note = note.version === 2
   const referrerUrl = encodeURIComponent(
@@ -140,6 +165,7 @@ const AuthorSubmissionRow = ({
           referrerUrl={referrerUrl}
           isV2Note={isV2Note}
         />
+        {showIEEECopyright && <IEEECopyrightForm note={note} isV2Note={isV2Note} />}
       </td>
       <td>
         <ReviewSummary
@@ -258,6 +284,9 @@ const AuthorConsole = ({ appContext }) => {
     submissionName,
     showAuthorProfileStatus, // defaults to true
     blindSubmissionId, // for v1 only
+    showIEEECopyright,
+    IEEEPublicationTitle,
+    IEEEArtSourceCode,
   } = useContext(WebFieldContext)
 
   const { user, userLoading, accessToken } = useUser()
@@ -501,6 +530,7 @@ const AuthorConsole = ({ appContext }) => {
                       submissionName={submissionName}
                       authorName={authorName}
                       profileMap={profileMap}
+                      showIEEECopyright={showIEEECopyright}
                     />
                   ))}
                 </Table>
