@@ -30,10 +30,12 @@ const NewNoteReaders = ({
   const getRegexReaders = async () => {
     setLoading((loading) => ({ ...loading, fieldName: true }))
     try {
+      const regexExpression = fieldDescription.param.regex
+      const regexContainsPipe = regexExpression.includes('|')
       const regexGroupResult = await api.get(
         '/groups',
-        { prefix: fieldDescription.param.regex },
-        { accessToken, version: 2 }
+        { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression },
+        { accessToken, version: regexContainsPipe ? 1 : 2 }
       )
       if (!regexGroupResult.groups?.length)
         throw new Error('You do not have permission to create a note')
@@ -166,10 +168,12 @@ const NewReplyEditNoteReaders = ({
   const getRegexReaders = async () => {
     setLoading((loading) => ({ ...loading, fieldName: true }))
     try {
+      const regexExpression = fieldDescription.param.regex
+      const regexContainsPipe = regexExpression.includes('|')
       const regexGroupResult = await api.get(
         '/groups',
-        { prefix: fieldDescription.param.regex },
-        { accessToken, version: 2 }
+        { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression },
+        { accessToken, version: regexContainsPipe ? 1 : 2 }
       )
       if (!regexGroupResult.groups?.length)
         throw new Error('You do not have permission to create a note')
@@ -341,10 +345,12 @@ const Signatures = ({
   const getRegexSignatureOptions = async () => {
     setLoading((loading) => ({ ...loading, fieldName: true }))
     try {
+      const regexExpression = fieldDescription.param.regex
+      const regexContainsPipe = regexExpression.includes('|')
       const regexGroupResult = await api.get(
         '/groups',
-        { prefix: fieldDescription.param.regex, signatory: user?.id },
-        { accessToken, version: 2 }
+        { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression, signatory: user?.id },
+        { accessToken, version: regexContainsPipe ? 1 : 2 }
       )
       if (!regexGroupResult.groups?.length)
         throw new Error('You do not have permission to create a note')
