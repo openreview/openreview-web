@@ -136,7 +136,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
             const isActiveSubmission =
               apiVersion === 2
-                ? matchingNote.content?.venueid?.value === submissionVenueId
+                ? matchingNote?.content?.venueid?.value === submissionVenueId
                 : matchingNote.invitation === submissionInvitationId
             if (matchingNote && isActiveSubmission && !conflictIds.includes(noteId)) {
               return matchingNote
@@ -383,7 +383,7 @@ const NoBidTab = ({
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
             const isActiveSubmission =
               apiVersion === 2
-                ? matchingNote.content?.venueid?.value === submissionVenueId
+                ? matchingNote?.content?.venueid?.value === submissionVenueId
                 : matchingNote.invitation === submissionInvitationId
             if (
               matchingNote &&
@@ -588,9 +588,10 @@ const BidConsole = ({ appContext }) => {
     conflictInvitationId,
   } = useContext(WebFieldContext)
 
-  const bidOptions = apiVersion === 2
-    ? invitation.edge?.label?.param?.enum
-    : invitation.reply?.content?.label?.['value-radio']
+  const bidOptions =
+    apiVersion === 2
+      ? invitation.edge?.label?.param?.enum
+      : invitation.reply?.content?.label?.['value-radio']
   const bidOptionsWithDefaultTabs = ['All Papers', ...(bidOptions ?? []), 'No Bid']
   const getActiveTabIndex = () => {
     const tabIndex = bidOptionsWithDefaultTabs.findIndex(
