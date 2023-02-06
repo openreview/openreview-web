@@ -9,31 +9,31 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          field: {},
+          ['title']: {},
         },
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('* Field'))
+    expect(screen.getByText('* Title'))
   })
 
   test('pretty display mandatory field name of multiple words', () => {
     const providerProps = {
       value: {
         field: {
-          field_name: {},
+          ['supplementary_material']: {},
         },
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('* Field Name'))
+    expect(screen.getByText('* Supplementary Material'))
   })
 
   test('pretty display optional field name of single word', () => {
     const providerProps = {
       value: {
         field: {
-          field: {
+          ['abstract']: {
             value: {
               param: {
                 optional: true,
@@ -44,14 +44,14 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('Field'))
+    expect(screen.getByText('Abstract'))
   })
 
   test('pretty display optional field name of multiple words', () => {
     const providerProps = {
       value: {
         field: {
-          field_name: {
+          ['supplementary_material']: {
             value: {
               param: {
                 optional: true,
@@ -62,14 +62,14 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('Field Name'))
+    expect(screen.getByText('Supplementary Material'))
   })
 
   test('allow field name to be overwritten', () => {
     const providerProps = {
       value: {
         field: {
-          field_name: {
+          ['abstract']: {
             value: {
               param: {
                 optional: true,
@@ -83,7 +83,7 @@ describe('EditorComponentHeader', () => {
       <EditorComponentHeader fieldNameOverwrite="some Field name To overWrite" />,
       providerProps
     )
-    expect(screen.queryByText('Field Name')).not.toBeInTheDocument()
+    expect(screen.queryByText('Abstract')).not.toBeInTheDocument()
     expect(screen.getByText('some Field name To overWrite'))
   })
 
@@ -91,7 +91,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          field_name: {
+          ['authorids']: {
             value: {
               param: {
                 hidden: true,
@@ -102,29 +102,35 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('* Field Name').parentElement).toHaveClass('hidden')
+    expect(screen.getByText('* Authorids').parentElement).toHaveClass('hidden')
   })
 
   test('display description with no scroll', () => {
     const providerProps = {
       value: {
         field: {
-          field_name: {
-            description: 'some description',
+          ['abstract']: {
+            description:
+              'Abstract of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$.',
           },
         },
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('some description'))
+    expect(
+      screen.getByText(
+        'Abstract of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$.'
+      )
+    )
   })
 
   test('display description with scroll', () => {
     const providerProps = {
       value: {
         field: {
-          field_name: {
-            description: 'some description',
+          ['abstract']: {
+            description:
+              'Abstract of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$.',
             value: {
               param: { scroll: true },
             },
@@ -133,7 +139,11 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByDisplayValue('some description'))
+    expect(
+      screen.getByDisplayValue(
+        'Abstract of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$.'
+      )
+    )
   })
 
   test('render child', () => {

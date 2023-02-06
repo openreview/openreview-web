@@ -1,5 +1,6 @@
 import dynamic from 'next/dynamic'
 import { useContext } from 'react'
+import { getFieldConstValue } from '../../lib/webfield-utils'
 import EditorComponentContext from '../EditorComponentContext'
 
 // #region lazy load widgets
@@ -21,13 +22,9 @@ const EditorWidget = () => {
   const { field } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
 
-  const renderConstant = (value) => {
-    if (Array.isArray(value)) return <TagsWidget values={value} readonly={true} />
-    return <TextboxWidget readOnlyValue={value} readOnly={true} />
-  }
-
-  const renderReaders = () => {
-    return <TagsWidget values={field[fieldName].readers} readonly={true} />
+  const renderConstant = () => {
+    const constValue = getFieldConstValue(field[fieldName])
+    return Array.isArray(constValue) ? <TagsWidget values={constValue} /> : <TextboxWidget />
   }
 
   const renderInput = (value) => {
@@ -52,7 +49,7 @@ const EditorWidget = () => {
 
   const renderType = (value) => {
     const type = value.param?.type
-    if (!type) return renderConstant(value.param.const)
+    if (!type) return renderConstant()
     switch (type) {
       case 'json':
       case 'script':
@@ -99,9 +96,9 @@ const EditorWidget = () => {
 
   if (!field[fieldName].value?.param) {
     if (!field[fieldName].value && field[fieldName].readers) {
-      return renderReaders()
+      return null // TODO: an empty widget which shows only readers
     } else {
-      return renderConstant(field[fieldName].value ?? field[fieldName])
+      return renderConstant()
     }
   }
   if (field[fieldName].value.param.input) return renderInput(field[fieldName].value)

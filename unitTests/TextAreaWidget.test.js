@@ -21,38 +21,45 @@ jest.mock('../lib/utils', () => {
   }
 })
 
-let baseProviderProps
-
-beforeEach(() => {
-  baseProviderProps = {
-    value: {
-      invitation: { id: 'invitaitonId' },
-      field: {
-        textarea_widget: {},
-      },
-    },
-  }
-})
-
 describe('TextAreaWidget', () => {
   test('render header text', () => {
-    const providerProps = baseProviderProps
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['abstract']: {},
+        },
+      },
+    }
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
-    expect(screen.getByText('* Textarea Widget'))
+    expect(screen.getByText('* Abstract'))
   })
 
   test('display textarea', () => {
-    const providerProps = baseProviderProps
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['abstract']: {},
+        },
+      },
+    }
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
     expect(screen.getByDisplayValue(''))
   })
 
   test('display markdown preview tab if markdown is true', () => {
-    const providerProps = baseProviderProps
-    providerProps.value.field.textarea_widget = {
+    const providerProps = {
       value: {
-        param: {
-          markdown: true,
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['abstract']: {
+            value: {
+              param: {
+                markdown: true,
+              },
+            },
+          },
         },
       },
     }
@@ -61,47 +68,44 @@ describe('TextAreaWidget', () => {
   })
 
   test('display mathjax warning if value contains formula', () => {
-    const providerProps = baseProviderProps
-    providerProps.value.field.textarea_widget = {
+    const providerProps = {
       value: {
-        param: {
-          markdown: true,
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['abstract']: {
+            value: {
+              param: {
+                markdown: true,
+              },
+            },
+          },
         },
+        value: '$\\\\$',
       },
     }
-    providerProps.value.value = '$\\\\$'
-
-    renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
-    expect(screen.getByText('Learn more about adding LaTeX formulas', { exact: false }))
-  })
-
-  test('display mathjax warning if value contains formula', () => {
-    const providerProps = baseProviderProps
-    providerProps.value.field.textarea_widget = {
-      value: {
-        param: {
-          markdown: true,
-        },
-      },
-    }
-    providerProps.value.value = '$\\\\$'
 
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
     expect(screen.getByText('Learn more about adding LaTeX formulas', { exact: false }))
   })
 
   test('display text counter for max length', async () => {
-    const providerProps = baseProviderProps
-    providerProps.value.field.textarea_widget = {
+    const providerProps = {
       value: {
-        param: {
-          minLength: 2,
-          maxLength: 152,
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['abstract']: {
+            value: {
+              param: {
+                minLength: 2,
+                maxLength: 152,
+              },
+            },
+          },
         },
+        value: 'a',
+        onChange: jest.fn(),
       },
     }
-    providerProps.value.value = 'a'
-    providerProps.value.onChange = jest.fn()
 
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
     const textarea = screen.getByDisplayValue('a')
@@ -111,15 +115,24 @@ describe('TextAreaWidget', () => {
   })
 
   test('display text counter for max length', async () => {
-    const providerProps = baseProviderProps
-    providerProps.value.field.textarea_widget = {
+    const providerProps = {
       value: {
-        param: {
-          minLength: 2,
-          maxLength: 152,
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['abstract']: {
+            value: {
+              param: {
+                minLength: 2,
+                maxLength: 152,
+              },
+            },
+          },
         },
+        value: 'ab',
+        onChange: jest.fn(),
       },
     }
+
     providerProps.value.value = 'ab'
     providerProps.value.onChange = jest.fn()
 
@@ -131,17 +144,23 @@ describe('TextAreaWidget', () => {
   })
 
   test('display text counter for max length', async () => {
-    const providerProps = baseProviderProps
-    providerProps.value.field.textarea_widget = {
+    const providerProps = {
       value: {
-        param: {
-          minLength: 2,
-          maxLength: 3,
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['abstract']: {
+            value: {
+              param: {
+                minLength: 2,
+                maxLength: 3,
+              },
+            },
+          },
         },
+        value: 'abcd',
+        onChange: jest.fn(),
       },
     }
-    providerProps.value.value = 'abcd'
-    providerProps.value.onChange = jest.fn()
 
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
     const textarea = screen.getByDisplayValue('abcd')
@@ -151,9 +170,24 @@ describe('TextAreaWidget', () => {
   })
 
   test('read saved value from localstroage', async () => {
-    const providerProps = baseProviderProps
     const onChange = jest.fn()
-    providerProps.value.onChange = onChange
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['abstract']: {
+            value: {
+              param: {
+                type: 'string',
+                maxLength: 5000,
+                input: 'textarea',
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
 
     const getItem = jest.fn(() => 'some saved value')
     Object.defineProperty(window, 'localStorage', {

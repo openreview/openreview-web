@@ -5,31 +5,41 @@ import { prettyDOM } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
-let baseProviderProps
-
-beforeEach(() => {
-  baseProviderProps = {
-    value: {
-      invitation: { id: 'invitaitonId' },
-      field: {
-        radiobutton_widget: {},
-      },
-    },
-  }
-})
-
 describe('RadioButtonWidget', () => {
   test('render nothing if invitation does not have options', () => {
-    const providerProps = baseProviderProps
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['submission_length']: {
+            value: {
+              param: {
+                input: 'radio',
+                enum: null,
+              },
+            },
+          },
+        },
+      },
+    }
     renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
     expect(screen.queryByText('* Radiobutton Widget')).not.toBeInTheDocument()
   })
 
   test('render nothing if invitation enum is not array', () => {
-    const providerProps = baseProviderProps
-    providerProps.value.field.radiobutton_widget.value = {
-      param: {
-        enum: {},
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['submission_length']: {
+            value: {
+              param: {
+                input: 'radio',
+                enum: {},
+              },
+            },
+          },
+        },
       },
     }
     renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
@@ -37,60 +47,124 @@ describe('RadioButtonWidget', () => {
   })
 
   test('render header', () => {
-    const providerProps = baseProviderProps
-    providerProps.value.field.radiobutton_widget.value = {
-      param: {
-        enum: [],
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['submission_length']: {
+            value: {
+              param: {
+                input: 'radio',
+                enum: [],
+              },
+            },
+          },
+        },
       },
     }
     renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
-    expect(screen.getByText('* Radiobutton Widget'))
+    expect(screen.getByText('* Submission Length'))
   })
 
   test('display enum options', () => {
-    const providerProps = baseProviderProps
-    providerProps.value.field.radiobutton_widget.value = {
-      param: {
-        enum: ['option 1', 'OPTION TWO'],
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['submission_length']: {
+            value: {
+              param: {
+                input: 'radio',
+                enum: [
+                  'Regular submission (no more than 12 pages of main content)',
+                  'Long submission (more than 12 pages of main content)',
+                ],
+              },
+            },
+          },
+        },
       },
     }
     renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
-    expect(screen.getByDisplayValue('option 1'))
-    expect(screen.getByDisplayValue('OPTION TWO'))
+    expect(
+      screen.getByDisplayValue('Regular submission (no more than 12 pages of main content)')
+    )
+    expect(screen.getByDisplayValue('Long submission (more than 12 pages of main content)'))
   })
 
   test('display option as selected when match with existing value', () => {
-    const providerProps = baseProviderProps
-    providerProps.value.value = 'OPTION TWO'
-    providerProps.value.field.radiobutton_widget.value = {
-      param: {
-        enum: ['option 1', 'OPTION TWO'],
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['submission_length']: {
+            value: {
+              param: {
+                input: 'radio',
+                enum: [
+                  'Regular submission (no more than 12 pages of main content)',
+                  'Long submission (more than 12 pages of main content)',
+                ],
+              },
+            },
+          },
+        },
+        value: 'Long submission (more than 12 pages of main content)',
       },
     }
     renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
-    expect(screen.getByDisplayValue('option 1')).not.toHaveAttribute('checked')
-    expect(screen.getByDisplayValue('OPTION TWO')).toHaveAttribute('checked')
+    expect(
+      screen.getByDisplayValue('Regular submission (no more than 12 pages of main content)')
+    ).not.toHaveAttribute('checked')
+    expect(
+      screen.getByDisplayValue('Long submission (more than 12 pages of main content)')
+    ).toHaveAttribute('checked')
   })
 
   test('call update when option is selected', async () => {
-    const providerProps = baseProviderProps
-    providerProps.value.field.radiobutton_widget.value = {
-      param: {
-        enum: ['option 1', 'OPTION TWO'],
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['submission_length']: {
+            value: {
+              param: {
+                input: 'radio',
+                enum: [
+                  'Regular submission (no more than 12 pages of main content)',
+                  'Long submission (more than 12 pages of main content)',
+                ],
+              },
+            },
+          },
+        },
+        onChange,
       },
     }
-    const onChange = jest.fn()
-    providerProps.value.onChange = onChange
 
     renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
 
-    const optionTwo = screen.getByDisplayValue('OPTION TWO')
-    const optionOne = screen.getByDisplayValue('option 1')
+    const optionTwo = screen.getByDisplayValue(
+      'Long submission (more than 12 pages of main content)'
+    )
+    const optionOne = screen.getByDisplayValue(
+      'Regular submission (no more than 12 pages of main content)'
+    )
 
     await userEvent.click(optionTwo)
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'OPTION TWO' }))
+    expect(onChange).toBeCalledWith(
+      expect.objectContaining({
+        value: 'Long submission (more than 12 pages of main content)',
+      })
+    )
 
     await userEvent.click(optionOne)
-    expect(onChange).toHaveBeenNthCalledWith(2, expect.objectContaining({ value: 'option 1' }))
+    expect(onChange).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        value: 'Regular submission (no more than 12 pages of main content)',
+      })
+    )
   })
 })

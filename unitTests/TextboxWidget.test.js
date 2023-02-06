@@ -1,7 +1,7 @@
 import TextboxWidget from '../components/EditorComponents/TextboxWidget'
 import { screen } from '@testing-library/react'
 import { prettyDOM } from '@testing-library/dom'
-import { renderWithEditorComponentContext } from './util'
+import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
@@ -10,34 +10,59 @@ describe('TextboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          textbox_widget: {},
+          ['paper_title']: {},
         },
       },
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
-    expect(screen.getByText('* Textbox Widget'))
+    expect(screen.getByText('* Paper Title'))
   })
 
-  test('render readonly input if readonly is true', () => {
-    const providerProps = {
+  test('render input as readonly when invitation field value is a const string', () => {
+    let providerProps = {
       value: {
         field: {
-          textbox_widget: {},
+          ['venue']: {
+            value: {
+              param: {
+                const: 'ICML Conf Submission',
+              },
+            },
+          },
         },
       },
     }
-    renderWithEditorComponentContext(
-      <TextboxWidget readOnly={true} readOnlyValue="read only" />,
-      providerProps
-    )
-    expect(screen.getByDisplayValue('read only')).toHaveAttribute('readonly')
+    const { rerender } = renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+    expect(screen.getByDisplayValue('ICML Conf Submission')).toHaveAttribute('readonly')
+
+    providerProps = {
+      value: {
+        field: {
+          ['venue']: {
+            value: 'ICML Conf Submission',
+          },
+        },
+      },
+    }
+    reRenderWithEditorComponentContext(rerender, <TextboxWidget />, providerProps)
+    expect(screen.getByDisplayValue('ICML Conf Submission')).toHaveAttribute('readonly')
+
+    providerProps = {
+      value: {
+        field: {
+          ['venue']: 'ICML Conf Submission',
+        },
+      },
+    }
+    reRenderWithEditorComponentContext(rerender, <TextboxWidget />, providerProps)
+    expect(screen.getByDisplayValue('ICML Conf Submission')).toHaveAttribute('readonly')
   })
 
   test('show empty input if no existing value', () => {
     const providerProps = {
       value: {
         field: {
-          textbox_widget: {},
+          ['paper_title']: {},
         },
         value: undefined,
       },
@@ -46,11 +71,11 @@ describe('TextboxWidget', () => {
     expect(screen.getByDisplayValue(''))
   })
 
-  test('show note value if value exists', () => {
+  test('show note value if value exists (editing a note)', () => {
     const providerProps = {
       value: {
         field: {
-          textbox_widget: {},
+          ['paper_title']: {},
         },
         value: 'some existing value',
       },
@@ -64,7 +89,7 @@ describe('TextboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          textbox_widget: {},
+          ['paper_title']: {},
         },
         onChange,
       },

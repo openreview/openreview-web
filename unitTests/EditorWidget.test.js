@@ -34,7 +34,7 @@ beforeEach(() => {
   inputProviderProps = {
     value: {
       field: {
-        field_name: {
+        ['field_name']: {
           value: {
             param: {
               input: null,
@@ -48,7 +48,7 @@ beforeEach(() => {
   typeProviderProps = {
     value: {
       field: {
-        field_name: {
+        ['field_name']: {
           value: {
             param: {
               type: null,
@@ -65,7 +65,7 @@ describe.only('EditorWidget', () => {
     const providerProps = {
       value: {
         field: {
-          field_name: {},
+          ['an_empty_field']: {},
         },
       },
     }
@@ -73,40 +73,98 @@ describe.only('EditorWidget', () => {
     expect(screen.getByText('textbox'))
   })
 
-  test('render TextboxWidget for string field', async () => {
-    const providerProps = {
+  test('render TextboxWidget for field with string const value', async () => {
+    let providerProps = {
       value: {
         field: {
-          field_name: 'text',
+          ['venue']: 'ICML Conf Submission',
         },
       },
     }
-    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('textbox'))
+
+    providerProps = {
+      value: {
+        field: {
+          ['venue']: {
+            value: 'ICML Conf Submission',
+          },
+        },
+      },
+    }
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('textbox'))
+
+    providerProps = {
+      value: {
+        field: {
+          ['venue']: {
+            value: {
+              param: {
+                const: 'ICML Conf Submission',
+              },
+            },
+          },
+        },
+      },
+    }
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
     expect(screen.getByText('textbox'))
   })
 
-  test('render TagsWidget for array field', async () => {
-    const providerProps = {
+  test('render TagsWidget for field with array const value', async () => {
+    let providerProps = {
       value: {
         field: {
-          field_name: [],
+          ['authorids']: ['~Author_ID1', '~Author_ID2', '~Author_ID3'],
         },
       },
     }
-    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('tags'))
+
+    providerProps = {
+      value: {
+        field: {
+          ['authorids']: {
+            value: ['~Author_ID1', '~Author_ID2', '~Author_ID3'],
+          },
+        },
+      },
+    }
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('tags'))
+
+    providerProps = {
+      value: {
+        field: {
+          ['authorids']: {
+            value: {
+              param: {
+                const: ['~Author_ID1', '~Author_ID2', '~Author_ID3'],
+              },
+            },
+          },
+        },
+      },
+    }
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
     expect(screen.getByText('tags'))
   })
 
-  test('render TagsWidget for field with only readers', async () => {
+  test('render nothing for field with only readers', async () => {
     const providerProps = {
       value: {
         field: {
-          field_name: { readers: ['some readers'] },
+          ['authors']: {
+            readers: ['everyone'],
+          },
         },
       },
     }
-    renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('tags'))
+    const { container } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(container).toBeEmptyDOMElement()
   })
 
   test('render RadioButtonWidget for input radio', async () => {
@@ -161,42 +219,6 @@ describe.only('EditorWidget', () => {
     const providerProps = inputProviderProps
     providerProps.value.field.field_name.value.param.input = 'text'
 
-    renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('textbox'))
-  })
-
-  test('render TextboxWidget for non-array const field', async () => {
-    const providerProps = {
-      value: {
-        field: {
-          field_name: {
-            value: {
-              param: {
-                const: 'some value',
-              },
-            },
-          },
-        },
-      },
-    }
-    renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('textbox'))
-  })
-
-  test('render TextboxWidget for non-array const field', async () => {
-    const providerProps = {
-      value: {
-        field: {
-          field_name: {
-            value: {
-              param: {
-                const: 'some value',
-              },
-            },
-          },
-        },
-      },
-    }
     renderWithEditorComponentContext(<EditorWidget />, providerProps)
     expect(screen.getByText('textbox'))
   })
