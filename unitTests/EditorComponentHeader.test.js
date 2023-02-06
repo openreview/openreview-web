@@ -1,8 +1,12 @@
 import EditorComponentHeader from '../components/EditorComponents/EditorComponentHeader'
-import { renderWithEditorComponentContext } from './util'
+import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import { screen } from '@testing-library/react'
 // import { prettyDOM } from '@testing-library/dom'
 import '@testing-library/jest-dom'
+
+jest.mock('../components/EditorComponents/EditorComponentReaders', () => () => (
+  <span>component readers</span>
+))
 
 describe('EditorComponentHeader', () => {
   test('pretty display mandatory field name of single word', () => {
@@ -150,7 +154,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          field: {},
+          ['abstract']: {},
         },
       },
     }
@@ -161,5 +165,72 @@ describe('EditorComponentHeader', () => {
       providerProps
     )
     expect(screen.getByText('children content'))
+  })
+
+  test('render readers of content field', () => {
+    const providerProps = {
+      value: {
+        field: {
+          ['comment']: {
+            value: {
+              param: {
+                type: 'string',
+                maxLength: 5000,
+                input: 'textarea',
+              },
+            },
+            readers: ['reader value 1', 'reader value 2', 'reader value 3'],
+          },
+        },
+        isContentField: true,
+      },
+    }
+    renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
+    expect(screen.getByText('component readers'))
+  })
+
+  test('not render readers of non-content field', () => {
+    let providerProps = {
+      value: {
+        field: {
+          ['comment']: {
+            value: {
+              param: {
+                type: 'string',
+                maxLength: 5000,
+                input: 'textarea',
+              },
+            },
+            readers: ['reader value 1', 'reader value 2', 'reader value 3'],
+          },
+        },
+        isContentField: false,
+      },
+    }
+    const { rerender } = renderWithEditorComponentContext(
+      <EditorComponentHeader />,
+      providerProps
+    )
+    expect(screen.queryByText('component readers')).not.toBeInTheDocument()
+
+    providerProps = {
+      value: {
+        field: {
+          ['comment']: {
+            value: {
+              param: {
+                type: 'string',
+                maxLength: 5000,
+                input: 'textarea',
+              },
+            },
+            readers: ['reader value 1', 'reader value 2', 'reader value 3'],
+          },
+        },
+        // no isContent field
+      },
+    }
+    reRenderWithEditorComponentContext(rerender, <EditorComponentHeader />, providerProps)
+    expect(screen.queryByText('component readers')).not.toBeInTheDocument()
   })
 })

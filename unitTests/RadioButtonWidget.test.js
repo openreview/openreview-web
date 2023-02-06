@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
 describe('RadioButtonWidget', () => {
-  test('render nothing if invitation does not have options', () => {
+  test('render nothing if field description does not have options', () => {
     const providerProps = {
       value: {
         invitation: { id: 'invitaitonId' },
@@ -26,7 +26,7 @@ describe('RadioButtonWidget', () => {
     expect(screen.queryByText('* Radiobutton Widget')).not.toBeInTheDocument()
   })
 
-  test('render nothing if invitation enum is not array', () => {
+  test('render nothing if field description enum is not array', () => {
     const providerProps = {
       value: {
         invitation: { id: 'invitaitonId' },
@@ -88,8 +88,10 @@ describe('RadioButtonWidget', () => {
     renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
     expect(
       screen.getByDisplayValue('Regular submission (no more than 12 pages of main content)')
-    )
-    expect(screen.getByDisplayValue('Long submission (more than 12 pages of main content)'))
+    ).toHaveAttribute('type', 'radio')
+    expect(
+      screen.getByDisplayValue('Long submission (more than 12 pages of main content)')
+    ).toHaveAttribute('type', 'radio')
   })
 
   test('display option as selected when match with existing value', () => {

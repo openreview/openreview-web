@@ -60,7 +60,7 @@ beforeEach(() => {
   }
 })
 
-describe.only('EditorWidget', () => {
+describe('EditorWidget', () => {
   test('render TextboxWidget for empty field', async () => {
     const providerProps = {
       value: {
