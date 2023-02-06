@@ -137,7 +137,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             const isActiveSubmission =
               apiVersion === 2
                 ? matchingNote?.content?.venueid?.value === submissionVenueId
-                : matchingNote.invitation === submissionInvitationId
+                : matchingNote?.invitation === submissionInvitationId
             if (matchingNote && isActiveSubmission && !conflictIds.includes(noteId)) {
               return matchingNote
             }
@@ -384,7 +384,7 @@ const NoBidTab = ({
             const isActiveSubmission =
               apiVersion === 2
                 ? matchingNote?.content?.venueid?.value === submissionVenueId
-                : matchingNote.invitation === submissionInvitationId
+                : matchingNote?.invitation === submissionInvitationId
             if (
               matchingNote &&
               isActiveSubmission &&
