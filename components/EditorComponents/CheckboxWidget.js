@@ -8,7 +8,7 @@ const CheckboxWidget = () => {
   const { field, onChange, value = [], isWebfield } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const options = field[fieldName].value?.param?.enum
-  const defaultValues = field[fieldName].value?.param?.default
+  const defaultValues = field[fieldName].value?.param?.default ?? []
 
   const handleCheckboxClick = (e) => {
     const optionValue = e.target.value
@@ -19,7 +19,8 @@ const CheckboxWidget = () => {
     }
   }
 
-  if (!Array.isArray(options)) return null
+  if (!Array.isArray(options) || !Array.isArray(value) || !Array.isArray(defaultValues))
+    return null
   return (
     <EditorComponentHeader>
       <div className={styles.checkboxContainer}>
@@ -29,7 +30,7 @@ const CheckboxWidget = () => {
               type="checkbox"
               value={option}
               checked={value.includes(option)}
-              disabled={defaultValues?.includes(option)}
+              disabled={defaultValues.includes(option)}
               onChange={handleCheckboxClick}
             />
             <span>{option}</span>
