@@ -35,30 +35,29 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
         </h4>
       </>
     )
-  return (
-    decisionContent && (
-      <div>
-        {isV2Note && (
-          <h4>
-            <strong>{note.content?.venue?.value}</strong>
-          </h4>
-        )}
-        <h4>Recommendation:</h4>
-        <p>
-          <strong>{decisionContent}</strong>
-        </p>
-        <p>
-          <a
-            href={`/forum?id=${note.forum}&noteId=${decision.id}`}
-            target="_blank"
-            rel="nofollow noreferrer"
-          >
-            Read
-          </a>
-        </p>
-      </div>
-    )
-  )
+
+  return decisionContent ? (
+    <div>
+      {isV2Note && (
+        <h4>
+          <strong>{note.content?.venue?.value}</strong>
+        </h4>
+      )}
+      <h4>Recommendation:</h4>
+      <p>
+        <strong>{decisionContent}</strong>
+      </p>
+      <p>
+        <a
+          href={`/forum?id=${note.forum}&noteId=${decision.id}`}
+          target="_blank"
+          rel="nofollow noreferrer"
+        >
+          Read
+        </a>
+      </p>
+    </div>
+  ) : null
 }
 
 // modified from noteMetaReviewStatus.hbs handlebar template
