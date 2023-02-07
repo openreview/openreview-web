@@ -25,7 +25,7 @@ const CheckboxWidget = () => {
     <EditorComponentHeader>
       <div className={styles.checkboxContainer}>
         {options.map((option) => (
-          <div key={`${fieldName}-${option}`}>
+          <div key={`${fieldName}-${option}`} className={styles.checkboxOptionRow}>
             <input
               type="checkbox"
               value={option}
@@ -33,7 +33,7 @@ const CheckboxWidget = () => {
               disabled={defaultValues.includes(option)}
               onChange={handleCheckboxClick}
             />
-            <span>{option}</span>
+            <span className={styles.optionText}>{option}</span>
           </div>
         ))}
       </div>
