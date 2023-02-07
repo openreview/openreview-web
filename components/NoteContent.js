@@ -186,7 +186,9 @@ export const NoteContentV2 = ({
         if (!fieldValue) return null
 
         const enableMarkdown = presentation?.[i]?.markdown
-        const fieldReaders = content[fieldName]?.readers?.sort()
+        const fieldReaders = Array.isArray(content[fieldName]?.readers)
+          ? content[fieldName].readers.sort()
+          : null
         const showPrivateIcon =
           fieldReaders && noteReaders && !fieldReaders.every((p, j) => p === noteReaders[j])
 

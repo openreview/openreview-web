@@ -1175,6 +1175,8 @@ module.exports = (function () {
       },
       {}
     )
+    const uploadInProgressFields = []
+
     function buildEditor(editReaders, editSignatures, noteReaders, noteSignatures) {
       var $submitButton = $('<button class="btn btn-sm">Submit</button>')
       var $cancelButton = $('<button class="btn btn-sm">Cancel</button>')
@@ -1275,26 +1277,113 @@ module.exports = (function () {
 
         var fieldNames = _.keys(files)
         var promises = fieldNames.map(function (fieldName) {
-          var data = new FormData()
-          data.append('invitationId', invitation.id)
-          data.append('name', fieldName)
-          data.append('file', files[fieldName])
-          return Webfield2.sendFile('/attachment', data, undefined, fieldName).then(function (
-            result
-          ) {
-            content[0][fieldName] = result.url
-            updateFileSection(
-              $contentMap[fieldName],
-              fieldName,
-              invitation.edit.note?.content?.[fieldName],
-              content[0][fieldName]
+          if (window.USE_PARALLEL_UPLOAD) {
+            var uploadInProgressField = uploadInProgressFields.find(
+              (p) => p.fieldName === fieldName
             )
-          })
+            if (uploadInProgressField) {
+              uploadInProgressField.contentRef = content[0]
+              return uploadInProgressField.promiseRef
+            }
+            var $progressBar = $contentMap[fieldName].find('div.progress')
+            var file = files[fieldName]
+            var chunkSize = 1024 * 1000 * 5 // 5mb
+            var chunkCount = Math.ceil(file.size / chunkSize)
+            var clientUploadId = nanoid()
+            var chunks = Array.from(new Array(chunkCount), function (e, chunkIndex) {
+              return new File(
+                [file.slice(chunkIndex * chunkSize, (chunkIndex + 1) * chunkSize, file.type)],
+                file.name
+              )
+            })
+            var sendSingleChunk = function (chunk, index) {
+              var data = new FormData()
+              data.append('invitationId', invitation.id)
+              data.append('name', fieldName)
+              data.append('chunkIndex', index + 1)
+              data.append('totalChunks', chunkCount)
+              data.append('clientUploadId', clientUploadId)
+              data.append('file', chunk)
+              return Webfield2.sendFileChunk(data, $progressBar).then(
+                function (result) {
+                  if (index + 1 === chunkCount) {
+                    if (!result.url) {
+                      $progressBar.hide()
+                      throw new Error('No URL returned, file upload failed')
+                    }
+                    var uploadInProgressField = uploadInProgressFields.find(
+                      (p) => p.fieldName === fieldName
+                    )
+                    if (uploadInProgressField) {
+                      uploadInProgressField.contentRef[fieldName] = result.url
+                      updateFileSection(
+                        $contentMap[fieldName],
+                        fieldName,
+                        invitation.edit.note?.content?.[fieldName],
+                        uploadInProgressField.contentRef[fieldName]
+                      )
+                    } else {
+                      content[0][fieldName] = result.url
+                      updateFileSection(
+                        $contentMap[fieldName],
+                        fieldName,
+                        invitation.edit.note?.content?.[fieldName],
+                        content[0][fieldName]
+                      )
+                    }
+                    uploadInProgressFields = uploadInProgressFields.filter(
+                      (p) => p.fieldName !== fieldName
+                    )
+                  }
+                },
+                function (e) {
+                  $progressBar.hide()
+                  uploadInProgressFields = uploadInProgressFields.filter(
+                    (p) => p.fieldName !== fieldName
+                  )
+                  onError(e)
+                }
+              )
+            }
+            $progressBar.show()
+            var sendChunksPromiseRef = chunks.reduce(function (oldPromises, currentChunk, i) {
+              return oldPromises.then(function (_) {
+                return sendSingleChunk(currentChunk, i)
+              })
+            }, Promise.resolve())
+            uploadInProgressFields.push({
+              fieldName,
+              contentRef: content[0],
+              promiseRef: sendChunksPromiseRef,
+            })
+            return sendChunksPromiseRef
+          } else {
+            var data = new FormData()
+            data.append('invitationId', invitation.id)
+            data.append('name', fieldName)
+            data.append('file', files[fieldName])
+            return Webfield2.sendFile('/attachment', data, undefined, fieldName).then(
+              function (result) {
+                content[0][fieldName] = result.url
+                updateFileSection(
+                  $contentMap[fieldName],
+                  fieldName,
+                  invitation.edit.note?.content?.[fieldName],
+                  content[0][fieldName]
+                )
+              }
+            )
+          }
         })
 
-        $.when.apply($, promises).then(function () {
-          saveNote(content[0], invitation)
-        }, onError)
+        Promise.all(promises).then(
+          function () {
+            saveNote(content[0], invitation)
+          },
+          function (e) {
+            if (e) onError(e)
+          }
+        )
       })
 
       $cancelButton.on('click', function () {
@@ -1817,6 +1906,8 @@ module.exports = (function () {
       {}
     )
 
+    const uploadInProgressFields = []
+
     const buildEditor = (editReaders, editSignatures, noteReaders, noteSignatures) => {
       const $submitButton = $('<button class="btn btn-sm">Submit</button>')
       const $cancelButton = $('<button class="btn btn-sm">Cancel</button>')
@@ -1921,26 +2012,113 @@ module.exports = (function () {
 
         var fieldNames = _.keys(files)
         var promises = fieldNames.map(function (fieldName) {
-          var data = new FormData()
-          data.append('invitationId', invitation.id)
-          data.append('name', fieldName)
-          data.append('file', files[fieldName])
-          return Webfield2.sendFile('/attachment', data, undefined, fieldName).then(function (
-            result
-          ) {
-            content[0][fieldName] = result.url
-            updateFileSection(
-              $contentMap[fieldName],
-              fieldName,
-              invitation.edit.note?.content?.[fieldName],
-              content[0][fieldName]
+          if (window.USE_PARALLEL_UPLOAD) {
+            var uploadInProgressField = uploadInProgressFields.find(
+              (p) => p.fieldName === fieldName
             )
-          })
+            if (uploadInProgressField) {
+              uploadInProgressField.contentRef = content[0]
+              return uploadInProgressField.promiseRef
+            }
+            var $progressBar = $contentMap[fieldName].find('div.progress')
+            var file = files[fieldName]
+            var chunkSize = 1024 * 1000 * 5 // 5mb
+            var chunkCount = Math.ceil(file.size / chunkSize)
+            var clientUploadId = nanoid()
+            var chunks = Array.from(new Array(chunkCount), function (e, chunkIndex) {
+              return new File(
+                [file.slice(chunkIndex * chunkSize, (chunkIndex + 1) * chunkSize, file.type)],
+                file.name
+              )
+            })
+            var sendSingleChunk = function (chunk, index) {
+              var data = new FormData()
+              data.append('invitationId', invitation.id)
+              data.append('name', fieldName)
+              data.append('chunkIndex', index + 1)
+              data.append('totalChunks', chunkCount)
+              data.append('clientUploadId', clientUploadId)
+              data.append('file', chunk)
+              return Webfield2.sendFileChunk(data, $progressBar).then(
+                function (result) {
+                  if (index + 1 === chunkCount) {
+                    if (!result.url) {
+                      $progressBar.hide()
+                      throw new Error('No URL returned, file upload failed')
+                    }
+                    var uploadInProgressField = uploadInProgressFields.find(
+                      (p) => p.fieldName === fieldName
+                    )
+                    if (uploadInProgressField) {
+                      uploadInProgressField.contentRef[fieldName] = result.url
+                      updateFileSection(
+                        $contentMap[fieldName],
+                        fieldName,
+                        invitation.edit.note?.content?.[fieldName],
+                        uploadInProgressField.contentRef[fieldName]
+                      )
+                    } else {
+                      content[0][fieldName] = result.url
+                      updateFileSection(
+                        $contentMap[fieldName],
+                        fieldName,
+                        invitation.edit.note?.content?.[fieldName],
+                        content[0][fieldName]
+                      )
+                    }
+                    uploadInProgressFields = uploadInProgressFields.filter(
+                      (p) => p.fieldName !== fieldName
+                    )
+                  }
+                },
+                function (e) {
+                  $progressBar.hide()
+                  uploadInProgressFields = uploadInProgressFields.filter(
+                    (p) => p.fieldName !== fieldName
+                  )
+                  onError(e)
+                }
+              )
+            }
+            $progressBar.show()
+            var sendChunksPromiseRef = chunks.reduce(function (oldPromises, currentChunk, i) {
+              return oldPromises.then(function (_) {
+                return sendSingleChunk(currentChunk, i)
+              })
+            }, Promise.resolve())
+            uploadInProgressFields.push({
+              fieldName,
+              contentRef: content[0],
+              promiseRef: sendChunksPromiseRef,
+            })
+            return sendChunksPromiseRef
+          } else {
+            var data = new FormData()
+            data.append('invitationId', invitation.id)
+            data.append('name', fieldName)
+            data.append('file', files[fieldName])
+            return Webfield2.sendFile('/attachment', data, undefined, fieldName).then(
+              function (result) {
+                content[0][fieldName] = result.url
+                updateFileSection(
+                  $contentMap[fieldName],
+                  fieldName,
+                  invitation.edit.note?.content?.[fieldName],
+                  content[0][fieldName]
+                )
+              }
+            )
+          }
         })
 
-        $.when.apply($, promises).then(function () {
-          saveNote(content[0], note, invitation)
-        }, onError)
+        Promise.all(promises).then(
+          function () {
+            saveNote(content[0], note, invitation)
+          },
+          function (e) {
+            if (e) onError(e)
+          }
+        )
       })
 
       $cancelButton.on('click', function () {
