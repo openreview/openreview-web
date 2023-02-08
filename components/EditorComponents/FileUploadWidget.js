@@ -14,9 +14,10 @@ const FileUploadWidget = () => {
   const fileInputRef = useRef(null)
   const [isLoading, setIsLoading] = useState(false)
   const [uploadPercentage, setUploadPercentage] = useState(2)
-  const [fileName, setFileName] = useState(null)
+
   const { accessToken } = useUser()
   const fieldName = Object.keys(field)[0]
+  const [fileName, setFileName] = useState(prettyField(fieldName))
   const maxSize = field[fieldName].value?.param?.maxSize
   const extensions = field[fieldName].value?.param?.extensions?.map((p) => `.${p}`)
 
@@ -52,6 +53,7 @@ const FileUploadWidget = () => {
   }
 
   const handleFileSelected = async (e) => {
+    console.log('handleFileSelected is called')
     try {
       const file = e.target.files[0]
       if (maxSize && file.size > 1024 * 1000 * maxSize)
@@ -96,6 +98,7 @@ const FileUploadWidget = () => {
         <input
           ref={fileInputRef}
           type="file"
+          aria-label={fieldName}
           accept={extensions}
           onChange={handleFileSelected}
         />
