@@ -65,7 +65,7 @@ export default function NoteAuthors({ authors, authorIds, original, max }) {
 
   return (
     <div className="note-authors">
-      {authorLinks.reduce((prev, curr) => [prev, ', ', curr])}
+      {authorLinks.reduce((prev, curr) => [prev, ', ', curr], [])}
 
       {authorLinksOverflow && (
         <span style={{ display: isExpanded ? 'inline' : 'none' }}>
