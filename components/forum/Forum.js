@@ -9,6 +9,7 @@ import escapeRegExp from 'lodash/escapeRegExp'
 
 import ForumNote from './ForumNote'
 import NoteEditorForm from '../NoteEditorForm'
+import ChatEditorForm from './ChatEditorForm'
 import FilterForm from './FilterForm'
 import FilterTabs from './FilterTabs'
 import ForumReply from './ForumReply'
@@ -720,6 +721,61 @@ export default function Forum({
           </div>
         </div>
       </div>
+
+      {layout === 'chat' && parentNote.replyInvitations?.length > 0 && !parentNote.ddate &&(
+        <div className="invitations-container">
+          {expandedInvitations ? expandedInvitations.map((invitation) => (
+            <div key={invitation}>
+              <ChatEditorForm
+                forumId={id}
+                replyToId={id}
+                invitationId={invitation}
+                onSubmit={(note) => {
+                  updateNote(note)
+                }}
+              />
+            </div>
+          )) : (
+            <>
+              <div className="invitation-buttons">
+                <span className="hint">Add:</span>
+                {parentNote.replyInvitations.map((invitation) => (
+                  <button
+                    key={invitation.id}
+                    type="button"
+                    className={`btn btn-xs ${
+                      activeInvitation?.id === invitation.id ? 'active' : ''
+                    }`}
+                    data-id={invitation.id}
+                    onClick={() => openNoteEditor(invitation)}
+                  >
+                    {prettyInvitationId(invitation.id)}
+                  </button>
+                ))}
+              </div>
+
+              <NoteEditorForm
+                forumId={id}
+                replyToId={id}
+                invitation={activeInvitation}
+                onNoteCreated={(note) => {
+                  updateNote(note)
+                  setActiveInvitation(null)
+                  scrollToElement('#forum-replies')
+                }}
+                onNoteCancelled={() => {
+                  setActiveInvitation(null)
+                }}
+                onError={(isLoadingError) => {
+                  if (isLoadingError) {
+                    setActiveInvitation(null)
+                  }
+                }}
+              />
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }
