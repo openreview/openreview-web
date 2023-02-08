@@ -5,12 +5,16 @@ import SpinnerButton from '../SpinnerButton'
 import { prettyField } from '../../lib/utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
+import { TrashButton } from '../IconButton'
+
+import styles from '../../styles/components/FileUploadWidget.module.scss'
 
 const FileUploadWidget = () => {
   const { field, onChange, value, invitation } = useContext(EditorComponentContext)
   const fileInputRef = useRef(null)
   const [isLoading, setIsLoading] = useState(false)
   const [uploadPercentage, setUploadPercentage] = useState(2)
+  const [fileName, setFileName] = useState(null)
   const { accessToken } = useUser()
   const fieldName = Object.keys(field)[0]
   const maxSize = field[fieldName].value?.param?.maxSize
@@ -31,7 +35,8 @@ const FileUploadWidget = () => {
         version: 2,
       })
       if (result.url) {
-        //completed call update
+        //upload is completed
+        onChange({ fieldName, value: result.url })
       } else {
         setUploadPercentage(
           (
@@ -40,13 +45,18 @@ const FileUploadWidget = () => {
           ).toFixed(0)
         )
       }
-    } catch (error) {}
+    } catch (error) {
+      promptError(error.message, { scrollToTop: false })
+      fileInputRef.current.value = null
+    }
   }
 
-  const onFileSelected = async (e) => {
-    setIsLoading(true)
+  const handleFileSelected = async (e) => {
     try {
       const file = e.target.files[0]
+      if (maxSize && file.size > 1024 * 1000 * maxSize)
+        throw new Error(`File is too large. File size limit is ${maxSize} mb`)
+      setIsLoading(true)
       const chunkSize = 1024 * 1000 * 5 // 5mb
       const chunkCount = Math.ceil(file.size / chunkSize)
       const clientUploadId = nanoid()
@@ -66,33 +76,54 @@ const FileUploadWidget = () => {
         Promise.resolve()
       )
       await sendChunksPromises
+      setFileName(file.name)
     } catch (error) {
-      promprError(error.message)
+      promptError(error.message, { scrollToTop: false })
+      fileInputRef.current.value = null
     }
 
     setIsLoading(false)
   }
 
+  const handleDeleteFile = () => {
+    onChange({ fieldName, value: null })
+    fileInputRef.current.value = null
+  }
+
   return (
     <EditorComponentHeader>
-      <input ref={fileInputRef} type="file" accept={extensions} onChange={onFileSelected} />
-      <SpinnerButton
-        type="primary"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={isLoading}
-        loading={isLoading}
-      >{`Choose ${prettyField(fieldName)}`}</SpinnerButton>
-      {isLoading && (
-        <div className="progress">
-          <div
-            className="progress-bar progress-bar-striped active"
-            role="progressbar"
-            aria-valuemin="0"
-            aria-valuemax="100"
-            style={{ width: `${uploadPercentage}%` }}
-          />
-        </div>
-      )}
+      <div className={styles.fileUploadContainer}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={extensions}
+          onChange={handleFileSelected}
+        />
+        <SpinnerButton
+          type="primary"
+          className={styles.selectFileButton}
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isLoading}
+          loading={isLoading}
+        >{`Choose ${prettyField(fieldName)}`}</SpinnerButton>
+        {isLoading && (
+          <div className="progress">
+            <div
+              className="progress-bar progress-bar-striped active"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              style={{ width: `${uploadPercentage}%` }}
+            />
+          </div>
+        )}
+        {value && (
+          <>
+            <span className={styles.fileUrl}>{`${fileName} (${value})`}</span>
+            <TrashButton onClick={handleDeleteFile} />
+          </>
+        )}
+      </div>
     </EditorComponentHeader>
   )
 }

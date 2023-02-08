@@ -1,0 +1,26 @@
+.fileUploadContainer {
+  :global {
+    input[type='file'] {
+      display: none;
+    }
+
+    .progress {
+      border-radius: 0;
+      margin-bottom: 0;
+      margin-top: 0.25rem;
+    }
+
+    .btn-xs {
+      margin-left: 0.25rem;
+    }
+  }
+}
+
+.selectFileButton {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.fileUrl {
+  font-size: 0.75rem;
+}
