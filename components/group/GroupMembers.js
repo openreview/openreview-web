@@ -12,7 +12,13 @@ import api from '../../lib/api-client'
 import { prettyId, urlFromGroupId } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 
-const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }) => {
+const MessageMemberModal = ({
+  groupId,
+  groupDomainContent,
+  membersToMessage,
+  accessToken,
+  setJobId,
+}) => {
   const [subject, setSubject] = useState(`Message to ${prettyId(groupId)}`)
   const [message, setMessage] = useState('')
   const [error, setError] = useState(null)
@@ -28,6 +34,7 @@ const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }
             subject,
             message: sanitizedMessage,
             parentGroup: groupId,
+            replyTo: groupDomainContent?.contact?.value,
             useJob: true,
           },
           { accessToken }
@@ -52,6 +59,7 @@ const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }
       setError('Email Subject and Body are required to send messages.')
     }
   }
+
   return (
     <BasicModal
       id="message-group-members"
@@ -63,13 +71,15 @@ const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }
       }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
+
       <p>
-        {`Enter a subject and message below.
-      Your message will be sent via email to the following ${membersToMessage?.length} group member(s):`}
+        Enter a subject and message below. Your message will be sent via email to the following{' '}
+        {membersToMessage?.length} group member(s):
       </p>
       <div className="well receiver-list">
         {membersToMessage.map((p) => (p.includes('@') ? p : prettyId(p)))?.join(', ')}
       </div>
+
       <div id="message-group-members-form">
         <div className="form-group">
           <label htmlFor="subject">Email Subject</label>
@@ -87,10 +97,11 @@ const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }
         <div className="form-group">
           <label htmlFor="message">Email Body</label>
           <p className="hint">
-            {`Hint: You can personalize emails using template variables. The text
-            {{firstname}} and {{fullname}}
-            will automatically be replaced with the recipient's first or full name if they have an OpenReview profile.
-            If a profile isn't found their email address will be used instead.`}
+            Hint: You can personalize emails using template variables. The text
+            {'{{'}firstname{'}}'} and {'{{'}fullname{'}}'}
+            will automatically be replaced with the recipient&apos;s first or full name if they
+            have an OpenReview profile. If a profile isn&apos;t found their email address will
+            be used instead.
           </p>
           <p className="hint">
             You can use markdown syntax to compose email in HTML format. User the Preview tab
@@ -706,14 +717,15 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
             options={{ noScroll: true }}
           />
         </div>
-
-        <MessageMemberModal
-          groupId={group.id}
-          membersToMessage={memberToMessage}
-          accessToken={accessToken}
-          setJobId={(id) => setJobId(id)}
-        />
       </EditorSection>
+
+      <MessageMemberModal
+        groupId={group.id}
+        groupDomainContent={group.details.domain?.content}
+        membersToMessage={memberToMessage}
+        accessToken={accessToken}
+        setJobId={(id) => setJobId(id)}
+      />
 
       <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
     </>
