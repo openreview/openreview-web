@@ -60,7 +60,7 @@ const MessageMemberModal = ({
       })
       $('#message-group-members').modal('hide')
     } catch (e) {
-      promptError(e.message)
+      setError(e.message)
     }
   }
 
