@@ -2,14 +2,14 @@
 
 import { useState } from 'react'
 import zip from 'lodash/zip'
+import { prettyId } from '../../lib/utils'
+import ExpandableList from '../ExpandableList'
 
-export default function NoteAuthors({ authors, authorIds, original, max }) {
+export default function NoteAuthors({ authors, authorIds, signatures, original, max }) {
   const showOriginalAuthors = original && original.content
   const authorNameIdPairs = showOriginalAuthors
     ? zip(original.content.authors, original.content.authorids)
     : zip(authors, authorIds)
-
-  const [isExpanded, setIsExpanded] = useState(false)
 
   const buildAuthorLink = ([name, id]) => {
     if (!id) {
@@ -38,44 +38,24 @@ export default function NoteAuthors({ authors, authorIds, original, max }) {
     )
   }
 
-  const numAuthors = authorNameIdPairs.length
-  const cutoff = max - 1
-  let authorLinks = authorNameIdPairs.map(buildAuthorLink)
-  let authorLinksOverflow
-  if (numAuthors > max) {
-    authorLinksOverflow = authorLinks.slice(cutoff)
-    authorLinks = authorLinks.slice(0, cutoff)
-    if (!isExpanded) {
-      authorLinks.push(
-        <a
-          key="show-all-authors"
-          href="#"
-          className="show-all-authors"
-          onClick={(e) => {
-            e.preventDefault()
-            setIsExpanded(!isExpanded)
-          }}
-        >
-          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}+{' '}
-          {numAuthors - cutoff} More
-        </a>
-      )
-    }
+  let authorsLinks = []
+  if (authorNameIdPairs.length) {
+    authorsLinks = authorNameIdPairs.map(buildAuthorLink)
+  } else if (signatures?.length) {
+    authorsLinks = signatures.map((p) => buildAuthorLink([prettyId(p)]))
   }
 
   return (
     <div className="note-authors">
-      {authorLinks.reduce((prev, curr) => [prev, ', ', curr], [])}
-
-      {authorLinksOverflow && (
-        <span style={{ display: isExpanded ? 'inline' : 'none' }}>
-          {authorLinksOverflow.reduce((prev, curr) => [prev, ', ', curr], '')}
-        </span>
-      )}
-
-      {showOriginalAuthors && (
-        <span className="private-author-label">(privately revealed)</span>
-      )}
+      <ExpandableList
+        items={authorsLinks}
+        maxItems={max}
+        expandLabel={`${authorsLinks.length - max} more`}
+      >
+        {showOriginalAuthors && (
+          <span className="private-author-label">(privately revealed)</span>
+        )}
+      </ExpandableList>
     </div>
   )
 }
