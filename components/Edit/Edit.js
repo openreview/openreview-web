@@ -2,11 +2,19 @@ import isEmpty from 'lodash/isEmpty'
 import EditContent from './EditContent'
 import EditValue from './EditValue'
 import EditContentValue from './EditContentValue'
-import { buildNoteTitle, forumDate, prettyList, prettyField, prettyContentValue } from '../../lib/utils'
+import {
+  buildNoteTitle,
+  forumDate,
+  prettyList,
+  prettyField,
+  prettyContentValue,
+} from '../../lib/utils'
 
 function EditFields({ editId, displayObj, omitFields = [], label = 'Edit' }) {
   const formatGroupMemberEdit = (membersObj) => {
-    if (Array.isArray(membersObj) && membersObj.length === 0) return '(empty list)'
+    if (Array.isArray(membersObj)) {
+      return membersObj.length > 0 ? membersObj : '(empty list)'
+    }
     if (isEmpty(membersObj)) return '(empty)'
 
     const updates = []
@@ -27,23 +35,24 @@ function EditFields({ editId, displayObj, omitFields = [], label = 'Edit' }) {
       {Object.keys(displayObj).map((fieldName) => {
         if (omitFields.includes(fieldName)) return null
 
-        const field = fieldName === 'members'
-          ? formatGroupMemberEdit(displayObj[fieldName])
-          : displayObj[fieldName]
+        const field =
+          fieldName === 'members'
+            ? formatGroupMemberEdit(displayObj[fieldName])
+            : displayObj[fieldName]
         const isJsonValue = field instanceof Object && !Array.isArray(field)
-        const isEmptyValue = field === null ||
+        const isEmptyValue =
+          field === null ||
           (field instanceof Object && !Array.isArray(field) && Object.keys(field).length === 0)
         const isEmptyArray = Array.isArray(field) && field.length === 0
         const enableMarkdown = fieldName === 'members' && !field.startsWith('(empty')
 
         return (
           <li key={`${editId}-${fieldName}`}>
-            <strong className="note-content-field">{label} – {prettyField(fieldName)}:</strong>
-            {' '}
+            <strong className="note-content-field">
+              {label} – {prettyField(fieldName)}:
+            </strong>{' '}
             {isEmptyValue || isEmptyArray ? (
-              <span className="empty-value">
-                {`(empty${isEmptyArray ? ' list' : ''})`}
-              </span>
+              <span className="empty-value">{`(empty${isEmptyArray ? ' list' : ''})`}</span>
             ) : (
               <EditContentValue
                 editId={editId}
@@ -61,7 +70,17 @@ function EditFields({ editId, displayObj, omitFields = [], label = 'Edit' }) {
 }
 
 export default function Edit({ edit, type, className, showContents }) {
-  const omitFields = ['id', 'content', 'edit', 'mdate', 'tmdate', 'cdate', 'tcdate', 'number', 'forum']
+  const omitFields = [
+    'id',
+    'content',
+    'edit',
+    'mdate',
+    'tmdate',
+    'cdate',
+    'tcdate',
+    'number',
+    'forum',
+  ]
 
   return (
     <div className={`edit ${className ?? ''}`}>
