@@ -5,7 +5,14 @@ import { prettyId } from '../lib/utils'
 import Dropdown from './Dropdown'
 import TagsWidget from './EditorComponents/TagsWidget'
 
-const Signatures = ({ fieldDescription, onChange, currentValue, onError }) => {
+const Signatures = ({
+  fieldDescription,
+  onChange,
+  currentValue,
+  onError,
+  extraClasses,
+  placeholder = 'Select Signature...',
+}) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState(null)
   const { user, accessToken } = useLoginRedirect()
@@ -97,6 +104,7 @@ const Signatures = ({ fieldDescription, onChange, currentValue, onError }) => {
             options={signatureOptions}
             onChange={(e) => onChange({ value: [e.value] })}
             value={signatureOptions.find((p) => p.value === currentValue)}
+            placeholder={placeholder}
           />
         )
       default:
@@ -130,7 +138,7 @@ const Signatures = ({ fieldDescription, onChange, currentValue, onError }) => {
     if (descriptionType === 'enum') getEnumSignatureOptions()
   }, [descriptionType])
 
-  return renderNoteSignatures()
+  return <div className={`${extraClasses ?? ''}`}>{renderNoteSignatures()}</div>
 }
 
 export default Signatures
