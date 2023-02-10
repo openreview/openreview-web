@@ -5,8 +5,11 @@ import { prettyDOM } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
+jest.mock('../lib/api-client')
+import api from '../lib/api-client'
+jest.mock('nanoid', () => () => 'some id')
 jest.mock('../hooks/useUser', () => {
-  return () => ({ user: {} })
+  return () => ({ user: {}, accessToken: 'some token' })
 })
 
 describe('FileUploadWidget', () => {
@@ -92,13 +95,11 @@ describe('FileUploadWidget', () => {
     expect(screen.getByRole('button', { name: '' })) // trash button
   })
 
-  test.only('upload file selected', () => {
-    const apiPut = jest.fn()
-    jest.mock('../lib/api-client', () => {
-      return () => {
-        put: apiPut
-      }
-    })
+  test('upload the file user selected', async () => {
+    const apiPut = jest.fn(() => Promise.resolve({ url: 'test url' }))
+    const onChange = jest.fn()
+    api.put = apiPut
+
     const providerProps = {
       value: {
         invitation: { id: 'invitaitonId' },
@@ -113,14 +114,78 @@ describe('FileUploadWidget', () => {
             },
           },
         },
+        onChange,
       },
     }
     renderWithEditorComponentContext(<FileUploadWidget />, providerProps)
 
     const fileInput = screen.getByLabelText('supplementary_material')
-    const file = new File(['hello'], 'test.pdf', { type: 'application/pdf' })
-    userEvent.upload(fileInput, file)
-    console.log(prettyDOM(fileInput))
+    const file = new File(['some byte string'], 'supplementary_material.pdf', {
+      type: 'application/pdf',
+    })
+    await userEvent.upload(fileInput, file)
+
     expect(apiPut).toBeCalled()
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'test url' }))
+  })
+
+  test('show File too large when selected file is too large', async () => {
+    const promptError = jest.fn()
+    global.promptError = promptError
+
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['supplementary_material']: {
+            value: {
+              param: {
+                type: 'file',
+                extensions: ['pdf', 'zip'],
+                maxSize: 0.0000001,
+              },
+            },
+          },
+        },
+      },
+    }
+    renderWithEditorComponentContext(<FileUploadWidget />, providerProps)
+
+    const fileInput = screen.getByLabelText('supplementary_material')
+    const file = new File(['some byte string'], 'supplementary_material.pdf', {
+      type: 'application/pdf',
+    })
+    await userEvent.upload(fileInput, file)
+
+    expect(promptError).toHaveBeenCalledWith(
+      expect.stringContaining('File is too large.'),
+      expect.anything()
+    )
+  })
+
+  test('clear value when user delete file', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['supplementary_material']: {
+            value: {
+              param: {
+                type: 'file',
+              },
+            },
+          },
+        },
+        value: '/attachment/ffbec464c347b27a8f6a8afdc2a68b9476ee5a1e.zip',
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<FileUploadWidget />, providerProps)
+
+    const trashButton = screen.getByRole('button', { name: '' })
+    await userEvent.click(trashButton)
+
+    expect(onChange).toBeCalledWith({ fieldName: 'supplementary_material', value: null })
   })
 })

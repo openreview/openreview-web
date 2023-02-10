@@ -6,6 +6,7 @@ import { prettyField } from '../../lib/utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
 import { TrashButton } from '../IconButton'
+import nanoid from 'nanoid'
 
 import styles from '../../styles/components/FileUploadWidget.module.scss'
 
@@ -30,6 +31,7 @@ const FileUploadWidget = () => {
       data.append('totalChunks', chunkCount)
       data.append('clientUploadId', clientUploadId)
       data.append('file', chunk)
+
       const result = await api.put('/attachment/chunk', data, {
         accessToken,
         contentType: 'unset',
@@ -48,12 +50,11 @@ const FileUploadWidget = () => {
       }
     } catch (error) {
       promptError(error.message, { scrollToTop: false })
-      fileInputRef.current.value = null
+      fileInputRef.current.value = ''
     }
   }
 
   const handleFileSelected = async (e) => {
-    console.log('handleFileSelected is called')
     try {
       const file = e.target.files[0]
       if (maxSize && file.size > 1024 * 1000 * maxSize)
@@ -70,6 +71,7 @@ const FileUploadWidget = () => {
             file.name
           )
       )
+
       const sendChunksPromises = chunks.reduce(
         (oldPromises, currentChunk, i) =>
           oldPromises.then(() => {
@@ -81,7 +83,7 @@ const FileUploadWidget = () => {
       setFileName(file.name)
     } catch (error) {
       promptError(error.message, { scrollToTop: false })
-      fileInputRef.current.value = null
+      fileInputRef.current.value = ''
     }
 
     setIsLoading(false)
@@ -89,7 +91,7 @@ const FileUploadWidget = () => {
 
   const handleDeleteFile = () => {
     onChange({ fieldName, value: null })
-    fileInputRef.current.value = null
+    fileInputRef.current.value = ''
   }
 
   return (
