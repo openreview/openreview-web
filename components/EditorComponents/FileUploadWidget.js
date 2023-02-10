@@ -6,7 +6,7 @@ import { prettyField } from '../../lib/utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
 import { TrashButton } from '../IconButton'
-import nanoid from 'nanoid'
+import { nanoid } from 'nanoid'
 
 import styles from '../../styles/components/FileUploadWidget.module.scss'
 

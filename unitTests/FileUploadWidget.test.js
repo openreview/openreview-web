@@ -7,7 +7,7 @@ import '@testing-library/jest-dom'
 
 jest.mock('../lib/api-client')
 import api from '../lib/api-client'
-jest.mock('nanoid', () => () => 'some id')
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => {
   return () => ({ user: {}, accessToken: 'some token' })
 })
