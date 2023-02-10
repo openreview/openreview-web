@@ -1,4 +1,3 @@
-import EditorComponentHeader from './EditorComponentHeader'
 import { prettyId } from '../../lib/utils'
 import styles from '../../styles/components/TagsWidget.module.scss'
 import { useEffect } from 'react'
@@ -38,15 +37,13 @@ const Tag = ({ value }) => {
   )
 }
 
-const TagsWidget = ({ values, fieldNameOverwrite }) => {
+const TagsWidget = ({ values }) => {
   return (
-    <EditorComponentHeader fieldNameOverwrite={fieldNameOverwrite}>
-      <div className={styles.container}>
-        {values.map((value, index) => {
-          return <Tag key={index} value={value} />
-        })}
-      </div>
-    </EditorComponentHeader>
+    <div className={styles.container}>
+      {values.map((value, index) => {
+        return <Tag key={index} value={value} />
+      })}
+    </div>
   )
 }
 

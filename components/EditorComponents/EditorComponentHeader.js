@@ -15,10 +15,14 @@ const EditorComponentHeader = ({ inline = false, fieldNameOverwrite, children })
   const { optional, scroll, hidden } = field[fieldName].value?.param ?? {}
 
   return (
-    <div className={`${hidden ? 'hidden' : `${styles.editorComponent}`}`}>
-      <div className={`${styles.title} ${inline ? ` ${styles.inline}` : ''}`}>{`${
-        optional ? '' : '* '
-      }${fieldNameOverwrite ?? prettyField(fieldName)}`}</div>
+    <div
+      className={`${hidden ? 'hidden' : `${styles.editorComponent}`} ${
+        inline ? ` ${styles.inline}` : ''
+      }`}
+    >
+      <div className={styles.title}>{`${optional ? '' : '* '}${
+        fieldNameOverwrite ?? prettyField(fieldName)
+      }`}</div>
       {description && (
         <div className={styles.description}>
           {scroll ? (

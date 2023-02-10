@@ -4,11 +4,6 @@
   margin-top: 1em;
 }
 
-.inline {
-  display: inline-block;
-  margin-right: 1rem;
-}
-
 .title {
   font-size: 1rem;
   font-weight: bold;
@@ -33,4 +28,14 @@
   border-radius: 0;
   height: auto;
   resize: vertical;
+}
+
+.inline {
+  display: flex;
+  align-items: baseline;
+
+  .title {
+    margin-right: 0.5rem;
+    width: 20%;
+  }
 }
