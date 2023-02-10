@@ -142,7 +142,7 @@ describe('FileUploadWidget', () => {
               param: {
                 type: 'file',
                 extensions: ['pdf', 'zip'],
-                maxSize: 0.0000001,
+                maxSize: 10,
               },
             },
           },
@@ -155,6 +155,7 @@ describe('FileUploadWidget', () => {
     const file = new File(['some byte string'], 'supplementary_material.pdf', {
       type: 'application/pdf',
     })
+    Object.defineProperty(file, 'size', { value: 1024 * 1000 * 10 + 1 })
     await userEvent.upload(fileInput, file)
 
     expect(promptError).toHaveBeenCalledWith(
