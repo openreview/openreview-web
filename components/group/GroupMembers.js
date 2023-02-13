@@ -12,46 +12,58 @@ import api from '../../lib/api-client'
 import { prettyId, urlFromGroupId } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 
-const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }) => {
+const MessageMemberModal = ({
+  groupId,
+  groupDomainContent,
+  membersToMessage,
+  accessToken,
+  setJobId,
+}) => {
   const [subject, setSubject] = useState(`Message to ${prettyId(groupId)}`)
   const [message, setMessage] = useState('')
   const [error, setError] = useState(null)
 
+  const replyToEmail = groupDomainContent?.contact?.value
+
   const sendMessage = async () => {
     const sanitizedMessage = DOMPurify.sanitize(message)
-    if (subject && sanitizedMessage) {
-      try {
-        const result = await api.post(
-          '/messages',
-          {
-            groups: membersToMessage,
-            subject,
-            message: sanitizedMessage,
-            parentGroup: groupId,
-            useJob: true,
-          },
-          { accessToken }
-        )
-        setJobId(result.jobId)
-        setSubject(`Message to ${prettyId(groupId)}`)
-        setMessage('')
-        // Save the timestamp in the local storage (used in PC console)
-        membersToMessage.forEach((member) => {
-          try {
-            localStorage.setItem(`${groupId}|${member}`, Date.now())
-          } catch (e) {
-            // eslint-disable-next-line no-console
-            console.warn(`Could not save timestamp for ${member}`)
-          }
-        })
-        $('#message-group-members').modal('hide')
-        return
-      } catch (e) {
-        promptError(e.message)
-      }
+
+    if (!subject || !sanitizedMessage) {
       setError('Email Subject and Body are required to send messages.')
+      return
+    }
+
+    try {
+      const result = await api.post(
+        '/messages',
+        {
+          groups: membersToMessage,
+          subject,
+          message: sanitizedMessage,
+          parentGroup: groupId,
+          replyTo: replyToEmail,
+          useJob: true,
+        },
+        { accessToken }
+      )
+      setJobId(result.jobId)
+      setSubject(`Message to ${prettyId(groupId)}`)
+      setMessage('')
+      // Save the timestamp in the local storage (used in PC console)
+      membersToMessage.forEach((member) => {
+        try {
+          localStorage.setItem(`${groupId}|${member}`, Date.now())
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn(`Could not save timestamp for ${member}`)
+        }
+      })
+      $('#message-group-members').modal('hide')
+    } catch (e) {
+      setError(e.message)
     }
   }
+
   return (
     <BasicModal
       id="message-group-members"
@@ -63,13 +75,15 @@ const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }
       }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
+
       <p>
-        {`Enter a subject and message below.
-      Your message will be sent via email to the following ${membersToMessage?.length} group member(s):`}
+        Enter a subject and message below. Your message will be sent via email to the following{' '}
+        {membersToMessage?.length} group member(s):
       </p>
       <div className="well receiver-list">
         {membersToMessage.map((p) => (p.includes('@') ? p : prettyId(p)))?.join(', ')}
       </div>
+
       <div id="message-group-members-form">
         <div className="form-group">
           <label htmlFor="subject">Email Subject</label>
@@ -84,16 +98,30 @@ const MessageMemberModal = ({ groupId, membersToMessage, accessToken, setJobId }
           />
         </div>
 
+        {replyToEmail && (
+          <div className="form-group">
+            <label htmlFor="subject">Reply To</label>
+            <input
+              type="text"
+              name="replyto"
+              className="form-control"
+              value={replyToEmail}
+              disabled
+            />
+          </div>
+        )}
+
         <div className="form-group">
           <label htmlFor="message">Email Body</label>
           <p className="hint">
-            {`Hint: You can personalize emails using template variables. The text
-            {{firstname}} and {{fullname}}
-            will automatically be replaced with the recipient's first or full name if they have an OpenReview profile.
-            If a profile isn't found their email address will be used instead.`}
+            Hint: You can personalize emails using template variables. The text
+            {' '}{'{{'}firstname{'}}'} and {'{{'}fullname{'}}'}{' '}
+            will automatically be replaced with the recipient&apos;s first or full name if they
+            have an OpenReview profile. If a profile isn&apos;t found their email address will
+            be used instead.
           </p>
           <p className="hint">
-            You can use markdown syntax to compose email in HTML format. User the Preview tab
+            You can use Markdown syntax to add basic formatting to your email. Use the Preview tab
             to see how your email will look.
           </p>
           <MarkdownPreviewTab
@@ -706,14 +734,15 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
             options={{ noScroll: true }}
           />
         </div>
-
-        <MessageMemberModal
-          groupId={group.id}
-          membersToMessage={memberToMessage}
-          accessToken={accessToken}
-          setJobId={(id) => setJobId(id)}
-        />
       </EditorSection>
+
+      <MessageMemberModal
+        groupId={group.id}
+        groupDomainContent={group.details.domain?.content}
+        membersToMessage={memberToMessage}
+        accessToken={accessToken}
+        setJobId={(id) => setJobId(id)}
+      />
 
       <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
     </>
