@@ -130,8 +130,12 @@ const IEEECopyrightForm = ({ note, isV2Note }) => {
       <input type="hidden" name="AuthName" value={noteContent.authors.join(' and ')} />
       <input type="hidden" name="ArtId" value={note.id} />
       <input type="hidden" name="ArtSource" value={IEEEArtSourceCode} />
-      <input type="hidden" name="AuthEmail" value={user.profile.preferredEmail} />
-      <input type="hidden" name="rtrnurl" value={window.location.href} />
+      <input
+        type="hidden"
+        name="AuthEmail"
+        value={decodeURIComponent(user.profile.preferredEmail)}
+      />
+      <input type="hidden" name="rtrnurl" value={decodeURIComponent(window.location.href)} />
       <input name="Submit" type="submit" value="Copyright Submission" />
     </form>
   )
