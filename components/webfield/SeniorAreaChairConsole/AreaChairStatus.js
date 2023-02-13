@@ -235,7 +235,7 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
         completedRecommendations: 0,
         completedBids: 0,
         numCompletedReviews: notes.filter(
-          (p) => p.reviewers?.length === p.officialReviews?.length
+          (p) => p.reviewers?.length && p.reviewers?.length === p.officialReviews?.length
         ).length,
         numCompletedMetaReviews:
           notes.filter(
