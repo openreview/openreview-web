@@ -27,6 +27,7 @@ const Signatures = ({
         { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression, signatory: user?.id },
         { accessToken, version: regexContainsPipe ? 1 : 2 }
       )
+
       if (!regexGroupResult.groups?.length)
         throw new Error('You do not have permission to create a note')
       if (regexGroupResult.groups.length === 1) {

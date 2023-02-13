@@ -38,6 +38,7 @@ const Tag = ({ value }) => {
 }
 
 const TagsWidget = ({ values }) => {
+  if (!Array.isArray(values)) return null
   return (
     <div className={styles.container}>
       {values.map((value, index) => {
