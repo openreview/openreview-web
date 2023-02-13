@@ -13,7 +13,7 @@ import {
 function EditFields({ editId, displayObj, omitFields = [], label = 'Edit' }) {
   const formatGroupMemberEdit = (membersObj) => {
     if (Array.isArray(membersObj)) {
-      return membersObj.length > 0 ? membersObj : '(empty list)'
+      return membersObj.length > 0 ? membersObj.join(', ') : '(empty list)'
     }
     if (isEmpty(membersObj)) return '(empty)'
 
