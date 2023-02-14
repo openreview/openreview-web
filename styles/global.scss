@@ -849,7 +849,6 @@ header {
 
 // Modals
 #message-reviewers-modal,
-#message-group-members-modal,
 .message-reviewers-modal {
   .reviewer-list {
     height: 104px;
@@ -865,7 +864,6 @@ header {
     margin-bottom: 1rem;
   }
 }
-
 .message-reviewers-modal {
   .reviewer-list {
     height: auto;
@@ -873,8 +871,16 @@ header {
   }
 }
 
-#message-group-members-modal {
-  .reviewer-list {
+#message-group-members {
+  .receiver-list {
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+    max-height: 150px;
+    overflow-y: scroll;
+    overflow-wrap: break-word;
+    margin-bottom: 1rem;
+  }
+  .alert-danger {
     margin-bottom: 1rem;
   }
 }
