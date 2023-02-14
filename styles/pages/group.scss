@@ -201,7 +201,7 @@ main.invitation {
       }
     }
     .btn-export-data {
-      margin-right: 0.5rem;
+      margin-right: 0.25rem;
 
       a {
         color: white;
@@ -213,8 +213,8 @@ main.invitation {
     }
 
     .search-input {
-      margin-right: 0.5rem;
-      width: 50%;
+      margin-right: 0.25rem;
+      width: 40%;
 
       &.invalid-value {
         border-color: constants.$orRed;

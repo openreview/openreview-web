@@ -344,7 +344,7 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
                 (p) => p.id?.tail === areaChairProfileId
               )?.count ?? 0,
             numCompletedReviews: notes.filter(
-              (p) => p.reviewers?.length === p.officialReviews?.length
+              (p) => p.reviewers?.length && p.reviewers?.length === p.officialReviews?.length
             ).length,
             numCompletedMetaReviews:
               notes.filter(

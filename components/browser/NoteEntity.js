@@ -26,7 +26,16 @@ export default function NoteEntity(props) {
   }
 
   // Format note data for rendering
-  const { id, forum, number, content, original, editEdges, editEdgeTemplates } = props.note
+  const {
+    id,
+    forum,
+    number,
+    content,
+    original,
+    editEdges,
+    editEdgeTemplates,
+    signatures: noteSignatures,
+  } = props.note
 
   const title = content.title ? content.title : 'No Title'
   const metadata = props.note.metadata || {}
@@ -312,6 +321,7 @@ export default function NoteEntity(props) {
         <NoteAuthors
           authors={content.authors}
           authorIds={content.authorids}
+          signatures={noteSignatures}
           original={original}
           max={4}
         />
