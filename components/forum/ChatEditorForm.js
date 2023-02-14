@@ -73,6 +73,7 @@ export default function ChatEditorForm({
       .post('/notes/edits', noteEdit, { accessToken, version: 2 })
       .then((result) => {
         setMessage('')
+        setReplyToNote(null)
 
         if (!onSubmit) return
 

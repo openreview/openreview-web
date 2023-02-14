@@ -828,7 +828,15 @@ export default function Forum({
   )
 }
 
-function ForumReplies({ forumId, replies, replyNoteMap, chatReplyNote, layout, updateNote, setChatReplyNote }) {
+function ForumReplies({
+  forumId,
+  replies,
+  replyNoteMap,
+  chatReplyNote,
+  layout,
+  updateNote,
+  setChatReplyNote,
+}) {
   if (!replies) return null
 
   if (layout === 'chat') {
@@ -838,9 +846,11 @@ function ForumReplies({ forumId, replies, replyNoteMap, chatReplyNote, layout, u
           <ChatReply
             key={reply.id}
             note={replyNoteMap[reply.id]}
-            parentId={forumId}
-            isReplyNote={reply.id === chatReplyNote?.id}
+            parentNote={
+              reply.replyto === forumId ? null : replyNoteMap[replyNoteMap[reply.id].replyto]
+            }
             setChatReplyNote={setChatReplyNote}
+            isSelected={reply.id === chatReplyNote?.id}
             updateNote={updateNote}
           />
         ))}

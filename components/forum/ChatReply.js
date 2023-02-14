@@ -1,26 +1,27 @@
 import { useContext, useState } from 'react'
 import Link from 'next/link'
+import truncate from 'lodash/truncate'
 import copy from 'copy-to-clipboard'
 import dayjs from 'dayjs'
 import localizedFormat from 'dayjs/plugin/localizedFormat'
+import Icon from '../Icon'
 import { NoteContentV2, NoteContentValue } from '../NoteContent'
 import useUser from '../../hooks/useUser'
 import { prettyId, prettyInvitationId, prettyContentValue, forumDate } from '../../lib/utils'
 import { getInvitationColors } from '../../lib/forum-utils'
-import Icon from '../Icon'
 
 import styles from '../../styles/components/ChatReply.module.scss'
 
 dayjs.extend(localizedFormat)
 
-export default function ChatReply({ note, parentId, isReplyNote, setChatReplyNote, updateNote }) {
+export default function ChatReply({ note, parentNote, isSelected, setChatReplyNote, updateNote }) {
   if (!note) return null
 
   const isChatNote = Object.keys(note.content).length === 1 && note.content.message
   const presentation = note.details?.presentation
 
   return (
-    <li className={`left clearfix ${styles.container} ${isReplyNote ? styles.active : ''}`}>
+    <li className={`left clearfix ${styles.container} ${isSelected ? styles.active : ''}`} data-id={note.id}>
       {/*
       <span className="chat-img pull-left">
         <img
@@ -32,16 +33,20 @@ export default function ChatReply({ note, parentId, isReplyNote, setChatReplyNot
       */}
 
       <div className="chat-body clearfix">
-        <div className="parent-title">
-          {/* <h5 onClick={() => {}}>
-            <Icon name="share-alt" /> Replying to{' '}
-            {truncate(note.parentTitle, {
-              length: 135,
-              omission: '...',
-              separator: ' ',
-            })}
-          </h5> */}
-        </div>
+        {parentNote && (
+          <div className="parent-info">
+            <h5 onClick={() => {}}>
+              {/* <Icon name="share-alt" />{' '} */}
+              <span>Replying to {prettyId(parentNote.signatures[0], true)}</span>
+              {' – '}
+              {truncate(parentNote.content.message.value, {
+                length: 100,
+                omission: '...',
+                separator: ' ',
+              })}
+            </h5>
+          </div>
+        )}
 
         <div className="header">
           <strong>

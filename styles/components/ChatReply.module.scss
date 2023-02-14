@@ -13,6 +13,18 @@
       border-top-left-radius: 2px;
       border-top-right-radius: 2px;
     }
+    .parent-info {
+      h5 {
+        margin-top: 0;
+        margin-bottom: .5rem;
+        font-size: .75rem;
+        color: constants.$subtleGray;
+        span {
+          color: constants.$orRed;
+          font-weight: bold;
+        }
+      }
+    }
     .header {
       margin-bottom: .25rem;
       strong {
