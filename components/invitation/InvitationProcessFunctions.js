@@ -32,6 +32,7 @@ const InvitationProcessFunctionsV2 = ({
       <TabPanels>
         <TabPanel id="preprocess">
           <InvitationCodeV2
+            key={invitation.id}
             invitation={invitation}
             profileId={profileId}
             accessToken={accessToken}
@@ -44,6 +45,7 @@ const InvitationProcessFunctionsV2 = ({
         </TabPanel>
         <TabPanel id="process">
           <InvitationCodeV2
+            key={invitation.id}
             invitation={invitation}
             profileId={profileId}
             accessToken={accessToken}
@@ -56,6 +58,7 @@ const InvitationProcessFunctionsV2 = ({
         </TabPanel>
         <TabPanel id="dateprocesses">
           <DateProcessesEditor
+            key={invitation.id}
             invitation={invitation}
             profileId={profileId}
             accessToken={accessToken}
