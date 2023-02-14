@@ -42,6 +42,49 @@ main.forum {
     }
   }
 
+  .chat-invitations-container {
+    background-color: $gray1;
+    border: 1px solid #eee;
+    border-top: 0;
+    padding: 0.75rem;
+
+    .reply-details {
+      font-size: .75rem;
+      color: constants.$subtleGray;
+      margin-bottom: 0.5rem;
+      span {
+        padding-right: 2px;
+      }
+      .btn-link {
+        padding: 0;
+        border: 0;
+        font-weight: normal;
+      }
+    }
+    .form-group {
+      margin-bottom: .5rem;
+    }
+    .signatures-container {
+      width: 280px;
+    }
+    .markdown-preview {
+      .nav-tabs > li > a {
+        padding: 0.375rem 1rem;
+        border-color: #eee;
+        border-bottom-color: transparent;
+      }
+      textarea {
+        min-height: 56px;
+      }
+      div.preview {
+        height: 100px;
+        background-color: constants.$backgroundWhite;
+        border: 1px solid #eee;
+        border-top: 0;
+      }
+    }
+  }
+
   #tab-message {
     margin: 1rem 0;
 
@@ -227,6 +270,7 @@ main.forum {
 
   .filter-tabs {
     margin-bottom: -1px;
+    border-bottom-color: #eee;
 
     & > li > a {
       padding-top: 0.375rem;
@@ -240,6 +284,9 @@ main.forum {
   }
 
   .forum-replies-container {
+    &.layout-default {
+      margin-top: 1rem;
+    }
     .col-xs-12 {
       @media #{constants.$phone-only} {
         padding-left: 25px;
@@ -278,6 +325,23 @@ main.forum {
         font-size: 1rem;
         line-height: 1.5rem;
       }
+    }
+  }
+  .layout-chat #forum-replies {
+    border: 1px solid #eee;
+    border-top: 0;
+    border-bottom: 0;
+    background-color: $gray1;
+    padding: .25rem .75rem;
+    padding-bottom: 0;
+
+    max-height: 680px;
+    overflow-y: scroll;
+    & > ul {
+      margin-bottom: 0;
+    }
+    & > ul > li:last-child {
+      margin-bottom: 0;
     }
   }
 

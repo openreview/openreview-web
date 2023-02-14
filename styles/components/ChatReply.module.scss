@@ -1,0 +1,87 @@
+@use '../utils/constants';
+@use '../utils/mixins';
+
+.container {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  background-color: constants.$backgroundWhite;
+
+  :global {
+    .chat-body {
+      padding: .5rem;
+      border: 1px solid #eee;
+      border-top-left-radius: 2px;
+      border-top-right-radius: 2px;
+    }
+    .header {
+      margin-bottom: .25rem;
+      strong {
+        font-size: 1rem;
+        line-height: 1rem;
+        padding-right: .75rem;
+      }
+    }
+    .highlight {
+      background-color: constants.$mediumBlue;
+      color: #fff;
+      padding: 0 4px;
+      border-radius: 2px;
+      font-size: .75rem;
+      vertical-align: 1px;
+    }
+    .highlight + .highlight,
+    .tooltip + .highlight {
+      margin-left: 0.25rem;
+    }
+    .note-content {
+      font-size: .875rem;
+      margin: 0;
+      & > div + div {
+        margin-top: .25rem;
+      }
+    }
+    .markdown-rendered {
+      @include mixins.markdown-content-styles;
+      p:last-child, ul:last-child, ol:last-child {
+        margin-bottom: 0;
+      }
+    }
+    .chat-actions {
+      border: 1px solid #eee;
+      border-top: 0;
+      border-bottom-left-radius: 2px;
+      border-bottom-right-radius: 2px;
+
+      .btn-link {
+        border: 0;
+        padding: .5rem;
+        font-weight: normal;
+
+        &:hover, &:active {
+          text-decoration: none;
+          span {
+            color: #fff;
+          }
+        }
+        &:focus:not(:hover) {
+          color: constants.$mediumBlue;
+          background-color: transparent;
+          text-decoration: none;
+          box-shadow: none;
+          border: 0;
+          span {
+            color: constants.$mediumBlue;
+          }
+        }
+        span {
+          padding-right: .125rem;
+        }
+      }
+    }
+  }
+}
+
+.active {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px constants.$mediumBlue;
+}

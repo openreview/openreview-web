@@ -11,13 +11,16 @@ import ForumNote from './ForumNote'
 import NoteEditorForm from '../NoteEditorForm'
 import ChatEditorForm from './ChatEditorForm'
 import FilterForm from './FilterForm'
+import ChatFilterForm from './ChatFilterForm'
 import FilterTabs from './FilterTabs'
 import ForumReply from './ForumReply'
+import ChatReply from './ChatReply'
 import LoadingSpinner from '../LoadingSpinner'
 import ForumReplyContext from './ForumReplyContext'
 
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
+import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
 import { prettyInvitationId } from '../../lib/utils'
 import {
@@ -56,6 +59,7 @@ export default function Forum({
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [enableLiveUpdate, setEnableLiveUpdate] = useState(false)
+  const [chatReplyNote, setChatReplyNote] = useState(null)
   const router = useRouter()
   const query = useQuery()
 
@@ -194,6 +198,21 @@ export default function Forum({
     })
   }
 
+  const loadNewReplies = async () => {
+    try {
+      const { notes } = await api.get(
+        '/notes/updated',
+        { after: Date.now() - 2000, forum: id },
+        { accessToken, version: 2 }
+      )
+      return notes?.length > 0 ? notes : []
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error loading new replies: ', error.message)
+      return []
+    }
+  }
+
   // Display helper functions
   const setCollapseLevel = (level) => {
     const newDisplayOptions = {}
@@ -297,20 +316,20 @@ export default function Forum({
       formattedNote.parentTitle =
         replyToNote.content.title?.value || replyToNote.generatedTitle
     }
-    setReplyNoteMap({
-      ...replyNoteMap,
+    setReplyNoteMap((prevNoteMap) => ({
+      ...prevNoteMap,
       [noteId]: formattedNote,
-    })
+    }))
 
     if (isEmpty(existingNote)) {
-      setDisplayOptionsMap({
-        ...displayOptionsMap,
+      setDisplayOptionsMap((prevOptionsMap) => ({
+        ...prevOptionsMap,
         [noteId]: { collapsed: false, contentExpanded: true, hidden: false },
-      })
-      setParentMap({
-        ...parentMap,
+      }))
+      setParentMap((preParentMap) => ({
+        ...preParentMap,
         [parentId]: parentMap[parentId] ? [...parentMap[parentId], noteId] : [noteId],
-      })
+      }))
     }
 
     // If updated note is a reply to an invitation with a maxReplies property,
@@ -322,8 +341,8 @@ export default function Forum({
         const prevRepliesAvailable = invObj.details.repliesAvailable ?? 1
         const remainingReplies = prevRepliesAvailable - increment
 
-        setAllInvitations(
-          allInvitations
+        setAllInvitations((prevInvitations) =>
+          prevInvitations
             .filter((i) => i.id !== invObj.id)
             .concat({
               ...invObj,
@@ -336,10 +355,10 @@ export default function Forum({
 
         if (remainingReplies < 1) {
           if (parentId === parentNote.id) {
-            setParentNote({
-              ...parentNote,
+            setParentNote((prevParentNote) => ({
+              ...prevParentNote,
               replyInvitations: parentNote.replyInvitations.filter((i) => i.id !== invObj.id),
-            })
+            }))
           } else {
             setReplyNoteMap((prevMap) => ({
               ...prevMap,
@@ -353,10 +372,10 @@ export default function Forum({
           }
         } else if (prevRepliesAvailable === 0 && remainingReplies > 0) {
           if (parentId === parentNote.id) {
-            setParentNote({
-              ...parentNote,
+            setParentNote((prevParentNote) => ({
+              ...prevParentNote,
               replyInvitations: parentNote.replyInvitations.concat(invObj),
-            })
+            }))
           } else {
             setReplyNoteMap((prevMap) => ({
               ...prevMap,
@@ -393,7 +412,15 @@ export default function Forum({
       setNesting(tab.nesting || 2)
       setSort(tab.sort || 'date-desc')
       setEnableLiveUpdate(Boolean(tab.live))
-      setExpandedInvitations(tab.expandedInvitations || null)
+      if (tab.expandedInvitations) {
+        setExpandedInvitations(
+          tab.expandedInvitations.map((expandedInv) =>
+            replaceFilterWildcards(expandedInv, parentNote)
+          )
+        )
+      } else {
+        setExpandedInvitations(null)
+      }
     }
 
     if (window.location.hash) {
@@ -493,8 +520,15 @@ export default function Forum({
 
         setScrolled(true)
       }
+
+      if (layout === 'chat') {
+        const containerElem = document.getElementById('forum-replies')
+        if (containerElem) {
+          containerElem.scrollTop = containerElem.scrollHeight
+        }
+      }
     }, 200)
-  }, [replyNoteMap, parentMap, nesting])
+  }, [replyNoteMap, parentMap, nesting, sort])
 
   // Update reply visibility
   useEffect(() => {
@@ -585,20 +619,6 @@ export default function Forum({
     setDisplayOptionsMap(newDisplayOptions)
   }, [defaultCollapseLevel])
 
-  // Update sort order
-  useEffect(() => {
-    if (!replyNoteMap || !orderedReplies || !sort) return
-
-    const sortMap = {
-      'date-asc': (a, b) => replyNoteMap[a.id].cdate - replyNoteMap[b.id].cdate,
-      'date-desc': (a, b) => replyNoteMap[b.id].cdate - replyNoteMap[a.id].cdate,
-    }
-
-    if (!sortMap[sort]) return
-
-    setOrderedReplies([...orderedReplies].sort(sortMap[sort]))
-  }, [replyNoteMap, sort])
-
   // Update filters
   useEffect(() => {
     if (!query) return
@@ -617,6 +637,18 @@ export default function Forum({
       setNesting(nestingLevel)
     }
   }, [query])
+
+  // Toggle real-time updates
+  useInterval(() => {
+    if (!repliesLoaded || !enableLiveUpdate) return
+
+    loadNewReplies().then((newReplies) => {
+      // if (newReplies.length > 0) updateNote(newReplies[0])
+      newReplies.forEach((note) => {
+        updateNote(note)
+      })
+    })
+  }, 2000)
 
   return (
     <div className="forum-container">
@@ -640,6 +672,12 @@ export default function Forum({
               setDefaultCollapseLevel={setDefaultCollapseLevel}
               numReplies={details.replyCount}
               numRepliesHidden={numRepliesHidden}
+            />
+          )}
+          {filterOptions && layout === 'chat' && (
+            <ChatFilterForm
+              forumId={id}
+              readers={parentNote.replyInvitations[3].edit.note.readers}
             />
           )}
         </div>
@@ -689,7 +727,7 @@ export default function Forum({
         </div>
       )}
 
-      <div className="row mt-3 forum-replies-container">
+      <div className={`row forum-replies-container layout-${layout}`}>
         <div className="col-xs-12">
           <div id="forum-replies">
             <ForumReplyContext.Provider
@@ -705,16 +743,17 @@ export default function Forum({
                 setHidden,
               }}
             >
-              {repliesLoaded ? orderedReplies.map((reply) => (
-                <ForumReply
-                  key={reply.id}
-                  note={replyNoteMap[reply.id]}
-                  replies={reply.replies}
-                  replyDepth={1}
-                  parentId={id}
+              {repliesLoaded ? (
+                <ForumReplies
+                  forumId={id}
+                  replies={orderedReplies}
+                  replyNoteMap={replyNoteMap}
+                  layout={layout}
+                  chatReplyNote={chatReplyNote}
+                  setChatReplyNote={setChatReplyNote}
                   updateNote={updateNote}
                 />
-              )) : (
+              ) : (
                 <LoadingSpinner inline />
               )}
             </ForumReplyContext.Provider>
@@ -722,20 +761,29 @@ export default function Forum({
         </div>
       </div>
 
-      {layout === 'chat' && parentNote.replyInvitations?.length > 0 && !parentNote.ddate &&(
-        <div className="invitations-container">
-          {expandedInvitations ? expandedInvitations.map((invitation) => (
-            <div key={invitation}>
-              <ChatEditorForm
-                forumId={id}
-                replyToId={id}
-                invitationId={invitation}
-                onSubmit={(note) => {
-                  updateNote(note)
-                }}
-              />
-            </div>
-          )) : (
+      {layout === 'chat' && parentNote.replyInvitations?.length > 0 && !parentNote.ddate && (
+        <div className="chat-invitations-container">
+          {expandedInvitations ? (
+            expandedInvitations.map((invitationId) => {
+              const invitation = parentNote.replyInvitations.find(
+                (inv) => inv.id === invitationId
+              )
+              if (!invitation) return null
+
+              return (
+                <ChatEditorForm
+                  key={invitationId}
+                  forumId={id}
+                  invitation={invitation}
+                  replyToNote={chatReplyNote}
+                  setReplyToNote={setChatReplyNote}
+                  onSubmit={(note) => {
+                    updateNote(note)
+                  }}
+                />
+              )
+            })
+          ) : (
             <>
               <div className="invitation-buttons">
                 <span className="hint">Add:</span>
@@ -778,4 +826,36 @@ export default function Forum({
       )}
     </div>
   )
+}
+
+function ForumReplies({ forumId, replies, replyNoteMap, chatReplyNote, layout, updateNote, setChatReplyNote }) {
+  if (!replies) return null
+
+  if (layout === 'chat') {
+    return (
+      <ul className="list-unstyled">
+        {replies.map((reply) => (
+          <ChatReply
+            key={reply.id}
+            note={replyNoteMap[reply.id]}
+            parentId={forumId}
+            isReplyNote={reply.id === chatReplyNote?.id}
+            setChatReplyNote={setChatReplyNote}
+            updateNote={updateNote}
+          />
+        ))}
+      </ul>
+    )
+  }
+
+  return replies.map((reply) => (
+    <ForumReply
+      key={reply.id}
+      note={replyNoteMap[reply.id]}
+      replies={reply.replies}
+      replyDepth={1}
+      parentId={forumId}
+      updateNote={updateNote}
+    />
+  ))
 }

@@ -1,0 +1,14 @@
+$gray1: #f7f6f4;
+
+.container {
+  background: $gray1;
+  color: #777;
+  padding: 0.5rem .75rem;
+  border: 1px solid #eee;
+
+  p {
+    span {
+      padding-right: 2px;
+    }
+  }
+}
