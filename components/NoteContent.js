@@ -163,11 +163,9 @@ export const NoteContentV2 = ({
     'title',
     'authors',
     'authorids',
-    'pdf',
     'verdict',
     'paperhash',
     'ee',
-    'html',
     'year',
     'venue',
     'venueid',
@@ -192,6 +190,9 @@ export const NoteContentV2 = ({
         const showPrivateIcon =
           fieldReaders && noteReaders && !fieldReaders.every((p, j) => p === noteReaders[j])
 
+        // Only show the PDF and HTML field in note content if it has restricted readers
+        if ((fieldName === 'pdf' || fieldName === 'html') && !showPrivateIcon) return null
+
         return (
           <div key={fieldName}>
             <NoteContentField name={fieldName} />{' '}
@@ -204,7 +205,7 @@ export const NoteContentV2 = ({
                   .join(', ')}`}
               />
             )}
-            {fieldValue.startsWith('/attachment/') ? (
+            {(fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/')) ? (
               <span className="note-content-value">
                 <DownloadLink
                   noteId={id}

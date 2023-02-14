@@ -29,6 +29,17 @@ function ForumNote({ note, updateNote }) {
   const [activeNote, setActiveNote] = useState(null)
   const { user } = useUser()
 
+  const canShowIcon = (fieldName) => {
+    if (!content[fieldName]?.value) return false
+
+    const fieldReaders = Array.isArray(content[fieldName].readers)
+      ? content[fieldName].readers.sort()
+      : null
+    return (
+      !fieldReaders || (note.readers && fieldReaders.every((p, j) => p === note.readers[j]))
+    )
+  }
+
   const openNoteEditor = (invitation, options) => {
     if (activeInvitation && activeInvitation.id !== invitation.id) {
       promptError(
@@ -101,8 +112,8 @@ function ForumNote({ note, updateNote }) {
       <ForumTitle
         id={id}
         title={content.title?.value}
-        pdf={content.pdf?.value}
-        html={content.html?.value}
+        pdf={canShowIcon('pdf')}
+        html={canShowIcon('html')}
       />
 
       <div className="forum-authors mb-2">
