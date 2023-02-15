@@ -352,6 +352,10 @@ describe('Signatures', () => {
     })
   })
 
+  test('fail the test', () => {
+    expect(1).toEqual(0)
+  })
+
   test('display member of group if enum call return groups which has single tildeid member', async () => {
     const onChange = jest.fn()
     const enumFieldDescription = {
