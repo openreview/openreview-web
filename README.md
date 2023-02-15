@@ -57,7 +57,7 @@ npm run lint
 
 ## Unit Testing
 
-OpenReview Web uses Jest and testing-library to run unit-tests, use the following command to execute all unit tests:
+OpenReview Web uses [Jest](https://jestjs.io/) and [Testing Library](https://testing-library.com/) to run unit tests, use the following command to execute all unit tests defined in unitTests folder:
 
 ```bash
 npm run unit-test
