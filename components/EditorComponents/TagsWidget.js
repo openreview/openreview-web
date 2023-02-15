@@ -9,7 +9,7 @@ const getTagTooltip = (id) => {
     return '"signatures" will be replaced with the edit signature shown below.'
   if (id.includes('/value}')) {
     const fieldName = id.split('/').slice(-2)[0]
-    return `"value" will be replaced with the value of the field ${fieldName}`
+    return `"${fieldName}" will be replaced with the value of the field ${fieldName}`
   }
   return id
 }

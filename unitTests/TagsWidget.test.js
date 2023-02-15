@@ -1,8 +1,7 @@
 import TagsWidget from '../components/EditorComponents/TagsWidget'
 import { screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
-import { render, waitFor } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { prettyDOM } from '@testing-library/dom'
 
 global.$ = jest.fn(() => ({
@@ -34,15 +33,46 @@ describe('TagsWidget', () => {
     expect(screen.getByText('value 3'))
   })
 
-  test.only('display text between {} as emphasis', () => {
+  test('display text between {} as emphasis', () => {
     const values = [
-      '${value1/in/curley/braces}',
-      // 'value2/not/in/curley/braces',
-      // '{valu3/in/curley/braces}',
+      'ICML.cc/2023/Conference',
+      '${2/note/content/authorids/value}',
+      '${3/signatures}',
+      'ICML.cc/2023/Conference/Submission${2/note/number}/Authors',
     ]
 
     render(<TagsWidget values={values} />)
-    console.log(prettyDOM())
-    expect(screen.findByRole('emphasis', { description: 'braces' }))
+    expect(screen.getByText('ICML 2023 Conference'))
+    expect(screen.getByText('authorids')).toHaveClass('emphasis')
+    expect(screen.getByText('signatures')).toHaveClass('emphasis')
+    expect(screen.getByText('number')).toHaveClass('emphasis')
+  })
+
+  test('display tooltip based on id', () => {
+    const values = [
+      'ICML.cc/2023/Conference',
+      '${2/note/content/authorids/value}',
+      '${3/signatures}',
+      'ICML.cc/2023/Conference/Submission${2/note/number}/Authors',
+    ]
+
+    render(<TagsWidget values={values} />)
+    const textTag = screen.getByText('ICML 2023 Conference')
+    const valueTag = screen.getByText('authorids').closest('span')
+    const signaturesTag = screen.getByText('signatures').closest('span')
+    const numberTag = screen.getByText('number').closest('span')
+    expect(textTag).toHaveAttribute('title', 'ICML.cc/2023/Conference')
+    expect(valueTag).toHaveAttribute(
+      'title',
+      `"authorids" will be replaced with the value of the field authorids`
+    )
+    expect(signaturesTag).toHaveAttribute(
+      'title',
+      `"signatures" will be replaced with the edit signature shown below.`
+    )
+    expect(numberTag).toHaveAttribute(
+      'title',
+      `"number" will be replaced with the paper number after the submission has been completed.`
+    )
   })
 })
