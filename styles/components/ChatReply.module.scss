@@ -4,6 +4,7 @@
 .container {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
+  border-radius: 2px;
   background-color: constants.$backgroundWhite;
 
   :global {
@@ -94,6 +95,5 @@
 }
 
 .active {
-  border-color: transparent;
   box-shadow: 0 0 0 2px constants.$mediumBlue;
 }

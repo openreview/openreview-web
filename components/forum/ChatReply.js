@@ -15,6 +15,8 @@ import styles from '../../styles/components/ChatReply.module.scss'
 dayjs.extend(localizedFormat)
 
 export default function ChatReply({ note, parentNote, isSelected, setChatReplyNote, updateNote }) {
+  const [editMode, setEditMode] = useState(false)
+
   if (!note) return null
 
   const isChatNote = Object.keys(note.content).length === 1 && note.content.message
@@ -39,7 +41,7 @@ export default function ChatReply({ note, parentNote, isSelected, setChatReplyNo
               {/* <Icon name="share-alt" />{' '} */}
               <span>Replying to {prettyId(parentNote.signatures[0], true)}</span>
               {' – '}
-              {truncate(parentNote.content.message.value, {
+              {truncate(parentNote.content.message?.value || note.parentTitle, {
                 length: 100,
                 omission: '...',
                 separator: ' ',
@@ -108,10 +110,17 @@ export default function ChatReply({ note, parentNote, isSelected, setChatReplyNo
             </button>
           </li>
           <li>
+            <button className="btn btn-link" onClick={() => { setEditMode(true) }}>
+              <Icon name="pencil" /> Edit
+            </button>
+          </li>
+          {/*
+          <li>
             <button className="btn btn-link" onClick={() => {}}>
               <Icon name="flag" /> Flag
             </button>
           </li>
+          */}
         </ul>
         <ul className="list-inline pull-right">
           <li>
