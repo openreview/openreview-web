@@ -43,6 +43,20 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJso
       </div>
     )
   }
+  if (fieldName.endsWith('date') && Number.parseInt(fieldValue, 10) > 10e10) {
+    return (
+      <span className="note-content-value">
+        {new Date(Number.parseInt(fieldValue, 10)).toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          timeZoneName: 'long'
+        })}
+      </span>
+    )
+  }
 
   return <NoteContentValue content={fieldValue} enableMarkdown={enableMarkdown} />
 }
