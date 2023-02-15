@@ -748,6 +748,7 @@ export default function Forum({
                   forumId={id}
                   replies={orderedReplies}
                   replyNoteMap={replyNoteMap}
+                  displayOptionsMap={displayOptionsMap}
                   layout={layout}
                   chatReplyNote={chatReplyNote}
                   setChatReplyNote={setChatReplyNote}
@@ -832,6 +833,7 @@ function ForumReplies({
   forumId,
   replies,
   replyNoteMap,
+  displayOptionsMap,
   chatReplyNote,
   layout,
   updateNote,
@@ -849,6 +851,7 @@ function ForumReplies({
             parentNote={
               reply.replyto === forumId ? null : replyNoteMap[replyNoteMap[reply.id].replyto]
             }
+            displayOptions={displayOptionsMap[reply.id]}
             setChatReplyNote={setChatReplyNote}
             isSelected={reply.id === chatReplyNote?.id}
             updateNote={updateNote}

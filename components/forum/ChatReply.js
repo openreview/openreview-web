@@ -14,10 +14,10 @@ import styles from '../../styles/components/ChatReply.module.scss'
 
 dayjs.extend(localizedFormat)
 
-export default function ChatReply({ note, parentNote, isSelected, setChatReplyNote, updateNote }) {
+export default function ChatReply({ note, parentNote, displayOptions, isSelected, setChatReplyNote, updateNote }) {
   const [editMode, setEditMode] = useState(false)
 
-  if (!note) return null
+  if (!note || displayOptions.hidden) return null
 
   const isChatNote = Object.keys(note.content).length === 1 && note.content.message
   const presentation = note.details?.presentation
@@ -66,6 +66,7 @@ export default function ChatReply({ note, parentNote, isSelected, setChatReplyNo
               ))
               .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
           </strong>
+
           {!isChatNote && (
             <span
               key={note.invitations[0]}
@@ -78,6 +79,11 @@ export default function ChatReply({ note, parentNote, isSelected, setChatReplyNo
               {prettyInvitationId(note.invitations[0], true)}
             </span>
           )}
+
+          {note.details?.editsCount > 1 && (
+            <span>(edited)</span>
+          )}
+
           <small className="text-muted pull-right">
             <Icon name="time" tooltip={forumDate(note.cdate, null, note.mdate, null)} />{' '}
             {dayjs(note.cdate).format('l LT')}
