@@ -55,7 +55,21 @@ To check for ESLint errors, run:
 npm run lint
 ```
 
-## Testing
+## Unit Testing
+
+OpenReview Web uses Jest and testing-library to run unit-tests, use the following command to execute all unit tests:
+
+```bash
+npm run unit-test
+```
+
+Use the following command to check test coverage:
+
+```bash
+npx jest --collectCoverage
+```
+
+## Integration Testing
 
 OpenReview Web uses [TestCafe](https://devexpress.github.io/testcafe/) to run
 end-to-end tests of the UI. To run the test suite, first start openreview-api
