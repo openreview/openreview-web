@@ -6,28 +6,6 @@ import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
 describe('CheckboxWidget', () => {
-  test('render header', () => {
-    const providerProps = {
-      value: {
-        field: {
-          ['paper_checklist_guidelines']: {
-            value: {
-              param: {
-                input: 'checkbox',
-                enum: [
-                  'I certify that all co-authors of this work have read and commit to adhering to the Paper Checklist Guidelines, Call for Papers and Publication Ethics.',
-                ],
-              },
-            },
-          },
-        },
-      },
-    }
-
-    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
-    expect(screen.getByText('* Paper Checklist Guidelines'))
-  })
-
   test('render nothing if field description does not have enum', () => {
     const providerProps = {
       value: {

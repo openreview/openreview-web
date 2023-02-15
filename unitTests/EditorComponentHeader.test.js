@@ -69,6 +69,25 @@ describe('EditorComponentHeader', () => {
     expect(screen.getByText('Supplementary Material'))
   })
 
+  test('display pdf field name as all capital', () => {
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          ['pdf']: {
+            value: {
+              param: {
+                type: 'file',
+              },
+            },
+          },
+        },
+      },
+    }
+    renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
+    expect(screen.getByText('* PDF'))
+  })
+
   test('allow field name to be overwritten', () => {
     const providerProps = {
       value: {

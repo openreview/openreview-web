@@ -46,26 +46,6 @@ describe('RadioButtonWidget', () => {
     expect(screen.queryByText('* Radiobutton Widget')).not.toBeInTheDocument()
   })
 
-  test('render header', () => {
-    const providerProps = {
-      value: {
-        invitation: { id: 'invitaitonId' },
-        field: {
-          ['submission_length']: {
-            value: {
-              param: {
-                input: 'radio',
-                enum: [],
-              },
-            },
-          },
-        },
-      },
-    }
-    renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
-    expect(screen.getByText('* Submission Length'))
-  })
-
   test('display enum options', () => {
     const providerProps = {
       value: {

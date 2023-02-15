@@ -13,44 +13,6 @@ jest.mock('../hooks/useUser', () => {
 })
 
 describe('FileUploadWidget', () => {
-  test('render header', () => {
-    const providerProps = {
-      value: {
-        invitation: { id: 'invitaitonId' },
-        field: {
-          ['supplementary_material']: {
-            value: {
-              param: {
-                type: 'file',
-              },
-            },
-          },
-        },
-      },
-    }
-    renderWithEditorComponentContext(<FileUploadWidget />, providerProps)
-    expect(screen.getByText('* Supplementary Material'))
-  })
-
-  test('render pdf field as all capital', () => {
-    const providerProps = {
-      value: {
-        invitation: { id: 'invitaitonId' },
-        field: {
-          ['pdf']: {
-            value: {
-              param: {
-                type: 'file',
-              },
-            },
-          },
-        },
-      },
-    }
-    renderWithEditorComponentContext(<FileUploadWidget />, providerProps)
-    expect(screen.getByText('* PDF'))
-  })
-
   test('display choose file button', () => {
     const providerProps = {
       value: {

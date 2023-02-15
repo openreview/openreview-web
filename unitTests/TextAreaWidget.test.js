@@ -22,19 +22,6 @@ jest.mock('../lib/utils', () => {
 })
 
 describe('TextAreaWidget', () => {
-  test('render header text', () => {
-    const providerProps = {
-      value: {
-        invitation: { id: 'invitaitonId' },
-        field: {
-          ['abstract']: {},
-        },
-      },
-    }
-    renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
-    expect(screen.getByText('* Abstract'))
-  })
-
   test('display textarea', () => {
     const providerProps = {
       value: {

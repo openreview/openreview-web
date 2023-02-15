@@ -6,18 +6,6 @@ import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
 describe('TextboxWidget', () => {
-  test('render header text', () => {
-    const providerProps = {
-      value: {
-        field: {
-          ['paper_title']: {},
-        },
-      },
-    }
-    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
-    expect(screen.getByText('* Paper Title'))
-  })
-
   test('render input as readonly when invitation field value is a const string', () => {
     let providerProps = {
       value: {

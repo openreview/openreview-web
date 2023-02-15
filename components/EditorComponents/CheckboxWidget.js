@@ -1,6 +1,5 @@
 import { useContext } from 'react'
 import EditorComponentContext from '../EditorComponentContext'
-import EditorComponentHeader from './EditorComponentHeader'
 
 import styles from '../../styles/components/CheckboxWidget.module.scss'
 
@@ -22,22 +21,20 @@ const CheckboxWidget = () => {
   if (!Array.isArray(options) || !Array.isArray(value) || !Array.isArray(defaultValues))
     return null
   return (
-    <EditorComponentHeader>
-      <div className={styles.checkboxContainer}>
-        {options.map((option) => (
-          <div key={`${fieldName}-${option}`} className={styles.checkboxOptionRow}>
-            <input
-              type="checkbox"
-              value={option}
-              checked={value.includes(option)}
-              disabled={defaultValues.includes(option)}
-              onChange={handleCheckboxClick}
-            />
-            <span className={styles.optionText}>{option}</span>
-          </div>
-        ))}
-      </div>
-    </EditorComponentHeader>
+    <div className={styles.checkboxContainer}>
+      {options.map((option) => (
+        <div key={`${fieldName}-${option}`} className={styles.checkboxOptionRow}>
+          <input
+            type="checkbox"
+            value={option}
+            checked={value.includes(option)}
+            disabled={defaultValues.includes(option)}
+            onChange={handleCheckboxClick}
+          />
+          <span className={styles.optionText}>{option}</span>
+        </div>
+      ))}
+    </div>
   )
 }
 

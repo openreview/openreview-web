@@ -2,10 +2,8 @@ import { useContext, useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'
 import EditorComponentContext from '../EditorComponentContext'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
-import WebFieldContext from '../WebFieldContext'
 
 import styles from '../../styles/components/TextareaWidget.module.scss'
-import EditorComponentHeader from './EditorComponentHeader'
 import { getAutoStorageKey } from '../../lib/utils'
 
 const CharCounter = ({ minLength = 0, maxLength = 0, contentLength }) => {
@@ -92,7 +90,7 @@ const TextAreaWidget = () => {
   }, [])
 
   return (
-    <EditorComponentHeader>
+    <>
       <div className={styles.textAreaContainer}>
         {enableMarkdown ? (
           <MarkdownPreviewTab
@@ -120,7 +118,7 @@ const TextAreaWidget = () => {
         )}
         {enableMarkdown && <MathJaxWarning content={value} />}
       </div>
-    </EditorComponentHeader>
+    </>
   )
 }
 

@@ -1,6 +1,5 @@
 import { useContext, useRef, useState } from 'react'
 import EditorComponentContext from '../EditorComponentContext'
-import EditorComponentHeader from './EditorComponentHeader'
 import SpinnerButton from '../SpinnerButton'
 import { prettyField } from '../../lib/utils'
 import api from '../../lib/api-client'
@@ -95,41 +94,39 @@ const FileUploadWidget = () => {
   }
 
   return (
-    <EditorComponentHeader>
-      <div className={styles.fileUploadContainer}>
-        <input
-          ref={fileInputRef}
-          type="file"
-          aria-label={fieldName}
-          accept={extensions}
-          onChange={handleFileSelected}
-        />
-        <SpinnerButton
-          type="primary"
-          className={styles.selectFileButton}
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isLoading}
-          loading={isLoading}
-        >{`Choose ${prettyField(fieldName)}`}</SpinnerButton>
-        {isLoading && (
-          <div className="progress">
-            <div
-              className="progress-bar progress-bar-striped active"
-              role="progressbar"
-              aria-valuemin="0"
-              aria-valuemax="100"
-              style={{ width: `${uploadPercentage}%` }}
-            />
-          </div>
-        )}
-        {value && (
-          <>
-            <span className={styles.fileUrl}>{`${fileName} (${value})`}</span>
-            <TrashButton onClick={handleDeleteFile} />
-          </>
-        )}
-      </div>
-    </EditorComponentHeader>
+    <div className={styles.fileUploadContainer}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        aria-label={fieldName}
+        accept={extensions}
+        onChange={handleFileSelected}
+      />
+      <SpinnerButton
+        type="primary"
+        className={styles.selectFileButton}
+        onClick={() => fileInputRef.current?.click()}
+        disabled={isLoading}
+        loading={isLoading}
+      >{`Choose ${prettyField(fieldName)}`}</SpinnerButton>
+      {isLoading && (
+        <div className="progress">
+          <div
+            className="progress-bar progress-bar-striped active"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            style={{ width: `${uploadPercentage}%` }}
+          />
+        </div>
+      )}
+      {value && (
+        <>
+          <span className={styles.fileUrl}>{`${fileName} (${value})`}</span>
+          <TrashButton onClick={handleDeleteFile} />
+        </>
+      )}
+    </div>
   )
 }
 
