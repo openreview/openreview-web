@@ -98,7 +98,9 @@ jobs:
           cp .env.example .env.local
           NODE_ENV=production API_V2_URL= npm run build
       - name: Run Unit Tests
-        run: npm run unit-test
+        run: |
+          cd openreview-web
+          npm run unit-test
       - name: Run openreview-api
         run: |
           cd openreview-api
