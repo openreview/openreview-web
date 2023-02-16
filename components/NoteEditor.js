@@ -434,6 +434,7 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const renderField = ({ fieldName, fieldDescription }) => {
+    const fieldNameOverwrite = fieldName === 'authorids' ? 'Authors' : undefined
     return (
       <EditorComponentContext.Provider
         key={fieldName}
@@ -449,7 +450,7 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
           isContentField: true,
         }}
       >
-        <EditorComponentHeader>
+        <EditorComponentHeader fieldNameOverwrite={fieldNameOverwrite}>
           <EditorWidget />
         </EditorComponentHeader>
       </EditorComponentContext.Provider>
