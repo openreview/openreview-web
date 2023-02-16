@@ -19,6 +19,8 @@ import {
   getNumberFromGroup,
   getIndentifierFromGroup,
   prettyId,
+  prettyList,
+  inflect,
 } from '../../lib/utils'
 import { filterCollections, filterHasReplyTo } from '../../lib/webfield-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
@@ -307,27 +309,24 @@ const AreaChairConsole = ({ appContext }) => {
       // #endregion
 
       // #region assigned SAC
-      const assignedSACP = seniorAreaChairsId
+      const assignedSACsP = seniorAreaChairsId
         ? api
             .get(
               '/edges',
               { invitation: `${seniorAreaChairsId}/-/Assignment`, head: user.profile.id },
               { accessToken }
             )
-            .then((result) => {
-              if (result?.edges?.length) return result.edges[0].tail
-              return null
-            })
-        : Promise.resolve()
+            .then((result) => result?.edges?.map((edge) => edge.tail) ?? [])
+        : Promise.resolve([])
       // #endregion
 
-      const result = await Promise.all([blindedNotesP, reviewerGroupsP, assignedSACP])
+      const result = await Promise.all([blindedNotesP, reviewerGroupsP, assignedSACsP])
 
       // #region get assigned reviewer , sac and all reviewer group members profiles
       const allIds = [
         ...new Set([
           ...result[1].flatMap((p) => p.reviewers).map((p) => p.reviewerProfileId),
-          ...(result[2] ? [result[2]] : []),
+          ...result[2],
         ]),
       ]
       const ids = allIds.filter((p) => p.startsWith('~'))
@@ -470,10 +469,10 @@ const AreaChairConsole = ({ appContext }) => {
         }
       })
 
-      const sacProfile = allProfiles.find(
+      const sacProfiles = allProfiles.filter(
         (p) =>
-          p.content.names.some((q) => q.username === result[2]) ||
-          p.content.emails.includes(result[2])
+          p.content.names.some((q) => result[2].includes(q.username)) ||
+          p.content.emails.some((r) => result[2].includes(r))
       )
       // #endregion
       setAcConsoleData({
@@ -481,12 +480,10 @@ const AreaChairConsole = ({ appContext }) => {
         tableRows,
         reviewersInfo: result[1],
         allProfiles,
-        sacProfile: sacProfile
-          ? {
-              id: sacProfile.id,
-              email: sacProfile.content.preferredEmail ?? sacProfile.content.emails[0],
-            }
-          : null,
+        sacProfiles: sacProfiles.map((sacProfile) => ({
+          id: sacProfile.id,
+          email: sacProfile.content.preferredEmail ?? sacProfile.content.emails[0],
+        })),
       })
     } catch (error) {
       promptError(`loading data: ${error.message}`)
@@ -541,7 +538,7 @@ const AreaChairConsole = ({ appContext }) => {
                   allNoteIds={acConsoleData.tableRows?.map((row) => row.note.id)}
                 />
               ),
-              width: '35px'
+              width: '35px',
             },
             { id: 'number', content: '#', width: '55px' },
             { id: 'summary', content: 'Paper Summary', width: '34%' },
@@ -641,12 +638,22 @@ const AreaChairConsole = ({ appContext }) => {
       <BasicHeader
         title={header?.title}
         instructions={`${headerInstructions}${
-          acConsoleData.sacProfile
-            ? `<p class="dark">Your assigned Senior Area Chair is <a href="https://openreview.net/profile?id=${
-                acConsoleData.sacProfile.id
-              }" target="_blank">${prettyId(acConsoleData.sacProfile.id)}</a> (${
-                acConsoleData.sacProfile.email
-              })`
+          acConsoleData.sacProfiles?.length
+            ? `<p class="dark">Your assigned Senior Area ${inflect(
+                acConsoleData.sacProfiles.length,
+                'Chair is',
+                'Chairs are'
+              )} ${prettyList(
+                acConsoleData.sacProfiles.map(
+                  (sacProfile) =>
+                    `<a href='https://openreview.net/profile?id=${
+                      sacProfile.id
+                    }' target='_blank'>${prettyId(sacProfile.id)}</a> (${sacProfile.email})`
+                ),
+                'long',
+                'conjunction',
+                false
+              )}`
             : ''
         }`}
       />
