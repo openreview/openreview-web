@@ -14,7 +14,7 @@ const IEEECopyrightForm = ({ note, isV2Note }) => {
   const { user } = useUser()
   const noteContent = getNoteContent(note, isV2Note)
 
-  if (showIEEECopyright && IEEEPublicationTitle && IEEEArtSourceCode)
+  if (showIEEECopyright && IEEEPublicationTitle && IEEEArtSourceCode) {
     return (
       <form action="https://ecopyright.ieee.org/ECTT/IntroPage.jsp" method="post">
         <input type="hidden" name="PubTitle" value={IEEEPublicationTitle} />
@@ -32,6 +32,7 @@ const IEEECopyrightForm = ({ note, isV2Note }) => {
         />
       </form>
     )
+  }
   return null
 }
 
