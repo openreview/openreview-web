@@ -32,7 +32,7 @@ const Signatures = ({
         throw new Error('You do not have permission to create a note')
       if (regexGroupResult.groups.length === 1) {
         setSignatureOptions([regexGroupResult.groups[0].id])
-        onChange({ value: [regexGroupResult.groups[0].id] })
+        onChange({ value: [regexGroupResult.groups[0].id], type: 'const' })
       } else {
         setSignatureOptions(
           regexGroupResult.groups
@@ -46,6 +46,7 @@ const Signatures = ({
               return { label, value: r.id }
             })
         )
+        onChange({ type: 'list' })
       }
     } catch (error) {
       onError(error.message)
@@ -73,7 +74,7 @@ const Signatures = ({
       )
       if (uniqueGroupResults.length === 1) {
         setSignatureOptions([uniqueGroupResults[0].id])
-        onChange({ value: [uniqueGroupResults[0].id] })
+        onChange({ value: [uniqueGroupResults[0].id], type: 'const' })
       } else {
         setSignatureOptions(
           uniqueGroupResults.map((p) => {
@@ -83,6 +84,7 @@ const Signatures = ({
             return { label, value: p.id }
           })
         )
+        onChange({ type: 'list' })
       }
     } catch (error) {
       onError(error.message)
@@ -117,12 +119,13 @@ const Signatures = ({
     if (!fieldDescription) return
     if (!fieldDescription.param) {
       setDescriptionType('const')
+      onChange({ type: 'const' })
       return
     }
     if (fieldDescription.param?.regex) {
       if (fieldDescription.param.regex === '~.*') {
         setDescriptionType('currentUser')
-        onChange({ value: [user.profile.id] })
+        onChange({ value: [user.profile.id], type: 'const' })
       } else {
         setDescriptionType('regex')
       }

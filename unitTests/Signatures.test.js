@@ -28,10 +28,14 @@ describe('Signatures', () => {
 
   test('display constant signatures as tags widget', () => {
     const constSignaturesFieldDescription = ['${3/signatures}']
+    const onChange = jest.fn()
 
-    render(<Signatures fieldDescription={constSignaturesFieldDescription} />)
+    render(
+      <Signatures fieldDescription={constSignaturesFieldDescription} onChange={onChange} />
+    )
 
     expect(screen.getByText('tags'))
+    expect(onChange).toHaveBeenCalledWith({ type: 'const' })
   })
 
   test('display ~.* regex signatures as tags widget and call update', () => {
@@ -45,7 +49,7 @@ describe('Signatures', () => {
     render(<Signatures fieldDescription={currentUserFieldDescription} onChange={onChange} />)
 
     expect(screen.getByText('tags'))
-    expect(onChange).toBeCalledWith({ value: ['~Test_User1'] })
+    expect(onChange).toBeCalledWith({ value: ['~Test_User1'], type: 'const' })
   })
 
   test('call v1 api if regex has pipe value', async () => {
@@ -130,7 +134,10 @@ describe('Signatures', () => {
       expect(screen.getByText('tags'))
       expect(onChange).toBeCalledTimes(3)
       expect(onChange).toHaveBeenNthCalledWith(1, { loading: true })
-      expect(onChange).toHaveBeenNthCalledWith(2, { value: ['some_test_group'] })
+      expect(onChange).toHaveBeenNthCalledWith(2, {
+        value: ['some_test_group'],
+        type: 'const',
+      })
       expect(onChange).toHaveBeenNthCalledWith(3, { loading: false })
     })
   })
@@ -154,7 +161,10 @@ describe('Signatures', () => {
 
     render(<Signatures fieldDescription={regexFieldDescription} onChange={onChange} />)
 
-    await waitFor(() => expect(screen.getByRole('combobox')))
+    await waitFor(() => {
+      expect(screen.getByRole('combobox'))
+      expect(onChange).toHaveBeenNthCalledWith(2, { type: 'list' }) // 1,3 is loading state change
+    })
     await userEvent.click(screen.getByRole('combobox'))
     await waitFor(() => {
       expect(screen.getByText('some_test_group'))
@@ -246,7 +256,10 @@ describe('Signatures', () => {
       expect(screen.getByText('tags'))
       expect(onChange).toBeCalledTimes(3)
       expect(onChange).toHaveBeenNthCalledWith(1, { loading: true })
-      expect(onChange).toHaveBeenNthCalledWith(2, { value: ['some_test_group'] })
+      expect(onChange).toHaveBeenNthCalledWith(2, {
+        value: ['some_test_group'],
+        type: 'const',
+      })
       expect(onChange).toHaveBeenNthCalledWith(3, { loading: false })
     })
   })
@@ -296,7 +309,10 @@ describe('Signatures', () => {
 
     render(<Signatures fieldDescription={enumFieldDescription} onChange={onChange} />)
 
-    await waitFor(() => expect(screen.getByRole('combobox')))
+    await waitFor(() => {
+      expect(screen.getByRole('combobox'))
+      expect(onChange).toHaveBeenNthCalledWith(2, { type: 'list' })
+    })
     await userEvent.click(screen.getByRole('combobox'))
     await waitFor(() => {
       expect(screen.getByText('some_test_group1'))
