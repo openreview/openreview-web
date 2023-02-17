@@ -2085,10 +2085,10 @@ module.exports = (function () {
   }
 
   var getTitleText = function (note, generatedTitleText) {
-    if (_.trim(note.content.title)) {
+    if (_.trim(note.content?.title)) {
       return note.content.title
     }
-    if (_.trim(note.content.verdict)) {
+    if (_.trim(note.content?.verdict)) {
       return 'Verdict: ' + note.content.verdict
     }
     return generatedTitleText
@@ -2097,7 +2097,7 @@ module.exports = (function () {
   var mkPdfIcon = function (note, isReference) {
     // PDF for title
     var $pdfLink = null
-    if (note.content.pdf) {
+    if (note.content?.pdf) {
       var downloadURL = pdfUrl(note, isReference)
       $pdfLink = $('<a>', {
         class: 'note_content_pdf',
@@ -2111,7 +2111,7 @@ module.exports = (function () {
 
   var mkHtmlIcon = function (note) {
     var $htmlLink = null
-    if (note.content.ee || note.content.html) {
+    if (note.content?.ee || note.content?.html) {
       $htmlLink = $('<a>', {
         class: 'note_content_pdf html-link',
         href: note.content.ee || note.content.html,
@@ -2130,9 +2130,9 @@ module.exports = (function () {
     }
 
     var authorList
-    if (note.content.authors?.length > 0) {
+    if (note.content?.authors?.length > 0) {
       // Probably a forum-level note (because it has authors)
-      if (note.content.authorids?.length > 0) {
+      if (note.content?.authorids?.length > 0) {
         authorList = note.content.authors.map(function (a, i) {
           var aId = note.content.authorids[i]
           if (!aId) {
@@ -2458,7 +2458,8 @@ module.exports = (function () {
     if (notePastDue) {
       $note.addClass('trashed')
     }
-    if (note.content._disableTexRendering) {
+    console.log('note.content', note)
+    if (note.content?._disableTexRendering) {
       $note.addClass('disable-tex-rendering')
     }
     if (params.newLayout) {
@@ -2467,7 +2468,7 @@ module.exports = (function () {
 
     var generatedTitleText = generateNoteTitle(note.invitation, note.signatures)
     var titleText = getTitleText(note, generatedTitleText)
-    var useGeneratedTitle = !_.trim(note.content.title) && !_.trim(note.content.verdict)
+    var useGeneratedTitle = !_.trim(note.content?.title) && !_.trim(note.content?.verdict)
     var $titleHTML = mkTitleComponent(note, titleText)
 
     var $pdfLink = mkPdfIcon(note, params.isReference)
@@ -2577,7 +2578,7 @@ module.exports = (function () {
           '</a>'
         : prettyId(note.tauthor)
     if (
-      !note.content.authors &&
+      !note.content?.authors &&
       trueAuthorText &&
       trueAuthorText !== $contentSignatures.html()
     ) {
@@ -2601,7 +2602,7 @@ module.exports = (function () {
       note.tcdate,
       note.mdate,
       note.tmdate,
-      note.content.year,
+      note.content?.year,
       note.pdate
     )
     var $replyCountLabel =
@@ -2620,10 +2621,10 @@ module.exports = (function () {
         : null
     // Display modal showing full BibTeX reference. Click handler is definied in public/index.js
     var $bibtexLink =
-      note.content._bibtex && params.withBibtexLink
+      note.content?._bibtex && params.withBibtexLink
         ? $(
             '<span class="item"><a href="#" data-target="#bibtex-modal" data-toggle="modal" data-bibtex="' +
-              encodeURIComponent(note.content._bibtex) +
+              encodeURIComponent(note.content?._bibtex) +
               '">Show Bibtex</a></span>'
           )
         : null
@@ -2674,7 +2675,7 @@ module.exports = (function () {
       $invItem = $('<span>', { class: 'item' }).text(
         options.isReference
           ? prettyId(note.invitation)
-          : note.content.venue || prettyId(note.invitation)
+          : note.content?.venue || prettyId(note.invitation)
       )
       $readersItem = _.has(note, 'readers')
         ? $('<span>', { class: 'item' }).html('Readers: ' + prettyReadersList(note.readers))
@@ -2900,7 +2901,9 @@ module.exports = (function () {
     var path = isReference
       ? `${note.version === 2 ? '/notes/edits/pdf' : '/references/pdf'}`
       : '/pdf'
-    return _.startsWith(note.content.pdf, '/pdf') ? path + '?id=' + note.id : note.content.pdf
+    return _.startsWith(note.content?.pdf, '/pdf')
+      ? path + '?id=' + note.id
+      : note.content?.pdf
   }
 
   var deleteOrRestoreNote = function (note, noteTitle, user, onTrashedOrRestored) {
