@@ -35,6 +35,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     officialMetaReviewName,
     decisionName = 'Decision',
     recommendationName,
+    edgeBrowserDeployedUrl,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
