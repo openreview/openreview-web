@@ -2,6 +2,7 @@ import { debounce } from 'lodash'
 import { useContext, useState, useEffect, useCallback } from 'react'
 import useUser from '../../hooks/useUser'
 import { isValidEmail } from '../../lib/utils'
+import api from '../../lib/api-client'
 
 import styles from '../../styles/components/ProfileSearchWidget.module.scss'
 import EditorComponentContext from '../EditorComponentContext'
@@ -14,7 +15,7 @@ const ProfileSearchWidget = () => {
   const { user, accessToken } = useUser()
   const { field, onChange, value, isWebfield } = useContext(EditorComponentContext)
   const [selectedAuthors, setSelectedAuthors] = useState([])
-  const [authorSearchResults, setAuthorSearchResults] = useState([])
+  const [profileSearchResults, setProfileSearchResults] = useState([])
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -46,10 +47,21 @@ const ProfileSearchWidget = () => {
     }
   }
 
-  const searchProfile = async (term) => {
-    const isEmail = isValidEmail(term)
+  const searchProfile = async (searchTerm) => {
+    const cleanSearchTerm = searchTerm.trim().toLowerCase()
+    const isEmail = isValidEmail(cleanSearchTerm)
     try {
-    } catch (error) {}
+      const result = await api.get(
+        '/profiles/search',
+        {
+          ...(isEmail ? { email: cleanSearchTerm } : { fullname: cleanSearchTerm }),
+        },
+        { accessToken }
+      )
+      setProfileSearchResults(result.profiles)
+    } catch (error) {
+      promptError(error.message)
+    }
   }
 
   const delaySearch = useCallback(
@@ -58,18 +70,21 @@ const ProfileSearchWidget = () => {
   )
 
   useEffect(() => {
-    console.log(user)
-    setAuthors([user])
+    setSelectedAuthors([user])
   }, [])
 
   useEffect(() => {
-    if (!searchTerm) setAuthors([])
+    if (!searchTerm) {
+      setProfileSearchResults([])
+      return
+    }
+    searchProfile(searchTerm)
   }, [searchTerm])
 
   return (
     <div className={styles.profileSearch}>
-      {authors.map((author) => {
-        return <>{author.id}</>
+      {selectedAuthors.map((author) => {
+        return <span key={author.id}>{author.id}</span>
       })}
       <input
         type="text"
@@ -81,6 +96,9 @@ const ProfileSearchWidget = () => {
           delaySearch(e.target.value)
         }}
       />
+      {profileSearchResults.map((author) => {
+        return <span key={author.id}>{author.id}</span>
+      })}
     </div>
   )
 }

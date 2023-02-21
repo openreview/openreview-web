@@ -339,6 +339,7 @@ const NoteSignatures = ({
   setLoading,
   noteEditorData,
   setNoteEditorData,
+  closeNoteEditor,
 }) => {
   const onChange = ({ loading, value }) => {
     setLoading((existingLoadingState) => ({
@@ -369,6 +370,7 @@ const EditSignatures = ({
   setLoading,
   noteEditorData,
   setNoteEditorData,
+  closeNoteEditor,
 }) => {
   const onChange = ({ loading, value }) => {
     setLoading((existingLoadingState) => ({
@@ -657,11 +659,10 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
       {renderNoteReaders()}
       <NoteSignatures
         fieldDescription={invitation.edit.note.signatures}
-        fieldName="noteSignatureInputValues"
-        closeNoteEditor={closeNoteEditor}
+        setLoading={setLoading}
         noteEditorData={noteEditorData}
         setNoteEditorData={setNoteEditorData}
-        setLoading={setLoading}
+        closeNoteEditor={closeNoteEditor}
       />
       <EditReaders
         fieldDescription={invitation.edit.readers}
@@ -673,11 +674,10 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
       />
       <EditSignatures
         fieldDescription={invitation.edit.signatures}
-        fieldName="editSignatureInputValues"
-        closeNoteEditor={closeNoteEditor}
+        setLoading={setLoading}
         noteEditorData={noteEditorData}
         setNoteEditorData={setNoteEditorData}
-        setLoading={setLoading}
+        closeNoteEditor={closeNoteEditor}
       />
       {Object.values(loading).some((p) => p) ? (
         <LoadingSpinner inline />
