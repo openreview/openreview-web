@@ -411,7 +411,9 @@ export default function Column(props) {
   const sortItems = (colItems) => {
     // the columnsort invitation may come from traverse/edit/browser invitations
     if (columnSort === 'default') {
-      return colItems
+      return type === 'head'
+        ? colItems.sort((itemA, itemB) => itemA.number - itemB.number)
+        : colItems
     }
 
     const sortInvitation = [...editInvitations, ...browseInvitations].filter(
