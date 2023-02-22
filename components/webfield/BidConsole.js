@@ -77,9 +77,12 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     scoreIds,
     submissionInvitationId,
     submissionVenueId,
+    subjectAreas,
   } = useContext(WebFieldContext)
+  const defaultSubjectArea = 'All Subject Areas'
   const [notes, setNotes] = useState([])
   const [selectedScore, setSelectedScore] = useState(scoreIds?.[0])
+  const [selectedSubjectArea, setSelectedSubjectArea] = useState(defaultSubjectArea)
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const { user, accessToken } = useUser()
@@ -88,7 +91,12 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
   const [isLoading, setIsLoading] = useState(true)
   const [scoreEdges, setScoreEdges] = useState([])
   const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
-  const sortOptions = scoreIds.map((p) => ({ label: prettyInvitationId(p), value: p }))
+  const sortOptions = scoreIds?.map((p) => ({ label: prettyInvitationId(p), value: p }))
+  const subjectAreaOptions = subjectAreas?.length
+    ? [{ label: 'All Subject Areas', value: 'All Subject Areas' }].concat(
+        subjectAreas.map((p) => ({ label: p, value: p }))
+      )
+    : []
   const pageSize = 50
 
   const getNotesSortedByAffinity = async (score = selectedScore, limit = 50) => {
@@ -236,6 +244,36 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     getNotesSortedByAffinity(scoreSelected)
   }
 
+  const handleSubjectAreaDropdownChange = async (subjectAreaSelected) => {
+    setSelectedSubjectArea(subjectAreaSelected)
+    if (subjectAreaSelected === defaultSubjectArea) {
+      getNotesSortedByAffinity()
+      return
+    }
+    setIsLoading(true)
+    try {
+      const result = await api.get(
+        '/notes/search',
+        {
+          term: subjectAreaSelected,
+          type: 'terms',
+          content: 'subject_areas',
+          source: 'forum',
+          ...(apiVersion !== 2 && { group: venueId }),
+          limit: 1000,
+          offset: 0,
+          ...(apiVersion !== 2 && { invitation: submissionInvitationId }),
+          ...(apiVersion === 2 && { venueid: submissionVenueId }),
+        },
+        { accessToken, version: apiVersion }
+      )
+      setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)))
+    } catch (error) {
+      promptError(error.message)
+    }
+    setIsLoading(false)
+  }
+
   const delaySearch = useCallback(
     debounce((term) => handleSearchTermChange(term), 200),
     []
@@ -275,15 +313,25 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           />
           <Icon name="search" extraClasses="form-control-feedback" />
         </div>
-        {scoreIds.length > 0 && (
+        {scoreIds?.length > 0 && (
           <div className="form-group score">
             <label htmlFor="score-dropdown">Sort By:</label>
             <Dropdown
               className="dropdown-select"
               options={sortOptions}
-              placeholder="Select a score to sort by"
               value={sortOptions.find((p) => p.value === selectedScore)}
               onChange={(e) => handleScoreDropdownChange(e.value)}
+            />
+          </div>
+        )}
+        {subjectAreas?.length > 0 && (
+          <div className="form-group score">
+            <label htmlFor="score-dropdown">Subject Area:</label>
+            <Dropdown
+              className="dropdown-select"
+              options={subjectAreaOptions}
+              value={subjectAreaOptions.find((p) => p.value === selectedSubjectArea)}
+              onChange={(e) => handleSubjectAreaDropdownChange(e.value)}
             />
           </div>
         )}
@@ -307,7 +355,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             apiVersion={apiVersion}
             bidUpdateStatus={bidUpdateStatus}
           />
-          {!searchTerm && (
+          {!searchTerm && selectedSubjectArea === defaultSubjectArea && (
             <PaginationLinks
               currentPage={pageNumber}
               itemsPerPage={pageSize}
@@ -586,6 +634,7 @@ const BidConsole = ({ appContext }) => {
     submissionVenueId,
     bidInvitationId,
     conflictInvitationId,
+    subjectAreas,
   } = useContext(WebFieldContext)
 
   const bidOptions =
