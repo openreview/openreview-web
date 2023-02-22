@@ -2,6 +2,7 @@ import List from 'rc-virtual-list'
 import Note, { NoteV2 } from './Note'
 import { BidRadioButtonGroup, BidScore } from './webfield/BidWidget'
 
+// only work with v2 api
 const NoteListWithBidWidget = ({
   notes,
   bidOptions,
@@ -10,16 +11,11 @@ const NoteListWithBidWidget = ({
   displayOptions,
   updateBidOption,
   virtualList,
-  apiVersion,
   bidUpdateStatus,
 }) => {
   const renderNoteWithBidWidget = (note, selectedBidOption, scoreEdge) => (
     <>
-      {apiVersion === 2 ? ( // bid has no mixed notes from v1 and v2
-        <NoteV2 note={note} options={displayOptions} />
-      ) : (
-        <Note note={note} options={displayOptions} />
-      )}
+      <NoteV2 note={note} options={displayOptions} />
       <BidRadioButtonGroup
         label="Bid"
         options={bidOptions}

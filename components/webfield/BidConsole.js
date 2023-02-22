@@ -18,64 +18,25 @@ import PaginationLinks from '../PaginationLinks'
 import ErrorDisplay from '../ErrorDisplay'
 import NoteListWithBidWidget from '../NoteListWithBidWidget'
 
-const buildArray = (invitation, fieldName, profileId, noteNumber) => {
-  if (invitation.reply?.[fieldName]?.values) return invitation.reply[fieldName].values
-  if (invitation.reply?.[fieldName]?.['values-copied'])
-    return invitation.reply[fieldName]['values-copied']
-      .map((value) => {
-        if (value === '{signatures}') return profileId
-        if (value[0] === '{') return null
-        return value
-      })
-      .filter((p) => p)
-  if (invitation.reply?.[fieldName]?.['values-regex'])
-    return invitation.reply[fieldName]['values-regex']
-      .split('|')
-      .map((value) => {
-        if (value.indexOf('Paper.*') !== -1)
-          return value.replace('Paper.*', `Paper${noteNumber}`)
-        return value
-      })
-      .filter((p) => p)
-  return []
-}
-
-const getDdate = (existingBidToDelete, apiVersion) => {
+const getDdate = (existingBidToDelete) => {
   if (existingBidToDelete) return Date.now()
-  if (apiVersion === 2) return { delete: true }
-  return null
+  return { delete: true }
 }
 
-const getBidObjectToPost = (
-  id,
-  updatedOption,
-  invitation,
-  note,
-  userId,
-  ddate,
-  apiVersion
-) => ({
+const getBidObjectToPost = (id, updatedOption, invitation, note, userId, ddate) => ({
   id,
   invitation: invitation.id,
   label: updatedOption,
   head: note.id,
   tail: userId,
   signatures: [userId],
-  ...(apiVersion !== 2 && {
-    readers: buildArray(invitation, 'readers', userId, note.number),
-    nonreaders: buildArray(invitation, 'nonreaders', userId, note.number),
-    writers: buildArray(invitation, 'writers', userId, note.number),
-  }),
   ddate,
 })
 
 const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) => {
   const {
-    venueId,
     entity: invitation,
-    apiVersion,
     scoreIds,
-    submissionInvitationId,
     submissionVenueId,
     subjectAreas,
   } = useContext(WebFieldContext)
@@ -105,12 +66,11 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
       const result = await api.get(
         '/notes',
         {
-          ...(apiVersion !== 2 && { invitation: submissionInvitationId }),
-          ...(apiVersion === 2 && { 'content.venueid': submissionVenueId }),
+          'content.venueid': submissionVenueId,
           offset: (pageNumber - 1) * pageSize,
           limit,
         },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       return {
         ...result,
@@ -129,7 +89,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             offset: (pageNumber - 1) * pageSize,
             limit,
           },
-          { accessToken, version: apiVersion }
+          { accessToken, version: 2 }
         )
         if (edgesResult.count) {
           setTotalCount(edgesResult.count)
@@ -138,14 +98,12 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           const notesResult = await api.post(
             '/notes/search',
             { ids: noteIds },
-            { accessToken, version: apiVersion }
+            { accessToken, version: 2 }
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
             const isActiveSubmission =
-              apiVersion === 2
-                ? matchingNote?.content?.venueid?.value === submissionVenueId
-                : matchingNote?.invitation === submissionInvitationId
+              matchingNote?.content?.venueid?.value === submissionVenueId
             if (matchingNote && isActiveSubmission && !conflictIds.includes(noteId)) {
               return matchingNote
             }
@@ -178,13 +136,11 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           type: 'terms',
           content: 'all',
           source: 'forum',
-          ...(apiVersion !== 2 && { group: venueId }),
           limit: 1000,
           offset: 0,
-          ...(apiVersion !== 2 && { invitation: submissionInvitationId }),
-          ...(apiVersion === 2 && { venueid: submissionVenueId }),
+          venueid: submissionVenueId,
         },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)))
     } catch (error) {
@@ -198,21 +154,13 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
       (p) => p.head === note.id && p.label === updatedOption
     )
     const existingBidToUpdate = bidEdges.find((p) => p.head === note.id)
-    const ddate = getDdate(existingBidToDelete, apiVersion)
+    const ddate = getDdate(existingBidToDelete)
     const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
       const result = await api.post(
         '/edges',
-        getBidObjectToPost(
-          bidId,
-          updatedOption,
-          invitation,
-          note,
-          user.profile.id,
-          ddate,
-          apiVersion
-        ),
-        { accessToken, version: apiVersion }
+        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
+        { accessToken, version: 2 }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -259,13 +207,11 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           type: 'terms',
           content: 'subject_areas',
           source: 'forum',
-          ...(apiVersion !== 2 && { group: venueId }),
           limit: 1000,
           offset: 0,
-          ...(apiVersion !== 2 && { invitation: submissionInvitationId }),
-          ...(apiVersion === 2 && { venueid: submissionVenueId }),
+          venueid: submissionVenueId,
         },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)))
     } catch (error) {
@@ -325,10 +271,10 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           </div>
         )}
         {subjectAreas?.length > 0 && (
-          <div className="form-group score">
-            <label htmlFor="score-dropdown">Subject Area:</label>
+          <div className="form-group">
+            <label htmlFor="subjectarea-dropdown">Subject Area:</label>
             <Dropdown
-              className="dropdown-select"
+              className="dropdown-select subjectarea"
               options={subjectAreaOptions}
               value={subjectAreaOptions.find((p) => p.value === selectedSubjectArea)}
               onChange={(e) => handleSubjectAreaDropdownChange(e.value)}
@@ -352,7 +298,6 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
               pdfLink: true,
             }}
             updateBidOption={updateBidOption}
-            apiVersion={apiVersion}
             bidUpdateStatus={bidUpdateStatus}
           />
           {!searchTerm && selectedSubjectArea === defaultSubjectArea && (
@@ -372,13 +317,11 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
 const NoBidTab = ({
   scoreIds,
   bidOptions,
-  submissionInvitationId,
   submissionVenueId,
   invitation,
   bidEdges,
   setBidEdges,
   conflictIds,
-  apiVersion,
 }) => {
   const [notes, setNotes] = useState([])
   const [scoreEdges, setScoreEdges] = useState([])
@@ -394,11 +337,10 @@ const NoBidTab = ({
       const result = await api.get(
         '/notes',
         {
-          ...(apiVersion !== 2 && { invitation: submissionInvitationId }),
-          ...(apiVersion === 2 && { 'content.venueid': submissionVenueId }),
+          'content.venueid': submissionVenueId,
           limit: 1000,
         },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       return {
         ...result,
@@ -417,7 +359,7 @@ const NoBidTab = ({
             tail: user.profile.id,
             sort: 'weight:desc',
           },
-          { accessToken, version: apiVersion }
+          { accessToken, version: 2 }
         )
         if (edgesResult.count) {
           setScoreEdges(edgesResult.edges)
@@ -425,14 +367,12 @@ const NoBidTab = ({
           const notesResult = await api.post(
             '/notes/search',
             { ids: noteIds },
-            { accessToken, version: apiVersion }
+            { accessToken, version: 2 }
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
             const isActiveSubmission =
-              apiVersion === 2
-                ? matchingNote?.content?.venueid?.value === submissionVenueId
-                : matchingNote?.invitation === submissionInvitationId
+              matchingNote?.content?.venueid?.value === submissionVenueId
             if (
               matchingNote &&
               isActiveSubmission &&
@@ -464,21 +404,13 @@ const NoBidTab = ({
       (p) => p.head === note.id && p.label === updatedOption
     )
     const existingBidToUpdate = bidEdges.find((p) => p.head === note.id)
-    const ddate = getDdate(existingBidToDelete, apiVersion)
+    const ddate = getDdate(existingBidToDelete)
     const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
       const result = await api.post(
         '/edges',
-        getBidObjectToPost(
-          bidId,
-          updatedOption,
-          invitation,
-          note,
-          user.profile.id,
-          ddate,
-          apiVersion
-        ),
-        { accessToken, version: apiVersion }
+        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
+        { accessToken, version: 2 }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -516,20 +448,12 @@ const NoBidTab = ({
       }}
       updateBidOption={updateBidOption}
       virtualList={true}
-      apiVersion={apiVersion}
       bidUpdateStatus={bidUpdateStatus}
     />
   )
 }
 
-const BidOptionTab = ({
-  bidOptions,
-  bidOption,
-  bidEdges,
-  invitation,
-  setBidEdges,
-  apiVersion,
-}) => {
+const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges }) => {
   const [notes, setNotes] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const { user, accessToken } = useUser()
@@ -548,7 +472,7 @@ const BidOptionTab = ({
         {
           ids: noteIds,
         },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       setNotes(noteSearchResults.notes)
     } catch (error) {
@@ -562,21 +486,13 @@ const BidOptionTab = ({
       (p) => p.head === note.id && p.label === updatedOption
     )
     const existingBidToUpdate = bidEdges.find((p) => p.head === note.id)
-    const ddate = getDdate(existingBidToDelete, apiVersion)
+    const ddate = getDdate(existingBidToDelete)
     const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
       const result = await api.post(
         '/edges',
-        getBidObjectToPost(
-          bidId,
-          updatedOption,
-          invitation,
-          note,
-          user.profile.id,
-          ddate,
-          apiVersion
-        ),
-        { accessToken, version: apiVersion }
+        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
+        { accessToken, version: 2 }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -617,30 +533,24 @@ const BidOptionTab = ({
         pdfLink: true,
       }}
       updateBidOption={updateBidOption}
-      apiVersion={apiVersion}
       bidUpdateStatus={bidUpdateStatus}
     />
   )
 }
 
+// only work with v2 api
 const BidConsole = ({ appContext }) => {
   const {
     header,
     venueId,
     entity: invitation,
-    apiVersion,
     scoreIds,
-    submissionInvitationId,
     submissionVenueId,
-    bidInvitationId,
     conflictInvitationId,
     subjectAreas,
   } = useContext(WebFieldContext)
 
-  const bidOptions =
-    apiVersion === 2
-      ? invitation.edge?.label?.param?.enum
-      : invitation.reply?.content?.label?.['value-radio']
+  const bidOptions = invitation.edge?.label?.param?.enum
   const bidOptionsWithDefaultTabs = ['All Papers', ...(bidOptions ?? []), 'No Bid']
   const getActiveTabIndex = () => {
     const tabIndex = bidOptionsWithDefaultTabs.findIndex(
@@ -662,12 +572,12 @@ const BidConsole = ({ appContext }) => {
       const bidEdgeResultsP = api.getAll(
         '/edges',
         { invitation: invitation.id, tail: user.profile.id },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       const conflictEdgeResultsP = api.getAll(
         '/edges',
         { invitation: conflictInvitationId, tail: user.profile.id },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       const results = await Promise.all([bidEdgeResultsP, conflictEdgeResultsP])
       setBidEdges(results[0])
@@ -711,13 +621,11 @@ const BidConsole = ({ appContext }) => {
           <NoBidTab
             scoreIds={scoreIds}
             bidOptions={bidOptions}
-            submissionInvitationId={submissionInvitationId}
             submissionVenueId={submissionVenueId}
             invitation={invitation}
             bidEdges={bidEdges}
             setBidEdges={setBidEdges}
             conflictIds={conflictIds}
-            apiVersion={apiVersion}
           />
         </TabPanel>
       )
@@ -730,7 +638,6 @@ const BidConsole = ({ appContext }) => {
           bidEdges={bidEdges}
           invitation={invitation}
           setBidEdges={setBidEdges}
-          apiVersion={apiVersion}
         />
       </TabPanel>
     )
@@ -740,10 +647,8 @@ const BidConsole = ({ appContext }) => {
     header,
     venueId,
     invitation,
-    apiVersion,
     scoreIds,
-    ...(apiVersion !== 2 && { submissionInvitationId }),
-    ...(apiVersion === 2 && { submissionVenueId }),
+    submissionVenueId,
     conflictInvitationId,
     bidOptions,
   }).filter(([key, value]) => value === undefined)

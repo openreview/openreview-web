@@ -549,7 +549,9 @@ table.table-minimal {
   select {
     width: 300px;
   }
-  .dropdown {
+
+  .dropdown,
+  .subjectarea {
     width: 310px;
     .dropdown_content {
       width: 310px;
