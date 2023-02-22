@@ -1,10 +1,40 @@
 /* globals promptError: false */
 
 // modified from noteMetaReviewStatus.hbs handlebar template
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { inflect } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
+import WebFieldContext from '../WebFieldContext'
+import { getNoteContent } from '../../lib/webfield-utils'
+
+const IEEECopyrightForm = ({ note, isV2Note }) => {
+  const { showIEEECopyright, IEEEPublicationTitle, IEEEArtSourceCode } =
+    useContext(WebFieldContext)
+  const { user } = useUser()
+  const noteContent = getNoteContent(note, isV2Note)
+
+  if (showIEEECopyright && IEEEPublicationTitle && IEEEArtSourceCode) {
+    return (
+      <form action="https://ecopyright.ieee.org/ECTT/IntroPage.jsp" method="post">
+        <input type="hidden" name="PubTitle" value={IEEEPublicationTitle} />
+        <input type="hidden" name="ArtTitle" value={noteContent.title} />
+        <input type="hidden" name="AuthName" value={noteContent.authors.join(' and ')} />
+        <input type="hidden" name="ArtId" value={note.id} />
+        <input type="hidden" name="ArtSource" value={IEEEArtSourceCode} />
+        <input type="hidden" name="AuthEmail" value={user.profile.preferredEmail} />
+        <input type="hidden" name="rtrnurl" value={window.location.href} />
+        <input
+          name="Submit"
+          type="submit"
+          value="Copyright Submission"
+          className="btn btn-sm"
+        />
+      </form>
+    )
+  }
+  return null
+}
 
 // eslint-disable-next-line import/prefer-default-export
 export const AuthorConsoleNoteMetaReviewStatus = ({
@@ -22,6 +52,10 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
   const decisionContent = isV2Note
     ? decision?.content?.recommendation?.value
     : decision?.content?.decision
+  const isAcceptedPaper = isV2Note
+    ? note.content?.venue?.value?.toLowerCase()?.includes('accept')
+    : decisionContent?.toLowerCase()?.includes('accept')
+
   if (!decision)
     return (
       <>
@@ -33,31 +67,37 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
         <h4>
           <strong>No Recommendation</strong>
         </h4>
+        {isAcceptedPaper && <IEEECopyrightForm note={note} isV2Note={isV2Note} />}
       </>
     )
 
-  return decisionContent ? (
-    <div>
-      {isV2Note && (
-        <h4>
-          <strong>{note.content?.venue?.value}</strong>
-        </h4>
-      )}
-      <h4>Recommendation:</h4>
-      <p>
-        <strong>{decisionContent}</strong>
-      </p>
-      <p>
-        <a
-          href={`/forum?id=${note.forum}&noteId=${decision.id}`}
-          target="_blank"
-          rel="nofollow noreferrer"
-        >
-          Read
-        </a>
-      </p>
-    </div>
-  ) : null
+  return (
+    <>
+      {decisionContent ? (
+        <div>
+          {isV2Note && (
+            <h4>
+              <strong>{note.content?.venue?.value}</strong>
+            </h4>
+          )}
+          <h4>Recommendation:</h4>
+          <p>
+            <strong>{decisionContent}</strong>
+          </p>
+          <p>
+            <a
+              href={`/forum?id=${note.forum}&noteId=${decision.id}`}
+              target="_blank"
+              rel="nofollow noreferrer"
+            >
+              Read
+            </a>
+          </p>
+        </div>
+      ) : null}
+      {isAcceptedPaper && <IEEECopyrightForm note={note} isV2Note={isV2Note} />}
+    </>
+  )
 }
 
 // modified from noteMetaReviewStatus.hbs handlebar template

@@ -14,17 +14,7 @@ export default function BaseActivityList({ notes, emptyMessage, showActionButton
     const tempNotes = []
 
     notes.forEach((note) => {
-      const invitationArr = note.invitation.split('/-/')
-      if (invitationArr[1].toLowerCase().includes('assignment')) {
-        return
-      }
-
-      // eslint-disable-next-line prefer-const
-      let { forum, id } = note.apiVersion === 2 ? note.note : note
-      // TODO: Remove this workaround once note edits all contain forum
-      if (note.apiVersion === 2 && !forum && !note.note.replyto) {
-        forum = id
-      }
+      const { forum, id } = note.apiVersion === 2 ? note.note : note
       if (!forum) return
 
       const noteAuthors = note.tauthor ? [note.tauthor] : note.signatures
@@ -34,20 +24,19 @@ export default function BaseActivityList({ notes, emptyMessage, showActionButton
       if (userIsSignatory) {
         formattedSignature = 'You'
       } else {
-        let prettySig = prettyId(note.signatures[0])
-        if (prettySig === '(anonymous)' || prettySig === '(guest)') {
-          prettySig = 'Anonymous'
-        } else if (prettySig === 'Super User') {
-          prettySig = 'An Administrator'
+        formattedSignature = prettyId(note.signatures[0])
+        if (formattedSignature === '(anonymous)' || formattedSignature === '(guest)') {
+          formattedSignature = 'Anonymous'
+        } else if (formattedSignature === 'Super User') {
+          formattedSignature = 'An Administrator'
         }
-        formattedSignature = prettySig
       }
 
       tempNotes.push({
         ...note,
         details: {
           ...note.details,
-          group: invitationArr[0],
+          group: note.invitation.split('/-/')[0],
           isDeleted: note.ddate && note.ddate < Date.now(),
           isUpdated: note.tmdate > note.tcdate,
           isForum: forum === id,
