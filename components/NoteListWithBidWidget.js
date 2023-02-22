@@ -1,5 +1,5 @@
 import List from 'rc-virtual-list'
-import Note, { NoteV2 } from './Note'
+import { NoteV2 } from './Note'
 import { BidRadioButtonGroup, BidScore } from './webfield/BidWidget'
 
 // only work with v2 api
