@@ -224,6 +224,27 @@ const AreaChairConsole = ({ appContext }) => {
     return name ? prettyId(reviewerProfile.id) : `${name.first} ${name.last}`
   }
 
+  const getSACLinkText = () => {
+    if (!acConsoleData.sacProfiles?.length) return ''
+    const sacText = `Your assigned Senior Area ${inflect(
+      acConsoleData.sacProfiles.length,
+      'Chair is',
+      'Chairs are'
+    )}`
+    const sacProfileLinks = acConsoleData.sacProfiles.map(
+      (sacProfile) =>
+        `<a href='https://openreview.net/profile?id=${
+          sacProfile.id
+        }' target='_blank'>${prettyId(sacProfile.id)}</a> (${sacProfile.email})`
+    )
+    return `<p class="dark">${sacText} ${prettyList(
+      sacProfileLinks,
+      'long',
+      'conjunction',
+      false
+    )}</p>`
+  }
+
   const loadData = async () => {
     try {
       const allGroups = await api.getAll(
@@ -637,25 +658,7 @@ const AreaChairConsole = ({ appContext }) => {
     <>
       <BasicHeader
         title={header?.title}
-        instructions={`${headerInstructions}${
-          acConsoleData.sacProfiles?.length
-            ? `<p class="dark">Your assigned Senior Area ${inflect(
-                acConsoleData.sacProfiles.length,
-                'Chair is',
-                'Chairs are'
-              )} ${prettyList(
-                acConsoleData.sacProfiles.map(
-                  (sacProfile) =>
-                    `<a href='https://openreview.net/profile?id=${
-                      sacProfile.id
-                    }' target='_blank'>${prettyId(sacProfile.id)}</a> (${sacProfile.email})`
-                ),
-                'long',
-                'conjunction',
-                false
-              )}`
-            : ''
-        }`}
+        instructions={`${headerInstructions}${getSACLinkText()}`}
       />
 
       <Tabs>
