@@ -16,7 +16,7 @@ const ProfileSearchWidget = () => {
   const { field, onChange, value, isWebfield } = useContext(EditorComponentContext)
   const [selectedAuthors, setSelectedAuthors] = useState([])
   const [profileSearchResults, setProfileSearchResults] = useState([])
-  const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
+  // const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
 
   const getProfiles = async (authorids) => {
@@ -64,38 +64,52 @@ const ProfileSearchWidget = () => {
     }
   }
 
-  const delaySearch = useCallback(
-    debounce((term) => setSearchTerm(term), 300),
-    []
-  )
+  // const delaySearch = useCallback(
+  //   debounce((term) => setSearchTerm(term), 300),
+  //   []
+  // )
 
   useEffect(() => {
     setSelectedAuthors([user])
   }, [])
 
-  useEffect(() => {
-    if (!searchTerm) {
-      setProfileSearchResults([])
-      return
-    }
-    searchProfile(searchTerm)
-  }, [searchTerm])
+  // useEffect(() => {
+  //   const cleanSearchTerm = searchTerm.trim()
+  //   if (!cleanSearchTerm) {
+  //     setProfileSearchResults([])
+  //     return
+  //   }
+  //   searchProfile(cleanSearchTerm)
+  // }, [searchTerm])
 
   return (
     <div className={styles.profileSearch}>
       {selectedAuthors.map((author) => {
         return <span key={author.id}>{author.id}</span>
       })}
-      <input
-        type="text"
-        className="form-control"
-        value={immediateSearchTerm}
-        placeholder="search profiles by name or email"
-        onChange={(e) => {
-          setImmediateSearchTerm(e.target.value)
-          delaySearch(e.target.value)
+      <form
+        className={styles.searchForm}
+        onSubmit={(e) => {
+          e.preventDefault()
+          searchProfile(searchTerm.trim())
         }}
-      />
+      >
+        <input
+          type="text"
+          className="form-control"
+          // value={immediateSearchTerm}
+          value={searchTerm}
+          placeholder="search profiles by name or email"
+          // onChange={(e) => {
+          //   setImmediateSearchTerm(e.target.value)
+          //   delaySearch(e.target.value)
+          // }}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <button className="btn" disabled={!searchTerm.trim()} type="submit">
+          Search
+        </button>
+      </form>
       {profileSearchResults.map((author) => {
         return <span key={author.id}>{author.id}</span>
       })}

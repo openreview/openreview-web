@@ -1,7 +1,16 @@
 .profileSearch {
+  width: 80%;
   :global {
   }
 }
 
 .authorRow {
+}
+
+.searchForm {
+  display: flex;
+
+  button {
+    margin-left: 0.25rem;
+  }
 }
