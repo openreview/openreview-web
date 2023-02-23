@@ -1,6 +1,6 @@
 /* globals typesetMathJax,promptError: false */
 
-import { useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useReducer, useState } from 'react'
 import debounce from 'lodash/debounce'
 import kebabCase from 'lodash/kebabCase'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -42,16 +42,14 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
   } = useContext(WebFieldContext)
   const defaultSubjectArea = 'All Subject Areas'
   const [notes, setNotes] = useState([])
-  const [selectedScore, setSelectedScore] = useState(scoreIds?.[0])
-  const [selectedSubjectArea, setSelectedSubjectArea] = useState(defaultSubjectArea)
-  const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
   const { user, accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [scoreEdges, setScoreEdges] = useState([])
   const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
+  const [showPagination, setShowPagination] = useState(true)
+
   const sortOptions = scoreIds?.map((p) => ({ label: prettyInvitationId(p), value: p }))
   const subjectAreaOptions = subjectAreas?.length
     ? [{ label: 'All Subject Areas', value: 'All Subject Areas' }].concat(
@@ -60,7 +58,52 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     : []
   const pageSize = 50
 
-  const getNotesSortedByAffinity = async (score = selectedScore, limit = 50) => {
+  const searchStateReducer = (state, action) => {
+    switch (action.type) {
+      case 'selectedScore':
+        return {
+          selectedScore: action.payload,
+          selectedSubjectArea: defaultSubjectArea,
+          immediateSearchTerm: '',
+          searchTerm: '',
+          source: 'selectedScore',
+        }
+      case 'selectedSubjectArea':
+        return {
+          selectedScore: scoreIds?.[0],
+          selectedSubjectArea: action.payload,
+          immediateSearchTerm: '',
+          searchTerm: '',
+          source: 'selectedSubjectArea',
+        }
+      case 'immediateSearchTerm':
+        return {
+          selectedScore: scoreIds?.[0],
+          selectedSubjectArea: defaultSubjectArea,
+          immediateSearchTerm: action.payload,
+          searchTerm: state.searchTerm,
+          source: 'immediateSearchTerm',
+        }
+      case 'searchTerm':
+        return {
+          selectedScore: scoreIds?.[0],
+          selectedSubjectArea: defaultSubjectArea,
+          immediateSearchTerm: state.immediateSearchTerm,
+          searchTerm: action.payload,
+          source: 'searchTerm',
+        }
+      default:
+        return state
+    }
+  }
+  const [searchState, setSearchState] = useReducer(searchStateReducer, {
+    selectedScore: scoreIds?.[0],
+    selectedSubjectArea: defaultSubjectArea,
+    immediateSearchTerm: '',
+    searchTerm: '',
+  })
+
+  const getNotesSortedByAffinity = async (score = searchState.selectedScore, limit = 50) => {
     setIsLoading(true)
     const getNotesBySubmissionInvitationP = async () => {
       const result = await api.get(
@@ -176,24 +219,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     }
   }
 
-  const handleSearchTermChange = (updatedSearchTerm) => {
-    const cleanSearchTerm = updatedSearchTerm.trim()
-    if (cleanSearchTerm) {
-      getNotesBySearchTerm(cleanSearchTerm)
-    } else {
-      getNotesSortedByAffinity()
-    }
-    setSearchTerm(updatedSearchTerm)
-  }
-
-  const handleScoreDropdownChange = (scoreSelected) => {
-    setPageNumber(1)
-    setSelectedScore(scoreSelected)
-    getNotesSortedByAffinity(scoreSelected)
-  }
-
   const handleSubjectAreaDropdownChange = async (subjectAreaSelected) => {
-    setSelectedSubjectArea(subjectAreaSelected)
     if (subjectAreaSelected === defaultSubjectArea) {
       getNotesSortedByAffinity()
       return
@@ -221,7 +247,8 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
   }
 
   const delaySearch = useCallback(
-    debounce((term) => handleSearchTermChange(term), 200),
+    // debounce((term) => handleSearchTermChange(term), 200),
+    debounce((term) => setSearchState({ type: 'searchTerm', payload: term }), 200),
     []
   )
 
@@ -235,6 +262,40 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     getNotesSortedByAffinity()
   }, [pageNumber])
 
+  useEffect(() => {
+    if (searchState.source === 'searchTerm' && searchState.searchTerm) {
+      getNotesBySearchTerm(searchState.searchTerm)
+      setShowPagination(false)
+      return
+    }
+    if (
+      searchState.source === 'selectedScore' &&
+      searchState.selectedScore !== scoreIds?.[0]
+    ) {
+      getNotesSortedByAffinity(searchState.selectedScore)
+      setShowPagination(true)
+      setPageNumber(1)
+      return
+    }
+    if (
+      searchState.source === 'selectedSubjectArea' &&
+      searchState.selectedSubjectArea !== defaultSubjectArea
+    ) {
+      handleSubjectAreaDropdownChange(searchState.selectedSubjectArea)
+      setShowPagination(false)
+      return
+    }
+    if (searchState.source === 'immediateSearchTerm') {
+      if (searchState.immediateSearchTerm === '') {
+        getNotesSortedByAffinity()
+        setShowPagination(true)
+      }
+      return
+    }
+    getNotesSortedByAffinity()
+    setShowPagination(true)
+  }, [searchState])
+
   return (
     <>
       <form className="form-inline notes-search-form" role="search">
@@ -245,15 +306,17 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             className="form-control"
             placeholder="Search by paper title and metadata"
             autoComplete="off"
-            value={immediateSearchTerm}
+            value={searchState.immediateSearchTerm}
             onChange={(e) => {
-              setImmediateSearchTerm(e.target.value)
+              setSearchState({ type: 'immediateSearchTerm', payload: e.target.value })
               if (e.target.value.trim().length >= 3) delaySearch(e.target.value)
-              if (e.target.value.trim().length === 0) handleSearchTermChange('')
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && immediateSearchTerm.trim().length >= 2) {
-                handleSearchTermChange(immediateSearchTerm)
+              if (e.key === 'Enter' && searchState.immediateSearchTerm.trim().length >= 2) {
+                setSearchState({
+                  type: 'searchTerm',
+                  payload: searchState.immediateSearchTerm,
+                })
               }
             }}
           />
@@ -265,8 +328,8 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             <Dropdown
               className="dropdown-select"
               options={sortOptions}
-              value={sortOptions.find((p) => p.value === selectedScore)}
-              onChange={(e) => handleScoreDropdownChange(e.value)}
+              value={sortOptions.find((p) => p.value === searchState.selectedScore)}
+              onChange={(e) => setSearchState({ type: 'selectedScore', payload: e.value })}
             />
           </div>
         )}
@@ -276,8 +339,12 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             <Dropdown
               className="dropdown-select subjectarea"
               options={subjectAreaOptions}
-              value={subjectAreaOptions.find((p) => p.value === selectedSubjectArea)}
-              onChange={(e) => handleSubjectAreaDropdownChange(e.value)}
+              value={subjectAreaOptions.find(
+                (p) => p.value === searchState.selectedSubjectArea
+              )}
+              onChange={(e) =>
+                setSearchState({ type: 'selectedSubjectArea', payload: e.value })
+              }
             />
           </div>
         )}
@@ -300,7 +367,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             updateBidOption={updateBidOption}
             bidUpdateStatus={bidUpdateStatus}
           />
-          {!searchTerm && selectedSubjectArea === defaultSubjectArea && (
+          {showPagination && (
             <PaginationLinks
               currentPage={pageNumber}
               itemsPerPage={pageSize}
