@@ -1,4 +1,5 @@
 import { DownloadLink, NoteContentValue } from '../NoteContent'
+import { formatTimestamp } from '../../lib/utils'
 
 const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJsonValue }) => {
   if (fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/')) {
@@ -41,6 +42,26 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJso
       <div className="note-content-value">
         <pre>{fieldValue}</pre>
       </div>
+    )
+  }
+  if (
+    [
+      'cdate',
+      'tcdate',
+      'mdate',
+      'tmdate',
+      'ddate',
+      'tddate',
+      'odate',
+      'pdate',
+      'duedate',
+      'expdate',
+    ].includes(fieldName)
+  ) {
+    return (
+      <span className="note-content-value">
+        {formatTimestamp(Number.parseInt(fieldValue, 10))}
+      </span>
     )
   }
 
