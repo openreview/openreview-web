@@ -45,9 +45,18 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJso
     )
   }
   if (
-    ['cdate', 'odate', 'pdate', 'ddate', 'mdate', 'tdate', 'tmdate', 'tddate'].includes(
-      fieldName
-    )
+    [
+      'cdate',
+      'tcdate',
+      'mdate',
+      'tmdate',
+      'ddate',
+      'tddate',
+      'odate',
+      'pdate',
+      'duedate',
+      'expdate',
+    ].includes(fieldName)
   ) {
     return (
       <span className="note-content-value">
