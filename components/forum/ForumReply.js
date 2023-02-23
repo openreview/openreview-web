@@ -17,8 +17,14 @@ import Icon from '../Icon'
 export default function ForumReply({ note, replies, replyDepth, parentId, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
-  const { displayOptionsMap, layout, setCollapsed, setContentExpanded } =
-    useContext(ForumReplyContext)
+  const {
+    displayOptionsMap,
+    layout,
+    nesting,
+    excludedInvitations,
+    setCollapsed,
+    setContentExpanded,
+  } = useContext(ForumReplyContext)
   const { user } = useUser()
 
   const { invitations, content, signatures, ddate } = note
@@ -32,6 +38,10 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
     []
   )
   const allRepliesHidden = allChildIds.every((childId) => displayOptionsMap[childId].hidden)
+
+  const showReplyInvitations =
+    note.replyInvitations?.filter((i) => !excludedInvitations?.includes(i.id)).length > 0 &&
+    !note.ddate
 
   const scrollToNote = (noteId, showEditor) => {
     const el = document.querySelector(
@@ -162,7 +172,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
       setContentExpanded={setContentExpanded}
       replyDepth={replyDepth}
     >
-      {layout === replyDepth && note.replyto !== parentId && (
+      {nesting === replyDepth && note.replyto !== parentId && (
         <div className="parent-title">
           <h5 onClick={() => scrollToNote(note.replyto)}>
             <Icon name="share-alt" /> Replying to{' '}
@@ -283,11 +293,20 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
                           {prettyId(q, true)}
                         </a>
                       ))
-                      .concat(signatureGroup.members.length > 4 ? (
-                        <a key="others" href={`/group/info?id=${signatureGroup.id}`} target="_blank" rel="noreferrer">
-                          +{signatureGroup.members.length - 4} more
-                        </a>
-                      ) : [])
+                      .concat(
+                        signatureGroup.members.length > 4 ? (
+                          <a
+                            key="others"
+                            href={`/group/info?id=${signatureGroup.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            +{signatureGroup.members.length - 4} more
+                          </a>
+                        ) : (
+                          []
+                        )
+                      )
                       .reduce(
                         (accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]),
                         null
@@ -338,21 +357,25 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         deleted={!!ddate}
       />
 
-      {note.replyInvitations?.length > 0 && !note.ddate && (
+      {showReplyInvitations && (
         <div className="invitations-container mt-2">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
-            {note.replyInvitations.map((inv) => (
-              <button
-                key={inv.id}
-                type="button"
-                className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''}`}
-                data-id={inv.id}
-                onClick={() => openNoteEditor(inv, 'reply')}
-              >
-                {prettyInvitationId(inv.id)}
-              </button>
-            ))}
+            {note.replyInvitations.map((inv) => {
+              if (excludedInvitations?.includes(inv.id)) return null
+
+              return (
+                <button
+                  key={inv.id}
+                  type="button"
+                  className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''}`}
+                  data-id={inv.id}
+                  onClick={() => openNoteEditor(inv, 'reply')}
+                >
+                  {prettyInvitationId(inv.id)}
+                </button>
+              )
+            })}
           </div>
 
           <NoteEditorForm
