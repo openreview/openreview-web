@@ -10,17 +10,8 @@ import AreaChairStatusMenuBar from '../ProgramChairConsole/AreaChairStatusMenuBa
 
 const CommitteeSummary = ({ rowData }) => {
   const { id, preferredName, preferredEmail } = rowData.areaChairProfile ?? {}
-  const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
-  const {
-    seniorAreaChairsId,
-    areaChairsId,
-    reviewersId,
-    bidName,
-    scoresName,
-    recommendationName,
-  } = useContext(WebFieldContext)
-  const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
-  const completedRecs = rowData.completedRecommendations
+  const { edgeBrowserDeployedUrl } = useContext(WebFieldContext)
+  const edgeBrowserUrl = edgeBrowserDeployedUrl?.replaceAll('{ac.profile.id}', id)
 
   return (
     <>
@@ -37,32 +28,16 @@ const CommitteeSummary = ({ rowData }) => {
               </a>
             </h4>
             <p className="text-muted">({preferredEmail})</p>
+            {edgeBrowserUrl && (
+              <a target="_blank" rel="noreferrer" href={edgeBrowserUrl}>
+                Modify Reviewer Assignments
+              </a>
+            )}
           </>
         ) : (
           <h4>{rowData.areaChairProfileId}</h4>
         )}
       </div>
-      {sacProfile && (
-        <>
-          <h4>Senior Area Chair: </h4>
-          <div className="note">
-            {sacProfile?.preferredName && (
-              <>
-                <h4>
-                  <a
-                    href={getProfileLink(sacProfile?.id, seniorAreaChairId)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {sacProfile.preferredName}
-                  </a>
-                </h4>
-                <p className="text-muted">({sacProfile.preferredEmail})</p>
-              </>
-            )}
-          </div>
-        </>
-      )}
     </>
   )
 }
