@@ -211,6 +211,7 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
           { accessToken, version: apiVersion }
         )
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn(`Error marking invitation as completed: ${error.message}`)
       }
     }

@@ -611,7 +611,11 @@ export default function Column(props) {
             })
             existingItems.add(headOrTailId)
           })
-          setItems(colItems)
+          setItems(
+            type === 'head'
+              ? colItems.sort((itemA, itemB) => itemA.number - itemB.number)
+              : colItems
+          )
         })
         .catch((error) => promptError(error.message))
       return
