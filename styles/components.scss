@@ -355,6 +355,10 @@ table.table-minimal {
     margin-top: 15px;
     font-style: italic;
   }
+
+  > li {
+    margin-bottom: 0.5rem;
+  }
 }
 
 .task-list {
@@ -552,9 +556,9 @@ table.table-minimal {
 
   .dropdown,
   .subjectarea {
-    width: 310px;
+    width: 260px;
     .dropdown_content {
-      width: 310px;
+      width: 260px;
     }
   }
 
