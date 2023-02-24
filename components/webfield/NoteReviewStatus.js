@@ -213,6 +213,11 @@ export const AcPcConsoleReviewerStatusRow = ({
         </span>
         {completedReview ? (
           <>
+            <div>
+              {completedReview.rating &&
+                `Rating: ${completedReview.rating}${completedReview.confidence ? ' / ' : ''}`}
+              {completedReview.confidence && `Confidence: ${completedReview.confidence}`}
+            </div>
             {completedReview.reviewLength && (
               <span>Review length: {completedReview.reviewLength}</span>
             )}

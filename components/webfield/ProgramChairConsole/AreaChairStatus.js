@@ -1,4 +1,5 @@
 /* globals promptError: false */
+import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
@@ -332,7 +333,7 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
           } else {
             acProfile = pcConsoleData.allProfilesMap.get(areaChairProfileId)
           }
-          const notes = acNotesMap.get(areaChairProfileId) ?? []
+          const notes = sortBy(acNotesMap.get(areaChairProfileId) ?? [], 'noteNumber')
           return {
             areaChairProfileId,
             areaChairProfile: acProfile,
@@ -448,7 +449,7 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
         className="console-table table-striped pc-console-ac-status"
         headings={[
           { id: 'number', content: '#', width: '55px' },
-          { id: 'areachair', content: 'Area Chair', width: '25%' },
+          { id: 'areachair', content: 'Area Chair', width: '10%' },
           { id: 'reviewProgress', content: 'Review Progress' },
           { id: 'status', content: 'Status' },
         ]}
