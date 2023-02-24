@@ -1,23 +1,62 @@
-import { debounce } from 'lodash'
+import { debounce, maxBy } from 'lodash'
 import { useContext, useState, useEffect, useCallback } from 'react'
 import useUser from '../../hooks/useUser'
 import { isValidEmail } from '../../lib/utils'
 import api from '../../lib/api-client'
+import IconButton from '../IconButton'
 
 import styles from '../../styles/components/ProfileSearchWidget.module.scss'
 import EditorComponentContext from '../EditorComponentContext'
+import LoadingSpinner from '../LoadingSpinner'
 
-const AuthorRow = () => {
+const AuthorRow = ({ profile }) => {
   return <div className={styles.authorRow}></div>
+}
+
+const ProfileSearchResultRow = ({ profile }) => {
+  const latestHistory =
+    profile.content.history?.find((p) => !p.end) || maxBy(profile.content.history, 'end')
+  const title = latestHistory
+    ? `${latestHistory.position} at ${latestHistory.institution?.name} (${latestHistory.institution?.domain})`
+    : ''
+  const profileIdSegements = profile.id.split(new RegExp(`([^~_0-9]+|[~_0-9]+)`, 'g'))
+
+  return (
+    <div className={styles.searchResultRow}>
+      <div className={styles.basicInfo}>
+        <div className={styles.authorFullName}>
+          <a href={`/profile?id=${profile.id}`} target="_blank" rel="noreferrer">
+            {profileIdSegements.map((segment) => {
+              if (/[^~_0-9]+/.test(segment)) {
+                return <span className={styles.nameSegment}>{segment}</span>
+              } else {
+                return <span className={styles.idSegment}>{segment}</span>
+              }
+            })}
+          </a>
+        </div>
+        <div className={styles.authorTitle}>{title}</div>
+      </div>
+      <div className={styles.authorEmails}>
+        {profile.content.emailsConfirmed?.map((email) => (
+          <span key={email}>{email}</span>
+        ))}
+      </div>
+      <div className={styles.addButton}>
+        <IconButton name="plus" onClick={() => {}} />
+      </div>
+    </div>
+  )
 }
 
 const ProfileSearchWidget = () => {
   const { user, accessToken } = useUser()
   const { field, onChange, value, isWebfield } = useContext(EditorComponentContext)
   const [selectedAuthors, setSelectedAuthors] = useState([])
-  const [profileSearchResults, setProfileSearchResults] = useState([])
+  const [profileSearchResults, setProfileSearchResults] = useState(null)
   // const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const getProfiles = async (authorids) => {
     try {
@@ -48,6 +87,7 @@ const ProfileSearchWidget = () => {
   }
 
   const searchProfile = async (searchTerm) => {
+    setIsLoading(true)
     const cleanSearchTerm = searchTerm.trim().toLowerCase()
     const isEmail = isValidEmail(cleanSearchTerm)
     try {
@@ -62,6 +102,53 @@ const ProfileSearchWidget = () => {
     } catch (error) {
       promptError(error.message)
     }
+    setIsLoading(false)
+  }
+
+  const renderProfileSearchResults = () => {
+    if (!profileSearchResults) return null
+    if (!profileSearchResults.length)
+      return (
+        <div className={styles.noMatchingProfile}>
+          <span>
+            No matching profiles found. <br />
+            Please enter the author's full name and email below, then click Add button to add
+            the author.
+          </span>
+          <form
+            className={styles.customAuthorForm}
+            onSubmit={(e) => {
+              e.preventDefault()
+              searchProfile(searchTerm.trim())
+            }}
+          >
+            <label htmlFor="fullName">Full Name:</label>
+            <input
+              type="text"
+              name="fullName"
+              className="form-control"
+              value={searchTerm}
+              placeholder="full name of the author you wat to add"
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <label htmlFor="email">Email:</label>
+            <input
+              type="email"
+              name="email"
+              className="form-control"
+              value={searchTerm}
+              placeholder="full name of the author you wat to add"
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <button className="btn btn-sm" disabled={!searchTerm.trim()} type="submit">
+              Add
+            </button>
+          </form>
+        </div>
+      )
+    return profileSearchResults.map((profile) => (
+      <ProfileSearchResultRow profile={profile} key={profile.id} />
+    ))
   }
 
   // const delaySearch = useCallback(
@@ -106,13 +193,17 @@ const ProfileSearchWidget = () => {
           // }}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button className="btn" disabled={!searchTerm.trim()} type="submit">
+        <button className="btn btn-sm" disabled={!searchTerm.trim()} type="submit">
           Search
         </button>
       </form>
-      {profileSearchResults.map((author) => {
-        return <span key={author.id}>{author.id}</span>
-      })}
+      <div className={styles.searchResults}>
+        {isLoading ? (
+          <LoadingSpinner inline={true} text={null} />
+        ) : (
+          renderProfileSearchResults()
+        )}
+      </div>
     </div>
   )
 }

@@ -1,3 +1,5 @@
+@use '../utils/constants';
+
 .profileSearch {
   width: 80%;
   :global {
@@ -9,8 +11,70 @@
 
 .searchForm {
   display: flex;
+  margin-bottom: 0.25rem;
 
   button {
     margin-left: 0.25rem;
+  }
+}
+
+.noMatchingProfile {
+  display: flex;
+  flex-direction: column;
+
+  .customAuthorForm {
+    display: flex;
+
+    label {
+      white-space: nowrap;
+      margin-right: 0.25rem;
+      align-self: center;
+    }
+
+    input {
+      margin-right: 0.25rem;
+    }
+  }
+}
+
+.searchResults {
+}
+
+.searchResultRow {
+  display: flex;
+  margin-bottom: 0.25rem;
+
+  .basicInfo {
+    display: flex;
+    flex: 3 1;
+    flex-direction: column;
+
+    .authorFullName {
+      font-style: italic;
+      .nameSegment {
+        color: black;
+      }
+      .idSegment {
+        color: constants.$lightGray;
+      }
+    }
+
+    .authorTitle {
+      font-size: 0.75rem;
+      color: constants.$subtleGray;
+    }
+  }
+
+  .authorEmails {
+    display: flex;
+    flex: 1 1;
+    flex-direction: column;
+    align-self: center;
+    font-size: 0.75rem;
+  }
+
+  .addButton {
+    height: fit-content;
+    align-self: center;
   }
 }
