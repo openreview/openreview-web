@@ -9,24 +9,42 @@ import styles from '../../styles/components/ProfileSearchWidget.module.scss'
 import EditorComponentContext from '../EditorComponentContext'
 import LoadingSpinner from '../LoadingSpinner'
 
-const AuthorRow = ({ profile }) => {
-  return <div className={styles.authorRow}></div>
-}
-
-const ProfileSearchResultRow = ({ profile }) => {
+const getTitle = (profile) => {
+  if (!profile.content) return null
   const latestHistory =
     profile.content.history?.find((p) => !p.end) || maxBy(profile.content.history, 'end')
   const title = latestHistory
-    ? `${latestHistory.position} at ${latestHistory.institution?.name} (${latestHistory.institution?.domain})`
+    ? `${latestHistory.position ? `${latestHistory.position} at ` : ''}${
+        latestHistory.institution?.name
+      }${latestHistory.institution?.domain ? ` (${latestHistory.institution?.domain})` : ''}`
     : ''
-  const profileIdSegements = profile.id.split(new RegExp(`([^~_0-9]+|[~_0-9]+)`, 'g'))
+  return title
+}
 
+const AuthorRow = ({ profile }) => {
+  if (!profile) return null
+  return (
+    <div className={styles.selectedAuthor}>
+      <div className={styles.authorName}>
+        <a href={`/profile?id=${profile.id}`} target="_blank" rel="noreferrer">
+          {profile.id}
+        </a>
+      </div>
+      <div className={styles.removeButton}>
+        <IconButton name="remove" onClick={() => {}} />
+      </div>
+    </div>
+  )
+}
+
+const ProfileSearchResultRow = ({ profile }) => {
+  if (!profile) return null
   return (
     <div className={styles.searchResultRow}>
       <div className={styles.basicInfo}>
         <div className={styles.authorFullName}>
           <a href={`/profile?id=${profile.id}`} target="_blank" rel="noreferrer">
-            {profileIdSegements.map((segment) => {
+            {profile.id.split(new RegExp(`([^~_0-9]+|[~_0-9]+)`, 'g')).map((segment) => {
               if (/[^~_0-9]+/.test(segment)) {
                 return <span className={styles.nameSegment}>{segment}</span>
               } else {
@@ -35,10 +53,10 @@ const ProfileSearchResultRow = ({ profile }) => {
             })}
           </a>
         </div>
-        <div className={styles.authorTitle}>{title}</div>
+        <div className={styles.authorTitle}>{getTitle()}</div>
       </div>
       <div className={styles.authorEmails}>
-        {profile.content.emailsConfirmed?.map((email) => (
+        {profile.content?.emailsConfirmed?.map((email) => (
           <span key={email}>{email}</span>
         ))}
       </div>
@@ -52,13 +70,14 @@ const ProfileSearchResultRow = ({ profile }) => {
 const ProfileSearchWidget = () => {
   const { user, accessToken } = useUser()
   const { field, onChange, value, isWebfield } = useContext(EditorComponentContext)
-  const [selectedAuthors, setSelectedAuthors] = useState([])
+  const [selectedAuthorProfiles, setSelectedAuthorProfiles] = useState([])
+  const [selectedAuthorIds, setSelectedAuthorIds] = useState([])
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   // const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const getProfiles = async (authorids) => {
+  const getProfiles = async (authorIds) => {
     try {
       const ids = authorIds.filter((p) => p.startsWith('~'))
       const emails = authorIds.filter((p) => p.match(/.+@.+/))
@@ -81,6 +100,9 @@ const ProfileSearchWidget = () => {
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
+      setSelectedAuthorProfiles(
+        (profileResults[0].profiles ?? []).concat(profileResults[1].profiles ?? [])
+      )
     } catch (error) {
       promptError(error.message)
     }
@@ -151,28 +173,21 @@ const ProfileSearchWidget = () => {
     ))
   }
 
-  // const delaySearch = useCallback(
-  //   debounce((term) => setSearchTerm(term), 300),
-  //   []
-  // )
-
   useEffect(() => {
-    setSelectedAuthors([user])
+    setSelectedAuthorIds([user.profile.id])
   }, [])
 
-  // useEffect(() => {
-  //   const cleanSearchTerm = searchTerm.trim()
-  //   if (!cleanSearchTerm) {
-  //     setProfileSearchResults([])
-  //     return
-  //   }
-  //   searchProfile(cleanSearchTerm)
-  // }, [searchTerm])
+  useEffect(() => {
+    getProfiles(selectedAuthorIds)
+  }, [selectedAuthorIds])
 
   return (
     <div className={styles.profileSearch}>
-      {selectedAuthors.map((author) => {
-        return <span key={author.id}>{author.id}</span>
+      {selectedAuthorIds.map((authorId) => {
+        const authorProfile = selectedAuthorProfiles.find((p) => p.id === authorId)
+        console.log('selectedAuthorProfiles', selectedAuthorProfiles)
+        console.log('authorId', authorId)
+        return <AuthorRow key={authorId} profile={authorProfile} />
       })}
       <form
         className={styles.searchForm}
@@ -184,13 +199,8 @@ const ProfileSearchWidget = () => {
         <input
           type="text"
           className="form-control"
-          // value={immediateSearchTerm}
           value={searchTerm}
           placeholder="search profiles by name or email"
-          // onChange={(e) => {
-          //   setImmediateSearchTerm(e.target.value)
-          //   delaySearch(e.target.value)
-          // }}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         <button className="btn btn-sm" disabled={!searchTerm.trim()} type="submit">

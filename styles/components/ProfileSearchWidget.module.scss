@@ -6,7 +6,16 @@
   }
 }
 
-.authorRow {
+.selectedAuthor {
+  margin-bottom: 0.25rem;
+  display: flex;
+  .authorName > a {
+    font-style: italic;
+    color: constants.$darkBlue;
+    font-size: 1rem;
+  }
+  .removeButton {
+  }
 }
 
 .searchForm {
