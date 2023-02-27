@@ -21,24 +21,48 @@ const getTitle = (profile) => {
   return title
 }
 
-const AuthorRow = ({ profile }) => {
+const Author = ({ fieldName, authorId, profile, showArrowButton }) => {
+  const { onChange, value } = useContext(EditorComponentContext)
+
+  const increaseAuthorIndex = () => {
+    const authorIndex = value.findIndex((p) => p === authorId)
+    const updatedValue = [...value]
+    updatedValue.splice(authorIndex, 1)
+    updatedValue.splice(authorIndex + 1, 0, authorId)
+    onChange({ fieldName, value: updatedValue })
+  }
+
   if (!profile) return null
   return (
     <div className={styles.selectedAuthor}>
-      <div className={styles.authorName}>
+      <div className={styles.authorName} title={''} data-toggle="tooltip" data-placement="top">
         <a href={`/profile?id=${profile.id}`} target="_blank" rel="noreferrer">
           {profile.id}
         </a>
       </div>
-      <div className={styles.removeButton}>
-        <IconButton name="remove" onClick={() => {}} />
+      <div className={styles.actionButtons}>
+        <IconButton
+          name="remove"
+          onClick={() => {
+            onChange({ fieldName, value: value.filter((p) => p !== authorId) })
+          }}
+          extraClasses="action-button"
+        />
+        {showArrowButton && <IconButton name="arrow-right" onClick={increaseAuthorIndex} />}
       </div>
     </div>
   )
 }
 
-const ProfileSearchResultRow = ({ profile }) => {
+const ProfileSearchResultRow = ({
+  fieldName,
+  profile,
+  setProfileSearchResults,
+  setSearchTerm,
+}) => {
+  const { onChange, value } = useContext(EditorComponentContext)
   if (!profile) return null
+
   return (
     <div className={styles.searchResultRow}>
       <div className={styles.basicInfo}>
@@ -53,7 +77,7 @@ const ProfileSearchResultRow = ({ profile }) => {
             })}
           </a>
         </div>
-        <div className={styles.authorTitle}>{getTitle()}</div>
+        <div className={styles.authorTitle}>{getTitle(profile)}</div>
       </div>
       <div className={styles.authorEmails}>
         {profile.content?.emailsConfirmed?.map((email) => (
@@ -61,17 +85,71 @@ const ProfileSearchResultRow = ({ profile }) => {
         ))}
       </div>
       <div className={styles.addButton}>
-        <IconButton name="plus" onClick={() => {}} />
+        <IconButton
+          name="plus"
+          onClick={() => {
+            onChange({ fieldName, value: value.concat(profile.id) })
+            setProfileSearchResults(null)
+            setSearchTerm('')
+          }}
+        />
       </div>
     </div>
+  )
+}
+
+const CustomAuthorForm = ({ searchTerm }) => {
+  const [customAuthorName, ame] = useState('')
+  const [customAuthorEmail, setCustomAuthorEmail] = useState('')
+
+  const disableAddButton = !(customAuthorName.trim() && isValidEmail(customAuthorEmail))
+
+  useEffect(() => {
+    const cleanSearchTerm = searchTerm.trim()
+    if (isValidEmail(cleanSearchTerm)) {
+      setCustomAuthorEmail(cleanSearchTerm)
+    } else {
+      ame(cleanSearchTerm)
+    }
+  }, [searchTerm])
+
+  return (
+    <form
+      className={styles.customAuthorForm}
+      onSubmit={(e) => {
+        e.preventDefault()
+      }}
+    >
+      <label htmlFor="fullName">Full Name:</label>
+      <input
+        type="text"
+        name="fullName"
+        className="form-control"
+        value={customAuthorName}
+        placeholder="full name of the author to add"
+        onChange={(e) => ame(e.target.value)}
+      />
+      <label htmlFor="email">Email:</label>
+      <input
+        type="email"
+        name="email"
+        className="form-control"
+        value={customAuthorEmail}
+        placeholder="email of the author to add"
+        onChange={(e) => setCustomAuthorEmail(e.target.value)}
+      />
+      <button className="btn btn-sm" disabled={disableAddButton} type="submit">
+        Add
+      </button>
+    </form>
   )
 }
 
 const ProfileSearchWidget = () => {
   const { user, accessToken } = useUser()
   const { field, onChange, value, isWebfield } = useContext(EditorComponentContext)
+  const fieldName = Object.keys(field)[0]
   const [selectedAuthorProfiles, setSelectedAuthorProfiles] = useState([])
-  const [selectedAuthorIds, setSelectedAuthorIds] = useState([])
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   // const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
@@ -110,6 +188,8 @@ const ProfileSearchWidget = () => {
 
   const searchProfile = async (searchTerm) => {
     setIsLoading(true)
+    // setCustomAuthorEmail('')
+    // ame('')
     const cleanSearchTerm = searchTerm.trim().toLowerCase()
     const isEmail = isValidEmail(cleanSearchTerm)
     try {
@@ -121,6 +201,9 @@ const ProfileSearchWidget = () => {
         { accessToken }
       )
       setProfileSearchResults(result.profiles)
+      // if (!result.profiles?.length) {
+      //   isEmail ? setCustomAuthorEmail(cleanSearchTerm) : ame(cleanSearchTerm)
+      // }
     } catch (error) {
       promptError(error.message)
     }
@@ -137,58 +220,47 @@ const ProfileSearchWidget = () => {
             Please enter the author's full name and email below, then click Add button to add
             the author.
           </span>
-          <form
-            className={styles.customAuthorForm}
-            onSubmit={(e) => {
-              e.preventDefault()
-              searchProfile(searchTerm.trim())
-            }}
-          >
-            <label htmlFor="fullName">Full Name:</label>
-            <input
-              type="text"
-              name="fullName"
-              className="form-control"
-              value={searchTerm}
-              placeholder="full name of the author you wat to add"
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <label htmlFor="email">Email:</label>
-            <input
-              type="email"
-              name="email"
-              className="form-control"
-              value={searchTerm}
-              placeholder="full name of the author you wat to add"
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button className="btn btn-sm" disabled={!searchTerm.trim()} type="submit">
-              Add
-            </button>
-          </form>
+          <CustomAuthorForm searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </div>
       )
     return profileSearchResults.map((profile) => (
-      <ProfileSearchResultRow profile={profile} key={profile.id} />
+      <ProfileSearchResultRow
+        key={profile.id}
+        fieldName={fieldName}
+        profile={profile}
+        setProfileSearchResults={setProfileSearchResults}
+        setSearchTerm={setSearchTerm}
+      />
     ))
   }
 
   useEffect(() => {
-    setSelectedAuthorIds([user.profile.id])
+    onChange({ fieldName, value: [user.profile.id] })
   }, [])
 
   useEffect(() => {
-    getProfiles(selectedAuthorIds)
-  }, [selectedAuthorIds])
+    if (!value?.length) return
+    getProfiles(value)
+    $('[data-toggle="tooltip"]').tooltip()
+  }, [value])
 
   return (
     <div className={styles.profileSearch}>
-      {selectedAuthorIds.map((authorId) => {
-        const authorProfile = selectedAuthorProfiles.find((p) => p.id === authorId)
-        console.log('selectedAuthorProfiles', selectedAuthorProfiles)
-        console.log('authorId', authorId)
-        return <AuthorRow key={authorId} profile={authorProfile} />
-      })}
+      <div className={styles.selectedAuthors}>
+        {value?.map((authorId, index) => {
+          const authorProfile = selectedAuthorProfiles.find((p) => p.id === authorId)
+          const showArrowButton = value.length !== 1 && index !== value.length - 1
+          return (
+            <Author
+              key={authorId}
+              fieldName={fieldName}
+              authorId={authorId}
+              profile={authorProfile}
+              showArrowButton={showArrowButton}
+            />
+          )
+        })}
+      </div>
       <form
         className={styles.searchForm}
         onSubmit={(e) => {

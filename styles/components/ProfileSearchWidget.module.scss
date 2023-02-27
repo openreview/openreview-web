@@ -6,15 +6,31 @@
   }
 }
 
-.selectedAuthor {
-  margin-bottom: 0.25rem;
+.selectedAuthors {
   display: flex;
-  .authorName > a {
-    font-style: italic;
-    color: constants.$darkBlue;
-    font-size: 1rem;
-  }
-  .removeButton {
+
+  .selectedAuthor {
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+
+    .authorName > a {
+      font-style: italic;
+      color: constants.$darkBlue;
+      font-size: 1rem;
+    }
+    .actionButtons {
+      display: flex;
+      flex-direction: column;
+
+      button {
+        padding: 1px 5px;
+        margin-bottom: 0.1rem;
+        .actionButton {
+          font-size: 0.75rem;
+        }
+      }
+    }
   }
 }
 
@@ -85,5 +101,6 @@
   .addButton {
     height: fit-content;
     align-self: center;
+    margin-left: 0.25rem;
   }
 }
