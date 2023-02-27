@@ -30,8 +30,14 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
 }
 
 const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venue }) => {
-  const { venueId, officialReviewName, shortPhrase, apiVersion, seniorAreaChairName } =
-    useContext(WebFieldContext)
+  const {
+    venueId,
+    officialReviewName,
+    shortPhrase,
+    apiVersion,
+    seniorAreaChairName,
+    submissionName,
+  } = useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
     `[Senior Area Chair Console](/group?id=${venueId}/${seniorAreaChairName}#paper-status)`
@@ -77,7 +83,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
           officialReviewName={officialReviewName}
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
-          submissionName="Paper"
+          submissionName={submissionName}
         />
       </td>
       <td>
@@ -171,7 +177,7 @@ const PaperStatus = ({ sacConsoleData }) => {
                 allNoteIds={paperStatusTabData.tableRows?.map((row) => row.note.id)}
               />
             ),
-            width: '35px'
+            width: '35px',
           },
           { id: 'number', content: '#', width: '55px' },
           { id: 'summary', content: 'Paper Summary' },

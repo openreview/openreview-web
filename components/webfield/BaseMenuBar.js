@@ -153,26 +153,30 @@ const BaseMenuBar = ({
           />
         </div>
       )}
-      <span className="search-label">Search:</span>
-      {isQuerySearch && shouldEnableQuerySearch && (
-        <div role="button" onClick={handleQuerySearchInfoClick}>
-          <Icon name="info-sign" />
-        </div>
-      )}
-      <input
-        className={`form-control search-input${queryIsInvalidStatus ? ' invalid-value' : ''}`}
-        placeholder={`${searchPlaceHolder ?? 'Enter search term'}${
-          shouldEnableQuerySearch ? ' or type + to start a query and press enter' : ''
-        }`}
-        value={immediateSearchTerm}
-        onChange={(e) => {
-          setImmediateSearchTerm(e.target.value)
-          setQueryIsInvalidStatus(false)
-          setIsQuerySearch(e.target.value.trim().startsWith('+'))
-          delaySearch(e.target.value)
-        }}
-        onKeyDown={(e) => keyDownHandler(e)}
-      />
+      <div className="search-controls">
+        <span className="search-label">Search:</span>
+        {isQuerySearch && shouldEnableQuerySearch && (
+          <div role="button" onClick={handleQuerySearchInfoClick}>
+            <Icon name="info-sign" />
+          </div>
+        )}
+        <input
+          className={`form-control search-input${
+            queryIsInvalidStatus ? ' invalid-value' : ''
+          }`}
+          placeholder={`${searchPlaceHolder ?? 'Enter search term'}${
+            shouldEnableQuerySearch ? ' or type + to start a query and press enter' : ''
+          }`}
+          value={immediateSearchTerm}
+          onChange={(e) => {
+            setImmediateSearchTerm(e.target.value)
+            setQueryIsInvalidStatus(false)
+            setIsQuerySearch(e.target.value.trim().startsWith('+'))
+            delaySearch(e.target.value)
+          }}
+          onKeyDown={(e) => keyDownHandler(e)}
+        />
+      </div>
       <span className="sort-label">Sort by:</span>
       <Dropdown
         className="dropdown-sm sort-dropdown"

@@ -30,8 +30,14 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
 }
 
 const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venue }) => {
-  const { areaChairsId, venueId, officialReviewName, shortPhrase, apiVersion } =
-    useContext(WebFieldContext)
+  const {
+    areaChairsId,
+    venueId,
+    officialReviewName,
+    shortPhrase,
+    apiVersion,
+    submissionName,
+  } = useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#paper-status)`
@@ -77,7 +83,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
           officialReviewName={officialReviewName}
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
-          submissionName="Paper"
+          submissionName={submissionName}
         />
       </td>
       {areaChairsId && (
