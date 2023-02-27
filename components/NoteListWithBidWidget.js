@@ -14,7 +14,7 @@ const NoteListWithBidWidget = ({
   bidUpdateStatus,
 }) => {
   const renderNoteWithBidWidget = (note, selectedBidOption, scoreEdge) => (
-    <>
+    <div className="bid-container">
       <NoteV2 note={note} options={displayOptions} />
       <BidRadioButtonGroup
         label="Bid"
@@ -24,50 +24,56 @@ const NoteListWithBidWidget = ({
         bidUpdateStatus={bidUpdateStatus}
       />
       <BidScore scoreEdge={scoreEdge} />
-    </>
+    </div>
   )
 
   if (virtualList) {
     return (
-      <ul className="list-unstyled submissions-list">
-        <List
-          data={notes}
-          height={notes.length === 0 ? 0 : window.innerHeight}
-          itemHeight={135}
-          itemKey="id"
-        >
-          {(note) => {
-            const selectedBidOption = bidEdges?.find((p) => p.head === note.id)?.label
-            const scoreEdge = scoreEdges?.find((p) => p.head === note.id)
-            return renderNoteWithBidWidget(note, selectedBidOption, scoreEdge)
-          }}
-        </List>
+      <div className="submissions-list">
+        <ul className="list-unstyled">
+          <List
+            data={notes}
+            height={notes.length === 0 ? 0 : window.innerHeight}
+            itemHeight={135}
+            itemKey="id"
+          >
+            {(note) => {
+              const selectedBidOption = bidEdges?.find((p) => p.head === note.id)?.label
+              const scoreEdge = scoreEdges?.find((p) => p.head === note.id)
+              return renderNoteWithBidWidget(note, selectedBidOption, scoreEdge)
+            }}
+          </List>
+          {notes.length === 0 && (
+            <li>
+              <p className="empty-message">{displayOptions.emptyMessage}</p>
+            </li>
+          )}
+        </ul>
+      </div>
+    )
+  }
+
+  return (
+    <div className="submissions-list">
+      <ul className="list-unstyled">
+        {notes.map((note) => {
+          const selectedBidOption = bidEdges?.find((p) => p.head === note.id)?.label
+          const scoreEdge = scoreEdges?.find((p) => p.head === note.id)
+
+          return (
+            <li key={note.id}>
+              {renderNoteWithBidWidget(note, selectedBidOption, scoreEdge)}
+            </li>
+          )
+        })}
+
         {notes.length === 0 && (
           <li>
             <p className="empty-message">{displayOptions.emptyMessage}</p>
           </li>
         )}
       </ul>
-    )
-  }
-
-  return (
-    <ul className="list-unstyled submissions-list">
-      {notes.map((note) => {
-        const selectedBidOption = bidEdges?.find((p) => p.head === note.id)?.label
-        const scoreEdge = scoreEdges?.find((p) => p.head === note.id)
-
-        return (
-          <li key={note.id}>{renderNoteWithBidWidget(note, selectedBidOption, scoreEdge)}</li>
-        )
-      })}
-
-      {notes.length === 0 && (
-        <li>
-          <p className="empty-message">{displayOptions.emptyMessage}</p>
-        </li>
-      )}
-    </ul>
+    </div>
   )
 }
 
