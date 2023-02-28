@@ -1,14 +1,15 @@
-/* globals promptError: false */
+/* globals promptError,DOMPurify,marked,MathJax: false */
 
 import { useEffect, useState } from 'react'
 import uniq from 'lodash/uniq'
+import truncate from 'lodash/truncate'
 import flatten from 'lodash/flatten'
-import MarkdownPreviewTab from '../MarkdownPreviewTab'
 import Dropdown from '../Dropdown'
 import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId, prettyInvitationId } from '../../lib/utils'
+import { readersList, getInvitationColors } from '../../lib/forum-utils'
 
 export default function ChatEditorForm({
   invitation,
@@ -20,9 +21,17 @@ export default function ChatEditorForm({
   const [message, setMessage] = useState('')
   const [signature, setSignature] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState([])
+  const [showSignatureDropdown, setShowSignatureDropdown] = useState(false)
+  const [showMessagePreview, setShowMessagePreview] = useState(false)
+  const [sanitizedHtml, setSanitizedHtml] = useState('')
   const { user, accessToken } = useUser()
 
   const tabName = document.querySelector('.filter-tabs > li.active > a')?.text
+  const invitationShortName = prettyInvitationId(invitation.id)
+  const hasFixedReaders = Array.isArray(invitation.edit.note.readers)
+  const colorHash = signature
+    ? getInvitationColors(prettyId(signature, true)).backgroundColor
+    : 'transparent'
 
   const loadSignatureOptions = async () => {
     try {
@@ -37,16 +46,16 @@ export default function ChatEditorForm({
       })
       const groupResults = await Promise.all(optionsP)
       const uniqueGroupResults = uniq(flatten(groupResults))
+      const sigOptions = uniqueGroupResults.map((p) => {
+        let label = prettyId(p.id, true)
+        if (!p.id.startsWith('~') && p.members?.length === 1) {
+          label = `${label} (${prettyId(p.members[0])})`
+        }
+        return { label, value: p.id }
+      })
 
-      setSignatureOptions(
-        uniqueGroupResults.map((p) => {
-          let label = prettyId(p.id, true)
-          if (!p.id.startsWith('~') && p.members?.length === 1) {
-            label = `${label} (${prettyId(p.members[0])})`
-          }
-          return { label, value: p.id }
-        })
-      )
+      setSignatureOptions(sigOptions)
+      setSignature(sigOptions[0]?.value)
     } catch (err) {
       promptError(err.message)
     }
@@ -74,6 +83,8 @@ export default function ChatEditorForm({
       .then((result) => {
         setMessage('')
         setReplyToNote(null)
+        setShowMessagePreview(false)
+        setShowSignatureDropdown(false)
 
         if (!onSubmit) return
 
@@ -109,55 +120,117 @@ export default function ChatEditorForm({
     loadSignatureOptions()
   }, [invitation])
 
+  useEffect(() => {
+    if (!showMessagePreview) return
+
+    setSanitizedHtml(DOMPurify.sanitize(marked(message)))
+    MathJax.typesetPromise()
+  }, [showMessagePreview, message])
+
   return (
-    <form onSubmit={postNoteEdit}>
+    <form onSubmit={postNoteEdit} style={{ boxShadow: `0 0 0 2px ${colorHash}` }}>
       {replyToNote && (
-        <div className="reply-details">
-          <Icon name="share-alt" /> Replying to {prettyId(replyToNote.signatures[0])}{' '}
-          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+        <div className="parent-info">
+          <h5 onClick={() => {}}>
+            {/* <Icon name="share-alt" />{' '} */}
+            <span>Replying to {prettyId(replyToNote.signatures[0], true)}</span>
+            {' – '}
+            {truncate(replyToNote.content.message?.value || replyToNote.content.title?.value, {
+              length: 100,
+              omission: '...',
+              separator: ' ',
+            })}
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+            <a
+              href="#"
+              className="pl-3"
+              role="button"
+              onClick={(e) => {
+                e.preventDefault()
+                setReplyToNote(null)
+              }}
+            >
+              <Icon name="remove" /> Cancel
+            </a>
+          </h5>
+        </div>
+      )}
+
+      <div className="form-group signatures-container">
+        {showSignatureDropdown ? (
+          <Dropdown
+            options={signatureOptions}
+            onChange={(e) => setSignature(e.value)}
+            value={signatureOptions.find((p) => p.value === signature)}
+            placeholder="Signature"
+            height={32}
+            isSearchable={true}
+          />
+        ) : (
+          <>
+            <span className="indicator" style={{ backgroundColor: colorHash }} />
+            <strong>{prettyId(signature, true)}</strong>
+          </>
+        )}
+        {signatureOptions.length > 1 && !showSignatureDropdown && (
+          // eslint-disable-next-line jsx-a11y/anchor-is-valid
           <a
             href="#"
             className="pl-3"
             role="button"
             onClick={(e) => {
               e.preventDefault()
-              setReplyToNote(null)
+              setShowSignatureDropdown(true)
             }}
           >
-            <Icon name="remove" /> Cancel
+            <Icon name="pencil" /> Change
           </a>
-        </div>
-      )}
-      <div className="form-group">
-        <MarkdownPreviewTab
-          value={message}
-          onValueChanged={setMessage}
-          placeholder={`Type a new message ${tabName ? `to ${tabName}` : ''}...`}
-          rows={2}
-        />
-        {/*
-        <textarea
-          name="message"
-          className="form-control"
-          placeholder={`Type a new message ${tabName ? `to ${tabName}` : ''}...`}
-          rows="2"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-        */}
+        )}
       </div>
-      <div className="clearfix">
-        <div className="signatures-container pull-left">
-          <Dropdown
-            options={signatureOptions}
-            onChange={(e) => setSignature(e.value)}
-            value={signatureOptions.find((p) => p.value === signature)}
-            placeholder="Signature"
+
+      <div className="form-group">
+        {showMessagePreview ? (
+          <div className="preview markdown-rendered" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+        ) : (
+          <textarea
+            name="message"
+            className="form-control"
+            placeholder={`Type a new message ${tabName ? `to ${tabName}` : ''}...`}
+            rows="3"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
           />
+        )}
+      </div>
+
+      <div className="clearfix">
+        <div className="readers-container pull-left">
+          {hasFixedReaders && (
+            <p className="mb-0 text-muted">
+              <Icon name="eye-open" extraClasses="pr-1" />{' '}
+              <em>
+                {invitationShortName} replies are visible only to{' '}
+                {readersList(invitation.edit.note.readers, 'short')}
+              </em>
+            </p>
+          )}
         </div>
         <div className="pull-right">
-          <button type="submit" className="btn btn-primary">
-            Post {prettyInvitationId(invitation.id)}
+          <button
+            type="button"
+            className="btn btn-sm btn-default mr-2"
+            onClick={(e) => {
+              e.preventDefault()
+              setShowMessagePreview((prev) => !prev)
+              setShowSignatureDropdown(false)
+            }}
+            disabled={!message}
+          >
+            {showMessagePreview ? 'Edit' : 'Preview'}
+            {/* <SvgIcon name="markdown" /> */}
+          </button>
+          <button type="submit" className="btn btn-sm btn-primary">
+            Post {invitationShortName}
             {/* <Icon name="send" /> */}
           </button>
         </div>

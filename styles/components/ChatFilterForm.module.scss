@@ -3,8 +3,9 @@ $gray1: #f7f6f4;
 .container {
   background: $gray1;
   color: #777;
-  padding: 0.5rem .75rem;
+  padding: 0 .75rem;
   border: 1px solid #eee;
+  border-bottom: 0;
 
   p {
     span {

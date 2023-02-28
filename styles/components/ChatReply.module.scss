@@ -2,8 +2,7 @@
 @use '../utils/mixins';
 
 .container {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.625rem;
   border-radius: 2px;
   background-color: constants.$backgroundWhite;
 
@@ -27,11 +26,23 @@
       }
     }
     .header {
+      position: relative;
       margin-bottom: .25rem;
+      span.indicator {
+        position: absolute;
+        width: 0.875rem;
+        height: 0.875rem;
+        left: 0;
+        top: 3px;
+        border-radius: 50%;
+        box-sizing: border-box;
+        content: ' ';
+      }
       strong {
         font-size: 1rem;
         line-height: 1rem;
         padding-right: .75rem;
+        padding-left: 1.25rem;
       }
     }
     .highlight {
@@ -45,6 +56,10 @@
     .highlight + .highlight,
     .tooltip + .highlight {
       margin-left: 0.25rem;
+    }
+    .edit-indicator {
+      color: constants.$subtleGray;
+      background-color: transparent;
     }
     .note-content {
       font-size: .875rem;
@@ -65,9 +80,12 @@
       border-bottom-left-radius: 2px;
       border-bottom-right-radius: 2px;
 
+      & > ul > li:first-child > .btn-link {
+        border-bottom-left-radius: 2px;
+      }
       .btn-link {
         border: 0;
-        padding: .5rem;
+        padding: .375rem .5rem;
         font-weight: normal;
 
         &:hover, &:active {

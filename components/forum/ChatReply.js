@@ -1,5 +1,6 @@
-import { useContext, useState } from 'react'
-import Link from 'next/link'
+/* globals promptMessage: false */
+
+import { useState } from 'react'
 import truncate from 'lodash/truncate'
 import copy from 'copy-to-clipboard'
 import dayjs from 'dayjs'
@@ -14,26 +15,37 @@ import styles from '../../styles/components/ChatReply.module.scss'
 
 dayjs.extend(localizedFormat)
 
-export default function ChatReply({ note, parentNote, displayOptions, isSelected, setChatReplyNote, updateNote }) {
+export default function ChatReply({
+  note,
+  parentNote,
+  displayOptions,
+  isSelected,
+  setChatReplyNote,
+  updateNote,
+}) {
   const [editMode, setEditMode] = useState(false)
 
   if (!note || displayOptions.hidden) return null
 
   const isChatNote = Object.keys(note.content).length === 1 && note.content.message
   const presentation = note.details?.presentation
+  const colorHash = getInvitationColors(prettyId(note.signatures[0], true)).backgroundColor
+
+  const copyNoteUrl = (e) => {
+    if (!window.location) return
+
+    copy(
+      `${window.location.origin}${window.location.pathname}?id=${note.forum}&noteId=${note.id}${window.location.hash}`
+    )
+    promptMessage('Reply URL copied to clipboard', { scrollToTop: false })
+  }
 
   return (
-    <li className={`left clearfix ${styles.container} ${isSelected ? styles.active : ''}`} data-id={note.id}>
-      {/*
-      <span className="chat-img pull-left">
-        <img
-          src="https://via.placeholder.com/50x50"
-          alt="Profile Picture"
-          className="img-circle"
-        />
-      </span>
-      */}
-
+    <li
+      className={`left clearfix ${styles.container} ${isSelected ? styles.active : ''}`}
+      data-id={note.id}
+      style={{ boxShadow: `0 0 0 2px ${colorHash}` }}
+    >
       <div className="chat-body clearfix">
         {parentNote && (
           <div className="parent-info">
@@ -51,6 +63,7 @@ export default function ChatReply({ note, parentNote, displayOptions, isSelected
         )}
 
         <div className="header">
+          <span className="indicator" style={{ backgroundColor: colorHash }} />
           <strong>
             {note.signatures
               .map((signature) => (
@@ -81,7 +94,7 @@ export default function ChatReply({ note, parentNote, displayOptions, isSelected
           )}
 
           {note.details?.editsCount > 1 && (
-            <span>(edited)</span>
+            <span className="highlight edit-indicator">(edited)</span>
           )}
 
           <small className="text-muted pull-right">
@@ -111,15 +124,27 @@ export default function ChatReply({ note, parentNote, displayOptions, isSelected
       <div className="chat-actions clearfix">
         <ul className="list-inline pull-left">
           <li>
-            <button className="btn btn-link" onClick={() => { setChatReplyNote(note) }}>
+            <button
+              className="btn btn-link"
+              onClick={() => {
+                setChatReplyNote(note)
+              }}
+            >
               <Icon name="share-alt" /> Reply
             </button>
           </li>
+          <li>
+            <button className="btn btn-link" onClick={copyNoteUrl}>
+              <Icon name="link" tooltip="Copy post URL" /> Link
+            </button>
+          </li>
+          {/*
           <li>
             <button className="btn btn-link" onClick={() => { setEditMode(true) }}>
               <Icon name="pencil" /> Edit
             </button>
           </li>
+          */}
           {/*
           <li>
             <button className="btn btn-link" onClick={() => {}}>
@@ -129,11 +154,13 @@ export default function ChatReply({ note, parentNote, displayOptions, isSelected
           */}
         </ul>
         <ul className="list-inline pull-right">
+          {/*
           <li>
             <button className="btn btn-link" onClick={() => {}}>
               <Icon name="option-horizontal" /> More
             </button>
           </li>
+          */}
         </ul>
       </div>
     </li>
