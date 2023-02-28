@@ -14,14 +14,16 @@
     display: flex;
     align-items: center;
 
-    .authorName > a {
+    .authorName > .authorNameLink {
       font-style: italic;
       color: constants.$darkBlue;
       font-size: 1rem;
+      margin-right: 0.25rem;
     }
     .actionButtons {
       display: flex;
       flex-direction: column;
+      margin-right: 0.5rem;
 
       button {
         padding: 1px 5px;
