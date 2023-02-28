@@ -355,6 +355,10 @@ table.table-minimal {
     margin-top: 15px;
     font-style: italic;
   }
+
+  .bid-container {
+    margin-bottom: 0.5rem;
+  }
 }
 
 .task-list {
@@ -549,10 +553,12 @@ table.table-minimal {
   select {
     width: 300px;
   }
-  .dropdown {
-    width: 310px;
+
+  .dropdown,
+  .subjectarea {
+    width: 260px;
     .dropdown_content {
-      width: 310px;
+      width: 260px;
     }
   }
 
