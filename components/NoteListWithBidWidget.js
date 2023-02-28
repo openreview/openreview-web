@@ -12,6 +12,7 @@ const NoteListWithBidWidget = ({
   updateBidOption,
   virtualList,
   bidUpdateStatus,
+  showBidScore = true,
 }) => {
   const renderNoteWithBidWidget = (note, selectedBidOption, scoreEdge) => (
     <div className="bid-container">
@@ -23,7 +24,7 @@ const NoteListWithBidWidget = ({
         updateBidOption={(updatedOption) => updateBidOption(note, updatedOption)}
         bidUpdateStatus={bidUpdateStatus}
       />
-      <BidScore scoreEdge={scoreEdge} />
+      {showBidScore && <BidScore scoreEdge={scoreEdge} />}
     </div>
   )
 

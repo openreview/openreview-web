@@ -49,6 +49,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
   const [scoreEdges, setScoreEdges] = useState([])
   const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
   const [showPagination, setShowPagination] = useState(true)
+  const [showBidScore, setShowBidScore] = useState(true)
 
   const sortOptions = scoreIds?.map((p) => ({ label: prettyInvitationId(p), value: p }))
   const subjectAreaOptions = subjectAreas?.length
@@ -266,6 +267,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     if (searchState.source === 'searchTerm' && searchState.searchTerm) {
       getNotesBySearchTerm(searchState.searchTerm)
       setShowPagination(false)
+      setShowBidScore(false)
       return
     }
     if (
@@ -274,6 +276,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     ) {
       getNotesSortedByAffinity(searchState.selectedScore)
       setShowPagination(true)
+      setShowBidScore(true)
       setPageNumber(1)
       return
     }
@@ -283,17 +286,20 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     ) {
       handleSubjectAreaDropdownChange(searchState.selectedSubjectArea)
       setShowPagination(false)
+      setShowBidScore(false)
       return
     }
     if (searchState.source === 'immediateSearchTerm') {
       if (searchState.immediateSearchTerm === '') {
         getNotesSortedByAffinity()
         setShowPagination(true)
+        setShowBidScore(true)
       }
       return
     }
     getNotesSortedByAffinity()
     setShowPagination(true)
+    setShowBidScore(true)
   }, [searchState])
 
   return (
@@ -366,6 +372,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             }}
             updateBidOption={updateBidOption}
             bidUpdateStatus={bidUpdateStatus}
+            showBidScore={showBidScore}
           />
           {showPagination && (
             <PaginationLinks
