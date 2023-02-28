@@ -1,4 +1,4 @@
-import { debounce, maxBy } from 'lodash'
+import { maxBy } from 'lodash'
 import { useContext, useState, useEffect, useCallback } from 'react'
 import useUser from '../../hooks/useUser'
 import { getProfileName, isValidEmail } from '../../lib/utils'
@@ -310,6 +310,7 @@ const ProfileSearchWidget = () => {
         (profileResults[0].profiles ?? []).concat(profileResults[1].profiles ?? [])
       )
     } catch (error) {
+      console.log('error is', error)
       promptError(error.message)
     }
   }
@@ -334,8 +335,13 @@ const ProfileSearchWidget = () => {
   }
 
   useEffect(() => {
-    onChange({ fieldName, value: [{ authorId: user.profile.id }] })
-    getProfiles([user.profile.id])
+    if (!value) {
+      onChange({ fieldName, value: [{ authorId: user.profile.id }] })
+      getProfiles([user.profile.id])
+      return
+    }
+
+    getProfiles(value.map((p) => p.authorId))
   }, [])
 
   useEffect(() => {
@@ -379,7 +385,7 @@ const ProfileSearchWidget = () => {
           type="text"
           className="form-control"
           value={searchTerm}
-          placeholder="search profiles by name or email"
+          placeholder="search profiles by email or name"
           onChange={(e) => {
             setSearchTerm(e.target.value)
             setProfileSearchResults(null)
