@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import uniqBy from 'lodash/uniqBy'
+import flatten from 'lodash/flatten'
+import Dropdown from './Dropdown'
+import TagsWidget from './EditorComponents/TagsWidget'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 import { prettyId } from '../lib/utils'
-import Dropdown from './Dropdown'
-import TagsWidget from './EditorComponents/TagsWidget'
 
 const Signatures = ({
   fieldDescription,
@@ -27,9 +29,10 @@ const Signatures = ({
         { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression, signatory: user?.id },
         { accessToken, version: regexContainsPipe ? 1 : 2 }
       )
-
-      if (!regexGroupResult.groups?.length)
+      if (!regexGroupResult.groups?.length) {
         throw new Error('You do not have permission to create a note')
+      }
+
       if (regexGroupResult.groups.length === 1) {
         setSignatureOptions([regexGroupResult.groups[0].id])
         onChange({ value: [regexGroupResult.groups[0].id], type: 'const' })
@@ -58,20 +61,17 @@ const Signatures = ({
     onChange({ loading: true })
     try {
       const options = fieldDescription.param.enum
-      const optionsP = options.map((p) =>
-        p.includes('.*')
-          ? api
-              .get('/groups', { prefix: p, signatory: user?.id }, { accessToken, version: 2 })
-              .then((result) => result.groups)
-          : api
-              .get('/groups', { id: p, signatory: user?.id }, { accessToken, version: 2 })
-              .then((result) => result.groups)
-      )
-      let groupResults = await Promise.all(optionsP)
-      groupResults = groupResults.flat()
-      const uniqueGroupResults = groupResults.filter(
-        (p, index) => groupResults.findIndex((q) => q.id === p.id) === index
-      )
+      const optionsP = options.map((p) => {
+        const params = p.includes('.*')
+          ? { prefix: p, signatory: user?.id }
+          : { id: p, signatory: user?.id }
+        return api
+          .get('/groups', params, { accessToken, version: 2 })
+          .then((result) => result.groups ?? [])
+      })
+      const groupResults = await Promise.all(optionsP)
+      const uniqueGroupResults = uniqBy(flatten(groupResults), 'id')
+
       if (uniqueGroupResults.length === 1) {
         setSignatureOptions([uniqueGroupResults[0].id])
         onChange({ value: [uniqueGroupResults[0].id], type: 'const' })
@@ -137,8 +137,11 @@ const Signatures = ({
   }, [])
 
   useEffect(() => {
-    if (descriptionType === 'regex') getRegexSignatureOptions()
-    if (descriptionType === 'enum') getEnumSignatureOptions()
+    if (descriptionType === 'regex') {
+      getRegexSignatureOptions()
+    } else if (descriptionType === 'enum') {
+      getEnumSignatureOptions()
+    }
   }, [descriptionType])
 
   return <div className={`${extraClasses ?? ''}`}>{renderNoteSignatures()}</div>
