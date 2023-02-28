@@ -1,4 +1,5 @@
 /* globals promptError: false */
+import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
@@ -303,7 +304,7 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
         // #endregion
 
         const tableRows = pcConsoleData.reviewers.map((reviewerProfileId, index) => {
-          const notesInfo = reviewerNotesMap.get(reviewerProfileId) ?? []
+          const notesInfo = sortBy(reviewerNotesMap.get(reviewerProfileId) ?? [], 'noteNumber')
           return {
             number: index + 1,
             reviewerProfileId,
@@ -385,8 +386,8 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
         className="console-table table-striped pc-console-reviewer-status"
         headings={[
           { id: 'number', content: '#', width: '55px' },
-          { id: 'reviewer', content: 'Reviewer', width: '30%' },
-          { id: 'reviewProgress', content: 'Review Progress', width: '30%' },
+          { id: 'reviewer', content: 'Reviewer', width: '10%' },
+          { id: 'reviewProgress', content: 'Review Progress', width: '40%' },
           { id: 'status', content: 'Status' },
         ]}
       >

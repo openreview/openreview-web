@@ -1,6 +1,6 @@
 /* globals typesetMathJax,promptError: false */
 
-import { useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useReducer, useState } from 'react'
 import debounce from 'lodash/debounce'
 import kebabCase from 'lodash/kebabCase'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -18,91 +18,103 @@ import PaginationLinks from '../PaginationLinks'
 import ErrorDisplay from '../ErrorDisplay'
 import NoteListWithBidWidget from '../NoteListWithBidWidget'
 
-const buildArray = (invitation, fieldName, profileId, noteNumber) => {
-  if (invitation.reply?.[fieldName]?.values) return invitation.reply[fieldName].values
-  if (invitation.reply?.[fieldName]?.['values-copied'])
-    return invitation.reply[fieldName]['values-copied']
-      .map((value) => {
-        if (value === '{signatures}') return profileId
-        if (value[0] === '{') return null
-        return value
-      })
-      .filter((p) => p)
-  if (invitation.reply?.[fieldName]?.['values-regex'])
-    return invitation.reply[fieldName]['values-regex']
-      .split('|')
-      .map((value) => {
-        if (value.indexOf('Paper.*') !== -1)
-          return value.replace('Paper.*', `Paper${noteNumber}`)
-        return value
-      })
-      .filter((p) => p)
-  return []
-}
-
-const getDdate = (existingBidToDelete, apiVersion) => {
+const getDdate = (existingBidToDelete) => {
   if (existingBidToDelete) return Date.now()
-  if (apiVersion === 2) return { delete: true }
-  return null
+  return { delete: true }
 }
 
-const getBidObjectToPost = (
-  id,
-  updatedOption,
-  invitation,
-  note,
-  userId,
-  ddate,
-  apiVersion
-) => ({
+const getBidObjectToPost = (id, updatedOption, invitation, note, userId, ddate) => ({
   id,
   invitation: invitation.id,
   label: updatedOption,
   head: note.id,
   tail: userId,
   signatures: [userId],
-  ...(apiVersion !== 2 && {
-    readers: buildArray(invitation, 'readers', userId, note.number),
-    nonreaders: buildArray(invitation, 'nonreaders', userId, note.number),
-    writers: buildArray(invitation, 'writers', userId, note.number),
-  }),
   ddate,
 })
 
 const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) => {
   const {
-    venueId,
     entity: invitation,
-    apiVersion,
     scoreIds,
-    submissionInvitationId,
     submissionVenueId,
+    subjectAreas,
   } = useContext(WebFieldContext)
+  const defaultSubjectArea = 'All Subject Areas'
   const [notes, setNotes] = useState([])
-  const [selectedScore, setSelectedScore] = useState(scoreIds?.[0])
-  const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
   const { user, accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [scoreEdges, setScoreEdges] = useState([])
   const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
-  const sortOptions = scoreIds.map((p) => ({ label: prettyInvitationId(p), value: p }))
+  const [showPagination, setShowPagination] = useState(true)
+  const [showBidScore, setShowBidScore] = useState(true)
+
+  const sortOptions = scoreIds?.map((p) => ({ label: prettyInvitationId(p), value: p }))
+  const subjectAreaOptions = subjectAreas?.length
+    ? [{ label: 'All Subject Areas', value: 'All Subject Areas' }].concat(
+        subjectAreas.map((p) => ({ label: p, value: p }))
+      )
+    : []
   const pageSize = 50
 
-  const getNotesSortedByAffinity = async (score = selectedScore, limit = 50) => {
+  const searchStateReducer = (state, action) => {
+    switch (action.type) {
+      case 'selectedScore':
+        return {
+          selectedScore: action.payload,
+          selectedSubjectArea: defaultSubjectArea,
+          immediateSearchTerm: '',
+          searchTerm: '',
+          source: 'selectedScore',
+        }
+      case 'selectedSubjectArea':
+        return {
+          selectedScore: scoreIds?.[0],
+          selectedSubjectArea: action.payload,
+          immediateSearchTerm: '',
+          searchTerm: '',
+          source: 'selectedSubjectArea',
+        }
+      case 'immediateSearchTerm':
+        return {
+          selectedScore: scoreIds?.[0],
+          selectedSubjectArea: defaultSubjectArea,
+          immediateSearchTerm: action.payload,
+          searchTerm: state.searchTerm,
+          source: 'immediateSearchTerm',
+        }
+      case 'searchTerm':
+        return {
+          selectedScore: scoreIds?.[0],
+          selectedSubjectArea: defaultSubjectArea,
+          immediateSearchTerm: state.immediateSearchTerm,
+          searchTerm: action.payload,
+          source: 'searchTerm',
+        }
+      default:
+        return state
+    }
+  }
+  const [searchState, setSearchState] = useReducer(searchStateReducer, {
+    selectedScore: scoreIds?.[0],
+    selectedSubjectArea: defaultSubjectArea,
+    immediateSearchTerm: '',
+    searchTerm: '',
+  })
+
+  const getNotesSortedByAffinity = async (score = searchState.selectedScore, limit = 50) => {
     setIsLoading(true)
     const getNotesBySubmissionInvitationP = async () => {
       const result = await api.get(
         '/notes',
         {
-          ...(apiVersion !== 2 && { invitation: submissionInvitationId }),
-          ...(apiVersion === 2 && { 'content.venueid': submissionVenueId }),
+          'content.venueid': submissionVenueId,
           offset: (pageNumber - 1) * pageSize,
           limit,
         },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       return {
         ...result,
@@ -121,7 +133,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             offset: (pageNumber - 1) * pageSize,
             limit,
           },
-          { accessToken, version: apiVersion }
+          { accessToken, version: 2 }
         )
         if (edgesResult.count) {
           setTotalCount(edgesResult.count)
@@ -130,14 +142,12 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           const notesResult = await api.post(
             '/notes/search',
             { ids: noteIds },
-            { accessToken, version: apiVersion }
+            { accessToken, version: 2 }
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
             const isActiveSubmission =
-              apiVersion === 2
-                ? matchingNote?.content?.venueid?.value === submissionVenueId
-                : matchingNote?.invitation === submissionInvitationId
+              matchingNote?.content?.venueid?.value === submissionVenueId
             if (matchingNote && isActiveSubmission && !conflictIds.includes(noteId)) {
               return matchingNote
             }
@@ -170,13 +180,11 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           type: 'terms',
           content: 'all',
           source: 'forum',
-          ...(apiVersion !== 2 && { group: venueId }),
           limit: 1000,
           offset: 0,
-          ...(apiVersion !== 2 && { invitation: submissionInvitationId }),
-          ...(apiVersion === 2 && { venueid: submissionVenueId }),
+          venueid: submissionVenueId,
         },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)))
     } catch (error) {
@@ -190,21 +198,13 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
       (p) => p.head === note.id && p.label === updatedOption
     )
     const existingBidToUpdate = bidEdges.find((p) => p.head === note.id)
-    const ddate = getDdate(existingBidToDelete, apiVersion)
+    const ddate = getDdate(existingBidToDelete)
     const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
       const result = await api.post(
         '/edges',
-        getBidObjectToPost(
-          bidId,
-          updatedOption,
-          invitation,
-          note,
-          user.profile.id,
-          ddate,
-          apiVersion
-        ),
-        { accessToken, version: apiVersion }
+        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
+        { accessToken, version: 2 }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -220,24 +220,36 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     }
   }
 
-  const handleSearchTermChange = (updatedSearchTerm) => {
-    const cleanSearchTerm = updatedSearchTerm.trim()
-    if (cleanSearchTerm) {
-      getNotesBySearchTerm(cleanSearchTerm)
-    } else {
+  const handleSubjectAreaDropdownChange = async (subjectAreaSelected) => {
+    if (subjectAreaSelected === defaultSubjectArea) {
       getNotesSortedByAffinity()
+      return
     }
-    setSearchTerm(updatedSearchTerm)
-  }
-
-  const handleScoreDropdownChange = (scoreSelected) => {
-    setPageNumber(1)
-    setSelectedScore(scoreSelected)
-    getNotesSortedByAffinity(scoreSelected)
+    setIsLoading(true)
+    try {
+      const result = await api.get(
+        '/notes/search',
+        {
+          term: subjectAreaSelected,
+          type: 'terms',
+          content: 'subject_areas',
+          source: 'forum',
+          limit: 1000,
+          offset: 0,
+          venueid: submissionVenueId,
+        },
+        { accessToken, version: 2 }
+      )
+      setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)))
+    } catch (error) {
+      promptError(error.message)
+    }
+    setIsLoading(false)
   }
 
   const delaySearch = useCallback(
-    debounce((term) => handleSearchTermChange(term), 200),
+    // debounce((term) => handleSearchTermChange(term), 200),
+    debounce((term) => setSearchState({ type: 'searchTerm', payload: term }), 200),
     []
   )
 
@@ -251,6 +263,45 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     getNotesSortedByAffinity()
   }, [pageNumber])
 
+  useEffect(() => {
+    if (searchState.source === 'searchTerm' && searchState.searchTerm) {
+      getNotesBySearchTerm(searchState.searchTerm)
+      setShowPagination(false)
+      setShowBidScore(false)
+      return
+    }
+    if (
+      searchState.source === 'selectedScore' &&
+      searchState.selectedScore !== scoreIds?.[0]
+    ) {
+      getNotesSortedByAffinity(searchState.selectedScore)
+      setShowPagination(true)
+      setShowBidScore(true)
+      setPageNumber(1)
+      return
+    }
+    if (
+      searchState.source === 'selectedSubjectArea' &&
+      searchState.selectedSubjectArea !== defaultSubjectArea
+    ) {
+      handleSubjectAreaDropdownChange(searchState.selectedSubjectArea)
+      setShowPagination(false)
+      setShowBidScore(false)
+      return
+    }
+    if (searchState.source === 'immediateSearchTerm') {
+      if (searchState.immediateSearchTerm === '') {
+        getNotesSortedByAffinity()
+        setShowPagination(true)
+        setShowBidScore(true)
+      }
+      return
+    }
+    getNotesSortedByAffinity()
+    setShowPagination(true)
+    setShowBidScore(true)
+  }, [searchState])
+
   return (
     <>
       <form className="form-inline notes-search-form" role="search">
@@ -261,29 +312,45 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             className="form-control"
             placeholder="Search by paper title and metadata"
             autoComplete="off"
-            value={immediateSearchTerm}
+            value={searchState.immediateSearchTerm}
             onChange={(e) => {
-              setImmediateSearchTerm(e.target.value)
+              setSearchState({ type: 'immediateSearchTerm', payload: e.target.value })
               if (e.target.value.trim().length >= 3) delaySearch(e.target.value)
-              if (e.target.value.trim().length === 0) handleSearchTermChange('')
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && immediateSearchTerm.trim().length >= 2) {
-                handleSearchTermChange(immediateSearchTerm)
+              if (e.key === 'Enter' && searchState.immediateSearchTerm.trim().length >= 2) {
+                setSearchState({
+                  type: 'searchTerm',
+                  payload: searchState.immediateSearchTerm,
+                })
               }
             }}
           />
           <Icon name="search" extraClasses="form-control-feedback" />
         </div>
-        {scoreIds.length > 0 && (
+        {scoreIds?.length > 0 && (
           <div className="form-group score">
             <label htmlFor="score-dropdown">Sort By:</label>
             <Dropdown
               className="dropdown-select"
               options={sortOptions}
-              placeholder="Select a score to sort by"
-              value={sortOptions.find((p) => p.value === selectedScore)}
-              onChange={(e) => handleScoreDropdownChange(e.value)}
+              value={sortOptions.find((p) => p.value === searchState.selectedScore)}
+              onChange={(e) => setSearchState({ type: 'selectedScore', payload: e.value })}
+            />
+          </div>
+        )}
+        {subjectAreas?.length > 0 && (
+          <div className="form-group">
+            <label htmlFor="subjectarea-dropdown">Subject Area:</label>
+            <Dropdown
+              className="dropdown-select subjectarea"
+              options={subjectAreaOptions}
+              value={subjectAreaOptions.find(
+                (p) => p.value === searchState.selectedSubjectArea
+              )}
+              onChange={(e) =>
+                setSearchState({ type: 'selectedSubjectArea', payload: e.value })
+              }
             />
           </div>
         )}
@@ -304,10 +371,10 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
               pdfLink: true,
             }}
             updateBidOption={updateBidOption}
-            apiVersion={apiVersion}
             bidUpdateStatus={bidUpdateStatus}
+            showBidScore={showBidScore}
           />
-          {!searchTerm && (
+          {showPagination && (
             <PaginationLinks
               currentPage={pageNumber}
               itemsPerPage={pageSize}
@@ -324,13 +391,11 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
 const NoBidTab = ({
   scoreIds,
   bidOptions,
-  submissionInvitationId,
   submissionVenueId,
   invitation,
   bidEdges,
   setBidEdges,
   conflictIds,
-  apiVersion,
 }) => {
   const [notes, setNotes] = useState([])
   const [scoreEdges, setScoreEdges] = useState([])
@@ -346,11 +411,10 @@ const NoBidTab = ({
       const result = await api.get(
         '/notes',
         {
-          ...(apiVersion !== 2 && { invitation: submissionInvitationId }),
-          ...(apiVersion === 2 && { 'content.venueid': submissionVenueId }),
+          'content.venueid': submissionVenueId,
           limit: 1000,
         },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       return {
         ...result,
@@ -369,7 +433,7 @@ const NoBidTab = ({
             tail: user.profile.id,
             sort: 'weight:desc',
           },
-          { accessToken, version: apiVersion }
+          { accessToken, version: 2 }
         )
         if (edgesResult.count) {
           setScoreEdges(edgesResult.edges)
@@ -377,14 +441,12 @@ const NoBidTab = ({
           const notesResult = await api.post(
             '/notes/search',
             { ids: noteIds },
-            { accessToken, version: apiVersion }
+            { accessToken, version: 2 }
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
             const isActiveSubmission =
-              apiVersion === 2
-                ? matchingNote?.content?.venueid?.value === submissionVenueId
-                : matchingNote?.invitation === submissionInvitationId
+              matchingNote?.content?.venueid?.value === submissionVenueId
             if (
               matchingNote &&
               isActiveSubmission &&
@@ -416,21 +478,13 @@ const NoBidTab = ({
       (p) => p.head === note.id && p.label === updatedOption
     )
     const existingBidToUpdate = bidEdges.find((p) => p.head === note.id)
-    const ddate = getDdate(existingBidToDelete, apiVersion)
+    const ddate = getDdate(existingBidToDelete)
     const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
       const result = await api.post(
         '/edges',
-        getBidObjectToPost(
-          bidId,
-          updatedOption,
-          invitation,
-          note,
-          user.profile.id,
-          ddate,
-          apiVersion
-        ),
-        { accessToken, version: apiVersion }
+        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
+        { accessToken, version: 2 }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -468,20 +522,12 @@ const NoBidTab = ({
       }}
       updateBidOption={updateBidOption}
       virtualList={true}
-      apiVersion={apiVersion}
       bidUpdateStatus={bidUpdateStatus}
     />
   )
 }
 
-const BidOptionTab = ({
-  bidOptions,
-  bidOption,
-  bidEdges,
-  invitation,
-  setBidEdges,
-  apiVersion,
-}) => {
+const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges }) => {
   const [notes, setNotes] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const { user, accessToken } = useUser()
@@ -500,7 +546,7 @@ const BidOptionTab = ({
         {
           ids: noteIds,
         },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       setNotes(noteSearchResults.notes)
     } catch (error) {
@@ -514,21 +560,13 @@ const BidOptionTab = ({
       (p) => p.head === note.id && p.label === updatedOption
     )
     const existingBidToUpdate = bidEdges.find((p) => p.head === note.id)
-    const ddate = getDdate(existingBidToDelete, apiVersion)
+    const ddate = getDdate(existingBidToDelete)
     const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
       const result = await api.post(
         '/edges',
-        getBidObjectToPost(
-          bidId,
-          updatedOption,
-          invitation,
-          note,
-          user.profile.id,
-          ddate,
-          apiVersion
-        ),
-        { accessToken, version: apiVersion }
+        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
+        { accessToken, version: 2 }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -569,29 +607,24 @@ const BidOptionTab = ({
         pdfLink: true,
       }}
       updateBidOption={updateBidOption}
-      apiVersion={apiVersion}
       bidUpdateStatus={bidUpdateStatus}
     />
   )
 }
 
+// only work with v2 api
 const BidConsole = ({ appContext }) => {
   const {
     header,
     venueId,
     entity: invitation,
-    apiVersion,
     scoreIds,
-    submissionInvitationId,
     submissionVenueId,
-    bidInvitationId,
     conflictInvitationId,
+    subjectAreas,
   } = useContext(WebFieldContext)
 
-  const bidOptions =
-    apiVersion === 2
-      ? invitation.edge?.label?.param?.enum
-      : invitation.reply?.content?.label?.['value-radio']
+  const bidOptions = invitation.edge?.label?.param?.enum
   const bidOptionsWithDefaultTabs = ['All Papers', ...(bidOptions ?? []), 'No Bid']
   const getActiveTabIndex = () => {
     const tabIndex = bidOptionsWithDefaultTabs.findIndex(
@@ -613,12 +646,12 @@ const BidConsole = ({ appContext }) => {
       const bidEdgeResultsP = api.getAll(
         '/edges',
         { invitation: invitation.id, tail: user.profile.id },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       const conflictEdgeResultsP = api.getAll(
         '/edges',
         { invitation: conflictInvitationId, tail: user.profile.id },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       const results = await Promise.all([bidEdgeResultsP, conflictEdgeResultsP])
       setBidEdges(results[0])
@@ -662,13 +695,11 @@ const BidConsole = ({ appContext }) => {
           <NoBidTab
             scoreIds={scoreIds}
             bidOptions={bidOptions}
-            submissionInvitationId={submissionInvitationId}
             submissionVenueId={submissionVenueId}
             invitation={invitation}
             bidEdges={bidEdges}
             setBidEdges={setBidEdges}
             conflictIds={conflictIds}
-            apiVersion={apiVersion}
           />
         </TabPanel>
       )
@@ -681,7 +712,6 @@ const BidConsole = ({ appContext }) => {
           bidEdges={bidEdges}
           invitation={invitation}
           setBidEdges={setBidEdges}
-          apiVersion={apiVersion}
         />
       </TabPanel>
     )
@@ -691,10 +721,8 @@ const BidConsole = ({ appContext }) => {
     header,
     venueId,
     invitation,
-    apiVersion,
     scoreIds,
-    ...(apiVersion !== 2 && { submissionInvitationId }),
-    ...(apiVersion === 2 && { submissionVenueId }),
+    submissionVenueId,
     conflictInvitationId,
     bidOptions,
   }).filter(([key, value]) => value === undefined)
