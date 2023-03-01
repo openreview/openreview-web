@@ -40,7 +40,9 @@ export default function Forum({
   const [displayOptionsMap, setDisplayOptionsMap] = useState(null)
   const [orderedReplies, setOrderedReplies] = useState(null)
   const [allInvitations, setAllInvitations] = useState(null)
-  const [layout, setLayout] = useState(2)
+  const [expandedInvitations, setExpandedInvitations] = useState(null)
+  const [nesting, setNesting] = useState(2)
+  const [layout, setLayout] = useState('default')
   const [sort, setSort] = useState('date-desc')
   const [defaultCollapseLevel, setDefaultCollapseLevel] = useState(2)
   const [filterOptions, setFilterOptions] = useState(null)
@@ -53,6 +55,7 @@ export default function Forum({
   })
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [scrolled, setScrolled] = useState(false)
+  const [enableLiveUpdate, setEnableLiveUpdate] = useState(false)
   const router = useRouter()
   const query = useQuery()
 
@@ -379,18 +382,18 @@ export default function Forum({
 
       setSelectedFilters({
         invitations: null,
+        excludedInvitations: null,
         signatures: null,
         readers: null,
         excludedReaders: null,
         keywords: null,
         ...parseFilterQuery(replaceFilterWildcards(tab.filter, parentNote), tab.keywords),
       })
-      if (tab.layout) {
-        setLayout(tab.layout)
-      }
-      if (tab.sort) {
-        setSort(tab.sort)
-      }
+      setLayout(tab.layout || 'default')
+      setNesting(tab.nesting || 2)
+      setSort(tab.sort || 'date-desc')
+      setEnableLiveUpdate(Boolean(tab.live))
+      setExpandedInvitations(tab.expandedInvitations || null)
     }
 
     if (window.location.hash) {
@@ -410,7 +413,7 @@ export default function Forum({
     loadNotesAndInvitations()
   }, [userLoading])
 
-  // Update forum layout
+  // Update forum nesting level
   useEffect(() => {
     if (!replyNoteMap || !parentMap) return
 
@@ -428,7 +431,7 @@ export default function Forum({
     }
 
     let orderedNotes = []
-    if (layout === 1) {
+    if (nesting === 1) {
       // Linear view
       orderedNotes = Object.keys(replyNoteMap)
         .sort(selectedSortFn)
@@ -436,7 +439,7 @@ export default function Forum({
           id: noteId,
           replies: [],
         }))
-    } else if (layout === 2) {
+    } else if (nesting === 2) {
       // Threaded view
       orderedNotes = (parentMap[id] ?? []).sort(selectedSortFn).map((noteId) => ({
         id: noteId,
@@ -447,7 +450,7 @@ export default function Forum({
             replies: [],
           })),
       }))
-    } else if (layout === 3) {
+    } else if (nesting === 3) {
       // Partially Nested view
       orderedNotes = (parentMap[id] ?? []).sort(selectedSortFn).map((noteId) => ({
         id: noteId,
@@ -491,7 +494,7 @@ export default function Forum({
         setScrolled(true)
       }
     }, 200)
-  }, [replyNoteMap, parentMap, layout])
+  }, [replyNoteMap, parentMap, nesting])
 
   // Update reply visibility
   useEffect(() => {
@@ -523,6 +526,8 @@ export default function Forum({
       const isVisible =
         (!selectedFilters.invitations ||
           checkExReadersMatch(selectedFilters.invitations, note.invitations)) &&
+        (!selectedFilters.excludedInvitations ||
+          !checkExReadersMatch(selectedFilters.excludedInvitations, note.invitations)) &&
         (!selectedFilters.signatures ||
           checkSignaturesMatch(selectedFilters.signatures, note.signatures[0])) &&
         (!selectedFilters.keywords || note.searchText.match(keywordRegex)) &&
@@ -607,9 +612,9 @@ export default function Forum({
       setSort(query.sort)
     }
 
-    const layoutCode = Number.parseInt(query.layout, 10)
-    if (layoutCode) {
-      setLayout(layoutCode)
+    const nestingLevel = Number.parseInt(query.nesting, 10)
+    if (nestingLevel) {
+      setNesting(nestingLevel)
     }
   }, [query])
 
@@ -617,23 +622,50 @@ export default function Forum({
     <div className="forum-container">
       <ForumNote note={parentNote} updateNote={updateParentNote} />
 
-      {parentNote.replyInvitations?.length > 0 && !parentNote.ddate && (
+      {repliesLoaded && orderedReplies.length > 0 && (
+        <div className="filters-container mt-4">
+          {replyForumViews && <FilterTabs forumId={id} forumViews={replyForumViews} />}
+
+          {filterOptions && layout === 'default' && (
+            <FilterForm
+              forumId={id}
+              selectedFilters={selectedFilters}
+              setSelectedFilters={setSelectedFilters}
+              filterOptions={filterOptions}
+              sort={sort}
+              setSort={setSort}
+              nesting={nesting}
+              setNesting={setNesting}
+              defaultCollapseLevel={defaultCollapseLevel}
+              setDefaultCollapseLevel={setDefaultCollapseLevel}
+              numReplies={details.replyCount}
+              numRepliesHidden={numRepliesHidden}
+            />
+          )}
+        </div>
+      )}
+
+      {parentNote.replyInvitations?.length > 0 && !parentNote.ddate && layout === 'default' && (
         <div className="invitations-container">
-          <div className="invitation-buttons">
+          <div className="invitation-buttons top-level-invitations">
             <span className="hint">Add:</span>
-            {parentNote.replyInvitations.map((invitation) => (
-              <button
-                key={invitation.id}
-                type="button"
-                className={`btn btn-xs ${
-                  activeInvitation?.id === invitation.id ? 'active' : ''
-                }`}
-                data-id={invitation.id}
-                onClick={() => openNoteEditor(invitation)}
-              >
-                {prettyInvitationId(invitation.id)}
-              </button>
-            ))}
+            {parentNote.replyInvitations.map((invitation) => {
+              if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
+
+              return (
+                <button
+                  key={invitation.id}
+                  type="button"
+                  className={`btn btn-xs ${
+                    activeInvitation?.id === invitation.id ? 'active' : ''
+                  }`}
+                  data-id={invitation.id}
+                  onClick={() => openNoteEditor(invitation)}
+                >
+                  {prettyInvitationId(invitation.id)}
+                </button>
+              )
+            })}
           </div>
 
           <NoteEditorForm
@@ -669,29 +701,6 @@ export default function Forum({
         </div>
       )}
 
-      {repliesLoaded && orderedReplies.length > 0 && (
-        <div className="filters-container mt-3">
-          {replyForumViews && <FilterTabs forumId={id} forumViews={replyForumViews} />}
-
-          {filterOptions && (
-            <FilterForm
-              forumId={id}
-              selectedFilters={selectedFilters}
-              setSelectedFilters={setSelectedFilters}
-              filterOptions={filterOptions}
-              sort={sort}
-              setSort={setSort}
-              layout={layout}
-              setLayout={setLayout}
-              defaultCollapseLevel={defaultCollapseLevel}
-              setDefaultCollapseLevel={setDefaultCollapseLevel}
-              numReplies={details.replyCount}
-              numRepliesHidden={numRepliesHidden}
-            />
-          )}
-        </div>
-      )}
-
       <div className="row mt-3 forum-replies-container">
         <div className="col-xs-12">
           <div id="forum-replies">
@@ -701,6 +710,8 @@ export default function Forum({
                 replyNoteMap,
                 displayOptionsMap,
                 layout,
+                nesting,
+                excludedInvitations: selectedFilters.excludedInvitations,
                 setCollapsed,
                 setContentExpanded,
                 setHidden,

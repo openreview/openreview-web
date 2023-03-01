@@ -207,6 +207,13 @@ main.invitation {
         color: white;
       }
     }
+
+    .search-controls {
+      width: 45%;
+      display: flex;
+      align-items: center;
+    }
+
     .search-label {
       margin-right: 0.25rem;
       font-weight: bold;
@@ -214,7 +221,6 @@ main.invitation {
 
     .search-input {
       margin-right: 0.25rem;
-      width: 40%;
 
       &.invalid-value {
         border-color: constants.$orRed;
@@ -248,7 +254,6 @@ main.invitation {
   .ac-status-menu {
     .search-input {
       margin-right: 0.25rem;
-      width: 40%;
     }
   }
 

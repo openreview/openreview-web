@@ -113,7 +113,7 @@ export default function Edit({ edit, type, className, showContents }) {
         <EditFields
           editId={edit.id}
           displayObj={edit.invitation}
-          omitFields={omitFields}
+          omitFields={['id', 'edit', 'mdate', 'tmdate']}
           label="Invitation"
         />
       )}

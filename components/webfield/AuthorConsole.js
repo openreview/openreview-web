@@ -123,6 +123,7 @@ const AuthorSubmissionRow = ({
   submissionName,
   authorName,
   profileMap,
+  showIEEECopyright,
 }) => {
   const isV2Note = note.version === 2
   const referrerUrl = encodeURIComponent(
@@ -258,6 +259,9 @@ const AuthorConsole = ({ appContext }) => {
     submissionName,
     showAuthorProfileStatus, // defaults to true
     blindSubmissionId, // for v1 only
+    showIEEECopyright,
+    IEEEPublicationTitle,
+    IEEEArtSourceCode,
   } = useContext(WebFieldContext)
 
   const { user, userLoading, accessToken } = useUser()

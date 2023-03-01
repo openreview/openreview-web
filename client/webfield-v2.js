@@ -253,6 +253,10 @@ module.exports = (function () {
       sort: options.sort,
     }
 
+    if (options['content.venueid']) {
+      query['content.venueid'] = options['content.venueid'];
+    }
+
     if (Array.isArray(options.numbers)) {
       if (!options.numbers.length) {
         return []
@@ -2073,6 +2077,7 @@ module.exports = (function () {
       paperDisplayOptions: {},
       pageSize: 50,
       query: {},
+      localSearch: false
     }
 
     options = _.defaults(options, defaults)
@@ -2089,7 +2094,7 @@ module.exports = (function () {
       container: container,
       search: {
         enabled: true,
-        localSearch: false,
+        localSearch: options.localSearch,
         invitation: invitation,
         venue: options.query['content.venue'],
         venueid: options.query['content.venueid'],

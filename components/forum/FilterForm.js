@@ -15,8 +15,8 @@ export default function FilterForm({
   filterOptions,
   sort,
   setSort,
-  layout,
-  setLayout,
+  nesting,
+  setNesting,
   defaultCollapseLevel,
   setDefaultCollapseLevel,
   numReplies,
@@ -71,7 +71,7 @@ export default function FilterForm({
 
   const copyFilterUrl = () => {
     if (!window.location) return
-    const urlParams = { layout, sort }
+    const urlParams = { nesting, sort }
 
     const filterStr = stringifyFilters(selectedFilters)
     if (filterStr) {
@@ -172,9 +172,9 @@ export default function FilterForm({
           <div className="btn-group btn-group-sm" role="group" aria-label="nesting level">
             <button
               type="button"
-              className={`btn btn-default ${layout === 1 ? 'active' : ''}`}
+              className={`btn btn-default ${nesting === 1 ? 'active' : ''}`}
               onClick={(e) => {
-                setLayout(1)
+                setNesting(1)
               }}
             >
               <img
@@ -188,9 +188,9 @@ export default function FilterForm({
             </button>
             <button
               type="button"
-              className={`btn btn-default ${layout === 2 ? 'active' : ''}`}
+              className={`btn btn-default ${nesting === 2 ? 'active' : ''}`}
               onClick={(e) => {
-                setLayout(2)
+                setNesting(2)
               }}
             >
               <img
@@ -204,9 +204,9 @@ export default function FilterForm({
             </button>
             <button
               type="button"
-              className={`btn btn-default ${layout === 3 ? 'active' : ''}`}
+              className={`btn btn-default ${nesting === 3 ? 'active' : ''}`}
               onClick={(e) => {
-                setLayout(3)
+                setNesting(3)
               }}
             >
               <img
