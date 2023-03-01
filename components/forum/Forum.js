@@ -61,6 +61,7 @@ export default function Forum({
   const [scrolled, setScrolled] = useState(false)
   const [attachedToBottom, setAttachedToBottom] = useState(true)
   const [enableLiveUpdate, setEnableLiveUpdate] = useState(false)
+  const [latestMdate, setLatestMdate] = useState(null)
   const [chatReplyNote, setChatReplyNote] = useState(null)
   const router = useRouter()
   const query = useQuery()
@@ -200,20 +201,25 @@ export default function Forum({
     })
   }
 
-  const loadNewReplies = async () => {
+  const loadNewReplies = useCallback(async () => {
     try {
       const { notes } = await api.get(
-        '/notes/updated',
-        { after: Date.now() - 2000, forum: id },
+        '/notes',
+        {
+          forum: id,
+          mintmdate: latestMdate,
+          sort: 'tmdate:asc',
+          details: 'invitation,presentation,writable',
+        },
         { accessToken, version: 2 }
       )
       return notes?.length > 0 ? notes : []
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('Error loading new replies: ', error.message)
+      console.warn('Error loading new replies: ', error.message)
       return []
     }
-  }
+  }, [latestMdate, id, accessToken])
 
   // Display helper functions
   const setCollapseLevel = (level) => {
@@ -449,6 +455,9 @@ export default function Forum({
   useEffect(() => {
     if (userLoading || clientJsLoading) return
 
+    // Initialize latest mdate to be 1 second before the current time
+    setLatestMdate(Date.now() - 1000)
+
     loadNotesAndInvitations()
   }, [userLoading])
 
@@ -655,10 +664,13 @@ export default function Forum({
     if (!repliesLoaded || !enableLiveUpdate) return
 
     loadNewReplies().then((newReplies) => {
-      // if (newReplies.length > 0) updateNote(newReplies[0])
       newReplies.forEach((note) => {
         updateNote(note)
       })
+
+      if (newReplies.length > 0) {
+        setLatestMdate(newReplies[newReplies.length - 1].tmdate)
+      }
     })
   }, 2000)
 
