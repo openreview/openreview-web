@@ -2,9 +2,10 @@
 /* globals typesetMathJax: false */
 /* globals promptError: false */
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
+import debounce from 'lodash/debounce'
 import escapeRegExp from 'lodash/escapeRegExp'
 
 import ForumNote from './ForumNote'
@@ -58,6 +59,7 @@ export default function Forum({
   })
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [scrolled, setScrolled] = useState(false)
+  const [attachedToBottom, setAttachedToBottom] = useState(true)
   const [enableLiveUpdate, setEnableLiveUpdate] = useState(false)
   const [chatReplyNote, setChatReplyNote] = useState(null)
   const router = useRouter()
@@ -276,6 +278,16 @@ export default function Forum({
 
     window.scrollTo({ top: y, behavior: 'smooth' })
   }
+
+  const handleScroll = useCallback(
+    debounce((e) => {
+      if (layout === 'chat') {
+        const bottom = e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight
+        setAttachedToBottom(bottom)
+      }
+    }, 100),
+    [layout]
+  )
 
   // Update forum note after new edit
   const updateParentNote = (note) => {
@@ -523,7 +535,7 @@ export default function Forum({
 
       if (layout === 'chat') {
         const containerElem = document.getElementById('forum-replies')
-        if (containerElem) {
+        if (containerElem && attachedToBottom) {
           containerElem.scrollTop = containerElem.scrollHeight
         }
       }
@@ -729,7 +741,7 @@ export default function Forum({
 
       <div className={`row forum-replies-container layout-${layout}`}>
         <div className="col-xs-12">
-          <div id="forum-replies">
+          <div id="forum-replies" onScroll={handleScroll}>
             <ForumReplyContext.Provider
               value={{
                 forumId: id,

@@ -1,7 +1,7 @@
 /* globals promptError,DOMPurify,marked,MathJax: false */
 
 import { useEffect, useState } from 'react'
-import uniq from 'lodash/uniq'
+import uniqBy from 'lodash/uniqBy'
 import truncate from 'lodash/truncate'
 import flatten from 'lodash/flatten'
 import Dropdown from '../Dropdown'
@@ -45,7 +45,7 @@ export default function ChatEditorForm({
           .then((result) => result.groups ?? [])
       })
       const groupResults = await Promise.all(optionsP)
-      const uniqueGroupResults = uniq(flatten(groupResults))
+      const uniqueGroupResults = uniqBy(flatten(groupResults), 'id')
       const sigOptions = uniqueGroupResults.map((p) => {
         let label = prettyId(p.id, true)
         if (!p.id.startsWith('~') && p.members?.length === 1) {
