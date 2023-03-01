@@ -257,6 +257,13 @@ table.table-minimal {
           padding-right: 0;
         }
       }
+      & > span {
+        padding-right: 0.75rem;
+        vertical-align: baseline;
+        &:last-child {
+          padding-right: 0;
+        }
+      }
       span.warning-conflict {
         background-color: constants.$orRed;
         padding: 1px 5px;
