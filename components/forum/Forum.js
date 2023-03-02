@@ -8,6 +8,7 @@ import isEmpty from 'lodash/isEmpty'
 import debounce from 'lodash/debounce'
 import escapeRegExp from 'lodash/escapeRegExp'
 
+import List from 'rc-virtual-list'
 import ForumNote from './ForumNote'
 import NoteEditorForm from '../NoteEditorForm'
 import ChatEditorForm from './ChatEditorForm'
@@ -543,7 +544,7 @@ export default function Forum({
       }
 
       if (layout === 'chat') {
-        const containerElem = document.getElementById('forum-replies')
+        const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
         if (containerElem && attachedToBottom) {
           containerElem.scrollTop = containerElem.scrollHeight
         }
@@ -753,7 +754,7 @@ export default function Forum({
 
       <div className={`row forum-replies-container layout-${layout}`}>
         <div className="col-xs-12">
-          <div id="forum-replies" onScroll={handleScroll}>
+          <div id="forum-replies">
             <ForumReplyContext.Provider
               value={{
                 forumId: id,
@@ -867,8 +868,13 @@ function ForumReplies({
 
   if (layout === 'chat') {
     return (
-      <ul className="list-unstyled">
-        {replies.map((reply) => (
+      <List
+        data={replies}
+        height={525}
+        itemHeight={1}
+        itemKey="id"
+      >
+        {(reply) => (
           <ChatReply
             key={reply.id}
             note={replyNoteMap[reply.id]}
@@ -880,8 +886,8 @@ function ForumReplies({
             isSelected={reply.id === chatReplyNote?.id}
             updateNote={updateNote}
           />
-        ))}
-      </ul>
+        )}
+      </List>
     )
   }
 

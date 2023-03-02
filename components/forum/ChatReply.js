@@ -41,7 +41,7 @@ export default function ChatReply({
   }
 
   return (
-    <li
+    <div
       className={`left clearfix ${styles.container} ${isSelected ? styles.active : ''}`}
       data-id={note.id}
       style={{ boxShadow: `0 0 0 2px ${colorHash}` }}
@@ -135,7 +135,7 @@ export default function ChatReply({
           </li>
           <li>
             <button className="btn btn-link" onClick={copyNoteUrl}>
-              <Icon name="link" tooltip="Copy post URL" /> Link
+              <Icon name="link" /> Copy Link
             </button>
           </li>
           {/*
@@ -163,6 +163,6 @@ export default function ChatReply({
           */}
         </ul>
       </div>
-    </li>
+    </div>
   )
 }

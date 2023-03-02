@@ -24,6 +24,7 @@ export default function ChatEditorForm({
   const [showSignatureDropdown, setShowSignatureDropdown] = useState(false)
   const [showMessagePreview, setShowMessagePreview] = useState(false)
   const [sanitizedHtml, setSanitizedHtml] = useState('')
+  const [loading, setLoading] = useState(false)
   const { user, accessToken } = useUser()
 
   const tabName = document.querySelector('.filter-tabs > li.active > a')?.text
@@ -57,12 +58,15 @@ export default function ChatEditorForm({
       setSignatureOptions(sigOptions)
       setSignature(sigOptions[0]?.value)
     } catch (err) {
-      promptError(err.message)
+      promptError(err.message, { scrollToTop: false })
     }
   }
 
   const postNoteEdit = (e) => {
     e.preventDefault()
+    if (!message || loading) return
+
+    setLoading(true)
 
     // TODO: construct this edit in a more general way
     const noteEdit = {
@@ -104,13 +108,16 @@ export default function ChatEditorForm({
           )
           .then((noteRes) => {
             onSubmit(noteRes.notes?.length > 0 ? noteRes.notes[0] : constructedNote)
+            setLoading(false)
           })
           .catch(() => {
             onSubmit(constructedNote)
+            setLoading(false)
           })
       })
       .catch((err) => {
-        promptError(err.message)
+        promptError(err.message, { scrollToTop: false })
+        setLoading(false)
       })
   }
 
@@ -199,6 +206,11 @@ export default function ChatEditorForm({
             rows="3"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.metaKey === true) {
+                postNoteEdit(e)
+              }
+            }}
           />
         )}
       </div>
@@ -229,7 +241,7 @@ export default function ChatEditorForm({
             {showMessagePreview ? 'Edit' : 'Preview'}
             {/* <SvgIcon name="markdown" /> */}
           </button>
-          <button type="submit" className="btn btn-sm btn-primary">
+          <button type="submit" className="btn btn-sm btn-primary" disabled={!message || loading}>
             Post {invitationShortName}
             {/* <Icon name="send" /> */}
           </button>

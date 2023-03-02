@@ -80,6 +80,9 @@
       border-bottom-left-radius: 2px;
       border-bottom-right-radius: 2px;
 
+      ul {
+        margin-bottom: 0;
+      }
       & > ul > li:first-child > .btn-link {
         border-bottom-left-radius: 2px;
       }
