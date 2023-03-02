@@ -235,7 +235,7 @@ const CustomAuthorForm = ({ searchTerm, setProfileSearchResults, setSearchTerm }
   useEffect(() => {
     const cleanSearchTerm = searchTerm.trim()
     if (isValidEmail(cleanSearchTerm)) {
-      setCustomAuthorEmail(cleanSearchTerm)
+      setCustomAuthorEmail(cleanSearchTerm.toLowerCase())
     } else {
       setCustomAuthorName(cleanSearchTerm)
     }
@@ -310,7 +310,6 @@ const ProfileSearchWidget = () => {
         (profileResults[0].profiles ?? []).concat(profileResults[1].profiles ?? [])
       )
     } catch (error) {
-      console.log('error is', error)
       promptError(error.message)
     }
   }

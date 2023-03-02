@@ -54,7 +54,7 @@ describe('FileUploadWidget', () => {
         exact: false,
       })
     )
-    expect(screen.getByRole('button', { name: '' })) // trash button
+    expect(screen.getByRole('button', { name: 'trash' }))
   })
 
   test('upload the file user selected', async () => {
@@ -146,7 +146,7 @@ describe('FileUploadWidget', () => {
     }
     renderWithEditorComponentContext(<FileUploadWidget />, providerProps)
 
-    const trashButton = screen.getByRole('button', { name: '' })
+    const trashButton = screen.getByRole('button', { name: 'trash' })
     await userEvent.click(trashButton)
 
     expect(onChange).toBeCalledWith({ fieldName: 'supplementary_material', value: null })
