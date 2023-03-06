@@ -1,7 +1,6 @@
-import { screen } from '@testing-library/react'
+import { screen, render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
-import { render, waitFor } from '@testing-library/react'
 import Signatures from '../components/Signatures'
 
 jest.mock('../lib/api-client')
