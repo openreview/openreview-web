@@ -1,10 +1,9 @@
+import React from 'react'
 import List from 'rc-virtual-list'
+import { maxBy } from 'lodash'
 import { getProfileName } from '../lib/utils'
 import { BidRadioButtonGroup, BidScore } from './webfield/BidWidget'
 import { getProfileLink } from '../lib/webfield-utils'
-import { maxBy } from 'lodash'
-import Collapse from '../components/Collapse'
-import React from 'react'
 
 const getTitle = (profile) => {
   if (!profile.content) return null
@@ -36,16 +35,14 @@ const BasicProfileSummary = ({ profile, setSearchTerm }) => {
           <b>Expertise:</b>{' '}
           {setSearchTerm ? (
             <>
-              {expertises.map((expertise, index) => {
-                return (
-                  <React.Fragment key={index}>
-                    {index !== 0 && <span>, </span>}
-                    <span role="button" onClick={() => setSearchTerm(expertise)}>
-                      {expertise}
-                    </span>
-                  </React.Fragment>
-                )
-              })}
+              {expertises.map((expertise, index) => (
+                <React.Fragment key={index}>
+                  {index !== 0 && <span>, </span>}
+                  <span role="button" onClick={() => setSearchTerm(expertise)}>
+                    {expertise}
+                  </span>
+                </React.Fragment>
+              ))}
             </>
           ) : (
             <span>{expertises.join(', ')}</span>

@@ -25,7 +25,7 @@ const getDdate = (existingBidToDelete) => {
 
 const appendSearchText = (profile) => {
   const searchText = [
-    ...profile.content.names?.map((p) => p.username),
+    ...(profile.content.names?.map((p) => p.username) ?? []),
     ...(profile.content.history?.flatMap(
       (p) => `${p.position} ${p.institution?.domain} ${p.institution?.name}`
     ) ?? []),
@@ -193,16 +193,6 @@ const AllSubmissionsTab = ({
     []
   )
 
-  useEffect(() => {
-    const cleanSearchTerm = searchTerm.trim().toLowerCase()
-    if (cleanSearchTerm) {
-      filterProfilesBySearchTerm(cleanSearchTerm)
-    } else {
-      getProfilesSortedByAffinity()
-    }
-    setImmediateSearchTerm(searchTerm)
-  }, [searchTerm])
-
   const filterProfilesBySearchTerm = async (term) => {
     setProfileState((state) => ({
       ...state,
@@ -229,6 +219,16 @@ const AllSubmissionsTab = ({
       ),
     }))
   }, [pageNumber, profileState.profilesFiltered])
+
+  useEffect(() => {
+    const cleanSearchTerm = searchTerm.trim().toLowerCase()
+    if (cleanSearchTerm) {
+      filterProfilesBySearchTerm(cleanSearchTerm)
+    } else {
+      getProfilesSortedByAffinity()
+    }
+    setImmediateSearchTerm(searchTerm)
+  }, [searchTerm])
 
   useEffect(() => {
     getProfilesSortedByAffinity()
