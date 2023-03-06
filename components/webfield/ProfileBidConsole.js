@@ -1,6 +1,6 @@
-/* globals typesetMathJax,promptError: false */
+/* globals promptError: false */
 
-import { useCallback, useContext, useEffect, useReducer, useState } from 'react'
+import { useCallback, useContext, useEffect, useState } from 'react'
 import debounce from 'lodash/debounce'
 import kebabCase from 'lodash/kebabCase'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -73,7 +73,7 @@ const AllSubmissionsTab = ({
 
   const sortOptions = scoreIds?.map((p) => ({ label: prettyInvitationId(p), value: p }))
   const emptyMessage = `No ${profileGroupName} to display at this time`
-  const pageSize = 5
+  const pageSize = 1
 
   const getProfilesSortedByAffinity = async (score = selectedScore) => {
     setIsLoading(true)
@@ -99,13 +99,11 @@ const AllSubmissionsTab = ({
             invitation: score,
             tail: user.profile.id,
             sort: 'weight:desc',
-            offset: (pageNumber - 1) * pageSize,
           },
           { accessToken, version: 2 }
         )
 
         if (edgesResult.count) {
-          setTotalCount(edgesResult.count)
           setScoreEdges(edgesResult.edges)
           const profileIds = edgesResult.edges.map((p) => p.head)
           const profilesResult = await api.post(
@@ -114,11 +112,7 @@ const AllSubmissionsTab = ({
             { accessToken, version: 2 }
           )
           const filteredProfiles = profileIds.flatMap((profileId) => {
-            const matchingProfile = profilesResult.profiles.find(
-              (p) =>
-                p.content.names.find((q) => q.username === profileId) ||
-                p.content.emails.find((r) => r === profileId)
-            )
+            const matchingProfile = profilesResult.profiles.find((p) => p.id === profileId)
             if (matchingProfile && !conflictIds.includes(profileId)) {
               return appendSearchText(matchingProfile)
             }
@@ -406,9 +400,9 @@ const ProfileBidConsole = ({ appContext }) => {
     conflictInvitationId,
     profileGroupId,
   } = useContext(WebFieldContext)
-  const profileGroupName = profileGroupId.split('/')?.pop()?.replaceAll('_', ' ')
+  const profileGroupName = profileGroupId?.split('/')?.pop()?.replaceAll('_', ' ')
 
-  const bidOptions = invitation.edge?.label?.param?.enum
+  const bidOptions = invitation?.edge?.label?.param?.enum
   const bidOptionsWithDefaultTabs = [`All ${profileGroupName}`, ...(bidOptions ?? [])]
   const getActiveTabIndex = () => {
     const tabIndex = bidOptionsWithDefaultTabs.findIndex(
