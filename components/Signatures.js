@@ -3,9 +3,16 @@ import uniqBy from 'lodash/uniqBy'
 import flatten from 'lodash/flatten'
 import Dropdown from './Dropdown'
 import TagsWidget from './EditorComponents/TagsWidget'
-import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 import { prettyId } from '../lib/utils'
+import useUser from '../hooks/useUser'
+
+const prettyGroupIdWithMember = (group) => {
+  let label = prettyId(group.id)
+  if (!group.id.startsWith('~') && group.members?.length === 1)
+    label = `${label} (${prettyId(group.members[0])})`
+  return label
+}
 
 const Signatures = ({
   fieldDescription,
@@ -17,7 +24,7 @@ const Signatures = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState(null)
-  const { user, accessToken } = useLoginRedirect()
+  const { user, accessToken } = useUser()
 
   const getRegexSignatureOptions = async () => {
     onChange({ loading: true })
@@ -38,16 +45,10 @@ const Signatures = ({
         onChange({ value: [regexGroupResult.groups[0].id], type: 'const' })
       } else {
         setSignatureOptions(
-          regexGroupResult.groups
-            .filter(
-              (p, index) => regexGroupResult.groups.findIndex((q) => q.id === p.id) === index
-            )
-            .map((r) => {
-              let label = prettyId(r.id)
-              if (!r.id.startsWith('~') && r.members?.length === 1)
-                label = `${label} (${prettyId(r.members[0])})`
-              return { label, value: r.id }
-            })
+          uniqBy(regexGroupResult.groups, 'id').map((p) => ({
+            label: prettyGroupIdWithMember(p),
+            value: p.id,
+          }))
         )
         onChange({ type: 'list' })
       }
@@ -77,12 +78,7 @@ const Signatures = ({
         onChange({ value: [uniqueGroupResults[0].id], type: 'const' })
       } else {
         setSignatureOptions(
-          uniqueGroupResults.map((p) => {
-            let label = prettyId(p.id)
-            if (!p.id.startsWith('~') && p.members?.length === 1)
-              label = `${label} (${prettyId(p.members[0])})`
-            return { label, value: p.id }
-          })
+          uniqueGroupResults.map((p) => ({ label: prettyGroupIdWithMember(p), value: p.id }))
         )
         onChange({ type: 'list' })
       }
@@ -116,7 +112,7 @@ const Signatures = ({
   }
 
   useEffect(() => {
-    if (!fieldDescription) return
+    if (!fieldDescription || !user) return
     if (!fieldDescription.param) {
       setDescriptionType('const')
       onChange({ type: 'const' })

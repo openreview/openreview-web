@@ -7,20 +7,33 @@ import Signatures from '../components/Signatures'
 jest.mock('../lib/api-client')
 import api from '../lib/api-client'
 
-jest.mock('../hooks/useLoginRedirect', () => {
-  return () => ({
-    user: { profile: { id: '~Test_User1' }, id: '~Test_User1' },
-    accessToken: 'some token',
-  })
+let mockUseUserHookValue
+jest.mock('../hooks/useUser', () => {
+  return () => mockUseUserHookValue
 })
 
 jest.mock('../components/EditorComponents/TagsWidget', () => () => <span>tags</span>)
+
+beforeEach(() => {
+  mockUseUserHookValue = {
+    user: { profile: { id: '~Test_User1' }, id: '~Test_User1' },
+    accessToken: 'some token',
+  }
+})
 
 describe('Signatures', () => {
   test('display nothing if there is no field description', () => {
     const nullFieldDescription = null
 
     render(<Signatures fieldDescription={nullFieldDescription} />)
+
+    expect(screen.queryByText('tags')).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+  })
+
+  test('display nothing if user has not logged in/expired', () => {
+    mockUseUserHookValue = {}
+    render(<Signatures fieldDescription={['${3/signatures}']} onChange={jest.fn()} />)
 
     expect(screen.queryByText('tags')).not.toBeInTheDocument()
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
