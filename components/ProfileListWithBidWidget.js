@@ -59,7 +59,7 @@ const ProfileListWithBidWidget = ({
   bidOptions,
   bidEdges,
   scoreEdges,
-  displayOptions,
+  emptyMessage,
   updateBidOption,
   virtualList,
   bidUpdateStatus,
@@ -102,7 +102,7 @@ const ProfileListWithBidWidget = ({
           </List>
           {profiles.length === 0 && (
             <li>
-              <p className="empty-message">{displayOptions.emptyMessage}</p>
+              <p className="empty-message">{emptyMessage}</p>
             </li>
           )}
         </ul>
@@ -126,7 +126,7 @@ const ProfileListWithBidWidget = ({
 
         {profiles.length === 0 && (
           <li>
-            <p className="empty-message">{displayOptions.emptyMessage}</p>
+            <p className="empty-message">{emptyMessage}</p>
           </li>
         )}
       </ul>

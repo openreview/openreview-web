@@ -73,7 +73,7 @@ const AllSubmissionsTab = ({
 
   const sortOptions = scoreIds?.map((p) => ({ label: prettyInvitationId(p), value: p }))
   const emptyMessage = `No ${profileGroupName} to display at this time`
-  const pageSize = 1
+  const pageSize = 25
 
   const getProfilesSortedByAffinity = async (score = selectedScore) => {
     setIsLoading(true)
@@ -280,12 +280,7 @@ const AllSubmissionsTab = ({
             bidOptions={bidOptions}
             bidEdges={bidEdges}
             scoreEdges={scoreEdges}
-            displayOptions={{
-              emptyMessage,
-              showContents: true,
-              collapse: true,
-              pdfLink: true,
-            }}
+            emptyMessage={emptyMessage}
             updateBidOption={updateBidOption}
             bidUpdateStatus={bidUpdateStatus}
             setSearchTerm={setSearchTerm}
@@ -378,12 +373,7 @@ const BidOptionTab = ({
       profiles={profiles}
       bidOptions={bidOptions}
       bidEdges={bidEdges}
-      displayOptions={{
-        emptyMessage,
-        showContents: true,
-        collapse: true,
-        pdfLink: true,
-      }}
+      emptyMessage={emptyMessage}
       updateBidOption={updateBidOption}
       bidUpdateStatus={bidUpdateStatus}
     />
@@ -426,11 +416,13 @@ const ProfileBidConsole = ({ appContext }) => {
         { invitation: invitation.id, tail: user.profile.id },
         { accessToken, version: 2 }
       )
-      const conflictEdgeResultsP = api.getAll(
-        '/edges',
-        { invitation: conflictInvitationId, tail: user.profile.id },
-        { accessToken, version: 2 }
-      )
+      const conflictEdgeResultsP = conflictInvitationId
+        ? api.getAll(
+            '/edges',
+            { invitation: conflictInvitationId, tail: user.profile.id },
+            { accessToken, version: 2 }
+          )
+        : Promise.resolve([])
       const results = await Promise.all([bidEdgeResultsP, conflictEdgeResultsP])
       setBidEdges(results[0])
       setConflictIds(results[1]?.map((p) => p.head))
@@ -488,7 +480,6 @@ const ProfileBidConsole = ({ appContext }) => {
     venueId,
     invitation,
     scoreIds,
-    conflictInvitationId,
     bidOptions,
     profileGroupId,
   }).filter(([key, value]) => value === undefined)
