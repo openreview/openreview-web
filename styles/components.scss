@@ -521,6 +521,9 @@ table.table-minimal {
 }
 
 .profiles-list {
+  .bid-container {
+    margin-bottom: 0.5rem;
+  }
   .profile-summary {
     display: flex;
     flex-direction: column;
