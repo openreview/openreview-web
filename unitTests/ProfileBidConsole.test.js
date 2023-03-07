@@ -211,68 +211,6 @@ describe('ProfileBidConsole', () => {
     })
   })
 
-  test.skip('show profile name,history,expertise and bid button', async () => {
-    const getBidConlictEdges = jest.fn(() => {
-      return Promise.resolve([])
-    })
-    const getACProfiles = jest.fn(() =>
-      Promise.resolve({
-        profiles: [
-          {
-            id: '~test_id1',
-            content: {
-              names: [{ first: 'first1', last: 'last1', username: '~first_last1' }],
-              history: [
-                {
-                  position: 'student',
-                  institution: {
-                    domain: 'umass.edu',
-                    name: 'umass amherst',
-                  },
-                },
-              ],
-              expertise: [
-                { keywords: ['nlp', 'machine learning'] },
-                { keywords: ['deep learning'] },
-              ],
-            },
-          },
-        ],
-      })
-    )
-    api.getAll = getBidConlictEdges
-    api.get = getACProfiles
-
-    const providerProps = {
-      value: {
-        venueId: 'NeurIPS.cc/2023/Conference',
-        header: {
-          title: 'bidding console',
-          instructions: '',
-        },
-        entity: bidInvitation,
-        scoreIds: [],
-        profileGroupId: 'NeurIPS.cc/2023/Conference/Area_Chairs',
-      },
-    }
-
-    renderWithWebFieldContext(
-      <ProfileBidConsole appContext={{ setBannerContent: jest.fn() }} />,
-      providerProps
-    )
-
-    await waitFor(() => {
-      expect(screen.getByText('first1 last1')).toHaveAttribute('href', '/profile?id=~test_id1')
-      expect(screen.getByText('student at umass amherst (umass.edu)'))
-      expect(screen.getByText('Expertise:').parentElement.textContent).toBe(
-        'Expertise: nlp, machine learning, deep learning'
-      )
-      expect(screen.getAllByRole('radio').length).toEqual(
-        bidInvitation.edge.label.param.enum.length
-      )
-    })
-  })
-
   test('show profiles in ac group if fits in one page(25)', async () => {
     const getBidConlictEdges = jest.fn(() => {
       return Promise.resolve([])

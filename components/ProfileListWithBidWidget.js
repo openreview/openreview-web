@@ -63,7 +63,6 @@ const ProfileListWithBidWidget = ({
   updateBidOption,
   virtualList,
   bidUpdateStatus,
-  showBidScore = true,
   setSearchTerm,
 }) => {
   const renderNoteWithBidWidget = (profile, selectedBidOption, scoreEdge) => (
@@ -80,7 +79,7 @@ const ProfileListWithBidWidget = ({
         updateBidOption={(updatedOption) => updateBidOption(profile, updatedOption)}
         bidUpdateStatus={bidUpdateStatus}
       />
-      {showBidScore && <BidScore scoreEdge={scoreEdge} />}
+      {<BidScore scoreEdge={scoreEdge} />}
     </div>
   )
 
