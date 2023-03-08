@@ -74,6 +74,15 @@
         margin-bottom: 0;
       }
     }
+    .note-content-value {
+      mjx-container[jax='CHTML'][display='true'] {
+        margin-top: 0;
+        margin-bottom: .5rem;
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
     .chat-actions {
       border: 1px solid #eee;
       border-top: 0;

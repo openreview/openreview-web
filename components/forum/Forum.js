@@ -286,16 +286,6 @@ export default function Forum({
     window.scrollTo({ top: y, behavior: 'smooth' })
   }
 
-  const handleScroll = useCallback(
-    debounce((e) => {
-      if (layout === 'chat') {
-        const bottom = e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight
-        setAttachedToBottom(bottom)
-      }
-    }, 100),
-    [layout]
-  )
-
   // Update forum note after new edit
   const updateParentNote = (note) => {
     const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
@@ -314,6 +304,16 @@ export default function Forum({
   // Add new reply note or update and existing reply note
   const updateNote = (note) => {
     if (!note) return
+
+    // For chat layout, check if the user is scrolled before updating state
+    const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
+    if (containerElem) {
+      const bottom = containerElem.scrollHeight - containerElem.scrollTop === containerElem.clientHeight
+      if (attachedToBottom !== bottom) {
+        setAttachedToBottom(bottom)
+      }
+      console.log(containerElem.scrollHeight - containerElem.scrollTop, containerElem.clientHeight)
+    }
 
     const noteId = note.id
     const parentId = note.replyto
@@ -803,9 +803,7 @@ export default function Forum({
                   invitation={invitation}
                   replyToNote={chatReplyNote}
                   setReplyToNote={setChatReplyNote}
-                  onSubmit={(note) => {
-                    updateNote(note)
-                  }}
+                  onSubmit={updateNote}
                 />
               )
             })
@@ -876,7 +874,6 @@ function ForumReplies({
       >
         {(reply) => (
           <ChatReply
-            key={reply.id}
             note={replyNoteMap[reply.id]}
             parentNote={
               reply.replyto === forumId ? null : replyNoteMap[replyNoteMap[reply.id].replyto]

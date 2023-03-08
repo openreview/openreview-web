@@ -1,6 +1,6 @@
 /* globals promptMessage: false */
 
-import { useState } from 'react'
+import { forwardRef, useState } from 'react'
 import truncate from 'lodash/truncate'
 import copy from 'copy-to-clipboard'
 import dayjs from 'dayjs'
@@ -15,14 +15,15 @@ import styles from '../../styles/components/ChatReply.module.scss'
 
 dayjs.extend(localizedFormat)
 
-export default function ChatReply({
+// eslint-disable-next-line prefer-arrow-callback
+export default forwardRef(function ChatReply({
   note,
   parentNote,
   displayOptions,
   isSelected,
   setChatReplyNote,
   updateNote,
-}) {
+}, ref) {
   const [editMode, setEditMode] = useState(false)
 
   if (!note || displayOptions.hidden) return null
@@ -30,6 +31,10 @@ export default function ChatReply({
   const isChatNote = Object.keys(note.content).length === 1 && note.content.message
   const presentation = note.details?.presentation
   const colorHash = getInvitationColors(prettyId(note.signatures[0], true)).backgroundColor
+
+  const deleteNote = () => {
+    updateNote(note)
+  }
 
   const copyNoteUrl = (e) => {
     if (!window.location) return
@@ -45,6 +50,7 @@ export default function ChatReply({
       className={`left clearfix ${styles.container} ${isSelected ? styles.active : ''}`}
       data-id={note.id}
       style={{ boxShadow: `0 0 0 2px ${colorHash}` }}
+      ref={ref}
     >
       <div className="chat-body clearfix">
         {parentNote && (
@@ -140,7 +146,7 @@ export default function ChatReply({
           </li>
           {/*
           <li>
-            <button className="btn btn-link" onClick={() => { setEditMode(true) }}>
+            <button className="btn btn-link" onClick={deleteNote}>
               <Icon name="pencil" /> Edit
             </button>
           </li>
@@ -154,6 +160,13 @@ export default function ChatReply({
           */}
         </ul>
         <ul className="list-inline pull-right">
+          {note.details.writable && note.deleteInvitation && (
+            <li>
+              <button className="btn btn-link" onClick={deleteNote}>
+                <Icon name="trash" /> Delete
+              </button>
+            </li>
+          )}
           {/*
           <li>
             <button className="btn btn-link" onClick={() => {}}>
@@ -165,4 +178,4 @@ export default function ChatReply({
       </div>
     </div>
   )
-}
+})
