@@ -1,0 +1,23 @@
+@use '../utils/constants';
+
+.container {
+  display: inline-block;
+  margin-top: 4px;
+  :global {
+    .tooltip-inner {
+      max-width: unset;
+    }
+  }
+}
+
+.value {
+  cursor: default;
+  background-color: rgba(0, 0, 0, 0.08);
+  padding: 4px 10px;
+  border-radius: 2px;
+  margin-right: 0.25rem;
+}
+
+.emphasis {
+  color: constants.$orRed;
+}
