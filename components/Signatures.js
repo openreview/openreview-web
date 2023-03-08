@@ -130,7 +130,7 @@ const Signatures = ({
     if (fieldDescription.param?.enum) {
       setDescriptionType('enum')
     }
-  }, [])
+  }, [fieldDescription, user])
 
   useEffect(() => {
     if (descriptionType === 'regex') {
