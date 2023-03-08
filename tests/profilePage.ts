@@ -455,6 +455,11 @@ test('#85 confirm profile email message', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
     .contains('A confirmation email has been sent to x@x.com')
+    .click(emailSectionPlusIconSelector)
+    .typeText(editEmailInputSelector, 'x@x.com')
+    .click(Selector('button').withText('Confirm').filterVisible())
+    .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
+    .contains('x@x.com is already added to your profile')
 })
 test.skip('#2143 date validation', async (t) => {
   await t
