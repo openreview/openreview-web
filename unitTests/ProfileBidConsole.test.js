@@ -552,4 +552,79 @@ describe('ProfileBidConsole', () => {
       )
     })
   })
+
+  test('show profiles with bid edge in bid option tab', async () => {
+    api.getAll = jest.fn((path, query, option) => {
+      if ((query.invitation = bidInvitation.id))
+        return Promise.resolve([
+          { head: '~test_id1', label: 'Very High' },
+          { head: '~test_id2', label: 'Neutral' },
+        ])
+      return Promise.resolve([])
+    })
+    api.get = jest.fn(() => {
+      return Promise.resolve([])
+    })
+    const getProfileWithBidEdge = jest.fn((path, query, option) => {
+      if (query.ids[0] === '~test_id1') {
+        // very high tab
+        return Promise.resolve({
+          profiles: [{ id: '~test_id1', content: {} }],
+        })
+      } else {
+        // neutral tab
+        return Promise.resolve({
+          profiles: [{ id: '~test_id2', content: {} }],
+        })
+      }
+    })
+    api.post = getProfileWithBidEdge
+
+    const providerProps = {
+      value: {
+        venueId: 'NeurIPS.cc/2023/Conference',
+        header: {
+          title: 'bidding console',
+          instructions: '',
+        },
+        entity: bidInvitation,
+        scoreIds: [],
+        conflictInvitationId: 'NeurIPS.cc/2023/Conference/Senior_Area_Chairs/-/Conflict',
+        profileGroupId: 'NeurIPS.cc/2023/Conference/Area_Chairs',
+      },
+    }
+
+    renderWithWebFieldContext(
+      <ProfileBidConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+
+    await waitFor(() => userEvent.click(screen.getByText('Very High')))
+    await waitFor(() => {
+      expect(getProfileWithBidEdge).toHaveBeenCalledWith(
+        expect.anything(),
+        { ids: ['~test_id1'] },
+        expect.anything()
+      )
+      expect(profileListProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          profiles: [{ id: '~test_id1', content: {} }],
+        })
+      )
+    })
+
+    await waitFor(() => userEvent.click(screen.getByText('Neutral')))
+    await waitFor(() => {
+      expect(getProfileWithBidEdge).toHaveBeenCalledWith(
+        expect.anything(),
+        { ids: ['~test_id2'] },
+        expect.anything()
+      )
+      expect(profileListProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          profiles: [{ id: '~test_id2', content: {} }],
+        })
+      )
+    })
+  })
 })
