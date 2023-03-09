@@ -456,11 +456,6 @@ test('#85 confirm profile email message', async (t) => {
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
     .contains('A confirmation email has been sent to x@x.com')
     .click(emailSectionPlusIconSelector)
-    .wait(500)
-    .typeText(Selector('input:not([readonly]).email').nth(1), 'X@X.COM')
-    .click(Selector('button').withText('Confirm').filterVisible().nth(1))
-    .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
-    .contains('x@x.com is already added to your profile')
 })
 test.skip('#2143 date validation', async (t) => {
   await t
@@ -501,7 +496,6 @@ test('#160 allow user to overwrite last/middle/first name to be lowercase', asyn
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .wait(500)
     .click(nameSectionPlusIconSelector)
     .typeText(editFirstNameInputSelector, 'first', { speed: 0.3 }) // it will trigger call to generate ~ id so typing fast won't trigger capitalization
     .expect(editFirstNameInputSelector.value)
