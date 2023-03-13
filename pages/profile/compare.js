@@ -6,6 +6,7 @@ import Head from 'next/head'
 import isEmpty from 'lodash/isEmpty'
 import withAdminAuth from '../../components/withAdminAuth'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import SpinnerButton from '../../components/SpinnerButton'
 import api from '../../lib/api-client'
 import { prettyId, prettyField, getProfileStateLabelClass } from '../../lib/utils'
 // #region components used by Compare (in renderField method)
@@ -253,6 +254,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   const [highlightValues, setHighlightValues] = useState(null)
   const [fields, setFields] = useState([])
   const [edgeCounts, setEdgeCounts] = useState(null)
+  const [loading, setLoading] = useState(false)
   const { setBannerHidden } = appContext
 
   const getPublications = async (profileId) => {
@@ -514,6 +516,21 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     }
   }
 
+  const mergeEdge = async (from, to) => {
+    setLoading(true)
+    try {
+      await api.post(
+        '/edges/rename',
+        { currentId: basicProfiles[from].id, newId: basicProfiles[to].id },
+        { accessToken }
+      )
+      Router.reload()
+    } catch (error) {
+      promptError(error.message)
+    }
+    setLoading(false)
+  }
+
   const getEdges = async () => {
     if (
       !basicProfiles.left?.id ||
@@ -654,12 +671,32 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                   <td>
                     <strong>Edges</strong>
                   </td>
-                  <td colSpan="2">
+                  <td>
                     {renderEdgeLink(edgeCounts.leftHead, 'head', basicProfiles.left.id)}
                     {', '}
                     {renderEdgeLink(edgeCounts.leftTail, 'tail', basicProfiles.left.id)}
                   </td>
-                  <td colSpan="2">
+                  <td colSpan="2" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                    <SpinnerButton
+                      type="button"
+                      className="mb-2"
+                      loading={loading}
+                      disabled={!(edgeCounts.rightHead || edgeCounts.rightTail) || loading}
+                      onClick={() => mergeEdge('right', 'left')}
+                    >
+                      &laquo;
+                    </SpinnerButton>
+                    <br />
+                    <SpinnerButton
+                      type="button"
+                      loading={loading}
+                      disabled={!(edgeCounts.leftHead || edgeCounts.leftTail) || loading}
+                      onClick={() => mergeEdge('left', 'right')}
+                    >
+                      &raquo;
+                    </SpinnerButton>
+                  </td>
+                  <td>
                     {renderEdgeLink(edgeCounts.rightHead, 'head', basicProfiles.right.id)}
                     {', '}
                     {renderEdgeLink(edgeCounts.rightTail, 'tail', basicProfiles.right.id)}
