@@ -109,6 +109,8 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
   const handleConfirmEmail = async (key) => {
     const newEmail = emails?.find((p) => p.key === key)?.email?.toLowerCase()
     if (!newEmail) return promptError('Email is required')
+    if (emails.filter((p) => p.email?.toLowerCase() === newEmail)?.length > 1)
+      return promptError(`${newEmail} is already added to your profile`)
     if (profileId) {
       const linkData = { alternate: newEmail, username: profileId }
       try {
