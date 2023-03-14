@@ -12,6 +12,8 @@ import EditEdgeInviteEmail from './EditEdgeInviteEmail'
 import { getInvitationPrefix, transformName } from '../../lib/edge-utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
+import useQuery from '../../hooks/useQuery'
+import { filterCollections, getEdgeValue } from '../../lib/webfield-utils'
 
 export default function Column(props) {
   const {
@@ -36,6 +38,7 @@ export default function Column(props) {
   const entityMap = useRef({ globalEntityMap, altGlobalEntityMap })
   const [entityMapChanged, setEntityMapChanged] = useState(false)
   const { accessToken, user } = useUser()
+  const query = useQuery()
 
   const sortOptions = [
     {
@@ -519,16 +522,55 @@ export default function Column(props) {
     }
   }
 
-  const filterQuotaReachedItems = (colItems) => {
-    if (!hideQuotaReached) return colItems
+  const getQuota = (colItem) => {
     const defaultQuota = [...browseInvitations, ...editInvitations].find((p) =>
       p.id.includes('Custom_Max_Papers')
     )?.defaultWeight
+    const customLoad =
+      [...colItem.browseEdges, ...colItem.editEdges].find((edge) =>
+        edge?.invitation?.includes('Custom_Max_Papers')
+      )?.weight ?? defaultQuota
+    return customLoad
+  }
+
+  const filterQuotaReachedItems = (colItems) => {
+    if (!hideQuotaReached) return colItems
+    if (query.filter) {
+      const { filteredRows, queryIsInvalid } = filterCollections(
+        colItems.map((p) => {
+          const customLoad = getQuota(p)
+          const quotaNotReached = !customLoad || p.traverseEdgeCount < customLoad
+
+          return {
+            ...p,
+            filterProperties: p.browseEdges.reduce(
+              (prev, curr) => {
+                prev[curr.name] = getEdgeValue(curr) // eslint-disable-line no-param-reassign
+                return prev
+              },
+              { Quota: quotaNotReached }
+            ),
+          }
+        }),
+        `${query.filter} AND Quota=true`,
+        ['!=', '>=', '<=', '>', '<', '='],
+        browseInvitations.reduce(
+          (prev, curr) => {
+            prev[curr.name] = [`filterProperties.${curr.name}`] // eslint-disable-line no-param-reassign
+            return prev
+          },
+          {
+            Quota: ['filterProperties.Quota'],
+          }
+        ),
+        'id'
+      )
+      if (queryIsInvalid) return colItems
+      return filteredRows
+    }
+
     return colItems.filter((p) => {
-      const customLoad =
-        [...p.browseEdges, ...p.editEdges].find((q) =>
-          q?.invitation?.includes('Custom_Max_Papers')
-        )?.weight ?? defaultQuota
+      const customLoad = getQuota(p)
       if (customLoad === undefined) return true
       return p.traverseEdgesCount < customLoad
     })
@@ -786,6 +828,19 @@ export default function Column(props) {
     })
   }
 
+  const getFilterLabel = () => {
+    if (query.filter) {
+      return `Only show ${prettyId(
+        traverseInvitation[type].query.group,
+        true
+      ).toLowerCase()} available for ${prettyId(traverseInvitation.id, true).toLowerCase()}.`
+    }
+    return `Only show ${prettyId(
+      traverseInvitation[type].query.group,
+      true
+    ).toLowerCase()} with fewer than max assigned papers.`
+  }
+
   useEffect(() => {
     if (!items) return
     if (!items.length && !parentId) {
@@ -1037,8 +1092,7 @@ export default function Column(props) {
                     setHideQuotaReached(e.target.checked)
                   }}
                 />{' '}
-                Only show {prettyId(traverseInvitation[type].query.group, true).toLowerCase()}{' '}
-                with fewer than max assigned papers.
+                {getFilterLabel()}
               </label>
             </div>
           )}
