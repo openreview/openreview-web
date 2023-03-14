@@ -19,6 +19,7 @@ import { formatTasksData, prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import LoadingSpinner from '../LoadingSpinner'
 import { filterAssignedInvitations, filterHasReplyTo } from '../../lib/webfield-utils'
+import useBreakpoint from '../../hooks/useBreakPoint'
 
 const ReviewSummary = ({
   note,
@@ -123,12 +124,44 @@ const AuthorSubmissionRow = ({
   submissionName,
   authorName,
   profileMap,
-  showIEEECopyright,
+  isMobileView = false,
 }) => {
   const isV2Note = note.version === 2
   const referrerUrl = encodeURIComponent(
     `[Author Console](/group?id=${venueId}/${authorName}#your-submissions)`
   )
+  if (isMobileView)
+    return (
+      <div className="mobile-paper-container">
+        <span className="mobile-header">Paper #{note.number}</span>
+        <NoteSummary
+          note={note}
+          profileMap={profileMap}
+          referrerUrl={referrerUrl}
+          isV2Note={isV2Note}
+        />
+        <span className="mobile-header">Reviews:</span>
+        <div className="mobile-review-summary">
+          <ReviewSummary
+            note={note}
+            venueId={venueId}
+            referrerUrl={referrerUrl}
+            officialReviewName={officialReviewName}
+            reviewRatingName={reviewRatingName}
+            reviewConfidenceName={reviewConfidenceName}
+            submissionName={submissionName}
+            isV2Note={isV2Note}
+          />
+        </div>
+        <span className="mobile-header">Decision:</span>
+        <AuthorConsoleNoteMetaReviewStatus
+          note={note}
+          venueId={venueId}
+          decisionName={decisionName}
+          submissionName={submissionName}
+        />
+      </div>
+    )
   return (
     <tr>
       <td>
@@ -270,6 +303,7 @@ const AuthorConsole = ({ appContext }) => {
   const [showTasks, setShowTasks] = useState(false)
   const [authorNotes, setAuthorNotes] = useState(null)
   const [profileMap, setProfileMap] = useState(null)
+  const isMobile = !useBreakpoint('md')
 
   const loadProfiles = async (notes, version) => {
     const authorIds = new Set()
@@ -483,32 +517,54 @@ const AuthorConsole = ({ appContext }) => {
         <TabPanels>
           <TabPanel id="your-submissions">
             {authorNotes?.length > 0 ? (
-              <div className="table-container">
-                <Table
-                  className="console-table table-striped"
-                  headings={[
-                    { id: 'number', content: '#', width: '55px' },
-                    { id: 'summary', content: 'Paper Summary', width: '35%' },
-                    { id: 'reviews', content: 'Reviews', width: 'auto' },
-                    { id: 'decision', content: 'Decision', width: '30%' },
-                  ]}
-                >
-                  {authorNotes.map((note) => (
-                    <AuthorSubmissionRow
-                      key={note.id}
-                      note={note}
-                      venueId={venueId}
-                      officialReviewName={officialReviewName}
-                      decisionName={decisionName}
-                      reviewRatingName={reviewRatingName}
-                      reviewConfidenceName={reviewConfidenceName}
-                      submissionName={submissionName}
-                      authorName={authorName}
-                      profileMap={profileMap}
-                    />
-                  ))}
-                </Table>
-              </div>
+              <>
+                {!isMobile ? (
+                  <div className="table-container">
+                    <Table
+                      className="console-table table-striped"
+                      headings={[
+                        { id: 'number', content: '#', width: '55px' },
+                        { id: 'summary', content: 'Paper Summary', width: '35%' },
+                        { id: 'reviews', content: 'Reviews', width: 'auto' },
+                        { id: 'decision', content: 'Decision', width: '30%' },
+                      ]}
+                    >
+                      {authorNotes.map((note) => (
+                        <AuthorSubmissionRow
+                          key={note.id}
+                          note={note}
+                          venueId={venueId}
+                          officialReviewName={officialReviewName}
+                          decisionName={decisionName}
+                          reviewRatingName={reviewRatingName}
+                          reviewConfidenceName={reviewConfidenceName}
+                          submissionName={submissionName}
+                          authorName={authorName}
+                          profileMap={profileMap}
+                        />
+                      ))}
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="author-console-mobile">
+                    {authorNotes.map((note) => (
+                      <AuthorSubmissionRow
+                        key={note.id}
+                        note={note}
+                        venueId={venueId}
+                        officialReviewName={officialReviewName}
+                        decisionName={decisionName}
+                        reviewRatingName={reviewRatingName}
+                        reviewConfidenceName={reviewConfidenceName}
+                        submissionName={submissionName}
+                        authorName={authorName}
+                        profileMap={profileMap}
+                        isMobileView={true}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             ) : (
               <p className="empty-message">No papers to display at this time</p>
             )}
