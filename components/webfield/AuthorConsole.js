@@ -170,9 +170,6 @@ const AuthorConsoleTasks = () => {
   const { venueId, authorName, submissionName, apiVersion } = useContext(WebFieldContext)
   const { accessToken } = useUser()
   const [invitations, setInvitations] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  const wildcardInvitation = `${venueId}/.*`
 
   const addInvitaitonTypeAndVersion = (invitation) => {
     let invitaitonType = 'tagInvitation'
@@ -183,7 +180,8 @@ const AuthorConsoleTasks = () => {
   }
 
   const loadInvitations = async () => {
-    setIsLoading(true)
+    const wildcardInvitation = `${venueId}/.*`
+
     try {
       let allInvitations = await api.getAll(
         '/invitations',
@@ -202,7 +200,7 @@ const AuthorConsoleTasks = () => {
         .filter((p) => filterHasReplyTo(p, apiVersion))
         .filter((p) => filterAssignedInvitations(p, authorName, submissionName))
 
-      if (allInvitations.length) {
+      if (allInvitations.length > 0) {
         // add details
         const validInvitationDetails = await api.getAll(
           '/invitations',
@@ -224,21 +222,22 @@ const AuthorConsoleTasks = () => {
     } catch (error) {
       promptError(error.message)
     }
-    setIsLoading(false)
   }
 
   useEffect(() => {
+    setInvitations(null)
     loadInvitations()
-  }, [])
+  }, [venueId, accessToken])
 
-  if (isLoading) return <LoadingSpinner />
+  if (!invitations) return <LoadingSpinner />
+
   return (
     <TaskList
       invitations={invitations}
       emptyMessage={'No outstanding tasks for this conference'}
-      referrer={`${encodeURIComponent(
+      referrer={encodeURIComponent(
         `[Author Console](/group?id=${venueId}/${authorName}#author-tasks)`
-      )}&t=${Date.now()}`}
+      )}
     />
   )
 }
@@ -470,6 +469,7 @@ const AuthorConsole = ({ appContext }) => {
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
+
       <Tabs>
         <TabList>
           <Tab id="your-submissions" active>
@@ -513,6 +513,7 @@ const AuthorConsole = ({ appContext }) => {
               <p className="empty-message">No papers to display at this time</p>
             )}
           </TabPanel>
+
           <TabPanel id="author-tasks">{showTasks && <AuthorConsoleTasks />}</TabPanel>
         </TabPanels>
       </Tabs>

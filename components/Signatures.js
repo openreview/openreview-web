@@ -1,9 +1,18 @@
 import { useEffect, useState } from 'react'
-import useLoginRedirect from '../hooks/useLoginRedirect'
-import api from '../lib/api-client'
-import { prettyId } from '../lib/utils'
+import uniqBy from 'lodash/uniqBy'
+import flatten from 'lodash/flatten'
 import Dropdown from './Dropdown'
 import TagsWidget from './EditorComponents/TagsWidget'
+import api from '../lib/api-client'
+import { prettyId } from '../lib/utils'
+import useUser from '../hooks/useUser'
+
+const prettyGroupIdWithMember = (group) => {
+  let label = prettyId(group.id)
+  if (!group.id.startsWith('~') && group.members?.length === 1)
+    label = `${label} (${prettyId(group.members[0])})`
+  return label
+}
 
 const Signatures = ({
   fieldDescription,
@@ -15,7 +24,7 @@ const Signatures = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState(null)
-  const { user, accessToken } = useLoginRedirect()
+  const { user, accessToken } = useUser()
 
   const getRegexSignatureOptions = async () => {
     onChange({ loading: true })
@@ -27,25 +36,21 @@ const Signatures = ({
         { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression, signatory: user?.id },
         { accessToken, version: regexContainsPipe ? 1 : 2 }
       )
-
-      if (!regexGroupResult.groups?.length)
+      if (!regexGroupResult.groups?.length) {
         throw new Error('You do not have permission to create a note')
+      }
+
       if (regexGroupResult.groups.length === 1) {
         setSignatureOptions([regexGroupResult.groups[0].id])
-        onChange({ value: [regexGroupResult.groups[0].id] })
+        onChange({ value: [regexGroupResult.groups[0].id], type: 'const' })
       } else {
         setSignatureOptions(
-          regexGroupResult.groups
-            .filter(
-              (p, index) => regexGroupResult.groups.findIndex((q) => q.id === p.id) === index
-            )
-            .map((r) => {
-              let label = prettyId(r.id)
-              if (!r.id.startsWith('~') && r.members?.length === 1)
-                label = `${label} (${prettyId(r.members[0])})`
-              return { label: label, value: r.id }
-            })
+          uniqBy(regexGroupResult.groups, 'id').map((p) => ({
+            label: prettyGroupIdWithMember(p),
+            value: p.id,
+          }))
         )
+        onChange({ type: 'list' })
       }
     } catch (error) {
       onError(error.message)
@@ -57,32 +62,25 @@ const Signatures = ({
     onChange({ loading: true })
     try {
       const options = fieldDescription.param.enum
-      const optionsP = options.map((p) =>
-        p.includes('.*')
-          ? api
-              .get('/groups', { prefix: p, signatory: user?.id }, { accessToken, version: 2 })
-              .then((result) => result.groups)
-          : api
-              .get('/groups', { id: p, signatory: user?.id }, { accessToken, version: 2 })
-              .then((result) => result.groups)
-      )
-      let groupResults = await Promise.all(optionsP)
-      groupResults = groupResults.flat()
-      const uniqueGroupResults = groupResults.filter(
-        (p, index) => groupResults.findIndex((q) => q.id === p.id) === index
-      )
+      const optionsP = options.map((p) => {
+        const params = p.includes('.*')
+          ? { prefix: p, signatory: user?.id }
+          : { id: p, signatory: user?.id }
+        return api
+          .get('/groups', params, { accessToken, version: 2 })
+          .then((result) => result.groups ?? [])
+      })
+      const groupResults = await Promise.all(optionsP)
+      const uniqueGroupResults = uniqBy(flatten(groupResults), 'id')
+
       if (uniqueGroupResults.length === 1) {
         setSignatureOptions([uniqueGroupResults[0].id])
-        onChange({ value: [uniqueGroupResults[0].id] })
+        onChange({ value: [uniqueGroupResults[0].id], type: 'const' })
       } else {
         setSignatureOptions(
-          uniqueGroupResults.map((p) => {
-            let label = prettyId(p.id)
-            if (!p.id.startsWith('~') && p.members?.length === 1)
-              label = `${label} (${prettyId(p.members[0])})`
-            return { label: label, value: p.id }
-          })
+          uniqueGroupResults.map((p) => ({ label: prettyGroupIdWithMember(p), value: p.id }))
         )
+        onChange({ type: 'list' })
       }
     } catch (error) {
       onError(error.message)
@@ -114,15 +112,16 @@ const Signatures = ({
   }
 
   useEffect(() => {
-    if (!fieldDescription) return
+    if (!fieldDescription || !user) return
     if (!fieldDescription.param) {
       setDescriptionType('const')
+      onChange({ type: 'const' })
       return
     }
     if (fieldDescription.param?.regex) {
       if (fieldDescription.param.regex === '~.*') {
         setDescriptionType('currentUser')
-        onChange({ value: [user.profile.id] })
+        onChange({ value: [user.profile.id], type: 'const' })
       } else {
         setDescriptionType('regex')
       }
@@ -130,13 +129,15 @@ const Signatures = ({
     }
     if (fieldDescription.param?.enum) {
       setDescriptionType('enum')
-      return
     }
-  }, [])
+  }, [fieldDescription, user])
 
   useEffect(() => {
-    if (descriptionType === 'regex') getRegexSignatureOptions()
-    if (descriptionType === 'enum') getEnumSignatureOptions()
+    if (descriptionType === 'regex') {
+      getRegexSignatureOptions()
+    } else if (descriptionType === 'enum') {
+      getEnumSignatureOptions()
+    }
   }, [descriptionType])
 
   return <div className={`${extraClasses ?? ''}`}>{renderNoteSignatures()}</div>

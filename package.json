@@ -1,13 +1,13 @@
 {
   "name": "openreview-web",
-  "version": "1.6.14",
+  "version": "1.6.15",
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect=0.0.0.0:9230' next dev --port $NEXT_PORT",
     "lint": "next lint",
     "build": "next build",
     "start": "next start --port $NEXT_PORT",
-    "unit-test": "jest --watch",
+    "unit-test": "jest",
     "test": "testcafe",
     "test-setup": "testcafe chrome tests/_setup.ts",
     "templates": "handlebars client/templates/ -n 'window.Handlebars.templates' -f client/templates.js -e 'hbs'"
