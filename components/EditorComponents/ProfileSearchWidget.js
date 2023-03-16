@@ -306,9 +306,21 @@ const ProfileSearchWidget = () => {
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
-      setSelectedAuthorProfiles(
-        (profileResults[0].profiles ?? []).concat(profileResults[1].profiles ?? [])
+      const allProfiles = (profileResults[0].profiles ?? []).concat(
+        profileResults[1].profiles ?? []
       )
+      setSelectedAuthorProfiles(allProfiles)
+      if (!value) {
+        const authorProfile = allProfiles.find((p) =>
+          p.content.names.find((q) => q.username === user.profile.id)
+        )
+        onChange({
+          fieldName,
+          value: [{ authorId: user.profile.id, authorName: getProfileName(authorProfile) }],
+        })
+      } else {
+        //TODO existing profiles
+      }
     } catch (error) {
       promptError(error.message)
     }
@@ -335,7 +347,7 @@ const ProfileSearchWidget = () => {
 
   useEffect(() => {
     if (!value) {
-      onChange({ fieldName, value: [{ authorId: user.profile.id }] })
+      // onChange({ fieldName, value: [{ authorId: user.profile.id }] })
       getProfiles([user.profile.id])
       return
     }

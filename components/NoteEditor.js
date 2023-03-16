@@ -377,7 +377,7 @@ const EditSignatures = ({
       ...existingLoadingState,
       editSignatures: loading,
     }))
-    setNoteEditorData({ fieldName: 'editSignatures', value })
+    setNoteEditorData({ fieldName: 'editSignatureInputValues', value })
   }
 
   const onError = (errorMessage) => {
@@ -616,6 +616,10 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
       const editToPost = view2.constructEdit({
         formData: {
           ...noteEditorData,
+          ...(noteEditorData.authorids && {
+            authors: noteEditorData.authorids.map((p) => p.authorName),
+            authorids: noteEditorData.authorids.map((p) => p.authorId),
+          }),
           noteReaderValues: getNoteReaderValues(),
           editReaderValues: getEditReaderValues(),
           editWriterValues: getEditWriterValues(),

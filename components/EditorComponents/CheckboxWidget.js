@@ -4,36 +4,44 @@ import EditorComponentContext from '../EditorComponentContext'
 import styles from '../../styles/components/CheckboxWidget.module.scss'
 
 const CheckboxWidget = () => {
-  const { field, onChange, value = [], isWebfield } = useContext(EditorComponentContext)
+  const { field, onChange, value, isWebfield } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const options = field[fieldName].value?.param?.enum
-  const defaultValues = field[fieldName].value?.param?.default ?? []
+  const defaultValue = field[fieldName].value?.param?.default
+  const isArrayType = field[fieldName]?.value?.param?.type?.endsWith('[]')
 
   const handleCheckboxClick = (e) => {
     const optionValue = e.target.value
+    if (!isArrayType) {
+      onChange({ fieldName, value: value ? null : optionValue })
+      return
+    }
     if (value?.includes(optionValue)) {
       onChange({ fieldName, value: value.filter((p) => p !== optionValue) })
     } else {
-      onChange({ fieldName, value: [...value, optionValue] })
+      onChange({ fieldName, value: [...(value ?? []), optionValue] })
     }
   }
 
-  if (!Array.isArray(options) || !Array.isArray(value) || !Array.isArray(defaultValues))
-    return null
+  if (!Array.isArray(options)) return null
+
   return (
     <div className={styles.checkboxContainer}>
-      {options.map((option) => (
-        <div key={`${fieldName}-${option}`} className={styles.checkboxOptionRow}>
-          <input
-            type="checkbox"
-            value={option}
-            checked={value.includes(option)}
-            disabled={defaultValues.includes(option)}
-            onChange={handleCheckboxClick}
-          />
-          <span className={styles.optionText}>{option}</span>
-        </div>
-      ))}
+      {options.map((option, index) => {
+        if (!isArrayType && index > 0) return null
+        return (
+          <div key={`${fieldName}-${option}`} className={styles.checkboxOptionRow}>
+            <input
+              type="checkbox"
+              value={option}
+              checked={value ? value.includes(option) : false}
+              disabled={defaultValue ? defaultValue?.includes(option) : false}
+              onChange={handleCheckboxClick}
+            />
+            <span className={styles.optionText}>{option}</span>
+          </div>
+        )
+      })}
     </div>
   )
 }

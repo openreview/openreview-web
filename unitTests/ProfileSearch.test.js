@@ -12,6 +12,7 @@ jest.mock('../hooks/useUser', () => {
 global.$ = jest.fn(() => ({
   tooltip: jest.fn(),
 }))
+global.promptError = jest.fn()
 
 import api from '../lib/api-client'
 
@@ -97,7 +98,9 @@ describe('ProfileSearchWidget', () => {
 
     await waitFor(() => {
       expect(onChange).toBeCalledWith(
-        expect.objectContaining({ value: [{ authorId: '~test_id1' }] })
+        expect.objectContaining({
+          value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
+        })
       )
       expect(apiPost).toBeCalledWith(
         '/profiles/search',
