@@ -124,44 +124,11 @@ const AuthorSubmissionRow = ({
   submissionName,
   authorName,
   profileMap,
-  isMobileView = false,
 }) => {
   const isV2Note = note.version === 2
   const referrerUrl = encodeURIComponent(
     `[Author Console](/group?id=${venueId}/${authorName}#your-submissions)`
   )
-  if (isMobileView)
-    return (
-      <div className="mobile-paper-container">
-        <span className="mobile-header">Paper #{note.number}</span>
-        <NoteSummary
-          note={note}
-          profileMap={profileMap}
-          referrerUrl={referrerUrl}
-          isV2Note={isV2Note}
-        />
-        <span className="mobile-header">Reviews:</span>
-        <div className="mobile-review-summary">
-          <ReviewSummary
-            note={note}
-            venueId={venueId}
-            referrerUrl={referrerUrl}
-            officialReviewName={officialReviewName}
-            reviewRatingName={reviewRatingName}
-            reviewConfidenceName={reviewConfidenceName}
-            submissionName={submissionName}
-            isV2Note={isV2Note}
-          />
-        </div>
-        <span className="mobile-header">Decision:</span>
-        <AuthorConsoleNoteMetaReviewStatus
-          note={note}
-          venueId={venueId}
-          decisionName={decisionName}
-          submissionName={submissionName}
-        />
-      </div>
-    )
   return (
     <tr>
       <td>
@@ -196,6 +163,54 @@ const AuthorSubmissionRow = ({
         />
       </td>
     </tr>
+  )
+}
+
+const AuthorSubmissionRowMobile = ({
+  note,
+  venueId,
+  officialReviewName,
+  decisionName = 'Decision',
+  reviewRatingName,
+  reviewConfidenceName,
+  submissionName,
+  authorName,
+  profileMap,
+}) => {
+  const isV2Note = note.version === 2
+  const referrerUrl = encodeURIComponent(
+    `[Author Console](/group?id=${venueId}/${authorName}#your-submissions)`
+  )
+  return (
+    <div className="mobile-paper-container">
+      <span className="mobile-header">Paper #{note.number}</span>
+      <NoteSummary
+        note={note}
+        profileMap={profileMap}
+        referrerUrl={referrerUrl}
+        isV2Note={isV2Note}
+      />
+      <span className="mobile-header">Reviews:</span>
+      <div className="mobile-review-summary">
+        <ReviewSummary
+          note={note}
+          venueId={venueId}
+          referrerUrl={referrerUrl}
+          officialReviewName={officialReviewName}
+          reviewRatingName={reviewRatingName}
+          reviewConfidenceName={reviewConfidenceName}
+          submissionName={submissionName}
+          isV2Note={isV2Note}
+        />
+      </div>
+      <span className="mobile-header">Decision:</span>
+      <AuthorConsoleNoteMetaReviewStatus
+        note={note}
+        venueId={venueId}
+        decisionName={decisionName}
+        submissionName={submissionName}
+      />
+    </div>
   )
 }
 
@@ -548,7 +563,7 @@ const AuthorConsole = ({ appContext }) => {
                 ) : (
                   <div className="author-console-mobile">
                     {authorNotes.map((note) => (
-                      <AuthorSubmissionRow
+                      <AuthorSubmissionRowMobile
                         key={note.id}
                         note={note}
                         venueId={venueId}
@@ -559,7 +574,6 @@ const AuthorConsole = ({ appContext }) => {
                         submissionName={submissionName}
                         authorName={authorName}
                         profileMap={profileMap}
-                        isMobileView={true}
                       />
                     ))}
                   </div>
