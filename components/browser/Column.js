@@ -269,6 +269,15 @@ export default function Column(props) {
     return `Search all ${pluralizeString(entityName).toLowerCase()}...`
   }
 
+  const getFilterLabel = () => {
+    const group = prettyId(traverseInvitation[type].query.group, true).toLowerCase()
+    const invitation = prettyId(traverseInvitation.id, true).toLowerCase()
+    if (query.filter) {
+      return `Only show ${group} available for ${invitation}`
+    }
+    return `Only show ${group} with fewer than max assigned papers`
+  }
+
   // Adds either a new browse edge or an edit edge to an item
   const updateColumnItems =
     (fieldName, colItems, isHidden = false) =>
@@ -826,19 +835,6 @@ export default function Column(props) {
 
       setItems(colItems)
     })
-  }
-
-  const getFilterLabel = () => {
-    if (query.filter) {
-      return `Only show ${prettyId(
-        traverseInvitation[type].query.group,
-        true
-      ).toLowerCase()} available for ${prettyId(traverseInvitation.id, true).toLowerCase()}.`
-    }
-    return `Only show ${prettyId(
-      traverseInvitation[type].query.group,
-      true
-    ).toLowerCase()} with fewer than max assigned papers.`
   }
 
   useEffect(() => {

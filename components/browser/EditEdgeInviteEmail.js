@@ -93,6 +93,7 @@ const EditEdgeInviteEmail = ({
         <input
           type="text"
           id="email-invite"
+          className="form-control input-sm"
           autoComplete="off"
           value={emailToInvite}
           placeholder={editInvitation[type].description}
