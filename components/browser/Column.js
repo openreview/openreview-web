@@ -271,7 +271,10 @@ export default function Column(props) {
 
   const getFilterLabel = () => {
     const group = prettyId(traverseInvitation[type].query.group, true).toLowerCase()
-    const invitation = prettyId(traverseInvitation.id, true).toLowerCase()
+    const invitation = prettyId(
+      editInvitations?.[0]?.id ?? traverseInvitation.id,
+      true
+    ).toLowerCase()
     if (query.filter) {
       return `Only show ${group} available for ${invitation}`
     }
