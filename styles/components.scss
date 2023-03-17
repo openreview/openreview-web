@@ -520,6 +520,31 @@ table.table-minimal {
   }
 }
 
+.profiles-list {
+  .bid-container {
+    margin-bottom: 0.5rem;
+  }
+  .profile-summary {
+    display: flex;
+    flex-direction: column;
+
+    .profile-name > a {
+      margin-bottom: 0.25rem;
+      // color: constants.$darkBlue;
+      font-size: 1rem;
+    }
+    .profile-title {
+      margin-bottom: 0.25rem;
+      color: #777777;
+    }
+    .profile-expertise {
+      margin-bottom: 0.5rem;
+      width: 80%;
+      color: #777777;
+    }
+  }
+}
+
 // Mathjax
 .note_content_value,
 .note-content-value {

@@ -12,3 +12,7 @@ export const reRenderWithEditorComponentContext = (rerender, ui, providerProps) 
     <EditorComponentContext.Provider {...providerProps}>{ui}</EditorComponentContext.Provider>
   )
 }
+
+export const renderWithWebFieldContext = (ui, providerProps) => {
+  return render(<WebFieldContext.Provider {...providerProps}>{ui}</WebFieldContext.Provider>)
+}
