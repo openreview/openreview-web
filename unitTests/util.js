@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react'
 import EditorComponentContext from '../components/EditorComponentContext'
+import WebFieldContext from '../components/WebFieldContext'
 
 export const renderWithEditorComponentContext = (ui, providerProps) => {
   return render(
