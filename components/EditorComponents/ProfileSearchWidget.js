@@ -22,15 +22,23 @@ const getTitle = (profile) => {
   return title
 }
 
-const Author = ({ fieldName, authorId, profile, showArrowButton }) => {
-  const { onChange, value } = useContext(EditorComponentContext)
+const Author = ({
+  fieldName,
+  authorId,
+  profile,
+  showArrowButton,
+  displayAuthors,
+  setDisplayAuthors,
+}) => {
+  const { onChange } = useContext(EditorComponentContext)
 
   const increaseAuthorIndex = () => {
-    const authorIndex = value.findIndex((p) => p.authorId === authorId)
-    const updatedValue = [...value]
+    const authorIndex = displayAuthors.findIndex((p) => p.authorId === authorId)
+    const updatedValue = [...displayAuthors]
     updatedValue.splice(authorIndex, 1)
-    updatedValue.splice(authorIndex + 1, 0, value[authorIndex])
+    updatedValue.splice(authorIndex + 1, 0, displayAuthors[authorIndex])
     onChange({ fieldName, value: updatedValue })
+    setDisplayAuthors(updatedValue)
   }
 
   const tooltip = profile.noProfile
@@ -69,7 +77,9 @@ const Author = ({ fieldName, authorId, profile, showArrowButton }) => {
         <IconButton
           name="remove"
           onClick={() => {
-            onChange({ fieldName, value: value.filter((p) => p.authorId !== authorId) })
+            const updatedAuthors = displayAuthors.filter((p) => p.authorId !== authorId)
+            setDisplayAuthors(updatedAuthors)
+            onChange({ fieldName, value: updatedAuthors })
           }}
           extraClasses="action-button"
         />
@@ -84,6 +94,8 @@ const ProfileSearchResultRow = ({
   setProfileSearchResults,
   setSearchTerm,
   setSelectedAuthorProfiles,
+  displayAuthors,
+  setDisplayAuthors,
 }) => {
   const { field, onChange, value } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
@@ -127,12 +139,14 @@ const ProfileSearchResultRow = ({
           disableButton={isInAuthorList}
           disableReason="This author is already in author list"
           onClick={() => {
+            const updatedAuthors = displayAuthors.concat({
+              authorId: profile.id,
+              authorName: getProfileName(profile),
+            })
+            setDisplayAuthors(updatedAuthors)
             onChange({
               fieldName,
-              value: value.concat({
-                authorId: profile.id,
-                authorName: getProfileName(profile),
-              }),
+              value: updatedAuthors,
             })
             setProfileSearchResults(null)
             setSearchTerm('')
@@ -151,6 +165,8 @@ const ProfileSearchResults = ({
   profileSearchResults,
   setProfileSearchResults,
   setSelectedAuthorProfiles,
+  displayAuthors,
+  setDisplayAuthors,
 }) => {
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(profileSearchResults?.length ?? 0)
@@ -188,6 +204,8 @@ const ProfileSearchResults = ({
           searchTerm={searchTerm}
           setProfileSearchResults={setProfileSearchResults}
           setSearchTerm={setSearchTerm}
+          displayAuthors={displayAuthors}
+          setDisplayAuthors={setDisplayAuthors}
         />
       </div>
     )
@@ -200,6 +218,8 @@ const ProfileSearchResults = ({
           setProfileSearchResults={setProfileSearchResults}
           setSearchTerm={setSearchTerm}
           setSelectedAuthorProfiles={setSelectedAuthorProfiles}
+          displayAuthors={displayAuthors}
+          setDisplayAuthors={setDisplayAuthors}
         />
       ))}
       <PaginationLinks
@@ -213,7 +233,13 @@ const ProfileSearchResults = ({
   )
 }
 
-const CustomAuthorForm = ({ searchTerm, setProfileSearchResults, setSearchTerm }) => {
+const CustomAuthorForm = ({
+  searchTerm,
+  setProfileSearchResults,
+  setSearchTerm,
+  displayAuthors,
+  setDisplayAuthors,
+}) => {
   const [customAuthorName, setCustomAuthorName] = useState('')
   const [customAuthorEmail, setCustomAuthorEmail] = useState('')
   const { field, onChange, value } = useContext(EditorComponentContext)
@@ -224,9 +250,14 @@ const CustomAuthorForm = ({ searchTerm, setProfileSearchResults, setSearchTerm }
   const handleAddCustomAuthor = () => {
     const cleanAuthorName = customAuthorName.trim()
     const cleanAuthorEmail = customAuthorEmail.trim().toLowerCase()
+    const updatedAuthors = displayAuthors.concat({
+      authorId: cleanAuthorEmail,
+      authorName: cleanAuthorName,
+    })
+    setDisplayAuthors(updatedAuthors)
     onChange({
       fieldName,
-      value: value.concat({ authorId: cleanAuthorEmail, authorName: cleanAuthorName }),
+      value: updatedAuthors,
     })
     setProfileSearchResults(null)
     setSearchTerm('')
@@ -282,6 +313,7 @@ const ProfileSearchWidget = () => {
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [displayAuthors, setDisplayAuthors] = useState(value) // id+email
 
   const getProfiles = async (authorIds) => {
     try {
@@ -311,15 +343,20 @@ const ProfileSearchWidget = () => {
       )
       setSelectedAuthorProfiles(allProfiles)
       if (!value) {
-        const authorProfile = allProfiles.find((p) =>
+        // existing note already have name and email info
+        const currentAuthorProfile = allProfiles.find((p) =>
           p.content.names.find((q) => q.username === user.profile.id)
         )
+
+        setDisplayAuthors([
+          { authorId: user.profile.id, authorName: getProfileName(currentAuthorProfile) },
+        ])
         onChange({
           fieldName,
-          value: [{ authorId: user.profile.id, authorName: getProfileName(authorProfile) }],
+          value: [
+            { authorId: user.profile.id, authorName: getProfileName(currentAuthorProfile) },
+          ],
         })
-      } else {
-        //TODO existing profiles
       }
     } catch (error) {
       promptError(error.message)
@@ -347,12 +384,9 @@ const ProfileSearchWidget = () => {
 
   useEffect(() => {
     if (!value) {
-      // onChange({ fieldName, value: [{ authorId: user.profile.id }] })
       getProfiles([user.profile.id])
       return
     }
-
-    getProfiles(value.map((p) => p.authorId))
   }, [])
 
   useEffect(() => {
@@ -363,7 +397,7 @@ const ProfileSearchWidget = () => {
   return (
     <div className={styles.profileSearch}>
       <div className={styles.selectedAuthors}>
-        {value?.map(({ authorId, authorName }, index) => {
+        {displayAuthors?.map(({ authorId, authorName }, index) => {
           let authorProfile = selectedAuthorProfiles.find(
             (p) =>
               p.content.names.find((q) => q.username === authorId) ||
@@ -373,14 +407,17 @@ const ProfileSearchWidget = () => {
             authorId,
             authorName,
           }
-          const showArrowButton = value.length !== 1 && index !== value.length - 1
+          const showArrowButton =
+            displayAuthors.length !== 1 && index !== displayAuthors.length - 1
           return (
             <Author
-              key={authorId}
+              key={index}
               fieldName={fieldName}
               authorId={authorId}
               profile={authorProfile}
               showArrowButton={showArrowButton}
+              displayAuthors={displayAuthors}
+              setDisplayAuthors={setDisplayAuthors}
             />
           )
         })}
@@ -420,6 +457,8 @@ const ProfileSearchWidget = () => {
         profileSearchResults={profileSearchResults}
         setProfileSearchResults={setProfileSearchResults}
         setSelectedAuthorProfiles={setSelectedAuthorProfiles}
+        displayAuthors={displayAuthors}
+        setDisplayAuthors={setDisplayAuthors}
       />
     </div>
   )

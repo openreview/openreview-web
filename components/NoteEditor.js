@@ -324,7 +324,7 @@ const NewReplyEditNoteReaders = ({
   }, [descriptionType])
 
   return (
-    <EditorComponentHeader fieldNameOverwrite="Readers">
+    <EditorComponentHeader fieldNameOverwrite="Readers" inline={true}>
       {renderReaders()}
     </EditorComponentHeader>
   )
@@ -437,6 +437,13 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
 
   const renderField = ({ fieldName, fieldDescription }) => {
     const fieldNameOverwrite = fieldName === 'authorids' ? 'Authors' : undefined
+    let fieldValue = noteEditorData[fieldName]
+    if (fieldName === 'authorids' && note) {
+      fieldValue = noteEditorData.authorids?.map((p, index) => ({
+        authorId: p,
+        authorName: noteEditorData.authors?.[index],
+      }))
+    }
     return (
       <EditorComponentContext.Provider
         key={fieldName}
@@ -446,7 +453,7 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
           field: { [fieldName]: fieldDescription },
           onChange: ({ fieldName, value, shouldSaveDraft }) =>
             setNoteEditorData({ fieldName, value, shouldSaveDraft }),
-          value: noteEditorData[fieldName],
+          value: fieldValue,
           key: fieldName,
           isWebfield: false,
           isContentField: true,

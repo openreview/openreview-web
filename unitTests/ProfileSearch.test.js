@@ -405,10 +405,11 @@ describe('ProfileSearchWidget', () => {
         value: [{ authorId: '~test_id2', authorName: 'First Two Last Two' }],
       })
     )
-    await userEvent.click(screen.getAllByRole('button', { name: 'remove' })[1])
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'remove' })[0]) // ~test_id1 has been removed from internal state
     expect(onChange).toBeCalledWith(
       expect.objectContaining({
-        value: [{ authorId: '~test_id1', authorName: 'First One Last One' }],
+        value: [],
       })
     )
   })
@@ -483,13 +484,17 @@ describe('ProfileSearchWidget', () => {
             },
           },
         },
-        value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
         onChange: jest.fn(),
       },
     }
 
     renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
     await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith(
+        '/profiles/search',
+        { ids: ['~test_id1'] },
+        expect.anything()
+      )
       expect(promptError).toBeCalledWith('post search is not working')
     })
 
