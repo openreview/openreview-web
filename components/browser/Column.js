@@ -48,6 +48,7 @@ export default function Column(props) {
     },
   ]
   const editAndBrowserInvitations = [...editInvitations, ...browseInvitations]
+  const editAndBrowserInvitationsUnique = _.uniqBy(editAndBrowserInvitations, 'id')
   editAndBrowserInvitations.forEach((p) => {
     if (!sortOptions.map((q) => q.key).includes(p.id)) {
       sortOptions.push({
@@ -276,7 +277,12 @@ export default function Column(props) {
       true
     ).toLowerCase()
     if (query.filter) {
-      return `Only show ${group} available for ${invitation}`
+      return (
+        <>
+          {`Only show ${group} available for ${invitation} `}
+          <Icon name="info-sign" tooltip={query.filter} />
+        </>
+      )
     }
     return `Only show ${group} with fewer than max assigned papers`
   }
@@ -535,7 +541,6 @@ export default function Column(props) {
   }
 
   const getQuota = (colItem) => {
-    console.log([...browseInvitations, ...editInvitations])
     const defaultQuota = [...browseInvitations, ...editInvitations].find((p) =>
       p.id.includes('Custom_Max_Papers')
     )?.defaultWeight
@@ -557,9 +562,11 @@ export default function Column(props) {
 
           return {
             ...p,
-            filterProperties: [...browseInvitations, ...editInvitations].reduce(
+            filterProperties: editAndBrowserInvitationsUnique.reduce(
               (prev, curr) => {
-                const edge = p.browseEdges.find((q) => q.invitation === curr.id)
+                const edge = [...p.browseEdges, ...p.editEdges].find(
+                  (q) => q.invitation === curr.id
+                )
 
                 if (edge) {
                   prev[curr.id] = getEdgeValue(edge) // eslint-disable-line no-param-reassign
@@ -574,7 +581,7 @@ export default function Column(props) {
         }),
         `${query.filter} AND Quota=true`,
         ['!=', '>=', '<=', '>', '<', '==', '='],
-        browseInvitations.reduce(
+        editAndBrowserInvitationsUnique.reduce(
           (prev, curr) => {
             prev[curr.id] = [`filterProperties.${curr.id}`] // eslint-disable-line no-param-reassign
             return prev
