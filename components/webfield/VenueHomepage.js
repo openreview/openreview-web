@@ -179,10 +179,8 @@ export default function VenueHomepage({ appContext }) {
           updateCount={(itemCount) => {
             const isEmpty = !itemCount
             if (tabConfig.options.hideWhenEmpty && tabConfig.hidden !== isEmpty) {
-              setFormattedTabs(
-                formattedTabs.map((t) =>
-                  t.id === tabConfig.id ? { ...t, hidden: isEmpty } : t
-                )
+              setFormattedTabs((currentTabs) =>
+                currentTabs.map((t) => (t.id === tabConfig.id ? { ...t, hidden: isEmpty } : t))
               )
             }
           }}
