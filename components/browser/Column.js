@@ -535,9 +535,11 @@ export default function Column(props) {
   }
 
   const getQuota = (colItem) => {
+    console.log([...browseInvitations, ...editInvitations])
     const defaultQuota = [...browseInvitations, ...editInvitations].find((p) =>
       p.id.includes('Custom_Max_Papers')
     )?.defaultWeight
+
     const customLoad =
       [...colItem.browseEdges, ...colItem.editEdges].find((edge) =>
         edge?.invitation?.includes('Custom_Max_Papers')
@@ -551,13 +553,19 @@ export default function Column(props) {
       const { filteredRows, queryIsInvalid } = filterCollections(
         colItems.map((p) => {
           const customLoad = getQuota(p)
-          const quotaNotReached = !customLoad || p.traverseEdgeCount < customLoad
+          const quotaNotReached = !customLoad || p.traverseEdgesCount < customLoad
 
           return {
             ...p,
-            filterProperties: p.browseEdges.reduce(
+            filterProperties: [...browseInvitations, ...editInvitations].reduce(
               (prev, curr) => {
-                prev[curr.name] = getEdgeValue(curr) // eslint-disable-line no-param-reassign
+                const edge = p.browseEdges.find((q) => q.invitation === curr.id)
+
+                if (edge) {
+                  prev[curr.id] = getEdgeValue(edge) // eslint-disable-line no-param-reassign
+                } else {
+                  prev[curr.id] = curr.defaultWeight ?? curr.defaultLabel // eslint-disable-line no-param-reassign
+                }
                 return prev
               },
               { Quota: quotaNotReached }
@@ -565,10 +573,10 @@ export default function Column(props) {
           }
         }),
         `${query.filter} AND Quota=true`,
-        ['!=', '>=', '<=', '>', '<', '='],
+        ['!=', '>=', '<=', '>', '<', '==', '='],
         browseInvitations.reduce(
           (prev, curr) => {
-            prev[curr.name] = [`filterProperties.${curr.name}`] // eslint-disable-line no-param-reassign
+            prev[curr.id] = [`filterProperties.${curr.id}`] // eslint-disable-line no-param-reassign
             return prev
           },
           {
