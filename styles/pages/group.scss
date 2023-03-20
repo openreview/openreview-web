@@ -280,7 +280,8 @@ main.invitation {
   }
 
   .console-table,
-  .ac-console-table {
+  .ac-console-table,
+  .author-console-mobile {
     h4 {
       margin-bottom: 0.5rem;
     }
@@ -384,6 +385,24 @@ main.invitation {
 
     .download-pdf-link {
       margin-bottom: 0.5rem;
+    }
+  }
+
+  .author-console-mobile {
+    .mobile-paper-container {
+      display: flex;
+      flex-direction: column;
+      border-bottom: 1px solid #ddd;
+
+      .mobile-header {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin-top: 0.75rem;
+      }
+
+      .mobile-review-summary {
+        margin-top: -0.25rem;
+      }
     }
   }
 
