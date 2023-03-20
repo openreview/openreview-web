@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from 'react'
+import React, { useEffect, useMemo, useReducer, useState } from 'react'
 import EditorComponentContext from './EditorComponentContext'
 import EditorWidget from './webfield/EditorWidget'
 import styles from '../styles/components/NoteEditor.module.scss'
@@ -446,24 +446,36 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
       }))
     }
     return (
-      <EditorComponentContext.Provider
-        key={fieldName}
-        value={{
-          invitation,
-          note,
-          field: { [fieldName]: fieldDescription },
-          onChange: ({ fieldName, value, shouldSaveDraft }) =>
-            setNoteEditorData({ fieldName, value, shouldSaveDraft }),
-          value: fieldValue,
-          key: fieldName,
-          isWebfield: false,
-          isContentField: true,
-        }}
-      >
-        <EditorComponentHeader fieldNameOverwrite={fieldNameOverwrite}>
-          <EditorWidget />
-        </EditorComponentHeader>
-      </EditorComponentContext.Provider>
+      <React.Fragment key={fieldName}>
+        <EditorComponentContext.Provider
+          // key={fieldName}
+          value={{
+            invitation,
+            note,
+            field: { [fieldName]: fieldDescription },
+            onChange: ({ fieldName, value, shouldSaveDraft }) =>
+              setNoteEditorData({ fieldName, value, shouldSaveDraft }),
+            value: fieldValue,
+            key: fieldName,
+            isWebfield: false,
+            // isContentField: true,
+          }}
+        >
+          <EditorComponentHeader fieldNameOverwrite={fieldNameOverwrite}>
+            <EditorWidget />
+          </EditorComponentHeader>
+        </EditorComponentContext.Provider>
+        {fieldDescription.readers && (
+          <EditorComponentContext.Provider
+            key={`${fieldName}-readers`}
+            value={{
+              field: { [fieldName]: fieldDescription.readers },
+            }}
+          >
+            <EditorWidget />
+          </EditorComponentContext.Provider>
+        )}
+      </React.Fragment>
     )
   }
 

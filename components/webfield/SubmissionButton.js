@@ -59,7 +59,7 @@ export default function SubmissionButton({
       </div>
       {noteEditorOpen && (
         <>
-          <NoteEditorForm
+          {/* <NoteEditorForm
             invitation={invitation}
             onNoteCreated={(newNote) => {
               toggleSubmissionForm()
@@ -71,7 +71,7 @@ export default function SubmissionButton({
                 toggleSubmissionForm()
               }
             }}
-          />
+          /> */}
           <NoteEditor
             invitation={invitation}
             closeNoteEditor={toggleSubmissionForm}
