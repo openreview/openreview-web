@@ -229,7 +229,7 @@ export default function ProfileEntity(props) {
 
     let disableControlReason = null
 
-    // disable propose assignment when traverseEdgeCount>=custmom max paper in 1st stage
+    // disable propose assignment when traverseEdgesCount>=custmom max paper in 1st stage
     if (
       ((isReviewerAssignmentStage && isProposedAssignmentInvitation) ||
         (isEmergencyReviewerStage && isAssignmentInvitation)) &&
