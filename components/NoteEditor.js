@@ -633,6 +633,7 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
           noteReaderValues: getNoteReaderValues(),
           editReaderValues: getEditReaderValues(),
           editWriterValues: getEditWriterValues(),
+          ...(replyToNote && { replyto: replyToNote.id }),
         },
         invitationObj: invitation,
         noteObj: note,
