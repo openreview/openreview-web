@@ -354,6 +354,7 @@ const NoteSignatures = ({
     closeNoteEditor()
   }
 
+  if (!fieldDescription) return null
   return (
     <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true}>
       <Signatures
@@ -467,6 +468,7 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
   }
 
   const renderNoteReaders = () => {
+    if (!invitation.edit.note.readers) return null
     if (!note && !replyToNote)
       return (
         <NewNoteReaders
@@ -560,7 +562,8 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
   }
 
   const getNoteReaderValues = () => {
-    if (Array.isArray(invitation.edit.note.readers)) return undefined
+    if (!invitation.edit.note.readers || Array.isArray(invitation.edit.note.readers))
+      return undefined
     const constNoteSignature = // when note signature is edit signature, note reader should use edit signatures
       invitation.edit.note?.signatures?.[0]?.includes('/signatures}') ||
       invitation.edit.note?.signatures?.param?.const?.[0]?.includes('/signatures}')
@@ -636,6 +639,7 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
       })
       const result = await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
       const createdNote = await getCreatedNote(result.note)
+      autoStorageKeys.forEach((key) => localStorage.removeItem(key))
       closeNoteEditor()
       onNoteCreated(createdNote)
     } catch (error) {
