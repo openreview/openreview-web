@@ -12,6 +12,8 @@ import EditEdgeInviteEmail from './EditEdgeInviteEmail'
 import { getInvitationPrefix, transformName } from '../../lib/edge-utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
+import useQuery from '../../hooks/useQuery'
+import { filterCollections, getEdgeValue } from '../../lib/webfield-utils'
 
 export default function Column(props) {
   const {
@@ -36,6 +38,7 @@ export default function Column(props) {
   const entityMap = useRef({ globalEntityMap, altGlobalEntityMap })
   const [entityMapChanged, setEntityMapChanged] = useState(false)
   const { accessToken, user } = useUser()
+  const query = useQuery()
 
   const sortOptions = [
     {
@@ -45,6 +48,7 @@ export default function Column(props) {
     },
   ]
   const editAndBrowserInvitations = [...editInvitations, ...browseInvitations]
+  const editAndBrowserInvitationsUnique = _.uniqBy(editAndBrowserInvitations, 'id')
   editAndBrowserInvitations.forEach((p) => {
     if (!sortOptions.map((q) => q.key).includes(p.id)) {
       sortOptions.push({
@@ -264,6 +268,23 @@ export default function Column(props) {
     if (isLoadMoreButton) return pluralizeString(entityName).toLowerCase()
     if (entityName === 'staticList') return 'Search list...'
     return `Search all ${pluralizeString(entityName).toLowerCase()}...`
+  }
+
+  const getFilterLabel = () => {
+    const group = prettyId(traverseInvitation[type].query.group, true).toLowerCase()
+    const invitation = prettyId(
+      editInvitations?.[0]?.id ?? traverseInvitation.id,
+      true
+    ).toLowerCase()
+    if (query.filter) {
+      return (
+        <>
+          {`Only show ${group} available for ${invitation} `}
+          <Icon name="info-sign" tooltip={query.filter} />
+        </>
+      )
+    }
+    return `Only show ${group} with fewer than max assigned papers`
   }
 
   // Adds either a new browse edge or an edit edge to an item
@@ -519,16 +540,64 @@ export default function Column(props) {
     }
   }
 
-  const filterQuotaReachedItems = (colItems) => {
-    if (!hideQuotaReached) return colItems
+  const getQuota = (colItem) => {
     const defaultQuota = [...browseInvitations, ...editInvitations].find((p) =>
       p.id.includes('Custom_Max_Papers')
     )?.defaultWeight
+
+    const customLoad =
+      [...colItem.browseEdges, ...colItem.editEdges].find((edge) =>
+        edge?.invitation?.includes('Custom_Max_Papers')
+      )?.weight ?? defaultQuota
+    return customLoad
+  }
+
+  const filterQuotaReachedItems = (colItems) => {
+    if (!hideQuotaReached) return colItems
+    if (query.filter) {
+      const { filteredRows, queryIsInvalid } = filterCollections(
+        colItems.map((p) => {
+          const customLoad = getQuota(p)
+          const quotaNotReached = !customLoad || p.traverseEdgesCount < customLoad
+
+          return {
+            ...p,
+            filterProperties: editAndBrowserInvitationsUnique.reduce(
+              (prev, curr) => {
+                const edge = [...p.browseEdges, ...p.editEdges].find(
+                  (q) => q.invitation === curr.id
+                )
+
+                if (edge) {
+                  prev[curr.id] = getEdgeValue(edge) // eslint-disable-line no-param-reassign
+                } else {
+                  prev[curr.id] = curr.defaultWeight ?? curr.defaultLabel // eslint-disable-line no-param-reassign
+                }
+                return prev
+              },
+              { Quota: quotaNotReached }
+            ),
+          }
+        }),
+        `${query.filter} AND Quota=true`,
+        ['!=', '>=', '<=', '>', '<', '==', '='],
+        editAndBrowserInvitationsUnique.reduce(
+          (prev, curr) => {
+            prev[curr.id] = [`filterProperties.${curr.id}`] // eslint-disable-line no-param-reassign
+            return prev
+          },
+          {
+            Quota: ['filterProperties.Quota'],
+          }
+        ),
+        'id'
+      )
+      if (queryIsInvalid) return colItems
+      return filteredRows
+    }
+
     return colItems.filter((p) => {
-      const customLoad =
-        [...p.browseEdges, ...p.editEdges].find((q) =>
-          q?.invitation?.includes('Custom_Max_Papers')
-        )?.weight ?? defaultQuota
+      const customLoad = getQuota(p)
       if (customLoad === undefined) return true
       return p.traverseEdgesCount < customLoad
     })
@@ -1037,8 +1106,7 @@ export default function Column(props) {
                     setHideQuotaReached(e.target.checked)
                   }}
                 />{' '}
-                Only show {prettyId(traverseInvitation[type].query.group, true).toLowerCase()}{' '}
-                with fewer than max assigned papers.
+                {getFilterLabel()}
               </label>
             </div>
           )}
