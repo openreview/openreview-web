@@ -57,8 +57,7 @@ export default function Layout({
 function gtag() { dataLayer.push(arguments); }
 gtag('js', new Date());
 gtag('config', '${process.env.GA_PROPERTY_ID}', {
-  page_path: window.location.pathname + window.location.search,
-  transport_type: 'beacon'
+  page_location: location.origin + location.pathname + location.search,
 });`,
               }}
             />
