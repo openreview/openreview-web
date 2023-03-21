@@ -216,15 +216,6 @@ const Profile = ({ profile, publicProfile, appContext }) => {
 }
 
 Profile.getInitialProps = async (ctx) => {
-  // TODO: remove this redirect when all profile edit links have been changed
-  if (ctx.query.mode === 'edit') {
-    if (ctx.req) {
-      ctx.res.writeHead(302, { Location: '/profile/edit' }).end()
-    } else {
-      Router.replace('/profile/edit')
-    }
-  }
-
   let profileQuery = pick(ctx.query, ['id', 'email'])
   const { token, user } = auth(ctx)
   if (!user && !profileQuery.id && !profileQuery.email) {
@@ -259,6 +250,14 @@ Profile.getInitialProps = async (ctx) => {
       message: `The user ${
         profileQuery.id || profileQuery.email
       } has not set up an OpenReview profile yet`,
+    }
+  }
+  if (!profile.active) {
+    return {
+      statusCode: 400,
+      message: `The user ${
+        profileQuery.id || profileQuery.email
+      } does not have an active OpenReview profile`,
     }
   }
 
