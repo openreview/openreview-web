@@ -12,6 +12,7 @@ import BasicModal from '../components/BasicModal'
 import api from '../lib/api-client'
 import { isValidEmail, isValidPassword } from '../lib/utils'
 import ProfileMergeModal from '../components/ProfileMergeModal'
+import ErrorAlert from '../components/ErrorAlert'
 
 const LoadingContext = createContext()
 
@@ -676,6 +677,7 @@ const ConfirmNameModal = ({
   setTurnstileToken,
 }) => {
   const [agreeTerms, setAgreeTerms] = useState(false)
+  const [error, setError] = useState(null)
   const missingToken = process.env.TURNSTILE_SITEKEY && !turnstileToken
 
   return (
@@ -687,7 +689,9 @@ const ConfirmNameModal = ({
       primaryButtonDisabled={!agreeTerms || missingToken}
       onClose={() => setAgreeTerms(false)}
       onOpen={() => {
-        if (process.env.TURNSTILE_SITEKEY) {
+        if (!process.env.TURNSTILE_SITEKEY) return
+
+        if (window.turnstile) {
           window.turnstile.render('#turnstile-registration', {
             sitekey: process.env.TURNSTILE_SITEKEY,
             action: 'register',
@@ -695,9 +699,16 @@ const ConfirmNameModal = ({
               setTurnstileToken(token)
             },
           })
+        } else {
+          setError({
+            message:
+              'Could not verify browser. Please make sure third-party scripts are not being blocked and try again.',
+          })
         }
       }}
     >
+      {error && <ErrorAlert error={error} />}
+
       <p className="mb-3">
         You are registering with the first name <strong>{firstName}</strong>
         {middleName && (
