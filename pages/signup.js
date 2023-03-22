@@ -265,10 +265,8 @@ const SignupForm = ({ setSignupConfirmation }) => {
         lastName={lastName}
         newUsername={newUsername}
         onConfirm={() => {
-
           setNameConfirmed(true)
           $('#confirm-name-modal').modal('hide')
-          // setTurnstileToken(token)
         }}
         turnstileToken={turnstileToken}
         setTurnstileToken={setTurnstileToken}
@@ -667,9 +665,16 @@ const SubmitButton = ({ disabled, children }) => {
   )
 }
 
-const ConfirmNameModal = ({ firstName, middleName, lastName, newUsername, onConfirm, turnstileToken, setTurnstileToken }) => {
+const ConfirmNameModal = ({
+  firstName,
+  middleName,
+  lastName,
+  newUsername,
+  onConfirm,
+  turnstileToken,
+  setTurnstileToken
+}) => {
   const [agreeTerms, setAgreeTerms] = useState(false)
-  // const [turnstileToken, setTurnstileToken] = useState(null)
 
   return (
     <BasicModal
