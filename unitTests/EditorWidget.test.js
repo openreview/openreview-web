@@ -1,6 +1,5 @@
 import EditorWidget from '../components/webfield/EditorWidget'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
-import { prettyDOM } from '@testing-library/dom'
 import { screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 

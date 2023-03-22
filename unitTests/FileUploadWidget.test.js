@@ -1,7 +1,6 @@
 import FileUploadWidget from '../components/EditorComponents/FileUploadWidget'
 import { renderWithEditorComponentContext } from './util'
 import { screen } from '@testing-library/react'
-import { prettyDOM } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 

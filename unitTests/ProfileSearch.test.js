@@ -1,6 +1,5 @@
 import ProfileSearchWidget from '../components/EditorComponents/ProfileSearchWidget'
 import { screen, waitFor } from '@testing-library/react'
-import { prettyDOM } from '@testing-library/dom'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'

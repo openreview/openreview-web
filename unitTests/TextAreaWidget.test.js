@@ -2,7 +2,6 @@ import TextAreaWidget from '../components/EditorComponents/TextAreaWidget'
 import { renderWithEditorComponentContext } from './util'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { prettyDOM } from '@testing-library/dom'
 import '@testing-library/jest-dom'
 
 jest.mock('../hooks/useUser', () => {
