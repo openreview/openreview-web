@@ -19,7 +19,7 @@ export default function Sponsors({ sponsors }) {
       <div className="row">
         <div className="col-xs-12 col-md-10 col-md-offset-1 mb-3 text-center">
           <h1>OpenReview Sponsors</h1>
-          <h5>We gratefully acknowledge the support of all our sponsors:</h5>
+          <h5>We gratefully acknowledge the support of all our current sponsors:</h5>
         </div>
       </div>
 
@@ -137,9 +137,18 @@ export default function Sponsors({ sponsors }) {
 
       <div className="row mt-2 mb-4">
         <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
-          <Link href="/donate">
-            <a className="btn btn-lg btn-primary">Donate to OpenReview</a>
-          </Link>
+          <p>
+            <Link href="/donate">
+              <a className="btn btn-lg btn-primary">Donate to OpenReview</a>
+            </Link>
+          </p>
+        </div>
+        <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
+          <p>
+            <Link href="/sponsors/2019-2022">
+              <a>View past sponsors from 2019-2022 &raquo;</a>
+            </Link>
+          </p>
         </div>
       </div>
     </div>
@@ -151,25 +160,26 @@ export async function getStaticProps() {
     props: {
       sponsors: {
         gold: [
-          { name: 'Facebook', image: 'facebook.png', link: 'https://research.facebook.com/' },
+          { name: 'Google', image: 'google.png', link: 'https://research.google/' },
+          { name: 'UMass IESL', image: 'umass.png', link: 'http://www.iesl.cs.umass.edu/' },
           {
             name: 'Alfred P. Sloan Foundation',
             image: 'sloan.png',
             link: 'https://sloan.org/',
           },
-          { name: 'Google', image: 'google.png', link: 'https://research.google/' },
-          { name: 'UMass IESL', image: 'umass.png', link: 'http://www.iesl.cs.umass.edu/' },
         ],
         silver: [
           { name: 'Amazon', image: 'amazon.png', link: 'https://www.amazon.science/' },
-          { name: 'CZI', image: 'czi.png', link: 'https://chanzuckerberg.com/' },
         ],
         bronze: [
-          { name: 'Bloomberg', image: 'bloomberg.png', link: 'https://www.bloomberg.org' },
+          { name: 'Apple', image: 'apple.png', link: 'https://apple.com/' },
           { name: 'IBM', image: 'ibm.png', link: 'https://research.ibm.com/' },
+          { name: 'Bloomberg', image: 'bloomberg.png', link: 'https://www.bloomberg.org' },
+        ],
+        benefactors: [
+          { name: 'CDS', image: 'cds.png', link: 'http://ds.cs.umass.edu/' },
           { name: 'DeepMind', image: 'deepmind.png', link: 'https://deepmind.com/' },
         ],
-        benefactors: [{ name: 'CDS', image: 'cds.png', link: 'http://ds.cs.umass.edu/' }],
         large_patrons: [
           { name: 'NeurIPS', image: 'neurips.png', link: 'https://nips.cc/' },
           { name: 'ICLR', image: 'iclr.png', link: 'https://iclr.cc/' },
@@ -188,6 +198,8 @@ export async function getStaticProps() {
         friends: [
           { name: 'ESWC', image: 'eswc.png', link: 'https://2021.eswc-conferences.org/' },
         ],
+        //          { name: 'Facebook', image: 'facebook.png', link: 'https://research.facebook.com/' },
+        //          { name: 'CZI', image: 'czi.png', link: 'https://chanzuckerberg.com/' },
       },
     },
   }
