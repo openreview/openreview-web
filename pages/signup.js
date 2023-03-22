@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useContext, createContext } from 'react'
 import Head from 'next/head'
+import Script from 'next/script'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
@@ -672,7 +673,7 @@ const ConfirmNameModal = ({
   newUsername,
   onConfirm,
   turnstileToken,
-  setTurnstileToken
+  setTurnstileToken,
 }) => {
   const [agreeTerms, setAgreeTerms] = useState(false)
   const missingToken = process.env.TURNSTILE_SITEKEY && !turnstileToken
@@ -682,7 +683,7 @@ const ConfirmNameModal = ({
       id="confirm-name-modal"
       title="Confirm Full Name"
       primaryButtonText="Register"
-      onPrimaryButtonClick={()=>onConfirm()}
+      onPrimaryButtonClick={onConfirm}
       primaryButtonDisabled={!agreeTerms || missingToken}
       onClose={() => setAgreeTerms(false)}
       onOpen={() => {
@@ -803,6 +804,11 @@ const SignUp = () => {
           <SignupForm setSignupConfirmation={setSignupConfirmation} />
         </div>
       )}
+
+      <Script
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+        crossorigin="anonymous"
+      />
     </div>
   )
 }
