@@ -157,6 +157,7 @@ export async function getStaticProps() {
             image: 'sloan.png',
             link: 'https://sloan.org/',
           },
+          { name: 'Google', image: 'google.png', link: 'https://research.google/' },
           { name: 'UMass IESL', image: 'umass.png', link: 'http://www.iesl.cs.umass.edu/' },
         ],
         silver: [
@@ -164,7 +165,6 @@ export async function getStaticProps() {
           { name: 'CZI', image: 'czi.png', link: 'https://chanzuckerberg.com/' },
         ],
         bronze: [
-          { name: 'Google', image: 'google.png', link: 'https://research.google/' },
           { name: 'Bloomberg', image: 'bloomberg.png', link: 'https://www.bloomberg.org' },
           { name: 'IBM', image: 'ibm.png', link: 'https://research.ibm.com/' },
           { name: 'DeepMind', image: 'deepmind.png', link: 'https://deepmind.com/' },
