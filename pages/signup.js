@@ -675,6 +675,7 @@ const ConfirmNameModal = ({
   setTurnstileToken
 }) => {
   const [agreeTerms, setAgreeTerms] = useState(false)
+  const missingToken = process.env.TURNSTILE_SITEKEY && !turnstileToken
 
   return (
     <BasicModal
@@ -682,15 +683,14 @@ const ConfirmNameModal = ({
       title="Confirm Full Name"
       primaryButtonText="Register"
       onPrimaryButtonClick={()=>onConfirm()}
-      primaryButtonDisabled={!agreeTerms || ( process.env.TURNSTILE_SITEKEY && !turnstileToken )}
+      primaryButtonDisabled={!agreeTerms || missingToken}
       onClose={() => setAgreeTerms(false)}
       onOpen={() => {
         if (process.env.TURNSTILE_SITEKEY) {
-          // eslint-disable-next-line no-undef
-          turnstile.render('#turnstile-registration', {
+          window.turnstile.render('#turnstile-registration', {
             sitekey: process.env.TURNSTILE_SITEKEY,
             action: 'register',
-            callback(token) {
+            callback: (token) => {
               setTurnstileToken(token)
             },
           })
@@ -717,17 +717,19 @@ const ConfirmNameModal = ({
         <strong>{`${firstName} ${lastName}`}</strong> and your username will be{' '}
         <strong>{newUsername}</strong>.
       </p>
-      <div className="checkbox">
+      <div className="checkbox mb-3">
         <label>
           <input
             type="checkbox"
             checked={agreeTerms}
             onChange={() => setAgreeTerms((value) => !value)}
           />{' '}
-          I confirm my name is correct.
+          I confirm my name is correct
         </label>
       </div>
-      <div id="turnstile-registration"></div>
+      {process.env.TURNSTILE_SITEKEY && (
+        <div id="turnstile-registration" className="mt-3 mb-2 text-center"></div>
+      )}
     </BasicModal>
   )
 }
