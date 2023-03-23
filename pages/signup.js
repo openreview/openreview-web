@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useContext, createContext } from 'react'
 import Head from 'next/head'
+import Script from 'next/script'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
@@ -11,6 +12,7 @@ import BasicModal from '../components/BasicModal'
 import api from '../lib/api-client'
 import { isValidEmail, isValidPassword } from '../lib/utils'
 import ProfileMergeModal from '../components/ProfileMergeModal'
+import ErrorAlert from '../components/ErrorAlert'
 
 const LoadingContext = createContext()
 
@@ -23,6 +25,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
   const [loading, setLoading] = useState(false)
   const [existingProfiles, setExistingProfiles] = useState([])
   const [isComposing, setIsComposing] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState(null)
 
   const getNewUsername = useCallback(
     debounce(async (first, middle, last) => {
@@ -72,7 +75,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
         middle: middleName.trim(),
         last: lastName.trim(),
       }
-      bodyData = { email, password, name }
+      bodyData = { email, password, name, token: turnstileToken }
     } else if (registrationType === 'claim') {
       bodyData = { id, email, password }
     }
@@ -264,9 +267,11 @@ const SignupForm = ({ setSignupConfirmation }) => {
         lastName={lastName}
         newUsername={newUsername}
         onConfirm={() => {
-          $('#confirm-name-modal').modal('hide')
           setNameConfirmed(true)
+          $('#confirm-name-modal').modal('hide')
         }}
+        turnstileToken={turnstileToken}
+        setTurnstileToken={setTurnstileToken}
       />
 
       <ProfileMergeModal />
@@ -662,17 +667,48 @@ const SubmitButton = ({ disabled, children }) => {
   )
 }
 
-const ConfirmNameModal = ({ firstName, middleName, lastName, newUsername, onConfirm }) => {
+const ConfirmNameModal = ({
+  firstName,
+  middleName,
+  lastName,
+  newUsername,
+  onConfirm,
+  turnstileToken,
+  setTurnstileToken,
+}) => {
   const [agreeTerms, setAgreeTerms] = useState(false)
+  const [error, setError] = useState(null)
+  const missingToken = process.env.TURNSTILE_SITEKEY && !turnstileToken
+
   return (
     <BasicModal
       id="confirm-name-modal"
       title="Confirm Full Name"
       primaryButtonText="Register"
       onPrimaryButtonClick={onConfirm}
-      primaryButtonDisabled={!agreeTerms}
+      primaryButtonDisabled={!agreeTerms || missingToken}
       onClose={() => setAgreeTerms(false)}
+      onOpen={() => {
+        if (!process.env.TURNSTILE_SITEKEY) return
+
+        if (window.turnstile) {
+          window.turnstile.render('#turnstile-registration', {
+            sitekey: process.env.TURNSTILE_SITEKEY,
+            action: 'register',
+            callback: (token) => {
+              setTurnstileToken(token)
+            },
+          })
+        } else {
+          setError({
+            message:
+              'Could not verify browser. Please make sure third-party scripts are not being blocked and try again.',
+          })
+        }
+      }}
     >
+      {error && <ErrorAlert error={error} />}
+
       <p className="mb-3">
         You are registering with the first name <strong>{firstName}</strong>
         {middleName && (
@@ -693,16 +729,19 @@ const ConfirmNameModal = ({ firstName, middleName, lastName, newUsername, onConf
         <strong>{`${firstName} ${lastName}`}</strong> and your username will be{' '}
         <strong>{newUsername}</strong>.
       </p>
-      <div className="checkbox">
+      <div className="checkbox mb-3">
         <label>
           <input
             type="checkbox"
             checked={agreeTerms}
             onChange={() => setAgreeTerms((value) => !value)}
           />{' '}
-          I confirm my name is correct.
+          I confirm my name is correct
         </label>
       </div>
+      {process.env.TURNSTILE_SITEKEY && (
+        <div id="turnstile-registration" className="mt-3 mb-2 text-center"></div>
+      )}
     </BasicModal>
   )
 }
@@ -776,6 +815,11 @@ const SignUp = () => {
           <SignupForm setSignupConfirmation={setSignupConfirmation} />
         </div>
       )}
+
+      <Script
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+        crossorigin="anonymous"
+      />
     </div>
   )
 }
