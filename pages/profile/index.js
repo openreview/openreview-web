@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import pick from 'lodash/pick'
 import { nanoid } from 'nanoid'
 import NoteList from '../../components/NoteList'
@@ -14,7 +14,7 @@ import withError from '../../components/withError'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
-import { auth } from '../../lib/auth'
+import { auth, isSuperUser } from '../../lib/auth'
 import { profileModeToggle } from '../../lib/banner-links'
 
 const RecentPublications = ({ profileId, publications, count, loading, preferredName }) => {
@@ -216,15 +216,6 @@ const Profile = ({ profile, publicProfile, appContext }) => {
 }
 
 Profile.getInitialProps = async (ctx) => {
-  // TODO: remove this redirect when all profile edit links have been changed
-  if (ctx.query.mode === 'edit') {
-    if (ctx.req) {
-      ctx.res.writeHead(302, { Location: '/profile/edit' }).end()
-    } else {
-      Router.replace('/profile/edit')
-    }
-  }
-
   let profileQuery = pick(ctx.query, ['id', 'email'])
   const { token, user } = auth(ctx)
   if (!user && !profileQuery.id && !profileQuery.email) {
@@ -259,6 +250,14 @@ Profile.getInitialProps = async (ctx) => {
       message: `The user ${
         profileQuery.id || profileQuery.email
       } has not set up an OpenReview profile yet`,
+    }
+  }
+  if (!profile.active && !isSuperUser(user)) {
+    return {
+      statusCode: 400,
+      message: `The user ${
+        profileQuery.id || profileQuery.email
+      } does not have an active OpenReview profile`,
     }
   }
 
