@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import pick from 'lodash/pick'
 import { nanoid } from 'nanoid'
 import NoteList from '../../components/NoteList'
@@ -14,7 +14,7 @@ import withError from '../../components/withError'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
-import { auth } from '../../lib/auth'
+import { auth, isSuperUser } from '../../lib/auth'
 import { profileModeToggle } from '../../lib/banner-links'
 
 const RecentPublications = ({ profileId, publications, count, loading, preferredName }) => {
@@ -252,7 +252,7 @@ Profile.getInitialProps = async (ctx) => {
       } has not set up an OpenReview profile yet`,
     }
   }
-  if (!profile.active) {
+  if (!profile.active && !isSuperUser(user)) {
     return {
       statusCode: 400,
       message: `The user ${
