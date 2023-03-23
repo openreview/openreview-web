@@ -143,7 +143,7 @@ export const NewReplyEditNoteReaders = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
-  const { accessToken } = useUser()
+  const { user, accessToken } = useUser()
 
   const addEnumParentReaders = (groupResults, parentReaders) => {
     if (!parentReaders?.length) return groupResults
@@ -302,7 +302,7 @@ export const NewReplyEditNoteReaders = ({
   }
 
   useEffect(() => {
-    if (!fieldDescription) return // not essentially an error
+    if (!user || !fieldDescription) return // not essentially an error
     if (Array.isArray(fieldDescription) || fieldDescription.param.const) {
       setDescriptionType('const')
     } else if (fieldDescription.param.regex) {
@@ -318,6 +318,7 @@ export const NewReplyEditNoteReaders = ({
     if (descriptionType === 'const') getConstReaders()
   }, [descriptionType])
 
+  if (!user || !fieldDescription) return null
   return (
     <EditorComponentHeader fieldNameOverwrite="Readers" inline={true}>
       {renderReaders()}
