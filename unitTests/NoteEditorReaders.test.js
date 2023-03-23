@@ -974,7 +974,7 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
-  test.only('show dropdown of intersection of enum groups and replyToNote readers', async () => {
+  test('show dropdown of intersection of enum groups and replyToNote readers', async () => {
     const invitation = {
       edit: {
         note: {
@@ -1000,7 +1000,86 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByRole('list').childElementCount).toEqual(4) // select all + 3 enum values
+      expect(screen.getByRole('list').childElementCount).toEqual(2)
+      expect(screen.getByRole('list').childNodes[1].textContent).toEqual('Test IdTwo')
+    })
+  })
+
+  test('show dropdown of intersection of enum groups and replyToNote readers (adding anonymized reviewer group)', async () => {
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              enum: [
+                'ICML.cc/2023/Conference/Submission1/Reviewer_abcd',
+                'ICML.cc/2023/Conference/Submission1/Reviewers',
+              ],
+              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
+        fieldDescription={invitation.edit.note.readers}
+        fieldName="noteReaderValues"
+        closeNoteEditor={jest.fn()}
+        noteEditorData={{}}
+        setNoteEditorData={jest.fn()}
+        setLoading={jest.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole('list').childElementCount).toEqual(3)
+      expect(screen.getByRole('list').childNodes[1].textContent).toEqual(
+        'ICML 2023 Conference Submission1 Reviewers'
+      )
+      expect(screen.getByRole('list').childNodes[2].textContent).toEqual(
+        'ICML 2023 Conference Submission1 Reviewer abcd'
+      )
+    })
+  })
+
+  test('show dropdown of intersection of enum groups and replyToNote readers (adding AnonReviewer group)', async () => {
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              enum: [
+                'ICML.cc/2023/Conference/Submission1/AnonReviewer',
+                'ICML.cc/2023/Conference/Submission1/Reviewers',
+              ],
+              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
+        fieldDescription={invitation.edit.note.readers}
+        fieldName="noteReaderValues"
+        closeNoteEditor={jest.fn()}
+        noteEditorData={{}}
+        setNoteEditorData={jest.fn()}
+        setLoading={jest.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole('list').childElementCount).toEqual(3)
+      expect(screen.getByRole('list').childNodes[1].textContent).toEqual(
+        'ICML 2023 Conference Submission1 Reviewers'
+      )
+      expect(screen.getByRole('list').childNodes[2].textContent).toEqual(
+        'ICML 2023 Conference Submission1 AnonReviewer'
+      )
     })
   })
 })
