@@ -197,6 +197,7 @@ export async function getStaticProps() {
         supporters: [{ name: 'AIR', image: 'air.png', link: 'https://www.air.org/' }],
         friends: [
           { name: 'ESWC', image: 'eswc.png', link: 'https://2021.eswc-conferences.org/' },
+          { name: 'GitBook', image: 'gitbook.svg', link: 'https://www.gitbook.com/' },
         ],
       },
     },

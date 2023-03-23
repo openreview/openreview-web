@@ -145,8 +145,8 @@ export default function SponsorsOld({ sponsors }) {
         </div>
         <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
           <p>
-            <Link href="/sponsors/2019-2022">
-              <a>View 2023 sponsors &raquo;</a>
+            <Link href="/sponsors">
+              <a>View current sponsors &raquo;</a>
             </Link>
           </p>
         </div>
