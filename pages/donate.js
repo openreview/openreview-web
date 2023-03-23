@@ -25,7 +25,7 @@ export default function Donate() {
               scrolling="no"
               seamless="seamless"
               src="https://donorbox.org/embed/openreview?default_interval=m"
-              style={{ maxWidth: '425px', height: '770px', marginTop: '2rem' }}
+              style={{ maxWidth: '425px', height: '900px', marginTop: '2rem' }}
               width="100%"
             />
             <p className="hint">
