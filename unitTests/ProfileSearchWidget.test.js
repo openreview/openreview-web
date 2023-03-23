@@ -117,10 +117,67 @@ describe('ProfileSearchWidget', () => {
     await waitFor(() => {
       expect(screen.getByText('Test First Test Last'))
       expect(screen.getByText('Test First Test Last')).toHaveAttribute(
-        'title',
+        'data-original-title',
+        '~test_id1'
+      )
+    })
+  })
+
+  test('show tildid or email in tooltip', async () => {
+    const initialGetProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ first: 'First One', last: 'Last One', username: '~test_id1' }],
+              emails: ['test1@email.com'],
+            },
+          },
+        ],
+      })
+    )
+    api.post = initialGetProfile
+    const providerProps = {
+      value: {
+        field: {
+          ['authorid']: {
+            value: {
+              param: {
+                type: 'group[]',
+              },
+            },
+          },
+        },
+        value: [
+          { authorId: '~test_id1', authorName: 'First One Last One' },
+          { authorId: 'test@email.com', authorName: 'First Two Last Two' },
+        ],
+        onChange: jest.fn(),
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+
+    await waitFor(() => {
+      expect(screen.getByText('First One Last One')).toHaveAttribute(
+        'data-original-title',
+        '~test_id1'
+      )
+      expect(screen.getByText('First Two Last Two')).toHaveAttribute(
+        'data-original-title',
         'test@email.com'
       )
     })
+    // await userEvent.click(screen.getByRole('button', { name: 'arrow-right' }))
+    // expect(onChange).toBeCalledWith(
+    //   expect.objectContaining({
+    //     value: [
+    //       { authorId: '~test_id2', authorName: 'First Two Last Two' },
+    //       { authorId: '~test_id1', authorName: 'First One Last One' },
+    //     ],
+    //   })
+    // )
   })
 
   test('show profile search results', async () => {

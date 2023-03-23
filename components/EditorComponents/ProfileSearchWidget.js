@@ -1,5 +1,5 @@
 import { maxBy } from 'lodash'
-import { useContext, useState, useEffect, useCallback } from 'react'
+import { useContext, useState, useEffect } from 'react'
 import useUser from '../../hooks/useUser'
 import { getProfileName, isValidEmail } from '../../lib/utils'
 import api from '../../lib/api-client'
@@ -41,10 +41,6 @@ const Author = ({
     setDisplayAuthors(updatedValue)
   }
 
-  const tooltip = profile.noProfile
-    ? profile.authorId
-    : profile.content.preferredEmail ?? profile.content.emails[0]
-
   if (!profile) return null
 
   return (
@@ -53,7 +49,7 @@ const Author = ({
         {profile.noProfile ? (
           <span
             className={styles.authorNameLink}
-            title={tooltip}
+            data-original-title={authorId}
             data-toggle="tooltip"
             data-placement="top"
           >
@@ -62,7 +58,7 @@ const Author = ({
         ) : (
           <a
             href={`/profile?id=${profile.id}`}
-            title={tooltip}
+            data-original-title={authorId}
             data-toggle="tooltip"
             data-placement="top"
             target="_blank"
@@ -392,7 +388,7 @@ const ProfileSearchWidget = () => {
   useEffect(() => {
     if (!value?.length) return
     $('[data-toggle="tooltip"]').tooltip()
-  }, [value, selectedAuthorProfiles])
+  }, [value, displayAuthors])
 
   return (
     <div className={styles.profileSearch}>
