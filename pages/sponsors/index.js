@@ -198,8 +198,6 @@ export async function getStaticProps() {
         friends: [
           { name: 'ESWC', image: 'eswc.png', link: 'https://2021.eswc-conferences.org/' },
         ],
-        //          { name: 'Facebook', image: 'facebook.png', link: 'https://research.facebook.com/' },
-        //          { name: 'CZI', image: 'czi.png', link: 'https://chanzuckerberg.com/' },
       },
     },
   }

@@ -137,9 +137,18 @@ export default function SponsorsOld({ sponsors }) {
 
       <div className="row mt-2 mb-4">
         <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
-          <Link href="/donate">
-            <a className="btn btn-lg btn-primary">Donate to OpenReview</a>
-          </Link>
+          <p>
+            <Link href="/donate">
+              <a className="btn btn-lg btn-primary">Donate to OpenReview</a>
+            </Link>
+          </p>
+        </div>
+        <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
+          <p>
+            <Link href="/sponsors/2019-2022">
+              <a>View 2023 sponsors &raquo;</a>
+            </Link>
+          </p>
         </div>
       </div>
     </div>
