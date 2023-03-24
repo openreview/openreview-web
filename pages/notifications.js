@@ -69,11 +69,10 @@ export default function Notifications({ appContext }) {
       )
 
       // Decrement notification count
-      const numChanged = Math.min(apiRes.count, 1000)
-      decrementNotificationCount(numChanged)
+      decrementNotificationCount(unreadMessageIds.length)
       setUnviewedCounts({
         ...unviewedCounts,
-        [toEmail]: unviewedCounts[toEmail] - numChanged,
+        [toEmail]: unviewedCounts[toEmail] - unreadMessageIds.length,
       })
 
       // Go back to first page of results, or if already on first page, refresh
