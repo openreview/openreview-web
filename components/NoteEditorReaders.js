@@ -140,6 +140,7 @@ export const NewReplyEditNoteReaders = ({
   noteEditorData,
   setNoteEditorData,
   setLoading,
+  isDirectReplyToForum,
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
@@ -255,7 +256,7 @@ export const NewReplyEditNoteReaders = ({
       setReaderOptions(replyReaders)
       return
     }
-    if (isEqualOrSubset(replyReaders, parentReaders)) {
+    if (isDirectReplyToForum || isEqualOrSubset(replyReaders, parentReaders)) {
       setReaderOptions(replyReaders)
     } else {
       promptError('Can not create note, readers must match parent note')

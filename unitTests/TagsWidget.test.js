@@ -57,9 +57,9 @@ describe('TagsWidget', () => {
 
     render(<TagsWidget values={values} />)
     const textTag = screen.getByText('ICML 2023 Conference')
-    const valueTag = screen.getByText('authorids').closest('span')
-    const signaturesTag = screen.getByText('signatures').closest('span')
-    const numberTag = screen.getByText('number').closest('span')
+    const valueTag = screen.getByText('authorids').closest('div')
+    const signaturesTag = screen.getByText('signatures').closest('div')
+    const numberTag = screen.getByText('number').closest('div')
     expect(textTag).toHaveAttribute('title', 'ICML.cc/2023/Conference')
     expect(valueTag).toHaveAttribute(
       'title',

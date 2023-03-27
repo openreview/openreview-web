@@ -155,77 +155,116 @@ const ProfileSearchResultRow = ({
 }
 
 const ProfileSearchResults = ({
-  isLoading,
-  searchTerm,
-  setSearchTerm,
-  profileSearchResults,
-  setProfileSearchResults,
   setSelectedAuthorProfiles,
   displayAuthors,
   setDisplayAuthors,
 }) => {
+  const [searchTerm, setSearchTerm] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
   const [pageNumber, setPageNumber] = useState(1)
-  const [totalCount, setTotalCount] = useState(profileSearchResults?.length ?? 0)
-  const [profilesDisplayed, setProfilesDisplayed] = useState([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [profileSearchResults, setProfileSearchResults] = useState(null)
+  const { accessToken } = useUser()
   const pageSize = 15
 
-  useEffect(() => {
-    if (!profileSearchResults?.length) return
-    setProfilesDisplayed(
-      profileSearchResults.slice(
-        pageSize * (pageNumber - 1),
-        pageSize * (pageNumber - 1) + pageSize
+  const searchProfiles = async (searchTerm, pageNumber, showLoadingSpinner = true) => {
+    const cleanSearchTerm = searchTerm.trim().toLowerCase()
+    const isEmail = isValidEmail(cleanSearchTerm)
+    if (showLoadingSpinner) setIsLoading(true)
+    try {
+      const results = await api.get(
+        '/profiles/search',
+        {
+          ...(isEmail ? { email: cleanSearchTerm } : { fullname: cleanSearchTerm }),
+          es: true,
+          limit: pageSize,
+          offset: pageSize * (pageNumber - 1),
+        },
+        { accessToken }
       )
-    )
-    setTotalCount(profileSearchResults.length)
-  }, [profileSearchResults, pageNumber])
-
-  useEffect(() => {
-    return () => {
-      setPageNumber(1)
+      setTotalCount(results.count)
+      setProfileSearchResults(results.profiles)
+    } catch (error) {
+      promptError(error.message)
     }
-  }, [searchTerm])
+    if (showLoadingSpinner) setIsLoading(false)
+  }
 
-  if (isLoading) return <LoadingSpinner inline={true} text={null} />
-  if (!profileSearchResults) return null
-  if (!profileSearchResults.length)
+  const displayResults = () => {
+    if (!profileSearchResults) return null
+    if (!profileSearchResults.length)
+      return (
+        <div className={styles.noMatchingProfile}>
+          <span>
+            No matching profiles found. <br />
+            Please enter the author's full name and email below, then click Add button to add
+            the author.
+          </span>
+          <CustomAuthorForm
+            searchTerm={searchTerm}
+            setProfileSearchResults={setProfileSearchResults}
+            setSearchTerm={setSearchTerm}
+            displayAuthors={displayAuthors}
+            setDisplayAuthors={setDisplayAuthors}
+          />
+        </div>
+      )
     return (
-      <div className={styles.noMatchingProfile}>
-        <span>
-          No matching profiles found. <br />
-          Please enter the author's full name and email below, then click Add button to add the
-          author.
-        </span>
-        <CustomAuthorForm
-          searchTerm={searchTerm}
-          setProfileSearchResults={setProfileSearchResults}
-          setSearchTerm={setSearchTerm}
-          displayAuthors={displayAuthors}
-          setDisplayAuthors={setDisplayAuthors}
+      <div className={styles.searchResults}>
+        {profileSearchResults.map((profile, index) => (
+          <ProfileSearchResultRow
+            key={index}
+            profile={profile}
+            setProfileSearchResults={setProfileSearchResults}
+            setSearchTerm={setSearchTerm}
+            setSelectedAuthorProfiles={setSelectedAuthorProfiles}
+            displayAuthors={displayAuthors}
+            setDisplayAuthors={setDisplayAuthors}
+          />
+        ))}
+        <PaginationLinks
+          currentPage={pageNumber}
+          itemsPerPage={pageSize}
+          totalCount={totalCount}
+          setCurrentPage={setPageNumber}
+          options={{ noScroll: true, showCount: true }}
         />
       </div>
     )
+  }
+
+  useEffect(() => {
+    if (!searchTerm) return
+    searchProfiles(searchTerm, pageNumber, false)
+  }, [pageNumber])
+
+  if (isLoading) return <LoadingSpinner inline={true} text={null} />
+
   return (
-    <div className={styles.searchResults}>
-      {profilesDisplayed.map((profile, index) => (
-        <ProfileSearchResultRow
-          key={index}
-          profile={profile}
-          setProfileSearchResults={setProfileSearchResults}
-          setSearchTerm={setSearchTerm}
-          setSelectedAuthorProfiles={setSelectedAuthorProfiles}
-          displayAuthors={displayAuthors}
-          setDisplayAuthors={setDisplayAuthors}
+    <>
+      <form
+        className={styles.searchForm}
+        onSubmit={(e) => {
+          e.preventDefault()
+          searchProfiles(searchTerm, 1)
+        }}
+      >
+        <input
+          type="text"
+          className="form-control"
+          value={searchTerm ?? ''}
+          placeholder="search profiles by email or name"
+          onChange={(e) => {
+            setSearchTerm(e.target.value)
+            setProfileSearchResults(null)
+          }}
         />
-      ))}
-      <PaginationLinks
-        currentPage={pageNumber}
-        itemsPerPage={pageSize}
-        totalCount={totalCount}
-        setCurrentPage={setPageNumber}
-        options={{ noScroll: true, showCount: true }}
-      />
-    </div>
+        <button className="btn btn-sm" disabled={!searchTerm?.trim()} type="submit">
+          Search
+        </button>
+      </form>
+      {displayResults()}
+    </>
   )
 }
 
@@ -260,6 +299,7 @@ const CustomAuthorForm = ({
   }
 
   useEffect(() => {
+    if (!searchTerm) return
     const cleanSearchTerm = searchTerm.trim()
     if (isValidEmail(cleanSearchTerm)) {
       setCustomAuthorEmail(cleanSearchTerm.toLowerCase())
@@ -306,9 +346,6 @@ const ProfileSearchWidget = () => {
   const { field, onChange, value } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const [selectedAuthorProfiles, setSelectedAuthorProfiles] = useState([])
-  const [profileSearchResults, setProfileSearchResults] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const [displayAuthors, setDisplayAuthors] = useState(value) // id+email
 
   const getProfiles = async (authorIds) => {
@@ -359,25 +396,6 @@ const ProfileSearchWidget = () => {
     }
   }
 
-  const searchProfile = async (searchTerm) => {
-    setIsLoading(true)
-    const cleanSearchTerm = searchTerm.trim().toLowerCase()
-    const isEmail = isValidEmail(cleanSearchTerm)
-    try {
-      const result = await api.get(
-        '/profiles/search',
-        {
-          ...(isEmail ? { email: cleanSearchTerm } : { fullname: cleanSearchTerm }),
-        },
-        { accessToken }
-      )
-      setProfileSearchResults(result.profiles)
-    } catch (error) {
-      promptError(error.message)
-    }
-    setIsLoading(false)
-  }
-
   useEffect(() => {
     if (!value) {
       getProfiles([user.profile.id])
@@ -418,40 +436,8 @@ const ProfileSearchWidget = () => {
           )
         })}
       </div>
-      <form
-        className={styles.searchForm}
-        onSubmit={(e) => {
-          e.preventDefault()
-          searchProfile(searchTerm.trim())
-        }}
-      >
-        <input
-          type="text"
-          className="form-control"
-          value={searchTerm}
-          placeholder="search profiles by email or name"
-          onChange={(e) => {
-            setSearchTerm(e.target.value)
-            setProfileSearchResults(null)
-          }}
-        />
-        <button className="btn btn-sm" disabled={!searchTerm.trim()} type="submit">
-          Search
-        </button>
-      </form>
-      {/* <div className={styles.searchResults}>
-        {isLoading ? (
-          <LoadingSpinner inline={true} text={null} />
-        ) : (
-          renderProfileSearchResults()
-        )}
-      </div> */}
+
       <ProfileSearchResults
-        isLoading={isLoading}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        profileSearchResults={profileSearchResults}
-        setProfileSearchResults={setProfileSearchResults}
         setSelectedAuthorProfiles={setSelectedAuthorProfiles}
         displayAuthors={displayAuthors}
         setDisplayAuthors={setDisplayAuthors}

@@ -83,7 +83,14 @@ const EditSignatures = ({
 }
 
 // for v2 only
-const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCreated }) => {
+const NoteEditor = ({
+  invitation,
+  note,
+  replyToNote,
+  closeNoteEditor,
+  onNoteCreated,
+  isDirectReplyToForum,
+}) => {
   const { user, accessToken } = useUser()
   const [fields, setFields] = useState([])
   const [loading, setLoading] = useState({
@@ -198,6 +205,7 @@ const NoteEditor = ({ invitation, note, replyToNote, closeNoteEditor, onNoteCrea
           noteEditorData={noteEditorData}
           setNoteEditorData={setNoteEditorData}
           setLoading={setLoading}
+          isDirectReplyToForum={isDirectReplyToForum}
         />
       )
     return null

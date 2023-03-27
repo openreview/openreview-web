@@ -3,6 +3,7 @@
 .container {
   display: inline-block;
   margin-top: 4px;
+  max-width: 80%;
   :global {
     .tooltip-inner {
       max-width: unset;
@@ -11,11 +12,14 @@
 }
 
 .value {
+  display: inline-block;
+  white-space: nowrap;
   cursor: default;
   background-color: rgba(0, 0, 0, 0.08);
   padding: 4px 10px;
   border-radius: 2px;
   margin-right: 0.25rem;
+  margin-bottom: 4px;
 }
 
 .emphasis {

@@ -216,6 +216,7 @@ describe('ProfileSearchWidget', () => {
             },
           },
         ],
+        count: 2,
       })
     )
     api.post = initialGetProfile
@@ -285,7 +286,7 @@ describe('ProfileSearchWidget', () => {
     await userEvent.click(screen.getByText('Search'))
     expect(getProfile).toBeCalledWith(
       '/profiles/search',
-      { email: 'test@email.com' },
+      { email: 'test@email.com', es: true, limit: 15, offset: 0 },
       expect.anything()
     )
   })
@@ -317,6 +318,7 @@ describe('ProfileSearchWidget', () => {
             },
           },
         ],
+        count: 1,
       })
     )
     api.post = initialGetProfile
@@ -487,6 +489,7 @@ describe('ProfileSearchWidget', () => {
     const searchProfile = jest.fn(() =>
       Promise.resolve({
         profiles,
+        count: 150,
       })
     )
     api.post = jest.fn(() => Promise.resolve([]))
@@ -623,7 +626,7 @@ describe('ProfileSearchWidget', () => {
       'some search term'
     )
 
-    await userEvent.clear(searchInput)
+    await userEvent.clear(screen.getByPlaceholderText('search profiles by email or name'))
     await userEvent.type(searchInput, '   test@EMAIL.COM   ')
     await userEvent.click(screen.getByText('Search'))
 

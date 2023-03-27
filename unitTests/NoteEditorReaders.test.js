@@ -677,6 +677,100 @@ describe('NewReplyEditNoteReaders', () => {
     )
   })
 
+  test('display error when const readers is not a subset of replyToNote readers', () => {
+    const promptError = jest.fn()
+    global.promptError = promptError
+
+    const invitationReaders = [
+      'ICML.cc/2023/Conference', // diff
+      'ICML.cc/2023/Conference/Submission1/Area_Chairs',
+      'ICML.cc/2023/Conference/Submission1/Senior_Area_Chairs',
+      'ICML.cc/2023/Conference/Submission1/Reviewers',
+    ]
+    const replyToNoteReaders = [
+      'ICML.cc/2023/Conference/Program_Chairs', // diff
+      'ICML.cc/2023/Conference/Submission1/Area_Chairs',
+      'ICML.cc/2023/Conference/Submission1/Senior_Area_Chairs',
+      'ICML.cc/2023/Conference/Submission1/Reviewers',
+    ]
+
+    const invitation = {
+      id: 'ICML.cc/2023/Conference/Submission1/-/Official_Comment',
+      edit: {
+        note: {
+          readers: invitationReaders,
+        },
+      },
+    }
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{
+          readers: replyToNoteReaders,
+        }}
+        fieldDescription={invitation.edit.note.readers}
+        fieldName="noteReaderValues"
+        closeNoteEditor={jest.fn()}
+        noteEditorData={{}}
+        setNoteEditorData={jest.fn()}
+        setLoading={jest.fn()}
+        isDirectReplyToForum={false}
+      />
+    )
+
+    expect(screen.queryByText('tags')).not.toBeInTheDocument()
+    expect(promptError).toBeCalledWith('Can not create note, readers must match parent note')
+  })
+
+  test('display const readers when const readers is not a subset of replyToNote readers if reply to form', () => {
+    const promptError = jest.fn()
+    global.promptError = promptError
+
+    const invitationReaders = [
+      'ICML.cc/2023/Conference', // diff
+      'ICML.cc/2023/Conference/Submission1/Area_Chairs',
+      'ICML.cc/2023/Conference/Submission1/Senior_Area_Chairs',
+      'ICML.cc/2023/Conference/Submission1/Reviewers',
+    ]
+    const replyToNoteReaders = [
+      'ICML.cc/2023/Conference/Program_Chairs', // diff
+      'ICML.cc/2023/Conference/Submission1/Area_Chairs',
+      'ICML.cc/2023/Conference/Submission1/Senior_Area_Chairs',
+      'ICML.cc/2023/Conference/Submission1/Reviewers',
+    ]
+
+    const invitation = {
+      id: 'ICML.cc/2023/Conference/Submission1/-/Official_Comment',
+      edit: {
+        note: {
+          readers: invitationReaders,
+        },
+      },
+    }
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{
+          readers: replyToNoteReaders,
+        }}
+        fieldDescription={invitation.edit.note.readers}
+        fieldName="noteReaderValues"
+        closeNoteEditor={jest.fn()}
+        noteEditorData={{}}
+        setNoteEditorData={jest.fn()}
+        setLoading={jest.fn()}
+        isDirectReplyToForum={true}
+      />
+    )
+
+    expect(screen.getByText('tags'))
+    expect(tagProps).toBeCalledWith(
+      expect.objectContaining({
+        values: invitationReaders,
+      })
+    )
+  })
+
   test('call api 1 to get groups when readers is regex with pipe', async () => {
     const getGroups = jest.fn(() => Promise.resolve({ groups: [] }))
     api.get = getGroups

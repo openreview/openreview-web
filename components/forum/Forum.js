@@ -645,61 +645,64 @@ export default function Forum({
         </div>
       )}
 
-      {parentNote.replyInvitations?.length > 0 && !parentNote.ddate && layout === 'default' && (
-        <div className="invitations-container">
-          <div className="invitation-buttons top-level-invitations">
-            <span className="hint">Add:</span>
-            {parentNote.replyInvitations.map((invitation) => {
-              if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
+      {parentNote.replyInvitations?.length > 0 &&
+        !parentNote.ddate &&
+        layout === 'default' && (
+          <div className="invitations-container">
+            <div className="invitation-buttons top-level-invitations">
+              <span className="hint">Add:</span>
+              {parentNote.replyInvitations.map((invitation) => {
+                if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
 
-              return (
-                <button
-                  key={invitation.id}
-                  type="button"
-                  className={`btn btn-xs ${
-                    activeInvitation?.id === invitation.id ? 'active' : ''
-                  }`}
-                  data-id={invitation.id}
-                  onClick={() => openNoteEditor(invitation)}
-                >
-                  {prettyInvitationId(invitation.id)}
-                </button>
-              )
-            })}
-          </div>
+                return (
+                  <button
+                    key={invitation.id}
+                    type="button"
+                    className={`btn btn-xs ${
+                      activeInvitation?.id === invitation.id ? 'active' : ''
+                    }`}
+                    data-id={invitation.id}
+                    onClick={() => openNoteEditor(invitation)}
+                  >
+                    {prettyInvitationId(invitation.id)}
+                  </button>
+                )
+              })}
+            </div>
 
-          <NoteEditorForm
-            forumId={id}
-            replyToId={id}
-            invitation={activeInvitation}
-            onNoteCreated={(note) => {
-              updateNote(note)
-              setActiveInvitation(null)
-              scrollToElement('#forum-replies')
-            }}
-            onNoteCancelled={() => {
-              setActiveInvitation(null)
-            }}
-            onError={(isLoadingError) => {
-              if (isLoadingError) {
+            <NoteEditorForm
+              forumId={id}
+              replyToId={id}
+              invitation={activeInvitation}
+              onNoteCreated={(note) => {
+                updateNote(note)
                 setActiveInvitation(null)
-              }
-            }}
-          />
-          <NoteEditor
-            replyToNote={parentNote}
-            invitation={activeInvitation}
-            closeNoteEditor={() => {
-              setActiveInvitation(null)
-            }}
-            onNoteCreated={(note) => {
-              updateNote(note)
-              setActiveInvitation(null)
-              scrollToElement('#forum-replies')
-            }}
-          />
-        </div>
-      )}
+                scrollToElement('#forum-replies')
+              }}
+              onNoteCancelled={() => {
+                setActiveInvitation(null)
+              }}
+              onError={(isLoadingError) => {
+                if (isLoadingError) {
+                  setActiveInvitation(null)
+                }
+              }}
+            />
+            <NoteEditor
+              replyToNote={parentNote}
+              invitation={activeInvitation}
+              closeNoteEditor={() => {
+                setActiveInvitation(null)
+              }}
+              onNoteCreated={(note) => {
+                updateNote(note)
+                setActiveInvitation(null)
+                scrollToElement('#forum-replies')
+              }}
+              isDirectReplyToForum={true}
+            />
+          </div>
+        )}
 
       <div className="row mt-3 forum-replies-container">
         <div className="col-xs-12">
@@ -717,16 +720,18 @@ export default function Forum({
                 setHidden,
               }}
             >
-              {repliesLoaded ? orderedReplies.map((reply) => (
-                <ForumReply
-                  key={reply.id}
-                  note={replyNoteMap[reply.id]}
-                  replies={reply.replies}
-                  replyDepth={1}
-                  parentId={id}
-                  updateNote={updateNote}
-                />
-              )) : (
+              {repliesLoaded ? (
+                orderedReplies.map((reply) => (
+                  <ForumReply
+                    key={reply.id}
+                    note={replyNoteMap[reply.id]}
+                    replies={reply.replies}
+                    replyDepth={1}
+                    parentId={id}
+                    updateNote={updateNote}
+                  />
+                ))
+              ) : (
                 <LoadingSpinner inline />
               )}
             </ForumReplyContext.Provider>

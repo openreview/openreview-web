@@ -26,7 +26,7 @@ const Tag = ({ value }) => {
     $('[data-toggle="tooltip"]').tooltip()
   }, [value])
   return (
-    <span className={styles.value} title={tooltip} data-toggle="tooltip" data-placement="top">
+    <div className={styles.value} title={tooltip} data-toggle="tooltip" data-placement="top">
       {segments.map((segment, index) =>
         index % 2 !== 0 ? (
           <em key={index} className={styles.emphasis}>
@@ -36,7 +36,7 @@ const Tag = ({ value }) => {
           segment
         )
       )}
-    </span>
+    </div>
   )
 }
 
