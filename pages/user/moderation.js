@@ -636,16 +636,6 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
                         className="btn btn-xs"
                         disabled={idsLoading.includes(note.id)}
                         onClick={() => {
-                          acceptRejectProfileMergeNote(note, 'Ignored')
-                        }}
-                      >
-                        Ignore
-                      </button>{' '}
-                      <button
-                        type="button"
-                        className="btn btn-xs"
-                        disabled={idsLoading.includes(note.id)}
-                        onClick={() => {
                           acceptRejectProfileMergeNote(note, 'Accepted')
                         }}
                       >
@@ -661,6 +651,16 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
                       >
                         <Icon name="remove-circle" /> Reject
                       </button>{' '}
+                      <button
+                        type="button"
+                        className="btn btn-xs"
+                        disabled={idsLoading.includes(note.id)}
+                        onClick={() => {
+                          acceptRejectProfileMergeNote(note, 'Ignored')
+                        }}
+                      >
+                        Ignore
+                      </button>
                     </>
                   )}
                 </span>

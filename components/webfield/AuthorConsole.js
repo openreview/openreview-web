@@ -19,6 +19,7 @@ import { formatTasksData, prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import LoadingSpinner from '../LoadingSpinner'
 import { filterAssignedInvitations, filterHasReplyTo } from '../../lib/webfield-utils'
+import useBreakpoint from '../../hooks/useBreakPoint'
 
 const ReviewSummary = ({
   note,
@@ -123,7 +124,6 @@ const AuthorSubmissionRow = ({
   submissionName,
   authorName,
   profileMap,
-  showIEEECopyright,
 }) => {
   const isV2Note = note.version === 2
   const referrerUrl = encodeURIComponent(
@@ -166,13 +166,58 @@ const AuthorSubmissionRow = ({
   )
 }
 
+const AuthorSubmissionRowMobile = ({
+  note,
+  venueId,
+  officialReviewName,
+  decisionName = 'Decision',
+  reviewRatingName,
+  reviewConfidenceName,
+  submissionName,
+  authorName,
+  profileMap,
+}) => {
+  const isV2Note = note.version === 2
+  const referrerUrl = encodeURIComponent(
+    `[Author Console](/group?id=${venueId}/${authorName}#your-submissions)`
+  )
+  return (
+    <div className="mobile-paper-container">
+      <span className="mobile-header">Paper #{note.number}</span>
+      <NoteSummary
+        note={note}
+        profileMap={profileMap}
+        referrerUrl={referrerUrl}
+        isV2Note={isV2Note}
+      />
+      <span className="mobile-header">Reviews:</span>
+      <div className="mobile-review-summary">
+        <ReviewSummary
+          note={note}
+          venueId={venueId}
+          referrerUrl={referrerUrl}
+          officialReviewName={officialReviewName}
+          reviewRatingName={reviewRatingName}
+          reviewConfidenceName={reviewConfidenceName}
+          submissionName={submissionName}
+          isV2Note={isV2Note}
+        />
+      </div>
+      <span className="mobile-header">Decision:</span>
+      <AuthorConsoleNoteMetaReviewStatus
+        note={note}
+        venueId={venueId}
+        decisionName={decisionName}
+        submissionName={submissionName}
+      />
+    </div>
+  )
+}
+
 const AuthorConsoleTasks = () => {
   const { venueId, authorName, submissionName, apiVersion } = useContext(WebFieldContext)
   const { accessToken } = useUser()
   const [invitations, setInvitations] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  const wildcardInvitation = `${venueId}/.*`
 
   const addInvitaitonTypeAndVersion = (invitation) => {
     let invitaitonType = 'tagInvitation'
@@ -183,7 +228,8 @@ const AuthorConsoleTasks = () => {
   }
 
   const loadInvitations = async () => {
-    setIsLoading(true)
+    const wildcardInvitation = `${venueId}/.*`
+
     try {
       let allInvitations = await api.getAll(
         '/invitations',
@@ -202,7 +248,7 @@ const AuthorConsoleTasks = () => {
         .filter((p) => filterHasReplyTo(p, apiVersion))
         .filter((p) => filterAssignedInvitations(p, authorName, submissionName))
 
-      if (allInvitations.length) {
+      if (allInvitations.length > 0) {
         // add details
         const validInvitationDetails = await api.getAll(
           '/invitations',
@@ -224,21 +270,22 @@ const AuthorConsoleTasks = () => {
     } catch (error) {
       promptError(error.message)
     }
-    setIsLoading(false)
   }
 
   useEffect(() => {
+    setInvitations(null)
     loadInvitations()
-  }, [])
+  }, [venueId, accessToken])
 
-  if (isLoading) return <LoadingSpinner />
+  if (!invitations) return <LoadingSpinner />
+
   return (
     <TaskList
       invitations={invitations}
       emptyMessage={'No outstanding tasks for this conference'}
-      referrer={`${encodeURIComponent(
+      referrer={encodeURIComponent(
         `[Author Console](/group?id=${venueId}/${authorName}#author-tasks)`
-      )}&t=${Date.now()}`}
+      )}
     />
   )
 }
@@ -271,6 +318,7 @@ const AuthorConsole = ({ appContext }) => {
   const [showTasks, setShowTasks] = useState(false)
   const [authorNotes, setAuthorNotes] = useState(null)
   const [profileMap, setProfileMap] = useState(null)
+  const isMobile = !useBreakpoint('md')
 
   const loadProfiles = async (notes, version) => {
     const authorIds = new Set()
@@ -470,6 +518,7 @@ const AuthorConsole = ({ appContext }) => {
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
+
       <Tabs>
         <TabList>
           <Tab id="your-submissions" active>
@@ -483,36 +532,58 @@ const AuthorConsole = ({ appContext }) => {
         <TabPanels>
           <TabPanel id="your-submissions">
             {authorNotes?.length > 0 ? (
-              <div className="table-container">
-                <Table
-                  className="console-table table-striped"
-                  headings={[
-                    { id: 'number', content: '#', width: '55px' },
-                    { id: 'summary', content: 'Paper Summary', width: '35%' },
-                    { id: 'reviews', content: 'Reviews', width: 'auto' },
-                    { id: 'decision', content: 'Decision', width: '30%' },
-                  ]}
-                >
-                  {authorNotes.map((note) => (
-                    <AuthorSubmissionRow
-                      key={note.id}
-                      note={note}
-                      venueId={venueId}
-                      officialReviewName={officialReviewName}
-                      decisionName={decisionName}
-                      reviewRatingName={reviewRatingName}
-                      reviewConfidenceName={reviewConfidenceName}
-                      submissionName={submissionName}
-                      authorName={authorName}
-                      profileMap={profileMap}
-                    />
-                  ))}
-                </Table>
-              </div>
+              <>
+                {!isMobile ? (
+                  <div className="table-container">
+                    <Table
+                      className="console-table table-striped"
+                      headings={[
+                        { id: 'number', content: '#', width: '55px' },
+                        { id: 'summary', content: 'Paper Summary', width: '35%' },
+                        { id: 'reviews', content: 'Reviews', width: 'auto' },
+                        { id: 'decision', content: 'Decision', width: '30%' },
+                      ]}
+                    >
+                      {authorNotes.map((note) => (
+                        <AuthorSubmissionRow
+                          key={note.id}
+                          note={note}
+                          venueId={venueId}
+                          officialReviewName={officialReviewName}
+                          decisionName={decisionName}
+                          reviewRatingName={reviewRatingName}
+                          reviewConfidenceName={reviewConfidenceName}
+                          submissionName={submissionName}
+                          authorName={authorName}
+                          profileMap={profileMap}
+                        />
+                      ))}
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="author-console-mobile">
+                    {authorNotes.map((note) => (
+                      <AuthorSubmissionRowMobile
+                        key={note.id}
+                        note={note}
+                        venueId={venueId}
+                        officialReviewName={officialReviewName}
+                        decisionName={decisionName}
+                        reviewRatingName={reviewRatingName}
+                        reviewConfidenceName={reviewConfidenceName}
+                        submissionName={submissionName}
+                        authorName={authorName}
+                        profileMap={profileMap}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             ) : (
               <p className="empty-message">No papers to display at this time</p>
             )}
           </TabPanel>
+
           <TabPanel id="author-tasks">{showTasks && <AuthorConsoleTasks />}</TabPanel>
         </TabPanels>
       </Tabs>

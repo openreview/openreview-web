@@ -331,7 +331,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           className="readers"
           data-toggle="tooltip"
           data-placement="top"
-          title="Visible to"
+          title={`Visible to ${note.readers.join(', ')}`}
         >
           <Icon name="eye-open" />
           {note.readers.map((reader) => prettyId(reader, true)).join(', ')}

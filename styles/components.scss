@@ -257,6 +257,13 @@ table.table-minimal {
           padding-right: 0;
         }
       }
+      & > span {
+        padding-right: 0.75rem;
+        vertical-align: baseline;
+        &:last-child {
+          padding-right: 0;
+        }
+      }
       span.warning-conflict {
         background-color: constants.$orRed;
         padding: 1px 5px;
@@ -510,6 +517,31 @@ table.table-minimal {
     font-size: 1.125rem;
     font-weight: bold;
     line-height: 1.875rem;
+  }
+}
+
+.profiles-list {
+  .bid-container {
+    margin-bottom: 0.5rem;
+  }
+  .profile-summary {
+    display: flex;
+    flex-direction: column;
+
+    .profile-name > a {
+      margin-bottom: 0.25rem;
+      // color: constants.$darkBlue;
+      font-size: 1rem;
+    }
+    .profile-title {
+      margin-bottom: 0.25rem;
+      color: #777777;
+    }
+    .profile-expertise {
+      margin-bottom: 0.5rem;
+      width: 80%;
+      color: #777777;
+    }
   }
 }
 
