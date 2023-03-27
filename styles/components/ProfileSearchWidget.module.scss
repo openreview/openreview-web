@@ -13,6 +13,9 @@
     margin-bottom: 0.25rem;
     display: flex;
     align-items: center;
+    background-color: rgba(0, 0, 0, 0.05);
+    margin-right: 0.5rem;
+    padding: 0.25rem 0.15rem 0.25rem 0.5rem;
 
     .authorName > .authorNameLink {
       font-style: italic;
@@ -28,11 +31,14 @@
       button {
         padding: 1px 5px;
         margin-bottom: 0.1rem;
-        .actionButton {
-          font-size: 0.75rem;
-        }
+        border: none;
       }
     }
+  }
+  .authorSeparator {
+    margin-right: 0.5rem;
+    align-self: end;
+    font-size: 1rem;
   }
 }
 
@@ -48,9 +54,19 @@
 .noMatchingProfile {
   display: flex;
   flex-direction: column;
+  align-items: center;
+
+  .noMatchingProfileMessage {
+    margin-bottom: 0.5rem;
+  }
 
   .customAuthorForm {
     display: flex;
+    width: 100%;
+
+    .enterAuthorButton {
+      width: fit-content;
+    }
 
     label {
       white-space: nowrap;
@@ -62,9 +78,6 @@
       margin-right: 0.25rem;
     }
   }
-}
-
-.searchResults {
 }
 
 .searchResultRow {

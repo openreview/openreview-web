@@ -1,5 +1,5 @@
 import { maxBy } from 'lodash'
-import { useContext, useState, useEffect } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import useUser from '../../hooks/useUser'
 import { getProfileName, isValidEmail } from '../../lib/utils'
 import api from '../../lib/api-client'
@@ -161,9 +161,10 @@ const ProfileSearchResults = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [pageNumber, setPageNumber] = useState(1)
+  const [pageNumber, setPageNumber] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
   const [profileSearchResults, setProfileSearchResults] = useState(null)
+  const [showCustomAuthorForm, setShowCustomAuthorForm] = useState(false)
   const { accessToken } = useUser()
   const pageSize = 15
 
@@ -190,16 +191,10 @@ const ProfileSearchResults = ({
     if (showLoadingSpinner) setIsLoading(false)
   }
 
-  const displayResults = () => {
-    if (!profileSearchResults) return null
-    if (!profileSearchResults.length)
-      return (
-        <div className={styles.noMatchingProfile}>
-          <span>
-            No matching profiles found. <br />
-            Please enter the author's full name and email below, then click Add button to add
-            the author.
-          </span>
+  const displayCustomAuthorForm = (isEmptyResult) => {
+    return (
+      <div className={styles.noMatchingProfile}>
+        {showCustomAuthorForm ? (
           <CustomAuthorForm
             searchTerm={searchTerm}
             setProfileSearchResults={setProfileSearchResults}
@@ -207,34 +202,57 @@ const ProfileSearchResults = ({
             displayAuthors={displayAuthors}
             setDisplayAuthors={setDisplayAuthors}
           />
-        </div>
-      )
+        ) : (
+          <>
+            <div className={styles.noMatchingProfileMessage}>
+              {isEmptyResult ? 'No matching profiles found.' : 'Not your coauthor?'}
+            </div>
+            <button
+              className={`btn btn-xs ${styles.enterAuthorButton}`}
+              onClick={() => setShowCustomAuthorForm(true)}
+            >
+              Manually Enter Author Info
+            </button>
+          </>
+        )}
+      </div>
+    )
+  }
+
+  const displayResults = () => {
+    if (!profileSearchResults) return null
+    if (!profileSearchResults.length) return displayCustomAuthorForm(true)
     return (
       <div className={styles.searchResults}>
-        {profileSearchResults.map((profile, index) => (
-          <ProfileSearchResultRow
-            key={index}
-            profile={profile}
-            setProfileSearchResults={setProfileSearchResults}
-            setSearchTerm={setSearchTerm}
-            setSelectedAuthorProfiles={setSelectedAuthorProfiles}
-            displayAuthors={displayAuthors}
-            setDisplayAuthors={setDisplayAuthors}
-          />
-        ))}
-        <PaginationLinks
-          currentPage={pageNumber}
-          itemsPerPage={pageSize}
-          totalCount={totalCount}
-          setCurrentPage={setPageNumber}
-          options={{ noScroll: true, showCount: true }}
-        />
+        {!showCustomAuthorForm && (
+          <>
+            {profileSearchResults.map((profile, index) => (
+              <ProfileSearchResultRow
+                key={index}
+                profile={profile}
+                setProfileSearchResults={setProfileSearchResults}
+                setSearchTerm={setSearchTerm}
+                setSelectedAuthorProfiles={setSelectedAuthorProfiles}
+                displayAuthors={displayAuthors}
+                setDisplayAuthors={setDisplayAuthors}
+              />
+            ))}
+            <PaginationLinks
+              currentPage={pageNumber ?? 1}
+              itemsPerPage={pageSize}
+              totalCount={totalCount}
+              setCurrentPage={setPageNumber}
+              options={{ noScroll: true, showCount: true }}
+            />
+          </>
+        )}
+        {(pageNumber ?? 1) * pageSize >= totalCount && displayCustomAuthorForm(false)}
       </div>
     )
   }
 
   useEffect(() => {
-    if (!searchTerm) return
+    if (!searchTerm || !pageNumber) return
     searchProfiles(searchTerm, pageNumber, false)
   }, [pageNumber])
 
@@ -246,7 +264,9 @@ const ProfileSearchResults = ({
         className={styles.searchForm}
         onSubmit={(e) => {
           e.preventDefault()
+          setShowCustomAuthorForm(false)
           searchProfiles(searchTerm, 1)
+          setPageNumber(null)
         }}
       >
         <input
@@ -424,15 +444,17 @@ const ProfileSearchWidget = () => {
           const showArrowButton =
             displayAuthors.length !== 1 && index !== displayAuthors.length - 1
           return (
-            <Author
-              key={index}
-              fieldName={fieldName}
-              authorId={authorId}
-              profile={authorProfile}
-              showArrowButton={showArrowButton}
-              displayAuthors={displayAuthors}
-              setDisplayAuthors={setDisplayAuthors}
-            />
+            <React.Fragment key={index}>
+              {index > 0 && <span className={styles.authorSeparator}>,</span>}
+              <Author
+                fieldName={fieldName}
+                authorId={authorId}
+                profile={authorProfile}
+                showArrowButton={showArrowButton}
+                displayAuthors={displayAuthors}
+                setDisplayAuthors={setDisplayAuthors}
+              />
+            </React.Fragment>
           )
         })}
       </div>

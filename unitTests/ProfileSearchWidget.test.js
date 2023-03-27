@@ -592,6 +592,9 @@ describe('ProfileSearchWidget', () => {
     )
     await userEvent.click(screen.getByText('Search'))
     expect(screen.getByText('No matching profiles found.', { exact: false }))
+    expect(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
+
+    await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
     expect(screen.getByPlaceholderText('full name of the author to add'))
     expect(screen.getByPlaceholderText('email of the author to add'))
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
@@ -621,6 +624,7 @@ describe('ProfileSearchWidget', () => {
     const searchInput = screen.getByPlaceholderText('search profiles by email or name')
     await userEvent.type(searchInput, '   some search term   ')
     await userEvent.click(screen.getByText('Search'))
+    await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
 
     expect(screen.getByPlaceholderText('full name of the author to add')).toHaveValue(
       'some search term'
@@ -629,6 +633,7 @@ describe('ProfileSearchWidget', () => {
     await userEvent.clear(screen.getByPlaceholderText('search profiles by email or name'))
     await userEvent.type(searchInput, '   test@EMAIL.COM   ')
     await userEvent.click(screen.getByText('Search'))
+    await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
 
     expect(screen.getByPlaceholderText('email of the author to add')).toHaveValue(
       'test@email.com'
@@ -662,6 +667,7 @@ describe('ProfileSearchWidget', () => {
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
+    await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
 
     await userEvent.type(
