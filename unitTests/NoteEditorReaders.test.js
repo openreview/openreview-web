@@ -234,12 +234,13 @@ describe('NewNoteReaders', () => {
       />
     )
 
+    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
     await waitFor(() => {
-      expect(screen.getByRole('list').childNodes[0].textContent).toEqual('Select All')
-      expect(screen.getByRole('list').childNodes[1].textContent).toEqual('Everyone')
-      expect(screen.getByRole('list').childNodes[2].textContent).toEqual('Test IdOne')
-      expect(screen.getByRole('list').childNodes[3].textContent).toEqual('Test IdTwo')
-      expect(screen.getByRole('list').childNodes[4].textContent).toEqual('Test IdThree')
+      const dropdownList = screen.getByText('Everyone').parentElement
+      expect(dropdownList.childNodes[0].textContent).toEqual('Everyone')
+      expect(dropdownList.childNodes[1].textContent).toEqual('Test IdOne')
+      expect(dropdownList.childNodes[2].textContent).toEqual('Test IdTwo')
+      expect(dropdownList.childNodes[3].textContent).toEqual('Test IdThree')
     })
   })
 
@@ -387,11 +388,12 @@ describe('NewNoteReaders', () => {
       />
     )
 
+    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
     await waitFor(() => {
-      expect(screen.getByRole('list').childNodes[0].textContent).toEqual('Select All')
-      expect(screen.getByRole('list').childNodes[1].textContent).toEqual('Test IdOne')
-      expect(screen.getByRole('list').childNodes[2].textContent).toEqual('Test IdTwo')
-      expect(screen.getByRole('list').childNodes[3].textContent).toEqual('Test IdThree')
+      const dropdownList = screen.getByText('Test IdOne').parentElement
+      expect(dropdownList.childNodes[0].textContent).toEqual('Test IdOne')
+      expect(dropdownList.childNodes[1].textContent).toEqual('Test IdTwo')
+      expect(dropdownList.childNodes[2].textContent).toEqual('Test IdThree')
     })
   })
 
@@ -420,16 +422,18 @@ describe('NewNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getAllByRole('checkbox')[1]).not.toBeChecked() // 0 is select all checkbox
-      expect(screen.getAllByRole('checkbox')[2]).toBeChecked()
-      expect(screen.getAllByRole('checkbox')[3]).not.toBeChecked()
+      expect(screen.getByText('Test IdTwo'))
+      expect(screen.queryByText('Test IdOne')).not.toBeInTheDocument()
+      expect(screen.queryByText('Test IdThree')).not.toBeInTheDocument()
     })
 
-    await userEvent.click(screen.getAllByRole('checkbox')[2])
+    await userEvent.click(screen.getByLabelText('Remove Test IdTwo'))
     await waitFor(() =>
       expect(setNoteEditorData).toBeCalledWith(expect.objectContaining({ value: [] }))
     )
-    await userEvent.click(screen.getAllByRole('checkbox')[3])
+
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.click(screen.getByText('Test IdThree'))
     await waitFor(() =>
       expect(setNoteEditorData).toHaveBeenNthCalledWith(
         2,
@@ -890,12 +894,13 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
+    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
     await waitFor(() => {
-      expect(screen.getByRole('list').childNodes[0].textContent).toEqual('Select All')
-      expect(screen.getByRole('list').childNodes[1].textContent).toEqual('Everyone')
-      expect(screen.getByRole('list').childNodes[2].textContent).toEqual('Test IdOne')
-      expect(screen.getByRole('list').childNodes[3].textContent).toEqual('Test IdTwo')
-      expect(screen.getByRole('list').childNodes[4].textContent).toEqual('Test IdThree')
+      const dropdownList = screen.getByText('Everyone').parentElement
+      expect(dropdownList.childNodes[0].textContent).toEqual('Everyone')
+      expect(dropdownList.childNodes[1].textContent).toEqual('Test IdOne')
+      expect(dropdownList.childNodes[2].textContent).toEqual('Test IdTwo')
+      expect(dropdownList.childNodes[3].textContent).toEqual('Test IdThree')
     })
   })
 
@@ -1062,9 +1067,9 @@ describe('NewReplyEditNoteReaders', () => {
         setLoading={jest.fn()}
       />
     )
-
+    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
     await waitFor(() => {
-      expect(screen.getByRole('list').childElementCount).toEqual(4) // select all + 3 enum values
+      expect(screen.getByText('Test IdOne').parentElement.childElementCount).toEqual(3)
     })
   })
 
@@ -1093,9 +1098,9 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
+    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
     await waitFor(() => {
-      expect(screen.getByRole('list').childElementCount).toEqual(2)
-      expect(screen.getByRole('list').childNodes[1].textContent).toEqual('Test IdTwo')
+      expect(screen.getByText('Test IdTwo').parentElement.childElementCount).toEqual(1)
     })
   })
 
@@ -1127,12 +1132,16 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
+    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
     await waitFor(() => {
-      expect(screen.getByRole('list').childElementCount).toEqual(3)
-      expect(screen.getByRole('list').childNodes[1].textContent).toEqual(
+      const dropdownList = screen.getByText(
+        'ICML 2023 Conference Submission1 Reviewers'
+      ).parentElement
+      expect(dropdownList.childElementCount).toEqual(2)
+      expect(dropdownList.childNodes[0].textContent).toEqual(
         'ICML 2023 Conference Submission1 Reviewers'
       )
-      expect(screen.getByRole('list').childNodes[2].textContent).toEqual(
+      expect(dropdownList.childNodes[1].textContent).toEqual(
         'ICML 2023 Conference Submission1 Reviewer abcd'
       )
     })
@@ -1166,12 +1175,16 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
+    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
     await waitFor(() => {
-      expect(screen.getByRole('list').childElementCount).toEqual(3)
-      expect(screen.getByRole('list').childNodes[1].textContent).toEqual(
+      const dropdownList = screen.getByText(
+        'ICML 2023 Conference Submission1 Reviewers'
+      ).parentElement
+      expect(dropdownList.childElementCount).toEqual(2)
+      expect(dropdownList.childNodes[0].textContent).toEqual(
         'ICML 2023 Conference Submission1 Reviewers'
       )
-      expect(screen.getByRole('list').childNodes[2].textContent).toEqual(
+      expect(dropdownList.childNodes[1].textContent).toEqual(
         'ICML 2023 Conference Submission1 AnonReviewer'
       )
     })

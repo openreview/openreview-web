@@ -9,6 +9,11 @@
   margin-bottom: 1.875rem;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 0;
+  :global {
+    .dropdown-select {
+      width: 500px;
+    }
+  }
 }
 
 .title {
@@ -32,4 +37,23 @@
 
 .submitButton {
   margin-right: 0.25rem;
+}
+
+.editReaderSignature {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 0.75rem 0.5rem 0.75rem 0.5rem;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+
+  h2 {
+    font-size: 1rem;
+    line-height: normal;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.signatures {
+  width: 500px;
 }

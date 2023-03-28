@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { prettyId } from '../lib/utils'
 import api from '../lib/api-client'
-import MultiSelectorDropdown from './MultiSelectorDropdown'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import TagsWidget from './EditorComponents/TagsWidget'
 import { difference, isEqual } from 'lodash'
 import useUser from '../hooks/useUser'
+import { NoteEditorReadersDropdown } from './Dropdown'
 
 export const NewNoteReaders = ({
   fieldDescription,
@@ -14,6 +14,7 @@ export const NewNoteReaders = ({
   noteEditorData,
   setNoteEditorData,
   setLoading,
+  placeholder,
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
@@ -88,14 +89,13 @@ export const NewNoteReaders = ({
       case 'regex':
       case 'enum':
         return readerOptions ? (
-          <MultiSelectorDropdown
+          <NoteEditorReadersDropdown
+            placeholder={placeholder}
             options={readerOptions}
-            setSelectedValues={(values) =>
-              setNoteEditorData({ fieldName: fieldName, value: values })
+            value={readerOptions.filter((p) => noteEditorData[fieldName]?.includes(p.value))}
+            onChange={(values) =>
+              setNoteEditorData({ fieldName: fieldName, value: values.map((p) => p.value) })
             }
-            selectedValues={readerOptions
-              .filter((p) => noteEditorData[fieldName]?.includes(p.value))
-              .map((q) => q.value)}
           />
         ) : null
       case 'singleValueEnum':
@@ -141,6 +141,7 @@ export const NewReplyEditNoteReaders = ({
   setNoteEditorData,
   setLoading,
   isDirectReplyToForum,
+  placeholder,
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
@@ -283,14 +284,13 @@ export const NewReplyEditNoteReaders = ({
       case 'regex':
       case 'enum':
         return readerOptions ? (
-          <MultiSelectorDropdown
+          <NoteEditorReadersDropdown
+            placeholder={placeholder}
             options={readerOptions}
-            setSelectedValues={(values) =>
-              setNoteEditorData({ fieldName: fieldName, value: values })
+            value={readerOptions.filter((p) => noteEditorData[fieldName]?.includes(p.value))}
+            onChange={(values) =>
+              setNoteEditorData({ fieldName: fieldName, value: values.map((p) => p.value) })
             }
-            selectedValues={readerOptions
-              .filter((p) => noteEditorData[fieldName]?.includes(p.value))
-              .map((q) => q.value)}
           />
         ) : null
       case 'singleValueEnum':

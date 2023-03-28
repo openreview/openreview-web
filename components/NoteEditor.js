@@ -46,6 +46,7 @@ const NoteSignatures = ({
         onChange={onChange}
         currentValue={noteEditorData.noteSignatureInputValues}
         onError={onError}
+        extraClasses={styles.signatures}
       />
     </EditorComponentHeader>
   )
@@ -77,6 +78,7 @@ const EditSignatures = ({
         onChange={onChange}
         currentValue={noteEditorData.editSignatureInputValues}
         onError={onError}
+        extraClasses={styles.signatures}
       />
     </EditorComponentHeader>
   )
@@ -163,7 +165,9 @@ const NoteEditor = ({
               field: { [fieldName]: fieldDescription.readers },
             }}
           >
-            <EditorWidget />
+            <div>
+              <span>Visible to:</span> <EditorWidget />
+            </div>
           </EditorComponentContext.Provider>
         )}
       </React.Fragment>
@@ -181,6 +185,7 @@ const NoteEditor = ({
           noteEditorData={noteEditorData}
           setNoteEditorData={setNoteEditorData}
           setLoading={setLoading}
+          placeholder="Select note readers"
         />
       )
     if (note)
@@ -193,6 +198,7 @@ const NoteEditor = ({
           noteEditorData={noteEditorData}
           setNoteEditorData={setNoteEditorData}
           setLoading={setLoading}
+          placeholder="Select note readers"
         />
       )
     if (replyToNote)
@@ -206,6 +212,7 @@ const NoteEditor = ({
           setNoteEditorData={setNoteEditorData}
           setLoading={setLoading}
           isDirectReplyToForum={isDirectReplyToForum}
+          placeholder="Select note readers"
         />
       )
     return null
@@ -388,21 +395,26 @@ const NoteEditor = ({
         setNoteEditorData={setNoteEditorData}
         closeNoteEditor={closeNoteEditor}
       />
-      <EditReaders
-        fieldDescription={invitation.edit.readers}
-        fieldName="editReaderValues"
-        closeNoteEditor={closeNoteEditor}
-        noteEditorData={noteEditorData}
-        setNoteEditorData={setNoteEditorData}
-        setLoading={setLoading}
-      />
-      <EditSignatures
-        fieldDescription={invitation.edit.signatures}
-        setLoading={setLoading}
-        noteEditorData={noteEditorData}
-        setNoteEditorData={setNoteEditorData}
-        closeNoteEditor={closeNoteEditor}
-      />
+      <div className={styles.editReaderSignature}>
+        <h2>Edit History</h2>
+        <hr className="small" />
+        <EditReaders
+          fieldDescription={invitation.edit.readers}
+          fieldName="editReaderValues"
+          closeNoteEditor={closeNoteEditor}
+          noteEditorData={noteEditorData}
+          setNoteEditorData={setNoteEditorData}
+          setLoading={setLoading}
+          placeholder="Select edit readers"
+        />
+        <EditSignatures
+          fieldDescription={invitation.edit.signatures}
+          setLoading={setLoading}
+          noteEditorData={noteEditorData}
+          setNoteEditorData={setNoteEditorData}
+          closeNoteEditor={closeNoteEditor}
+        />
+      </div>
       {Object.values(loading).some((p) => p) ? (
         <LoadingSpinner inline />
       ) : (

@@ -56,6 +56,7 @@ const FileUploadWidget = () => {
   const handleFileSelected = async (e) => {
     try {
       const file = e.target.files[0]
+      if (!file) return
       if (maxSize && file.size > 1024 * 1000 * maxSize)
         throw new Error(`File is too large. File size limit is ${maxSize} mb`)
       setIsLoading(true)
