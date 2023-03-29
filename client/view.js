@@ -4042,22 +4042,57 @@ module.exports = (function () {
       var regexIndex = _.findIndex(values, function (g) {
         return g.indexOf('.*') >= 0
       })
+
+      function replaceRegexWithGroups(currentReaders, regexIndex, groups) {
+        var groupIds = groups.map((g) => g.id)
+        var readersWithActualGroup = currentReaders
+          .slice(0, regexIndex)
+          .concat(groupIds, currentReaders.slice(regexIndex + 1))
+        return readersWithActualGroup
+      }
+
+      function updateFieldDescription() {
+        var values = fieldDescription['values-dropdown']
+        var nextRegexIndex = _.findIndex(values, function (g, i) {
+          return i > regexIndex && g.indexOf('.*') >= 0
+        })
+
+        if (nextRegexIndex >= 0) {
+          regexIndex = nextRegexIndex
+          var regex = values[regexIndex]
+          return Webfield.get('/groups', { regex: regex }).then(function (result) {
+            if (result.groups && result.groups.length) {
+              fieldDescription['values-dropdown'] = replaceRegexWithGroups(
+                values,
+                regexIndex,
+                result.groups
+              )
+            } else {
+              fieldDescription['values-dropdown'].splice(regexIndex, 1)
+            }
+            return updateFieldDescription()
+          })
+        } else {
+          return Promise.resolve([])
+        }
+      }
+
       if (regexIndex >= 0) {
         var regex = values[regexIndex]
         extraGroupsP = Webfield.get('/groups', { regex: regex }).then(function (result) {
           if (result.groups && result.groups.length) {
-            var groups = result.groups.map(function (g) {
-              return g.id
-            })
-            fieldDescription['values-dropdown'] = values
-              .slice(0, regexIndex)
-              .concat(groups, values.slice(regexIndex + 1))
-          } else {
-            fieldDescription['values-dropdown'].splice(regexIndex, 1)
+            fieldDescription['values-dropdown'] = replaceRegexWithGroups(
+              values,
+              regexIndex,
+              result.groups
+            )
           }
-          return result.groups
+          return updateFieldDescription(result.groups)
         })
+      } else {
+        extraGroupsP = Promise.resolve([])
       }
+
       extraGroupsP.then(function (groups) {
         setParentReaders(
           replyto,
