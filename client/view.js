@@ -4089,7 +4089,7 @@ module.exports = (function () {
           } else {
             fieldDescription['values-dropdown'].splice(regexIndex, 1)
           }
-          return updateFieldDescription(result.groups)
+          return updateFieldDescription()
         })
       } else {
         extraGroupsP = Promise.resolve([])
