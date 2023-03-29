@@ -4086,6 +4086,8 @@ module.exports = (function () {
               regexIndex,
               result.groups
             )
+          } else {
+            fieldDescription['values-dropdown'].splice(regexIndex, 1)
           }
           return updateFieldDescription(result.groups)
         })
