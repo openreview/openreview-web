@@ -135,18 +135,23 @@ export default function ChatEditorForm({
   }, [showMessagePreview, message])
 
   return (
-    <form onSubmit={postNoteEdit} style={{ boxShadow: `0 0 0 2px ${colorHash}` }}>
+    <form onSubmit={postNoteEdit} style={{ backgroundColor: `${colorHash}3` }}>
       {replyToNote && (
         <div className="parent-info">
           <h5 onClick={() => {}}>
             {/* <Icon name="share-alt" />{' '} */}
             <span>Replying to {prettyId(replyToNote.signatures[0], true)}</span>
             {' – '}
-            {truncate(replyToNote.content.message?.value || replyToNote.content.title?.value, {
-              length: 100,
-              omission: '...',
-              separator: ' ',
-            })}
+            {truncate(
+              replyToNote.content.message?.value ||
+                replyToNote.content.title?.value ||
+                replyToNote.generatedTitle,
+              {
+                length: 100,
+                omission: '...',
+                separator: ' ',
+              }
+            )}
             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a
               href="#"
@@ -167,7 +172,10 @@ export default function ChatEditorForm({
         {showSignatureDropdown ? (
           <Dropdown
             options={signatureOptions}
-            onChange={(e) => setSignature(e.value)}
+            onChange={(e) => {
+              setSignature(e.value)
+              setShowSignatureDropdown(false)
+            }}
             value={signatureOptions.find((p) => p.value === signature)}
             placeholder="Signature"
             height={32}
@@ -187,6 +195,7 @@ export default function ChatEditorForm({
             role="button"
             onClick={(e) => {
               e.preventDefault()
+              setShowMessagePreview(false)
               setShowSignatureDropdown(true)
             }}
           >
@@ -197,7 +206,10 @@ export default function ChatEditorForm({
 
       <div className="form-group">
         {showMessagePreview ? (
-          <div className="preview markdown-rendered" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+          <div
+            className="preview markdown-rendered"
+            dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+          />
         ) : (
           <textarea
             name="message"
@@ -241,7 +253,11 @@ export default function ChatEditorForm({
             {showMessagePreview ? 'Edit' : 'Preview'}
             {/* <SvgIcon name="markdown" /> */}
           </button>
-          <button type="submit" className="btn btn-sm btn-primary" disabled={!message || loading}>
+          <button
+            type="submit"
+            className="btn btn-sm btn-primary"
+            disabled={!message || loading}
+          >
             Post {invitationShortName}
             {/* <Icon name="send" /> */}
           </button>

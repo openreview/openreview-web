@@ -210,7 +210,7 @@ export default function Forum({
           forum: id,
           mintmdate: latestMdate,
           sort: 'tmdate:asc',
-          details: 'invitation,presentation,writable',
+          details: 'invitation,presentation,signatures,writable',
         },
         { accessToken, version: 2 }
       )
@@ -312,7 +312,6 @@ export default function Forum({
       if (attachedToBottom !== bottom) {
         setAttachedToBottom(bottom)
       }
-      console.log(containerElem.scrollHeight - containerElem.scrollTop, containerElem.clientHeight)
     }
 
     const noteId = note.id
@@ -868,7 +867,7 @@ function ForumReplies({
     return (
       <List
         data={replies}
-        height={525}
+        height={625}
         itemHeight={1}
         itemKey="id"
       >

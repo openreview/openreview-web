@@ -5,18 +5,26 @@
   margin-bottom: 0.625rem;
   border-radius: 2px;
   background-color: constants.$backgroundWhite;
+  position: relative;
 
   :global {
     .chat-body {
       padding: .5rem;
       border: 1px solid #eee;
-      border-top-left-radius: 2px;
-      border-top-right-radius: 2px;
+      border-radius: 2px;
+
+      &.deleted {
+        background-color: #eee;
+        & > div {
+          opacity: .5;
+        }
+      }
     }
+
     .parent-info {
       h5 {
         margin-top: 0;
-        margin-bottom: .25rem;
+        margin-bottom: .375rem;
         font-size: .75rem;
         color: constants.$subtleGray;
         span {
@@ -25,6 +33,7 @@
         }
       }
     }
+
     .header {
       position: relative;
       margin-bottom: .25rem;
@@ -41,10 +50,26 @@
       strong {
         font-size: 1rem;
         line-height: 1rem;
-        padding-right: .75rem;
         padding-left: 1.25rem;
       }
+      .members-list {
+        padding-left: .5rem;
+        color: constants.$subtleGray;
+        font-weight: normal;
+      }
+      .glyphicon {
+        font-size: .875rem;
+        margin-right: .25rem;
+      }
+      .tooltip .tooltip-inner {
+        max-width: 250px;
+      }
+      small {
+        color: constants.$subtleGray;
+        padding-left: .75rem;
+      }
     }
+
     .highlight {
       background-color: constants.$mediumBlue;
       color: #fff;
@@ -52,6 +77,7 @@
       border-radius: 2px;
       font-size: .75rem;
       vertical-align: 1px;
+      margin-left: 0.75rem;
     }
     .highlight + .highlight,
     .tooltip + .highlight {
@@ -61,17 +87,13 @@
       color: constants.$subtleGray;
       background-color: transparent;
     }
+
     .note-content {
       font-size: .875rem;
       margin: 0;
+      // margin-bottom: .25rem;
       & > div + div {
         margin-top: .25rem;
-      }
-    }
-    .markdown-rendered {
-      @include mixins.markdown-content-styles;
-      p:last-child, ul:last-child, ol:last-child {
-        margin-bottom: 0;
       }
     }
     .note-content-value {
@@ -83,47 +105,59 @@
         }
       }
     }
-    .chat-actions {
-      border: 1px solid #eee;
-      border-top: 0;
-      border-bottom-left-radius: 2px;
-      border-bottom-right-radius: 2px;
-
-      ul {
+    .note-content-value.markdown-rendered {
+      @include mixins.markdown-content-styles;
+      ol > li, ul > li {
+        padding-bottom: .25rem;
+      }
+      line-height: normal;
+      p:last-child, ul:last-child, ol:last-child {
         margin-bottom: 0;
-      }
-      & > ul > li:first-child > .btn-link {
-        border-bottom-left-radius: 2px;
-      }
-      .btn-link {
-        border: 0;
-        padding: .375rem .5rem;
-        font-weight: normal;
-
-        &:hover, &:active {
-          text-decoration: none;
-          span {
-            color: #fff;
-          }
-        }
-        &:focus:not(:hover) {
-          color: constants.$mediumBlue;
-          background-color: transparent;
-          text-decoration: none;
-          box-shadow: none;
-          border: 0;
-          span {
-            color: constants.$mediumBlue;
-          }
-        }
-        span {
-          padding-right: .125rem;
-        }
       }
     }
   }
 }
+.container:hover > .chat-actions {
+  display: block;
+}
 
 .active {
   box-shadow: 0 0 0 2px constants.$mediumBlue;
+}
+
+.chat-actions {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  z-index: 100;
+  display: none;
+
+  :global {
+    button {
+      padding: .25rem .75rem;
+      border: 1px solid #eee;
+      border-radius: 0;
+      font-weight: normal;
+      &:focus {
+        border-color: #eee;
+        background-color: constants.$backgroundWhite;
+        box-shadow: none;
+      }
+      &:hover,
+      &:active {
+        color: #fff;
+        background-color: constants.$mediumDarkBlue;
+        border-color: constants.$mediumDarkBlue;
+      }
+      span {
+        padding-right: .125rem;
+      }
+    }
+    .btn-group > .btn:first-child {
+      border-bottom-left-radius: 2px;
+    }
+    .btn-group > .btn:last-child {
+      border-top-right-radius: 2px;
+    }
+  }
 }
