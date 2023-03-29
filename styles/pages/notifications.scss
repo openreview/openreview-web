@@ -27,8 +27,15 @@ main.notifications {
     }
   }
 
+  .table > thead > tr > th {
+    padding: .375rem .5rem;
+  }
   table.messages-table {
     border-bottom: 0;
+
+    th > span.pull-left {
+      line-height: 26px;
+    }
     td.viewed {
       opacity: 0.6;
       background-color: #eee;
@@ -63,6 +70,9 @@ main.notifications {
     }
   }
   .filters-table {
+    th > span {
+      line-height: 26px;
+    }
     tbody > tr > td {
       padding: 0;
       padding-top: .75rem;

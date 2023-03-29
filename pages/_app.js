@@ -168,9 +168,9 @@ export default class OpenReviewApp extends App {
     this.setState({ unreadNotifications: count })
   }
 
-  decrementNotificationCount() {
+  decrementNotificationCount(num = 1) {
     this.setState((state, props) => ({
-      unreadNotifications: state.unreadNotifications - 1,
+      unreadNotifications: state.unreadNotifications - num,
     }))
   }
 
