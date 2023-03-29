@@ -227,6 +227,7 @@ export default function Notifications({ appContext }) {
           <div className="messages-col">
             <NotificationsTable
               messages={messages}
+              numUnviewed={unviewedCounts?.[toEmail] ?? 0}
               markViewed={markViewed}
               markAllViewed={markAllViewed}
             />
