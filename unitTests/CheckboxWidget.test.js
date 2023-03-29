@@ -139,7 +139,10 @@ describe('CheckboxWidget', () => {
     expect(screen.getByDisplayValue('I certify')).toHaveAttribute('checked')
   })
 
-  test('display option as checked and disabled when matching with default value (type is array)', () => {
+  test('update value when default value exists (type is array)', () => {
+    const onChange = jest.fn()
+    const defaultValue = ['I do not certify']
+
     const providerProps = {
       value: {
         field: {
@@ -149,25 +152,23 @@ describe('CheckboxWidget', () => {
                 input: 'checkbox',
                 type: 'string[]',
                 enum: ['I certify', 'I do not certify', 'I am not sure'],
-                default: ['I do not certify'],
+                default: defaultValue,
               },
             },
           },
         },
-        value: ['I certify', 'I do not certify'],
+        onChange,
       },
     }
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
-    expect(screen.getByDisplayValue('I certify')).toHaveAttribute('checked')
-    expect(screen.getByDisplayValue('I certify')).not.toHaveAttribute('disabled')
-    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('checked')
-    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('disabled')
-    expect(screen.getByDisplayValue('I am not sure')).not.toHaveAttribute('checked')
-    expect(screen.getByDisplayValue('I am not sure')).not.toHaveAttribute('disabled')
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
-  test('display option as checked and disabled when matching with default value (type is string)', () => {
+  test('update value when default value exists (type is string)', () => {
+    const onChange = jest.fn()
+    const defaultValue = 'I certify'
+
     const providerProps = {
       value: {
         field: {
@@ -177,18 +178,17 @@ describe('CheckboxWidget', () => {
                 input: 'checkbox',
                 type: 'string',
                 enum: ['I certify'],
-                default: 'I certify',
+                default: defaultValue,
               },
             },
           },
         },
-        value: 'I certify',
+        onChange,
       },
     }
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
-    expect(screen.getByDisplayValue('I certify')).toHaveAttribute('checked')
-    expect(screen.getByDisplayValue('I certify')).toHaveAttribute('disabled')
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
   test('call update when option is checked or unchecked (type is array)', async () => {

@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 import EditorComponentContext from '../EditorComponentContext'
 
 import styles from '../../styles/components/CheckboxWidget.module.scss'
@@ -23,6 +23,11 @@ const CheckboxWidget = () => {
     }
   }
 
+  useEffect(() => {
+    if (!defaultValue) return
+    onChange({ fieldName, value: defaultValue })
+  }, [defaultValue])
+
   if (!Array.isArray(options)) return null
 
   return (
@@ -35,7 +40,6 @@ const CheckboxWidget = () => {
               type="checkbox"
               value={option}
               checked={value ? value.includes(option) : false}
-              disabled={defaultValue ? defaultValue?.includes(option) : false}
               onChange={handleCheckboxClick}
             />
             <span className={styles.optionText}>{option}</span>
