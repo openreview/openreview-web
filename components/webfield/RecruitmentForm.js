@@ -16,6 +16,7 @@ import WebFieldContext from '../WebFieldContext'
 import { translateInvitationMessage } from '../../lib/webfield-utils'
 
 import styles from '../../styles/components/RecruitmentForm.module.scss'
+import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
 
@@ -186,7 +187,9 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
             isWebfield: true,
           }}
         >
-          <EditorWidget />
+          <EditorComponentHeader>
+            <EditorWidget />
+          </EditorComponentHeader>
         </EditorComponentContext.Provider>
       )
     }

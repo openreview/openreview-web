@@ -5,6 +5,7 @@ import MarkdownPreviewTab from '../MarkdownPreviewTab'
 
 import styles from '../../styles/components/TextareaWidget.module.scss'
 import { getAutoStorageKey } from '../../lib/utils'
+import WebFieldContext from '../WebFieldContext'
 
 const CharCounter = ({ minLength = 0, maxLength = 0, contentLength }) => {
   const getClassName = () => {
@@ -62,10 +63,12 @@ const MathJaxWarning = ({ content }) => {
 }
 
 const TextAreaWidget = () => {
-  const { field, onChange, value, isWebfield, invitation, note } =
-    useContext(EditorComponentContext)
-  // const webFieldContext = useContext(WebFieldContext)
-  // const { invitation, note } = isWebfield ? webFieldContext : {}
+  const webFieldContext = useContext(WebFieldContext)
+  const editorComponentContext = useContext(EditorComponentContext)
+  const { field, onChange, value, isWebfield } = editorComponentContext
+  const { note, entity } = isWebfield ? webFieldContext : editorComponentContext
+  let { invitation } = isWebfield ? webFieldContext : editorComponentContext
+  if (!invitation) invitation = entity
   const { user } = useUser()
   const fieldName = Object.keys(field)[0]
   const enableMarkdown = field[fieldName].value?.param?.markdown
@@ -91,7 +94,7 @@ const TextAreaWidget = () => {
 
   return (
     <>
-      <div className={styles.textAreaContainer}>
+      <div className={`${isWebfield ? 'textarea' : styles.textAreaContainer}`}>
         {enableMarkdown ? (
           <MarkdownPreviewTab
             textAreaClass={styles.textarea}
