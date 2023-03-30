@@ -24,6 +24,7 @@ export default function Notifications({ appContext }) {
   const [count, setCount] = useState(0)
   const [page, setPage] = useState(1)
   const [error, setError] = useState(null)
+  const [shouldRefresh, setShouldRefresh] = useState(false)
   const router = useRouter()
   const { setUnreadNotificationCount, decrementNotificationCount } = useContext(UserContext)
   const { setBannerHidden } = appContext
@@ -48,6 +49,40 @@ export default function Notifications({ appContext }) {
       setMessages(
         Object.assign([...messages], { [index]: { ...messages[index], vdate: null } })
       )
+    }
+  }
+
+  const markAllViewed = async () => {
+    try {
+      const apiRes = await api.get(
+        '/messages',
+        { to: toEmail, viewed: false },
+        { accessToken }
+      )
+      if (!apiRes.messages?.length) return
+
+      const unreadMessageIds = apiRes.messages.map((m) => m.id)
+      await api.post(
+        '/messages/viewed',
+        { ids: unreadMessageIds, vdate: Date.now() },
+        { accessToken }
+      )
+
+      // Decrement notification count
+      decrementNotificationCount(unreadMessageIds.length)
+      setUnviewedCounts({
+        ...unviewedCounts,
+        [toEmail]: unviewedCounts[toEmail] - unreadMessageIds.length,
+      })
+
+      // Go back to first page of results, or if already on first page, refresh
+      if (page === 1) {
+        setShouldRefresh((refresh) => !refresh)
+      } else {
+        setPage(1)
+      }
+    } catch (apiError) {
+      promptError(apiError.message)
     }
   }
 
@@ -131,7 +166,7 @@ export default function Notifications({ appContext }) {
         setError(apiError)
         setMessages(null)
       })
-  }, [accessToken, toEmail, page])
+  }, [accessToken, toEmail, page, shouldRefresh])
 
   return (
     <div>
@@ -152,7 +187,7 @@ export default function Notifications({ appContext }) {
           <div className="filters-col">
             <Table
               className="filters-table"
-              headings={[{ id: 'filters', content: 'Inboxes' }]}
+              headings={[{ id: 'filters', content: <span>Inboxes</span> }]}
             >
               <tr>
                 <td>
@@ -163,12 +198,19 @@ export default function Notifications({ appContext }) {
                         role="presentation"
                         className={toEmail === email ? 'active' : null}
                         onClick={(e) => {
-                          router.push(`/notifications?email=${encodeURIComponent(email)}`, undefined, {
-                            shallow: true,
-                          })
+                          router.push(
+                            `/notifications?email=${encodeURIComponent(email)}`,
+                            undefined,
+                            {
+                              shallow: true,
+                            }
+                          )
                         }}
                       >
-                        <Link href={`/notifications?email=${encodeURIComponent(email)}`} shallow>
+                        <Link
+                          href={`/notifications?email=${encodeURIComponent(email)}`}
+                          shallow
+                        >
                           <a title={email}>{email}</a>
                         </Link>
                         {unviewedCounts?.[email] > 0 && (
@@ -183,7 +225,12 @@ export default function Notifications({ appContext }) {
           </div>
 
           <div className="messages-col">
-            <NotificationsTable messages={messages} markViewed={markViewed} />
+            <NotificationsTable
+              messages={messages}
+              numUnviewed={unviewedCounts?.[toEmail] ?? 0}
+              markViewed={markViewed}
+              markAllViewed={markAllViewed}
+            />
 
             <PaginationLinks
               currentPage={page}
