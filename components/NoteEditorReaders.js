@@ -1,9 +1,11 @@
+/* globals promptError: false */
+
 import React, { useEffect, useState } from 'react'
+import { difference, isEqual } from 'lodash'
 import { prettyId } from '../lib/utils'
 import api from '../lib/api-client'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import TagsWidget from './EditorComponents/TagsWidget'
-import { difference, isEqual } from 'lodash'
 import useUser from '../hooks/useUser'
 import { NoteEditorReadersDropdown } from './Dropdown'
 
@@ -65,7 +67,7 @@ export const NewNoteReaders = ({
         case 1:
           setDescriptionType('singleValueEnum')
           setReaderOptions([groupResults.flat()[0]])
-          setNoteEditorData({ fieldName: fieldName, value: [groupResults.flat()[0]] })
+          setNoteEditorData({ fieldName, value: [groupResults.flat()[0]] })
           break
         default:
           setReaderOptions(groupResults.flat().map((p) => ({ label: prettyId(p), value: p })))
@@ -94,7 +96,7 @@ export const NewNoteReaders = ({
             options={readerOptions}
             value={readerOptions.filter((p) => noteEditorData[fieldName]?.includes(p.value))}
             onChange={(values) =>
-              setNoteEditorData({ fieldName: fieldName, value: values.map((p) => p.value) })
+              setNoteEditorData({ fieldName, value: values.map((p) => p.value) })
             }
           />
         ) : null
@@ -217,7 +219,7 @@ export const NewReplyEditNoteReaders = ({
 
           setDescriptionType('singleValueEnum')
           setReaderOptions([optionWithParentReaders[0]])
-          setNoteEditorData({ fieldName: fieldName, value: [optionWithParentReaders[0]] })
+          setNoteEditorData({ fieldName, value: [optionWithParentReaders[0]] })
           break
         default:
           if (!optionWithParentReaders.length)
@@ -239,6 +241,16 @@ export const NewReplyEditNoteReaders = ({
     setLoading((loading) => ({ ...loading, fieldName: false }))
   }
 
+  const isEqualOrSubset = (replyReaders, parentReaders) => {
+    if (isEqual(replyReaders, parentReaders)) return true
+    return replyReaders.every((value) => {
+      if (parentReaders.includes(value)) return true
+      if (value.includes('/Reviewer_'))
+        return parentReaders.find((p) => p.includes('/Reviewers'))
+      return false
+    })
+  }
+
   const getConstReaders = () => {
     const replyReaders = Array.isArray(fieldDescription)
       ? fieldDescription
@@ -249,6 +261,7 @@ export const NewReplyEditNoteReaders = ({
       return
     }
     const parentReaders = replyToNote.readers
+    // eslint-disable-next-line no-template-curly-in-string
     if (replyReaders[0] === '${{note.replyto}.readers}') {
       setReaderOptions(parentReaders)
       return
@@ -265,16 +278,6 @@ export const NewReplyEditNoteReaders = ({
     }
   }
 
-  const isEqualOrSubset = (replyReaders, parentReaders) => {
-    if (isEqual(replyReaders, parentReaders)) return true
-    return replyReaders.every((value) => {
-      if (parentReaders.includes(value)) return true
-      if (value.includes('/Reviewer_'))
-        return parentReaders.find((p) => p.includes('/Reviewers'))
-      return false
-    })
-  }
-
   const renderReaders = () => {
     switch (descriptionType) {
       case 'const':
@@ -289,7 +292,7 @@ export const NewReplyEditNoteReaders = ({
             options={readerOptions}
             value={readerOptions.filter((p) => noteEditorData[fieldName]?.includes(p.value))}
             onChange={(values) =>
-              setNoteEditorData({ fieldName: fieldName, value: values.map((p) => p.value) })
+              setNoteEditorData({ fieldName, value: values.map((p) => p.value) })
             }
           />
         ) : null

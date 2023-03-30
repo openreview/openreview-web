@@ -1,5 +1,3 @@
-const CodeEditorWidget = () => {
-  return 'code editor widget'
-}
+const CodeEditorWidget = () => 'code editor widget'
 
 export default CodeEditorWidget

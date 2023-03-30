@@ -28,7 +28,7 @@ const EditorWidget = () => {
   }
 
   const renderInput = (value) => {
-    const input = value.param.input
+    const { input } = value.param
     switch (input) {
       case 'radio':
         return <RadioButtonWidget />
@@ -97,9 +97,8 @@ const EditorWidget = () => {
   if (!field[fieldName].value?.param) {
     if (!field[fieldName].value && field[fieldName].readers) {
       return null // TODO: an empty widget which shows only readers
-    } else {
-      return renderConstant()
     }
+    return renderConstant()
   }
   if (field[fieldName].value.param.input) return renderInput(field[fieldName].value)
   return renderType(field[fieldName].value)

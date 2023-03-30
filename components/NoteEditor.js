@@ -1,15 +1,17 @@
+/* globals promptError, promptLogin, view2: false */
+
 import React, { useEffect, useMemo, useReducer, useState } from 'react'
+import debounce from 'lodash/debounce'
+import { intersection, isEmpty } from 'lodash'
 import EditorComponentContext from './EditorComponentContext'
 import EditorWidget from './webfield/EditorWidget'
 import styles from '../styles/components/NoteEditor.module.scss'
-import debounce from 'lodash/debounce'
 import { getAutoStorageKey, prettyInvitationId } from '../lib/utils'
 import { getNoteContent } from '../lib/webfield-utils'
 import SpinnerButton from './SpinnerButton'
 import LoadingSpinner from './LoadingSpinner'
 import api from '../lib/api-client'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
-import { intersection, isEmpty } from 'lodash'
 import Signatures from './Signatures'
 import { NewNoteReaders, NewReplyEditNoteReaders } from './NoteEditorReaders'
 import useUser from '../hooks/useUser'
@@ -101,6 +103,8 @@ const NoteEditor = ({
     editReaders: false,
     editSignatures: false,
   })
+  const [autoStorageKeys, setAutoStorageKeys] = useState([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const saveDraft = useMemo(
     () =>
@@ -126,9 +130,6 @@ const NoteEditor = ({
     ...(note && { noteReaderValues: note.readers }),
   })
 
-  const [autoStorageKeys, setAutoStorageKeys] = useState([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
   const renderField = ({ fieldName, fieldDescription }) => {
     const fieldNameOverwrite = fieldName === 'authorids' ? 'Authors' : undefined
     let fieldValue = noteEditorData[fieldName]
@@ -146,6 +147,7 @@ const NoteEditor = ({
             invitation,
             note,
             field: { [fieldName]: fieldDescription },
+            // eslint-disable-next-line no-shadow
             onChange: ({ fieldName, value, shouldSaveDraft }) =>
               setNoteEditorData({ fieldName, value, shouldSaveDraft }),
             value: fieldValue,
@@ -251,9 +253,11 @@ const NoteEditor = ({
         ) {
           if (readersDefinedInInvitation?.includes(signatureId)) {
             return [...readersSelected, signatureId]
-          } else if (readersDefinedInInvitation?.includes(reviewersSubmittedGroupId)) {
+          }
+          if (readersDefinedInInvitation?.includes(reviewersSubmittedGroupId)) {
             return [...readersSelected, reviewersSubmittedGroupId]
-          } else if (readersDefinedInInvitation?.includes(reviewersGroupId)) {
+          }
+          if (readersDefinedInInvitation?.includes(reviewersGroupId)) {
             return [...readersSelected, reviewersGroupId]
           }
         }
@@ -304,7 +308,7 @@ const NoteEditor = ({
       return undefined
     }
 
-    if (writers?.param?.regex === '~.*') {
+    if (writerDescription?.param?.regex === '~.*') {
       return [user.profile?.id]
     }
 

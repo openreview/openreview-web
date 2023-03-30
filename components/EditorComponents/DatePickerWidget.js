@@ -1,5 +1,3 @@
-const DatePickerWidget = () => {
-  return 'date picker widget'
-}
+const DatePickerWidget = () => 'date picker widget'
 
 export default DatePickerWidget

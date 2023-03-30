@@ -45,21 +45,19 @@ export const NoteEditorReadersDropdown = ({
   value,
   onChange,
   placeholder = 'Select readers',
-}) => {
-  return (
-    <Dropdown
-      options={options}
-      placeholder={placeholder}
-      isMulti
-      value={value}
-      onChange={onChange}
-      components={{
-        MultiValue: CustomMultiValue,
-        DropdownIndicator: () => null,
-      }}
-    />
-  )
-}
+}) => (
+  <Dropdown
+    options={options}
+    placeholder={placeholder}
+    isMulti
+    value={value}
+    onChange={onChange}
+    components={{
+      MultiValue: CustomMultiValue,
+      DropdownIndicator: () => null,
+    }}
+  />
+)
 
 const CustomOption = ({ children, ...props }) => {
   const { onMouseMove, onMouseOver, ...rest } = props.innerProps

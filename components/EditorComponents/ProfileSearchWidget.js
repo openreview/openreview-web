@@ -1,3 +1,5 @@
+/* globals promptError, $: false */
+
 import { maxBy } from 'lodash'
 import React, { useContext, useState, useEffect } from 'react'
 import useUser from '../../hooks/useUser'
@@ -103,23 +105,20 @@ const ProfileSearchResultRow = ({
       <div className={styles.basicInfo}>
         <div className={styles.authorFullName}>
           <a href={`/profile?id=${profile.id}`} target="_blank" rel="noreferrer">
-            {profile.id
-              .split(new RegExp(`([^~_0-9]+|[~_0-9]+)`, 'g'))
-              .map((segment, index) => {
-                if (/[^~_0-9]+/.test(segment)) {
-                  return (
-                    <span className={styles.nameSegment} key={index}>
-                      {segment}
-                    </span>
-                  )
-                } else {
-                  return (
-                    <span className={styles.idSegment} key={index}>
-                      {segment}
-                    </span>
-                  )
-                }
-              })}
+            {profile.id.split(/([^~_0-9]+|[~_0-9]+)/g).map((segment, index) => {
+              if (/[^~_0-9]+/.test(segment)) {
+                return (
+                  <span className={styles.nameSegment} key={index}>
+                    {segment}
+                  </span>
+                )
+              }
+              return (
+                <span className={styles.idSegment} key={index}>
+                  {segment}
+                </span>
+              )
+            })}
           </a>
         </div>
         <div className={styles.authorTitle}>{getTitle(profile)}</div>
@@ -168,6 +167,7 @@ const ProfileSearchResults = ({
   const { accessToken } = useUser()
   const pageSize = 15
 
+  // eslint-disable-next-line no-shadow
   const searchProfiles = async (searchTerm, pageNumber, showLoadingSpinner = true) => {
     const cleanSearchTerm = searchTerm.trim().toLowerCase()
     const isEmail = isValidEmail(cleanSearchTerm)
@@ -191,33 +191,31 @@ const ProfileSearchResults = ({
     if (showLoadingSpinner) setIsLoading(false)
   }
 
-  const displayCustomAuthorForm = (isEmptyResult) => {
-    return (
-      <div className={styles.noMatchingProfile}>
-        {showCustomAuthorForm ? (
-          <CustomAuthorForm
-            searchTerm={searchTerm}
-            setProfileSearchResults={setProfileSearchResults}
-            setSearchTerm={setSearchTerm}
-            displayAuthors={displayAuthors}
-            setDisplayAuthors={setDisplayAuthors}
-          />
-        ) : (
-          <>
-            <div className={styles.noMatchingProfileMessage}>
-              {isEmptyResult ? 'No matching profiles found.' : 'Not your coauthor?'}
-            </div>
-            <button
-              className={`btn btn-xs ${styles.enterAuthorButton}`}
-              onClick={() => setShowCustomAuthorForm(true)}
-            >
-              Manually Enter Author Info
-            </button>
-          </>
-        )}
-      </div>
-    )
-  }
+  const displayCustomAuthorForm = (isEmptyResult) => (
+    <div className={styles.noMatchingProfile}>
+      {showCustomAuthorForm ? (
+        <CustomAuthorForm
+          searchTerm={searchTerm}
+          setProfileSearchResults={setProfileSearchResults}
+          setSearchTerm={setSearchTerm}
+          displayAuthors={displayAuthors}
+          setDisplayAuthors={setDisplayAuthors}
+        />
+      ) : (
+        <>
+          <div className={styles.noMatchingProfileMessage}>
+            {isEmptyResult ? 'No matching profiles found.' : 'Not your coauthor?'}
+          </div>
+          <button
+            className={`btn btn-xs ${styles.enterAuthorButton}`}
+            onClick={() => setShowCustomAuthorForm(true)}
+          >
+            Manually Enter Author Info
+          </button>
+        </>
+      )}
+    </div>
+  )
 
   const displayResults = () => {
     if (!profileSearchResults) return null
@@ -419,7 +417,6 @@ const ProfileSearchWidget = () => {
   useEffect(() => {
     if (!value) {
       getProfiles([user.profile.id])
-      return
     }
   }, [])
 
@@ -432,7 +429,7 @@ const ProfileSearchWidget = () => {
     <div className={styles.profileSearch}>
       <div className={styles.selectedAuthors}>
         {displayAuthors?.map(({ authorId, authorName }, index) => {
-          let authorProfile = selectedAuthorProfiles.find(
+          const authorProfile = selectedAuthorProfiles.find(
             (p) =>
               p.content.names.find((q) => q.username === authorId) ||
               p.content.emails.find((r) => r === authorId)

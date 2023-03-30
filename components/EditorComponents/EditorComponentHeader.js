@@ -3,13 +3,9 @@ import { prettyField } from '../../lib/utils'
 import EditorComponentContext from '../EditorComponentContext'
 
 import styles from '../../styles/components/EditorComponentHeader.module.scss'
-// import EditorComponentReaders from './EditorComponentReaders'
 
 const EditorComponentHeader = ({ inline = false, fieldNameOverwrite, children }) => {
   const editorComponentContext = useContext(EditorComponentContext)
-  // const { field, isContentField } = editorComponentContext ?? {
-  //   field: { [fieldNameOverwrite]: {} },
-  // }
   const { field } = editorComponentContext ?? {
     field: { [fieldNameOverwrite]: {} },
   }
@@ -36,7 +32,6 @@ const EditorComponentHeader = ({ inline = false, fieldNameOverwrite, children })
         </div>
       )}
       {children}
-      {/* {isContentField && <EditorComponentReaders readers={readers} />} */}
     </div>
   )
 }

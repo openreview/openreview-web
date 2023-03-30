@@ -1,5 +1,3 @@
-const DropdownWidget = () => {
-  return 'dropdown widget'
-}
+const DropdownWidget = () => 'dropdown widget'
 
 export default DropdownWidget

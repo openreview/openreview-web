@@ -1,5 +1,3 @@
-const ToggleButtonWidget = () => {
-  return 'toggle button widget'
-}
+const ToggleButtonWidget = () => 'toggle button widget'
 
 export default ToggleButtonWidget

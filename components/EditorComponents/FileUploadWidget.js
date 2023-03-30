@@ -1,11 +1,13 @@
+/* globals promptError: false */
+
 import { useContext, useRef, useState } from 'react'
+import { nanoid } from 'nanoid'
 import EditorComponentContext from '../EditorComponentContext'
 import SpinnerButton from '../SpinnerButton'
 import { prettyField } from '../../lib/utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
 import { TrashButton } from '../IconButton'
-import { nanoid } from 'nanoid'
 
 import styles from '../../styles/components/FileUploadWidget.module.scss'
 
@@ -37,7 +39,7 @@ const FileUploadWidget = () => {
         version: 2,
       })
       if (result.url) {
-        //upload is completed
+        // upload is completed
         onChange({ fieldName, value: result.url })
       } else {
         setUploadPercentage(
@@ -65,7 +67,7 @@ const FileUploadWidget = () => {
       const clientUploadId = nanoid()
       const chunks = Array.from(
         new Array(chunkCount),
-        (e, chunkIndex) =>
+        (_e, chunkIndex) =>
           new File(
             [file.slice(chunkIndex * chunkSize, (chunkIndex + 1) * chunkSize, file.type)],
             file.name
@@ -74,9 +76,9 @@ const FileUploadWidget = () => {
 
       const sendChunksPromises = chunks.reduce(
         (oldPromises, currentChunk, i) =>
-          oldPromises.then(() => {
-            return uploadSingleFileChunk(currentChunk, i, chunkCount, clientUploadId)
-          }),
+          oldPromises.then(() =>
+            uploadSingleFileChunk(currentChunk, i, chunkCount, clientUploadId)
+          ),
         Promise.resolve()
       )
       await sendChunksPromises
