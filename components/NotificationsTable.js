@@ -6,14 +6,32 @@ import Table from './Table'
 import Collapse from './Collapse'
 import { formatDateTime, prettyId } from '../lib/utils'
 
-export default function NotificationsTable({ messages, markViewed }) {
+export default function NotificationsTable({
+  messages,
+  numUnviewed,
+  markViewed,
+  markAllViewed,
+}) {
   if (!messages) return null
 
+  const headingContent = (
+    <>
+      <span className="pull-left">Message Details</span>
+      <span className="pull-right">
+        <button
+          className="btn btn-xs"
+          title="Mark all messages sent to the selected email as read"
+          onClick={markAllViewed}
+          disabled={numUnviewed === 0}
+        >
+          Mark All as Read
+        </button>
+      </span>
+    </>
+  )
+
   return (
-    <Table
-      className="messages-table"
-      headings={[{ id: 'details', content: 'Message Details' }]}
-    >
+    <Table className="messages-table" headings={[{ id: 'details', content: headingContent }]}>
       {messages.length > 0 ? (
         messages.map((m) => <MessageRow key={m.id} message={m} markViewed={markViewed} />)
       ) : (

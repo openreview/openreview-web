@@ -51,6 +51,7 @@ test('task should change when note is deleted and restored', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
     .click(Selector('span.task-count-message'))
     .click(Selector('a').withText('Paper1 Official Review')) // go to forum page
+    .wait(2000)
     .click(Selector('#note_children').find('button.trash_button'))
     .click(Selector('a').withText('Tasks'))
     .wait(2000)
