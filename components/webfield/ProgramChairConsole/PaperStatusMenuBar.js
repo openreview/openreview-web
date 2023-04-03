@@ -1,9 +1,9 @@
 import { useContext } from 'react'
+import { camelCase } from 'lodash'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import MessageReviewersModal from '../MessageReviewersModal'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
-import { camelCase } from 'lodash'
 
 const PaperStatusMenuBar = ({
   tableRowsAll,

@@ -1,6 +1,7 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import { camelCase } from 'lodash'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -21,7 +22,6 @@ import SeniorAreaChairStatus from './ProgramChairConsole/SeniorAreaChairStatus'
 import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
-import { camelCase } from 'lodash'
 
 const ProgramChairConsole = ({ appContext }) => {
   const {
@@ -391,7 +391,7 @@ const ProgramChairConsole = ({ appContext }) => {
       const customStageReviewsByPaperNumberMap = new Map()
       notes.forEach((note) => {
         const directReplies = note.details.directReplies // eslint-disable-line prefer-destructuring
-        const replies = note.details.replies
+        const replies = note.details.replies // eslint-disable-line prefer-destructuring
         const officialReviews = directReplies
           .filter((p) => {
             const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`

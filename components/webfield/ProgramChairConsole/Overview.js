@@ -487,15 +487,15 @@ const CustomStageReviewsStatsRow = ({ pcConsoleData }) => {
           const customStageReviewInvitationId = `/-/${customStageInvitation.name}`
           const reviewCount = [
             ...(pcConsoleData.customStageReviewsByPaperNumberMap?.values() ?? []),
-          ]?.filter((repliesToNote) => {
-            return pcConsoleData.isV2Console
+          ]?.filter((repliesToNote) =>
+            pcConsoleData.isV2Console
               ? repliesToNote.filter((reply) =>
                   reply.invitations.find((q) => q.includes(customStageReviewInvitationId))
                 )?.length >= customStageInvitation.numberOfRepliesPerSubmission
-              : repliesToNote.filter((reply) => {
-                  return reply.invitation.includes(customStageReviewInvitationId)
-                })?.length >= customStageInvitation.numberOfRepliesPerSubmission
-          })?.length
+              : repliesToNote.filter((reply) =>
+                  reply.invitation.includes(customStageReviewInvitationId)
+                )?.length >= customStageInvitation.numberOfRepliesPerSubmission
+          )?.length
           return (
             <StatContainer
               key={customStageInvitation.name}
