@@ -8,7 +8,7 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
   shortPhrase,
   enableQuerySearch,
 }) => {
-  const filterOperators = ['!=', '>=', '<=', '>', '<', '=']
+  const filterOperators = ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = {
     number: ['number'],
     id: ['note.id'],

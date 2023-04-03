@@ -161,7 +161,7 @@ const AreaChairStatusMenuBar = ({
   messageParentGroup,
 }) => {
   const { seniorAreaChairsId } = useContext(WebFieldContext)
-  const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '=']
+  const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['number'],
     name: ['areaChairProfile.preferredName'],

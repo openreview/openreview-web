@@ -12,7 +12,7 @@ const AreaChairConsoleMenuBar = ({
   filterOperators: filterOperatorsConfig,
   propertiesAllowed: propertiesAllowedConfig,
 }) => {
-  const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '='] // sequence matters
+  const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['note.number'],
     id: ['note.id'],

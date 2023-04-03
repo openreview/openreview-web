@@ -4,6 +4,7 @@ import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import MessageReviewersModal from '../MessageReviewersModal'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
+import { prettyId } from '../../../lib/utils'
 
 const PaperStatusMenuBar = ({
   tableRowsAll,
@@ -21,7 +22,7 @@ const PaperStatusMenuBar = ({
     propertiesAllowed: propertiesAllowedConfig,
     customStageInvitations = [],
   } = useContext(WebFieldContext)
-  const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '=']
+  const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['note.number'],
     id: ['note.id'],
@@ -52,7 +53,7 @@ const PaperStatusMenuBar = ({
     ...(recommendationName && {
       [recommendationName]: [`metaReviewData.metaReviews.${recommendationName}`],
     }),
-    ...(customStageInvitations.length > 0 &&
+    ...(customStageInvitations?.length > 0 &&
       customStageInvitations.reduce(
         (prev, curr) => ({
           ...prev,
@@ -121,6 +122,13 @@ const PaperStatusMenuBar = ({
       getValue: (p) =>
         p.metaReviewData?.metaReviews?.map((q) => q[recommendationName])?.join('|'),
     },
+    ...(customStageInvitations?.length > 0
+      ? customStageInvitations.map((invitation) => ({
+          header: prettyId(invitation.name),
+          getValue: (p) =>
+            p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]?.searchValue,
+        }))
+      : []),
     ...(exportColumnsConfig ?? []),
   ]
 
