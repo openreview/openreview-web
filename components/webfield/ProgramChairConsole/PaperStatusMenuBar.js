@@ -3,6 +3,7 @@ import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import MessageReviewersModal from '../MessageReviewersModal'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
+import { camelCase } from 'lodash'
 
 const PaperStatusMenuBar = ({
   tableRowsAll,
@@ -18,6 +19,7 @@ const PaperStatusMenuBar = ({
     exportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
+    customStageInvitations = [],
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
@@ -50,6 +52,16 @@ const PaperStatusMenuBar = ({
     ...(recommendationName && {
       [recommendationName]: [`metaReviewData.metaReviews.${recommendationName}`],
     }),
+    ...(customStageInvitations.length > 0 &&
+      customStageInvitations.reduce(
+        (prev, curr) => ({
+          ...prev,
+          [camelCase(curr.name)]: [
+            `metaReviewData.customStageReviews.${camelCase(curr.name)}.searchValue`,
+          ],
+        }),
+        {}
+      )),
   }
   const messageReviewerOptions = [
     { label: 'All Reviewers of selected papers', value: 'allReviewers' },

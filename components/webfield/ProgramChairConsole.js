@@ -8,7 +8,12 @@ import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
-import { getIndentifierFromGroup, getNumberFromGroup, getProfileName } from '../../lib/utils'
+import {
+  getIndentifierFromGroup,
+  getNumberFromGroup,
+  getProfileName,
+  prettyId,
+} from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
 import PaperStatus from './ProgramChairConsole/PaperStatus'
@@ -16,6 +21,7 @@ import SeniorAreaChairStatus from './ProgramChairConsole/SeniorAreaChairStatus'
 import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
+import { camelCase } from 'lodash'
 
 const ProgramChairConsole = ({ appContext }) => {
   const {
@@ -56,6 +62,7 @@ const ProgramChairConsole = ({ appContext }) => {
     recruitmentName,
     paperStatusExportColumns,
     areaChairStatusExportColumns,
+    customStageInvitations,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -118,11 +125,23 @@ const ProgramChairConsole = ({ appContext }) => {
           )
         : Promise.resolve([])
 
+      const customStageInvitationsP = customStageInvitations
+        ? api.getAll(
+            '/invitations',
+            {
+              ids: customStageInvitations.map((p) => `${venueId}/-/${p.name}`),
+              type: 'note',
+            },
+            { accessToken, version: apiVersion }
+          )
+        : Promise.resolve([])
+
       const invitationResultsP = Promise.all([
         conferenceInvitationsP,
         reviewerInvitationsP,
         acInvitationsP,
         sacInvitationsP,
+        customStageInvitationsP,
       ])
 
       // #endregion
@@ -180,7 +199,7 @@ const ProgramChairConsole = ({ appContext }) => {
         '/notes',
         {
           invitation: submissionId,
-          details: 'invitation,tags,original,replyCount,directReplies',
+          details: 'invitation,tags,original,replyCount,directReplies,replies',
           select: 'id,number,forum,content,details,invitations,invitation,readers',
           sort: 'number:asc',
         },
@@ -369,8 +388,10 @@ const ProgramChairConsole = ({ appContext }) => {
       const officialReviewsByPaperNumberMap = new Map()
       const metaReviewsByPaperNumberMap = new Map()
       const decisionByPaperNumberMap = new Map()
+      const customStageReviewsByPaperNumberMap = new Map()
       notes.forEach((note) => {
         const directReplies = note.details.directReplies // eslint-disable-line prefer-destructuring
+        const replies = note.details.replies
         const officialReviews = directReplies
           .filter((p) => {
             const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
@@ -399,9 +420,16 @@ const ProgramChairConsole = ({ appContext }) => {
             ? p.invitations.includes(decisionInvitationId)
             : p.invitation === decisionInvitationId
         )
+        const customStageInvitationIds = customStageInvitations.map((p) => `/-/${p.name}`)
+        const customStageReviews = replies.filter((p) =>
+          isV2Console
+            ? p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
+            : customStageInvitationIds.includes(p.invitation)
+        )
         officialReviewsByPaperNumberMap.set(note.number, officialReviews)
         metaReviewsByPaperNumberMap.set(note.number, metaReviews)
         decisionByPaperNumberMap.set(note.number, decision)
+        customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
       })
 
       setPcConsoleData({
@@ -418,6 +446,7 @@ const ProgramChairConsole = ({ appContext }) => {
         officialReviewsByPaperNumberMap,
         metaReviewsByPaperNumberMap,
         decisionByPaperNumberMap,
+        customStageReviewsByPaperNumberMap,
         withdrawnNotes: isV2Console
           ? results[4].flatMap((note) => {
               if (note.content?.venueid?.value === withdrawnVenueId)
@@ -560,6 +589,8 @@ const ProgramChairConsole = ({ appContext }) => {
       const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
       const metaReviews = pcConsoleData.metaReviewsByPaperNumberMap?.get(note.number) ?? []
+      const customStageReviews =
+        pcConsoleData.customStageReviewsByPaperNumberMap?.get(note.number) ?? []
 
       let decision = 'No Decision'
       const decisionNote = pcConsoleData.decisionByPaperNumberMap.get(note.number)
@@ -632,12 +663,38 @@ const ProgramChairConsole = ({ appContext }) => {
               : metaReview?.content[recommendationName],
             ...metaReview,
           })),
+          customStageReviews: customStageInvitations.reduce((prev, curr) => {
+            const customStageReview = customStageReviews.find((p) =>
+              pcConsoleData.isV2Console
+                ? p.invitations.some((q) => q.includes(`/-/${curr.name}`))
+                : p.invitation.includes(`/-/${curr.name}`)
+            )
+            if (!customStageReview)
+              return {
+                ...prev,
+                [camelCase(curr.name)]: {
+                  searchValue: 'N/A',
+                },
+              }
+            const customStageValue = pcConsoleData.isV2Console
+              ? customStageReview?.content?.[curr.contentField]?.value
+              : customStageReview?.content?.[curr.contentField]
+            return {
+              ...prev,
+              [camelCase(curr.name)]: {
+                searchValue: customStageValue,
+                name: prettyId(curr.name),
+                role: curr.role,
+                value: customStageValue,
+                ...customStageReview,
+              },
+            }
+          }, {}),
         },
         decision,
         venue: note?.content?.venue?.value,
       })
     })
-
     setPcConsoleData((data) => ({ ...data, noteNumberReviewMetaReviewMap }))
   }
 
