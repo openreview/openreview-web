@@ -419,7 +419,9 @@ const ProgramChairConsole = ({ appContext }) => {
             ? p.invitations.includes(decisionInvitationId)
             : p.invitation === decisionInvitationId
         )
-        const customStageInvitationIds = customStageInvitations.map((p) => `/-/${p.name}`)
+        const customStageInvitationIds = customStageInvitations
+          ? customStageInvitations.map((p) => `/-/${p.name}`)
+          : []
         const customStageReviews = replies.filter((p) =>
           isV2Console
             ? p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
@@ -662,7 +664,7 @@ const ProgramChairConsole = ({ appContext }) => {
               : metaReview?.content[recommendationName],
             ...metaReview,
           })),
-          customStageReviews: customStageInvitations.reduce((prev, curr) => {
+          customStageReviews: customStageInvitations?.reduce((prev, curr) => {
             const customStageReview = customStageReviews.find((p) =>
               pcConsoleData.isV2Console
                 ? p.invitations.some((q) => q.includes(`/-/${curr.name}`))
@@ -676,8 +678,8 @@ const ProgramChairConsole = ({ appContext }) => {
                 },
               }
             const customStageValue = pcConsoleData.isV2Console
-              ? customStageReview?.content?.[curr.contentField]?.value
-              : customStageReview?.content?.[curr.contentField]
+              ? customStageReview?.content?.[curr.displayField]?.value
+              : customStageReview?.content?.[curr.displayField]
             return {
               ...prev,
               [camelCase(curr.name)]: {
