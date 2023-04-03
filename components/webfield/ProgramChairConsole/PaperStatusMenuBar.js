@@ -17,6 +17,7 @@ const PaperStatusMenuBar = ({
     recommendationName,
     shortPhrase,
     enableQuerySearch,
+    seniorAreaChairsId,
     exportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
@@ -122,6 +123,15 @@ const PaperStatusMenuBar = ({
       getValue: (p) =>
         p.metaReviewData?.metaReviews?.map((q) => q[recommendationName])?.join('|'),
     },
+    ...(seniorAreaChairsId
+      ? [
+          {
+            header: 'senior area chairs',
+            getValue: (p) =>
+              p.metaReviewData?.seniorAreaChairs?.map((q) => q.preferredName).join('|'),
+          },
+        ]
+      : []),
     ...(customStageInvitations?.length > 0
       ? customStageInvitations.map((invitation) => ({
           header: prettyId(invitation.name),
