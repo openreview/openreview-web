@@ -199,7 +199,7 @@ const ProgramChairConsole = ({ appContext }) => {
         '/notes',
         {
           invitation: submissionId,
-          details: 'invitation,tags,original,replyCount,directReplies,replies',
+          details: 'replies',
           select: 'id,number,forum,content,details,invitations,invitation,readers',
           sort: 'number:asc',
         },
@@ -390,9 +390,8 @@ const ProgramChairConsole = ({ appContext }) => {
       const decisionByPaperNumberMap = new Map()
       const customStageReviewsByPaperNumberMap = new Map()
       notes.forEach((note) => {
-        const directReplies = note.details.directReplies // eslint-disable-line prefer-destructuring
         const replies = note.details.replies // eslint-disable-line prefer-destructuring
-        const officialReviews = directReplies
+        const officialReviews = replies
           .filter((p) => {
             const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
             return isV2Console
@@ -403,7 +402,7 @@ const ProgramChairConsole = ({ appContext }) => {
             ...review,
             anonId: getIndentifierFromGroup(review.signatures[0], anonReviewerName),
           }))
-        const metaReviews = directReplies
+        const metaReviews = replies
           .filter((p) => {
             const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
             return isV2Console
@@ -415,7 +414,7 @@ const ProgramChairConsole = ({ appContext }) => {
             anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
           }))
         const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
-        const decision = directReplies.find((p) =>
+        const decision = replies.find((p) =>
           isV2Console
             ? p.invitations.includes(decisionInvitationId)
             : p.invitation === decisionInvitationId
@@ -629,7 +628,7 @@ const ProgramChairConsole = ({ appContext }) => {
           confidenceAvg,
           confidenceMax,
           confidenceMin,
-          replyCount: note.details.replyCount,
+          replyCount: note.details.replies?.length,
         },
         metaReviewData: {
           numAreaChairsAssigned: assignedAreaChairs.length,
