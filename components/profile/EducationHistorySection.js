@@ -47,7 +47,6 @@ const EducationHisotryRow = ({
             classNamePrefix="position-dropdown"
             placeholder={positionPlaceholder}
             defaultValue={p.position ? { value: p.position, label: p.position } : null}
-            // eslint-disable-next-line max-len
             onChange={(e) => {
               setHistory({
                 type: posititonType,
@@ -119,19 +118,26 @@ const EducationHisotryRow = ({
             isClearable
             classNamePrefix="institution-dropdown"
             placeholder={institutionPlaceholder}
-            // eslint-disable-next-line max-len
             defaultValue={
               p.institution?.domain
                 ? { value: p.institution?.domain, label: p.institution?.domain }
                 : null
             }
-            // eslint-disable-next-line max-len
             onChange={(e) => {
               setHistory({
                 type: institutionDomainType,
                 data: { value: e ? e.value : '', key: p.key },
               })
               if (e) setIsDomainClicked(false)
+            }}
+            onBlur={(e) => {
+              if (e.target.value) {
+                setHistory({
+                  type: institutionDomainType,
+                  data: { value: e.target.value, key: p.key },
+                })
+                setIsDomainClicked(false)
+              }
             }}
             options={institutionDomainOptions}
             styles={{
