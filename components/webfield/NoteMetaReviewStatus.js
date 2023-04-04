@@ -2,7 +2,7 @@
 
 // modified from noteMetaReviewStatus.hbs handlebar template
 import { useContext, useEffect, useState } from 'react'
-import { inflect } from '../../lib/utils'
+import { inflect, prettyId } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
@@ -174,8 +174,10 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
   metaReviewData,
   referrerUrl,
   isV2Console,
+  seniorAreaChairName = 'Senior_Area_Chairs',
 }) => {
-  const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs } = metaReviewData
+  const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs, customStageReviews } =
+    metaReviewData
   return (
     <div className="areachair-progress">
       <h4 className="title">{`${inflect(
@@ -231,6 +233,26 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                   <span className="text-muted">&lt;{seniorAreaChair.preferredEmail}&gt;</span>
                 </span>
               </div>
+              {Object.values(customStageReviews ?? {}).map((customStageReview) => {
+                if (!customStageReview.value || customStageReview.role !== seniorAreaChairName)
+                  return null
+                return (
+                  <div key={customStageReview.id}>
+                    <span className="recommendation">
+                      {customStageReview.name}: {customStageReview.value}
+                    </span>
+                    <div>
+                      <a
+                        href={`/forum?id=${customStageReview.forum}&noteId=${customStageReview.id}&referrer=${referrerUrl}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {`Read ${customStageReview.name}`}
+                      </a>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           ))}
         </div>
