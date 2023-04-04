@@ -52,15 +52,13 @@ const PaperStatusMenuBar = ({
       venue: ['venue'],
     }),
     ...(recommendationName && {
-      [recommendationName]: [`metaReviewData.metaReviews.${recommendationName}`],
+      [recommendationName]: ['metaReviewData.metaReviewsSearchValue'],
     }),
     ...(customStageInvitations?.length > 0 &&
       customStageInvitations.reduce(
         (prev, curr) => ({
           ...prev,
-          [camelCase(curr.name)]: [
-            `metaReviewData.customStageReviews.${camelCase(curr.name)}.searchValue`,
-          ],
+          [camelCase(curr.name)]: [`metaReviewData.metaReviewAgreementSearchValue`],
         }),
         {}
       )),
@@ -136,7 +134,9 @@ const PaperStatusMenuBar = ({
       ? customStageInvitations.map((invitation) => ({
           header: prettyId(invitation.name),
           getValue: (p) =>
-            p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]?.searchValue,
+            p.metaReviewData?.metaReviews
+              ?.map((q) => q.metaReviewAgreement?.searchValue)
+              .join('|'),
         }))
       : []),
     ...(exportColumnsConfig ?? []),
