@@ -399,13 +399,9 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
 
 const MetaReviewStatsRow = ({ pcConsoleData }) => {
   const { areaChairsId } = useContext(WebFieldContext)
-  // const metaReviewsCount = pcConsoleData.metaReviewsByPaperNumber?.filter(
-  //   (p) => p.metaReviews?.length
-  // )?.length
   const metaReviewsCount = [
     ...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? []),
   ]?.filter((p) => p.length)?.length
-  // ?.filter((p) => p.metaReviews?.length)?.length
 
   // map tilde id in areaChairGroups to anon areachair group id in anonAreaChairGroups
   const areaChairAnonGroupIds = {}
@@ -471,6 +467,53 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
             )
           }
         />
+      </div>
+      <hr className="spacer" />
+    </>
+  )
+}
+
+const CustomStageStatsRow = ({ pcConsoleData }) => {
+  const { customStageInvitations = [] } = useContext(WebFieldContext)
+  const customStageInvitationIds = customStageInvitations.map((p) => `/-/${p.name}`)
+  const noCustomStage = !pcConsoleData.invitations?.some((p) =>
+    customStageInvitationIds?.some((q) => p.id.includes(q))
+  )
+
+  const getReviewCount = (customStageInvitation) => {
+    const customStageReviewInvitationId = `/-/${customStageInvitation.name}`
+    return [...(pcConsoleData.customStageReviewsByPaperNumberMap?.values() ?? [])].filter(
+      (repliesToNote) =>
+        pcConsoleData.isV2Console
+          ? repliesToNote.filter((reply) =>
+              reply.invitations.find((q) => q.includes(customStageReviewInvitationId))
+            )?.length >= customStageInvitation.repliesPerSubmission
+          : repliesToNote.filter((reply) =>
+              reply.invitation.includes(customStageReviewInvitationId)
+            )?.length >= customStageInvitation.repliesPerSubmission
+    ).length
+  }
+
+  if (noCustomStage) return null
+  return (
+    <>
+      <div className="row">
+        {customStageInvitations.map((customStageInvitation) => (
+          <StatContainer
+            key={customStageInvitation.name}
+            title={`${prettyId(customStageInvitation.role)} ${prettyId(
+              customStageInvitation.name
+            )} Progress`}
+            hint={customStageInvitation.description}
+            value={
+              pcConsoleData.notes ? (
+                renderStat(getReviewCount(customStageInvitation), pcConsoleData.notes.length)
+              ) : (
+                <LoadingSpinner inline={true} text={null} />
+              )
+            }
+          />
+        ))}
       </div>
       <hr className="spacer" />
     </>
@@ -953,6 +996,7 @@ const Overview = ({ pcConsoleData }) => {
       />
       <ReviewStatsRow pcConsoleData={pcConsoleData} />
       <MetaReviewStatsRow pcConsoleData={pcConsoleData} />
+      <CustomStageStatsRow pcConsoleData={pcConsoleData} />
       <DecisionStatsRow pcConsoleData={pcConsoleData} />
       <DescriptionTimelineOtherConfigRow
         reviewersBidEnabled={reviewersBidEnabled}
