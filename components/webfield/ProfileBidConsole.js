@@ -236,7 +236,11 @@ const AllSubmissionsTab = ({
 
   return (
     <>
-      <form className="form-inline notes-search-form" role="search">
+      <form
+        className="form-inline notes-search-form"
+        role="search"
+        onSubmit={(e) => e.preventDefault()}
+      >
         <div className="form-group search-content has-feedback">
           <input
             id="paper-search-input"
