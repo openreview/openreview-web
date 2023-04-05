@@ -1,7 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { camelCase } from 'lodash'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -589,9 +588,36 @@ const ProgramChairConsole = ({ appContext }) => {
       const confidenceMin = validConfidences.length ? Math.min(...validConfidences) : 'N/A'
       const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
-      const metaReviews = pcConsoleData.metaReviewsByPaperNumberMap?.get(note.number) ?? []
       const customStageReviews =
         pcConsoleData.customStageReviewsByPaperNumberMap?.get(note.number) ?? []
+
+      const metaReviews = (
+        pcConsoleData.metaReviewsByPaperNumberMap?.get(note.number) ?? []
+      ).map((metaReview) => {
+        const metaReviewAgreement = customStageReviews.find((p) => p.replyto === metaReview.id)
+        const metaReviewAgreementConfig = metaReviewAgreement
+          ? customStageInvitations.find((p) =>
+              metaReviewAgreement.invitations.some((q) => q.includes(`/-/${p.name}`))
+            )
+          : null
+        const metaReviewAgreementValue =
+          metaReviewAgreement?.content?.[metaReviewAgreementConfig?.displayField]?.value
+        return {
+          [recommendationName]: pcConsoleData.isV2Console
+            ? metaReview?.content[recommendationName]?.value
+            : metaReview?.content[recommendationName],
+          ...metaReview,
+          metaReviewAgreement: metaReviewAgreement
+            ? {
+                searchValue: metaReviewAgreementValue,
+                name: prettyId(metaReviewAgreementConfig.name),
+                value: metaReviewAgreementValue,
+                id: metaReviewAgreement.id,
+                forum: metaReviewAgreement.forum,
+              }
+            : { searchValue: 'N/A' },
+        }
+      })
 
       let decision = 'No Decision'
       const decisionNote = pcConsoleData.decisionByPaperNumberMap.get(note.number)
@@ -630,7 +656,7 @@ const ProgramChairConsole = ({ appContext }) => {
           confidenceAvg,
           confidenceMax,
           confidenceMin,
-          replyCount: note.details.replies?.length,
+          replyCount: note.details.replies?.length ?? 0,
         },
         metaReviewData: {
           numAreaChairsAssigned: assignedAreaChairs.length,
@@ -658,40 +684,15 @@ const ProgramChairConsole = ({ appContext }) => {
             }
           }),
           numMetaReviewsDone: metaReviews.length,
-          metaReviews: metaReviews.map((metaReview) => ({
-            [recommendationName]: pcConsoleData.isV2Console
-              ? metaReview?.content[recommendationName]?.value
-              : metaReview?.content[recommendationName],
-            ...metaReview,
-          })),
-          customStageReviews: customStageInvitations?.reduce((prev, curr) => {
-            const customStageReview = customStageReviews.find((p) =>
-              pcConsoleData.isV2Console
-                ? p.invitations.some((q) => q.includes(`/-/${curr.name}`))
-                : p.invitation.includes(`/-/${curr.name}`)
-            )
-            if (!customStageReview)
-              return {
-                ...prev,
-                [camelCase(curr.name)]: {
-                  searchValue: 'N/A',
-                },
-              }
-            const customStageValue = pcConsoleData.isV2Console
-              ? customStageReview?.content?.[curr.displayField]?.value
-              : customStageReview?.content?.[curr.displayField]
-            return {
-              ...prev,
-              [camelCase(curr.name)]: {
-                searchValue: customStageValue,
-                name: prettyId(curr.name),
-                role: curr.role,
-                value: customStageValue,
-                ...customStageReview,
-              },
-            }
-          }, {}),
+          metaReviews,
+          metaReviewsSearchValue: metaReviews?.length
+            ? metaReviews.map((p) => p[recommendationName]).join(' ')
+            : 'N/A',
+          metaReviewAgreementSearchValue: metaReviews
+            .map((p) => p.metaReviewAgreement.searchValue)
+            .join(' '),
         },
+
         decision,
         venue: note?.content?.venue?.value,
       })

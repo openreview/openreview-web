@@ -174,10 +174,8 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
   metaReviewData,
   referrerUrl,
   isV2Console,
-  seniorAreaChairName = 'Senior_Area_Chairs',
 }) => {
-  const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs, customStageReviews } =
-    metaReviewData
+  const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs } = metaReviewData
   return (
     <div className="areachair-progress">
       <h4 className="title">{`${inflect(
@@ -195,6 +193,8 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
             const recommendation = isV2Console
               ? metaReview?.content?.recommendation?.value
               : metaReview?.content?.recommendation
+            const { metaReviewAgreement } = metaReview ?? {}
+
             return (
               <div key={areaChair.anonymousId} className="meta-review-info">
                 <div className="areachair-contact">
@@ -217,6 +217,22 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                     </div>
                   </div>
                 )}
+                {metaReviewAgreement?.value && (
+                  <div>
+                    <span className="recommendation">
+                      {metaReviewAgreement.name}: {metaReviewAgreement.value}
+                    </span>
+                    <div>
+                      <a
+                        href={`/forum?id=${metaReviewAgreement.forum}&noteId=${metaReviewAgreement.id}&referrer=${referrerUrl}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {`Read ${metaReviewAgreement.name}`}
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}
@@ -233,26 +249,6 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                   <span className="text-muted">&lt;{seniorAreaChair.preferredEmail}&gt;</span>
                 </span>
               </div>
-              {Object.values(customStageReviews ?? {}).map((customStageReview) => {
-                if (!customStageReview.value || customStageReview.role !== seniorAreaChairName)
-                  return null
-                return (
-                  <div key={customStageReview.id}>
-                    <span className="recommendation">
-                      {customStageReview.name}: {customStageReview.value}
-                    </span>
-                    <div>
-                      <a
-                        href={`/forum?id=${customStageReview.forum}&noteId=${customStageReview.id}&referrer=${referrerUrl}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {`Read ${customStageReview.name}`}
-                      </a>
-                    </div>
-                  </div>
-                )
-              })}
             </div>
           ))}
         </div>
