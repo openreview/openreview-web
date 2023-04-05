@@ -11,7 +11,7 @@ const SeniorAreaChairTasks = () => {
   const { accessToken } = useUser()
   const [invitations, setInvitations] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const { venueId, apiVersion, seniorAreaChairName } = useContext(WebFieldContext)
+  const { venueId, seniorAreaChairName } = useContext(WebFieldContext)
 
   const loadInvitations = async () => {
     try {
@@ -62,7 +62,7 @@ const SeniorAreaChairTasks = () => {
       )
 
       allInvitations = allInvitations
-        .filter((p) => filterHasReplyTo(p, apiVersion))
+        .filter((p) => filterHasReplyTo(p, 2))
         .filter((p) => p.invitees.some((invitee) => invitee.includes(seniorAreaChairName)))
 
       setInvitations(formatTasksData([allInvitations, [], []], true))
