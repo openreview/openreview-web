@@ -42,6 +42,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     recommendationName,
     edgeBrowserDeployedUrl,
     customStageInvitations,
+    withdrawnVenueId,
+    deskRejectedVenueId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -57,16 +59,25 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     try {
       // #region getSubmissions
       const notesP = submissionId
-        ? api.getAll(
-            '/notes',
-            {
-              invitation: submissionId,
-              details: 'replies',
-              select: 'id,number,forum,content,details,invitations,invitation,readers',
-              sort: 'number:asc',
-            },
-            { accessToken, version: apiVersion }
-          )
+        ? api
+            .getAll(
+              '/notes',
+              {
+                invitation: submissionId,
+                details: 'replies',
+                select: 'id,number,forum,content,details,invitations,invitation,readers',
+                sort: 'number:asc',
+              },
+              { accessToken, version: apiVersion }
+            )
+            .then((notes) =>
+              notes.filter(
+                (note) =>
+                  ![withdrawnVenueId, deskRejectedVenueId].includes(
+                    note.content?.venueid?.value
+                  )
+              )
+            )
         : Promise.resolve([])
       // #endregion
 
