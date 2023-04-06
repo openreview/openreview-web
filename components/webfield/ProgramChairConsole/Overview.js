@@ -398,10 +398,14 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
 }
 
 const MetaReviewStatsRow = ({ pcConsoleData }) => {
-  const { areaChairsId } = useContext(WebFieldContext)
-  const metaReviewsCount = [
-    ...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? []),
-  ]?.filter((p) => p.length)?.length
+  const { areaChairsId, recommendationName } = useContext(WebFieldContext)
+  const metaReivews = [...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? [])]?.filter(
+    (p) => p.length
+  )
+  const metaReviewsCount = metaReivews?.length
+  const allMetaReviews = metaReivews
+    .flat()
+    .flatMap((p) => p?.content?.[recommendationName]?.value ?? [])
 
   // map tilde id in areaChairGroups to anon areachair group id in anonAreaChairGroups
   const areaChairAnonGroupIds = {}
@@ -456,6 +460,27 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
             )
           }
         />
+      </div>
+      <div className="row">
+        {[...new Set(allMetaReviews)]?.sort().map((type) => {
+          const perDecisionCount = allMetaReviews.filter((p) => p === type).length
+          return (
+            <StatContainer
+              key={type}
+              title={type}
+              value={
+                pcConsoleData.metaReviewsByPaperNumberMap ? (
+                  renderStat(perDecisionCount, pcConsoleData.notes.length)
+                ) : (
+                  <LoadingSpinner inline={true} text={null} />
+                )
+              }
+            />
+          )
+        })}
+      </div>
+      <hr className="spacer" />
+      <div className="row">
         <StatContainer
           title="AC Meta-Review Progress"
           hint="% of area chairs who have completed meta reviews for all their assigned papers"
@@ -499,7 +524,9 @@ const CustomStageStatsRow = ({ pcConsoleData }) => {
           ...new Set(
             reviews
               .flat()
-              .map((review) => review.content?.[customStageInvitation.displayField]?.value)
+              .flatMap(
+                (review) => review.content?.[customStageInvitation.displayField]?.value ?? []
+              )
           ),
         ]?.sort()
 
