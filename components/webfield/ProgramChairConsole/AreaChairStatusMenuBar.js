@@ -98,6 +98,7 @@ const MessageAreaChairsModal = ({
       onClose={() => {
         setCurrentStep(1)
       }}
+      options={{ extraClasses: 'message-reviewers-modal' }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
       {currentStep === 1 ? (
@@ -134,9 +135,9 @@ const MessageAreaChairsModal = ({
             emails will be sent to the following area chairs:
           </p>
           <div className="well reviewer-list">
-            {recipientsInfo.map((recipientInfo) => (
+            {recipientsInfo.map((recipientInfo, index) => (
               <li
-                key={recipientInfo.preferredEmail}
+                key={index}
               >{`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>`}</li>
             ))}
           </div>
@@ -149,18 +150,19 @@ const MessageAreaChairsModal = ({
 const AreaChairStatusMenuBar = ({
   tableRowsAll,
   tableRows,
-  selectedNoteIds,
   setAreaChairStatusTabData,
-  shortPhrase,
-  enableQuerySearch,
-  exportColumns: exportColumnsConfig,
-  filterOperators: filterOperatorsConfig,
-  propertiesAllowed: propertiesAllowedConfig,
   bidEnabled,
   recommendationEnabled,
-  messageParentGroup,
 }) => {
-  const { seniorAreaChairsId } = useContext(WebFieldContext)
+  const {
+    shortPhrase,
+    seniorAreaChairsId,
+    enableQuerySearch,
+    areaChairStatusExportColumns: exportColumnsConfig,
+    filterOperators: filterOperatorsConfig,
+    propertiesAllowed: propertiesAllowedConfig,
+    areaChairsId: messageParentGroup,
+  } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['number'],
@@ -280,7 +282,6 @@ const AreaChairStatusMenuBar = ({
     <BaseMenuBar
       tableRowsAll={tableRowsAll}
       tableRows={tableRows}
-      selectedIds={selectedNoteIds}
       setData={setAreaChairStatusTabData}
       shortPhrase={shortPhrase}
       enableQuerySearch={enableQuerySearch}
@@ -291,6 +292,7 @@ const AreaChairStatusMenuBar = ({
       messageModalId="message-areachairs"
       messageParentGroup={messageParentGroup}
       exportColumns={exportColumns}
+      exportFileName="Area Chair Status"
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
       messageModal={(props) => <MessageAreaChairsModal {...props} />}

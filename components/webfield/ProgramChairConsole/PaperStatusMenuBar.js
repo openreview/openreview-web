@@ -18,7 +18,7 @@ const PaperStatusMenuBar = ({
     shortPhrase,
     enableQuerySearch,
     seniorAreaChairsId,
-    exportColumns: exportColumnsConfig,
+    paperStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
     customStageInvitations = [],

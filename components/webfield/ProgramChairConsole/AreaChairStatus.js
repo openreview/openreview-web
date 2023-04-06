@@ -1,8 +1,6 @@
 /* globals promptError: false */
 import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
-import useUser from '../../../hooks/useUser'
-import api from '../../../lib/api-client'
 import {
   buildEdgeBrowserUrl,
   getNoteContent,
@@ -17,15 +15,8 @@ import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
   const { id, preferredName, preferredEmail } = rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
-  const {
-    apiVersion,
-    seniorAreaChairsId,
-    areaChairsId,
-    reviewersId,
-    bidName,
-    scoresName,
-    recommendationName,
-  } = useContext(WebFieldContext)
+  const { apiVersion, areaChairsId, reviewersId, bidName, scoresName, recommendationName } =
+    useContext(WebFieldContext)
   const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
@@ -259,18 +250,13 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
   const [areaChairStatusTabData, setAreaChairStatusTabData] = useState({})
   const {
     shortPhrase,
-    enableQuerySearch,
-    filterOperators,
-    propertiesAllowed,
     seniorAreaChairsId,
     areaChairsId,
     reviewersId,
     bidName,
     recommendationName,
     venueId,
-    areaChairStatusExportColumns,
   } = useContext(WebFieldContext)
-  const { accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.areaChairs?.length ?? 0)
   const pageSize = 25
@@ -419,13 +405,8 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
           tableRows={areaChairStatusTabData.tableRows}
           setAreaChairStatusTabData={setAreaChairStatusTabData}
           shortPhrase={shortPhrase}
-          exportColumns={areaChairStatusExportColumns}
-          enableQuerySearch={enableQuerySearch}
-          filterOperators={filterOperators}
-          propertiesAllowed={propertiesAllowed}
           bidEnabled={bidEnabled}
           recommendationEnabled={recommendationEnabled}
-          messageParentGroup={areaChairsId}
         />
         <p className="empty-message">No area chair matching search criteria.</p>
       </div>
@@ -436,14 +417,8 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
         tableRowsAll={areaChairStatusTabData.tableRowsAll}
         tableRows={areaChairStatusTabData.tableRows}
         setAreaChairStatusTabData={setAreaChairStatusTabData}
-        shortPhrase={shortPhrase}
-        exportColumns={areaChairStatusExportColumns}
-        enableQuerySearch={enableQuerySearch}
-        filterOperators={filterOperators}
-        propertiesAllowed={propertiesAllowed}
         bidEnabled={bidEnabled}
         recommendationEnabled={recommendationEnabled}
-        messageParentGroup={areaChairsId}
       />
       <Table
         className="console-table table-striped pc-console-ac-status"
