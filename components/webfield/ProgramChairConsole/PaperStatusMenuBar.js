@@ -113,6 +113,13 @@ const PaperStatusMenuBar = ({
       getValue: (p) => p.metaReviewData?.numAreaChairsAssigned,
     },
     {
+      header: 'area chairs contact info',
+      getValue: (p) =>
+        p.metaReviewData?.areaChairs
+          ?.map((q) => `${q.preferredName}<${q.preferredEmail}>`)
+          .join(','),
+    },
+    {
       header: 'num submitted area chairs',
       getValue: (p) => p.metaReviewData?.numMetaReviewsDone,
     },
