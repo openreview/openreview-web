@@ -605,7 +605,7 @@ const DescriptionTimelineOtherConfigRow = ({
   const hasEthicsChairs = requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes')
   const reviewerRoles = requestFormContent?.reviewer_roles ?? ['Reviewers']
 
-  const getFotmattedDate = (invitation, type, isCustomStage) => {
+  const getFotmattedDate = (invitation, type) => {
     const dateFormatOption = {
       minute: 'numeric',
       second: undefined,
@@ -613,7 +613,9 @@ const DescriptionTimelineOtherConfigRow = ({
       locale: 'en-GB',
     }
 
-    const rawDate = isCustomStage ? invitation.edit.invitation?.[type] : invitation[type]
+    const rawDate = invitation.edit?.invitation
+      ? invitation.edit.invitation[type]
+      : invitation[type]
     return rawDate ? formatDateTime(rawDate, dateFormatOption) : null
   }
 
@@ -653,15 +655,14 @@ const DescriptionTimelineOtherConfigRow = ({
       customStageInvitations.map((p) => ({
         id: `${venueId}/-/${p.name}`,
         displayName: prettyId(p.name),
-        isCustomStage: true,
       }))),
   ].flatMap((p) => {
     const invitation = invitations?.find((q) => q.id === p.id)
     if (!invitation) return []
 
-    const start = getFotmattedDate(invitation, 'cdate', p.isCustomStage)
-    const end = getFotmattedDate(invitation, 'duedate', p.isCustomStage)
-    const exp = getFotmattedDate(invitation, 'expdate', p.isCustomStage)
+    const start = getFotmattedDate(invitation, 'cdate')
+    const end = getFotmattedDate(invitation, 'duedate')
+    const exp = getFotmattedDate(invitation, 'expdate')
 
     const periodString = (
       <span>
@@ -726,7 +727,7 @@ const DescriptionTimelineOtherConfigRow = ({
           <h4>Timeline:</h4>
           {datedInvitations.map((invitation) => (
             <li className="overview-timeline" key={invitation.id}>
-              <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
+              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
                 {invitation.displayName}
               </a>
               {invitation.periodString}
@@ -734,7 +735,7 @@ const DescriptionTimelineOtherConfigRow = ({
           ))}
           {notDatedInvitations.map((invitation) => (
             <li className="overview-timeline" key={invitation.id}>
-              <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
+              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
                 {invitation.displayName}
               </a>
               {invitation.periodString}
