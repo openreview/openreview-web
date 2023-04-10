@@ -876,19 +876,22 @@ const UserModerationQueue = ({
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
+    const shouldSearchProfile = filters.fullname || filters.id || filters.email
 
     try {
       const result = await api.get(
-        '/profiles',
+        shouldSearchProfile ? '/profiles/search' : '/profiles',
         {
           ...queryOptions,
-          sort: `tcdate:${descOrder ? 'desc' : 'asc'}`,
+
+          ...(!shouldSearchProfile && { sort: `tcdate:${descOrder ? 'desc' : 'asc'}` }),
           limit: pageSize,
           offset: (pageNumber - 1) * pageSize,
           withBlocked: onlyModeration ? undefined : true,
           ...(!onlyModeration && { trash: true }),
+          ...(shouldSearchProfile && { es: true }),
           ...Object.entries(filters).reduce((prev, [key, value]) => {
-            if (value) prev[key] = value // eslint-disable-line no-param-reassign
+            if (value) prev[key] = value.toLowerCase() // eslint-disable-line no-param-reassign
             return prev
           }, {}),
         },
@@ -1058,21 +1061,9 @@ const UserModerationQueue = ({
         <form className="filter-form well mt-3" onSubmit={filterProfiles}>
           <input
             type="text"
-            name="first"
+            name="fullname"
             className="form-control input-sm"
-            placeholder="First Name"
-          />
-          <input
-            type="text"
-            name="middle"
-            className="form-control input-sm"
-            placeholder="Middle Name"
-          />
-          <input
-            type="text"
-            name="last"
-            className="form-control input-sm"
-            placeholder="Last Name"
+            placeholder="Full Name"
           />
           <input
             type="text"
