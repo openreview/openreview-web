@@ -592,6 +592,7 @@ const DescriptionTimelineOtherConfigRow = ({
     scoresName,
     recommendationName,
     recruitmentName = 'Recruitment',
+    customStageInvitations = [],
   } = useContext(WebFieldContext)
 
   const { requestForm, registrationForms, invitations } = pcConsoleData
@@ -603,6 +604,18 @@ const DescriptionTimelineOtherConfigRow = ({
   const acRoles = requestFormContent?.area_chair_roles ?? ['Area_Chairs']
   const hasEthicsChairs = requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes')
   const reviewerRoles = requestFormContent?.reviewer_roles ?? ['Reviewers']
+
+  const getFotmattedDate = (invitation, type, isCustomStage) => {
+    const dateFormatOption = {
+      minute: 'numeric',
+      second: undefined,
+      timeZoneName: 'short',
+      locale: 'en-GB',
+    }
+
+    const rawDate = isCustomStage ? invitation.edit.invitation?.[type] : invitation[type]
+    return rawDate ? formatDateTime(rawDate, dateFormatOption) : null
+  }
 
   const timelineInvitations = [
     { id: submissionId, displayName: 'Paper Submissions' },
@@ -636,22 +649,20 @@ const DescriptionTimelineOtherConfigRow = ({
     { id: `${venueId}/-/${commentName}`, displayName: 'Commenting' },
     { id: `${venueId}/-/${officialMetaReviewName}`, displayName: 'Meta Reviews' },
     { id: `${venueId}/-/${decisionName}`, displayName: 'Decisions' },
+    ...(customStageInvitations.length &&
+      customStageInvitations.map((p) => ({
+        id: `${venueId}/-/${p.name}`,
+        displayName: prettyId(p.name),
+        isCustomStage: true,
+      }))),
   ].flatMap((p) => {
     const invitation = invitations?.find((q) => q.id === p.id)
     if (!invitation) return []
-    const dateFormatOption = {
-      minute: 'numeric',
-      second: undefined,
-      timeZoneName: 'short',
-      locale: 'en-GB',
-    }
-    const start = invitation.cdate ? formatDateTime(invitation.cdate, dateFormatOption) : null
-    const end = invitation.duedate
-      ? formatDateTime(invitation.duedate, dateFormatOption)
-      : null
-    const exp = invitation.expdate
-      ? formatDateTime(invitation.expdate, dateFormatOption)
-      : null
+
+    const start = getFotmattedDate(invitation, 'cdate', p.isCustomStage)
+    const end = getFotmattedDate(invitation, 'duedate', p.isCustomStage)
+    const exp = getFotmattedDate(invitation, 'expdate', p.isCustomStage)
+
     const periodString = (
       <span>
         {start ? (
