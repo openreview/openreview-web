@@ -651,11 +651,12 @@ const DescriptionTimelineOtherConfigRow = ({
     { id: `${venueId}/-/${commentName}`, displayName: 'Commenting' },
     { id: `${venueId}/-/${officialMetaReviewName}`, displayName: 'Meta Reviews' },
     { id: `${venueId}/-/${decisionName}`, displayName: 'Decisions' },
-    ...(customStageInvitations.length &&
-      customStageInvitations.map((p) => ({
-        id: `${venueId}/-/${p.name}`,
-        displayName: prettyId(p.name),
-      }))),
+    ...(customStageInvitations?.length > 0
+      ? customStageInvitations.map((p) => ({
+          id: `${venueId}/-/${p.name}`,
+          displayName: prettyId(p.name),
+        }))
+      : []),
   ].flatMap((p) => {
     const invitation = invitations?.find((q) => q.id === p.id)
     if (!invitation) return []
