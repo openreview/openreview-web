@@ -399,10 +399,10 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
 
 const MetaReviewStatsRow = ({ pcConsoleData }) => {
   const { areaChairsId, recommendationName } = useContext(WebFieldContext)
-  const metaReivews = [...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? [])]?.filter(
+  const metaReivews = [...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? [])].filter(
     (p) => p.length
   )
-  const metaReviewsCount = metaReivews?.length
+  const metaReviewsCount = metaReivews.length
   const allMetaReviews = metaReivews
     .flat()
     .flatMap((p) => p?.content?.[recommendationName]?.value ?? [])
@@ -460,9 +460,20 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
             )
           }
         />
+        <StatContainer
+          title="AC Meta-Review Progress"
+          hint="% of area chairs who have completed meta reviews for all their assigned papers"
+          value={
+            pcConsoleData.notes && pcConsoleData.paperGroups ? (
+              renderStat(areaChairsComplete, areaChairsCount)
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
+        />
       </div>
       <div className="row">
-        {[...new Set(allMetaReviews)]?.sort().map((type) => {
+        {[...new Set(allMetaReviews)].sort().map((type) => {
           const perDecisionCount = allMetaReviews.filter((p) => p === type).length
           return (
             <StatContainer
@@ -478,20 +489,6 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
             />
           )
         })}
-      </div>
-      <hr className="spacer" />
-      <div className="row">
-        <StatContainer
-          title="AC Meta-Review Progress"
-          hint="% of area chairs who have completed meta reviews for all their assigned papers"
-          value={
-            pcConsoleData.notes && pcConsoleData.paperGroups ? (
-              renderStat(areaChairsComplete, areaChairsCount)
-            ) : (
-              <LoadingSpinner inline={true} text={null} />
-            )
-          }
-        />
       </div>
       <hr className="spacer" />
     </>
@@ -511,7 +508,7 @@ const CustomStageStatsRow = ({ pcConsoleData }) => {
       (repliesToNote) =>
         repliesToNote.filter((reply) =>
           reply.invitations.find((q) => q.includes(customStageInvitationId))
-        )?.length >= customStageInvitation.repliesPerSubmission
+        ).length >= customStageInvitation.repliesPerSubmission
     )
   }
 
@@ -528,7 +525,7 @@ const CustomStageStatsRow = ({ pcConsoleData }) => {
                 (review) => review.content?.[customStageInvitation.displayField]?.value ?? []
               )
           ),
-        ]?.sort()
+        ].sort()
 
         return (
           <React.Fragment key={customStageInvitation.name}>
