@@ -159,6 +159,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
+          skip_install: true
       - name: Deploy to dev
         run: |
           gcloud compute ssh --zone "us-central1-b" openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy-web.sh' --quiet
