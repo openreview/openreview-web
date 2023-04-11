@@ -14,9 +14,16 @@ on:
 
 jobs:
   deploy:
+    # Allow the job to fetch a GitHub ID token
+    permissions:
+      id-token: write
+      contents: read
+
     runs-on: ubuntu-latest
+
     env:
       TAG: ${{ github.event.inputs.tag }}
+
     steps:
       - uses: actions/checkout@v3
       - name: Add SSH key
