@@ -87,6 +87,7 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
       filterOperators={filterOperators}
       propertiesAllowed={propertiesAllowed}
       exportColumns={exportColumns}
+      exportFileName="Rejected Withdrawn Paper Status"
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
       querySearchInfoModal={(props) => <QuerySearchInfoModal {...props} />}

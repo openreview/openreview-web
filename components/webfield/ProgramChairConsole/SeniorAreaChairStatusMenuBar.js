@@ -29,6 +29,7 @@ const SeniorAreaChairStatusMenuBar = ({
       setData={setSeniorAreaChairStatusTabData}
       enableQuerySearch={false}
       sortOptions={sortOptions}
+      exportFileName="Senior Area Chair Status"
       basicSearchFunction={basicSearchFunction}
       searchPlaceHolder="Search all senior area chairs"
       extraClasses="sac-status-menu"
