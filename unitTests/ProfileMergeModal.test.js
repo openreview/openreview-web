@@ -80,9 +80,7 @@ describe('ProfileMergeModal', () => {
       '   ~Test_Id1   ,    test@email.com    ,~Test_Id1,TEST@EMAIL.COM'
     )
     await userEvent.type(commentInput, 'some comment')
-    await waitFor(() => {
-      userEvent.click(submitButton)
-    })
+    await userEvent.click(submitButton)
     await waitFor(() =>
       expect(postNote).toHaveBeenCalledWith(
         expect.anything(),
@@ -110,9 +108,7 @@ describe('ProfileMergeModal', () => {
     await userEvent.type(emailInput, 'valid@email.com')
     await userEvent.type(idsInput, '~Test_Id1,test1@email.com,~Test_Id2,test2@email.com')
     await userEvent.type(commentInput, 'some comment')
-    await waitFor(() => {
-      userEvent.click(submitButton)
-    })
+    await userEvent.click(submitButton)
     await waitFor(() => expect(postNote).toHaveBeenCalledTimes(6))
   })
 
@@ -132,9 +128,7 @@ describe('ProfileMergeModal', () => {
     await userEvent.type(emailInput, 'valid@email.com')
     await userEvent.type(idsInput, 'Test_Id1,Test_Id2')
     await userEvent.type(commentInput, 'some comment')
-    await waitFor(() => {
-      userEvent.click(submitButton)
-    })
+    await userEvent.click(submitButton)
     await waitFor(() =>
       expect(postNote).toHaveBeenCalledWith(
         expect.anything(),
