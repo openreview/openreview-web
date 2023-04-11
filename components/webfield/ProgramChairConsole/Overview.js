@@ -1,5 +1,5 @@
 /* globals promptError: false */
-import { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
@@ -398,10 +398,14 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
 }
 
 const MetaReviewStatsRow = ({ pcConsoleData }) => {
-  const { areaChairsId } = useContext(WebFieldContext)
-  const metaReviewsCount = [
-    ...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? []),
-  ]?.filter((p) => p.length)?.length
+  const { areaChairsId, recommendationName } = useContext(WebFieldContext)
+  const metaReivews = [...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? [])].filter(
+    (p) => p.length
+  )
+  const metaReviewsCount = metaReivews.length
+  const allMetaReviews = metaReivews
+    .flat()
+    .flatMap((p) => p?.content?.[recommendationName]?.value ?? [])
 
   // map tilde id in areaChairGroups to anon areachair group id in anonAreaChairGroups
   const areaChairAnonGroupIds = {}
@@ -468,6 +472,24 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
           }
         />
       </div>
+      <div className="row">
+        {[...new Set(allMetaReviews)].sort().map((type) => {
+          const perDecisionCount = allMetaReviews.filter((p) => p === type).length
+          return (
+            <StatContainer
+              key={type}
+              title={type}
+              value={
+                pcConsoleData.metaReviewsByPaperNumberMap ? (
+                  renderStat(perDecisionCount, pcConsoleData.notes.length)
+                ) : (
+                  <LoadingSpinner inline={true} text={null} />
+                )
+              }
+            />
+          )
+        })}
+      </div>
       <hr className="spacer" />
     </>
   )
@@ -480,42 +502,75 @@ const CustomStageStatsRow = ({ pcConsoleData }) => {
     customStageInvitationIds?.some((q) => p.id.includes(q))
   )
 
-  const getReviewCount = (customStageInvitation) => {
-    const customStageReviewInvitationId = `/-/${customStageInvitation.name}`
+  const getReviews = (customStageInvitation) => {
+    const customStageInvitationId = `/-/${customStageInvitation.name}`
     return [...(pcConsoleData.customStageReviewsByPaperNumberMap?.values() ?? [])].filter(
       (repliesToNote) =>
-        pcConsoleData.isV2Console
-          ? repliesToNote.filter((reply) =>
-              reply.invitations.find((q) => q.includes(customStageReviewInvitationId))
-            )?.length >= customStageInvitation.repliesPerSubmission
-          : repliesToNote.filter((reply) =>
-              reply.invitation.includes(customStageReviewInvitationId)
-            )?.length >= customStageInvitation.repliesPerSubmission
-    ).length
+        repliesToNote.filter((reply) =>
+          reply.invitations.find((q) => q.includes(customStageInvitationId))
+        ).length >= customStageInvitation.repliesPerSubmission
+    )
   }
 
   if (noCustomStage) return null
   return (
     <>
-      <div className="row">
-        {customStageInvitations.map((customStageInvitation) => (
-          <StatContainer
-            key={customStageInvitation.name}
-            title={`${prettyId(customStageInvitation.role)} ${prettyId(
-              customStageInvitation.name
-            )} Progress`}
-            hint={customStageInvitation.description}
-            value={
-              pcConsoleData.notes ? (
-                renderStat(getReviewCount(customStageInvitation), pcConsoleData.notes.length)
-              ) : (
-                <LoadingSpinner inline={true} text={null} />
+      {customStageInvitations.map((customStageInvitation) => {
+        const reviews = getReviews(customStageInvitation)
+        const uniqueDisplayValues = [
+          ...new Set(
+            reviews
+              .flat()
+              .flatMap(
+                (review) => review.content?.[customStageInvitation.displayField]?.value ?? []
               )
-            }
-          />
-        ))}
-      </div>
-      <hr className="spacer" />
+          ),
+        ].sort()
+
+        return (
+          <React.Fragment key={customStageInvitation.name}>
+            <div className="row">
+              <StatContainer
+                title={`${prettyId(customStageInvitation.role)} ${prettyId(
+                  customStageInvitation.name
+                )} Progress`}
+                hint={customStageInvitation.description}
+                value={
+                  pcConsoleData.notes ? (
+                    renderStat(reviews?.length, pcConsoleData.notes.length)
+                  ) : (
+                    <LoadingSpinner inline={true} text={null} />
+                  )
+                }
+              />
+            </div>
+            <div className="row">
+              {uniqueDisplayValues.map((displayValue) => {
+                const noteCount = reviews.filter((p) =>
+                  p.some(
+                    (q) =>
+                      q.content?.[customStageInvitation.displayField]?.value === displayValue
+                  )
+                ).length
+                return (
+                  <StatContainer
+                    key={displayValue}
+                    title={displayValue}
+                    value={
+                      pcConsoleData.customStageReviewsByPaperNumberMap ? (
+                        renderStat(noteCount, pcConsoleData.notes.length)
+                      ) : (
+                        <LoadingSpinner inline={true} text={null} />
+                      )
+                    }
+                  />
+                )
+              })}
+            </div>
+            <hr className="spacer" />
+          </React.Fragment>
+        )
+      })}
     </>
   )
 }
@@ -592,6 +647,7 @@ const DescriptionTimelineOtherConfigRow = ({
     scoresName,
     recommendationName,
     recruitmentName = 'Recruitment',
+    customStageInvitations = [],
   } = useContext(WebFieldContext)
 
   const { requestForm, registrationForms, invitations } = pcConsoleData
@@ -603,6 +659,20 @@ const DescriptionTimelineOtherConfigRow = ({
   const acRoles = requestFormContent?.area_chair_roles ?? ['Area_Chairs']
   const hasEthicsChairs = requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes')
   const reviewerRoles = requestFormContent?.reviewer_roles ?? ['Reviewers']
+
+  const getFotmattedDate = (invitation, type) => {
+    const dateFormatOption = {
+      minute: 'numeric',
+      second: undefined,
+      timeZoneName: 'short',
+      locale: 'en-GB',
+    }
+
+    const rawDate = invitation.edit?.invitation
+      ? invitation.edit.invitation[type]
+      : invitation[type]
+    return rawDate ? formatDateTime(rawDate, dateFormatOption) : null
+  }
 
   const timelineInvitations = [
     { id: submissionId, displayName: 'Paper Submissions' },
@@ -636,22 +706,20 @@ const DescriptionTimelineOtherConfigRow = ({
     { id: `${venueId}/-/${commentName}`, displayName: 'Commenting' },
     { id: `${venueId}/-/${officialMetaReviewName}`, displayName: 'Meta Reviews' },
     { id: `${venueId}/-/${decisionName}`, displayName: 'Decisions' },
+    ...(customStageInvitations?.length > 0
+      ? customStageInvitations.map((p) => ({
+          id: `${venueId}/-/${p.name}`,
+          displayName: prettyId(p.name),
+        }))
+      : []),
   ].flatMap((p) => {
     const invitation = invitations?.find((q) => q.id === p.id)
     if (!invitation) return []
-    const dateFormatOption = {
-      minute: 'numeric',
-      second: undefined,
-      timeZoneName: 'short',
-      locale: 'en-GB',
-    }
-    const start = invitation.cdate ? formatDateTime(invitation.cdate, dateFormatOption) : null
-    const end = invitation.duedate
-      ? formatDateTime(invitation.duedate, dateFormatOption)
-      : null
-    const exp = invitation.expdate
-      ? formatDateTime(invitation.expdate, dateFormatOption)
-      : null
+
+    const start = getFotmattedDate(invitation, 'cdate')
+    const end = getFotmattedDate(invitation, 'duedate')
+    const exp = getFotmattedDate(invitation, 'expdate')
+
     const periodString = (
       <span>
         {start ? (
@@ -715,7 +783,7 @@ const DescriptionTimelineOtherConfigRow = ({
           <h4>Timeline:</h4>
           {datedInvitations.map((invitation) => (
             <li className="overview-timeline" key={invitation.id}>
-              <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
+              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
                 {invitation.displayName}
               </a>
               {invitation.periodString}
@@ -723,7 +791,7 @@ const DescriptionTimelineOtherConfigRow = ({
           ))}
           {notDatedInvitations.map((invitation) => (
             <li className="overview-timeline" key={invitation.id}>
-              <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
+              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
                 {invitation.displayName}
               </a>
               {invitation.periodString}

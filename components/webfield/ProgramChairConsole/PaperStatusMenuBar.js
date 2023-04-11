@@ -18,7 +18,7 @@ const PaperStatusMenuBar = ({
     shortPhrase,
     enableQuerySearch,
     seniorAreaChairsId,
-    exportColumns: exportColumnsConfig,
+    paperStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
     customStageInvitations = [],
@@ -111,6 +111,13 @@ const PaperStatusMenuBar = ({
     {
       header: 'num area chairs assigned',
       getValue: (p) => p.metaReviewData?.numAreaChairsAssigned,
+    },
+    {
+      header: 'area chairs contact info',
+      getValue: (p) =>
+        p.metaReviewData?.areaChairs
+          ?.map((q) => `${q.preferredName}<${q.preferredEmail}>`)
+          .join(','),
     },
     {
       header: 'num submitted area chairs',
