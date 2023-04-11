@@ -1,7 +1,6 @@
 /* globals promptError: false */
 import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
-import useUser from '../../../hooks/useUser'
 import { getNoteContent, getProfileLink } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
@@ -164,16 +163,7 @@ const AreaChairStatusRow = ({ rowData, acBids, invitations, referrerUrl, isV2Con
 
 const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
   const [areaChairStatusTabData, setAreaChairStatusTabData] = useState({})
-  const {
-    shortPhrase,
-    enableQuerySearch,
-    filterOperators,
-    propertiesAllowed,
-    seniorAreaChairName,
-    areaChairsId,
-    venueId,
-    areaChairStatusExportColumns,
-  } = useContext(WebFieldContext)
+  const { seniorAreaChairName, venueId } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(
     sacConsoleData.assignedAreaChairIds?.length ?? 0
@@ -268,14 +258,8 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
           tableRowsAll={areaChairStatusTabData.tableRowsAll}
           tableRows={areaChairStatusTabData.tableRows}
           setAreaChairStatusTabData={setAreaChairStatusTabData}
-          shortPhrase={shortPhrase}
-          exportColumns={areaChairStatusExportColumns}
-          enableQuerySearch={enableQuerySearch}
-          filterOperators={filterOperators}
-          propertiesAllowed={propertiesAllowed}
           bidEnabled={false}
           recommendationEnabled={false}
-          messageParentGroup={areaChairsId}
         />
         <p className="empty-message">No area chair matching search criteria.</p>
       </div>
@@ -286,14 +270,8 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
         tableRowsAll={areaChairStatusTabData.tableRowsAll}
         tableRows={areaChairStatusTabData.tableRows}
         setAreaChairStatusTabData={setAreaChairStatusTabData}
-        shortPhrase={shortPhrase}
-        exportColumns={areaChairStatusExportColumns}
-        enableQuerySearch={enableQuerySearch}
-        filterOperators={filterOperators}
-        propertiesAllowed={propertiesAllowed}
         bidEnabled={false}
         recommendationEnabled={false}
-        messageParentGroup={areaChairsId}
       />
       <Table
         className="console-table table-striped pc-console-ac-status"
