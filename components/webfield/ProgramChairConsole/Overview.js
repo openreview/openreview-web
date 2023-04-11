@@ -650,6 +650,7 @@ const DescriptionTimelineOtherConfigRow = ({
     scoresName,
     recommendationName,
     recruitmentName = 'Recruitment',
+    customStageInvitations = [],
   } = useContext(WebFieldContext)
 
   const { requestForm, registrationForms, invitations } = pcConsoleData
@@ -661,6 +662,20 @@ const DescriptionTimelineOtherConfigRow = ({
   const acRoles = requestFormContent?.area_chair_roles ?? ['Area_Chairs']
   const hasEthicsChairs = requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes')
   const reviewerRoles = requestFormContent?.reviewer_roles ?? ['Reviewers']
+
+  const getFotmattedDate = (invitation, type) => {
+    const dateFormatOption = {
+      minute: 'numeric',
+      second: undefined,
+      timeZoneName: 'short',
+      locale: 'en-GB',
+    }
+
+    const rawDate = invitation.edit?.invitation
+      ? invitation.edit.invitation[type]
+      : invitation[type]
+    return rawDate ? formatDateTime(rawDate, dateFormatOption) : null
+  }
 
   const timelineInvitations = [
     { id: submissionId, displayName: 'Paper Submissions' },
@@ -694,22 +709,20 @@ const DescriptionTimelineOtherConfigRow = ({
     { id: `${venueId}/-/${commentName}`, displayName: 'Commenting' },
     { id: `${venueId}/-/${officialMetaReviewName}`, displayName: 'Meta Reviews' },
     { id: `${venueId}/-/${decisionName}`, displayName: 'Decisions' },
+    ...(customStageInvitations?.length > 0
+      ? customStageInvitations.map((p) => ({
+          id: `${venueId}/-/${p.name}`,
+          displayName: prettyId(p.name),
+        }))
+      : []),
   ].flatMap((p) => {
     const invitation = invitations?.find((q) => q.id === p.id)
     if (!invitation) return []
-    const dateFormatOption = {
-      minute: 'numeric',
-      second: undefined,
-      timeZoneName: 'short',
-      locale: 'en-GB',
-    }
-    const start = invitation.cdate ? formatDateTime(invitation.cdate, dateFormatOption) : null
-    const end = invitation.duedate
-      ? formatDateTime(invitation.duedate, dateFormatOption)
-      : null
-    const exp = invitation.expdate
-      ? formatDateTime(invitation.expdate, dateFormatOption)
-      : null
+
+    const start = getFotmattedDate(invitation, 'cdate')
+    const end = getFotmattedDate(invitation, 'duedate')
+    const exp = getFotmattedDate(invitation, 'expdate')
+
     const periodString = (
       <span>
         {start ? (
@@ -773,7 +786,7 @@ const DescriptionTimelineOtherConfigRow = ({
           <h4>Timeline:</h4>
           {datedInvitations.map((invitation) => (
             <li className="overview-timeline" key={invitation.id}>
-              <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
+              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
                 {invitation.displayName}
               </a>
               {invitation.periodString}
@@ -781,7 +794,7 @@ const DescriptionTimelineOtherConfigRow = ({
           ))}
           {notDatedInvitations.map((invitation) => (
             <li className="overview-timeline" key={invitation.id}>
-              <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
+              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
                 {invitation.displayName}
               </a>
               {invitation.periodString}
