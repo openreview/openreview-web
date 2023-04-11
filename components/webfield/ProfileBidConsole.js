@@ -239,7 +239,12 @@ const AllSubmissionsTab = ({
       <form
         className="form-inline notes-search-form"
         role="search"
-        onSubmit={(e) => e.preventDefault()}
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (immediateSearchTerm.trim().length >= 2) {
+            setSearchTerm(immediateSearchTerm)
+          }
+        }}
       >
         <div className="form-group search-content has-feedback">
           <input
@@ -253,11 +258,6 @@ const AllSubmissionsTab = ({
               setSearchTerm(e.target.value)
               if (e.target.value.trim().length >= 3) delaySearch(e.target.value)
               if (e.target.value.trim().length === 0) setSearchTerm('')
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && immediateSearchTerm.trim().length >= 2) {
-                setSearchTerm(immediateSearchTerm)
-              }
             }}
             disabled={!profileState.allProfiles}
           />
@@ -274,6 +274,7 @@ const AllSubmissionsTab = ({
             />
           </div>
         )}
+        <button type="submit" style={{ display: 'none' }} />
       </form>
       {isLoading ? (
         <LoadingSpinner inline />
