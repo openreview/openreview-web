@@ -8,7 +8,7 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
   shortPhrase,
   enableQuerySearch,
 }) => {
-  const filterOperators = ['!=', '>=', '<=', '>', '<', '=']
+  const filterOperators = ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = {
     number: ['number'],
     id: ['note.id'],
@@ -87,6 +87,7 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
       filterOperators={filterOperators}
       propertiesAllowed={propertiesAllowed}
       exportColumns={exportColumns}
+      exportFileName="Rejected Withdrawn Paper Status"
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
       querySearchInfoModal={(props) => <QuerySearchInfoModal {...props} />}

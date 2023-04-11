@@ -2,7 +2,7 @@
 
 // modified from noteMetaReviewStatus.hbs handlebar template
 import { useContext, useEffect, useState } from 'react'
-import { inflect } from '../../lib/utils'
+import { inflect, prettyId } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
@@ -193,6 +193,8 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
             const recommendation = isV2Console
               ? metaReview?.content?.recommendation?.value
               : metaReview?.content?.recommendation
+            const { metaReviewAgreement } = metaReview ?? {}
+
             return (
               <div key={areaChair.anonymousId} className="meta-review-info">
                 <div className="areachair-contact">
@@ -211,6 +213,22 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                         rel="noreferrer"
                       >
                         Read Meta Review
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {metaReviewAgreement?.value && (
+                  <div>
+                    <span className="recommendation">
+                      {metaReviewAgreement.name}: {metaReviewAgreement.value}
+                    </span>
+                    <div>
+                      <a
+                        href={`/forum?id=${metaReviewAgreement.forum}&noteId=${metaReviewAgreement.id}&referrer=${referrerUrl}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {`Read ${metaReviewAgreement.name}`}
                       </a>
                     </div>
                   </div>

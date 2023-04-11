@@ -21,7 +21,9 @@ const ExportCSV = ({ records, fileName, exportColumns }) => {
             })
             .join(',')}\n`
       )
-      const blob = new Blob([headerRow, ...dataRows], { type: 'text/csv' })
+      const blob = new Blob([new Uint8Array([0xef, 0xbb, 0xbf]), headerRow, ...dataRows], {
+        type: 'text/csv',
+      })
       const url = window.URL || window.webkitURL
       setHref(url.createObjectURL(blob))
     } catch (error) {

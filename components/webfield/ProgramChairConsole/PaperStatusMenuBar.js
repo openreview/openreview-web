@@ -1,8 +1,10 @@
 import { useContext } from 'react'
+import { camelCase } from 'lodash'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import MessageReviewersModal from '../MessageReviewersModal'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
+import { prettyId } from '../../../lib/utils'
 
 const PaperStatusMenuBar = ({
   tableRowsAll,
@@ -15,11 +17,13 @@ const PaperStatusMenuBar = ({
     recommendationName,
     shortPhrase,
     enableQuerySearch,
-    exportColumns: exportColumnsConfig,
+    seniorAreaChairsId,
+    paperStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
+    customStageInvitations = [],
   } = useContext(WebFieldContext)
-  const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '=']
+  const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['note.number'],
     id: ['note.id'],
@@ -48,8 +52,16 @@ const PaperStatusMenuBar = ({
       venue: ['venue'],
     }),
     ...(recommendationName && {
-      [recommendationName]: [`metaReviewData.metaReviews.${recommendationName}`],
+      [recommendationName]: ['metaReviewData.metaReviewsSearchValue'],
     }),
+    ...(customStageInvitations?.length > 0 &&
+      customStageInvitations.reduce(
+        (prev, curr) => ({
+          ...prev,
+          [camelCase(curr.name)]: [`metaReviewData.metaReviewAgreementSearchValue`],
+        }),
+        {}
+      )),
   }
   const messageReviewerOptions = [
     { label: 'All Reviewers of selected papers', value: 'allReviewers' },
@@ -101,6 +113,13 @@ const PaperStatusMenuBar = ({
       getValue: (p) => p.metaReviewData?.numAreaChairsAssigned,
     },
     {
+      header: 'area chairs contact info',
+      getValue: (p) =>
+        p.metaReviewData?.areaChairs
+          ?.map((q) => `${q.preferredName}<${q.preferredEmail}>`)
+          .join(','),
+    },
+    {
       header: 'num submitted area chairs',
       getValue: (p) => p.metaReviewData?.numMetaReviewsDone,
     },
@@ -109,6 +128,24 @@ const PaperStatusMenuBar = ({
       getValue: (p) =>
         p.metaReviewData?.metaReviews?.map((q) => q[recommendationName])?.join('|'),
     },
+    ...(seniorAreaChairsId
+      ? [
+          {
+            header: 'senior area chairs',
+            getValue: (p) =>
+              p.metaReviewData?.seniorAreaChairs?.map((q) => q.preferredName).join('|'),
+          },
+        ]
+      : []),
+    ...(customStageInvitations?.length > 0
+      ? customStageInvitations.map((invitation) => ({
+          header: prettyId(invitation.name),
+          getValue: (p) =>
+            p.metaReviewData?.metaReviews
+              ?.map((q) => q.metaReviewAgreement?.searchValue)
+              .join('|'),
+        }))
+      : []),
     ...(exportColumnsConfig ?? []),
   ]
 

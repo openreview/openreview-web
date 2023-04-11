@@ -11,7 +11,12 @@ import BasicHeader from './BasicHeader'
 import AreaChairStatus from './SeniorAreaChairConsole/AreaChairStatus'
 import PaperStatus from './SeniorAreaChairConsole/PaperStatus'
 import ErrorDisplay from '../ErrorDisplay'
-import { getIndentifierFromGroup, getNumberFromGroup, getProfileName } from '../../lib/utils'
+import {
+  getIndentifierFromGroup,
+  getNumberFromGroup,
+  getProfileName,
+  prettyId,
+} from '../../lib/utils'
 import SeniorAreaChairTasks from './SeniorAreaChairConsole/SeniorAreaChairTasks'
 
 const SeniorAreaChairConsole = ({ appContext }) => {
@@ -36,6 +41,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     decisionName = 'Decision',
     recommendationName,
     edgeBrowserDeployedUrl,
+    customStageInvitations,
+    withdrawnVenueId,
+    deskRejectedVenueId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -51,16 +59,25 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     try {
       // #region getSubmissions
       const notesP = submissionId
-        ? api.getAll(
-            '/notes',
-            {
-              invitation: submissionId,
-              details: 'invitation,tags,original,replyCount,directReplies',
-              select: 'id,number,forum,content,details,invitations,invitation,readers',
-              sort: 'number:asc',
-            },
-            { accessToken, version: apiVersion }
-          )
+        ? api
+            .getAll(
+              '/notes',
+              {
+                invitation: submissionId,
+                details: 'replies',
+                select: 'id,number,forum,content,details,invitations,invitation,readers',
+                sort: 'number:asc',
+              },
+              { accessToken, version: apiVersion }
+            )
+            .then((notes) =>
+              notes.filter(
+                (note) =>
+                  ![withdrawnVenueId, deskRejectedVenueId].includes(
+                    note.content?.venueid?.value
+                  )
+              )
+            )
         : Promise.resolve([])
       // #endregion
 
@@ -226,7 +243,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           const assignedAreaChairs =
             areaChairGroups?.find((p) => p.noteNumber === note.number)?.members ?? []
           const officialReviews =
-            note.details.directReplies
+            note.details.replies
               .filter((p) => {
                 const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
                 return isV2Console
@@ -279,7 +296,16 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           const confidenceMin = validConfidences.length ? Math.min(...validConfidences) : 'N/A'
           const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
-          const metaReviews = note.details.directReplies
+          const customStageInvitationIds = customStageInvitations
+            ? customStageInvitations.map((p) => `/-/${p.name}`)
+            : []
+          const customStageReviews = note.details.replies.filter((p) =>
+            isV2Console
+              ? p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
+              : customStageInvitationIds.includes(p.invitation)
+          )
+
+          const metaReviews = note.details.replies
             .filter((p) => {
               const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
               return isV2Console
@@ -290,15 +316,46 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               ...metaReview,
               anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
             }))
+            .map((metaReview) => {
+              const metaReviewAgreement = customStageReviews.find(
+                (p) => p.replyto === metaReview.id
+              )
+              const metaReviewAgreementConfig = metaReviewAgreement
+                ? customStageInvitations.find((p) =>
+                    metaReviewAgreement.invitations.some((q) => q.includes(`/-/${p.name}`))
+                  )
+                : null
+              const metaReviewAgreementValue =
+                metaReviewAgreement?.content?.[metaReviewAgreementConfig?.displayField]?.value
+              return {
+                [recommendationName]: isV2Console
+                  ? metaReview?.content[recommendationName]?.value
+                  : metaReview?.content[recommendationName],
+                ...metaReview,
+                metaReviewAgreement: metaReviewAgreement
+                  ? {
+                      searchValue: metaReviewAgreementValue,
+                      name: prettyId(metaReviewAgreementConfig.name),
+                      value: metaReviewAgreementValue,
+                      id: metaReviewAgreement.id,
+                      forum: metaReviewAgreement.forum,
+                    }
+                  : {
+                      searchValue: 'N/A',
+                    },
+              }
+            })
+
           const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
 
           let decision = 'No Decision'
 
-          const decisionNote = note.details.directReplies.find((p) =>
+          const decisionNote = note.details.replies.find((p) =>
             isV2Console
               ? p.invitations.includes(decisionInvitationId)
               : p.invitation === decisionInvitationId
           )
+
           // eslint-disable-next-line prefer-destructuring
           if (decisionNote?.content?.decision)
             decision = isV2Console
@@ -335,7 +392,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               confidenceAvg,
               confidenceMax,
               confidenceMin,
-              replyCount: note.details.replyCount,
+              replyCount: note.details.replies?.length ?? 0,
             },
             metaReviewData: {
               numAreaChairsAssigned: assignedAreaChairs.length,
@@ -352,12 +409,13 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 }
               }),
               numMetaReviewsDone: metaReviews.length,
-              metaReviews: metaReviews.map((metaReview) => ({
-                [recommendationName]: isV2Console
-                  ? metaReview?.content[recommendationName]?.value
-                  : metaReview?.content[recommendationName],
-                ...metaReview,
-              })),
+              metaReviews,
+              metaReviewsSearchValue: metaReviews?.length
+                ? metaReviews.map((p) => p[recommendationName]).join(' ')
+                : 'N/A',
+              metaReviewAgreementSearchValue: metaReviews
+                .map((p) => p.metaReviewAgreement?.searchValue)
+                .join(' '),
             },
             decision,
           }

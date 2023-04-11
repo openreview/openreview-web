@@ -8,7 +8,12 @@ import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
-import { getIndentifierFromGroup, getNumberFromGroup, getProfileName } from '../../lib/utils'
+import {
+  getIndentifierFromGroup,
+  getNumberFromGroup,
+  getProfileName,
+  prettyId,
+} from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
 import PaperStatus from './ProgramChairConsole/PaperStatus'
@@ -56,6 +61,7 @@ const ProgramChairConsole = ({ appContext }) => {
     recruitmentName,
     paperStatusExportColumns,
     areaChairStatusExportColumns,
+    customStageInvitations,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -118,11 +124,23 @@ const ProgramChairConsole = ({ appContext }) => {
           )
         : Promise.resolve([])
 
+      const customStageInvitationsP = customStageInvitations
+        ? api.getAll(
+            '/invitations',
+            {
+              ids: customStageInvitations.map((p) => `${venueId}/-/${p.name}`),
+              type: 'note',
+            },
+            { accessToken, version: apiVersion }
+          )
+        : Promise.resolve([])
+
       const invitationResultsP = Promise.all([
         conferenceInvitationsP,
         reviewerInvitationsP,
         acInvitationsP,
         sacInvitationsP,
+        customStageInvitationsP,
       ])
 
       // #endregion
@@ -180,7 +198,7 @@ const ProgramChairConsole = ({ appContext }) => {
         '/notes',
         {
           invitation: submissionId,
-          details: 'invitation,tags,original,replyCount,directReplies',
+          details: 'replies',
           select: 'id,number,forum,content,details,invitations,invitation,readers',
           sort: 'number:asc',
         },
@@ -369,9 +387,10 @@ const ProgramChairConsole = ({ appContext }) => {
       const officialReviewsByPaperNumberMap = new Map()
       const metaReviewsByPaperNumberMap = new Map()
       const decisionByPaperNumberMap = new Map()
+      const customStageReviewsByPaperNumberMap = new Map()
       notes.forEach((note) => {
-        const directReplies = note.details.directReplies // eslint-disable-line prefer-destructuring
-        const officialReviews = directReplies
+        const replies = note.details.replies // eslint-disable-line prefer-destructuring
+        const officialReviews = replies
           .filter((p) => {
             const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
             return isV2Console
@@ -382,7 +401,7 @@ const ProgramChairConsole = ({ appContext }) => {
             ...review,
             anonId: getIndentifierFromGroup(review.signatures[0], anonReviewerName),
           }))
-        const metaReviews = directReplies
+        const metaReviews = replies
           .filter((p) => {
             const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
             return isV2Console
@@ -394,14 +413,23 @@ const ProgramChairConsole = ({ appContext }) => {
             anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
           }))
         const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
-        const decision = directReplies.find((p) =>
+        const decision = replies.find((p) =>
           isV2Console
             ? p.invitations.includes(decisionInvitationId)
             : p.invitation === decisionInvitationId
         )
+        const customStageInvitationIds = customStageInvitations
+          ? customStageInvitations.map((p) => `/-/${p.name}`)
+          : []
+        const customStageReviews = replies.filter((p) =>
+          isV2Console
+            ? p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
+            : customStageInvitationIds.includes(p.invitation)
+        )
         officialReviewsByPaperNumberMap.set(note.number, officialReviews)
         metaReviewsByPaperNumberMap.set(note.number, metaReviews)
         decisionByPaperNumberMap.set(note.number, decision)
+        customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
       })
 
       setPcConsoleData({
@@ -418,6 +446,7 @@ const ProgramChairConsole = ({ appContext }) => {
         officialReviewsByPaperNumberMap,
         metaReviewsByPaperNumberMap,
         decisionByPaperNumberMap,
+        customStageReviewsByPaperNumberMap,
         withdrawnNotes: isV2Console
           ? results[4].flatMap((note) => {
               if (note.content?.venueid?.value === withdrawnVenueId)
@@ -559,7 +588,36 @@ const ProgramChairConsole = ({ appContext }) => {
       const confidenceMin = validConfidences.length ? Math.min(...validConfidences) : 'N/A'
       const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
-      const metaReviews = pcConsoleData.metaReviewsByPaperNumberMap?.get(note.number) ?? []
+      const customStageReviews =
+        pcConsoleData.customStageReviewsByPaperNumberMap?.get(note.number) ?? []
+
+      const metaReviews = (
+        pcConsoleData.metaReviewsByPaperNumberMap?.get(note.number) ?? []
+      ).map((metaReview) => {
+        const metaReviewAgreement = customStageReviews.find((p) => p.replyto === metaReview.id)
+        const metaReviewAgreementConfig = metaReviewAgreement
+          ? customStageInvitations.find((p) =>
+              metaReviewAgreement.invitations.some((q) => q.includes(`/-/${p.name}`))
+            )
+          : null
+        const metaReviewAgreementValue =
+          metaReviewAgreement?.content?.[metaReviewAgreementConfig?.displayField]?.value
+        return {
+          [recommendationName]: pcConsoleData.isV2Console
+            ? metaReview?.content[recommendationName]?.value
+            : metaReview?.content[recommendationName],
+          ...metaReview,
+          metaReviewAgreement: metaReviewAgreement
+            ? {
+                searchValue: metaReviewAgreementValue,
+                name: prettyId(metaReviewAgreementConfig.name),
+                value: metaReviewAgreementValue,
+                id: metaReviewAgreement.id,
+                forum: metaReviewAgreement.forum,
+              }
+            : { searchValue: 'N/A' },
+        }
+      })
 
       let decision = 'No Decision'
       const decisionNote = pcConsoleData.decisionByPaperNumberMap.get(note.number)
@@ -598,7 +656,7 @@ const ProgramChairConsole = ({ appContext }) => {
           confidenceAvg,
           confidenceMax,
           confidenceMin,
-          replyCount: note.details.replyCount,
+          replyCount: note.details.replies?.length ?? 0,
         },
         metaReviewData: {
           numAreaChairsAssigned: assignedAreaChairs.length,
@@ -626,18 +684,19 @@ const ProgramChairConsole = ({ appContext }) => {
             }
           }),
           numMetaReviewsDone: metaReviews.length,
-          metaReviews: metaReviews.map((metaReview) => ({
-            [recommendationName]: pcConsoleData.isV2Console
-              ? metaReview?.content[recommendationName]?.value
-              : metaReview?.content[recommendationName],
-            ...metaReview,
-          })),
+          metaReviews,
+          metaReviewsSearchValue: metaReviews?.length
+            ? metaReviews.map((p) => p[recommendationName]).join(' ')
+            : 'N/A',
+          metaReviewAgreementSearchValue: metaReviews
+            .map((p) => p.metaReviewAgreement.searchValue)
+            .join(' '),
         },
+
         decision,
         venue: note?.content?.venue?.value,
       })
     })
-
     setPcConsoleData((data) => ({ ...data, noteNumberReviewMetaReviewMap }))
   }
 

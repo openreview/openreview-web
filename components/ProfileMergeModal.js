@@ -1,15 +1,15 @@
 /* globals $,promptMessage: false */
 
-import { useState, useContext, useReducer, useEffect } from 'react'
+import { useState, useReducer, useEffect } from 'react'
 import BasicModal from './BasicModal'
-import UserContext from './UserContext'
 import api from '../lib/api-client'
 import { buildArray, isValidEmail } from '../lib/utils'
+import useUser from '../hooks/useUser'
 
 const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
-  const { accessToken, user } = useContext(UserContext)
+  const { accessToken, user } = useUser()
   const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
   const defaultProfileMergeInfo = {
     email: '',
@@ -26,7 +26,18 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
   }, [preFillProfileMergeInfo])
 
   function getProfilePairsToMerge(profileIds) {
-    const ids = [...new Set(profileIds.split(',').map((p) => p.trim()))]
+    const ids = [
+      ...new Set(
+        profileIds.split(',').map((p) => {
+          const cleanId = p.trim()
+          const isEmail = isValidEmail(cleanId)
+          if (isEmail) {
+            return cleanId.toLowerCase()
+          }
+          return cleanId.startsWith('~') ? cleanId : `~${cleanId}`
+        })
+      ),
+    ]
     const idPairsToMerge = ids.reduce((prev, curr, index) => {
       const remaining = ids.slice(index + 1)
       remaining.forEach((p) => {
@@ -121,10 +132,10 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
         {!preFillProfileMergeInfo && (
           <div className="form-group">
             <p>Please fill in the following information to request a profile merge.</p>
-            <label htmlFor="name">Your email</label>
+            <label htmlFor="email">Your email</label>
             <input
+              id="email"
               type="email"
-              name="subject"
               className="form-control"
               value={profileMergeInfo.email}
               required
@@ -140,8 +151,8 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
               : 'Profile IDs or emails to merge, separated by commas'}
           </label>
           <input
+            id="idsToMerge"
             type="text"
-            name="idsToMerge"
             className="form-control"
             value={profileMergeInfo.idsToMerge}
             required
@@ -154,7 +165,7 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
         <div className="form-group">
           <label htmlFor="comment">Comment</label>
           <textarea
-            name="comment"
+            id="comment"
             className="form-control message-body"
             rows="6"
             value={profileMergeInfo.comment}

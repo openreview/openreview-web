@@ -440,7 +440,7 @@ test('#84 merge profile modal should fill in id', async (t) => {
     .expect(Selector('#profile-merge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').exists).ok()
     .expect(Selector('#profile-merge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').hasAttribute('readonly')).ok()
     .expect(Selector('#profile-merge-modal').find('button').withText('Submit').hasAttribute('disabled')).ok()
-    .typeText(Selector('#profile-merge-modal').find('textarea').withAttribute('name', 'comment'), 'some comment')
+    .typeText(Selector('#profile-merge-modal').find('textarea').withAttribute('id', 'comment'), 'some comment')
     .expect(Selector('#profile-merge-modal').find('button').withText('Submit').hasAttribute('disabled')).notOk()
 
 })
