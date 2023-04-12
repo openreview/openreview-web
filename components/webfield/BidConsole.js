@@ -304,7 +304,19 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
 
   return (
     <>
-      <form className="form-inline notes-search-form" role="search">
+      <form
+        className="form-inline notes-search-form"
+        role="search"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (searchState.immediateSearchTerm.trim().length >= 2) {
+            setSearchState({
+              type: 'searchTerm',
+              payload: searchState.immediateSearchTerm,
+            })
+          }
+        }}
+      >
         <div className="form-group search-content has-feedback">
           <input
             id="paper-search-input"
@@ -316,14 +328,6 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             onChange={(e) => {
               setSearchState({ type: 'immediateSearchTerm', payload: e.target.value })
               if (e.target.value.trim().length >= 3) delaySearch(e.target.value)
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && searchState.immediateSearchTerm.trim().length >= 2) {
-                setSearchState({
-                  type: 'searchTerm',
-                  payload: searchState.immediateSearchTerm,
-                })
-              }
             }}
           />
           <Icon name="search" extraClasses="form-control-feedback" />
@@ -354,6 +358,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             />
           </div>
         )}
+        <button type="submit" style={{ display: 'none' }} />
       </form>
       {isLoading ? (
         <LoadingSpinner inline />

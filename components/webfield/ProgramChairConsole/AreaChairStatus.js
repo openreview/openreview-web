@@ -242,16 +242,12 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
   const [areaChairStatusTabData, setAreaChairStatusTabData] = useState({})
   const {
     shortPhrase,
-    enableQuerySearch,
-    filterOperators,
-    propertiesAllowed,
     seniorAreaChairsId,
     areaChairsId,
     reviewersId,
     bidName,
     recommendationName,
     venueId,
-    areaChairStatusExportColumns,
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.areaChairs?.length ?? 0)
@@ -401,13 +397,8 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
           tableRows={areaChairStatusTabData.tableRows}
           setAreaChairStatusTabData={setAreaChairStatusTabData}
           shortPhrase={shortPhrase}
-          exportColumns={areaChairStatusExportColumns}
-          enableQuerySearch={enableQuerySearch}
-          filterOperators={filterOperators}
-          propertiesAllowed={propertiesAllowed}
           bidEnabled={bidEnabled}
           recommendationEnabled={recommendationEnabled}
-          messageParentGroup={areaChairsId}
         />
         <p className="empty-message">No area chair matching search criteria.</p>
       </div>
@@ -418,14 +409,8 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
         tableRowsAll={areaChairStatusTabData.tableRowsAll}
         tableRows={areaChairStatusTabData.tableRows}
         setAreaChairStatusTabData={setAreaChairStatusTabData}
-        shortPhrase={shortPhrase}
-        exportColumns={areaChairStatusExportColumns}
-        enableQuerySearch={enableQuerySearch}
-        filterOperators={filterOperators}
-        propertiesAllowed={propertiesAllowed}
         bidEnabled={bidEnabled}
         recommendationEnabled={recommendationEnabled}
-        messageParentGroup={areaChairsId}
       />
       <Table
         className="console-table table-striped pc-console-ac-status"
