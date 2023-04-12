@@ -549,9 +549,7 @@ const ProgramChairConsole = ({ appContext }) => {
         const metaReviewAgreementValue =
           metaReviewAgreement?.content?.[metaReviewAgreementConfig?.displayField]?.value
         return {
-          [recommendationName]: pcConsoleData.isV2Console
-            ? metaReview?.content[recommendationName]?.value
-            : metaReview?.content[recommendationName],
+          [recommendationName]: metaReview?.content[recommendationName]?.value,
           ...metaReview,
           metaReviewAgreement: metaReviewAgreement
             ? {

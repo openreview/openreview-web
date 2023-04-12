@@ -168,7 +168,7 @@ const AreaChairStatusMenuBar = ({
     number: ['number'],
     name: ['areaChairProfile.preferredName'],
     email: ['areaChairProfile.preferredEmail'],
-    sac: ['areaChairProfile.seniorAreaChair.seniorAreaChairId'],
+    sac: ['seniorAreaChair.seniorAreaChairId'],
   }
   const messageAreaChairOptions = [
     ...(bidEnabled
