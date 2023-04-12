@@ -274,8 +274,9 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
 
     // map tilde id in reviewerGroup to anon reviewer group id in anonReviewerGroups
     const reviewerAnonGroupIds = {}
-
+    const activeNoteNumbers = pcConsoleData.notes.map((note) => note.number)
     pcConsoleData.paperGroups?.reviewerGroups.forEach((reviewerGroup) => {
+      if (!activeNoteNumbers.includes(reviewerGroup.noteNumber)) return
       reviewerGroup.members.forEach((reviewer) => {
         if (!reviewer.reviewerAnonGroup) return
         const reviewerProfileId = reviewer.reviewerProfileId // eslint-disable-line prefer-destructuring
@@ -309,18 +310,14 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
     )
 
     const reviewersComplete = reviewersCompletedAllReviews?.length
-    // const reviewersComplete = 0
 
     const reviewersWithAssignmentsCount = Object.values(reviewerAnonGroupIds ?? {}).length
 
-    const paperWithMoreThanThresholddReviews = pcConsoleData.notes?.filter((note) => {
-      // const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumber?.find(
-      //   (p) => p.noteNumber === note.number
-      // )
+    const paperWithMoreThanThresholdReviews = pcConsoleData.notes?.filter((note) => {
       const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumberMap.get(
         note.number
       )
-      // ?.officialReviews
+
       const paperReviewers = pcConsoleData.paperGroups?.reviewerGroups?.find(
         (p) => p.noteNumber === note.number
       )?.members
@@ -338,7 +335,7 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
       assignedReviewsCount,
       reviewersComplete,
       reviewersWithAssignmentsCount,
-      paperWithMoreThanThresholddReviews,
+      paperWithMoreThanThresholdReviews,
     })
   }, [pcConsoleData])
 
@@ -383,7 +380,7 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
           value={
             pcConsoleData.notes ? (
               renderStat(
-                reviewStats.paperWithMoreThanThresholddReviews?.length,
+                reviewStats.paperWithMoreThanThresholdReviews?.length,
                 pcConsoleData.notes.length
               )
             ) : (
@@ -409,7 +406,9 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
 
   // map tilde id in areaChairGroups to anon areachair group id in anonAreaChairGroups
   const areaChairAnonGroupIds = {}
+  const activeNoteNumbers = pcConsoleData.notes?.map((n) => n.number)
   pcConsoleData.paperGroups?.areaChairGroups.forEach((areaChairGroup) => {
+    if (!activeNoteNumbers.includes(areaChairGroup.noteNumber)) return
     areaChairGroup.members.forEach((areaChair) => {
       if (!areaChair.areaChairAnonGroup) return
       const areaChairProfileId = areaChair.areaChairProfileId // eslint-disable-line prefer-destructuring
@@ -443,7 +442,7 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
   )
 
   const areaChairsComplete = areaChairsCompletedAllMetaReviews?.length
-  const areaChairsCount = pcConsoleData.areaChairs?.length
+  const areaChairsWithAssignmentsCount = Object.values(areaChairAnonGroupIds ?? {}).length
 
   if (!areaChairsId) return null
   return (
@@ -465,7 +464,7 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
           hint="% of area chairs who have completed meta reviews for all their assigned papers"
           value={
             pcConsoleData.notes && pcConsoleData.paperGroups ? (
-              renderStat(areaChairsComplete, areaChairsCount)
+              renderStat(areaChairsComplete, areaChairsWithAssignmentsCount)
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )
