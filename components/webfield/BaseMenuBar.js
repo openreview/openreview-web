@@ -21,6 +21,7 @@ const BaseMenuBar = ({
   messageModalId,
   messageParentGroup,
   exportColumns,
+  exportFileName = 'Paper Status',
   sortOptions,
   basicSearchFunction,
   messageModal,
@@ -40,8 +41,10 @@ const BaseMenuBar = ({
 
   const shouldEnableQuerySearch = enableQuerySearch && filterOperators && propertiesAllowed
 
-  const exportFileName = `${shortPhrase}${
-    tableRows?.length === tableRowsAll?.length ? ' paper status' : 'paper status(Filtered)'
+  const fullExportFileName = `${shortPhrase}${
+    tableRows?.length === tableRowsAll?.length
+      ? ` ${exportFileName}`
+      : ` ${exportFileName}(Filtered)`
   }`
 
   const handleMessageDropdownChange = (option) => {
@@ -140,7 +143,7 @@ const BaseMenuBar = ({
         <div className="btn-group">
           <ExportCSV
             records={tableRows}
-            fileName={exportFileName}
+            fileName={fullExportFileName}
             exportColumns={exportColumns}
           />
         </div>

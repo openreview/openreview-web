@@ -95,8 +95,8 @@ const MessageReviewersModal = ({
       {currentStep === 1 ? (
         <>
           <p>
-            Enter a message to be sent to all selected area chairs below. You will have a
-            chance to review a list of all recipients after clicking &quot;Next&quot; below.
+            Enter a message to be sent to all selected reviewers below. You will have a chance
+            to review a list of all recipients after clicking &quot;Next&quot; below.
           </p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
@@ -123,12 +123,12 @@ const MessageReviewersModal = ({
         <>
           <p>
             A total of <span className="num-reviewers">{totalMessagesCount}</span> reminder
-            emails will be sent to the following area chairs:
+            emails will be sent to the following reviewers:
           </p>
           <div className="well reviewer-list">
-            {recipientsInfo.map((recipientInfo) => (
+            {recipientsInfo.map((recipientInfo, index) => (
               <li
-                key={recipientInfo.preferredEmail}
+                key={index}
               >{`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>`}</li>
             ))}
           </div>
@@ -243,6 +243,7 @@ const ReviewerStatusMenuBar = ({
       messageModalId="message-reviewers"
       messageParentGroup={messageParentGroup}
       exportColumns={exportColumns}
+      exportFileName="Reviewer Status"
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
       messageModal={(props) => <MessageReviewersModal {...props} />}
