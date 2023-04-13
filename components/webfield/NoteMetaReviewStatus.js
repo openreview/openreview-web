@@ -178,11 +178,10 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
   const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs } = metaReviewData
   return (
     <div className="areachair-progress">
-      <h4 className="title">{`${inflect(
-        numMetaReviewsDone,
+      <h4 className="title">{`${numMetaReviewsDone} of ${areaChairs.length} ${inflect(
+        areaChairs.length,
         'Meta Review',
-        'Meta Reviews',
-        true
+        'Meta Reviews'
       )} Submitted`}</h4>
 
       <strong>Area Chair:</strong>
