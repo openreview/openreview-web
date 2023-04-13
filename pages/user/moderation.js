@@ -876,7 +876,11 @@ const UserModerationQueue = ({
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
-    const shouldSearchProfile = filters.fullname || filters.id || filters.email
+    const cleanSearchTerm = filters.term?.trim()
+    const shouldSearchProfile = cleanSearchTerm
+    let searchQuery = { fullname: cleanSearchTerm?.toLowerCase() }
+    if (cleanSearchTerm?.startsWith('~')) searchQuery = { id: cleanSearchTerm }
+    if (cleanSearchTerm?.includes('@')) searchQuery = { email: cleanSearchTerm.toLowerCase() }
 
     try {
       const result = await api.get(
@@ -890,10 +894,7 @@ const UserModerationQueue = ({
           withBlocked: onlyModeration ? undefined : true,
           ...(!onlyModeration && { trash: true }),
           ...(shouldSearchProfile && { es: true }),
-          ...Object.entries(filters).reduce((prev, [key, value]) => {
-            if (value) prev[key] = value.toLowerCase() // eslint-disable-line no-param-reassign
-            return prev
-          }, {}),
+          ...(shouldSearchProfile && searchQuery),
         },
         { accessToken, cachePolicy: 'no-cache' }
       )
@@ -1059,18 +1060,7 @@ const UserModerationQueue = ({
 
       {!onlyModeration && (
         <form className="filter-form well mt-3" onSubmit={filterProfiles}>
-          <input
-            type="text"
-            name="fullname"
-            className="form-control input-sm"
-            placeholder="Full Name"
-          />
-          <input
-            type="text"
-            name="id"
-            className="form-control input-sm"
-            placeholder="Username or Email"
-          />
+          <input type="text" name="term" className="form-control input-sm" />
           <button type="submit" className="btn btn-xs">
             Search
           </button>
