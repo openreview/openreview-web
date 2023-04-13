@@ -268,9 +268,7 @@ const AreaChairStatusMenuBar = ({
     {
       label: 'Number of Missing MetaReviews',
       value: 'Number of Missing MetaReviews',
-      getValue: (p) => {
-        return (p.notes?.length ?? 0) - p.numCompletedMetaReviews
-      },
+      getValue: (p) => (p.notes?.length ?? 0) - p.numCompletedMetaReviews,
       initialDirection: 'desc',
     },
     {
