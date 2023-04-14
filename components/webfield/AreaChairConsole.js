@@ -636,7 +636,6 @@ const AreaChairConsole = ({ appContext }) => {
     apiVersion,
     reviewerAssignment,
     submissionInvitationId,
-    seniorAreaChairsId,
     areaChairName,
     submissionName,
     officialReviewName,
