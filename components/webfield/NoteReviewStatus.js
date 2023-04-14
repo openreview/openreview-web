@@ -295,6 +295,7 @@ export const AcPcConsoleNoteReviewStatus = ({
   referrerUrl,
   shortPhrase,
   submissionName,
+  manualReviewerAssignmentUrl,
 }) => {
   const { officialReviews, reviewers, note } = rowData
   const {
@@ -308,6 +309,10 @@ export const AcPcConsoleNoteReviewStatus = ({
     confidenceMin,
     confidenceAvg,
   } = rowData.reviewProgressData
+  const paperManualReviewerAssignmentUrl = manualReviewerAssignmentUrl?.replace(
+    'edges/browse?',
+    `edges/browse?start=staticList,type:head,ids:${note.id}&`
+  )
 
   return (
     <div className="console-reviewer-progress">
@@ -345,6 +350,14 @@ export const AcPcConsoleNoteReviewStatus = ({
       <span>
         <strong>Number of Forum replies:</strong> {replyCount}
       </span>
+      {paperManualReviewerAssignmentUrl && (
+        <div>
+          <br />
+          <a href={paperManualReviewerAssignmentUrl} target="_blank" rel="noreferrer">
+            Edit Reviewer Assignments
+          </a>
+        </div>
+      )}
     </div>
   )
 }

@@ -38,6 +38,8 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
     apiVersion,
     submissionName,
     seniorAreaChairName,
+    manualReviewerAssignmentUrl,
+    manualAreaChairAssignmentUrl,
   } = useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
@@ -85,6 +87,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
+          manualReviewerAssignmentUrl={manualReviewerAssignmentUrl}
         />
       </td>
       {areaChairsId && (
@@ -93,7 +96,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
             metaReviewData={metaReviewData}
             referrerUrl={referrerUrl}
             isV2Console={apiVersion === 2}
-            seniorAreaChairName={seniorAreaChairName}
+            manualAreaChairAssignmentUrl={manualAreaChairAssignmentUrl}
           />
         </td>
       )}

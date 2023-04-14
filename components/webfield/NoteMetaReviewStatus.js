@@ -2,7 +2,7 @@
 
 // modified from noteMetaReviewStatus.hbs handlebar template
 import { useContext, useEffect, useState } from 'react'
-import { inflect, prettyId } from '../../lib/utils'
+import { inflect } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
@@ -174,8 +174,13 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
   metaReviewData,
   referrerUrl,
   isV2Console,
+  manualAreaChairAssignmentUrl,
 }) => {
   const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs } = metaReviewData
+  const paperManualAreaChairAssignmentUrl = manualAreaChairAssignmentUrl?.replace(
+    'edges/browse?',
+    `edges/browse?start=staticList,type:head,ids:${note.id}&`
+  )
   return (
     <div className="areachair-progress">
       <h4 className="title">{`${numMetaReviewsDone} of ${areaChairs.length} ${inflect(
@@ -250,6 +255,15 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {paperManualAreaChairAssignmentUrl && (
+        <div>
+          <br />
+          <a href={paperManualAreaChairAssignmentUrl} target="_blank" rel="noreferrer">
+            Edit Area Chair Assignments
+          </a>
         </div>
       )}
     </div>

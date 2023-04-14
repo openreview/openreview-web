@@ -647,6 +647,8 @@ const DescriptionTimelineOtherConfigRow = ({
     recommendationName,
     recruitmentName = 'Recruitment',
     customStageInvitations = [],
+    manualReviewerAssignmentUrl,
+    manualAreaChairAssignmentUrl,
   } = useContext(WebFieldContext)
 
   const { requestForm, registrationForms, invitations } = pcConsoleData
@@ -816,24 +818,28 @@ const DescriptionTimelineOtherConfigRow = ({
               const assignmentConfig = invitations.find(
                 (p) => p.id === `${venueId}/${role}/-/Assignment_Configuration`
               )
+              const assignmentLink = `${
+                manualAreaChairAssignmentUrl ?? `/assignments?group=${venueId}/${role}`
+              }&referrer=${referrerUrl}`
               if (!assignmentConfig) return null
               return (
                 <li className="overview-timeline" key={assignmentConfig.id}>
-                  <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
-                    {`${prettyId(role)} Paper Assignment`}
-                  </a>{' '}
-                  open until Reviewing starts
+                  <a href={assignmentLink}>{`${prettyId(role)} Paper Assignment`}</a> open
+                  until Reviewing starts
                 </li>
               )
             })}
-          {reviewerRoles.map((role) => (
-            <li className="overview-timeline" key={role}>
-              <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
-                {`${prettyId(role)} Paper Assignment`}
-              </a>{' '}
-              open until Reviewing starts
-            </li>
-          ))}
+          {reviewerRoles.map((role) => {
+            const assignmentLink = `${
+              manualReviewerAssignmentUrl ?? `/assignments?group=${venueId}/${role}`
+            }&referrer=${referrerUrl}`
+            return (
+              <li className="overview-timeline" key={role}>
+                <a href={assignmentLink}>{`${prettyId(role)} Paper Assignment`}</a> open until
+                Reviewing starts
+              </li>
+            )
+          })}
         </div>
       </div>
 
