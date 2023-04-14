@@ -113,7 +113,11 @@ const BaseMenuBar = ({
   useEffect(() => {
     setData((data) => ({
       ...data,
-      tableRows: orderBy(data.tableRowsAll, sortOption.getValue),
+      tableRows: orderBy(
+        data.tableRowsAll,
+        sortOption.getValue,
+        sortOption.initialDirection ?? 'asc'
+      ),
     }))
   }, [sortOption])
 
