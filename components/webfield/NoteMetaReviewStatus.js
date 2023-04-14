@@ -171,11 +171,12 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
 
 // modified from noteAreaChairs.hbs handlebar template pc console->paper status tab->status column
 export const ProgramChairConsolePaperAreaChairProgress = ({
-  metaReviewData,
+  rowData,
   referrerUrl,
   isV2Console,
   manualAreaChairAssignmentUrl,
 }) => {
+  const { metaReviewData, note } = rowData
   const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs } = metaReviewData
   const paperManualAreaChairAssignmentUrl = manualAreaChairAssignmentUrl?.replace(
     'edges/browse?',

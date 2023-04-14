@@ -88,7 +88,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
       </td>
       <td>
         <ProgramChairConsolePaperAreaChairProgress
-          metaReviewData={metaReviewData}
+          rowData={rowData}
           referrerUrl={referrerUrl}
           isV2Console={apiVersion === 2}
         />
