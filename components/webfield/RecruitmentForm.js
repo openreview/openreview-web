@@ -221,11 +221,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
         {hasCommentField && (
           <>
             {renderField('comment')}
-            <SubmitButton
-              fieldRequired={formData.comment}
-              onSubmit={onSubmit}
-              isSaving={isSaving}
-            />
+            <SubmitButton fieldRequired={true} onSubmit={onSubmit} isSaving={isSaving} />
           </>
         )}
       </div>
