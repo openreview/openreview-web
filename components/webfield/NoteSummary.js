@@ -67,7 +67,7 @@ const NoteSummary = ({
       {pdfValue && (
         <div className="download-pdf-link">
           <a
-            href={getNotePdfUrl(note, false)}
+            href={getNotePdfUrl(note, false, isV2Note)}
             className="attachment-download-link"
             title="Download PDF"
             target="_blank"

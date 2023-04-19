@@ -13,38 +13,23 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
     number: ['number'],
     id: ['note.id'],
     title: ['note.content.title', 'note.content.title.value'],
-    author: [
-      'note.content.authors',
-      'note.content.authorids',
-      'note.content.authors.value',
-      'note.content.authorids.value',
-      'originalNote.content.authors',
-      'originalNote.content.authorids',
-    ],
+    author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords', 'note.content.keywords.value'],
     reason: ['reason'],
   }
   const exportColumns = [
-    { header: 'number', getValue: (p) => p.originalNote?.number ?? p.number },
+    { header: 'number', getValue: (p) => p.number },
     {
       header: 'forum',
-      getValue: (p) =>
-        `https://openreview.net/forum?id=${p.originalNote?.forum ?? p.note?.forum}`,
+      getValue: (p) => `https://openreview.net/forum?id=${p.note?.forum}`,
     },
     {
       header: 'title',
-      getValue: (p, isV2Note) =>
-        isV2Note
-          ? p.note?.content?.title?.value
-          : p.originalNote?.content?.title ?? p.note?.content?.title,
+      getValue: (p) => p.note?.content?.title?.value,
     },
     {
       header: 'authors',
-      getValue: (p, isV2Note) =>
-        (isV2Note
-          ? p.note?.content?.authors?.value
-          : p.originalNote?.content?.authors ?? p.note?.content?.authors
-        )?.join('|'),
+      getValue: (p) => p.note?.content?.authors?.value?.join('|'),
     },
     { header: 'reason', getValue: (p) => p.reason },
   ]
@@ -58,8 +43,7 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
     {
       label: 'Paper Title',
       value: 'Paper Title',
-      getValue: (p) =>
-        p.note?.version === 2 ? p.note?.content?.title?.value : p.note?.content?.title,
+      getValue: (p) => p.note?.content?.title?.value,
     },
     {
       label: 'Reason',
@@ -68,14 +52,9 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
     },
   ]
 
-  const basicSearchFunction = (row, term) => {
-    const noteTitle =
-      row.note.version === 2 ? row.note.content?.title?.value : row.note.content?.title
-    return (
-      row.number == term || // eslint-disable-line eqeqeq
-      noteTitle.toLowerCase().includes(term)
-    )
-  }
+  const basicSearchFunction = (row, term) =>
+    row.number == term || // eslint-disable-line eqeqeq
+    row.note.content?.title?.value?.toLowerCase()?.includes(term)
 
   return (
     <BaseMenuBar
