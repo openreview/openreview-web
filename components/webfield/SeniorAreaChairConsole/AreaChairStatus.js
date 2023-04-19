@@ -56,8 +56,7 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
         {rowData.notes.map((p) => {
           const { numReviewsDone, numReviewersAssigned, ratingAvg, ratingMin, ratingMax } =
             p.reviewProgressData
-          const noteTitle =
-            p.note.version === 2 ? p.note?.content?.title?.value : p.note?.content?.title
+          const noteTitle = p.note?.content?.title?.value
           return (
             <div key={p.noteNumber}>
               <div className="note-info">
@@ -88,7 +87,7 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
 }
 
 // modified based on notesAreaChairStatus.hbs
-const NoteAreaChairStatus = ({ rowData, referrerUrl, isV2Console }) => {
+const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
@@ -99,7 +98,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl, isV2Console }) => {
       {rowData.notes.length !== 0 && <strong className="paper-label">Papers:</strong>}
       <div>
         {rowData.notes.map((p) => {
-          const noteContent = getNoteContent(p.note, isV2Console)
+          const noteContent = getNoteContent(p.note)
           const noteVenue = noteContent?.venue
           const metaReviews = p.metaReviewData?.metaReviews
           const hasMetaReview = metaReviews?.length
@@ -109,7 +108,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl, isV2Console }) => {
               {hasMetaReview ? (
                 <>
                   {metaReviews.map((metaReview) => {
-                    const metaReviewContent = getNoteContent(metaReview, isV2Console)
+                    const metaReviewContent = getNoteContent(metaReview)
                     return (
                       <div key={metaReview.id} className="meta-review">
                         <span>{`${
@@ -140,7 +139,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl, isV2Console }) => {
   )
 }
 
-const AreaChairStatusRow = ({ rowData, acBids, invitations, referrerUrl, isV2Console }) => (
+const AreaChairStatusRow = ({ rowData, acBids, invitations, referrerUrl }) => (
   <tr>
     <td>
       <strong>{rowData.number}</strong>
@@ -152,11 +151,7 @@ const AreaChairStatusRow = ({ rowData, acBids, invitations, referrerUrl, isV2Con
       <NoteAreaChairProgress rowData={rowData} referrerUrl={referrerUrl} />
     </td>
     <td>
-      <NoteAreaChairStatus
-        rowData={rowData}
-        referrerUrl={referrerUrl}
-        isV2Console={isV2Console}
-      />
+      <NoteAreaChairStatus rowData={rowData} referrerUrl={referrerUrl} />
     </td>
   </tr>
 )
@@ -287,7 +282,6 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
             key={row.areaChairProfileId}
             rowData={row}
             referrerUrl={referrerUrl}
-            isV2Console={sacConsoleData.isV2Console}
           />
         ))}
       </Table>
