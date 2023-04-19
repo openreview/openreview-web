@@ -12,6 +12,8 @@ import {
   sendFile,
   setupProfileViewEdit,
   setupRegister,
+  superUserName,
+  strongPassword,
 } from './utils/api-helper'
 
 const waitForJobs = (noteId, superUserToken) =>
@@ -39,28 +41,28 @@ const waitForJobs = (noteId, superUserToken) =>
   })
 
 fixture`Set up test data`.before(async (ctx) => {
-  ctx.superUserToken = await getToken('openreview.net', '1234')
+  ctx.superUserToken = await getToken(superUserName, strongPassword)
   await setupProfileViewEdit(ctx.superUserToken)
   await setupRegister(ctx.superUserToken)
   await createUser({
     first: 'SomeFirstName',
     last: 'User',
     email: 'test@mail.com',
-    password: '1234',
+    password: strongPassword,
     history: undefined,
   })
   await createUser({
     first: 'John',
     last: 'SomeLastName',
     email: 'john@mail.com',
-    password: '1234',
+    password: strongPassword,
     history: undefined,
   })
   await createUser({
     first: 'Reviewer',
     last: 'ICLR',
     email: 'reviewer_iclr@mail.com',
-    password: '1234',
+    password: strongPassword,
     history: undefined,
   })
   return ctx
@@ -254,7 +256,7 @@ test('Set up AnotherTestVenue', async (t) => {
 
   await waitForJobs(deployId, superUserToken)
 
-  const hasTaskUserToken = await getToken(hasTaskUser.email)
+  const hasTaskUserToken = await getToken(hasTaskUser.email, hasTaskUser.password)
   const noteJson = {
     content: {
       title: 'this is á "paper" title',
@@ -353,7 +355,7 @@ test('Set up ICLR', async (t) => {
 
   await waitForJobs(deployId, superUserToken)
 
-  const userToken = await getToken('a@a.com')
+  const userToken = await getToken(hasTaskUser.email, hasTaskUser.password)
   const blob = fileFromSync(`${__dirname}/utils/data/paper.pdf`, 'application/pdf')
   const data = new FormData()
   data.set('invitationId', 'ICLR.cc/2021/Conference/-/Submission')
