@@ -6,7 +6,7 @@ import api from '../../../lib/api-client'
 import LoadingSpinner from '../../LoadingSpinner'
 import WebFieldContext from '../../WebFieldContext'
 import { formatDateTime, inflect, prettyId } from '../../../lib/utils'
-import { buildEdgeBrowserUrl, getNoteContent } from '../../../lib/webfield-utils'
+import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
 
 const StatContainer = ({ title, hint, value }) => (
   <div className="col-md-4 col-xs-6">
@@ -256,8 +256,7 @@ const BiddingStatsRow = ({
 }
 
 const ReviewStatsRow = ({ pcConsoleData }) => {
-  const { paperReviewsCompleteThreshold, officialReviewName, venueId } =
-    useContext(WebFieldContext)
+  const { paperReviewsCompleteThreshold } = useContext(WebFieldContext)
 
   const [reviewStats, setReviewStats] = useState({})
 
@@ -579,10 +578,7 @@ const DecisionStatsRow = ({ pcConsoleData }) => {
   const notesWithFinalDecision = decisions.filter((p) => p)
   const decisionsCount = notesWithFinalDecision?.length
   const submissionsCount = pcConsoleData.notes?.length
-  const allDecisions = decisions.flatMap(
-    (p) =>
-      (pcConsoleData.isV2Console ? p?.content?.decision?.value : p?.content?.decision) ?? []
-  )
+  const allDecisions = decisions.flatMap((p) => p?.content?.decision?.value ?? [])
 
   return (
     <>
@@ -630,7 +626,6 @@ const DescriptionTimelineOtherConfigRow = ({
   recommendationEnabled,
 }) => {
   const {
-    apiVersion,
     venueId,
     areaChairsId,
     seniorAreaChairsId,
@@ -653,7 +648,7 @@ const DescriptionTimelineOtherConfigRow = ({
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
   )
-  const requestFormContent = getNoteContent(requestForm, false)
+  const requestFormContent = requestForm?.content
   const sacRoles = requestFormContent?.senior_area_chair_roles ?? ['Senior_Area_Chairs']
   const acRoles = requestFormContent?.area_chair_roles ?? ['Area_Chairs']
   const hasEthicsChairs = requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes')
@@ -948,11 +943,7 @@ const DescriptionTimelineOtherConfigRow = ({
               {registrationForms.map((form) => (
                 <li key={form.id} className="overview-registration-link">
                   <Link href={`/forum?id=${form.id}&referrer=${referrerUrl}`}>
-                    <a>
-                      {pcConsoleData.isV2Console
-                        ? form.content?.title?.value
-                        : form.content?.title}
-                    </a>
+                    <a>{form.content?.title?.value}</a>
                   </Link>
                 </li>
               ))}
@@ -971,8 +962,7 @@ const DescriptionTimelineOtherConfigRow = ({
                       invitations,
                       reviewersId,
                       bidName,
-                      scoresName,
-                      apiVersion
+                      scoresName
                     )}
                   >
                     <a>Reviewer Bids</a>
@@ -987,8 +977,7 @@ const DescriptionTimelineOtherConfigRow = ({
                       invitations,
                       seniorAreaChairsId,
                       bidName,
-                      scoresName,
-                      apiVersion
+                      scoresName
                     )}
                   >
                     <a>Senior Area Chair Bids</a>
@@ -1004,8 +993,7 @@ const DescriptionTimelineOtherConfigRow = ({
                         invitations,
                         areaChairsId,
                         bidName,
-                        scoresName,
-                        apiVersion
+                        scoresName
                       )}
                     >
                       <a>Area Chair Bid</a>
@@ -1019,8 +1007,7 @@ const DescriptionTimelineOtherConfigRow = ({
                           invitations,
                           reviewersId,
                           recommendationName,
-                          scoresName,
-                          apiVersion
+                          scoresName
                         )}
                       >
                         <a>Area Chair Reviewer Recommendations</a>
