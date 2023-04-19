@@ -174,11 +174,11 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
   rowData,
   referrerUrl,
   isV2Console,
-  manualAreaChairAssignmentUrl,
+  areaChairAssignmentUrl,
 }) => {
   const { metaReviewData, note } = rowData
   const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs } = metaReviewData
-  const paperManualAreaChairAssignmentUrl = manualAreaChairAssignmentUrl?.replace(
+  const paperManualAreaChairAssignmentUrl = areaChairAssignmentUrl?.replace(
     'edges/browse?',
     `edges/browse?start=staticList,type:head,ids:${note.id}&`
   )
@@ -262,7 +262,11 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
       {paperManualAreaChairAssignmentUrl && (
         <div>
           <br />
-          <a href={paperManualAreaChairAssignmentUrl} target="_blank" rel="noreferrer">
+          <a
+            href={`${paperManualAreaChairAssignmentUrl}&referrer=${referrerUrl}`}
+            target="_blank"
+            rel="noreferrer"
+          >
             Edit Area Chair Assignments
           </a>
         </div>

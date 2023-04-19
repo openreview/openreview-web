@@ -29,7 +29,14 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
   )
 }
 
-const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venue }) => {
+const PaperRow = ({
+  rowData,
+  selectedNoteIds,
+  setSelectedNoteIds,
+  decision,
+  venue,
+  getManualAssignmentUrl,
+}) => {
   const {
     areaChairsId,
     venueId,
@@ -37,9 +44,6 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
     shortPhrase,
     apiVersion,
     submissionName,
-    seniorAreaChairName,
-    manualReviewerAssignmentUrl,
-    manualAreaChairAssignmentUrl,
   } = useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
@@ -87,7 +91,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
-          manualReviewerAssignmentUrl={manualReviewerAssignmentUrl}
+          reviewerAssignmentUrl={getManualAssignmentUrl('Reviewers')}
         />
       </td>
       {areaChairsId && (
@@ -96,7 +100,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
             rowData={rowData}
             referrerUrl={referrerUrl}
             isV2Console={apiVersion === 2}
-            manualAreaChairAssignmentUrl={manualAreaChairAssignmentUrl}
+            areaChairAssignmentUrl={getManualAssignmentUrl('Area_Chairs')}
           />
         </td>
       )}
@@ -111,10 +115,25 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
 const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
-  const { areaChairsId } = useContext(WebFieldContext)
+  const { venueId, areaChairsId, assignmentUrls } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
   const pageSize = 25
+
+  const getManualAssignmentUrl = (role) => {
+    if (!assignmentUrls) return null
+    const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
+    const isAssignmentConfigDeployed = pcConsoleData.invitations?.some(
+      (p) => p.id === `${venueId}/${role}/-/Assignment`
+    )
+
+    if (
+      assignmentUrls[role]?.automaticAssignment === false ||
+      (assignmentUrls[role]?.automaticAssignment === true && isAssignmentConfigDeployed)
+    )
+      return assignmentUrl
+    return null
+  }
 
   useEffect(() => {
     if (!pcConsoleData.notes) return
@@ -211,6 +230,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
             setSelectedNoteIds={setSelectedNoteIds}
             decision={row.decision}
             venue={row.venue}
+            getManualAssignmentUrl={getManualAssignmentUrl}
           />
         ))}
       </Table>
