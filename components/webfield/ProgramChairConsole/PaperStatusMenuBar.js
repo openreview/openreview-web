@@ -166,16 +166,19 @@ const PaperStatusMenuBar = ({
       label: 'Number of Forum Replies',
       value: 'Number of Forum Replies',
       getValue: (p) => p.reviewProgressData?.replyCount,
+      initialDirection: 'desc',
     },
     {
       label: 'Number of Reviewers Assigned',
       value: 'Number of Reviewers Assigned',
       getValue: (p) => p.reviewProgressData?.numReviewersAssigned,
+      initialDirection: 'desc',
     },
     {
       label: 'Number of Reviews Submitted',
       value: 'Number of Reviews Submitted',
       getValue: (p) => p.reviewProgressData?.numReviewsDone,
+      initialDirection: 'desc',
     },
     {
       label: 'Number of Reviews Missing',
@@ -183,7 +186,9 @@ const PaperStatusMenuBar = ({
       getValue: (p) =>
         getValueWithDefault(p.reviewProgressData?.numReviewersAssigned) -
         getValueWithDefault(p.reviewProgressData?.numReviewsDone),
+      initialDirection: 'desc',
     },
+
     {
       label: 'Average Rating',
       value: 'Average Rating',
@@ -234,6 +239,7 @@ const PaperStatusMenuBar = ({
       getValue: (p) =>
         getValueWithDefault(p.metaReviewData?.areaChairs?.length) -
         getValueWithDefault(p.metaReviewData?.metaReviews?.length),
+      initialDirection: 'desc',
     },
     {
       label: 'Decision',
