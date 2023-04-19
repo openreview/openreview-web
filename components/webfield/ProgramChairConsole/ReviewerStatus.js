@@ -14,14 +14,13 @@ import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, preferredEmail } = rowData.reviewerProfile ?? {}
   const { completedBids, reviewerProfileId } = rowData
-  const { apiVersion, reviewersId, bidName } = useContext(WebFieldContext)
+  const { reviewersId, bidName } = useContext(WebFieldContext)
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
     `tail:${id}`,
     invitations,
     reviewersId,
     bidName,
-    null,
-    apiVersion
+    null
   )
   return (
     <div className="note">
@@ -68,8 +67,6 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
 const ReviewerProgress = ({ rowData, referrerUrl }) => {
   const numPapers = rowData.notesInfo.length
   const { numCompletedReviews, notesInfo } = rowData
-  const { apiVersion } = useContext(WebFieldContext)
-  const isV2Console = apiVersion === 2
 
   return (
     <div className="review-progress">
@@ -89,7 +86,7 @@ const ReviewerProgress = ({ rowData, referrerUrl }) => {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {isV2Console ? note?.content?.title?.value : note?.content?.title}
+                  {note?.content?.title?.value}
                 </a>
 
                 {officialReview && (
@@ -180,15 +177,8 @@ const ReviewerStatusRow = ({ rowData, referrerUrl, bidEnabled, invitations }) =>
 
 const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showContent }) => {
   const [reviewerStatusTabData, setReviewerStatusTabData] = useState({})
-  const {
-    venueId,
-    seniorAreaChairsId,
-    bidName,
-    areaChairsId,
-    reviewersId,
-    shortPhrase,
-    reviewerStatusExportColumns,
-  } = useContext(WebFieldContext)
+  const { venueId, bidName, reviewersId, shortPhrase, reviewerStatusExportColumns } =
+    useContext(WebFieldContext)
   const { accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.reviewers?.length ?? 0)

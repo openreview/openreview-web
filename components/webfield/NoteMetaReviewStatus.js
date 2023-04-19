@@ -173,7 +173,6 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
 export const ProgramChairConsolePaperAreaChairProgress = ({
   rowData,
   referrerUrl,
-  isV2Console,
   areaChairAssignmentUrl,
 }) => {
   const { metaReviewData, note } = rowData
@@ -195,11 +194,8 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
         {areaChairs.length !== 0 &&
           areaChairs.map((areaChair) => {
             const metaReview = metaReviews.find((p) => p.anonId === areaChair.anonymousId)
-            const recommendation = isV2Console
-              ? metaReview?.content?.recommendation?.value
-              : metaReview?.content?.recommendation
+            const recommendation = metaReview?.content?.recommendation?.value
             const { metaReviewAgreement } = metaReview ?? {}
-
             return (
               <div key={areaChair.anonymousId} className="meta-review-info">
                 <div className="areachair-contact">
