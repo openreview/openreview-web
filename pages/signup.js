@@ -637,7 +637,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
               name="info-sign"
               extraClasses="password-tooltip"
               tooltip="Password must be between 10 and 64 characters long and contain at least one
-              uppercase letter,one lowercase letter and one digit."
+              uppercase letter, one lowercase letter and one digit."
             />
           </div>
           <div className="claim-button-row">
