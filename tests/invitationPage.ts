@@ -1,4 +1,5 @@
 import { Selector, ClientFunction, Role } from 'testcafe'
+import { strongPassword } from './utils/api-helper'
 
 const emailInput = Selector('#email-input')
 const passwordInput = Selector('#password-input')
@@ -11,7 +12,7 @@ const reviewerRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
   await t
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'reviewer_iclr@mail.com')
-    .typeText(passwordInput, '1234')
+    .typeText(passwordInput, strongPassword)
     .click(loginButton)
 })
 
@@ -19,7 +20,7 @@ const testRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => 
   await t
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'test@mail.com')
-    .typeText(passwordInput, '1234')
+    .typeText(passwordInput, strongPassword)
     .click(loginButton)
 })
 
@@ -33,7 +34,7 @@ test('guest user should be redirected to login page and be able to access the in
     .expect(getPageUrl())
     .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
     .typeText(emailInput, 'reviewer_iclr@mail.com')
-    .typeText(passwordInput, '1234')
+    .typeText(passwordInput, strongPassword)
     .click(loginButton)
     .expect(Selector('#invitation-container').exists)
     .ok()
@@ -49,7 +50,7 @@ test('guest user should be redirected to login page and get a forbidden error', 
     .expect(getPageUrl())
     .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
     .typeText(emailInput, 'test@mail.com')
-    .typeText(passwordInput, '1234')
+    .typeText(passwordInput, strongPassword)
     .click(loginButton)
     .expect(content.exists)
     .ok()
