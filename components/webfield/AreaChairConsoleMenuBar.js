@@ -145,11 +145,8 @@ const AreaChairConsoleMenuBar = ({
     {
       label: 'Meta Review Recommendation',
       value: 'Meta Review Recommendation',
-      getValue: (p) => {
-        return p.metaReviewData?.recommendation === 'N/A'
-          ? null
-          : p.metaReviewData?.recommendation
-      },
+      getValue: (p) =>
+        p.metaReviewData?.recommendation === 'N/A' ? null : p.metaReviewData?.recommendation,
     },
   ]
   const basicSearchFunction = (row, term) => {

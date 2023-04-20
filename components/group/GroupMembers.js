@@ -510,6 +510,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       ? 'You are removing yourself and may lose access to this group if you continue.'
       : ''
     if (
+      // eslint-disable-next-line no-alert
       !window.confirm(
         `Are you sure you want to remove ${membersToRemove.length} members from ${groupName}? ${additionalWarning}`
       )
