@@ -22,9 +22,10 @@ import {
   prettyList,
   inflect,
 } from '../../lib/utils'
-import { filterCollections, filterHasReplyTo } from '../../lib/webfield-utils'
+import { filterHasReplyTo } from '../../lib/webfield-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
+import LoadingSpinner from '../LoadingSpinner'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -513,6 +514,7 @@ const AreaChairConsole = ({ appContext }) => {
   }
 
   const renderTable = () => {
+    if (!acConsoleData.tableRowsAll) return <LoadingSpinner />
     if (acConsoleData.tableRowsAll?.length === 0)
       return (
         <p className="empty-message">
@@ -635,7 +637,6 @@ const AreaChairConsole = ({ appContext }) => {
     apiVersion,
     reviewerAssignment,
     submissionInvitationId,
-    seniorAreaChairsId,
     areaChairName,
     submissionName,
     officialReviewName,
