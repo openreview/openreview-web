@@ -361,8 +361,7 @@ export const AcPcConsoleNoteReviewStatus = ({
         <strong>Number of Forum replies:</strong> {replyCount}
       </span>
       {paperManualReviewerAssignmentUrl && (
-        <div>
-          <br />
+        <div className="mt-3">
           <a
             href={`${paperManualReviewerAssignmentUrl}&referrer=${referrerUrl}`}
             target="_blank"

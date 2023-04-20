@@ -676,7 +676,7 @@ const DescriptionTimelineOtherConfigRow = ({
     ) {
       return `${assignmentUrls[role].manualAssignmentUrl}&referrer=${referrerUrl}`
     }
-    return `${`/assignments?group=${venueId}/${role}`}&referrer=${referrerUrl}`
+    return `/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`
   }
 
   const timelineInvitations = [
@@ -820,14 +820,22 @@ const DescriptionTimelineOtherConfigRow = ({
           {areaChairsId &&
             acRoles.map((role) => (
               <li className="overview-timeline" key={role}>
-                <a href={getAssignmentLink(role)}>{`${prettyId(role)} Paper Assignment`}</a>{' '}
+                <a
+                  href={getAssignmentLink(role)}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >{`${prettyId(role)} Paper Assignment`}</a>{' '}
                 open until Reviewing starts
               </li>
             ))}
           {reviewerRoles.map((role) => (
             <li className="overview-timeline" key={role}>
-              <a href={getAssignmentLink(role)}>{`${prettyId(role)} Paper Assignment`}</a> open
-              until Reviewing starts
+              <a
+                href={getAssignmentLink(role)}
+                target="_blank"
+                rel="noreferrer noopener"
+              >{`${prettyId(role)} Paper Assignment`}</a>{' '}
+              open until Reviewing starts
             </li>
           ))}
         </div>

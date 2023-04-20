@@ -256,8 +256,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
       )}
 
       {paperManualAreaChairAssignmentUrl && (
-        <div>
-          <br />
+        <div className="mt-3">
           <a
             href={`${paperManualAreaChairAssignmentUrl}&referrer=${referrerUrl}`}
             target="_blank"
