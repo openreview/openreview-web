@@ -8,6 +8,8 @@ import {
   getMessages,
   getNotes,
   getReferences,
+  superUserName,
+  strongPassword,
 } from './utils/api-helper'
 
 const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
@@ -57,7 +59,7 @@ const linkedinUrlInput = Selector('input#linkedin_url')
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
-  ctx.superUserToken = await getToken('openreview.net', '1234')
+  ctx.superUserToken = await getToken(superUserName, strongPassword)
   return ctx
 })
 

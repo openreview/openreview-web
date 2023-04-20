@@ -1,6 +1,6 @@
 import fetch from 'node-fetch-cjs'
 import { Selector, ClientFunction, Role } from 'testcafe'
-import { getToken, getNotes } from './utils/api-helper'
+import { getToken, getNotes, superUserName, strongPassword } from './utils/api-helper'
 
 const titleLabel = Selector('.note_content_title span')
 const authorLabel = Selector('.meta_row a')
@@ -19,7 +19,7 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
   await t
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'test@mail.com')
-    .typeText(passwordInput, '1234')
+    .typeText(passwordInput, strongPassword)
     .click(loginButton)
 })
 
@@ -27,7 +27,7 @@ const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =
   await t
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'a@a.com')
-    .typeText(passwordInput, '1234')
+    .typeText(passwordInput, strongPassword)
     .click(loginButton)
 })
 
@@ -35,12 +35,12 @@ const superUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t
   await t
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'openreview.net')
-    .typeText(passwordInput, '1234')
+    .typeText(passwordInput, strongPassword)
     .click(loginButton)
 })
 
 fixture`Forum page`.page`http://localhost:${process.env.NEXT_PORT}`.before(async (ctx) => {
-  ctx.superUserToken = await getToken('openreview.net', '1234')
+  ctx.superUserToken = await getToken(superUserName, strongPassword)
   return ctx
 })
 
@@ -110,7 +110,7 @@ test('get a forbidden error for a guest user', async (t) => {
     .expect(getPageUrl())
     .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
     .typeText(emailInput, 'test@mail.com')
-    .typeText(passwordInput, '1234')
+    .typeText(passwordInput, strongPassword)
     .click(loginButton)
     .expect(Selector('#content').exists)
     .ok()

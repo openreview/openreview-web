@@ -1,5 +1,5 @@
 import { Selector } from 'testcafe'
-import { getToken, getMessages } from './utils/api-helper'
+import { getToken, getMessages, superUserName, strongPassword } from './utils/api-helper'
 
 const feedbackLink = Selector('a').withAttribute('data-target', '#feedback-modal').nth(0)
 const feedbackModal = Selector('#feedback-modal')
@@ -11,7 +11,7 @@ const alertPanel = Selector('#feedback-modal .alert-danger')
 const textPanel = Selector('#feedback-modal p')
 
 fixture`Feedback Modal`.page`http://localhost:${process.env.NEXT_PORT}`.before(async (ctx) => {
-  ctx.superUserToken = await getToken('openreview.net', '1234')
+  ctx.superUserToken = await getToken(superUserName, strongPassword)
   return ctx
 })
 

@@ -24,7 +24,6 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     header,
     entity: group,
     venueId,
-    apiVersion,
     assignmentInvitation,
     assignmentLabel,
     submissionId,
@@ -65,10 +64,10 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               {
                 invitation: submissionId,
                 details: 'replies',
-                select: 'id,number,forum,content,details,invitations,invitation,readers',
+                select: 'id,number,forum,content,details,invitations,readers',
                 sort: 'number:asc',
               },
-              { accessToken, version: apiVersion }
+              { accessToken, version: 2 }
             )
             .then((notes) =>
               notes.filter(
@@ -144,7 +143,6 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           if (p.members.length) anonAreaChairGroups[number][p.members[0]] = p.id
         } else if (p.id.endsWith(seniorAreaChairName)) {
           seniorAreaChairGroups.push(p)
-          // allGroupMembers = allGroupMembers.concat(p.members)
         }
       })
 
@@ -228,11 +226,10 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       )
 
       const assignedNotes = notes.flatMap((p) =>
-        assignedNoteNumbers.includes(p.number) ? { ...p, version: apiVersion } : []
+        assignedNoteNumbers.includes(p.number) ? p : []
       )
-      const isV2Console = apiVersion === 2
+
       setSacConsoleData({
-        isV2Console,
         isSacConsole: true,
         assignedAreaChairIds,
         areaChairGroups,
@@ -246,25 +243,17 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             note.details.replies
               .filter((p) => {
                 const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
-                return isV2Console
-                  ? p.invitations.includes(officialReviewInvitationId)
-                  : p.invitation === officialReviewInvitationId
+                return p.invitations.includes(officialReviewInvitationId)
               })
               ?.map((review) => {
-                const reviewRatingValue = isV2Console
-                  ? review.content[reviewRatingName]?.value
-                  : review.content[reviewRatingName]
+                const reviewRatingValue = review.content[reviewRatingName]?.value
                 const ratingNumber = reviewRatingValue
                   ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
                   : null
-                const confidenceValue = isV2Console
-                  ? review.content[reviewConfidenceName]?.value
-                  : review.content[reviewConfidenceName]
+                const confidenceValue = review.content[reviewConfidenceName]?.value
 
                 const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
-                const reviewValue = isV2Console
-                  ? review.content.review?.value
-                  : review.content.review
+                const reviewValue = review.content.review?.value
                 return {
                   ...review,
                   anonymousId: getIndentifierFromGroup(review.signatures[0], anonReviewerName),
@@ -300,17 +289,13 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             ? customStageInvitations.map((p) => `/-/${p.name}`)
             : []
           const customStageReviews = note.details.replies.filter((p) =>
-            isV2Console
-              ? p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
-              : customStageInvitationIds.includes(p.invitation)
+            p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
           )
 
           const metaReviews = note.details.replies
             .filter((p) => {
               const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
-              return isV2Console
-                ? p.invitations.includes(officialMetaReviewInvitationId)
-                : p.invitation === officialMetaReviewInvitationId
+              return p.invitations.includes(officialMetaReviewInvitationId)
             })
             ?.map((metaReview) => ({
               ...metaReview,
@@ -328,9 +313,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               const metaReviewAgreementValue =
                 metaReviewAgreement?.content?.[metaReviewAgreementConfig?.displayField]?.value
               return {
-                [recommendationName]: isV2Console
-                  ? metaReview?.content[recommendationName]?.value
-                  : metaReview?.content[recommendationName],
+                [recommendationName]: metaReview?.content[recommendationName]?.value,
                 ...metaReview,
                 metaReviewAgreement: metaReviewAgreement
                   ? {
@@ -351,16 +334,11 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           let decision = 'No Decision'
 
           const decisionNote = note.details.replies.find((p) =>
-            isV2Console
-              ? p.invitations.includes(decisionInvitationId)
-              : p.invitation === decisionInvitationId
+            p.invitations.includes(decisionInvitationId)
           )
 
           // eslint-disable-next-line prefer-destructuring
-          if (decisionNote?.content?.decision)
-            decision = isV2Console
-              ? decisionNote.content.decision?.value
-              : decisionNote.content.decision
+          if (decisionNote?.content?.decision) decision = decisionNote.content.decision?.value
           return {
             noteNumber: note.number,
             note,
@@ -448,7 +426,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   }, [user, userLoading])
 
   useEffect(() => {
-    if (userLoading || !user || !group || !venueId || !apiVersion) return
+    if (userLoading || !user || !group || !venueId) return
     loadData()
   }, [user, userLoading, group])
 
@@ -461,7 +439,6 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     header,
     entity: group,
     venueId,
-    apiVersion,
   })
     .filter(([key, value]) => value === undefined)
     .map((p) => p[0])
