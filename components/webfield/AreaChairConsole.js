@@ -90,6 +90,7 @@ const AssignedPaperRow = ({
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
+          isACConsole={true}
         />
       </td>
       <td>
