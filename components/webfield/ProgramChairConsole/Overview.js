@@ -642,6 +642,7 @@ const DescriptionTimelineOtherConfigRow = ({
     recommendationName,
     recruitmentName = 'Recruitment',
     customStageInvitations = [],
+    assignmentUrls,
   } = useContext(WebFieldContext)
 
   const { requestForm, registrationForms, invitations } = pcConsoleData
@@ -666,6 +667,16 @@ const DescriptionTimelineOtherConfigRow = ({
       ? invitation.edit.invitation[type]
       : invitation[type]
     return rawDate ? formatDateTime(rawDate, dateFormatOption) : null
+  }
+
+  const getAssignmentLink = (role) => {
+    if (
+      assignmentUrls?.[role]?.automaticAssignment === false &&
+      assignmentUrls?.[role]?.manualAssignmentUrl
+    ) {
+      return `${assignmentUrls[role].manualAssignmentUrl}&referrer=${referrerUrl}`
+    }
+    return `/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`
   }
 
   const timelineInvitations = [
@@ -807,25 +818,23 @@ const DescriptionTimelineOtherConfigRow = ({
               )
             })}
           {areaChairsId &&
-            acRoles.map((role) => {
-              const assignmentConfig = invitations.find(
-                (p) => p.id === `${venueId}/${role}/-/Assignment_Configuration`
-              )
-              if (!assignmentConfig) return null
-              return (
-                <li className="overview-timeline" key={assignmentConfig.id}>
-                  <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
-                    {`${prettyId(role)} Paper Assignment`}
-                  </a>{' '}
-                  open until Reviewing starts
-                </li>
-              )
-            })}
+            acRoles.map((role) => (
+              <li className="overview-timeline" key={role}>
+                <a
+                  href={getAssignmentLink(role)}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >{`${prettyId(role)} Paper Assignment`}</a>{' '}
+                open until Reviewing starts
+              </li>
+            ))}
           {reviewerRoles.map((role) => (
             <li className="overview-timeline" key={role}>
-              <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
-                {`${prettyId(role)} Paper Assignment`}
-              </a>{' '}
+              <a
+                href={getAssignmentLink(role)}
+                target="_blank"
+                rel="noreferrer noopener"
+              >{`${prettyId(role)} Paper Assignment`}</a>{' '}
               open until Reviewing starts
             </li>
           ))}
