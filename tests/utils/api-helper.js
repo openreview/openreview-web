@@ -10,6 +10,7 @@ api.configure({ fetchFn: fetch })
 
 // #region exported constants
 export const superUserName = 'openreview.net'
+export const strongPassword = 'Or$3cur3P@ssw0rd'
 export const baseGroupId = 'TestVenue'
 export const subGroupId = 'TestVenue/2020'
 export const conferenceGroupId = 'TestVenue/2020/Conference'
@@ -19,21 +20,21 @@ export const hasTaskUser = {
   first: 'FirstA',
   last: 'LastA',
   email: 'a@a.com',
-  password: '1234',
+  password: strongPassword,
   tildeId: '~FirstA_LastA1',
 }
 export const hasNoTaskUser = {
   first: 'FirstB',
   last: 'LastB',
   email: 'b@b.com',
-  password: '1234',
+  password: strongPassword,
   tildeId: '~FirstB_LastB1',
 }
 export const inactiveUser = {
   first: 'FirstC',
   last: 'LastC',
   email: 'c@c.com',
-  password: '1234',
+  password: strongPassword,
   activate: false,
 }
 export const inActiveUserNoPassword = {
@@ -158,7 +159,7 @@ export function sendFile(data, userToken) {
   return api.put('/attachment', data, { accessToken: userToken, contentType: 'unset' })
 }
 
-export function getToken(id = superUserName, password = '1234') {
+export function getToken(id, password) {
   return api.post('/login', { id, password }).then((apiRes) => apiRes.token)
 }
 
