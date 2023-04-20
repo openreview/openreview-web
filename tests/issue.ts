@@ -1,4 +1,5 @@
 import { Selector, ClientFunction } from 'testcafe'
+import { strongPassword } from './utils/api-helper'
 
 const openreviewLogo = Selector('a.navbar-brand')
 const loginLink = Selector('a').withText('Login')
@@ -16,7 +17,7 @@ test('user not redirected to group page', async (t) => {
     .click(openreviewLogo)
     .click(loginLink)
     .typeText('#email-input', 'test@mail.com')
-    .typeText('#password-input', '1234')
+    .typeText('#password-input', strongPassword)
     .click(loginButton)
     .expect(getLocation())
     .eql(`${homepageUrl}/`)
@@ -38,7 +39,7 @@ routesToSkipRedirection.forEach((route) => {
       .navigateTo(`${homepageUrl}${route}`)
       .click(loginLink)
       .typeText('#email-input', 'test@mail.com')
-      .typeText('#password-input', '1234')
+      .typeText('#password-input', strongPassword)
       .click(loginButton)
       .expect(getLocation())
       .eql(`${homepageUrl}/`)

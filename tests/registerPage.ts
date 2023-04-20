@@ -5,6 +5,8 @@ import {
   inActiveUserNoPasswordNoEmail,
   getToken,
   getMessages,
+  superUserName,
+  strongPassword,
 } from './utils/api-helper'
 
 const firstNameInputSelector = Selector('#first-input')
@@ -26,7 +28,7 @@ const messageSelector = Selector('span').withAttribute('class', 'important_messa
 const messagePanelSelector = Selector('#flash-message-container')
 
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
-  ctx.superUserToken = await getToken('openreview.net', '1234')
+  ctx.superUserToken = await getToken(superUserName, strongPassword)
   return ctx
 })
 
@@ -42,8 +44,8 @@ test('create new profile', async (t) => {
     .ok()
     .expect(confirmPasswordInputSelector.exists)
     .ok()
-    .typeText(newPasswordInputSelector, '1234')
-    .typeText(confirmPasswordInputSelector, '1234')
+    .typeText(newPasswordInputSelector, strongPassword)
+    .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
     .expect(Selector('.modal-title').withText('Confirm Full Name').exists)
     .ok()
@@ -93,8 +95,8 @@ test('enter valid name invalid email and change to valid email and register', as
     .ok()
     .expect(confirmPasswordInputSelector.exists)
     .ok()
-    .typeText(newPasswordInputSelector, '1234')
-    .typeText(confirmPasswordInputSelector, '1234')
+    .typeText(newPasswordInputSelector, strongPassword)
+    .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
@@ -106,7 +108,7 @@ test('enter valid name invalid email and change to valid email and register', as
 
 fixture`Resend Activation link`.page`http://localhost:${process.env.NEXT_PORT}/login`.before(
   async (ctx) => {
-    ctx.superUserToken = await getToken('openreview.net', '1234')
+    ctx.superUserToken = await getToken(superUserName, strongPassword)
     return ctx
   }
 )
@@ -260,7 +262,7 @@ test('try to activate a profile with invalid token and get an error', async (t) 
 
 fixture`Reset password`.page`http://localhost:${process.env.NEXT_PORT}/reset`.before(
   async (ctx) => {
-    ctx.superUserToken = await getToken('openreview.net', '1234')
+    ctx.superUserToken = await getToken(superUserName, strongPassword)
     return ctx
   }
 )
@@ -286,7 +288,7 @@ test('reset password of active profile', async (t) => {
 
 fixture`Edit profile`.page`http://localhost:${process.env.NEXT_PORT}/login`.before(
   async (ctx) => {
-    ctx.superUserToken = await getToken('openreview.net', '1234')
+    ctx.superUserToken = await getToken(superUserName, strongPassword)
     return ctx
   }
 )
@@ -295,7 +297,7 @@ test('add alternate email', async (t) => {
   const getPageUrl = ClientFunction(() => window.location.href.toString())
   await t
     .typeText(Selector('#email-input'), 'melisa@test.com')
-    .typeText(Selector('#password-input'), '1234')
+    .typeText(Selector('#password-input'), strongPassword)
     .click(Selector('button').withText('Login to OpenReview'))
     .expect(getPageUrl())
     .contains('http://localhost:3030', { timeout: 10000 })
