@@ -17,7 +17,7 @@ const RejectedWithdrawnPaperRow = ({ rowData, referrerUrl }) => {
         <strong>{number}</strong>
       </td>
       <td>
-        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={note.version === 2} />
+        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={true} />
       </td>
       <td>
         <strong className="note-number">{reason}</strong>
@@ -28,16 +28,8 @@ const RejectedWithdrawnPaperRow = ({ rowData, referrerUrl }) => {
 
 const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
   const [rejectedPaperTabData, setRejectedPaperTabData] = useState({})
-  const {
-    withdrawnSubmissionId,
-    deskRejectedSubmissionId,
-    withdrawnVenueId,
-    deskRejectedVenueId,
-    shortPhrase,
-    enableQuerySearch,
-    venueId,
-    apiVersion,
-  } = useContext(WebFieldContext)
+  const { withdrawnVenueId, deskRejectedVenueId, shortPhrase, enableQuerySearch, venueId } =
+    useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const { accessToken } = useUser()
@@ -51,14 +43,12 @@ const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
       .map((p) => ({
         number: p.number,
         note: p,
-        originalNote: p.details?.original,
         reason: 'Desk Rejected',
       }))
       .concat(
         withdrawnNotes.map((p) => ({
           number: p.number,
           note: p,
-          originalNote: p.details?.original,
           reason: 'Withdrawn',
         }))
       )
@@ -67,21 +57,13 @@ const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
     Promise.all(
       ids.map((id) => {
         if (!id) return Promise.resolve([])
-
-        const params =
-          apiVersion === 2
-            ? { 'content.venueid': id }
-            : { invitation: id, details: 'original' }
-        return api.getAll('/notes', params, { accessToken, version: apiVersion })
+        return api.getAll('/notes', { 'content.venueid': id }, { accessToken, version: 2 })
       })
     )
 
   const loadRejectedWithdrawnPapers = async () => {
     try {
-      const results =
-        apiVersion === 2
-          ? await loadAllNotes([deskRejectedVenueId, withdrawnVenueId])
-          : await loadAllNotes([deskRejectedSubmissionId, withdrawnSubmissionId])
+      const results = await loadAllNotes([deskRejectedVenueId, withdrawnVenueId])
       const tableRows = formatTableRows(results[0], results[1])
       setRejectedPaperTabData({
         tableRowsAll: tableRows,

@@ -2,7 +2,7 @@
 
 // modified from noteMetaReviewStatus.hbs handlebar template
 import { useContext, useEffect, useState } from 'react'
-import { inflect, prettyId } from '../../lib/utils'
+import { inflect } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
@@ -170,19 +170,14 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
 }
 
 // modified from noteAreaChairs.hbs handlebar template pc console->paper status tab->status column
-export const ProgramChairConsolePaperAreaChairProgress = ({
-  metaReviewData,
-  referrerUrl,
-  isV2Console,
-}) => {
+export const ProgramChairConsolePaperAreaChairProgress = ({ metaReviewData, referrerUrl }) => {
   const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs } = metaReviewData
   return (
     <div className="areachair-progress">
-      <h4 className="title">{`${inflect(
-        numMetaReviewsDone,
+      <h4 className="title">{`${numMetaReviewsDone} of ${areaChairs.length} ${inflect(
+        areaChairs.length,
         'Meta Review',
-        'Meta Reviews',
-        true
+        'Meta Reviews'
       )} Submitted`}</h4>
 
       <strong>Area Chair:</strong>
@@ -190,11 +185,8 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
         {areaChairs.length !== 0 &&
           areaChairs.map((areaChair) => {
             const metaReview = metaReviews.find((p) => p.anonId === areaChair.anonymousId)
-            const recommendation = isV2Console
-              ? metaReview?.content?.recommendation?.value
-              : metaReview?.content?.recommendation
+            const recommendation = metaReview?.content?.recommendation?.value
             const { metaReviewAgreement } = metaReview ?? {}
-
             return (
               <div key={areaChair.anonymousId} className="meta-review-info">
                 <div className="areachair-contact">

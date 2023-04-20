@@ -35,7 +35,6 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
     venueId,
     officialReviewName,
     shortPhrase,
-    apiVersion,
     submissionName,
     seniorAreaChairName,
   } = useContext(WebFieldContext)
@@ -43,14 +42,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#paper-status)`
   )
-  const noteWithAuthorRevealed = {
-    ...note,
-    content: {
-      ...note.content,
-      authors: note.details.original?.content?.authors ?? note.content.authors,
-      authorids: note.details.original?.content?.authorids ?? note.content.authorids,
-    },
-  }
+
   return (
     <tr>
       <td>
@@ -71,10 +63,10 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
       </td>
       <td>
         <NoteSummary
-          note={noteWithAuthorRevealed}
+          note={note}
           referrerUrl={referrerUrl}
           showReaders={true}
-          isV2Note={note.version === 2}
+          isV2Note={true}
         />
       </td>
       <td>
@@ -92,7 +84,6 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
           <ProgramChairConsolePaperAreaChairProgress
             metaReviewData={metaReviewData}
             referrerUrl={referrerUrl}
-            isV2Console={apiVersion === 2}
             seniorAreaChairName={seniorAreaChairName}
           />
         </td>

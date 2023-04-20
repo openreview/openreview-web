@@ -15,7 +15,7 @@ import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
   const { id, preferredName, preferredEmail } = rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
-  const { apiVersion, areaChairsId, reviewersId, bidName, scoresName, recommendationName } =
+  const { areaChairsId, reviewersId, bidName, scoresName, recommendationName } =
     useContext(WebFieldContext)
   const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
@@ -24,16 +24,14 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
     invitations,
     areaChairsId,
     bidName,
-    scoresName,
-    apiVersion
+    scoresName
   )
   const edgeBrowserRecsUrl = buildEdgeBrowserUrl(
     `signatory:${id}`,
     invitations,
     reviewersId,
     recommendationName,
-    scoresName,
-    apiVersion
+    scoresName
   )
 
   return (
@@ -127,8 +125,7 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
         {rowData.notes.map((p) => {
           const { numReviewsDone, numReviewersAssigned, ratingAvg, ratingMin, ratingMax } =
             p.reviewProgressData
-          const noteTitle =
-            p.note.version === 2 ? p.note?.content?.title?.value : p.note?.content?.title
+          const noteTitle = p.note?.content?.title?.value
           return (
             <div key={p.noteNumber}>
               <div className="note-info">
@@ -159,7 +156,7 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
 }
 
 // modified based on notesAreaChairStatus.hbs
-const NoteAreaChairStatus = ({ rowData, referrerUrl, isV2Console }) => {
+const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
@@ -170,7 +167,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl, isV2Console }) => {
       {rowData.notes.length !== 0 && <strong>Papers:</strong>}
       <div>
         {rowData.notes.map((p) => {
-          const noteContent = getNoteContent(p.note, isV2Console)
+          const noteContent = getNoteContent(p.note)
           const noteVenue = noteContent?.venue
           const metaReviews = p.metaReviewData?.metaReviews
           const hasMetaReview = metaReviews?.length
@@ -180,7 +177,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl, isV2Console }) => {
               {hasMetaReview ? (
                 <>
                   {metaReviews.map((metaReview) => {
-                    const metaReviewContent = getNoteContent(metaReview, isV2Console)
+                    const metaReviewContent = getNoteContent(metaReview)
                     return (
                       <div key={metaReview.id} className="meta-review">
                         <span>{`${
@@ -218,7 +215,6 @@ const AreaChairStatusRow = ({
   acBids,
   invitations,
   referrerUrl,
-  isV2Console,
 }) => (
   <tr>
     <td>
@@ -237,11 +233,7 @@ const AreaChairStatusRow = ({
       <NoteAreaChairProgress rowData={rowData} referrerUrl={referrerUrl} />
     </td>
     <td>
-      <NoteAreaChairStatus
-        rowData={rowData}
-        referrerUrl={referrerUrl}
-        isV2Console={isV2Console}
-      />
+      <NoteAreaChairStatus rowData={rowData} referrerUrl={referrerUrl} />
     </td>
   </tr>
 )
@@ -334,11 +326,15 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
               (p) => p.reviewers?.length && p.reviewers?.length === p.officialReviews?.length
             ).length,
             numCompletedMetaReviews:
-              notes.filter(
-                (p) =>
-                  p.metaReviewData?.numMetaReviewsDone ===
-                  p.metaReviewData?.numAreaChairsAssigned
-              ).length ?? 0,
+              notes.filter((p) => {
+                const anonIdOfAC = p.metaReviewData.areaChairs.find(
+                  (q) => q.areaChairProfileId === areaChairProfileId
+                )?.anonymousId
+                return (
+                  anonIdOfAC &&
+                  p.metaReviewData.metaReviews.find((q) => q.anonId === anonIdOfAC)
+                )
+              }).length ?? 0,
             notes,
             ...(seniorAreaChairsId && {
               seniorAreaChair: {
@@ -437,7 +433,6 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
             recommendationEnabled={recommendationEnabled}
             invitations={pcConsoleData.invitations}
             referrerUrl={referrerUrl}
-            isV2Console={pcConsoleData.isV2Console}
           />
         ))}
       </Table>
