@@ -140,8 +140,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
     <div className="areachair-console-meta-review">
       {metaReviewData[metaReviewContentField] !== 'N/A' ? (
         <>
-          {/* <h4 className="title">{`AC ${prettyField(metaReviewContentField)}:`}</h4> */}
-          <h4 className="title">AC Recommendation</h4>
+          <h4 className="title">{`AC ${prettyField(metaReviewContentField)}:`}</h4>
           <p>
             <strong>{metaReviewData[metaReviewContentField]}</strong>
           </p>
