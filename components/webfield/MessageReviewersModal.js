@@ -48,6 +48,7 @@ const MessageReviewersModal = ({
             groups: reviewerIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),
+            parentGroup: `${venueId}/${submissionName}${note.number}/Reviewers`,
           },
           { accessToken }
         )
