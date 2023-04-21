@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import LoadingSpinner from './LoadingSpinner'
 import Edit from './Edit/Edit'
+import PaginationLinks from './PaginationLinks'
 import api from '../lib/api-client'
 import { prettyId } from '../lib/utils'
 
@@ -15,6 +16,8 @@ function EmptyMessage({ id }) {
 export default function EditHistory({ group, invitation, accessToken, setError }) {
   const [edits, setEdits] = useState(null)
   const [count, setCount] = useState(null)
+  const [page, setPage] = useState(1)
+  const pageSize = 25
 
   useEffect(() => {
     const loadEdits = async () => {
@@ -27,6 +30,8 @@ export default function EditHistory({ group, invitation, accessToken, setError }
             [queryParam]: group?.id ?? invitation?.id,
             sort: 'tcdate',
             details: 'writable,presentation',
+            limit: pageSize,
+            offset: (page - 1) * pageSize,
             trash: true,
           },
           { accessToken, version: 2 }
@@ -46,7 +51,7 @@ export default function EditHistory({ group, invitation, accessToken, setError }
     }
 
     loadEdits()
-  }, [group, invitation, accessToken])
+  }, [group, invitation, accessToken, page])
 
   if (!group && !invitation) return null
 
@@ -76,6 +81,15 @@ export default function EditHistory({ group, invitation, accessToken, setError }
         )) : (
           <EmptyMessage id={group?.id ?? invitation?.id} />
         )}
+      </div>
+
+      <div className="col-xs-12">
+        <PaginationLinks
+          currentPage={page}
+          setCurrentPage={setPage}
+          itemsPerPage={pageSize}
+          totalCount={count}
+        />
       </div>
     </div>
   )
