@@ -271,7 +271,7 @@ const AreaChairConsole = ({ appContext }) => {
             {
               invitation: submissionInvitationId,
               number: noteNumbers.join(','),
-              select: 'id,number,forum,content,details,invitation',
+              select: 'id,number,forum,content,details',
               details: 'replies',
               sort: 'number:asc',
             },
