@@ -639,18 +639,6 @@ const AreaChairConsole = ({ appContext }) => {
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
 
-  const wrongTypeConfig = Object.entries({
-    metaReviewContentField,
-  })
-    .filter(([key, value]) => typeof value !== 'string')
-    .map((p) => p[0])
-  if (wrongTypeConfig.length > 0) {
-    const errorMessage = `The following config should have type string: ${wrongTypeConfig.join(
-      ', '
-    )}`
-    return <ErrorDisplay statusCode="" message={errorMessage} />
-  }
-
   return (
     <>
       <BasicHeader
