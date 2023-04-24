@@ -170,12 +170,14 @@ const ProfileSearchResults = ({
   // eslint-disable-next-line no-shadow
   const searchProfiles = async (searchTerm, pageNumber, showLoadingSpinner = true) => {
     const cleanSearchTerm = searchTerm.trim()
-    const paramKey = isValidEmail(cleanSearchTerm)
-      ? 'email'
-      : cleanSearchTerm.startsWith('~')
-      ? 'id'
-      : 'fullname'
-    const paramValue = paramKey === 'id' ? cleanSearchTerm : cleanSearchTerm.toLowerCase()
+    let paramKey = 'fullname'
+    let paramValue = cleanSearchTerm.toLowerCase()
+    if (isValidEmail(cleanSearchTerm)) {
+      paramKey = 'email'
+    } else if (cleanSearchTerm.startsWith('~')) {
+      paramKey = 'id'
+      paramValue = cleanSearchTerm
+    }
 
     if (showLoadingSpinner) setIsLoading(true)
     try {
@@ -327,8 +329,8 @@ const CustomAuthorForm = ({
     const cleanSearchTerm = searchTerm.trim()
     if (isValidEmail(cleanSearchTerm)) {
       setCustomAuthorEmail(cleanSearchTerm.toLowerCase())
-    } else {
-      if (!cleanSearchTerm.startsWith('~')) setCustomAuthorName(cleanSearchTerm)
+    } else if (!cleanSearchTerm.startsWith('~')) {
+      setCustomAuthorName(cleanSearchTerm)
     }
   }, [searchTerm])
 
