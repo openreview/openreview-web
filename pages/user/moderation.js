@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
+import dynamic from 'next/dynamic'
 import { cloneDeep } from 'lodash'
 import withAdminAuth from '../../components/withAdminAuth'
 import Icon from '../../components/Icon'
@@ -15,7 +16,6 @@ import {
   inflect,
   getProfileStateLabelClass,
 } from '../../lib/utils'
-import Dropdown from '../../components/Dropdown'
 import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
 import PaginatedList from '../../components/PaginatedList'
@@ -23,6 +23,8 @@ import Table from '../../components/Table'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import { formatProfileData } from '../../lib/profiles'
 import Markdown from '../../components/EditorComponents/Markdown'
+
+const Dropdown = dynamic(() => import('../../components/Dropdown'), { ssr: false })
 
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
@@ -873,11 +875,13 @@ const UserModerationQueue = ({
     label: `${p} items`,
     value: p,
   }))
+  const [profileStateOption, setProfileStateOption] = useState('All')
+  const profileStateOptions = ['All', 'Active Automatic'].map((p) => ({ label: p, value: p }))
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
     const cleanSearchTerm = filters.term?.trim()
-    const shouldSearchProfile = cleanSearchTerm
+    const shouldSearchProfile = profileStateOption === 'All' && cleanSearchTerm
     let searchQuery = { fullname: cleanSearchTerm?.toLowerCase() }
     if (cleanSearchTerm?.startsWith('~')) searchQuery = { id: cleanSearchTerm }
     if (cleanSearchTerm?.includes('@')) searchQuery = { email: cleanSearchTerm.toLowerCase() }
@@ -895,6 +899,7 @@ const UserModerationQueue = ({
           ...(!onlyModeration && { trash: true }),
           ...(shouldSearchProfile && { es: true }),
           ...(shouldSearchProfile && searchQuery),
+          ...(profileStateOption !== 'All' && { state: profileStateOption }),
         },
         { accessToken, cachePolicy: 'no-cache' }
       )
@@ -919,6 +924,7 @@ const UserModerationQueue = ({
     })
 
     setPageNumber(1)
+    if (profileStateOption !== 'All') setProfileStateOption('All')
     setFilters(newFilters)
   }
 
@@ -1041,7 +1047,7 @@ const UserModerationQueue = ({
 
   useEffect(() => {
     getProfiles()
-  }, [pageNumber, filters, shouldReload, descOrder, pageSize])
+  }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
 
   useEffect(() => {
     if (profileToPreview) $('#profile-preview').modal('show')
@@ -1061,6 +1067,13 @@ const UserModerationQueue = ({
       {!onlyModeration && (
         <form className="filter-form well mt-3" onSubmit={filterProfiles}>
           <input type="text" name="term" className="form-control input-sm" />
+          <Dropdown
+            className="dropdown-select dropdown-profile-state dropdown-sm"
+            options={profileStateOptions}
+            placeholder="Select profile state"
+            value={profileStateOptions.find((option) => option.value === profileStateOption)}
+            onChange={(e) => setProfileStateOption(e.value)}
+          />
           <button type="submit" className="btn btn-xs">
             Search
           </button>
