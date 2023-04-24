@@ -41,6 +41,7 @@ const FileUploadWidget = () => {
       if (result.url) {
         // upload is completed
         onChange({ fieldName, value: result.url })
+        setUploadPercentage(2)
       } else {
         setUploadPercentage(
           (

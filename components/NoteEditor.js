@@ -65,7 +65,7 @@ const EditSignatures = ({
       ...existingLoadingState,
       editSignatures: loading,
     }))
-    setNoteEditorData({ fieldName: 'editSignatureInputValues', value })
+    if (value) setNoteEditorData({ fieldName: 'editSignatureInputValues', value })
   }
 
   const onError = (errorMessage) => {

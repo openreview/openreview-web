@@ -8,6 +8,7 @@
 
 .selectedAuthors {
   display: flex;
+  flex-wrap: wrap;
 
   .selectedAuthor {
     margin-bottom: 0.25rem;

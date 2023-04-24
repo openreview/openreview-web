@@ -169,14 +169,20 @@ const ProfileSearchResults = ({
 
   // eslint-disable-next-line no-shadow
   const searchProfiles = async (searchTerm, pageNumber, showLoadingSpinner = true) => {
-    const cleanSearchTerm = searchTerm.trim().toLowerCase()
-    const isEmail = isValidEmail(cleanSearchTerm)
+    const cleanSearchTerm = searchTerm.trim()
+    const paramKey = isValidEmail(cleanSearchTerm)
+      ? 'email'
+      : cleanSearchTerm.startsWith('~')
+      ? 'id'
+      : 'fullname'
+    const paramValue = paramKey === 'id' ? cleanSearchTerm : cleanSearchTerm.toLowerCase()
+
     if (showLoadingSpinner) setIsLoading(true)
     try {
       const results = await api.get(
         '/profiles/search',
         {
-          ...(isEmail ? { email: cleanSearchTerm } : { fullname: cleanSearchTerm }),
+          [paramKey]: paramValue,
           es: true,
           limit: pageSize,
           offset: pageSize * (pageNumber - 1),
@@ -322,7 +328,7 @@ const CustomAuthorForm = ({
     if (isValidEmail(cleanSearchTerm)) {
       setCustomAuthorEmail(cleanSearchTerm.toLowerCase())
     } else {
-      setCustomAuthorName(cleanSearchTerm)
+      if (!cleanSearchTerm.startsWith('~')) setCustomAuthorName(cleanSearchTerm)
     }
   }, [searchTerm])
 
