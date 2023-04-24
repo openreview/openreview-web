@@ -50,7 +50,7 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
     : (p) => p.invitation === decisionInvitationId
   const decision = note.details?.directReplies?.find(decisionLookupFn)
   const decisionContent = isV2Note
-    ? decision?.content?.recommendation?.value
+    ? decision?.content?.decision?.value
     : decision?.content?.decision
   const isAcceptedPaper = isV2Note
     ? note.content?.venue?.value?.toLowerCase()?.includes('accept')
