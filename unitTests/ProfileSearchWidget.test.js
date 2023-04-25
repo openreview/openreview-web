@@ -291,6 +291,40 @@ describe('ProfileSearchWidget', () => {
     )
   })
 
+  test('search by id keyword if user input is tilde id', async () => {
+    const getProfile = jest.fn(() => Promise.resolve([]))
+    api.post = jest.fn(() => Promise.resolve([]))
+    api.get = getProfile
+    const providerProps = {
+      value: {
+        field: {
+          ['authorid']: {
+            value: {
+              param: {
+                type: 'group[]',
+              },
+            },
+          },
+        },
+        value: [{ authorId: '~test_id1' }],
+        onChange: jest.fn(),
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      '   ~Test_User1   '
+    )
+    await userEvent.click(screen.getByText('Search'))
+    expect(getProfile).toBeCalledWith(
+      '/profiles/search',
+      { id: '~Test_User1', es: true, limit: 15, offset: 0 },
+      expect.anything()
+    )
+  })
+
   test('call update when an author is added', async () => {
     const initialGetProfile = jest.fn(() =>
       Promise.resolve({
