@@ -1,8 +1,10 @@
 import { useContext } from 'react'
+import { camelCase } from 'lodash'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import MessageReviewersModal from '../MessageReviewersModal'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
+import { prettyId } from '../../../lib/utils'
 
 const PaperStatusMenuBar = ({
   tableRowsAll,
@@ -15,23 +17,18 @@ const PaperStatusMenuBar = ({
     recommendationName,
     shortPhrase,
     enableQuerySearch,
-    exportColumns: exportColumnsConfig,
+    seniorAreaChairsId,
+    paperStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
+    customStageInvitations = [],
   } = useContext(WebFieldContext)
-  const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '=']
+  const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['note.number'],
     id: ['note.id'],
     title: ['note.content.title', 'note.content.title.value'],
-    author: [
-      'note.content.authors',
-      'note.content.authorids',
-      'note.content.authors.value',
-      'note.content.authorids.value',
-      'note.details.original.content.authors',
-      'note.details.original.content.authorids',
-    ],
+    author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords', 'note.content.keywords.value'],
     reviewer: ['reviewers'],
     numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
@@ -44,12 +41,18 @@ const PaperStatusMenuBar = ({
     confidenceMin: ['reviewProgressData.confidenceMin'],
     replyCount: ['reviewProgressData.replyCount'],
     decision: ['decision'],
-    ...(apiVersion === 2 && {
-      venue: ['venue'],
-    }),
+    venue: ['venue'],
     ...(recommendationName && {
-      [recommendationName]: [`metaReviewData.metaReviews.${recommendationName}`],
+      [recommendationName]: ['metaReviewData.metaReviewsSearchValue'],
     }),
+    ...(customStageInvitations?.length > 0 &&
+      customStageInvitations.reduce(
+        (prev, curr) => ({
+          ...prev,
+          [camelCase(curr.name)]: [`metaReviewData.metaReviewAgreementSearchValue`],
+        }),
+        {}
+      )),
   }
   const messageReviewerOptions = [
     { label: 'All Reviewers of selected papers', value: 'allReviewers' },
@@ -64,13 +67,11 @@ const PaperStatusMenuBar = ({
     { header: 'forum', getValue: (p) => `https://openreview.net/forum?id=${p.note?.forum}` },
     {
       header: 'title',
-      getValue: (p, isV2Note) =>
-        isV2Note ? p.note?.content?.title?.value : p.note?.content?.title,
+      getValue: (p) => p.note?.content?.title?.value,
     },
     {
       header: 'abstract',
-      getValue: (p, isV2Note) =>
-        isV2Note ? p.note?.content?.abstract?.value : p.note?.content?.abstract,
+      getValue: (p) => p.note?.content?.abstract?.value,
     },
     { header: 'num reviewers', getValue: (p) => p.reviewProgressData?.numReviewersAssigned },
     {
@@ -101,6 +102,13 @@ const PaperStatusMenuBar = ({
       getValue: (p) => p.metaReviewData?.numAreaChairsAssigned,
     },
     {
+      header: 'area chairs contact info',
+      getValue: (p) =>
+        p.metaReviewData?.areaChairs
+          ?.map((q) => `${q.preferredName}<${q.preferredEmail}>`)
+          .join(','),
+    },
+    {
       header: 'num submitted area chairs',
       getValue: (p) => p.metaReviewData?.numMetaReviewsDone,
     },
@@ -109,6 +117,24 @@ const PaperStatusMenuBar = ({
       getValue: (p) =>
         p.metaReviewData?.metaReviews?.map((q) => q[recommendationName])?.join('|'),
     },
+    ...(seniorAreaChairsId
+      ? [
+          {
+            header: 'senior area chairs',
+            getValue: (p) =>
+              p.metaReviewData?.seniorAreaChairs?.map((q) => q.preferredName).join('|'),
+          },
+        ]
+      : []),
+    ...(customStageInvitations?.length > 0
+      ? customStageInvitations.map((invitation) => ({
+          header: prettyId(invitation.name),
+          getValue: (p) =>
+            p.metaReviewData?.metaReviews
+              ?.map((q) => q.metaReviewAgreement?.searchValue)
+              .join('|'),
+        }))
+      : []),
     ...(exportColumnsConfig ?? []),
   ]
 
@@ -129,16 +155,19 @@ const PaperStatusMenuBar = ({
       label: 'Number of Forum Replies',
       value: 'Number of Forum Replies',
       getValue: (p) => p.reviewProgressData?.replyCount,
+      initialDirection: 'desc',
     },
     {
       label: 'Number of Reviewers Assigned',
       value: 'Number of Reviewers Assigned',
       getValue: (p) => p.reviewProgressData?.numReviewersAssigned,
+      initialDirection: 'desc',
     },
     {
       label: 'Number of Reviews Submitted',
       value: 'Number of Reviews Submitted',
       getValue: (p) => p.reviewProgressData?.numReviewsDone,
+      initialDirection: 'desc',
     },
     {
       label: 'Number of Reviews Missing',
@@ -146,7 +175,9 @@ const PaperStatusMenuBar = ({
       getValue: (p) =>
         getValueWithDefault(p.reviewProgressData?.numReviewersAssigned) -
         getValueWithDefault(p.reviewProgressData?.numReviewsDone),
+      initialDirection: 'desc',
     },
+
     {
       label: 'Average Rating',
       value: 'Average Rating',
@@ -197,6 +228,7 @@ const PaperStatusMenuBar = ({
       getValue: (p) =>
         getValueWithDefault(p.metaReviewData?.areaChairs?.length) -
         getValueWithDefault(p.metaReviewData?.metaReviews?.length),
+      initialDirection: 'desc',
     },
     {
       label: 'Decision',
@@ -213,14 +245,9 @@ const PaperStatusMenuBar = ({
         ]
       : []),
   ]
-  const basicSearchFunction = (row, term) => {
-    const noteTitle =
-      row.note.version === 2 ? row.note.content?.title?.value : row.note.content?.title
-    return (
-      row.note.number == term || // eslint-disable-line eqeqeq
-      noteTitle.toLowerCase().includes(term)
-    )
-  }
+  const basicSearchFunction = (row, term) =>
+    row.note.number == term || // eslint-disable-line eqeqeq
+    row.note.content?.title?.value?.toLowerCase()?.includes(term)
   return (
     <BaseMenuBar
       tableRowsAll={tableRowsAll}

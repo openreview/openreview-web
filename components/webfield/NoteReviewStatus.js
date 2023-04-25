@@ -43,7 +43,13 @@ export const ReviewerConsoleNoteReviewStatus = ({
   </div>
 )
 
-const AcPcConsoleReviewerActivityModal = ({ note, reviewer, venueId, submissionName }) => {
+const AcPcConsoleReviewerActivityModal = ({
+  note,
+  reviewer,
+  venueId,
+  submissionName,
+  isACConsole,
+}) => {
   const { accessToken } = useUser()
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -57,7 +63,7 @@ const AcPcConsoleReviewerActivityModal = ({ note, reviewer, venueId, submissionN
         {
           signature: `${venueId}/${submissionName}${note.number}/Reviewer_${reviewer.anonymousId}`,
         },
-        { accessToken, version: note.version }
+        { accessToken, version: isACConsole ? note.version : 2 }
       )
       setActivityNotes(result.notes)
     } catch (apiError) {
@@ -191,6 +197,7 @@ export const AcPcConsoleReviewerStatusRow = ({
   referrerUrl,
   shortPhrase,
   submissionName,
+  isACConsole,
 }) => {
   const [updateLastSent, setUpdateLastSent] = useState(true)
   const completedReview = officialReviews.find((p) => p.anonymousId === reviewer.anonymousId)
@@ -278,6 +285,7 @@ export const AcPcConsoleReviewerStatusRow = ({
               reviewer={reviewer}
               venueId={venueId}
               submissionName={submissionName}
+              isACConsole={isACConsole}
             />
           </>
         )}
@@ -295,6 +303,8 @@ export const AcPcConsoleNoteReviewStatus = ({
   referrerUrl,
   shortPhrase,
   submissionName,
+  reviewerAssignmentUrl,
+  isACConsole = false,
 }) => {
   const { officialReviews, reviewers, note } = rowData
   const {
@@ -308,6 +318,10 @@ export const AcPcConsoleNoteReviewStatus = ({
     confidenceMin,
     confidenceAvg,
   } = rowData.reviewProgressData
+  const paperManualReviewerAssignmentUrl = reviewerAssignmentUrl?.replace(
+    'edges/browse?',
+    `edges/browse?start=staticList,type:head,ids:${note.id}&`
+  )
 
   return (
     <div className="console-reviewer-progress">
@@ -331,6 +345,7 @@ export const AcPcConsoleNoteReviewStatus = ({
               referrerUrl={referrerUrl}
               shortPhrase={shortPhrase}
               submissionName={submissionName}
+              isACConsole={isACConsole}
             />
           ))}
         </div>
@@ -345,6 +360,17 @@ export const AcPcConsoleNoteReviewStatus = ({
       <span>
         <strong>Number of Forum replies:</strong> {replyCount}
       </span>
+      {paperManualReviewerAssignmentUrl && (
+        <div className="mt-3">
+          <a
+            href={`${paperManualReviewerAssignmentUrl}&referrer=${referrerUrl}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Edit Reviewer Assignments
+          </a>
+        </div>
+      )}
     </div>
   )
 }

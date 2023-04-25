@@ -2,7 +2,6 @@ import TagsWidget from '../components/EditorComponents/TagsWidget'
 import { screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { render } from '@testing-library/react'
-import { prettyDOM } from '@testing-library/dom'
 
 global.$ = jest.fn(() => ({
   tooltip: jest.fn(),

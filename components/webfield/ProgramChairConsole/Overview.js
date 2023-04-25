@@ -1,12 +1,12 @@
 /* globals promptError: false */
-import { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import LoadingSpinner from '../../LoadingSpinner'
 import WebFieldContext from '../../WebFieldContext'
 import { formatDateTime, inflect, prettyId } from '../../../lib/utils'
-import { buildEdgeBrowserUrl, getNoteContent } from '../../../lib/webfield-utils'
+import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
 
 const StatContainer = ({ title, hint, value }) => (
   <div className="col-md-4 col-xs-6">
@@ -256,8 +256,7 @@ const BiddingStatsRow = ({
 }
 
 const ReviewStatsRow = ({ pcConsoleData }) => {
-  const { paperReviewsCompleteThreshold, officialReviewName, venueId } =
-    useContext(WebFieldContext)
+  const { paperReviewsCompleteThreshold } = useContext(WebFieldContext)
 
   const [reviewStats, setReviewStats] = useState({})
 
@@ -274,8 +273,9 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
 
     // map tilde id in reviewerGroup to anon reviewer group id in anonReviewerGroups
     const reviewerAnonGroupIds = {}
-
+    const activeNoteNumbers = pcConsoleData.notes.map((note) => note.number)
     pcConsoleData.paperGroups?.reviewerGroups.forEach((reviewerGroup) => {
+      if (!activeNoteNumbers.includes(reviewerGroup.noteNumber)) return
       reviewerGroup.members.forEach((reviewer) => {
         if (!reviewer.reviewerAnonGroup) return
         const reviewerProfileId = reviewer.reviewerProfileId // eslint-disable-line prefer-destructuring
@@ -309,18 +309,14 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
     )
 
     const reviewersComplete = reviewersCompletedAllReviews?.length
-    // const reviewersComplete = 0
 
     const reviewersWithAssignmentsCount = Object.values(reviewerAnonGroupIds ?? {}).length
 
-    const paperWithMoreThanThresholddReviews = pcConsoleData.notes?.filter((note) => {
-      // const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumber?.find(
-      //   (p) => p.noteNumber === note.number
-      // )
+    const paperWithMoreThanThresholdReviews = pcConsoleData.notes?.filter((note) => {
       const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumberMap.get(
         note.number
       )
-      // ?.officialReviews
+
       const paperReviewers = pcConsoleData.paperGroups?.reviewerGroups?.find(
         (p) => p.noteNumber === note.number
       )?.members
@@ -338,7 +334,7 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
       assignedReviewsCount,
       reviewersComplete,
       reviewersWithAssignmentsCount,
-      paperWithMoreThanThresholddReviews,
+      paperWithMoreThanThresholdReviews,
     })
   }, [pcConsoleData])
 
@@ -383,7 +379,7 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
           value={
             pcConsoleData.notes ? (
               renderStat(
-                reviewStats.paperWithMoreThanThresholddReviews?.length,
+                reviewStats.paperWithMoreThanThresholdReviews?.length,
                 pcConsoleData.notes.length
               )
             ) : (
@@ -398,18 +394,20 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
 }
 
 const MetaReviewStatsRow = ({ pcConsoleData }) => {
-  const { areaChairsId } = useContext(WebFieldContext)
-  // const metaReviewsCount = pcConsoleData.metaReviewsByPaperNumber?.filter(
-  //   (p) => p.metaReviews?.length
-  // )?.length
-  const metaReviewsCount = [
-    ...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? []),
-  ]?.filter((p) => p.length)?.length
-  // ?.filter((p) => p.metaReviews?.length)?.length
+  const { areaChairsId, recommendationName } = useContext(WebFieldContext)
+  const metaReivews = [...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? [])].filter(
+    (p) => p.length
+  )
+  const metaReviewsCount = metaReivews.length
+  const allMetaReviews = metaReivews
+    .flat()
+    .flatMap((p) => p?.content?.[recommendationName]?.value ?? [])
 
   // map tilde id in areaChairGroups to anon areachair group id in anonAreaChairGroups
   const areaChairAnonGroupIds = {}
+  const activeNoteNumbers = pcConsoleData.notes?.map((n) => n.number)
   pcConsoleData.paperGroups?.areaChairGroups.forEach((areaChairGroup) => {
+    if (!activeNoteNumbers.includes(areaChairGroup.noteNumber)) return
     areaChairGroup.members.forEach((areaChair) => {
       if (!areaChair.areaChairAnonGroup) return
       const areaChairProfileId = areaChair.areaChairProfileId // eslint-disable-line prefer-destructuring
@@ -443,7 +441,7 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
   )
 
   const areaChairsComplete = areaChairsCompletedAllMetaReviews?.length
-  const areaChairsCount = pcConsoleData.areaChairs?.length
+  const areaChairsWithAssignmentsCount = Object.values(areaChairAnonGroupIds ?? {}).length
 
   if (!areaChairsId) return null
   return (
@@ -465,14 +463,112 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
           hint="% of area chairs who have completed meta reviews for all their assigned papers"
           value={
             pcConsoleData.notes && pcConsoleData.paperGroups ? (
-              renderStat(areaChairsComplete, areaChairsCount)
+              renderStat(areaChairsComplete, areaChairsWithAssignmentsCount)
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )
           }
         />
       </div>
+      <div className="row">
+        {[...new Set(allMetaReviews)].sort().map((type) => {
+          const perDecisionCount = allMetaReviews.filter((p) => p === type).length
+          return (
+            <StatContainer
+              key={type}
+              title={type}
+              value={
+                pcConsoleData.metaReviewsByPaperNumberMap ? (
+                  renderStat(perDecisionCount, pcConsoleData.notes.length)
+                ) : (
+                  <LoadingSpinner inline={true} text={null} />
+                )
+              }
+            />
+          )
+        })}
+      </div>
       <hr className="spacer" />
+    </>
+  )
+}
+
+const CustomStageStatsRow = ({ pcConsoleData }) => {
+  const { customStageInvitations = [] } = useContext(WebFieldContext)
+  const customStageInvitationIds = customStageInvitations.map((p) => `/-/${p.name}`)
+  const noCustomStage = !pcConsoleData.invitations?.some((p) =>
+    customStageInvitationIds?.some((q) => p.id.includes(q))
+  )
+
+  const getReviews = (customStageInvitation) => {
+    const customStageInvitationId = `/-/${customStageInvitation.name}`
+    return [...(pcConsoleData.customStageReviewsByPaperNumberMap?.values() ?? [])].filter(
+      (repliesToNote) =>
+        repliesToNote.filter((reply) =>
+          reply.invitations.find((q) => q.includes(customStageInvitationId))
+        ).length >= customStageInvitation.repliesPerSubmission
+    )
+  }
+
+  if (noCustomStage) return null
+  return (
+    <>
+      {customStageInvitations.map((customStageInvitation) => {
+        const reviews = getReviews(customStageInvitation)
+        const uniqueDisplayValues = [
+          ...new Set(
+            reviews
+              .flat()
+              .flatMap(
+                (review) => review.content?.[customStageInvitation.displayField]?.value ?? []
+              )
+          ),
+        ].sort()
+
+        return (
+          <React.Fragment key={customStageInvitation.name}>
+            <div className="row">
+              <StatContainer
+                title={`${prettyId(customStageInvitation.role)} ${prettyId(
+                  customStageInvitation.name
+                )} Progress`}
+                hint={customStageInvitation.description}
+                value={
+                  pcConsoleData.notes ? (
+                    renderStat(reviews?.length, pcConsoleData.notes.length)
+                  ) : (
+                    <LoadingSpinner inline={true} text={null} />
+                  )
+                }
+              />
+            </div>
+            <div className="row">
+              {uniqueDisplayValues.map((displayValue) => {
+                const noteCount = reviews.filter((p) =>
+                  p.some(
+                    (q) =>
+                      q.content?.[customStageInvitation.displayField]?.value === displayValue
+                  )
+                ).length
+                return (
+                  <StatContainer
+                    key={displayValue}
+                    title={displayValue}
+                    value={
+                      pcConsoleData.customStageReviewsByPaperNumberMap ? (
+                        renderStat(noteCount, pcConsoleData.notes.length)
+                      ) : (
+                        <LoadingSpinner inline={true} text={null} />
+                      )
+                    }
+                  />
+                )
+              })}
+            </div>
+            <hr className="spacer" />
+          </React.Fragment>
+        )
+      })}
     </>
   )
 }
@@ -482,10 +578,7 @@ const DecisionStatsRow = ({ pcConsoleData }) => {
   const notesWithFinalDecision = decisions.filter((p) => p)
   const decisionsCount = notesWithFinalDecision?.length
   const submissionsCount = pcConsoleData.notes?.length
-  const allDecisions = decisions.flatMap(
-    (p) =>
-      (pcConsoleData.isV2Console ? p?.content?.decision?.value : p?.content?.decision) ?? []
-  )
+  const allDecisions = decisions.flatMap((p) => p?.content?.decision?.value ?? [])
 
   return (
     <>
@@ -533,7 +626,6 @@ const DescriptionTimelineOtherConfigRow = ({
   recommendationEnabled,
 }) => {
   const {
-    apiVersion,
     venueId,
     areaChairsId,
     seniorAreaChairsId,
@@ -549,17 +641,43 @@ const DescriptionTimelineOtherConfigRow = ({
     scoresName,
     recommendationName,
     recruitmentName = 'Recruitment',
+    customStageInvitations = [],
+    assignmentUrls,
   } = useContext(WebFieldContext)
 
   const { requestForm, registrationForms, invitations } = pcConsoleData
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
   )
-  const requestFormContent = getNoteContent(requestForm, false)
+  const requestFormContent = requestForm?.content
   const sacRoles = requestFormContent?.senior_area_chair_roles ?? ['Senior_Area_Chairs']
   const acRoles = requestFormContent?.area_chair_roles ?? ['Area_Chairs']
   const hasEthicsChairs = requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes')
   const reviewerRoles = requestFormContent?.reviewer_roles ?? ['Reviewers']
+
+  const getFotmattedDate = (invitation, type) => {
+    const dateFormatOption = {
+      minute: 'numeric',
+      second: undefined,
+      timeZoneName: 'short',
+      locale: 'en-GB',
+    }
+
+    const rawDate = invitation.edit?.invitation
+      ? invitation.edit.invitation[type]
+      : invitation[type]
+    return rawDate ? formatDateTime(rawDate, dateFormatOption) : null
+  }
+
+  const getAssignmentLink = (role) => {
+    if (
+      assignmentUrls?.[role]?.automaticAssignment === false &&
+      assignmentUrls?.[role]?.manualAssignmentUrl
+    ) {
+      return `${assignmentUrls[role].manualAssignmentUrl}&referrer=${referrerUrl}`
+    }
+    return `/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`
+  }
 
   const timelineInvitations = [
     { id: submissionId, displayName: 'Paper Submissions' },
@@ -593,22 +711,20 @@ const DescriptionTimelineOtherConfigRow = ({
     { id: `${venueId}/-/${commentName}`, displayName: 'Commenting' },
     { id: `${venueId}/-/${officialMetaReviewName}`, displayName: 'Meta Reviews' },
     { id: `${venueId}/-/${decisionName}`, displayName: 'Decisions' },
+    ...(customStageInvitations?.length > 0
+      ? customStageInvitations.map((p) => ({
+          id: `${venueId}/-/${p.name}`,
+          displayName: prettyId(p.name),
+        }))
+      : []),
   ].flatMap((p) => {
     const invitation = invitations?.find((q) => q.id === p.id)
     if (!invitation) return []
-    const dateFormatOption = {
-      minute: 'numeric',
-      second: undefined,
-      timeZoneName: 'short',
-      locale: 'en-GB',
-    }
-    const start = invitation.cdate ? formatDateTime(invitation.cdate, dateFormatOption) : null
-    const end = invitation.duedate
-      ? formatDateTime(invitation.duedate, dateFormatOption)
-      : null
-    const exp = invitation.expdate
-      ? formatDateTime(invitation.expdate, dateFormatOption)
-      : null
+
+    const start = getFotmattedDate(invitation, 'cdate')
+    const end = getFotmattedDate(invitation, 'duedate')
+    const exp = getFotmattedDate(invitation, 'expdate')
+
     const periodString = (
       <span>
         {start ? (
@@ -672,7 +788,7 @@ const DescriptionTimelineOtherConfigRow = ({
           <h4>Timeline:</h4>
           {datedInvitations.map((invitation) => (
             <li className="overview-timeline" key={invitation.id}>
-              <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
+              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
                 {invitation.displayName}
               </a>
               {invitation.periodString}
@@ -680,7 +796,7 @@ const DescriptionTimelineOtherConfigRow = ({
           ))}
           {notDatedInvitations.map((invitation) => (
             <li className="overview-timeline" key={invitation.id}>
-              <a href={`/invitation/edit?id=${invitation.id}&referrer=${referrerUrl}`}>
+              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
                 {invitation.displayName}
               </a>
               {invitation.periodString}
@@ -702,25 +818,23 @@ const DescriptionTimelineOtherConfigRow = ({
               )
             })}
           {areaChairsId &&
-            acRoles.map((role) => {
-              const assignmentConfig = invitations.find(
-                (p) => p.id === `${venueId}/${role}/-/Assignment_Configuration`
-              )
-              if (!assignmentConfig) return null
-              return (
-                <li className="overview-timeline" key={assignmentConfig.id}>
-                  <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
-                    {`${prettyId(role)} Paper Assignment`}
-                  </a>{' '}
-                  open until Reviewing starts
-                </li>
-              )
-            })}
+            acRoles.map((role) => (
+              <li className="overview-timeline" key={role}>
+                <a
+                  href={getAssignmentLink(role)}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >{`${prettyId(role)} Paper Assignment`}</a>{' '}
+                open until Reviewing starts
+              </li>
+            ))}
           {reviewerRoles.map((role) => (
             <li className="overview-timeline" key={role}>
-              <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
-                {`${prettyId(role)} Paper Assignment`}
-              </a>{' '}
+              <a
+                href={getAssignmentLink(role)}
+                target="_blank"
+                rel="noreferrer noopener"
+              >{`${prettyId(role)} Paper Assignment`}</a>{' '}
               open until Reviewing starts
             </li>
           ))}
@@ -838,11 +952,7 @@ const DescriptionTimelineOtherConfigRow = ({
               {registrationForms.map((form) => (
                 <li key={form.id} className="overview-registration-link">
                   <Link href={`/forum?id=${form.id}&referrer=${referrerUrl}`}>
-                    <a>
-                      {pcConsoleData.isV2Console
-                        ? form.content?.title?.value
-                        : form.content?.title}
-                    </a>
+                    <a>{form.content?.title?.value}</a>
                   </Link>
                 </li>
               ))}
@@ -861,8 +971,7 @@ const DescriptionTimelineOtherConfigRow = ({
                       invitations,
                       reviewersId,
                       bidName,
-                      scoresName,
-                      apiVersion
+                      scoresName
                     )}
                   >
                     <a>Reviewer Bids</a>
@@ -877,8 +986,7 @@ const DescriptionTimelineOtherConfigRow = ({
                       invitations,
                       seniorAreaChairsId,
                       bidName,
-                      scoresName,
-                      apiVersion
+                      scoresName
                     )}
                   >
                     <a>Senior Area Chair Bids</a>
@@ -894,8 +1002,7 @@ const DescriptionTimelineOtherConfigRow = ({
                         invitations,
                         areaChairsId,
                         bidName,
-                        scoresName,
-                        apiVersion
+                        scoresName
                       )}
                     >
                       <a>Area Chair Bid</a>
@@ -909,8 +1016,7 @@ const DescriptionTimelineOtherConfigRow = ({
                           invitations,
                           reviewersId,
                           recommendationName,
-                          scoresName,
-                          apiVersion
+                          scoresName
                         )}
                       >
                         <a>Area Chair Reviewer Recommendations</a>
@@ -953,6 +1059,7 @@ const Overview = ({ pcConsoleData }) => {
       />
       <ReviewStatsRow pcConsoleData={pcConsoleData} />
       <MetaReviewStatsRow pcConsoleData={pcConsoleData} />
+      <CustomStageStatsRow pcConsoleData={pcConsoleData} />
       <DecisionStatsRow pcConsoleData={pcConsoleData} />
       <DescriptionTimelineOtherConfigRow
         reviewersBidEnabled={reviewersBidEnabled}

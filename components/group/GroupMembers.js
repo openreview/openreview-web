@@ -114,15 +114,14 @@ const MessageMemberModal = ({
         <div className="form-group">
           <label htmlFor="message">Email Body</label>
           <p className="hint">
-            Hint: You can personalize emails using template variables. The text
-            {' '}{'{{'}firstname{'}}'} and {'{{'}fullname{'}}'}{' '}
-            will automatically be replaced with the recipient&apos;s first or full name if they
-            have an OpenReview profile. If a profile isn&apos;t found their email address will
-            be used instead.
+            Hint: You can personalize emails using template variables. The text {'{{'}firstname
+            {'}}'} and {'{{'}fullname{'}}'} will automatically be replaced with the
+            recipient&apos;s first or full name if they have an OpenReview profile. If a
+            profile isn&apos;t found their email address will be used instead.
           </p>
           <p className="hint">
-            You can use Markdown syntax to add basic formatting to your email. Use the Preview tab
-            to see how your email will look.
+            You can use Markdown syntax to add basic formatting to your email. Use the Preview
+            tab to see how your email will look.
           </p>
           <MarkdownPreviewTab
             value={message}
@@ -500,20 +499,24 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   }
 
   const handleRemoveSelectedButtonClick = async () => {
-    if (!groupMembers.some((p) => p.isSelected)) {
-      promptMessage('No member is selected')
+    const membersToRemove = groupMembers.filter((p) => p.isSelected).map((p) => p.id)
+    if (membersToRemove.length === 0) {
+      promptMessage('No group members selected')
       return
     }
-    const membersToRemove = groupMembers.filter((p) => p.isSelected).map((p) => p.id)
+
+    const groupName = prettyId(group.id)
+    const additionalWarning = userIds.some((p) => membersToRemove.includes(p))
+      ? 'You are removing yourself and may lose access to this group if you continue.'
+      : ''
     if (
-      userIds.some((p) => membersToRemove.includes(p)) &&
-      // eslint-disable-next-line no-alert
       !window.confirm(
-        'You are removing yourself and may lose access to this group. Are you sure you want to continue?'
+        `Are you sure you want to remove ${membersToRemove.length} members from ${groupName}? ${additionalWarning}`
       )
     ) {
       return
     }
+
     try {
       if (group.invitations) {
         await api.post('/groups/edits', buildEdit('remove', membersToRemove), {

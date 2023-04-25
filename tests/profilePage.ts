@@ -8,6 +8,8 @@ import {
   getMessages,
   getNotes,
   getReferences,
+  superUserName,
+  strongPassword,
 } from './utils/api-helper'
 
 const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
@@ -57,7 +59,7 @@ const linkedinUrlInput = Selector('input#linkedin_url')
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
-  ctx.superUserToken = await getToken('openreview.net', '1234')
+  ctx.superUserToken = await getToken(superUserName, strongPassword)
   return ctx
 })
 
@@ -440,7 +442,7 @@ test('#84 merge profile modal should fill in id', async (t) => {
     .expect(Selector('#profile-merge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').exists).ok()
     .expect(Selector('#profile-merge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').hasAttribute('readonly')).ok()
     .expect(Selector('#profile-merge-modal').find('button').withText('Submit').hasAttribute('disabled')).ok()
-    .typeText(Selector('#profile-merge-modal').find('textarea').withAttribute('name', 'comment'), 'some comment')
+    .typeText(Selector('#profile-merge-modal').find('textarea').withAttribute('id', 'comment'), 'some comment')
     .expect(Selector('#profile-merge-modal').find('button').withText('Submit').hasAttribute('disabled')).notOk()
 
 })

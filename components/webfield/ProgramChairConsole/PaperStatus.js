@@ -29,27 +29,26 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
   )
 }
 
-const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venue }) => {
+const PaperRow = ({
+  rowData,
+  selectedNoteIds,
+  setSelectedNoteIds,
+  decision,
+  venue,
+  getManualAssignmentUrl,
+}) => {
   const {
     areaChairsId,
     venueId,
     officialReviewName,
     shortPhrase,
-    apiVersion,
     submissionName,
   } = useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#paper-status)`
   )
-  const noteWithAuthorRevealed = {
-    ...note,
-    content: {
-      ...note.content,
-      authors: note.details.original?.content?.authors ?? note.content.authors,
-      authorids: note.details.original?.content?.authorids ?? note.content.authorids,
-    },
-  }
+
   return (
     <tr>
       <td>
@@ -70,10 +69,10 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
       </td>
       <td>
         <NoteSummary
-          note={noteWithAuthorRevealed}
+          note={note}
           referrerUrl={referrerUrl}
           showReaders={true}
-          isV2Note={note.version === 2}
+          isV2Note={true}
         />
       </td>
       <td>
@@ -84,14 +83,15 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
+          reviewerAssignmentUrl={getManualAssignmentUrl('Reviewers')}
         />
       </td>
       {areaChairsId && (
         <td>
           <ProgramChairConsolePaperAreaChairProgress
-            metaReviewData={metaReviewData}
+            rowData={rowData}
             referrerUrl={referrerUrl}
-            isV2Console={apiVersion === 2}
+            areaChairAssignmentUrl={getManualAssignmentUrl('Area_Chairs')}
           />
         </td>
       )}
@@ -106,10 +106,25 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
 const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
-  const { areaChairsId } = useContext(WebFieldContext)
+  const { venueId, areaChairsId, assignmentUrls } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
   const pageSize = 25
+
+  const getManualAssignmentUrl = (role) => {
+    if (!assignmentUrls) return null
+    const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
+    const isAssignmentConfigDeployed = pcConsoleData.invitations?.some(
+      (p) => p.id === `${venueId}/${role}/-/Assignment`
+    )
+
+    if (
+      assignmentUrls[role]?.automaticAssignment === false ||
+      (assignmentUrls[role]?.automaticAssignment === true && isAssignmentConfigDeployed)
+    )
+      return assignmentUrl
+    return null
+  }
 
   useEffect(() => {
     if (!pcConsoleData.notes) return
@@ -206,6 +221,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
             setSelectedNoteIds={setSelectedNoteIds}
             decision={row.decision}
             venue={row.venue}
+            getManualAssignmentUrl={getManualAssignmentUrl}
           />
         ))}
       </Table>

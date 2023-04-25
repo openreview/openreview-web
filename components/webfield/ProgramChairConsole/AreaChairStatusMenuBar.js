@@ -98,6 +98,7 @@ const MessageAreaChairsModal = ({
       onClose={() => {
         setCurrentStep(1)
       }}
+      options={{ extraClasses: 'message-reviewers-modal' }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
       {currentStep === 1 ? (
@@ -134,9 +135,9 @@ const MessageAreaChairsModal = ({
             emails will be sent to the following area chairs:
           </p>
           <div className="well reviewer-list">
-            {recipientsInfo.map((recipientInfo) => (
+            {recipientsInfo.map((recipientInfo, index) => (
               <li
-                key={recipientInfo.preferredEmail}
+                key={index}
               >{`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>`}</li>
             ))}
           </div>
@@ -149,24 +150,25 @@ const MessageAreaChairsModal = ({
 const AreaChairStatusMenuBar = ({
   tableRowsAll,
   tableRows,
-  selectedNoteIds,
   setAreaChairStatusTabData,
-  shortPhrase,
-  enableQuerySearch,
-  exportColumns: exportColumnsConfig,
-  filterOperators: filterOperatorsConfig,
-  propertiesAllowed: propertiesAllowedConfig,
   bidEnabled,
   recommendationEnabled,
-  messageParentGroup,
 }) => {
-  const { seniorAreaChairsId } = useContext(WebFieldContext)
-  const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '=']
+  const {
+    shortPhrase,
+    seniorAreaChairsId,
+    enableQuerySearch,
+    areaChairStatusExportColumns: exportColumnsConfig,
+    filterOperators: filterOperatorsConfig,
+    propertiesAllowed: propertiesAllowedConfig,
+    areaChairsId: messageParentGroup,
+  } = useContext(WebFieldContext)
+  const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['number'],
     name: ['areaChairProfile.preferredName'],
     email: ['areaChairProfile.preferredEmail'],
-    sac: ['areaChairProfile.seniorAreaChair.seniorAreaChairId'],
+    sac: ['seniorAreaChair.seniorAreaChairId'],
   }
   const messageAreaChairOptions = [
     ...(bidEnabled
@@ -246,29 +248,34 @@ const AreaChairStatusMenuBar = ({
       getValue: (p) => p.completedRecommendations,
     },
     {
-      label: 'Papers Assigned',
-      value: 'Papers Assigned',
+      label: 'Number of Papers Assigned',
+      value: 'Number of Papers Assigned',
       getValue: (p) => p.notes?.length,
+      initialDirection: 'desc',
     },
     {
-      label: 'Papers with Completed Review Missing',
-      value: 'Papers with Completed Review Missing',
-      getValue: (p) => p.notes?.length ?? 0 - p.numCompletedReviews ?? 0,
+      label: 'Number of Papers with Missing Reviews',
+      value: 'Number of Papers with Missing Reviews',
+      getValue: (p) => (p.notes?.length ?? 0) - p.numCompletedReviews ?? 0,
+      initialDirection: 'desc',
     },
     {
-      label: 'Papers with Completed Review',
-      value: 'Papers with Completed Review',
+      label: 'Number of Papers with Completed Reviews',
+      value: 'Number of Papers with Completed Reviews',
       getValue: (p) => p.numCompletedReviews,
+      initialDirection: 'desc',
     },
     {
-      label: 'Papers with Completed MetaReview Missing',
-      value: 'Papers with Completed MetaReview Missing',
-      getValue: (p) => p.notes?.length ?? 0 - p.numCompletedMetaReviews,
+      label: 'Number of Missing MetaReviews',
+      value: 'Number of Missing MetaReviews',
+      getValue: (p) => (p.notes?.length ?? 0) - p.numCompletedMetaReviews,
+      initialDirection: 'desc',
     },
     {
-      label: 'Papers with Completed MetaReview',
-      value: 'Papers with Completed MetaReview',
+      label: 'Number of Completed MetaReviews',
+      value: 'Number of Completed MetaReviews',
       getValue: (p) => p.numCompletedMetaReviews,
+      initialDirection: 'desc',
     },
   ]
   const basicSearchFunction = (row, term) =>
@@ -280,7 +287,6 @@ const AreaChairStatusMenuBar = ({
     <BaseMenuBar
       tableRowsAll={tableRowsAll}
       tableRows={tableRows}
-      selectedIds={selectedNoteIds}
       setData={setAreaChairStatusTabData}
       shortPhrase={shortPhrase}
       enableQuerySearch={enableQuerySearch}
@@ -291,6 +297,7 @@ const AreaChairStatusMenuBar = ({
       messageModalId="message-areachairs"
       messageParentGroup={messageParentGroup}
       exportColumns={exportColumns}
+      exportFileName="Area Chair Status"
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
       messageModal={(props) => <MessageAreaChairsModal {...props} />}

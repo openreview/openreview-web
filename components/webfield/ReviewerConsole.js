@@ -24,6 +24,7 @@ import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import ErrorDisplay from '../ErrorDisplay'
 import { filterAssignedInvitations, filterHasReplyTo } from '../../lib/webfield-utils'
 import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
+import LoadingSpinner from '../LoadingSpinner'
 
 const AreaChairInfo = ({ areaChairName, areaChairId }) => (
   <div className="note-area-chairs">
@@ -208,7 +209,9 @@ const AssignedPaperRow = ({
             anonGroupId={anonGroupId}
             tagReaders={[
               venueId,
-              `${venueId}/${submissionName}${note.number}/${areaChairName}`,
+              ...(areaChairName
+                ? [`${venueId}/${submissionName}${note.number}/${areaChairName}`]
+                : []),
               anonGroupId,
             ]}
             setReviewerConsoleData={setReviewerConsoleData}
@@ -452,24 +455,26 @@ const ReviewerConsole = ({ appContext }) => {
     // #endregion
 
     // #region get area chair groups
-    const getAreaChairGroupsP = api
-      .getAll(
-        '/groups',
-        {
-          regex: `${venueId}/${submissionName}.*`,
-          select: 'id,members',
-        },
-        { accessToken }
-      )
-      .then((groups) =>
-        groups
-          .filter((p) => p.id.endsWith(`/${areaChairName}`))
-          .reduce((prev, curr) => {
-            const num = getNumberFromGroup(curr.id, submissionName)
-            prev[num] = curr.members[0] // eslint-disable-line no-param-reassign
-            return prev
-          }, {})
-      )
+    const getAreaChairGroupsP = areaChairName
+      ? api
+          .getAll(
+            '/groups',
+            {
+              regex: `${venueId}/${submissionName}.*`,
+              select: 'id,members',
+            },
+            { accessToken }
+          )
+          .then((groups) =>
+            groups
+              .filter((p) => p.id.endsWith(`/${areaChairName}`))
+              .reduce((prev, curr) => {
+                const num = getNumberFromGroup(curr.id, submissionName)
+                prev[num] = curr.members[0] // eslint-disable-line no-param-reassign
+                return prev
+              }, {})
+          )
+      : Promise.resolve({})
     // #endregion
 
     Promise.all([getNotesP, paperRankingInvitationP, getCustomLoadP, getAreaChairGroupsP])
@@ -592,7 +597,6 @@ const ReviewerConsole = ({ appContext }) => {
     reviewerName,
     officialReviewName,
     reviewRatingName,
-    areaChairName,
     submissionName,
     submissionInvitationId,
     customMaxPapersInvitationId,
@@ -611,6 +615,8 @@ const ReviewerConsole = ({ appContext }) => {
     }`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
+
+  if (!reviewerConsoleData.notes) return <LoadingSpinner />
 
   return (
     <>
