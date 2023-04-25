@@ -5,7 +5,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
-import debounce from 'lodash/debounce'
 import escapeRegExp from 'lodash/escapeRegExp'
 
 import List from 'rc-virtual-list'
@@ -58,6 +57,7 @@ export default function Forum({
     readers: null,
     excludedReaders: null,
   })
+  const [defaultFilters, setDefaultFilters] = useState(null)
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [attachedToBottom, setAttachedToBottom] = useState(true)
@@ -308,9 +308,9 @@ export default function Forum({
     // For chat layout, check if the user is scrolled before updating state
     const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
     if (containerElem) {
-      const bottom = containerElem.scrollHeight - containerElem.scrollTop === containerElem.clientHeight
-      if (attachedToBottom !== bottom) {
-        setAttachedToBottom(bottom)
+      const atBottom = Math.abs(containerElem.scrollHeight - containerElem.scrollTop - containerElem.clientHeight) < 3
+      if (attachedToBottom !== atBottom) {
+        setAttachedToBottom(atBottom)
       }
     }
 
@@ -417,7 +417,7 @@ export default function Forum({
       const tab = replyForumViews.find((view) => view.id === tabId)
       if (!tab) return
 
-      setSelectedFilters({
+      const tabFilters = {
         invitations: null,
         excludedInvitations: null,
         signatures: null,
@@ -425,7 +425,9 @@ export default function Forum({
         excludedReaders: null,
         keywords: null,
         ...parseFilterQuery(replaceFilterWildcards(tab.filter, parentNote), tab.keywords),
-      })
+      }
+      setDefaultFilters(tabFilters)
+      setSelectedFilters(tabFilters)
       setLayout(tab.layout || 'default')
       setNesting(tab.nesting || 2)
       setSort(tab.sort || 'date-desc')
@@ -701,7 +703,12 @@ export default function Forum({
           {filterOptions && layout === 'chat' && (
             <ChatFilterForm
               forumId={id}
-              readers={parentNote.replyInvitations[3].edit.note.readers}
+              defaultFilters={defaultFilters}
+              selectedFilters={selectedFilters}
+              setSelectedFilters={setSelectedFilters}
+              filterOptions={filterOptions}
+              numReplies={details.replyCount}
+              numRepliesHidden={numRepliesHidden}
             />
           )}
         </div>

@@ -52,7 +52,7 @@ main.forum {
     // clip-path: inset(-8px 0px 0px 0px);
 
     form {
-      border: 1px solid #eee;
+      border: 1px solid constants.$borderGray;
       border-radius: 2px;
       padding: 0.5rem;
       background-color: constants.$backgroundWhite;

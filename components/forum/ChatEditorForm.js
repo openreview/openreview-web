@@ -131,7 +131,12 @@ export default function ChatEditorForm({
     if (!showMessagePreview) return
 
     setSanitizedHtml(DOMPurify.sanitize(marked(message)))
-    MathJax.typesetPromise()
+    try {
+      MathJax.typesetPromise()
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('Could not format math notation')
+    }
   }, [showMessagePreview, message])
 
   return (

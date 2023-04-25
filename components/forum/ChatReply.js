@@ -1,6 +1,6 @@
-/* globals promptMessage,promptError: false */
+/* globals $,promptMessage,promptError,MathJax: false */
 
-import { forwardRef, useState } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
 import truncate from 'lodash/truncate'
 import copy from 'copy-to-clipboard'
 import dayjs from 'dayjs'
@@ -8,6 +8,8 @@ import localizedFormat from 'dayjs/plugin/localizedFormat'
 import isToday from 'dayjs/plugin/isToday'
 import isYesterday from 'dayjs/plugin/isYesterday'
 import Icon from '../Icon'
+import BasicModal from '../BasicModal'
+import Signatures from '../Signatures'
 import { NoteContentV2, NoteContentValue } from '../NoteContent'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -26,12 +28,28 @@ export default forwardRef(function ChatReply(
   ref
 ) {
   const [loading, setLoading] = useState(false)
+  const [useMarkdown, setUseMarkdown] = useState(true)
+  const [needsRerender, setNeedsRerender] = useState(false)
   const { accessToken } = useUser()
+
+  useEffect(() => {
+    if (needsRerender && useMarkdown) {
+      setTimeout(() => {
+        try {
+          MathJax.typesetPromise()
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.warn('Could not format math notation')
+        }
+      }, 100)
+    }
+  }, [useMarkdown, needsRerender])
 
   if (!note || displayOptions.hidden) return null
 
   const isChatNote = Object.keys(note.content).length === 1 && note.content.message
   const presentation = note.details?.presentation
+  const enableMarkdown = presentation?.[0]?.markdown
   const colorHash = getSignatureColors(prettyId(note.signatures[0], true))
   const cdate = dayjs(note.cdate)
   const formattedTime = dayjs(note.cdate).format('LT')
@@ -44,17 +62,22 @@ export default forwardRef(function ChatReply(
     datePrefix = cdate.format('l')
   }
 
-  const deleteNote = (e) => {
-    e.preventDefault()
+  const showDeleteModal = (e) => {
+    $(`#delete-modal-${note.id}`).modal('show')
+  }
+  const hideDeleteModal = () => {
+    $('body').removeClass('modal-open')
+    $('.modal-backdrop').remove()
+  }
 
+  const deleteNote = (deleteSignatures) => {
     if (loading || !accessToken) return
-    setLoading(true)
 
-    // TODO: prompt user for signature
+    setLoading(true)
     const now = Date.now()
     const noteEdit = {
       invitation: note.deleteInvitation.id,
-      signatures: note.signatures,
+      signatures: deleteSignatures,
       note: {
         id: note.id,
         replyto: note.replyto,
@@ -62,7 +85,6 @@ export default forwardRef(function ChatReply(
         ddate: now,
       },
     }
-
     api
       .post('/notes/edits', noteEdit, { accessToken, version: 2 })
       .then((res) => {
@@ -73,6 +95,8 @@ export default forwardRef(function ChatReply(
         promptError(err.message, { scrollToTop: false })
         setLoading(false)
       })
+
+    hideDeleteModal()
   }
 
   const copyNoteUrl = (e) => {
@@ -112,7 +136,7 @@ export default forwardRef(function ChatReply(
       data-id={note.id}
       ref={ref}
     >
-      <div className="chat-body" style={{ backgroundColor: `${colorHash}22` }}>
+      <div className="chat-body" style={{ backgroundColor: `${colorHash}1E` }}>
         <ReplyInfo parentNote={parentNote} parentTitle={note.parentTitle} />
 
         <div className="header">
@@ -146,16 +170,14 @@ export default forwardRef(function ChatReply(
             {datePrefix} at {formattedTime}
           </small>
 
-          {note.details?.editsCount > 1 && (
-            <small>(edited)</small>
-          )}
+          {note.details?.editsCount > 1 && <small>(edited)</small>}
         </div>
 
         {isChatNote ? (
           <div className="note-content">
             <NoteContentValue
               content={prettyContentValue(note.content.message.value)}
-              enableMarkdown={presentation?.[0]?.markdown}
+              enableMarkdown={enableMarkdown && useMarkdown}
             />
           </div>
         ) : (
@@ -185,13 +207,34 @@ export default forwardRef(function ChatReply(
             <Icon name="link" /> Copy Link
           </button>
 
+          {isChatNote && enableMarkdown && (
+            <button
+              type="button"
+              className="btn btn-default"
+              onClick={() => {
+                setUseMarkdown((oldVal) => !oldVal)
+                setNeedsRerender(true)
+              }}
+            >
+              <Icon name="text-background" /> View {useMarkdown ? 'Raw' : 'Formatted'}
+            </button>
+          )}
+
           {note.details.writable && note.deleteInvitation && (
-            <button type="button" className="btn btn-default" onClick={deleteNote}>
+            <button type="button" className="btn btn-default" onClick={showDeleteModal}>
               <Icon name="trash" /> Delete
             </button>
           )}
         </div>
       </div>
+
+      {note.details.writable && note.deleteInvitation && (
+        <DeleteChatModal
+          noteId={note.id}
+          deleteInvitation={note.deleteInvitation}
+          deleteNote={deleteNote}
+        />
+      )}
     </div>
   )
 })
@@ -265,5 +308,40 @@ function ChatSignature({ groupId, signatureGroup }) {
         </span>
       )}
     </strong>
+  )
+}
+
+function DeleteChatModal({ noteId, deleteInvitation, deleteNote }) {
+  const [signatures, setSignatures] = useState(null)
+  const [error, setError] = useState(null)
+
+  return (
+    <BasicModal
+      id={`delete-modal-${noteId}`}
+      title="Delete Chat Message"
+      primaryButtonText="Delete"
+      primaryButtonDisabled={!signatures?.value}
+      onPrimaryButtonClick={() => deleteNote(signatures.value)}
+      onClose={() => setSignatures(null)}
+    >
+      <p className="mb-3">
+        Are you sure you want to delete this message? The deleted chat note will be updated
+        with the signature you choose below.
+      </p>
+      <div className="mb-2">
+        <h4 className="pull-left mt-2 mr-3">Signature:</h4>
+        <Signatures
+          fieldDescription={deleteInvitation.edit.signatures}
+          onChange={setSignatures}
+          currentValue={signatures}
+          onError={setError}
+        />
+      </div>
+      {error && (
+        <div className="alert alert-danger">
+          Error: Signatures could note be loaded. Please reload the page and try again.
+        </div>
+      )}
+    </BasicModal>
   )
 }

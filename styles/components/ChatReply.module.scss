@@ -10,7 +10,7 @@
   :global {
     .chat-body {
       padding: .5rem;
-      border: 1px solid #eee;
+      border: 1px solid constants.$borderGray;
       border-radius: 2px;
 
       &.deleted {
@@ -97,6 +97,8 @@
       }
     }
     .note-content-value {
+      line-height: normal;
+
       mjx-container[jax='CHTML'][display='true'] {
         margin-top: 0;
         margin-bottom: .5rem;
@@ -123,6 +125,11 @@
 
 .active {
   box-shadow: 0 0 0 2px constants.$mediumBlue;
+  :global {
+    .chat-body {
+      border-color: transparent;
+    }
+  }
 }
 
 .chat-actions {
@@ -135,11 +142,11 @@
   :global {
     button {
       padding: .25rem .75rem;
-      border: 1px solid #eee;
+      border: 1px solid constants.$borderGray;
       border-radius: 0;
       font-weight: normal;
       &:focus {
-        border-color: #eee;
+        border-color: constants.$borderGray;
         background-color: constants.$backgroundWhite;
         box-shadow: none;
       }
