@@ -294,6 +294,7 @@ function ChatSignature({ groupId, signatureGroup }) {
               </a>
             ))
             .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+          {' '}
           {signatureGroup.members.length > 4 && (
             <a
               key="others"

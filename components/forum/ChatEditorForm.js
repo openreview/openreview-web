@@ -9,7 +9,7 @@ import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId, prettyInvitationId } from '../../lib/utils'
-import { readersList, getInvitationColors } from '../../lib/forum-utils'
+import { readersList, getSignatureColors } from '../../lib/forum-utils'
 
 export default function ChatEditorForm({
   invitation,
@@ -31,7 +31,7 @@ export default function ChatEditorForm({
   const invitationShortName = prettyInvitationId(invitation.id)
   const hasFixedReaders = Array.isArray(invitation.edit.note.readers)
   const colorHash = signature
-    ? getInvitationColors(prettyId(signature, true)).backgroundColor
+    ? getSignatureColors(prettyId(signature, true))
     : 'transparent'
 
   const loadSignatureOptions = async () => {
@@ -140,7 +140,7 @@ export default function ChatEditorForm({
   }, [showMessagePreview, message])
 
   return (
-    <form onSubmit={postNoteEdit} style={{ backgroundColor: `${colorHash}3` }}>
+    <form onSubmit={postNoteEdit} style={{ backgroundColor: `${colorHash}1E` }}>
       {replyToNote && (
         <div className="parent-info">
           <h5 onClick={() => {}}>
@@ -239,7 +239,7 @@ export default function ChatEditorForm({
               <Icon name="eye-open" extraClasses="pr-1" />{' '}
               <em>
                 {invitationShortName} replies are visible only to{' '}
-                {readersList(invitation.edit.note.readers, 'short')}
+                {readersList(invitation.edit.note.readers)}
               </em>
             </p>
           )}
