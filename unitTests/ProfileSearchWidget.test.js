@@ -16,7 +16,7 @@ global.promptError = jest.fn()
 import api from '../lib/api-client'
 
 describe('ProfileSearchWidget', () => {
-  test('render search input and disabled search button', async () => {
+  test('show search input and disabled search button', async () => {
     const apiPost = jest.fn(() => Promise.resolve([]))
     api.post = apiPost
 
@@ -27,6 +27,8 @@ describe('ProfileSearchWidget', () => {
             value: {
               param: {
                 type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
               },
             },
           },
@@ -40,6 +42,71 @@ describe('ProfileSearchWidget', () => {
     await waitFor(() => {
       expect(screen.getByPlaceholderText('search profiles by email or name'))
       expect(screen.getByText('Search')).toHaveAttribute('disabled')
+    })
+  })
+
+  test('not to show search if there is not regex', async () => {
+    const apiPost = jest.fn(() => Promise.resolve([]))
+    api.post = apiPost
+
+    const providerProps = {
+      value: {
+        field: {
+          ['authorid']: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex: undefined,
+              },
+            },
+          },
+        },
+        onChange: jest.fn(),
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+
+    await waitFor(() => {
+      expect(
+        screen.queryByPlaceholderText('search profiles by email or name')
+      ).not.toBeInTheDocument()
+      expect(screen.queryByText('Search')).not.toBeInTheDocument()
+    })
+  })
+
+  test('only allow authors to be reordered if there is not regex', async () => {
+    const apiPost = jest.fn(() => Promise.resolve([]))
+    api.post = apiPost
+
+    const providerProps = {
+      value: {
+        field: {
+          ['authorid']: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex: undefined,
+              },
+            },
+          },
+        },
+        value: [
+          { authorId: '~test_id1', authorName: 'First One Last One' },
+          { authorId: '~test_id2', authorName: 'First Two Last Two' },
+        ],
+        onChange: jest.fn(),
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+
+    await waitFor(() => {
+      expect(
+        screen.queryByPlaceholderText('search profiles by email or name')
+      ).not.toBeInTheDocument()
+      expect(screen.queryByText('Search')).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'arrow-right' }))
     })
   })
 
@@ -123,7 +190,7 @@ describe('ProfileSearchWidget', () => {
     })
   })
 
-  test('show tildid or email in tooltip', async () => {
+  test('show tildeid or email in tooltip', async () => {
     const initialGetProfile = jest.fn(() =>
       Promise.resolve({
         profiles: [
@@ -169,15 +236,6 @@ describe('ProfileSearchWidget', () => {
         'test@email.com'
       )
     })
-    // await userEvent.click(screen.getByRole('button', { name: 'arrow-right' }))
-    // expect(onChange).toBeCalledWith(
-    //   expect.objectContaining({
-    //     value: [
-    //       { authorId: '~test_id2', authorName: 'First Two Last Two' },
-    //       { authorId: '~test_id1', authorName: 'First One Last One' },
-    //     ],
-    //   })
-    // )
   })
 
   test('show profile search results', async () => {
@@ -229,6 +287,8 @@ describe('ProfileSearchWidget', () => {
             value: {
               param: {
                 type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
               },
             },
           },
@@ -268,6 +328,8 @@ describe('ProfileSearchWidget', () => {
             value: {
               param: {
                 type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
               },
             },
           },
@@ -302,6 +364,8 @@ describe('ProfileSearchWidget', () => {
             value: {
               param: {
                 type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
               },
             },
           },
@@ -365,6 +429,8 @@ describe('ProfileSearchWidget', () => {
             value: {
               param: {
                 type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
               },
             },
           },
@@ -477,6 +543,8 @@ describe('ProfileSearchWidget', () => {
             value: {
               param: {
                 type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
               },
             },
           },
@@ -536,6 +604,8 @@ describe('ProfileSearchWidget', () => {
             value: {
               param: {
                 type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
               },
             },
           },
@@ -573,6 +643,8 @@ describe('ProfileSearchWidget', () => {
             value: {
               param: {
                 type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
               },
             },
           },
@@ -610,6 +682,8 @@ describe('ProfileSearchWidget', () => {
             value: {
               param: {
                 type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
               },
             },
           },
@@ -634,6 +708,76 @@ describe('ProfileSearchWidget', () => {
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
   })
 
+  test('show custom author form if regex has pipe', async () => {
+    api.post = jest.fn(() => Promise.resolve([]))
+    api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
+
+    const providerProps = {
+      value: {
+        field: {
+          ['authorid']: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
+              },
+            },
+          },
+        },
+        value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
+        onChange: jest.fn(),
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'some search term'
+    )
+    await userEvent.click(screen.getByText('Search'))
+    expect(screen.getByText('No matching profiles found.', { exact: false }))
+    expect(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
+
+    await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
+    expect(screen.getByPlaceholderText('full name of the author to add'))
+    expect(screen.getByPlaceholderText('email of the author to add'))
+    expect(screen.getByText('Add')).toHaveAttribute('disabled')
+  })
+
+  test('not to show custom author form if regex has no pipe', async () => {
+    api.post = jest.fn(() => Promise.resolve([]))
+    api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
+
+    const providerProps = {
+      value: {
+        field: {
+          ['authorid']: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex: '^~\\S+$',
+              },
+            },
+          },
+        },
+        value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
+        onChange: jest.fn(),
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'some search term'
+    )
+    await userEvent.click(screen.getByText('Search'))
+    expect(screen.getByText('No matching profiles found.', { exact: false }))
+    expect(
+      screen.queryByRole('button', { name: 'Manually Enter Author Info' })
+    ).not.toBeInTheDocument()
+  })
+
   test('fill in the custom author form based on user input', async () => {
     api.post = jest.fn(() => Promise.resolve([]))
     api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
@@ -645,6 +789,8 @@ describe('ProfileSearchWidget', () => {
             value: {
               param: {
                 type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
               },
             },
           },
@@ -686,6 +832,8 @@ describe('ProfileSearchWidget', () => {
             value: {
               param: {
                 type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
               },
             },
           },

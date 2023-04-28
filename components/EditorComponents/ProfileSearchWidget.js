@@ -31,6 +31,7 @@ const Author = ({
   showArrowButton,
   displayAuthors,
   setDisplayAuthors,
+  allowAddRemove,
 }) => {
   const { onChange } = useContext(EditorComponentContext)
 
@@ -72,15 +73,17 @@ const Author = ({
         )}
       </div>
       <div className={styles.actionButtons}>
-        <IconButton
-          name="remove"
-          onClick={() => {
-            const updatedAuthors = displayAuthors.filter((p) => p.authorId !== authorId)
-            setDisplayAuthors(updatedAuthors)
-            onChange({ fieldName, value: updatedAuthors })
-          }}
-          extraClasses="action-button"
-        />
+        {allowAddRemove && (
+          <IconButton
+            name="remove"
+            onClick={() => {
+              const updatedAuthors = displayAuthors.filter((p) => p.authorId !== authorId)
+              setDisplayAuthors(updatedAuthors)
+              onChange({ fieldName, value: updatedAuthors })
+            }}
+            extraClasses="action-button"
+          />
+        )}
         {showArrowButton && <IconButton name="arrow-right" onClick={increaseAuthorIndex} />}
       </div>
     </div>
@@ -153,10 +156,12 @@ const ProfileSearchResultRow = ({
   )
 }
 
-const ProfileSearchResults = ({
+const ProfileSearchFormAndResults = ({
   setSelectedAuthorProfiles,
   displayAuthors,
   setDisplayAuthors,
+  allowUserDefined,
+  error,
 }) => {
   const [searchTerm, setSearchTerm] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -199,31 +204,42 @@ const ProfileSearchResults = ({
     if (showLoadingSpinner) setIsLoading(false)
   }
 
-  const displayCustomAuthorForm = (isEmptyResult) => (
-    <div className={styles.noMatchingProfile}>
-      {showCustomAuthorForm ? (
-        <CustomAuthorForm
-          searchTerm={searchTerm}
-          setProfileSearchResults={setProfileSearchResults}
-          setSearchTerm={setSearchTerm}
-          displayAuthors={displayAuthors}
-          setDisplayAuthors={setDisplayAuthors}
-        />
-      ) : (
-        <>
-          <div className={styles.noMatchingProfileMessage}>
-            {isEmptyResult ? 'No matching profiles found.' : 'Not your coauthor?'}
-          </div>
-          <button
-            className={`btn btn-xs ${styles.enterAuthorButton}`}
-            onClick={() => setShowCustomAuthorForm(true)}
-          >
-            Manually Enter Author Info
-          </button>
-        </>
-      )}
-    </div>
-  )
+  const displayCustomAuthorForm = (isEmptyResult) => {
+    if (!allowUserDefined && isEmptyResult)
+      return (
+        <div className={styles.noMatchingProfile}>
+          <div className={styles.noMatchingProfileMessage}>No matching profiles found.</div>
+        </div>
+      )
+    if (!allowUserDefined) return null
+    return (
+      <div className={styles.noMatchingProfile}>
+        {showCustomAuthorForm ? (
+          <CustomAuthorForm
+            searchTerm={searchTerm}
+            setProfileSearchResults={setProfileSearchResults}
+            setSearchTerm={setSearchTerm}
+            displayAuthors={displayAuthors}
+            setDisplayAuthors={setDisplayAuthors}
+            allowUserDefined={allowUserDefined}
+          />
+        ) : (
+          <>
+            <div className={styles.noMatchingProfileMessage}>
+              {isEmptyResult ? 'No matching profiles found.' : 'Not your coauthor?'}
+            </div>
+
+            <button
+              className={`btn btn-xs ${styles.enterAuthorButton}`}
+              onClick={() => setShowCustomAuthorForm(true)}
+            >
+              Manually Enter Author Info
+            </button>
+          </>
+        )}
+      </div>
+    )
+  }
 
   const displayResults = () => {
     if (!profileSearchResults) return null
@@ -277,7 +293,7 @@ const ProfileSearchResults = ({
       >
         <input
           type="text"
-          className="form-control"
+          className={`form-control ${error ? styles.invalidValue : ''}`}
           value={searchTerm ?? ''}
           placeholder="search profiles by email or name"
           onChange={(e) => {
@@ -285,7 +301,11 @@ const ProfileSearchResults = ({
             setProfileSearchResults(null)
           }}
         />
-        <button className="btn btn-sm" disabled={!searchTerm?.trim()} type="submit">
+        <button
+          className={`btn btn-sm ${error ? styles.invalidValue : ''}`}
+          disabled={!searchTerm?.trim()}
+          type="submit"
+        >
           Search
         </button>
       </form>
@@ -369,8 +389,10 @@ const CustomAuthorForm = ({
 
 const ProfileSearchWidget = () => {
   const { user, accessToken } = useUser()
-  const { field, onChange, value } = useContext(EditorComponentContext)
+  const { field, onChange, value, error } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
+  const allowUserDefined = field[fieldName].value?.param?.regex?.includes('|')
+  const allowAddRemove = field[fieldName].value?.param?.regex
   const [selectedAuthorProfiles, setSelectedAuthorProfiles] = useState([])
   const [displayAuthors, setDisplayAuthors] = useState(value) // id+email
 
@@ -458,17 +480,22 @@ const ProfileSearchWidget = () => {
                 showArrowButton={showArrowButton}
                 displayAuthors={displayAuthors}
                 setDisplayAuthors={setDisplayAuthors}
+                allowAddRemove={allowAddRemove}
               />
             </React.Fragment>
           )
         })}
       </div>
 
-      <ProfileSearchResults
-        setSelectedAuthorProfiles={setSelectedAuthorProfiles}
-        displayAuthors={displayAuthors}
-        setDisplayAuthors={setDisplayAuthors}
-      />
+      {allowAddRemove && (
+        <ProfileSearchFormAndResults
+          setSelectedAuthorProfiles={setSelectedAuthorProfiles}
+          displayAuthors={displayAuthors}
+          setDisplayAuthors={setDisplayAuthors}
+          allowUserDefined={allowUserDefined}
+          error={error}
+        />
+      )}
     </div>
   )
 }

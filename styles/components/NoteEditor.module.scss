@@ -57,3 +57,7 @@
 .signatures {
   width: 500px;
 }
+
+.invalidValue {
+  border-color: constants.$orRed;
+}

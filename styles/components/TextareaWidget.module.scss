@@ -38,3 +38,11 @@
     font-weight: bold;
   }
 }
+
+.invalidValue {
+  :global {
+    textarea {
+      border-color: red;
+    }
+  }
+}

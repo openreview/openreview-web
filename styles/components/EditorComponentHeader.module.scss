@@ -1,13 +1,19 @@
 @use '../utils/constants';
 
 .editorComponent {
-  margin-top: 1em;
+  margin-bottom: 1em;
 }
 
 .title {
   font-size: 1rem;
   font-weight: bold;
   color: constants.$orRed;
+
+  .requiredField {
+    font-weight: normal;
+    vertical-align: sub;
+    color: constants.$orRedLight;
+  }
 }
 
 .description {
@@ -36,5 +42,13 @@
 
   .title {
     width: 20%;
+  }
+}
+
+.error {
+  color: red;
+
+  .errorMessage {
+    margin-left: 0.25rem;
   }
 }

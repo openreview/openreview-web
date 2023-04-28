@@ -7,7 +7,7 @@ import EditorComponentContext from './EditorComponentContext'
 import EditorWidget from './webfield/EditorWidget'
 import styles from '../styles/components/NoteEditor.module.scss'
 import { getAutoStorageKey, prettyInvitationId } from '../lib/utils'
-import { getNoteContent } from '../lib/webfield-utils'
+import { getErrorFieldName, getNoteContent } from '../lib/webfield-utils'
 import SpinnerButton from './SpinnerButton'
 import LoadingSpinner from './LoadingSpinner'
 import api from '../lib/api-client'
@@ -105,6 +105,7 @@ const NoteEditor = ({
   })
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errors, setErrors] = useState([])
 
   const saveDraft = useMemo(
     () =>
@@ -133,6 +134,7 @@ const NoteEditor = ({
   const renderField = ({ fieldName, fieldDescription }) => {
     const fieldNameOverwrite = fieldName === 'authorids' ? 'Authors' : undefined
     let fieldValue = noteEditorData[fieldName]
+    const error = errors.find((e) => e.fieldName === fieldName)
     if (fieldName === 'authorids' && note) {
       fieldValue = noteEditorData.authorids?.map((p, index) => ({
         authorId: p,
@@ -142,7 +144,6 @@ const NoteEditor = ({
     return (
       <React.Fragment key={fieldName}>
         <EditorComponentContext.Provider
-          // key={fieldName}
           value={{
             invitation,
             note,
@@ -153,7 +154,7 @@ const NoteEditor = ({
             value: fieldValue,
             key: fieldName,
             isWebfield: false,
-            // isContentField: true,
+            error,
           }}
         >
           <EditorComponentHeader fieldNameOverwrite={fieldNameOverwrite}>
@@ -336,14 +337,15 @@ const NoteEditor = ({
 
   const handleSubmitClick = async () => {
     setIsSubmitting(true)
+    // setErrors([])
     // get note reader/writer/signature and edit reader/writer/signature
     try {
       const editToPost = view2.constructEdit({
         formData: {
           ...noteEditorData,
-          ...(noteEditorData.authorids && {
-            authors: noteEditorData.authorids.map((p) => p.authorName),
-            authorids: noteEditorData.authorids.map((p) => p.authorId),
+          ...(noteEditorData.authorids?.value && {
+            authors: noteEditorData.authorids?.value.map((p) => p.authorName),
+            authorids: noteEditorData.authorids?.value.map((p) => p.authorId),
           }),
           noteReaderValues: getNoteReaderValues(),
           editReaderValues: getEditReaderValues(),
@@ -359,7 +361,25 @@ const NoteEditor = ({
       closeNoteEditor()
       onNoteCreated(createdNote)
     } catch (error) {
-      promptError(error.message)
+      if (error.errors) {
+        setErrors(
+          error.errors.map((p) => {
+            const fieldName = getErrorFieldName(p.details.path)
+            return { fieldName, message: p.message }
+          })
+        )
+        promptError('Some info submitted are invalid.')
+      } else if (error.details.path) {
+        setErrors([
+          {
+            fieldName: getErrorFieldName(error.details.path),
+            message: error.message,
+          },
+        ])
+        promptError(error.message)
+      } else {
+        promptError(error.message)
+      }
     }
 
     setIsSubmitting(false)

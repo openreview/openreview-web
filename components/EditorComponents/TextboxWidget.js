@@ -4,7 +4,7 @@ import styles from '../../styles/components/TextboxWidget.module.scss'
 import { getFieldConstValue } from '../../lib/webfield-utils'
 
 const TextboxWidget = () => {
-  const { field, onChange, value } = useContext(EditorComponentContext)
+  const { field, onChange, value, error } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const constValue = getFieldConstValue(field[fieldName])
 
@@ -40,7 +40,7 @@ const TextboxWidget = () => {
   return (
     <div className={styles.textboxContainer}>
       <input
-        className={`form-control ${styles.textboxInput}`}
+        className={`form-control ${styles.textboxInput} ${error ? styles.invalidValue : ''}`}
         value={displayValue ?? ''}
         onChange={(e) => setDisplayValue(e.target.value)}
       />

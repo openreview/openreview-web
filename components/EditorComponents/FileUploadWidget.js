@@ -12,7 +12,7 @@ import { TrashButton } from '../IconButton'
 import styles from '../../styles/components/FileUploadWidget.module.scss'
 
 const FileUploadWidget = () => {
-  const { field, onChange, value, invitation } = useContext(EditorComponentContext)
+  const { field, onChange, value, invitation, error } = useContext(EditorComponentContext)
   const fileInputRef = useRef(null)
   const [isLoading, setIsLoading] = useState(false)
   const [uploadPercentage, setUploadPercentage] = useState(2)
@@ -108,7 +108,7 @@ const FileUploadWidget = () => {
       />
       <SpinnerButton
         type="primary"
-        className={styles.selectFileButton}
+        className={`${styles.selectFileButton} ${error ? styles.invalidValue : ''}`}
         onClick={() => fileInputRef.current?.click()}
         disabled={isLoading}
         loading={isLoading}

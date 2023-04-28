@@ -26,6 +26,11 @@
 .selectFileButton {
   display: block;
   margin-bottom: 0.25rem;
+
+  &.invalidValue {
+    border-color: red;
+    background-color: red;
+  }
 }
 
 .fileUrl {

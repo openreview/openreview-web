@@ -120,3 +120,11 @@
     margin-left: 0.25rem;
   }
 }
+
+input.invalidValue {
+  border-color: red;
+}
+button.invalidValue {
+  border-color: red;
+  background-color: red;
+}

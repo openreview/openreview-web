@@ -65,7 +65,7 @@ const MathJaxWarning = ({ content }) => {
 const TextAreaWidget = () => {
   const webFieldContext = useContext(WebFieldContext)
   const editorComponentContext = useContext(EditorComponentContext)
-  const { field, onChange, value, isWebfield } = editorComponentContext
+  const { field, onChange, value, isWebfield, error } = editorComponentContext
   const { note, entity } = isWebfield ? webFieldContext : editorComponentContext
   let { invitation } = isWebfield ? webFieldContext : editorComponentContext
   if (!invitation) invitation = entity
@@ -94,7 +94,11 @@ const TextAreaWidget = () => {
 
   return (
     <>
-      <div className={`${isWebfield ? 'textarea' : styles.textAreaContainer}`}>
+      <div
+        className={`${isWebfield ? 'textarea' : styles.textAreaContainer} ${
+          error ? styles.invalidValue : ''
+        }`}
+      >
         {enableMarkdown ? (
           <MarkdownPreviewTab
             textAreaClass={styles.textarea}

@@ -17,7 +17,8 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('* Title'))
+    expect(screen.getByText('Title'))
+    expect(screen.getByText('*'))
   })
 
   test('pretty display mandatory field name of multiple words', () => {
@@ -29,7 +30,8 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('* Supplementary Material'))
+    expect(screen.getByText('Supplementary Material'))
+    expect(screen.getByText('*'))
   })
 
   test('pretty display optional field name of single word', () => {
@@ -84,7 +86,8 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('* PDF'))
+    expect(screen.getByText('PDF'))
+    expect(screen.getByText('*'))
   })
 
   test('allow field name to be overwritten', () => {
@@ -124,7 +127,7 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('* Authorids').parentElement).toHaveClass('hidden')
+    expect(screen.getByText('Authorids').parentElement).toHaveClass('hidden')
   })
 
   test('display description with no scroll', () => {

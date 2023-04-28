@@ -3,10 +3,11 @@ import { prettyField } from '../../lib/utils'
 import EditorComponentContext from '../EditorComponentContext'
 
 import styles from '../../styles/components/EditorComponentHeader.module.scss'
+import Icon from '../Icon'
 
 const EditorComponentHeader = ({ inline = false, fieldNameOverwrite, children }) => {
   const editorComponentContext = useContext(EditorComponentContext)
-  const { field } = editorComponentContext ?? {
+  const { field, error } = editorComponentContext ?? {
     field: { [fieldNameOverwrite]: {} },
   }
   const fieldName = Object.keys(field)[0]
@@ -19,9 +20,16 @@ const EditorComponentHeader = ({ inline = false, fieldNameOverwrite, children })
         inline ? ` ${styles.inline}` : ''
       }`}
     >
-      <div className={styles.title}>{`${optional ? '' : '* '}${
-        fieldNameOverwrite ?? prettyField(fieldName)
-      }`}</div>
+      <div className={styles.title}>
+        {`${fieldNameOverwrite ?? prettyField(fieldName)} `}
+        <span className={styles.requiredField}>{optional ? '' : '* '}</span>{' '}
+      </div>
+      {error && (
+        <div className={styles.error}>
+          <Icon name="exclamation-sign" />
+          <span className={styles.errorMessage}>{error.message}</span>
+        </div>
+      )}
       {description && (
         <div className={styles.description}>
           {scroll ? (
