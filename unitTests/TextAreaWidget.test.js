@@ -90,6 +90,7 @@ describe('TextAreaWidget', () => {
         },
         value: 'a',
         onChange: jest.fn(),
+        clearError: jest.fn(),
       },
     }
 
@@ -116,6 +117,7 @@ describe('TextAreaWidget', () => {
         },
         value: 'ab',
         onChange: jest.fn(),
+        clearError: jest.fn(),
       },
     }
 
@@ -145,6 +147,7 @@ describe('TextAreaWidget', () => {
         },
         value: 'abcd',
         onChange: jest.fn(),
+        clearError: jest.fn(),
       },
     }
 
@@ -157,6 +160,7 @@ describe('TextAreaWidget', () => {
 
   test('read saved value from localstroage', async () => {
     const onChange = jest.fn()
+    const clearError = jest.fn()
     const providerProps = {
       value: {
         invitation: { id: 'invitaitonId' },
@@ -172,6 +176,7 @@ describe('TextAreaWidget', () => {
           },
         },
         onChange,
+        clearError,
       },
     }
 
@@ -183,5 +188,6 @@ describe('TextAreaWidget', () => {
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
     expect(getItem).toBeCalledWith('some key')
     expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'some saved value' }))
+    expect(clearError).toBeCalled()
   })
 })

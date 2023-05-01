@@ -193,6 +193,7 @@ describe('CheckboxWidget', () => {
 
   test('call update when option is checked or unchecked (type is array)', async () => {
     const onChange = jest.fn()
+    const clearError = jest.fn()
     let providerProps = {
       value: {
         field: {
@@ -207,6 +208,7 @@ describe('CheckboxWidget', () => {
           },
         },
         onChange,
+        clearError,
       },
     }
 
@@ -214,6 +216,7 @@ describe('CheckboxWidget', () => {
 
     const iCertifyCheckbox = screen.getByDisplayValue('I certify')
     await userEvent.click(iCertifyCheckbox)
+    expect(clearError).toHaveBeenCalledTimes(1)
     expect(onChange).toBeCalledWith({
       fieldName: 'paper_checklist_guidelines',
       value: ['I certify'],
@@ -234,12 +237,14 @@ describe('CheckboxWidget', () => {
         },
         value: ['I do not certify'],
         onChange,
+        clearError,
       },
     }
 
     reRenderWithEditorComponentContext(rerender, <CheckboxWidget />, providerProps)
     const iDoNotCertifyCheckbox = screen.getByDisplayValue('I do not certify')
     await userEvent.click(iDoNotCertifyCheckbox)
+    expect(clearError).toHaveBeenCalledTimes(2)
     expect(onChange).toHaveBeenNthCalledWith(2, {
       fieldName: 'paper_checklist_guidelines',
       value: [],
@@ -248,6 +253,7 @@ describe('CheckboxWidget', () => {
 
   test('call update when option is checked or unchecked (type is string)', async () => {
     const onChange = jest.fn()
+    const clearError = jest.fn()
     let providerProps = {
       value: {
         field: {
@@ -262,6 +268,7 @@ describe('CheckboxWidget', () => {
           },
         },
         onChange,
+        clearError,
       },
     }
 
@@ -289,6 +296,7 @@ describe('CheckboxWidget', () => {
         },
         value: 'I do not certify',
         onChange,
+        clearError,
       },
     }
 

@@ -6,7 +6,7 @@ import { intersection, isEmpty } from 'lodash'
 import EditorComponentContext from './EditorComponentContext'
 import EditorWidget from './webfield/EditorWidget'
 import styles from '../styles/components/NoteEditor.module.scss'
-import { getAutoStorageKey, prettyInvitationId } from '../lib/utils'
+import { getAutoStorageKey, prettyField, prettyInvitationId } from '../lib/utils'
 import { getErrorFieldName, getNoteContent } from '../lib/webfield-utils'
 import SpinnerButton from './SpinnerButton'
 import LoadingSpinner from './LoadingSpinner'
@@ -155,6 +155,10 @@ const NoteEditor = ({
             key: fieldName,
             isWebfield: false,
             error,
+            clearError: () =>
+              setErrors((existingErrors) =>
+                existingErrors.filter((p) => p.fieldName !== fieldName)
+              ),
           }}
         >
           <EditorComponentHeader fieldNameOverwrite={fieldNameOverwrite}>
@@ -337,15 +341,15 @@ const NoteEditor = ({
 
   const handleSubmitClick = async () => {
     setIsSubmitting(true)
-    // setErrors([])
+    setErrors([])
     // get note reader/writer/signature and edit reader/writer/signature
     try {
       const editToPost = view2.constructEdit({
         formData: {
           ...noteEditorData,
-          ...(noteEditorData.authorids?.value && {
-            authors: noteEditorData.authorids?.value.map((p) => p.authorName),
-            authorids: noteEditorData.authorids?.value.map((p) => p.authorId),
+          ...(noteEditorData.authorids && {
+            authors: noteEditorData.authorids?.map((p) => p.authorName),
+            authorids: noteEditorData.authorids?.map((p) => p.authorId),
           }),
           noteReaderValues: getNoteReaderValues(),
           editReaderValues: getEditReaderValues(),
@@ -365,15 +369,16 @@ const NoteEditor = ({
         setErrors(
           error.errors.map((p) => {
             const fieldName = getErrorFieldName(p.details.path)
-            return { fieldName, message: p.message }
+            return { fieldName, message: p.message.replace(fieldName, prettyField(fieldName)) }
           })
         )
         promptError('Some info submitted are invalid.')
       } else if (error.details.path) {
+        const fieldName = getErrorFieldName(error.details.path)
         setErrors([
           {
-            fieldName: getErrorFieldName(error.details.path),
-            message: error.message,
+            fieldName,
+            message: error.message.replace(fieldName, prettyField(fieldName)),
           },
         ])
         promptError(error.message)

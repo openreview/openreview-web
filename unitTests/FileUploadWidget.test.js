@@ -59,6 +59,7 @@ describe('FileUploadWidget', () => {
   test('upload the file user selected', async () => {
     const apiPut = jest.fn(() => Promise.resolve({ url: 'test url' }))
     const onChange = jest.fn()
+    const clearError = jest.fn()
     api.put = apiPut
 
     const providerProps = {
@@ -76,6 +77,7 @@ describe('FileUploadWidget', () => {
           },
         },
         onChange,
+        clearError,
       },
     }
     renderWithEditorComponentContext(<FileUploadWidget />, providerProps)
@@ -88,6 +90,7 @@ describe('FileUploadWidget', () => {
 
     expect(apiPut).toBeCalled()
     expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'test url' }))
+    expect(clearError).toBeCalled()
   })
 
   test('show File too large when selected file is too large', async () => {
@@ -127,6 +130,7 @@ describe('FileUploadWidget', () => {
 
   test('clear value when user delete file', async () => {
     const onChange = jest.fn()
+    const clearError = jest.fn()
     const providerProps = {
       value: {
         invitation: { id: 'invitaitonId' },
@@ -148,6 +152,6 @@ describe('FileUploadWidget', () => {
     const trashButton = screen.getByRole('button', { name: 'trash' })
     await userEvent.click(trashButton)
 
-    expect(onChange).toBeCalledWith({ fieldName: 'supplementary_material', value: null })
+    expect(onChange).toBeCalledWith({ fieldName: 'supplementary_material', value: undefined })
   })
 })

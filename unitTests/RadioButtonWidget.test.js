@@ -104,6 +104,7 @@ describe('RadioButtonWidget', () => {
 
   test('call update when option is selected', async () => {
     const onChange = jest.fn()
+    const clearError = jest.fn()
     const providerProps = {
       value: {
         invitation: { id: 'invitaitonId' },
@@ -121,6 +122,7 @@ describe('RadioButtonWidget', () => {
           },
         },
         onChange,
+        clearError,
       },
     }
 
@@ -139,6 +141,7 @@ describe('RadioButtonWidget', () => {
         value: 'Long submission (more than 12 pages of main content)',
       })
     )
+    expect(clearError).toBeCalledTimes(1)
 
     await userEvent.click(optionOne)
     expect(onChange).toHaveBeenNthCalledWith(
@@ -147,5 +150,6 @@ describe('RadioButtonWidget', () => {
         value: 'Regular submission (no more than 12 pages of main content)',
       })
     )
+    expect(clearError).toBeCalledTimes(2)
   })
 })

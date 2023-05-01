@@ -136,6 +136,7 @@ describe('TextboxWidget', () => {
 
   test('invoke onchange on text change (string)', async () => {
     const onChange = jest.fn()
+    const clearError = jest.fn()
     const providerProps = {
       value: {
         field: {
@@ -148,16 +149,19 @@ describe('TextboxWidget', () => {
           },
         },
         onChange,
+        clearError,
       },
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
     const input = screen.getByDisplayValue('')
     await userEvent.type(input, '  some input  ')
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ value: 'some input' }))
+    expect(clearError).toBeCalled()
   })
 
   test('invoke onchange on text change (string[])', async () => {
     const onChange = jest.fn()
+    const clearError = jest.fn()
     const providerProps = {
       value: {
         field: {
@@ -170,6 +174,7 @@ describe('TextboxWidget', () => {
           },
         },
         onChange,
+        clearError,
       },
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
@@ -178,5 +183,6 @@ describe('TextboxWidget', () => {
     expect(onChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ value: ['keyword one', 'keyword two', 'keyword three'] })
     )
+    expect(clearError).toBeCalled()
   })
 })

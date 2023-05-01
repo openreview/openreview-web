@@ -4,7 +4,7 @@ import EditorComponentContext from '../EditorComponentContext'
 import styles from '../../styles/components/RadioButtonWidget.module.scss'
 
 const RadioButtonWidget = () => {
-  const { field, onChange, value, isWebfield } = useContext(EditorComponentContext)
+  const { field, onChange, value, isWebfield, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const options = field[fieldName].value?.param?.enum
 
@@ -18,7 +18,10 @@ const RadioButtonWidget = () => {
             type="radio"
             value={option}
             checked={value === option}
-            onChange={(e) => onChange({ fieldName, value: e.target.value })}
+            onChange={(e) => {
+              onChange({ fieldName, value: e.target.value })
+              clearError && clearError()
+            }}
           />
           <span className={styles.radioButtonOptionText}>{option}</span>
         </div>

@@ -12,7 +12,8 @@ import { TrashButton } from '../IconButton'
 import styles from '../../styles/components/FileUploadWidget.module.scss'
 
 const FileUploadWidget = () => {
-  const { field, onChange, value, invitation, error } = useContext(EditorComponentContext)
+  const { field, onChange, value, invitation, error, clearError } =
+    useContext(EditorComponentContext)
   const fileInputRef = useRef(null)
   const [isLoading, setIsLoading] = useState(false)
   const [uploadPercentage, setUploadPercentage] = useState(2)
@@ -41,6 +42,7 @@ const FileUploadWidget = () => {
       if (result.url) {
         // upload is completed
         onChange({ fieldName, value: result.url })
+        clearError && clearError()
         setUploadPercentage(2)
       } else {
         setUploadPercentage(
@@ -51,6 +53,7 @@ const FileUploadWidget = () => {
         )
       }
     } catch (error) {
+      console.log('error is ', error)
       promptError(error.message, { scrollToTop: false })
       fileInputRef.current.value = ''
     }
@@ -93,7 +96,7 @@ const FileUploadWidget = () => {
   }
 
   const handleDeleteFile = () => {
-    onChange({ fieldName, value: null })
+    onChange({ fieldName, value: undefined })
     fileInputRef.current.value = ''
   }
 

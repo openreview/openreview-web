@@ -98,7 +98,7 @@ const ProfileSearchResultRow = ({
   displayAuthors,
   setDisplayAuthors,
 }) => {
-  const { field, onChange, value } = useContext(EditorComponentContext)
+  const { field, onChange, value, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const isInAuthorList = value.find((p) => p.authorId === profile?.id)
   if (!profile) return null
@@ -146,6 +146,7 @@ const ProfileSearchResultRow = ({
               fieldName,
               value: updatedAuthors,
             })
+            clearError()
             setProfileSearchResults(null)
             setSearchTerm('')
             setSelectedAuthorProfiles((existingProfiles) => [...existingProfiles, profile])

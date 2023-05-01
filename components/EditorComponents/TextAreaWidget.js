@@ -65,7 +65,7 @@ const MathJaxWarning = ({ content }) => {
 const TextAreaWidget = () => {
   const webFieldContext = useContext(WebFieldContext)
   const editorComponentContext = useContext(EditorComponentContext)
-  const { field, onChange, value, isWebfield, error } = editorComponentContext
+  const { field, onChange, value, isWebfield, error, clearError } = editorComponentContext
   const { note, entity } = isWebfield ? webFieldContext : editorComponentContext
   let { invitation } = isWebfield ? webFieldContext : editorComponentContext
   if (!invitation) invitation = entity
@@ -78,6 +78,7 @@ const TextAreaWidget = () => {
 
   const onTextUpdated = (e) => {
     onChange(e)
+    clearError && clearError()
   }
 
   useEffect(() => {
@@ -103,15 +104,19 @@ const TextAreaWidget = () => {
           <MarkdownPreviewTab
             textAreaClass={styles.textarea}
             value={value ?? ''}
-            onValueChanged={(e) => onTextUpdated({ fieldName, value: e, shouldSaveDraft })}
+            onValueChanged={(e) => {
+              const value = e?.trim() === '' ? undefined : e
+              onTextUpdated({ fieldName, value, shouldSaveDraft })
+            }}
           />
         ) : (
           <textarea
             className={`form-control ${styles.textarea}`}
             value={value ?? ''}
-            onChange={(e) =>
-              onTextUpdated({ fieldName, value: e.target.value, shouldSaveDraft })
-            }
+            onChange={(e) => {
+              const value = e.target.value?.trim() === '' ? undefined : e.target.value
+              onTextUpdated({ fieldName, value, shouldSaveDraft })
+            }}
           ></textarea>
         )}
       </div>

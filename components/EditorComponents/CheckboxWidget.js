@@ -4,13 +4,14 @@ import EditorComponentContext from '../EditorComponentContext'
 import styles from '../../styles/components/CheckboxWidget.module.scss'
 
 const CheckboxWidget = () => {
-  const { field, onChange, value, isWebfield } = useContext(EditorComponentContext)
+  const { field, onChange, value, isWebfield, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const options = field[fieldName].value?.param?.enum
   const defaultValue = field[fieldName].value?.param?.default
   const isArrayType = field[fieldName]?.value?.param?.type?.endsWith('[]')
 
   const handleCheckboxClick = (e) => {
+    clearError && clearError()
     const optionValue = e.target.value
     if (!isArrayType) {
       onChange({ fieldName, value: value ? null : optionValue })

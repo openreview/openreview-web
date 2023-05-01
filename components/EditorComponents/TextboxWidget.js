@@ -4,7 +4,7 @@ import styles from '../../styles/components/TextboxWidget.module.scss'
 import { getFieldConstValue } from '../../lib/webfield-utils'
 
 const TextboxWidget = () => {
-  const { field, onChange, value, error } = useContext(EditorComponentContext)
+  const { field, onChange, value, error, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const constValue = getFieldConstValue(field[fieldName])
 
@@ -14,16 +14,17 @@ const TextboxWidget = () => {
   )
 
   const getInputValue = (rawInputValue) => {
-    if (!isCommaSeparatedArray) return rawInputValue.trim()
+    if (!isCommaSeparatedArray) return rawInputValue ? rawInputValue.trim() : undefined
     return rawInputValue.split(',').map((p) => p.trim())
   }
 
   useEffect(() => {
-    if (!displayValue || !onChange) return
+    if (displayValue === null || typeof displayValue === 'undefined' || !onChange) return
     onChange({
       fieldName,
       value: getInputValue(displayValue),
     })
+    clearError && clearError()
   }, [displayValue])
 
   if (constValue)
