@@ -3,6 +3,8 @@
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
 import { cloneDeep, sortBy } from 'lodash'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import withAdminAuth from '../../components/withAdminAuth'
 import Icon from '../../components/Icon'
 import LoadSpinner from '../../components/LoadingSpinner'
@@ -23,8 +25,6 @@ import Table from '../../components/Table'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import { formatProfileData } from '../../lib/profiles'
 import Markdown from '../../components/EditorComponents/Markdown'
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
 
 dayjs.extend(relativeTime)
 
