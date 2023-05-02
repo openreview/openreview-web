@@ -50,7 +50,7 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
     : (p) => p.invitation === decisionInvitationId
   const decision = note.details?.directReplies?.find(decisionLookupFn)
   const decisionContent = isV2Note
-    ? decision?.content?.recommendation?.value
+    ? decision?.content?.decision?.value
     : decision?.content?.decision
   const isAcceptedPaper = isV2Note
     ? note.content?.venue?.value?.toLowerCase()?.includes('accept')
@@ -170,8 +170,17 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
 }
 
 // modified from noteAreaChairs.hbs handlebar template pc console->paper status tab->status column
-export const ProgramChairConsolePaperAreaChairProgress = ({ metaReviewData, referrerUrl }) => {
+export const ProgramChairConsolePaperAreaChairProgress = ({
+  rowData,
+  referrerUrl,
+  areaChairAssignmentUrl,
+}) => {
+  const { metaReviewData, note } = rowData
   const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs } = metaReviewData
+  const paperManualAreaChairAssignmentUrl = areaChairAssignmentUrl?.replace(
+    'edges/browse?',
+    `edges/browse?start=staticList,type:head,ids:${note.id}&`
+  )
   return (
     <div className="areachair-progress">
       <h4 className="title">{`${numMetaReviewsDone} of ${areaChairs.length} ${inflect(
@@ -243,6 +252,18 @@ export const ProgramChairConsolePaperAreaChairProgress = ({ metaReviewData, refe
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {paperManualAreaChairAssignmentUrl && (
+        <div className="mt-3">
+          <a
+            href={`${paperManualAreaChairAssignmentUrl}&referrer=${referrerUrl}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Edit Area Chair Assignments
+          </a>
         </div>
       )}
     </div>
