@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, sortBy } from 'lodash'
 import withAdminAuth from '../../components/withAdminAuth'
 import Icon from '../../components/Icon'
 import LoadSpinner from '../../components/LoadingSpinner'
@@ -23,6 +23,10 @@ import Table from '../../components/Table'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import { formatProfileData } from '../../lib/profiles'
 import Markdown from '../../components/EditorComponents/Markdown'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+
+dayjs.extend(relativeTime)
 
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
@@ -697,7 +701,14 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
 }
 
 const VenueRequestRow = ({ item }) => {
-  const { forum, abbreviatedName, signature, hasOfficialReply, deployed } = item
+  const {
+    forum,
+    abbreviatedName,
+    signature,
+    hasOfficialReply,
+    unrepliedPcComments,
+    deployed,
+  } = item
   return (
     <div className="venue-request-row">
       <a className="request-name" href={`/forum?id=${forum}`} target="_blank" rel="noreferrer">
@@ -713,6 +724,18 @@ const VenueRequestRow = ({ item }) => {
           <span className={`label label-${hasOfficialReply ? 'success' : 'danger'}`}>
             {hasOfficialReply ? 'Replied' : 'Not Replied'}
           </span>
+        </div>
+        <div className="unreplied-label">
+          {unrepliedPcComments.length > 0 && (
+            <a
+              className="request-name"
+              href={`/forum?id=${forum}&noteId=${unrepliedPcComments[0].id}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {dayjs(unrepliedPcComments[0].tcdate).fromNow()}
+            </a>
+          )}
         </div>
       </div>
       <a href={`/profile?id=${signature}`} target="_blank" rel="noreferrer">
@@ -744,6 +767,17 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
           abbreviatedName: p.content?.['Abbreviated Venue Name'],
           hasOfficialReply: p.details.replies.find((q) =>
             q.signatures.includes('OpenReview.net/Support')
+          ),
+          unrepliedPcComments: sortBy(
+            p.details.replies.filter(
+              (q) =>
+                !q.signatures.includes('OpenReview.net/Support') &&
+                !p.details.replies.find(
+                  (r) => r.replyto === q.id && r.signatures.includes('OpenReview.net/Support')
+                ) &&
+                dayjs().diff(dayjs(q.cdate), 'd') < 7
+            ),
+            (s) => -s.cdate
           ),
           deployed: p.content?.venue_id,
           signature: p.signatures?.[0],
