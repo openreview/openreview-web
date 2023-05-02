@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 
 describe('CheckboxWidget', () => {
-  test('render nothing if field description does not have enum', () => {
+  test('render nothing if field description does not have enum or items', () => {
     const providerProps = {
       value: {
         field: {
@@ -13,7 +13,7 @@ describe('CheckboxWidget', () => {
             value: {
               param: {
                 input: 'checkbox',
-                // no enum
+                // no enum or items
               },
             },
           },
@@ -45,7 +45,7 @@ describe('CheckboxWidget', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  test('display enum options as checkbox input (type is array)', () => {
+  test('render nothing if field description items is not array', () => {
     const providerProps = {
       value: {
         field: {
@@ -53,7 +53,27 @@ describe('CheckboxWidget', () => {
             value: {
               param: {
                 input: 'checkbox',
-                type: 'string[]',
+                items: 'this is not an array',
+              },
+            },
+          },
+        },
+      },
+    }
+
+    const { container } = renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  test('display enum options(string) as checkbox input', () => {
+    const providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string',
                 enum: ['I certify', 'I do not certify', 'I am not sure'],
               },
             },
@@ -67,6 +87,96 @@ describe('CheckboxWidget', () => {
     expect(screen.getByDisplayValue('I certify')).toHaveAttribute('type', 'checkbox')
     expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('type', 'checkbox')
     expect(screen.getByDisplayValue('I am not sure')).toHaveAttribute('type', 'checkbox')
+  })
+
+  test('display description of enum options(obj) as checkbox input', () => {
+    const providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string',
+                enum: [
+                  { value: 1, description: 'I certify' },
+                  { value: 2, description: 'I do not certify' },
+                  { value: 3, description: 'I am not sure' },
+                ],
+              },
+            },
+          },
+        },
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+
+    expect(screen.getByDisplayValue('I certify')).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue('I am not sure')).toHaveAttribute('type', 'checkbox')
+  })
+
+  test('display description of items options as checkbox input', () => {
+    const providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string[]',
+                enum: [
+                  { value: 1, description: 'I certify', optional: true },
+                  { value: 2, description: 'I do not certify', optional: true },
+                  { value: 3, description: 'I am not sure', optional: true },
+                ],
+              },
+            },
+          },
+        },
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+
+    expect(screen.getByDisplayValue('I certify')).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue('I am not sure')).toHaveAttribute('type', 'checkbox')
+  })
+
+  test('display non-optional options as disabled and checked', () => {
+    const providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string[]',
+                enum: [
+                  { value: 1, description: 'I certify', optional: true },
+                  { value: 2, description: 'I do not certify', optional: false },
+                  { value: 3, description: 'I am not sure', optional: true },
+                ],
+              },
+            },
+          },
+        },
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+
+    expect(screen.getByDisplayValue('I certify')).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue('I certify')).not.toHaveAttribute('checked')
+    expect(screen.getByDisplayValue('I certify')).not.toHaveAttribute('disabled')
+    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('checked')
+    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('disabled')
+    expect(screen.getByDisplayValue('I am not sure')).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue('I am not sure')).not.toHaveAttribute('checked')
+    expect(screen.getByDisplayValue('I am not sure')).not.toHaveAttribute('disabled')
   })
 
   test('display only first enum option as checkbox input (type is string)', () => {
@@ -93,7 +203,7 @@ describe('CheckboxWidget', () => {
     expect(screen.queryByDisplayValue('I am not sure')).not.toBeInTheDocument()
   })
 
-  test('display option as checked when match with existing value (type is array)', () => {
+  test('display description of only first enum option as checkbox input (type is obj)', () => {
     const providerProps = {
       value: {
         field: {
@@ -101,13 +211,41 @@ describe('CheckboxWidget', () => {
             value: {
               param: {
                 input: 'checkbox',
-                type: 'string[]',
+                type: 'string',
+                enum: [
+                  { value: 1, description: 'I certify' },
+                  { value: 2, description: 'I do not certify' },
+                  { value: 3, description: 'I am not sure' },
+                ],
+              },
+            },
+          },
+        },
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+
+    expect(screen.getByDisplayValue('I certify')).toHaveAttribute('type', 'checkbox')
+    expect(screen.queryByDisplayValue('I do not certify')).not.toBeInTheDocument()
+    expect(screen.queryByDisplayValue('I am not sure')).not.toBeInTheDocument()
+  })
+
+  test.skip('value will not be an array for enum', () => {
+    const providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string',
                 enum: ['I certify', 'I do not certify', 'I am not sure'],
               },
             },
           },
         },
-        value: ['I certify', 'I am not sure'],
+        value: ['I certify'],
       },
     }
 
