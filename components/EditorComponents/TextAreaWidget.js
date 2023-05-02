@@ -78,7 +78,7 @@ const TextAreaWidget = () => {
 
   const onTextUpdated = (e) => {
     onChange(e)
-    clearError && clearError()
+    clearError?.()
   }
 
   useEffect(() => {
@@ -105,8 +105,8 @@ const TextAreaWidget = () => {
             textAreaClass={styles.textarea}
             value={value ?? ''}
             onValueChanged={(e) => {
-              const value = e?.trim() === '' ? undefined : e
-              onTextUpdated({ fieldName, value, shouldSaveDraft })
+              const updatedValue = e?.trim() === '' ? undefined : e
+              onTextUpdated({ fieldName, value: updatedValue, shouldSaveDraft })
             }}
           />
         ) : (
@@ -114,8 +114,8 @@ const TextAreaWidget = () => {
             className={`form-control ${styles.textarea}`}
             value={value ?? ''}
             onChange={(e) => {
-              const value = e.target.value?.trim() === '' ? undefined : e.target.value
-              onTextUpdated({ fieldName, value, shouldSaveDraft })
+              const updatedValue = e.target.value?.trim() === '' ? undefined : e.target.value
+              onTextUpdated({ fieldName, value: updatedValue, shouldSaveDraft })
             }}
           ></textarea>
         )}

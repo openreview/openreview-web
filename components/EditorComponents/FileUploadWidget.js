@@ -42,7 +42,7 @@ const FileUploadWidget = () => {
       if (result.url) {
         // upload is completed
         onChange({ fieldName, value: result.url })
-        clearError && clearError()
+        clearError?.()
         setUploadPercentage(2)
       } else {
         setUploadPercentage(
@@ -52,9 +52,8 @@ const FileUploadWidget = () => {
           ).toFixed(0)
         )
       }
-    } catch (error) {
-      console.log('error is ', error)
-      promptError(error.message, { scrollToTop: false })
+    } catch (apiError) {
+      promptError(apiError.message, { scrollToTop: false })
       fileInputRef.current.value = ''
     }
   }
@@ -87,8 +86,8 @@ const FileUploadWidget = () => {
       )
       await sendChunksPromises
       setFileName(file.name)
-    } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+    } catch (apiError) {
+      promptError(apiError.message, { scrollToTop: false })
       fileInputRef.current.value = ''
     }
 

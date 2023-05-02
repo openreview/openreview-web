@@ -24,7 +24,7 @@ const TextboxWidget = () => {
       fieldName,
       value: getInputValue(displayValue),
     })
-    clearError && clearError()
+    clearError?.()
   }, [displayValue])
 
   if (constValue)

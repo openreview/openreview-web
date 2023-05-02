@@ -15,7 +15,7 @@ global.promptError = jest.fn()
 
 import api from '../lib/api-client'
 
-describe('ProfileSearchWidget', () => {
+describe('ProfileSearchWidget for authors+authorids field', () => {
   test('show search input and disabled search button', async () => {
     const apiPost = jest.fn(() => Promise.resolve([]))
     api.post = apiPost
@@ -23,7 +23,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -52,7 +52,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -82,7 +82,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -129,7 +129,7 @@ describe('ProfileSearchWidget', () => {
     const providerPropsNoValue = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -149,7 +149,7 @@ describe('ProfileSearchWidget', () => {
     const providerPropsWithValue = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -208,7 +208,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -283,7 +283,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -298,7 +298,7 @@ describe('ProfileSearchWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
       screen.getByPlaceholderText('search profiles by email or name'),
@@ -324,7 +324,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -339,7 +339,7 @@ describe('ProfileSearchWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
       screen.getByPlaceholderText('search profiles by email or name'),
@@ -360,7 +360,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -375,7 +375,7 @@ describe('ProfileSearchWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
       screen.getByPlaceholderText('search profiles by email or name'),
@@ -422,10 +422,11 @@ describe('ProfileSearchWidget', () => {
     api.post = initialGetProfile
     api.get = searchProfile
     const onChange = jest.fn()
+    const clearError = jest.fn()
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -437,10 +438,11 @@ describe('ProfileSearchWidget', () => {
         },
         value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
         onChange,
+        clearError,
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
       screen.getByPlaceholderText('search profiles by email or name'),
@@ -457,10 +459,12 @@ describe('ProfileSearchWidget', () => {
         ],
       })
     )
+    expect(clearError).toBeCalled()
   })
 
   test("call update when an author's position in author list is adjusted", async () => {
     const onChange = jest.fn()
+    const clearError = jest.fn()
     const initialGetProfile = jest.fn(() =>
       Promise.resolve({
         profiles: [
@@ -485,7 +489,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -498,6 +502,7 @@ describe('ProfileSearchWidget', () => {
           { authorId: '~test_id2', authorName: 'First Two Last Two' },
         ],
         onChange,
+        clearError,
       },
     }
 
@@ -511,10 +516,12 @@ describe('ProfileSearchWidget', () => {
         ],
       })
     )
+    expect(clearError).not.toHaveBeenCalled()
   })
 
   test('call update when an author is removed from author list ', async () => {
     const onChange = jest.fn()
+    const clearError = jest.fn()
     const initialGetProfile = jest.fn(() =>
       Promise.resolve({
         profiles: [
@@ -539,7 +546,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -554,6 +561,7 @@ describe('ProfileSearchWidget', () => {
           { authorId: '~test_id2', authorName: 'First Two Last Two' },
         ],
         onChange,
+        clearError,
       },
     }
 
@@ -572,6 +580,7 @@ describe('ProfileSearchWidget', () => {
         value: [],
       })
     )
+    expect(clearError).not.toHaveBeenCalled()
   })
 
   test('show pagination links when there are many search results', async () => {
@@ -600,7 +609,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -615,7 +624,7 @@ describe('ProfileSearchWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
       screen.getByPlaceholderText('search profiles by email or name'),
@@ -639,7 +648,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -678,7 +687,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -693,7 +702,7 @@ describe('ProfileSearchWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
       screen.getByPlaceholderText('search profiles by email or name'),
       'some search term'
@@ -715,7 +724,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -730,7 +739,7 @@ describe('ProfileSearchWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
       screen.getByPlaceholderText('search profiles by email or name'),
       'some search term'
@@ -752,7 +761,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -766,7 +775,7 @@ describe('ProfileSearchWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
       screen.getByPlaceholderText('search profiles by email or name'),
       'some search term'
@@ -785,7 +794,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -800,7 +809,7 @@ describe('ProfileSearchWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     const searchInput = screen.getByPlaceholderText('search profiles by email or name')
     await userEvent.type(searchInput, '   some search term   ')
     await userEvent.click(screen.getByText('Search'))
@@ -828,7 +837,7 @@ describe('ProfileSearchWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorid']: {
+          ['authorids']: {
             value: {
               param: {
                 type: 'group[]',
@@ -843,7 +852,7 @@ describe('ProfileSearchWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
       screen.getByPlaceholderText('search profiles by email or name'),
       'some search term'
@@ -867,5 +876,265 @@ describe('ProfileSearchWidget', () => {
         ],
       })
     )
+  })
+})
+
+describe('ProfileSearchWidget for non authorids field', () => {
+  // data is array of tilde ids instead of array of id + name objects
+  // no custom authors
+  test('not to show custom author form', async () => {
+    api.post = jest.fn(() => Promise.resolve([]))
+    api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
+
+    const providerProps = {
+      value: {
+        field: {
+          ['corresponding_author']: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
+              },
+            },
+          },
+        },
+        value: ['~test_id1'],
+        onChange: jest.fn(),
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'some search term'
+    )
+    await userEvent.click(screen.getByText('Search'))
+    expect(screen.getByText('No matching profiles found.', { exact: false }))
+    expect(
+      screen.queryByRole('button', { name: 'Manually Enter Author Info' })
+    ).not.toBeInTheDocument()
+  })
+
+  test('call update when an author is added', async () => {
+    const searchProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~search_result1',
+            content: {
+              names: [
+                { first: 'Result First', last: 'Result Last', username: '~search_result1' },
+              ],
+              emails: ['test1@email.com', 'anothertest1@email.com'],
+            },
+          },
+        ],
+        count: 1,
+      })
+    )
+    api.get = searchProfile
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          ['corresponding_author']: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
+
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'anothertest1@email.com'
+    )
+    await userEvent.click(screen.getByText('Search'))
+    await userEvent.click(screen.getByRole('button', { name: 'plus' }))
+
+    expect(onChange).toBeCalledWith(
+      expect.objectContaining({
+        value: ['~search_result1'],
+      })
+    )
+    expect(clearError).toBeCalled()
+  })
+
+  test("call update when an author's position in author list is adjusted", async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const initialGetProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ first: 'First One', last: 'Last One', username: '~test_id1' }],
+              emails: ['test1@email.com'],
+            },
+          },
+          {
+            id: '~test_id2',
+            content: {
+              names: [{ first: 'First Two', last: 'Last Two', username: '~test_id2' }],
+              emails: ['test2@email.com'],
+            },
+          },
+        ],
+      })
+    )
+    api.post = initialGetProfile
+    const providerProps = {
+      value: {
+        field: {
+          ['corresponding_author']: {
+            value: {
+              param: {
+                type: 'group[]',
+              },
+            },
+          },
+        },
+        value: ['~test_id1', '~test_id2'],
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    await userEvent.click(screen.getByRole('button', { name: 'arrow-right' }))
+    expect(onChange).toBeCalledWith(
+      expect.objectContaining({
+        value: ['~test_id2', '~test_id1'],
+      })
+    )
+    expect(clearError).not.toHaveBeenCalled()
+  })
+
+  test('call update when an author is removed from author list ', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const initialGetProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ first: 'First One', last: 'Last One', username: '~test_id1' }],
+              emails: ['test1@email.com'],
+            },
+          },
+          {
+            id: '~test_id2',
+            content: {
+              names: [{ first: 'First Two', last: 'Last Two', username: '~test_id2' }],
+              emails: ['test2@email.com'],
+            },
+          },
+        ],
+      })
+    )
+    api.post = initialGetProfile
+    const providerProps = {
+      value: {
+        field: {
+          ['corresponding_author']: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
+              },
+            },
+          },
+        },
+        value: ['~test_id1', '~test_id2'],
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'remove' })[0])
+    expect(onChange).toBeCalledWith(
+      expect.objectContaining({
+        value: ['~test_id2'],
+      })
+    )
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'remove' })[0]) // ~test_id1 has been removed from internal state
+    expect(onChange).toBeCalledWith(
+      expect.objectContaining({
+        value: [],
+      })
+    )
+    expect(clearError).not.toHaveBeenCalled()
+  })
+
+  test('allow only 1 profile to be added when multiple is false', async () => {
+    const searchProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~search_result1',
+            content: {
+              names: [
+                { first: 'Result First', last: 'Result Last', username: '~search_result1' },
+              ],
+              emails: ['test1@email.com', 'anothertest1@email.com'],
+            },
+          },
+        ],
+        count: 1,
+      })
+    )
+    api.get = searchProfile
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          ['corresponding_author']: {
+            value: {
+              param: {
+                type: 'group', // invitation type group instead of group[] will cause multiple to be false
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={false} />, providerProps)
+
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'anothertest1@email.com'
+    )
+    await userEvent.click(screen.getByText('Search'))
+    await userEvent.click(screen.getByRole('button', { name: 'plus' }))
+
+    expect(
+      screen.queryByPlaceholderText('search profiles by email or name')
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Search')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    expect(screen.getByPlaceholderText('search profiles by email or name')).toBeInTheDocument()
+    expect(screen.getByText('Search')).toBeInTheDocument()
   })
 })

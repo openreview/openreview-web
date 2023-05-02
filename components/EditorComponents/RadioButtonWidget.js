@@ -20,7 +20,7 @@ const RadioButtonWidget = () => {
             checked={value === option}
             onChange={(e) => {
               onChange({ fieldName, value: e.target.value })
-              clearError && clearError()
+              clearError?.()
             }}
           />
           <span className={styles.radioButtonOptionText}>{option}</span>

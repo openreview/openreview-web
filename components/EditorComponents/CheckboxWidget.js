@@ -11,7 +11,7 @@ const CheckboxWidget = () => {
   const isArrayType = field[fieldName]?.value?.param?.type?.endsWith('[]')
 
   const handleCheckboxClick = (e) => {
-    clearError && clearError()
+    clearError?.()
     const optionValue = e.target.value
     if (!isArrayType) {
       onChange({ fieldName, value: value ? null : optionValue })
