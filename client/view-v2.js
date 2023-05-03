@@ -2342,7 +2342,8 @@ module.exports = (function () {
     // content fields
     Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
       if (
-        formData?.[contentFieldName] === undefined &&
+        (formData?.[contentFieldName] === undefined ||
+          formData?.[contentFieldName]?.delete === true) &&
         noteObj?.content?.[contentFieldName] === undefined
       ) {
         // do not return field

@@ -115,7 +115,7 @@ const Signatures = ({
     if (!fieldDescription || !user) return
     if (!fieldDescription.param) {
       setDescriptionType('const')
-      onChange({ type: 'const' })
+      onChange({ value: fieldDescription, type: 'const' })
       return
     }
     if (fieldDescription.param?.regex) {

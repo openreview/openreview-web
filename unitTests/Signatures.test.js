@@ -47,7 +47,10 @@ describe('Signatures', () => {
     )
 
     expect(screen.getByText('tags'))
-    expect(onChange).toHaveBeenCalledWith({ type: 'const' })
+    expect(onChange).toHaveBeenCalledWith({
+      type: 'const',
+      value: constSignaturesFieldDescription,
+    })
   })
 
   test('display ~.* regex signatures as tags widget and call update', () => {

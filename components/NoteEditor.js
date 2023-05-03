@@ -347,10 +347,15 @@ const NoteEditor = ({
       const editToPost = view2.constructEdit({
         formData: {
           ...noteEditorData,
-          ...(noteEditorData.authorids && {
-            authors: noteEditorData.authorids?.map((p) => p.authorName),
-            authorids: noteEditorData.authorids?.map((p) => p.authorId),
-          }),
+          ...Object.entries(noteEditorData)
+            .filter(([key, value]) => value === undefined)
+            .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {}),
+          ...(noteEditorData.authorids
+            ? {
+                authors: noteEditorData.authorids?.map((p) => p.authorName),
+                authorids: noteEditorData.authorids?.map((p) => p.authorId),
+              }
+            : { authors: { delete: true }, authorids: { delete: true } }),
           noteReaderValues: getNoteReaderValues(),
           editReaderValues: getEditReaderValues(),
           editWriterValues: getEditWriterValues(),

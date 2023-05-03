@@ -45,7 +45,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     })
   })
 
-  test('not to show search if there is not regex', async () => {
+  test('not to show search if there is no regex', async () => {
     const apiPost = jest.fn(() => Promise.resolve([]))
     api.post = apiPost
 
@@ -75,7 +75,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     })
   })
 
-  test('only allow authors to be reordered if there is not regex', async () => {
+  test('only allow authors to be reordered if there is no regex', async () => {
     const apiPost = jest.fn(() => Promise.resolve([]))
     api.post = apiPost
 
@@ -99,7 +99,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await waitFor(() => {
       expect(
@@ -224,7 +224,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await waitFor(() => {
       expect(screen.getByText('First One Last One')).toHaveAttribute(
@@ -506,7 +506,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.click(screen.getByRole('button', { name: 'arrow-right' }))
     expect(onChange).toBeCalledWith(
       expect.objectContaining({
@@ -565,7 +565,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.click(screen.getAllByRole('button', { name: 'remove' })[0])
     expect(onChange).toBeCalledWith(
@@ -577,7 +577,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getAllByRole('button', { name: 'remove' })[0]) // ~test_id1 has been removed from internal state
     expect(onChange).toBeCalledWith(
       expect.objectContaining({
-        value: [],
+        value: undefined,
       })
     )
     expect(clearError).not.toHaveBeenCalled()
@@ -1012,7 +1012,8 @@ describe('ProfileSearchWidget for non authorids field', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
+    screen.debug()
     await userEvent.click(screen.getByRole('button', { name: 'arrow-right' }))
     expect(onChange).toBeCalledWith(
       expect.objectContaining({
@@ -1065,7 +1066,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
       },
     }
 
-    renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.click(screen.getAllByRole('button', { name: 'remove' })[0])
     expect(onChange).toBeCalledWith(
@@ -1077,7 +1078,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
     await userEvent.click(screen.getAllByRole('button', { name: 'remove' })[0]) // ~test_id1 has been removed from internal state
     expect(onChange).toBeCalledWith(
       expect.objectContaining({
-        value: [],
+        value: undefined,
       })
     )
     expect(clearError).not.toHaveBeenCalled()
@@ -1127,6 +1128,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
     )
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'plus' }))
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: '~search_result1' })) // group is string instead of array
 
     expect(
       screen.queryByPlaceholderText('search profiles by email or name')
@@ -1134,6 +1136,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
     expect(screen.queryByText('Search')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ value: undefined }))
     expect(screen.getByPlaceholderText('search profiles by email or name')).toBeInTheDocument()
     expect(screen.getByText('Search')).toBeInTheDocument()
   })

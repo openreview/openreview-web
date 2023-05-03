@@ -24,6 +24,19 @@ const getTitle = (profile) => {
   return title
 }
 
+const checkIsInAuthorList = (selectedAuthors, idToCheck, isAuthoridsField, multiple) => {
+  if (isAuthoridsField) return selectedAuthors?.find((p) => p.authorId === idToCheck)
+  return multiple ? selectedAuthors?.includes(idToCheck) : selectedAuthors === idToCheck
+}
+
+const getUpdatedValue = (updatedDisplayAuthors, isAuthoridsField, multiple) => {
+  if (!updatedDisplayAuthors.length) return undefined
+  if (isAuthoridsField) return updatedDisplayAuthors
+  return multiple
+    ? updatedDisplayAuthors.map((p) => p.authorId)
+    : updatedDisplayAuthors[0].authorId
+}
+
 const Author = ({
   fieldName,
   authorId,
@@ -33,6 +46,7 @@ const Author = ({
   setDisplayAuthors,
   allowAddRemove,
   isAuthoridsField,
+  multiple,
 }) => {
   const { onChange } = useContext(EditorComponentContext)
 
@@ -87,9 +101,7 @@ const Author = ({
               setDisplayAuthors(updatedAuthors)
               onChange({
                 fieldName,
-                value: isAuthoridsField
-                  ? updatedAuthors
-                  : updatedAuthors.map((p) => p.authorId),
+                value: getUpdatedValue(updatedAuthors, isAuthoridsField, multiple),
               })
             }}
             extraClasses="action-button"
@@ -109,12 +121,11 @@ const ProfileSearchResultRow = ({
   displayAuthors,
   setDisplayAuthors,
   isAuthoridsField,
+  multiple,
 }) => {
   const { field, onChange, value, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
-  const isInAuthorList = isAuthoridsField
-    ? value?.find((p) => p.authorId === profile?.id)
-    : value?.includes(profile?.id)
+
   if (!profile) return null
 
   return (
@@ -148,7 +159,7 @@ const ProfileSearchResultRow = ({
       <div className={styles.addButton}>
         <IconButton
           name="plus"
-          disableButton={isInAuthorList}
+          disableButton={checkIsInAuthorList(value, profile?.id, isAuthoridsField, multiple)}
           disableReason="This author is already in author list"
           onClick={() => {
             const updatedAuthors = displayAuthors.concat({
@@ -158,7 +169,7 @@ const ProfileSearchResultRow = ({
             setDisplayAuthors(updatedAuthors)
             onChange({
               fieldName,
-              value: isAuthoridsField ? updatedAuthors : updatedAuthors.map((p) => p.authorId),
+              value: getUpdatedValue(updatedAuthors, isAuthoridsField, multiple),
             })
 
             clearError?.()
@@ -179,6 +190,7 @@ const ProfileSearchFormAndResults = ({
   allowUserDefined,
   error,
   isAuthoridsField,
+  multiple,
 }) => {
   const [searchTerm, setSearchTerm] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -238,8 +250,6 @@ const ProfileSearchFormAndResults = ({
             setSearchTerm={setSearchTerm}
             displayAuthors={displayAuthors}
             setDisplayAuthors={setDisplayAuthors}
-            allowUserDefined={allowUserDefined}
-            isAuthoridsField={isAuthoridsField}
           />
         ) : (
           <>
@@ -276,6 +286,7 @@ const ProfileSearchFormAndResults = ({
                 displayAuthors={displayAuthors}
                 setDisplayAuthors={setDisplayAuthors}
                 isAuthoridsField={isAuthoridsField}
+                multiple={multiple}
               />
             ))}
             <PaginationLinks
@@ -415,7 +426,7 @@ const ProfileSearchWidget = ({ multiple = false }) => {
     field[fieldName].value?.param?.regex?.includes('|') && isAuthoridsField
   const allowAddRemove = field[fieldName].value?.param?.regex
   const [selectedAuthorProfiles, setSelectedAuthorProfiles] = useState([])
-  const [displayAuthors, setDisplayAuthors] = useState(value) // id+email
+  const [displayAuthors, setDisplayAuthors] = useState(!multiple && value ? [value] : value) // id+email
 
   const getProfiles = async (authorIds) => {
     try {
@@ -462,12 +473,15 @@ const ProfileSearchWidget = ({ multiple = false }) => {
       }
       if (!isAuthoridsField) {
         setDisplayAuthors(
-          authorIds.map((p) => ({
-            authorId: p,
-            authorName: getProfileName(
-              allProfiles.find((q) => q.content.names.find((r) => r.username === p))
-            ),
-          }))
+          authorIds.map((p) => {
+            const profile = allProfiles.find((q) =>
+              q.content.names.find((r) => r.username === p)
+            )
+            return {
+              authorId: p,
+              authorName: profile ? getProfileName(profile) : p,
+            }
+          })
         )
       }
     } catch (apiError) {
@@ -478,12 +492,14 @@ const ProfileSearchWidget = ({ multiple = false }) => {
   useEffect(() => {
     if (!isAuthoridsField) {
       // eslint-disable-next-line no-unused-expressions
-      value ? getProfiles(value) : setDisplayAuthors([])
+      value ? getProfiles(multiple ? value : [value]) : setDisplayAuthors([])
       return
     }
     if (!value) {
       getProfiles([user.profile.id])
+      return
     }
+    onChange({ fieldName, value: displayAuthors }) // update the value in the editor context to contain both id and name
   }, [])
 
   useEffect(() => {
@@ -518,6 +534,7 @@ const ProfileSearchWidget = ({ multiple = false }) => {
                 setDisplayAuthors={setDisplayAuthors}
                 allowAddRemove={allowAddRemove}
                 isAuthoridsField={isAuthoridsField}
+                multiple={multiple}
               />
             </React.Fragment>
           )
@@ -532,6 +549,7 @@ const ProfileSearchWidget = ({ multiple = false }) => {
           allowUserDefined={allowUserDefined}
           error={error}
           isAuthoridsField={isAuthoridsField}
+          multiple={multiple}
         />
       )}
     </div>
