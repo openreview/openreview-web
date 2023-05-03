@@ -70,9 +70,8 @@ fixture`Set up test data`.before(async (ctx) => {
 
 test('Set up TestVenue', async (t) => {
   const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const submissionDateString = `${submissionDate.getFullYear()}/${
-    submissionDate.getMonth() + 1
-  }/${submissionDate.getDate()}`
+  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
+    }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
   const requestVenueJson = {
     invitation: 'openreview.net/Support/-/Request_Form',
@@ -90,7 +89,7 @@ test('Set up TestVenue', async (t) => {
       'Venue Start Date': '2021/11/01',
       'Submission Deadline': submissionDateString,
       Location: 'Virtual',
-      'Paper Matching': ['Reviewer Bid Scores', 'Reviewer Recommendation Scores'],
+      submission_reviewer_assignment: 'Automatic',
       'Author and Reviewer Anonymity': 'No anonymity',
       'Open Reviewing Policy': 'Submissions and reviews should both be public.',
       submission_readers: 'Everyone (submissions are public)',
@@ -163,9 +162,8 @@ test('Set up TestVenue', async (t) => {
   await waitForJobs(postSubmissionId, superUserToken)
 
   const reviewDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${
-    reviewDeadline.getMonth() + 1
-  }/${reviewDeadline.getDate()}`
+  const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${reviewDeadline.getMonth() + 1
+    }/${reviewDeadline.getDate()}`
   const reviewStageJson = {
     content: {
       review_deadline: reviewDeadlineString,
@@ -199,9 +197,8 @@ test('Set up TestVenue', async (t) => {
 
 test('Set up AnotherTestVenue', async (t) => {
   const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const submissionDateString = `${submissionDate.getFullYear()}/${
-    submissionDate.getMonth() + 1
-  }/${submissionDate.getDate()}`
+  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
+    }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
 
   const requestVenueJson = {
@@ -220,7 +217,7 @@ test('Set up AnotherTestVenue', async (t) => {
       'Venue Start Date': '2021/11/01',
       'Submission Deadline': submissionDateString,
       Location: 'Virtual',
-      'Paper Matching': ['Reviewer Bid Scores', 'Reviewer Recommendation Scores'],
+      submission_reviewer_assignment: 'Automatic',
       'Author and Reviewer Anonymity': 'No anonymity',
       'Open Reviewing Policy': 'Submissions and reviews should both be private.',
       submission_readers:
@@ -298,9 +295,8 @@ test('Set up AnotherTestVenue', async (t) => {
 
 test('Set up ICLR', async (t) => {
   const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
-  const submissionDateString = `${submissionDate.getFullYear()}/${
-    submissionDate.getMonth() + 1
-  }/${submissionDate.getDate()}`
+  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
+    }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
 
   const requestVenueJson = {
@@ -319,7 +315,7 @@ test('Set up ICLR', async (t) => {
       'Venue Start Date': '2021/11/01',
       'Submission Deadline': submissionDateString,
       Location: 'Virtual',
-      'Paper Matching': ['Reviewer Bid Scores', 'Reviewer Recommendation Scores'],
+      submission_reviewer_assignment: 'Automatic',
       'Author and Reviewer Anonymity': 'Double-blind',
       'Open Reviewing Policy': 'Submissions and reviews should both be public.',
       submission_readers: 'Everyone (submissions are public)',
@@ -334,6 +330,7 @@ test('Set up ICLR', async (t) => {
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
       reviewer_identity: ['Program Chairs', 'Assigned Area Chair'],
+      'hide_fields': ['pdf']
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
