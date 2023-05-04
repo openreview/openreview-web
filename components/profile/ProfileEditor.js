@@ -35,6 +35,7 @@ export default function ProfileEditor({
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
   const [renderPublicationEditor, setRenderPublicationEditor] = useState(false)
+
   const prefixedRelations = dropdownOptions?.prefixedRelations
   const relationReaders = dropdownOptions?.relationReaders
   const positions = dropdownOptions?.prefixedPositions
@@ -69,17 +70,7 @@ export default function ProfileEditor({
 
   // validate and remove empty/not required data
   const validateCleanProfile = () => {
-    const personalLinkNames = [
-      'homepage',
-      'gscholar',
-      'dblp',
-      'orcid',
-      'wikipedia',
-      'linkedin',
-      'semanticScholar',
-    ]
-
-    // filter out empty rows, keep row key
+    // build profile content object, filtering out empty rows
     let profileContent = {
       ...profile,
       names: profile.names.flatMap((p) => (p.first || p.middle || p.last ? p : [])),
@@ -87,7 +78,6 @@ export default function ProfileEditor({
       emails: profile.emails.flatMap((p) => (p.email ? p : [])),
       links: undefined,
       ...profile.links,
-      // eslint-disable-next-line max-len
       history: profile.history.flatMap((p) =>
         p.position || p.institution?.domain || p.institution?.name ? p : []
       ),
@@ -99,6 +89,7 @@ export default function ProfileEditor({
       id: undefined,
       preferredId: undefined,
       state: undefined,
+      readers: undefined,
     }
 
     let invalidRecord = null
@@ -115,13 +106,27 @@ export default function ProfileEditor({
 
     // #region validate personal links
     // must have at least 1 link
+    const personalLinkNames = [
+      'homepage',
+      'gscholar',
+      'dblp',
+      'orcid',
+      'wikipedia',
+      'linkedin',
+      'semanticScholar',
+    ]
     if (!personalLinkNames.some((p) => profileContent[p]?.value?.trim())) {
       return promptInvalidLink('homepage', 'You must enter at least one personal link')
     }
     // must not have any invalid links
-    const invalidLinkName = personalLinkNames.find((p) => profileContent[p]?.value && profileContent[p].valid === false)
+    const invalidLinkName = personalLinkNames.find(
+      (p) => profileContent[p]?.value && profileContent[p].valid === false
+    )
     if (invalidLinkName) {
-      return promptInvalidLink(invalidLinkName, 'One of your personal links is invalid. Please make sure all URLs start with http:// or https://')
+      return promptInvalidLink(
+        invalidLinkName,
+        'One of your personal links is invalid. Please make sure all URLs start with http:// or https://'
+      )
     }
     // #endregion
 
@@ -301,12 +306,14 @@ export default function ProfileEditor({
       linkedin: profileContent.linkedin?.value?.trim(),
       semanticScholar: profileContent.semanticScholar?.value?.trim(),
     }
-    return { isValid: true, profileContent }
+    return { isValid: true, profileContent, profileReaders: profile.readers }
   }
 
   const handleSubmit = () => {
-    const { isValid, profileContent } = validateCleanProfile()
-    if (isValid) submitHandler(profileContent, publicationIdsToUnlink)
+    const { isValid, profileContent, profileReaders } = validateCleanProfile()
+    if (isValid) {
+      submitHandler(profileContent, profileReaders, publicationIdsToUnlink)
+    }
   }
 
   useEffect(() => {
@@ -444,6 +451,29 @@ export default function ProfileEditor({
           updateExpertise={(expertise) => setProfile({ type: 'expertise', data: expertise })}
         />
       </ProfileSection>
+
+      {!hidePublicationEditor && (
+        <ProfileSection
+          title="Profile Visiblity"
+          instructions="Your OpenReview profile will be visible to the public by default. To hide your profile from unauthenticated users, uncheck the box below."
+        >
+          <div className="checkbox">
+            <label>
+              <input
+                type="checkbox"
+                name="profile-visiblity"
+                value="everyone"
+                checked={profile?.readers?.includes('everyone')}
+                onChange={(e) => {
+                  const newReaders = e.target.checked ? ['everyone'] : ['~']
+                  setProfile({ type: 'readers', data: newReaders })
+                }}
+              />{' '}
+              Public profile page
+            </label>
+          </div>
+        </ProfileSection>
+      )}
 
       {!hidePublicationEditor && (
         <ProfileSection
