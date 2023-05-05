@@ -2,7 +2,7 @@
 /* globals typesetMathJax: false */
 /* globals promptError: false */
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo , useRef } from 'react'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
 import escapeRegExp from 'lodash/escapeRegExp'
@@ -64,6 +64,7 @@ export default function Forum({
   const [enableLiveUpdate, setEnableLiveUpdate] = useState(false)
   const [latestMdate, setLatestMdate] = useState(null)
   const [chatReplyNote, setChatReplyNote] = useState(null)
+  const invitationMapRef = useRef(null)
   const router = useRouter()
   const query = useQuery()
 
@@ -139,6 +140,7 @@ export default function Forum({
     const readerGroupIds = new Set(['everyone'])
     const numberWildcard = /(Reviewer|Area_Chair)_(\w{4})/g
     const usernameWildcard = /(~[^\d]+\d+)([/_])/g
+    invitationMapRef.current = {}
     notes.forEach((note) => {
       const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
         invitations,
@@ -165,6 +167,7 @@ export default function Forum({
         replyInvitations
       )
       displayOptions[note.id] = { collapsed: false, contentExpanded: true, hidden: false }
+      invitationMapRef.current[note.invitations[0]] = [note.details.invitation, note.details.presentation]
 
       // Populate parent map
       const parentId = note.replyto || id
@@ -210,7 +213,7 @@ export default function Forum({
           forum: id,
           mintmdate: latestMdate,
           sort: 'tmdate:asc',
-          details: 'invitation,presentation,signatures,writable',
+          details: 'signatures,writable',
         },
         { accessToken, version: 2 }
       )
@@ -667,6 +670,11 @@ export default function Forum({
 
     loadNewReplies().then((newReplies) => {
       newReplies.forEach((note) => {
+        const invId = note.invitations[0]
+        // eslint-disable-next-line no-param-reassign
+        note.details.invitation = invitationMapRef.current[invId][0]
+        // eslint-disable-next-line no-param-reassign
+        note.details.presentation = invitationMapRef.current[invId][1]
         updateNote(note)
       })
 
