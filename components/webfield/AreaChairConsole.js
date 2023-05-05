@@ -187,6 +187,8 @@ const AreaChairConsole = ({ appContext }) => {
     reviewRatingName,
     reviewConfidenceName,
     officialMetaReviewName,
+    reviewerName = 'Reviewers',
+    anonReviewerName = 'Reviewer_',
     metaReviewContentField,
     shortPhrase,
     filterOperators,
@@ -291,10 +293,10 @@ const AreaChairConsole = ({ appContext }) => {
         )
         .then((reviewerGroupsResult) => {
           const anonymousReviewerGroups = reviewerGroupsResult.filter((p) =>
-            p.id.includes('/Reviewer_')
+            p.id.includes(`/${anonReviewerName}`)
           )
           const reviewerGroups = reviewerGroupsResult.filter((p) =>
-            p.id.includes('/Reviewers')
+            p.id.includes(`/${reviewerName}`)
           )
           return noteNumbers.map((p) => {
             const reviewers = reviewerGroups
@@ -302,13 +304,13 @@ const AreaChairConsole = ({ appContext }) => {
               ?.members.flatMap((r) => {
                 const anonymousReviewerGroup = anonymousReviewerGroups.find(
                   (t) =>
-                    t.id.startsWith(`${venueId}/${submissionName}${p}/Reviewer_`) &&
+                    t.id.startsWith(`${venueId}/${submissionName}${p}/${anonReviewerName}`) &&
                     t.members[0] === r
                 )
                 if (anonymousReviewerGroup) {
                   const anonymousReviewerId = getIndentifierFromGroup(
                     anonymousReviewerGroup.id,
-                    'Reviewer_'
+                    anonReviewerName
                   )
                   return {
                     anonymousId: anonymousReviewerId,
@@ -391,7 +393,7 @@ const AreaChairConsole = ({ appContext }) => {
             return p.invitations.includes(officalReviewInvitationId)
           })
           ?.map((q) => {
-            const anonymousId = getIndentifierFromGroup(q.signatures[0], 'Reviewer_')
+            const anonymousId = getIndentifierFromGroup(q.signatures[0], anonReviewerName)
             const reviewRatingValue = q.content[reviewRatingName]?.value
             const ratingNumber = reviewRatingValue
               ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
