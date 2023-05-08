@@ -16,14 +16,9 @@ const AreaChairConsoleMenuBar = ({
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['note.number'],
     id: ['note.id'],
-    title: ['note.content.title', 'note.content.title.value'],
-    author: [
-      'note.content.authors',
-      'note.content.authorids',
-      'note.content.authors.value',
-      'note.content.authorids.value',
-    ],
-    keywords: ['note.content.keywords', 'note.content.keywords.value'],
+    title: ['note.content.title.value'],
+    author: ['note.content.authors.value', 'note.content.authorids.value'],
+    keywords: ['note.content.keywords.value'],
     reviewer: ['reviewers'],
     numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
     numReviewsDone: ['reviewProgressData.numReviewsDone'],
@@ -49,13 +44,11 @@ const AreaChairConsoleMenuBar = ({
     { header: 'forum', getValue: (p) => `https://openreview.net/forum?id=${p.note?.forum}` },
     {
       header: 'title',
-      getValue: (p, isV2Note) =>
-        isV2Note ? p.note?.content?.title?.value : p.note?.content?.title,
+      getValue: (p) => p.note?.content?.title?.value,
     },
     {
       header: 'abstract',
-      getValue: (p, isV2Note) =>
-        isV2Note ? p.note?.content?.abstract?.value : p.note?.content?.abstract,
+      getValue: (p) => p.note?.content?.abstract?.value,
     },
     { header: 'num reviewers', getValue: (p) => p.reviewProgressData?.numReviewersAssigned },
     {
@@ -88,8 +81,7 @@ const AreaChairConsoleMenuBar = ({
     {
       label: 'Paper Title',
       value: 'Paper Title',
-      getValue: (p) =>
-        p.note?.version === 2 ? p.note?.content?.title?.value : p.note?.content?.title,
+      getValue: (p) => p.note?.content?.title?.value,
     },
     {
       label: 'Number of Forum Replies',
@@ -153,12 +145,12 @@ const AreaChairConsoleMenuBar = ({
     {
       label: 'Meta Review Recommendation',
       value: 'Meta Review Recommendation',
-      getValue: (p) => p.metaReviewData?.recommendation,
+      getValue: (p) =>
+        p.metaReviewData?.recommendation === 'N/A' ? null : p.metaReviewData?.recommendation,
     },
   ]
   const basicSearchFunction = (row, term) => {
-    const noteTitle =
-      row.note.version === 2 ? row.note.content?.title?.value : row.note.content?.title
+    const noteTitle = row.note.content?.title?.value
     return (
       row.note.number == term || // eslint-disable-line eqeqeq
       noteTitle.toLowerCase().includes(term)
