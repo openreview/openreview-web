@@ -833,16 +833,21 @@ const DescriptionTimelineOtherConfigRow = ({
                 )
               )
             })}
-          {reviewerRoles.map((role) => (
-            <li className="overview-timeline" key={role}>
-              <a
-                href={getAssignmentLink(role)}
-                target="_blank"
-                rel="noreferrer noopener"
-              >{`${prettyId(role)} Paper Assignment`}</a>{' '}
-              open until Reviewing starts
-            </li>
-          ))}
+          {reviewerRoles.map((role) => {
+            const assignmentLink = getAssignmentLink(role)
+            return (
+              assignmentLink && (
+                <li className="overview-timeline" key={role}>
+                  <a
+                    href={assignmentLink}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >{`${prettyId(role)} Paper Assignment`}</a>{' '}
+                  open until Reviewing starts
+                </li>
+              )
+            )
+          })}
         </div>
       </div>
 
