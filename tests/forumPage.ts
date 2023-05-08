@@ -249,7 +249,7 @@ test('get an forum page and see meta tags with conference title', async (t) => {
     .expect(Selector('meta').withAttribute('name', 'citation_online_date').exists)
     .ok()
     .expect(Selector('meta').withAttribute('name', 'citation_pdf_url').exists)
-    .ok()
+    .notOk() // pdf is hidden
     .expect(Selector('meta').withAttribute('name', 'citation_conference_title').exists)
     .ok()
     .expect(
@@ -280,7 +280,7 @@ test('get an forum page and see meta tags with conference title', async (t) => {
     .contains('<meta name="citation_title" content="ICLR submission title"/>')
   await t.expect(text).contains('<meta name="citation_publication_date"')
   await t.expect(text).contains('<meta name="citation_online_date"')
-  await t.expect(text).contains('<meta name="citation_pdf_url"')
+  await t.expect(text).notContains('<meta name="citation_pdf_url"')
   await t.expect(text).contains('<meta name="citation_author" content="Anonymous"/>')
   await t.expect(text).contains('<meta name="citation_abstract" content="test iclr abstract abstract"/>')
   await t.expect(text).notContains('<h3 class="citation_author">Anonymous</h3')

@@ -329,8 +329,7 @@ test('Set up ICLR', async (t) => {
         'No, author identities of desk rejected submissions should not be revealed.',
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
-      reviewer_identity: ['Program Chairs', 'Assigned Area Chair'],
-      'hide_fields': ['pdf']
+      reviewer_identity: ['Program Chairs', 'Assigned Area Chair']
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
@@ -380,7 +379,7 @@ test('Set up ICLR', async (t) => {
   await waitForJobs(noteId, superUserToken)
 
   const postSubmissionJson = {
-    content: { force: 'Yes', submission_readers: 'Everyone (submissions are public)' },
+    content: { force: 'Yes', submission_readers: 'Everyone (submissions are public)', 'hide_fields': ['pdf'] },
     forum: requestForumId,
     invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
     readers: ['ICLR.cc/2021/Conference/Program_Chairs', 'openreview.net/Support'],
