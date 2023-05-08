@@ -34,6 +34,7 @@ const ImportedPublicationsSection = ({
     unlinkButton: true,
     unlinkedPublications: publicationIdsToUnlink,
     linkUnlinkPublication: handleLinkUnlinkPublication,
+    emptyMessage: 'No imported publications found',
   }
 
   const loadPublications = async () => {
