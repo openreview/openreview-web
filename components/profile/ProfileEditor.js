@@ -454,14 +454,14 @@ export default function ProfileEditor({
 
       {!hidePublicationEditor && (
         <ProfileSection
-          title="Profile Visiblity"
+          title="Profile Visibility"
           instructions="Your OpenReview profile will be visible to the public by default. To hide your profile from unauthenticated users, uncheck the box below."
         >
           <div className="checkbox">
             <label>
               <input
                 type="checkbox"
-                name="profile-visiblity"
+                name="profile-visibility"
                 value="everyone"
                 checked={profile?.readers?.includes('everyone')}
                 onChange={(e) => {
