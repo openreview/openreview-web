@@ -40,7 +40,7 @@ function ConsolesList({
       return
     }
 
-    const groupIdQuery = apiVersion === 1 ? { regex: `${venueId}/.*` } : { prefix: venueId }
+    const groupIdQuery = apiVersion === 1 ? { regex: `${venueId}/.*` } : { prefix: `${venueId}/` }
     const getUserGroupsP = api.getAll(
       '/groups',
       { ...groupIdQuery, member: user.id, web: true },
@@ -66,9 +66,7 @@ function ConsolesList({
         }
         if (userGroups?.length > 0) {
           userGroups.forEach((g) => {
-            if (g.id !== venueId) {
-              groupIds.push(g.id)
-            }
+            groupIds.push(g.id)
           })
         }
         setUserConsoles(uniq(groupIds))
