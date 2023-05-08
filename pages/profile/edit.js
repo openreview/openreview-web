@@ -85,12 +85,13 @@ export default function ProfileEdit({ appContext }) {
     return api.post('/notes', updateAuthorIdsObject, { accessToken })
   }
 
-  const saveProfile = async (profileContent, publicationIdsToUnlink) => {
+  const saveProfile = async (profileContent, profileReaders, publicationIdsToUnlink) => {
     setLoading(true)
     const dataToSubmit = {
       id: profile.id,
       content: profileContent,
       signatures: [profile.id],
+      readers: profileReaders,
     }
     try {
       const apiRes = await api.post('/profiles', dataToSubmit, { accessToken })
