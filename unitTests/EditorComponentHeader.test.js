@@ -34,7 +34,7 @@ describe('EditorComponentHeader', () => {
     expect(screen.getByText('*'))
   })
 
-  test('pretty display optional field name of single word', () => {
+  test('pretty display optional field name of single word (optional true)', () => {
     const providerProps = {
       value: {
         field: {
@@ -50,9 +50,29 @@ describe('EditorComponentHeader', () => {
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
     expect(screen.getByText('Abstract'))
+    expect(screen.queryByText('*')).not.toBeInTheDocument()
   })
 
-  test('pretty display optional field name of multiple words', () => {
+  test('pretty display optional field name of single word (deletable true)', () => {
+    const providerProps = {
+      value: {
+        field: {
+          ['abstract']: {
+            value: {
+              param: {
+                deletable: true,
+              },
+            },
+          },
+        },
+      },
+    }
+    renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
+    expect(screen.getByText('Abstract'))
+    expect(screen.queryByText('*')).not.toBeInTheDocument()
+  })
+
+  test('pretty display optional field name of multiple words (optional true)', () => {
     const providerProps = {
       value: {
         field: {
@@ -68,6 +88,26 @@ describe('EditorComponentHeader', () => {
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
     expect(screen.getByText('Supplementary Material'))
+    expect(screen.queryByText('*')).not.toBeInTheDocument()
+  })
+
+  test('pretty display optional field name of multiple words (deletable true)', () => {
+    const providerProps = {
+      value: {
+        field: {
+          ['supplementary_material']: {
+            value: {
+              param: {
+                deletable: true,
+              },
+            },
+          },
+        },
+      },
+    }
+    renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
+    expect(screen.getByText('Supplementary Material'))
+    expect(screen.queryByText('*')).not.toBeInTheDocument()
   })
 
   test('display pdf field name as all capital', () => {
@@ -186,28 +226,6 @@ describe('EditorComponentHeader', () => {
       providerProps
     )
     expect(screen.getByText('children content'))
-  })
-
-  test.skip('render readers of content field', () => {
-    const providerProps = {
-      value: {
-        field: {
-          ['comment']: {
-            value: {
-              param: {
-                type: 'string',
-                maxLength: 5000,
-                input: 'textarea',
-              },
-            },
-            readers: ['reader value 1', 'reader value 2', 'reader value 3'],
-          },
-        },
-        isContentField: true,
-      },
-    }
-    renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('component readers'))
   })
 
   test('not render readers of non-content field', () => {

@@ -65,7 +65,7 @@ describe('CheckboxWidget', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  test('display enum options(string) as checkbox input', () => {
+  test('display first value of enum options(string) as checkbox input', () => {
     const providerProps = {
       value: {
         field: {
@@ -85,11 +85,11 @@ describe('CheckboxWidget', () => {
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
 
     expect(screen.getByDisplayValue('I certify')).toHaveAttribute('type', 'checkbox')
-    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('type', 'checkbox')
-    expect(screen.getByDisplayValue('I am not sure')).toHaveAttribute('type', 'checkbox')
+    expect(screen.queryByDisplayValue('I do not certify')).not.toBeInTheDocument()
+    expect(screen.queryByDisplayValue('I am not sure')).not.toBeInTheDocument()
   })
 
-  test('display description of enum options(obj) as checkbox input', () => {
+  test('display description of first value of enum options(obj) as checkbox input', () => {
     const providerProps = {
       value: {
         field: {
@@ -97,7 +97,7 @@ describe('CheckboxWidget', () => {
             value: {
               param: {
                 input: 'checkbox',
-                type: 'string',
+                type: 'integer',
                 enum: [
                   { value: 1, description: 'I certify' },
                   { value: 2, description: 'I do not certify' },
@@ -112,9 +112,9 @@ describe('CheckboxWidget', () => {
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
 
-    expect(screen.getByDisplayValue('I certify')).toHaveAttribute('type', 'checkbox')
-    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('type', 'checkbox')
-    expect(screen.getByDisplayValue('I am not sure')).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue(1)).toHaveAttribute('type', 'checkbox')
+    expect(screen.queryByDisplayValue('I do not certify')).not.toBeInTheDocument()
+    expect(screen.queryByDisplayValue('I am not sure')).not.toBeInTheDocument()
   })
 
   test('display description of items options as checkbox input', () => {
@@ -126,10 +126,10 @@ describe('CheckboxWidget', () => {
               param: {
                 input: 'checkbox',
                 type: 'string[]',
-                enum: [
-                  { value: 1, description: 'I certify', optional: true },
-                  { value: 2, description: 'I do not certify', optional: true },
-                  { value: 3, description: 'I am not sure', optional: true },
+                items: [
+                  { value: '1', description: 'I certify', optional: true },
+                  { value: '2', description: 'I do not certify', optional: true },
+                  { value: '3', description: 'I am not sure', optional: true },
                 ],
               },
             },
@@ -140,9 +140,9 @@ describe('CheckboxWidget', () => {
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
 
-    expect(screen.getByDisplayValue('I certify')).toHaveAttribute('type', 'checkbox')
-    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('type', 'checkbox')
-    expect(screen.getByDisplayValue('I am not sure')).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue(1)).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue(2)).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue(3)).toHaveAttribute('type', 'checkbox')
   })
 
   test('display non-optional options as disabled and checked', () => {
@@ -153,8 +153,8 @@ describe('CheckboxWidget', () => {
             value: {
               param: {
                 input: 'checkbox',
-                type: 'string[]',
-                enum: [
+                type: 'integer[]',
+                items: [
                   { value: 1, description: 'I certify', optional: true },
                   { value: 2, description: 'I do not certify', optional: false },
                   { value: 3, description: 'I am not sure', optional: true },
@@ -163,75 +163,25 @@ describe('CheckboxWidget', () => {
             },
           },
         },
+        onChange: jest.fn(),
+        value: [2], // updated by onChange on load
       },
     }
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
 
-    expect(screen.getByDisplayValue('I certify')).toHaveAttribute('type', 'checkbox')
-    expect(screen.getByDisplayValue('I certify')).not.toHaveAttribute('checked')
-    expect(screen.getByDisplayValue('I certify')).not.toHaveAttribute('disabled')
-    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('type', 'checkbox')
-    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('checked')
-    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('disabled')
-    expect(screen.getByDisplayValue('I am not sure')).toHaveAttribute('type', 'checkbox')
-    expect(screen.getByDisplayValue('I am not sure')).not.toHaveAttribute('checked')
-    expect(screen.getByDisplayValue('I am not sure')).not.toHaveAttribute('disabled')
+    expect(screen.getByDisplayValue(1)).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue(1)).not.toHaveAttribute('checked')
+    expect(screen.getByDisplayValue(1)).not.toHaveAttribute('disabled')
+    expect(screen.getByDisplayValue(2)).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue(2)).toHaveAttribute('checked')
+    expect(screen.getByDisplayValue(2)).toHaveAttribute('disabled')
+    expect(screen.getByDisplayValue(3)).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue(3)).not.toHaveAttribute('checked')
+    expect(screen.getByDisplayValue(3)).not.toHaveAttribute('disabled')
   })
 
-  test('display only first enum option as checkbox input (type is string)', () => {
-    const providerProps = {
-      value: {
-        field: {
-          ['paper_checklist_guidelines']: {
-            value: {
-              param: {
-                input: 'checkbox',
-                type: 'string',
-                enum: ['I certify', 'I do not certify', 'I am not sure'],
-              },
-            },
-          },
-        },
-      },
-    }
-
-    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
-
-    expect(screen.getByDisplayValue('I certify')).toHaveAttribute('type', 'checkbox')
-    expect(screen.queryByDisplayValue('I do not certify')).not.toBeInTheDocument()
-    expect(screen.queryByDisplayValue('I am not sure')).not.toBeInTheDocument()
-  })
-
-  test('display description of only first enum option as checkbox input (type is obj)', () => {
-    const providerProps = {
-      value: {
-        field: {
-          ['paper_checklist_guidelines']: {
-            value: {
-              param: {
-                input: 'checkbox',
-                type: 'string',
-                enum: [
-                  { value: 1, description: 'I certify' },
-                  { value: 2, description: 'I do not certify' },
-                  { value: 3, description: 'I am not sure' },
-                ],
-              },
-            },
-          },
-        },
-      },
-    }
-
-    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
-
-    expect(screen.getByDisplayValue('I certify')).toHaveAttribute('type', 'checkbox')
-    expect(screen.queryByDisplayValue('I do not certify')).not.toBeInTheDocument()
-    expect(screen.queryByDisplayValue('I am not sure')).not.toBeInTheDocument()
-  })
-
-  test.skip('value will not be an array for enum', () => {
+  test.skip('INVALID:value will not be an array for enum', () => {
     const providerProps = {
       value: {
         field: {
@@ -255,7 +205,7 @@ describe('CheckboxWidget', () => {
     expect(screen.getByDisplayValue('I am not sure')).toHaveAttribute('checked')
   })
 
-  test('display option as checked when match with existing value (type is string)', () => {
+  test('display option as checked when match with existing value (enum string)', () => {
     const providerProps = {
       value: {
         field: {
@@ -277,10 +227,29 @@ describe('CheckboxWidget', () => {
     expect(screen.getByDisplayValue('I certify')).toHaveAttribute('checked')
   })
 
-  test('update value when default value exists (type is array)', () => {
-    const onChange = jest.fn()
-    const defaultValue = ['I do not certify']
+  test('display option as checked when match with existing value (enum object)', () => {
+    const providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'integer',
+                enum: [{ value: 1, description: 'I certify' }],
+              },
+            },
+          },
+        },
+        value: 1,
+      },
+    }
 
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(screen.getByDisplayValue(1)).toHaveAttribute('checked')
+  })
+
+  test('display option as checked when match with existing value (items)', () => {
     const providerProps = {
       value: {
         field: {
@@ -289,21 +258,26 @@ describe('CheckboxWidget', () => {
               param: {
                 input: 'checkbox',
                 type: 'string[]',
-                enum: ['I certify', 'I do not certify', 'I am not sure'],
-                default: defaultValue,
+                items: [
+                  { value: '1', description: 'I certify', optional: true },
+                  { value: '2', description: 'I do not certify', optional: true },
+                  { value: '3', description: 'I am not sure', optional: true },
+                ],
               },
             },
           },
         },
-        onChange,
+        value: ['1', '3'],
       },
     }
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
+    expect(screen.getByDisplayValue('1')).toHaveAttribute('checked')
+    expect(screen.getByDisplayValue('2')).not.toHaveAttribute('checked')
+    expect(screen.getByDisplayValue('3')).toHaveAttribute('checked')
   })
 
-  test('update value when default value exists (type is string)', () => {
+  test('update value when default value exists (enum string)', () => {
     const onChange = jest.fn()
     const defaultValue = 'I certify'
 
@@ -329,67 +303,158 @@ describe('CheckboxWidget', () => {
     expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
-  test('call update when option is checked or unchecked (type is array)', async () => {
+  test('update value when default value exists (enum object)', () => {
     const onChange = jest.fn()
-    const clearError = jest.fn()
-    let providerProps = {
+    const defaultValue = '1'
+
+    const providerProps = {
       value: {
         field: {
           ['paper_checklist_guidelines']: {
             value: {
               param: {
                 input: 'checkbox',
-                type: 'string[]',
-                enum: ['I certify', 'I do not certify', 'I am not sure'],
+                type: 'string',
+                enum: [{ value: '1', description: 'I certify' }],
+                default: defaultValue,
               },
             },
           },
         },
         onChange,
-        clearError,
       },
     }
 
-    const { rerender } = renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
-
-    const iCertifyCheckbox = screen.getByDisplayValue('I certify')
-    await userEvent.click(iCertifyCheckbox)
-    expect(clearError).toHaveBeenCalledTimes(1)
-    expect(onChange).toBeCalledWith({
-      fieldName: 'paper_checklist_guidelines',
-      value: ['I certify'],
-    })
-
-    providerProps = {
-      value: {
-        field: {
-          ['paper_checklist_guidelines']: {
-            value: {
-              param: {
-                input: 'checkbox',
-                type: 'string[]',
-                enum: ['I certify', 'I do not certify', 'I am not sure'],
-              },
-            },
-          },
-        },
-        value: ['I do not certify'],
-        onChange,
-        clearError,
-      },
-    }
-
-    reRenderWithEditorComponentContext(rerender, <CheckboxWidget />, providerProps)
-    const iDoNotCertifyCheckbox = screen.getByDisplayValue('I do not certify')
-    await userEvent.click(iDoNotCertifyCheckbox)
-    expect(clearError).toHaveBeenCalledTimes(2)
-    expect(onChange).toHaveBeenNthCalledWith(2, {
-      fieldName: 'paper_checklist_guidelines',
-      value: [],
-    })
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
-  test('call update when option is checked or unchecked (type is string)', async () => {
+  test('update value when default value exists (items) and no value', () => {
+    const onChange = jest.fn()
+    const defaultValue = [1, 3]
+
+    const providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'integer[]',
+                items: [
+                  { value: 1, description: 'I certify', optional: true },
+                  { value: 2, description: 'I do not certify', optional: true },
+                  { value: 3, description: 'I am not sure', optional: true },
+                ],
+                default: defaultValue,
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
+  })
+
+  test('not to update value when default value exists (items) and has value', () => {
+    // means default value is unchecked by user
+    const onChange = jest.fn()
+    const defaultValue = ['1', '3']
+
+    const providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string[]',
+                items: [
+                  { value: '1', description: 'I certify', optional: true },
+                  { value: '2', description: 'I do not certify', optional: true },
+                  { value: '3', description: 'I am not sure', optional: true },
+                ],
+                default: defaultValue,
+              },
+            },
+          },
+        },
+        onChange,
+        value: ['2'],
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(onChange).not.toBeCalled()
+  })
+
+  test('update value when both default value and mandatory value exist (items) and no value', () => {
+    const onChange = jest.fn()
+    const defaultValue = [2, 3]
+
+    const providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'integer[]',
+                items: [
+                  { value: 1, description: 'I certify', optional: true },
+                  { value: 2, description: 'I do not certify', optional: true },
+                  { value: 3, description: 'I am not sure', optional: false },
+                  { value: 4, description: 'I do not want to certify', optional: false },
+                ],
+                default: defaultValue,
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: [2, 3, 4] }))
+  })
+
+  test('not to update value when both default value and mandatory value exist (items) and has value', () => {
+    const onChange = jest.fn()
+    const defaultValue = [2, 3]
+
+    const providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'integer[]',
+                items: [
+                  { value: 1, description: 'I certify', optional: true },
+                  { value: 2, description: 'I do not certify', optional: true },
+                  { value: 3, description: 'I am not sure', optional: false },
+                  { value: 4, description: 'I do not want to certify', optional: false },
+                ],
+                default: defaultValue,
+              },
+            },
+          },
+        },
+        onChange,
+        value: [3, 4],
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(onChange).not.toBeCalled()
+  })
+
+  test('call update when option is checked (enum string)', async () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
     let providerProps = {
@@ -410,16 +475,53 @@ describe('CheckboxWidget', () => {
       },
     }
 
-    const { rerender } = renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
 
     const iCertifyCheckbox = screen.getByDisplayValue('I certify')
     await userEvent.click(iCertifyCheckbox)
+    expect(clearError).toBeCalled()
     expect(onChange).toBeCalledWith({
       fieldName: 'paper_checklist_guidelines',
       value: 'I certify',
     })
+  })
 
-    providerProps = {
+  test('call update when option is checked (enum integer)', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    let providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'integer',
+                enum: [1],
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+
+    const iCertifyCheckbox = screen.getByDisplayValue(1)
+    await userEvent.click(iCertifyCheckbox)
+    expect(clearError).toBeCalled()
+    expect(onChange).toBeCalledWith({
+      fieldName: 'paper_checklist_guidelines',
+      value: 1,
+    })
+  })
+
+  test('call update when option is unchecked (enum string)', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    let providerProps = {
       value: {
         field: {
           ['paper_checklist_guidelines']: {
@@ -438,12 +540,213 @@ describe('CheckboxWidget', () => {
       },
     }
 
-    reRenderWithEditorComponentContext(rerender, <CheckboxWidget />, providerProps)
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
     const iDoNotCertifyCheckbox = screen.getByDisplayValue('I do not certify')
     await userEvent.click(iDoNotCertifyCheckbox)
-    expect(onChange).toHaveBeenNthCalledWith(2, {
+    expect(clearError).toBeCalled()
+    expect(onChange).toBeCalledWith({
       fieldName: 'paper_checklist_guidelines',
-      value: null,
+      value: undefined,
+    })
+  })
+
+  test('call update when option is checked (enum obj with type string)', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    let providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string',
+                enum: [{ value: 1, description: 'I certify' }],
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+
+    const iCertifyCheckbox = screen.getByDisplayValue(1)
+    await userEvent.click(iCertifyCheckbox)
+    expect(onChange).toBeCalledWith({
+      fieldName: 'paper_checklist_guidelines',
+      value: '1', // type is string
+    })
+  })
+
+  test('call update when option is checked (enum obj with type integer)', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    let providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'integer',
+                enum: [{ value: 1, description: 'I certify' }],
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+
+    const iCertifyCheckbox = screen.getByDisplayValue(1)
+    await userEvent.click(iCertifyCheckbox)
+    expect(onChange).toBeCalledWith({
+      fieldName: 'paper_checklist_guidelines',
+      value: 1,
+    })
+  })
+
+  test('call update when option is unchecked (enum obj)', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+
+    let providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string',
+                enum: [{ value: '2', description: 'I do not certify' }],
+              },
+            },
+          },
+        },
+        value: '2',
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    const iDoNotCertifyCheckbox = screen.getByDisplayValue('2')
+    await userEvent.click(iDoNotCertifyCheckbox)
+    expect(onChange).toBeCalledWith({
+      fieldName: 'paper_checklist_guidelines',
+      value: undefined,
+    })
+  })
+
+  test('call update when option is checked (items with type string[])', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    let providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string[]',
+                items: [
+                  { value: '1', description: 'I certify', optional: true },
+                  { value: '2', description: 'I do not certify', optional: true },
+                  { value: '3', description: 'I am not sure', optional: true },
+                ],
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+
+    const iCertifyCheckbox = screen.getByDisplayValue(1)
+    await userEvent.click(iCertifyCheckbox)
+    expect(onChange).toBeCalledWith({
+      fieldName: 'paper_checklist_guidelines',
+      value: ['1'],
+    })
+  })
+
+  test('call update when option is checked (items with type integer[])', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    let providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'integer[]',
+                items: [
+                  { value: 1, description: 'I certify', optional: true },
+                  { value: 2, description: 'I do not certify', optional: true },
+                  { value: 3, description: 'I am not sure', optional: true },
+                ],
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+
+    const iCertifyCheckbox = screen.getByDisplayValue(1)
+    await userEvent.click(iCertifyCheckbox)
+    expect(onChange).toBeCalledWith({
+      fieldName: 'paper_checklist_guidelines',
+      value: [1],
+    })
+  })
+
+  test('call update when option is unchecked (items)', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+
+    let providerProps = {
+      value: {
+        field: {
+          ['paper_checklist_guidelines']: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string[]',
+                items: [
+                  { value: '1', description: 'I certify', optional: true },
+                  { value: '2', description: 'I do not certify', optional: true },
+                  { value: '3', description: 'I am not sure', optional: true },
+                ],
+              },
+            },
+          },
+        },
+        value: ['2'],
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    const iDoNotCertifyCheckbox = screen.getByDisplayValue('2')
+    await userEvent.click(iDoNotCertifyCheckbox)
+    expect(onChange).toBeCalledWith({
+      fieldName: 'paper_checklist_guidelines',
+      value: undefined,
     })
   })
 })

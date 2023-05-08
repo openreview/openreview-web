@@ -11,8 +11,8 @@ const EditorComponentHeader = ({ inline = false, fieldNameOverwrite, children })
     field: { [fieldNameOverwrite]: {} },
   }
   const fieldName = Object.keys(field)[0]
-  const { description, readers } = field[fieldName] ?? {}
-  const { optional, scroll, hidden } = field[fieldName].value?.param ?? {}
+  const { description } = field[fieldName] ?? {}
+  const { optional, deletable, scroll, hidden } = field[fieldName].value?.param ?? {}
 
   return (
     <div
@@ -22,7 +22,7 @@ const EditorComponentHeader = ({ inline = false, fieldNameOverwrite, children })
     >
       <div className={styles.title}>
         {`${fieldNameOverwrite ?? prettyField(fieldName)} `}
-        <span className={styles.requiredField}>{optional ? '' : '* '}</span>{' '}
+        <span className={styles.requiredField}>{optional || deletable ? '' : '* '}</span>{' '}
       </div>
       {error && (
         <div className={styles.error}>
