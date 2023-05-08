@@ -37,13 +37,8 @@ const PaperRow = ({
   venue,
   getManualAssignmentUrl,
 }) => {
-  const {
-    areaChairsId,
-    venueId,
-    officialReviewName,
-    shortPhrase,
-    submissionName,
-  } = useContext(WebFieldContext)
+  const { areaChairsId, venueId, officialReviewName, shortPhrase, submissionName } =
+    useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#paper-status)`
@@ -114,12 +109,12 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
   const getManualAssignmentUrl = (role) => {
     if (!assignmentUrls) return null
     const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
-    const isAssignmentConfigDeployed = pcConsoleData.invitations?.some(
+    const isAssignmentConfigDeployed = (isMatchingSetup = pcConsoleData.invitations?.some(
       (p) => p.id === `${venueId}/${role}/-/Assignment`
-    )
+    ))
 
     if (
-      assignmentUrls[role]?.automaticAssignment === false ||
+      (assignmentUrls[role]?.automaticAssignment === false && isMatchingSetup) ||
       (assignmentUrls[role]?.automaticAssignment === true && isAssignmentConfigDeployed)
     )
       return assignmentUrl
