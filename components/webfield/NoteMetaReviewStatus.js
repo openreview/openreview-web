@@ -2,7 +2,7 @@
 
 // modified from noteMetaReviewStatus.hbs handlebar template
 import { useContext, useEffect, useState } from 'react'
-import { inflect } from '../../lib/utils'
+import { inflect, prettyField } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
@@ -124,7 +124,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
           replyto: true,
           type: 'notes',
         },
-        { accessToken }
+        { accessToken, version: 2 }
       )
       if (result.invitations.length)
         setMetaReviewInvitation(metaReviewData.metaReviewInvitationId)
@@ -138,9 +138,9 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
   }, [])
   return (
     <div className="areachair-console-meta-review">
-      {metaReviewData[metaReviewContentField] ? (
+      {metaReviewData[metaReviewContentField] !== 'N/A' ? (
         <>
-          <h4 className="title">AC Recommendation:</h4>
+          <h4 className="title">{`AC ${prettyField(metaReviewContentField)}:`}</h4>
           <p>
             <strong>{metaReviewData[metaReviewContentField]}</strong>
           </p>
