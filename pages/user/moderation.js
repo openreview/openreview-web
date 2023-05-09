@@ -411,50 +411,73 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
     return `${pendingCount} pending,${inflect(errorCount, 'error', 'errors', true)}`
   }
 
-  const loadProfileMergeRequests = async () => {
+  const loadProfileMergeRequests = async (noteId) => {
     try {
-      const profileMergeNotesP = api.get(
-        '/notes',
-        {
-          invitation: profileMergeInvitationId,
-        },
-        { accessToken }
-      )
-      const decisionResultsP = api.getAll(
-        '/references',
-        {
-          invitation: profileMergeDecisionInvitationId,
-        },
-        { accessToken, resultsKey: 'references' }
-      )
-      const processLogsP = api.getAll(
-        '/logs/process',
-        { invitation: profileMergeDecisionInvitationId },
-        { accessToken, resultsKey: 'logs' }
-      )
+      const profileMergeNotesP = noteId
+        ? api.get('/notes', { id: noteId }, { accessToken })
+        : api.get(
+            '/notes',
+            {
+              invitation: profileMergeInvitationId,
+            },
+            { accessToken }
+          )
+      const decisionResultsP = noteId
+        ? api.getAll(
+            '/references',
+            { referent: noteId, invitation: profileMergeDecisionInvitationId },
+            { accessToken, resultsKey: 'references' }
+          )
+        : api.getAll(
+            '/references',
+            {
+              invitation: profileMergeDecisionInvitationId,
+            },
+            { accessToken, resultsKey: 'references' }
+          )
+      const processLogsP = noteId
+        ? Promise.resolve(null)
+        : api.getAll(
+            '/logs/process',
+            { invitation: profileMergeDecisionInvitationId },
+            { accessToken, resultsKey: 'logs' }
+          )
 
       const [profileMergeNotesResults, decisionResults, processLogs] = await Promise.all([
         profileMergeNotesP,
         decisionResultsP,
         processLogsP,
       ])
-      const sortedResult = [
-        ...profileMergeNotesResults.notes.filter((p) => p.content.status === 'Pending'),
-        ...profileMergeNotesResults.notes.filter((p) => p.content.status !== 'Pending'),
-      ].map((p) => {
-        const decisionReference = decisionResults.find((q) => q.referent === p.id)
-        let processLogStatus = 'N/A'
-        if (p.content.status !== 'Pending')
-          processLogStatus =
-            processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
-        return {
-          ...p,
-          processLogStatus,
-          processLogUrl: decisionReference
-            ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
-            : null,
-        }
-      })
+
+      const sortedResult = noteId
+        ? [
+            ...profileMergeNotes.filter(
+              (p) => p.content.status === 'Pending' && p.id !== noteId
+            ),
+            {
+              ...profileMergeNotesResults.notes[0],
+              processLogStatus: 'running',
+              processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
+            },
+            ...profileMergeNotes.filter((p) => p.content.status !== 'Pending'),
+          ]
+        : [
+            ...profileMergeNotesResults.notes.filter((p) => p.content.status === 'Pending'),
+            ...profileMergeNotesResults.notes.filter((p) => p.content.status !== 'Pending'),
+          ].map((p) => {
+            const decisionReference = decisionResults.find((q) => q.referent === p.id)
+            let processLogStatus = 'N/A'
+            if (p.content.status !== 'Pending')
+              processLogStatus =
+                processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
+            return {
+              ...p,
+              processLogStatus,
+              processLogUrl: decisionReference
+                ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
+                : null,
+            }
+          })
       setProfileMergeNotes(sortedResult)
       setProfileMergeNotesToShow(
         sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
@@ -503,7 +526,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
       }
       const result = await api.post('/notes', noteToPost, { accessToken })
       $('#name-delete-reject').modal('hide')
-      loadProfileMergeRequests()
+      loadProfileMergeRequests(profileMergeNote.id)
     } catch (error) {
       promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== profileMergeNote.id))
