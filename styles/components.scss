@@ -1370,11 +1370,15 @@ table.table-minimal {
         width: 35%;
         margin-right: 1.5rem;
       }
-      .reply-label {
+      .comment-label {
         width: 35%;
         margin-right: 0.5rem;
+
+        a {
+          color: white;
+        }
       }
-      .unreplied-label {
+      .tcdate-label {
         width: 30%;
         font-size: 0.65rem;
         align-self: center;
