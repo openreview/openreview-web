@@ -95,6 +95,7 @@ export default function Edit({ edit, type, className, showContents }) {
             edit.tmdate,
             edit.content?.year?.value,
             edit.pdate,
+            true,
             true
           )}
         </li>
