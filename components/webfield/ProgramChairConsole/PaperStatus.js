@@ -109,11 +109,12 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
   const getManualAssignmentUrl = (role) => {
     if (!assignmentUrls) return null
     const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
-    let isAssignmentConfigDeployed
-    let isMatchingSetup
-    isAssignmentConfigDeployed = isMatchingSetup = pcConsoleData.invitations?.some(
+    // auto
+    const isAssignmentConfigDeployed = pcConsoleData.invitations?.some(
       (p) => p.id === `${venueId}/${role}/-/Assignment`
     )
+    // manual
+    const isMatchingSetup = isAssignmentConfigDeployed
 
     if (
       (assignmentUrls[role]?.automaticAssignment === false && isMatchingSetup) ||
