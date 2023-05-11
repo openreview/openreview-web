@@ -2,17 +2,17 @@
 
 // modified from noteMetaReviewStatus.hbs handlebar template
 import { useContext, useEffect, useState } from 'react'
-import { inflect, prettyField } from '../../lib/utils'
+import WebFieldContext from '../WebFieldContext'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import WebFieldContext from '../WebFieldContext'
-import { getNoteContent } from '../../lib/webfield-utils'
+import { inflect, prettyField } from '../../lib/utils'
+import { getNoteContentValues } from '../../lib/forum-utils'
 
 const IEEECopyrightForm = ({ note, isV2Note }) => {
   const { showIEEECopyright, IEEEPublicationTitle, IEEEArtSourceCode } =
     useContext(WebFieldContext)
   const { user } = useUser()
-  const noteContent = getNoteContent(note, isV2Note)
+  const noteContent = isV2Note ? getNoteContentValues(note) : note.content
 
   if (showIEEECopyright && IEEEPublicationTitle && IEEEArtSourceCode) {
     return (
@@ -56,7 +56,7 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
     ? note.content?.venue?.value?.toLowerCase()?.includes('accept')
     : decisionContent?.toLowerCase()?.includes('accept')
 
-  if (!decision)
+  if (!decision) {
     return (
       <>
         {isV2Note && (
@@ -70,10 +70,11 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
         {isAcceptedPaper && <IEEECopyrightForm note={note} isV2Note={isV2Note} />}
       </>
     )
+  }
 
   return (
     <>
-      {decisionContent ? (
+      {decisionContent && (
         <div>
           {isV2Note && (
             <h4>
@@ -94,7 +95,7 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
             </a>
           </p>
         </div>
-      ) : null}
+      )}
       {isAcceptedPaper && <IEEECopyrightForm note={note} isV2Note={isV2Note} />}
     </>
   )
