@@ -7,7 +7,8 @@ import EditorComponentContext from './EditorComponentContext'
 import EditorWidget from './webfield/EditorWidget'
 import styles from '../styles/components/NoteEditor.module.scss'
 import { getAutoStorageKey, prettyField, prettyInvitationId } from '../lib/utils'
-import { getErrorFieldName, getNoteContent } from '../lib/webfield-utils'
+import { getErrorFieldName } from '../lib/webfield-utils'
+import { getNoteContentValues } from '../lib/forum-utils'
 import SpinnerButton from './SpinnerButton'
 import LoadingSpinner from './LoadingSpinner'
 import api from '../lib/api-client'
@@ -127,7 +128,7 @@ const NoteEditor = ({
     }
   }
   const [noteEditorData, setNoteEditorData] = useReducer(noteEditorDataReducer, {
-    ...getNoteContent(note, true),
+    ...getNoteContentValues(note?.content ?? {}),
     ...(note && { noteReaderValues: note.readers }),
   })
 
