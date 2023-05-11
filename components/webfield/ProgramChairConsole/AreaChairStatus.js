@@ -1,16 +1,13 @@
 /* globals promptError: false */
 import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
-import {
-  buildEdgeBrowserUrl,
-  getNoteContent,
-  getProfileLink,
-} from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
+import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
+import { getNoteContentValues } from '../../../lib/forum-utils'
 
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
   const { id, preferredName, preferredEmail } = rowData.areaChairProfile ?? {}
@@ -167,7 +164,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
       {rowData.notes.length !== 0 && <strong>Papers:</strong>}
       <div>
         {rowData.notes.map((p) => {
-          const noteContent = getNoteContent(p.note)
+          const noteContent = getNoteContentValues(p.note)
           const noteVenue = noteContent?.venue
           const metaReviews = p.metaReviewData?.metaReviews
           const hasMetaReview = metaReviews?.length
@@ -177,7 +174,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
               {hasMetaReview ? (
                 <>
                   {metaReviews.map((metaReview) => {
-                    const metaReviewContent = getNoteContent(metaReview)
+                    const metaReviewContent = getNoteContentValues(metaReview)
                     return (
                       <div key={metaReview.id} className="meta-review">
                         <span>{`${

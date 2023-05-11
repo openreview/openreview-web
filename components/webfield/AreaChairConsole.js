@@ -81,7 +81,7 @@ const AssignedPaperRow = ({
         <strong className="note-number">{note.number}</strong>
       </td>
       <td>
-        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={note.version === 2} />
+        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={true} />
       </td>
       <td>
         <AcPcConsoleNoteReviewStatus
@@ -91,7 +91,6 @@ const AssignedPaperRow = ({
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
-          isACConsole={true}
         />
       </td>
       <td>
@@ -106,17 +105,15 @@ const AssignedPaperRow = ({
   )
 }
 
-const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
+const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
   const { accessToken } = useUser()
   const [invitations, setInvitations] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
   const addInvitaitonTypeAndVersion = (invitation) => {
     let invitaitonType = 'tagInvitation'
-    if (apiVersion === 2 && invitation.edit?.note) invitaitonType = 'noteInvitation'
-    if (apiVersion === 1 && !invitation.reply.content?.tag && !invitation.reply.content?.head)
-      invitaitonType = 'noteInvitation'
-    return { ...invitation, [invitaitonType]: true, apiVersion }
+    if (invitation.edit?.note) invitaitonType = 'noteInvitation'
+    return { ...invitation, [invitaitonType]: true, apiVersion: 2 }
   }
 
   const loadInvitations = async () => {
@@ -124,18 +121,17 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
       let allInvitations = await api.getAll(
         '/invitations',
         {
-          ...(apiVersion !== 2 && { regex: `${venueId}/.*` }),
-          ...(apiVersion === 2 && { domain: venueId }),
+          domain: venueId,
           invitee: true,
           duedate: true,
           type: 'all',
         },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
 
       allInvitations = allInvitations
         .map((p) => addInvitaitonTypeAndVersion(p))
-        .filter((p) => filterHasReplyTo(p, apiVersion))
+        .filter((p) => filterHasReplyTo(p, 2))
         .filter((p) => p.invitees.some((q) => q.includes(areaChairName)))
 
       if (allInvitations.length) {
@@ -147,7 +143,7 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName, apiVersion }) => {
             details: 'all',
             select: 'id,details',
           },
-          { accessToken, version: apiVersion }
+          { accessToken, version: 2 }
         )
 
         allInvitations.forEach((p) => {
@@ -182,7 +178,6 @@ const AreaChairConsole = ({ appContext }) => {
     header,
     entity: group,
     venueId,
-    apiVersion,
     reviewerAssignment,
     submissionInvitationId,
     seniorAreaChairsId,
@@ -192,6 +187,8 @@ const AreaChairConsole = ({ appContext }) => {
     reviewRatingName,
     reviewConfidenceName,
     officialMetaReviewName,
+    reviewerName = 'Reviewers',
+    anonReviewerName = 'Reviewer_',
     metaReviewContentField,
     shortPhrase,
     filterOperators,
@@ -253,10 +250,10 @@ const AreaChairConsole = ({ appContext }) => {
         '/groups',
         {
           member: user.id,
-          regex: `${venueId}/${submissionName}.*`,
+          prefix: `${venueId}/${submissionName}.*`,
           select: 'id',
         },
-        { accessToken }
+        { accessToken, version: 2 }
       )
       const areaChairGroups = allGroups.filter((p) => p.id.endsWith(areaChairName))
       const anonymousAreaChairGroups = allGroups.filter((p) => p.id.includes('/Area_Chair_'))
@@ -276,11 +273,11 @@ const AreaChairConsole = ({ appContext }) => {
             {
               invitation: submissionInvitationId,
               number: noteNumbers.join(','),
-              select: 'id,number,forum,content,details,invitation,version',
-              details: 'invitation,replyCount,directReplies',
+              select: 'id,number,forum,content,details',
+              details: 'replies',
               sort: 'number:asc',
             },
-            { accessToken, version: apiVersion }
+            { accessToken, version: 2 }
           )
         : Promise.resolve([])
 
@@ -289,17 +286,17 @@ const AreaChairConsole = ({ appContext }) => {
         .getAll(
           '/groups',
           {
-            regex: `${venueId}/${submissionName}.*`,
+            prefix: `${venueId}/${submissionName}.*`,
             select: 'id,members',
           },
-          { accessToken }
+          { accessToken, version: 2 }
         )
         .then((reviewerGroupsResult) => {
           const anonymousReviewerGroups = reviewerGroupsResult.filter((p) =>
-            p.id.includes('/Reviewer_')
+            p.id.includes(`/${anonReviewerName}`)
           )
           const reviewerGroups = reviewerGroupsResult.filter((p) =>
-            p.id.includes('/Reviewers')
+            p.id.includes(`/${reviewerName}`)
           )
           return noteNumbers.map((p) => {
             const reviewers = reviewerGroups
@@ -307,13 +304,13 @@ const AreaChairConsole = ({ appContext }) => {
               ?.members.flatMap((r) => {
                 const anonymousReviewerGroup = anonymousReviewerGroups.find(
                   (t) =>
-                    t.id.startsWith(`${venueId}/${submissionName}${p}/Reviewer_`) &&
+                    t.id.startsWith(`${venueId}/${submissionName}${p}/${anonReviewerName}`) &&
                     t.members[0] === r
                 )
                 if (anonymousReviewerGroup) {
                   const anonymousReviewerId = getIndentifierFromGroup(
                     anonymousReviewerGroup.id,
-                    'Reviewer_'
+                    anonReviewerName
                   )
                   return {
                     anonymousId: anonymousReviewerId,
@@ -390,27 +387,20 @@ const AreaChairConsole = ({ appContext }) => {
               p.content.emails.includes(reviewer.reviewerProfileId)
           )
         )
-        const officialReviews = (note.details.directReplies ?? [])
+        const officialReviews = note.details.replies
           .filter((p) => {
             const officalReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
-            return p.version === 2
-              ? p.invitations.includes(officalReviewInvitationId)
-              : p.invitation === officalReviewInvitationId
+            return p.invitations.includes(officalReviewInvitationId)
           })
           ?.map((q) => {
-            const isV2Note = q.version === 2
-            const anonymousId = getIndentifierFromGroup(q.signatures[0], 'Reviewer_')
-            const reviewRatingValue = isV2Note
-              ? q.content[reviewRatingName]?.value
-              : q.content[reviewRatingName]
+            const anonymousId = getIndentifierFromGroup(q.signatures[0], anonReviewerName)
+            const reviewRatingValue = q.content[reviewRatingName]?.value
             const ratingNumber = reviewRatingValue
               ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
               : null
-            const confidenceValue = isV2Note
-              ? q.content[reviewConfidenceName]?.value
-              : q.content[reviewConfidenceName]
+            const confidenceValue = q.content[reviewConfidenceName]?.value
             const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
-            const reviewValue = isV2Note ? q.content.review?.value : q.content.review
+            const reviewValue = q.content.review?.value
             return {
               anonymousId,
               confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
@@ -440,10 +430,8 @@ const AreaChairConsole = ({ appContext }) => {
         const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
         const metaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
-        const metaReview = note.details.directReplies.find((p) =>
-          p.version === 2
-            ? p.invitations.includes(metaReviewInvitationId)
-            : p.invitation === metaReviewInvitationId
+        const metaReview = note.details.replies.find((p) =>
+          p.invitations.includes(metaReviewInvitationId)
         )
         return {
           note,
@@ -479,13 +467,11 @@ const AreaChairConsole = ({ appContext }) => {
             confidenceAvg,
             confidenceMax,
             confidenceMin,
-            replyCount: note.details.replyCount,
+            replyCount: note.details.replies.length,
           },
           metaReviewData: {
             [metaReviewContentField]:
-              metaReview?.version === 2
-                ? metaReview?.content[metaReviewContentField]?.value
-                : metaReview?.content[metaReviewContentField],
+              metaReview?.content[metaReviewContentField]?.value ?? 'N/A',
             metaReviewInvitationId: `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`,
             metaReview,
           },
@@ -634,7 +620,6 @@ const AreaChairConsole = ({ appContext }) => {
     header,
     group,
     venueId,
-    apiVersion,
     reviewerAssignment,
     submissionInvitationId,
     areaChairName,
@@ -677,11 +662,7 @@ const AreaChairConsole = ({ appContext }) => {
           <TabPanel id="assigned-papers">{renderTable()}</TabPanel>
           <TabPanel id="areachair-tasks">
             {activeTabIndex === 1 && (
-              <AreaChairConsoleTasks
-                venueId={venueId}
-                areaChairName={areaChairName}
-                apiVersion={apiVersion}
-              />
+              <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />
             )}
           </TabPanel>
         </TabPanels>

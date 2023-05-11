@@ -3065,7 +3065,7 @@ module.exports = (function () {
       'tpms',
     ]
 
-    if (!id) {
+    if (!id || typeof id !== 'string') {
       return ''
     } else if (id.indexOf('~') === 0 && id.length > 1) {
       return id.substring(1).replace(/_|\d+/g, ' ').trim()

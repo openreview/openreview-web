@@ -19,6 +19,7 @@ const MessageReviewersModal = ({
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
   const [message, setMessage] = useState(null)
+  const [isSending, setIsSending] = useState(false)
   const [recipientsInfo, setRecipientsInfo] = useState([])
   const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.reviewerProfileId).reduce(
     (prev, curr) => prev + curr.count,
@@ -32,6 +33,7 @@ const MessageReviewersModal = ({
       return
     }
     // send emails
+    setIsSending(true)
     try {
       const sendEmailPs = selectedIds.map((noteId) => {
         const { note } = tableRowsDisplayed.find((row) => row.note.id === noteId)
@@ -46,6 +48,7 @@ const MessageReviewersModal = ({
             groups: reviewerIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),
+            parentGroup: `${venueId}/${submissionName}${note.number}/Reviewers`,
           },
           { accessToken }
         )
@@ -56,6 +59,7 @@ const MessageReviewersModal = ({
     } catch (apiError) {
       setError(apiError.message)
     }
+    setIsSending(false)
   }
 
   const getRecipients = (selecteNoteIds) => {
@@ -109,8 +113,9 @@ const MessageReviewersModal = ({
       title={messageOption?.label}
       primaryButtonText={primaryButtonText}
       onPrimaryButtonClick={handlePrimaryButtonClick}
-      primaryButtonDisabled={!totalMessagesCount}
+      primaryButtonDisabled={!totalMessagesCount || isSending}
       onClose={() => {
+        setIsSending(false)
         setCurrentStep(1)
       }}
       options={{ extraClasses: 'message-reviewers-modal' }}
