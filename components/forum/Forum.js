@@ -670,7 +670,7 @@ export default function Forum({
               })}
             </div>
 
-            <NoteEditorForm
+            {/* <NoteEditorForm
               forumId={id}
               replyToId={id}
               invitation={activeInvitation}
@@ -687,7 +687,7 @@ export default function Forum({
                   setActiveInvitation(null)
                 }
               }}
-            />
+            /> */}
             <NoteEditor
               replyToNote={parentNote}
               invitation={activeInvitation}

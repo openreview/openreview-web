@@ -236,7 +236,7 @@ const NoteEditor = ({
     readersDefinedInInvitation,
     signatureInputValues
   ) => {
-    if (signatureInputValues.length && !readersSelected.includes('everyone')) {
+    if (signatureInputValues?.length && !readersSelected.includes('everyone')) {
       const signatureId = signatureInputValues[0]
       const anonReviewerIndex = Math.max(
         signatureId.indexOf('AnonReviewer'),
