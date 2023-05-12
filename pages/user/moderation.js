@@ -707,6 +707,7 @@ const VenueRequestRow = ({ item }) => {
                 href={`/forum?id=${forum}&noteId=${unrepliedPcComments[0].id}`}
                 target="_blank"
                 rel="noreferrer"
+                title={unrepliedPcComments[0].content?.comment}
               >
                 {`${inflect(unrepliedPcComments.length, 'comment', 'comments', true)}`}
               </a>
@@ -726,6 +727,17 @@ const VenueRequestRow = ({ item }) => {
 
 const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
   const [venuRequestNotes, setVenueRequestNotes] = useState([])
+  const hasBeenReplied = (comment, allReplies) => {
+    // checks the reply itself or its replies have been replied by support
+    const replies = allReplies.filter((p) => p.replyto === comment.id)
+    if (!replies.length) return false
+    if (replies.length === 1 && replies[0].signatures.includes('OpenReview.net/Support')) {
+      return true
+    }
+
+    return replies.some((p) => hasBeenReplied(p, allReplies))
+  }
+
   const loadRequestNotes = async () => {
     try {
       const { notes, count } = await api.get(
@@ -752,9 +764,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
             (q) =>
               q.invitation.endsWith('Comment') &&
               !q.signatures.includes('OpenReview.net/Support') &&
-              !p.details.replies.find(
-                (r) => r.replyto === q.id && r.signatures.includes('OpenReview.net/Support')
-              ) &&
+              !hasBeenReplied(q, p.details.replies) &&
               dayjs().diff(dayjs(q.cdate), 'd') < 7
           ),
           (s) => -s.cdate
