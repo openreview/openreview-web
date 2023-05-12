@@ -28,8 +28,8 @@
   margin-bottom: 0.25rem;
 
   &.invalidValue {
-    border-color: red;
-    background-color: red;
+    border-color: constants.$orRed;
+    background-color: constants.$orRed;
   }
 }
 

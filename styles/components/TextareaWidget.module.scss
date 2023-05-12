@@ -42,7 +42,7 @@
 .invalidValue {
   :global {
     textarea {
-      border-color: red;
+      border-color: constants.$orRed;
     }
   }
 }

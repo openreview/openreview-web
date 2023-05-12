@@ -46,7 +46,7 @@
 }
 
 .error {
-  color: red;
+  color: constants.$orRed;
 
   .errorMessage {
     margin-left: 0.25rem;

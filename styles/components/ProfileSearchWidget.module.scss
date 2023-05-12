@@ -122,9 +122,9 @@
 }
 
 input.invalidValue {
-  border-color: red;
+  border-color: constants.$orRed;
 }
 button.invalidValue {
-  border-color: red;
-  background-color: red;
+  border-color: constants.$orRed;
+  background-color: constants.$orRedLight;
 }
