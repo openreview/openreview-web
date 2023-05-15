@@ -107,7 +107,7 @@ export default function Forum({
       {
         forum: forumId,
         trash: true,
-        details: 'replyCount,editsCount,writable,signatures,invitation,presentation',
+        details: 'replyCount,writable,signatures,invitation,presentation', // TODO: add editsCount back
       },
       { accessToken, version: 2 }
     )
