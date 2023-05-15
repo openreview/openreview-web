@@ -707,12 +707,14 @@ const VenueRequestRow = ({ item }) => {
                 href={`/forum?id=${forum}&noteId=${unrepliedPcComments[0].id}`}
                 target="_blank"
                 rel="noreferrer"
-                title={unrepliedPcComments[0].content?.comment}
+                title={`
+${dayjs(unrepliedPcComments[0].tcdate).fromNow()}
+${unrepliedPcComments[0].content?.comment}`}
               >
                 {`${inflect(unrepliedPcComments.length, 'comment', 'comments', true)}`}
               </a>
             ) : (
-              `${inflect(unrepliedPcComments.length, 'comment', 'comments', true)}`
+              'no comment'
             )}
           </span>
         </div>
@@ -783,7 +785,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
         getTabCountMessage(
           venueWithUnrepliedCommentCount,
           venueNotDeployedInPastWeekCount,
-          'new comments',
+          'venue with comment',
           'venue request'
         )
       )
