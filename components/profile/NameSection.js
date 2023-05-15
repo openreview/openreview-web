@@ -17,16 +17,15 @@ const NamesButton = ({
   handleMakePreferred,
   handleRequestDeletion,
   hasPendingNameDeletionRequest,
-  hasRejectedNameDeletionRequest,
   namesCount,
   hasPreferredUsername,
   isPreferredUsername,
 }) => {
-  const getRequestDeletionButtonTooltip = () => {
-    if (hasPendingNameDeletionRequest) return 'Request to remove this name has been submitted.'
-    if (hasRejectedNameDeletionRequest) return "This name can't be removed."
-    return 'Submit a request to remove this name.'
-  }
+  const getRequestDeletionButtonTooltip = () =>
+    hasPendingNameDeletionRequest
+      ? 'Request to remove this name has been submitted.'
+      : 'Submit a request to remove this name.'
+
   if (!newRow && readonly) {
     if (preferred) {
       return <div className="preferred hint">(Preferred Name)</div>
@@ -41,9 +40,7 @@ const NamesButton = ({
             <button
               type="button"
               className={`btn request_deletion_button${
-                hasPendingNameDeletionRequest || hasRejectedNameDeletionRequest
-                  ? ' disabled'
-                  : ''
+                hasPendingNameDeletionRequest ? ' disabled' : ''
               }`}
               onClick={handleRequestDeletion}
             >
@@ -257,12 +254,12 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
   const handleDeleteNameChange = async (nameToDelete) => {
     try {
       const nameDeletionNotes = await getNameDeletionRequests()
-      const hasExistingNameDeletionRequest = nameDeletionNotes?.find(
+      const hasPendingNameDeletionRequest = nameDeletionNotes?.find(
         (p) =>
           p?.content?.usernames.includes(nameToDelete.username) &&
-          ['Pending', 'Rejected'].includes(p?.content?.status)
+          p?.content?.status === 'Pending'
       )
-      if (hasExistingNameDeletionRequest) {
+      if (hasPendingNameDeletionRequest) {
         promptError(`Request to remove ${getNameString(nameToDelete)} has been submitted.`)
         setNameToRequestDelete(null)
         setPendingNameDeletionRequests(nameDeletionNotes)
@@ -308,10 +305,6 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
         if (p.duplicate) return null
         const hasPendingNameDeletionRequest = pendingNameDeletionRequests?.find(
           (q) => q?.content?.usernames.includes(p.username) && q?.content?.status === 'Pending'
-        )
-        const hasRejectedNameDeletionRequest = pendingNameDeletionRequests?.find(
-          (q) =>
-            q?.content?.usernames.includes(p.username) && q?.content?.status === 'Rejected'
         )
         return (
           <div className="row" key={p.key}>
@@ -387,7 +380,6 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
                   handleRequestDeletion={() => setNameToRequestDelete(p)}
                   pendingNameDeletionRequests={pendingNameDeletionRequests}
                   hasPendingNameDeletionRequest={hasPendingNameDeletionRequest}
-                  hasRejectedNameDeletionRequest={hasRejectedNameDeletionRequest}
                   namesCount={names.length}
                   hasPreferredUsername={preferredUsername}
                   isPreferredUsername={preferredUsername === p.username}
