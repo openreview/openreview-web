@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
-import dynamic from 'next/dynamic'
 import { cloneDeep } from 'lodash'
 import withAdminAuth from '../../components/withAdminAuth'
 import Icon from '../../components/Icon'
@@ -23,8 +22,7 @@ import Table from '../../components/Table'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import { formatProfileData } from '../../lib/profiles'
 import Markdown from '../../components/EditorComponents/Markdown'
-
-const Dropdown = dynamic(() => import('../../components/Dropdown'), { ssr: false })
+import Dropdown from '../../components/Dropdown'
 
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
@@ -876,7 +874,14 @@ const UserModerationQueue = ({
     value: p,
   }))
   const [profileStateOption, setProfileStateOption] = useState('All')
-  const profileStateOptions = ['All', 'Active Automatic'].map((p) => ({ label: p, value: p }))
+  const profileStateOptions = [
+    'All',
+    'Active Automatic',
+    'Blocked',
+    'Rejected',
+    'Limited',
+    'Inactive',
+  ].map((p) => ({ label: p, value: p }))
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
@@ -1072,7 +1077,10 @@ const UserModerationQueue = ({
             options={profileStateOptions}
             placeholder="Select profile state"
             value={profileStateOptions.find((option) => option.value === profileStateOption)}
-            onChange={(e) => setProfileStateOption(e.value)}
+            onChange={(e) => {
+              setPageNumber(1)
+              setProfileStateOption(e.value)
+            }}
           />
           <button type="submit" className="btn btn-xs">
             Search
