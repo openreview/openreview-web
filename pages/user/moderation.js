@@ -135,51 +135,73 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
     return `${pendingCount} pending,${inflect(errorCount, 'error', 'errors', true)}`
   }
 
-  const loadNameDeletionRequests = async () => {
+  const loadNameDeletionRequests = async (noteId) => {
     const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
     try {
-      const nameRemovalNotesP = api.get(
-        '/notes',
-        {
-          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
-        },
-        { accessToken }
-      )
-      const decisionResultsP = api.getAll(
-        '/references',
-        {
-          invitation: nameDeletionDecisionInvitationId,
-        },
-        { accessToken, resultsKey: 'references' }
-      )
-      const processLogsP = api.getAll(
-        '/logs/process',
-        { invitation: nameDeletionDecisionInvitationId },
-        { accessToken, resultsKey: 'logs' }
-      )
+      const nameRemovalNotesP = noteId
+        ? api.get('/notes', { id: noteId }, { accessToken })
+        : api.get(
+            '/notes',
+            {
+              invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
+            },
+            { accessToken }
+          )
+      const decisionResultsP = noteId
+        ? api.getAll(
+            '/references',
+            { referent: noteId, invitation: nameDeletionDecisionInvitationId },
+            { accessToken, resultsKey: 'references' }
+          )
+        : api.getAll(
+            '/references',
+            {
+              invitation: nameDeletionDecisionInvitationId,
+            },
+            { accessToken, resultsKey: 'references' }
+          )
+      const processLogsP = noteId
+        ? Promise.resolve(null)
+        : api.getAll(
+            '/logs/process',
+            { invitation: nameDeletionDecisionInvitationId },
+            { accessToken, resultsKey: 'logs' }
+          )
 
       const [nameRemovalNotes, decisionResults, processLogs] = await Promise.all([
         nameRemovalNotesP,
         decisionResultsP,
         processLogsP,
       ])
-      const sortedResult = [
-        ...nameRemovalNotes.notes.filter((p) => p.content.status === 'Pending'),
-        ...nameRemovalNotes.notes.filter((p) => p.content.status !== 'Pending'),
-      ].map((p) => {
-        const decisionReference = decisionResults.find((q) => q.referent === p.id)
-        let processLogStatus = 'N/A'
-        if (p.content.status !== 'Pending')
-          processLogStatus =
-            processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
-        return {
-          ...p,
-          processLogStatus,
-          processLogUrl: decisionReference
-            ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
-            : null,
-        }
-      })
+      const sortedResult = noteId
+        ? [
+            ...nameDeletionNotes.filter(
+              (p) => p.content.status === 'Pending' && p.id !== noteId
+            ),
+            {
+              ...nameRemovalNotes.notes[0],
+              processLogStatus: 'running',
+              processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
+            },
+            ...nameDeletionNotes.filter((p) => p.content.status !== 'Pending'),
+          ]
+        : [
+            ...nameRemovalNotes.notes.filter((p) => p.content.status === 'Pending'),
+            ...nameRemovalNotes.notes.filter((p) => p.content.status !== 'Pending'),
+          ].map((p) => {
+            const decisionReference = decisionResults.find((q) => q.referent === p.id)
+            let processLogStatus = 'N/A'
+            if (p.content.status !== 'Pending')
+              processLogStatus =
+                processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
+            return {
+              ...p,
+              processLogStatus,
+              processLogUrl: decisionReference
+                ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
+                : null,
+            }
+          })
       setNameDeletionNotes(sortedResult)
       setNameDeletionNotesToShow(
         sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
@@ -229,7 +251,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
       }
       const result = await api.post('/notes', noteToPost, { accessToken })
       $('#name-delete-reject').modal('hide')
-      loadNameDeletionRequests()
+      loadNameDeletionRequests(nameDeletionNote.id)
     } catch (error) {
       promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== nameDeletionNote.id))
