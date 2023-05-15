@@ -670,11 +670,11 @@ const DescriptionTimelineOtherConfigRow = ({
   }
 
   const getAssignmentLink = (role) => {
-    if (
-      assignmentUrls?.[role]?.automaticAssignment === false &&
-      assignmentUrls?.[role]?.manualAssignmentUrl
-    ) {
-      return `${assignmentUrls[role].manualAssignmentUrl}&referrer=${referrerUrl}`
+    if (assignmentUrls?.[role]?.automaticAssignment === false) {
+      return assignmentUrls?.[role]?.manualAssignmentUrl &&
+        pcConsoleData.invitations?.some((p) => p.id === `${venueId}/${role}/-/Assignment`)
+        ? `${assignmentUrls[role].manualAssignmentUrl}&referrer=${referrerUrl}`
+        : null
     }
     return `/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`
   }
@@ -818,26 +818,36 @@ const DescriptionTimelineOtherConfigRow = ({
               )
             })}
           {areaChairsId &&
-            acRoles.map((role) => (
-              <li className="overview-timeline" key={role}>
-                <a
-                  href={getAssignmentLink(role)}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >{`${prettyId(role)} Paper Assignment`}</a>{' '}
-                open until Reviewing starts
-              </li>
-            ))}
-          {reviewerRoles.map((role) => (
-            <li className="overview-timeline" key={role}>
-              <a
-                href={getAssignmentLink(role)}
-                target="_blank"
-                rel="noreferrer noopener"
-              >{`${prettyId(role)} Paper Assignment`}</a>{' '}
-              open until Reviewing starts
-            </li>
-          ))}
+            acRoles.map((role) => {
+              const assignmentLink = getAssignmentLink(role)
+              return (
+                assignmentLink && (
+                  <li className="overview-timeline" key={role}>
+                    <a
+                      href={assignmentLink}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                    >{`${prettyId(role)} Paper Assignment`}</a>{' '}
+                    open until Reviewing starts
+                  </li>
+                )
+              )
+            })}
+          {reviewerRoles.map((role) => {
+            const assignmentLink = getAssignmentLink(role)
+            return (
+              assignmentLink && (
+                <li className="overview-timeline" key={role}>
+                  <a
+                    href={assignmentLink}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >{`${prettyId(role)} Paper Assignment`}</a>{' '}
+                  open until Reviewing starts
+                </li>
+              )
+            )
+          })}
         </div>
       </div>
 
