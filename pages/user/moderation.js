@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, orderBy, sortBy } from 'lodash'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import withAdminAuth from '../../components/withAdminAuth'
 import Icon from '../../components/Icon'
 import LoadSpinner from '../../components/LoadingSpinner'
@@ -14,6 +16,7 @@ import {
   buildArray,
   inflect,
   getProfileStateLabelClass,
+  getTabCountMessage,
 } from '../../lib/utils'
 import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
@@ -23,6 +26,8 @@ import BasicProfileView from '../../components/profile/BasicProfileView'
 import { formatProfileData } from '../../lib/profiles'
 import Markdown from '../../components/EditorComponents/Markdown'
 import Dropdown from '../../components/Dropdown'
+
+dayjs.extend(relativeTime)
 
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
@@ -126,14 +131,6 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
   const [page, setPage] = useState(1)
   const pageSize = 25
   const fullTextModalId = 'deletion-fulltext-modal'
-
-  const getTabCountMessage = (pendingCount, errorCount) => {
-    if (pendingCount === 0 && errorCount === 0) return null
-    if (pendingCount === 0 && errorCount !== 0)
-      return inflect(errorCount, 'error', 'errors', true)
-    if (pendingCount !== 0 && errorCount === 0) return pendingCount
-    return `${pendingCount} pending,${inflect(errorCount, 'error', 'errors', true)}`
-  }
 
   const loadNameDeletionRequests = async () => {
     const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
@@ -402,14 +399,6 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
   const fullTextModalId = 'merge-fulltext-modal'
   const profileMergeDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge_Decision`
   const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
-
-  const getTabCountMessage = (pendingCount, errorCount) => {
-    if (pendingCount === 0 && errorCount === 0) return null
-    if (pendingCount === 0 && errorCount !== 0)
-      return inflect(errorCount, 'error', 'errors', true)
-    if (pendingCount !== 0 && errorCount === 0) return pendingCount
-    return `${pendingCount} pending,${inflect(errorCount, 'error', 'errors', true)}`
-  }
 
   const loadProfileMergeRequests = async () => {
     try {
@@ -697,7 +686,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
 }
 
 const VenueRequestRow = ({ item }) => {
-  const { forum, abbreviatedName, signature, hasOfficialReply, deployed } = item
+  const { forum, abbreviatedName, unrepliedPcComments, deployed, tauthor, tcdate } = item
   return (
     <div className="venue-request-row">
       <a className="request-name" href={`/forum?id=${forum}`} target="_blank" rel="noreferrer">
@@ -709,21 +698,49 @@ const VenueRequestRow = ({ item }) => {
             {deployed ? 'Deployed' : 'Not Deployed'}
           </span>
         </div>
-        <div className="reply-label">
-          <span className={`label label-${hasOfficialReply ? 'success' : 'danger'}`}>
-            {hasOfficialReply ? 'Replied' : 'Not Replied'}
+        <div className="comment-label">
+          <span
+            className={`label label-${unrepliedPcComments.length ? 'warning' : 'success'}`}
+          >
+            {unrepliedPcComments.length > 0 ? (
+              <a
+                href={`/forum?id=${forum}&noteId=${unrepliedPcComments[0].id}`}
+                target="_blank"
+                rel="noreferrer"
+                title={`
+${dayjs(unrepliedPcComments[0].tcdate).fromNow()}
+${unrepliedPcComments[0].content?.comment}`}
+              >
+                {`${inflect(unrepliedPcComments.length, 'comment', 'comments', true)}`}
+              </a>
+            ) : (
+              'no comment'
+            )}
           </span>
         </div>
+        <div className="tcdate-label">{dayjs(tcdate).fromNow()}</div>
       </div>
-      <a href={`/profile?id=${signature}`} target="_blank" rel="noreferrer">
-        {prettyId(signature)}
+      <a href={`/profile?email=${tauthor}`} target="_blank" rel="noreferrer">
+        {prettyId(tauthor)}
       </a>
     </div>
   )
 }
 
 const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
-  const loadRequestNotes = async (limit, offset) => {
+  const [venuRequestNotes, setVenueRequestNotes] = useState([])
+  const hasBeenReplied = (comment, allReplies) => {
+    // checks the reply itself or its replies have been replied by support
+    const replies = allReplies.filter((p) => p.replyto === comment.id)
+    if (!replies.length) return false
+    if (replies.length === 1 && replies[0].signatures.includes('OpenReview.net/Support')) {
+      return true
+    }
+
+    return replies.some((p) => hasBeenReplied(p, allReplies))
+  }
+
+  const loadRequestNotes = async () => {
     try {
       const { notes, count } = await api.get(
         '/notes',
@@ -731,36 +748,74 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
           invitation: 'OpenReview.net/Support/-/Request_Form',
           sort: 'tcdate',
           details: 'replies',
-          limit,
-          offset,
         },
         { accessToken }
       )
 
-      const formattedNotesWithCount = {
-        items: notes?.map((p) => ({
-          id: p.id,
-          forum: p.forum,
-          abbreviatedName: p.content?.['Abbreviated Venue Name'],
-          hasOfficialReply: p.details.replies.find((q) =>
-            q.signatures.includes('OpenReview.net/Support')
+      const allVenueRequests = notes?.map((p) => ({
+        id: p.id,
+        forum: p.forum,
+        tcdate: p.tcdate,
+        isCreatedInPastWeek: dayjs().diff(dayjs(p.tcdate), 'd') < 7,
+        abbreviatedName: p.content?.['Abbreviated Venue Name'],
+        hasOfficialReply: p.details.replies.find((q) =>
+          q.signatures.includes('OpenReview.net/Support')
+        ),
+        unrepliedPcComments: sortBy(
+          p.details.replies.filter(
+            (q) =>
+              q.invitation.endsWith('Comment') &&
+              !q.signatures.includes('OpenReview.net/Support') &&
+              !hasBeenReplied(q, p.details.replies) &&
+              dayjs().diff(dayjs(q.cdate), 'd') < 7
           ),
-          deployed: p.content?.venue_id,
-          signature: p.signatures?.[0],
-        })),
-        count: count ?? 0,
-      }
-      if (offset === 0)
-        setPendingVenueRequestCount(
-          formattedNotesWithCount.items?.filter((p) => !p.hasOfficialReply)?.length
+          (s) => -s.cdate
+        ),
+        deployed: p.content?.venue_id,
+        tauthor: p.tauthor,
+      }))
+
+      const venueNotDeployedInPastWeekCount = allVenueRequests.filter(
+        (p) => !p.deployed && p.isCreatedInPastWeek
+      ).length
+      const venueWithUnrepliedCommentCount = allVenueRequests.filter(
+        (p) => p.unrepliedPcComments.length > 0
+      ).length
+      setPendingVenueRequestCount(
+        getTabCountMessage(
+          venueWithUnrepliedCommentCount,
+          venueNotDeployedInPastWeekCount,
+          'venue with comment',
+          'venue request'
         )
-      return formattedNotesWithCount
+      )
+      setVenueRequestNotes(
+        orderBy(
+          allVenueRequests,
+          [
+            (p) => !p.deployed && p.isCreatedInPastWeek,
+            (p) => p.unrepliedPcComments.length,
+            'tcdate',
+          ],
+          ['desc', 'desc', 'desc']
+        )
+      )
     } catch (error) {
       promptError(error.message)
-      return null
     }
   }
-  const loadItems = useCallback(loadRequestNotes, [accessToken])
+  const loadItems = useCallback(
+    (limit, offset) =>
+      Promise.resolve({
+        items: venuRequestNotes.slice(offset, offset + limit),
+        count: venuRequestNotes.length,
+      }),
+    [venuRequestNotes]
+  )
+
+  useEffect(() => {
+    loadRequestNotes()
+  }, [])
 
   return (
     <PaginatedList
