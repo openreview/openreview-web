@@ -325,7 +325,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           title="Date created"
         >
           <Icon name="calendar" />
-          {forumDate(note.cdate, null, note.mdate, null)}
+          {forumDate(note.cdate, null, note.mdate, null, null, null, true)}
         </span>
         <span
           className="readers"
