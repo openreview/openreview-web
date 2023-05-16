@@ -2,7 +2,7 @@
 /* globals typesetMathJax: false */
 /* globals promptError: false */
 
-import { useEffect, useState, useCallback, useMemo , useRef } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
 import escapeRegExp from 'lodash/escapeRegExp'
@@ -65,11 +65,12 @@ export default function Forum({
   const [latestMdate, setLatestMdate] = useState(null)
   const [chatReplyNote, setChatReplyNote] = useState(null)
   const invitationMapRef = useRef(null)
+  const signaturesMapRef = useRef(null)
   const router = useRouter()
   const query = useQuery()
 
   const { id, details } = parentNote
-  const replyForumViews = details.invitation?.replyForumViews // TODO: get this from somewhere else
+  const replyForumViews = details.invitation?.replyForumViews
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
 
   const numRepliesHidden = useMemo(() => {
@@ -141,6 +142,7 @@ export default function Forum({
     const numberWildcard = /(Reviewer|Area_Chair)_(\w{4})/g
     const usernameWildcard = /(~[^\d]+\d+)([/_])/g
     invitationMapRef.current = {}
+    signaturesMapRef.current = {}
     notes.forEach((note) => {
       const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
         invitations,
@@ -167,7 +169,15 @@ export default function Forum({
         replyInvitations
       )
       displayOptions[note.id] = { collapsed: false, contentExpanded: true, hidden: false }
-      invitationMapRef.current[note.invitations[0]] = [note.details.invitation, note.details.presentation]
+      invitationMapRef.current[note.invitations[0]] = [
+        note.details.invitation,
+        note.details.presentation,
+      ]
+      if (note.details.signatures) {
+        note.signatures.forEach((sig) => {
+          signaturesMapRef.current[sig] = note.details.signatures.find((s) => s.id === sig)
+        })
+      }
 
       // Populate parent map
       const parentId = note.replyto || id
@@ -213,7 +223,7 @@ export default function Forum({
           forum: id,
           mintmdate: latestMdate,
           sort: 'tmdate:asc',
-          details: 'signatures,writable',
+          details: 'writable',
         },
         { accessToken, version: 2 }
       )
@@ -311,7 +321,10 @@ export default function Forum({
     // For chat layout, check if the user is scrolled before updating state
     const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
     if (containerElem) {
-      const atBottom = Math.abs(containerElem.scrollHeight - containerElem.scrollTop - containerElem.clientHeight) < 3
+      const atBottom =
+        Math.abs(
+          containerElem.scrollHeight - containerElem.scrollTop - containerElem.clientHeight
+        ) < 3
       if (attachedToBottom !== atBottom) {
         setAttachedToBottom(atBottom)
       }
@@ -675,6 +688,10 @@ export default function Forum({
         note.details.invitation = invitationMapRef.current[invId][0]
         // eslint-disable-next-line no-param-reassign
         note.details.presentation = invitationMapRef.current[invId][1]
+        // eslint-disable-next-line no-param-reassign
+        note.details.signatures = note.signatures.flatMap(
+          (sigId) => signaturesMapRef.current[sigId] ?? []
+        )
         updateNote(note)
       })
 
@@ -722,49 +739,51 @@ export default function Forum({
         </div>
       )}
 
-      {parentNote.replyInvitations?.length > 0 && !parentNote.ddate && layout === 'default' && (
-        <div className="invitations-container">
-          <div className="invitation-buttons top-level-invitations">
-            <span className="hint">Add:</span>
-            {parentNote.replyInvitations.map((invitation) => {
-              if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
+      {parentNote.replyInvitations?.length > 0 &&
+        !parentNote.ddate &&
+        layout === 'default' && (
+          <div className="invitations-container">
+            <div className="invitation-buttons top-level-invitations">
+              <span className="hint">Add:</span>
+              {parentNote.replyInvitations.map((invitation) => {
+                if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
 
-              return (
-                <button
-                  key={invitation.id}
-                  type="button"
-                  className={`btn btn-xs ${
-                    activeInvitation?.id === invitation.id ? 'active' : ''
-                  }`}
-                  data-id={invitation.id}
-                  onClick={() => openNoteEditor(invitation)}
-                >
-                  {prettyInvitationId(invitation.id)}
-                </button>
-              )
-            })}
-          </div>
+                return (
+                  <button
+                    key={invitation.id}
+                    type="button"
+                    className={`btn btn-xs ${
+                      activeInvitation?.id === invitation.id ? 'active' : ''
+                    }`}
+                    data-id={invitation.id}
+                    onClick={() => openNoteEditor(invitation)}
+                  >
+                    {prettyInvitationId(invitation.id)}
+                  </button>
+                )
+              })}
+            </div>
 
-          <NoteEditorForm
-            forumId={id}
-            replyToId={id}
-            invitation={activeInvitation}
-            onNoteCreated={(note) => {
-              updateNote(note)
-              setActiveInvitation(null)
-              scrollToElement('#forum-replies')
-            }}
-            onNoteCancelled={() => {
-              setActiveInvitation(null)
-            }}
-            onError={(isLoadingError) => {
-              if (isLoadingError) {
+            <NoteEditorForm
+              forumId={id}
+              replyToId={id}
+              invitation={activeInvitation}
+              onNoteCreated={(note) => {
+                updateNote(note)
                 setActiveInvitation(null)
-              }
-            }}
-          />
-        </div>
-      )}
+                scrollToElement('#forum-replies')
+              }}
+              onNoteCancelled={() => {
+                setActiveInvitation(null)
+              }}
+              onError={(isLoadingError) => {
+                if (isLoadingError) {
+                  setActiveInvitation(null)
+                }
+              }}
+            />
+          </div>
+        )}
 
       <div className={`row forum-replies-container layout-${layout}`}>
         <div className="col-xs-12">
@@ -880,12 +899,7 @@ function ForumReplies({
 
   if (layout === 'chat') {
     return (
-      <List
-        data={replies}
-        height={625}
-        itemHeight={1}
-        itemKey="id"
-      >
+      <List data={replies} height={625} itemHeight={1} itemKey="id">
         {(reply) => (
           <ChatReply
             note={replyNoteMap[reply.id]}
