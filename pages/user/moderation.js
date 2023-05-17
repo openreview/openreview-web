@@ -18,7 +18,6 @@ import {
   getProfileStateLabelClass,
   getTabCountMessage,
 } from '../../lib/utils'
-import Dropdown from '../../components/Dropdown'
 import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
 import PaginatedList from '../../components/PaginatedList'
@@ -26,6 +25,7 @@ import Table from '../../components/Table'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import { formatProfileData } from '../../lib/profiles'
 import Markdown from '../../components/EditorComponents/Markdown'
+import Dropdown from '../../components/Dropdown'
 
 dayjs.extend(relativeTime)
 
@@ -928,24 +928,38 @@ const UserModerationQueue = ({
     label: `${p} items`,
     value: p,
   }))
+  const [profileStateOption, setProfileStateOption] = useState('All')
+  const profileStateOptions = [
+    'All',
+    'Active Automatic',
+    'Blocked',
+    'Rejected',
+    'Limited',
+    'Inactive',
+  ].map((p) => ({ label: p, value: p }))
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
+    const cleanSearchTerm = filters.term?.trim()
+    const shouldSearchProfile = profileStateOption === 'All' && cleanSearchTerm
+    let searchQuery = { fullname: cleanSearchTerm?.toLowerCase() }
+    if (cleanSearchTerm?.startsWith('~')) searchQuery = { id: cleanSearchTerm }
+    if (cleanSearchTerm?.includes('@')) searchQuery = { email: cleanSearchTerm.toLowerCase() }
 
     try {
       const result = await api.get(
-        '/profiles',
+        shouldSearchProfile ? '/profiles/search' : '/profiles',
         {
           ...queryOptions,
-          sort: `tcdate:${descOrder ? 'desc' : 'asc'}`,
+
+          ...(!shouldSearchProfile && { sort: `tcdate:${descOrder ? 'desc' : 'asc'}` }),
           limit: pageSize,
           offset: (pageNumber - 1) * pageSize,
           withBlocked: onlyModeration ? undefined : true,
           ...(!onlyModeration && { trash: true }),
-          ...Object.entries(filters).reduce((prev, [key, value]) => {
-            if (value) prev[key] = value // eslint-disable-line no-param-reassign
-            return prev
-          }, {}),
+          ...(shouldSearchProfile && { es: true }),
+          ...(shouldSearchProfile && searchQuery),
+          ...(profileStateOption !== 'All' && { state: profileStateOption }),
         },
         { accessToken, cachePolicy: 'no-cache' }
       )
@@ -970,6 +984,7 @@ const UserModerationQueue = ({
     })
 
     setPageNumber(1)
+    if (profileStateOption !== 'All') setProfileStateOption('All')
     setFilters(newFilters)
   }
 
@@ -1092,7 +1107,7 @@ const UserModerationQueue = ({
 
   useEffect(() => {
     getProfiles()
-  }, [pageNumber, filters, shouldReload, descOrder, pageSize])
+  }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
 
   useEffect(() => {
     if (profileToPreview) $('#profile-preview').modal('show')
@@ -1111,29 +1126,16 @@ const UserModerationQueue = ({
 
       {!onlyModeration && (
         <form className="filter-form well mt-3" onSubmit={filterProfiles}>
-          <input
-            type="text"
-            name="first"
-            className="form-control input-sm"
-            placeholder="First Name"
-          />
-          <input
-            type="text"
-            name="middle"
-            className="form-control input-sm"
-            placeholder="Middle Name"
-          />
-          <input
-            type="text"
-            name="last"
-            className="form-control input-sm"
-            placeholder="Last Name"
-          />
-          <input
-            type="text"
-            name="id"
-            className="form-control input-sm"
-            placeholder="Username or Email"
+          <input type="text" name="term" className="form-control input-sm" />
+          <Dropdown
+            className="dropdown-select dropdown-profile-state dropdown-sm"
+            options={profileStateOptions}
+            placeholder="Select profile state"
+            value={profileStateOptions.find((option) => option.value === profileStateOption)}
+            onChange={(e) => {
+              setPageNumber(1)
+              setProfileStateOption(e.value)
+            }}
           />
           <button type="submit" className="btn btn-xs">
             Search
