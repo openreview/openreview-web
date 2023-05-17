@@ -253,7 +253,7 @@ export default function ChatEditorForm({
               setShowMessagePreview((prev) => !prev)
               setShowSignatureDropdown(false)
             }}
-            disabled={!message}
+            disabled={!message || !message.trim()}
           >
             {showMessagePreview ? 'Edit' : 'Preview'}
             {/* <SvgIcon name="markdown" /> */}
@@ -261,7 +261,7 @@ export default function ChatEditorForm({
           <button
             type="submit"
             className="btn btn-sm btn-primary"
-            disabled={!message || loading}
+            disabled={!message || !message.trim() || loading}
           >
             Post {invitationShortName}
             {/* <Icon name="send" /> */}

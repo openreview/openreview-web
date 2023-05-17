@@ -85,11 +85,11 @@ export default function Forum({
   const getInvitationsByReplyForum = (forumId, includeTags) => {
     if (!forumId) return Promise.resolve([])
 
-    const extraParams = includeTags ? { tags: true } : { details: 'repliedNotes' }
+    const extraParams = includeTags ? { tags: true, details: 'writable' } : { details: 'repliedNotes,writable' }
     return api
       .get(
         '/invitations',
-        { replyForum: forumId, ...extraParams },
+        { replyForum: forumId, expired: true, ...extraParams },
         { accessToken, version: 2 }
       )
       .then(({ invitations }) => {
@@ -100,11 +100,12 @@ export default function Forum({
           // but it is not false OR there have not been any replies to the invitation yet
           const repliesAvailable =
             !inv.maxReplies || inv.details?.repliedNotes?.length < inv.maxReplies
+          const writable = inv.details?.writable
           return {
             ...inv,
             process: null,
             preprocess: null,
-            details: { repliesAvailable },
+            details: { repliesAvailable, writable },
           }
         })
       })
