@@ -336,7 +336,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           <Icon name="eye-open" />
           {note.readers.map((reader) => prettyId(reader, true)).join(', ')}
         </span>
-        {(true || note.details?.editsCount > 1) && (
+        {note.details?.editsCount > 1 && (
           <span className="revisions">
             <Icon name="duplicate" />
             <Link href={`/revisions?id=${note.id}`}>
