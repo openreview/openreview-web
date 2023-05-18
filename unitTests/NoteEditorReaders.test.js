@@ -287,6 +287,51 @@ describe('NewNoteReaders', () => {
     })
   })
 
+  test('call api to get groups when items value contains .*', async () => {
+    const getGroups = jest.fn(() => Promise.resolve({}))
+    api.get = getGroups
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              enum: ['~Test_IdOne1', 'regex1.*', '~Test_IdThree1', 'regex2.*'],
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        fieldName="noteReaderValues"
+        closeNoteEditor={jest.fn()}
+        noteEditorData={{}}
+        setNoteEditorData={jest.fn()}
+        setLoading={jest.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(getGroups).toBeCalledTimes(2)
+      expect(getGroups).toHaveBeenNthCalledWith(
+        1,
+        expect.anything(),
+        { prefix: 'regex1.*' },
+        expect.anything()
+      )
+      expect(getGroups).toHaveBeenNthCalledWith(
+        2,
+        expect.anything(),
+        { prefix: 'regex2.*' },
+        expect.anything()
+      )
+    })
+
+    fail('not implemented yet')
+  })
+
   test('show error if enum values have no matching group', async () => {
     const getGroups = jest.fn(() => Promise.resolve({ groups: [] }))
     api.get = getGroups
@@ -325,6 +370,46 @@ describe('NewNoteReaders', () => {
     })
   })
 
+  test('show error if items values have no matching group', async () => {
+    const getGroups = jest.fn(() => Promise.resolve({ groups: [] }))
+    api.get = getGroups
+
+    const promptError = jest.fn()
+    global.promptError = promptError
+
+    const closeNoteEditor = jest.fn()
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              enum: ['regex1.*', 'regex2.*'],
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        fieldName="noteReaderValues"
+        closeNoteEditor={closeNoteEditor}
+        noteEditorData={{}}
+        setNoteEditorData={jest.fn()}
+        setLoading={jest.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(getGroups).toBeCalledTimes(2)
+      expect(promptError).toBeCalledWith('You do not have permission to create a note')
+      expect(closeNoteEditor).toBeCalled()
+    })
+
+    fail('not implemented yet')
+  })
+
   test('show tags widget if enum values match only 1 group', async () => {
     const getGroups = jest.fn(() => Promise.resolve({ groups: [] }))
     api.get = getGroups
@@ -360,7 +445,44 @@ describe('NewNoteReaders', () => {
     })
   })
 
-  test('show dropdown for enum values', async () => {
+  test('show tags widget if items values match only 1 group', async () => {
+    const getGroups = jest.fn(() => Promise.resolve({ groups: [] }))
+    api.get = getGroups
+
+    const setNoteEditorData = jest.fn()
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              enum: ['regex1.*', '~Test_IdOne1', 'regex2.*'],
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        fieldName="noteReaderValues"
+        closeNoteEditor={jest.fn()}
+        noteEditorData={{}}
+        setNoteEditorData={setNoteEditorData}
+        setLoading={jest.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(getGroups).toBeCalledTimes(2)
+      expect(screen.getByText('tags'))
+      expect(tagProps).toBeCalledWith(expect.objectContaining({ values: ['~Test_IdOne1'] }))
+    })
+
+    fail('not implemented yet')
+  })
+
+  test('show multiselect dropdown for enum values', async () => {
     const getGroups = jest.fn(() =>
       Promise.resolve({ groups: [{ id: '~Test_IdTwo1' }, { id: '~Test_IdThree1' }] })
     )
@@ -395,9 +517,19 @@ describe('NewNoteReaders', () => {
       expect(dropdownList.childNodes[1].textContent).toEqual('Test IdTwo')
       expect(dropdownList.childNodes[2].textContent).toEqual('Test IdThree')
     })
+
+    fail('dropdown need to be multiselect')
   })
 
-  test('set readers value in note editor when dropdown value is checked/unchecked', async () => {
+  test('show dropdown for items values (no mandatory value)', async () => {
+    fail('not implemented yet')
+  })
+
+  test('show dropdown for items values (with mandatory value)', async () => {
+    fail('not implemented yet')
+  })
+
+  test('set readers value in note editor when dropdown value is checked/unchecked (enum)', async () => {
     const setNoteEditorData = jest.fn()
     const invitation = {
       edit: {
@@ -440,6 +572,14 @@ describe('NewNoteReaders', () => {
         expect.objectContaining({ value: ['~Test_IdTwo1', '~Test_IdThree1'] })
       )
     )
+  })
+
+  test('set readers value in note editor when tags value is changed (items no mandatory value)', async () => {
+    fail('not implemented yet')
+  })
+
+  test('set readers value in note editor when tags value is changed (items with mandatory value)', async () => {
+    fail('not implemented yet')
   })
 })
 

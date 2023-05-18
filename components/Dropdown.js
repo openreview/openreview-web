@@ -35,29 +35,34 @@ export const TimezoneDropdown = ({ className, onChange, value }) => {
   )
 }
 
-const CustomMultiValue = (props) => {
-  const content = prettyId(props.data.value, true)
-  return <components.MultiValue {...props}>{content}</components.MultiValue>
-}
-
 export const NoteEditorReadersDropdown = ({
   options,
   value,
   onChange,
   placeholder = 'Select readers',
-}) => (
-  <Dropdown
-    options={options}
-    placeholder={placeholder}
-    isMulti
-    value={value}
-    onChange={onChange}
-    components={{
-      MultiValue: CustomMultiValue,
-      DropdownIndicator: () => null,
-    }}
-  />
-)
+}) => {
+  const styles = {
+    multiValueLabel: (base, state) =>
+      state.data.optional
+        ? base
+        : { ...base, opacity: '60%', cursor: 'not-allowed', paddingRight: 6 },
+    multiValueRemove: (base, state) =>
+      state.data.optional ? base : { ...base, display: 'none' },
+  }
+  return (
+    <Dropdown
+      styles={styles}
+      options={options}
+      placeholder={placeholder}
+      isMulti
+      value={value}
+      onChange={onChange}
+      components={{
+        DropdownIndicator: () => null,
+      }}
+    />
+  )
+}
 
 const CustomOption = ({ children, ...props }) => {
   const { onMouseMove, onMouseOver, ...rest } = props.innerProps

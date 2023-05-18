@@ -53,12 +53,32 @@ export const NewNoteReaders = ({
     setLoading((loading) => ({ ...loading, fieldName: true }))
     try {
       const options = fieldDescription.param.enum
+        ? fieldDescription.param.enum.map((p) => ({
+            value: p,
+            description: p,
+            optional: true,
+          }))
+        : fieldDescription.param.items
       const optionsP = options.map((p) =>
-        p.includes('.*')
+        p.value.includes('.*')
           ? api
-              .get('/groups', { prefix: p }, { accessToken, version: 2 })
-              .then((result) => result.groups.map((q) => q.id))
-          : Promise.resolve([p])
+              .get('/groups', { prefix: p.value }, { accessToken, version: 2 })
+              .then((result) =>
+                result.groups.map((q) => ({
+                  value: q.id,
+                  description: prettyId(q.id, true),
+                  optional: p.optional,
+                }))
+              )
+          : Promise.resolve([
+              {
+                ...p,
+                description: prettyId(p.description)
+                  .split(/\{(\S+)\}/g)
+                  .filter((q) => q.trim())
+                  .join(),
+              },
+            ])
       )
       const groupResults = await Promise.all(optionsP)
       switch (groupResults.flat().length) {
@@ -66,17 +86,27 @@ export const NewNoteReaders = ({
           throw new Error('You do not have permission to create a note')
         case 1:
           setDescriptionType('singleValueEnum')
-          setReaderOptions([groupResults.flat()[0]])
-          setNoteEditorData({ fieldName, value: [groupResults.flat()[0]] })
+          setReaderOptions([groupResults.flat()[0].value])
+          setNoteEditorData({ fieldName, value: [groupResults.flat()[0].value] })
           break
         default:
-          setReaderOptions(groupResults.flat().map((p) => ({ label: prettyId(p), value: p })))
+          setReaderOptions(
+            groupResults.flat().map((p) => ({
+              label: p.description,
+              value: p.value,
+              optional: p.optional,
+            }))
+          )
       }
     } catch (error) {
       promptError(error.message)
       closeNoteEditor()
     }
     setLoading((loading) => ({ ...loading, fieldName: false }))
+  }
+
+  const dropdownChangeHandler = (selectedOptions, actionMeta) => {
+    setNoteEditorData({ fieldName, value: selectedOptions.map((p) => p.value) })
   }
 
   const renderReaders = () => {
@@ -95,9 +125,7 @@ export const NewNoteReaders = ({
             placeholder={placeholder}
             options={readerOptions}
             value={readerOptions.filter((p) => noteEditorData[fieldName]?.includes(p.value))}
-            onChange={(values) =>
-              setNoteEditorData({ fieldName, value: values.map((p) => p.value) })
-            }
+            onChange={dropdownChangeHandler}
           />
         ) : null
       case 'singleValueEnum':
@@ -115,7 +143,7 @@ export const NewNoteReaders = ({
       setDescriptionType('const')
     } else if (fieldDescription.param.regex) {
       setDescriptionType('regex')
-    } else if (fieldDescription.param.enum) {
+    } else if (fieldDescription.param.enum || fieldDescription.param.items) {
       setDescriptionType('enum')
     }
   }, [])
