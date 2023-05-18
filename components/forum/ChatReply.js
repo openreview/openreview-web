@@ -327,7 +327,7 @@ function DeleteChatModal({ noteId, deleteInvitation, deleteNote, isVisible }) {
       primaryButtonText="Delete"
       primaryButtonDisabled={!signatures?.value}
       onPrimaryButtonClick={() => deleteNote(signatures.value)}
-      onClose={() => setSignatures(null)}
+      onClose={() => {}}
     >
       <p className="mb-3">
         Are you sure you want to delete this message? The deleted chat note will be updated
@@ -338,7 +338,9 @@ function DeleteChatModal({ noteId, deleteInvitation, deleteNote, isVisible }) {
         {isVisible && (
           <Signatures
             fieldDescription={deleteInvitation.edit.signatures}
-            onChange={setSignatures}
+            onChange={(newSignatures) => {
+              setSignatures((prev) => ({ ...prev, ...newSignatures }))
+            }}
             currentValue={signatures}
             onError={setError}
           />
