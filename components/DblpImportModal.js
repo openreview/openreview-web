@@ -99,7 +99,12 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
 
     try {
       const { notes: allDblpPublications, possibleNames } =
-        await getDblpPublicationsFromXmlUrl(`${url.trim()}.xml`, profileId)
+        await getDblpPublicationsFromXmlUrl(
+          `${url.trim()}.xml`,
+          profileId,
+          profileNames.map((p) => getNameString(p))
+        )
+
       if (
         !allDblpPublications.some((pub) =>
           profileNames.some((name) =>
@@ -141,7 +146,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
           allDblpPublications.length - numExisting - numAssociatedWithOtherProfile
         setMessage(` We found ${
           allDblpPublications.length
-        } publications on your DBLP home page,
+        } publications on this DBLP home page,
           ${numExisting} of which already exist in OpenReview,
           ${
             numAssociatedWithOtherProfile
