@@ -66,6 +66,9 @@ export default function ChatEditorForm({
     e.preventDefault()
     if (!message || loading) return
 
+    const trimmedMessage = message.trim()
+    if (!trimmedMessage) return
+
     setLoading(true)
 
     // TODO: construct this edit in a more general way
@@ -76,7 +79,7 @@ export default function ChatEditorForm({
         replyto: replyToNote?.id || forumId,
         content: {
           message: {
-            value: message,
+            value: trimmedMessage,
           },
         },
       },
@@ -261,7 +264,7 @@ export default function ChatEditorForm({
           <button
             type="submit"
             className="btn btn-sm btn-primary"
-            disabled={!message || loading}
+            disabled={!message || !message.trim() || loading}
           >
             Post {invitationShortName}
             {/* <Icon name="send" /> */}

@@ -30,6 +30,7 @@ export default forwardRef(function ChatReply(
   const [loading, setLoading] = useState(false)
   const [useMarkdown, setUseMarkdown] = useState(true)
   const [needsRerender, setNeedsRerender] = useState(false)
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false)
   const { accessToken } = useUser()
 
   useEffect(() => {
@@ -63,9 +64,11 @@ export default forwardRef(function ChatReply(
   }
 
   const showDeleteModal = (e) => {
+    setDeleteModalVisible(true)
     $(`#delete-modal-${note.id}`).modal('show')
   }
   const hideDeleteModal = () => {
+    setDeleteModalVisible(false)
     $('body').removeClass('modal-open')
     $('.modal-backdrop').remove()
   }
@@ -233,6 +236,7 @@ export default forwardRef(function ChatReply(
           noteId={note.id}
           deleteInvitation={note.deleteInvitation}
           deleteNote={deleteNote}
+          isVisible={deleteModalVisible}
         />
       )}
     </div>
@@ -312,7 +316,7 @@ function ChatSignature({ groupId, signatureGroup }) {
   )
 }
 
-function DeleteChatModal({ noteId, deleteInvitation, deleteNote }) {
+function DeleteChatModal({ noteId, deleteInvitation, deleteNote, isVisible }) {
   const [signatures, setSignatures] = useState(null)
   const [error, setError] = useState(null)
 
@@ -331,12 +335,14 @@ function DeleteChatModal({ noteId, deleteInvitation, deleteNote }) {
       </p>
       <div className="mb-2">
         <h4 className="pull-left mt-2 mr-3">Signature:</h4>
-        <Signatures
-          fieldDescription={deleteInvitation.edit.signatures}
-          onChange={setSignatures}
-          currentValue={signatures}
-          onError={setError}
-        />
+        {isVisible && (
+          <Signatures
+            fieldDescription={deleteInvitation.edit.signatures}
+            onChange={setSignatures}
+            currentValue={signatures}
+            onError={setError}
+          />
+        )}
       </div>
       {error && (
         <div className="alert alert-danger">
