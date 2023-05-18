@@ -326,7 +326,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           title="Date created"
         >
           <Icon name="calendar" />
-          {forumDate(note.cdate, null, note.mdate, null)}
+          {forumDate(note.cdate, null, note.mdate, null, null, null, true)}
         </span>
         <span
           className="readers"
@@ -337,7 +337,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           <Icon name="eye-open" />
           {note.readers.map((reader) => prettyId(reader, true)).join(', ')}
         </span>
-        {(true || note.details?.editsCount > 1) && (
+        {note.details?.editsCount > 1 && (
           <span className="revisions">
             <Icon name="duplicate" />
             <Link href={`/revisions?id=${note.id}`}>
