@@ -17,7 +17,7 @@ const ConsoleTaskList = ({
   apiVersion = 2,
 }) => {
   const { accessToken } = useUser()
-  const [invitations, setInvitations] = useState([])
+  const [invitations, setInvitations] = useState(null)
 
   const loadInvitations = async () => {
     try {
@@ -76,6 +76,7 @@ const ConsoleTaskList = ({
 
       setInvitations(formatTasksData([allInvitations, [], []], true))
     } catch (error) {
+      setInvitations([])
       promptError(error.message)
     }
   }
