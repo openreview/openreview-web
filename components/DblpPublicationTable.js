@@ -24,7 +24,7 @@ export default function DblpPublicationTable({
       orPub.venue === dblpPub.venue
     const existing = orPublications.find(titleMatch)
     const existingWithOtherProfile = orPublicationsImportedByOtherProfile.find(titleMatch)
-    if (existing || existingWithOtherProfile) {
+    if (existing || existingWithOtherProfile || dblpPub.authorIndex === -1) {
       pubsCouldNotImport.push(dblpPub.key)
     } else {
       pubsCouldImport.push(dblpPub.key)
@@ -147,6 +147,7 @@ export default function DblpPublicationTable({
                       openReviewId={
                         existingPublication?.id || existingPublicationOfOtherProfile?.noteId
                       }
+                      authorIsInvalid={publication.authorIndex === -1}
                       selected={selectedPublications.includes(publication.key)}
                       toggleSelected={selectPublication(publication.key)}
                       otherProfileId={existingPublicationOfOtherProfile?.existingProfileId}
@@ -168,6 +169,7 @@ const DblpPublicationRow = ({
   title,
   authors,
   openReviewId,
+  authorIsInvalid,
   selected,
   toggleSelected,
   otherProfileId,
@@ -245,7 +247,8 @@ const DblpPublicationRow = ({
           type="checkbox"
           onChange={(e) => toggleSelected(e.target.checked)}
           checked={selected}
-          disabled={openReviewId}
+          disabled={openReviewId || authorIsInvalid}
+          title={authorIsInvalid ? 'Your name does not match the author list' : undefined}
         />
         <div>
           <div className="publication-title">
