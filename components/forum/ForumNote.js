@@ -241,7 +241,8 @@ function ForumMeta({ note }) {
           note.mdate,
           note.tmdate,
           note.content.year?.value,
-          note.pdate
+          note.pdate,
+          false
         )}
       </span>
 
@@ -255,7 +256,7 @@ function ForumMeta({ note }) {
           className="readers item"
           data-toggle="tooltip"
           data-placement="top"
-          title={`Visible to ${note.readers.join(', ')}`}
+          title={`Visible to ${note.readers.join(', ')}${note.odate ? ` since ${forumDate(note.odate)}` : ''}`}
         >
           <Icon name="eye-open" />
           {note.readers.map((reader) => prettyId(reader, true)).join(', ')}

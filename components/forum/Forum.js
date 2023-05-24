@@ -75,26 +75,26 @@ export default function Forum({
   const getInvitationsByReplyForum = (forumId, includeTags) => {
     if (!forumId) return Promise.resolve([])
 
-    const extraParams = includeTags ? { tags: true } : { details: 'repliedNotes' }
+    const extraParams = includeTags ? { tags: true, details: 'writable' } : { details: 'repliedNotes,writable' }
     return api
       .get(
         '/invitations',
-        { replyForum: forumId, ...extraParams },
+        { replyForum: forumId, expired: true, ...extraParams },
         { accessToken, version: 2 }
       )
       .then(({ invitations }) => {
         if (!invitations?.length) return []
-
         return invitations.map((inv) => {
           // Check if invitation does not have multiReply prop OR invitation is set to multiReply
           // but it is not false OR there have not been any replies to the invitation yet
           const repliesAvailable =
             !inv.maxReplies || inv.details?.repliedNotes?.length < inv.maxReplies
+          const writable = inv.details?.writable
           return {
             ...inv,
             process: null,
             preprocess: null,
-            details: { repliesAvailable },
+            details: { repliesAvailable, writable },
           }
         })
       })
@@ -108,7 +108,7 @@ export default function Forum({
       {
         forum: forumId,
         trash: true,
-        details: 'replyCount,writable,signatures,invitation,presentation', // TODO: add editsCount back
+        details: 'replyCount,editsCount,writable,signatures,invitation,presentation',
       },
       { accessToken, version: 2 }
     )

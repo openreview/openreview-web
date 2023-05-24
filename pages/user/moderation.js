@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, orderBy, sortBy } from 'lodash'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import withAdminAuth from '../../components/withAdminAuth'
 import Icon from '../../components/Icon'
 import LoadSpinner from '../../components/LoadingSpinner'
@@ -14,8 +16,8 @@ import {
   buildArray,
   inflect,
   getProfileStateLabelClass,
+  getTabCountMessage,
 } from '../../lib/utils'
-import Dropdown from '../../components/Dropdown'
 import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
 import PaginatedList from '../../components/PaginatedList'
@@ -23,6 +25,9 @@ import Table from '../../components/Table'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import { formatProfileData } from '../../lib/profiles'
 import Markdown from '../../components/EditorComponents/Markdown'
+import Dropdown from '../../components/Dropdown'
+
+dayjs.extend(relativeTime)
 
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
@@ -127,59 +132,77 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
   const pageSize = 25
   const fullTextModalId = 'deletion-fulltext-modal'
 
-  const getTabCountMessage = (pendingCount, errorCount) => {
-    if (pendingCount === 0 && errorCount === 0) return null
-    if (pendingCount === 0 && errorCount !== 0)
-      return inflect(errorCount, 'error', 'errors', true)
-    if (pendingCount !== 0 && errorCount === 0) return pendingCount
-    return `${pendingCount} pending,${inflect(errorCount, 'error', 'errors', true)}`
-  }
-
-  const loadNameDeletionRequests = async () => {
+  const loadNameDeletionRequests = async (noteId) => {
     const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
     try {
-      const nameRemovalNotesP = api.get(
-        '/notes',
-        {
-          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
-        },
-        { accessToken }
-      )
-      const decisionResultsP = api.getAll(
-        '/references',
-        {
-          invitation: nameDeletionDecisionInvitationId,
-        },
-        { accessToken, resultsKey: 'references' }
-      )
-      const processLogsP = api.getAll(
-        '/logs/process',
-        { invitation: nameDeletionDecisionInvitationId },
-        { accessToken, resultsKey: 'logs' }
-      )
+      let nameRemovalNotesP
+      let decisionResultsP
+      let processLogsP
+
+      if (noteId) {
+        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        decisionResultsP = api.getAll(
+          '/references',
+          { referent: noteId, invitation: nameDeletionDecisionInvitationId },
+          { accessToken, resultsKey: 'references' }
+        )
+        processLogsP = Promise.resolve(null)
+      } else {
+        nameRemovalNotesP = api.get(
+          '/notes',
+          {
+            invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
+          },
+          { accessToken }
+        )
+        decisionResultsP = api.getAll(
+          '/references',
+          {
+            invitation: nameDeletionDecisionInvitationId,
+          },
+          { accessToken, resultsKey: 'references' }
+        )
+        processLogsP = api.getAll(
+          '/logs/process',
+          { invitation: nameDeletionDecisionInvitationId },
+          { accessToken, resultsKey: 'logs' }
+        )
+      }
 
       const [nameRemovalNotes, decisionResults, processLogs] = await Promise.all([
         nameRemovalNotesP,
         decisionResultsP,
         processLogsP,
       ])
-      const sortedResult = [
-        ...nameRemovalNotes.notes.filter((p) => p.content.status === 'Pending'),
-        ...nameRemovalNotes.notes.filter((p) => p.content.status !== 'Pending'),
-      ].map((p) => {
-        const decisionReference = decisionResults.find((q) => q.referent === p.id)
-        let processLogStatus = 'N/A'
-        if (p.content.status !== 'Pending')
-          processLogStatus =
-            processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
-        return {
-          ...p,
-          processLogStatus,
-          processLogUrl: decisionReference
-            ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
-            : null,
-        }
-      })
+      const sortedResult = noteId
+        ? [
+            ...nameDeletionNotes.filter(
+              (p) => p.content.status === 'Pending' && p.id !== noteId
+            ),
+            {
+              ...nameRemovalNotes.notes[0],
+              processLogStatus: 'running',
+              processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
+            },
+            ...nameDeletionNotes.filter((p) => p.content.status !== 'Pending'),
+          ]
+        : [
+            ...nameRemovalNotes.notes.filter((p) => p.content.status === 'Pending'),
+            ...nameRemovalNotes.notes.filter((p) => p.content.status !== 'Pending'),
+          ].map((p) => {
+            const decisionReference = decisionResults.find((q) => q.referent === p.id)
+            let processLogStatus = 'N/A'
+            if (p.content.status !== 'Pending')
+              processLogStatus =
+                processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
+            return {
+              ...p,
+              processLogStatus,
+              processLogUrl: decisionReference
+                ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
+                : null,
+            }
+          })
       setNameDeletionNotes(sortedResult)
       setNameDeletionNotesToShow(
         sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
@@ -229,7 +252,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
       }
       const result = await api.post('/notes', noteToPost, { accessToken })
       $('#name-delete-reject').modal('hide')
-      loadNameDeletionRequests()
+      loadNameDeletionRequests(nameDeletionNote.id)
     } catch (error) {
       promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== nameDeletionNote.id))
@@ -403,58 +426,77 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
   const profileMergeDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge_Decision`
   const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
 
-  const getTabCountMessage = (pendingCount, errorCount) => {
-    if (pendingCount === 0 && errorCount === 0) return null
-    if (pendingCount === 0 && errorCount !== 0)
-      return inflect(errorCount, 'error', 'errors', true)
-    if (pendingCount !== 0 && errorCount === 0) return pendingCount
-    return `${pendingCount} pending,${inflect(errorCount, 'error', 'errors', true)}`
-  }
-
-  const loadProfileMergeRequests = async () => {
+  const loadProfileMergeRequests = async (noteId) => {
     try {
-      const profileMergeNotesP = api.get(
-        '/notes',
-        {
-          invitation: profileMergeInvitationId,
-        },
-        { accessToken }
-      )
-      const decisionResultsP = api.getAll(
-        '/references',
-        {
-          invitation: profileMergeDecisionInvitationId,
-        },
-        { accessToken, resultsKey: 'references' }
-      )
-      const processLogsP = api.getAll(
-        '/logs/process',
-        { invitation: profileMergeDecisionInvitationId },
-        { accessToken, resultsKey: 'logs' }
-      )
+      let profileMergeNotesP
+      let decisionResultsP
+      let processLogsP
+
+      if (noteId) {
+        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        decisionResultsP = api.getAll(
+          '/references',
+          { referent: noteId, invitation: profileMergeDecisionInvitationId },
+          { accessToken, resultsKey: 'references' }
+        )
+        processLogsP = Promise.resolve(null)
+      } else {
+        profileMergeNotesP = api.get(
+          '/notes',
+          {
+            invitation: profileMergeInvitationId,
+          },
+          { accessToken }
+        )
+        decisionResultsP = api.getAll(
+          '/references',
+          {
+            invitation: profileMergeDecisionInvitationId,
+          },
+          { accessToken, resultsKey: 'references' }
+        )
+        processLogsP = api.getAll(
+          '/logs/process',
+          { invitation: profileMergeDecisionInvitationId },
+          { accessToken, resultsKey: 'logs' }
+        )
+      }
 
       const [profileMergeNotesResults, decisionResults, processLogs] = await Promise.all([
         profileMergeNotesP,
         decisionResultsP,
         processLogsP,
       ])
-      const sortedResult = [
-        ...profileMergeNotesResults.notes.filter((p) => p.content.status === 'Pending'),
-        ...profileMergeNotesResults.notes.filter((p) => p.content.status !== 'Pending'),
-      ].map((p) => {
-        const decisionReference = decisionResults.find((q) => q.referent === p.id)
-        let processLogStatus = 'N/A'
-        if (p.content.status !== 'Pending')
-          processLogStatus =
-            processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
-        return {
-          ...p,
-          processLogStatus,
-          processLogUrl: decisionReference
-            ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
-            : null,
-        }
-      })
+
+      const sortedResult = noteId
+        ? [
+            ...profileMergeNotes.filter(
+              (p) => p.content.status === 'Pending' && p.id !== noteId
+            ),
+            {
+              ...profileMergeNotesResults.notes[0],
+              processLogStatus: 'running',
+              processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
+            },
+            ...profileMergeNotes.filter((p) => p.content.status !== 'Pending'),
+          ]
+        : [
+            ...profileMergeNotesResults.notes.filter((p) => p.content.status === 'Pending'),
+            ...profileMergeNotesResults.notes.filter((p) => p.content.status !== 'Pending'),
+          ].map((p) => {
+            const decisionReference = decisionResults.find((q) => q.referent === p.id)
+            let processLogStatus = 'N/A'
+            if (p.content.status !== 'Pending')
+              processLogStatus =
+                processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
+            return {
+              ...p,
+              processLogStatus,
+              processLogUrl: decisionReference
+                ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
+                : null,
+            }
+          })
       setProfileMergeNotes(sortedResult)
       setProfileMergeNotesToShow(
         sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
@@ -503,7 +545,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
       }
       const result = await api.post('/notes', noteToPost, { accessToken })
       $('#name-delete-reject').modal('hide')
-      loadProfileMergeRequests()
+      loadProfileMergeRequests(profileMergeNote.id)
     } catch (error) {
       promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== profileMergeNote.id))
@@ -697,7 +739,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
 }
 
 const VenueRequestRow = ({ item }) => {
-  const { forum, abbreviatedName, signature, hasOfficialReply, deployed } = item
+  const { forum, abbreviatedName, unrepliedPcComments, deployed, tauthor, tcdate } = item
   return (
     <div className="venue-request-row">
       <a className="request-name" href={`/forum?id=${forum}`} target="_blank" rel="noreferrer">
@@ -709,21 +751,49 @@ const VenueRequestRow = ({ item }) => {
             {deployed ? 'Deployed' : 'Not Deployed'}
           </span>
         </div>
-        <div className="reply-label">
-          <span className={`label label-${hasOfficialReply ? 'success' : 'danger'}`}>
-            {hasOfficialReply ? 'Replied' : 'Not Replied'}
+        <div className="comment-label">
+          <span
+            className={`label label-${unrepliedPcComments.length ? 'warning' : 'success'}`}
+          >
+            {unrepliedPcComments.length > 0 ? (
+              <a
+                href={`/forum?id=${forum}&noteId=${unrepliedPcComments[0].id}`}
+                target="_blank"
+                rel="noreferrer"
+                title={`
+${dayjs(unrepliedPcComments[0].tcdate).fromNow()}
+${unrepliedPcComments[0].content?.comment}`}
+              >
+                {`${inflect(unrepliedPcComments.length, 'comment', 'comments', true)}`}
+              </a>
+            ) : (
+              'no comment'
+            )}
           </span>
         </div>
+        <div className="tcdate-label">{dayjs(tcdate).fromNow()}</div>
       </div>
-      <a href={`/profile?id=${signature}`} target="_blank" rel="noreferrer">
-        {prettyId(signature)}
+      <a href={`/profile?email=${tauthor}`} target="_blank" rel="noreferrer">
+        {prettyId(tauthor)}
       </a>
     </div>
   )
 }
 
 const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
-  const loadRequestNotes = async (limit, offset) => {
+  const [venuRequestNotes, setVenueRequestNotes] = useState([])
+  const hasBeenReplied = (comment, allReplies) => {
+    // checks the reply itself or its replies have been replied by support
+    const replies = allReplies.filter((p) => p.replyto === comment.id)
+    if (!replies.length) return false
+    if (replies.length === 1 && replies[0].signatures.includes('OpenReview.net/Support')) {
+      return true
+    }
+
+    return replies.some((p) => hasBeenReplied(p, allReplies))
+  }
+
+  const loadRequestNotes = async () => {
     try {
       const { notes, count } = await api.get(
         '/notes',
@@ -731,36 +801,74 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
           invitation: 'OpenReview.net/Support/-/Request_Form',
           sort: 'tcdate',
           details: 'replies',
-          limit,
-          offset,
         },
         { accessToken }
       )
 
-      const formattedNotesWithCount = {
-        items: notes?.map((p) => ({
-          id: p.id,
-          forum: p.forum,
-          abbreviatedName: p.content?.['Abbreviated Venue Name'],
-          hasOfficialReply: p.details.replies.find((q) =>
-            q.signatures.includes('OpenReview.net/Support')
+      const allVenueRequests = notes?.map((p) => ({
+        id: p.id,
+        forum: p.forum,
+        tcdate: p.tcdate,
+        isCreatedInPastWeek: dayjs().diff(dayjs(p.tcdate), 'd') < 7,
+        abbreviatedName: p.content?.['Abbreviated Venue Name'],
+        hasOfficialReply: p.details.replies.find((q) =>
+          q.signatures.includes('OpenReview.net/Support')
+        ),
+        unrepliedPcComments: sortBy(
+          p.details.replies.filter(
+            (q) =>
+              q.invitation.endsWith('Comment') &&
+              !q.signatures.includes('OpenReview.net/Support') &&
+              !hasBeenReplied(q, p.details.replies) &&
+              dayjs().diff(dayjs(q.cdate), 'd') < 7
           ),
-          deployed: p.content?.venue_id,
-          signature: p.signatures?.[0],
-        })),
-        count: count ?? 0,
-      }
-      if (offset === 0)
-        setPendingVenueRequestCount(
-          formattedNotesWithCount.items?.filter((p) => !p.hasOfficialReply)?.length
+          (s) => -s.cdate
+        ),
+        deployed: p.content?.venue_id,
+        tauthor: p.tauthor,
+      }))
+
+      const venueNotDeployedInPastWeekCount = allVenueRequests.filter(
+        (p) => !p.deployed && p.isCreatedInPastWeek
+      ).length
+      const venueWithUnrepliedCommentCount = allVenueRequests.filter(
+        (p) => p.unrepliedPcComments.length > 0
+      ).length
+      setPendingVenueRequestCount(
+        getTabCountMessage(
+          venueWithUnrepliedCommentCount,
+          venueNotDeployedInPastWeekCount,
+          'venue with comment',
+          'venue request'
         )
-      return formattedNotesWithCount
+      )
+      setVenueRequestNotes(
+        orderBy(
+          allVenueRequests,
+          [
+            (p) => !p.deployed && p.isCreatedInPastWeek,
+            (p) => p.unrepliedPcComments.length,
+            'tcdate',
+          ],
+          ['desc', 'desc', 'desc']
+        )
+      )
     } catch (error) {
       promptError(error.message)
-      return null
     }
   }
-  const loadItems = useCallback(loadRequestNotes, [accessToken])
+  const loadItems = useCallback(
+    (limit, offset) =>
+      Promise.resolve({
+        items: venuRequestNotes.slice(offset, offset + limit),
+        count: venuRequestNotes.length,
+      }),
+    [venuRequestNotes]
+  )
+
+  useEffect(() => {
+    loadRequestNotes()
+  }, [])
 
   return (
     <PaginatedList
@@ -873,24 +981,38 @@ const UserModerationQueue = ({
     label: `${p} items`,
     value: p,
   }))
+  const [profileStateOption, setProfileStateOption] = useState('All')
+  const profileStateOptions = [
+    'All',
+    'Active Automatic',
+    'Blocked',
+    'Rejected',
+    'Limited',
+    'Inactive',
+  ].map((p) => ({ label: p, value: p }))
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
+    const cleanSearchTerm = filters.term?.trim()
+    const shouldSearchProfile = profileStateOption === 'All' && cleanSearchTerm
+    let searchQuery = { fullname: cleanSearchTerm?.toLowerCase() }
+    if (cleanSearchTerm?.startsWith('~')) searchQuery = { id: cleanSearchTerm }
+    if (cleanSearchTerm?.includes('@')) searchQuery = { email: cleanSearchTerm.toLowerCase() }
 
     try {
       const result = await api.get(
-        '/profiles',
+        shouldSearchProfile ? '/profiles/search' : '/profiles',
         {
           ...queryOptions,
-          sort: `tcdate:${descOrder ? 'desc' : 'asc'}`,
+
+          ...(!shouldSearchProfile && { sort: `tcdate:${descOrder ? 'desc' : 'asc'}` }),
           limit: pageSize,
           offset: (pageNumber - 1) * pageSize,
           withBlocked: onlyModeration ? undefined : true,
           ...(!onlyModeration && { trash: true }),
-          ...Object.entries(filters).reduce((prev, [key, value]) => {
-            if (value) prev[key] = value // eslint-disable-line no-param-reassign
-            return prev
-          }, {}),
+          ...(shouldSearchProfile && { es: true }),
+          ...(shouldSearchProfile && searchQuery),
+          ...(profileStateOption !== 'All' && { state: profileStateOption }),
         },
         { accessToken, cachePolicy: 'no-cache' }
       )
@@ -915,6 +1037,7 @@ const UserModerationQueue = ({
     })
 
     setPageNumber(1)
+    if (profileStateOption !== 'All') setProfileStateOption('All')
     setFilters(newFilters)
   }
 
@@ -1037,7 +1160,7 @@ const UserModerationQueue = ({
 
   useEffect(() => {
     getProfiles()
-  }, [pageNumber, filters, shouldReload, descOrder, pageSize])
+  }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
 
   useEffect(() => {
     if (profileToPreview) $('#profile-preview').modal('show')
@@ -1056,29 +1179,16 @@ const UserModerationQueue = ({
 
       {!onlyModeration && (
         <form className="filter-form well mt-3" onSubmit={filterProfiles}>
-          <input
-            type="text"
-            name="first"
-            className="form-control input-sm"
-            placeholder="First Name"
-          />
-          <input
-            type="text"
-            name="middle"
-            className="form-control input-sm"
-            placeholder="Middle Name"
-          />
-          <input
-            type="text"
-            name="last"
-            className="form-control input-sm"
-            placeholder="Last Name"
-          />
-          <input
-            type="text"
-            name="id"
-            className="form-control input-sm"
-            placeholder="Username or Email"
+          <input type="text" name="term" className="form-control input-sm" />
+          <Dropdown
+            className="dropdown-select dropdown-profile-state dropdown-sm"
+            options={profileStateOptions}
+            placeholder="Select profile state"
+            value={profileStateOptions.find((option) => option.value === profileStateOption)}
+            onChange={(e) => {
+              setPageNumber(1)
+              setProfileStateOption(e.value)
+            }}
           />
           <button type="submit" className="btn btn-xs">
             Search

@@ -2651,10 +2651,13 @@ module.exports = (function () {
         .text(invLabelText)
         .css(getInvitationColors(prettyInv))
       var iconName = note.readers.includes('everyone') ? 'globe' : 'eye-open'
+      var onlineText = note.odate && note.readers.includes('everyone')
+        ? 'Visible to everyone since ' + forumDate(note.odate)
+        : 'Reply Visibility'
       $readersItem = $('<span>', { class: 'item' }).append(
         '<span class="glyphicon glyphicon-' +
           iconName +
-          '" data-toggle="tooltip" data-placement="top" title="Reply Visibility" aria-hidden="true"></span>',
+          '" data-toggle="tooltip" data-placement="top" title="' + onlineText + '" aria-hidden="true"></span>',
         ' ',
         prettyReadersList(note.readers, true)
       )
