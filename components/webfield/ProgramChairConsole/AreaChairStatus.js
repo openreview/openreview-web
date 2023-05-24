@@ -164,7 +164,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
       {rowData.notes.length !== 0 && <strong>Papers:</strong>}
       <div>
         {rowData.notes.map((p) => {
-          const noteContent = getNoteContentValues(p.note?.getNoteContentValues)
+          const noteContent = getNoteContentValues(p.note?.content)
           const noteVenue = noteContent?.venue
           const metaReviews = p.metaReviewData?.metaReviews
           const hasMetaReview = metaReviews?.length
