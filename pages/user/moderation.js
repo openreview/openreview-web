@@ -135,35 +135,37 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
   const loadNameDeletionRequests = async (noteId) => {
     const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
     try {
-      const nameRemovalNotesP = noteId
-        ? api.get('/notes', { id: noteId }, { accessToken })
-        : api.get(
-            '/notes',
-            {
-              invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
-            },
-            { accessToken }
-          )
-      const decisionResultsP = noteId
-        ? api.getAll(
-            '/references',
-            { referent: noteId, invitation: nameDeletionDecisionInvitationId },
-            { accessToken, resultsKey: 'references' }
-          )
-        : api.getAll(
-            '/references',
-            {
-              invitation: nameDeletionDecisionInvitationId,
-            },
-            { accessToken, resultsKey: 'references' }
-          )
-      const processLogsP = noteId
-        ? Promise.resolve(null)
-        : api.getAll(
-            '/logs/process',
-            { invitation: nameDeletionDecisionInvitationId },
-            { accessToken, resultsKey: 'logs' }
-          )
+      let nameRemovalNotesP, decisionResultsP, processLogsP
+
+      if (noteId) {
+        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        decisionResultsP = api.getAll(
+          '/references',
+          { referent: noteId, invitation: nameDeletionDecisionInvitationId },
+          { accessToken, resultsKey: 'references' }
+        )
+        processLogsP = Promise.resolve(null)
+      } else {
+        nameRemovalNotesP = api.get(
+          '/notes',
+          {
+            invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
+          },
+          { accessToken }
+        )
+        decisionResultsP = api.getAll(
+          '/references',
+          {
+            invitation: nameDeletionDecisionInvitationId,
+          },
+          { accessToken, resultsKey: 'references' }
+        )
+        processLogsP = api.getAll(
+          '/logs/process',
+          { invitation: nameDeletionDecisionInvitationId },
+          { accessToken, resultsKey: 'logs' }
+        )
+      }
 
       const [nameRemovalNotes, decisionResults, processLogs] = await Promise.all([
         nameRemovalNotesP,
@@ -424,35 +426,37 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
 
   const loadProfileMergeRequests = async (noteId) => {
     try {
-      const profileMergeNotesP = noteId
-        ? api.get('/notes', { id: noteId }, { accessToken })
-        : api.get(
-            '/notes',
-            {
-              invitation: profileMergeInvitationId,
-            },
-            { accessToken }
-          )
-      const decisionResultsP = noteId
-        ? api.getAll(
-            '/references',
-            { referent: noteId, invitation: profileMergeDecisionInvitationId },
-            { accessToken, resultsKey: 'references' }
-          )
-        : api.getAll(
-            '/references',
-            {
-              invitation: profileMergeDecisionInvitationId,
-            },
-            { accessToken, resultsKey: 'references' }
-          )
-      const processLogsP = noteId
-        ? Promise.resolve(null)
-        : api.getAll(
-            '/logs/process',
-            { invitation: profileMergeDecisionInvitationId },
-            { accessToken, resultsKey: 'logs' }
-          )
+      let profileMergeNotesP, decisionResultsP, processLogsP
+
+      if (noteId) {
+        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        decisionResultsP = api.getAll(
+          '/references',
+          { referent: noteId, invitation: profileMergeDecisionInvitationId },
+          { accessToken, resultsKey: 'references' }
+        )
+        processLogsP = Promise.resolve(null)
+      } else {
+        profileMergeNotesP = api.get(
+          '/notes',
+          {
+            invitation: profileMergeInvitationId,
+          },
+          { accessToken }
+        )
+        decisionResultsP = api.getAll(
+          '/references',
+          {
+            invitation: profileMergeDecisionInvitationId,
+          },
+          { accessToken, resultsKey: 'references' }
+        )
+        processLogsP = api.getAll(
+          '/logs/process',
+          { invitation: profileMergeDecisionInvitationId },
+          { accessToken, resultsKey: 'logs' }
+        )
+      }
 
       const [profileMergeNotesResults, decisionResults, processLogs] = await Promise.all([
         profileMergeNotesP,
