@@ -132,51 +132,77 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
   const pageSize = 25
   const fullTextModalId = 'deletion-fulltext-modal'
 
-  const loadNameDeletionRequests = async () => {
+  const loadNameDeletionRequests = async (noteId) => {
     const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
     try {
-      const nameRemovalNotesP = api.get(
-        '/notes',
-        {
-          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
-        },
-        { accessToken }
-      )
-      const decisionResultsP = api.getAll(
-        '/references',
-        {
-          invitation: nameDeletionDecisionInvitationId,
-        },
-        { accessToken, resultsKey: 'references' }
-      )
-      const processLogsP = api.getAll(
-        '/logs/process',
-        { invitation: nameDeletionDecisionInvitationId },
-        { accessToken, resultsKey: 'logs' }
-      )
+      let nameRemovalNotesP
+      let decisionResultsP
+      let processLogsP
+
+      if (noteId) {
+        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        decisionResultsP = api.getAll(
+          '/references',
+          { referent: noteId, invitation: nameDeletionDecisionInvitationId },
+          { accessToken, resultsKey: 'references' }
+        )
+        processLogsP = Promise.resolve(null)
+      } else {
+        nameRemovalNotesP = api.get(
+          '/notes',
+          {
+            invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
+          },
+          { accessToken }
+        )
+        decisionResultsP = api.getAll(
+          '/references',
+          {
+            invitation: nameDeletionDecisionInvitationId,
+          },
+          { accessToken, resultsKey: 'references' }
+        )
+        processLogsP = api.getAll(
+          '/logs/process',
+          { invitation: nameDeletionDecisionInvitationId },
+          { accessToken, resultsKey: 'logs' }
+        )
+      }
 
       const [nameRemovalNotes, decisionResults, processLogs] = await Promise.all([
         nameRemovalNotesP,
         decisionResultsP,
         processLogsP,
       ])
-      const sortedResult = [
-        ...nameRemovalNotes.notes.filter((p) => p.content.status === 'Pending'),
-        ...nameRemovalNotes.notes.filter((p) => p.content.status !== 'Pending'),
-      ].map((p) => {
-        const decisionReference = decisionResults.find((q) => q.referent === p.id)
-        let processLogStatus = 'N/A'
-        if (p.content.status !== 'Pending')
-          processLogStatus =
-            processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
-        return {
-          ...p,
-          processLogStatus,
-          processLogUrl: decisionReference
-            ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
-            : null,
-        }
-      })
+      const sortedResult = noteId
+        ? [
+            ...nameDeletionNotes.filter(
+              (p) => p.content.status === 'Pending' && p.id !== noteId
+            ),
+            {
+              ...nameRemovalNotes.notes[0],
+              processLogStatus: 'running',
+              processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
+            },
+            ...nameDeletionNotes.filter((p) => p.content.status !== 'Pending'),
+          ]
+        : [
+            ...nameRemovalNotes.notes.filter((p) => p.content.status === 'Pending'),
+            ...nameRemovalNotes.notes.filter((p) => p.content.status !== 'Pending'),
+          ].map((p) => {
+            const decisionReference = decisionResults.find((q) => q.referent === p.id)
+            let processLogStatus = 'N/A'
+            if (p.content.status !== 'Pending')
+              processLogStatus =
+                processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
+            return {
+              ...p,
+              processLogStatus,
+              processLogUrl: decisionReference
+                ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
+                : null,
+            }
+          })
       setNameDeletionNotes(sortedResult)
       setNameDeletionNotesToShow(
         sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
@@ -226,7 +252,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
       }
       const result = await api.post('/notes', noteToPost, { accessToken })
       $('#name-delete-reject').modal('hide')
-      loadNameDeletionRequests()
+      loadNameDeletionRequests(nameDeletionNote.id)
     } catch (error) {
       promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== nameDeletionNote.id))
@@ -400,50 +426,77 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
   const profileMergeDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge_Decision`
   const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
 
-  const loadProfileMergeRequests = async () => {
+  const loadProfileMergeRequests = async (noteId) => {
     try {
-      const profileMergeNotesP = api.get(
-        '/notes',
-        {
-          invitation: profileMergeInvitationId,
-        },
-        { accessToken }
-      )
-      const decisionResultsP = api.getAll(
-        '/references',
-        {
-          invitation: profileMergeDecisionInvitationId,
-        },
-        { accessToken, resultsKey: 'references' }
-      )
-      const processLogsP = api.getAll(
-        '/logs/process',
-        { invitation: profileMergeDecisionInvitationId },
-        { accessToken, resultsKey: 'logs' }
-      )
+      let profileMergeNotesP
+      let decisionResultsP
+      let processLogsP
+
+      if (noteId) {
+        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        decisionResultsP = api.getAll(
+          '/references',
+          { referent: noteId, invitation: profileMergeDecisionInvitationId },
+          { accessToken, resultsKey: 'references' }
+        )
+        processLogsP = Promise.resolve(null)
+      } else {
+        profileMergeNotesP = api.get(
+          '/notes',
+          {
+            invitation: profileMergeInvitationId,
+          },
+          { accessToken }
+        )
+        decisionResultsP = api.getAll(
+          '/references',
+          {
+            invitation: profileMergeDecisionInvitationId,
+          },
+          { accessToken, resultsKey: 'references' }
+        )
+        processLogsP = api.getAll(
+          '/logs/process',
+          { invitation: profileMergeDecisionInvitationId },
+          { accessToken, resultsKey: 'logs' }
+        )
+      }
 
       const [profileMergeNotesResults, decisionResults, processLogs] = await Promise.all([
         profileMergeNotesP,
         decisionResultsP,
         processLogsP,
       ])
-      const sortedResult = [
-        ...profileMergeNotesResults.notes.filter((p) => p.content.status === 'Pending'),
-        ...profileMergeNotesResults.notes.filter((p) => p.content.status !== 'Pending'),
-      ].map((p) => {
-        const decisionReference = decisionResults.find((q) => q.referent === p.id)
-        let processLogStatus = 'N/A'
-        if (p.content.status !== 'Pending')
-          processLogStatus =
-            processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
-        return {
-          ...p,
-          processLogStatus,
-          processLogUrl: decisionReference
-            ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
-            : null,
-        }
-      })
+
+      const sortedResult = noteId
+        ? [
+            ...profileMergeNotes.filter(
+              (p) => p.content.status === 'Pending' && p.id !== noteId
+            ),
+            {
+              ...profileMergeNotesResults.notes[0],
+              processLogStatus: 'running',
+              processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
+            },
+            ...profileMergeNotes.filter((p) => p.content.status !== 'Pending'),
+          ]
+        : [
+            ...profileMergeNotesResults.notes.filter((p) => p.content.status === 'Pending'),
+            ...profileMergeNotesResults.notes.filter((p) => p.content.status !== 'Pending'),
+          ].map((p) => {
+            const decisionReference = decisionResults.find((q) => q.referent === p.id)
+            let processLogStatus = 'N/A'
+            if (p.content.status !== 'Pending')
+              processLogStatus =
+                processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
+            return {
+              ...p,
+              processLogStatus,
+              processLogUrl: decisionReference
+                ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
+                : null,
+            }
+          })
       setProfileMergeNotes(sortedResult)
       setProfileMergeNotesToShow(
         sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
@@ -492,7 +545,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
       }
       const result = await api.post('/notes', noteToPost, { accessToken })
       $('#name-delete-reject').modal('hide')
-      loadProfileMergeRequests()
+      loadProfileMergeRequests(profileMergeNote.id)
     } catch (error) {
       promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== profileMergeNote.id))
