@@ -33,7 +33,7 @@ const Tasks = ({ appContext }) => {
         .getCombined(
           '/invitations',
           { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes' },
-          null,
+          { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes,repliedEdits' },
           commonOptions
         )
         .then(addPropertyToInvitations('noteInvitation')),

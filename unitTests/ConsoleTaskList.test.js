@@ -1651,7 +1651,12 @@ describe('ConsoleTaskList', () => {
               title: { value: 'Paper 5 Title' },
             },
           },
-          repliedNotes: [], // TODO:should check for repliedEdits or the metaReview should be replied here
+          repliedNotes: [], // signature is still ac so repliedNotes is empty
+          repliedEdits: [
+            {
+              id: 'metaReviewSACEditId',
+            },
+          ],
         },
       },
     ]
@@ -1697,11 +1702,11 @@ describe('ConsoleTaskList', () => {
       )
 
       expect(metaReviewRevisionLink).toBeInTheDocument()
-      expect(metaReviewRevisionLink.parentElement.parentElement).not.toHaveClass('completed')
+      expect(metaReviewRevisionLink.parentElement.parentElement).toHaveClass('completed')
       expect(metaReviewRevisionLink.nextElementSibling).toHaveClass('expired')
       expect(metaReviewRevisionLink).toHaveAttribute(
         'href',
-        expect.stringContaining('id=paper5Id&noteId=paper5Id&invitationId=')
+        expect.stringContaining('id=paper5Id&noteId=paper5Id')
       )
       expect(screen.getByText('Paper 5 Title')).toHaveAttribute(
         'href',
