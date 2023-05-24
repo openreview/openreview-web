@@ -135,7 +135,9 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
   const loadNameDeletionRequests = async (noteId) => {
     const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
     try {
-      let nameRemovalNotesP, decisionResultsP, processLogsP
+      let nameRemovalNotesP
+      let decisionResultsP
+      let processLogsP
 
       if (noteId) {
         nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken })
@@ -426,7 +428,9 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
 
   const loadProfileMergeRequests = async (noteId) => {
     try {
-      let profileMergeNotesP, decisionResultsP, processLogsP
+      let profileMergeNotesP
+      let decisionResultsP
+      let processLogsP
 
       if (noteId) {
         profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken })
