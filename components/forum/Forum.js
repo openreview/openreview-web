@@ -685,9 +685,9 @@ export default function Forum({
       newReplies.forEach((note) => {
         const invId = note.invitations[0]
         // eslint-disable-next-line no-param-reassign
-        note.details.invitation = invitationMapRef.current[invId][0]
+        note.details.invitation = invitationMapRef.current[invId]?.[0]
         // eslint-disable-next-line no-param-reassign
-        note.details.presentation = invitationMapRef.current[invId][1]
+        note.details.presentation = invitationMapRef.current[invId]?.[1]
         // eslint-disable-next-line no-param-reassign
         note.details.signatures = note.signatures.flatMap(
           (sigId) => signaturesMapRef.current[sigId] ?? []
