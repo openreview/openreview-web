@@ -11,10 +11,9 @@ import { NoteEditorReadersDropdown } from './Dropdown'
 
 export const NewNoteReaders = ({
   fieldDescription,
-  fieldName,
   closeNoteEditor,
-  noteEditorData,
-  setNoteEditorData,
+  value,
+  onChange,
   setLoading,
   placeholder,
 }) => {
@@ -54,15 +53,15 @@ export const NewNoteReaders = ({
     try {
       const options = fieldDescription.param.enum
         ? fieldDescription.param.enum.map((p) => ({
-            value: p,
+            [p.includes('.*') ? 'prefix' : 'value']: p,
             description: p,
             optional: true,
           }))
         : fieldDescription.param.items
-      const optionsP = options.map((p) =>
-        p.value.includes('.*')
+      const optionsP = options.map((p) => {
+        return p.prefix
           ? api
-              .get('/groups', { prefix: p.value }, { accessToken, version: 2 })
+              .get('/groups', { prefix: p.prefix }, { accessToken, version: 2 })
               .then((result) =>
                 result.groups.map((q) => ({
                   value: q.id,
@@ -79,24 +78,30 @@ export const NewNoteReaders = ({
                   .join(),
               },
             ])
-      )
+      })
       const groupResults = await Promise.all(optionsP)
       switch (groupResults.flat().length) {
         case 0:
           throw new Error('You do not have permission to create a note')
         case 1:
           setDescriptionType('singleValueEnum')
-          setReaderOptions([groupResults.flat()[0].value])
-          setNoteEditorData({ fieldName, value: [groupResults.flat()[0].value] })
+          setReaderOptions([groupResults.flat()[0].description]) // tag only need description
+          onChange([groupResults.flat()[0].value])
           break
         default:
-          setReaderOptions(
-            groupResults.flat().map((p) => ({
-              label: p.description,
-              value: p.value,
-              optional: p.optional,
-            }))
-          )
+          const options = groupResults.flat().map((p) => ({
+            label: p.description,
+            value: p.value,
+            optional: p.optional,
+          }))
+
+          const mandatoryValues =
+            options.flatMap((p) => (p.optional === false ? p.value : [])) ?? []
+          const defaultValues = fieldDescription?.param?.default ?? []
+          if (!value && (defaultValues?.length || mandatoryValues?.length)) {
+            onChange([...new Set([...defaultValues, ...mandatoryValues])])
+          }
+          setReaderOptions(options)
       }
     } catch (error) {
       promptError(error.message)
@@ -106,7 +111,26 @@ export const NewNoteReaders = ({
   }
 
   const dropdownChangeHandler = (selectedOptions, actionMeta) => {
-    setNoteEditorData({ fieldName, value: selectedOptions.map((p) => p.value) })
+    let updatedValue
+    let mandatoryValues
+    switch (actionMeta.action) {
+      case 'select-option':
+        updatedValue = (value ?? []).concat(actionMeta.option.value)
+        onChange(updatedValue)
+        break
+      case 'remove-value':
+        if (actionMeta.removedValue.optional) {
+          updatedValue = value.filter((p) => p !== actionMeta.removedValue.value)
+          onChange(updatedValue.length ? updatedValue : undefined)
+        }
+        break
+      case 'clear':
+        mandatoryValues = readerOptions.flatMap((p) => (p.optional === true ? [] : p.value))
+        onChange(mandatoryValues.length ? mandatoryValues : undefined)
+        break
+      default:
+        break
+    }
   }
 
   const renderReaders = () => {
@@ -124,7 +148,7 @@ export const NewNoteReaders = ({
           <NoteEditorReadersDropdown
             placeholder={placeholder}
             options={readerOptions}
-            value={readerOptions.filter((p) => noteEditorData[fieldName]?.includes(p.value))}
+            value={readerOptions.filter((p) => value?.includes(p.value))}
             onChange={dropdownChangeHandler}
           />
         ) : null
@@ -165,10 +189,9 @@ export const NewNoteReaders = ({
 export const NewReplyEditNoteReaders = ({
   replyToNote,
   fieldDescription,
-  fieldName,
   closeNoteEditor,
-  noteEditorData,
-  setNoteEditorData,
+  value,
+  onChange,
   setLoading,
   isDirectReplyToForum,
   placeholder,
@@ -178,9 +201,12 @@ export const NewReplyEditNoteReaders = ({
   const { user, accessToken } = useUser()
 
   const addEnumParentReaders = (groupResults, parentReaders) => {
+    // TODO
     if (!parentReaders?.length) return groupResults
     if (parentReaders.includes('everyone')) return groupResults
-    const readersIntersection = parentReaders.filter((p) => groupResults.includes(p))
+    const readersIntersection = parentReaders.filter((p) =>
+      groupResults.map((q) => q.value).includes(p)
+    )
     if (
       readersIntersection.find((p) => p.endsWith('/Reviewers')) &&
       !readersIntersection.find((p) => p.includes('/AnonReviewer') || p.includes('/Reviewer_'))
@@ -223,44 +249,89 @@ export const NewReplyEditNoteReaders = ({
   const getEnumReaders = async () => {
     setLoading((loading) => ({ ...loading, fieldName: true }))
     try {
+      console.log('fieldDescription.param', fieldDescription.param)
       const options = fieldDescription.param.enum
+        ? fieldDescription.param.enum.map((p) => ({
+            [p.includes('.*') ? 'prefix' : 'value']: p,
+            description: p,
+            optional: true,
+          }))
+        : fieldDescription.param.items
       const optionsP = options.map((p) =>
-        p.includes('.*')
-          ? api
-              .get('/groups', { prefix: p }, { accessToken, version: 2 })
-              .then((result) => result.groups.map((q) => q.id))
-          : Promise.resolve([p])
+        p.prefix
+          ? api.get('/groups', { prefix: p }, { accessToken, version: 2 }).then((result) =>
+              result.groups.map((q) => ({
+                value: q.id,
+                description: prettyId(q.id, true),
+                optional: p.optional,
+              }))
+            )
+          : Promise.resolve([
+              {
+                ...p,
+                description: prettyId(p.description)
+                  .split(/\{(\S+)\}/g)
+                  .filter((q) => q.trim())
+                  .join(),
+              },
+            ])
       )
       const groupResults = await Promise.all(optionsP)
+      console.log('groupResults', groupResults)
+
       const optionWithParentReaders = addEnumParentReaders(
         groupResults.flat(),
         replyToNote?.readers
       )
+      console.log('optionWithParentReaders', optionWithParentReaders)
       switch (groupResults.flat().length) {
         case 0:
           throw new Error('You do not have permission to create a note')
         case 1:
           if (!optionWithParentReaders.length)
             throw new Error('You do not have permission to create a note')
-          if (difference(fieldDescription.param.default, optionWithParentReaders).length)
+          if (
+            difference(
+              fieldDescription.param.default,
+              optionWithParentReaders.map((p) => p.value)
+            ).length
+          )
             throw new Error('Default reader is not in the list of readers')
 
           setDescriptionType('singleValueEnum')
-          setReaderOptions([optionWithParentReaders[0]])
-          setNoteEditorData({ fieldName, value: [optionWithParentReaders[0]] })
+          setReaderOptions([optionWithParentReaders[0].description])
+          onChange([optionWithParentReaders[0]])
           break
         default:
           if (!optionWithParentReaders.length)
             throw new Error('You do not have permission to create a note')
-          if (difference(fieldDescription.param.default, optionWithParentReaders).length) {
+          if (
+            difference(
+              fieldDescription.param.default,
+              optionWithParentReaders.map((p) => p.value)
+            ).length
+          ) {
             throw new Error('Default reader is not in the list of readers')
           }
-          setReaderOptions(
-            optionWithParentReaders.map((p) => ({
-              label: prettyId(p),
-              value: p,
-            }))
-          )
+
+          const options = optionWithParentReaders.map((p) => ({
+            label: p.description,
+            value: p.value,
+            optional: p.optional,
+          }))
+
+          console.log('options', options)
+          const mandatoryValues =
+            options.flatMap((p) => (p.optional === false ? p.value : [])) ?? []
+
+          console.log('mandatoryValues', mandatoryValues)
+          // TODO split default and mandatory value logic
+          // TODO if mandatory value is not in value still need to add it
+          const defaultValues = fieldDescription?.param?.default ?? []
+          if (!value && (defaultValues?.length || mandatoryValues?.length)) {
+            onChange([...new Set([...defaultValues, ...mandatoryValues])])
+          }
+          setReaderOptions(options)
       }
     } catch (error) {
       promptError(error.message)
@@ -306,6 +377,29 @@ export const NewReplyEditNoteReaders = ({
     }
   }
 
+  const dropdownChangeHandler = (selectedOptions, actionMeta) => {
+    let updatedValue
+    let mandatoryValues
+    switch (actionMeta.action) {
+      case 'select-option':
+        updatedValue = (value ?? []).concat(actionMeta.option.value)
+        onChange(updatedValue)
+        break
+      case 'remove-value':
+        if (actionMeta.removedValue.optional) {
+          updatedValue = value.filter((p) => p !== actionMeta.removedValue.value)
+          onChange(updatedValue.length ? updatedValue : undefined)
+        }
+        break
+      case 'clear':
+        mandatoryValues = readerOptions.flatMap((p) => (p.optional === true ? [] : p.value))
+        onChange(mandatoryValues.length ? mandatoryValues : undefined)
+        break
+      default:
+        break
+    }
+  }
+
   const renderReaders = () => {
     switch (descriptionType) {
       case 'const':
@@ -318,10 +412,8 @@ export const NewReplyEditNoteReaders = ({
           <NoteEditorReadersDropdown
             placeholder={placeholder}
             options={readerOptions}
-            value={readerOptions.filter((p) => noteEditorData[fieldName]?.includes(p.value))}
-            onChange={(values) =>
-              setNoteEditorData({ fieldName, value: values.map((p) => p.value) })
-            }
+            value={readerOptions.filter((p) => value?.includes(p.value))}
+            onChange={dropdownChangeHandler}
           />
         ) : null
       case 'singleValueEnum':
@@ -339,7 +431,7 @@ export const NewReplyEditNoteReaders = ({
       setDescriptionType('const')
     } else if (fieldDescription.param.regex) {
       setDescriptionType('regex')
-    } else if (fieldDescription.param.enum) {
+    } else if (fieldDescription.param.enum || fieldDescription.param.items) {
       setDescriptionType('enum')
     }
   }, [])

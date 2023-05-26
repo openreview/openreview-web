@@ -188,10 +188,11 @@ const NoteEditor = ({
       return (
         <NewNoteReaders
           fieldDescription={invitation.edit.note.readers}
-          fieldName="noteReaderValues"
           closeNoteEditor={closeNoteEditor}
-          noteEditorData={noteEditorData}
-          setNoteEditorData={setNoteEditorData}
+          // noteEditorData={noteEditorData}
+          // setNoteEditorData={setNoteEditorData}
+          value={noteEditorData.noteReaderValues}
+          onChange={(value) => setNoteEditorData({ fieldName: 'noteReaderValues', value })}
           setLoading={setLoading}
           placeholder="Select note readers"
         />
@@ -201,10 +202,9 @@ const NoteEditor = ({
         <ExistingNoteReaders
           replyToNote={replyToNote}
           fieldDescription={invitation.edit.note.readers}
-          fieldName="noteReaderValues"
           closeNoteEditor={closeNoteEditor}
-          noteEditorData={noteEditorData}
-          setNoteEditorData={setNoteEditorData}
+          value={noteEditorData.noteReaderValues}
+          onChange={(value) => setNoteEditorData({ fieldName: 'noteReaderValues', value })}
           setLoading={setLoading}
           placeholder="Select note readers"
         />
@@ -214,10 +214,9 @@ const NoteEditor = ({
         <NewReplyEditNoteReaders
           replyToNote={replyToNote}
           fieldDescription={invitation.edit.note.readers}
-          fieldName="noteReaderValues"
           closeNoteEditor={closeNoteEditor}
-          noteEditorData={noteEditorData}
-          setNoteEditorData={setNoteEditorData}
+          value={noteEditorData.noteReaderValues}
+          onChange={(value) => setNoteEditorData({ fieldName: 'noteReaderValues', value })}
           setLoading={setLoading}
           isDirectReplyToForum={isDirectReplyToForum}
           placeholder="Select note readers"
@@ -435,10 +434,11 @@ const NoteEditor = ({
         <hr className="small" />
         <EditReaders
           fieldDescription={invitation.edit.readers}
-          fieldName="editReaderValues"
           closeNoteEditor={closeNoteEditor}
-          noteEditorData={noteEditorData}
-          setNoteEditorData={setNoteEditorData}
+          // noteEditorData={noteEditorData}
+          // setNoteEditorData={setNoteEditorData}
+          value={noteEditorData.editReaderValues}
+          onChange={(value) => setNoteEditorData({ fieldName: 'editReaderValues', value })}
           setLoading={setLoading}
           placeholder="Select edit readers"
         />
