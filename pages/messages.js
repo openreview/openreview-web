@@ -55,7 +55,7 @@ const FilterForm = ({ searchQuery, loading }) => {
         <label htmlFor="subject-search-input">Subject:</label>
         <Icon
           name="info-sign"
-          tooltip="When performing a regex search some special characters such as '[' need to be escaped. For example: \[ABC.*"
+          tooltip="To perform a prefix search, add .* at the end of the subject. For example: [ABC.*"
           extraClasses="mr-1"
         />
         <input
