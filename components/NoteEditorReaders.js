@@ -201,18 +201,23 @@ export const NewReplyEditNoteReaders = ({
   const { user, accessToken } = useUser()
 
   const addEnumParentReaders = (groupResults, parentReaders) => {
-    // TODO
     if (!parentReaders?.length) return groupResults
     if (parentReaders.includes('everyone')) return groupResults
-    const readersIntersection = parentReaders.filter((p) =>
-      groupResults.map((q) => q.value).includes(p)
-    )
+    const readersIntersection = parentReaders.flatMap((p) => {
+      const groupResult = groupResults.find((q) => q.value === p)
+      return groupResult ?? []
+    })
+
     if (
-      readersIntersection.find((p) => p.endsWith('/Reviewers')) &&
-      !readersIntersection.find((p) => p.includes('/AnonReviewer') || p.includes('/Reviewer_'))
+      readersIntersection.find((p) => p.value.endsWith('/Reviewers')) &&
+      !readersIntersection.find(
+        (p) => p.value.includes('/AnonReviewer') || p.value.includes('/Reviewer_')
+      )
     ) {
       const readersIntersectionWithAnonReviewers = readersIntersection.concat(
-        groupResults.filter((p) => p.includes('AnonReviewer') || p.includes('Reviewer_'))
+        groupResults.filter(
+          (p) => p.value.includes('AnonReviewer') || p.value.includes('Reviewer_')
+        )
       )
       return readersIntersectionWithAnonReviewers
     }
@@ -249,7 +254,6 @@ export const NewReplyEditNoteReaders = ({
   const getEnumReaders = async () => {
     setLoading((loading) => ({ ...loading, fieldName: true }))
     try {
-      console.log('fieldDescription.param', fieldDescription.param)
       const options = fieldDescription.param.enum
         ? fieldDescription.param.enum.map((p) => ({
             [p.includes('.*') ? 'prefix' : 'value']: p,
@@ -277,13 +281,11 @@ export const NewReplyEditNoteReaders = ({
             ])
       )
       const groupResults = await Promise.all(optionsP)
-      console.log('groupResults', groupResults)
 
       const optionWithParentReaders = addEnumParentReaders(
         groupResults.flat(),
         replyToNote?.readers
       )
-      console.log('optionWithParentReaders', optionWithParentReaders)
       switch (groupResults.flat().length) {
         case 0:
           throw new Error('You do not have permission to create a note')
@@ -320,17 +322,14 @@ export const NewReplyEditNoteReaders = ({
             optional: p.optional,
           }))
 
-          console.log('options', options)
           const mandatoryValues =
             options.flatMap((p) => (p.optional === false ? p.value : [])) ?? []
 
-          console.log('mandatoryValues', mandatoryValues)
-          // TODO split default and mandatory value logic
-          // TODO if mandatory value is not in value still need to add it
           const defaultValues = fieldDescription?.param?.default ?? []
-          if (!value && (defaultValues?.length || mandatoryValues?.length)) {
+          if (value && mandatoryValues.length)
+            onChange([...new Set([...value, ...mandatoryValues])])
+          if (!value && (defaultValues.length || mandatoryValues.length))
             onChange([...new Set([...defaultValues, ...mandatoryValues])])
-          }
           setReaderOptions(options)
       }
     } catch (error) {
@@ -369,6 +368,7 @@ export const NewReplyEditNoteReaders = ({
       setReaderOptions(replyReaders)
       return
     }
+
     if (isDirectReplyToForum || isEqualOrSubset(replyReaders, parentReaders)) {
       setReaderOptions(replyReaders)
     } else {

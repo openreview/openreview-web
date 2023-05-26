@@ -1182,7 +1182,7 @@ describe('NewReplyEditNoteReaders', () => {
     expect(promptError).toBeCalledWith('Can not create note, readers must match parent note')
   })
 
-  test('display const readers when const readers is not a subset of replyToNote readers if reply to form', () => {
+  test('display const readers when const readers is not a subset of replyToNote readers if reply to forum', () => {
     const promptError = jest.fn()
     global.promptError = promptError
 
