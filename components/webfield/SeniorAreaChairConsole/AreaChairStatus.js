@@ -99,7 +99,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
       {rowData.notes.length !== 0 && <strong className="paper-label">Papers:</strong>}
       <div>
         {rowData.notes.map((p) => {
-          const noteContent = getNoteContentValues(p.note)
+          const noteContent = getNoteContentValues(p.note?.content)
           const noteVenue = noteContent?.venue
           const metaReviews = p.metaReviewData?.metaReviews
           const hasMetaReview = metaReviews?.length
@@ -109,7 +109,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
               {hasMetaReview ? (
                 <>
                   {metaReviews.map((metaReview) => {
-                    const metaReviewContent = getNoteContentValues(metaReview)
+                    const metaReviewContent = getNoteContentValues(metaReview?.content)
                     return (
                       <div key={metaReview.id} className="meta-review">
                         <span>{`${
