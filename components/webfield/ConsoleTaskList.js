@@ -31,7 +31,7 @@ const ConsoleTaskList = ({
             duedate: true,
             replyto: true,
             type: 'notes',
-            details: 'replytoNote,repliedNotes',
+            details: `replytoNote,repliedNotes${apiVersion === 2 ? ',repliedEdits' : ''}`,
           },
           { accessToken, version: apiVersion }
         ),
