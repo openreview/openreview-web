@@ -140,15 +140,20 @@ const ProgramChairConsole = ({ appContext }) => {
 
       // #region getRequestForm
       const getRequestFormResultP = requestFormId
-        ? api.get(
-            '/notes',
-            {
-              id: requestFormId,
-              limit: 1,
-              select: 'id,content',
-            },
-            { accessToken } // request form is in v1
-          )
+        ? api
+            .get(
+              '/notes',
+              {
+                id: requestFormId,
+                limit: 1,
+                select: 'id,content',
+              },
+              { accessToken } // request form is in v1
+            )
+            .then(
+              (result) => result.notes?.[0],
+              () => null
+            )
         : Promise.resolve(null)
       // #endregion
 
@@ -220,7 +225,7 @@ const ProgramChairConsole = ({ appContext }) => {
                 }, {})
               )
           : Promise.resolve([])
-      //
+      // #endregion
 
       // #region get Reviewer,AC,SAC bid
       const bidCountResultsP = Promise.all(
@@ -262,7 +267,7 @@ const ProgramChairConsole = ({ appContext }) => {
         perPaperGroupResultsP,
       ])
       const invitationResults = results[0]
-      const requestForm = results[1]?.notes?.[0]
+      const requestForm = results[1]
       const registrationForms = results[2].flatMap((p) => p ?? [])
       const committeeMemberResults = results[3]
       const notes = results[4].flatMap((note) => {
