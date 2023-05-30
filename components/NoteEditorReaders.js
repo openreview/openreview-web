@@ -50,16 +50,17 @@ export const NewNoteReaders = ({
 
   const getEnumReaders = async () => {
     setLoading((loading) => ({ ...loading, fieldName: true }))
+
     try {
-      const options = fieldDescription.param.enum
+      const enumItemsConfigOptions = fieldDescription.param.enum
         ? fieldDescription.param.enum.map((p) => ({
             [p.includes('.*') ? 'prefix' : 'value']: p,
             description: p,
             optional: true,
           }))
         : fieldDescription.param.items
-      const optionsP = options.map((p) => {
-        return p.prefix
+      const optionsP = enumItemsConfigOptions.map((p) =>
+        p.prefix
           ? api
               .get('/groups', { prefix: p.prefix }, { accessToken, version: 2 })
               .then((result) =>
@@ -78,8 +79,11 @@ export const NewNoteReaders = ({
                   .join(),
               },
             ])
-      })
+      )
       const groupResults = await Promise.all(optionsP)
+      let options
+      let mandatoryValues
+      let defaultValues
       switch (groupResults.flat().length) {
         case 0:
           throw new Error('You do not have permission to create a note')
@@ -89,15 +93,14 @@ export const NewNoteReaders = ({
           onChange([groupResults.flat()[0].value])
           break
         default:
-          const options = groupResults.flat().map((p) => ({
+          options = groupResults.flat().map((p) => ({
             label: p.description,
             value: p.value,
             optional: p.optional,
           }))
+          mandatoryValues = options.flatMap((p) => (p.optional === false ? p.value : [])) ?? []
+          defaultValues = fieldDescription?.param?.default ?? []
 
-          const mandatoryValues =
-            options.flatMap((p) => (p.optional === false ? p.value : [])) ?? []
-          const defaultValues = fieldDescription?.param?.default ?? []
           if (!value && (defaultValues?.length || mandatoryValues?.length)) {
             onChange([...new Set([...defaultValues, ...mandatoryValues])])
           }
@@ -254,22 +257,24 @@ export const NewReplyEditNoteReaders = ({
   const getEnumReaders = async () => {
     setLoading((loading) => ({ ...loading, fieldName: true }))
     try {
-      const options = fieldDescription.param.enum
+      const enumItemsConfigOptions = fieldDescription.param.enum
         ? fieldDescription.param.enum.map((p) => ({
             [p.includes('.*') ? 'prefix' : 'value']: p,
             description: p,
             optional: true,
           }))
         : fieldDescription.param.items
-      const optionsP = options.map((p) =>
+      const optionsP = enumItemsConfigOptions.map((p) =>
         p.prefix
-          ? api.get('/groups', { prefix: p }, { accessToken, version: 2 }).then((result) =>
-              result.groups.map((q) => ({
-                value: q.id,
-                description: prettyId(q.id, true),
-                optional: p.optional,
-              }))
-            )
+          ? api
+              .get('/groups', { prefix: p.prefix }, { accessToken, version: 2 })
+              .then((result) =>
+                result.groups.map((q) => ({
+                  value: q.id,
+                  description: prettyId(q.id, true),
+                  optional: p.optional,
+                }))
+              )
           : Promise.resolve([
               {
                 ...p,
@@ -286,6 +291,10 @@ export const NewReplyEditNoteReaders = ({
         groupResults.flat(),
         replyToNote?.readers
       )
+
+      let options
+      let mandatoryValues
+      let defaultValues
       switch (groupResults.flat().length) {
         case 0:
           throw new Error('You do not have permission to create a note')
@@ -302,7 +311,7 @@ export const NewReplyEditNoteReaders = ({
 
           setDescriptionType('singleValueEnum')
           setReaderOptions([optionWithParentReaders[0].description])
-          onChange([optionWithParentReaders[0]])
+          onChange([optionWithParentReaders[0].value])
           break
         default:
           if (!optionWithParentReaders.length)
@@ -316,16 +325,15 @@ export const NewReplyEditNoteReaders = ({
             throw new Error('Default reader is not in the list of readers')
           }
 
-          const options = optionWithParentReaders.map((p) => ({
+          options = optionWithParentReaders.map((p) => ({
             label: p.description,
             value: p.value,
             optional: p.optional,
           }))
+          mandatoryValues =
+            groupResults.flat().flatMap((p) => (p.optional === false ? p.value : [])) ?? []
+          defaultValues = fieldDescription?.param?.default ?? []
 
-          const mandatoryValues =
-            options.flatMap((p) => (p.optional === false ? p.value : [])) ?? []
-
-          const defaultValues = fieldDescription?.param?.default ?? []
           if (value && mandatoryValues.length)
             onChange([...new Set([...value, ...mandatoryValues])])
           if (!value && (defaultValues.length || mandatoryValues.length))
@@ -341,10 +349,9 @@ export const NewReplyEditNoteReaders = ({
 
   const isEqualOrSubset = (replyReaders, parentReaders) => {
     if (isEqual(replyReaders, parentReaders)) return true
-    return replyReaders.every((value) => {
-      if (parentReaders.includes(value)) return true
-      if (value.includes('/Reviewer_'))
-        return parentReaders.find((p) => p.includes('/Reviewers'))
+    return replyReaders.every((p) => {
+      if (parentReaders.includes(p)) return true
+      if (p.includes('/Reviewer_')) return parentReaders.find((q) => q.includes('/Reviewers'))
       return false
     })
   }

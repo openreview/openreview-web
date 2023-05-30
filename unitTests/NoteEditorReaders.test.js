@@ -1409,7 +1409,6 @@ describe('NewReplyEditNoteReaders', () => {
           readers: {
             param: {
               items: [
-                { value: 'regex1.*', description: 'does not matter', optional: true }, // no group call
                 { prefix: 'regex2.*', description: 'does not matter', optional: true },
                 { prefix: 'regex3', description: 'does not matter too', optional: true },
               ],
@@ -1431,13 +1430,25 @@ describe('NewReplyEditNoteReaders', () => {
 
     await waitFor(() => {
       expect(getGroups).toBeCalledTimes(2)
+      expect(getGroups).toHaveBeenNthCalledWith(
+        1,
+        expect.anything(),
+        expect.objectContaining({ prefix: 'regex2.*' }),
+        expect.anything()
+      )
+      expect(getGroups).toHaveBeenNthCalledWith(
+        2,
+        expect.anything(),
+        expect.objectContaining({ prefix: 'regex3' }),
+        expect.anything()
+      )
       expect(promptError).toBeCalledWith('You do not have permission to create a note')
       expect(closeNoteEditor).toBeCalled()
     })
-    fail()
   })
 
   test('show tags when enum return 1 group, without default value, without replyToNote readers ', async () => {
+    const onChange = jest.fn()
     const invitation = {
       edit: {
         note: {
@@ -1455,23 +1466,35 @@ describe('NewReplyEditNoteReaders', () => {
         fieldDescription={invitation.edit.note.readers}
         closeNoteEditor={jest.fn()}
         value={undefined}
-        onChange={jest.fn()}
+        onChange={onChange}
         setLoading={jest.fn()}
       />
     )
 
     await waitFor(() => {
       expect(screen.getByText('tags'))
+      expect(tagProps).toBeCalledWith({
+        fieldNameOverwrite: 'Readers',
+        values: ['Test IdOne'],
+      })
+      expect(onChange).toBeCalledWith(['~Test_IdOne1'])
     })
   })
 
   test('show tags when items return 1 group, without default value, without replyToNote readers ', async () => {
+    const onChange = jest.fn()
     const invitation = {
       edit: {
         note: {
           readers: {
             param: {
-              enum: ['~Test_IdOne1'],
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: false,
+                },
+              ],
             },
           },
         },
@@ -1483,15 +1506,18 @@ describe('NewReplyEditNoteReaders', () => {
         fieldDescription={invitation.edit.note.readers}
         closeNoteEditor={jest.fn()}
         value={undefined}
-        onChange={jest.fn()}
+        onChange={onChange}
         setLoading={jest.fn()}
       />
     )
 
     await waitFor(() => {
       expect(screen.getByText('tags'))
+      expect(tagProps).toBeCalledWith(
+        expect.objectContaining({ values: ['description of test id one'] })
+      )
+      expect(onChange).toBeCalledWith(['~Test_IdOne1'])
     })
-    fail()
   })
 
   test('show error when enum return 1 group, does not match with default value, without replyToNote readers ', async () => {
@@ -1535,7 +1561,13 @@ describe('NewReplyEditNoteReaders', () => {
         note: {
           readers: {
             param: {
-              enum: ['~Test_IdOne1'],
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: false,
+                },
+              ],
               default: ['~Test_IdOne1', '~Test_IdTwo1'],
             },
           },
@@ -1556,7 +1588,6 @@ describe('NewReplyEditNoteReaders', () => {
     await waitFor(() => {
       expect(promptError).toBeCalledWith('Default reader is not in the list of readers')
     })
-    fail()
   })
 
   test('show error when enum return multiple groups, does not match with default value, without replyToNote readers ', async () => {
@@ -1610,7 +1641,9 @@ describe('NewReplyEditNoteReaders', () => {
         note: {
           readers: {
             param: {
-              enum: ['regex.*'],
+              items: [
+                { prefix: 'regex', description: 'description of regex', optional: false },
+              ],
               default: ['~Test_IdOne1', '~Test_IdTwo1', '~Test_IdFour1'],
             },
           },
@@ -1631,7 +1664,6 @@ describe('NewReplyEditNoteReaders', () => {
     await waitFor(() => {
       expect(promptError).toBeCalledWith('Default reader is not in the list of readers')
     })
-    fail()
   })
 
   test('show dropdown when enum return multiple groups, with replyToNote readers includes everyone', async () => {
@@ -1663,13 +1695,29 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
-  test('show dropdown when items return multiple groups, with replyToNote readers includes everyone', async () => {
+  test('show dropdown when items return multiple groups, with replyToNote readers includes everyone (no mandatory)', async () => {
     const invitation = {
       edit: {
         note: {
           readers: {
             param: {
-              enum: ['~Test_IdOne1', '~Test_IdTwo1', '~Test_IdThree1'],
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: true,
+                },
+              ],
               default: ['~Test_IdOne1', '~Test_IdTwo1'],
             },
           },
@@ -1688,9 +1736,57 @@ describe('NewReplyEditNoteReaders', () => {
     )
     await waitFor(() => userEvent.click(screen.getByText('Select readers')))
     await waitFor(() => {
-      expect(screen.getByText('Test IdOne').parentElement.childElementCount).toEqual(3)
+      expect(
+        screen.getByText('description of test id one').parentElement.childElementCount
+      ).toEqual(3)
     })
-    fail()
+  })
+
+  test('show dropdown when items return multiple groups, with replyToNote readers includes everyone (with mandatory)', async () => {
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: false,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: true,
+                },
+              ],
+              default: ['~Test_IdOne1', '~Test_IdTwo1'],
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IDFive1', 'everyone'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['~Test_IdOne1', '~Test_IdTwo1']} // triggered by onChange
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+      />
+    )
+    await waitFor(() => userEvent.click(screen.getByRole('combobox')))
+    await waitFor(() => {
+      expect(
+        screen.getByText('description of test id one').parentElement.childElementCount
+      ).toEqual(2)
+    })
   })
 
   test('show dropdown of intersection of enum groups and replyToNote readers', async () => {
@@ -1724,15 +1820,200 @@ describe('NewReplyEditNoteReaders', () => {
   })
 
   test('show dropdown of intersection of items groups(no mandatory no default) and replyToNote readers', async () => {
-    fail()
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: true,
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IdTwo1'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+      />
+    )
+
+    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await waitFor(() => {
+      expect(
+        screen.getByText('description of test id two').parentElement.childElementCount
+      ).toEqual(1)
+      expect(onChange).not.toBeCalled()
+    })
   })
 
   test('show dropdown of intersection of items groups(with mandatory no default) and replyToNote readers', async () => {
-    fail()
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: false,
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IdTwo1'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+      />
+    )
+
+    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await waitFor(() => {
+      expect(
+        screen.getByText('description of test id two').parentElement.childElementCount
+      ).toEqual(1)
+      expect(onChange).toBeCalledWith(['~Test_IdThree1'])
+    })
   })
 
   test('show dropdown of intersection of items groups(with mandatory with default) and replyToNote readers', async () => {
-    fail()
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: false,
+                },
+              ],
+              default: ['~Test_IdTwo1'],
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IdTwo1'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+      />
+    )
+
+    await waitFor(() => userEvent.click(screen.getByRole('combobox')))
+    await waitFor(() => {
+      expect(
+        screen.getByText('description of test id two').parentElement.childElementCount
+      ).toEqual(1)
+      expect(onChange).toBeCalledWith(['~Test_IdTwo1', '~Test_IdThree1'])
+    })
+  })
+
+  test('show error when default is not in intersection of items groups(with mandatory with default) and replyToNote readers', async () => {
+    const promptError = jest.fn()
+    global.promptError = promptError
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: false,
+                },
+              ],
+              default: ['~Test_IdOne1'], // intersection of replyToNote and items is ~Test_IdTwo1
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IdTwo1'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(promptError).toBeCalledWith('Default reader is not in the list of readers')
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+    })
   })
 
   test('show dropdown of intersection of enum groups and replyToNote readers (adding anonymized reviewer group)', async () => {
@@ -1777,6 +2058,50 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
+  test('show dropdown of intersection of items groups and replyToNote readers (adding anonymized reviewer group)', async () => {
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: 'ICML.cc/2023/Conference/Submission1/Reviewer_abcd',
+                  description: 'description of reviewer abcd',
+                  optional: true,
+                },
+                {
+                  value: 'ICML.cc/2023/Conference/Submission1/Reviewers',
+                  description: 'description of reviewers',
+                  optional: true,
+                },
+              ],
+              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+      />
+    )
+
+    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await waitFor(() => {
+      const dropdownList = screen.getByText('description of reviewers').parentElement
+      expect(dropdownList.childElementCount).toEqual(2)
+      expect(dropdownList.childNodes[0].textContent).toEqual('description of reviewers')
+      expect(dropdownList.childNodes[1].textContent).toEqual('description of reviewer abcd')
+    })
+  })
+
   test('show dropdown of intersection of enum groups and replyToNote readers (adding AnonReviewer group)', async () => {
     const invitation = {
       edit: {
@@ -1816,6 +2141,50 @@ describe('NewReplyEditNoteReaders', () => {
       expect(dropdownList.childNodes[1].textContent).toEqual(
         'ICML 2023 Conference Submission1 AnonReviewer'
       )
+    })
+  })
+
+  test('show dropdown of intersection of items groups and replyToNote readers (adding AnonReviewer group)', async () => {
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: 'ICML.cc/2023/Conference/Submission1/AnonReviewer',
+                  description: 'description of anon reviewer',
+                  optional: true,
+                },
+                {
+                  value: 'ICML.cc/2023/Conference/Submission1/Reviewers',
+                  description: 'description of reviewers',
+                  optional: true,
+                },
+              ],
+              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+      />
+    )
+
+    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await waitFor(() => {
+      const dropdownList = screen.getByText('description of reviewers').parentElement
+      expect(dropdownList.childElementCount).toEqual(2)
+      expect(dropdownList.childNodes[0].textContent).toEqual('description of reviewers')
+      expect(dropdownList.childNodes[1].textContent).toEqual('description of anon reviewer')
     })
   })
 })
