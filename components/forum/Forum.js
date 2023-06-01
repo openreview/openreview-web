@@ -827,7 +827,11 @@ export default function Forum({
               const invitation = parentNote.replyInvitations.find(
                 (inv) => inv.id === invitationId
               )
-              if (!invitation) return null
+              if (!invitation) {
+                return (
+                  <p key={invitationId} className="empty-message">You do not have permission to post in this chat.</p>
+                )
+              }
 
               return (
                 <ChatEditorForm
