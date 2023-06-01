@@ -62,10 +62,17 @@ const Signatures = ({
     onChange({ loading: true })
     try {
       const options = fieldDescription.param.enum
+        ? fieldDescription.param.enum.map((p) => ({
+            [p.includes('.*') ? 'prefix' : 'value']: p,
+            description: p,
+            optional: true,
+          }))
+        : fieldDescription.param.items
+
       const optionsP = options.map((p) => {
-        const params = p.includes('.*')
-          ? { prefix: p, signatory: user?.id }
-          : { id: p, signatory: user?.id }
+        const params = p.prefix
+          ? { prefix: p.prefix, signatory: user?.id }
+          : { id: p.value, signatory: user?.id }
         return api
           .get('/groups', params, { accessToken, version: 2 })
           .then((result) => result.groups ?? [])
@@ -80,7 +87,8 @@ const Signatures = ({
         setSignatureOptions(
           uniqueGroupResults.map((p) => ({ label: prettyGroupIdWithMember(p), value: p.id }))
         )
-        onChange({ type: 'list' })
+        const defaultValues = fieldDescription.param.default
+        onChange(defaultValues ? { value: defaultValues, type: 'list' } : { type: 'list' })
       }
     } catch (error) {
       onError(error.message)
@@ -102,7 +110,7 @@ const Signatures = ({
           <Dropdown
             options={signatureOptions}
             onChange={(e) => onChange({ value: [e.value] })}
-            value={signatureOptions.find((p) => p.value === currentValue)}
+            value={signatureOptions.find((p) => p.value === currentValue?.[0])}
             placeholder={placeholder}
           />
         )
@@ -127,7 +135,7 @@ const Signatures = ({
       }
       return
     }
-    if (fieldDescription.param?.enum) {
+    if (fieldDescription.param?.enum || fieldDescription.param?.items) {
       setDescriptionType('enum')
     }
   }, [fieldDescription, user])
