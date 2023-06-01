@@ -18,7 +18,7 @@ const EditContent = ({ edit, type = 'note' }) => {
 
         const fieldReaders = Array.isArray(field?.readers) ? field.readers.sort() : null
         const showPrivateIcon =
-          fieldReaders && edit.readers && !fieldReaders.every((p, i) => p === edit.readers[i])
+          fieldReaders && edit.readers && !edit.readers.every((p, i) => p === fieldReaders[i])
         const fieldValue = prettyContentValue(field?.value)
         const enableMarkdown = edit.details?.presentation?.find(
           (p) => p.name === fieldName
