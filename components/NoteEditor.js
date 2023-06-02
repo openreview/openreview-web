@@ -273,8 +273,9 @@ const NoteEditor = ({
         )
         const acGroupId =
           acIndex >= 0 ? signatureId.slice(0, acIndex).concat('Area_Chairs') : signatureId
+
         return readersDefinedInInvitation?.includes(acGroupId)
-          ? [...readersSelected, acGroupId]
+          ? [...new Set([...readersSelected, acGroupId])]
           : readersSelected
       }
     }

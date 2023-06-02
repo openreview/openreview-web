@@ -64,16 +64,15 @@ const DropdownWidget = ({ multiple }) => {
     const itemsValues = field[fieldName].value?.param?.items
 
     if (Array.isArray(enumValues) && enumValues.length) {
-      if (isArrayType) return
       const defaultValue = field[fieldName].value?.param?.default
       setDropdownOptions(
         enumValues.map((p) =>
           typeof p === 'object'
-            ? { label: p.description, value: p.value }
-            : { label: p, value: p }
+            ? { label: p.description, value: p.value, optional: true }
+            : { label: p, value: p, optional: true }
         )
       )
-      setAllowMultiSelect(false)
+      setAllowMultiSelect(isArrayType)
       if (!value && defaultValue) onChange({ fieldName, value: defaultValue })
     }
     if (Array.isArray(itemsValues) && itemsValues.length) {

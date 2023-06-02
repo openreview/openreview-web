@@ -66,7 +66,7 @@ export const NewNoteReaders = ({
               .then((result) =>
                 result.groups.map((q) => ({
                   value: q.id,
-                  description: prettyId(q.id, true),
+                  description: prettyId(q.id, false),
                   optional: p.optional,
                 }))
               )
@@ -271,7 +271,7 @@ export const NewReplyEditNoteReaders = ({
               .then((result) =>
                 result.groups.map((q) => ({
                   value: q.id,
-                  description: prettyId(q.id, true),
+                  description: prettyId(q.id, false),
                   optional: p.optional,
                 }))
               )

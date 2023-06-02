@@ -108,6 +108,7 @@ const TextAreaWidget = () => {
               const updatedValue = e?.trim() === '' ? undefined : e
               onTextUpdated({ fieldName, value: updatedValue, shouldSaveDraft })
             }}
+            fieldName={fieldName}
           />
         ) : (
           <textarea

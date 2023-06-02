@@ -11,6 +11,7 @@ const MarkdownPreviewTab = ({
   secondTab = 'Preview',
   placeholder = '',
   textAreaClass = '',
+  fieldName = '',
 }) => {
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const firstTabId = kebabCase(firstTab)
@@ -19,7 +20,7 @@ const MarkdownPreviewTab = ({
   useEffect(() => {
     if (!value) {
       setSanitizedHtml('Nothing to preview')
-      document.querySelector(`a[href="#${firstTabId}"]`).click()
+      document.querySelector(`a[href="#${fieldName}${firstTabId}"]`).click()
       return
     }
     setSanitizedHtml(DOMPurify.sanitize(marked(value)))
@@ -28,16 +29,16 @@ const MarkdownPreviewTab = ({
   return (
     <Tabs className="markdown-preview">
       <TabList>
-        <Tab id={firstTabId} active>
+        <Tab id={`${fieldName}${firstTabId}`} active>
           {firstTab}
         </Tab>
-        <Tab id={secondTabId} onClick={() => MathJax.typesetPromise()}>
+        <Tab id={`${fieldName}${secondTabId}`} onClick={() => MathJax.typesetPromise()}>
           {secondTab}
         </Tab>
       </TabList>
 
       <TabPanels>
-        <TabPanel id={firstTabId}>
+        <TabPanel id={`${fieldName}${firstTabId}`}>
           <textarea
             className={`form-control ${textAreaClass}`}
             rows="6"
@@ -47,7 +48,7 @@ const MarkdownPreviewTab = ({
             onChange={(e) => onValueChanged(e.target.value)}
           />
         </TabPanel>
-        <TabPanel id={secondTabId}>
+        <TabPanel id={`${fieldName}${secondTabId}`}>
           {/* eslint-disable-next-line react/no-danger */}
           <div className="preview" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
         </TabPanel>

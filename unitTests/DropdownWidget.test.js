@@ -182,7 +182,7 @@ describe('DropdownWidget', () => {
     expect(clearError).toBeCalled()
   })
 
-  test('render nothing if invitation has enum but expect array', () => {
+  test.skip('render nothing if invitation has enum but expect array', () => {
     // combination of enum and [] type) is invalid as enum should be single select
     // "multiple" prop is input other than type
     const providerProps = {
@@ -205,6 +205,84 @@ describe('DropdownWidget', () => {
       providerProps
     )
     expect(container).toBeEmptyDOMElement()
+  })
+
+  // this test should be invalid but is added for backward compatibility
+  test('be backward compatible (enum string + string[] type) part 1', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          ['subject_areas']: {
+            value: {
+              param: {
+                input: 'select',
+                type: 'string[]',
+                enum: [
+                  'Algorithms: Approximate Inference',
+                  'Methodology: Bayesian Methods',
+                  'Representation: Constraints',
+                ],
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<DropdownWidget multiple={false} />, providerProps)
+
+    await userEvent.click(screen.getByRole('combobox'))
+    expect(screen.getByText('Algorithms: Approximate Inference'))
+    expect(screen.getByText('Methodology: Bayesian Methods'))
+    expect(screen.getByText('Representation: Constraints'))
+
+    await userEvent.click(screen.getByText('Methodology: Bayesian Methods'))
+    expect(onChange).toBeCalledWith(
+      expect.objectContaining({ value: ['Methodology: Bayesian Methods'] })
+    )
+  })
+
+  test('be backward compatible (enum string + string[] type) part 2', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          ['subject_areas']: {
+            value: {
+              param: {
+                input: 'select',
+                type: 'string[]',
+                enum: [
+                  'Algorithms: Approximate Inference',
+                  'Methodology: Bayesian Methods',
+                  'Representation: Constraints',
+                ],
+              },
+            },
+          },
+        },
+        value: ['Algorithms: Approximate Inference'],
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<DropdownWidget multiple={false} />, providerProps)
+
+    expect(screen.getByText('Algorithms: Approximate Inference'))
+    expect(screen.getByRole('button', { name: 'Remove Algorithms: Approximate Inference' }))
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Remove Algorithms: Approximate Inference' })
+    )
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: undefined }))
+
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.click(screen.getByText('Methodology: Bayesian Methods'))
+    expect(onChange).toBeCalledWith(
+      expect.objectContaining({
+        value: ['Algorithms: Approximate Inference', 'Methodology: Bayesian Methods'],
+      })
+    )
   })
 
   test('render options (enum obj)', async () => {

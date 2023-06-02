@@ -513,7 +513,12 @@ describe('NewNoteReaders', () => {
 
   test('show multiselect dropdown for enum values', async () => {
     const getGroups = jest.fn(() =>
-      Promise.resolve({ groups: [{ id: '~Test_IdTwo1' }, { id: '~Test_IdThree1' }] })
+      Promise.resolve({
+        groups: [
+          { id: 'ICML.cc/2023/Conference/Submission5/Reviewer_abc' },
+          { id: 'ICML.cc/2023/Conference/Submission5/Reviewer_xyz' },
+        ],
+      })
     )
     api.get = getGroups
 
@@ -522,7 +527,7 @@ describe('NewNoteReaders', () => {
         note: {
           readers: {
             param: {
-              enum: ['~Test_IdOne1', 'regex1.*'],
+              enum: ['~Test_IdOne1', 'ICML.cc/2023/Conference/Submission5/Reviewer_.*'],
             },
           },
         },
@@ -542,8 +547,12 @@ describe('NewNoteReaders', () => {
     await waitFor(() => {
       const dropdownList = screen.getByText('Test IdOne').parentElement
       expect(dropdownList.childNodes[0].textContent).toEqual('Test IdOne')
-      expect(dropdownList.childNodes[1].textContent).toEqual('Test IdTwo')
-      expect(dropdownList.childNodes[2].textContent).toEqual('Test IdThree')
+      expect(dropdownList.childNodes[1].textContent).toEqual(
+        'ICML 2023 Conference Submission5 Reviewer abc'
+      )
+      expect(dropdownList.childNodes[2].textContent).toEqual(
+        'ICML 2023 Conference Submission5 Reviewer xyz'
+      )
     })
   })
 
