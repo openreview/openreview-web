@@ -293,7 +293,8 @@ const NoteEditor = ({
 
     return addMissingReaders(
       noteEditorData.noteReaderValues,
-      invitation.edit.note.readers?.param?.enum,
+      invitation.edit.note.readers?.param?.enum ??
+        invitation.edit.note.readers?.param?.items?.map((p) => p.value), // prefix values are not used
       signatureInputValues
     )
   }
@@ -302,7 +303,8 @@ const NoteEditor = ({
     if (Array.isArray(invitation.edit.readers)) return undefined
     return addMissingReaders(
       noteEditorData.editReaderValues,
-      invitation.edit.readers?.param?.enum,
+      invitation.edit.readers?.param?.enum ??
+        invitation.edit.readers?.param?.items?.map((p) => p.value),
       noteEditorData.editSignatureInputValues
     )
   }
