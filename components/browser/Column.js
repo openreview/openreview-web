@@ -861,9 +861,32 @@ export default function Column(props) {
       return
     }
     // Reset column to show original items and no search heading
-    if (!search.term) {
+    if (!search.term && !hideQuotaReached) {
       setFilteredItems(sortItems(filterQuotaReachedItems(items)))
       setItemsHeading(null)
+      return
+    }
+
+    // Show all entities when filter by quota reached without searching
+    if (!search.term && hideQuotaReached && parentId) {
+      const allItems = [...items]
+      Object.values(globalEntityMap).forEach((item) => {
+        if (allItems.find((p) => p.id === item.id)) return
+        allItems.push({
+          ...item,
+          // eslint-disable-next-line max-len
+          editEdgeTemplates: editInvitations.map((editInvitation) =>
+            buildNewEditEdge(editInvitation, item.id)
+          ),
+          editEdges: [],
+          browseEdges: [],
+          metadata: {
+            isAssigned: false,
+          },
+        })
+      })
+
+      setFilteredItems(sortItems(filterQuotaReachedItems(allItems)))
       return
     }
     if (search.term.length < 2) {
