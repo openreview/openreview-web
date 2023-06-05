@@ -6,8 +6,9 @@ import React from 'react'
 import _ from 'lodash'
 import Column from './Column'
 import EdgeBrowserContext from './EdgeBrowserContext'
-import { formatEntityContent, buildSearchText } from '../../lib/edge-utils'
 import api from '../../lib/api-client'
+import { formatEntityContent, buildSearchText } from '../../lib/edge-utils'
+import { prettyId } from '../../lib/utils'
 
 export default class EdgeBrowser extends React.Component {
   constructor(props) {
@@ -173,9 +174,7 @@ export default class EdgeBrowser extends React.Component {
         // create dummy profiles for them
         if (useInitialKeys) {
           Object.keys(entityMap).forEach((key) => {
-            if (entityMap[key]) {
-              return
-            }
+            if (entityMap[key]) return
 
             entityMap[key] = {
               id: key,
@@ -190,7 +189,28 @@ export default class EdgeBrowser extends React.Component {
               traverseEdgesCount: _.get(groupedEdges, [key, 'count'], 0),
             }
           })
+
+          // Also iterate through grouped edges and create dummy profiles for any ids missing
+          // from the entity map
+          Object.keys(groupedEdges).forEach((key) => {
+            if (entityMap[key]) return
+
+            entityMap[key] = {
+              id: key,
+              content: {
+                name: { first: prettyId(key), middle: '', last: '' },
+                email: key,
+                title: '',
+                expertise: [],
+                isDummyProfile: true,
+                isInvitedProfile: true
+              },
+              searchText: key,
+              traverseEdgesCount: groupedEdges[key].count,
+            }
+          })
         }
+
         return entityMap
       }
     )
