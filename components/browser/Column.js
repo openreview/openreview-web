@@ -133,6 +133,9 @@ export default function Column(props) {
         } else {
           apiQuery[key] = getInvitationPrefix(invitationId)
         }
+      } else if (['count'].includes(key)) {
+        apiQuery.groupBy = invQueryObj[key]
+        apiQuery.select = 'count'
       } else {
         apiQuery[key] = invQueryObj[key]
       }
@@ -529,13 +532,36 @@ export default function Column(props) {
         invitations: [invitationType],
         getWritable,
         sort,
-        promise: api
-          .getAll(
-            '/edges',
-            buildQuery(invitation.id, { ...invitation.query, details: detailsParam }, sort),
-            { accessToken, version }
-          )
-          .catch((error) => promptError(error.message)),
+        promise: invitation.query.count
+          ? api
+              .get(
+                '/edges',
+                {
+                  invitation: invitation.id,
+                  groupBy: invitation.query.count,
+                  select: 'count',
+                },
+                { accessToken, version }
+              )
+              .then((result) =>
+                result.groupedEdges?.map((p) => ({
+                  id: p.id[type],
+                  [type]: p.id[type],
+                  label: p.count,
+                  invitation: invitation.id,
+                }))
+              )
+          : api
+              .getAll(
+                '/edges',
+                buildQuery(
+                  invitation.id,
+                  { ...invitation.query, details: detailsParam },
+                  sort
+                ),
+                { accessToken, version }
+              )
+              .catch((error) => promptError(error.message)),
       })
     }
   }
