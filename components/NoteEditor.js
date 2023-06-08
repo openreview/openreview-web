@@ -1,4 +1,4 @@
-/* globals promptError, promptLogin, view2: false */
+/* globals promptError, promptLogin, view2, clearMessage: false */
 
 import React, { useEffect, useMemo, useReducer, useState } from 'react'
 import debounce from 'lodash/debounce'
@@ -156,6 +156,7 @@ const NoteEditor = ({
             key: fieldName,
             isWebfield: false,
             error,
+            setErrors,
             clearError: () =>
               setErrors((existingErrors) =>
                 existingErrors.filter((p) => p.fieldName !== fieldName)
@@ -344,6 +345,7 @@ const NoteEditor = ({
 
   const handleSubmitClick = async () => {
     setIsSubmitting(true)
+    clearMessage()
     setErrors([])
     // get note reader/writer/signature and edit reader/writer/signature
     try {
@@ -460,7 +462,7 @@ const NoteEditor = ({
           <SpinnerButton
             className={styles.submitButton}
             onClick={handleSubmitClick}
-            disabled={isSubmitting}
+            disabled={isSubmitting || errors.length}
             loading={isSubmitting}
           >
             Submit
