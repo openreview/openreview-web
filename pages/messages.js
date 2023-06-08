@@ -35,7 +35,7 @@ const FilterForm = ({ searchQuery, loading }) => {
   }, [])
 
   const onFiltersChange = (field, value) => {
-    const newSearchQuery = { ...searchQuery, [field]: value }
+    const newSearchQuery = { ...searchQuery, [field]: value, page: 1 }
     router.push({ pathname: '/messages', query: newSearchQuery }, undefined, { shallow: true })
   }
 
