@@ -70,8 +70,19 @@ export default function Forum({
   const query = useQuery()
 
   const { id, details } = parentNote
-  const replyForumViews = details.invitation?.replyForumViews
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
+
+  // Process forum views config
+  let replyForumViews = null
+  if (details.invitation?.replyForumViews) {
+    replyForumViews = details.invitation.replyForumViews.map((view) => ({
+      ...view,
+      filter: view.filter ? replaceFilterWildcards(view.filter, parentNote) : null,
+      expandedInvitations: view.expandedInvitations
+        ? view.expandedInvitations.map((invId) => replaceFilterWildcards(invId, parentNote))
+        : null,
+    }))
+  }
 
   const numRepliesHidden = useMemo(() => {
     if (!displayOptionsMap) return 0
@@ -85,7 +96,9 @@ export default function Forum({
   const getInvitationsByReplyForum = (forumId, includeTags) => {
     if (!forumId) return Promise.resolve([])
 
-    const extraParams = includeTags ? { tags: true, details: 'writable' } : { details: 'repliedNotes,writable' }
+    const extraParams = includeTags
+      ? { tags: true, details: 'writable' }
+      : { details: 'repliedNotes,writable' }
     return api
       .get(
         '/invitations',
@@ -440,7 +453,7 @@ export default function Forum({
         readers: null,
         excludedReaders: null,
         keywords: null,
-        ...parseFilterQuery(replaceFilterWildcards(tab.filter, parentNote), tab.keywords),
+        ...parseFilterQuery(tab.filter, tab.keywords),
       }
       setDefaultFilters(tabFilters)
       setSelectedFilters(tabFilters)
@@ -448,15 +461,7 @@ export default function Forum({
       setNesting(tab.nesting || 2)
       setSort(tab.sort || 'date-desc')
       setEnableLiveUpdate(Boolean(tab.live))
-      if (tab.expandedInvitations) {
-        setExpandedInvitations(
-          tab.expandedInvitations.map((expandedInv) =>
-            replaceFilterWildcards(expandedInv, parentNote)
-          )
-        )
-      } else {
-        setExpandedInvitations(null)
-      }
+      setExpandedInvitations(tab.expandedInvitations)
     }
 
     if (window.location.hash) {
@@ -707,7 +712,13 @@ export default function Forum({
 
       {repliesLoaded && orderedReplies.length > 0 && (
         <div className="filters-container mt-4">
-          {replyForumViews && <FilterTabs forumId={id} forumViews={replyForumViews} />}
+          {replyForumViews && (
+            <FilterTabs
+              forumId={id}
+              forumViews={replyForumViews}
+              replyInvitations={parentNote.replyInvitations}
+            />
+          )}
 
           {filterOptions && layout === 'default' && (
             <FilterForm
@@ -739,51 +750,49 @@ export default function Forum({
         </div>
       )}
 
-      {parentNote.replyInvitations?.length > 0 &&
-        !parentNote.ddate &&
-        layout === 'default' && (
-          <div className="invitations-container">
-            <div className="invitation-buttons top-level-invitations">
-              <span className="hint">Add:</span>
-              {parentNote.replyInvitations.map((invitation) => {
-                if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
+      {parentNote.replyInvitations?.length > 0 && !parentNote.ddate && layout === 'default' && (
+        <div className="invitations-container">
+          <div className="invitation-buttons top-level-invitations">
+            <span className="hint">Add:</span>
+            {parentNote.replyInvitations.map((invitation) => {
+              if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
 
-                return (
-                  <button
-                    key={invitation.id}
-                    type="button"
-                    className={`btn btn-xs ${
-                      activeInvitation?.id === invitation.id ? 'active' : ''
-                    }`}
-                    data-id={invitation.id}
-                    onClick={() => openNoteEditor(invitation)}
-                  >
-                    {prettyInvitationId(invitation.id)}
-                  </button>
-                )
-              })}
-            </div>
-
-            <NoteEditorForm
-              forumId={id}
-              replyToId={id}
-              invitation={activeInvitation}
-              onNoteCreated={(note) => {
-                updateNote(note)
-                setActiveInvitation(null)
-                scrollToElement('#forum-replies')
-              }}
-              onNoteCancelled={() => {
-                setActiveInvitation(null)
-              }}
-              onError={(isLoadingError) => {
-                if (isLoadingError) {
-                  setActiveInvitation(null)
-                }
-              }}
-            />
+              return (
+                <button
+                  key={invitation.id}
+                  type="button"
+                  className={`btn btn-xs ${
+                    activeInvitation?.id === invitation.id ? 'active' : ''
+                  }`}
+                  data-id={invitation.id}
+                  onClick={() => openNoteEditor(invitation)}
+                >
+                  {prettyInvitationId(invitation.id)}
+                </button>
+              )
+            })}
           </div>
-        )}
+
+          <NoteEditorForm
+            forumId={id}
+            replyToId={id}
+            invitation={activeInvitation}
+            onNoteCreated={(note) => {
+              updateNote(note)
+              setActiveInvitation(null)
+              scrollToElement('#forum-replies')
+            }}
+            onNoteCancelled={() => {
+              setActiveInvitation(null)
+            }}
+            onError={(isLoadingError) => {
+              if (isLoadingError) {
+                setActiveInvitation(null)
+              }
+            }}
+          />
+        </div>
+      )}
 
       <div className={`row forum-replies-container layout-${layout}`}>
         <div className="col-xs-12">
@@ -829,7 +838,9 @@ export default function Forum({
               )
               if (!invitation) {
                 return (
-                  <p key={invitationId} className="empty-message">You do not have permission to post in this chat.</p>
+                  <p key={invitationId} className="empty-message">
+                    You do not have permission to post in this chat.
+                  </p>
                 )
               }
 
