@@ -10,22 +10,20 @@ import ErrorDisplay from '../ErrorDisplay'
 import NoteSummary from './NoteSummary'
 import { AcPcConsoleNoteReviewStatus } from './NoteReviewStatus'
 import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
-import TaskList from '../TaskList'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import {
-  formatTasksData,
   getNumberFromGroup,
   getIndentifierFromGroup,
   prettyId,
   prettyList,
   inflect,
 } from '../../lib/utils'
-import { filterHasReplyTo } from '../../lib/webfield-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
+import ConsoleTaskList from './ConsoleTaskList'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -106,71 +104,11 @@ const AssignedPaperRow = ({
 }
 
 const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
-  const { accessToken } = useUser()
-  const [invitations, setInvitations] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  const addInvitaitonTypeAndVersion = (invitation) => {
-    let invitaitonType = 'tagInvitation'
-    if (invitation.edit?.note) invitaitonType = 'noteInvitation'
-    return { ...invitation, [invitaitonType]: true, apiVersion: 2 }
-  }
-
-  const loadInvitations = async () => {
-    try {
-      let allInvitations = await api.getAll(
-        '/invitations',
-        {
-          domain: venueId,
-          invitee: true,
-          duedate: true,
-          type: 'all',
-        },
-        { accessToken, version: 2 }
-      )
-
-      allInvitations = allInvitations
-        .map((p) => addInvitaitonTypeAndVersion(p))
-        .filter((p) => filterHasReplyTo(p, 2))
-        .filter((p) => p.invitees.some((q) => q.includes(areaChairName)))
-
-      if (allInvitations.length) {
-        // add details
-        const validInvitationDetails = await api.getAll(
-          '/invitations',
-          {
-            ids: allInvitations.map((p) => p.id),
-            details: 'all',
-            select: 'id,details',
-          },
-          { accessToken, version: 2 }
-        )
-
-        allInvitations.forEach((p) => {
-          // eslint-disable-next-line no-param-reassign
-          p.details = validInvitationDetails.find((q) => q.id === p.id)?.details
-        })
-      }
-
-      setInvitations(formatTasksData([allInvitations, [], []], true))
-    } catch (error) {
-      promptError(error.message)
-    }
-    setIsLoading(false)
-  }
-  useEffect(() => {
-    loadInvitations()
-  }, [])
-
-  return (
-    <TaskList
-      invitations={invitations}
-      emptyMessage={isLoading ? 'Loading...' : 'No outstanding tasks for this conference'}
-      referrer={encodeURIComponent(
-        `[Area Chair Console](/group?id=${venueId}/${areaChairName}#areachair-tasks)`
-      )}
-    />
+  const referrer = encodeURIComponent(
+    `[Area Chair Console](/group?id=${venueId}/${areaChairName}#areachair-tasks)`
   )
+
+  return <ConsoleTaskList venueId={venueId} roleName={areaChairName} referrer={referrer} />
 }
 
 const AreaChairConsole = ({ appContext }) => {

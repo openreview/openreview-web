@@ -180,13 +180,13 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           type: 'terms',
           content: 'all',
           source: 'forum',
-          limit: 1000,
+          limit: 200,
           offset: 0,
           venueid: submissionVenueId,
         },
         { accessToken, version: 2 }
       )
-      setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)))
+      setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)).slice(0, 100))
     } catch (error) {
       promptError(error.message)
     }
@@ -234,13 +234,13 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           type: 'terms',
           content: 'subject_areas',
           source: 'forum',
-          limit: 1000,
+          limit: 200,
           offset: 0,
           venueid: submissionVenueId,
         },
         { accessToken, version: 2 }
       )
-      setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)))
+      setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)).slice(0, 100))
     } catch (error) {
       promptError(error.message)
     }

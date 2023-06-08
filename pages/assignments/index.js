@@ -64,6 +64,7 @@ const AssignmentRow = ({
   referrer,
   shouldRemoveDeployLink,
 }) => {
+  const [loading, setLoading] = useState(false)
   const noteContent = apiVersion === 2 ? getNoteContentValues(note.content) : note.content
   const edgeBrowserUrl = getEdgeBrowserUrl(noteContent, { version: apiVersion })
   const edgeEditUrl = getEdgeBrowserUrl(noteContent, { editable: true, version: apiVersion })
@@ -140,7 +141,11 @@ const AssignmentRow = ({
           <ActionLink
             label="Run Matcher"
             iconName="cog"
-            onClick={() => handleRunMatcher(note.id)}
+            onClick={(e) => {
+              setLoading(true)
+              handleRunMatcher(note.id).then(() => setLoading(false))
+            }}
+            disabled={loading}
           />
         )}
         {['Complete', 'Deploying', 'Deployment Error'].includes(status) && (
@@ -387,7 +392,7 @@ const Assignments = ({ appContext }) => {
 
   const handleRunMatcher = async (id) => {
     try {
-      const apiRes = await api.post('/match', { configNoteId: id }, { accessToken })
+      await api.post('/match', { configNoteId: id }, { accessToken })
       promptMessage(
         'Matching started. The status of the assignments will be updated when the matching process is complete'
       )
@@ -398,7 +403,7 @@ const Assignments = ({ appContext }) => {
 
   const handleDeployMatcher = async (id) => {
     try {
-      const apiRes = await api.post('/deploy', { configNoteId: id }, { accessToken })
+      await api.post('/deploy', { configNoteId: id }, { accessToken })
       promptMessage('Deployment started.')
     } catch (apiError) {
       promptError(apiError.message)

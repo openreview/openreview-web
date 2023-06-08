@@ -760,30 +760,28 @@ const DescriptionTimelineOtherConfigRow = ({
   return (
     <>
       <div className="row">
-        {requestForm && (
-          <div className="col-md-4 col-xs-12">
-            <h4>Description:</h4>
-            <p>
-              <span>
-                {`Author And Reviewer Anonymity: ${requestFormContent?.['Author and Reviewer Anonymity']}`}
-                <br />
-                {requestFormContent?.['Open Reviewing Policy']}
-                <br />
-                {`Paper matching uses ${requestFormContent?.['Paper Matching']?.join(', ')}`}
-                {requestFormContent?.['Other Important Information'] && (
-                  <>
-                    <br />
-                    {requestFormContent?.['Other Important Information']}
-                  </>
-                )}
-              </span>
+        <div className="col-md-4 col-xs-12">
+          <h4>Description:</h4>
+          <p>
+            <span>
+              {`Author And Reviewer Anonymity: ${requestFormContent?.['Author and Reviewer Anonymity']}`}
               <br />
-              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
-                <strong>Full Venue Configuration</strong>
-              </a>
-            </p>
-          </div>
-        )}
+              {requestFormContent?.['Open Reviewing Policy']}
+              <br />
+              {`Paper matching uses ${requestFormContent?.['Paper Matching']?.join(', ')}`}
+              {requestFormContent?.['Other Important Information'] && (
+                <>
+                  <br />
+                  {requestFormContent?.['Other Important Information']}
+                </>
+              )}
+            </span>
+            <br />
+            <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
+              <strong>Full Venue Configuration</strong>
+            </a>
+          </p>
+        </div>
         <div className="col-md-8 col-xs-12">
           <h4>Timeline:</h4>
           {datedInvitations.map((invitation) => (

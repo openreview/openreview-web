@@ -53,7 +53,8 @@ export default function SubmissionsList({
       const { notes, count } = await api.get(
         '/notes/search',
         {
-          ...query,
+          ...(query['content.venue'] && { venue: query['content.venue'] }),
+          ...(query['content.venueid'] && { venueid: query['content.venueid'] }),
           term,
           type: 'terms',
           content: 'all',

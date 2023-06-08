@@ -11,20 +11,14 @@ import BasicHeader from './BasicHeader'
 import { ReviewerConsoleNoteReviewStatus } from './NoteReviewStatus'
 import NoteSummary from './NoteSummary'
 import useUser from '../../hooks/useUser'
-import {
-  formatTasksData,
-  getNumberFromGroup,
-  prettyField,
-  prettyId,
-  prettyInvitationId,
-} from '../../lib/utils'
+import { getNumberFromGroup, prettyField, prettyId, prettyInvitationId } from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import useQuery from '../../hooks/useQuery'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import ErrorDisplay from '../ErrorDisplay'
-import { filterAssignedInvitations, filterHasReplyTo } from '../../lib/webfield-utils'
 import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
+import ConsoleTaskList from './ConsoleTaskList'
 
 const AreaChairInfo = ({ areaChairName, areaChairId }) => (
   <div className="note-area-chairs">
@@ -231,75 +225,19 @@ const ReviewerConsoleTasks = ({
   submissionName,
   noteNumbers,
 }) => {
-  const wildcardInvitation = `${venueId}/.*`
-
-  const { accessToken } = useUser()
-  const [invitations, setInvitations] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-
-  const addInvitaitonTypeAndVersion = (invitation) => {
-    let invitaitonType = 'tagInvitation'
-    if (apiVersion === 2 && invitation.edit?.note) invitaitonType = 'noteInvitation'
-    if (apiVersion === 1 && !invitation.reply.content?.tag && !invitation.reply.content?.head)
-      invitaitonType = 'noteInvitation'
-    return { ...invitation, [invitaitonType]: true, apiVersion }
-  }
-
-  const loadInvitations = async () => {
-    try {
-      let allInvitations = await api.getAll(
-        '/invitations',
-        {
-          ...(apiVersion !== 2 && { regex: wildcardInvitation }),
-          ...(apiVersion === 2 && { domain: venueId }),
-          invitee: true,
-          duedate: true,
-          type: 'all',
-        },
-        { accessToken, version: apiVersion }
-      )
-
-      allInvitations = allInvitations
-        .map((p) => addInvitaitonTypeAndVersion(p))
-        .filter((p) => filterHasReplyTo(p, apiVersion))
-        .filter((p) => filterAssignedInvitations(p, reviewerName, submissionName, noteNumbers))
-
-      if (allInvitations.length) {
-        // add details
-        const validInvitationDetails = await api.getAll(
-          '/invitations',
-          {
-            ids: allInvitations.map((p) => p.id),
-            details: 'all',
-            select: 'id,details',
-          },
-          { accessToken, version: apiVersion }
-        )
-
-        allInvitations.forEach((p) => {
-          // eslint-disable-next-line no-param-reassign
-          p.details = validInvitationDetails.find((q) => q.id === p.id)?.details
-        })
-      }
-
-      setInvitations(formatTasksData([allInvitations, [], []], true))
-    } catch (error) {
-      promptError(error.message)
-    }
-    setIsLoading(false)
-  }
-
-  useEffect(() => {
-    loadInvitations()
-  }, [])
+  const referrer = `${encodeURIComponent(
+    `[Reviewer Console](/group?id=${venueId}/${reviewerName}#reviewer-tasks)`
+  )}`
 
   return (
-    <TaskList
-      invitations={invitations}
-      emptyMessage={isLoading ? 'Loading...' : 'No outstanding tasks for this conference'}
-      referrer={`${encodeURIComponent(
-        `[Reviewer Console](/group?id=${venueId}/${reviewerName}#reviewer-tasks)`
-      )}&t=${Date.now()}`}
+    <ConsoleTaskList
+      venueId={venueId}
+      roleName={reviewerName}
+      referrer={referrer}
+      filterAssignedInvitaiton={true}
+      submissionName={submissionName}
+      submissionNumbers={noteNumbers}
+      apiVersion={apiVersion}
     />
   )
 }

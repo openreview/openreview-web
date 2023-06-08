@@ -68,10 +68,10 @@ export default function PaginatedList({
     }
   }, [page, searchTerm, loadItems, searchItems, itemsPerPage, shouldReload])
 
-  if (error) return <ErrorAlert error={error} />
-
   return (
     <div>
+      {error && <ErrorAlert error={error} />}
+
       {enableSearch && (
         <form
           className="form-inline notes-search-form"
