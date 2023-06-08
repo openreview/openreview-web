@@ -768,7 +768,10 @@ const DescriptionTimelineOtherConfigRow = ({
               <br />
               {requestFormContent?.['Open Reviewing Policy']}
               <br />
-              {`Paper matching uses ${requestFormContent?.['Paper Matching']?.join(', ')}`}
+              {`Paper matching uses ${
+                requestFormContent?.submission_reviewer_assignment ??
+                requestFormContent?.['Paper Matching']?.join(', ')
+              }`}
               {requestFormContent?.['Other Important Information'] && (
                 <>
                   <br />
