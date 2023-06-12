@@ -256,7 +256,7 @@ export default function ChatEditorForm({
               setShowMessagePreview((prev) => !prev)
               setShowSignatureDropdown(false)
             }}
-            disabled={!message}
+            disabled={!message || !message.trim()}
           >
             {showMessagePreview ? 'Edit' : 'Preview'}
             {/* <SvgIcon name="markdown" /> */}

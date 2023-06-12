@@ -80,6 +80,7 @@ main.forum {
     }
     textarea {
       line-height: normal;
+      max-width: 100%;
     }
     .signatures-container {
       position: relative;
@@ -114,6 +115,7 @@ main.forum {
       border-bottom: 1px solid #eee;
     }
     .markdown-rendered {
+      overflow-x: scroll;
       @include mixins.markdown-content-styles;
     }
   }
