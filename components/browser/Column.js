@@ -118,6 +118,15 @@ export default function Column(props) {
   }
 
   const buildQuery = (invitationId, invQueryObj, shouldSort = true) => {
+    if (invQueryObj.head === 'count' || invQueryObj.tail === 'count')
+      return {
+        apiQuery: {
+          invitation: invitationId,
+          groupBy: invQueryObj.head ? 'tail' : 'head',
+          select: 'count',
+        },
+        isCountQuery: true,
+      }
     const apiQuery = {
       invitation: invitationId,
       sort: shouldSort ? 'weight:desc' : undefined,
@@ -138,7 +147,7 @@ export default function Column(props) {
       }
     })
 
-    return apiQuery
+    return { apiQuery }
   }
 
   const getColumnTitle = () => {
@@ -523,6 +532,11 @@ export default function Column(props) {
           ? `${invitation.query.details},writable`
           : 'writable'
         : invitation.query.details
+      const { apiQuery, isCountQuery } = buildQuery(
+        invitation.id,
+        { ...invitation.query, details: detailsParam },
+        sort
+      )
       edgesPromiseMap.push({
         id: invitation.id,
         query: invitation.query,
@@ -530,10 +544,20 @@ export default function Column(props) {
         getWritable,
         sort,
         promise: api
-          .getAll(
-            '/edges',
-            buildQuery(invitation.id, { ...invitation.query, details: detailsParam }, sort),
-            { accessToken, version }
+          .getAll('/edges', apiQuery, {
+            accessToken,
+            version,
+            ...(isCountQuery && { resultsKey: 'groupedEdges' }),
+          })
+          .then((result) =>
+            isCountQuery
+              ? result?.map((p) => ({
+                  id: p.id[type],
+                  [type]: p.id[type],
+                  label: p.count,
+                  invitation: invitation.id,
+                }))
+              : result
           )
           .catch((error) => promptError(error.message)),
       })
