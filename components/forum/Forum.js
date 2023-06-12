@@ -237,6 +237,7 @@ export default function Forum({
           mintmdate: latestMdate,
           sort: 'tmdate:asc',
           details: 'writable',
+          trash: true,
         },
         { accessToken, version: 2 }
       )
