@@ -118,11 +118,11 @@ export default function Column(props) {
   }
 
   const buildQuery = (invitationId, invQueryObj, shouldSort = true) => {
-    if (invQueryObj['head'] === 'count' || invQueryObj['tail'] === 'count')
+    if (invQueryObj.head === 'count' || invQueryObj.tail === 'count')
       return {
         apiQuery: {
           invitation: invitationId,
-          groupBy: invQueryObj['head'] ? 'tail' : 'head',
+          groupBy: invQueryObj.head ? 'tail' : 'head',
           select: 'count',
         },
         isCountQuery: true,
@@ -549,8 +549,8 @@ export default function Column(props) {
             version,
             ...(isCountQuery && { resultsKey: 'groupedEdges' }),
           })
-          .then((result) => {
-            return isCountQuery
+          .then((result) =>
+            isCountQuery
               ? result?.map((p) => ({
                   id: p.id[type],
                   [type]: p.id[type],
@@ -558,7 +558,7 @@ export default function Column(props) {
                   invitation: invitation.id,
                 }))
               : result
-          })
+          )
           .catch((error) => promptError(error.message)),
       })
     }
