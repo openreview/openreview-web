@@ -118,6 +118,15 @@ export default function Column(props) {
   }
 
   const buildQuery = (invitationId, invQueryObj, shouldSort = true) => {
+    if (invQueryObj['head'] === 'count' || invQueryObj['tail'] === 'count')
+      return {
+        apiQuery: {
+          invitation: invitationId,
+          groupBy: invQueryObj['head'] ? 'tail' : 'head',
+          select: 'count',
+        },
+        isCountQuery: true,
+      }
     const apiQuery = {
       invitation: invitationId,
       sort: shouldSort ? 'weight:desc' : undefined,
@@ -133,15 +142,12 @@ export default function Column(props) {
         } else {
           apiQuery[key] = getInvitationPrefix(invitationId)
         }
-      } else if (['count'].includes(key)) {
-        apiQuery.groupBy = invQueryObj[key]
-        apiQuery.select = 'count'
       } else {
         apiQuery[key] = invQueryObj[key]
       }
     })
 
-    return apiQuery
+    return { apiQuery }
   }
 
   const getColumnTitle = () => {
@@ -526,42 +532,34 @@ export default function Column(props) {
           ? `${invitation.query.details},writable`
           : 'writable'
         : invitation.query.details
+      const { apiQuery, isCountQuery } = buildQuery(
+        invitation.id,
+        { ...invitation.query, details: detailsParam },
+        sort
+      )
       edgesPromiseMap.push({
         id: invitation.id,
         query: invitation.query,
         invitations: [invitationType],
         getWritable,
         sort,
-        promise: invitation.query.count
-          ? api
-              .get(
-                '/edges',
-                {
-                  invitation: invitation.id,
-                  groupBy: invitation.query.count,
-                  select: 'count',
-                },
-                { accessToken, version }
-              )
-              .then((result) =>
-                result.groupedEdges?.map((p) => ({
+        promise: api
+          .getAll('/edges', apiQuery, {
+            accessToken,
+            version,
+            ...(isCountQuery && { resultsKey: 'groupedEdges' }),
+          })
+          .then((result) => {
+            return isCountQuery
+              ? result?.map((p) => ({
                   id: p.id[type],
                   [type]: p.id[type],
                   label: p.count,
                   invitation: invitation.id,
                 }))
-              )
-          : api
-              .getAll(
-                '/edges',
-                buildQuery(
-                  invitation.id,
-                  { ...invitation.query, details: detailsParam },
-                  sort
-                ),
-                { accessToken, version }
-              )
-              .catch((error) => promptError(error.message)),
+              : result
+          })
+          .catch((error) => promptError(error.message)),
       })
     }
   }
