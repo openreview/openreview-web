@@ -597,6 +597,9 @@ export default function Forum({
       selectedReaders.some((reader) =>
         replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
       )
+    // Special case for chat layout: make sure all participants in the chat can read all the notes
+    const chatReaders =
+      expandedInvitations?.length > 0 ? expandedInvitations[0].edit.note.readers : null
 
     Object.values(replyNoteMap).forEach((note) => {
       const keywordRegex = selectedFilters.keywords
@@ -613,7 +616,10 @@ export default function Forum({
         (!selectedFilters.readers ||
           checkReadersMatch(selectedFilters.readers, note.readers)) &&
         (!selectedFilters.excludedReaders ||
-          !checkExReadersMatch(selectedFilters.excludedReaders, note.readers))
+          !checkExReadersMatch(selectedFilters.excludedReaders, note.readers)) &&
+        (!chatReaders ||
+          note.readers.includes('everyone') ||
+          chatReaders.every((r) => note.readers.includes(r)))
       const currentOptions = displayOptionsMap[note.id]
 
       newDisplayOptions[note.id] = {
@@ -751,49 +757,51 @@ export default function Forum({
         </div>
       )}
 
-      {parentNote.replyInvitations?.length > 0 && !parentNote.ddate && layout === 'default' && (
-        <div className="invitations-container">
-          <div className="invitation-buttons top-level-invitations">
-            <span className="hint">Add:</span>
-            {parentNote.replyInvitations.map((invitation) => {
-              if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
+      {parentNote.replyInvitations?.length > 0 &&
+        !parentNote.ddate &&
+        layout === 'default' && (
+          <div className="invitations-container">
+            <div className="invitation-buttons top-level-invitations">
+              <span className="hint">Add:</span>
+              {parentNote.replyInvitations.map((invitation) => {
+                if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
 
-              return (
-                <button
-                  key={invitation.id}
-                  type="button"
-                  className={`btn btn-xs ${
-                    activeInvitation?.id === invitation.id ? 'active' : ''
-                  }`}
-                  data-id={invitation.id}
-                  onClick={() => openNoteEditor(invitation)}
-                >
-                  {prettyInvitationId(invitation.id)}
-                </button>
-              )
-            })}
-          </div>
+                return (
+                  <button
+                    key={invitation.id}
+                    type="button"
+                    className={`btn btn-xs ${
+                      activeInvitation?.id === invitation.id ? 'active' : ''
+                    }`}
+                    data-id={invitation.id}
+                    onClick={() => openNoteEditor(invitation)}
+                  >
+                    {prettyInvitationId(invitation.id)}
+                  </button>
+                )
+              })}
+            </div>
 
-          <NoteEditorForm
-            forumId={id}
-            replyToId={id}
-            invitation={activeInvitation}
-            onNoteCreated={(note) => {
-              updateNote(note)
-              setActiveInvitation(null)
-              scrollToElement('#forum-replies')
-            }}
-            onNoteCancelled={() => {
-              setActiveInvitation(null)
-            }}
-            onError={(isLoadingError) => {
-              if (isLoadingError) {
+            <NoteEditorForm
+              forumId={id}
+              replyToId={id}
+              invitation={activeInvitation}
+              onNoteCreated={(note) => {
+                updateNote(note)
                 setActiveInvitation(null)
-              }
-            }}
-          />
-        </div>
-      )}
+                scrollToElement('#forum-replies')
+              }}
+              onNoteCancelled={() => {
+                setActiveInvitation(null)
+              }}
+              onError={(isLoadingError) => {
+                if (isLoadingError) {
+                  setActiveInvitation(null)
+                }
+              }}
+            />
+          </div>
+        )}
 
       <div className={`row forum-replies-container layout-${layout}`}>
         <div className="col-xs-12">
