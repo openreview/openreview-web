@@ -1,4 +1,5 @@
 @use '../utils/constants';
+@use '../utils/mixins';
 
 $gray1: #f7f6f4;
 $gray2: rgba(0, 0, 0, 0.04);
@@ -39,6 +40,83 @@ main.forum {
     .required_field {
       margin-top: 0.25rem;
       margin-bottom: 0.75rem;
+    }
+  }
+
+  .chat-invitations-container {
+    background-color: $gray1;
+    border: 1px solid #eee;
+    padding: 0.75rem;
+    padding-top: .625rem;
+    // box-shadow: 0 0 8px rgba(0,0,0,0.2);
+    // clip-path: inset(-8px 0px 0px 0px);
+
+    form {
+      border: 1px solid constants.$borderGray;
+      border-radius: 2px;
+      padding: 0.5rem;
+      background-color: constants.$backgroundWhite;
+    }
+    .parent-info {
+      h5 {
+        margin-top: 0;
+        margin-bottom: .375rem;
+        font-size: .75rem;
+        color: constants.$subtleGray;
+        span {
+          color: constants.$orRed;
+          font-weight: bold;
+        }
+        span.glyphicon {
+          color: constants.$mediumBlue;
+        }
+      }
+    }
+    .form-group {
+      margin-bottom: .375rem;
+    }
+    .form-control {
+      border-radius: 2px;
+    }
+    textarea {
+      line-height: normal;
+      max-width: 100%;
+    }
+    .signatures-container {
+      position: relative;
+      .indicator {
+        position: absolute;
+        width: 0.875rem;
+        height: 0.875rem;
+        left: 0;
+        top: 3px;
+        border-radius: 50%;
+        box-sizing: border-box;
+        content: ' ';
+      }
+      strong {
+        padding-left: 1.25rem;
+        font-size: 1rem;
+        line-height: 1rem;
+      }
+      a {
+        font-size: .75rem;
+      }
+      .dropdown-select {
+        width: 280px;
+      }
+    }
+    .readers-container {
+      p {
+        line-height: 32px;
+      }
+    }
+    .preview {
+      border-bottom: 1px solid #eee;
+    }
+    .markdown-rendered {
+      overflow-x: scroll;
+      @include mixins.markdown-content-styles;
     }
   }
 
@@ -227,6 +305,7 @@ main.forum {
 
   .filter-tabs {
     margin-bottom: -1px;
+    border-bottom-color: #eee;
 
     & > li > a {
       padding-top: 0.375rem;
@@ -240,6 +319,9 @@ main.forum {
   }
 
   .forum-replies-container {
+    &.layout-default {
+      margin-top: 1rem;
+    }
     .col-xs-12 {
       @media #{constants.$phone-only} {
         padding-left: 25px;
@@ -278,6 +360,19 @@ main.forum {
         font-size: 1rem;
         line-height: 1.5rem;
       }
+    }
+  }
+  .layout-chat #forum-replies {
+    border: 1px solid #eee;
+    border-top: 0;
+    border-bottom: 0;
+    background-color: $gray1;
+    & > div {
+      margin-bottom: 0;
+    }
+    .rc-virtual-list-holder-inner {
+      padding: .75rem;
+      padding-bottom: 0;
     }
   }
 

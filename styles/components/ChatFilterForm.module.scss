@@ -1,0 +1,18 @@
+$gray1: #f7f6f4;
+
+.container {
+  background: $gray1;
+  color: #777;
+  border: 1px solid #eee;
+  border-bottom: 0;
+  // box-shadow: 0px 4px 1px #00000060;
+
+  :global {
+    div.form-group.expand {
+      margin-bottom: 0;
+    }
+    span.glyphicon {
+      margin-top: .375rem;
+    }
+  }
+}
