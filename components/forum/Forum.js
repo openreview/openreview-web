@@ -598,8 +598,11 @@ export default function Forum({
         replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
       )
     // Special case for chat layout: make sure all participants in the chat can read all the notes
-    const chatReaders =
-      expandedInvitations?.length > 0 ? expandedInvitations[0].edit.note.readers : null
+    let chatReaders = null
+    if (expandedInvitations?.length > 0) {
+      const primaryInv = parentNote.replyInvitations.find((inv) => inv.id === expandedInvitations[0])
+      chatReaders = primaryInv ? primaryInv.edit.note.readers : null
+    }
 
     Object.values(replyNoteMap).forEach((note) => {
       const keywordRegex = selectedFilters.keywords
@@ -654,7 +657,7 @@ export default function Forum({
       typesetMathJax()
       $('[data-toggle="tooltip"]').tooltip()
     }, 200)
-  }, [replyNoteMap, orderedReplies, selectedFilters])
+  }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations])
 
   useEffect(() => {
     if (!displayOptionsMap) return
