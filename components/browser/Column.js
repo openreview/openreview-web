@@ -667,9 +667,9 @@ export default function Column(props) {
         )
         return
       }
-
+      const { apiQuery } = buildQuery(startInvitation.id, startInvitation.query, false)
       api
-        .getAll('/edges', buildQuery(startInvitation.id, startInvitation.query, false), {
+        .getAll('/edges', apiQuery, {
           accessToken,
           version,
         })
