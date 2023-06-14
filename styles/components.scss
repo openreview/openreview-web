@@ -1392,6 +1392,34 @@ table.table-minimal {
   }
 }
 
+.email-deletion-container {
+  form {
+    display: flex;
+    margin-bottom: 0.75rem;
+
+    .form-control {
+      margin-right: 0.5rem;
+      width: 25%;
+      &.comment {
+        width: 40%;
+      }
+    }
+  }
+  .email-deletion-row {
+    display: flex;
+    margin-bottom: 0.5rem;
+    .col-status {
+      margin-right: 0.25rem;
+      width: 5%;
+    }
+    .col-email,
+    .col-profile,
+    .col-comment {
+      width: 25%;
+    }
+  }
+}
+
 // Profile Search Widget
 .search-profile {
   .submission-authors,
