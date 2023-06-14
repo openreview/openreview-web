@@ -249,6 +249,14 @@ main.invitation {
     .message-body {
       resize: vertical;
     }
+
+    &.ethics-chairs-menu-bar {
+      .search-controls {
+        flex-grow: 1;
+        margin-left: 0.25rem;
+        margin-right: 0.5rem;
+      }
+    }
   }
 
   .ac-status-menu {
@@ -430,7 +438,8 @@ main.invitation {
   }
 
   .areachair-console-table,
-  .pc-console-paper-status {
+  .pc-console-paper-status,
+  .ethics-chairs-console-paper-status {
     table-layout: auto;
     & > thead > tr > th {
       vertical-align: top;
