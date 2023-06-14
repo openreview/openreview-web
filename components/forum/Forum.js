@@ -470,8 +470,10 @@ export default function Forum({
     }
 
     router.events.on('hashChangeComplete', handleRouteChange)
+    router.events.on('routeChangeComplete', handleRouteChange)
     return () => {
       router.events.off('hashChangeComplete', handleRouteChange)
+      router.events.on('routeChangeComplete', handleRouteChange)
     }
   }, [])
 
