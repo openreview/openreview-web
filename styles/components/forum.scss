@@ -300,6 +300,7 @@ main.forum {
     }
     .filtered-reply-count {
       flex-shrink: 0;
+      margin-bottom: 0;
     }
   }
 
@@ -371,7 +372,7 @@ main.forum {
       margin-bottom: 0;
     }
     .rc-virtual-list-holder-inner {
-      padding: .75rem;
+      padding: .5rem;
       padding-bottom: 0;
     }
   }
