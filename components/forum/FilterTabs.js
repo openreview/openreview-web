@@ -25,7 +25,7 @@ export default function FilterTabs({ forumId, forumViews, replyInvitations = [] 
             role="presentation"
             className={view.id === currentHash ? 'active' : null}
           >
-            <Link href={`/forum?id=${forumId}#${view.id}`} shallow>
+            <Link href={`?id=${forumId}#${view.id}`} shallow>
               <a>{view.label}</a>
             </Link>
           </li>
