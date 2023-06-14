@@ -2,21 +2,26 @@
 /* globals typesetMathJax: false */
 /* globals promptError: false */
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
 import escapeRegExp from 'lodash/escapeRegExp'
 
+import List from 'rc-virtual-list'
 import ForumNote from './ForumNote'
 import NoteEditorForm from '../NoteEditorForm'
+import ChatEditorForm from './ChatEditorForm'
 import FilterForm from './FilterForm'
+import ChatFilterForm from './ChatFilterForm'
 import FilterTabs from './FilterTabs'
 import ForumReply from './ForumReply'
+import ChatReply from './ChatReply'
 import LoadingSpinner from '../LoadingSpinner'
 import ForumReplyContext from './ForumReplyContext'
 
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
+import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
 import { prettyInvitationId } from '../../lib/utils'
 import {
@@ -52,15 +57,32 @@ export default function Forum({
     readers: null,
     excludedReaders: null,
   })
+  const [defaultFilters, setDefaultFilters] = useState(null)
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [scrolled, setScrolled] = useState(false)
+  const [attachedToBottom, setAttachedToBottom] = useState(true)
   const [enableLiveUpdate, setEnableLiveUpdate] = useState(false)
+  const [latestMdate, setLatestMdate] = useState(null)
+  const [chatReplyNote, setChatReplyNote] = useState(null)
+  const invitationMapRef = useRef(null)
+  const signaturesMapRef = useRef(null)
   const router = useRouter()
   const query = useQuery()
 
   const { id, details } = parentNote
-  const replyForumViews = details.invitation?.replyForumViews // TODO: get this from somewhere else
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
+
+  // Process forum views config
+  let replyForumViews = null
+  if (details.invitation?.replyForumViews) {
+    replyForumViews = details.invitation.replyForumViews.map((view) => ({
+      ...view,
+      filter: view.filter ? replaceFilterWildcards(view.filter, parentNote) : null,
+      expandedInvitations: view.expandedInvitations
+        ? view.expandedInvitations.map((invId) => replaceFilterWildcards(invId, parentNote))
+        : null,
+    }))
+  }
 
   const numRepliesHidden = useMemo(() => {
     if (!displayOptionsMap) return 0
@@ -74,7 +96,9 @@ export default function Forum({
   const getInvitationsByReplyForum = (forumId, includeTags) => {
     if (!forumId) return Promise.resolve([])
 
-    const extraParams = includeTags ? { tags: true, details: 'writable' } : { details: 'repliedNotes,writable' }
+    const extraParams = includeTags
+      ? { tags: true, details: 'writable' }
+      : { details: 'repliedNotes,writable' }
     return api
       .get(
         '/invitations',
@@ -130,6 +154,8 @@ export default function Forum({
     const readerGroupIds = new Set(['everyone'])
     const numberWildcard = /(Reviewer|Area_Chair)_(\w{4})/g
     const usernameWildcard = /(~[^\d]+\d+)([/_])/g
+    invitationMapRef.current = {}
+    signaturesMapRef.current = {}
     notes.forEach((note) => {
       const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
         invitations,
@@ -156,6 +182,15 @@ export default function Forum({
         replyInvitations
       )
       displayOptions[note.id] = { collapsed: false, contentExpanded: true, hidden: false }
+      invitationMapRef.current[note.invitations[0]] = [
+        note.details.invitation,
+        note.details.presentation,
+      ]
+      if (note.details.signatures) {
+        note.signatures.forEach((sig) => {
+          signaturesMapRef.current[sig] = note.details.signatures.find((s) => s.id === sig)
+        })
+      }
 
       // Populate parent map
       const parentId = note.replyto || id
@@ -192,6 +227,27 @@ export default function Forum({
       readers: Array.from(readerGroupIds),
     })
   }
+
+  const loadNewReplies = useCallback(async () => {
+    try {
+      const { notes } = await api.get(
+        '/notes',
+        {
+          forum: id,
+          mintmdate: latestMdate,
+          sort: 'tmdate:asc',
+          details: 'writable',
+          trash: true,
+        },
+        { accessToken, version: 2 }
+      )
+      return notes?.length > 0 ? notes : []
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('Error loading new replies: ', error.message)
+      return []
+    }
+  }, [latestMdate, id, accessToken])
 
   // Display helper functions
   const setCollapseLevel = (level) => {
@@ -276,6 +332,18 @@ export default function Forum({
   const updateNote = (note) => {
     if (!note) return
 
+    // For chat layout, check if the user is scrolled before updating state
+    const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
+    if (containerElem) {
+      const atBottom =
+        Math.abs(
+          containerElem.scrollHeight - containerElem.scrollTop - containerElem.clientHeight
+        ) < 3
+      if (attachedToBottom !== atBottom) {
+        setAttachedToBottom(atBottom)
+      }
+    }
+
     const noteId = note.id
     const parentId = note.replyto
     const existingNote = replyNoteMap[noteId]
@@ -296,20 +364,20 @@ export default function Forum({
       formattedNote.parentTitle =
         replyToNote.content.title?.value || replyToNote.generatedTitle
     }
-    setReplyNoteMap({
-      ...replyNoteMap,
+    setReplyNoteMap((prevNoteMap) => ({
+      ...prevNoteMap,
       [noteId]: formattedNote,
-    })
+    }))
 
     if (isEmpty(existingNote)) {
-      setDisplayOptionsMap({
-        ...displayOptionsMap,
+      setDisplayOptionsMap((prevOptionsMap) => ({
+        ...prevOptionsMap,
         [noteId]: { collapsed: false, contentExpanded: true, hidden: false },
-      })
-      setParentMap({
-        ...parentMap,
+      }))
+      setParentMap((preParentMap) => ({
+        ...preParentMap,
         [parentId]: parentMap[parentId] ? [...parentMap[parentId], noteId] : [noteId],
-      })
+      }))
     }
 
     // If updated note is a reply to an invitation with a maxReplies property,
@@ -321,8 +389,8 @@ export default function Forum({
         const prevRepliesAvailable = invObj.details.repliesAvailable ?? 1
         const remainingReplies = prevRepliesAvailable - increment
 
-        setAllInvitations(
-          allInvitations
+        setAllInvitations((prevInvitations) =>
+          prevInvitations
             .filter((i) => i.id !== invObj.id)
             .concat({
               ...invObj,
@@ -335,10 +403,10 @@ export default function Forum({
 
         if (remainingReplies < 1) {
           if (parentId === parentNote.id) {
-            setParentNote({
-              ...parentNote,
+            setParentNote((prevParentNote) => ({
+              ...prevParentNote,
               replyInvitations: parentNote.replyInvitations.filter((i) => i.id !== invObj.id),
-            })
+            }))
           } else {
             setReplyNoteMap((prevMap) => ({
               ...prevMap,
@@ -352,10 +420,10 @@ export default function Forum({
           }
         } else if (prevRepliesAvailable === 0 && remainingReplies > 0) {
           if (parentId === parentNote.id) {
-            setParentNote({
-              ...parentNote,
+            setParentNote((prevParentNote) => ({
+              ...prevParentNote,
               replyInvitations: parentNote.replyInvitations.concat(invObj),
-            })
+            }))
           } else {
             setReplyNoteMap((prevMap) => ({
               ...prevMap,
@@ -379,20 +447,22 @@ export default function Forum({
       const tab = replyForumViews.find((view) => view.id === tabId)
       if (!tab) return
 
-      setSelectedFilters({
+      const tabFilters = {
         invitations: null,
         excludedInvitations: null,
         signatures: null,
         readers: null,
         excludedReaders: null,
         keywords: null,
-        ...parseFilterQuery(replaceFilterWildcards(tab.filter, parentNote), tab.keywords),
-      })
+        ...parseFilterQuery(tab.filter, tab.keywords),
+      }
+      setDefaultFilters(tabFilters)
+      setSelectedFilters(tabFilters)
       setLayout(tab.layout || 'default')
       setNesting(tab.nesting || 2)
       setSort(tab.sort || 'date-desc')
       setEnableLiveUpdate(Boolean(tab.live))
-      setExpandedInvitations(tab.expandedInvitations || null)
+      setExpandedInvitations(tab.expandedInvitations)
     }
 
     if (window.location.hash) {
@@ -400,14 +470,19 @@ export default function Forum({
     }
 
     router.events.on('hashChangeComplete', handleRouteChange)
+    router.events.on('routeChangeComplete', handleRouteChange)
     return () => {
       router.events.off('hashChangeComplete', handleRouteChange)
+      router.events.on('routeChangeComplete', handleRouteChange)
     }
   }, [])
 
   // Load forum replies
   useEffect(() => {
     if (userLoading || clientJsLoading) return
+
+    // Initialize latest mdate to be 1 second before the current time
+    setLatestMdate(Date.now() - 1000)
 
     loadNotesAndInvitations()
   }, [userLoading])
@@ -492,8 +567,15 @@ export default function Forum({
 
         setScrolled(true)
       }
+
+      if (layout === 'chat') {
+        const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
+        if (containerElem && attachedToBottom) {
+          containerElem.scrollTop = containerElem.scrollHeight
+        }
+      }
     }, 200)
-  }, [replyNoteMap, parentMap, nesting])
+  }, [replyNoteMap, parentMap, nesting, sort])
 
   // Update reply visibility
   useEffect(() => {
@@ -517,6 +599,12 @@ export default function Forum({
       selectedReaders.some((reader) =>
         replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
       )
+    // Special case for chat layout: make sure all participants in the chat can read all the notes
+    let chatReaders = null
+    if (expandedInvitations?.length > 0) {
+      const primaryInv = parentNote.replyInvitations.find((inv) => inv.id === expandedInvitations[0])
+      chatReaders = primaryInv ? primaryInv.edit.note.readers : null
+    }
 
     Object.values(replyNoteMap).forEach((note) => {
       const keywordRegex = selectedFilters.keywords
@@ -533,7 +621,10 @@ export default function Forum({
         (!selectedFilters.readers ||
           checkReadersMatch(selectedFilters.readers, note.readers)) &&
         (!selectedFilters.excludedReaders ||
-          !checkExReadersMatch(selectedFilters.excludedReaders, note.readers))
+          !checkExReadersMatch(selectedFilters.excludedReaders, note.readers)) &&
+        (!chatReaders ||
+          note.readers.includes('everyone') ||
+          chatReaders.every((r) => note.readers.includes(r)))
       const currentOptions = displayOptionsMap[note.id]
 
       newDisplayOptions[note.id] = {
@@ -568,7 +659,7 @@ export default function Forum({
       typesetMathJax()
       $('[data-toggle="tooltip"]').tooltip()
     }, 200)
-  }, [replyNoteMap, orderedReplies, selectedFilters])
+  }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations])
 
   useEffect(() => {
     if (!displayOptionsMap) return
@@ -583,20 +674,6 @@ export default function Forum({
     })
     setDisplayOptionsMap(newDisplayOptions)
   }, [defaultCollapseLevel])
-
-  // Update sort order
-  useEffect(() => {
-    if (!replyNoteMap || !orderedReplies || !sort) return
-
-    const sortMap = {
-      'date-asc': (a, b) => replyNoteMap[a.id].cdate - replyNoteMap[b.id].cdate,
-      'date-desc': (a, b) => replyNoteMap[b.id].cdate - replyNoteMap[a.id].cdate,
-    }
-
-    if (!sortMap[sort]) return
-
-    setOrderedReplies([...orderedReplies].sort(sortMap[sort]))
-  }, [replyNoteMap, sort])
 
   // Update filters
   useEffect(() => {
@@ -617,13 +694,43 @@ export default function Forum({
     }
   }, [query])
 
+  // Toggle real-time updates
+  useInterval(() => {
+    if (!repliesLoaded || !enableLiveUpdate) return
+
+    loadNewReplies().then((newReplies) => {
+      newReplies.forEach((note) => {
+        const invId = note.invitations[0]
+        // eslint-disable-next-line no-param-reassign
+        note.details.invitation = invitationMapRef.current[invId]?.[0]
+        // eslint-disable-next-line no-param-reassign
+        note.details.presentation = invitationMapRef.current[invId]?.[1]
+        // eslint-disable-next-line no-param-reassign
+        note.details.signatures = note.signatures.flatMap(
+          (sigId) => signaturesMapRef.current[sigId] ?? []
+        )
+        updateNote(note)
+      })
+
+      if (newReplies.length > 0) {
+        setLatestMdate(newReplies[newReplies.length - 1].tmdate)
+      }
+    })
+  }, 2000)
+
   return (
     <div className="forum-container">
       <ForumNote note={parentNote} updateNote={updateParentNote} />
 
       {repliesLoaded && orderedReplies.length > 0 && (
         <div className="filters-container mt-4">
-          {replyForumViews && <FilterTabs forumId={id} forumViews={replyForumViews} />}
+          {replyForumViews && (
+            <FilterTabs
+              forumId={id}
+              forumViews={replyForumViews}
+              replyInvitations={parentNote.replyInvitations}
+            />
+          )}
 
           {filterOptions && layout === 'default' && (
             <FilterForm
@@ -641,54 +748,67 @@ export default function Forum({
               numRepliesHidden={numRepliesHidden}
             />
           )}
+          {filterOptions && layout === 'chat' && (
+            <ChatFilterForm
+              forumId={id}
+              defaultFilters={defaultFilters}
+              selectedFilters={selectedFilters}
+              setSelectedFilters={setSelectedFilters}
+              filterOptions={filterOptions}
+              numReplies={details.replyCount}
+              numRepliesHidden={numRepliesHidden}
+            />
+          )}
         </div>
       )}
 
-      {parentNote.replyInvitations?.length > 0 && !parentNote.ddate && layout === 'default' && (
-        <div className="invitations-container">
-          <div className="invitation-buttons top-level-invitations">
-            <span className="hint">Add:</span>
-            {parentNote.replyInvitations.map((invitation) => {
-              if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
+      {parentNote.replyInvitations?.length > 0 &&
+        !parentNote.ddate &&
+        layout === 'default' && (
+          <div className="invitations-container">
+            <div className="invitation-buttons top-level-invitations">
+              <span className="hint">Add:</span>
+              {parentNote.replyInvitations.map((invitation) => {
+                if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
 
-              return (
-                <button
-                  key={invitation.id}
-                  type="button"
-                  className={`btn btn-xs ${
-                    activeInvitation?.id === invitation.id ? 'active' : ''
-                  }`}
-                  data-id={invitation.id}
-                  onClick={() => openNoteEditor(invitation)}
-                >
-                  {prettyInvitationId(invitation.id)}
-                </button>
-              )
-            })}
-          </div>
+                return (
+                  <button
+                    key={invitation.id}
+                    type="button"
+                    className={`btn btn-xs ${
+                      activeInvitation?.id === invitation.id ? 'active' : ''
+                    }`}
+                    data-id={invitation.id}
+                    onClick={() => openNoteEditor(invitation)}
+                  >
+                    {prettyInvitationId(invitation.id)}
+                  </button>
+                )
+              })}
+            </div>
 
-          <NoteEditorForm
-            forumId={id}
-            replyToId={id}
-            invitation={activeInvitation}
-            onNoteCreated={(note) => {
-              updateNote(note)
-              setActiveInvitation(null)
-              scrollToElement('#forum-replies')
-            }}
-            onNoteCancelled={() => {
-              setActiveInvitation(null)
-            }}
-            onError={(isLoadingError) => {
-              if (isLoadingError) {
+            <NoteEditorForm
+              forumId={id}
+              replyToId={id}
+              invitation={activeInvitation}
+              onNoteCreated={(note) => {
+                updateNote(note)
                 setActiveInvitation(null)
-              }
-            }}
-          />
-        </div>
-      )}
+                scrollToElement('#forum-replies')
+              }}
+              onNoteCancelled={() => {
+                setActiveInvitation(null)
+              }}
+              onError={(isLoadingError) => {
+                if (isLoadingError) {
+                  setActiveInvitation(null)
+                }
+              }}
+            />
+          </div>
+        )}
 
-      <div className="row mt-3 forum-replies-container">
+      <div className={`row forum-replies-container layout-${layout}`}>
         <div className="col-xs-12">
           <div id="forum-replies">
             <ForumReplyContext.Provider
@@ -704,22 +824,135 @@ export default function Forum({
                 setHidden,
               }}
             >
-              {repliesLoaded ? orderedReplies.map((reply) => (
-                <ForumReply
-                  key={reply.id}
-                  note={replyNoteMap[reply.id]}
-                  replies={reply.replies}
-                  replyDepth={1}
-                  parentId={id}
+              {repliesLoaded ? (
+                <ForumReplies
+                  forumId={id}
+                  replies={orderedReplies}
+                  replyNoteMap={replyNoteMap}
+                  displayOptionsMap={displayOptionsMap}
+                  layout={layout}
+                  chatReplyNote={chatReplyNote}
+                  setChatReplyNote={setChatReplyNote}
                   updateNote={updateNote}
                 />
-              )) : (
+              ) : (
                 <LoadingSpinner inline />
               )}
             </ForumReplyContext.Provider>
           </div>
         </div>
       </div>
+
+      {layout === 'chat' && parentNote.replyInvitations?.length > 0 && !parentNote.ddate && (
+        <div className="chat-invitations-container">
+          {expandedInvitations ? (
+            expandedInvitations.map((invitationId) => {
+              const invitation = parentNote.replyInvitations.find(
+                (inv) => inv.id === invitationId
+              )
+              if (!invitation) {
+                return (
+                  <p key={invitationId} className="empty-message">
+                    You do not have permission to post in this chat.
+                  </p>
+                )
+              }
+
+              return (
+                <ChatEditorForm
+                  key={invitationId}
+                  forumId={id}
+                  invitation={invitation}
+                  replyToNote={chatReplyNote}
+                  setReplyToNote={setChatReplyNote}
+                  onSubmit={updateNote}
+                />
+              )
+            })
+          ) : (
+            <>
+              <div className="invitation-buttons">
+                <span className="hint">Add:</span>
+                {parentNote.replyInvitations.map((invitation) => (
+                  <button
+                    key={invitation.id}
+                    type="button"
+                    className={`btn btn-xs ${
+                      activeInvitation?.id === invitation.id ? 'active' : ''
+                    }`}
+                    data-id={invitation.id}
+                    onClick={() => openNoteEditor(invitation)}
+                  >
+                    {prettyInvitationId(invitation.id)}
+                  </button>
+                ))}
+              </div>
+
+              <NoteEditorForm
+                forumId={id}
+                replyToId={id}
+                invitation={activeInvitation}
+                onNoteCreated={(note) => {
+                  updateNote(note)
+                  setActiveInvitation(null)
+                  scrollToElement('#forum-replies')
+                }}
+                onNoteCancelled={() => {
+                  setActiveInvitation(null)
+                }}
+                onError={(isLoadingError) => {
+                  if (isLoadingError) {
+                    setActiveInvitation(null)
+                  }
+                }}
+              />
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
+}
+
+function ForumReplies({
+  forumId,
+  replies,
+  replyNoteMap,
+  displayOptionsMap,
+  chatReplyNote,
+  layout,
+  updateNote,
+  setChatReplyNote,
+}) {
+  if (!replies) return null
+
+  if (layout === 'chat') {
+    return (
+      <List data={replies} height={625} itemHeight={1} itemKey="id">
+        {(reply) => (
+          <ChatReply
+            note={replyNoteMap[reply.id]}
+            parentNote={
+              reply.replyto === forumId ? null : replyNoteMap[replyNoteMap[reply.id].replyto]
+            }
+            displayOptions={displayOptionsMap[reply.id]}
+            setChatReplyNote={setChatReplyNote}
+            isSelected={reply.id === chatReplyNote?.id}
+            updateNote={updateNote}
+          />
+        )}
+      </List>
+    )
+  }
+
+  return replies.map((reply) => (
+    <ForumReply
+      key={reply.id}
+      note={replyNoteMap[reply.id]}
+      replies={reply.replies}
+      replyDepth={1}
+      parentId={forumId}
+      updateNote={updateNote}
+    />
+  ))
 }
