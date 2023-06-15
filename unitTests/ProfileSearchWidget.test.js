@@ -708,7 +708,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(screen.getByText('No matching profiles found.', { exact: false }))
+    expect(screen.getByText('No results found for your search query.', { exact: false }))
     expect(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
 
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
@@ -745,7 +745,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(screen.getByText('No matching profiles found.', { exact: false }))
+    expect(screen.getByText('No results found for your search query.', { exact: false }))
     expect(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
 
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
@@ -781,7 +781,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(screen.getByText('No matching profiles found.', { exact: false }))
+    expect(screen.getByText('No results found for your search query.', { exact: false }))
     expect(
       screen.queryByRole('button', { name: 'Manually Enter Author Info' })
     ).not.toBeInTheDocument()
@@ -910,7 +910,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(screen.getByText('No matching profiles found.', { exact: false }))
+    expect(screen.getByText('No results found for your search query.', { exact: false }))
     expect(
       screen.queryByRole('button', { name: 'Manually Enter Author Info' })
     ).not.toBeInTheDocument()

@@ -237,7 +237,9 @@ const ProfileSearchFormAndResults = ({
     if (!allowUserDefined && isEmptyResult)
       return (
         <div className={styles.noMatchingProfile}>
-          <div className={styles.noMatchingProfileMessage}>No matching profiles found.</div>
+          <div className={styles.noMatchingProfileMessage}>
+            No results found for your search query.
+          </div>
         </div>
       )
     if (!allowUserDefined) return null
@@ -254,7 +256,9 @@ const ProfileSearchFormAndResults = ({
         ) : (
           <>
             <div className={styles.noMatchingProfileMessage}>
-              {isEmptyResult ? 'No matching profiles found.' : 'Not your coauthor?'}
+              {isEmptyResult
+                ? 'No results found for your search query.'
+                : 'Coauthor not found? Provide their information by clicking button below.'}
             </div>
 
             <button
