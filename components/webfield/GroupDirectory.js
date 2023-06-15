@@ -13,6 +13,7 @@ export default function GroupDirectory({ appContext }) {
     entity: group,
     title,
     subtitle,
+    links,
   } = useContext(WebFieldContext)
   const [childGroupIds, setChildGroupIds] = useState(null)
   const [error, setError] = useState(null)
@@ -54,7 +55,11 @@ export default function GroupDirectory({ appContext }) {
       }
     }
 
-    loadChildGroups()
+    if (links) {
+      setChildGroupIds(links)
+    } else {
+      loadChildGroups()
+    }
   }, [group.id])
 
   return (

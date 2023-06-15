@@ -210,12 +210,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
       const pendingRequestCount = nameRemovalNotes.notes.filter(
         (p) => p.content.status === 'Pending'
       ).length
-      const errorProcessCount = sortedResult.filter(
-        (p) => p.processLogStatus === 'error'
-      ).length
-      setNameDeletionRequestCountMsg(
-        getTabCountMessage(pendingRequestCount, errorProcessCount)
-      )
+      setNameDeletionRequestCountMsg(getTabCountMessage(pendingRequestCount, 0))
     } catch (error) {
       promptError(error.message)
     }
@@ -881,6 +876,186 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
   )
 }
 
+const EmailDeletionTab = ({ accessToken, superUser }) => {
+  const [emailDeletionNotes, setEmailDeletionNotes] = useState(null)
+  const [emailDeletionNotesToShow, setEmailDeletionNotesToShow] = useState(null)
+  const [page, setPage] = useState(1)
+  const emailDeletionFormRef = useRef(null)
+
+  const emailRemovalInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Email_Removal`
+  const pageSize = 25
+
+  const loadEmailDeletionNotes = async () => {
+    try {
+      const notesResultP = api.getAll(
+        '/notes',
+        { invitation: emailRemovalInvitationId, sort: 'tcdate' },
+        { accessToken }
+      )
+      const processLogsP = api.getAll(
+        '/logs/process',
+        { invitation: emailRemovalInvitationId },
+        { accessToken, resultsKey: 'logs' }
+      )
+      const [notes, processLogs] = await Promise.all([notesResultP, processLogsP])
+      const notesWithStatus = notes.map((p) => ({
+        ...p,
+        processLogStatus: processLogs.find((q) => q.id === p.id)?.status ?? 'running',
+      }))
+
+      setEmailDeletionNotes(notesWithStatus)
+      setEmailDeletionNotesToShow(
+        notesWithStatus.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
+      )
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const handleEmailDeletionRequest = async (e) => {
+    e.preventDefault()
+
+    const formData = new FormData(emailDeletionFormRef.current)
+    const formContent = {}
+    formData.forEach((value, name) => {
+      const cleanValue = value.trim()
+      formContent[name] = cleanValue?.length ? cleanValue : undefined
+    })
+    try {
+      const invitationResults = await api.get(
+        '/invitations',
+        { id: emailRemovalInvitationId },
+        { accessToken }
+      )
+      const emailRemovalInvitation = invitationResults.invitations[0]
+      const noteToPost = {
+        invitation: emailRemovalInvitation.id,
+        content: formContent,
+        readers: buildArray(emailRemovalInvitation, 'readers', superUser.profile.id),
+        writers: buildArray(emailRemovalInvitation, 'writers', superUser.profile.id),
+        signatures: buildArray(emailRemovalInvitation, 'signatures', superUser.profile.id),
+      }
+      const result = await api.post('/notes', noteToPost, { accessToken })
+
+      const updatedEmailDeletionNotes = [
+        { ...result, processLogStatus: 'running' },
+        ...emailDeletionNotes,
+      ]
+      setEmailDeletionNotes(updatedEmailDeletionNotes)
+      setEmailDeletionNotesToShow(updatedEmailDeletionNotes.slice(0, pageSize))
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  useEffect(() => {
+    if (!emailDeletionNotes) return
+    setEmailDeletionNotesToShow(
+      emailDeletionNotes.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
+    )
+  }, [page])
+
+  useEffect(() => {
+    loadEmailDeletionNotes()
+  }, [])
+
+  return (
+    <>
+      <div className="email-deletion-container">
+        <form
+          className="well mt-3"
+          ref={emailDeletionFormRef}
+          onSubmit={handleEmailDeletionRequest}
+        >
+          <input
+            type="text"
+            name="email"
+            className="form-control input-sm"
+            placeholder="Email to delete"
+          />
+          <input
+            type="text"
+            name="profile_id"
+            className="form-control input-sm"
+            placeholder="Profile ID the email is associated with"
+          />
+          <input
+            type="text"
+            name="comment"
+            className="form-control input-sm comment"
+            placeholder="Moderator comment"
+          />
+
+          <button type="submit" className="btn btn-xs">
+            Submit
+          </button>
+        </form>
+        <div className="email-deletion-list">
+          {emailDeletionNotesToShow ? (
+            <>
+              <Table
+                headings={[
+                  { content: 'Status', width: '5%' },
+                  { content: 'Email', width: '25%' },
+                  { content: 'Profile Id', width: '25%' },
+                  { content: 'Comment', width: '25%' },
+                  { content: 'Date' },
+                ]}
+              />
+              {emailDeletionNotesToShow.map((note) => (
+                <div className="email-deletion-row" key={note.id}>
+                  <span className="col-status">
+                    <a
+                      href={`${process.env.API_URL}/logs/process?id=${note.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span
+                        className={`label label-${
+                          note.processLogStatus === 'ok' ? 'success' : 'default'
+                        }`}
+                      >
+                        {note.processLogStatus}
+                      </span>
+                    </a>
+                  </span>
+                  <span className="col-email">
+                    <span>{note.content.email}</span>
+                  </span>
+                  <span className="col-profile">
+                    <a
+                      href={`/profile?id=${note.content.profile_id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {note.content.profile_id}
+                    </a>
+                  </span>
+                  <span className="col-comment">{note.content.comment}</span>
+                  <span className="col-created">{formatDateTime(note.tcdate)}</span>
+                </div>
+              ))}
+              {emailDeletionNotes.length === 0 ? (
+                <p className="empty-message">No email deletion requests.</p>
+              ) : (
+                <PaginationLinks
+                  currentPage={page}
+                  itemsPerPage={pageSize}
+                  totalCount={emailDeletionNotes.length}
+                  options={{ useShallowRouting: true }}
+                  setCurrentPage={setPage}
+                />
+              )}
+            </>
+          ) : (
+            <LoadSpinner inline />
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
 const Moderation = ({ appContext, accessToken, superUser }) => {
   const { setBannerHidden } = appContext
   const [nameDeletionRequestCountMsg, setNameDeletionRequestCountMsg] = useState(0)
@@ -907,6 +1082,7 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
           <Tab id="reply" active>
             User Moderation
           </Tab>
+          <Tab id="email">Email Delete Requests</Tab>
           <Tab id="preview">
             Name Delete Requests{' '}
             {nameDeletionRequestCountMsg && (
@@ -930,6 +1106,9 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
         <TabPanels>
           <TabPanel id="reply">
             <UserModerationTab accessToken={accessToken} />
+          </TabPanel>
+          <TabPanel id="email">
+            <EmailDeletionTab accessToken={accessToken} superUser={superUser} />
           </TabPanel>
           <TabPanel id="preview">
             <NameDeletionTab
@@ -989,6 +1168,7 @@ const UserModerationQueue = ({
     'Rejected',
     'Limited',
     'Inactive',
+    'Merged',
   ].map((p) => ({ label: p, value: p }))
 
   const getProfiles = async () => {

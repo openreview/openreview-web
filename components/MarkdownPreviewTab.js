@@ -12,6 +12,7 @@ const MarkdownPreviewTab = ({
   placeholder = '',
   textAreaClass = '',
   fieldName = '',
+  rows=6
 }) => {
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const firstTabId = kebabCase(firstTab)
@@ -19,7 +20,7 @@ const MarkdownPreviewTab = ({
 
   useEffect(() => {
     if (!value) {
-      setSanitizedHtml('Nothing to preview')
+      setSanitizedHtml('<em>Nothing to preview</em>')
       document.querySelector(`a[href="#${fieldName}${firstTabId}"]`).click()
       return
     }
@@ -41,7 +42,7 @@ const MarkdownPreviewTab = ({
         <TabPanel id={`${fieldName}${firstTabId}`}>
           <textarea
             className={`form-control ${textAreaClass}`}
-            rows="6"
+            rows={`${rows}`}
             placeholder={placeholder}
             value={value}
             required

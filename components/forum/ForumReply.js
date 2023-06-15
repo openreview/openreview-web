@@ -21,7 +21,6 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
   const {
     displayOptionsMap,
-    layout,
     nesting,
     excludedInvitations,
     setCollapsed,

@@ -15,7 +15,8 @@ export default function SubmissionButton({
   const [noteEditorOpen, setNoteEditorOpen] = useState(false)
   const { accessToken, userLoading } = useUser()
 
-  const invitationPastDue =  !invitation?.details.writable && (invitation?.duedate && invitation.duedate < Date.now())
+  const invitationPastDue =
+    invitation?.duedate && invitation.duedate < Date.now() && !invitation?.details.writable
 
   const loadInvitation = async () => {
     try {
@@ -57,6 +58,7 @@ export default function SubmissionButton({
           {prettyId(invitationId)}
         </button>
       </div>
+
       {noteEditorOpen && (
         <>
           {/* <NoteEditorForm

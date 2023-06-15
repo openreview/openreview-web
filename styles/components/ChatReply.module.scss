@@ -1,0 +1,170 @@
+@use '../utils/constants';
+@use '../utils/mixins';
+
+.container {
+  margin-bottom: 0.5rem;
+  border-radius: 2px;
+  background-color: constants.$backgroundWhite;
+  position: relative;
+
+  :global {
+    .chat-body {
+      padding: .5rem;
+      border: 1px solid constants.$borderGray;
+      border-radius: 2px;
+
+      &.deleted {
+        background-color: #eee;
+        & > div {
+          opacity: .5;
+        }
+      }
+    }
+
+    .parent-info {
+      h5 {
+        margin-top: 0;
+        margin-bottom: .375rem;
+        font-size: .75rem;
+        color: constants.$subtleGray;
+        span {
+          color: constants.$orRed;
+          font-weight: bold;
+        }
+      }
+    }
+
+    .header {
+      position: relative;
+      margin-bottom: .25rem;
+      span.indicator {
+        position: absolute;
+        width: 0.875rem;
+        height: 0.875rem;
+        left: 0;
+        top: 3px;
+        border-radius: 50%;
+        box-sizing: border-box;
+        content: ' ';
+      }
+      strong {
+        font-size: 1rem;
+        line-height: 1rem;
+        padding-left: 1.25rem;
+      }
+      .members-list {
+        font-size: .75rem;
+        padding-left: .5rem;
+        color: constants.$subtleGray;
+        font-weight: normal;
+      }
+      .glyphicon {
+        margin-right: .25rem;
+      }
+      .tooltip .tooltip-inner {
+        max-width: 250px;
+      }
+      small {
+        color: constants.$subtleGray;
+        padding-left: .75rem;
+      }
+    }
+
+    .highlight {
+      background-color: constants.$mediumBlue;
+      color: #fff;
+      padding: 0 4px;
+      border-radius: 2px;
+      font-size: .75rem;
+      vertical-align: 1px;
+      margin-left: 0.75rem;
+    }
+    .highlight + .highlight,
+    .tooltip + .highlight {
+      margin-left: 0.25rem;
+    }
+    .edit-indicator {
+      color: constants.$subtleGray;
+      background-color: transparent;
+    }
+
+    .note-content {
+      font-size: .875rem;
+      margin: 0;
+      // margin-bottom: .25rem;
+      & > div + div {
+        margin-top: .25rem;
+      }
+    }
+    .note-content-value {
+      line-height: normal;
+
+      mjx-container[jax='CHTML'][display='true'] {
+        margin-top: 0;
+        margin-bottom: .5rem;
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+    .note-content-value.markdown-rendered {
+      @include mixins.markdown-content-styles;
+      ol > li, ul > li {
+        padding-bottom: .25rem;
+      }
+      line-height: normal;
+      p:last-child, ul:last-child, ol:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+.container:hover > .chat-actions {
+  display: block;
+}
+
+.active {
+  box-shadow: 0 0 0 2px constants.$mediumBlue;
+  :global {
+    .chat-body {
+      border-color: transparent;
+    }
+  }
+}
+
+.chat-actions {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  z-index: 100;
+  display: none;
+
+  :global {
+    button {
+      padding: .25rem .75rem;
+      border: 1px solid constants.$borderGray;
+      border-radius: 0;
+      font-weight: normal;
+      &:focus {
+        border-color: constants.$borderGray;
+        background-color: constants.$backgroundWhite;
+        box-shadow: none;
+      }
+      &:hover,
+      &:active {
+        color: #fff;
+        background-color: constants.$mediumDarkBlue;
+        border-color: constants.$mediumDarkBlue;
+      }
+      span {
+        padding-right: .125rem;
+      }
+    }
+    .btn-group > .btn:first-child {
+      border-bottom-left-radius: 2px;
+    }
+    .btn-group > .btn:last-child {
+      border-top-right-radius: 2px;
+    }
+  }
+}
