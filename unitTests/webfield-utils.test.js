@@ -19,7 +19,7 @@ describe('webfield-utils', () => {
     resultExpected = 'authorids'
     expect(getErrorFieldName(errorPath)).toBe(resultExpected)
   })
-
+})
 
 describe('filterCollections', () => {
   test('return input collection when query is invalid', () => {
