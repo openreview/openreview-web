@@ -69,7 +69,7 @@ export default function GroupDirectory({ appContext }) {
       <div className="venue-header" id="header">
         <h1>{title || prettyId(group.id)}</h1>
         {subtitle && <h3>{subtitle}</h3>}
-        {description && <Markdown>{description}</Markdown>}
+        {description && <Markdown text={description} />}
       </div>
 
       <hr />
