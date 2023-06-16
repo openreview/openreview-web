@@ -180,7 +180,11 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
         <EditorComponentContext.Provider
           key={fieldToRender}
           value={{
-            field: { [fieldToRender]: invitation.edit?.note?.content?.[fieldToRender] },
+            field: {
+              [fieldToRender]: isV2Invitation
+                ? invitation.edit?.note?.content?.[fieldToRender]
+                : invitation.reply?.content?.[fieldToRender],
+            },
             onChange: ({ fieldName, value }) => setFormData({ fieldName, value }),
             value: formData[fieldToRender],
             key: fieldToRender,
