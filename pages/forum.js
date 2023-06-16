@@ -96,8 +96,8 @@ const ForumPage = ({ forumNote, query, appContext }) => {
             {authors.map((author) => (
               <meta key={author} name="citation_author" content={author} />
             ))}
-            <meta name="citation_publication_date" content={modificationDate} />
-            <meta name="citation_online_date" content={onlineDate} />
+            <meta name="citation_publication_date" content={onlineDate} />
+            <meta name="citation_online_date" content={modificationDate} />
             {content.pdf && (
               <meta
                 name="citation_pdf_url"
