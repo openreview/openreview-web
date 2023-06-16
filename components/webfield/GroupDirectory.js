@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import WebFieldContext from '../WebFieldContext'
 import ErrorAlert from '../ErrorAlert'
+import Markdown from '../EditorComponents/Markdown'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
@@ -13,6 +14,7 @@ export default function GroupDirectory({ appContext }) {
     entity: group,
     title,
     subtitle,
+    description,
     links,
   } = useContext(WebFieldContext)
   const [childGroupIds, setChildGroupIds] = useState(null)
@@ -67,6 +69,7 @@ export default function GroupDirectory({ appContext }) {
       <div className="venue-header" id="header">
         <h1>{title || prettyId(group.id)}</h1>
         {subtitle && <h3>{subtitle}</h3>}
+        {description && <Markdown text={description} />}
       </div>
 
       <hr />
@@ -79,7 +82,7 @@ export default function GroupDirectory({ appContext }) {
         <ul className="list-unstyled venues-list">
           {childGroupIds.length > 0 ? childGroupIds.map((id) => (
             <li key={id}>
-              <Link href={`/group?id=${id}`}>
+              <Link href={id.startsWith('~') ? `/profile?id=${id}` : `/group?id=${id}`}>
                 <a>{prettyId(id)}</a>
               </Link>
             </li>
