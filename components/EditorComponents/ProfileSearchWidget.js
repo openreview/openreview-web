@@ -104,7 +104,7 @@ const Author = ({
                 value: getUpdatedValue(updatedAuthors, isAuthoridsField, multiple),
               })
             }}
-            extraClasses="action-button"
+            extraClasses="remove-button"
           />
         )}
         {showArrowButton && <IconButton name="arrow-right" onClick={increaseAuthorIndex} />}
@@ -383,8 +383,6 @@ const CustomAuthorForm = ({
     const cleanSearchTerm = searchTerm.trim()
     if (isValidEmail(cleanSearchTerm)) {
       setCustomAuthorEmail(cleanSearchTerm.toLowerCase())
-    } else if (!cleanSearchTerm.startsWith('~')) {
-      setCustomAuthorName(cleanSearchTerm)
     }
   }, [searchTerm])
 

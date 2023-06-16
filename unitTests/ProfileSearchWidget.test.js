@@ -787,7 +787,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     ).not.toBeInTheDocument()
   })
 
-  test('fill in the custom author form based on user input', async () => {
+  test('fill in the custom author form based on user input (only for email)', async () => {
     api.post = jest.fn(() => Promise.resolve([]))
     api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
 
@@ -815,9 +815,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
 
-    expect(screen.getByPlaceholderText('full name of the author to add')).toHaveValue(
-      'some search term'
-    )
+    expect(screen.getByPlaceholderText('full name of the author to add')).toHaveValue('') // not to fill for name incase it's not complete name
 
     await userEvent.clear(screen.getByPlaceholderText('search profiles by email or name'))
     await userEvent.type(searchInput, '   test@EMAIL.COM   ')
@@ -855,10 +853,16 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
       screen.getByPlaceholderText('search profiles by email or name'),
-      'some search term'
+      'fullname of'
     )
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
+    expect(screen.getByText('Add')).toHaveAttribute('disabled')
+
+    await userEvent.type(
+      screen.getByPlaceholderText('full name of the author to add'),
+      'fullname of the author'
+    )
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
 
     await userEvent.type(
@@ -872,7 +876,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       expect.objectContaining({
         value: [
           { authorId: '~test_id1', authorName: 'Test First Test Last' },
-          { authorId: 'test@email.com', authorName: 'some search term' },
+          { authorId: 'test@email.com', authorName: 'fullname of the author' },
         ],
       })
     )

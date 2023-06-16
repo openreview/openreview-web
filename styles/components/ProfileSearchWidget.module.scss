@@ -27,12 +27,14 @@
     .actionButtons {
       display: flex;
       flex-direction: column;
-      margin-right: 0.5rem;
+      margin-right: 0.1rem;
 
       button {
         padding: 1px 5px;
         margin-bottom: 0.1rem;
         border: none;
+        font-size: 0.75rem;
+        line-height: 1rem;
       }
     }
   }
