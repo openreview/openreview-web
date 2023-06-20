@@ -66,7 +66,7 @@ const CheckboxWidget = () => {
           <input
             type="checkbox"
             value={option.value ?? ''}
-            checked={value === option.value || value?.includes(option.value)}
+            checked={(value === option.value || value?.includes(option.value)) ?? false}
             disabled={option.optional === false}
             onChange={handleCheckboxClick}
           />

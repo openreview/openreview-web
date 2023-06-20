@@ -39,7 +39,11 @@ export const NewNoteReaders = ({
         ? [hasEveryoneGroup, ...regexGroupResult.groups.filter((p) => p.id !== 'everyone')]
         : regexGroupResult.groups
       setReaderOptions(
-        orderAdjustedGroups.map((p) => ({ label: prettyId(p.id), value: p.id }))
+        orderAdjustedGroups.map((p) => ({
+          label: prettyId(p.id),
+          value: p.id,
+          optional: true,
+        }))
       )
     } catch (error) {
       promptError(error.message)

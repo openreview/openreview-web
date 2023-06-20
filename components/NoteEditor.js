@@ -27,13 +27,18 @@ const NoteSignatures = ({
   noteEditorData,
   setNoteEditorData,
   closeNoteEditor,
+  errors,
+  setErrors,
 }) => {
+  const fieldName = 'noteSignatureInputValues'
+  const error = errors.find((e) => e.fieldName === fieldName)
+
   const onChange = ({ loading, value }) => {
     setLoading((existingLoadingState) => ({
       ...existingLoadingState,
       noteSignatures: loading,
     }))
-    setNoteEditorData({ fieldName: 'noteSignatures', value })
+    setNoteEditorData({ fieldName, value })
   }
 
   const onError = (errorMessage) => {
@@ -43,13 +48,18 @@ const NoteSignatures = ({
 
   if (!fieldDescription) return null
   return (
-    <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true}>
+    <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true} error={error}>
       <Signatures
         fieldDescription={fieldDescription}
         onChange={onChange}
-        currentValue={noteEditorData.noteSignatureInputValues}
+        currentValue={noteEditorData[fieldName]}
         onError={onError}
         extraClasses={styles.signatures}
+        clearError={() =>
+          setErrors((existingErrors) =>
+            existingErrors.filter((p) => p.fieldName !== fieldName)
+          )
+        }
       />
     </EditorComponentHeader>
   )
@@ -60,13 +70,18 @@ const EditSignatures = ({
   noteEditorData,
   setNoteEditorData,
   closeNoteEditor,
+  errors,
+  setErrors,
 }) => {
+  const fieldName = 'editSignatureInputValues'
+  const error = errors.find((e) => e.fieldName === fieldName)
+
   const onChange = ({ loading, value }) => {
     setLoading((existingLoadingState) => ({
       ...existingLoadingState,
       editSignatures: loading,
     }))
-    if (value) setNoteEditorData({ fieldName: 'editSignatureInputValues', value })
+    if (value) setNoteEditorData({ fieldName, value })
   }
 
   const onError = (errorMessage) => {
@@ -75,13 +90,18 @@ const EditSignatures = ({
   }
 
   return (
-    <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true}>
+    <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true} error={error}>
       <Signatures
         fieldDescription={fieldDescription}
         onChange={onChange}
-        currentValue={noteEditorData.editSignatureInputValues}
+        currentValue={noteEditorData[fieldName]}
         onError={onError}
         extraClasses={styles.signatures}
+        clearError={() =>
+          setErrors((existingErrors) =>
+            existingErrors.filter((p) => p.fieldName !== fieldName)
+          )
+        }
       />
     </EditorComponentHeader>
   )
@@ -382,7 +402,14 @@ const NoteEditor = ({
             return { fieldName, message: p.message.replace(fieldName, prettyField(fieldName)) }
           })
         )
-        promptError('Some info submitted are invalid.')
+        const hasOnlyMissingFieldsError = error.errors.every(
+          (p) => p.name === 'MissingRequiredError'
+        )
+        promptError(
+          hasOnlyMissingFieldsError
+            ? 'Required field values are missing.'
+            : 'Some info submitted are invalid.'
+        )
       } else if (error.details.path) {
         const fieldName = getErrorFieldName(error.details.path)
         setErrors([
@@ -433,6 +460,8 @@ const NoteEditor = ({
         noteEditorData={noteEditorData}
         setNoteEditorData={setNoteEditorData}
         closeNoteEditor={closeNoteEditor}
+        errors={errors}
+        setErrors={setErrors}
       />
       <div className={styles.editReaderSignature}>
         <h2>Edit History</h2>
@@ -440,8 +469,6 @@ const NoteEditor = ({
         <EditReaders
           fieldDescription={invitation.edit.readers}
           closeNoteEditor={closeNoteEditor}
-          // noteEditorData={noteEditorData}
-          // setNoteEditorData={setNoteEditorData}
           value={noteEditorData.editReaderValues}
           onChange={(value) => setNoteEditorData({ fieldName: 'editReaderValues', value })}
           setLoading={setLoading}
@@ -453,6 +480,8 @@ const NoteEditor = ({
           noteEditorData={noteEditorData}
           setNoteEditorData={setNoteEditorData}
           closeNoteEditor={closeNoteEditor}
+          errors={errors}
+          setErrors={setErrors}
         />
       </div>
       {Object.values(loading).some((p) => p) ? (

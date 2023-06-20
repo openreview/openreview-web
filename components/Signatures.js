@@ -19,6 +19,7 @@ const Signatures = ({
   onChange,
   currentValue,
   onError,
+  clearError,
   extraClasses,
   placeholder = 'Select Signature...',
 }) => {
@@ -109,8 +110,12 @@ const Signatures = ({
         return (
           <Dropdown
             options={signatureOptions}
-            onChange={(e) => onChange({ value: [e.value] })}
+            onChange={(e) => {
+              clearError?.()
+              onChange({ value: e ? [e.value] : undefined })
+            }}
             value={signatureOptions.find((p) => p.value === currentValue?.[0])}
+            isClearable={false}
             placeholder={placeholder}
           />
         )

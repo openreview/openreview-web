@@ -15,6 +15,13 @@
   }
 }
 
+.content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+}
+
 .description {
   font-size: 0.75rem;
   color: constants.$subtleGray;
@@ -46,6 +53,15 @@
 
 .error {
   color: constants.$orRed;
+
+  .errorMessage {
+    margin-left: 0.25rem;
+  }
+}
+
+.inlineError {
+  font-size: 0.875rem;
+  font-weight: normal;
 
   .errorMessage {
     margin-left: 0.25rem;

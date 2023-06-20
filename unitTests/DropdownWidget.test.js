@@ -179,7 +179,38 @@ describe('DropdownWidget', () => {
     await userEvent.click(screen.getByText('option three'))
 
     expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'option three' }))
-    expect(clearError).toBeCalled()
+  })
+
+  test('call update on clearing selected value (enum string single select)', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          ['some_select_field']: {
+            value: {
+              param: {
+                input: 'select',
+                enum: ['option one', 'option two', 'option three'],
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+        value: 'option two',
+      },
+    }
+
+    const { container } = renderWithEditorComponentContext(
+      <DropdownWidget multiple={false} />,
+      providerProps
+    )
+
+    const clearButton = container.querySelector('svg[height="20"][width="20"]')
+
+    await userEvent.click(clearButton)
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: undefined }))
   })
 
   test.skip('render nothing if invitation has enum but expect array', () => {

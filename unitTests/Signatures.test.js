@@ -808,4 +808,40 @@ describe('Signatures', () => {
       })
     })
   })
+
+  test('call clearError when user update selection', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+
+    const enumFieldDescription = {
+      param: {
+        enum: [
+          'ICML.cc/2023/Conference/Submission5/Reviewer_.*',
+          'ICML.cc/2023/Conference/Program_Chairs',
+        ],
+      },
+    }
+    const apiGet = jest.fn((_, body) =>
+      Promise.resolve(
+        body.prefix
+          ? { groups: [{ id: 'ICML.cc/2023/Conference/Submission5/Reviewer_abcd' }] }
+          : { groups: [{ id: 'ICML.cc/2023/Conference/Program_Chairs' }] }
+      )
+    )
+    api.get = apiGet
+
+    render(
+      <Signatures
+        fieldDescription={enumFieldDescription}
+        onChange={onChange}
+        clearError={clearError}
+      />
+    )
+
+    await waitFor(() => {
+      userEvent.click(screen.getByRole('combobox'))
+      userEvent.click(screen.getByText('ICML 2023 Conference Program Chairs'))
+      expect(clearError).toBeCalledTimes(1)
+    })
+  })
 })
