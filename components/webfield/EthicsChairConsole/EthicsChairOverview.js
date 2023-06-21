@@ -10,7 +10,6 @@ import LoadingSpinner from '../../LoadingSpinner'
 
 const EthicsChairOverview = () => {
   const { venueId, ethicsChairsName, ethicsReviewersName } = useContext(WebFieldContext)
-  const [isLoading, setIsLoading] = useState(false)
   const [recruitmentGroups, setRecruitmentGroups] = useState(null)
   const { accessToken } = useUser()
   const ethicsReviewersGroup = recruitmentGroups?.find(
@@ -21,8 +20,6 @@ const EthicsChairOverview = () => {
   )
 
   const loadRecruitmentGroups = async () => {
-    setIsLoading(true)
-
     try {
       const result = await api.getAll(
         '/groups',
@@ -35,7 +32,6 @@ const EthicsChairOverview = () => {
     } catch (error) {
       promptError(error.message)
     }
-    setIsLoading(false)
   }
 
   useEffect(() => {
@@ -48,7 +44,7 @@ const EthicsChairOverview = () => {
           title="Ethics Reviewer Recruitment"
           hint="accepted / invited"
           value={
-            !isLoading && recruitmentGroups ? (
+            recruitmentGroups ? (
               `${ethicsReviewersGroup?.members?.length ?? 'N/A'} / ${
                 invitedEthicsReviewersGroup?.members?.length ?? 'N/A'
               }`
