@@ -43,7 +43,7 @@ const EthicsChairConsole = ({ appContext }) => {
 
   useEffect(() => {
     if (!activeTabId) return
-    window.history.replaceState(null, null, activeTabId)
+    router.replace(activeTabId)
   }, [activeTabId])
 
   useEffect(() => {
