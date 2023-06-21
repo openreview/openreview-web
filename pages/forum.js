@@ -41,7 +41,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
     .toISOString()
     .slice(0, 10)
     .replace(/-/g, '/')
-  const modificationDate = new Date(forumNote.pdate || forumNote.tmdate || Date.now())
+  const modificationDate = new Date(forumNote.tmdate || Date.now())
     .toISOString()
     .slice(0, 10)
     .replace(/-/g, '/')
