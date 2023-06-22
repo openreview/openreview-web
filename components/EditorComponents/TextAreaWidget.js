@@ -66,7 +66,7 @@ const TextAreaWidget = () => {
   const webFieldContext = useContext(WebFieldContext)
   const editorComponentContext = useContext(EditorComponentContext)
   const { field, onChange, value, isWebfield, error, clearError } = editorComponentContext
-  const { note, entity } = isWebfield ? webFieldContext : editorComponentContext
+  const { note, replyToNote, entity } = isWebfield ? webFieldContext : editorComponentContext
   let { invitation } = isWebfield ? webFieldContext : editorComponentContext
   if (!invitation) invitation = entity
   const { user } = useUser()
@@ -88,7 +88,13 @@ const TextAreaWidget = () => {
 
   useEffect(() => {
     if (!shouldSaveDraft || value) return
-    const keyOfSavedText = getAutoStorageKey(user, invitation.id, note?.id, fieldName)
+    const keyOfSavedText = getAutoStorageKey(
+      user,
+      invitation.id,
+      note?.id,
+      replyToNote?.id,
+      fieldName
+    )
     const savedText = localStorage.getItem(keyOfSavedText)
     if (savedText) onTextUpdated({ fieldName, value: savedText, shouldSaveDraft })
   }, [])
@@ -108,7 +114,7 @@ const TextAreaWidget = () => {
               const updatedValue = e?.trim() === '' ? undefined : e
               onTextUpdated({ fieldName, value: updatedValue, shouldSaveDraft })
             }}
-            fieldName={fieldName}
+            fieldName={`${replyToNote?.id}${fieldName}`}
           />
         ) : (
           <textarea

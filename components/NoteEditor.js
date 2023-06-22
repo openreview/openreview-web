@@ -131,7 +131,13 @@ const NoteEditor = ({
   const saveDraft = useMemo(
     () =>
       debounce((fieldName, value) => {
-        const keyOfSavedText = getAutoStorageKey(user, invitation.id, note?.id, fieldName)
+        const keyOfSavedText = getAutoStorageKey(
+          user,
+          invitation.id,
+          note?.id,
+          replyToNote?.id,
+          fieldName
+        )
         localStorage.setItem(keyOfSavedText, value)
         setAutoStorageKeys((keys) => [...keys, keyOfSavedText])
       }, 2000),
@@ -168,6 +174,7 @@ const NoteEditor = ({
           value={{
             invitation,
             note,
+            replyToNote,
             field: { [fieldName]: fieldDescription },
             // eslint-disable-next-line no-shadow
             onChange: ({ fieldName, value, shouldSaveDraft }) =>

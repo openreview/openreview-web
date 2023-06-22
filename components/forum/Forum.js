@@ -603,7 +603,9 @@ export default function Forum({
     // Special case for chat layout: make sure all participants in the chat can read all the notes
     let chatReaders = null
     if (expandedInvitations?.length > 0) {
-      const primaryInv = parentNote.replyInvitations.find((inv) => inv.id === expandedInvitations[0])
+      const primaryInv = parentNote.replyInvitations.find(
+        (inv) => inv.id === expandedInvitations[0]
+      )
       chatReaders = primaryInv ? primaryInv.edit.note.readers : null
     }
 
