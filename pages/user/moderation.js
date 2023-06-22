@@ -796,6 +796,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
           invitation: 'OpenReview.net/Support/-/Request_Form',
           sort: 'tcdate',
           details: 'replies',
+          select: `id,forum,tcdate,content['Abbreviated Venue Name'],content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
         },
         { accessToken }
       )
@@ -806,15 +807,15 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
         tcdate: p.tcdate,
         isCreatedInPastWeek: dayjs().diff(dayjs(p.tcdate), 'd') < 7,
         abbreviatedName: p.content?.['Abbreviated Venue Name'],
-        hasOfficialReply: p.details.replies.find((q) =>
+        hasOfficialReply: p.details?.replies?.find((q) =>
           q.signatures.includes('OpenReview.net/Support')
         ),
         unrepliedPcComments: sortBy(
-          p.details.replies.filter(
+          p.details?.replies?.filter(
             (q) =>
               q.invitation.endsWith('Comment') &&
               !q.signatures.includes('OpenReview.net/Support') &&
-              !hasBeenReplied(q, p.details.replies) &&
+              !hasBeenReplied(q, p.details?.replies ?? []) &&
               dayjs().diff(dayjs(q.cdate), 'd') < 7
           ),
           (s) => -s.cdate
