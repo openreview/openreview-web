@@ -256,7 +256,9 @@ function ForumMeta({ note }) {
           className="readers item"
           data-toggle="tooltip"
           data-placement="top"
-          title={`Visible to ${note.readers.join(', ')}${note.odate ? ` since ${forumDate(note.odate)}` : ''}`}
+          title={`Visible to <br/>${note.readers.join('<br/>')}${
+            note.odate ? `<br/>since ${forumDate(note.odate)}` : ''
+          }`}
         >
           <Icon name="eye-open" />
           {note.readers.map((reader) => prettyId(reader, true)).join(', ')}

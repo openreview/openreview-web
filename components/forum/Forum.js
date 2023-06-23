@@ -546,7 +546,7 @@ export default function Forum({
     setTimeout(() => {
       typesetMathJax()
 
-      $('[data-toggle="tooltip"]').tooltip()
+      $('[data-toggle="tooltip"]').tooltip({ html: true })
 
       // Scroll note and invitation specified in url
       if (selectedNoteId && !scrolled) {
@@ -660,7 +660,7 @@ export default function Forum({
 
     setTimeout(() => {
       typesetMathJax()
-      $('[data-toggle="tooltip"]').tooltip()
+      $('[data-toggle="tooltip"]').tooltip({ html: true })
     }, 200)
   }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations])
 
