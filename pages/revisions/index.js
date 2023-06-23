@@ -524,15 +524,24 @@ const Revisions = ({ appContext }) => {
     try {
       const { invitations } = await api.get(
         '/invitations',
-        { ids: invitationIds, expired: true },
+        { ids: invitationIds, expired: true, details: 'writable' },
         { accessToken, version: 2 }
       )
 
       if (invitations?.length > 0) {
         setRevisions(
           edits.map((edit) => {
-            const invId = edit.invitation
-            const editInvitation = invitations.find((invitation) => invitation.id === invId)
+            let editInvitation = invitations.find(
+              (invitation) => invitation.id === edit.invitation
+            )
+            // Don't show the edit button next to an edit if it's expired and not writable
+            if (
+              editInvitation.expdate &&
+              editInvitation.expdate < Date.now() &&
+              !editInvitation.details?.writable
+            ) {
+              editInvitation = null
+            }
             return [edit, editInvitation]
           })
         )
@@ -546,6 +555,7 @@ const Revisions = ({ appContext }) => {
 
   const getPageTitle = () => {
     if (!revisions?.length) return 'Revision History'
+
     let latestNoteTitle =
       referencesToLoad === 'revisions'
         ? revisions.sort((p) => p[0].tcdate).find((q) => q[0]?.content?.title)?.[0]?.content
