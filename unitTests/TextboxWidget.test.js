@@ -185,4 +185,30 @@ describe('TextboxWidget', () => {
     )
     expect(clearError).toBeCalled()
   })
+
+  test('invoke onchange on text change (integer)(with type conversion)', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          ['integer_field']: {
+            value: {
+              param: {
+                type: 'integer',
+                range: [5, 10],
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+    const input = screen.getByDisplayValue('')
+    await userEvent.type(input, '  3  ')
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ value: 3 }))
+    expect(clearError).toBeCalled()
+  })
 })
