@@ -73,7 +73,9 @@ function NoteContent({
 
 function NoteContentField({ name, customFieldName }) {
   return (
-    <strong className="note-content-field">{customFieldName ?? prettyField(name)}:</strong>
+    <strong className="note-content-field disable-tex-rendering">
+      {customFieldName ?? prettyField(name)}:
+    </strong>
   )
 }
 
