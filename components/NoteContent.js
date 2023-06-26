@@ -184,6 +184,7 @@ export const NoteContentV2 = ({
         if (!fieldValue) return null
 
         const enableMarkdown = presentation?.[i]?.markdown
+        const customFieldName = presentation?.[i]?.fieldName
         const fieldReaders = Array.isArray(content[fieldName]?.readers)
           ? content[fieldName].readers.sort()
           : null
@@ -195,7 +196,7 @@ export const NoteContentV2 = ({
 
         return (
           <div key={fieldName}>
-            <NoteContentField name={fieldName} />{' '}
+            <NoteContentField name={customFieldName ?? fieldName} />{' '}
             {showPrivateIcon && (
               <Icon
                 name="eye-open"
