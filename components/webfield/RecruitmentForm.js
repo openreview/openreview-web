@@ -17,6 +17,7 @@ import { translateInvitationMessage } from '../../lib/webfield-utils'
 
 import styles from '../../styles/components/RecruitmentForm.module.scss'
 import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
+import RecruitmentFormWidget from '../EditorComponents/RecruitmentFormWidget'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
 
@@ -192,7 +193,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
           }}
         >
           <EditorComponentHeader>
-            <EditorWidget />
+            {isV2Invitation ? <EditorWidget /> : <RecruitmentFormWidget />}
           </EditorComponentHeader>
         </EditorComponentContext.Provider>
       )
