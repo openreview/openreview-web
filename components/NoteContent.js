@@ -198,7 +198,7 @@ export const NoteContentV2 = ({
 
         return (
           <div key={fieldName}>
-            <NoteContentField name={fieldName} customName={customFieldName} />{' '}
+            <NoteContentField name={fieldName} customFieldName={customFieldName} />{' '}
             {showPrivateIcon && (
               <Icon
                 name="eye-open"
