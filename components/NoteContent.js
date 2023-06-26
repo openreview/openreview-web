@@ -71,8 +71,10 @@ function NoteContent({
   )
 }
 
-function NoteContentField({ name }) {
-  return <strong className="note-content-field">{prettyField(name)}:</strong>
+function NoteContentField({ name, customFieldName }) {
+  return (
+    <strong className="note-content-field">{customFieldName ?? prettyField(name)}:</strong>
+  )
 }
 
 export function NoteContentValue({ content = '', enableMarkdown }) {
@@ -196,7 +198,7 @@ export const NoteContentV2 = ({
 
         return (
           <div key={fieldName}>
-            <NoteContentField name={customFieldName ?? fieldName} />{' '}
+            <NoteContentField name={fieldName} customName={customFieldName} />{' '}
             {showPrivateIcon && (
               <Icon
                 name="eye-open"
@@ -206,7 +208,7 @@ export const NoteContentV2 = ({
                   .join(', ')}`}
               />
             )}
-            {(fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/')) ? (
+            {fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/') ? (
               <span className="note-content-value">
                 <DownloadLink
                   noteId={id}
