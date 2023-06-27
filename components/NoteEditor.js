@@ -158,8 +158,14 @@ const NoteEditor = ({
     ...(note && { noteReaderValues: note.readers }),
   })
 
+  const getFieldNameOverwrite = (fieldName, fieldDescription) => {
+    const customFieldName = fieldDescription?.value?.param?.fieldName
+    if (customFieldName) return customFieldName
+    return fieldName === 'authorids' ? 'Authors' : undefined
+  }
+
   const renderField = ({ fieldName, fieldDescription }) => {
-    const fieldNameOverwrite = fieldName === 'authorids' ? 'Authors' : undefined
+    const fieldNameOverwrite = getFieldNameOverwrite(fieldName, fieldDescription)
     let fieldValue = noteEditorData[fieldName]
     const error = errors.find((e) => e.fieldName === fieldName)
     if (fieldName === 'authorids' && note) {
