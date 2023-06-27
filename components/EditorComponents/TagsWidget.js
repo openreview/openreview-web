@@ -18,7 +18,7 @@ const getTagTooltip = (id) => {
 }
 
 const Tag = ({ value }) => {
-  const segments = prettyId(value).split(/\{(\S+)\}/g)
+  const segments = prettyId(value).split(/\{(\S+\s*\S*)\}/g)
   const tooltip = getTagTooltip(value)
 
   useEffect(() => {

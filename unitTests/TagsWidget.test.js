@@ -38,6 +38,7 @@ describe('TagsWidget', () => {
       '${2/note/content/authorids/value}',
       '${3/signatures}',
       'ICML.cc/2023/Conference/Submission${2/note/number}/Authors',
+      '${2/content/venue_id/value}',
     ]
 
     render(<TagsWidget values={values} />)
@@ -45,6 +46,7 @@ describe('TagsWidget', () => {
     expect(screen.getByText('authorids')).toHaveClass('emphasis')
     expect(screen.getByText('signatures')).toHaveClass('emphasis')
     expect(screen.getByText('number')).toHaveClass('emphasis')
+    expect(screen.getByText('venue id')).toHaveClass('emphasis')
   })
 
   test('display tooltip based on id', () => {
