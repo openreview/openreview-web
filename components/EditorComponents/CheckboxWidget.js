@@ -62,7 +62,7 @@ const CheckboxWidget = () => {
   return (
     <div className={styles.checkboxContainer}>
       {checkboxOptions.map((option) => (
-        <div key={`${fieldName}-${option.value}`} className={styles.checkboxOptionRow}>
+        <label key={`${fieldName}-${option.value}`} className={styles.checkboxOptionRow}>
           <input
             type="checkbox"
             value={option.value ?? ''}
@@ -71,7 +71,7 @@ const CheckboxWidget = () => {
             onChange={handleCheckboxClick}
           />
           <span className={styles.optionDescription}>{option.description}</span>
-        </div>
+        </label>
       ))}
     </div>
   )

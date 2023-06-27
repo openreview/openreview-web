@@ -30,7 +30,7 @@ const RadioButtonWidget = () => {
   return (
     <div className={styles.radioButtonContainer}>
       {radioButtonOptions.map((option) => (
-        <div
+        <label
           className={styles.radioButtonOptionContainer}
           key={`${fieldName}-${option.value}`}
         >
@@ -44,7 +44,7 @@ const RadioButtonWidget = () => {
             }}
           />
           <span className={styles.radioButtonOptionText}>{option.description}</span>
-        </div>
+        </label>
       ))}
     </div>
   )

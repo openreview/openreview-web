@@ -579,6 +579,14 @@ describe('CheckboxWidget', () => {
       fieldName: 'paper_checklist_guidelines',
       value: '1', // type is string
     })
+
+    // clicking text should have same effect
+    const iCertifyText = screen.getByText('I certify')
+    await userEvent.click(iCertifyText)
+    expect(onChange).toBeCalledWith({
+      fieldName: 'paper_checklist_guidelines',
+      value: '1',
+    })
   })
 
   test('call update when option is checked (enum obj with type integer)', async () => {

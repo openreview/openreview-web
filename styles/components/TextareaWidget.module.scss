@@ -11,6 +11,9 @@
       .preview {
         min-height: 15rem;
         resize: vertical;
+        background-color: constants.$backgroundWhite;
+        padding: 0.375rem 0.75rem;
+        overflow-y: scroll;
       }
     }
   }

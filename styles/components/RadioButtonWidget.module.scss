@@ -3,11 +3,13 @@
 }
 
 .radioButtonOptionContainer {
-  margin-top: 0.5rem;
+  display: flex;
+  align-items: flex-start;
   margin-bottom: 0.5rem;
 }
 
 .radioButtonOptionText {
   margin-left: 0.25rem;
   vertical-align: top;
+  font-weight: normal;
 }
