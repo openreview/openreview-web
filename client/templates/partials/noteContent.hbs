@@ -1,7 +1,13 @@
 <ul class="list-unstyled note-content">
   {{#each this}}
     <li>
-      <strong class="note-content-field">{{prettyField fieldName}}:</strong>
+      <strong class="note-content-field">
+        {{#if customFieldName}}
+          {{customFieldName}}:
+        {{else}}
+          {{prettyField fieldName}}:
+        {{/if}}
+      </strong>
       <span class="note-content-value {{#if markdownRendered}}markdown-rendered{{/if}}">{{fieldValue}}</span>
     </li>
   {{/each}}
