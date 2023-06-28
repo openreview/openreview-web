@@ -6,13 +6,18 @@ import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } 
 jest.mock('../components/EditorComponents/EditorComponentReaders', () => () => (
   <span>component readers</span>
 ))
+global.MathJax = jest.fn()
+global.marked = jest.fn()
+global.DOMPurify = {
+  sanitize: jest.fn(),
+}
 
 describe('EditorComponentHeader', () => {
   test('pretty display mandatory field name of single word', () => {
     const providerProps = {
       value: {
         field: {
-          'title': {},
+          title: {},
         },
       },
     }
@@ -25,7 +30,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          'supplementary_material': {},
+          supplementary_material: {},
         },
       },
     }
@@ -38,7 +43,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          'abstract': {
+          abstract: {
             value: {
               param: {
                 optional: true,
@@ -57,7 +62,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          'abstract': {
+          abstract: {
             value: {
               param: {
                 deletable: true,
@@ -76,7 +81,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          'supplementary_material': {
+          supplementary_material: {
             value: {
               param: {
                 optional: true,
@@ -95,7 +100,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          'supplementary_material': {
+          supplementary_material: {
             value: {
               param: {
                 deletable: true,
@@ -115,7 +120,7 @@ describe('EditorComponentHeader', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          'pdf': {
+          pdf: {
             value: {
               param: {
                 type: 'file',
@@ -134,7 +139,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          'abstract': {
+          abstract: {
             value: {
               param: {
                 optional: true,
@@ -156,7 +161,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          'authorids': {
+          authorids: {
             value: {
               param: {
                 hidden: true,
@@ -170,11 +175,12 @@ describe('EditorComponentHeader', () => {
     expect(screen.getByText('Authorids').parentElement).toHaveClass('hidden')
   })
 
-  test('display description with no scroll', () => {
+  test('display description with no scroll with markdown support', () => {
+    global.DOMPurify.sanitize = jest.fn(() => '<p>rendered markdown</p>')
     const providerProps = {
       value: {
         field: {
-          'abstract': {
+          abstract: {
             description:
               'Abstract of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$.',
           },
@@ -182,18 +188,14 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(
-      screen.getByText(
-        'Abstract of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$.'
-      )
-    )
+    expect(screen.getByText('rendered markdown'))
   })
 
   test('display description with scroll', () => {
     const providerProps = {
       value: {
         field: {
-          'abstract': {
+          abstract: {
             description:
               'Abstract of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$.',
             value: {
@@ -215,7 +217,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          'abstract': {},
+          abstract: {},
         },
       },
     }
@@ -232,7 +234,7 @@ describe('EditorComponentHeader', () => {
     let providerProps = {
       value: {
         field: {
-          'comment': {
+          comment: {
             value: {
               param: {
                 type: 'string',
@@ -255,7 +257,7 @@ describe('EditorComponentHeader', () => {
     providerProps = {
       value: {
         field: {
-          'comment': {
+          comment: {
             value: {
               param: {
                 type: 'string',

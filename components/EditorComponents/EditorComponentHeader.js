@@ -4,6 +4,7 @@ import EditorComponentContext from '../EditorComponentContext'
 
 import styles from '../../styles/components/EditorComponentHeader.module.scss'
 import Icon from '../Icon'
+import Markdown from './Markdown'
 
 const EditorComponentHeader = ({
   inline = false,
@@ -43,7 +44,9 @@ const EditorComponentHeader = ({
             {scroll ? (
               <textarea className={styles.scrollDescription} value={description} readOnly />
             ) : (
-              <div className="disable-tex-rendering">{description}</div>
+              <div className="disable-tex-rendering">
+                <Markdown text={description} enableMathjaxFormula={false} />
+              </div>
             )}
           </div>
         )}

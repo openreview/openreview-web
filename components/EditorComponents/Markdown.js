@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 
-const Markdown = ({ text }) => {
+const Markdown = ({ text, enableMathjaxFormula = true }) => {
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const containerEl = useRef(null)
 
@@ -19,7 +19,12 @@ const Markdown = ({ text }) => {
   }, [text])
 
   useEffect(() => {
-    if (sanitizedHtml && containerEl.current && MathJax.startup?.promise) {
+    if (
+      sanitizedHtml &&
+      containerEl.current &&
+      MathJax.startup?.promise &&
+      enableMathjaxFormula
+    ) {
       MathJax.startup.promise
         .then(() => MathJax.typesetPromise([containerEl.current]))
         .catch(() => {

@@ -28,6 +28,12 @@
   font-weight: normal;
   margin-bottom: 0.25rem;
   max-width: 80%;
+
+  :global {
+    p {
+      margin-bottom: 0;
+    }
+  }
 }
 
 .scrollDescription {
