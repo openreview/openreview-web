@@ -1,9 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
+import { render, screen, waitFor } from '@testing-library/react'
 import ConsoleTaskList from '../components/webfield/ConsoleTaskList'
+import api from '../lib/api-client'
 
 jest.mock('../lib/api-client')
-import api from '../lib/api-client'
 jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
 
 let venueId, submissionName
