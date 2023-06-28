@@ -1,7 +1,7 @@
+import '@testing-library/jest-dom'
+import { screen } from '@testing-library/react'
 import EditorComponentHeader from '../components/EditorComponents/EditorComponentHeader'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
-import { screen } from '@testing-library/react'
-import '@testing-library/jest-dom'
 
 jest.mock('../components/EditorComponents/EditorComponentReaders', () => () => (
   <span>component readers</span>
@@ -12,7 +12,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          ['title']: {},
+          'title': {},
         },
       },
     }
@@ -25,7 +25,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          ['supplementary_material']: {},
+          'supplementary_material': {},
         },
       },
     }
@@ -38,7 +38,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          ['abstract']: {
+          'abstract': {
             value: {
               param: {
                 optional: true,
@@ -57,7 +57,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          ['abstract']: {
+          'abstract': {
             value: {
               param: {
                 deletable: true,
@@ -76,7 +76,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          ['supplementary_material']: {
+          'supplementary_material': {
             value: {
               param: {
                 optional: true,
@@ -95,7 +95,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          ['supplementary_material']: {
+          'supplementary_material': {
             value: {
               param: {
                 deletable: true,
@@ -115,7 +115,7 @@ describe('EditorComponentHeader', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['pdf']: {
+          'pdf': {
             value: {
               param: {
                 type: 'file',
@@ -134,7 +134,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          ['abstract']: {
+          'abstract': {
             value: {
               param: {
                 optional: true,
@@ -156,7 +156,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          'authorids': {
             value: {
               param: {
                 hidden: true,
@@ -174,7 +174,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          ['abstract']: {
+          'abstract': {
             description:
               'Abstract of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$.',
           },
@@ -193,7 +193,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          ['abstract']: {
+          'abstract': {
             description:
               'Abstract of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$.',
             value: {
@@ -215,7 +215,7 @@ describe('EditorComponentHeader', () => {
     const providerProps = {
       value: {
         field: {
-          ['abstract']: {},
+          'abstract': {},
         },
       },
     }
@@ -232,7 +232,7 @@ describe('EditorComponentHeader', () => {
     let providerProps = {
       value: {
         field: {
-          ['comment']: {
+          'comment': {
             value: {
               param: {
                 type: 'string',
@@ -255,7 +255,7 @@ describe('EditorComponentHeader', () => {
     providerProps = {
       value: {
         field: {
-          ['comment']: {
+          'comment': {
             value: {
               param: {
                 type: 'string',
