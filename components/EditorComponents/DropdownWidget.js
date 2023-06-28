@@ -3,6 +3,7 @@ import Dropdown from '../Dropdown'
 import EditorComponentContext from '../EditorComponentContext'
 import { prettyField } from '../../lib/utils'
 import { convertToType } from '../../lib/webfield-utils'
+import styles from '../../styles/components/DropdownWidget.module.scss'
 
 const DropdownWidget = ({ multiple }) => {
   const { field, onChange, value, clearError } = useContext(EditorComponentContext)
@@ -13,7 +14,7 @@ const DropdownWidget = ({ multiple }) => {
   const [dropdownOptions, setDropdownOptions] = useState([])
   const [allowMultiSelect, setAllowMultiSelect] = useState(multiple && isArrayType)
 
-  const styles = {
+  const customStyles = {
     multiValueLabel: (base, state) =>
       state.data.optional
         ? base
@@ -95,9 +96,9 @@ const DropdownWidget = ({ multiple }) => {
   if (!dropdownOptions.length) return null
 
   return (
-    <div className="dropdown-list">
+    <div className={styles.dropdownContainer}>
       <Dropdown
-        styles={styles}
+        styles={customStyles}
         options={dropdownOptions}
         onChange={dropdownChangeHandler}
         value={dropdownOptions.filter(

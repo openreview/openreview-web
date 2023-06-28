@@ -2,6 +2,9 @@
 
 .textboxContainer {
   max-width: 80%;
+  @media #{constants.$phone-only} {
+    max-width: 100%;
+  }
 }
 
 .textboxInput {

@@ -1,0 +1,18 @@
+@use '../utils/constants';
+
+.dropdownContainer {
+  max-width: 80%;
+  @media #{constants.$phone-only} {
+    max-width: 100%;
+  }
+
+  :global {
+    .dropdown-select {
+      width: 100%;
+
+      &__indicators {
+        display: none;
+      }
+    }
+  }
+}
