@@ -3415,21 +3415,43 @@ templates['partials/noteBasicV2'] = template({"1":function(container,depth0,help
     + "\n";
 },"useData":true});
 templates['partials/noteContent'] = template({"1":function(container,depth0,helpers,partials,data) {
-    var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+    var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
         }
         return undefined
     };
 
-  return "    <li>\n      <strong class=\"note-content-field\">"
-    + alias3((lookupProperty(helpers,"prettyField")||(depth0 && lookupProperty(depth0,"prettyField"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"fieldName") : depth0),{"name":"prettyField","hash":{},"data":data,"loc":{"start":{"line":4,"column":41},"end":{"line":4,"column":66}}}))
-    + ":</strong>\n      <span class=\"note-content-value "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"markdownRendered") : depth0),{"name":"if","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":5,"column":38},"end":{"line":5,"column":86}}})) != null ? stack1 : "")
+  return "    <li>\n      <strong class=\"note-content-field\">\n"
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"customFieldName") : depth0),{"name":"if","hash":{},"fn":container.program(2, data, 0),"inverse":container.program(4, data, 0),"data":data,"loc":{"start":{"line":5,"column":8},"end":{"line":9,"column":15}}})) != null ? stack1 : "")
+    + "      </strong>\n      <span class=\"note-content-value "
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"markdownRendered") : depth0),{"name":"if","hash":{},"fn":container.program(6, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":11,"column":38},"end":{"line":11,"column":86}}})) != null ? stack1 : "")
     + "\">"
-    + alias3(((helper = (helper = lookupProperty(helpers,"fieldValue") || (depth0 != null ? lookupProperty(depth0,"fieldValue") : depth0)) != null ? helper : alias2),(typeof helper === "function" ? helper.call(alias1,{"name":"fieldValue","hash":{},"data":data,"loc":{"start":{"line":5,"column":88},"end":{"line":5,"column":102}}}) : helper)))
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"fieldValue") || (depth0 != null ? lookupProperty(depth0,"fieldValue") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(alias1,{"name":"fieldValue","hash":{},"data":data,"loc":{"start":{"line":11,"column":88},"end":{"line":11,"column":102}}}) : helper)))
     + "</span>\n    </li>\n";
 },"2":function(container,depth0,helpers,partials,data) {
+    var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "          "
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"customFieldName") || (depth0 != null ? lookupProperty(depth0,"customFieldName") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"customFieldName","hash":{},"data":data,"loc":{"start":{"line":6,"column":10},"end":{"line":6,"column":29}}}) : helper)))
+    + ":\n";
+},"4":function(container,depth0,helpers,partials,data) {
+    var lookupProperty = container.lookupProperty || function(parent, propertyName) {
+        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
+          return parent[propertyName];
+        }
+        return undefined
+    };
+
+  return "          "
+    + container.escapeExpression((lookupProperty(helpers,"prettyField")||(depth0 && lookupProperty(depth0,"prettyField"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),(depth0 != null ? lookupProperty(depth0,"fieldName") : depth0),{"name":"prettyField","hash":{},"data":data,"loc":{"start":{"line":8,"column":10},"end":{"line":8,"column":35}}}))
+    + ":\n";
+},"6":function(container,depth0,helpers,partials,data) {
     return "markdown-rendered";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -3440,7 +3462,7 @@ templates['partials/noteContent'] = template({"1":function(container,depth0,help
     };
 
   return "<ul class=\"list-unstyled note-content\">\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":2,"column":2},"end":{"line":7,"column":11}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":2,"column":2},"end":{"line":13,"column":11}}})) != null ? stack1 : "")
     + "</ul>\n";
 },"useData":true});
 templates['partials/noteList'] = template({"1":function(container,depth0,helpers,partials,data,blockParams,depths) {
