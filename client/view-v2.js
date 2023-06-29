@@ -1774,7 +1774,6 @@ module.exports = (function () {
             $readers.find('.small_heading').prepend(requiredText)
             done($readers)
           } else {
-            console.log('1')
             done(undefined, 'Can not create note, readers must match parent note')
           }
         }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 
-const Markdown = ({ text, enableMathjaxFormula = true }) => {
+const Markdown = ({ text, disableMathjaxFormula = false }) => {
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const containerEl = useRef(null)
 
@@ -19,12 +19,8 @@ const Markdown = ({ text, enableMathjaxFormula = true }) => {
   }, [text])
 
   useEffect(() => {
-    if (
-      sanitizedHtml &&
-      containerEl.current &&
-      MathJax.startup?.promise &&
-      enableMathjaxFormula
-    ) {
+    if (disableMathjaxFormula) return
+    if (sanitizedHtml && containerEl.current && MathJax.startup?.promise) {
       MathJax.startup.promise
         .then(() => MathJax.typesetPromise([containerEl.current]))
         .catch(() => {
@@ -34,7 +30,13 @@ const Markdown = ({ text, enableMathjaxFormula = true }) => {
     }
   }, [sanitizedHtml, containerEl])
 
-  return <div ref={containerEl} dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+  return (
+    <div
+      className={`${disableMathjaxFormula ? 'disable-tex-rendering' : ''}`}
+      ref={containerEl}
+      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+    />
+  )
 }
 
 export default Markdown

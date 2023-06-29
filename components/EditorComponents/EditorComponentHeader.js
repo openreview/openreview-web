@@ -44,9 +44,7 @@ const EditorComponentHeader = ({
             {scroll ? (
               <textarea className={styles.scrollDescription} value={description} readOnly />
             ) : (
-              <div className="disable-tex-rendering">
-                <Markdown text={description} enableMathjaxFormula={false} />
-              </div>
+              <Markdown text={description} disableMathjaxFormula={true} />
             )}
           </div>
         )}
