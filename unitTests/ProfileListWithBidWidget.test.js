@@ -1,8 +1,7 @@
-import ProfileListWithBidWidget from '../components/ProfileListWithBidWidget'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import ProfileListWithBidWidget from '../components/ProfileListWithBidWidget'
 import '@testing-library/jest-dom'
-import { render } from '@testing-library/react'
 
 describe('ProfileListWithBidWidget', () => {
   test('show only empty message if there are no profiles', () => {

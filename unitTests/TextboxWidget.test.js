@@ -1,7 +1,7 @@
-import TextboxWidget from '../components/EditorComponents/TextboxWidget'
 import { screen } from '@testing-library/react'
-import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import userEvent from '@testing-library/user-event'
+import TextboxWidget from '../components/EditorComponents/TextboxWidget'
+import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
 describe('TextboxWidget', () => {
@@ -9,7 +9,7 @@ describe('TextboxWidget', () => {
     let providerProps = {
       value: {
         field: {
-          ['venue']: {
+          venue: {
             value: {
               param: {
                 const: 'ICML Conf Submission',
@@ -25,7 +25,7 @@ describe('TextboxWidget', () => {
     providerProps = {
       value: {
         field: {
-          ['keywords']: {
+          keywords: {
             value: {
               param: {
                 const: ['keyword one', 'keyword two', 'keyword three'],
@@ -43,7 +43,7 @@ describe('TextboxWidget', () => {
     providerProps = {
       value: {
         field: {
-          ['venue']: {
+          venue: {
             value: 'ICML Conf Submission',
           },
         },
@@ -55,7 +55,7 @@ describe('TextboxWidget', () => {
     providerProps = {
       value: {
         field: {
-          ['keywords']: {
+          keywords: {
             value: ['keyword one', 'keyword two', 'keyword three'],
           },
         },
@@ -69,7 +69,7 @@ describe('TextboxWidget', () => {
     providerProps = {
       value: {
         field: {
-          ['venue']: 'ICML Conf Submission',
+          venue: 'ICML Conf Submission',
         },
       },
     }
@@ -79,7 +79,7 @@ describe('TextboxWidget', () => {
     providerProps = {
       value: {
         field: {
-          ['keywords']: ['keyword one', 'keyword two', 'keyword three'],
+          keywords: ['keyword one', 'keyword two', 'keyword three'],
         },
       },
     }
@@ -93,7 +93,7 @@ describe('TextboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_title']: {},
+          paper_title: {},
         },
         value: undefined,
       },
@@ -106,7 +106,7 @@ describe('TextboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_title']: {},
+          paper_title: {},
         },
         value: 'some existing value',
       },
@@ -119,7 +119,7 @@ describe('TextboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['keywords']: {
+          keywords: {
             value: {
               param: {
                 type: 'string[]',
@@ -140,7 +140,7 @@ describe('TextboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_title']: {
+          paper_title: {
             value: {
               param: {
                 type: 'string',
@@ -165,7 +165,7 @@ describe('TextboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['keywords']: {
+          keywords: {
             value: {
               param: {
                 type: 'string[]',
@@ -192,7 +192,7 @@ describe('TextboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['integer_field']: {
+          integer_field: {
             value: {
               param: {
                 type: 'integer',

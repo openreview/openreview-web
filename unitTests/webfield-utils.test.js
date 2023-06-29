@@ -1,5 +1,4 @@
-import { getErrorFieldName } from '../lib/webfield-utils'
-import { filterCollections } from '../lib/webfield-utils'
+import { getErrorFieldName, filterCollections } from '../lib/webfield-utils'
 
 const filterOperators = ['!=', '>=', '<=', '>', '<', '==', '=']
 const uniqueIdentifier = 'id'
@@ -150,14 +149,13 @@ describe('filterCollections', () => {
       { id: 9 },
       { id: 10 },
     ]
-    let filterString =
+    const filterString =
       '((id!=1 OR id!=2) AND (id>3 OR (id<=5 AND id!=4))) AND (id>=6 AND id<8) OR id=8'
     const propertiesAllowed = {
       id: ['id'],
     }
-    let result
 
-    result = filterCollections(
+    const result = filterCollections(
       collections,
       filterString,
       filterOperators,
@@ -173,13 +171,12 @@ describe('filterCollections', () => {
       { id: 2, note: { content: { title: { value: 'some different value' } } } },
       { id: 3 }, // no such value
     ]
-    let filterString = "key='some value'"
+    const filterString = "key='some value'"
     const propertiesAllowed = {
       key: ['note.content.title.value'],
     }
-    let result
 
-    result = filterCollections(
+    const result = filterCollections(
       collections,
       filterString,
       filterOperators,
@@ -204,13 +201,12 @@ describe('filterCollections', () => {
       },
       { id: 3 }, // no such value
     ]
-    let filterString = "key='some value'"
+    const filterString = "key='some value'"
     const propertiesAllowed = {
       key: ['note.content.title.value', 'decision'],
     }
-    let result
 
-    result = filterCollections(
+    const result = filterCollections(
       collections,
       filterString,
       filterOperators,
@@ -247,10 +243,10 @@ describe('filterCollections', () => {
     let filterString =
       'TMLR/Action_Editors/-/Assignment<TMLR/Action_Editors/-/Custom_Max_Papers'
     const propertiesAllowed = {
-      ['TMLR/Action_Editors/-/Custom_Max_Papers']: [
+      'TMLR/Action_Editors/-/Custom_Max_Papers': [
         'filterProperties.TMLR/Action_Editors/-/Custom_Max_Papers',
       ],
-      ['TMLR/Action_Editors/-/Assignment']: [
+      'TMLR/Action_Editors/-/Assignment': [
         'filterProperties.TMLR/Action_Editors/-/Assignment',
       ],
     }
@@ -383,14 +379,13 @@ describe('filterCollections', () => {
         },
       },
     ]
-    let filterString = 'key1 = key2'
+    const filterString = 'key1 = key2'
     const propertiesAllowed = {
       key1: ['note.content.value1', 'note.content.value2'],
       key2: ['note.content.value3', 'note.content.value4'],
     }
-    let result
 
-    result = filterCollections(
+    const result = filterCollections(
       collections,
       filterString,
       filterOperators,
@@ -406,13 +401,12 @@ describe('filterCollections', () => {
       { id: 2, note: { content: { title: { value: 'some different vAlUe' } } } },
       { id: 3 },
     ]
-    let filterString = "key='VALUE'"
+    const filterString = "key='VALUE'"
     const propertiesAllowed = {
       key: ['note.content.title.value'],
     }
-    let result
 
-    result = filterCollections(
+    const result = filterCollections(
       collections,
       filterString,
       filterOperators,
@@ -428,13 +422,12 @@ describe('filterCollections', () => {
       { id: 2, note: { content: { title: { value2: 'some different vAlUe' } } } },
       { id: 3 },
     ]
-    let filterString = "key='VALUE'"
+    const filterString = "key='VALUE'"
     const propertiesAllowed = {
       key: ['note.content.title.value1', 'note.content.title.value2'],
     }
-    let result
 
-    result = filterCollections(
+    const result = filterCollections(
       collections,
       filterString,
       filterOperators,
@@ -450,13 +443,12 @@ describe('filterCollections', () => {
       { id: 2, note: { content: { title: { value: 'some different vAlUe' } } } },
       { id: 3, note: { content: { title: { value: 'VALUE' } } } },
     ]
-    let filterString = 'key==VALUE'
+    const filterString = 'key==VALUE'
     const propertiesAllowed = {
       key: ['note.content.title.value'],
     }
-    let result
 
-    result = filterCollections(
+    const result = filterCollections(
       collections,
       filterString,
       filterOperators,
@@ -472,7 +464,7 @@ describe('filterCollections', () => {
       { id: 2, note: { content: { title: { value2: 'some different vAlUe' } } } },
       { id: 3, note: { content: { title: { value3: 'VALUE' } } } },
     ]
-    let filterString = 'key==VALUE'
+    const filterString = 'key==VALUE'
     const propertiesAllowed = {
       key: [
         'note.content.title.value1',
@@ -480,9 +472,8 @@ describe('filterCollections', () => {
         'note.content.title.value3',
       ],
     }
-    let result
 
-    result = filterCollections(
+    const result = filterCollections(
       collections,
       filterString,
       filterOperators,

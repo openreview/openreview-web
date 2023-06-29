@@ -1,11 +1,12 @@
-import CodeEditorWidget from '../components/EditorComponents/CodeEditorWidget'
-import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import CodeEditorWidget from '../components/EditorComponents/CodeEditorWidget'
+import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
 let codeEditorProps
 let onCodeChange
+
 jest.mock('../components/CodeEditor', () => (props) => {
   codeEditorProps(props)
   onCodeChange = props.onChange
@@ -15,9 +16,9 @@ jest.mock('../components/CodeEditor', () => (props) => {
 jest.mock('next/dynamic', () => ({
   __esModule: true,
   default: (...props) => {
-    const matchedPath = /(\"..\/(.*)\")/.exec(props[0].toString())
+    const matchedPath = /("..\/(.*)")/.exec(props[0].toString())
     if (matchedPath) return require(`../components/${matchedPath[2]}`)
-    else return () => <></>
+    return () => <></>
   },
 }))
 
@@ -31,7 +32,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['setting']: {
+          setting: {
             value: {
               param: {
                 type: 'nonjson',
@@ -53,7 +54,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['setting']: {
+          setting: {
             value: {
               param: {
                 type: 'json',
@@ -75,7 +76,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['setting']: {
+          setting: {
             value: {
               param: {
                 type: 'json',
@@ -101,7 +102,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['setting']: {
+          setting: {
             value: {
               param: {
                 type: 'json',
@@ -127,7 +128,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['setting']: {
+          setting: {
             value: {
               param: {
                 type: 'json',
@@ -155,7 +156,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['setting']: {
+          setting: {
             value: {
               param: {
                 type: 'json',
@@ -182,7 +183,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['setting']: {
+          setting: {
             value: {
               param: {
                 type: 'json',

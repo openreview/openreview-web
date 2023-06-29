@@ -6,9 +6,7 @@ import api from '../lib/api-client'
 
 let mockUser
 let tagProps
-jest.mock('../hooks/useUser', () => {
-  return () => mockUser
-})
+jest.mock('../hooks/useUser', () => () => mockUser)
 jest.mock('../components/EditorComponents/TagsWidget', () => (props) => {
   tagProps(props)
   return <span>tags</span>

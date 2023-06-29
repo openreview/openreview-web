@@ -1,7 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import api from '../lib/api-client'
 import userEvent from '@testing-library/user-event'
+import api from '../lib/api-client'
 import { renderWithWebFieldContext } from './util'
 import RecruitmentForm from '../components/webfield/RecruitmentForm'
 
@@ -12,9 +12,7 @@ jest.mock('../components/EditorComponents/Markdown', () => (props) => {
   markdownProps(props)
   return <span>{props.text}</span>
 })
-jest.mock('../hooks/useUser', () => {
-  return () => ({ user: {}, accessToken: 'some token' })
-})
+jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
 jest.mock('../lib/utils', () => {
   const original = jest.requireActual('../lib/utils')
   return {

@@ -2,15 +2,13 @@ import { screen, render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 import Signatures from '../components/Signatures'
+import api from '../lib/api-client'
 
 jest.mock('../lib/api-client')
-import api from '../lib/api-client'
 
 let mockUseUserHookValue
 let tagProps
-jest.mock('../hooks/useUser', () => {
-  return () => mockUseUserHookValue
-})
+jest.mock('../hooks/useUser', () => () => mockUseUserHookValue)
 
 jest.mock('../components/EditorComponents/TagsWidget', () => (props) => {
   tagProps(props)

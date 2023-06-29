@@ -1,7 +1,7 @@
-import CheckboxWidget from '../components/EditorComponents/CheckboxWidget'
-import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import CheckboxWidget from '../components/EditorComponents/CheckboxWidget'
+import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
 describe('CheckboxWidget', () => {
@@ -9,7 +9,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -29,7 +29,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -49,7 +49,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -69,7 +69,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -93,7 +93,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -121,7 +121,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -149,7 +149,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -185,7 +185,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -209,7 +209,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -231,7 +231,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -253,7 +253,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -284,7 +284,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -310,7 +310,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -336,7 +336,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -367,7 +367,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -398,7 +398,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -429,7 +429,7 @@ describe('CheckboxWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -457,10 +457,10 @@ describe('CheckboxWidget', () => {
   test('call update when option is checked (enum string)', async () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
-    let providerProps = {
+    const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -489,10 +489,10 @@ describe('CheckboxWidget', () => {
   test('call update when option is checked (enum integer)', async () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
-    let providerProps = {
+    const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -521,10 +521,10 @@ describe('CheckboxWidget', () => {
   test('call update when option is unchecked (enum string)', async () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
-    let providerProps = {
+    const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -553,10 +553,10 @@ describe('CheckboxWidget', () => {
   test('call update when option is checked (enum obj with type string)', async () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
-    let providerProps = {
+    const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -592,10 +592,10 @@ describe('CheckboxWidget', () => {
   test('call update when option is checked (enum obj with type integer)', async () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
-    let providerProps = {
+    const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -624,10 +624,10 @@ describe('CheckboxWidget', () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
 
-    let providerProps = {
+    const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -655,10 +655,10 @@ describe('CheckboxWidget', () => {
   test('call update when option is checked (items with type string[])', async () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
-    let providerProps = {
+    const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -690,10 +690,10 @@ describe('CheckboxWidget', () => {
   test('call update when option is checked (items with type integer[])', async () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
-    let providerProps = {
+    const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',
@@ -726,10 +726,10 @@ describe('CheckboxWidget', () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
 
-    let providerProps = {
+    const providerProps = {
       value: {
         field: {
-          ['paper_checklist_guidelines']: {
+          paper_checklist_guidelines: {
             value: {
               param: {
                 input: 'checkbox',

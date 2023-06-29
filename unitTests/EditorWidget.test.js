@@ -1,6 +1,6 @@
+import { screen } from '@testing-library/react'
 import EditorWidget from '../components/webfield/EditorWidget'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
-import { screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 
 jest.mock('../components/EditorComponents/TextboxWidget', () => () => <span>textbox</span>)
@@ -20,9 +20,9 @@ jest.mock('../components/EditorComponents/ProfileSearchWidget', () => () => (
 jest.mock('next/dynamic', () => ({
   __esModule: true,
   default: (...props) => {
-    const matchedPath = /(\"..\/(.*)\")/.exec(props[0].toString())
+    const matchedPath = /("..\/(.*)")/.exec(props[0].toString())
     if (matchedPath) return require(`../components/${matchedPath[2]}`)
-    else return () => <></>
+    return () => <></>
   },
 }))
 
@@ -33,7 +33,7 @@ beforeEach(() => {
   inputProviderProps = {
     value: {
       field: {
-        ['field_name']: {
+        field_name: {
           value: {
             param: {
               input: null,
@@ -47,7 +47,7 @@ beforeEach(() => {
   typeProviderProps = {
     value: {
       field: {
-        ['field_name']: {
+        field_name: {
           value: {
             param: {
               type: null,
@@ -64,7 +64,7 @@ describe('EditorWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['an_empty_field']: {},
+          an_empty_field: {},
         },
       },
     }
@@ -76,7 +76,7 @@ describe('EditorWidget', () => {
     let providerProps = {
       value: {
         field: {
-          ['venue']: 'ICML Conf Submission',
+          venue: 'ICML Conf Submission',
         },
       },
     }
@@ -86,7 +86,7 @@ describe('EditorWidget', () => {
     providerProps = {
       value: {
         field: {
-          ['venue']: {
+          venue: {
             value: 'ICML Conf Submission',
           },
         },
@@ -98,7 +98,7 @@ describe('EditorWidget', () => {
     providerProps = {
       value: {
         field: {
-          ['venue']: {
+          venue: {
             value: {
               param: {
                 const: 'ICML Conf Submission',
@@ -116,7 +116,7 @@ describe('EditorWidget', () => {
     let providerProps = {
       value: {
         field: {
-          ['authorids']: ['~Author_ID1', '~Author_ID2', '~Author_ID3'],
+          authorids: ['~Author_ID1', '~Author_ID2', '~Author_ID3'],
         },
       },
     }
@@ -126,7 +126,7 @@ describe('EditorWidget', () => {
     providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: ['~Author_ID1', '~Author_ID2', '~Author_ID3'],
           },
         },
@@ -138,7 +138,7 @@ describe('EditorWidget', () => {
     providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 const: ['~Author_ID1', '~Author_ID2', '~Author_ID3'],
@@ -156,7 +156,7 @@ describe('EditorWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['authors']: {
+          authors: {
             readers: ['everyone'],
           },
         },

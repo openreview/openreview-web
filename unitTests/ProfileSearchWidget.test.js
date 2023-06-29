@@ -1,19 +1,20 @@
-import ProfileSearchWidget from '../components/EditorComponents/ProfileSearchWidget'
 import { screen, waitFor } from '@testing-library/react'
-import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import userEvent from '@testing-library/user-event'
+import ProfileSearchWidget from '../components/EditorComponents/ProfileSearchWidget'
+import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
-jest.mock('../hooks/useUser', () => {
-  return () => ({ user: { profile: { id: '~test_id1' } }, accessToken: 'test token' })
-})
+import api from '../lib/api-client'
+
+jest.mock('../hooks/useUser', () => () => ({
+  user: { profile: { id: '~test_id1' } },
+  accessToken: 'test token',
+}))
 
 global.$ = jest.fn(() => ({
   tooltip: jest.fn(),
 }))
 global.promptError = jest.fn()
-
-import api from '../lib/api-client'
 
 describe('ProfileSearchWidget for authors+authorids field', () => {
   test('show search input and disabled search button', async () => {
@@ -23,7 +24,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -52,7 +53,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -82,7 +83,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -129,7 +130,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerPropsNoValue = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -149,7 +150,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerPropsWithValue = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -208,7 +209,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -283,7 +284,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -324,7 +325,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -360,7 +361,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -426,7 +427,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -489,7 +490,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -546,7 +547,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -609,7 +610,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -648,7 +649,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -687,7 +688,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -724,7 +725,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -761,7 +762,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -794,7 +795,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -835,7 +836,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['authorids']: {
+          authorids: {
             value: {
               param: {
                 type: 'group[]',
@@ -893,7 +894,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['corresponding_author']: {
+          corresponding_author: {
             value: {
               param: {
                 type: 'group[]',
@@ -943,7 +944,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['corresponding_author']: {
+          corresponding_author: {
             value: {
               param: {
                 type: 'group[]',
@@ -1002,7 +1003,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['corresponding_author']: {
+          corresponding_author: {
             value: {
               param: {
                 type: 'group[]',
@@ -1054,7 +1055,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['corresponding_author']: {
+          corresponding_author: {
             value: {
               param: {
                 type: 'group[]',
@@ -1110,7 +1111,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
     const providerProps = {
       value: {
         field: {
-          ['corresponding_author']: {
+          corresponding_author: {
             value: {
               param: {
                 type: 'group', // invitation type group instead of group[] will cause multiple to be false

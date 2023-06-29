@@ -1,23 +1,20 @@
+import userEvent from '@testing-library/user-event'
+import { screen, waitFor } from '@testing-library/react'
 import ProfileBidConsole from '../components/webfield/ProfileBidConsole'
 import { renderWithWebFieldContext } from './util'
-import { screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
+import api from '../lib/api-client'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
-jest.mock('../hooks/useUser', () => {
-  return () => ({
-    user: {
-      profile: {
-        id: 'some id',
-      },
+jest.mock('../hooks/useUser', () => () => ({
+  user: {
+    profile: {
+      id: 'some id',
     },
-    accessToken: 'some token',
-  })
-})
-jest.mock('../hooks/useQuery', () => {
-  return () => ({})
-})
+  },
+  accessToken: 'some token',
+}))
+jest.mock('../hooks/useQuery', () => () => ({}))
 let bidInvitation
 let profileListProps
 
@@ -39,7 +36,6 @@ jest.mock('../components/ProfileListWithBidWidget', () => (props) => {
   profileListProps(props)
   return <span>profile list</span>
 })
-import api from '../lib/api-client'
 
 global.promptError = jest.fn()
 global.MathJax = jest.fn()
@@ -212,9 +208,7 @@ describe('ProfileBidConsole', () => {
   })
 
   test('show profiles in ac group if fits in one page(25)', async () => {
-    const getBidConlictEdges = jest.fn(() => {
-      return Promise.resolve([])
-    })
+    const getBidConlictEdges = jest.fn(() => Promise.resolve([]))
     const ACProfiles = [...new Array(25).keys()].map((index) => ({
       id: `~test_id${index}`,
       content: {
@@ -266,9 +260,7 @@ describe('ProfileBidConsole', () => {
   })
 
   test('show paginated profiles if does not fit one page(25)', async () => {
-    const getBidConlictEdges = jest.fn(() => {
-      return Promise.resolve([])
-    })
+    const getBidConlictEdges = jest.fn(() => Promise.resolve([]))
     const ACProfiles = [...new Array(125).keys()].map((index) => ({
       id: `~test_id${index}`,
       content: {
@@ -338,9 +330,7 @@ describe('ProfileBidConsole', () => {
   })
 
   test('filter results when user search by profile username,history and expertise', async () => {
-    const getBidConlictEdges = jest.fn(() => {
-      return Promise.resolve([])
-    })
+    const getBidConlictEdges = jest.fn(() => Promise.resolve([]))
     const getACProfiles = jest.fn(() =>
       Promise.resolve({
         profiles: [
@@ -411,7 +401,7 @@ describe('ProfileBidConsole', () => {
       )
     })
 
-    //search by name
+    // search by name
     await userEvent.type(screen.getByRole('textbox'), '   INTER   ')
     await waitFor(() => {
       expect(profileListProps).toHaveBeenLastCalledWith(
@@ -424,7 +414,7 @@ describe('ProfileBidConsole', () => {
       )
     })
 
-    //search by history
+    // search by history
     await waitFor(() => userEvent.clear(screen.getByRole('textbox'))) // temp solution for bug
     await waitFor(() => {
       expect(profileListProps).toHaveBeenLastCalledWith(
@@ -448,7 +438,7 @@ describe('ProfileBidConsole', () => {
       )
     })
 
-    //search by expertise
+    // search by expertise
     await waitFor(() => userEvent.clear(screen.getByRole('textbox'))) // temp solution for bug
     await userEvent.type(screen.getByRole('textbox'), 'knowledge base')
     await waitFor(() => {
@@ -555,28 +545,25 @@ describe('ProfileBidConsole', () => {
 
   test('show profiles with bid edge in bid option tab', async () => {
     api.getAll = jest.fn((path, query, option) => {
-      if ((query.invitation = bidInvitation.id))
+      if (query.invitation === bidInvitation.id)
         return Promise.resolve([
           { head: '~test_id1', label: 'Very High' },
           { head: '~test_id2', label: 'Neutral' },
         ])
       return Promise.resolve([])
     })
-    api.get = jest.fn(() => {
-      return Promise.resolve([])
-    })
+    api.get = jest.fn(() => Promise.resolve([]))
     const getProfileWithBidEdge = jest.fn((path, query, option) => {
       if (query.ids[0] === '~test_id1') {
         // very high tab
         return Promise.resolve({
           profiles: [{ id: '~test_id1', content: {} }],
         })
-      } else {
-        // neutral tab
-        return Promise.resolve({
-          profiles: [{ id: '~test_id2', content: {} }],
-        })
       }
+      // neutral tab
+      return Promise.resolve({
+        profiles: [{ id: '~test_id2', content: {} }],
+      })
     })
     api.post = getProfileWithBidEdge
 

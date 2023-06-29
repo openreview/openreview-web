@@ -1,7 +1,7 @@
-import DropdownWidget from '../components/EditorComponents/DropdownWidget'
-import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import DropdownWidget from '../components/EditorComponents/DropdownWidget'
+import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
 describe('DropdownWidget', () => {
@@ -9,7 +9,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'select',
@@ -32,7 +32,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_multiselect_field']: {
+          some_multiselect_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -55,7 +55,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'select',
@@ -78,7 +78,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'select',
@@ -101,7 +101,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'select',
@@ -128,7 +128,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'select',
@@ -157,7 +157,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'select',
@@ -187,7 +187,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'select',
@@ -219,7 +219,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'select',
@@ -244,7 +244,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['subject_areas']: {
+          subject_areas: {
             value: {
               param: {
                 input: 'select',
@@ -279,7 +279,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['subject_areas']: {
+          subject_areas: {
             value: {
               param: {
                 input: 'select',
@@ -320,7 +320,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'select',
@@ -352,7 +352,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'select',
@@ -387,7 +387,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'select',
@@ -422,7 +422,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'select',
@@ -458,7 +458,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -491,7 +491,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -535,7 +535,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -582,7 +582,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -628,7 +628,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -672,7 +672,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'select', // array type but single select
@@ -717,7 +717,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -767,7 +767,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -815,7 +815,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -864,7 +864,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -914,7 +914,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -957,7 +957,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -998,7 +998,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -1050,7 +1050,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -1100,7 +1100,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',
@@ -1149,7 +1149,7 @@ describe('DropdownWidget', () => {
     const providerProps = {
       value: {
         field: {
-          ['some_select_field']: {
+          some_select_field: {
             value: {
               param: {
                 input: 'multiselect',

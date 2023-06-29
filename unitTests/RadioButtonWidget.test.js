@@ -1,7 +1,7 @@
-import RadioButtonWidget from '../components/EditorComponents/RadioButtonWidget'
-import { renderWithEditorComponentContext } from './util'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import RadioButtonWidget from '../components/EditorComponents/RadioButtonWidget'
+import { renderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
 describe('RadioButtonWidget', () => {
@@ -10,7 +10,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',
@@ -30,7 +30,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',
@@ -50,7 +50,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',
@@ -78,7 +78,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',
@@ -116,7 +116,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',
@@ -145,7 +145,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',
@@ -178,7 +178,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',
@@ -229,7 +229,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',
@@ -267,7 +267,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',
@@ -321,7 +321,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',
@@ -363,7 +363,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',
@@ -396,7 +396,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',
@@ -428,7 +428,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',
@@ -463,7 +463,7 @@ describe('RadioButtonWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['submission_length']: {
+          submission_length: {
             value: {
               param: {
                 input: 'radio',

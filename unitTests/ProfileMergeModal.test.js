@@ -1,19 +1,18 @@
-import ProfileMergeModal from '../components/ProfileMergeModal'
 import { screen, render, waitFor } from '@testing-library/react'
+import ProfileMergeModal from '../components/ProfileMergeModal'
 import '@testing-library/jest-dom'
 import api from '../lib/api-client'
+// eslint-disable-next-line import/order
 import userEvent from '@testing-library/user-event'
 
-jest.mock('../hooks/useUser', () => {
-  return () => ({
-    user: {
-      profile: {
-        id: 'some id',
-      },
+jest.mock('../hooks/useUser', () => () => ({
+  user: {
+    profile: {
+      id: 'some id',
     },
-    accessToken: 'some token',
-  })
-})
+  },
+  accessToken: 'some token',
+}))
 global.$ = jest.fn(() => ({ on: jest.fn(), off: jest.fn(), modal: jest.fn() }))
 global.promptMessage = jest.fn()
 

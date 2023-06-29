@@ -1,16 +1,12 @@
-import TextAreaWidget from '../components/EditorComponents/TextAreaWidget'
-import { renderWithEditorComponentContext } from './util'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import TextAreaWidget from '../components/EditorComponents/TextAreaWidget'
+import { renderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
-jest.mock('../hooks/useUser', () => {
-  return () => ({ user: {} })
-})
+jest.mock('../hooks/useUser', () => () => ({ user: {} }))
 
-jest.mock('../components/MarkdownPreviewTab', () => {
-  return () => 'markdown preview tab'
-})
+jest.mock('../components/MarkdownPreviewTab', () => () => 'markdown preview tab')
 
 jest.mock('../lib/utils', () => {
   const original = jest.requireActual('../lib/utils')
@@ -26,7 +22,7 @@ describe('TextAreaWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['abstract']: {},
+          abstract: {},
         },
       },
     }
@@ -39,7 +35,7 @@ describe('TextAreaWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['abstract']: {
+          abstract: {
             value: {
               param: {
                 markdown: true,
@@ -58,7 +54,7 @@ describe('TextAreaWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['abstract']: {
+          abstract: {
             value: {
               param: {
                 markdown: true,
@@ -79,7 +75,7 @@ describe('TextAreaWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['abstract']: {
+          abstract: {
             value: {
               param: {
                 minLength: 2,
@@ -106,7 +102,7 @@ describe('TextAreaWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['abstract']: {
+          abstract: {
             value: {
               param: {
                 minLength: 2,
@@ -136,7 +132,7 @@ describe('TextAreaWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['abstract']: {
+          abstract: {
             value: {
               param: {
                 minLength: 2,
@@ -165,7 +161,7 @@ describe('TextAreaWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['abstract']: {
+          abstract: {
             value: {
               param: {
                 type: 'string',

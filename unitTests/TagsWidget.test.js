@@ -1,7 +1,6 @@
+import { screen, render } from '@testing-library/react'
 import TagsWidget from '../components/EditorComponents/TagsWidget'
-import { screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import { render } from '@testing-library/react'
 
 global.$ = jest.fn(() => ({
   tooltip: jest.fn(),

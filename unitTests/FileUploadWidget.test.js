@@ -1,15 +1,13 @@
-import FileUploadWidget from '../components/EditorComponents/FileUploadWidget'
-import { renderWithEditorComponentContext } from './util'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import FileUploadWidget from '../components/EditorComponents/FileUploadWidget'
+import { renderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
+import api from '../lib/api-client'
 
 jest.mock('../lib/api-client')
-import api from '../lib/api-client'
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
-jest.mock('../hooks/useUser', () => {
-  return () => ({ user: {}, accessToken: 'some token' })
-})
+jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
 
 describe('FileUploadWidget', () => {
   test('display choose file button', () => {
@@ -17,7 +15,7 @@ describe('FileUploadWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['supplementary_material']: {
+          supplementary_material: {
             value: {
               param: {
                 type: 'file',
@@ -36,7 +34,7 @@ describe('FileUploadWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['supplementary_material']: {
+          supplementary_material: {
             value: {
               param: {
                 type: 'file',
@@ -66,7 +64,7 @@ describe('FileUploadWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['supplementary_material']: {
+          supplementary_material: {
             value: {
               param: {
                 type: 'file',
@@ -101,7 +99,7 @@ describe('FileUploadWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['supplementary_material']: {
+          supplementary_material: {
             value: {
               param: {
                 type: 'file',
@@ -135,7 +133,7 @@ describe('FileUploadWidget', () => {
       value: {
         invitation: { id: 'invitaitonId' },
         field: {
-          ['supplementary_material']: {
+          supplementary_material: {
             value: {
               param: {
                 type: 'file',
