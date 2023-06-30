@@ -115,6 +115,7 @@ const NoteEditor = ({
   closeNoteEditor,
   onNoteCreated,
   isDirectReplyToForum,
+  setErrorAlertMessage,
 }) => {
   const { user, accessToken } = useUser()
   const [fields, setFields] = useState([])
@@ -127,6 +128,7 @@ const NoteEditor = ({
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState([])
+  const displayError = setErrorAlertMessage ?? promptError
 
   const saveDraft = useMemo(
     () =>
@@ -418,7 +420,7 @@ const NoteEditor = ({
         const hasOnlyMissingFieldsError = error.errors.every(
           (p) => p.name === 'MissingRequiredError'
         )
-        promptError(
+        displayError(
           hasOnlyMissingFieldsError
             ? 'Required field values are missing.'
             : 'Some info submitted are invalid.'
@@ -431,9 +433,9 @@ const NoteEditor = ({
             message: error.message.replace(fieldName, prettyField(fieldName)),
           },
         ])
-        promptError(error.message)
+        displayError(error.message)
       } else {
-        promptError(error.message)
+        displayError(error.message)
       }
     }
 
