@@ -912,6 +912,39 @@ describe('NewNoteReaders', () => {
     await userEvent.click(clearButton)
     expect(onChange).toHaveBeenNthCalledWith(2, ['~Test_IdTwo1'])
   })
+
+  test('call clearError when user update selection', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              enum: ['~Test_IdOne1', '~Test_IdTwo1', '~Test_IdThree1'],
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        clearError={clearError}
+      />
+    )
+
+    await waitFor(() => {
+      userEvent.click(screen.getByRole('combobox'))
+      userEvent.click(screen.getByText('Test IdThree'))
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdThree1'])
+      expect(clearError).toBeCalled()
+    })
+  })
 })
 
 // reply to a note or editing existing note
@@ -2192,6 +2225,51 @@ describe('NewReplyEditNoteReaders', () => {
       expect(dropdownList.childElementCount).toEqual(2)
       expect(dropdownList.childNodes[0].textContent).toEqual('description of reviewers')
       expect(dropdownList.childNodes[1].textContent).toEqual('description of anon reviewer')
+    })
+  })
+
+  test.only('call clearError when user update selection', async () => {
+    const clearError = jest.fn()
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: 'ICML.cc/2023/Conference/Submission1/AnonReviewer',
+                  description: 'description of anon reviewer',
+                  optional: true,
+                },
+                {
+                  value: 'ICML.cc/2023/Conference/Submission1/Reviewers',
+                  description: 'description of reviewers',
+                  optional: true,
+                },
+              ],
+              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
+            },
+          },
+        },
+      },
+    }
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        clearError={clearError}
+      />
+    )
+
+    await waitFor(() => {
+      userEvent.click(screen.getByRole('combobox'))
+      userEvent.click(screen.getByText('description of reviewers'))
+      expect(clearError).toBeCalled()
     })
   })
 })

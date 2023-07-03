@@ -16,6 +16,8 @@ export const NewNoteReaders = ({
   onChange,
   setLoading,
   placeholder,
+  error,
+  clearError,
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
@@ -45,8 +47,8 @@ export const NewNoteReaders = ({
           optional: true,
         }))
       )
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      promptError(apiError.message)
       closeNoteEditor()
     }
     setLoading((loading) => ({ ...loading, fieldName: false }))
@@ -110,8 +112,8 @@ export const NewNoteReaders = ({
           }
           setReaderOptions(options)
       }
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      promptError(apiError.message)
       closeNoteEditor()
     }
     setLoading((loading) => ({ ...loading, fieldName: false }))
@@ -120,6 +122,7 @@ export const NewNoteReaders = ({
   const dropdownChangeHandler = (selectedOptions, actionMeta) => {
     let updatedValue
     let mandatoryValues
+    clearError?.()
     switch (actionMeta.action) {
       case 'select-option':
         updatedValue = (value ?? []).concat(actionMeta.option.value)
@@ -186,7 +189,7 @@ export const NewNoteReaders = ({
 
   if (!user || !fieldDescription) return null
   return (
-    <EditorComponentHeader fieldNameOverwrite="Readers" inline={true}>
+    <EditorComponentHeader fieldNameOverwrite="Readers" inline={true} error={error}>
       {renderReaders()}
     </EditorComponentHeader>
   )
@@ -202,6 +205,8 @@ export const NewReplyEditNoteReaders = ({
   setLoading,
   isDirectReplyToForum,
   placeholder,
+  error,
+  clearError,
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
@@ -251,8 +256,8 @@ export const NewReplyEditNoteReaders = ({
       setReaderOptions(
         orderAdjustedGroups.map((p) => ({ label: prettyId(p.id), value: p.id }))
       )
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      promptError(apiError.message)
       closeNoteEditor()
     }
     setLoading((loading) => ({ ...loading, fieldName: false }))
@@ -344,8 +349,8 @@ export const NewReplyEditNoteReaders = ({
             onChange([...new Set([...defaultValues, ...mandatoryValues])])
           setReaderOptions(options)
       }
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      promptError(apiError.message)
       closeNoteEditor()
     }
     setLoading((loading) => ({ ...loading, fieldName: false }))
@@ -391,6 +396,7 @@ export const NewReplyEditNoteReaders = ({
   const dropdownChangeHandler = (selectedOptions, actionMeta) => {
     let updatedValue
     let mandatoryValues
+    clearError?.()
     switch (actionMeta.action) {
       case 'select-option':
         updatedValue = (value ?? []).concat(actionMeta.option.value)
@@ -423,7 +429,7 @@ export const NewReplyEditNoteReaders = ({
           <NoteEditorReadersDropdown
             placeholder={placeholder}
             options={readerOptions}
-            value={readerOptions.filter((p) => value?.includes(p.value))}
+            value={value?.map((p) => readerOptions.find((q) => q.value === p))}
             onChange={dropdownChangeHandler}
           />
         ) : null
@@ -455,7 +461,7 @@ export const NewReplyEditNoteReaders = ({
 
   if (!user || !fieldDescription) return null
   return (
-    <EditorComponentHeader fieldNameOverwrite="Readers" inline={true}>
+    <EditorComponentHeader fieldNameOverwrite="Readers" inline={true} error={error}>
       {renderReaders()}
     </EditorComponentHeader>
   )

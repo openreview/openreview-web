@@ -220,17 +220,22 @@ const NoteEditor = ({
 
   const renderNoteReaders = () => {
     if (!invitation.edit.note.readers) return null
+    const fieldName = 'noteReaderValues'
+    const error = errors.find((e) => e.fieldName === fieldName)
+    const clearError = () =>
+      setErrors((existingErrors) => existingErrors.filter((p) => p.fieldName !== fieldName))
+
     if (!note && !replyToNote)
       return (
         <NewNoteReaders
           fieldDescription={invitation.edit.note.readers}
           closeNoteEditor={closeNoteEditor}
-          // noteEditorData={noteEditorData}
-          // setNoteEditorData={setNoteEditorData}
-          value={noteEditorData.noteReaderValues}
-          onChange={(value) => setNoteEditorData({ fieldName: 'noteReaderValues', value })}
+          value={noteEditorData[fieldName]}
+          onChange={(value) => setNoteEditorData({ fieldName, value })}
           setLoading={setLoading}
           placeholder="Select note readers"
+          error={error}
+          clearError={clearError}
         />
       )
     if (note)
@@ -239,10 +244,12 @@ const NoteEditor = ({
           replyToNote={replyToNote}
           fieldDescription={invitation.edit.note.readers}
           closeNoteEditor={closeNoteEditor}
-          value={noteEditorData.noteReaderValues}
-          onChange={(value) => setNoteEditorData({ fieldName: 'noteReaderValues', value })}
+          value={noteEditorData[fieldName]}
+          onChange={(value) => setNoteEditorData({ fieldName, value })}
           setLoading={setLoading}
           placeholder="Select note readers"
+          error={error}
+          clearError={clearError}
         />
       )
     if (replyToNote)
@@ -256,6 +263,8 @@ const NoteEditor = ({
           setLoading={setLoading}
           isDirectReplyToForum={isDirectReplyToForum}
           placeholder="Select note readers"
+          error={error}
+          clearError={clearError}
         />
       )
     return null
@@ -488,6 +497,12 @@ const NoteEditor = ({
           onChange={(value) => setNoteEditorData({ fieldName: 'editReaderValues', value })}
           setLoading={setLoading}
           placeholder="Select edit readers"
+          error={errors.find((e) => e.fieldName === 'editReaderValues')}
+          clearError={() =>
+            setErrors((existingErrors) =>
+              existingErrors.filter((p) => p.fieldName !== 'editReaderValues')
+            )
+          }
         />
         <EditSignatures
           fieldDescription={invitation.edit.signatures}

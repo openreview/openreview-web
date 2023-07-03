@@ -25,6 +25,14 @@ describe('webfield-utils', () => {
     errorPath = 'note/signatures' // note signatures
     resultExpected = 'noteSignatureInputValues'
     expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+
+    errorPath = 'readers' // edit readers
+    resultExpected = 'editReaderValues'
+    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+
+    errorPath = 'note/readers' // note readers
+    resultExpected = 'noteReaderValues'
+    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
   })
 })
 
