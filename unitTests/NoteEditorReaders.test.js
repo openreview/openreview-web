@@ -2228,7 +2228,7 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
-  test.only('call clearError when user update selection', async () => {
+  test('call clearError when user update selection', async () => {
     const clearError = jest.fn()
     const onChange = jest.fn()
     const invitation = {

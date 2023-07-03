@@ -21,33 +21,7 @@ describe('DropdownWidget', () => {
       },
     }
 
-    const { container } = renderWithEditorComponentContext(
-      <DropdownWidget multiple={false} />,
-      providerProps
-    )
-    expect(container).toBeEmptyDOMElement()
-  })
-
-  test('render nothing if field does not have enum or items (multi select)', () => {
-    const providerProps = {
-      value: {
-        field: {
-          some_multiselect_field: {
-            value: {
-              param: {
-                input: 'multiselect',
-                // no enum or items
-              },
-            },
-          },
-        },
-      },
-    }
-
-    const { container } = renderWithEditorComponentContext(
-      <DropdownWidget multiple={true} />,
-      providerProps
-    )
+    const { container } = renderWithEditorComponentContext(<DropdownWidget />, providerProps)
     expect(container).toBeEmptyDOMElement()
   })
 
@@ -67,10 +41,7 @@ describe('DropdownWidget', () => {
       },
     }
 
-    const { container } = renderWithEditorComponentContext(
-      <DropdownWidget multiple={false} />,
-      providerProps
-    )
+    const { container } = renderWithEditorComponentContext(<DropdownWidget />, providerProps)
     expect(container).toBeEmptyDOMElement()
   })
 
@@ -90,10 +61,7 @@ describe('DropdownWidget', () => {
       },
     }
 
-    const { container } = renderWithEditorComponentContext(
-      <DropdownWidget multiple={false} />,
-      providerProps
-    )
+    const { container } = renderWithEditorComponentContext(<DropdownWidget />, providerProps)
     expect(container).toBeEmptyDOMElement()
   })
 
@@ -113,7 +81,7 @@ describe('DropdownWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<DropdownWidget multiple={false} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
     expect(screen.getByText('Select Some Select Field'))
 
     await userEvent.click(screen.getByRole('combobox'))
@@ -142,7 +110,7 @@ describe('DropdownWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<DropdownWidget multiple={false} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option two'))
@@ -172,7 +140,7 @@ describe('DropdownWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<DropdownWidget multiple={false} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
     expect(screen.getByText('option two'))
 
     await userEvent.click(screen.getByRole('combobox'))
@@ -202,40 +170,12 @@ describe('DropdownWidget', () => {
       },
     }
 
-    const { container } = renderWithEditorComponentContext(
-      <DropdownWidget multiple={false} />,
-      providerProps
-    )
+    const { container } = renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
 
     await userEvent.click(clearButton)
     expect(onChange).toBeCalledWith(expect.objectContaining({ value: undefined }))
-  })
-
-  test.skip('render nothing if invitation has enum but expect array', () => {
-    // combination of enum and [] type) is invalid as enum should be single select
-    // "multiple" prop is input other than type
-    const providerProps = {
-      value: {
-        field: {
-          some_select_field: {
-            value: {
-              param: {
-                input: 'select',
-                type: 'string[]',
-                enum: ['option one', 'option two', 'option three'],
-              },
-            },
-          },
-        },
-      },
-    }
-    const { container } = renderWithEditorComponentContext(
-      <DropdownWidget multiple={false} />,
-      providerProps
-    )
-    expect(container).toBeEmptyDOMElement()
   })
 
   // this test should be invalid but is added for backward compatibility
@@ -261,7 +201,7 @@ describe('DropdownWidget', () => {
         onChange,
       },
     }
-    renderWithEditorComponentContext(<DropdownWidget multiple={false} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     await userEvent.click(screen.getByRole('combobox'))
     expect(screen.getByText('Algorithms: Approximate Inference'))
@@ -297,7 +237,7 @@ describe('DropdownWidget', () => {
         onChange,
       },
     }
-    renderWithEditorComponentContext(<DropdownWidget multiple={false} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     expect(screen.getByText('Algorithms: Approximate Inference'))
     expect(screen.getByRole('button', { name: 'Remove Algorithms: Approximate Inference' }))
@@ -336,7 +276,7 @@ describe('DropdownWidget', () => {
         },
       },
     }
-    renderWithEditorComponentContext(<DropdownWidget multiple={false} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     expect(screen.getByText('Select Some Select Field'))
 
@@ -370,7 +310,7 @@ describe('DropdownWidget', () => {
         clearError,
       },
     }
-    renderWithEditorComponentContext(<DropdownWidget multiple={false} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     expect(screen.getByText('Select Some Select Field'))
 
@@ -405,7 +345,7 @@ describe('DropdownWidget', () => {
         clearError,
       },
     }
-    renderWithEditorComponentContext(<DropdownWidget multiple={false} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     expect(screen.getByText('Select Some Select Field'))
 
@@ -441,49 +381,13 @@ describe('DropdownWidget', () => {
         value: 'value two',
       },
     }
-    renderWithEditorComponentContext(<DropdownWidget multiple={false} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     expect(screen.getByText('option description two'))
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description three'))
     expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'value three' }))
-    expect(clearError).toBeCalled()
-  })
-
-  test('render options (enum obj multi select)', async () => {
-    // should still allow only single value
-    const onChange = jest.fn()
-    const clearError = jest.fn()
-    const providerProps = {
-      value: {
-        field: {
-          some_select_field: {
-            value: {
-              param: {
-                input: 'multiselect',
-                type: 'string',
-                enum: [
-                  { value: 'value one', description: 'option description one' },
-                  { value: 'value two', description: 'option description two' },
-                  { value: 'value three', description: 'option description three' },
-                ],
-              },
-            },
-          },
-        },
-        onChange,
-        clearError,
-        value: 'value two',
-      },
-    }
-    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
-
-    expect(screen.getByText('option description two'))
-
-    await userEvent.click(screen.getByRole('combobox'))
-    await userEvent.click(screen.getByText('option description three'))
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'value three' })) // single value is updated
     expect(clearError).toBeCalled()
   })
 
@@ -494,7 +398,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'string[]',
                 items: [
                   {
@@ -529,6 +433,143 @@ describe('DropdownWidget', () => {
     expect(screen.getByText('option description three'))
   })
 
+  test('render options (enum obj + sting[] type)', async () => {
+    const providerProps = {
+      value: {
+        field: {
+          some_select_field: {
+            value: {
+              param: {
+                input: 'select',
+                type: 'string[]',
+                enum: [
+                  { value: 'value one', description: 'option description one' },
+                  { value: 'value two', description: 'option description two' },
+                  { value: 'value three', description: 'option description three' },
+                ],
+              },
+            },
+          },
+        },
+      },
+    }
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+
+    expect(screen.getByText('Select Some Select Field'))
+
+    await userEvent.click(screen.getByRole('combobox'))
+    expect(screen.getByText('option description one'))
+    expect(screen.getByText('option description two'))
+    expect(screen.getByText('option description three'))
+  })
+
+  test('call update on selecting a value (enum obj + sting[] type no type conversion)', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          some_select_field: {
+            value: {
+              param: {
+                input: 'select',
+                type: 'string[]',
+                enum: [
+                  { value: 'value one', description: 'option description one' },
+                  { value: 'value two', description: 'option description two' },
+                  { value: 'value three', description: 'option description three' },
+                ],
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+
+    expect(screen.getByText('Select Some Select Field'))
+
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.click(screen.getByText('option description two'))
+
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: ['value two'] }))
+    expect(clearError).toBeCalled()
+  })
+
+  test('call update on selecting a value (enum obj + integer[] type with type conversion)', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          some_select_field: {
+            value: {
+              param: {
+                input: 'select',
+                type: 'integer[]',
+                enum: [
+                  { value: 1, description: 'option description one' },
+                  { value: 2, description: 'option description two' },
+                  { value: 3, description: 'option description three' },
+                ],
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+
+    expect(screen.getByText('Select Some Select Field'))
+
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.click(screen.getByText('option description two'))
+
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: [2] }))
+    expect(clearError).toBeCalled()
+  })
+
+  test('call update on selecting another value (enum obj + string[] type)', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          some_select_field: {
+            value: {
+              param: {
+                input: 'select',
+                type: 'string[]',
+                enum: [
+                  { value: 'value one', description: 'option description one' },
+                  { value: 'value two', description: 'option description two' },
+                  { value: 'value three', description: 'option description three' },
+                ],
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+        value: ['value two'],
+      },
+    }
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+
+    expect(screen.getByText('option description two'))
+
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.click(screen.getByText('option description three'))
+    expect(onChange).toBeCalledWith(
+      expect.objectContaining({ value: ['value two', 'value three'] })
+    )
+    expect(clearError).toBeCalled()
+  })
+
   test('call update on selecting a value (items no type conversion)', async () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
@@ -538,7 +579,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'string[]',
                 items: [
                   {
@@ -565,7 +606,7 @@ describe('DropdownWidget', () => {
         clearError,
       },
     }
-    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     expect(screen.getByText('Select Some Select Field'))
 
@@ -585,7 +626,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'integer[]',
                 items: [
                   {
@@ -612,7 +653,7 @@ describe('DropdownWidget', () => {
         clearError,
       },
     }
-    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     expect(screen.getByText('Select Some Select Field'))
 
@@ -631,8 +672,8 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
-                type: 'string', // non-array type but multiselect
+                input: 'select',
+                type: 'string', // non-array type but having items
                 items: [
                   {
                     value: 'value one',
@@ -657,51 +698,7 @@ describe('DropdownWidget', () => {
         onChange,
       },
     }
-    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
-
-    expect(screen.getByText('Select Some Select Field'))
-
-    await userEvent.click(screen.getByRole('combobox'))
-    await userEvent.click(screen.getByText('option description two'))
-
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'value two' }))
-  })
-
-  test('work as single select when input is not multiselect (items)', async () => {
-    const onChange = jest.fn()
-    const providerProps = {
-      value: {
-        field: {
-          some_select_field: {
-            value: {
-              param: {
-                input: 'select', // array type but single select
-                type: 'string[]',
-                items: [
-                  {
-                    value: 'value one',
-                    description: 'option description one',
-                    optional: true,
-                  },
-                  {
-                    value: 'value two',
-                    description: 'option description two',
-                    optional: true,
-                  },
-                  {
-                    value: 'value three',
-                    description: 'option description three',
-                    optional: true,
-                  },
-                ],
-              },
-            },
-          },
-        },
-        onChange,
-      },
-    }
-    renderWithEditorComponentContext(<DropdownWidget multiple={false} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     expect(screen.getByText('Select Some Select Field'))
 
@@ -720,7 +717,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'string[]',
                 items: [
                   {
@@ -748,7 +745,7 @@ describe('DropdownWidget', () => {
         value: ['value two'],
       },
     }
-    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     expect(screen.getByText('option description two'))
 
@@ -770,7 +767,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'string[]',
                 items: [
                   {
@@ -798,7 +795,7 @@ describe('DropdownWidget', () => {
         value: ['value two'],
       },
     }
-    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     expect(screen.getByText('option description two'))
 
@@ -818,7 +815,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'string[]',
                 items: [
                   {
@@ -846,7 +843,7 @@ describe('DropdownWidget', () => {
         value: ['value two', 'value three'],
       },
     }
-    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     expect(screen.getByText('option description two'))
     expect(screen.getByText('option description three'))
@@ -867,7 +864,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'string[]',
                 items: [
                   {
@@ -895,10 +892,7 @@ describe('DropdownWidget', () => {
         value: ['value one', 'value two', 'value three'],
       },
     }
-    const { container } = renderWithEditorComponentContext(
-      <DropdownWidget multiple={true} />,
-      providerProps
-    )
+    const { container } = renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     expect(screen.getByText('option description one'))
     expect(screen.getByText('option description two'))
@@ -917,7 +911,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'string[]',
                 default: ['value two'],
                 items: [
@@ -946,7 +940,7 @@ describe('DropdownWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
     expect(onChange).toBeCalledWith(
       expect.objectContaining({ value: ['value two', 'value three'] })
     )
@@ -960,7 +954,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'string[]',
                 default: ['value two'],
                 items: [
@@ -989,7 +983,7 @@ describe('DropdownWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
     expect(onChange).not.toBeCalled()
   })
 
@@ -1001,7 +995,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'string[]',
                 items: [
                   {
@@ -1029,7 +1023,7 @@ describe('DropdownWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
     expect(
       screen.queryByRole('button', { name: 'Remove option description three' })
     ).not.toBeInTheDocument()
@@ -1053,7 +1047,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'string[]',
                 items: [
                   {
@@ -1081,7 +1075,7 @@ describe('DropdownWidget', () => {
       },
     }
 
-    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     const optionOneRemoveButton = screen.getByRole('button', {
       name: 'Remove option description one',
@@ -1103,7 +1097,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'string[]',
                 items: [
                   {
@@ -1131,10 +1125,7 @@ describe('DropdownWidget', () => {
       },
     }
 
-    const { container } = renderWithEditorComponentContext(
-      <DropdownWidget multiple={true} />,
-      providerProps
-    )
+    const { container } = renderWithEditorComponentContext(<DropdownWidget />, providerProps)
     expect(screen.getByText('option description one'))
     expect(screen.getByText('option description two'))
     expect(screen.getByText('option description three'))
@@ -1152,7 +1143,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'string[]',
                 items: [
                   {
@@ -1180,10 +1171,7 @@ describe('DropdownWidget', () => {
       },
     }
 
-    const { container } = renderWithEditorComponentContext(
-      <DropdownWidget multiple={true} />,
-      providerProps
-    )
+    const { container } = renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     expect(clearButton).not.toBeInTheDocument()
@@ -1198,7 +1186,7 @@ describe('DropdownWidget', () => {
           some_select_field: {
             value: {
               param: {
-                input: 'multiselect',
+                input: 'select',
                 type: 'string[]',
                 items: [
                   {
@@ -1226,7 +1214,7 @@ describe('DropdownWidget', () => {
         value: ['value two', 'value three', 'value one'],
       },
     }
-    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     const optionTwo = screen.getByText('option description two')
     const optionThree = screen.getByText('option description three')

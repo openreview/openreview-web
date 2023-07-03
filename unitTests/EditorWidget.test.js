@@ -190,14 +190,6 @@ describe('EditorWidget', () => {
     expect(screen.getByText('checkbox'))
   })
 
-  test('render DropdownWidget for input multiselect', async () => {
-    const providerProps = inputProviderProps
-    providerProps.value.field.field_name.value.param.input = 'multiselect'
-
-    renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('dropdown'))
-  })
-
   test('render DropdownWidget for input select', async () => {
     const providerProps = inputProviderProps
     providerProps.value.field.field_name.value.param.input = 'select'

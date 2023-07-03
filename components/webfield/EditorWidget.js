@@ -36,8 +36,6 @@ const EditorWidget = () => {
         return <CheckboxWidget />
       case 'select':
         return <DropdownWidget />
-      case 'multiselect':
-        return <DropdownWidget multiple={true} />
       case 'textarea':
         return <TextAreaWidget />
       case 'text':

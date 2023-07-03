@@ -5,14 +5,14 @@ import { prettyField } from '../../lib/utils'
 import { convertToType } from '../../lib/webfield-utils'
 import styles from '../../styles/components/DropdownWidget.module.scss'
 
-const DropdownWidget = ({ multiple }) => {
+const DropdownWidget = () => {
   const { field, onChange, value, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldType = field[fieldName]?.value?.param?.type
   const isArrayType = fieldType?.endsWith('[]')
   const dataType = isArrayType ? fieldType?.slice(0, -2) : fieldType
   const [dropdownOptions, setDropdownOptions] = useState([])
-  const [allowMultiSelect, setAllowMultiSelect] = useState(multiple && isArrayType)
+  const [allowMultiSelect, setAllowMultiSelect] = useState(isArrayType)
 
   const customStyles = {
     multiValueLabel: (base, state) =>
