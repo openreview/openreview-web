@@ -1188,4 +1188,57 @@ describe('DropdownWidget', () => {
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     expect(clearButton).not.toBeInTheDocument()
   })
+
+  test('render selected options in the order selected (items)', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          some_select_field: {
+            value: {
+              param: {
+                input: 'multiselect',
+                type: 'string[]',
+                items: [
+                  {
+                    value: 'value one',
+                    description: 'option description one',
+                    optional: true,
+                  },
+                  {
+                    value: 'value two',
+                    description: 'option description two',
+                    optional: true,
+                  },
+                  {
+                    value: 'value three',
+                    description: 'option description three',
+                    optional: true,
+                  },
+                ],
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+        value: ['value two', 'value three', 'value one'],
+      },
+    }
+    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
+
+    const optionTwo = screen.getByText('option description two')
+    const optionThree = screen.getByText('option description three')
+    const optionOne = screen.getByText('option description one')
+
+    expect(
+      // eslint-disable-next-line no-bitwise
+      optionTwo.compareDocumentPosition(optionThree) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    expect(
+      // eslint-disable-next-line no-bitwise
+      optionThree.compareDocumentPosition(optionOne) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+  })
 })

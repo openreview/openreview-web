@@ -101,9 +101,11 @@ const DropdownWidget = ({ multiple }) => {
         styles={customStyles}
         options={dropdownOptions}
         onChange={dropdownChangeHandler}
-        value={dropdownOptions.filter(
-          (p) => (allowMultiSelect ? value?.includes(p.value) : p.value == value) // eslint-disable-line eqeqeq
-        )}
+        value={
+          allowMultiSelect
+            ? value?.map((p) => dropdownOptions.find((q) => q.value == p)) // eslint-disable-line eqeqeq
+            : dropdownOptions.filter((p) => p.value == value) // eslint-disable-line eqeqeq
+        }
         isClearable={dropdownOptions.some((p) => p.optional === true)}
         isOptionDisabled={(p) => p.optional === false}
         isMulti={allowMultiSelect}

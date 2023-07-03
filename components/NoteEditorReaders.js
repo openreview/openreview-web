@@ -155,7 +155,7 @@ export const NewNoteReaders = ({
           <NoteEditorReadersDropdown
             placeholder={placeholder}
             options={readerOptions}
-            value={readerOptions.filter((p) => value?.includes(p.value))}
+            value={value?.map((p) => readerOptions.find((q) => q.value === p))}
             onChange={dropdownChangeHandler}
           />
         ) : null

@@ -11,7 +11,7 @@
   :global {
     .dropdown-select {
       width: 500px;
-      &__indicators {
+      &__indicator-separator {
         display: none;
       }
       @media #{constants.$phone-only} {
