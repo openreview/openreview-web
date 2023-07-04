@@ -205,12 +205,12 @@ describe('RadioButtonWidget', () => {
     )
 
     await userEvent.click(optionTwo)
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: 'Long submission (more than 12 pages of main content)',
       })
     )
-    expect(clearError).toBeCalledTimes(1)
+    expect(clearError).toHaveBeenCalledTimes(1)
 
     await userEvent.click(optionOne)
     expect(onChange).toHaveBeenNthCalledWith(
@@ -219,7 +219,7 @@ describe('RadioButtonWidget', () => {
         value: 'Regular submission (no more than 12 pages of main content)',
       })
     )
-    expect(clearError).toBeCalledTimes(2)
+    expect(clearError).toHaveBeenCalledTimes(2)
   })
 
   test('call update when a new option is selected (enum string)', async () => {
@@ -252,12 +252,12 @@ describe('RadioButtonWidget', () => {
     await userEvent.click(
       screen.getByDisplayValue('Regular submission (no more than 12 pages of main content)')
     )
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: 'Regular submission (no more than 12 pages of main content)',
       })
     )
-    expect(clearError).toBeCalled()
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('call update when option is selected (enum object)', async () => {
@@ -297,12 +297,12 @@ describe('RadioButtonWidget', () => {
     const optionOne = screen.getByDisplayValue('0')
 
     await userEvent.click(optionTwo)
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: 1,
       })
     )
-    expect(clearError).toBeCalledTimes(1)
+    expect(clearError).toHaveBeenCalledTimes(1)
 
     await userEvent.click(optionOne)
     expect(onChange).toHaveBeenNthCalledWith(
@@ -311,7 +311,7 @@ describe('RadioButtonWidget', () => {
         value: 0,
       })
     )
-    expect(clearError).toBeCalledTimes(2)
+    expect(clearError).toHaveBeenCalledTimes(2)
   })
 
   test('call update when a new option is selected (enum object)', async () => {
@@ -349,12 +349,12 @@ describe('RadioButtonWidget', () => {
     renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
 
     await userEvent.click(screen.getByDisplayValue('0'))
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: '0',
       })
     )
-    expect(clearError).toBeCalled()
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('display default value as selected if there is no value (enum string)', () => {
@@ -383,7 +383,7 @@ describe('RadioButtonWidget', () => {
 
     renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
 
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: 'Long submission (more than 12 pages of main content)',
       })
@@ -419,7 +419,7 @@ describe('RadioButtonWidget', () => {
     expect(
       screen.getByDisplayValue('Regular submission (no more than 12 pages of main content)')
     ).toHaveAttribute('checked')
-    expect(onChange).not.toBeCalled()
+    expect(onChange).not.toHaveBeenCalled()
   })
 
   test('display default value as selected if there is no value (enum object)', () => {
@@ -454,7 +454,7 @@ describe('RadioButtonWidget', () => {
     }
 
     renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: 1 }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 1 }))
   })
 
   test('not to display default value as selected if there is value (enum object)', () => {
@@ -489,6 +489,6 @@ describe('RadioButtonWidget', () => {
     }
 
     renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
-    expect(onChange).not.toBeCalled()
+    expect(onChange).not.toHaveBeenCalled()
   })
 })

@@ -182,8 +182,8 @@ describe('TextAreaWidget', () => {
     })
 
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
-    expect(getItem).toBeCalledWith('some key')
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'some saved value' }))
-    expect(clearError).toBeCalled()
+    expect(getItem).toHaveBeenCalledWith('some key')
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 'some saved value' }))
+    expect(clearError).toHaveBeenCalled()
   })
 })

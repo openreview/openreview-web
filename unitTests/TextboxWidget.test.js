@@ -156,7 +156,7 @@ describe('TextboxWidget', () => {
     const input = screen.getByDisplayValue('')
     await userEvent.type(input, '  some input  ')
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ value: 'some input' }))
-    expect(clearError).toBeCalled()
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('invoke onchange on text change (string[])', async () => {
@@ -183,7 +183,7 @@ describe('TextboxWidget', () => {
     expect(onChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ value: ['keyword one', 'keyword two', 'keyword three'] })
     )
-    expect(clearError).toBeCalled()
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('invoke onchange on text change (integer)(with type conversion)', async () => {
@@ -209,6 +209,6 @@ describe('TextboxWidget', () => {
     const input = screen.getByDisplayValue('')
     await userEvent.type(input, '  3  ')
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ value: 3 }))
-    expect(clearError).toBeCalled()
+    expect(clearError).toHaveBeenCalled()
   })
 })

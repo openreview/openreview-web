@@ -164,12 +164,12 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     }
 
     await waitFor(() => {
-      expect(onChange).toBeCalledWith(
+      expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
           value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
         })
       )
-      expect(apiPost).toBeCalledWith(
+      expect(apiPost).toHaveBeenCalledWith(
         '/profiles/search',
         expect.objectContaining({ ids: ['~test_id1'] }),
         expect.anything()
@@ -347,7 +347,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       '   test@EMAIL.COM   '
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(getProfile).toBeCalledWith(
+    expect(getProfile).toHaveBeenCalledWith(
       '/profiles/search',
       { email: 'test@email.com', es: true, limit: 15, offset: 0 },
       expect.anything()
@@ -383,7 +383,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       '   ~Test_User1   '
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(getProfile).toBeCalledWith(
+    expect(getProfile).toHaveBeenCalledWith(
       '/profiles/search',
       { id: '~Test_User1', es: true, limit: 15, offset: 0 },
       expect.anything()
@@ -452,7 +452,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'plus' }))
 
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: [
           { authorId: '~test_id1', authorName: 'Test First Test Last' },
@@ -460,7 +460,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         ],
       })
     )
-    expect(clearError).toBeCalled()
+    expect(clearError).toHaveBeenCalled()
   })
 
   test("call update when an author's position in author list is adjusted", async () => {
@@ -509,7 +509,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.click(screen.getByRole('button', { name: 'arrow-right' }))
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: [
           { authorId: '~test_id2', authorName: 'First Two Last Two' },
@@ -520,7 +520,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     expect(clearError).not.toHaveBeenCalled()
   })
 
-  test('call update when an author is removed from author list ', async () => {
+  test('call update when an author is removed from author list', async () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
     const initialGetProfile = jest.fn(() =>
@@ -569,14 +569,14 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.click(screen.getAllByRole('button', { name: 'remove' })[0])
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: [{ authorId: '~test_id2', authorName: 'First Two Last Two' }],
       })
     )
 
     await userEvent.click(screen.getAllByRole('button', { name: 'remove' })[0]) // ~test_id1 has been removed from internal state
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: undefined,
       })
@@ -670,7 +670,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         { ids: ['~test_id1'] },
         expect.anything()
       )
-      expect(promptError).toBeCalledWith('post search is not working')
+      expect(promptError).toHaveBeenCalledWith('post search is not working')
     })
 
     await userEvent.type(
@@ -873,7 +873,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     expect(screen.getByText('Add')).not.toHaveAttribute('disabled')
 
     await userEvent.click(screen.getByText('Add'))
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: [
           { authorId: '~test_id1', authorName: 'Test First Test Last' },
@@ -968,12 +968,12 @@ describe('ProfileSearchWidget for non authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'plus' }))
 
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: ['~search_result1'],
       })
     )
-    expect(clearError).toBeCalled()
+    expect(clearError).toHaveBeenCalled()
   })
 
   test("call update when an author's position in author list is adjusted", async () => {
@@ -1018,9 +1018,8 @@ describe('ProfileSearchWidget for non authorids field', () => {
     }
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
-    screen.debug()
     await userEvent.click(screen.getByRole('button', { name: 'arrow-right' }))
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: ['~test_id2', '~test_id1'],
       })
@@ -1028,7 +1027,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
     expect(clearError).not.toHaveBeenCalled()
   })
 
-  test('call update when an author is removed from author list ', async () => {
+  test('call update when an author is removed from author list', async () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
     const initialGetProfile = jest.fn(() =>
@@ -1074,14 +1073,14 @@ describe('ProfileSearchWidget for non authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.click(screen.getAllByRole('button', { name: 'remove' })[0])
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: ['~test_id2'],
       })
     )
 
     await userEvent.click(screen.getAllByRole('button', { name: 'remove' })[0]) // ~test_id1 has been removed from internal state
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: undefined,
       })
@@ -1133,7 +1132,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
     )
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'plus' }))
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: '~search_result1' })) // group is string instead of array
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: '~search_result1' })) // group is string instead of array
 
     expect(
       screen.queryByPlaceholderText('search profiles by email or name')

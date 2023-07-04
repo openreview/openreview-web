@@ -1,14 +1,11 @@
 {
-  "env": {
-    "node": true
-  },
-  "globals": {
-    "jest": "readonly",
-    "test": "readonly",
-    "expect": "readonly",
-    "describe": "readonly"
-  },
+  "plugins": ["jest"],
+  "extends": ["plugin:jest/recommended"],
   "rules": {
-    "newline-per-chained-call": "off"
+    "no-template-curly-in-string": "off", // json lookup syntax
+    "react/display-name": "off", // mocked components
+    "prefer-promise-reject-errors": "off", // mocked api error,
+    "import/no-dynamic-require": "off", // mocked dynamic import
+    "global-require": "off" // mocked dynamic import
   }
 }

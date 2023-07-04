@@ -1,8 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import CodeEditorWidget from '../components/EditorComponents/CodeEditorWidget'
-import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
+import CodeEditorWidget from '../components/EditorComponents/CodeEditorWidget'
+import { renderWithEditorComponentContext } from './util'
 
 let codeEditorProps
 let onCodeChange
@@ -45,8 +44,8 @@ describe('CheckboxWidget', () => {
 
     renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
     await waitFor(() => {
-      expect(screen.getByText('code editor'))
-      expect(codeEditorProps).toBeCalledWith(expect.objectContaining({ isJson: false }))
+      expect(screen.getByText('code editor')).toBeInTheDocument()
+      expect(codeEditorProps).toHaveBeenCalledWith(expect.objectContaining({ isJson: false }))
     })
   })
 
@@ -67,8 +66,8 @@ describe('CheckboxWidget', () => {
 
     renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
     await waitFor(() => {
-      expect(screen.getByText('code editor'))
-      expect(codeEditorProps).toBeCalledWith(expect.objectContaining({ isJson: true }))
+      expect(screen.getByText('code editor')).toBeInTheDocument()
+      expect(codeEditorProps).toHaveBeenCalledWith(expect.objectContaining({ isJson: true }))
     })
   })
 
@@ -119,7 +118,7 @@ describe('CheckboxWidget', () => {
     renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
     await waitFor(() => {
       onCodeChange('some code')
-      expect(clearError).toBeCalled()
+      expect(clearError).toHaveBeenCalled()
     })
   })
 
@@ -143,7 +142,7 @@ describe('CheckboxWidget', () => {
     renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
     await waitFor(() => {
       onCodeChange('some code')
-      expect(setErrors).toBeCalledWith([
+      expect(setErrors).toHaveBeenCalledWith([
         expect.objectContaining({
           message: expect.stringContaining('Reply is not valid JSON'),
         }),
@@ -174,7 +173,7 @@ describe('CheckboxWidget', () => {
       {
         "some": "code"
       }`)
-      expect(onChange).toBeCalledWith(expect.objectContaining({ value: { some: 'code' } }))
+      expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: { some: 'code' } }))
     })
   })
 
@@ -199,7 +198,7 @@ describe('CheckboxWidget', () => {
     renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
     await waitFor(() => {
       onCodeChange('')
-      expect(onChange).toBeCalledWith(expect.objectContaining({ value: undefined }))
+      expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: undefined }))
     })
   })
 })

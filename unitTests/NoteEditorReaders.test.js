@@ -76,7 +76,7 @@ describe('NewNoteReaders', () => {
     )
 
     expect(screen.getByText('tags'))
-    expect(tagProps).toBeCalledWith({
+    expect(tagProps).toHaveBeenCalledWith({
       fieldNameOverwrite: 'Readers',
       values: ['ICML.cc/2023/Conference', '${2/content/authorids/value}'],
     })
@@ -106,7 +106,7 @@ describe('NewNoteReaders', () => {
     )
 
     expect(screen.getByText('tags'))
-    expect(tagProps).toBeCalledWith({
+    expect(tagProps).toHaveBeenCalledWith({
       fieldNameOverwrite: 'Readers',
       values: ['ICML.cc/2023/Conference', '${2/content/authorids/value}'],
     })
@@ -140,13 +140,13 @@ describe('NewNoteReaders', () => {
       />
     )
 
-    expect(getGroups).toBeCalledWith(
+    expect(getGroups).toHaveBeenCalledWith(
       expect.anything(),
       { regex: 'regex1.*|regex2.*' },
       expect.objectContaining({ version: 1 })
     )
     await waitFor(() =>
-      expect(promptError).toBeCalledWith('You do not have permission to create a note')
+      expect(promptError).toHaveBeenCalledWith('You do not have permission to create a note')
     )
   })
 
@@ -178,13 +178,13 @@ describe('NewNoteReaders', () => {
       />
     )
 
-    expect(getGroups).toBeCalledWith(
+    expect(getGroups).toHaveBeenCalledWith(
       expect.anything(),
       { prefix: 'regex1.*' },
       expect.objectContaining({ version: 2 })
     )
     await waitFor(() =>
-      expect(promptError).toBeCalledWith('You do not have permission to create a note')
+      expect(promptError).toHaveBeenCalledWith('You do not have permission to create a note')
     )
   })
 
@@ -261,7 +261,7 @@ describe('NewNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(getGroups).toBeCalledTimes(2)
+      expect(getGroups).toHaveBeenCalledTimes(2)
       expect(getGroups).toHaveBeenNthCalledWith(
         1,
         expect.anything(),
@@ -307,7 +307,7 @@ describe('NewNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(getGroups).not.toBeCalled()
+      expect(getGroups).not.toHaveBeenCalled()
     })
 
     await userEvent.click(screen.getByRole('combobox'))
@@ -344,7 +344,7 @@ describe('NewNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(getGroups).toBeCalledTimes(2)
+      expect(getGroups).toHaveBeenCalledTimes(2)
       expect(getGroups).toHaveBeenNthCalledWith(
         1,
         expect.anything(),
@@ -391,9 +391,9 @@ describe('NewNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(getGroups).toBeCalledTimes(2)
-      expect(promptError).toBeCalledWith('You do not have permission to create a note')
-      expect(closeNoteEditor).toBeCalled()
+      expect(getGroups).toHaveBeenCalledTimes(2)
+      expect(promptError).toHaveBeenCalledWith('You do not have permission to create a note')
+      expect(closeNoteEditor).toHaveBeenCalled()
     })
   })
 
@@ -431,9 +431,9 @@ describe('NewNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(getGroups).toBeCalledTimes(2)
-      expect(promptError).toBeCalledWith('You do not have permission to create a note')
-      expect(closeNoteEditor).toBeCalled()
+      expect(getGroups).toHaveBeenCalledTimes(2)
+      expect(promptError).toHaveBeenCalledWith('You do not have permission to create a note')
+      expect(closeNoteEditor).toHaveBeenCalled()
     })
   })
 
@@ -464,10 +464,10 @@ describe('NewNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(getGroups).toBeCalledTimes(2)
+      expect(getGroups).toHaveBeenCalledTimes(2)
       expect(screen.getByText('tags'))
-      expect(tagProps).toBeCalledWith(expect.objectContaining({ values: ['Test IdOne'] }))
-      expect(onChange).toBeCalledWith(['~Test_IdOne1'])
+      expect(tagProps).toHaveBeenCalledWith(expect.objectContaining({ values: ['Test IdOne'] }))
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdOne1'])
     })
   })
 
@@ -502,10 +502,10 @@ describe('NewNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(getGroups).toBeCalledTimes(2)
+      expect(getGroups).toHaveBeenCalledTimes(2)
       expect(screen.getByText('tags'))
-      expect(tagProps).toBeCalledWith(expect.objectContaining({ values: ['description one'] }))
-      expect(onChange).toBeCalledWith(['~Test_IdOne1'])
+      expect(tagProps).toHaveBeenCalledWith(expect.objectContaining({ values: ['description one'] }))
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdOne1'])
     })
   })
 
@@ -596,7 +596,7 @@ describe('NewNoteReaders', () => {
       expect(dropdownList.childNodes[1].textContent).toEqual('Test IdTwo')
       expect(dropdownList.childNodes[2].textContent).toEqual('Test IdThree')
       expect(screen.queryByText('does not matter')).not.toBeInTheDocument()
-      expect(onChange).not.toBeCalled()
+      expect(onChange).not.toHaveBeenCalled()
     })
   })
 
@@ -642,7 +642,7 @@ describe('NewNoteReaders', () => {
       expect(dropdownList.childNodes[1].textContent).toEqual('Test IdTwo')
       expect(dropdownList.childNodes[2].textContent).toEqual('Test IdThree')
       expect(screen.queryByText('does not matter')).not.toBeInTheDocument()
-      expect(onChange).toBeCalledWith(['~Test_IdTwo1', '~Test_IdThree1'])
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1', '~Test_IdThree1'])
     })
   })
 
@@ -727,7 +727,7 @@ describe('NewNoteReaders', () => {
     })
 
     await userEvent.click(screen.getByRole('button', { name: 'Remove Test IdTwo' }))
-    await waitFor(() => expect(onChange).toBeCalledWith(undefined))
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith(undefined))
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('Test IdThree'))
@@ -784,7 +784,7 @@ describe('NewNoteReaders', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'Remove test id two description' })
     )
-    await waitFor(() => expect(onChange).toBeCalledWith(undefined))
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith(undefined))
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('test id three description'))
@@ -845,7 +845,7 @@ describe('NewNoteReaders', () => {
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('test id three description'))
-    await waitFor(() => expect(onChange).toBeCalledWith(['~Test_IdTwo1', '~Test_IdThree1']))
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1', '~Test_IdThree1']))
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     await userEvent.click(clearButton)
@@ -905,7 +905,7 @@ describe('NewNoteReaders', () => {
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('test id one description'))
     await waitFor(() =>
-      expect(onChange).toBeCalledWith(['~Test_IdTwo1', '~Test_IdThree1', '~Test_IdOne1'])
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1', '~Test_IdThree1', '~Test_IdOne1'])
     )
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
@@ -942,7 +942,7 @@ describe('NewNoteReaders', () => {
       userEvent.click(screen.getByRole('combobox'))
       userEvent.click(screen.getByText('Test IdThree'))
       expect(onChange).toHaveBeenCalledWith(['~Test_IdThree1'])
-      expect(clearError).toBeCalled()
+      expect(clearError).toHaveBeenCalled()
     })
   })
 })
@@ -1015,7 +1015,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     expect(screen.getByText('tags'))
-    expect(tagProps).toBeCalledWith(
+    expect(tagProps).toHaveBeenCalledWith(
       expect.objectContaining({
         values: [
           'ICML.cc/2023/Conference/Program_Chairs',
@@ -1052,7 +1052,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     expect(screen.getByText('tags'))
-    expect(tagProps).toBeCalledWith(
+    expect(tagProps).toHaveBeenCalledWith(
       expect.objectContaining({
         values: [
           'ICML.cc/2023/Conference/Program_Chairs',
@@ -1089,7 +1089,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     expect(screen.getByText('tags'))
-    expect(tagProps).toBeCalledWith(
+    expect(tagProps).toHaveBeenCalledWith(
       expect.objectContaining({
         values: [
           'ICML.cc/2023/Conference/Program_Chairs',
@@ -1131,7 +1131,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     expect(screen.getByText('tags'))
-    expect(tagProps).toBeCalledWith(
+    expect(tagProps).toHaveBeenCalledWith(
       expect.objectContaining({
         values: [
           'ICML.cc/2023/Conference/Program_Chairs',
@@ -1171,7 +1171,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     expect(screen.getByText('tags'))
-    expect(tagProps).toBeCalledWith(
+    expect(tagProps).toHaveBeenCalledWith(
       expect.objectContaining({
         values: ['ICML.cc/2023/Conference/Reviewer_abcd'],
       })
@@ -1219,7 +1219,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     expect(screen.queryByText('tags')).not.toBeInTheDocument()
-    expect(promptError).toBeCalledWith('Can not create note, readers must match parent note')
+    expect(promptError).toHaveBeenCalledWith('Can not create note, readers must match parent note')
   })
 
   test('display const readers when const readers is not a subset of replyToNote readers if reply to forum', () => {
@@ -1263,7 +1263,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     expect(screen.getByText('tags'))
-    expect(tagProps).toBeCalledWith(
+    expect(tagProps).toHaveBeenCalledWith(
       expect.objectContaining({
         values: invitationReaders,
       })
@@ -1299,13 +1299,13 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    expect(getGroups).toBeCalledWith(
+    expect(getGroups).toHaveBeenCalledWith(
       expect.anything(),
       { regex: 'regex1.*|regex2.*' },
       expect.objectContaining({ version: 1 })
     )
     await waitFor(() =>
-      expect(promptError).toBeCalledWith('You do not have permission to create a note')
+      expect(promptError).toHaveBeenCalledWith('You do not have permission to create a note')
     )
   })
 
@@ -1338,13 +1338,13 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    expect(getGroups).toBeCalledWith(
+    expect(getGroups).toHaveBeenCalledWith(
       expect.anything(),
       { prefix: 'regex1.*' },
       expect.objectContaining({ version: 2 })
     )
     await waitFor(() =>
-      expect(promptError).toBeCalledWith('You do not have permission to create a note')
+      expect(promptError).toHaveBeenCalledWith('You do not have permission to create a note')
     )
   })
 
@@ -1428,9 +1428,9 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(getGroups).toBeCalledTimes(2)
-      expect(promptError).toBeCalledWith('You do not have permission to create a note')
-      expect(closeNoteEditor).toBeCalled()
+      expect(getGroups).toHaveBeenCalledTimes(2)
+      expect(promptError).toHaveBeenCalledWith('You do not have permission to create a note')
+      expect(closeNoteEditor).toHaveBeenCalled()
     })
   })
 
@@ -1469,7 +1469,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(getGroups).toBeCalledTimes(2)
+      expect(getGroups).toHaveBeenCalledTimes(2)
       expect(getGroups).toHaveBeenNthCalledWith(
         1,
         expect.anything(),
@@ -1482,12 +1482,12 @@ describe('NewReplyEditNoteReaders', () => {
         expect.objectContaining({ prefix: 'regex3' }),
         expect.anything()
       )
-      expect(promptError).toBeCalledWith('You do not have permission to create a note')
-      expect(closeNoteEditor).toBeCalled()
+      expect(promptError).toHaveBeenCalledWith('You do not have permission to create a note')
+      expect(closeNoteEditor).toHaveBeenCalled()
     })
   })
 
-  test('show tags when enum return 1 group, without default value, without replyToNote readers ', async () => {
+  test('show tags when enum return 1 group, without default value, without replyToNote readers', async () => {
     const onChange = jest.fn()
     const invitation = {
       edit: {
@@ -1513,15 +1513,15 @@ describe('NewReplyEditNoteReaders', () => {
 
     await waitFor(() => {
       expect(screen.getByText('tags'))
-      expect(tagProps).toBeCalledWith({
+      expect(tagProps).toHaveBeenCalledWith({
         fieldNameOverwrite: 'Readers',
         values: ['Test IdOne'],
       })
-      expect(onChange).toBeCalledWith(['~Test_IdOne1'])
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdOne1'])
     })
   })
 
-  test('show tags when items return 1 group, without default value, without replyToNote readers ', async () => {
+  test('show tags when items return 1 group, without default value, without replyToNote readers', async () => {
     const onChange = jest.fn()
     const invitation = {
       edit: {
@@ -1553,14 +1553,14 @@ describe('NewReplyEditNoteReaders', () => {
 
     await waitFor(() => {
       expect(screen.getByText('tags'))
-      expect(tagProps).toBeCalledWith(
+      expect(tagProps).toHaveBeenCalledWith(
         expect.objectContaining({ values: ['description of test id one'] })
       )
-      expect(onChange).toBeCalledWith(['~Test_IdOne1'])
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdOne1'])
     })
   })
 
-  test('show error when enum return 1 group, does not match with default value, without replyToNote readers ', async () => {
+  test('show error when enum return 1 group, does not match with default value, without replyToNote readers', async () => {
     const promptError = jest.fn()
     global.promptError = promptError
 
@@ -1588,11 +1588,11 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(promptError).toBeCalledWith('Default reader is not in the list of readers')
+      expect(promptError).toHaveBeenCalledWith('Default reader is not in the list of readers')
     })
   })
 
-  test('show error when items return 1 group, does not match with default value, without replyToNote readers ', async () => {
+  test('show error when items return 1 group, does not match with default value, without replyToNote readers', async () => {
     const promptError = jest.fn()
     global.promptError = promptError
 
@@ -1626,11 +1626,11 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(promptError).toBeCalledWith('Default reader is not in the list of readers')
+      expect(promptError).toHaveBeenCalledWith('Default reader is not in the list of readers')
     })
   })
 
-  test('show error when enum return multiple groups, does not match with default value, without replyToNote readers ', async () => {
+  test('show error when enum return multiple groups, does not match with default value, without replyToNote readers', async () => {
     api.get = jest.fn(() =>
       Promise.resolve({
         groups: [{ id: '~Test_IdOne1' }, { id: '~Test_IdTwo1' }, { id: '~Test_IdThree1' }],
@@ -1663,11 +1663,11 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(promptError).toBeCalledWith('Default reader is not in the list of readers')
+      expect(promptError).toHaveBeenCalledWith('Default reader is not in the list of readers')
     })
   })
 
-  test('show error when items return multiple groups, does not match with default value, without replyToNote readers ', async () => {
+  test('show error when items return multiple groups, does not match with default value, without replyToNote readers', async () => {
     api.get = jest.fn(() =>
       Promise.resolve({
         groups: [{ id: '~Test_IdOne1' }, { id: '~Test_IdTwo1' }, { id: '~Test_IdThree1' }],
@@ -1702,7 +1702,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(promptError).toBeCalledWith('Default reader is not in the list of readers')
+      expect(promptError).toHaveBeenCalledWith('Default reader is not in the list of readers')
     })
   })
 
@@ -1904,7 +1904,7 @@ describe('NewReplyEditNoteReaders', () => {
       expect(
         screen.getByText('description of test id two').parentElement.childElementCount
       ).toEqual(1)
-      expect(onChange).not.toBeCalled()
+      expect(onChange).not.toHaveBeenCalled()
     })
   })
 
@@ -1953,7 +1953,7 @@ describe('NewReplyEditNoteReaders', () => {
       expect(
         screen.getByText('description of test id two').parentElement.childElementCount
       ).toEqual(1)
-      expect(onChange).toBeCalledWith(['~Test_IdThree1'])
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdThree1'])
     })
   })
 
@@ -2003,7 +2003,7 @@ describe('NewReplyEditNoteReaders', () => {
       expect(
         screen.getByText('description of test id two').parentElement.childElementCount
       ).toEqual(1)
-      expect(onChange).toBeCalledWith(['~Test_IdTwo1', '~Test_IdThree1'])
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1', '~Test_IdThree1'])
     })
   })
 
@@ -2051,7 +2051,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(promptError).toBeCalledWith('Default reader is not in the list of readers')
+      expect(promptError).toHaveBeenCalledWith('Default reader is not in the list of readers')
       expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
     })
   })
@@ -2269,7 +2269,7 @@ describe('NewReplyEditNoteReaders', () => {
     await waitFor(() => {
       userEvent.click(screen.getByRole('combobox'))
       userEvent.click(screen.getByText('description of reviewers'))
-      expect(clearError).toBeCalled()
+      expect(clearError).toHaveBeenCalled()
     })
   })
 })

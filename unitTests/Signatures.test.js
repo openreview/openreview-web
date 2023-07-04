@@ -50,7 +50,7 @@ describe('Signatures', () => {
       <Signatures fieldDescription={constSignaturesFieldDescription} onChange={onChange} />
     )
 
-    expect(screen.getByText('tags'))
+    expect(screen.getByText('tags')).toBeInTheDocument()
     expect(onChange).toHaveBeenCalledWith({
       type: 'const',
       value: constSignaturesFieldDescription,
@@ -67,8 +67,8 @@ describe('Signatures', () => {
 
     render(<Signatures fieldDescription={currentUserFieldDescription} onChange={onChange} />)
 
-    expect(screen.getByText('tags'))
-    expect(onChange).toBeCalledWith({ value: ['~Test_User1'], type: 'const' })
+    expect(screen.getByText('tags')).toBeInTheDocument()
+    expect(onChange).toHaveBeenCalledWith({ value: ['~Test_User1'], type: 'const' })
   })
 
   test('call v1 api if regex has pipe value', async () => {
@@ -84,7 +84,7 @@ describe('Signatures', () => {
     render(<Signatures fieldDescription={regexPipeFieldDescription} onChange={onChange} />)
 
     await waitFor(() =>
-      expect(apiGet).toBeCalledWith(
+      expect(apiGet).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({ regex: expect.anything() }),
         expect.objectContaining({ version: 1 })
@@ -105,7 +105,7 @@ describe('Signatures', () => {
     render(<Signatures fieldDescription={regexNoPipeFieldDescription} onChange={onChange} />)
 
     await waitFor(() =>
-      expect(apiGet).toBeCalledWith(
+      expect(apiGet).toHaveBeenCalledWith(
         expect.anything(),
         expect.anything(),
         expect.objectContaining({ version: 2 })
@@ -133,7 +133,7 @@ describe('Signatures', () => {
     )
 
     await waitFor(() =>
-      expect(onError).toBeCalledWith('You do not have permission to create a note')
+      expect(onError).toHaveBeenCalledWith('You do not have permission to create a note')
     )
   })
 
@@ -150,8 +150,8 @@ describe('Signatures', () => {
     render(<Signatures fieldDescription={regexFieldDescription} onChange={onChange} />)
 
     await waitFor(() => {
-      expect(screen.getByText('tags'))
-      expect(onChange).toBeCalledTimes(3)
+      expect(screen.getByText('tags')).toBeInTheDocument()
+      expect(onChange).toHaveBeenCalledTimes(3)
       expect(onChange).toHaveBeenNthCalledWith(1, { loading: true })
       expect(onChange).toHaveBeenNthCalledWith(2, {
         value: ['some_test_group'],
@@ -183,8 +183,8 @@ describe('Signatures', () => {
     await waitFor(() => {
       expect(onChange).toHaveBeenNthCalledWith(2, { type: 'list' }) // 1,3 is loading state change
       userEvent.click(screen.getByRole('combobox'))
-      expect(screen.getByText('some_test_group'))
-      expect(screen.getByText('Test User'))
+      expect(screen.getByText('some_test_group')).toBeInTheDocument()
+      expect(screen.getByText('Test User')).toBeInTheDocument()
     })
   })
 
@@ -228,7 +228,7 @@ describe('Signatures', () => {
 
     await waitFor(() => {
       userEvent.click(screen.getByRole('combobox'))
-      expect(screen.getAllByText('some_test_group (Test User)'))
+      expect(screen.getAllByText('some_test_group (Test User)')).toHaveLength(1)
     })
   })
 
@@ -249,9 +249,9 @@ describe('Signatures', () => {
     render(<Signatures fieldDescription={enumFieldDescription} onChange={onChange} />)
 
     await waitFor(() => {
-      expect(screen.getByText('tags'))
-      expect(tagProps).toBeCalledWith({ values: ['some_test_group'] })
-      expect(onChange).toBeCalledTimes(3)
+      expect(screen.getByText('tags')).toBeInTheDocument()
+      expect(tagProps).toHaveBeenCalledWith({ values: ['some_test_group'] })
+      expect(onChange).toHaveBeenCalledTimes(3)
       expect(onChange).toHaveBeenNthCalledWith(1, { loading: true })
       expect(onChange).toHaveBeenNthCalledWith(2, {
         value: ['some_test_group'],
@@ -284,9 +284,9 @@ describe('Signatures', () => {
     render(<Signatures fieldDescription={itemsFieldDescription} onChange={onChange} />)
 
     await waitFor(() => {
-      expect(screen.getByText('tags'))
-      expect(tagProps).toBeCalledWith({ values: ['some_test_group'] })
-      expect(onChange).toBeCalledTimes(3)
+      expect(screen.getByText('tags')).toBeInTheDocument()
+      expect(tagProps).toHaveBeenCalledWith({ values: ['some_test_group'] })
+      expect(onChange).toHaveBeenCalledTimes(3)
       expect(onChange).toHaveBeenNthCalledWith(1, { loading: true })
       expect(onChange).toHaveBeenNthCalledWith(2, {
         value: ['some_test_group'],
@@ -313,13 +313,13 @@ describe('Signatures', () => {
     render(<Signatures fieldDescription={enumFieldDescription} onChange={onChange} />)
 
     await waitFor(() => {
-      expect(apiGet).toBeCalledTimes(1)
-      expect(apiGet).toBeCalledWith(
+      expect(apiGet).toHaveBeenCalledTimes(1)
+      expect(apiGet).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({ prefix: 'ICML.cc/2023/Conference/Submission5/Reviewer_.*' }),
         expect.anything()
       )
-      expect(screen.getByRole('combobox'))
+      expect(screen.getByRole('combobox')).toBeInTheDocument()
     })
   })
 
@@ -346,13 +346,13 @@ describe('Signatures', () => {
     render(<Signatures fieldDescription={itemsFieldDescription} onChange={onChange} />)
 
     await waitFor(() => {
-      expect(apiGet).toBeCalledTimes(1)
-      expect(apiGet).toBeCalledWith(
+      expect(apiGet).toHaveBeenCalledTimes(1)
+      expect(apiGet).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({ prefix: 'ICML.cc/2023/Conference/Submission5/Reviewer_.*' }),
         expect.anything()
       )
-      expect(screen.getByRole('combobox'))
+      expect(screen.getByRole('combobox')).toBeInTheDocument()
     })
   })
 
@@ -380,8 +380,8 @@ describe('Signatures', () => {
     await waitFor(() => {
       expect(onChange).toHaveBeenNthCalledWith(2, { type: 'list' })
       userEvent.click(screen.getByRole('combobox'))
-      expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer abc'))
-      expect(screen.getByText('ICML 2023 Conference Program Chairs'))
+      expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer abc')).toBeInTheDocument()
+      expect(screen.getByText('ICML 2023 Conference Program Chairs')).toBeInTheDocument()
     })
   })
 
@@ -418,8 +418,8 @@ describe('Signatures', () => {
         type: 'list',
       })
       userEvent.click(screen.getByRole('combobox'))
-      expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer abc'))
-      expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer xyz'))
+      expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer abc')).toBeInTheDocument()
+      expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer xyz')).toBeInTheDocument()
     })
   })
 
@@ -451,9 +451,9 @@ describe('Signatures', () => {
     await waitFor(() => {
       expect(onChange).toHaveBeenNthCalledWith(2, { type: 'list' })
       userEvent.click(screen.getByRole('combobox'))
-      expect(screen.getByText('some_test_group1'))
-      expect(screen.getByText('some_test_group2'))
-      expect(screen.getByText('ICML 2023 Conference Program Chairs'))
+      expect(screen.getByText('some_test_group1')).toBeInTheDocument()
+      expect(screen.getByText('some_test_group2')).toBeInTheDocument()
+      expect(screen.getByText('ICML 2023 Conference Program Chairs')).toBeInTheDocument()
     })
   })
 
@@ -489,8 +489,8 @@ describe('Signatures', () => {
         type: 'list',
       })
       userEvent.click(screen.getByRole('combobox'))
-      expect(screen.getByText('some_test_group1'))
-      expect(screen.getByText('ICML 2023 Conference Program Chairs'))
+      expect(screen.getByText('some_test_group1')).toBeInTheDocument()
+      expect(screen.getByText('ICML 2023 Conference Program Chairs')).toBeInTheDocument()
     })
   })
 
@@ -526,9 +526,9 @@ describe('Signatures', () => {
         type: 'list',
       })
       userEvent.click(screen.getByRole('combobox'))
-      expect(screen.getByText('some_test_group1'))
-      expect(screen.getByText('some_test_group2'))
-      expect(screen.getByText('ICML 2023 Conference Program Chairs'))
+      expect(screen.getByText('some_test_group1')).toBeInTheDocument()
+      expect(screen.getByText('some_test_group2')).toBeInTheDocument()
+      expect(screen.getByText('ICML 2023 Conference Program Chairs')).toBeInTheDocument()
     })
   })
 
@@ -552,7 +552,7 @@ describe('Signatures', () => {
     )
 
     await waitFor(() => {
-      expect(onError).toBeCalledWith('some api error occured')
+      expect(onError).toHaveBeenCalledWith('some api error occured')
     })
   })
 
@@ -578,8 +578,8 @@ describe('Signatures', () => {
     render(<Signatures fieldDescription={enumFieldDescription} onChange={onChange} />)
 
     await waitFor(() => {
-      expect(apiGet).toBeCalledTimes(2)
-      expect(screen.getByText('tags'))
+      expect(apiGet).toHaveBeenCalledTimes(2)
+      expect(screen.getByText('tags')).toBeInTheDocument()
     })
   })
 
@@ -613,8 +613,8 @@ describe('Signatures', () => {
     render(<Signatures fieldDescription={itemsFieldDescription} onChange={onChange} />)
 
     await waitFor(() => {
-      expect(apiGet).toBeCalledTimes(2)
-      expect(screen.getByText('tags'))
+      expect(apiGet).toHaveBeenCalledTimes(2)
+      expect(screen.getByText('tags')).toBeInTheDocument()
     })
   })
 
@@ -642,8 +642,8 @@ describe('Signatures', () => {
 
     await waitFor(() => {
       userEvent.click(screen.getByRole('combobox'))
-      expect(screen.getByText('some_test_group1'))
-      expect(screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)'))
+      expect(screen.getByText('some_test_group1')).toBeInTheDocument()
+      expect(screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)')).toBeInTheDocument()
     })
   })
 
@@ -678,8 +678,8 @@ describe('Signatures', () => {
 
     await waitFor(() => {
       userEvent.click(screen.getByRole('combobox'))
-      expect(screen.getByText('some_test_group1'))
-      expect(screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)'))
+      expect(screen.getByText('some_test_group1')).toBeInTheDocument()
+      expect(screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)')).toBeInTheDocument()
     })
   })
 
@@ -710,7 +710,7 @@ describe('Signatures', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('Select Signature...')).not.toBeInTheDocument()
-      expect(screen.getByText('dropdown Placeholder'))
+      expect(screen.getByText('dropdown Placeholder')).toBeInTheDocument()
     })
   })
 
@@ -839,7 +839,7 @@ describe('Signatures', () => {
     await waitFor(() => {
       userEvent.click(screen.getByRole('combobox'))
       userEvent.click(screen.getByText('ICML 2023 Conference Program Chairs'))
-      expect(clearError).toBeCalledTimes(1)
+      expect(clearError).toHaveBeenCalledTimes(1)
     })
   })
 })

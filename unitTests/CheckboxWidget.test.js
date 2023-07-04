@@ -300,7 +300,7 @@ describe('CheckboxWidget', () => {
     }
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
   test('update value when default value exists (enum object)', () => {
@@ -326,7 +326,7 @@ describe('CheckboxWidget', () => {
     }
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
   test('update value when default value exists (items) and no value', () => {
@@ -356,7 +356,7 @@ describe('CheckboxWidget', () => {
     }
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
   test('not to update value when default value exists (items) and has value', () => {
@@ -388,7 +388,7 @@ describe('CheckboxWidget', () => {
     }
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
-    expect(onChange).not.toBeCalled()
+    expect(onChange).not.toHaveBeenCalled()
   })
 
   test('update value when both default value and mandatory value exist (items) and no value', () => {
@@ -419,7 +419,7 @@ describe('CheckboxWidget', () => {
     }
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: [2, 3, 4] }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: [2, 3, 4] }))
   })
 
   test('not to update value when both default value and mandatory value exist (items) and has value', () => {
@@ -451,7 +451,7 @@ describe('CheckboxWidget', () => {
     }
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
-    expect(onChange).not.toBeCalled()
+    expect(onChange).not.toHaveBeenCalled()
   })
 
   test('call update when option is checked (enum string)', async () => {
@@ -479,8 +479,8 @@ describe('CheckboxWidget', () => {
 
     const iCertifyCheckbox = screen.getByDisplayValue('I certify')
     await userEvent.click(iCertifyCheckbox)
-    expect(clearError).toBeCalled()
-    expect(onChange).toBeCalledWith({
+    expect(clearError).toHaveBeenCalled()
+    expect(onChange).toHaveBeenCalledWith({
       fieldName: 'paper_checklist_guidelines',
       value: 'I certify',
     })
@@ -511,8 +511,8 @@ describe('CheckboxWidget', () => {
 
     const iCertifyCheckbox = screen.getByDisplayValue(1)
     await userEvent.click(iCertifyCheckbox)
-    expect(clearError).toBeCalled()
-    expect(onChange).toBeCalledWith({
+    expect(clearError).toHaveBeenCalled()
+    expect(onChange).toHaveBeenCalledWith({
       fieldName: 'paper_checklist_guidelines',
       value: 1,
     })
@@ -543,8 +543,8 @@ describe('CheckboxWidget', () => {
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
     const iDoNotCertifyCheckbox = screen.getByDisplayValue('I do not certify')
     await userEvent.click(iDoNotCertifyCheckbox)
-    expect(clearError).toBeCalled()
-    expect(onChange).toBeCalledWith({
+    expect(clearError).toHaveBeenCalled()
+    expect(onChange).toHaveBeenCalledWith({
       fieldName: 'paper_checklist_guidelines',
       value: undefined,
     })
@@ -575,7 +575,7 @@ describe('CheckboxWidget', () => {
 
     const iCertifyCheckbox = screen.getByDisplayValue(1)
     await userEvent.click(iCertifyCheckbox)
-    expect(onChange).toBeCalledWith({
+    expect(onChange).toHaveBeenCalledWith({
       fieldName: 'paper_checklist_guidelines',
       value: '1', // type is string
     })
@@ -583,7 +583,7 @@ describe('CheckboxWidget', () => {
     // clicking text should have same effect
     const iCertifyText = screen.getByText('I certify')
     await userEvent.click(iCertifyText)
-    expect(onChange).toBeCalledWith({
+    expect(onChange).toHaveBeenCalledWith({
       fieldName: 'paper_checklist_guidelines',
       value: '1',
     })
@@ -614,7 +614,7 @@ describe('CheckboxWidget', () => {
 
     const iCertifyCheckbox = screen.getByDisplayValue(1)
     await userEvent.click(iCertifyCheckbox)
-    expect(onChange).toBeCalledWith({
+    expect(onChange).toHaveBeenCalledWith({
       fieldName: 'paper_checklist_guidelines',
       value: 1,
     })
@@ -646,7 +646,7 @@ describe('CheckboxWidget', () => {
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
     const iDoNotCertifyCheckbox = screen.getByDisplayValue('2')
     await userEvent.click(iDoNotCertifyCheckbox)
-    expect(onChange).toBeCalledWith({
+    expect(onChange).toHaveBeenCalledWith({
       fieldName: 'paper_checklist_guidelines',
       value: undefined,
     })
@@ -681,7 +681,7 @@ describe('CheckboxWidget', () => {
 
     const iCertifyCheckbox = screen.getByDisplayValue(1)
     await userEvent.click(iCertifyCheckbox)
-    expect(onChange).toBeCalledWith({
+    expect(onChange).toHaveBeenCalledWith({
       fieldName: 'paper_checklist_guidelines',
       value: ['1'],
     })
@@ -716,7 +716,7 @@ describe('CheckboxWidget', () => {
 
     const iCertifyCheckbox = screen.getByDisplayValue(1)
     await userEvent.click(iCertifyCheckbox)
-    expect(onChange).toBeCalledWith({
+    expect(onChange).toHaveBeenCalledWith({
       fieldName: 'paper_checklist_guidelines',
       value: [1],
     })
@@ -752,7 +752,7 @@ describe('CheckboxWidget', () => {
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
     const iDoNotCertifyCheckbox = screen.getByDisplayValue('2')
     await userEvent.click(iDoNotCertifyCheckbox)
-    expect(onChange).toBeCalledWith({
+    expect(onChange).toHaveBeenCalledWith({
       fieldName: 'paper_checklist_guidelines',
       value: undefined,
     })

@@ -68,7 +68,7 @@ describe('RecruitmentForm', () => {
     }
 
     renderWithWebFieldContext(<RecruitmentForm />, providerProps)
-    expect(screen.getByText('The link is invalid, please refer back to recruitment email.'))
+    expect(screen.getByText('The link is invalid, please refer back to recruitment email.')).toBeInTheDocument()
   })
 
   test('show title, contact, invitation message and action buttons', () => {
@@ -107,7 +107,7 @@ describe('RecruitmentForm', () => {
     expect(screen.getByText(providerProps.value.header.subtitle))
     expect(screen.getByText(providerProps.value.header.website))
     expect(screen.getByText(providerProps.value.header.contact))
-    expect(markdownProps).toBeCalledWith({ text: providerProps.value.invitationMessage })
+    expect(markdownProps).toHaveBeenCalledWith({ text: providerProps.value.invitationMessage })
     expect(screen.getByText(providerProps.value.invitationMessage))
     expect(screen.getByRole('button', { name: 'Accept' }))
     expect(screen.getByRole('button', { name: 'Decline' }))
@@ -155,7 +155,7 @@ describe('RecruitmentForm', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Accept' }))
     await waitFor(() => {
       expect(screen.getByText('Thank you test@email.com for accepting this invitation'))
-      expect(postResponse).toBeCalledWith('/notes/edits', responseEditMock, { version: 2 })
+      expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, { version: 2 })
     })
   })
 
@@ -201,7 +201,7 @@ describe('RecruitmentForm', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Decline' }))
     await waitFor(() => {
       expect(screen.getByText('You test@email.com have declined the invitation'))
-      expect(postResponse).toBeCalledWith('/notes/edits', responseEditMock, { version: 2 })
+      expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, { version: 2 })
       expect(screen.queryByRole('button')).not.toBeInTheDocument() // invitation does not have content
     })
   })

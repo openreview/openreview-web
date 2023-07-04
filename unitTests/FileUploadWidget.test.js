@@ -86,9 +86,9 @@ describe('FileUploadWidget', () => {
     })
     await userEvent.upload(fileInput, file)
 
-    expect(apiPut).toBeCalled()
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'test url' }))
-    expect(clearError).toBeCalled()
+    expect(apiPut).toHaveBeenCalled()
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 'test url' }))
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('show File too large when selected file is too large', async () => {
@@ -150,6 +150,6 @@ describe('FileUploadWidget', () => {
     const trashButton = screen.getByRole('button', { name: 'trash' })
     await userEvent.click(trashButton)
 
-    expect(onChange).toBeCalledWith({ fieldName: 'supplementary_material', value: undefined })
+    expect(onChange).toHaveBeenCalledWith({ fieldName: 'supplementary_material', value: undefined })
   })
 })

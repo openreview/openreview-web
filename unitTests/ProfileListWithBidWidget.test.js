@@ -379,7 +379,7 @@ describe('ProfileListWithBidWidget', () => {
     render(<ProfileListWithBidWidget {...props} />)
 
     await userEvent.click(screen.getByText('machine learning'))
-    expect(setSearchTerm).toBeCalledWith('machine learning')
+    expect(setSearchTerm).toHaveBeenCalledWith('machine learning')
 
     await userEvent.click(screen.getByText('nlp'))
     expect(setSearchTerm).toHaveBeenLastCalledWith('nlp')

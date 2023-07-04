@@ -127,7 +127,7 @@ describe('ProfileBidConsole', () => {
     )
 
     await waitFor(() => {
-      expect(marked).toBeCalledWith('** some instructions **')
+      expect(marked).toHaveBeenCalledWith('** some instructions **')
       expect(screen.getByText('rendered title'))
       expect(screen.getByText('You have completed 0 bids'))
       expect(screen.getByText('All Area Chairs'))

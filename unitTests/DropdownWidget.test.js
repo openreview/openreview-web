@@ -115,8 +115,8 @@ describe('DropdownWidget', () => {
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option two'))
 
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'option two' }))
-    expect(clearError).toBeCalled()
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 'option two' }))
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('call update on selecting another value (enum string single select)', async () => {
@@ -146,7 +146,7 @@ describe('DropdownWidget', () => {
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option three'))
 
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'option three' }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 'option three' }))
   })
 
   test('call update on clearing selected value (enum string single select)', async () => {
@@ -175,7 +175,7 @@ describe('DropdownWidget', () => {
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
 
     await userEvent.click(clearButton)
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: undefined }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: undefined }))
   })
 
   // this test should be invalid but is added for backward compatibility
@@ -209,7 +209,7 @@ describe('DropdownWidget', () => {
     expect(screen.getByText('Representation: Constraints'))
 
     await userEvent.click(screen.getByText('Methodology: Bayesian Methods'))
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ value: ['Methodology: Bayesian Methods'] })
     )
   })
@@ -245,11 +245,11 @@ describe('DropdownWidget', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'Remove Algorithms: Approximate Inference' })
     )
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: undefined }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: undefined }))
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('Methodology: Bayesian Methods'))
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: ['Algorithms: Approximate Inference', 'Methodology: Bayesian Methods'],
       })
@@ -317,8 +317,8 @@ describe('DropdownWidget', () => {
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
 
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'value two' }))
-    expect(clearError).toBeCalled()
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 'value two' }))
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('call update on selecting a value (enum obj with type conversion)', async () => {
@@ -352,8 +352,8 @@ describe('DropdownWidget', () => {
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
 
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: 2 }))
-    expect(clearError).toBeCalled()
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 2 }))
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('call update on selecting another value (enum obj)', async () => {
@@ -387,8 +387,8 @@ describe('DropdownWidget', () => {
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description three'))
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'value three' }))
-    expect(clearError).toBeCalled()
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 'value three' }))
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('render options (items)', async () => {
@@ -494,8 +494,8 @@ describe('DropdownWidget', () => {
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
 
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: ['value two'] }))
-    expect(clearError).toBeCalled()
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: ['value two'] }))
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('call update on selecting a value (enum obj + integer[] type with type conversion)', async () => {
@@ -529,8 +529,8 @@ describe('DropdownWidget', () => {
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
 
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: [2] }))
-    expect(clearError).toBeCalled()
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: [2] }))
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('call update on selecting another value (enum obj + string[] type)', async () => {
@@ -564,10 +564,10 @@ describe('DropdownWidget', () => {
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description three'))
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ value: ['value two', 'value three'] })
     )
-    expect(clearError).toBeCalled()
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('call update on selecting a value (items no type conversion)', async () => {
@@ -613,8 +613,8 @@ describe('DropdownWidget', () => {
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
 
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: ['value two'] }))
-    expect(clearError).toBeCalled()
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: ['value two'] }))
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('call update on selecting a value (items with type conversion)', async () => {
@@ -660,8 +660,8 @@ describe('DropdownWidget', () => {
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
 
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: [2] }))
-    expect(clearError).toBeCalled()
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: [2] }))
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('work as single select when type is not array (items)', async () => {
@@ -705,7 +705,7 @@ describe('DropdownWidget', () => {
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
 
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: 'value two' }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 'value two' }))
   })
 
   test('call update on selecting another value (items)', async () => {
@@ -752,10 +752,10 @@ describe('DropdownWidget', () => {
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description three'))
 
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ value: ['value two', 'value three'] })
     )
-    expect(clearError).toBeCalled()
+    expect(clearError).toHaveBeenCalled()
   })
 
   test('call update on removing single only value (items)', async () => {
@@ -803,7 +803,7 @@ describe('DropdownWidget', () => {
       screen.getByRole('button', { name: 'Remove option description two' })
     )
 
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: undefined }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: undefined }))
   })
 
   test('call update on removing one value when multiple values are selected (items)', async () => {
@@ -852,7 +852,7 @@ describe('DropdownWidget', () => {
       screen.getByRole('button', { name: 'Remove option description two' })
     )
 
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: ['value three'] }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: ['value three'] }))
   })
 
   test('call update on clearing all values (items)', async () => {
@@ -900,7 +900,7 @@ describe('DropdownWidget', () => {
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     await userEvent.click(clearButton)
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: undefined }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: undefined }))
   })
 
   test('update value with default and mandatory values (no existing value)', () => {
@@ -941,7 +941,7 @@ describe('DropdownWidget', () => {
     }
 
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ value: ['value two', 'value three'] })
     )
   })
@@ -984,7 +984,7 @@ describe('DropdownWidget', () => {
     }
 
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
-    expect(onChange).not.toBeCalled()
+    expect(onChange).not.toHaveBeenCalled()
   })
 
   test('call update when a non mandatory option is added', async () => {
@@ -1034,7 +1034,7 @@ describe('DropdownWidget', () => {
     )
 
     await userEvent.click(screen.getByText('option description one'))
-    expect(onChange).toBeCalledWith(
+    expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ value: ['value three', 'value one'] })
     )
   })
@@ -1086,7 +1086,7 @@ describe('DropdownWidget', () => {
     ).not.toBeInTheDocument()
 
     await userEvent.click(optionOneRemoveButton)
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: ['value three'] }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: ['value three'] }))
   })
 
   test('call update when all non mandatory values are cleared', async () => {
@@ -1132,7 +1132,7 @@ describe('DropdownWidget', () => {
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     await userEvent.click(clearButton)
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: ['value three'] })) // mandatory value should not be cleared
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: ['value three'] })) // mandatory value should not be cleared
   })
 
   test('not to show clear all button when all values are mandatory', () => {
