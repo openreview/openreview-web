@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import EditorComponentContext from '../EditorComponentContext'
 import styles from '../../styles/components/CodeEditorWidget.module.scss'
@@ -9,11 +9,12 @@ const CodeEditor = dynamic(() => import('../CodeEditor'), {
 })
 
 const CodeEditorWidget = () => {
-  const { field, onChange, value, error, clearError, setErrors } =
+  const { field, onChange, value, error, clearError, setErrors, note } =
     useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldType = field[fieldName]?.value?.param?.type
   const isJsonType = fieldType === 'json'
+  const defaultValue = field[fieldName]?.value?.param?.default
 
   const [formattedCode, setFormattedCode] = useState(
     isJsonType ? JSON.stringify(value, undefined, 2) : value
@@ -39,6 +40,13 @@ const CodeEditorWidget = () => {
       ])
     }
   }
+
+  useEffect(() => {
+    if (!defaultValue) return
+    if (!note) {
+      onCodeChange(isJsonType ? JSON.stringify(defaultValue, undefined, 2) : defaultValue)
+    }
+  }, [])
 
   return (
     <div className={`${styles.codeEditorContainer} ${error ? styles.invalidValue : ''}`}>

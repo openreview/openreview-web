@@ -390,7 +390,7 @@ describe('RadioButtonWidget', () => {
     ) // onChange will cause the option to be shown as selected
   })
 
-  test('not to display default value as selected if there is value (enum string)', () => {
+  test('not to display default value as selected if editing existing note (enum string)', () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
@@ -410,7 +410,12 @@ describe('RadioButtonWidget', () => {
           },
         },
         onChange,
-        value: 'Regular submission (no more than 12 pages of main content)',
+        value: undefined,
+        note: {
+          content: {
+            submission_length: undefined,
+          },
+        },
       },
     }
 
@@ -418,7 +423,7 @@ describe('RadioButtonWidget', () => {
 
     expect(
       screen.getByDisplayValue('Regular submission (no more than 12 pages of main content)')
-    ).toHaveAttribute('checked')
+    ).not.toHaveAttribute('checked')
     expect(onChange).not.toHaveBeenCalled()
   })
 
@@ -457,7 +462,7 @@ describe('RadioButtonWidget', () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 1 }))
   })
 
-  test('not to display default value as selected if there is value (enum object)', () => {
+  test('not to display default value as selected if editing existing note (enum object)', () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
@@ -484,7 +489,12 @@ describe('RadioButtonWidget', () => {
           },
         },
         onChange,
-        value: 1,
+        value: undefined,
+        note: {
+          content: {
+            submission_length: undefined,
+          },
+        },
       },
     }
 

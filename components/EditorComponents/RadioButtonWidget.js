@@ -5,7 +5,8 @@ import styles from '../../styles/components/RadioButtonWidget.module.scss'
 import { convertToType } from '../../lib/webfield-utils'
 
 const RadioButtonWidget = () => {
-  const { field, onChange, value, isWebfield, clearError } = useContext(EditorComponentContext)
+  const { field, onChange, value, isWebfield, clearError, note } =
+    useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const dataType = field[fieldName]?.value?.param?.type
   const [radioButtonOptions, setRadioButtonOptions] = useState([])
@@ -21,7 +22,7 @@ const RadioButtonWidget = () => {
         )
       )
       const defaultValue = field[fieldName].value?.param?.default
-      if (!value && defaultValue) onChange({ fieldName, value: defaultValue })
+      if (!note && defaultValue) onChange({ fieldName, value: defaultValue })
     }
   }, [])
 

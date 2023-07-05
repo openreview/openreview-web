@@ -4,12 +4,14 @@ import styles from '../../styles/components/TextboxWidget.module.scss'
 import { convertToType, getFieldConstValue } from '../../lib/webfield-utils'
 
 const TextboxWidget = () => {
-  const { field, onChange, value, error, clearError } = useContext(EditorComponentContext)
+  const { field, onChange, value, error, clearError, note } =
+    useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldType = field[fieldName]?.value?.param?.type
   const isArrayType = fieldType?.endsWith('[]')
   const dataType = isArrayType ? fieldType?.slice(0, -2) : fieldType
   const constValue = getFieldConstValue(field[fieldName])
+  const defaultValue = field[fieldName]?.value?.param?.default
 
   const isCommaSeparatedArray = field[fieldName]?.value?.param?.type?.endsWith('[]')
   const [displayValue, setDisplayValue] = useState(
@@ -30,6 +32,11 @@ const TextboxWidget = () => {
     })
     clearError?.()
   }, [displayValue])
+
+  useEffect(() => {
+    if (!defaultValue) return
+    if (!note) setDisplayValue(isCommaSeparatedArray ? defaultValue.join(',') : defaultValue)
+  }, [defaultValue])
 
   if (constValue)
     return (

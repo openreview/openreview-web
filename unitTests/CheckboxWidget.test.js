@@ -359,7 +359,7 @@ describe('CheckboxWidget', () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
-  test('not to update value when default value exists (items) and has value', () => {
+  test('not to update value when default value exists (items) and is editing existing note', () => {
     // means default value is unchecked by user
     const onChange = jest.fn()
     const defaultValue = ['1', '3']
@@ -383,7 +383,12 @@ describe('CheckboxWidget', () => {
           },
         },
         onChange,
-        value: ['2'],
+        value: undefined,
+        note: {
+          content: {
+            paper_checklist_guidelines: undefined,
+          },
+        },
       },
     }
 
@@ -422,7 +427,7 @@ describe('CheckboxWidget', () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: [2, 3, 4] }))
   })
 
-  test('not to update value when both default value and mandatory value exist (items) and has value', () => {
+  test('not to update value when both default value and mandatory value exist (items) and is editing existing note', () => {
     const onChange = jest.fn()
     const defaultValue = [2, 3]
 
@@ -446,7 +451,12 @@ describe('CheckboxWidget', () => {
           },
         },
         onChange,
-        value: [3, 4],
+        value: undefined,
+        note: {
+          content: {
+            paper_checklist_guidelines: undefined,
+          },
+        },
       },
     }
 

@@ -102,6 +102,108 @@ describe('TextboxWidget', () => {
     expect(screen.getByDisplayValue(''))
   })
 
+  test('show default value and invoke onChange if there is default value (string)', () => {
+    const onChange = jest.fn()
+    const defaultValue = 'default paper title'
+    const providerProps = {
+      value: {
+        field: {
+          paper_title: {
+            value: {
+              param: { type: 'string', regex: '.{1,250}', default: defaultValue },
+            },
+          },
+        },
+        value: undefined,
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
+  })
+
+  test('show default value and invoke onChange if there is default value (string[])', () => {
+    const onChange = jest.fn()
+    const defaultValue = ['keyword one', 'keyword two', 'keyword three']
+    const providerProps = {
+      value: {
+        field: {
+          keywords: {
+            value: {
+              param: {
+                type: 'string[]',
+                default: defaultValue,
+              },
+            },
+          },
+        },
+        value: undefined,
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
+  })
+
+  test('not to show default value and invoke onChange editing existing note', () => {
+    const onChange = jest.fn()
+    const defaultValue = 'default paper title'
+    const providerProps = {
+      value: {
+        field: {
+          paper_title: {
+            value: {
+              param: { type: 'string', regex: '.{1,250}', default: defaultValue },
+            },
+          },
+        },
+        value: undefined,
+        onChange,
+        note: {
+          id: 'test',
+          content: {
+            paper_title: undefined,
+          },
+        },
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+
+    expect(onChange).not.toBeCalled()
+  })
+
+  test('show default value and invoke onChange editing existing note)', () => {
+    const onChange = jest.fn()
+    const defaultValue = ['keyword one', 'keyword two', 'keyword three']
+    const providerProps = {
+      value: {
+        field: {
+          keywords: {
+            value: {
+              param: {
+                type: 'string[]',
+                default: defaultValue,
+              },
+            },
+          },
+        },
+        value: undefined,
+        onChange,
+        note: {
+          id: 'test',
+          content: {
+            keywords: undefined,
+          },
+        },
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+
+    expect(onChange).not.toBeCalled()
+  })
+
   test('show note value if string value exists (editing a note)', () => {
     const providerProps = {
       value: {

@@ -5,7 +5,8 @@ import styles from '../../styles/components/CheckboxWidget.module.scss'
 import { convertToType } from '../../lib/webfield-utils'
 
 const CheckboxWidget = () => {
-  const { field, onChange, value, isWebfield, clearError } = useContext(EditorComponentContext)
+  const { field, onChange, value, isWebfield, clearError, note } =
+    useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldType = field[fieldName]?.value?.param?.type
   const isArrayType = fieldType?.endsWith('[]')
@@ -42,7 +43,7 @@ const CheckboxWidget = () => {
       setCheckboxOptions([
         { value: optionValue, description: optionDescription, optional: true },
       ])
-      if (!value && defaultValue) onChange({ fieldName, value: defaultValue })
+      if (!note && defaultValue) onChange({ fieldName, value: defaultValue })
       return
     }
     if (Array.isArray(itemsValues) && itemsValues.length) {
@@ -51,7 +52,7 @@ const CheckboxWidget = () => {
       const mandatoryValues =
         itemsValues.flatMap((p) => (p.optional === false ? p.value : [])) ?? []
       setCheckboxOptions(itemsValues)
-      if (!value && (defaultValues?.length || mandatoryValues?.length)) {
+      if (!note && (defaultValues?.length || mandatoryValues?.length)) {
         onChange({ fieldName, value: [...new Set([...defaultValues, ...mandatoryValues])] })
       }
     }

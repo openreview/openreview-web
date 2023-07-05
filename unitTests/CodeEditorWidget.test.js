@@ -173,7 +173,9 @@ describe('CheckboxWidget', () => {
       {
         "some": "code"
       }`)
-      expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: { some: 'code' } }))
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({ value: { some: 'code' } })
+      )
     })
   })
 
@@ -199,6 +201,87 @@ describe('CheckboxWidget', () => {
     await waitFor(() => {
       onCodeChange('')
       expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: undefined }))
+    })
+  })
+
+  test('call onChange when there is default value', async () => {
+    const onChange = jest.fn()
+    const defaultValue = {
+      'ICML.cc/2023/Conference/Area_Chairs/-/Bid': {
+        weight: 1,
+        default: 0,
+        translate_map: {
+          'Very High': 1,
+          High: 0.5,
+          Neutral: 0,
+          Low: -0.5,
+          'Very Low': -1,
+        },
+      },
+    }
+    const providerProps = {
+      value: {
+        field: {
+          setting: {
+            value: {
+              param: {
+                type: 'json',
+                default: defaultValue,
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
+    await waitFor(() => {
+      expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
+    })
+  })
+
+  test('not to call onChange when note does not have this field even if there is default value', async () => {
+    const onChange = jest.fn()
+    const defaultValue = {
+      'ICML.cc/2023/Conference/Area_Chairs/-/Bid': {
+        weight: 1,
+        default: 0,
+        translate_map: {
+          'Very High': 1,
+          High: 0.5,
+          Neutral: 0,
+          Low: -0.5,
+          'Very Low': -1,
+        },
+      },
+    }
+    const providerProps = {
+      value: {
+        field: {
+          setting: {
+            value: {
+              param: {
+                type: 'json',
+                default: defaultValue,
+              },
+            },
+          },
+        },
+        onChange,
+        value: undefined,
+        note: {
+          id: 'test',
+          content: {
+            setting: undefined,
+          },
+        },
+      },
+    }
+
+    renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
+    await waitFor(() => {
+      expect(onChange).not.toBeCalled()
     })
   })
 })
