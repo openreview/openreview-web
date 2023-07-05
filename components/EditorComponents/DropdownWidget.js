@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react'
 import Dropdown from '../Dropdown'
 import EditorComponentContext from '../EditorComponentContext'
-import { prettyField } from '../../lib/utils'
+import { prettyField, prettyId } from '../../lib/utils'
 import { convertToType } from '../../lib/webfield-utils'
 import styles from '../../styles/components/DropdownWidget.module.scss'
 
@@ -69,7 +69,7 @@ const DropdownWidget = () => {
       setDropdownOptions(
         enumValues.map((p) =>
           typeof p === 'object'
-            ? { label: p.description, value: p.value, optional: true }
+            ? { label: p.description ?? prettyId(p.value), value: p.value, optional: true }
             : { label: p, value: p, optional: true }
         )
       )
@@ -82,7 +82,7 @@ const DropdownWidget = () => {
         itemsValues.flatMap((p) => (p.optional === false ? p.value : [])) ?? []
       setDropdownOptions(
         itemsValues.map((p) => ({
-          label: p.description,
+          label: p.description ?? prettyId(p.value),
           value: p.value,
           optional: p.optional,
         }))

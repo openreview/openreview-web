@@ -79,7 +79,7 @@ export const NewNoteReaders = ({
           : Promise.resolve([
               {
                 ...p,
-                description: prettyId(p.description)
+                description: prettyId(p.description ?? p.value)
                   .split(/\{(\S+)\}/g)
                   .filter((q) => q.trim())
                   .join(),

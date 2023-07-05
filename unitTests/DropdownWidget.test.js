@@ -416,6 +416,11 @@ describe('DropdownWidget', () => {
                     description: 'option description three',
                     optional: true,
                   },
+                  {
+                    value: 'value four',
+                    description: undefined,
+                    optional: true,
+                  },
                 ],
               },
             },
@@ -431,6 +436,7 @@ describe('DropdownWidget', () => {
     expect(screen.getByText('option description one'))
     expect(screen.getByText('option description two'))
     expect(screen.getByText('option description three'))
+    expect(screen.getByText('value four'))
   })
 
   test('render options (enum obj + sting[] type)', async () => {

@@ -466,7 +466,9 @@ describe('NewNoteReaders', () => {
     await waitFor(() => {
       expect(getGroups).toHaveBeenCalledTimes(2)
       expect(screen.getByText('tags'))
-      expect(tagProps).toHaveBeenCalledWith(expect.objectContaining({ values: ['Test IdOne'] }))
+      expect(tagProps).toHaveBeenCalledWith(
+        expect.objectContaining({ values: ['Test IdOne'] })
+      )
       expect(onChange).toHaveBeenCalledWith(['~Test_IdOne1'])
     })
   })
@@ -504,7 +506,9 @@ describe('NewNoteReaders', () => {
     await waitFor(() => {
       expect(getGroups).toHaveBeenCalledTimes(2)
       expect(screen.getByText('tags'))
-      expect(tagProps).toHaveBeenCalledWith(expect.objectContaining({ values: ['description one'] }))
+      expect(tagProps).toHaveBeenCalledWith(
+        expect.objectContaining({ values: ['description one'] })
+      )
       expect(onChange).toHaveBeenCalledWith(['~Test_IdOne1'])
     })
   })
@@ -614,6 +618,11 @@ describe('NewNoteReaders', () => {
             param: {
               items: [
                 {
+                  value: '~Test_IdZero1',
+                  description: undefined,
+                  optional: true,
+                },
+                {
                   value: '~Test_IdOne1',
                   description: 'test id one description',
                   optional: true,
@@ -638,9 +647,10 @@ describe('NewNoteReaders', () => {
     await waitFor(() => userEvent.click(screen.getByText('Select readers')))
     await waitFor(() => {
       const dropdownList = screen.getByText('test id one description').parentElement
-      expect(dropdownList.childNodes[0].textContent).toEqual('test id one description')
-      expect(dropdownList.childNodes[1].textContent).toEqual('Test IdTwo')
-      expect(dropdownList.childNodes[2].textContent).toEqual('Test IdThree')
+      expect(dropdownList.childNodes[0].textContent).toEqual('Test IdZero')
+      expect(dropdownList.childNodes[1].textContent).toEqual('test id one description')
+      expect(dropdownList.childNodes[2].textContent).toEqual('Test IdTwo')
+      expect(dropdownList.childNodes[3].textContent).toEqual('Test IdThree')
       expect(screen.queryByText('does not matter')).not.toBeInTheDocument()
       expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1', '~Test_IdThree1'])
     })
@@ -845,7 +855,9 @@ describe('NewNoteReaders', () => {
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('test id three description'))
-    await waitFor(() => expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1', '~Test_IdThree1']))
+    await waitFor(() =>
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1', '~Test_IdThree1'])
+    )
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     await userEvent.click(clearButton)
@@ -1219,7 +1231,9 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     expect(screen.queryByText('tags')).not.toBeInTheDocument()
-    expect(promptError).toHaveBeenCalledWith('Can not create note, readers must match parent note')
+    expect(promptError).toHaveBeenCalledWith(
+      'Can not create note, readers must match parent note'
+    )
   })
 
   test('display const readers when const readers is not a subset of replyToNote readers if reply to forum', () => {
