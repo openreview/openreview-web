@@ -36,13 +36,24 @@ const CheckboxWidget = () => {
     const itemsValues = field[fieldName].value?.param?.items
 
     if (Array.isArray(enumValues) && enumValues.length) {
-      const option = enumValues[0] // enum allow only single value
-      const optionValue = typeof option === 'object' ? option.value : option
-      const optionDescription = typeof option === 'object' ? option.description : option
-      const defaultValue = field[fieldName].value?.param?.default // non-array value
-      setCheckboxOptions([
-        { value: optionValue, description: optionDescription, optional: true },
-      ])
+      if (isArrayType) {
+        setCheckboxOptions(
+          enumValues.map((p) =>
+            typeof p === 'object'
+              ? { value: p.value, description: p.description }
+              : { value: p, description: p }
+          )
+        )
+      } else {
+        const option = enumValues[0]
+        const optionValue = typeof option === 'object' ? option.value : option
+        const optionDescription = typeof option === 'object' ? option.description : option
+        setCheckboxOptions([
+          { value: optionValue, description: optionDescription, optional: true },
+        ])
+      }
+      const defaultValue = field[fieldName].value?.param?.default
+
       if (!note && defaultValue) onChange({ fieldName, value: defaultValue })
       return
     }
@@ -67,7 +78,8 @@ const CheckboxWidget = () => {
           <input
             type="checkbox"
             value={option.value ?? ''}
-            checked={(value === option.value || value?.includes(option.value)) ?? false}
+            // eslint-disable-next-line eqeqeq
+            checked={(value == option.value || value?.find((p) => p == option.value)) ?? false}
             disabled={option.optional === false}
             onChange={handleCheckboxClick}
           />

@@ -89,7 +89,31 @@ describe('CheckboxWidget', () => {
     expect(screen.queryByDisplayValue('I am not sure')).not.toBeInTheDocument()
   })
 
-  test('display description of first value of enum options(obj) as checkbox input', () => {
+  test('display all enum options(string[]) as checkbox input', () => {
+    const providerProps = {
+      value: {
+        field: {
+          paper_checklist_guidelines: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string[]',
+                enum: ['I certify', 'I do not certify', 'I am not sure'],
+              },
+            },
+          },
+        },
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+
+    expect(screen.getByDisplayValue('I certify')).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue('I do not certify')).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue('I am not sure')).toHaveAttribute('type', 'checkbox')
+  })
+
+  test('display description of first value of enum options(obj with integer type) as checkbox input', () => {
     const providerProps = {
       value: {
         field: {
@@ -115,6 +139,34 @@ describe('CheckboxWidget', () => {
     expect(screen.getByDisplayValue(1)).toHaveAttribute('type', 'checkbox')
     expect(screen.queryByDisplayValue('I do not certify')).not.toBeInTheDocument()
     expect(screen.queryByDisplayValue('I am not sure')).not.toBeInTheDocument()
+  })
+
+  test('display description of enum options(obj with [] type) as checkbox input', () => {
+    const providerProps = {
+      value: {
+        field: {
+          paper_checklist_guidelines: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'integer[]',
+                enum: [
+                  { value: 1, description: 'I certify' },
+                  { value: 2, description: 'I do not certify' },
+                  { value: 3, description: 'I am not sure' },
+                ],
+              },
+            },
+          },
+        },
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+
+    expect(screen.getByDisplayValue(1)).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue(2)).toHaveAttribute('type', 'checkbox')
+    expect(screen.getByDisplayValue(3)).toHaveAttribute('type', 'checkbox')
   })
 
   test('display description of items options as checkbox input', () => {
