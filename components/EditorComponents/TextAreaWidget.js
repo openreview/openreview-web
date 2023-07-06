@@ -27,7 +27,7 @@ const CharCounter = ({ minLength = 0, maxLength = 0, contentLength }) => {
           <span className="min-count">{minLength - contentLength}</span>
         </>
       ) : (
-        maxLength && (
+        maxLength > 0 && (
           <>
             Characters remaining:{' '}
             <span className="max-count">{maxLength - contentLength}</span>

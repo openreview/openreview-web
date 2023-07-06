@@ -129,7 +129,7 @@ const NoteEditor = ({
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState([])
-  const displayError = setErrorAlertMessage ?? promptError
+  const displayError = setErrorAlertMessage ?? ((p) => promptError(p, { scrollToTop: false }))
 
   const saveDraft = useMemo(
     () =>
@@ -147,7 +147,15 @@ const NoteEditor = ({
     [invitation, note, replyToNote]
   )
 
+  const defaultNoteEditorData = {
+    ...getNoteContentValues(note?.content ?? {}),
+    ...(note && { noteReaderValues: note.readers }),
+  }
+
   const noteEditorDataReducer = (state, action) => {
+    if (action.type === 'reset') {
+      return defaultNoteEditorData
+    }
     if (action.shouldSaveDraft) {
       saveDraft(action.fieldName, action.value)
     }
@@ -156,10 +164,10 @@ const NoteEditor = ({
       [action.fieldName]: action.value,
     }
   }
-  const [noteEditorData, setNoteEditorData] = useReducer(noteEditorDataReducer, {
-    ...getNoteContentValues(note?.content ?? {}),
-    ...(note && { noteReaderValues: note.readers }),
-  })
+  const [noteEditorData, setNoteEditorData] = useReducer(
+    noteEditorDataReducer,
+    defaultNoteEditorData
+  )
 
   const getFieldNameOverwrite = (fieldName, fieldDescription) => {
     const customFieldName = fieldDescription?.value?.param?.fieldName
@@ -281,6 +289,7 @@ const NoteEditor = ({
     readersDefinedInInvitation,
     signatureInputValues
   ) => {
+    if (!readersSelected) return undefined
     if (signatureInputValues?.length && !readersSelected.includes('everyone')) {
       const signatureId = signatureInputValues[0]
       const anonReviewerIndex = Math.max(
@@ -424,6 +433,7 @@ const NoteEditor = ({
       const result = await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
       const createdNote = await getCreatedNote(result.note)
       autoStorageKeys.forEach((key) => localStorage.removeItem(key))
+      setNoteEditorData({ type: 'reset' })
       closeNoteEditor()
       onNoteCreated(createdNote)
     } catch (error) {

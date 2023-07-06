@@ -127,6 +127,34 @@ describe('TextAreaWidget', () => {
     expect(screen.getByText('150'))
   })
 
+  test('not to display text counter when there is no maxLength or maxLength is 0', async () => {
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          abstract: {
+            value: {
+              param: {
+                minLength: undefined,
+                maxLength: undefined,
+              },
+            },
+          },
+        },
+        value: 'ab',
+        onChange: jest.fn(),
+        clearError: jest.fn(),
+      },
+    }
+
+    providerProps.value.value = 'ab'
+    providerProps.value.onChange = jest.fn()
+
+    renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
+    const textarea = screen.getByDisplayValue('ab')
+    expect(screen.queryByText('0')).not.toBeInTheDocument()
+  })
+
   test('display text counter for max length', async () => {
     const providerProps = {
       value: {
@@ -183,7 +211,9 @@ describe('TextAreaWidget', () => {
 
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
     expect(getItem).toHaveBeenCalledWith('some key')
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 'some saved value' }))
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: 'some saved value' })
+    )
     expect(clearError).toHaveBeenCalled()
   })
 })

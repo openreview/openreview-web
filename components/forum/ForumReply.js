@@ -19,13 +19,8 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
   // if (note.id === '6BEmcv6vBd' || note.id === 'bDfQGbODld') console.log('note', note)
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
-  const {
-    displayOptionsMap,
-    nesting,
-    excludedInvitations,
-    setCollapsed,
-    setContentExpanded,
-  } = useContext(ForumReplyContext)
+  const { displayOptionsMap, nesting, excludedInvitations, setCollapsed, setContentExpanded } =
+    useContext(ForumReplyContext)
   const { user } = useUser()
 
   const { invitations, content, signatures, ddate } = note

@@ -4,6 +4,15 @@ import TextboxWidget from '../components/EditorComponents/TextboxWidget'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
+jest.mock('../hooks/useUser', () => () => ({ user: {} }))
+jest.mock('../lib/utils', () => {
+  const original = jest.requireActual('../lib/utils')
+  return {
+    ...original,
+    getAutoStorageKey: jest.fn(() => 'some key'),
+  }
+})
+
 describe('TextboxWidget', () => {
   test('render input as readonly when invitation field value is a const string/string[]', () => {
     let providerProps = {
@@ -311,6 +320,39 @@ describe('TextboxWidget', () => {
     const input = screen.getByDisplayValue('')
     await userEvent.type(input, '  3  ')
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ value: 3 }))
+    expect(clearError).toHaveBeenCalled()
+  })
+
+  test('read saved value from localstroage', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          paper_title: {
+            value: {
+              param: {
+                type: 'string',
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+
+    const getItem = jest.fn(() => 'some saved value')
+    Object.defineProperty(window, 'localStorage', {
+      value: { getItem },
+    })
+
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+    expect(getItem).toHaveBeenCalledWith('some key')
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: 'some saved value' })
+    )
     expect(clearError).toHaveBeenCalled()
   })
 })
