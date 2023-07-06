@@ -71,8 +71,12 @@ function NoteContent({
   )
 }
 
-function NoteContentField({ name }) {
-  return <strong className="note-content-field">{prettyField(name)}:</strong>
+function NoteContentField({ name, customFieldName }) {
+  return (
+    <strong className="note-content-field disable-tex-rendering">
+      {customFieldName ?? prettyField(name)}:
+    </strong>
+  )
 }
 
 export function NoteContentValue({ content = '', enableMarkdown }) {
@@ -184,6 +188,7 @@ export const NoteContentV2 = ({
         if (!fieldValue) return null
 
         const enableMarkdown = presentation?.[i]?.markdown
+        const customFieldName = presentation?.[i]?.fieldName
         const fieldReaders = Array.isArray(content[fieldName]?.readers)
           ? content[fieldName].readers.sort()
           : null
@@ -195,7 +200,7 @@ export const NoteContentV2 = ({
 
         return (
           <div key={fieldName}>
-            <NoteContentField name={fieldName} />{' '}
+            <NoteContentField name={fieldName} customFieldName={customFieldName} />{' '}
             {showPrivateIcon && (
               <Icon
                 name="eye-open"
@@ -205,7 +210,7 @@ export const NoteContentV2 = ({
                   .join(', ')}`}
               />
             )}
-            {(fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/')) ? (
+            {fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/') ? (
               <span className="note-content-value">
                 <DownloadLink
                   noteId={id}
