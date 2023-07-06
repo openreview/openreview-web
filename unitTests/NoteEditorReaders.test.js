@@ -1002,7 +1002,7 @@ describe('NewReplyEditNoteReaders', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  test('display const readers without reply (editing a note)', () => {
+  test('display const readers without reply (editing a note)', async () => {
     const invitation = {
       id: 'ICML.cc/2023/Conference/Submission1/-/Official_Comment',
       edit: {
@@ -1026,18 +1026,20 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    expect(screen.getByText('tags'))
-    expect(tagProps).toHaveBeenCalledWith(
-      expect.objectContaining({
-        values: [
-          'ICML.cc/2023/Conference/Program_Chairs',
-          'ICML.cc/2023/Conference/Submission1/Area_Chairs',
-        ],
-      })
-    )
+    await waitFor(() => {
+      expect(screen.getByText('tags'))
+      expect(tagProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          values: [
+            'ICML.cc/2023/Conference/Program_Chairs',
+            'ICML.cc/2023/Conference/Submission1/Area_Chairs',
+          ],
+        })
+      )
+    })
   })
 
-  test('display readers of replyToNote when first reader is ${{note.replyto}.readers}', () => {
+  test('display readers of replyToNote when first reader is ${{note.replyto}.readers}', async () => {
     const invitation = {
       id: 'ICML.cc/2023/Conference/Submission1/-/Official_Comment',
       edit: {
@@ -1063,18 +1065,20 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    expect(screen.getByText('tags'))
-    expect(tagProps).toHaveBeenCalledWith(
-      expect.objectContaining({
-        values: [
-          'ICML.cc/2023/Conference/Program_Chairs',
-          'ICML.cc/2023/Conference/Submission1/Area_Chairs',
-        ],
-      })
-    )
+    await waitFor(() => {
+      expect(screen.getByText('tags'))
+      expect(tagProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          values: [
+            'ICML.cc/2023/Conference/Program_Chairs',
+            'ICML.cc/2023/Conference/Submission1/Area_Chairs',
+          ],
+        })
+      )
+    })
   })
 
-  test('display const readers when replyToNote readers is everyone', () => {
+  test('display const readers when replyToNote readers is everyone', async () => {
     const invitation = {
       id: 'ICML.cc/2023/Conference/Submission1/-/Official_Comment',
       edit: {
@@ -1100,18 +1104,20 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    expect(screen.getByText('tags'))
-    expect(tagProps).toHaveBeenCalledWith(
-      expect.objectContaining({
-        values: [
-          'ICML.cc/2023/Conference/Program_Chairs',
-          'ICML.cc/2023/Conference/Submission1/Area_Chairs',
-        ],
-      })
-    )
+    await waitFor(() => {
+      expect(screen.getByText('tags'))
+      expect(tagProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          values: [
+            'ICML.cc/2023/Conference/Program_Chairs',
+            'ICML.cc/2023/Conference/Submission1/Area_Chairs',
+          ],
+        })
+      )
+    })
   })
 
-  test('display const readers when it is the same as replyToNote readers', () => {
+  test('display const readers when it is the same as replyToNote readers', async () => {
     const invitation = {
       id: 'ICML.cc/2023/Conference/Submission1/-/Official_Comment',
       edit: {
@@ -1142,16 +1148,18 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    expect(screen.getByText('tags'))
-    expect(tagProps).toHaveBeenCalledWith(
-      expect.objectContaining({
-        values: [
-          'ICML.cc/2023/Conference/Program_Chairs',
-          'ICML.cc/2023/Conference/Submission1/Area_Chairs',
-          'ICML.cc/2023/Conference/Submission1/Reviewer_acbd',
-        ],
-      })
-    )
+    await waitFor(() => {
+      expect(screen.getByText('tags'))
+      expect(tagProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          values: [
+            'ICML.cc/2023/Conference/Program_Chairs',
+            'ICML.cc/2023/Conference/Submission1/Area_Chairs',
+            'ICML.cc/2023/Conference/Submission1/Reviewer_acbd',
+          ],
+        })
+      )
+    })
   })
 
   test('display const readers when it is a subset of replyToNote readers', () => {
