@@ -1,7 +1,10 @@
 @use '../utils/constants';
 
 .codeEditorContainer {
-  max-width: 80%;
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
+  }
   background-color: #fffaf4;
   border: 2px solid #659aae;
   min-height: 200px;

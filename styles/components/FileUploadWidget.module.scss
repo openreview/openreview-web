@@ -1,7 +1,10 @@
 @use '../utils/constants';
 
 .fileUploadContainer {
-  max-width: 80%;
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
+  }
   :global {
     input[type='file'] {
       display: none;

@@ -116,6 +116,7 @@ const NoteEditor = ({
   onNoteCreated,
   isDirectReplyToForum,
   setErrorAlertMessage,
+  customValidator,
 }) => {
   const { user, accessToken } = useUser()
   const [fields, setFields] = useState([])
@@ -393,23 +394,30 @@ const NoteEditor = ({
     setErrors([])
     // get note reader/writer/signature and edit reader/writer/signature
     try {
+      const formData = {
+        ...noteEditorData,
+        ...Object.entries(noteEditorData)
+          .filter(([key, value]) => value === undefined)
+          .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {}),
+        ...(noteEditorData.authorids
+          ? {
+              authors: noteEditorData.authorids?.map((p) => p.authorName),
+              authorids: noteEditorData.authorids?.map((p) => p.authorId),
+            }
+          : { authors: { delete: true }, authorids: { delete: true } }),
+        noteReaderValues: getNoteReaderValues(),
+        editReaderValues: getEditReaderValues(),
+        editWriterValues: getEditWriterValues(),
+        ...(replyToNote && { replyto: replyToNote.id }),
+      }
+
+      const { isValid, errorMessage } = customValidator?.(formData) ?? {}
+      if (isValid === false) {
+        throw new Error(errorMessage)
+      }
+
       const editToPost = view2.constructEdit({
-        formData: {
-          ...noteEditorData,
-          ...Object.entries(noteEditorData)
-            .filter(([key, value]) => value === undefined)
-            .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {}),
-          ...(noteEditorData.authorids
-            ? {
-                authors: noteEditorData.authorids?.map((p) => p.authorName),
-                authorids: noteEditorData.authorids?.map((p) => p.authorId),
-              }
-            : { authors: { delete: true }, authorids: { delete: true } }),
-          noteReaderValues: getNoteReaderValues(),
-          editReaderValues: getEditReaderValues(),
-          editWriterValues: getEditWriterValues(),
-          ...(replyToNote && { replyto: replyToNote.id }),
-        },
+        formData,
         invitationObj: invitation,
         noteObj: note,
       })
@@ -434,7 +442,7 @@ const NoteEditor = ({
             ? 'Required field values are missing.'
             : 'Some info submitted are invalid.'
         )
-      } else if (error.details.path) {
+      } else if (error.details?.path) {
         const fieldName = getErrorFieldName(error.details.path)
         setErrors([
           {

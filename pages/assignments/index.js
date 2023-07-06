@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
+import { cloneDeep } from 'lodash'
 import Table from '../../components/Table'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import Icon from '../../components/Icon'
@@ -26,6 +27,8 @@ import {
 import { getNoteContentValues } from '../../lib/forum-utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
+import ErrorAlert from '../../components/ErrorAlert'
+import NoteEditor from '../../components/NoteEditor'
 
 const ActionLink = ({ label, className, iconName, href, onClick, disabled }) => {
   if (href) {
@@ -89,9 +92,7 @@ const AssignmentRow = ({
       <td>
         {['Error', 'No Solution', 'Deployment Error'].includes(status) ? (
           <>
-            <strong>
-              {status}
-            </strong>
+            <strong>{status}</strong>
             <br />
             <a
               tabIndex="0"
@@ -190,6 +191,88 @@ const AssignmentRow = ({
   )
 }
 
+const NewNoteEditorModal = ({
+  editorInfo,
+  setEditorInfo,
+  assignmentNotes,
+  getAssignmentNotes,
+}) => {
+  const [errorMessage, setErrorMessage] = useState(null)
+  const { note, invitation } = editorInfo ?? {}
+
+  const invitationWithHiddenFields = cloneDeep(invitation)
+  const fieldsToHide = [
+    'config_invitation',
+    'assignment_invitation',
+    'error_message',
+    'status',
+  ]
+  fieldsToHide.forEach((p) => {
+    const fieldDescription = invitationWithHiddenFields?.edit?.note?.content?.[p]?.value?.param
+    if (fieldDescription) {
+      fieldDescription.hidden = true
+    }
+  })
+
+  const validator = (formData) => {
+    if (
+      assignmentNotes.find(
+        (p) => p.content.title.value === formData.title && (!note || p.id !== note.id)
+      )
+    ) {
+      return {
+        isValid: false,
+        errorMessage: 'The configuration title must be unique within the conference',
+      }
+    }
+
+    if (
+      formData.scores_names &&
+      formData.scores_weights &&
+      formData.scores_names.length !== formData.scores_weights.length
+    ) {
+      return {
+        isValid: false,
+        errorMessage: 'The scores and weights must have same number of values',
+      }
+    }
+
+    return { isValid: true }
+  }
+
+  if (!invitation) return null
+  return (
+    <BasicModal
+      id="new-note-editor-modal"
+      options={{ hideFooter: true, extraClasses: 'modal-lg' }}
+    >
+      <div className="row">
+        <div className="col-md-12">
+          {errorMessage && <ErrorAlert error={{ message: errorMessage }} />}
+          <NoteEditor
+            note={note}
+            invitation={invitationWithHiddenFields}
+            closeNoteEditor={() => {
+              setErrorMessage(null)
+              setEditorInfo(null)
+            }}
+            onNoteCreated={() => {
+              setEditorInfo(null)
+              promptMessage('Note updated successfully')
+              getAssignmentNotes()
+            }}
+            setErrorAlertMessage={(msg) => {
+              setErrorMessage(msg)
+              $('#new-note-editor-modal').animate({ scrollTop: 0 }, 400)
+            }}
+            customValidator={validator}
+          />
+        </div>
+      </div>
+    </BasicModal>
+  )
+}
+
 const Assignments = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
   const [configInvitation, setConfigInvitation] = useState(null)
@@ -197,6 +280,7 @@ const Assignments = ({ appContext }) => {
   const [apiVersion, setApiVersion] = useState(null)
   const [error, setError] = useState(null)
   const [viewModalContent, setViewModalContent] = useState(null)
+  const [editorInfo, setEditorInfo] = useState(null)
   const query = useQuery()
   const { setBannerContent } = appContext
 
@@ -305,77 +389,168 @@ const Assignments = ({ appContext }) => {
 
   // Handler functions
   const handleNewConfiguration = () => {
+    // #region existing
+    // if (!configInvitation) return
+
+    // $('#note-editor-modal').remove()
+    // $('main').append(
+    //   Handlebars.templates.genericModal({
+    //     id: 'note-editor-modal',
+    //     extraClasses: 'modal-lg',
+    //     showHeader: false,
+    //     showFooter: false,
+    //   })
+    // )
+
+    // $('#note-editor-modal').modal('show')
+    // const editorFunc = apiVersion === 2 ? view2.mkNewNoteEditor : view.mkNewNoteEditor
+    // editorFunc(configInvitation, null, null, null, {
+    //   onNoteCreated: hideEditorModal,
+    //   onNoteCancelled: hideEditorModal,
+    //   onError: showDialogErrorMessage,
+    //   onValidate: validateConfigNoteForm,
+    //   onCompleted: appendEditorToModal,
+    // })
+    // #endregion
+
+    // #region new code
     if (!configInvitation) return
 
-    $('#note-editor-modal').remove()
-    $('main').append(
-      Handlebars.templates.genericModal({
-        id: 'note-editor-modal',
-        extraClasses: 'modal-lg',
-        showHeader: false,
-        showFooter: false,
+    if (apiVersion === 1) {
+      $('#note-editor-modal').remove()
+      $('main').append(
+        Handlebars.templates.genericModal({
+          id: 'note-editor-modal',
+          extraClasses: 'modal-lg',
+          showHeader: false,
+          showFooter: false,
+        })
+      )
+      $('#note-editor-modal').modal('show')
+      view.mkNewNoteEditor(configInvitation, null, null, null, {
+        onNoteCreated: hideEditorModal,
+        onNoteCancelled: hideEditorModal,
+        onError: showDialogErrorMessage,
+        onValidate: validateConfigNoteForm,
+        onCompleted: appendEditorToModal,
       })
-    )
-
-    $('#note-editor-modal').modal('show')
-    const editorFunc = apiVersion === 2 ? view2.mkNewNoteEditor : view.mkNewNoteEditor
-    editorFunc(configInvitation, null, null, null, {
-      onNoteCreated: hideEditorModal,
-      onNoteCancelled: hideEditorModal,
-      onError: showDialogErrorMessage,
-      onValidate: validateConfigNoteForm,
-      onCompleted: appendEditorToModal,
-    })
+      return
+    }
+    setEditorInfo({ note: null, invitation: configInvitation })
+    // #endregion
   }
 
   const handleEditConfiguration = (note, version) => {
+    // #region existing
+    // if (!configInvitation) return
+
+    // $('#note-editor-modal').remove()
+    // $('main').append(
+    //   Handlebars.templates.genericModal({
+    //     id: 'note-editor-modal',
+    //     extraClasses: 'modal-lg',
+    //     showHeader: false,
+    //     showFooter: false,
+    //   })
+    // )
+    // $('#note-editor-modal').modal('show')
+
+    // const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
+    // editorFunc(note, configInvitation, null, {
+    //   onNoteEdited: hideEditorModal,
+    //   onNoteCancelled: hideEditorModal,
+    //   onError: showDialogErrorMessage,
+    //   onValidate: validateConfigNoteForm,
+    //   onCompleted: appendEditorToModal,
+    // })
+    // #endregion
+
+    // #region new code
     if (!configInvitation) return
 
-    $('#note-editor-modal').remove()
-    $('main').append(
-      Handlebars.templates.genericModal({
-        id: 'note-editor-modal',
-        extraClasses: 'modal-lg',
-        showHeader: false,
-        showFooter: false,
-      })
-    )
-    $('#note-editor-modal').modal('show')
+    if (version === 1) {
+      $('#note-editor-modal').remove()
+      $('main').append(
+        Handlebars.templates.genericModal({
+          id: 'note-editor-modal',
+          extraClasses: 'modal-lg',
+          showHeader: false,
+          showFooter: false,
+        })
+      )
+      $('#note-editor-modal').modal('show')
 
-    const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
-    editorFunc(note, configInvitation, null, {
-      onNoteEdited: hideEditorModal,
-      onNoteCancelled: hideEditorModal,
-      onError: showDialogErrorMessage,
-      onValidate: validateConfigNoteForm,
-      onCompleted: appendEditorToModal,
-    })
+      view.mkNoteEditor(note, configInvitation, null, {
+        onNoteEdited: hideEditorModal,
+        onNoteCancelled: hideEditorModal,
+        onError: showDialogErrorMessage,
+        onValidate: validateConfigNoteForm,
+        onCompleted: appendEditorToModal,
+      })
+
+      return
+    }
+
+    setEditorInfo({ note, invitation: configInvitation })
+    // #endregion
   }
 
   const handleCloneConfiguration = (note, version) => {
+    // #region existing
+    // if (!configInvitation) return
+
+    // $('#note-editor-modal').remove()
+    // $('main').append(
+    //   Handlebars.templates.genericModal({
+    //     id: 'note-editor-modal',
+    //     extraClasses: 'modal-lg',
+    //     showHeader: false,
+    //     showFooter: false,
+    //   })
+    // )
+    // $('#note-editor-modal').modal('show')
+
+    // const clone =
+    //   version === 2 ? cloneAssignmentConfigNoteV2(note) : cloneAssignmentConfigNote(note)
+    // const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
+    // editorFunc(clone, configInvitation, null, {
+    //   onNoteEdited: hideEditorModal,
+    //   onNoteCancelled: hideEditorModal,
+    //   onError: showDialogErrorMessage,
+    //   onValidate: validateConfigNoteForm,
+    //   onCompleted: appendEditorToModal,
+    // })
+    // #endregion
+
+    // #region new code
     if (!configInvitation) return
 
-    $('#note-editor-modal').remove()
-    $('main').append(
-      Handlebars.templates.genericModal({
-        id: 'note-editor-modal',
-        extraClasses: 'modal-lg',
-        showHeader: false,
-        showFooter: false,
+    if (version === 1) {
+      $('#note-editor-modal').remove()
+      $('main').append(
+        Handlebars.templates.genericModal({
+          id: 'note-editor-modal',
+          extraClasses: 'modal-lg',
+          showHeader: false,
+          showFooter: false,
+        })
+      )
+      $('#note-editor-modal').modal('show')
+      const clone = cloneAssignmentConfigNote(note)
+      view.mkNoteEditor(clone, configInvitation, null, {
+        onNoteEdited: hideEditorModal,
+        onNoteCancelled: hideEditorModal,
+        onError: showDialogErrorMessage,
+        onValidate: validateConfigNoteForm,
+        onCompleted: appendEditorToModal,
       })
-    )
-    $('#note-editor-modal').modal('show')
+      return
+    }
 
-    const clone =
-      version === 2 ? cloneAssignmentConfigNoteV2(note) : cloneAssignmentConfigNote(note)
-    const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
-    editorFunc(clone, configInvitation, null, {
-      onNoteEdited: hideEditorModal,
-      onNoteCancelled: hideEditorModal,
-      onError: showDialogErrorMessage,
-      onValidate: validateConfigNoteForm,
-      onCompleted: appendEditorToModal,
-    })
+    const clone = cloneAssignmentConfigNoteV2(note)
+    setEditorInfo({ note: clone, invitation: configInvitation })
+
+    // #endregion
   }
 
   const handleViewConfiguration = (noteId, noteContent) => {
@@ -441,6 +616,15 @@ const Assignments = ({ appContext }) => {
       $('[data-toggle="popover"]').popover({ container: '#content' })
     }
   }, [assignmentNotes])
+
+  useEffect(() => {
+    if (editorInfo) {
+      $('#new-note-editor-modal').modal({ backdrop: 'static' })
+    } else {
+      $('#new-note-editor-modal').modal('hide')
+      $('.modal-backdrop').remove()
+    }
+  }, [editorInfo])
 
   useInterval(() => {
     getAssignmentNotes()
@@ -534,6 +718,13 @@ const Assignments = ({ appContext }) => {
           <LoadingSpinner inline />
         )}
       </BasicModal>
+
+      <NewNoteEditorModal
+        editorInfo={editorInfo}
+        setEditorInfo={setEditorInfo}
+        assignmentNotes={assignmentNotes}
+        getAssignmentNotes={getAssignmentNotes}
+      />
     </>
   )
 }

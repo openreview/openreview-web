@@ -80,5 +80,13 @@ main.assignments-list {
         margin-bottom: 0.5rem;
       }
     }
+
+    [class*='Container__'] {
+      max-width: 100%;
+    }
+
+    hr {
+      margin: 0.25rem 0;
+    }
   }
 }

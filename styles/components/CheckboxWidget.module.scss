@@ -1,9 +1,9 @@
 @use '../utils/constants';
 
 .checkboxContainer {
-  max-width: 80%;
-  @media #{constants.$phone-only} {
-    max-width: 100%;
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
   }
 }
 
