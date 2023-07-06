@@ -243,8 +243,8 @@ const RelationsSection = ({
             relation: '',
             name: '',
             email: '',
-            start: '',
-            end: '',
+            start: null,
+            end: null,
             readers: ['everyone'],
           },
         ]
@@ -257,8 +257,8 @@ const RelationsSection = ({
                 relation: '',
                 name: '',
                 email: '',
-                start: '',
-                end: '',
+                start: null,
+                end: null,
                 readers: ['everyone'],
               },
             ]
@@ -281,8 +281,8 @@ const RelationsSection = ({
           relation: '',
           name: '',
           email: '',
-          start: '',
-          end: '',
+          start: null,
+          end: null,
           readers: ['everyone'],
         }))
   )
