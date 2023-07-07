@@ -11,6 +11,7 @@ import styles from '../../styles/components/ProfileSearchWidget.module.scss'
 import EditorComponentContext from '../EditorComponentContext'
 import LoadingSpinner from '../LoadingSpinner'
 import PaginationLinks from '../PaginationLinks'
+import SpinnerButton from '../SpinnerButton'
 
 const getTitle = (profile) => {
   if (!profile.content) return null
@@ -278,30 +279,29 @@ const ProfileSearchFormAndResults = ({
     if (!profileSearchResults.length) return displayCustomAuthorForm(true)
     return (
       <div className={styles.searchResults}>
-        {!showCustomAuthorForm && (
-          <>
-            {profileSearchResults.map((profile, index) => (
-              <ProfileSearchResultRow
-                key={index}
-                profile={profile}
-                setProfileSearchResults={setProfileSearchResults}
-                setSearchTerm={setSearchTerm}
-                setSelectedAuthorProfiles={setSelectedAuthorProfiles}
-                displayAuthors={displayAuthors}
-                setDisplayAuthors={setDisplayAuthors}
-                isAuthoridsField={isAuthoridsField}
-                multiple={multiple}
-              />
-            ))}
-            <PaginationLinks
-              currentPage={pageNumber ?? 1}
-              itemsPerPage={pageSize}
-              totalCount={totalCount}
-              setCurrentPage={setPageNumber}
-              options={{ noScroll: true, showCount: true }}
+        <>
+          {profileSearchResults.map((profile, index) => (
+            <ProfileSearchResultRow
+              key={index}
+              profile={profile}
+              setProfileSearchResults={setProfileSearchResults}
+              setSearchTerm={setSearchTerm}
+              setSelectedAuthorProfiles={setSelectedAuthorProfiles}
+              displayAuthors={displayAuthors}
+              setDisplayAuthors={setDisplayAuthors}
+              isAuthoridsField={isAuthoridsField}
+              multiple={multiple}
             />
-          </>
-        )}
+          ))}
+          <PaginationLinks
+            currentPage={pageNumber ?? 1}
+            itemsPerPage={pageSize}
+            totalCount={totalCount}
+            setCurrentPage={setPageNumber}
+            options={{ noScroll: true, showCount: false }}
+          />
+        </>
+
         {(pageNumber ?? 1) * pageSize >= totalCount && displayCustomAuthorForm(false)}
       </div>
     )
@@ -357,14 +357,37 @@ const CustomAuthorForm = ({
 }) => {
   const [customAuthorName, setCustomAuthorName] = useState('')
   const [customAuthorEmail, setCustomAuthorEmail] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const { field, onChange, value } = useContext(EditorComponentContext)
+  const { accessToken } = useUser()
   const fieldName = Object.keys(field)[0]
 
-  const disableAddButton = !(customAuthorName.trim() && isValidEmail(customAuthorEmail))
+  const disableAddButton =
+    isLoading || !(customAuthorName.trim() && isValidEmail(customAuthorEmail))
 
-  const handleAddCustomAuthor = () => {
+  const handleAddCustomAuthor = async () => {
     const cleanAuthorName = customAuthorName.trim()
     const cleanAuthorEmail = customAuthorEmail.trim().toLowerCase()
+    setIsLoading(true)
+    try {
+      const results = await api.get(
+        '/profiles/search',
+        {
+          email: cleanAuthorEmail,
+          es: true,
+        },
+        { accessToken }
+      )
+      if (results.profiles.length) {
+        setProfileSearchResults(results.profiles)
+        return
+      }
+    } catch (error) {
+      promptError(error.message)
+    }
+    setIsLoading(false)
+
+    // no matching profile found, add the author using email
     const updatedAuthors = displayAuthors.concat({
       authorId: cleanAuthorEmail,
       authorName: cleanAuthorName,
@@ -387,13 +410,7 @@ const CustomAuthorForm = ({
   }, [searchTerm])
 
   return (
-    <form
-      className={styles.customAuthorForm}
-      onSubmit={(e) => {
-        e.preventDefault()
-        handleAddCustomAuthor()
-      }}
-    >
+    <form className={styles.customAuthorForm}>
       <label htmlFor="fullName">Full Name:</label>
       <input
         type="text"
@@ -412,9 +429,14 @@ const CustomAuthorForm = ({
         placeholder="email of the author to add"
         onChange={(e) => setCustomAuthorEmail(e.target.value)}
       />
-      <button className="btn btn-sm" disabled={disableAddButton} type="submit">
+      <SpinnerButton
+        className="btn btn-sm"
+        loading={isLoading}
+        disabled={disableAddButton}
+        onClick={handleAddCustomAuthor}
+      >
         Add
-      </button>
+      </SpinnerButton>
     </form>
   )
 }
