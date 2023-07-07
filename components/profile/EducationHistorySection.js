@@ -265,8 +265,8 @@ const EducationHistorySection = ({
           {
             key: nanoid(),
             position: '',
-            start: '',
-            end: '',
+            start: null,
+            end: null,
             institution: {
               domain: '',
               name: '',
@@ -292,8 +292,8 @@ const EducationHistorySection = ({
       : [...Array(3).keys()].map(() => ({
           key: nanoid(),
           position: '',
-          start: '',
-          end: '',
+          start: null,
+          end: null,
           institution: {
             domain: '',
             name: '',

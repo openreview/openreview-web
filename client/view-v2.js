@@ -702,12 +702,11 @@ module.exports = (function () {
         $elem.text(valueString)
         $elem.html(view.autolinkHtml($elem.html()))
       }
+      var formattedFieldName = presentationDetails?.fieldName ?? view.prettyField(fieldName)
 
       $contents.push(
         $('<div>', { class: 'note_contents' }).append(
-          $('<span>', { class: 'note_content_field' }).text(
-            view.prettyField(fieldName) + ': '
-          ),
+          $('<span>', { class: 'note_content_field' }).text(formattedFieldName + ': '),
           privateLabel,
           $elem
         )
