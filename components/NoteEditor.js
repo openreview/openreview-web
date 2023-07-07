@@ -405,9 +405,10 @@ const NoteEditor = ({
     try {
       const formData = {
         ...noteEditorData,
-        ...Object.entries(noteEditorData)
-          .filter(([key, value]) => value === undefined)
-          .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {}),
+        ...(note.id &&
+          Object.entries(noteEditorData)
+            .filter(([key, value]) => value === undefined)
+            .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {})),
         ...(noteEditorData.authorids
           ? {
               authors: noteEditorData.authorids?.map((p) => p.authorName),

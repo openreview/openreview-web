@@ -389,31 +389,6 @@ const Assignments = ({ appContext }) => {
 
   // Handler functions
   const handleNewConfiguration = () => {
-    // #region existing
-    // if (!configInvitation) return
-
-    // $('#note-editor-modal').remove()
-    // $('main').append(
-    //   Handlebars.templates.genericModal({
-    //     id: 'note-editor-modal',
-    //     extraClasses: 'modal-lg',
-    //     showHeader: false,
-    //     showFooter: false,
-    //   })
-    // )
-
-    // $('#note-editor-modal').modal('show')
-    // const editorFunc = apiVersion === 2 ? view2.mkNewNoteEditor : view.mkNewNoteEditor
-    // editorFunc(configInvitation, null, null, null, {
-    //   onNoteCreated: hideEditorModal,
-    //   onNoteCancelled: hideEditorModal,
-    //   onError: showDialogErrorMessage,
-    //   onValidate: validateConfigNoteForm,
-    //   onCompleted: appendEditorToModal,
-    // })
-    // #endregion
-
-    // #region new code
     if (!configInvitation) return
 
     if (apiVersion === 1) {
@@ -437,35 +412,9 @@ const Assignments = ({ appContext }) => {
       return
     }
     setEditorInfo({ note: null, invitation: configInvitation })
-    // #endregion
   }
 
   const handleEditConfiguration = (note, version) => {
-    // #region existing
-    // if (!configInvitation) return
-
-    // $('#note-editor-modal').remove()
-    // $('main').append(
-    //   Handlebars.templates.genericModal({
-    //     id: 'note-editor-modal',
-    //     extraClasses: 'modal-lg',
-    //     showHeader: false,
-    //     showFooter: false,
-    //   })
-    // )
-    // $('#note-editor-modal').modal('show')
-
-    // const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
-    // editorFunc(note, configInvitation, null, {
-    //   onNoteEdited: hideEditorModal,
-    //   onNoteCancelled: hideEditorModal,
-    //   onError: showDialogErrorMessage,
-    //   onValidate: validateConfigNoteForm,
-    //   onCompleted: appendEditorToModal,
-    // })
-    // #endregion
-
-    // #region new code
     if (!configInvitation) return
 
     if (version === 1) {
@@ -492,37 +441,9 @@ const Assignments = ({ appContext }) => {
     }
 
     setEditorInfo({ note, invitation: configInvitation })
-    // #endregion
   }
 
   const handleCloneConfiguration = (note, version) => {
-    // #region existing
-    // if (!configInvitation) return
-
-    // $('#note-editor-modal').remove()
-    // $('main').append(
-    //   Handlebars.templates.genericModal({
-    //     id: 'note-editor-modal',
-    //     extraClasses: 'modal-lg',
-    //     showHeader: false,
-    //     showFooter: false,
-    //   })
-    // )
-    // $('#note-editor-modal').modal('show')
-
-    // const clone =
-    //   version === 2 ? cloneAssignmentConfigNoteV2(note) : cloneAssignmentConfigNote(note)
-    // const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
-    // editorFunc(clone, configInvitation, null, {
-    //   onNoteEdited: hideEditorModal,
-    //   onNoteCancelled: hideEditorModal,
-    //   onError: showDialogErrorMessage,
-    //   onValidate: validateConfigNoteForm,
-    //   onCompleted: appendEditorToModal,
-    // })
-    // #endregion
-
-    // #region new code
     if (!configInvitation) return
 
     if (version === 1) {
@@ -549,8 +470,6 @@ const Assignments = ({ appContext }) => {
 
     const clone = cloneAssignmentConfigNoteV2(note)
     setEditorInfo({ note: clone, invitation: configInvitation })
-
-    // #endregion
   }
 
   const handleViewConfiguration = (noteId, noteContent) => {
