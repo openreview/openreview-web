@@ -14,14 +14,16 @@ import { prettyId, prettyInvitationId, forumDate, buildNoteTitle } from '../../l
 import { getInvitationColors } from '../../lib/forum-utils'
 import Icon from '../Icon'
 import NoteEditor from '../NoteEditor'
+import useNewNoteEditor from '../../hooks/useNewNoteEditor'
 
 export default function ForumReply({ note, replies, replyDepth, parentId, updateNote }) {
-  // if (note.id === '6BEmcv6vBd' || note.id === 'bDfQGbODld') console.log('note', note)
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
   const { displayOptionsMap, nesting, excludedInvitations, setCollapsed, setContentExpanded } =
     useContext(ForumReplyContext)
   const { user } = useUser()
+  const { newNoteEditor: newNoteEditorForEdit } = useNewNoteEditor(activeEditInvitation)
+  const { newNoteEditor: newNoteEditorForReply } = useNewNoteEditor(activeInvitation)
 
   const { invitations, content, signatures, ddate } = note
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
@@ -119,37 +121,40 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         setContentExpanded={setContentExpanded}
         replyDepth={replyDepth}
       >
-        {/* <NoteEditorForm
-          note={note}
-          invitation={activeEditInvitation}
-          onLoad={() => {
-            scrollToNote(note.id)
-          }}
-          onNoteEdited={(newNote) => {
-            updateNote(newNote)
-            setActiveEditInvitation(null)
-            scrollToNote(newNote.id)
-          }}
-          onNoteCancelled={() => {
-            setActiveEditInvitation(null)
-            scrollToNote(note.id)
-          }}
-          onError={(isLoadingError) => {
-            if (isLoadingError) {
+        {newNoteEditorForEdit ? (
+          <NoteEditor
+            invitation={activeEditInvitation}
+            note={note}
+            closeNoteEditor={() => setActiveEditInvitation(null)}
+            onNoteCreated={(newNote) => {
+              updateNote(newNote)
               setActiveEditInvitation(null)
-            }
-          }}
-        /> */}
-        <NoteEditor
-          invitation={activeEditInvitation}
-          note={note}
-          closeNoteEditor={() => setActiveEditInvitation(null)}
-          onNoteCreated={(newNote) => {
-            updateNote(newNote)
-            setActiveEditInvitation(null)
-            scrollToNote(newNote.id)
-          }}
-        />
+              scrollToNote(newNote.id)
+            }}
+          />
+        ) : (
+          <NoteEditorForm
+            note={note}
+            invitation={activeEditInvitation}
+            onLoad={() => {
+              scrollToNote(note.id)
+            }}
+            onNoteEdited={(newNote) => {
+              updateNote(newNote)
+              setActiveEditInvitation(null)
+              scrollToNote(newNote.id)
+            }}
+            onNoteCancelled={() => {
+              setActiveEditInvitation(null)
+              scrollToNote(note.id)
+            }}
+            onError={(isLoadingError) => {
+              if (isLoadingError) {
+                setActiveEditInvitation(null)
+              }
+            }}
+          />
+        )}
         {!allRepliesHidden && (
           <>
             <hr />
@@ -383,40 +388,43 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
             })}
           </div>
 
-          {/* <NoteEditorForm
-            forumId={note.forum}
-            invitation={activeInvitation}
-            replyToId={note.id}
-            onLoad={() => {
-              scrollToNote(note.id, true)
-            }}
-            onNoteCreated={(newNote) => {
-              updateNote(newNote)
-              setActiveInvitation(null)
-              scrollToNote(newNote.id)
-            }}
-            onNoteCancelled={() => {
-              setActiveInvitation(null)
-              scrollToNote(note.id)
-            }}
-            onError={(isLoadingError) => {
-              if (isLoadingError) {
+          {newNoteEditorForReply ? (
+            <NoteEditor
+              invitation={activeInvitation}
+              replyToNote={note}
+              closeNoteEditor={() => {
                 setActiveInvitation(null)
-              }
-            }}
-          /> */}
-          <NoteEditor
-            invitation={activeInvitation}
-            replyToNote={note}
-            closeNoteEditor={() => {
-              setActiveInvitation(null)
-            }}
-            onNoteCreated={(newNote) => {
-              updateNote(newNote)
-              setActiveInvitation(null)
-              scrollToNote(newNote.id)
-            }}
-          />
+              }}
+              onNoteCreated={(newNote) => {
+                updateNote(newNote)
+                setActiveInvitation(null)
+                scrollToNote(newNote.id)
+              }}
+            />
+          ) : (
+            <NoteEditorForm
+              forumId={note.forum}
+              invitation={activeInvitation}
+              replyToId={note.id}
+              onLoad={() => {
+                scrollToNote(note.id, true)
+              }}
+              onNoteCreated={(newNote) => {
+                updateNote(newNote)
+                setActiveInvitation(null)
+                scrollToNote(newNote.id)
+              }}
+              onNoteCancelled={() => {
+                setActiveInvitation(null)
+                scrollToNote(note.id)
+              }}
+              onError={(isLoadingError) => {
+                if (isLoadingError) {
+                  setActiveInvitation(null)
+                }
+              }}
+            />
+          )}
         </div>
       )}
 

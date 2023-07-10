@@ -9,6 +9,7 @@ import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 import NoteEditor from '../NoteEditor'
+import useNewNoteEditor from '../../hooks/useNewNoteEditor'
 
 function ForumNote({ note, updateNote }) {
   const {
@@ -28,6 +29,7 @@ function ForumNote({ note, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeNote, setActiveNote] = useState(null)
   const { user } = useUser()
+  const { newNoteEditor } = useNewNoteEditor(activeInvitation)
 
   const canShowIcon = (fieldName) => {
     if (!content[fieldName]?.value) return false
@@ -79,26 +81,29 @@ function ForumNote({ note, updateNote }) {
   if (activeInvitation) {
     return (
       <div className="forum-note">
-        {/* <NoteEditorForm
-          note={activeNote}
-          invitation={activeInvitation}
-          onNoteEdited={(newNote) => {
-            updateNote(newNote)
-            closeNoteEditor()
-          }}
-          onNoteCancelled={closeNoteEditor}
-          onError={(isLoadingError) => {
-            if (isLoadingError) {
-              setActiveInvitation(null)
-            }
-          }}
-        /> */}
-        <NoteEditor
-          note={activeNote}
-          invitation={activeInvitation}
-          closeNoteEditor={closeNoteEditor}
-          onNoteCreated={(newNote) => updateNote(newNote)}
-        />
+        {newNoteEditor ? (
+          <NoteEditor
+            note={activeNote}
+            invitation={activeInvitation}
+            closeNoteEditor={closeNoteEditor}
+            onNoteCreated={(newNote) => updateNote(newNote)}
+          />
+        ) : (
+          <NoteEditorForm
+            note={activeNote}
+            invitation={activeInvitation}
+            onNoteEdited={(newNote) => {
+              updateNote(newNote)
+              closeNoteEditor()
+            }}
+            onNoteCancelled={closeNoteEditor}
+            onError={(isLoadingError) => {
+              if (isLoadingError) {
+                setActiveInvitation(null)
+              }
+            }}
+          />
+        )}
       </div>
     )
   }

@@ -17,6 +17,7 @@ import api from '../../lib/api-client'
 import { buildNoteTitle, prettyId } from '../../lib/utils'
 import { forumLink } from '../../lib/banner-links'
 import NoteEditor from '../../components/NoteEditor'
+import useNewNoteEditor from '../../hooks/useNewNoteEditor'
 
 const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreEdit }) => {
   const [signature, setSignature] = useState(null)
@@ -125,7 +126,11 @@ const UpdateModal = ({ editInfo, setEditToChange, loadEdits }) => {
           <NoteEditor
             note={edit?.note}
             invitation={invitation}
-            closeNoteEditor={() => setEditToChange(null)}
+            closeNoteEditor={() => {
+              $('body').removeClass('modal-open')
+              $('.modal-backdrop').remove()
+              setEditToChange(null)
+            }}
             onNoteCreated={() => {
               setEditToChange(null)
               promptMessage('Note updated successfully')
@@ -154,6 +159,7 @@ const RevisionsList = ({
   const router = useRouter()
   const [editToDeleteRestore, setEditToDeleteRestore] = useState(null)
   const [editToChange, setEditToChange] = useState(null)
+  const { newNoteEditor } = useNewNoteEditor(revisions?.[0]?.[1])
 
   const toggleSelected = (idx, checked) => {
     if (checked) {
@@ -272,6 +278,49 @@ const RevisionsList = ({
     loadEdits()
   }
 
+  const editEdit = (edit, invitation) => {
+    $('#edit-edit-modal').remove()
+    $('body').append(
+      Handlebars.templates.genericModal({
+        id: 'edit-edit-modal',
+        extraClasses: 'modal-lg',
+        showHeader: false,
+        showFooter: false,
+      })
+    )
+    $('#edit-edit-modal').modal('show')
+    view2.mkNoteEditor(edit.note, invitation, user, {
+      isEdit: true,
+      editToUpdate: edit,
+      onNoteEdited: () => {
+        $('#edit-edit-modal').modal('hide')
+        promptMessage('Edit updated successfully')
+        loadEdits()
+        return true
+      },
+      onNoteCancelled: () => {
+        $('#edit-edit-modal').modal('hide')
+      },
+      onError: (errors) => {
+        $('#edit-edit-modal .modal-body .alert-danger').remove()
+
+        $('#edit-edit-modal .modal-body').prepend(
+          '<div class="alert alert-danger"><strong>Error:</strong> </div>'
+        )
+        $('#edit-edit-modal .modal-body .alert-danger').append(
+          errors.length ? errors[0] : 'Could not save edit'
+        )
+        $('#edit-edit-modal').animate({ scrollTop: 0 }, 400)
+      },
+      onCompleted: (editor) => {
+        $('#edit-edit-modal .modal-body').empty().addClass('legacy-styles').append(editor)
+        $('#edit-edit-modal').on('hidden.bs.modal', () => {
+          $('#edit-edit-modal').find('div.note_editor.panel').remove()
+        })
+      },
+    })
+  }
+
   useEffect(() => {
     if (!revisions || revisions[0]?.note) return
     $('.references-list .note-container').each(function appendNotePanel(index) {
@@ -350,7 +399,11 @@ const RevisionsList = ({
                     invitation.edit !== true && (
                       <>
                         <EditButton
-                          onClick={() => setEditToChange({ edit: reference, invitation })}
+                          onClick={() =>
+                            newNoteEditor
+                              ? setEditToChange({ edit: reference, invitation })
+                              : editEdit(reference, invitation)
+                          }
                           disableButton={!isNoteWritable}
                           disableReason={
                             !isNoteWritable

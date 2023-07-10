@@ -31,6 +31,7 @@ import {
   replaceFilterWildcards,
 } from '../../lib/forum-utils'
 import NoteEditor from '../NoteEditor'
+import useNewNoteEditor from '../../hooks/useNewNoteEditor'
 
 export default function Forum({
   forumNote,
@@ -69,6 +70,7 @@ export default function Forum({
   const signaturesMapRef = useRef(null)
   const router = useRouter()
   const query = useQuery()
+  const { newNoteEditor } = useNewNoteEditor(activeInvitation)
 
   const { id, details } = parentNote
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
@@ -789,38 +791,40 @@ export default function Forum({
                 )
               })}
             </div>
-
-            {/* <NoteEditorForm
-              forumId={id}
-              replyToId={id}
-              invitation={activeInvitation}
-              onNoteCreated={(note) => {
-                updateNote(note)
-                setActiveInvitation(null)
-                scrollToElement('#forum-replies')
-              }}
-              onNoteCancelled={() => {
-                setActiveInvitation(null)
-              }}
-              onError={(isLoadingError) => {
-                if (isLoadingError) {
+            {newNoteEditor ? (
+              <NoteEditor
+                replyToNote={parentNote}
+                invitation={activeInvitation}
+                closeNoteEditor={() => {
                   setActiveInvitation(null)
-                }
-              }}
-            /> */}
-            <NoteEditor
-              replyToNote={parentNote}
-              invitation={activeInvitation}
-              closeNoteEditor={() => {
-                setActiveInvitation(null)
-              }}
-              onNoteCreated={(note) => {
-                updateNote(note)
-                setActiveInvitation(null)
-                scrollToElement('#forum-replies')
-              }}
-              isDirectReplyToForum={true}
-            />
+                }}
+                onNoteCreated={(note) => {
+                  updateNote(note)
+                  setActiveInvitation(null)
+                  scrollToElement('#forum-replies')
+                }}
+                isDirectReplyToForum={true}
+              />
+            ) : (
+              <NoteEditorForm
+                forumId={id}
+                replyToId={id}
+                invitation={activeInvitation}
+                onNoteCreated={(note) => {
+                  updateNote(note)
+                  setActiveInvitation(null)
+                  scrollToElement('#forum-replies')
+                }}
+                onNoteCancelled={() => {
+                  setActiveInvitation(null)
+                }}
+                onError={(isLoadingError) => {
+                  if (isLoadingError) {
+                    setActiveInvitation(null)
+                  }
+                }}
+              />
+            )}
           </div>
         )}
 

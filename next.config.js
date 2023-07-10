@@ -15,7 +15,8 @@ module.exports = {
     USE_DBLP_VENUES: process.env.USE_DBLP_VENUES === 'true',
     USE_PARALLEL_UPLOAD: process.env.USE_PARALLEL_UPLOAD === 'true',
     GA_PROPERTY_ID: process.env.GA_PROPERTY_ID,
-    TURNSTILE_SITEKEY: process.env.TURNSTILE_SITEKEY
+    TURNSTILE_SITEKEY: process.env.TURNSTILE_SITEKEY,
+    NEW_NOTE_EDITOR_VENUES: process.env.NEW_NOTE_EDITOR_VENUES,
   },
   generateBuildId: () => nextBuildId({ dir: __dirname, describe: true }),
   poweredByHeader: false,

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import NoteEditorForm from '../NoteEditorForm'
 import useUser from '../../hooks/useUser'
+import useNewNoteEditor from '../../hooks/useNewNoteEditor'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import NoteEditor from '../NoteEditor'
@@ -14,6 +15,7 @@ export default function SubmissionButton({
   const [invitation, setInvitation] = useState(null)
   const [noteEditorOpen, setNoteEditorOpen] = useState(false)
   const { accessToken, userLoading } = useUser()
+  const { newNoteEditor } = useNewNoteEditor(invitation)
 
   const invitationPastDue =
     invitation?.duedate && invitation.duedate < Date.now() && !invitation?.details.writable
@@ -61,26 +63,29 @@ export default function SubmissionButton({
 
       {noteEditorOpen && (
         <>
-          {/* <NoteEditorForm
-            invitation={invitation}
-            onNoteCreated={(newNote) => {
-              toggleSubmissionForm()
-              onNoteCreated(newNote)
-            }}
-            onNoteCancelled={toggleSubmissionForm}
-            onError={(isLoadingError) => {
-              if (isLoadingError) {
+          {newNoteEditor ? (
+            <NoteEditor
+              invitation={invitation}
+              closeNoteEditor={toggleSubmissionForm}
+              onNoteCreated={(newNote) => {
+                onNoteCreated(newNote)
+              }}
+            />
+          ) : (
+            <NoteEditorForm
+              invitation={invitation}
+              onNoteCreated={(newNote) => {
                 toggleSubmissionForm()
-              }
-            }}
-          /> */}
-          <NoteEditor
-            invitation={invitation}
-            closeNoteEditor={toggleSubmissionForm}
-            onNoteCreated={(newNote) => {
-              onNoteCreated(newNote)
-            }}
-          />
+                onNoteCreated(newNote)
+              }}
+              onNoteCancelled={toggleSubmissionForm}
+              onError={(isLoadingError) => {
+                if (isLoadingError) {
+                  toggleSubmissionForm()
+                }
+              }}
+            />
+          )}
         </>
       )}
     </>

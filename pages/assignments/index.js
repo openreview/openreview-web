@@ -29,6 +29,7 @@ import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import ErrorAlert from '../../components/ErrorAlert'
 import NoteEditor from '../../components/NoteEditor'
+import useNewNoteEditor from '../../hooks/useNewNoteEditor'
 
 const ActionLink = ({ label, className, iconName, href, onClick, disabled }) => {
   if (href) {
@@ -283,6 +284,7 @@ const Assignments = ({ appContext }) => {
   const [editorInfo, setEditorInfo] = useState(null)
   const query = useQuery()
   const { setBannerContent } = appContext
+  const { newNoteEditor } = useNewNoteEditor(configInvitation)
 
   const shouldRemoveDeployLink = assignmentNotes?.some(
     (p) => p?.content?.status === 'Deployed'
@@ -391,32 +393,39 @@ const Assignments = ({ appContext }) => {
   const handleNewConfiguration = () => {
     if (!configInvitation) return
 
-    if (apiVersion === 1) {
-      $('#note-editor-modal').remove()
-      $('main').append(
-        Handlebars.templates.genericModal({
-          id: 'note-editor-modal',
-          extraClasses: 'modal-lg',
-          showHeader: false,
-          showFooter: false,
-        })
-      )
-      $('#note-editor-modal').modal('show')
-      view.mkNewNoteEditor(configInvitation, null, null, null, {
-        onNoteCreated: hideEditorModal,
-        onNoteCancelled: hideEditorModal,
-        onError: showDialogErrorMessage,
-        onValidate: validateConfigNoteForm,
-        onCompleted: appendEditorToModal,
-      })
+    if (useNewNoteEditor) {
+      setEditorInfo({ note: null, invitation: configInvitation })
       return
     }
-    setEditorInfo({ note: null, invitation: configInvitation })
+
+    $('#note-editor-modal').remove()
+    $('main').append(
+      Handlebars.templates.genericModal({
+        id: 'note-editor-modal',
+        extraClasses: 'modal-lg',
+        showHeader: false,
+        showFooter: false,
+      })
+    )
+    $('#note-editor-modal').modal('show')
+    const editorFunc = apiVersion === 2 ? view2.mkNewNoteEditor : view.mkNewNoteEditor
+    editorFunc(configInvitation, null, null, null, {
+      onNoteCreated: hideEditorModal,
+      onNoteCancelled: hideEditorModal,
+      onError: showDialogErrorMessage,
+      onValidate: validateConfigNoteForm,
+      onCompleted: appendEditorToModal,
+    })
   }
 
   const handleEditConfiguration = (note, version) => {
     if (!configInvitation) return
 
+    if (useNewNoteEditor) {
+      setEditorInfo({ note, invitation: configInvitation })
+      return
+    }
+
     if (version === 1) {
       $('#note-editor-modal').remove()
       $('main').append(
@@ -428,8 +437,8 @@ const Assignments = ({ appContext }) => {
         })
       )
       $('#note-editor-modal').modal('show')
-
-      view.mkNoteEditor(note, configInvitation, null, {
+      const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
+      editorFunc(note, configInvitation, null, {
         onNoteEdited: hideEditorModal,
         onNoteCancelled: hideEditorModal,
         onError: showDialogErrorMessage,
@@ -439,37 +448,37 @@ const Assignments = ({ appContext }) => {
 
       return
     }
-
-    setEditorInfo({ note, invitation: configInvitation })
   }
 
   const handleCloneConfiguration = (note, version) => {
     if (!configInvitation) return
 
-    if (version === 1) {
-      $('#note-editor-modal').remove()
-      $('main').append(
-        Handlebars.templates.genericModal({
-          id: 'note-editor-modal',
-          extraClasses: 'modal-lg',
-          showHeader: false,
-          showFooter: false,
-        })
-      )
-      $('#note-editor-modal').modal('show')
-      const clone = cloneAssignmentConfigNote(note)
-      view.mkNoteEditor(clone, configInvitation, null, {
-        onNoteEdited: hideEditorModal,
-        onNoteCancelled: hideEditorModal,
-        onError: showDialogErrorMessage,
-        onValidate: validateConfigNoteForm,
-        onCompleted: appendEditorToModal,
-      })
+    if (useNewNoteEditor) {
+      const clone = cloneAssignmentConfigNoteV2(note)
+      setEditorInfo({ note: clone, invitation: configInvitation })
       return
     }
+    $('#note-editor-modal').remove()
+    $('main').append(
+      Handlebars.templates.genericModal({
+        id: 'note-editor-modal',
+        extraClasses: 'modal-lg',
+        showHeader: false,
+        showFooter: false,
+      })
+    )
+    $('#note-editor-modal').modal('show')
 
-    const clone = cloneAssignmentConfigNoteV2(note)
-    setEditorInfo({ note: clone, invitation: configInvitation })
+    const clone =
+      version === 2 ? cloneAssignmentConfigNoteV2(note) : cloneAssignmentConfigNote(note)
+    const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
+    editorFunc(clone, configInvitation, null, {
+      onNoteEdited: hideEditorModal,
+      onNoteCancelled: hideEditorModal,
+      onError: showDialogErrorMessage,
+      onValidate: validateConfigNoteForm,
+      onCompleted: appendEditorToModal,
+    })
   }
 
   const handleViewConfiguration = (noteId, noteContent) => {
