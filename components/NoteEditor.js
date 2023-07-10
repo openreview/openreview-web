@@ -405,7 +405,7 @@ const NoteEditor = ({
     try {
       const formData = {
         ...noteEditorData,
-        ...(note.id &&
+        ...(note?.id &&
           Object.entries(noteEditorData)
             .filter(([key, value]) => value === undefined)
             .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {})),
