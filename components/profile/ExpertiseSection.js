@@ -51,8 +51,8 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
           {
             keywords: [],
             keyWordsValue: '',
-            start: '',
-            end: '',
+            start: null,
+            end: null,
             key: nanoid(),
           },
         ]
@@ -62,8 +62,8 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
           : [
               {
                 keywords: [],
-                start: '',
-                end: '',
+                start: null,
+                end: null,
                 key: nanoid(),
               },
             ]
@@ -85,8 +85,8 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
       : [...Array(3).keys()].map(() => ({
           keywords: [],
           keyWordsValue: '', // the value for input
-          start: '',
-          end: '',
+          start: null,
+          end: null,
           key: nanoid(),
         }))
   )
