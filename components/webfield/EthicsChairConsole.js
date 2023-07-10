@@ -101,7 +101,7 @@ const EthicsChairConsole = ({ appContext }) => {
             active={activeTabId === '#ethicschair-tasks' ? true : undefined}
             onClick={() => setActiveTabId('#ethicschair-tasks')}
           >
-            Senior Area Chair Tasks
+            Ethics Chair Tasks
           </Tab>
         </TabList>
 
