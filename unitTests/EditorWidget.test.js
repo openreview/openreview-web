@@ -198,6 +198,21 @@ describe('EditorWidget', () => {
     expect(screen.getByText('dropdown'))
   })
 
+  // for backward compatibility
+  test('render DropdownWidget for field without input but has enum', async () => {
+    const providerProps = inputProviderProps
+    providerProps.value.field.field_name.value.param.input = undefined
+    providerProps.value.field.field_name.value.param.type = 'string'
+    providerProps.value.field.field_name.value.param.enum = [
+      'option one',
+      'option two',
+      'option three',
+    ]
+
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('dropdown'))
+  })
+
   test('render TextAreaWidget for input textarea', async () => {
     const providerProps = inputProviderProps
     providerProps.value.field.field_name.value.param.input = 'textarea'

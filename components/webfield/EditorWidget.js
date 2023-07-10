@@ -71,9 +71,10 @@ const EditorWidget = () => {
       case 'integer[]':
       case 'float':
       case 'float[]':
+        return <TextboxWidget />
       case 'string':
       case 'string[]':
-        return <TextboxWidget />
+        return value.param?.enum ? <DropdownWidget /> : <TextboxWidget />
       case 'group':
         return <ProfileSearchWidget />
       case 'group[]':
