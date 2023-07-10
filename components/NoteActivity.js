@@ -13,13 +13,15 @@ dayjs.extend(relativeTime)
 export default function NoteActivity({ note, showActionButtons, showGroup }) {
   const { content, details } = note
 
-  const readersFiltered = note.readers?.includes('everyone') ? ['Everyone'] : without(
-    note.readers?.map((id) => prettyId(id)),
-    'Super User',
-    '',
-    null,
-    undefined
-  )
+  const readersFiltered = note.readers?.includes('everyone')
+    ? ['Everyone']
+    : without(
+        note.readers?.map((id) => prettyId(id)),
+        'Super User',
+        '',
+        null,
+        undefined
+      )
 
   return (
     <div>
@@ -27,12 +29,9 @@ export default function NoteActivity({ note, showActionButtons, showGroup }) {
         <div className="explanation">
           <span className={details.userIsSignatory ? '' : 'sig'}>
             {details.formattedSignature}
-          </span>
-          {' '}
-          {details.isUpdated ? 'edited a' : 'posted a new'}
-          {' '}
-          {prettyInvitationId(note.invitation)}
-          {' '}
+          </span>{' '}
+          {details.isUpdated ? 'edited a' : 'posted a new'}{' '}
+          {prettyInvitationId(note.invitation)}{' '}
           {showGroup && (
             <>
               to{' '}
@@ -46,12 +45,14 @@ export default function NoteActivity({ note, showActionButtons, showGroup }) {
           {readersFiltered.includes('Everyone') ? (
             <Icon name="globe" extraClasses="readers-icon" tooltip="Readers: Everyone" />
           ) : (
-            <Icon name="user" extraClasses="readers-icon" tooltip={`Readers: ${readersFiltered.join(', ')}`} />
+            <Icon
+              name="user"
+              extraClasses="readers-icon"
+              tooltip={`Readers: ${readersFiltered.join(', ')}`}
+            />
           )}
-          {readersFiltered.length > 1 && (
-            <> &times; {readersFiltered.length}</>
-          )}
-          &nbsp;{' '}&bull;{' '}&nbsp;
+          {readersFiltered.length > 1 && <> &times; {readersFiltered.length}</>}
+          &nbsp; &bull; &nbsp;
           {dayjs().to(dayjs(note.tmdate))}
         </div>
       </div>
@@ -59,10 +60,14 @@ export default function NoteActivity({ note, showActionButtons, showGroup }) {
       <div className="clearfix">
         <div className="activity-title">
           <h4>
-            <Link href={`/forum?id=${note.forum}${details.isForum ? '' : `&noteId=${note.id}`}`}>
+            <Link
+              href={`/forum?id=${note.forum}${details.isForum ? '' : `&noteId=${note.id}`}`}
+            >
               <a>
                 {details.isDeleted ? '[Deleted] ' : ''}
-                {content.title ? content.title : buildNoteTitle(note.invitation, note.signatures)}
+                {content.title
+                  ? content.title
+                  : buildNoteTitle(note.invitation, note.signatures)}
               </a>
             </Link>
           </h4>
@@ -86,9 +91,7 @@ export default function NoteActivity({ note, showActionButtons, showGroup }) {
           )}
         </div>
 
-        {showActionButtons && details.writable && (
-          <div className="activity-actions"></div>
-        )}
+        {showActionButtons && details.writable && <div className="activity-actions"></div>}
       </div>
 
       {details.isForum ? (
@@ -114,13 +117,15 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
   const { details } = note
   const { content = {} } = note.note
 
-  const readersFiltered = note.readers?.includes('everyone') ? ['Everyone'] : without(
-    note.readers?.map((id) => prettyId(id)),
-    'Super User',
-    '',
-    null,
-    undefined
-  )
+  const readersFiltered = note.readers?.includes('everyone')
+    ? ['Everyone']
+    : without(
+        note.readers?.map((id) => prettyId(id)),
+        'Super User',
+        '',
+        null,
+        undefined
+      )
 
   return (
     <div>
@@ -143,12 +148,14 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
           {readersFiltered.includes('Everyone') ? (
             <Icon name="globe" extraClasses="readers-icon" tooltip="Readers: Everyone" />
           ) : (
-            <Icon name="user" extraClasses="readers-icon" tooltip={`Readers: ${readersFiltered.join(', ')}`} />
+            <Icon
+              name="user"
+              extraClasses="readers-icon"
+              tooltip={`Readers: ${readersFiltered.join(', ')}`}
+            />
           )}
-          {readersFiltered.length > 1 && (
-            <> &times; {readersFiltered.length}</>
-          )}
-          &nbsp;{' '}&bull;{' '}&nbsp;
+          {readersFiltered.length > 1 && <> &times; {readersFiltered.length}</>}
+          &nbsp; &bull; &nbsp;
           {dayjs().to(dayjs(note.tmdate))}
         </div>
       </div>
@@ -156,10 +163,16 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
       <div className="clearfix">
         <div className="activity-title">
           <h4>
-            <Link href={`/forum?id=${note.note.forum}${details.isForum ? '' : `&noteId=${note.note.id}`}`}>
+            <Link
+              href={`/forum?id=${note.note.forum}${
+                details.isForum ? '' : `&noteId=${note.note.id}`
+              }`}
+            >
               <a>
                 {details.isDeleted ? '[Deleted] ' : ''}
-                {content.title?.value ? content.title.value : buildNoteTitle(note.invitation, note.signatures)}
+                {content.title?.value && !content.title.value?.delete
+                  ? content.title.value
+                  : buildNoteTitle(note.invitation, note.signatures)}
               </a>
             </Link>
           </h4>
@@ -176,25 +189,15 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
           )}
         </div>
 
-        {showActionButtons && details.writable && (
-          <div className="activity-actions"></div>
-        )}
+        {showActionButtons && details.writable && <div className="activity-actions"></div>}
       </div>
 
       {details.isForum ? (
         <Collapse showLabel="Show details" hideLabel="Hide details" indent>
-          <NoteContentV2
-            id={note.id}
-            content={content}
-            invitation={details.invitation}
-          />
+          <NoteContentV2 id={note.id} content={content} invitation={details.invitation} />
         </Collapse>
       ) : (
-        <NoteContentV2
-          id={note.id}
-          content={content}
-          invitation={details.invitation}
-        />
+        <NoteContentV2 id={note.id} content={content} invitation={details.invitation} />
       )}
     </div>
   )

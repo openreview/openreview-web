@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import pick from 'lodash/pick'
 import { nanoid } from 'nanoid'
 import NoteList from '../../components/NoteList'
@@ -219,7 +219,13 @@ Profile.getInitialProps = async (ctx) => {
   let profileQuery = pick(ctx.query, ['id', 'email'])
   const { token, user } = auth(ctx)
   if (!user && !profileQuery.id && !profileQuery.email) {
-    return { statusCode: 400, message: 'Profile ID or email is required' }
+    if (ctx.req) {
+      ctx.res
+        .writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` })
+        .end()
+    } else {
+      Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
+    }
   }
 
   // Don't use query params if this is user's own profile
