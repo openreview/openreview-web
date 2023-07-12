@@ -295,17 +295,6 @@ export default function Forum({
     }))
   }
 
-  const openNoteEditor = (invitation) => {
-    if (activeInvitation && activeInvitation.id !== invitation.id) {
-      promptError(
-        'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
-        { scrollToTop: false }
-      )
-    } else {
-      setActiveInvitation(activeInvitation ? null : invitation)
-    }
-  }
-
   const scrollToElement = (selector) => {
     const el = document.querySelector(selector)
     if (!el) return
@@ -784,7 +773,7 @@ export default function Forum({
                       activeInvitation?.id === invitation.id ? 'active' : ''
                     }`}
                     data-id={invitation.id}
-                    onClick={() => openNoteEditor(invitation)}
+                    onClick={() => setActiveInvitation(activeInvitation ? null : invitation)}
                   >
                     {prettyInvitationId(invitation.id)}
                   </button>
@@ -901,7 +890,7 @@ export default function Forum({
                       activeInvitation?.id === invitation.id ? 'active' : ''
                     }`}
                     data-id={invitation.id}
-                    onClick={() => openNoteEditor(invitation)}
+                    onClick={() => setActiveInvitation(activeInvitation ? null : invitation)}
                   >
                     {prettyInvitationId(invitation.id)}
                   </button>

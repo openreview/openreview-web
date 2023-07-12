@@ -54,20 +54,11 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
   }
 
   const openNoteEditor = (invitation, type) => {
-    if (
-      (activeInvitation && activeInvitation.id !== invitation.id) ||
-      (activeEditInvitation && activeEditInvitation.id !== invitation.id)
-    ) {
-      promptError(
-        'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
-        { scrollToTop: false }
-      )
-      return
-    }
-
     if (type === 'reply') {
       setActiveInvitation(activeInvitation ? null : invitation)
+      setActiveEditInvitation(null)
     } else if (type === 'edit') {
+      setActiveInvitation(null)
       setActiveEditInvitation(activeInvitation ? null : invitation)
     }
   }

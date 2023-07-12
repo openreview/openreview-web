@@ -43,13 +43,6 @@ function ForumNote({ note, updateNote }) {
   }
 
   const openNoteEditor = (invitation, options) => {
-    if (activeInvitation && activeInvitation.id !== invitation.id) {
-      promptError(
-        'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
-        { scrollToTop: false }
-      )
-      return
-    }
     if (activeInvitation) {
       setActiveInvitation(null)
       setActiveNote(null)
