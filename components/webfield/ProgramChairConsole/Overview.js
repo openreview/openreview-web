@@ -1084,3 +1084,4 @@ const Overview = ({ pcConsoleData }) => {
 }
 
 export default Overview
+export { StatContainer }

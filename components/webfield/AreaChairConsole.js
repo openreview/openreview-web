@@ -222,19 +222,20 @@ const AreaChairConsole = ({ appContext }) => {
 
       // #region getReviewerGroups(noteNumbers)
       const reviewerGroupsP = api
-        .getAll(
+        .get(
           '/groups',
           {
             prefix: `${venueId}/${submissionName}.*`,
             select: 'id,members',
+            stream: true,
           },
           { accessToken, version: 2 }
         )
         .then((reviewerGroupsResult) => {
-          const anonymousReviewerGroups = reviewerGroupsResult.filter((p) =>
+          const anonymousReviewerGroups = reviewerGroupsResult.groups.filter((p) =>
             p.id.includes(`/${anonReviewerName}`)
           )
-          const reviewerGroups = reviewerGroupsResult.filter((p) =>
+          const reviewerGroups = reviewerGroupsResult.groups.filter((p) =>
             p.id.includes(`/${reviewerName}`)
           )
           return noteNumbers.map((p) => {

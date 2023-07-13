@@ -755,7 +755,7 @@ const ProgramChairConsole = ({ appContext }) => {
 
   useEffect(() => {
     if (!activeTabId) return
-    window.history.replaceState(null, null, activeTabId)
+    router.replace(activeTabId)
   }, [activeTabId])
 
   const missingConfig = Object.entries({

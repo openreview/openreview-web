@@ -395,16 +395,17 @@ const ReviewerConsole = ({ appContext }) => {
     // #region get area chair groups
     const getAreaChairGroupsP = areaChairName
       ? api
-          .getAll(
+          .get(
             '/groups',
             {
               regex: `${venueId}/${submissionName}.*`,
               select: 'id,members',
+              stream: true,
             },
             { accessToken }
           )
-          .then((groups) =>
-            groups
+          .then((result) =>
+            result.groups
               .filter((p) => p.id.endsWith(`/${areaChairName}`))
               .reduce((prev, curr) => {
                 const num = getNumberFromGroup(curr.id, submissionName)
