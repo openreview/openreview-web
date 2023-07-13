@@ -249,7 +249,7 @@ describe('ProfileListWithBidWidget', () => {
   })
 
   test('show multiple profiles', () => {
-    const profiles = [...new Array(5).keys()].map((index) => ({
+    const profiles = Array.from(new Array(5), (_, index) => ({
       id: `~first_last${index}`,
       content: {
         names: [
@@ -277,7 +277,7 @@ describe('ProfileListWithBidWidget', () => {
   })
 
   test('show multiple profiles as virtual list if specified', () => {
-    const profiles = [...new Array(5).keys()].map((index) => ({
+    const profiles = Array.from(new Array(5), (_, index) => ({
       id: `~first_last${index}`,
       content: {
         names: [

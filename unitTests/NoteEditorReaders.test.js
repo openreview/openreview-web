@@ -215,6 +215,8 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -225,7 +227,7 @@ describe('NewNoteReaders', () => {
       />
     )
 
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       const dropdownList = screen.getByText('Everyone').parentElement
       expect(dropdownList.childNodes[0].textContent).toEqual('Everyone')
@@ -250,6 +252,7 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -297,6 +300,8 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -310,7 +315,7 @@ describe('NewNoteReaders', () => {
       expect(getGroups).not.toHaveBeenCalled()
     })
 
-    await userEvent.click(screen.getByRole('combobox'))
+    await user.click(screen.getByRole('combobox'))
     expect(screen.getAllByText('does not matter')).toHaveLength(2)
   })
 
@@ -334,6 +339,7 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -380,6 +386,7 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -420,6 +427,7 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -453,6 +461,7 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -493,6 +502,8 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -535,6 +546,8 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -545,7 +558,7 @@ describe('NewNoteReaders', () => {
       />
     )
 
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       const dropdownList = screen.getByText('Test IdOne').parentElement
       expect(dropdownList.childNodes[0].textContent).toEqual('Test IdOne')
@@ -583,6 +596,8 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -593,7 +608,7 @@ describe('NewNoteReaders', () => {
       />
     )
 
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       const dropdownList = screen.getByText('test id one description').parentElement
       expect(dropdownList.childNodes[0].textContent).toEqual('test id one description')
@@ -634,6 +649,8 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -644,7 +661,7 @@ describe('NewNoteReaders', () => {
       />
     )
 
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       const dropdownList = screen.getByText('test id one description').parentElement
       expect(dropdownList.childNodes[0].textContent).toEqual('Test IdZero')
@@ -682,6 +699,8 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -698,7 +717,7 @@ describe('NewNoteReaders', () => {
         screen.getByRole('button', { name: 'Remove test id one description' })
       ).toBeInTheDocument()
     })
-    await userEvent.click(screen.getByRole('combobox'))
+    await user.click(screen.getByRole('combobox'))
     await waitFor(() => {
       const dropdownList = screen.getByText('Test IdTwo').parentElement
       expect(dropdownList.childNodes[0].textContent).toEqual('Test IdTwo')
@@ -720,6 +739,8 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -736,11 +757,11 @@ describe('NewNoteReaders', () => {
       expect(screen.queryByText('Test IdThree')).not.toBeInTheDocument()
     })
 
-    await userEvent.click(screen.getByRole('button', { name: 'Remove Test IdTwo' }))
+    await user.click(screen.getByRole('button', { name: 'Remove Test IdTwo' }))
     await waitFor(() => expect(onChange).toHaveBeenCalledWith(undefined))
 
-    await userEvent.click(screen.getByRole('combobox'))
-    await userEvent.click(screen.getByText('Test IdThree'))
+    await user.click(screen.getByRole('combobox'))
+    await user.click(screen.getByText('Test IdThree'))
     await waitFor(() =>
       expect(onChange).toHaveBeenNthCalledWith(2, ['~Test_IdTwo1', '~Test_IdThree1'])
     )
@@ -775,6 +796,8 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     const { container } = render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -791,17 +814,15 @@ describe('NewNoteReaders', () => {
       expect(screen.queryByText('test id three description')).not.toBeInTheDocument()
     })
 
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Remove test id two description' })
-    )
+    await user.click(screen.getByRole('button', { name: 'Remove test id two description' }))
     await waitFor(() => expect(onChange).toHaveBeenCalledWith(undefined))
 
-    await userEvent.click(screen.getByRole('combobox'))
-    await userEvent.click(screen.getByText('test id three description'))
+    await user.click(screen.getByRole('combobox'))
+    await user.click(screen.getByText('test id three description'))
     expect(onChange).toHaveBeenNthCalledWith(2, ['~Test_IdTwo1', '~Test_IdThree1'])
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
-    await userEvent.click(clearButton)
+    await user.click(clearButton)
     expect(onChange).toHaveBeenNthCalledWith(3, undefined)
   })
 
@@ -834,6 +855,8 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     const { container } = render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -853,14 +876,14 @@ describe('NewNoteReaders', () => {
       ).not.toBeInTheDocument()
     })
 
-    await userEvent.click(screen.getByRole('combobox'))
-    await userEvent.click(screen.getByText('test id three description'))
+    await user.click(screen.getByRole('combobox'))
+    await user.click(screen.getByText('test id three description'))
     await waitFor(() =>
       expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1', '~Test_IdThree1'])
     )
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
-    await userEvent.click(clearButton)
+    await user.click(clearButton)
     expect(onChange).toHaveBeenNthCalledWith(2, ['~Test_IdTwo1'])
   })
 
@@ -894,6 +917,8 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     const { container } = render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -911,17 +936,19 @@ describe('NewNoteReaders', () => {
       expect(
         screen.queryByRole('button', { name: 'Remove test id two description' })
       ).not.toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Remove test id three description' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: 'Remove test id three description' })
+      ).toBeInTheDocument()
     })
 
-    await userEvent.click(screen.getByRole('combobox'))
-    await userEvent.click(screen.getByText('test id one description'))
+    await user.click(await screen.findByRole('combobox'))
+    await user.click(await screen.findByText('test id one description'))
     await waitFor(() =>
       expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1', '~Test_IdThree1', '~Test_IdOne1'])
     )
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
-    await userEvent.click(clearButton)
+    await user.click(clearButton)
     expect(onChange).toHaveBeenNthCalledWith(2, ['~Test_IdTwo1'])
   })
 
@@ -939,6 +966,8 @@ describe('NewNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
@@ -950,9 +979,9 @@ describe('NewNoteReaders', () => {
       />
     )
 
+    await user.click(await screen.findByRole('combobox'))
+    await user.click(await screen.findByText('Test IdThree'))
     await waitFor(() => {
-      userEvent.click(screen.getByRole('combobox'))
-      userEvent.click(screen.getByText('Test IdThree'))
       expect(onChange).toHaveBeenCalledWith(['~Test_IdThree1'])
       expect(clearError).toHaveBeenCalled()
     })
@@ -1310,6 +1339,7 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={null}
@@ -1349,6 +1379,7 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={null}
@@ -1397,6 +1428,8 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={null}
@@ -1408,7 +1441,7 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       const dropdownList = screen.getByText('Everyone').parentElement
       expect(dropdownList.childNodes[0].textContent).toEqual('Everyone')
@@ -1438,6 +1471,7 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={null}
@@ -1479,6 +1513,7 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={null}
@@ -1522,6 +1557,7 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: undefined }}
@@ -1562,6 +1598,7 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: undefined }}
@@ -1598,6 +1635,7 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: undefined }}
@@ -1636,6 +1674,7 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: undefined }}
@@ -1673,6 +1712,7 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: undefined }}
@@ -1712,6 +1752,7 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: undefined }}
@@ -1741,6 +1782,8 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['~Test_IDFive1', 'everyone'] }}
@@ -1751,7 +1794,8 @@ describe('NewReplyEditNoteReaders', () => {
         setLoading={jest.fn()}
       />
     )
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       expect(screen.getByText('Test IdOne').parentElement.childElementCount).toEqual(3)
     })
@@ -1786,6 +1830,8 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['~Test_IDFive1', 'everyone'] }}
@@ -1796,7 +1842,8 @@ describe('NewReplyEditNoteReaders', () => {
         setLoading={jest.fn()}
       />
     )
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       expect(
         screen.getByText('description of test id one').parentElement.childElementCount
@@ -1833,6 +1880,8 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['~Test_IDFive1', 'everyone'] }}
@@ -1843,7 +1892,8 @@ describe('NewReplyEditNoteReaders', () => {
         setLoading={jest.fn()}
       />
     )
-    await waitFor(() => userEvent.click(screen.getByRole('combobox')))
+
+    await user.click(await screen.findByRole('combobox'))
     await waitFor(() => {
       expect(
         screen.getByText('description of test id one').parentElement.childElementCount
@@ -1864,6 +1914,8 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['~Test_IdTwo1'] }}
@@ -1875,7 +1927,7 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       expect(screen.getByText('Test IdTwo').parentElement.childElementCount).toEqual(1)
     })
@@ -1910,6 +1962,8 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['~Test_IdTwo1'] }}
@@ -1921,7 +1975,7 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       expect(
         screen.getByText('description of test id two').parentElement.childElementCount
@@ -1959,6 +2013,8 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['~Test_IdTwo1'] }}
@@ -1970,7 +2026,7 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       expect(
         screen.getByText('description of test id two').parentElement.childElementCount
@@ -2009,6 +2065,8 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['~Test_IdTwo1'] }}
@@ -2020,7 +2078,7 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    await waitFor(() => userEvent.click(screen.getByRole('combobox')))
+    await user.click(await screen.findByRole('combobox'))
     await waitFor(() => {
       expect(
         screen.getByText('description of test id two').parentElement.childElementCount
@@ -2061,6 +2119,7 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['~Test_IdTwo1'] }}
@@ -2094,6 +2153,8 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
@@ -2105,7 +2166,7 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       const dropdownList = screen.getByText(
         'ICML 2023 Conference Submission1 Reviewers'
@@ -2144,6 +2205,8 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
@@ -2155,7 +2218,7 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       const dropdownList = screen.getByText('description of reviewers').parentElement
       expect(dropdownList.childElementCount).toEqual(2)
@@ -2180,6 +2243,8 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
@@ -2191,7 +2256,7 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       const dropdownList = screen.getByText(
         'ICML 2023 Conference Submission1 Reviewers'
@@ -2230,6 +2295,8 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
@@ -2241,7 +2308,7 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    await waitFor(() => userEvent.click(screen.getByText('Select readers')))
+    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       const dropdownList = screen.getByText('description of reviewers').parentElement
       expect(dropdownList.childElementCount).toEqual(2)
@@ -2276,6 +2343,8 @@ describe('NewReplyEditNoteReaders', () => {
         },
       },
     }
+    const user = userEvent.setup()
+
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
@@ -2288,9 +2357,9 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
+    await user.click(await screen.findByRole('combobox'))
+    await user.click(await screen.findByText('description of reviewers'))
     await waitFor(() => {
-      userEvent.click(screen.getByRole('combobox'))
-      userEvent.click(screen.getByText('description of reviewers'))
       expect(clearError).toHaveBeenCalled()
     })
   })

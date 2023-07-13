@@ -209,7 +209,7 @@ describe('ProfileBidConsole', () => {
 
   test('show profiles in ac group if fits in one page(25)', async () => {
     const getBidConlictEdges = jest.fn(() => Promise.resolve([]))
-    const ACProfiles = [...new Array(25).keys()].map((index) => ({
+    const ACProfiles = Array.from(new Array(25), (_, index) => ({
       id: `~test_id${index}`,
       content: {
         names: [
@@ -261,7 +261,7 @@ describe('ProfileBidConsole', () => {
 
   test('show paginated profiles if does not fit one page(25)', async () => {
     const getBidConlictEdges = jest.fn(() => Promise.resolve([]))
-    const ACProfiles = [...new Array(125).keys()].map((index) => ({
+    const ACProfiles = Array.from(new Array(125), (_, index) => ({
       id: `~test_id${index}`,
       content: {
         names: [

@@ -585,7 +585,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
   })
 
   test('show pagination links when there are many search results', async () => {
-    const profiles = [...new Array(150).keys()].map((p) => ({
+    const profiles = Array.from(new Array(150), (_, p) => ({
       id: `~search_result${p}`,
       content: {
         names: [
