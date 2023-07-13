@@ -86,15 +86,17 @@ const EthicsChairPaperStatus = () => {
         { accessToken, version: 2 }
       )
 
-      const perPaperGroupResultsP = api.getAll(
-        '/groups',
-        {
-          prefix: `${venueId}/${submissionName}.*`,
-          stream: true,
-          select: 'id,members',
-        },
-        { accessToken, version: 2 }
-      )
+      const perPaperGroupResultsP = api
+        .get(
+          '/groups',
+          {
+            prefix: `${venueId}/${submissionName}.*`,
+            select: 'id,members',
+            stream: true,
+          },
+          { accessToken, version: 2 }
+        )
+        .then((result) => result.groups ?? [])
 
       const [notes, perPaperGroupResults] = await Promise.all([notesP, perPaperGroupResultsP])
 

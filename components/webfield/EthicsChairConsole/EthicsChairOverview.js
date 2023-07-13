@@ -21,14 +21,15 @@ const EthicsChairOverview = () => {
 
   const loadRecruitmentGroups = async () => {
     try {
-      const result = await api.getAll(
+      const result = await api.get(
         '/groups',
         {
           prefix: `${venueId}/${ethicsReviewersName}`,
+          stream: true,
         },
         { accessToken, version: 2 }
       )
-      setRecruitmentGroups(result)
+      setRecruitmentGroups(result.groups ?? [])
     } catch (error) {
       promptError(error.message)
     }
