@@ -191,6 +191,8 @@ export const AcPcConsoleReviewerStatusRow = ({
   referrerUrl,
   shortPhrase,
   submissionName,
+  showRatingConfidence = true,
+  showActivity = true,
 }) => {
   const [updateLastSent, setUpdateLastSent] = useState(true)
   const completedReview = officialReviews.find((p) => p.anonymousId === reviewer.anonymousId)
@@ -215,10 +217,12 @@ export const AcPcConsoleReviewerStatusRow = ({
         </span>
         {completedReview ? (
           <>
-            <div>
-              {hasRating && `Rating: ${completedReview.rating}${hasConfidence ? ' / ' : ''}`}
-              {hasConfidence && `Confidence: ${completedReview.confidence}`}
-            </div>
+            {showRatingConfidence && (
+              <div>
+                {hasRating && `Rating: ${completedReview.rating}${hasConfidence ? ' / ' : ''}`}
+                {hasConfidence && `Confidence: ${completedReview.confidence}`}
+              </div>
+            )}
             {completedReview.reviewLength && (
               <span>Review length: {completedReview.reviewLength}</span>
             )}
@@ -260,7 +264,7 @@ export const AcPcConsoleReviewerStatusRow = ({
             )}
           </div>
         )}
-        {completedReview && (
+        {completedReview && showActivity && (
           <>
             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a
@@ -361,6 +365,77 @@ export const AcPcConsoleNoteReviewStatus = ({
           </a>
         </div>
       )}
+    </div>
+  )
+}
+
+export const EthicsReviewStatus = ({
+  rowData,
+  venueId,
+  ethicsReviewersName,
+  ethicsReviewName,
+  referrerUrl,
+  shortPhrase,
+  submissionName,
+}) => {
+  const {
+    ethicsReviews,
+    ethicsReviewers,
+    note,
+    numReviewsDone,
+    numReviewersAssigned,
+    replyCount,
+  } = rowData
+
+  const ethicsReviewersId = `${venueId}/${ethicsReviewersName}`
+  const editAssigmentUrl = `/edges/browse?start=staticList,type:head,ids:${note.id}
+&traverse=${ethicsReviewersId}/-/Assignment
+&edit=${ethicsReviewersId}/-/Assignment
+&browse=${ethicsReviewersId}/-/Affinity_Score;${ethicsReviewersId}/-/Conflict`
+
+  return (
+    <div className="console-reviewer-progress">
+      <h4>
+        {numReviewsDone} of {numReviewersAssigned} Reviews Submitted
+      </h4>
+      {ethicsReviewers.length > 0 && (
+        <Collapse
+          showLabel="Show reviewers"
+          hideLabel="Hide reviewers"
+          className="assigned-reviewers"
+        >
+          <div>
+            {ethicsReviewers.map((ethicsReviewer) => (
+              <AcPcConsoleReviewerStatusRow
+                key={ethicsReviewer.anonymousId}
+                officialReviews={ethicsReviews}
+                reviewer={ethicsReviewer}
+                note={note}
+                venueId={venueId}
+                officialReviewName={ethicsReviewName}
+                referrerUrl={referrerUrl}
+                shortPhrase={shortPhrase}
+                submissionName={submissionName}
+                showRatingConfidence={false}
+                showActivity={false}
+              />
+            ))}
+          </div>
+        </Collapse>
+      )}
+
+      <span>
+        <strong>Number of Forum replies:</strong> {replyCount}
+      </span>
+      <div className="mt-3">
+        <a
+          href={`${editAssigmentUrl}&referrer=${referrerUrl}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Edit Assignments
+        </a>
+      </div>
     </div>
   )
 }

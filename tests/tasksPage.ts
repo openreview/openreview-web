@@ -41,6 +41,7 @@ test('should open tasks page and complete pending task', async (t) => {
     .click(Selector('input[placeholder="signatures"]')) // select signature
     .click(Selector('.dropdown_content div').withExactText('FirstA LastA'))
     .click(Selector('button').withText('Submit')) // submit
+
     // should see 0 pending task and 1 completed
     .click(Selector('a').withText('Tasks')) // go tasks page
     .expect(Selector('span.task-count-message').innerText)
