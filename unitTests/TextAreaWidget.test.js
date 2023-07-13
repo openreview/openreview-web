@@ -27,7 +27,7 @@ describe('TextAreaWidget', () => {
       },
     }
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
-    expect(screen.getByDisplayValue(''))
+    expect(screen.getByDisplayValue('')).toBeInTheDocument()
   })
 
   test('display markdown preview tab if markdown is true', () => {
@@ -46,7 +46,7 @@ describe('TextAreaWidget', () => {
       },
     }
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
-    expect(screen.getByText('markdown preview tab'))
+    expect(screen.getByText('markdown preview tab')).toBeInTheDocument()
   })
 
   test('display mathjax warning if value contains formula', () => {
@@ -67,10 +67,10 @@ describe('TextAreaWidget', () => {
     }
 
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
-    expect(screen.getByText('Learn more about adding LaTeX formulas', { exact: false }))
+    expect(screen.getByText('Learn more about adding LaTeX formulas', { exact: false })).toBeInTheDocument()
   })
 
-  test('display text counter for max length', async () => {
+  test('display char counter for min length', async () => {
     const providerProps = {
       value: {
         invitation: { id: 'invitaitonId' },
@@ -93,11 +93,11 @@ describe('TextAreaWidget', () => {
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
     const textarea = screen.getByDisplayValue('a')
     await userEvent.type(textarea, ' ')
-    expect(screen.getByText('Additional characters required:'))
-    expect(screen.getByText('1'))
+    expect(screen.getByText('Additional characters required:')).toBeInTheDocument()
+    expect(screen.getByText('1')).toBeInTheDocument()
   })
 
-  test('display text counter for max length', async () => {
+  test('display char counter for max length', async () => {
     const providerProps = {
       value: {
         invitation: { id: 'invitaitonId' },
@@ -123,11 +123,11 @@ describe('TextAreaWidget', () => {
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
     const textarea = screen.getByDisplayValue('ab')
     await userEvent.type(textarea, ' ')
-    expect(screen.getByText('Characters remaining:'))
-    expect(screen.getByText('150'))
+    expect(screen.getByText('Characters remaining:')).toBeInTheDocument()
+    expect(screen.getByText('150')).toBeInTheDocument()
   })
 
-  test('not to display text counter when there is no maxLength or maxLength is 0', async () => {
+  test('not to display char counter when there is no maxLength or maxLength is 0', async () => {
     const providerProps = {
       value: {
         invitation: { id: 'invitaitonId' },
@@ -151,11 +151,10 @@ describe('TextAreaWidget', () => {
     providerProps.value.onChange = jest.fn()
 
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
-    const textarea = screen.getByDisplayValue('ab')
     expect(screen.queryByText('0')).not.toBeInTheDocument()
   })
 
-  test('display text counter for max length', async () => {
+  test('display char counter for over max length', async () => {
     const providerProps = {
       value: {
         invitation: { id: 'invitaitonId' },
@@ -179,7 +178,7 @@ describe('TextAreaWidget', () => {
     const textarea = screen.getByDisplayValue('abcd')
     await userEvent.type(textarea, ' ')
     expect(screen.getByText('Characters remaining:')).toHaveClass('danger')
-    expect(screen.getByText('-1'))
+    expect(screen.getByText('-1')).toBeInTheDocument()
   })
 
   test('read saved value from localstroage', async () => {

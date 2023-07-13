@@ -22,8 +22,8 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('Title'))
-    expect(screen.getByText('*'))
+    expect(screen.getByText('Title')).toBeInTheDocument()
+    expect(screen.getByText('*')).toBeInTheDocument()
   })
 
   test('pretty display mandatory field name of multiple words', () => {
@@ -35,8 +35,8 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('Supplementary Material'))
-    expect(screen.getByText('*'))
+    expect(screen.getByText('Supplementary Material')).toBeInTheDocument()
+    expect(screen.getByText('*')).toBeInTheDocument()
   })
 
   test('pretty display optional field name of single word (optional true)', () => {
@@ -54,7 +54,7 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('Abstract'))
+    expect(screen.getByText('Abstract')).toBeInTheDocument()
     expect(screen.queryByText('*')).not.toBeInTheDocument()
   })
 
@@ -73,7 +73,7 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('Abstract'))
+    expect(screen.getByText('Abstract')).toBeInTheDocument()
     expect(screen.queryByText('*')).not.toBeInTheDocument()
   })
 
@@ -92,7 +92,7 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('Supplementary Material'))
+    expect(screen.getByText('Supplementary Material')).toBeInTheDocument()
     expect(screen.queryByText('*')).not.toBeInTheDocument()
   })
 
@@ -111,7 +111,7 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('Supplementary Material'))
+    expect(screen.getByText('Supplementary Material')).toBeInTheDocument()
     expect(screen.queryByText('*')).not.toBeInTheDocument()
   })
 
@@ -131,8 +131,8 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('PDF'))
-    expect(screen.getByText('*'))
+    expect(screen.getByText('PDF')).toBeInTheDocument()
+    expect(screen.getByText('*')).toBeInTheDocument()
   })
 
   test('allow field name to be overwritten', () => {
@@ -154,7 +154,7 @@ describe('EditorComponentHeader', () => {
       providerProps
     )
     expect(screen.queryByText('Abstract')).not.toBeInTheDocument()
-    expect(screen.getByText('some Field name To overWrite'))
+    expect(screen.getByText('some Field name To overWrite')).toBeInTheDocument()
   })
 
   test('add hidden class to hidden field', () => {
@@ -188,7 +188,7 @@ describe('EditorComponentHeader', () => {
       },
     }
     renderWithEditorComponentContext(<EditorComponentHeader />, providerProps)
-    expect(screen.getByText('rendered markdown'))
+    expect(screen.getByText('rendered markdown')).toBeInTheDocument()
   })
 
   test('display description with scroll', () => {
@@ -210,7 +210,7 @@ describe('EditorComponentHeader', () => {
       screen.getByDisplayValue(
         'Abstract of paper. Add TeX formulas using the following formats: $In-line Formula$ or $$Block Formula$$.'
       )
-    )
+    ).toBeInTheDocument()
   })
 
   test('render child', () => {
@@ -227,7 +227,7 @@ describe('EditorComponentHeader', () => {
       </EditorComponentHeader>,
       providerProps
     )
-    expect(screen.getByText('children content'))
+    expect(screen.getByText('children content')).toBeInTheDocument()
   })
 
   test('not render readers of non-content field', () => {

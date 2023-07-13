@@ -26,9 +26,9 @@ describe('TagsWidget', () => {
 
     render(<TagsWidget values={values} />)
 
-    expect(screen.getByText('value 1'))
-    expect(screen.getByText('value 2'))
-    expect(screen.getByText('value 3'))
+    expect(screen.getByText('value 1')).toBeInTheDocument()
+    expect(screen.getByText('value 2')).toBeInTheDocument()
+    expect(screen.getByText('value 3')).toBeInTheDocument()
   })
 
   test('display text between {} as emphasis', () => {
@@ -41,7 +41,7 @@ describe('TagsWidget', () => {
     ]
 
     render(<TagsWidget values={values} />)
-    expect(screen.getByText('ICML 2023 Conference'))
+    expect(screen.getByText('ICML 2023 Conference')).toBeInTheDocument()
     expect(screen.getByText('authorids')).toHaveClass('emphasis')
     expect(screen.getByText('signatures')).toHaveClass('emphasis')
     expect(screen.getByText('number')).toHaveClass('emphasis')

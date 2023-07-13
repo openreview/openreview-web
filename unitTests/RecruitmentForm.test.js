@@ -68,7 +68,9 @@ describe('RecruitmentForm', () => {
     }
 
     renderWithWebFieldContext(<RecruitmentForm />, providerProps)
-    expect(screen.getByText('The link is invalid, please refer back to recruitment email.')).toBeInTheDocument()
+    expect(
+      screen.getByText('The link is invalid, please refer back to recruitment email.')
+    ).toBeInTheDocument()
   })
 
   test('show title, contact, invitation message and action buttons', () => {
@@ -103,14 +105,14 @@ describe('RecruitmentForm', () => {
     }
 
     renderWithWebFieldContext(<RecruitmentForm />, providerProps)
-    expect(screen.getByText(providerProps.value.header.title))
-    expect(screen.getByText(providerProps.value.header.subtitle))
-    expect(screen.getByText(providerProps.value.header.website))
-    expect(screen.getByText(providerProps.value.header.contact))
+    expect(screen.getByText(providerProps.value.header.title)).toBeVisible()
+    expect(screen.getByText(providerProps.value.header.subtitle)).toBeVisible()
+    expect(screen.getByText(providerProps.value.header.website)).toBeVisible()
+    expect(screen.getByText(providerProps.value.header.contact)).toBeVisible()
     expect(markdownProps).toHaveBeenCalledWith({ text: providerProps.value.invitationMessage })
-    expect(screen.getByText(providerProps.value.invitationMessage))
-    expect(screen.getByRole('button', { name: 'Accept' }))
-    expect(screen.getByRole('button', { name: 'Decline' }))
+    expect(screen.getByText(providerProps.value.invitationMessage)).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Accept' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Decline' })).toBeVisible()
   })
 
   test('call api to post response when user accept', async () => {
@@ -154,8 +156,12 @@ describe('RecruitmentForm', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Accept' }))
     await waitFor(() => {
-      expect(screen.getByText('Thank you test@email.com for accepting this invitation'))
-      expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, { version: 2 })
+      expect(
+        screen.getByText('Thank you test@email.com for accepting this invitation')
+      ).toBeVisible()
+      expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, {
+        version: 2,
+      })
     })
   })
 
@@ -200,8 +206,10 @@ describe('RecruitmentForm', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Decline' }))
     await waitFor(() => {
-      expect(screen.getByText('You test@email.com have declined the invitation'))
-      expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, { version: 2 })
+      expect(screen.getByText('You test@email.com have declined the invitation')).toBeVisible()
+      expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, {
+        version: 2,
+      })
       expect(screen.queryByRole('button')).not.toBeInTheDocument() // invitation does not have content
     })
   })
@@ -263,7 +271,7 @@ describe('RecruitmentForm', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Decline' }))
     await waitFor(() => {
-      expect(screen.getByText('You have declined the invitation'))
+      expect(screen.getByText('You have declined the invitation')).toBeVisible()
       expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled()
     })
 
@@ -275,7 +283,7 @@ describe('RecruitmentForm', () => {
       responseUpdateEditMock,
       expect.anything()
     )
-    expect(screen.getByText('You have declined the invitation'))
+    expect(screen.getByText('You have declined the invitation')).toBeVisible()
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument() // only show message after submit comment
     expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument()
   })
@@ -342,23 +350,24 @@ describe('RecruitmentForm', () => {
         screen.getByText(
           'If you chose to decline the invitation because the paper load is too high, you can request to reduce your load. You can request a reduced reviewer load below'
         )
-      )
-      expect(screen.getByRole('button', { name: 'Request a reduced load' }))
+      ).toBeVisible()
+      expect(screen.getByRole('button', { name: 'Request a reduced load' })).toBeVisible()
     })
 
     await userEvent.click(screen.getByRole('button', { name: 'Request a reduced load' }))
-    expect(screen.getByText('Reduced Load'))
+    expect(screen.getByText('Reduced Load')).toBeVisible()
     expect(
       screen.getByText(
         'Please select the number of submissions that you would be comfortable reviewing.'
       )
-    )
-    expect(screen.getByRole('combobox'))
+    ).toBeVisible()
+    expect(screen.getByRole('combobox')).toBeVisible()
     expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible()
 
+    // go back to reduced load link
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-    expect(screen.getByRole('button', { name: 'Request a reduced load' })) // go back to reduced load link
+    expect(screen.getByRole('button', { name: 'Request a reduced load' })).toBeVisible()
 
     await userEvent.click(screen.getByRole('button', { name: 'Request a reduced load' }))
     await userEvent.click(screen.getByRole('combobox'))
@@ -371,8 +380,8 @@ describe('RecruitmentForm', () => {
       responseUpdateEditMock,
       expect.anything()
     )
-    expect(screen.getByText('You have requested a reduced load of 3 papers'))
-    expect(screen.getByText('Thank you for accepting this invitation'))
+    expect(screen.getByText('You have requested a reduced load of 3 papers')).toBeVisible()
+    expect(screen.getByText('Thank you for accepting this invitation')).toBeVisible()
   })
 
   test('display only comment and reduced_load field', async () => {
@@ -453,8 +462,8 @@ describe('RecruitmentForm', () => {
     renderWithWebFieldContext(<RecruitmentForm />, providerProps)
 
     await userEvent.click(screen.getByRole('button', { name: 'Decline' }))
-    expect(screen.getByRole('button', { name: 'Request a reduced load' }))
-    expect(screen.getByRole('textbox'))
+    expect(screen.getByRole('button', { name: 'Request a reduced load' })).toBeVisible()
+    expect(screen.getByRole('textbox')).toBeVisible()
     expect(screen.queryByText('test_field')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Request a reduced load' }))

@@ -75,7 +75,7 @@ describe('NewNoteReaders', () => {
       />
     )
 
-    expect(screen.getByText('tags'))
+    expect(screen.getByText('tags')).toBeInTheDocument()
     expect(tagProps).toHaveBeenCalledWith({
       fieldNameOverwrite: 'Readers',
       values: ['ICML.cc/2023/Conference', '${2/content/authorids/value}'],
@@ -105,7 +105,7 @@ describe('NewNoteReaders', () => {
       />
     )
 
-    expect(screen.getByText('tags'))
+    expect(screen.getByText('tags')).toBeInTheDocument()
     expect(tagProps).toHaveBeenCalledWith({
       fieldNameOverwrite: 'Readers',
       values: ['ICML.cc/2023/Conference', '${2/content/authorids/value}'],
@@ -465,7 +465,7 @@ describe('NewNoteReaders', () => {
 
     await waitFor(() => {
       expect(getGroups).toHaveBeenCalledTimes(2)
-      expect(screen.getByText('tags'))
+      expect(screen.getByText('tags')).toBeInTheDocument()
       expect(tagProps).toHaveBeenCalledWith(
         expect.objectContaining({ values: ['Test IdOne'] })
       )
@@ -505,7 +505,7 @@ describe('NewNoteReaders', () => {
 
     await waitFor(() => {
       expect(getGroups).toHaveBeenCalledTimes(2)
-      expect(screen.getByText('tags'))
+      expect(screen.getByText('tags')).toBeInTheDocument()
       expect(tagProps).toHaveBeenCalledWith(
         expect.objectContaining({ values: ['description one'] })
       )
@@ -731,7 +731,7 @@ describe('NewNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('Test IdTwo'))
+      expect(screen.getByText('Test IdTwo')).toBeInTheDocument()
       expect(screen.queryByText('Test IdOne')).not.toBeInTheDocument()
       expect(screen.queryByText('Test IdThree')).not.toBeInTheDocument()
     })
@@ -786,7 +786,7 @@ describe('NewNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('test id two description'))
+      expect(screen.getByText('test id two description')).toBeInTheDocument()
       expect(screen.queryByText('test id one description')).not.toBeInTheDocument()
       expect(screen.queryByText('test id three description')).not.toBeInTheDocument()
     })
@@ -845,7 +845,7 @@ describe('NewNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('test id two description'))
+      expect(screen.getByText('test id two description')).toBeInTheDocument()
       expect(screen.queryByText('test id one description')).not.toBeInTheDocument()
       expect(screen.queryByText('test id three description')).not.toBeInTheDocument()
       expect(
@@ -905,13 +905,13 @@ describe('NewNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('test id two description'))
+      expect(screen.getByText('test id two description')).toBeInTheDocument()
       expect(screen.queryByText('test id one description')).not.toBeInTheDocument()
-      expect(screen.getByText('test id three description'))
+      expect(screen.getByText('test id three description')).toBeInTheDocument()
       expect(
         screen.queryByRole('button', { name: 'Remove test id two description' })
       ).not.toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Remove test id three description' }))
+      expect(screen.getByRole('button', { name: 'Remove test id three description' })).toBeInTheDocument()
     })
 
     await userEvent.click(screen.getByRole('combobox'))
@@ -1027,7 +1027,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('tags'))
+      expect(screen.getByText('tags')).toBeInTheDocument()
       expect(tagProps).toHaveBeenCalledWith(
         expect.objectContaining({
           values: [
@@ -1066,7 +1066,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('tags'))
+      expect(screen.getByText('tags')).toBeInTheDocument()
       expect(tagProps).toHaveBeenCalledWith(
         expect.objectContaining({
           values: [
@@ -1105,7 +1105,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('tags'))
+      expect(screen.getByText('tags')).toBeInTheDocument()
       expect(tagProps).toHaveBeenCalledWith(
         expect.objectContaining({
           values: [
@@ -1149,7 +1149,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('tags'))
+      expect(screen.getByText('tags')).toBeInTheDocument()
       expect(tagProps).toHaveBeenCalledWith(
         expect.objectContaining({
           values: [
@@ -1190,7 +1190,7 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    expect(screen.getByText('tags'))
+    expect(screen.getByText('tags')).toBeInTheDocument()
     expect(tagProps).toHaveBeenCalledWith(
       expect.objectContaining({
         values: ['ICML.cc/2023/Conference/Reviewer_abcd'],
@@ -1284,7 +1284,7 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    expect(screen.getByText('tags'))
+    expect(screen.getByText('tags')).toBeInTheDocument()
     expect(tagProps).toHaveBeenCalledWith(
       expect.objectContaining({
         values: invitationReaders,
@@ -1534,7 +1534,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('tags'))
+      expect(screen.getByText('tags')).toBeInTheDocument()
       expect(tagProps).toHaveBeenCalledWith({
         fieldNameOverwrite: 'Readers',
         values: ['Test IdOne'],
@@ -1574,7 +1574,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('tags'))
+      expect(screen.getByText('tags')).toBeInTheDocument()
       expect(tagProps).toHaveBeenCalledWith(
         expect.objectContaining({ values: ['description of test id one'] })
       )

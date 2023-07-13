@@ -177,12 +177,16 @@ describe('Signatures', () => {
       })
     )
     api.get = apiGet
+    const user = userEvent.setup()
 
     render(<Signatures fieldDescription={regexFieldDescription} onChange={onChange} />)
 
     await waitFor(() => {
       expect(onChange).toHaveBeenNthCalledWith(2, { type: 'list' }) // 1,3 is loading state change
-      userEvent.click(screen.getByRole('combobox'))
+    })
+
+    await user.click(screen.getByRole('combobox'))
+    await waitFor(() => {
       expect(screen.getByText('some_test_group')).toBeInTheDocument()
       expect(screen.getByText('Test User')).toBeInTheDocument()
     })
@@ -201,13 +205,12 @@ describe('Signatures', () => {
       })
     )
     api.get = apiGet
+    const user = userEvent.setup()
 
     render(<Signatures fieldDescription={regexFieldDescription} onChange={onChange} />)
 
-    await waitFor(() => {
-      userEvent.click(screen.getByRole('combobox'))
-      expect(screen.getAllByText('some_test_group')).toHaveLength(1)
-    })
+    await user.click(await screen.findByRole('combobox'))
+    expect(await screen.findAllByText('some_test_group')).toHaveLength(1)
   })
 
   test('display member of group if regex call return groups which has single tildeid member', async () => {
@@ -223,13 +226,12 @@ describe('Signatures', () => {
       })
     )
     api.get = apiGet
+    const user = userEvent.setup()
 
     render(<Signatures fieldDescription={regexFieldDescription} onChange={onChange} />)
 
-    await waitFor(() => {
-      userEvent.click(screen.getByRole('combobox'))
-      expect(screen.getAllByText('some_test_group (Test User)')).toHaveLength(1)
-    })
+    await user.click(await screen.findByRole('combobox'))
+    expect(await screen.findAllByText('some_test_group (Test User)')).toHaveLength(1)
   })
 
   test('display tags widget if enum group call returned single group', async () => {
@@ -374,12 +376,15 @@ describe('Signatures', () => {
       )
     )
     api.get = apiGet
+    const user = userEvent.setup()
 
     render(<Signatures fieldDescription={enumFieldDescription} onChange={onChange} />)
 
     await waitFor(() => {
       expect(onChange).toHaveBeenNthCalledWith(2, { type: 'list' })
-      userEvent.click(screen.getByRole('combobox'))
+    })
+    await user.click(screen.getByRole('combobox'))
+    await waitFor(() => {
       expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer abc')).toBeInTheDocument()
       expect(screen.getByText('ICML 2023 Conference Program Chairs')).toBeInTheDocument()
     })
@@ -409,6 +414,7 @@ describe('Signatures', () => {
       )
     )
     api.get = apiGet
+    const user = userEvent.setup()
 
     render(<Signatures fieldDescription={enumFieldDescription} onChange={onChange} />)
 
@@ -417,7 +423,9 @@ describe('Signatures', () => {
         value: ['ICML.cc/2023/Conference/Program_Chairs'], // will trigger default value to be selected
         type: 'list',
       })
-      userEvent.click(screen.getByRole('combobox'))
+    })
+    await user.click(screen.getByRole('combobox'))
+    await waitFor(() => {
       expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer abc')).toBeInTheDocument()
       expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer xyz')).toBeInTheDocument()
     })
@@ -445,12 +453,15 @@ describe('Signatures', () => {
       )
     )
     api.get = apiGet
+    const user = userEvent.setup()
 
     render(<Signatures fieldDescription={itemsFieldDescription} onChange={onChange} />)
 
     await waitFor(() => {
       expect(onChange).toHaveBeenNthCalledWith(2, { type: 'list' })
-      userEvent.click(screen.getByRole('combobox'))
+    })
+    await user.click(screen.getByRole('combobox'))
+    await waitFor(() => {
       expect(screen.getByText('some_test_group1')).toBeInTheDocument()
       expect(screen.getByText('some_test_group2')).toBeInTheDocument()
       expect(screen.getByText('ICML 2023 Conference Program Chairs')).toBeInTheDocument()
@@ -480,6 +491,7 @@ describe('Signatures', () => {
       )
     )
     api.get = apiGet
+    const user = userEvent.setup()
 
     render(<Signatures fieldDescription={itemsFieldDescription} onChange={onChange} />)
 
@@ -488,7 +500,9 @@ describe('Signatures', () => {
         value: ['ICML.cc/2023/Conference/Program_Chairs'],
         type: 'list',
       })
-      userEvent.click(screen.getByRole('combobox'))
+    })
+    await user.click(screen.getByRole('combobox'))
+    await waitFor(() => {
       expect(screen.getByText('some_test_group1')).toBeInTheDocument()
       expect(screen.getByText('ICML 2023 Conference Program Chairs')).toBeInTheDocument()
     })
@@ -518,6 +532,7 @@ describe('Signatures', () => {
       )
     )
     api.get = apiGet
+    const user = userEvent.setup()
 
     render(<Signatures fieldDescription={itemsFieldDescription} onChange={onChange} />)
 
@@ -525,7 +540,9 @@ describe('Signatures', () => {
       expect(onChange).toHaveBeenNthCalledWith(2, {
         type: 'list',
       })
-      userEvent.click(screen.getByRole('combobox'))
+    })
+    await user.click(screen.getByRole('combobox'))
+    await waitFor(() => {
       expect(screen.getByText('some_test_group1')).toBeInTheDocument()
       expect(screen.getByText('some_test_group2')).toBeInTheDocument()
       expect(screen.getByText('ICML 2023 Conference Program Chairs')).toBeInTheDocument()
@@ -637,11 +654,12 @@ describe('Signatures', () => {
       )
     )
     api.get = apiGet
+    const user = userEvent.setup()
 
     render(<Signatures fieldDescription={enumFieldDescription} onChange={onChange} />)
 
+    await user.click(await screen.findByRole('combobox'))
     await waitFor(() => {
-      userEvent.click(screen.getByRole('combobox'))
       expect(screen.getByText('some_test_group1')).toBeInTheDocument()
       expect(screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)')).toBeInTheDocument()
     })
@@ -673,11 +691,12 @@ describe('Signatures', () => {
       )
     )
     api.get = apiGet
+    const user = userEvent.setup()
 
     render(<Signatures fieldDescription={itemsFieldDescription} onChange={onChange} />)
 
+    await user.click(await screen.findByRole('combobox'))
     await waitFor(() => {
-      userEvent.click(screen.getByRole('combobox'))
       expect(screen.getByText('some_test_group1')).toBeInTheDocument()
       expect(screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)')).toBeInTheDocument()
     })
@@ -727,12 +746,13 @@ describe('Signatures', () => {
         groups: [{ id: 'option_1' }, { id: 'option_2' }, { id: 'option_3' }],
       })
     )
+    const user = userEvent.setup()
 
     render(<Signatures fieldDescription={regexFieldDescription} onChange={onChange} />)
 
+    await user.click(await screen.findByRole('combobox'))
+    await user.click(await screen.findByText('option_2'))
     await waitFor(() => {
-      userEvent.click(screen.getByRole('combobox'))
-      userEvent.click(screen.getByText('option_2'))
       expect(onChange).toHaveBeenLastCalledWith({ value: ['option_2'] })
     })
   })
@@ -755,12 +775,13 @@ describe('Signatures', () => {
       )
     )
     api.get = apiGet
+    const user = userEvent.setup()
 
     render(<Signatures fieldDescription={enumFieldDescription} onChange={onChange} />)
 
+    await user.click(await screen.findByRole('combobox'))
+    await user.click(await screen.findByText('ICML 2023 Conference Program Chairs'))
     await waitFor(() => {
-      userEvent.click(screen.getByRole('combobox'))
-      userEvent.click(screen.getByText('ICML 2023 Conference Program Chairs'))
       expect(onChange).toHaveBeenLastCalledWith({
         value: ['ICML.cc/2023/Conference/Program_Chairs'],
       })
@@ -793,14 +814,15 @@ describe('Signatures', () => {
       )
     )
     api.get = apiGet
+    const user = userEvent.setup()
 
     render(<Signatures fieldDescription={itemsFieldDescription} onChange={onChange} />)
 
     // await waitFor(() => expect(screen.getByRole('combobox')))
 
+    await user.click(await screen.findByRole('combobox'))
+    await user.click(await screen.findByText('ICML 2023 Conference Program Chairs'))
     await waitFor(() => {
-      userEvent.click(screen.getByRole('combobox'))
-      userEvent.click(screen.getByText('ICML 2023 Conference Program Chairs'))
       expect(onChange).toHaveBeenLastCalledWith({
         value: ['ICML.cc/2023/Conference/Program_Chairs'],
       })
@@ -827,6 +849,7 @@ describe('Signatures', () => {
       )
     )
     api.get = apiGet
+    const user = userEvent.setup()
 
     render(
       <Signatures
@@ -836,9 +859,9 @@ describe('Signatures', () => {
       />
     )
 
+    await user.click(await screen.findByRole('combobox'))
+    await user.click(await screen.findByText('ICML 2023 Conference Program Chairs'))
     await waitFor(() => {
-      userEvent.click(screen.getByRole('combobox'))
-      userEvent.click(screen.getByText('ICML 2023 Conference Program Chairs'))
       expect(clearError).toHaveBeenCalledTimes(1)
     })
   })

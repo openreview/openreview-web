@@ -108,7 +108,7 @@ describe('TextboxWidget', () => {
       },
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
-    expect(screen.getByDisplayValue(''))
+    expect(screen.getByDisplayValue('')).toBeInTheDocument()
   })
 
   test('show default value and invoke onChange if there is default value (string)', () => {
@@ -129,7 +129,7 @@ describe('TextboxWidget', () => {
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
 
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
   test('show default value and invoke onChange if there is default value (string[])', () => {
@@ -153,7 +153,7 @@ describe('TextboxWidget', () => {
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
 
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
   test('not to show default value and invoke onChange editing existing note', () => {
@@ -180,7 +180,7 @@ describe('TextboxWidget', () => {
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
 
-    expect(onChange).not.toBeCalled()
+    expect(onChange).not.toHaveBeenCalled()
   })
 
   test('show default value and invoke onChange editing existing note)', () => {
@@ -210,7 +210,7 @@ describe('TextboxWidget', () => {
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
 
-    expect(onChange).not.toBeCalled()
+    expect(onChange).not.toHaveBeenCalled()
   })
 
   test('show note value if string value exists (editing a note)', () => {
@@ -223,7 +223,7 @@ describe('TextboxWidget', () => {
       },
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
-    expect(screen.getByDisplayValue('some existing value'))
+    expect(screen.getByDisplayValue('some existing value')).toBeInTheDocument()
   })
 
   test('show note value if string array value exists (editing a note)', () => {
@@ -242,7 +242,7 @@ describe('TextboxWidget', () => {
       },
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
-    expect(screen.getByDisplayValue('keyword one,keyword two,keyword three'))
+    expect(screen.getByDisplayValue('keyword one,keyword two,keyword three')).toBeInTheDocument()
   })
 
   test('invoke onchange on text change (string)', async () => {

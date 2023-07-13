@@ -82,12 +82,12 @@ describe('DropdownWidget', () => {
     }
 
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
-    expect(screen.getByText('Select Some Select Field'))
+    expect(screen.getByText('Select Some Select Field')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
-    expect(screen.getByText('option one'))
-    expect(screen.getByText('option two'))
-    expect(screen.getByText('option three'))
+    expect(screen.getByText('option one')).toBeInTheDocument()
+    expect(screen.getByText('option two')).toBeInTheDocument()
+    expect(screen.getByText('option three')).toBeInTheDocument()
   })
 
   test('call update on selecting a value (enum string single select)', async () => {
@@ -141,7 +141,7 @@ describe('DropdownWidget', () => {
     }
 
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
-    expect(screen.getByText('option two'))
+    expect(screen.getByText('option two')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option three'))
@@ -204,9 +204,9 @@ describe('DropdownWidget', () => {
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     await userEvent.click(screen.getByRole('combobox'))
-    expect(screen.getByText('Algorithms: Approximate Inference'))
-    expect(screen.getByText('Methodology: Bayesian Methods'))
-    expect(screen.getByText('Representation: Constraints'))
+    expect(screen.getByText('Algorithms: Approximate Inference')).toBeInTheDocument()
+    expect(screen.getByText('Methodology: Bayesian Methods')).toBeInTheDocument()
+    expect(screen.getByText('Representation: Constraints')).toBeInTheDocument()
 
     await userEvent.click(screen.getByText('Methodology: Bayesian Methods'))
     expect(onChange).toHaveBeenCalledWith(
@@ -239,8 +239,8 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('Algorithms: Approximate Inference'))
-    expect(screen.getByRole('button', { name: 'Remove Algorithms: Approximate Inference' }))
+    expect(screen.getByText('Algorithms: Approximate Inference')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Remove Algorithms: Approximate Inference' })).toBeInTheDocument()
 
     await userEvent.click(
       screen.getByRole('button', { name: 'Remove Algorithms: Approximate Inference' })
@@ -278,12 +278,12 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('Select Some Select Field'))
+    expect(screen.getByText('Select Some Select Field')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
-    expect(screen.getByText('option description one'))
-    expect(screen.getByText('option description two'))
-    expect(screen.getByText('option description three'))
+    expect(screen.getByText('option description one')).toBeInTheDocument()
+    expect(screen.getByText('option description two')).toBeInTheDocument()
+    expect(screen.getByText('option description three')).toBeInTheDocument()
   })
 
   test('call update on selecting a value (enum obj no type conversion)', async () => {
@@ -312,7 +312,7 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('Select Some Select Field'))
+    expect(screen.getByText('Select Some Select Field')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
@@ -347,7 +347,7 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('Select Some Select Field'))
+    expect(screen.getByText('Select Some Select Field')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
@@ -383,7 +383,7 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('option description two'))
+    expect(screen.getByText('option description two')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description three'))
@@ -430,13 +430,13 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
 
-    expect(screen.getByText('Select Some Select Field'))
+    expect(screen.getByText('Select Some Select Field')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
-    expect(screen.getByText('option description one'))
-    expect(screen.getByText('option description two'))
-    expect(screen.getByText('option description three'))
-    expect(screen.getByText('value four'))
+    expect(screen.getByText('option description one')).toBeInTheDocument()
+    expect(screen.getByText('option description two')).toBeInTheDocument()
+    expect(screen.getByText('option description three')).toBeInTheDocument()
+    expect(screen.getByText('value four')).toBeInTheDocument()
   })
 
   test('render options (enum obj + sting[] type)', async () => {
@@ -461,12 +461,12 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('Select Some Select Field'))
+    expect(screen.getByText('Select Some Select Field')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
-    expect(screen.getByText('option description one'))
-    expect(screen.getByText('option description two'))
-    expect(screen.getByText('option description three'))
+    expect(screen.getByText('option description one')).toBeInTheDocument()
+    expect(screen.getByText('option description two')).toBeInTheDocument()
+    expect(screen.getByText('option description three')).toBeInTheDocument()
   })
 
   test('call update on selecting a value (enum obj + sting[] type no type conversion)', async () => {
@@ -495,7 +495,7 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('Select Some Select Field'))
+    expect(screen.getByText('Select Some Select Field')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
@@ -530,7 +530,7 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('Select Some Select Field'))
+    expect(screen.getByText('Select Some Select Field')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
@@ -566,7 +566,7 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('option description two'))
+    expect(screen.getByText('option description two')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description three'))
@@ -614,7 +614,7 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('Select Some Select Field'))
+    expect(screen.getByText('Select Some Select Field')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
@@ -661,7 +661,7 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('Select Some Select Field'))
+    expect(screen.getByText('Select Some Select Field')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
@@ -706,7 +706,7 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('Select Some Select Field'))
+    expect(screen.getByText('Select Some Select Field')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description two'))
@@ -753,7 +753,7 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('option description two'))
+    expect(screen.getByText('option description two')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByText('option description three'))
@@ -803,7 +803,7 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('option description two'))
+    expect(screen.getByText('option description two')).toBeInTheDocument()
 
     await userEvent.click(
       screen.getByRole('button', { name: 'Remove option description two' })
@@ -851,8 +851,8 @@ describe('DropdownWidget', () => {
     }
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('option description two'))
-    expect(screen.getByText('option description three'))
+    expect(screen.getByText('option description two')).toBeInTheDocument()
+    expect(screen.getByText('option description three')).toBeInTheDocument()
 
     await userEvent.click(
       screen.getByRole('button', { name: 'Remove option description two' })
@@ -900,9 +900,9 @@ describe('DropdownWidget', () => {
     }
     const { container } = renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
-    expect(screen.getByText('option description one'))
-    expect(screen.getByText('option description two'))
-    expect(screen.getByText('option description three'))
+    expect(screen.getByText('option description one')).toBeInTheDocument()
+    expect(screen.getByText('option description two')).toBeInTheDocument()
+    expect(screen.getByText('option description three')).toBeInTheDocument()
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     await userEvent.click(clearButton)
@@ -1086,7 +1086,7 @@ describe('DropdownWidget', () => {
     const optionOneRemoveButton = screen.getByRole('button', {
       name: 'Remove option description one',
     })
-    expect(optionOneRemoveButton)
+    expect(optionOneRemoveButton).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Remove option description three' })
     ).not.toBeInTheDocument()
@@ -1132,9 +1132,9 @@ describe('DropdownWidget', () => {
     }
 
     const { container } = renderWithEditorComponentContext(<DropdownWidget />, providerProps)
-    expect(screen.getByText('option description one'))
-    expect(screen.getByText('option description two'))
-    expect(screen.getByText('option description three'))
+    expect(screen.getByText('option description one')).toBeInTheDocument()
+    expect(screen.getByText('option description two')).toBeInTheDocument()
+    expect(screen.getByText('option description three')).toBeInTheDocument()
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     await userEvent.click(clearButton)

@@ -8,13 +8,14 @@ import useUser from '../../hooks/useUser'
 const TextboxWidget = () => {
   const { field, onChange, value, error, clearError, note, replyToNote, invitation } =
     useContext(EditorComponentContext)
+  const { user } = useUser()
+
   const fieldName = Object.keys(field)[0]
   const fieldType = field[fieldName]?.value?.param?.type
   const isArrayType = fieldType?.endsWith('[]')
   const dataType = isArrayType ? fieldType?.slice(0, -2) : fieldType
   const constValue = getFieldConstValue(field[fieldName])
   const defaultValue = field[fieldName]?.value?.param?.default
-  const { user } = useUser()
   const shouldSaveDraft = true
 
   const isCommaSeparatedArray = field[fieldName]?.value?.param?.type?.endsWith('[]')
@@ -23,8 +24,9 @@ const TextboxWidget = () => {
   )
 
   const getInputValue = (rawInputValue) => {
-    if (!isCommaSeparatedArray)
+    if (!isCommaSeparatedArray) {
       return rawInputValue ? convertToType(rawInputValue.trim(), dataType) : undefined
+    }
     return rawInputValue.split(',').map((p) => convertToType(p.trim(), dataType))
   }
 

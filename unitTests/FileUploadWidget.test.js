@@ -1,9 +1,9 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import FileUploadWidget from '../components/EditorComponents/FileUploadWidget'
-import { renderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
+import FileUploadWidget from '../components/EditorComponents/FileUploadWidget'
 import api from '../lib/api-client'
+import { renderWithEditorComponentContext } from './util'
 
 jest.mock('../lib/api-client')
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
@@ -26,7 +26,7 @@ describe('FileUploadWidget', () => {
       },
     }
     renderWithEditorComponentContext(<FileUploadWidget />, providerProps)
-    expect(screen.getByText('Choose Supplementary Material'))
+    expect(screen.getByText('Choose Supplementary Material')).toBeInTheDocument()
   })
 
   test('display link of existing file', () => {
@@ -50,8 +50,8 @@ describe('FileUploadWidget', () => {
       screen.getByText('/attachment/ffbec464c347b27a8f6a8afdc2a68b9476ee5a1e.zip', {
         exact: false,
       })
-    )
-    expect(screen.getByRole('button', { name: 'trash' }))
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'trash' })).toBeInTheDocument()
   })
 
   test('upload the file user selected', async () => {

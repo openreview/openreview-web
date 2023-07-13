@@ -71,7 +71,7 @@ describe('ConsoleTaskList', () => {
         apiVersion={1}
       />
     )
-    await waitFor(() => expect(screen.getByText('No outstanding tasks for this conference')))
+    expect(await screen.findByText('No outstanding tasks for this conference')).toBeVisible()
   })
 
   test('show empty message if there is no task (v2 venue)', async () => {
@@ -89,7 +89,7 @@ describe('ConsoleTaskList', () => {
         apiVersion={2}
       />
     )
-    await waitFor(() => expect(screen.getByText('No outstanding tasks for this conference')))
+    expect(await screen.findByText('No outstanding tasks for this conference')).toBeVisible()
   })
 
   test('show tasks of authors (v1 venue)', async () => {
@@ -354,7 +354,7 @@ describe('ConsoleTaskList', () => {
       )
       expect(commentOneLink.nextElementSibling).toHaveClass('warning')
       expect(commentOneLink.parentElement.parentElement).not.toHaveClass('completed')
-      expect(screen.getByText('title of note that comment one replied to'))
+      expect(screen.getByText('title of note that comment one replied to')).toBeInTheDocument()
 
       expect(commentTwoLink).toBeInTheDocument()
       expect(commentTwoLink).toHaveAttribute(
@@ -372,7 +372,9 @@ describe('ConsoleTaskList', () => {
       )
       expect(commentFourLink.nextElementSibling).toHaveClass('expired')
       expect(commentFourLink.parentElement.parentElement).not.toHaveClass('completed')
-      expect(screen.getByText('title of note that comment four replied to'))
+      expect(
+        screen.getByText('title of note that comment four replied to')
+      ).toBeInTheDocument()
 
       expect(commentFiveLink).toBeInTheDocument()
       expect(commentFiveLink).toHaveAttribute(

@@ -63,7 +63,7 @@ describe('ProfileBidConsole', () => {
       <ProfileBidConsole appContext={{ setBannerContent: jest.fn() }} />,
       providerProps
     )
-    expect(screen.getByText('Bidding Console is missing required properties: profileGroupId'))
+    expect(screen.getByText('Bidding Console is missing required properties: profileGroupId')).toBeInTheDocument()
   })
 
   test('allow conflictInvitationId to be optional', async () => {
@@ -128,15 +128,15 @@ describe('ProfileBidConsole', () => {
 
     await waitFor(() => {
       expect(marked).toHaveBeenCalledWith('** some instructions **')
-      expect(screen.getByText('rendered title'))
-      expect(screen.getByText('You have completed 0 bids'))
-      expect(screen.getByText('All Area Chairs'))
-      expect(screen.getByText('Very High'))
-      expect(screen.getByText('High'))
-      expect(screen.getByText('Neutral'))
-      expect(screen.getByText('Low'))
-      expect(screen.getByText('Very Low'))
-      expect(screen.getByText('profile list'))
+      expect(screen.getByText('rendered title')).toBeInTheDocument()
+      expect(screen.getByText('You have completed 0 bids')).toBeInTheDocument()
+      expect(screen.getByText('All Area Chairs')).toBeInTheDocument()
+      expect(screen.getByText('Very High')).toBeInTheDocument()
+      expect(screen.getByText('High')).toBeInTheDocument()
+      expect(screen.getByText('Neutral')).toBeInTheDocument()
+      expect(screen.getByText('Low')).toBeInTheDocument()
+      expect(screen.getByText('Very Low')).toBeInTheDocument()
+      expect(screen.getByText('profile list')).toBeInTheDocument()
       expect(profileListProps).toHaveBeenCalledWith(expect.objectContaining({ profiles: [] }))
       expect(screen.queryByRole('dropdown')).not.toBeInTheDocument()
     })
@@ -166,8 +166,8 @@ describe('ProfileBidConsole', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('All Some PROFILE id'))
-      expect(screen.getByPlaceholderText('Search Some PROFILE id'))
+      expect(screen.getByText('All Some PROFILE id')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Search Some PROFILE id')).toBeInTheDocument()
       expect(profileListProps).toHaveBeenCalledWith(
         expect.objectContaining({ emptyMessage: 'No Some PROFILE id to display at this time' })
       )
@@ -203,7 +203,7 @@ describe('ProfileBidConsole', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('You have completed 3 bids'))
+      expect(screen.getByText('You have completed 3 bids')).toBeInTheDocument()
     })
   })
 

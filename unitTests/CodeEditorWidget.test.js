@@ -237,7 +237,7 @@ describe('CheckboxWidget', () => {
 
     renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
     await waitFor(() => {
-      expect(onChange).toBeCalledWith(expect.objectContaining({ value: defaultValue }))
+      expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: defaultValue }))
     })
   })
 
@@ -281,7 +281,7 @@ describe('CheckboxWidget', () => {
 
     renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
     await waitFor(() => {
-      expect(onChange).not.toBeCalled()
+      expect(onChange).not.toHaveBeenCalled()
     })
   })
 })

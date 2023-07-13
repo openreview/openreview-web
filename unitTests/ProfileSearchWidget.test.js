@@ -41,7 +41,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('search profiles by email or name'))
+      expect(screen.getByPlaceholderText('search profiles by email or name')).toBeInTheDocument()
       expect(screen.getByText('Search')).toHaveAttribute('disabled')
     })
   })
@@ -107,7 +107,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         screen.queryByPlaceholderText('search profiles by email or name')
       ).not.toBeInTheDocument()
       expect(screen.queryByText('Search')).not.toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'arrow-right' }))
+      expect(screen.getByRole('button', { name: 'arrow-right' })).toBeInTheDocument()
     })
   })
 
@@ -183,7 +183,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('Test First Test Last'))
+      expect(screen.getByText('Test First Test Last')).toBeInTheDocument()
       expect(screen.getByText('Test First Test Last')).toHaveAttribute(
         'data-original-title',
         '~test_id1'
@@ -632,13 +632,13 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       'search text'
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(screen.getByRole('navigation'))
+    expect(screen.getByRole('navigation')).toBeInTheDocument()
     expect(screen.queryByText('Showing 1-15 of 150')).not.toBeInTheDocument() // not to show count
-    expect(screen.getByRole('link', { name: '~ search _ result 2' }))
+    expect(screen.getByRole('link', { name: '~ search _ result 2' })).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: '7' }))
     expect(screen.queryByText('Showing 91-105 of 150')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: '~ search _ result 105' }))
+    expect(screen.getByRole('link', { name: '~ search _ result 105' })).toBeInTheDocument()
   })
 
   test('show error message when profile search end point is not working', async () => {
@@ -710,12 +710,16 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(screen.getByText('No results found for your search query.', { exact: false }))
-    expect(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
+    expect(
+      screen.getByText('No results found for your search query.', { exact: false })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Manually Enter Author Info' })
+    ).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
-    expect(screen.getByPlaceholderText('full name of the author to add'))
-    expect(screen.getByPlaceholderText('email of the author to add'))
+    expect(screen.getByPlaceholderText('full name of the author to add')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('email of the author to add')).toBeInTheDocument()
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
   })
 
@@ -747,12 +751,16 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(screen.getByText('No results found for your search query.', { exact: false }))
-    expect(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
+    expect(
+      screen.getByText('No results found for your search query.', { exact: false })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Manually Enter Author Info' })
+    ).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
-    expect(screen.getByPlaceholderText('full name of the author to add'))
-    expect(screen.getByPlaceholderText('email of the author to add'))
+    expect(screen.getByPlaceholderText('full name of the author to add')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('email of the author to add')).toBeInTheDocument()
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
   })
 
@@ -783,7 +791,9 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(screen.getByText('No results found for your search query.', { exact: false }))
+    expect(
+      screen.getByText('No results found for your search query.', { exact: false })
+    ).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Manually Enter Author Info' })
     ).not.toBeInTheDocument()
@@ -996,7 +1006,9 @@ describe('ProfileSearchWidget for non authorids field', () => {
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(screen.getByText('No results found for your search query.', { exact: false }))
+    expect(
+      screen.getByText('No results found for your search query.', { exact: false })
+    ).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Manually Enter Author Info' })
     ).not.toBeInTheDocument()

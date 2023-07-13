@@ -69,7 +69,7 @@ describe('EditorWidget', () => {
       },
     }
     renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('textbox'))
+    expect(screen.getByText('textbox')).toBeInTheDocument()
   })
 
   test('render TextboxWidget for field with string const value', async () => {
@@ -81,7 +81,7 @@ describe('EditorWidget', () => {
       },
     }
     const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('textbox'))
+    expect(screen.getByText('textbox')).toBeInTheDocument()
 
     providerProps = {
       value: {
@@ -93,7 +93,7 @@ describe('EditorWidget', () => {
       },
     }
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('textbox'))
+    expect(screen.getByText('textbox')).toBeInTheDocument()
 
     providerProps = {
       value: {
@@ -109,7 +109,7 @@ describe('EditorWidget', () => {
       },
     }
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('textbox'))
+    expect(screen.getByText('textbox')).toBeInTheDocument()
   })
 
   test('render TagsWidget for field with array const value', async () => {
@@ -121,7 +121,7 @@ describe('EditorWidget', () => {
       },
     }
     const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('tags'))
+    expect(screen.getByText('tags')).toBeInTheDocument()
 
     providerProps = {
       value: {
@@ -133,7 +133,7 @@ describe('EditorWidget', () => {
       },
     }
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('tags'))
+    expect(screen.getByText('tags')).toBeInTheDocument()
 
     providerProps = {
       value: {
@@ -149,7 +149,7 @@ describe('EditorWidget', () => {
       },
     }
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('tags'))
+    expect(screen.getByText('tags')).toBeInTheDocument()
   })
 
   test('render nothing for field with only readers', async () => {
@@ -171,7 +171,7 @@ describe('EditorWidget', () => {
     providerProps.value.field.field_name.value.param.input = 'radio'
 
     renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('radio'))
+    expect(screen.getByText('radio')).toBeInTheDocument()
   })
 
   test('render CheckboxWidget for input checkbox', async () => {
@@ -179,15 +179,7 @@ describe('EditorWidget', () => {
     providerProps.value.field.field_name.value.param.input = 'checkbox'
 
     renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('checkbox'))
-  })
-
-  test('render CheckboxWidget for input checkbox', async () => {
-    const providerProps = inputProviderProps
-    providerProps.value.field.field_name.value.param.input = 'checkbox'
-
-    renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('checkbox'))
+    expect(screen.getByText('checkbox')).toBeInTheDocument()
   })
 
   test('render DropdownWidget for input select', async () => {
@@ -195,7 +187,7 @@ describe('EditorWidget', () => {
     providerProps.value.field.field_name.value.param.input = 'select'
 
     renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('dropdown'))
+    expect(screen.getByText('dropdown')).toBeInTheDocument()
   })
 
   // for backward compatibility
@@ -210,7 +202,7 @@ describe('EditorWidget', () => {
     ]
 
     renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('dropdown'))
+    expect(screen.getByText('dropdown')).toBeInTheDocument()
   })
 
   test('render TextAreaWidget for input textarea', async () => {
@@ -218,7 +210,7 @@ describe('EditorWidget', () => {
     providerProps.value.field.field_name.value.param.input = 'textarea'
 
     renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('textarea'))
+    expect(screen.getByText('textarea')).toBeInTheDocument()
   })
 
   test('render TextboxWidget for input text', async () => {
@@ -226,7 +218,7 @@ describe('EditorWidget', () => {
     providerProps.value.field.field_name.value.param.input = 'text'
 
     renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('textbox'))
+    expect(screen.getByText('textbox')).toBeInTheDocument()
   })
 
   test('render CodeEditorWidget for type json/script/json[]/script[]', async () => {
@@ -234,19 +226,19 @@ describe('EditorWidget', () => {
 
     providerProps.value.field.field_name.value.param.type = 'json'
     const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('editor'))
+    expect(screen.getByText('editor')).toBeInTheDocument()
 
     providerProps.value.field.field_name.value.param.type = 'json[]'
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('editor'))
+    expect(screen.getByText('editor')).toBeInTheDocument()
 
     providerProps.value.field.field_name.value.param.type = 'script'
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('editor'))
+    expect(screen.getByText('editor')).toBeInTheDocument()
 
     providerProps.value.field.field_name.value.param.type = 'script[]'
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('editor'))
+    expect(screen.getByText('editor')).toBeInTheDocument()
   })
 
   test('render FileUploadWidget for type file/file[]', async () => {
@@ -254,11 +246,11 @@ describe('EditorWidget', () => {
 
     providerProps.value.field.field_name.value.param.type = 'file'
     const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('upload'))
+    expect(screen.getByText('upload')).toBeInTheDocument()
 
     providerProps.value.field.field_name.value.param.type = 'file[]'
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('upload'))
+    expect(screen.getByText('upload')).toBeInTheDocument()
   })
 
   test('render DatePickerWidget for type date/date[]', async () => {
@@ -266,11 +258,11 @@ describe('EditorWidget', () => {
 
     providerProps.value.field.field_name.value.param.type = 'date'
     const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('date'))
+    expect(screen.getByText('date')).toBeInTheDocument()
 
     providerProps.value.field.field_name.value.param.type = 'date[]'
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('date'))
+    expect(screen.getByText('date')).toBeInTheDocument()
   })
 
   test('render ToggleButtonWidget for type boolean/boolean[]', async () => {
@@ -278,11 +270,11 @@ describe('EditorWidget', () => {
 
     providerProps.value.field.field_name.value.param.type = 'boolean'
     const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('toggle'))
+    expect(screen.getByText('toggle')).toBeInTheDocument()
 
     providerProps.value.field.field_name.value.param.type = 'boolean[]'
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('toggle'))
+    expect(screen.getByText('toggle')).toBeInTheDocument()
   })
 
   test('render TextboxWidget for type integer/float/string/integer[]/float[]/string[]', async () => {
@@ -290,27 +282,27 @@ describe('EditorWidget', () => {
 
     providerProps.value.field.field_name.value.param.type = 'integer'
     const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('textbox'))
+    expect(screen.getByText('textbox')).toBeInTheDocument()
 
     providerProps.value.field.field_name.value.param.type = 'float'
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('textbox'))
+    expect(screen.getByText('textbox')).toBeInTheDocument()
 
     providerProps.value.field.field_name.value.param.type = 'string'
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('textbox'))
+    expect(screen.getByText('textbox')).toBeInTheDocument()
 
     providerProps.value.field.field_name.value.param.type = 'integer[]'
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('textbox'))
+    expect(screen.getByText('textbox')).toBeInTheDocument()
 
     providerProps.value.field.field_name.value.param.type = 'float[]'
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('textbox'))
+    expect(screen.getByText('textbox')).toBeInTheDocument()
 
     providerProps.value.field.field_name.value.param.type = 'string[]'
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('textbox'))
+    expect(screen.getByText('textbox')).toBeInTheDocument()
   })
 
   test('render ProfileSearchWidget for type group/group[]', async () => {
@@ -318,11 +310,11 @@ describe('EditorWidget', () => {
 
     providerProps.value.field.field_name.value.param.type = 'group'
     const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
-    expect(screen.getByText('profile'))
+    expect(screen.getByText('profile')).toBeInTheDocument()
 
     providerProps.value.field.field_name.value.param.type = 'group[]'
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
-    expect(screen.getByText('profile'))
+    expect(screen.getByText('profile')).toBeInTheDocument()
   })
 
   test('render nothing for type note/edit/edge/tag/note[]/edit[]/edge[]/tag[]', async () => {

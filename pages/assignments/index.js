@@ -445,8 +445,6 @@ const Assignments = ({ appContext }) => {
         onValidate: validateConfigNoteForm,
         onCompleted: appendEditorToModal,
       })
-
-      return
     }
   }
 

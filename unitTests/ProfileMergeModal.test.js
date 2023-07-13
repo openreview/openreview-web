@@ -20,10 +20,10 @@ describe('ProfileMergeModal', () => {
   test('display email, id, comment input and buttons', () => {
     render(<ProfileMergeModal />)
 
-    expect(screen.getByLabelText('Your email'))
-    expect(screen.getByLabelText('Profile IDs or emails to merge, separated by commas'))
-    expect(screen.getByLabelText('Comment'))
-    expect(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.getByLabelText('Your email')).toBeInTheDocument()
+    expect(screen.getByLabelText('Profile IDs or emails to merge, separated by commas')).toBeInTheDocument()
+    expect(screen.getByLabelText('Comment')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Submit' })).toHaveAttribute('disabled')
   })
 
