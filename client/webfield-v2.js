@@ -1251,11 +1251,13 @@ module.exports = (function () {
     var query = {
       prefix: venueId + '/' + numberToken + '.*',
       select: 'id,members',
+      stream: true,
     }
     if (options && options.assigned) {
       query.member = window.user.id
     }
-    return getAll('/groups', query).then(function (groups) {
+    return get('/groups', query).then(function (result) {
+      var groups = result.groups
       var paperGroups = []
       var anonPaperGroups = []
       var memberIds = []
