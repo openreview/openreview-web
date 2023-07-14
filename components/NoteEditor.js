@@ -4,18 +4,19 @@ import React, { useEffect, useMemo, useReducer, useState } from 'react'
 import debounce from 'lodash/debounce'
 import { intersection, isEmpty } from 'lodash'
 import EditorComponentContext from './EditorComponentContext'
+import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import EditorWidget from './webfield/EditorWidget'
-import styles from '../styles/components/NoteEditor.module.scss'
-import { getAutoStorageKey, prettyField, prettyInvitationId } from '../lib/utils'
-import { getErrorFieldName } from '../lib/webfield-utils'
-import { getNoteContentValues } from '../lib/forum-utils'
 import SpinnerButton from './SpinnerButton'
 import LoadingSpinner from './LoadingSpinner'
-import api from '../lib/api-client'
-import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import Signatures from './Signatures'
 import { NewNoteReaders, NewReplyEditNoteReaders } from './NoteEditorReaders'
 import useUser from '../hooks/useUser'
+import api from '../lib/api-client'
+import { getAutoStorageKey, prettyField, prettyInvitationId } from '../lib/utils'
+import { getErrorFieldName } from '../lib/webfield-utils'
+import { getNoteContentValues } from '../lib/forum-utils'
+
+import styles from '../styles/components/NoteEditor.module.scss'
 
 const ExistingNoteReaders = NewReplyEditNoteReaders
 
@@ -129,7 +130,11 @@ const NoteEditor = ({
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState([])
-  const displayError = setErrorAlertMessage ?? ((p) => promptError(p, { scrollToTop: false }))
+
+  const displayError =
+    typeof setErrorAlertMessage === 'function'
+      ? setErrorAlertMessage
+      : (p) => promptError(p, { scrollToTop: false })
 
   const saveDraft = useMemo(
     () =>
@@ -177,14 +182,17 @@ const NoteEditor = ({
 
   const renderField = ({ fieldName, fieldDescription }) => {
     const fieldNameOverwrite = getFieldNameOverwrite(fieldName, fieldDescription)
-    let fieldValue = noteEditorData[fieldName]
     const error = errors.find((e) => e.fieldName === fieldName)
+
+    let fieldValue = noteEditorData[fieldName]
     if (fieldName === 'authorids' && note) {
       fieldValue = noteEditorData.authorids?.map((p, index) => ({
         authorId: p,
         authorName: noteEditorData.authors?.[index],
       }))
     }
+    if (fieldName === 'title') console.log(fieldName, fieldValue)
+
     return (
       <React.Fragment key={fieldName}>
         <EditorComponentContext.Provider
@@ -193,18 +201,17 @@ const NoteEditor = ({
             note,
             replyToNote,
             field: { [fieldName]: fieldDescription },
-            // eslint-disable-next-line no-shadow
-            onChange: ({ fieldName, value, shouldSaveDraft }) =>
-              setNoteEditorData({ fieldName, value, shouldSaveDraft }),
+            onChange: setNoteEditorData,
             value: fieldValue,
             key: fieldName,
             isWebfield: false,
             error,
             setErrors,
-            clearError: () =>
+            clearError: () => {
               setErrors((existingErrors) =>
                 existingErrors.filter((p) => p.fieldName !== fieldName)
-              ),
+              )
+            },
           }}
         >
           <EditorComponentHeader fieldNameOverwrite={fieldNameOverwrite}>
@@ -229,12 +236,13 @@ const NoteEditor = ({
 
   const renderNoteReaders = () => {
     if (!invitation.edit.note.readers) return null
+
     const fieldName = 'noteReaderValues'
     const error = errors.find((e) => e.fieldName === fieldName)
     const clearError = () =>
       setErrors((existingErrors) => existingErrors.filter((p) => p.fieldName !== fieldName))
 
-    if (!note && !replyToNote)
+    if (!note && !replyToNote) {
       return (
         <NewNoteReaders
           fieldDescription={invitation.edit.note.readers}
@@ -247,7 +255,8 @@ const NoteEditor = ({
           clearError={clearError}
         />
       )
-    if (note)
+    }
+    if (note) {
       return (
         <ExistingNoteReaders
           replyToNote={replyToNote}
@@ -261,7 +270,8 @@ const NoteEditor = ({
           clearError={clearError}
         />
       )
-    if (replyToNote)
+    }
+    if (replyToNote) {
       return (
         <NewReplyEditNoteReaders
           replyToNote={replyToNote}
@@ -276,6 +286,7 @@ const NoteEditor = ({
           clearError={clearError}
         />
       )
+    }
     return null
   }
 
@@ -338,8 +349,10 @@ const NoteEditor = ({
   }
 
   const getNoteReaderValues = () => {
-    if (!invitation.edit.note.readers || Array.isArray(invitation.edit.note.readers))
+    if (!invitation.edit.note.readers || Array.isArray(invitation.edit.note.readers)) {
       return undefined
+    }
+
     const constNoteSignature = // when note signature is edit signature, note reader should use edit signatures
       invitation.edit.note?.signatures?.[0]?.includes('/signatures}') ||
       invitation.edit.note?.signatures?.param?.const?.[0]?.includes('/signatures}')
@@ -475,7 +488,9 @@ const NoteEditor = ({
       promptLogin()
       return
     }
+
     if (!invitation?.edit?.note?.content) return
+
     const orderedFields = Object.entries(invitation.edit.note.content)
       .sort((a, b) => a[1].order - b[1].order)
       .map(([fieldName, fieldDescription]) => ({
@@ -485,18 +500,22 @@ const NoteEditor = ({
     setFields(orderedFields)
   }, [invitation, user])
 
-  if (!invitation || !user) return null
+  if (!invitation?.edit?.note || !user) return null
 
   return (
     <div className={styles.noteEditor}>
       {note && <h2 className={styles.title}>{`Edit ${prettyInvitationId(invitation.id)}`}</h2>}
+
       {replyToNote && (
         <h2 className={styles.title}>{`New ${prettyInvitationId(invitation.id)}`}</h2>
       )}
       <div className={styles.requiredField}>* denotes a required field</div>
       {(note || replyToNote) && <hr />}
+
       {fields.map((field) => renderField(field))}
+
       {renderNoteReaders()}
+
       <NoteSignatures
         fieldDescription={invitation.edit.note.signatures}
         setLoading={setLoading}
@@ -506,6 +525,7 @@ const NoteEditor = ({
         errors={errors}
         setErrors={setErrors}
       />
+
       <div className={styles.editReaderSignature}>
         <h2>Edit History</h2>
         <hr className="small" />

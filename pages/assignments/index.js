@@ -7,13 +7,16 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
-import { cloneDeep } from 'lodash'
+import cloneDeep from 'lodash/cloneDeep'
+import isEmpty from 'lodash/isEmpty'
 import Table from '../../components/Table'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import Icon from '../../components/Icon'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import BasicModal from '../../components/BasicModal'
 import NoteContent from '../../components/NoteContent'
+import ErrorAlert from '../../components/ErrorAlert'
+import NoteEditor from '../../components/NoteEditor'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
@@ -23,13 +26,11 @@ import {
   formatDateTime,
   cloneAssignmentConfigNote,
   cloneAssignmentConfigNoteV2,
+  useNewNoteEditor,
 } from '../../lib/utils'
 import { getNoteContentValues } from '../../lib/forum-utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
-import ErrorAlert from '../../components/ErrorAlert'
-import NoteEditor from '../../components/NoteEditor'
-import useNewNoteEditor from '../../hooks/useNewNoteEditor'
 
 const ActionLink = ({ label, className, iconName, href, onClick, disabled }) => {
   if (href) {
@@ -193,15 +194,15 @@ const AssignmentRow = ({
 }
 
 const NewNoteEditorModal = ({
-  editorInfo,
-  setEditorInfo,
+  editorNote,
+  setEditorNote,
+  configInvitation,
   assignmentNotes,
   getAssignmentNotes,
 }) => {
   const [errorMessage, setErrorMessage] = useState(null)
-  const { note, invitation } = editorInfo ?? {}
 
-  const invitationWithHiddenFields = cloneDeep(invitation)
+  const invitationWithHiddenFields = cloneDeep(configInvitation)
   const fieldsToHide = [
     'config_invitation',
     'assignment_invitation',
@@ -216,60 +217,47 @@ const NewNoteEditorModal = ({
   })
 
   const validator = (formData) => {
-    if (
-      assignmentNotes.find(
-        (p) => p.content.title.value === formData.title && (!note || p.id !== note.id)
-      )
-    ) {
+    const noteWithMatchingTitle = assignmentNotes.find(
+      (p) =>
+        p.content.title.value === formData.title &&
+        (isEmpty(editorNote) || p.id !== editorNote.id)
+    )
+    if (noteWithMatchingTitle) {
       return {
         isValid: false,
         errorMessage: 'The configuration title must be unique within the conference',
       }
     }
-
-    if (
-      formData.scores_names &&
-      formData.scores_weights &&
-      formData.scores_names.length !== formData.scores_weights.length
-    ) {
-      return {
-        isValid: false,
-        errorMessage: 'The scores and weights must have same number of values',
-      }
-    }
-
     return { isValid: true }
   }
 
-  if (!invitation) return null
+  if (!configInvitation) return null
+
   return (
     <BasicModal
       id="new-note-editor-modal"
       options={{ hideFooter: true, extraClasses: 'modal-lg' }}
     >
-      <div className="row">
-        <div className="col-md-12">
-          {errorMessage && <ErrorAlert error={{ message: errorMessage }} />}
-          <NoteEditor
-            note={note}
-            invitation={invitationWithHiddenFields}
-            closeNoteEditor={() => {
-              setErrorMessage(null)
-              setEditorInfo(null)
-            }}
-            onNoteCreated={() => {
-              setEditorInfo(null)
-              promptMessage('Note updated successfully')
-              getAssignmentNotes()
-            }}
-            setErrorAlertMessage={(msg) => {
-              setErrorMessage(msg)
-              $('#new-note-editor-modal').animate({ scrollTop: 0 }, 400)
-            }}
-            customValidator={validator}
-          />
-        </div>
-      </div>
+      {errorMessage && <ErrorAlert error={{ message: errorMessage }} />}
+
+      <NoteEditor
+        note={isEmpty(editorNote) ? null : editorNote}
+        invitation={invitationWithHiddenFields}
+        closeNoteEditor={() => {
+          setErrorMessage(null)
+          setEditorNote(null)
+        }}
+        onNoteCreated={() => {
+          setEditorNote(null)
+          promptMessage('Note updated successfully')
+          getAssignmentNotes()
+        }}
+        setErrorAlertMessage={(msg) => {
+          setErrorMessage(msg)
+          $('#new-note-editor-modal').animate({ scrollTop: 0 }, 400)
+        }}
+        customValidator={validator}
+      />
     </BasicModal>
   )
 }
@@ -281,10 +269,10 @@ const Assignments = ({ appContext }) => {
   const [apiVersion, setApiVersion] = useState(null)
   const [error, setError] = useState(null)
   const [viewModalContent, setViewModalContent] = useState(null)
-  const [editorInfo, setEditorInfo] = useState(null)
+  const [editorNote, setEditorNote] = useState(null)
   const query = useQuery()
   const { setBannerContent } = appContext
-  const { newNoteEditor } = useNewNoteEditor(configInvitation)
+  const newNoteEditor = useNewNoteEditor(configInvitation?.domain)
 
   const shouldRemoveDeployLink = assignmentNotes?.some(
     (p) => p?.content?.status === 'Deployed'
@@ -393,8 +381,8 @@ const Assignments = ({ appContext }) => {
   const handleNewConfiguration = () => {
     if (!configInvitation) return
 
-    if (useNewNoteEditor) {
-      setEditorInfo({ note: null, invitation: configInvitation })
+    if (newNoteEditor) {
+      setEditorNote({})
       return
     }
 
@@ -421,8 +409,8 @@ const Assignments = ({ appContext }) => {
   const handleEditConfiguration = (note, version) => {
     if (!configInvitation) return
 
-    if (useNewNoteEditor) {
-      setEditorInfo({ note, invitation: configInvitation })
+    if (newNoteEditor) {
+      setEditorNote(note)
       return
     }
 
@@ -451,11 +439,12 @@ const Assignments = ({ appContext }) => {
   const handleCloneConfiguration = (note, version) => {
     if (!configInvitation) return
 
-    if (useNewNoteEditor) {
+    if (newNoteEditor) {
       const clone = cloneAssignmentConfigNoteV2(note)
-      setEditorInfo({ note: clone, invitation: configInvitation })
+      setEditorNote(clone)
       return
     }
+
     $('#note-editor-modal').remove()
     $('main').append(
       Handlebars.templates.genericModal({
@@ -544,13 +533,13 @@ const Assignments = ({ appContext }) => {
   }, [assignmentNotes])
 
   useEffect(() => {
-    if (editorInfo) {
+    if (editorNote) {
       $('#new-note-editor-modal').modal({ backdrop: 'static' })
     } else {
       $('#new-note-editor-modal').modal('hide')
       $('.modal-backdrop').remove()
     }
-  }, [editorInfo])
+  }, [editorNote])
 
   useInterval(() => {
     getAssignmentNotes()
@@ -646,8 +635,9 @@ const Assignments = ({ appContext }) => {
       </BasicModal>
 
       <NewNoteEditorModal
-        editorInfo={editorInfo}
-        setEditorInfo={setEditorInfo}
+        editorNote={editorNote}
+        configInvitation={configInvitation}
+        setEditorNote={setEditorNote}
         assignmentNotes={assignmentNotes}
         getAssignmentNotes={getAssignmentNotes}
       />

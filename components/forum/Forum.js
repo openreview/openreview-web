@@ -6,9 +6,10 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
 import escapeRegExp from 'lodash/escapeRegExp'
-
 import List from 'rc-virtual-list'
+
 import ForumNote from './ForumNote'
+import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
 import ChatEditorForm from './ChatEditorForm'
 import FilterForm from './FilterForm'
@@ -23,15 +24,13 @@ import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
-import { prettyInvitationId } from '../../lib/utils'
+import { prettyInvitationId, useNewNoteEditor } from '../../lib/utils'
 import {
   formatNote,
   getNoteInvitations,
   parseFilterQuery,
   replaceFilterWildcards,
 } from '../../lib/forum-utils'
-import NoteEditor from '../NoteEditor'
-import useNewNoteEditor from '../../hooks/useNewNoteEditor'
 
 export default function Forum({
   forumNote,
@@ -70,10 +69,10 @@ export default function Forum({
   const signaturesMapRef = useRef(null)
   const router = useRouter()
   const query = useQuery()
-  const { newNoteEditor } = useNewNoteEditor(activeInvitation)
 
   const { id, details } = parentNote
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
+  const newNoteEditor = useNewNoteEditor(details.invitation.domain)
 
   // Process forum views config
   let replyForumViews = null

@@ -7,14 +7,13 @@ import Link from 'next/link'
 import copy from 'copy-to-clipboard'
 import truncate from 'lodash/truncate'
 import { NoteContentV2 } from '../NoteContent'
+import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
 import ForumReplyContext from './ForumReplyContext'
-import useUser from '../../hooks/useUser'
-import { prettyId, prettyInvitationId, forumDate, buildNoteTitle } from '../../lib/utils'
-import { getInvitationColors } from '../../lib/forum-utils'
 import Icon from '../Icon'
-import NoteEditor from '../NoteEditor'
-import useNewNoteEditor from '../../hooks/useNewNoteEditor'
+import useUser from '../../hooks/useUser'
+import { prettyId, prettyInvitationId, forumDate, buildNoteTitle, useNewNoteEditor } from '../../lib/utils'
+import { getInvitationColors } from '../../lib/forum-utils'
 
 export default function ForumReply({ note, replies, replyDepth, parentId, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
@@ -22,8 +21,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
   const { displayOptionsMap, nesting, excludedInvitations, setCollapsed, setContentExpanded } =
     useContext(ForumReplyContext)
   const { user } = useUser()
-  const { newNoteEditor: newNoteEditorForEdit } = useNewNoteEditor(activeEditInvitation)
-  const { newNoteEditor: newNoteEditorForReply } = useNewNoteEditor(activeInvitation)
+  const newNoteEditor = useNewNoteEditor(activeInvitation?.domain || activeEditInvitation?.domain)
 
   const { invitations, content, signatures, ddate } = note
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
@@ -112,7 +110,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         setContentExpanded={setContentExpanded}
         replyDepth={replyDepth}
       >
-        {newNoteEditorForEdit ? (
+        {newNoteEditor ? (
           <NoteEditor
             invitation={activeEditInvitation}
             note={note}
@@ -379,7 +377,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
             })}
           </div>
 
-          {newNoteEditorForReply ? (
+          {newNoteEditor ? (
             <NoteEditor
               invitation={activeInvitation}
               replyToNote={note}

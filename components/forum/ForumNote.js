@@ -2,14 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
-import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
-import NoteEditor from '../NoteEditor'
-import useNewNoteEditor from '../../hooks/useNewNoteEditor'
+import { prettyId, prettyInvitationId, forumDate, useNewNoteEditor } from '../../lib/utils'
 
 function ForumNote({ note, updateNote }) {
   const {
@@ -29,7 +28,7 @@ function ForumNote({ note, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeNote, setActiveNote] = useState(null)
   const { user } = useUser()
-  const { newNoteEditor } = useNewNoteEditor(activeInvitation)
+  const newNoteEditor = useNewNoteEditor(activeInvitation?.domain)
 
   const canShowIcon = (fieldName) => {
     if (!content[fieldName]?.value) return false
