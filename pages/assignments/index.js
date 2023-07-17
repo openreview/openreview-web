@@ -216,6 +216,11 @@ const NewNoteEditorModal = ({
     }
   })
 
+  const closeModal = () => {
+    $('#new-note-editor-modal').modal('hide')
+    $('.modal-backdrop').remove()
+  }
+
   const validator = (formData) => {
     const noteWithMatchingTitle = assignmentNotes.find(
       (p) =>
@@ -237,27 +242,33 @@ const NewNoteEditorModal = ({
     <BasicModal
       id="new-note-editor-modal"
       options={{ hideFooter: true, extraClasses: 'modal-lg' }}
+      onClose={() => {
+        setEditorNote(null)
+        setErrorMessage(null)
+      }}
     >
       {errorMessage && <ErrorAlert error={{ message: errorMessage }} />}
 
-      <NoteEditor
-        note={isEmpty(editorNote) ? null : editorNote}
-        invitation={invitationWithHiddenFields}
-        closeNoteEditor={() => {
-          setErrorMessage(null)
-          setEditorNote(null)
-        }}
-        onNoteCreated={() => {
-          setEditorNote(null)
-          promptMessage('Note updated successfully')
-          getAssignmentNotes()
-        }}
-        setErrorAlertMessage={(msg) => {
-          setErrorMessage(msg)
-          $('#new-note-editor-modal').animate({ scrollTop: 0 }, 400)
-        }}
-        customValidator={validator}
-      />
+      {editorNote && (
+        <NoteEditor
+          key={editorNote.content.title.value || 'new-note'}
+          note={isEmpty(editorNote) ? null : editorNote}
+          invitation={invitationWithHiddenFields}
+          closeNoteEditor={() => {
+            closeModal()
+          }}
+          onNoteCreated={() => {
+            closeModal()
+            promptMessage('Note updated successfully')
+            getAssignmentNotes()
+          }}
+          setErrorAlertMessage={(msg) => {
+            setErrorMessage(msg)
+            $('#new-note-editor-modal').animate({ scrollTop: 0 }, 400)
+          }}
+          customValidator={validator}
+        />
+      )}
     </BasicModal>
   )
 }
@@ -382,7 +393,8 @@ const Assignments = ({ appContext }) => {
     if (!configInvitation) return
 
     if (newNoteEditor) {
-      setEditorNote({})
+      setEditorNote(null)
+      $('#new-note-editor-modal').modal({ backdrop: 'static' })
       return
     }
 
@@ -411,6 +423,7 @@ const Assignments = ({ appContext }) => {
 
     if (newNoteEditor) {
       setEditorNote(note)
+      $('#new-note-editor-modal').modal({ backdrop: 'static' })
       return
     }
 
@@ -442,6 +455,7 @@ const Assignments = ({ appContext }) => {
     if (newNoteEditor) {
       const clone = cloneAssignmentConfigNoteV2(note)
       setEditorNote(clone)
+      $('#new-note-editor-modal').modal({ backdrop: 'static' })
       return
     }
 
@@ -531,15 +545,6 @@ const Assignments = ({ appContext }) => {
       $('[data-toggle="popover"]').popover({ container: '#content' })
     }
   }, [assignmentNotes])
-
-  useEffect(() => {
-    if (editorNote) {
-      $('#new-note-editor-modal').modal({ backdrop: 'static' })
-    } else {
-      $('#new-note-editor-modal').modal('hide')
-      $('.modal-backdrop').remove()
-    }
-  }, [editorNote])
 
   useInterval(() => {
     getAssignmentNotes()

@@ -191,7 +191,6 @@ const NoteEditor = ({
         authorName: noteEditorData.authors?.[index],
       }))
     }
-    if (fieldName === 'title') console.log(fieldName, fieldValue)
 
     return (
       <React.Fragment key={fieldName}>
@@ -414,6 +413,7 @@ const NoteEditor = ({
     setIsSubmitting(true)
     clearMessage()
     setErrors([])
+
     // get note reader/writer/signature and edit reader/writer/signature
     try {
       const formData = {
@@ -434,7 +434,8 @@ const NoteEditor = ({
         ...(replyToNote && { replyto: replyToNote.id }),
       }
 
-      const { isValid, errorMessage } = customValidator?.(formData) ?? {}
+      const { isValid, errorMessage } =
+        typeof customValidator === 'function' ? customValidator(formData) : { isValid: true }
       if (isValid === false) {
         throw new Error(errorMessage)
       }
@@ -553,6 +554,7 @@ const NoteEditor = ({
           setErrors={setErrors}
         />
       </div>
+
       {Object.values(loading).some((p) => p) ? (
         <LoadingSpinner inline />
       ) : (
