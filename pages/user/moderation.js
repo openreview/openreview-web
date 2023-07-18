@@ -1238,12 +1238,34 @@ const UserModerationQueue = ({
     }
   }
 
+  const getSignedAuthoredNotesCount = async (profileId) => {
+    const signedNotesCountP = api.getCombined(
+      '/notes',
+      { signature: profileId, select: 'id' },
+      { signature: profileId, transitiveMembers: true, select: 'id' },
+      {
+        accessToken,
+      }
+    )
+    const authoredNotesCountP = api.getCombined(
+      '/notes',
+      { 'content.authorids': profileId, select: 'id' },
+      null,
+      { accessToken }
+    )
+
+    const [signedNotes, authoredNotes] = await Promise.all([
+      signedNotesCountP,
+      authoredNotesCountP,
+    ])
+
+    return signedNotes.count + authoredNotes.count
+  }
+
   const showRejectionModal = async (profileId) => {
     if (!onlyModeration) {
-      const signedNotes = await api.getCombined('/notes', { signature: profileId }, null, {
-        accessToken,
-      })
-      setSignedNotesCount(signedNotes.count)
+      const signedAuthoredNotesCount = await getSignedAuthoredNotesCount(profileId)
+      setSignedNotesCount(signedAuthoredNotesCount)
     }
     setProfileIdToReject(profileId)
 
@@ -1270,18 +1292,16 @@ const UserModerationQueue = ({
 
   const blockUnblockUser = async (profile) => {
     const actionIsBlock = profile?.state !== 'Blocked'
-    const signedNotes = !onlyModeration
-      ? await api.getCombined('/notes', { signature: profile.id }, null, {
-          accessToken,
-        })
-      : {}
+    const signedAuthoredNotesCount = !onlyModeration
+      ? await getSignedAuthoredNotesCount(profile.id)
+      : 0
     // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(
       `Are you sure you want to ${actionIsBlock ? 'block' : 'unblock'} ${
         profile?.content?.names?.[0]?.first
       } ${profile?.content?.names?.[0]?.last}?${
-        !onlyModeration && actionIsBlock && signedNotes.count
-          ? `\n\nThere are ${signedNotes.count} notes signed by this profile.`
+        !onlyModeration && actionIsBlock && signedAuthoredNotesCount
+          ? `\n\nThere are ${signedAuthoredNotesCount} notes signed by this profile.`
           : ''
       }`
     )
@@ -1303,13 +1323,11 @@ const UserModerationQueue = ({
     const actionIsDelete = !profile?.ddate
 
     if (actionIsDelete) {
-      const signedNotes = await api.getCombined('/notes', { signature: profile.id }, null, {
-        accessToken,
-      })
-      if (signedNotes.count) {
+      const signedAuthoredNotesCount = await getSignedAuthoredNotesCount(profile.id)
+      if (signedAuthoredNotesCount) {
         promptError(
           `There are ${inflect(
-            signedNotes.count,
+            signedAuthoredNotesCount,
             'note',
             'notes',
             true
