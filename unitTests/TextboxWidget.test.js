@@ -345,7 +345,7 @@ describe('TextboxWidget', () => {
       },
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
-    expect(onChange).toBeCalledWith(expect.objectContaining({ value: '' }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: '' }))
   })
 
   test('read saved value from localstroage', async () => {
