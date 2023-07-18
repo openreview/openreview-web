@@ -16,6 +16,7 @@ const TextboxWidget = () => {
   const dataType = isArrayType ? fieldType?.slice(0, -2) : fieldType
   const constValue = getFieldConstValue(field[fieldName])
   const defaultValue = field[fieldName]?.value?.param?.default
+  const isHiddenField = field[fieldName].value?.param?.hidden
   const shouldSaveDraft = true
 
   const isCommaSeparatedArray = field[fieldName]?.value?.param?.type?.endsWith('[]')
@@ -25,7 +26,9 @@ const TextboxWidget = () => {
 
   const getInputValue = (rawInputValue) => {
     if (!isCommaSeparatedArray) {
-      return rawInputValue ? convertToType(rawInputValue.trim(), dataType) : undefined
+      return rawInputValue || isHiddenField
+        ? convertToType(rawInputValue.trim(), dataType)
+        : undefined
     }
     return rawInputValue.split(',').map((p) => convertToType(p.trim(), dataType))
   }

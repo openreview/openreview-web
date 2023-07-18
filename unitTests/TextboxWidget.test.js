@@ -242,7 +242,9 @@ describe('TextboxWidget', () => {
       },
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
-    expect(screen.getByDisplayValue('keyword one,keyword two,keyword three')).toBeInTheDocument()
+    expect(
+      screen.getByDisplayValue('keyword one,keyword two,keyword three')
+    ).toBeInTheDocument()
   })
 
   test('invoke onchange on text change (string)', async () => {
@@ -321,6 +323,29 @@ describe('TextboxWidget', () => {
     await userEvent.type(input, '  3  ')
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ value: 3 }))
     expect(clearError).toHaveBeenCalled()
+  })
+
+  // copied assignment note has some hidden fields set to ''
+  test('not to change hidden empty string to undefined', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          integer_field: {
+            value: {
+              param: {
+                type: 'string',
+                hidden: true,
+              },
+            },
+          },
+        },
+        value: '',
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+    expect(onChange).toBeCalledWith(expect.objectContaining({ value: '' }))
   })
 
   test('read saved value from localstroage', async () => {
