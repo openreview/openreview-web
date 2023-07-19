@@ -224,8 +224,7 @@ const NewNoteEditorModal = ({
   const validator = (formData) => {
     const noteWithMatchingTitle = assignmentNotes.find(
       (p) =>
-        p.content.title.value === formData.title &&
-        (isEmpty(editorNote) || p.id !== editorNote.id)
+        p.content.title.value === formData.title && (!editorNote || p.id !== editorNote.id)
     )
     if (noteWithMatchingTitle) {
       return {
@@ -249,26 +248,24 @@ const NewNoteEditorModal = ({
     >
       {errorMessage && <ErrorAlert error={{ message: errorMessage }} />}
 
-      {editorNote && (
-        <NoteEditor
-          key={editorNote.content.title.value || 'new-note'}
-          note={isEmpty(editorNote) ? null : editorNote}
-          invitation={invitationWithHiddenFields}
-          closeNoteEditor={() => {
-            closeModal()
-          }}
-          onNoteCreated={() => {
-            closeModal()
-            promptMessage('Note updated successfully')
-            getAssignmentNotes()
-          }}
-          setErrorAlertMessage={(msg) => {
-            setErrorMessage(msg)
-            $('#new-note-editor-modal').animate({ scrollTop: 0 }, 400)
-          }}
-          customValidator={validator}
-        />
-      )}
+      <NoteEditor
+        key={editorNote?.content?.title?.value || 'new-note'}
+        note={editorNote}
+        invitation={invitationWithHiddenFields}
+        closeNoteEditor={() => {
+          closeModal()
+        }}
+        onNoteCreated={() => {
+          closeModal()
+          promptMessage('Note updated successfully')
+          getAssignmentNotes()
+        }}
+        setErrorAlertMessage={(msg) => {
+          setErrorMessage(msg)
+          $('#new-note-editor-modal').animate({ scrollTop: 0 }, 400)
+        }}
+        customValidator={validator}
+      />
     </BasicModal>
   )
 }
