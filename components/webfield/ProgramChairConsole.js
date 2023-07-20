@@ -505,30 +505,45 @@ const ProgramChairConsole = ({ appContext }) => {
 
       const officialReviews =
         pcConsoleData.officialReviewsByPaperNumberMap?.get(note.number)?.map((q) => {
-          const reviewRatingValue = q.content[reviewRatingName]?.value
-          const ratingNumber = reviewRatingValue
-            ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
-            : null
           const confidenceValue = q.content[reviewConfidenceName]?.value
-
           const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
           const reviewValue = q.content.review?.value
           return {
             anonymousId: q.anonId,
             confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
-            rating: ratingNumber ? parseInt(ratingNumber, 10) : null,
+            ...Object.fromEntries(
+              (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+                (ratingName) => {
+                  const reviewRatingValue = q.content[ratingName]?.value
+                  const ratingNumber = reviewRatingValue
+                    ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
+                    : null
+                  return [[ratingName], ratingNumber ? parseInt(ratingNumber, 10) : null]
+                }
+              )
+            ),
             reviewLength: reviewValue?.length,
             forum: q.forum,
             id: q.id,
           }
         }) ?? []
-      const ratings = officialReviews.map((p) => p.rating)
-      const validRatings = ratings.filter((p) => p !== null)
-      const ratingAvg = validRatings.length
-        ? (validRatings.reduce((sum, curr) => sum + curr, 0) / validRatings.length).toFixed(2)
-        : 'N/A'
-      const ratingMin = validRatings.length ? Math.min(...validRatings) : 'N/A'
-      const ratingMax = validRatings.length ? Math.max(...validRatings) : 'N/A'
+      const ratings = Object.fromEntries(
+        (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+          (ratingName) => {
+            const ratingValues = officialReviews.map((p) => p[ratingName])
+            const validRatingValues = ratingValues.filter((p) => p !== null)
+            const ratingAvg = validRatingValues.length
+              ? (
+                  validRatingValues.reduce((sum, curr) => sum + curr, 0) /
+                  validRatingValues.length
+                ).toFixed(2)
+              : 'N/A'
+            const ratingMin = validRatingValues.length ? Math.min(...validRatingValues) : 'N/A'
+            const ratingMax = validRatingValues.length ? Math.max(...validRatingValues) : 'N/A'
+            return [ratingName, { ratingAvg, ratingMin, ratingMax }]
+          }
+        )
+      )
 
       const confidences = officialReviews.map((p) => p.confidence)
       const validConfidences = confidences.filter((p) => p !== null)
@@ -597,9 +612,7 @@ const ProgramChairConsole = ({ appContext }) => {
           reviewers: assignedReviewerProfiles,
           numReviewersAssigned: assignedReviewers.length,
           numReviewsDone: officialReviews.length,
-          ratingAvg,
-          ratingMax,
-          ratingMin,
+          ratings,
           confidenceAvg,
           confidenceMax,
           confidenceMin,

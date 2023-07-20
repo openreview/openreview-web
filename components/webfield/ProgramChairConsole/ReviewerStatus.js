@@ -1,5 +1,5 @@
 /* globals promptError: false */
-import { sortBy } from 'lodash'
+import { sortBy, upperFirst } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
@@ -64,7 +64,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
 }
 
 // modified from notesReviewerProgress.hbs
-const ReviewerProgress = ({ rowData, referrerUrl }) => {
+const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName }) => {
   const numPapers = rowData.notesInfo.length
   const { numCompletedReviews, notesInfo } = rowData
 
@@ -99,8 +99,21 @@ const ReviewerProgress = ({ rowData, referrerUrl }) => {
                       </>
                     ) : (
                       <span>
-                        Rating: {officialReview.rating} / Confidence:{' '}
-                        {officialReview.confidence} / Review length:{' '}
+                        {/* Rating: {officialReview.rating} / Confidence:{' '} */}
+                        {(Array.isArray(reviewRatingName)
+                          ? reviewRatingName
+                          : [reviewRatingName]
+                        ).map((ratingName, index) => {
+                          const ratingValue = officialReview[ratingName]
+                          if (!ratingValue) return null
+                          return (
+                            <span key={ratingName}>
+                              {upperFirst(ratingName)}: {ratingValue}{' '}
+                              {index < reviewRatingName.length - 1 && '/'}{' '}
+                            </span>
+                          )
+                        })}
+                        Confidence: {officialReview.confidence} / Review length:{' '}
                         {officialReview.reviewLength}
                       </span>
                     )}
@@ -158,7 +171,13 @@ const ReviewerStatus = ({ rowData }) => {
   )
 }
 
-const ReviewerStatusRow = ({ rowData, referrerUrl, bidEnabled, invitations }) => (
+const ReviewerStatusRow = ({
+  rowData,
+  referrerUrl,
+  bidEnabled,
+  invitations,
+  reviewRatingName,
+}) => (
   <tr>
     <td>
       <strong>{rowData.number}</strong>
@@ -167,7 +186,11 @@ const ReviewerStatusRow = ({ rowData, referrerUrl, bidEnabled, invitations }) =>
       <ReviewerSummary rowData={rowData} bidEnabled={bidEnabled} invitations={invitations} />
     </td>
     <td>
-      <ReviewerProgress rowData={rowData} referrerUrl={referrerUrl} />
+      <ReviewerProgress
+        rowData={rowData}
+        referrerUrl={referrerUrl}
+        reviewRatingName={reviewRatingName}
+      />
     </td>
     <td>
       <ReviewerStatus rowData={rowData} />
@@ -177,8 +200,14 @@ const ReviewerStatusRow = ({ rowData, referrerUrl, bidEnabled, invitations }) =>
 
 const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showContent }) => {
   const [reviewerStatusTabData, setReviewerStatusTabData] = useState({})
-  const { venueId, bidName, reviewersId, shortPhrase, reviewerStatusExportColumns } =
-    useContext(WebFieldContext)
+  const {
+    venueId,
+    bidName,
+    reviewersId,
+    shortPhrase,
+    reviewerStatusExportColumns,
+    reviewRatingName,
+  } = useContext(WebFieldContext)
   const { accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.reviewers?.length ?? 0)
@@ -388,6 +417,7 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
             referrerUrl={referrerUrl}
             bidEnabled={bidEnabled}
             invitations={pcConsoleData.invitations}
+            reviewRatingName={reviewRatingName}
           />
         ))}
       </Table>

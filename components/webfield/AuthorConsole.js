@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import sum from 'lodash/sum'
+import upperFirst from 'lodash/upperFirst'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
@@ -37,15 +38,8 @@ const ReviewSummary = ({
   const ratings = []
   const confidences = []
 
-  const getRatingValue = (reviewNote) => {
-    const ratingName = Array.isArray(reviewRatingName)
-      ? reviewRatingName.find((name) =>
-          isV2Note ? reviewNote.content[name]?.value : reviewNote.content[name]
-        )
-      : reviewRatingName
-
-    return isV2Note ? reviewNote.content[ratingName]?.value : reviewNote.content[ratingName]
-  }
+  const getRatingValue = (reviewNote, ratingName) =>
+    isV2Note ? reviewNote.content[ratingName]?.value : reviewNote.content[ratingName]
 
   noteCompletedReviews.forEach((p) => {
     const ratingEx = /^(\d+): .*$/
@@ -81,15 +75,31 @@ const ReviewSummary = ({
 
       <ul className="list-unstyled">
         {noteCompletedReviews.map((review) => {
-          const reviewRatingValue = getRatingValue(review)
+          // getRatingValue(review)
+          const reviewRatingValues = (
+            Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]
+          ).flatMap((ratingName) => {
+            const ratingValue = getRatingValue(review, ratingName)
+            return ratingValue ? { [ratingName]: ratingValue } : []
+          })
 
           const reviewConfidenceValue = isV2Note
             ? review.content?.[reviewConfidenceName]?.value
             : review.content?.[reviewConfidenceName]
           return (
             <li key={review.id}>
-              <strong>{prettyId(review.signatures[0].split('/')?.pop())}:</strong> Rating:{' '}
-              {reviewRatingValue ?? 'N/A'}{' '}
+              <strong>{prettyId(review.signatures[0].split('/')?.pop())}:</strong>
+              {/* Rating:{' '}
+              {reviewRatingValue ?? 'N/A'}{' '} */}
+              {reviewRatingValues.map((rating, index) => {
+                const ratingName = Object.keys(rating)[0]
+                const ratingValue = rating[ratingName]
+                return (
+                  <span key={index}>
+                    {`${index === 0 ? ' ' : ' / '}${upperFirst(ratingName)}: ${ratingValue}`}{' '}
+                  </span>
+                )
+              })}
               {reviewConfidenceValue ? `/ Confidence: ${reviewConfidenceValue}` : ''}
               <br />
               <Link
