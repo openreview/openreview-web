@@ -32,7 +32,7 @@ const TextArea = () => {
           className="note_content_value form-control"
           onChange={(e) => onChange({ fieldName, value: e.target.value })}
           value={value ?? ''}
-        ></textarea>
+        />
       </div>
     </div>
   )

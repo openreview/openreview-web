@@ -1,6 +1,6 @@
 /* globals promptError, promptLogin, view2, clearMessage: false */
 
-import React, { useEffect, useMemo, useReducer, useState } from 'react'
+import React, { useEffect, useCallback, useReducer, useState } from 'react'
 import debounce from 'lodash/debounce'
 import { intersection, isEmpty } from 'lodash'
 import EditorComponentContext from './EditorComponentContext'
@@ -119,7 +119,7 @@ const NoteEditor = ({
   setErrorAlertMessage,
   customValidator,
 }) => {
-  const { user, accessToken } = useUser()
+  const { user, userLoading, accessToken } = useUser()
   const [fields, setFields] = useState([])
   const [loading, setLoading] = useState({
     noteReaders: false,
@@ -136,19 +136,18 @@ const NoteEditor = ({
       ? setErrorAlertMessage
       : (p) => promptError(p, { scrollToTop: false })
 
-  const saveDraft = useMemo(
-    () =>
-      debounce((fieldName, value) => {
-        const keyOfSavedText = getAutoStorageKey(
-          user,
-          invitation.id,
-          note?.id,
-          replyToNote?.id,
-          fieldName
-        )
-        localStorage.setItem(keyOfSavedText, value)
-        setAutoStorageKeys((keys) => [...keys, keyOfSavedText])
-      }, 2000),
+  const saveDraft = useCallback(
+    debounce((fieldName, value) => {
+      const keyOfSavedText = getAutoStorageKey(
+        user,
+        invitation.id,
+        note?.id,
+        replyToNote?.id,
+        fieldName
+      )
+      localStorage.setItem(keyOfSavedText, value)
+      setAutoStorageKeys((keys) => [...keys, keyOfSavedText])
+    }, 1500),
     [invitation, note, replyToNote]
   )
 
@@ -291,6 +290,7 @@ const NoteEditor = ({
 
   const handleCancelClick = () => {
     autoStorageKeys.forEach((key) => localStorage.removeItem(key))
+    setNoteEditorData({ type: 'reset' })
     closeNoteEditor()
   }
 
@@ -485,6 +485,8 @@ const NoteEditor = ({
   }
 
   useEffect(() => {
+    if (userLoading) return
+
     if (!user) {
       promptLogin()
       return
@@ -499,7 +501,7 @@ const NoteEditor = ({
         fieldDescription,
       }))
     setFields(orderedFields)
-  }, [invitation, user])
+  }, [invitation, user, userLoading])
 
   if (!invitation?.edit?.note || !user) return null
 

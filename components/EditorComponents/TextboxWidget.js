@@ -9,6 +9,7 @@ const TextboxWidget = () => {
   const { field, onChange, value, error, clearError, note, replyToNote, invitation } =
     useContext(EditorComponentContext)
   const { user } = useUser()
+  const [displayValue, setDisplayValue] = useState('')
 
   const fieldName = Object.keys(field)[0]
   const fieldType = field[fieldName]?.value?.param?.type
@@ -19,13 +20,8 @@ const TextboxWidget = () => {
   const isHiddenField = field[fieldName].value?.param?.hidden
   const shouldSaveDraft = true
 
-  const isCommaSeparatedArray = field[fieldName]?.value?.param?.type?.endsWith('[]')
-  const [displayValue, setDisplayValue] = useState(
-    isCommaSeparatedArray ? value?.join(',') : value
-  )
-
   const getInputValue = (rawInputValue) => {
-    if (!isCommaSeparatedArray) {
+    if (!isArrayType) {
       return rawInputValue || isHiddenField
         ? convertToType(rawInputValue.trim(), dataType)
         : undefined
@@ -34,34 +30,39 @@ const TextboxWidget = () => {
   }
 
   useEffect(() => {
-    if (displayValue === null || typeof displayValue === 'undefined' || !onChange) return
-    onChange({
-      fieldName,
-      value: getInputValue(displayValue),
-      shouldSaveDraft,
-    })
-    clearError?.()
+    if (displayValue === null || typeof displayValue === 'undefined') return
+
+    if (typeof onChange === 'function') {
+      onChange({
+        fieldName,
+        value: getInputValue(displayValue),
+        shouldSaveDraft,
+      })
+    }
+    if (typeof clearError === 'function') {
+      clearError()
+    }
   }, [displayValue])
 
   useEffect(() => {
-    if (!defaultValue) return
-    if (!note) setDisplayValue(isCommaSeparatedArray ? defaultValue.join(',') : defaultValue)
-  }, [defaultValue])
+    const valueStr = isArrayType ? value?.join(',') : value
+    const defaultStr = isArrayType ? defaultValue?.join(',') : defaultValue
 
-  useEffect(() => {
-    if (!shouldSaveDraft || value) return
-    const keyOfSavedText = getAutoStorageKey(
-      user,
-      invitation?.id,
-      note?.id,
-      replyToNote?.id,
-      fieldName
-    )
-    const savedText = localStorage.getItem(keyOfSavedText)
-    if (savedText) setDisplayValue(savedText)
+    let savedText
+    if (shouldSaveDraft && !value) {
+      const keyOfSavedText = getAutoStorageKey(
+        user,
+        invitation?.id,
+        note?.id,
+        replyToNote?.id,
+        fieldName
+      )
+      savedText = localStorage.getItem(keyOfSavedText)
+    }
+    setDisplayValue(valueStr ?? savedText ?? defaultStr)
   }, [])
 
-  if (constValue)
+  if (constValue) {
     return (
       <div className={styles.textboxContainer}>
         <input
@@ -71,6 +72,7 @@ const TextboxWidget = () => {
         />
       </div>
     )
+  }
 
   return (
     <div className={styles.textboxContainer}>

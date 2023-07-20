@@ -1,26 +1,23 @@
 import { useContext, useEffect, useState } from 'react'
-import useUser from '../../hooks/useUser'
 import EditorComponentContext from '../EditorComponentContext'
+import WebFieldContext from '../WebFieldContext'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
+import useUser from '../../hooks/useUser'
+import { getAutoStorageKey } from '../../lib/utils'
 
 import styles from '../../styles/components/TextareaWidget.module.scss'
-import { getAutoStorageKey } from '../../lib/utils'
-import WebFieldContext from '../WebFieldContext'
 
 const CharCounter = ({ minLength = 0, maxLength = 0, contentLength }) => {
-  const getClassName = () => {
-    const charsRemaining = maxLength - contentLength
-    let className = ''
-    if (charsRemaining < 1) {
-      className = styles.danger
-    } else if (charsRemaining < 150) {
-      className = styles.warning
-    }
-    return `${styles.charCounter} hint ${className}`
+  const charsRemaining = maxLength - contentLength
+  let className = ''
+  if (charsRemaining < 1) {
+    className = styles.danger
+  } else if (charsRemaining < 150) {
+    className = styles.warning
   }
 
   return (
-    <div className={getClassName()}>
+    <div className={`${styles.charCounter} hint ${className}`}>
       {minLength - contentLength > 0 ? (
         <>
           Additional characters required:{' '}
@@ -41,6 +38,7 @@ const CharCounter = ({ minLength = 0, maxLength = 0, contentLength }) => {
 const MathJaxWarning = ({ content }) => {
   const showMathJaxWarning = content?.match(/\$[\s\S]*\\\\[\s\S]*\$/)
   if (!showMathJaxWarning) return null
+
   return (
     <div className={`hint ${styles.mathJaxWarning}`}>
       <strong>
@@ -76,9 +74,13 @@ const TextAreaWidget = () => {
   const [showCharCounter, setShowCharCounter] = useState(false)
   const shouldSaveDraft = true
 
-  const onTextUpdated = (e) => {
-    onChange(e)
-    clearError?.()
+  const onTextUpdated = (updatedValue) => {
+    if (typeof onChange === 'function') {
+      onChange({ fieldName, value: updatedValue, shouldSaveDraft })
+    }
+    if (typeof clearError === 'function') {
+      clearError()
+    }
   }
 
   useEffect(() => {
@@ -88,6 +90,7 @@ const TextAreaWidget = () => {
 
   useEffect(() => {
     if (!shouldSaveDraft || value) return
+
     const keyOfSavedText = getAutoStorageKey(
       user,
       invitation.id,
@@ -96,7 +99,7 @@ const TextAreaWidget = () => {
       fieldName
     )
     const savedText = localStorage.getItem(keyOfSavedText)
-    if (savedText) onTextUpdated({ fieldName, value: savedText, shouldSaveDraft })
+    if (savedText) onTextUpdated(savedText)
   }, [])
 
   return (
@@ -112,7 +115,7 @@ const TextAreaWidget = () => {
             value={value ?? ''}
             onValueChanged={(e) => {
               const updatedValue = e?.trim() === '' ? undefined : e
-              onTextUpdated({ fieldName, value: updatedValue, shouldSaveDraft })
+              onTextUpdated(updatedValue)
             }}
             fieldName={`${replyToNote?.id}${fieldName}`}
           />
@@ -122,11 +125,12 @@ const TextAreaWidget = () => {
             value={value ?? ''}
             onChange={(e) => {
               const updatedValue = e.target.value?.trim() === '' ? undefined : e.target.value
-              onTextUpdated({ fieldName, value: updatedValue, shouldSaveDraft })
+              onTextUpdated(updatedValue)
             }}
-          ></textarea>
+          />
         )}
       </div>
+
       <div className={styles.warningContainer}>
         {showCharCounter && (
           <CharCounter
