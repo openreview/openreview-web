@@ -156,7 +156,7 @@ describe('TextboxWidget', () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
-  test('not to show default value and invoke onChange editing existing note', () => {
+  test('don\'t show default value or invoke onChange editing existing note', () => {
     const onChange = jest.fn()
     const defaultValue = 'default paper title'
     const providerProps = {
@@ -183,7 +183,7 @@ describe('TextboxWidget', () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
-  test('show default value and invoke onChange editing existing note)', () => {
+  test('don\'t show default value or invoke onChange editing existing note (array field)', () => {
     const onChange = jest.fn()
     const defaultValue = ['keyword one', 'keyword two', 'keyword three']
     const providerProps = {

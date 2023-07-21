@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
+import isNil from 'lodash/isNil'
 import EditorComponentContext from '../EditorComponentContext'
 import styles from '../../styles/components/TextboxWidget.module.scss'
 import { convertToType, getFieldConstValue } from '../../lib/webfield-utils'
@@ -9,7 +10,6 @@ const TextboxWidget = () => {
   const { field, onChange, value, error, clearError, note, replyToNote, invitation } =
     useContext(EditorComponentContext)
   const { user } = useUser()
-  const [displayValue, setDisplayValue] = useState('')
 
   const fieldName = Object.keys(field)[0]
   const fieldType = field[fieldName]?.value?.param?.type
@@ -19,6 +19,8 @@ const TextboxWidget = () => {
   const defaultValue = field[fieldName]?.value?.param?.default
   const isHiddenField = field[fieldName].value?.param?.hidden
   const shouldSaveDraft = true
+
+  const [displayValue, setDisplayValue] = useState(isArrayType ? value?.join(',') : value)
 
   const getInputValue = (rawInputValue) => {
     if (!isArrayType) {
@@ -30,7 +32,7 @@ const TextboxWidget = () => {
   }
 
   useEffect(() => {
-    if (displayValue === null || typeof displayValue === 'undefined') return
+    if (isNil(displayValue)) return
 
     if (typeof onChange === 'function') {
       onChange({
@@ -45,11 +47,10 @@ const TextboxWidget = () => {
   }, [displayValue])
 
   useEffect(() => {
-    const valueStr = isArrayType ? value?.join(',') : value
-    const defaultStr = isArrayType ? defaultValue?.join(',') : defaultValue
+    if (!isNil(value)) return
 
     let savedText
-    if (shouldSaveDraft && !value) {
+    if (shouldSaveDraft) {
       const keyOfSavedText = getAutoStorageKey(
         user,
         invitation?.id,
@@ -59,7 +60,14 @@ const TextboxWidget = () => {
       )
       savedText = localStorage.getItem(keyOfSavedText)
     }
-    setDisplayValue(valueStr ?? savedText ?? defaultStr)
+    let defaultStr
+    if (!note) {
+      defaultStr = isArrayType ? defaultValue?.join(',') : defaultValue
+    }
+
+    if (savedText || defaultStr) {
+      setDisplayValue(savedText ?? defaultStr)
+    }
   }, [])
 
   if (constValue) {
