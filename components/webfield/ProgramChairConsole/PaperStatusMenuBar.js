@@ -20,40 +20,43 @@ const PaperStatusMenuBar = ({
     seniorAreaChairsId,
     paperStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
-    propertiesAllowed: propertiesAllowedConfig,
+    propertiesAllowed: extraPropertiesAllowed,
     customStageInvitations = [],
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
-  const propertiesAllowed = propertiesAllowedConfig ?? {
-    number: ['note.number'],
-    id: ['note.id'],
-    title: ['note.content.title', 'note.content.title.value'],
-    author: ['note.content.authors.value', 'note.content.authorids.value'],
-    keywords: ['note.content.keywords', 'note.content.keywords.value'],
-    reviewer: ['reviewers'],
-    numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
-    numReviewsDone: ['reviewProgressData.numReviewsDone'],
-    ratingAvg: ['reviewProgressData.ratingAvg'],
-    ratingMax: ['reviewProgressData.ratingMax'],
-    ratingMin: ['reviewProgressData.ratingMin'],
-    confidenceAvg: ['reviewProgressData.confidenceAvg'],
-    confidenceMax: ['reviewProgressData.confidenceMax'],
-    confidenceMin: ['reviewProgressData.confidenceMin'],
-    replyCount: ['reviewProgressData.replyCount'],
-    decision: ['decision'],
-    venue: ['venue'],
-    ...(recommendationName && {
-      [recommendationName]: ['metaReviewData.metaReviewsSearchValue'],
-    }),
-    ...(customStageInvitations?.length > 0 &&
-      customStageInvitations.reduce(
-        (prev, curr) => ({
-          ...prev,
-          [camelCase(curr.name)]: [`metaReviewData.metaReviewAgreementSearchValue`],
-        }),
-        {}
-      )),
-  }
+  const propertiesAllowed = Object.fromEntries(
+    Object.entries({
+      number: ['note.number'],
+      id: ['note.id'],
+      title: ['note.content.title.value'],
+      author: ['note.content.authors.value', 'note.content.authorids.value'],
+      keywords: ['note.content.keywords.value'],
+      reviewer: ['reviewers'],
+      numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
+      numReviewsDone: ['reviewProgressData.numReviewsDone'],
+      ratingAvg: ['reviewProgressData.ratingAvg'],
+      ratingMax: ['reviewProgressData.ratingMax'],
+      ratingMin: ['reviewProgressData.ratingMin'],
+      confidenceAvg: ['reviewProgressData.confidenceAvg'],
+      confidenceMax: ['reviewProgressData.confidenceMax'],
+      confidenceMin: ['reviewProgressData.confidenceMin'],
+      replyCount: ['reviewProgressData.replyCount'],
+      decision: ['decision'],
+      venue: ['venue'],
+      ...(recommendationName && {
+        [recommendationName]: ['metaReviewData.metaReviewsSearchValue'],
+      }),
+      ...(customStageInvitations?.length > 0 &&
+        customStageInvitations.reduce(
+          (prev, curr) => ({
+            ...prev,
+            [camelCase(curr.name)]: [`metaReviewData.metaReviewAgreementSearchValue`],
+          }),
+          {}
+        )),
+      ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
+    }).filter(([key, value]) => Array.isArray(value) && value.length > 0)
+  )
   const messageReviewerOptions = [
     { label: 'All Reviewers of selected papers', value: 'allReviewers' },
     { label: 'Reviewers of selected papers with submitted reviews', value: 'withReviews' },
