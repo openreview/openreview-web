@@ -1242,7 +1242,7 @@ const UserModerationQueue = ({
     const signedNotesCountP = api.getCombined(
       '/notes',
       { signature: profileId, select: 'id' },
-      { signature: profileId, transitiveMembers: true, select: 'id' },
+      null,
       {
         accessToken,
       }
@@ -1259,7 +1259,7 @@ const UserModerationQueue = ({
       authoredNotesCountP,
     ])
 
-    return signedNotes.count + authoredNotes.count
+    return [...new Set([...signedNotes.notes, ...authoredNotes.notes].map((p) => p.id))].length
   }
 
   const showRejectionModal = async (profileId) => {
@@ -1301,7 +1301,12 @@ const UserModerationQueue = ({
         profile?.content?.names?.[0]?.first
       } ${profile?.content?.names?.[0]?.last}?${
         !onlyModeration && actionIsBlock && signedAuthoredNotesCount
-          ? `\n\nThere are ${signedAuthoredNotesCount} notes signed by this profile.`
+          ? `\n\nThere ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
+              signedAuthoredNotesCount,
+              'note',
+              'notes',
+              true
+            )} signed by this profile.`
           : ''
       }`
     )
@@ -1326,7 +1331,7 @@ const UserModerationQueue = ({
       const signedAuthoredNotesCount = await getSignedAuthoredNotesCount(profile.id)
       if (signedAuthoredNotesCount) {
         promptError(
-          `There are ${inflect(
+          `There ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
             signedAuthoredNotesCount,
             'note',
             'notes',
@@ -1635,7 +1640,12 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount })
           </div>
         </form>
         {signedNotesCount > 0 && (
-          <h4>{`There are ${signedNotesCount} notes signed by this profile.`}</h4>
+          <h4>{`There ${inflect(signedNotesCount, 'is', 'are', false)} ${inflect(
+            signedNotesCount,
+            'note',
+            'notes',
+            true
+          )} signed by this profile.`}</h4>
         )}
       </>
     </BasicModal>
