@@ -3292,7 +3292,7 @@ module.exports = (function () {
           if (_.startsWith(v, '{')) {
             var field = v.slice(1, -1)
             var fieldValue = _.get(original, field)
-            if (fieldValue) {
+            if (!_.isNil(fieldValue)) {
               if (!Array.isArray(fieldValue)) {
                 fieldValue = [fieldValue]
               }
