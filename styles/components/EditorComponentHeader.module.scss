@@ -8,11 +8,12 @@
   font-size: 1rem;
   font-weight: bold;
   color: constants.$orRed;
+}
 
-  .requiredField {
-    font-weight: normal;
-    vertical-align: sub;
-  }
+.requiredField {
+  font-weight: normal;
+  color: constants.$orRedLight;
+  padding-left: 0.125rem;
 }
 
 .content {

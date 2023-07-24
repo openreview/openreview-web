@@ -1,10 +1,10 @@
 import { useContext } from 'react'
 import { prettyField } from '../../lib/utils'
 import EditorComponentContext from '../EditorComponentContext'
-
-import styles from '../../styles/components/EditorComponentHeader.module.scss'
 import Icon from '../Icon'
 import Markdown from './Markdown'
+
+import styles from '../../styles/components/EditorComponentHeader.module.scss'
 
 const EditorComponentHeader = ({
   inline = false,
@@ -29,8 +29,10 @@ const EditorComponentHeader = ({
       }`}
     >
       <div className={styles.title}>
-        {`${fieldNameOverwrite ?? prettyField(fieldName)} `}
-        <span className={styles.requiredField}>{optional || deletable ? '' : '* '}</span>{' '}
+        {fieldNameOverwrite ?? prettyField(fieldName)}
+        {!optional && !deletable && (
+          <span className={styles.requiredField}>*</span>
+        )}
       </div>
       <div className={styles.content}>
         {error && (
