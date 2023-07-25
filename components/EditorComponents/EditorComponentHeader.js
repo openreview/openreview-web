@@ -24,23 +24,15 @@ const EditorComponentHeader = ({
 
   return (
     <div
-      className={`${hidden ? 'hidden' : `${styles.editorComponent}`} ${
-        inline ? ` ${styles.inline}` : ''
-      }`}
+      className={`${hidden ? 'hidden' : styles.editorComponent} ${inline ? styles.inline : ''}`}
     >
-      <div className={styles.title}>
+      <h5 className={styles.title}>
         {fieldNameOverwrite ?? prettyField(fieldName)}
         {!optional && !deletable && (
           <span className={styles.requiredField}>*</span>
         )}
-      </div>
+      </h5>
       <div className={styles.content}>
-        {error && (
-          <div className={styles.error}>
-            <Icon name="exclamation-sign" />
-            <span className={styles.errorMessage}>{error.message}</span>
-          </div>
-        )}
         {description && (
           <div className={styles.description}>
             {scroll ? (
@@ -50,7 +42,15 @@ const EditorComponentHeader = ({
             )}
           </div>
         )}
+
         {children}
+
+        {error && (
+          <div className={styles.error}>
+            <Icon name="exclamation-sign" />
+            <span className={styles.errorMessage}>{error.message || 'Error'}</span>
+          </div>
+        )}
       </div>
     </div>
   )

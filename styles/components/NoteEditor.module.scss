@@ -33,11 +33,14 @@
   margin-bottom: 0.75rem;
   font-size: 0.75rem;
   color: constants.$orRed;
+  span {
+    color: #cc2d2d;
+  }
 }
 
 .responseButtons {
   display: flex;
-  margin-top: 1rem;
+  margin-top: .5rem;
 }
 
 .submitButton {
@@ -46,7 +49,7 @@
 
 .editReaderSignature {
   background: rgba(0, 0, 0, 0.08);
-  padding: 0.75rem 0.5rem 0.75rem 0.5rem;
+  padding: 0.75rem 0.5rem 0.25rem 0.5rem;
   margin-left: -0.5rem;
   margin-right: -0.5rem;
 

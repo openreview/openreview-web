@@ -12,7 +12,7 @@ import Signatures from './Signatures'
 import { NewNoteReaders, NewReplyEditNoteReaders } from './NoteEditorReaders'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
-import { getAutoStorageKey, prettyField, prettyInvitationId } from '../lib/utils'
+import { getAutoStorageKey, prettyField, prettyInvitationId, classNames } from '../lib/utils'
 import { getErrorFieldName } from '../lib/webfield-utils'
 import { getNoteContentValues } from '../lib/forum-utils'
 
@@ -118,6 +118,7 @@ const NoteEditor = ({
   isDirectReplyToForum,
   setErrorAlertMessage,
   customValidator,
+  className,
 }) => {
   const { user, userLoading, accessToken } = useUser()
   const [fields, setFields] = useState([])
@@ -145,7 +146,7 @@ const NoteEditor = ({
         replyToNote?.id,
         fieldName
       )
-      localStorage.setItem(keyOfSavedText, value)
+      localStorage.setItem(keyOfSavedText, value ?? '')
       setAutoStorageKeys((keys) => [...keys, keyOfSavedText])
     }, 1500),
     [invitation, note, replyToNote]
@@ -506,13 +507,16 @@ const NoteEditor = ({
   if (!invitation?.edit?.note || !user) return null
 
   return (
-    <div className={styles.noteEditor}>
-      {note && <h2 className={styles.title}>{`Edit ${prettyInvitationId(invitation.id)}`}</h2>}
-
-      {replyToNote && (
-        <h2 className={styles.title}>{`New ${prettyInvitationId(invitation.id)}`}</h2>
+    <div className={classNames(className, styles.noteEditor)}>
+      {(note || replyToNote) && (
+        <h2 className={styles.title}>
+          {note ? 'Edit' : 'New'} {prettyInvitationId(invitation.id)}
+        </h2>
       )}
-      <div className={styles.requiredField}>* denotes a required field</div>
+      <div className={styles.requiredField}>
+        <span>*</span> denotes a required field
+      </div>
+
       {(note || replyToNote) && <hr />}
 
       {fields.map((field) => renderField(field))}
@@ -569,7 +573,7 @@ const NoteEditor = ({
           >
             Submit
           </SpinnerButton>
-          <button className="btn btn-sm" onClick={handleCancelClick} disabled={isSubmitting}>
+          <button className="btn btn-sm btn-default" onClick={handleCancelClick} disabled={isSubmitting}>
             Cancel
           </button>
         </div>

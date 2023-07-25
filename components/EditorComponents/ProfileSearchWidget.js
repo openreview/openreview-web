@@ -1,17 +1,17 @@
 /* globals promptError, $: false */
 
-import { maxBy } from 'lodash'
 import React, { useContext, useState, useEffect } from 'react'
-import useUser from '../../hooks/useUser'
-import { getProfileName, isValidEmail } from '../../lib/utils'
-import api from '../../lib/api-client'
+import { maxBy } from 'lodash'
 import IconButton from '../IconButton'
-
-import styles from '../../styles/components/ProfileSearchWidget.module.scss'
 import EditorComponentContext from '../EditorComponentContext'
 import LoadingSpinner from '../LoadingSpinner'
 import PaginationLinks from '../PaginationLinks'
 import SpinnerButton from '../SpinnerButton'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { getProfileName, isValidEmail } from '../../lib/utils'
+
+import styles from '../../styles/components/ProfileSearchWidget.module.scss'
 
 const getTitle = (profile) => {
   if (!profile.content) return null

@@ -15,27 +15,31 @@
     margin-bottom: 0.25rem;
     display: flex;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.05);
-    margin-right: 0.5rem;
+    background-color: constants.$borderGray;
+    margin-right: 0.25rem;
     padding: 0.25rem 0.15rem 0.25rem 0.5rem;
 
     .authorName > .authorNameLink {
       font-style: italic;
       color: constants.$darkBlue;
       font-size: 1rem;
-      margin-right: 0.25rem;
+      line-height: 1rem;
+      padding-right: 0.375rem;
     }
     .actionButtons {
       display: flex;
       flex-direction: column;
-      margin-right: 0.1rem;
+      margin-right: 0.125rem;
 
       button {
-        padding: 1px 5px;
-        margin-bottom: 0.1rem;
+        padding: 3px 5px;
         border: none;
-        font-size: 0.75rem;
-        line-height: 1rem;
+        font-size: 12px;
+        line-height: 12px;
+        height: 20px;
+      }
+      button + button {
+        margin-top: .125rem;
       }
     }
   }
@@ -48,7 +52,7 @@
 
 .searchForm {
   display: flex;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 
   button {
     margin-left: 0.25rem;

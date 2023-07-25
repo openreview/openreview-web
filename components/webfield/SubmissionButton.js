@@ -68,6 +68,7 @@ export default function SubmissionButton({
             onNoteCreated={(newNote) => {
               onNoteCreated(newNote)
             }}
+            className="panel"
           />
         ) : (
           <NoteEditorForm
