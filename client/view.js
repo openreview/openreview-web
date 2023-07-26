@@ -3292,10 +3292,12 @@ module.exports = (function () {
           if (_.startsWith(v, '{')) {
             var field = v.slice(1, -1)
             var fieldValue = _.get(original, field)
-            if (!Array.isArray(fieldValue)) {
-              fieldValue = [fieldValue]
+            if (!_.isNil(fieldValue)) {
+              if (!Array.isArray(fieldValue)) {
+                fieldValue = [fieldValue]
+              }
+              content[key] = _.union(content[key] || [], fieldValue)
             }
-            content[key] = _.union(content[key] || [], fieldValue)
           } else {
             content[key] = _.union(content[key] || [], [v])
           }
