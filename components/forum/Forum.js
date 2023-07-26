@@ -783,6 +783,7 @@ export default function Forum({
               <NoteEditor
                 replyToNote={parentNote}
                 invitation={activeInvitation}
+                className="note-editor-reply depth-even"
                 closeNoteEditor={() => {
                   setActiveInvitation(null)
                 }}

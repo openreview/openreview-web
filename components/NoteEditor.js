@@ -65,6 +65,7 @@ const NoteSignatures = ({
     </EditorComponentHeader>
   )
 }
+
 const EditSignatures = ({
   fieldDescription,
   setLoading,
@@ -108,7 +109,7 @@ const EditSignatures = ({
   )
 }
 
-// for v2 only
+// For v2 invitations only
 const NoteEditor = ({
   invitation,
   note,
@@ -513,11 +514,12 @@ const NoteEditor = ({
           {note ? 'Edit' : 'New'} {prettyInvitationId(invitation.id)}
         </h2>
       )}
+
+      {(note || replyToNote) && <hr className={styles.titleSeparator} />}
+
       <div className={styles.requiredField}>
         <span>*</span> denotes a required field
       </div>
-
-      {(note || replyToNote) && <hr />}
 
       {fields.map((field) => renderField(field))}
 

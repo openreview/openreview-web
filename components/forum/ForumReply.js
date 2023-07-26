@@ -114,6 +114,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           <NoteEditor
             invitation={activeEditInvitation}
             note={note}
+            className={`note-editor-edit depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
             closeNoteEditor={() => setActiveEditInvitation(null)}
             onNoteCreated={(newNote) => {
               updateNote(newNote)
@@ -381,6 +382,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
             <NoteEditor
               invitation={activeInvitation}
               replyToNote={note}
+              className={`note-editor-reply depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
               closeNoteEditor={() => {
                 setActiveInvitation(null)
               }}

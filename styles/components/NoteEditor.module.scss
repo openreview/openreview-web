@@ -3,8 +3,6 @@
 .noteEditor {
   display: flex;
   flex-direction: column;
-
-  background: rgba(0, 0, 0, 0.04);
   padding: 0.5rem;
   margin-bottom: 1.875rem;
 
@@ -19,20 +17,24 @@
       }
     }
   }
+
+  hr.titleSeparator {
+    margin-top: 0;
+    margin-bottom: .5rem;
+  }
 }
 
 .title {
-  margin: 0;
   font-weight: bold;
   font-size: 1.375rem;
-  line-height: normal;
+  margin-top: 0;
+  margin-bottom: .5rem;
 }
 
 .requiredField {
-  margin-top: 0.25rem;
-  margin-bottom: 0.75rem;
   font-size: 0.75rem;
   color: constants.$orRed;
+  margin-bottom: 0.75rem;
   span {
     color: #cc2d2d;
   }
