@@ -43,7 +43,13 @@ export const ReviewerConsoleNoteReviewStatus = ({
   </div>
 )
 
-const AcPcConsoleReviewerActivityModal = ({ note, reviewer, venueId, submissionName }) => {
+const AcPcConsoleReviewerActivityModal = ({
+  note,
+  reviewer,
+  venueId,
+  submissionName,
+  isNonAnonymousVenue,
+}) => {
   const { accessToken } = useUser()
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -55,7 +61,14 @@ const AcPcConsoleReviewerActivityModal = ({ note, reviewer, venueId, submissionN
       const result = await api.get(
         '/notes',
         {
-          signature: `${venueId}/${submissionName}${note.number}/Reviewer_${reviewer.anonymousId}`,
+          ...(isNonAnonymousVenue
+            ? {
+                signature: reviewer.reviewerProfileId,
+                invitation: `${venueId}/${submissionName}${note.number}/-/.*`,
+              }
+            : {
+                signature: `${venueId}/${submissionName}${note.number}/Reviewer_${reviewer.anonymousId}`,
+              }),
         },
         { accessToken, version: 2 }
       )
@@ -193,6 +206,7 @@ export const AcPcConsoleReviewerStatusRow = ({
   submissionName,
   showRatingConfidence = true,
   showActivity = true,
+  isNonAnonymousVenue,
 }) => {
   const [updateLastSent, setUpdateLastSent] = useState(true)
   const completedReview = officialReviews.find((p) => p.anonymousId === reviewer.anonymousId)
@@ -282,6 +296,7 @@ export const AcPcConsoleReviewerStatusRow = ({
               reviewer={reviewer}
               venueId={venueId}
               submissionName={submissionName}
+              isNonAnonymousVenue={isNonAnonymousVenue}
             />
           </>
         )}
@@ -300,6 +315,7 @@ export const AcPcConsoleNoteReviewStatus = ({
   shortPhrase,
   submissionName,
   reviewerAssignmentUrl,
+  isNonAnonymousVenue = false,
 }) => {
   const { officialReviews, reviewers, note } = rowData
   const {
@@ -340,6 +356,7 @@ export const AcPcConsoleNoteReviewStatus = ({
               referrerUrl={referrerUrl}
               shortPhrase={shortPhrase}
               submissionName={submissionName}
+              isNonAnonymousVenue={isNonAnonymousVenue}
             />
           ))}
         </div>
