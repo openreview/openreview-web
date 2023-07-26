@@ -286,10 +286,12 @@ const RevisionsList = ({
 
   useEffect(() => {
     if (!revisions || revisions[0]?.note) return
+
     $('.references-list .note-container').each(function appendNotePanel(index) {
       const [reference, invitation] = revisions[index]
       $(this).append(buildNotePanel(reference, invitation))
     })
+
     $('[data-toggle="tooltip"]').tooltip({ placement: 'bottom' })
   }, [revisions])
 
@@ -337,7 +339,7 @@ const RevisionsList = ({
                 />
               </div>
 
-              {reference.details?.writable && (
+              {reference.details?.writable && invitation && (
                 <div className="meta_actions">
                   {reference.ddate ? (
                     <RestoreButton
@@ -482,10 +484,9 @@ const Revisions = ({ appContext }) => {
       if (invitations?.length > 0) {
         setRevisions(
           references.map((reference) => {
-            const invId =
-              reference.details && reference.details.original
-                ? reference.details.original.invitation
-                : reference.invitation
+            const invId = reference.details?.original
+              ? reference.details.original.invitation
+              : reference.invitation
             const referenceInvitation = invitations.find(
               (invitation) => invitation.id === invId
             )
@@ -499,6 +500,7 @@ const Revisions = ({ appContext }) => {
       setError(apiError)
     }
   }
+
   const loadEdits = async () => {
     let apiRes
     try {
@@ -516,6 +518,7 @@ const Revisions = ({ appContext }) => {
       setError(apiError)
       return
     }
+
     // for reusing mkNotePanel
     const edits =
       apiRes.edits.map((edit) => ({ ...edit, invitations: [edit.invitation] })) || []
