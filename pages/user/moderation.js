@@ -1295,20 +1295,20 @@ const UserModerationQueue = ({
     const signedAuthoredNotesCount = !onlyModeration
       ? await getSignedAuthoredNotesCount(profile.id)
       : 0
+    const noteCountMessage =
+      !onlyModeration && actionIsBlock && signedAuthoredNotesCount
+        ? `There ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
+            signedAuthoredNotesCount,
+            'note',
+            'notes',
+            true
+          )} signed by this profile.`
+        : ''
     // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(
       `Are you sure you want to ${actionIsBlock ? 'block' : 'unblock'} ${
         profile?.content?.names?.[0]?.first
-      } ${profile?.content?.names?.[0]?.last}?${
-        !onlyModeration && actionIsBlock && signedAuthoredNotesCount
-          ? `\n\nThere ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
-              signedAuthoredNotesCount,
-              'note',
-              'notes',
-              true
-            )} signed by this profile.`
-          : ''
-      }`
+      } ${profile?.content?.names?.[0]?.last}?\n\n${noteCountMessage}`
     )
     if (confirmResult) {
       try {
