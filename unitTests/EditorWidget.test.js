@@ -112,11 +112,11 @@ describe('EditorWidget', () => {
     expect(screen.getByText('textbox')).toBeInTheDocument()
   })
 
-  test('render TagsWidget for field with array const value', async () => {
+  test('render TagsWidget for field with array const value (except authorids)', async () => {
     let providerProps = {
       value: {
         field: {
-          authorids: ['~Author_ID1', '~Author_ID2', '~Author_ID3'],
+          keywords: ['key word one', 'key word two', 'key word three'],
         },
       },
     }
@@ -126,8 +126,8 @@ describe('EditorWidget', () => {
     providerProps = {
       value: {
         field: {
-          authorids: {
-            value: ['~Author_ID1', '~Author_ID2', '~Author_ID3'],
+          keywords: {
+            value: ['key word one', 'key word two', 'key word three'],
           },
         },
       },
@@ -138,10 +138,10 @@ describe('EditorWidget', () => {
     providerProps = {
       value: {
         field: {
-          authorids: {
+          keywords: {
             value: {
               param: {
-                const: ['~Author_ID1', '~Author_ID2', '~Author_ID3'],
+                const: ['key word one', 'key word two', 'key word three'],
               },
             },
           },
@@ -150,6 +150,23 @@ describe('EditorWidget', () => {
     }
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
     expect(screen.getByText('tags')).toBeInTheDocument()
+  })
+
+  // this is for backward compatibility
+  // camera ready revision will have authors/authorids.value as array
+  // and editor should show reorderable authors
+  test('render ProfileSearchWidget for authorids field with array value', async () => {
+    let providerProps = {
+      value: {
+        field: {
+          authorids: {
+            value: ['~Author_ID1', '~Author_ID2', '~Author_ID3'],
+          },
+        },
+      },
+    }
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('profile')).toBeInTheDocument()
   })
 
   test('render nothing for field with only readers', async () => {

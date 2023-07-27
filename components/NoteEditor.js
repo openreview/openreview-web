@@ -192,6 +192,8 @@ const NoteEditor = ({
       }))
     }
 
+    if (fieldName === 'authors' && Array.isArray(fieldDescription?.value)) return null
+
     return (
       <React.Fragment key={fieldName}>
         <EditorComponentContext.Provider
@@ -573,7 +575,11 @@ const NoteEditor = ({
           >
             Submit
           </SpinnerButton>
-          <button className="btn btn-sm btn-default" onClick={handleCancelClick} disabled={isSubmitting}>
+          <button
+            className="btn btn-sm btn-default"
+            onClick={handleCancelClick}
+            disabled={isSubmitting}
+          >
             Cancel
           </button>
         </div>
