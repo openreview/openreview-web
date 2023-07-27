@@ -525,7 +525,6 @@ const ProgramChairConsole = ({ appContext }) => {
             reviewLength: reviewValue?.length,
             forum: q.forum,
             id: q.id,
-            isNonAnonymousReview: q.signatures[0].startsWith('~'),
           }
         }) ?? []
       const ratings = officialReviews.map((p) => p.rating)

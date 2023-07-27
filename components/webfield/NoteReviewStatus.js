@@ -43,13 +43,7 @@ export const ReviewerConsoleNoteReviewStatus = ({
   </div>
 )
 
-const AcPcConsoleReviewerActivityModal = ({
-  note,
-  reviewer,
-  venueId,
-  submissionName,
-  isNonAnonymousReview,
-}) => {
+const AcPcConsoleReviewerActivityModal = ({ note, reviewer, venueId, submissionName }) => {
   const { accessToken } = useUser()
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -290,7 +284,6 @@ export const AcPcConsoleReviewerStatusRow = ({
               reviewer={reviewer}
               venueId={venueId}
               submissionName={submissionName}
-              isNonAnonymousReview={completedReview.isNonAnonymousReview}
             />
           </>
         )}
