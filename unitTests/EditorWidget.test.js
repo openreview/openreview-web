@@ -156,7 +156,7 @@ describe('EditorWidget', () => {
   // camera ready revision will have authors/authorids.value as array
   // and editor should show reorderable authors
   test('render ProfileSearchWidget for authorids field with array value', async () => {
-    let providerProps = {
+    const providerProps = {
       value: {
         field: {
           authorids: {
