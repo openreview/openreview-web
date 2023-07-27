@@ -393,7 +393,7 @@ export const EthicsReviewStatus = ({
   const editAssigmentUrl = `/edges/browse?start=staticList,type:head,ids:${note.id}
 &traverse=${ethicsReviewersId}/-/Assignment
 &edit=${ethicsReviewersId}/-/Assignment
-&browse=${ethicsReviewersId}/-/Affinity_Score;${ethicsReviewersId}/-/Conflict`
+&browse=${ethicsReviewersId}/-/Affinity_Score;${ethicsReviewersId}/-/Conflict&version=2`
 
   return (
     <div className="console-reviewer-progress">
