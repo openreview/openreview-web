@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState } from 'react'
 import { difference, isEqual } from 'lodash'
-import { prettyId } from '../lib/utils'
-import api from '../lib/api-client'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import TagsWidget from './EditorComponents/TagsWidget'
-import useUser from '../hooks/useUser'
 import { NoteEditorReadersDropdown } from './Dropdown'
+import useUser from '../hooks/useUser'
+import api from '../lib/api-client'
+import { prettyId } from '../lib/utils'
 
 export const NewNoteReaders = ({
   fieldDescription,
