@@ -372,7 +372,12 @@ const ProgramChairConsole = ({ appContext }) => {
           })
           ?.map((review) => ({
             ...review,
-            anonId: getIndentifierFromGroup(review.signatures[0], anonReviewerName),
+            anonId: getIndentifierFromGroup(
+              review.signatures[0].startsWith('~')
+                ? anonReviewerGroups[note.number][review.signatures[0]] ?? ''
+                : review.signatures[0],
+              anonReviewerName
+            ),
           }))
         const metaReviews = replies
           .filter((p) => {
