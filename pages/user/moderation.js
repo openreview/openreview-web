@@ -1327,26 +1327,25 @@ const UserModerationQueue = ({
   const deleteRestoreUser = async (profile) => {
     const actionIsDelete = !profile?.ddate
 
-    if (actionIsDelete) {
-      const signedAuthoredNotesCount = await getSignedAuthoredNotesCount(profile.id)
-      if (signedAuthoredNotesCount) {
-        promptError(
-          `There ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
+    const signedAuthoredNotesCount = actionIsDelete
+      ? await getSignedAuthoredNotesCount(profile.id)
+      : 0
+
+    const noteCountMessage =
+      actionIsDelete && signedAuthoredNotesCount
+        ? `There ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
             signedAuthoredNotesCount,
             'note',
             'notes',
             true
           )} signed by this profile.`
-        )
-        return
-      }
-    }
+        : ''
 
     // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(
       `Are you sure you want to ${actionIsDelete ? 'delete' : 'restore'} ${
         profile?.content?.names?.[0]?.first
-      } ${profile?.content?.names?.[0]?.last}?`
+      } ${profile?.content?.names?.[0]?.last}?\n\n${noteCountMessage}`
     )
     if (confirmResult) {
       try {
