@@ -61,14 +61,9 @@ const AcPcConsoleReviewerActivityModal = ({
       const result = await api.get(
         '/notes',
         {
-          ...(isNonAnonymousReview
-            ? {
-                signature: reviewer.reviewerProfileId,
-                invitation: `${venueId}/${submissionName}${note.number}/-/.*`,
-              }
-            : {
-                signature: `${venueId}/${submissionName}${note.number}/Reviewer_${reviewer.anonymousId}`,
-              }),
+          signature: reviewer.reviewerProfileId,
+          transitiveMembers: true,
+          invitation: `${venueId}/${submissionName}${note.number}/-/.*`,
         },
         { accessToken, version: 2 }
       )
