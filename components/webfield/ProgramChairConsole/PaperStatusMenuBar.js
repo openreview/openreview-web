@@ -56,8 +56,8 @@ const PaperStatusMenuBar = ({
     ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
   }
 
-  Object.entries(propertiesAllowed).forEach(([key, value]) => {
-    if (!Array.isArray(value) || value.length === 0) {
+  Object.keys(propertiesAllowed).forEach((key) => {
+    if (!Array.isArray(propertiesAllowed[key]) || propertiesAllowed[key].length === 0) {
       delete propertiesAllowed[key]
     }
   })
