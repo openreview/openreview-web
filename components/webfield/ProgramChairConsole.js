@@ -60,7 +60,6 @@ const ProgramChairConsole = ({ appContext }) => {
     areaChairStatusExportColumns,
     customStageInvitations,
     assignmentUrls,
-    isNonAnonymousVenue = false,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -373,7 +372,7 @@ const ProgramChairConsole = ({ appContext }) => {
           ?.map((review) => ({
             ...review,
             anonId: getIndentifierFromGroup(
-              isNonAnonymousVenue
+              review.signatures[0].startsWith('~')
                 ? anonReviewerGroups[note.number][review.signatures[0]] ?? ''
                 : review.signatures[0],
               anonReviewerName
@@ -526,6 +525,7 @@ const ProgramChairConsole = ({ appContext }) => {
             reviewLength: reviewValue?.length,
             forum: q.forum,
             id: q.id,
+            isNonAnonymousReview: q.signatures[0].startsWith('~'),
           }
         }) ?? []
       const ratings = officialReviews.map((p) => p.rating)

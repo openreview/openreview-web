@@ -48,7 +48,7 @@ const AcPcConsoleReviewerActivityModal = ({
   reviewer,
   venueId,
   submissionName,
-  isNonAnonymousVenue,
+  isNonAnonymousReview,
 }) => {
   const { accessToken } = useUser()
   const [error, setError] = useState(null)
@@ -61,7 +61,7 @@ const AcPcConsoleReviewerActivityModal = ({
       const result = await api.get(
         '/notes',
         {
-          ...(isNonAnonymousVenue
+          ...(isNonAnonymousReview
             ? {
                 signature: reviewer.reviewerProfileId,
                 invitation: `${venueId}/${submissionName}${note.number}/-/.*`,
@@ -206,7 +206,6 @@ export const AcPcConsoleReviewerStatusRow = ({
   submissionName,
   showRatingConfidence = true,
   showActivity = true,
-  isNonAnonymousVenue,
 }) => {
   const [updateLastSent, setUpdateLastSent] = useState(true)
   const completedReview = officialReviews.find((p) => p.anonymousId === reviewer.anonymousId)
@@ -296,7 +295,7 @@ export const AcPcConsoleReviewerStatusRow = ({
               reviewer={reviewer}
               venueId={venueId}
               submissionName={submissionName}
-              isNonAnonymousVenue={isNonAnonymousVenue}
+              isNonAnonymousReview={completedReview.isNonAnonymousReview}
             />
           </>
         )}
@@ -315,7 +314,6 @@ export const AcPcConsoleNoteReviewStatus = ({
   shortPhrase,
   submissionName,
   reviewerAssignmentUrl,
-  isNonAnonymousVenue = false,
 }) => {
   const { officialReviews, reviewers, note } = rowData
   const {
@@ -356,7 +354,6 @@ export const AcPcConsoleNoteReviewStatus = ({
               referrerUrl={referrerUrl}
               shortPhrase={shortPhrase}
               submissionName={submissionName}
-              isNonAnonymousVenue={isNonAnonymousVenue}
             />
           ))}
         </div>
