@@ -72,7 +72,7 @@ npx jest --collectCoverage
 ## Integration Testing
 
 OpenReview Web uses [TestCafe](https://devexpress.github.io/testcafe/) to run
-end-to-end tests of the UI. To run the test suite, first start openreview-api
+end-to-end tests of the UI. To run the test suite, first start openreview-api-v1
 in test mode:
 
 ```bash
