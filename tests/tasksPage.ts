@@ -38,8 +38,6 @@ test('should open tasks page and complete pending task', async (t) => {
           '4: The reviewer is confident but not absolutely certain that the evaluation is correct'
         )
     ) // fill in comment content
-    .click(Selector('input[placeholder="signatures"]')) // select signature
-    .click(Selector('.dropdown_content div').withExactText('FirstA LastA'))
     .click(Selector('button').withText('Submit')) // submit
 
     // should see 0 pending task and 1 completed
@@ -56,7 +54,6 @@ test('task should change when note is deleted and restored', async (t) => {
     .click(Selector('a').withText('Paper1 Official Review')) // go to forum page
     .wait(2000)
     .click(Selector('#note_children').find('button.trash_button'))
-    .click(Selector('button').withText('Delete'))
     .click(Selector('a').withText('Tasks'))
     .wait(2000)
     .expect(Selector('span.task-count-message').innerText)
