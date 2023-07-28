@@ -94,17 +94,21 @@ export default class EdgeBrowser extends React.Component {
       group: '/groups',
       tag: '/tags',
     }
-    const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type], requestParams, {
-      accessToken: this.accessToken,
-      version: this.version,
-    })
-    .then((results) => results.filter((result) => {
-        if (localQuery?.content) {
-          return Object.keys(localQuery.content).every((key) => result.content[key]?.value === localQuery.content[key])
-        }
-        return true
+    const mainResultsP = api
+      .getAll(apiUrlMap[invReplyObj.type], requestParams, {
+        accessToken: this.accessToken,
+        version: this.version,
       })
-    )
+      .then((results) =>
+        results.filter((result) => {
+          if (localQuery?.content) {
+            return Object.keys(localQuery.content).every(
+              (key) => result.content[key]?.value === localQuery.content[key]
+            )
+          }
+          return true
+        })
+      )
 
     // Get all head or tail objects referenced by the start parameter edge
     // invitation. Note: currently startInvitation has to have the same head
@@ -211,7 +215,7 @@ export default class EdgeBrowser extends React.Component {
                 title: '',
                 expertise: [],
                 isDummyProfile: true,
-                isInvitedProfile: true
+                isInvitedProfile: true,
               },
               searchText: key,
               traverseEdgesCount: groupedEdges[key].count,
