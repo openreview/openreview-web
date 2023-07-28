@@ -98,21 +98,13 @@ export default class EdgeBrowser extends React.Component {
       accessToken: this.accessToken,
       version: this.version,
     })
-    .then((results) => {
-      return results.filter((result) => {
+    .then((results) => results.filter((result) => {
         if (localQuery && localQuery.content) {
-          let isMatch = true
-          Object.keys(localQuery.content).forEach((key) => {
-            if (result.content[key]?.value !== localQuery.content[key]) {
-              isMatch = false
-              return
-            }
-          })
-          return isMatch
+          return Object.keys(localQuery.content).every((key) => result.content[key]?.value === localQuery.content[key])
         }
         return true
       })
-    })
+    )
 
     // Get all head or tail objects referenced by the start parameter edge
     // invitation. Note: currently startInvitation has to have the same head
