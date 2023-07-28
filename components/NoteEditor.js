@@ -13,7 +13,7 @@ import { NewNoteReaders, NewReplyEditNoteReaders } from './NoteEditorReaders'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { getAutoStorageKey, prettyField, prettyInvitationId, classNames } from '../lib/utils'
-import { getErrorFieldName } from '../lib/webfield-utils'
+import { getErrorFieldName, isNonDeletableError } from '../lib/webfield-utils'
 import { getNoteContentValues } from '../lib/forum-utils'
 
 import styles from '../styles/components/NoteEditor.module.scss'
@@ -461,6 +461,8 @@ const NoteEditor = ({
         setErrors(
           error.errors.map((p) => {
             const fieldName = getErrorFieldName(p.details.path)
+            if (isNonDeletableError(p.details.invalidValue))
+              return { fieldName, message: `${prettyField(fieldName)} is not deletable` }
             return { fieldName, message: p.message.replace(fieldName, prettyField(fieldName)) }
           })
         )
@@ -474,7 +476,9 @@ const NoteEditor = ({
         )
       } else if (error.details?.path) {
         const fieldName = getErrorFieldName(error.details.path)
-        const prettyErrorMessage = error.message.replace(fieldName, prettyField(fieldName))
+        const prettyErrorMessage = isNonDeletableError(error.details.invalidValue)
+          ? `${prettyField(fieldName)} is not deletable`
+          : error.message.replace(fieldName, prettyField(fieldName))
         setErrors([
           {
             fieldName,

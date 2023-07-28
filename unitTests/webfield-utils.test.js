@@ -1,4 +1,8 @@
-import { getErrorFieldName, filterCollections } from '../lib/webfield-utils'
+import {
+  getErrorFieldName,
+  filterCollections,
+  isNonDeletableError,
+} from '../lib/webfield-utils'
 
 const filterOperators = ['!=', '>=', '<=', '>', '<', '==', '=']
 const uniqueIdentifier = 'id'
@@ -33,6 +37,29 @@ describe('webfield-utils', () => {
     errorPath = 'note/readers' // note readers
     resultExpected = 'noteReaderValues'
     expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+  })
+
+  test('return whether the error invalidValue is {delete:true} in isNonDeletableError', () => {
+    let invalidValue = null
+    expect(isNonDeletableError(invalidValue)).toBe(false)
+
+    invalidValue = undefined
+    expect(isNonDeletableError(invalidValue)).toBe(false)
+
+    invalidValue = 5
+    expect(isNonDeletableError(invalidValue)).toBe(false)
+
+    invalidValue = 'some text'
+    expect(isNonDeletableError(invalidValue)).toBe(false)
+
+    invalidValue = {}
+    expect(isNonDeletableError(invalidValue)).toBe(false)
+
+    invalidValue = { delete: true }
+    expect(isNonDeletableError(invalidValue)).toBe(true)
+
+    invalidValue = { delete: true, someOtherKey: 'some other value' }
+    expect(isNonDeletableError(invalidValue)).toBe(false)
   })
 })
 
