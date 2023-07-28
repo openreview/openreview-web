@@ -1238,12 +1238,34 @@ const UserModerationQueue = ({
     }
   }
 
+  const getSignedAuthoredNotesCount = async (profileId) => {
+    const signedNotesCountP = api.getCombined(
+      '/notes',
+      { signature: profileId, select: 'id' },
+      null,
+      {
+        accessToken,
+      }
+    )
+    const authoredNotesCountP = api.getCombined(
+      '/notes',
+      { 'content.authorids': profileId, select: 'id' },
+      null,
+      { accessToken }
+    )
+
+    const [signedNotes, authoredNotes] = await Promise.all([
+      signedNotesCountP,
+      authoredNotesCountP,
+    ])
+
+    return [...new Set([...signedNotes.notes, ...authoredNotes.notes].map((p) => p.id))].length
+  }
+
   const showRejectionModal = async (profileId) => {
     if (!onlyModeration) {
-      const signedNotes = await api.getCombined('/notes', { signature: profileId }, null, {
-        accessToken,
-      })
-      setSignedNotesCount(signedNotes.count)
+      const signedAuthoredNotesCount = await getSignedAuthoredNotesCount(profileId)
+      setSignedNotesCount(signedAuthoredNotesCount)
     }
     setProfileIdToReject(profileId)
 
@@ -1270,20 +1292,23 @@ const UserModerationQueue = ({
 
   const blockUnblockUser = async (profile) => {
     const actionIsBlock = profile?.state !== 'Blocked'
-    const signedNotes = !onlyModeration
-      ? await api.getCombined('/notes', { signature: profile.id }, null, {
-          accessToken,
-        })
-      : {}
+    const signedAuthoredNotesCount = !onlyModeration
+      ? await getSignedAuthoredNotesCount(profile.id)
+      : 0
+    const noteCountMessage =
+      !onlyModeration && actionIsBlock && signedAuthoredNotesCount
+        ? `There ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
+            signedAuthoredNotesCount,
+            'note',
+            'notes',
+            true
+          )} signed by this profile.`
+        : ''
     // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(
       `Are you sure you want to ${actionIsBlock ? 'block' : 'unblock'} ${
         profile?.content?.names?.[0]?.first
-      } ${profile?.content?.names?.[0]?.last}?${
-        !onlyModeration && actionIsBlock && signedNotes.count
-          ? `\n\nThere are ${signedNotes.count} notes signed by this profile.`
-          : ''
-      }`
+      } ${profile?.content?.names?.[0]?.last}?\n\n${noteCountMessage}`
     )
     if (confirmResult) {
       try {
@@ -1302,28 +1327,25 @@ const UserModerationQueue = ({
   const deleteRestoreUser = async (profile) => {
     const actionIsDelete = !profile?.ddate
 
-    if (actionIsDelete) {
-      const signedNotes = await api.getCombined('/notes', { signature: profile.id }, null, {
-        accessToken,
-      })
-      if (signedNotes.count) {
-        promptError(
-          `There are ${inflect(
-            signedNotes.count,
+    const signedAuthoredNotesCount = actionIsDelete
+      ? await getSignedAuthoredNotesCount(profile.id)
+      : 0
+
+    const noteCountMessage =
+      actionIsDelete && signedAuthoredNotesCount
+        ? `There ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
+            signedAuthoredNotesCount,
             'note',
             'notes',
             true
           )} signed by this profile.`
-        )
-        return
-      }
-    }
+        : ''
 
     // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(
       `Are you sure you want to ${actionIsDelete ? 'delete' : 'restore'} ${
         profile?.content?.names?.[0]?.first
-      } ${profile?.content?.names?.[0]?.last}?`
+      } ${profile?.content?.names?.[0]?.last}?\n\n${noteCountMessage}`
     )
     if (confirmResult) {
       try {
@@ -1617,7 +1639,12 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount })
           </div>
         </form>
         {signedNotesCount > 0 && (
-          <h4>{`There are ${signedNotesCount} notes signed by this profile.`}</h4>
+          <h4>{`There ${inflect(signedNotesCount, 'is', 'are', false)} ${inflect(
+            signedNotesCount,
+            'note',
+            'notes',
+            true
+          )} signed by this profile.`}</h4>
         )}
       </>
     </BasicModal>
