@@ -474,13 +474,14 @@ const NoteEditor = ({
         )
       } else if (error.details?.path) {
         const fieldName = getErrorFieldName(error.details.path)
+        const prettyErrorMessage = error.message.replace(fieldName, prettyField(fieldName))
         setErrors([
           {
             fieldName,
-            message: error.message.replace(fieldName, prettyField(fieldName)),
+            message: prettyErrorMessage,
           },
         ])
-        displayError(error.message)
+        displayError(prettyErrorMessage)
       } else {
         displayError(error.message)
       }
