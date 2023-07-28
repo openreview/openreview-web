@@ -293,6 +293,7 @@ const NoteEditor = ({
   }
 
   const handleCancelClick = () => {
+    setErrors([])
     autoStorageKeys.forEach((key) => localStorage.removeItem(key))
     setNoteEditorData({ type: 'reset' })
     closeNoteEditor()
