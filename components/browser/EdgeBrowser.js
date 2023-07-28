@@ -99,7 +99,7 @@ export default class EdgeBrowser extends React.Component {
       version: this.version,
     })
     .then((results) => results.filter((result) => {
-        if (localQuery && localQuery.content) {
+        if (localQuery?.content) {
           return Object.keys(localQuery.content).every((key) => result.content[key]?.value === localQuery.content[key])
         }
         return true
