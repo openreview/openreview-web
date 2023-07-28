@@ -17,11 +17,17 @@
       }
     }
   }
-
+  & > div[class^="EditorComponentHeader_inline__"] {
+    margin-bottom: .875rem;
+  }
   hr.titleSeparator {
     margin-top: 0;
     margin-bottom: .5rem;
   }
+}
+
+.fieldContainer {
+  margin-bottom: 1.125rem;
 }
 
 .title {
@@ -40,6 +46,24 @@
   }
 }
 
+.fieldReaders {
+  font-size: .75rem;
+  margin-top: .25rem;
+
+  :global {
+    span {
+      color: constants.$subtleGray;
+      padding-right: .25rem;
+    }
+    div[class^="TagsWidget_container__"] {
+      margin-top: 0;
+    }
+    div[class^="TagsWidget_value__"] {
+      padding: .125rem .25rem;
+    }
+  }
+}
+
 .responseButtons {
   display: flex;
   margin-top: .5rem;
@@ -51,7 +75,8 @@
 
 .editReaderSignature {
   background: rgba(0, 0, 0, 0.08);
-  padding: 0.75rem 0.5rem 0.25rem 0.5rem;
+  padding: 0.5rem;
+  padding-bottom: .25rem;
   margin-left: -0.5rem;
   margin-right: -0.5rem;
 
@@ -61,6 +86,13 @@
     font-weight: bold;
     margin-top: 0;
     margin-bottom: 0.5rem;
+  }
+  hr {
+    margin-top: 0;
+    margin-bottom: .75rem;
+  }
+  & > div[class^="EditorComponentHeader_inline__"] {
+    margin-bottom: .875rem;
   }
 }
 

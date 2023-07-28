@@ -1,8 +1,8 @@
 import { useContext } from 'react'
-import { prettyField } from '../../lib/utils'
 import EditorComponentContext from '../EditorComponentContext'
 import Icon from '../Icon'
 import Markdown from './Markdown'
+import { prettyField, classNames } from '../../lib/utils'
 
 import styles from '../../styles/components/EditorComponentHeader.module.scss'
 
@@ -24,7 +24,7 @@ const EditorComponentHeader = ({
 
   return (
     <div
-      className={`${hidden ? 'hidden' : styles.editorComponent} ${inline ? styles.inline : ''}`}
+      className={classNames(hidden ? 'hidden' : '', inline ? styles.inline : '')}
     >
       <h5 className={styles.title}>
         {fieldNameOverwrite ?? prettyField(fieldName)}

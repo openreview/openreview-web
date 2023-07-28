@@ -460,6 +460,7 @@ export const NewReplyEditNoteReaders = ({
   }, [descriptionType])
 
   if (!user || !fieldDescription) return null
+
   return (
     <EditorComponentHeader fieldNameOverwrite="Readers" inline={true} error={error}>
       {renderReaders()}

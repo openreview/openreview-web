@@ -10,6 +10,7 @@ import SpinnerButton from './SpinnerButton'
 import LoadingSpinner from './LoadingSpinner'
 import Signatures from './Signatures'
 import { NewNoteReaders, NewReplyEditNoteReaders } from './NoteEditorReaders'
+import Icon from './Icon'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { getAutoStorageKey, prettyField, prettyInvitationId, classNames } from '../lib/utils'
@@ -48,6 +49,7 @@ const NoteSignatures = ({
   }
 
   if (!fieldDescription) return null
+
   return (
     <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true} error={error}>
       <Signatures
@@ -175,14 +177,12 @@ const NoteEditor = ({
     defaultNoteEditorData
   )
 
-  const getFieldNameOverwrite = (fieldName, fieldDescription) => {
-    const customFieldName = fieldDescription?.value?.param?.fieldName
-    if (customFieldName) return customFieldName
-    return fieldName === 'authorids' ? 'Authors' : undefined
-  }
+  const renderField = (fieldName, fieldDescription) => {
+    let fieldNameOverwrite = fieldDescription?.value?.param?.fieldName
+    if (!fieldNameOverwrite) {
+      fieldNameOverwrite = fieldName === 'authorids' ? 'Authors' : undefined
+    }
 
-  const renderField = ({ fieldName, fieldDescription }) => {
-    const fieldNameOverwrite = getFieldNameOverwrite(fieldName, fieldDescription)
     const error = errors.find((e) => e.fieldName === fieldName)
 
     let fieldValue = noteEditorData[fieldName]
@@ -196,7 +196,7 @@ const NoteEditor = ({
     if (fieldName === 'authors' && Array.isArray(fieldDescription?.value)) return null
 
     return (
-      <React.Fragment key={fieldName}>
+      <div key={fieldName} className={styles.fieldContainer}>
         <EditorComponentContext.Provider
           value={{
             invitation,
@@ -205,7 +205,6 @@ const NoteEditor = ({
             field: { [fieldName]: fieldDescription },
             onChange: setNoteEditorData,
             value: fieldValue,
-            key: fieldName,
             isWebfield: false,
             error,
             setErrors,
@@ -220,19 +219,21 @@ const NoteEditor = ({
             <EditorWidget />
           </EditorComponentHeader>
         </EditorComponentContext.Provider>
+
         {fieldDescription.readers && (
           <EditorComponentContext.Provider
-            key={`${fieldName}-readers`}
             value={{
               field: { [fieldName]: fieldDescription.readers },
             }}
           >
-            <div>
-              <span>Visible to:</span> <EditorWidget />
+            <div className={styles.fieldReaders}>
+              <Icon name="eye-open" />
+              <span>Visible only to:</span>{' '}
+              <EditorWidget />
             </div>
           </EditorComponentContext.Provider>
         )}
-      </React.Fragment>
+      </div>
     )
   }
 
@@ -504,16 +505,14 @@ const NoteEditor = ({
 
     if (!invitation?.edit?.note?.content) return
 
-    const orderedFields = Object.entries(invitation.edit.note.content)
-      .sort((a, b) => a[1].order - b[1].order)
-      .map(([fieldName, fieldDescription]) => ({
-        fieldName,
-        fieldDescription,
-      }))
-    setFields(orderedFields)
+    setFields(
+      Object.entries(invitation.edit.note.content).sort(
+        (a, b) => (a[1].order ?? 100) - (b[1].order ?? 100)
+      )
+    )
   }, [invitation, user, userLoading])
 
-  if (!invitation?.edit?.note || !user) return null
+  if (!invitation?.edit?.note?.content || !user) return null
 
   return (
     <div className={classNames(className, styles.noteEditor)}>
@@ -529,7 +528,7 @@ const NoteEditor = ({
         <span>*</span> denotes a required field
       </div>
 
-      {fields.map((field) => renderField(field))}
+      {fields.map(([fieldName, fieldDescription]) => renderField(fieldName, fieldDescription))}
 
       {renderNoteReaders()}
 
@@ -545,7 +544,8 @@ const NoteEditor = ({
 
       <div className={styles.editReaderSignature}>
         <h2>Edit History</h2>
-        <hr className="small" />
+        <hr />
+
         <EditReaders
           fieldDescription={invitation.edit.readers}
           closeNoteEditor={closeNoteEditor}
