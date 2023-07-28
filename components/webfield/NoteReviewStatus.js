@@ -67,7 +67,9 @@ const AcPcConsoleReviewerActivityModal = ({ note, reviewer, venueId, submissionN
       const result = await api.get(
         '/notes',
         {
-          signature: `${venueId}/${submissionName}${note.number}/Reviewer_${reviewer.anonymousId}`,
+          signature: reviewer.reviewerProfileId,
+          transitiveMembers: true,
+          invitation: `${venueId}/${submissionName}${note.number}/-/.*`,
         },
         { accessToken, version: 2 }
       )
@@ -421,7 +423,7 @@ export const EthicsReviewStatus = ({
   const editAssigmentUrl = `/edges/browse?start=staticList,type:head,ids:${note.id}
 &traverse=${ethicsReviewersId}/-/Assignment
 &edit=${ethicsReviewersId}/-/Assignment
-&browse=${ethicsReviewersId}/-/Affinity_Score;${ethicsReviewersId}/-/Conflict`
+&browse=${ethicsReviewersId}/-/Affinity_Score;${ethicsReviewersId}/-/Conflict&version=2`
 
   return (
     <div className="console-reviewer-progress">
