@@ -26,6 +26,7 @@ const NoteSummary = ({
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
   const authorsValue = getAuthorsValue(note, isV2Note)
   const authorIdsValue = isV2Note ? note.content?.authorids?.value : note.content?.authorids
+  const privatelyRevealed = !note.readers?.includes('everyone')
   const maxAuthors = 15
 
   const authorNames = authorsValue?.map((authorName, i) => {
@@ -93,7 +94,8 @@ const NoteSummary = ({
 
       {showReaders && (
         <div className="note-readers">
-          <Icon name="eye-open" /> <NoteReaders readers={note.readers} />
+          {privatelyRevealed && <Icon name="eye-open" />}
+          <NoteReaders readers={note.readers} />
         </div>
       )}
 

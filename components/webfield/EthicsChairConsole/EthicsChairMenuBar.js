@@ -15,9 +15,9 @@ const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) 
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['note.number'],
     id: ['note.id'],
-    title: ['note.content.title', 'note.content.title.value'],
+    title: ['note.content.title.value'],
     author: ['note.content.authors.value', 'note.content.authorids.value'],
-    keywords: ['note.content.keywords', 'note.content.keywords.value'],
+    keywords: ['note.content.keywords.value'],
     reviewer: ['reviewers'],
     numReviewersAssigned: ['numReviewersAssigned'],
     numReviewsDone: ['numReviewsDone'],

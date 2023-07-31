@@ -21,16 +21,16 @@ const PaperStatusMenuBar = ({
     seniorAreaChairsId,
     paperStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
-    propertiesAllowed: propertiesAllowedConfig,
+    propertiesAllowed: extraPropertiesAllowed,
     customStageInvitations = [],
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
-  const propertiesAllowed = propertiesAllowedConfig ?? {
+  const propertiesAllowed = {
     number: ['note.number'],
     id: ['note.id'],
-    title: ['note.content.title', 'note.content.title.value'],
+    title: ['note.content.title.value'],
     author: ['note.content.authors.value', 'note.content.authorids.value'],
-    keywords: ['note.content.keywords', 'note.content.keywords.value'],
+    keywords: ['note.content.keywords.value'],
     reviewer: ['reviewers'],
     numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
     numReviewsDone: ['reviewProgressData.numReviewsDone'],
@@ -60,7 +60,15 @@ const PaperStatusMenuBar = ({
         }),
         {}
       )),
+    ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
   }
+
+  Object.keys(propertiesAllowed).forEach((key) => {
+    if (!Array.isArray(propertiesAllowed[key]) || propertiesAllowed[key].length === 0) {
+      delete propertiesAllowed[key]
+    }
+  })
+
   const messageReviewerOptions = [
     { label: 'All Reviewers of selected papers', value: 'allReviewers' },
     { label: 'Reviewers of selected papers with submitted reviews', value: 'withReviews' },
