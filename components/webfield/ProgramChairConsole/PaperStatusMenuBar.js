@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { camelCase } from 'lodash'
+import { camelCase, upperFirst } from 'lodash'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import MessageReviewersModal from '../MessageReviewersModal'
@@ -11,6 +11,7 @@ const PaperStatusMenuBar = ({
   tableRows,
   selectedNoteIds,
   setPaperStatusTabData,
+  reviewRatingName,
 }) => {
   const {
     apiVersion,
@@ -33,9 +34,15 @@ const PaperStatusMenuBar = ({
     reviewer: ['reviewers'],
     numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
     numReviewsDone: ['reviewProgressData.numReviewsDone'],
-    ratingAvg: ['reviewProgressData.ratingAvg'],
-    ratingMax: ['reviewProgressData.ratingMax'],
-    ratingMin: ['reviewProgressData.ratingMin'],
+    ...Object.fromEntries(
+      (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
+        (ratingName) => [
+          [`${ratingName}Avg`, [`reviewProgressData.ratings.${ratingName}.ratingAvg`]],
+          [`${ratingName}Max`, [`reviewProgressData.ratings.${ratingName}.ratingMax`]],
+          [`${ratingName}Min`, [`reviewProgressData.ratings.${ratingName}.ratingMin`]],
+        ]
+      )
+    ),
     confidenceAvg: ['reviewProgressData.confidenceAvg'],
     confidenceMax: ['reviewProgressData.confidenceMax'],
     confidenceMin: ['reviewProgressData.confidenceMin'],
@@ -99,9 +106,22 @@ const PaperStatusMenuBar = ({
       getValue: (p) =>
         p.reviewers.map((q) => `${q.preferredName}<${q.preferredEmail}>`).join(','),
     },
-    { header: 'min rating', getValue: (p) => p.reviewProgressData?.ratingMin },
-    { header: 'max rating', getValue: (p) => p.reviewProgressData?.ratingMax },
-    { header: 'average rating', getValue: (p) => p.reviewProgressData?.ratingAvg },
+    ...(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
+      (ratingName) => [
+        {
+          header: `min ${ratingName}`,
+          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingMin,
+        },
+        {
+          header: `max ${ratingName}`,
+          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingMax,
+        },
+        {
+          header: `average ${ratingName}`,
+          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg,
+        },
+      ]
+    ),
     { header: 'min confidence', getValue: (p) => p.reviewProgressData?.confidenceMin },
     { header: 'max confidence', getValue: (p) => p.reviewProgressData?.confidenceMax },
     { header: 'average confidence', getValue: (p) => p.reviewProgressData?.confidenceAvg },
@@ -185,29 +205,35 @@ const PaperStatusMenuBar = ({
         getValueWithDefault(p.reviewProgressData?.numReviewsDone),
       initialDirection: 'desc',
     },
-
-    {
-      label: 'Average Rating',
-      value: 'Average Rating',
-      getValue: (p) => getValueWithDefault(p.reviewProgressData?.ratingAvg),
-    },
-    {
-      label: 'Max Rating',
-      value: 'Max Rating',
-      getValue: (p) => getValueWithDefault(p.reviewProgressData?.ratingMax),
-    },
-    {
-      label: 'Min Rating',
-      value: 'Min Rating',
-      getValue: (p) => getValueWithDefault(p.reviewProgressData?.ratingMin),
-    },
-    {
-      label: 'Rating Range',
-      value: 'Rating Range',
-      getValue: (p) =>
-        getValueWithDefault(p.reviewProgressData.ratingMax) -
-        getValueWithDefault(p.reviewProgressData?.ratingMin),
-    },
+    ...(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
+      (ratingName) => [
+        {
+          label: `Average ${ratingName}`,
+          value: `Average ${ratingName}`,
+          getValue: (p) =>
+            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg),
+        },
+        {
+          label: `Max ${ratingName}`,
+          value: `Max ${ratingName}`,
+          getValue: (p) =>
+            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMax),
+        },
+        {
+          label: `Min ${ratingName}`,
+          value: `Min ${ratingName}`,
+          getValue: (p) =>
+            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMin),
+        },
+        {
+          label: `${upperFirst(ratingName)} Range`,
+          value: `${upperFirst(ratingName)} Range`,
+          getValue: (p) =>
+            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMax) -
+            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMin),
+        },
+      ]
+    ),
     {
       label: 'Average Confidence',
       value: 'Average Confidence',
@@ -253,6 +279,7 @@ const PaperStatusMenuBar = ({
         ]
       : []),
   ]
+
   const basicSearchFunction = (row, term) =>
     row.note.number == term || // eslint-disable-line eqeqeq
     row.note.content?.title?.value?.toLowerCase()?.includes(term)

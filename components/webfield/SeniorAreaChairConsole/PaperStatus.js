@@ -92,6 +92,7 @@ const PaperStatus = ({ sacConsoleData }) => {
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(sacConsoleData.notes?.length ?? 0)
+  const { reviewRatingName } = useContext(WebFieldContext)
   const pageSize = 25
 
   useEffect(() => {
@@ -139,6 +140,7 @@ const PaperStatus = ({ sacConsoleData }) => {
           tableRows={paperStatusTabData.tableRows}
           selectedNoteIds={selectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
+          reviewRatingName={reviewRatingName}
         />
         <p className="empty-message">No papers matching search criteria.</p>
       </div>
@@ -150,6 +152,7 @@ const PaperStatus = ({ sacConsoleData }) => {
         tableRows={paperStatusTabData.tableRows}
         selectedNoteIds={selectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
+        reviewRatingName={reviewRatingName}
       />
       <Table
         className="console-table table-striped pc-console-paper-status"

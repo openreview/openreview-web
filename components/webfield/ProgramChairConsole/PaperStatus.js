@@ -101,7 +101,8 @@ const PaperRow = ({
 const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
-  const { venueId, areaChairsId, assignmentUrls } = useContext(WebFieldContext)
+  const { venueId, areaChairsId, assignmentUrls, reviewRatingName } =
+    useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
   const pageSize = 25
@@ -178,6 +179,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
           tableRows={paperStatusTabData.tableRows}
           selectedNoteIds={selectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
+          reviewRatingName={reviewRatingName}
         />
         <p className="empty-message">No papers matching search criteria.</p>
       </div>
@@ -189,6 +191,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
         tableRows={paperStatusTabData.tableRows}
         selectedNoteIds={selectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
+        reviewRatingName={reviewRatingName}
       />
       <Table
         className="console-table table-striped pc-console-paper-status"
