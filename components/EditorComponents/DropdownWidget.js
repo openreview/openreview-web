@@ -3,6 +3,7 @@ import Dropdown from '../Dropdown'
 import EditorComponentContext from '../EditorComponentContext'
 import { prettyField, prettyId } from '../../lib/utils'
 import { convertToType } from '../../lib/webfield-utils'
+
 import styles from '../../styles/components/DropdownWidget.module.scss'
 
 const DropdownWidget = () => {

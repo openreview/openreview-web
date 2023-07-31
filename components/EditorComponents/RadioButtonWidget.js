@@ -1,12 +1,11 @@
 import { useContext, useEffect, useState } from 'react'
 import EditorComponentContext from '../EditorComponentContext'
-
-import styles from '../../styles/components/RadioButtonWidget.module.scss'
 import { convertToType } from '../../lib/webfield-utils'
 
+import styles from '../../styles/components/RadioButtonWidget.module.scss'
+
 const RadioButtonWidget = () => {
-  const { field, onChange, value, isWebfield, clearError, note } =
-    useContext(EditorComponentContext)
+  const { field, onChange, value, clearError, note } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const dataType = field[fieldName]?.value?.param?.type
   const [radioButtonOptions, setRadioButtonOptions] = useState([])

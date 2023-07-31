@@ -1,10 +1,11 @@
 import { useContext, useEffect, useState } from 'react'
 import isNil from 'lodash/isNil'
 import EditorComponentContext from '../EditorComponentContext'
-import styles from '../../styles/components/TextboxWidget.module.scss'
+import useUser from '../../hooks/useUser'
 import { convertToType, getFieldConstValue } from '../../lib/webfield-utils'
 import { getAutoStorageKey } from '../../lib/utils'
-import useUser from '../../hooks/useUser'
+
+import styles from '../../styles/components/TextboxWidget.module.scss'
 
 const TextboxWidget = () => {
   const { field, onChange, value, error, clearError, note, replyToNote, invitation } =

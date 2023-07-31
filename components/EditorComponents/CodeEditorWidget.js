@@ -1,8 +1,9 @@
 import { useContext, useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import EditorComponentContext from '../EditorComponentContext'
-import styles from '../../styles/components/CodeEditorWidget.module.scss'
 import LoadingSpinner from '../LoadingSpinner'
+
+import styles from '../../styles/components/CodeEditorWidget.module.scss'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'), {
   loading: () => <LoadingSpinner inline />,

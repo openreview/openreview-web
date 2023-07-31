@@ -2,8 +2,8 @@
 
 import React, { useContext, useState, useEffect } from 'react'
 import { maxBy } from 'lodash'
-import IconButton from '../IconButton'
 import EditorComponentContext from '../EditorComponentContext'
+import IconButton from '../IconButton'
 import LoadingSpinner from '../LoadingSpinner'
 import PaginationLinks from '../PaginationLinks'
 import SpinnerButton from '../SpinnerButton'

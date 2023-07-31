@@ -4,10 +4,10 @@ import { useContext, useRef, useState } from 'react'
 import { nanoid } from 'nanoid'
 import EditorComponentContext from '../EditorComponentContext'
 import SpinnerButton from '../SpinnerButton'
-import { prettyField } from '../../lib/utils'
-import api from '../../lib/api-client'
-import useUser from '../../hooks/useUser'
 import { TrashButton } from '../IconButton'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { prettyField } from '../../lib/utils'
 
 import styles from '../../styles/components/FileUploadWidget.module.scss'
 
