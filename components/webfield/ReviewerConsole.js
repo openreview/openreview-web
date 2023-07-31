@@ -159,9 +159,11 @@ const AssignedPaperRow = ({
   const currentTagObj = paperRankingTags?.find((p) => p.forum === note.forum)
   const anonGroupId = paperNumberAnonGroupIdMap[note.number]
   const areaChairId = areaChairMap[note.number]
-  const paperRatingValue = isV2Note
-    ? officialReview?.content?.[reviewRatingName]?.value
-    : officialReview?.content?.[reviewRatingName]
+  const paperRatingValues = isV2Note
+    ? (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+        (ratingName) => ({ [ratingName]: officialReview?.content?.[ratingName]?.value })
+      )
+    : [{ rating: officialReview?.content?.[reviewRatingName] }]
   const review = isV2Note
     ? officialReview?.content?.review?.value
     : officialReview?.content?.review
@@ -183,7 +185,7 @@ const AssignedPaperRow = ({
               ? `/forum?id=${note.forum}&noteId=${officialReview.id}&referrer=${referrerUrl}`
               : null
           }
-          paperRating={paperRatingValue}
+          paperRatings={paperRatingValues}
           review={review}
           invitationUrl={
             officialReviewInvitation
