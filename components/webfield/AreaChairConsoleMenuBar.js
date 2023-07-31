@@ -11,6 +11,7 @@ const AreaChairConsoleMenuBar = ({
   enableQuerySearch,
   filterOperators: filterOperatorsConfig,
   propertiesAllowed: propertiesAllowedConfig,
+  reviewRatingName,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
   const propertiesAllowed = propertiesAllowedConfig ?? {
@@ -22,9 +23,15 @@ const AreaChairConsoleMenuBar = ({
     reviewer: ['reviewers'],
     numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
     numReviewsDone: ['reviewProgressData.numReviewsDone'],
-    ratingAvg: ['reviewProgressData.ratingAvg'],
-    ratingMax: ['reviewProgressData.ratingMax'],
-    ratingMin: ['reviewProgressData.ratingMin'],
+    ...Object.fromEntries(
+      (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
+        (ratingName) => [
+          [`${ratingName}Avg`, [`reviewProgressData.ratings.${ratingName}.ratingAvg`]],
+          [`${ratingName}Max`, [`reviewProgressData.ratings.${ratingName}.ratingMax`]],
+          [`${ratingName}Min`, [`reviewProgressData.ratings.${ratingName}.ratingMin`]],
+        ]
+      )
+    ),
     confidenceAvg: ['reviewProgressData.confidenceAvg'],
     confidenceMax: ['reviewProgressData.confidenceMax'],
     confidenceMin: ['reviewProgressData.confidenceMin'],
@@ -68,9 +75,22 @@ const AreaChairConsoleMenuBar = ({
       getValue: (p) =>
         p.reviewers.map((q) => `${q.preferredName}<${q.preferredEmail}>`).join(','),
     },
-    { header: 'min rating', getValue: (p) => p.reviewProgressData?.ratingMin },
-    { header: 'max rating', getValue: (p) => p.reviewProgressData?.ratingMax },
-    { header: 'average rating', getValue: (p) => p.reviewProgressData?.ratingAvg },
+    ...(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
+      (ratingName) => [
+        {
+          header: `min ${ratingName}`,
+          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingMin,
+        },
+        {
+          header: `max ${ratingName}`,
+          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingMax,
+        },
+        {
+          header: `average ${ratingName}`,
+          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg,
+        },
+      ]
+    ),
     { header: 'min confidence', getValue: (p) => p.reviewProgressData?.confidenceMin },
     { header: 'max confidence', getValue: (p) => p.reviewProgressData?.confidenceMax },
     { header: 'average confidence', getValue: (p) => p.reviewProgressData?.confidenceAvg },
@@ -100,24 +120,34 @@ const AreaChairConsoleMenuBar = ({
         (p.reviewProgressData?.numReviewersAssigned ?? 0) -
         (p.reviewProgressData?.numReviewsDone ?? 0),
     },
-    {
-      label: 'Average Rating',
-      value: 'Average Rating',
-      getValue: (p) =>
-        p.reviewProgressData?.ratingAvg === 'N/A' ? 0 : p.reviewProgressData?.ratingAvg,
-    },
-    {
-      label: 'Max Rating',
-      value: 'Max Rating',
-      getValue: (p) =>
-        p.reviewProgressData?.ratingMax === 'N/A' ? 0 : p.reviewProgressData?.ratingMax,
-    },
-    {
-      label: 'Min Rating',
-      value: 'Min Rating',
-      getValue: (p) =>
-        p.reviewProgressData?.ratingMin === 'N/A' ? 0 : p.reviewProgressData?.ratingMin,
-    },
+    ...(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
+      (ratingName) => [
+        {
+          label: `Average ${ratingName}`,
+          value: `Average ${ratingName}`,
+          getValue: (p) =>
+            p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg === 'N/A'
+              ? 0
+              : p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg,
+        },
+        {
+          label: `Max ${ratingName}`,
+          value: `Max ${ratingName}`,
+          getValue: (p) =>
+            p.reviewProgressData?.ratings?.[ratingName]?.ratingMax === 'N/A'
+              ? 0
+              : p.reviewProgressData?.ratings?.[ratingName]?.ratingMax,
+        },
+        {
+          label: `Min ${ratingName}`,
+          value: `Min ${ratingName}`,
+          getValue: (p) =>
+            p.reviewProgressData?.ratings?.[ratingName]?.ratingMin === 'N/A'
+              ? 0
+              : p.reviewProgressData?.ratings?.[ratingName]?.ratingMin,
+        },
+      ]
+    ),
     {
       label: 'Average Confidence',
       value: 'Average Confidence',

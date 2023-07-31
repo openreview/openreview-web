@@ -2,7 +2,8 @@
 
 // modified from noteReviewStatus.hbs handlebar template
 import Link from 'next/link'
-import { useState } from 'react'
+import React, { useContext, useState } from 'react'
+import upperFirst from 'lodash/upperFirst'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import BasicModal from '../BasicModal'
@@ -10,19 +11,30 @@ import Collapse from '../Collapse'
 import ErrorAlert from '../ErrorAlert'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
+import WebFieldContext from '../WebFieldContext'
 
 // modified from noteReviewStatus.hbs handlebar template
 export const ReviewerConsoleNoteReviewStatus = ({
   editUrl,
-  paperRating,
+  paperRatings,
   review,
   invitationUrl,
 }) => (
   <div>
     {editUrl ? (
       <>
-        <h4>Your Ratings:</h4>
-        <p>{paperRating}</p>
+        {/* <h4>Your Ratings:</h4>
+        <p>{paperRating}</p> */}
+        {paperRatings.map((rating, index) => {
+          const ratingName = Object.keys(rating)[0]
+          const ratingValue = rating[ratingName]
+          return (
+            <div key={index}>
+              <h4>{upperFirst(ratingName)}:</h4>
+              <p>{ratingValue}</p>
+            </div>
+          )
+        })}
         <h4>Your Review:</h4>
         <p>{review}</p>
         <p>
@@ -193,12 +205,13 @@ export const AcPcConsoleReviewerStatusRow = ({
   referrerUrl,
   shortPhrase,
   submissionName,
+  reviewRatingName,
   showRatingConfidence = true,
   showActivity = true,
 }) => {
   const [updateLastSent, setUpdateLastSent] = useState(true)
   const completedReview = officialReviews.find((p) => p.anonymousId === reviewer.anonymousId)
-  const hasRating = completedReview?.rating !== null
+  // const hasRating = completedReview?.rating !== null
   const hasConfidence = completedReview?.confidence !== null
   const lastReminderSent = localStorage.getItem(
     `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}|${reviewer.reviewerProfileId}`
@@ -221,8 +234,14 @@ export const AcPcConsoleReviewerStatusRow = ({
           <>
             {showRatingConfidence && (
               <div>
-                {hasRating && `Rating: ${completedReview.rating}${hasConfidence ? ' / ' : ''}`}
-                {hasConfidence && `Confidence: ${completedReview.confidence}`}
+                {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName])
+                  .flatMap((ratingName, index) => {
+                    const rating = completedReview[ratingName]
+                    if (rating !== null) return `${upperFirst(ratingName)}: ${rating}`
+                    return []
+                  })
+                  .join(' / ')}
+                {hasConfidence && ` / Confidence: ${completedReview.confidence}`}
               </div>
             )}
             {completedReview.reviewLength && (
@@ -304,13 +323,15 @@ export const AcPcConsoleNoteReviewStatus = ({
   reviewerAssignmentUrl,
 }) => {
   const { officialReviews, reviewers, note } = rowData
+  const { reviewRatingName } = useContext(WebFieldContext)
   const {
     numReviewsDone,
     numReviewersAssigned,
     replyCount,
-    ratingMax,
-    ratingMin,
-    ratingAvg,
+    // ratingMax,
+    // ratingMin,
+    // ratingAvg,
+    ratings,
     confidenceMax,
     confidenceMin,
     confidenceAvg,
@@ -342,13 +363,22 @@ export const AcPcConsoleNoteReviewStatus = ({
               referrerUrl={referrerUrl}
               shortPhrase={shortPhrase}
               submissionName={submissionName}
+              reviewRatingName={reviewRatingName}
             />
           ))}
         </div>
       </Collapse>
-      <span>
-        <strong>Average Rating:</strong> {ratingAvg} (Min: {ratingMin}, Max: {ratingMax})
-      </span>
+      {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+        (ratingName, index) => {
+          const { ratingAvg, ratingMin, ratingMax } = ratings[ratingName]
+          return (
+            <span key={index}>
+              <strong>Average {upperFirst(ratingName)}:</strong> {ratingAvg} (Min: {ratingMin},
+              Max: {ratingMax})
+            </span>
+          )
+        }
+      )}
       <span>
         <strong>Average Confidence:</strong> {confidenceAvg} (Min: {confidenceMin}, Max:{' '}
         {confidenceMax})
