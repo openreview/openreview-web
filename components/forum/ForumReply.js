@@ -23,7 +23,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
   const { user } = useUser()
   const newNoteEditor = useNewNoteEditor(activeInvitation?.domain || activeEditInvitation?.domain)
 
-  const { invitations, content, signatures, ddate } = note
+  const { invitations, signatures, content, ddate } = note
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allChildIds = replies.reduce(
     (acc, reply) =>
@@ -349,7 +349,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
 
       <NoteContentCollapsible
         id={note.id}
-        content={note.content}
+        content={content}
         presentation={note.details?.presentation}
         noteReaders={note.readers}
         contentExpanded={contentExpanded}
