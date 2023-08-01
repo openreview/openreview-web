@@ -1736,7 +1736,9 @@ module.exports = (function () {
           done($readers)
         }
       )
-    } else if (
+    }
+    //#region
+    else if (
       (_.has(fieldDescription, 'param') && _.has(fieldDescription, 'const')) ||
       Array.isArray(fieldDescription)
     ) {
@@ -1781,6 +1783,7 @@ module.exports = (function () {
       $readers.find('.small_heading').prepend(requiredText)
       done($readers)
     }
+    //#endregion
   }
 
   function buildSignatures(fieldDescription, fieldValue, user, headingText = 'signatures') {
@@ -2337,7 +2340,8 @@ module.exports = (function () {
     // content fields
     Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
       if (
-        formData?.[contentFieldName] === undefined &&
+        (formData?.[contentFieldName] === undefined ||
+          formData?.[contentFieldName]?.delete === true) &&
         noteObj?.content?.[contentFieldName] === undefined
       ) {
         // do not return field

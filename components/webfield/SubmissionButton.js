@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
+import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { prettyId, useNewNoteEditor } from '../../lib/utils'
 
 export default function SubmissionButton({
   invitationId,
@@ -13,6 +14,7 @@ export default function SubmissionButton({
   const [invitation, setInvitation] = useState(null)
   const [noteEditorOpen, setNoteEditorOpen] = useState(false)
   const { accessToken, userLoading } = useUser()
+  const newNoteEditor = useNewNoteEditor(invitation?.domain)
 
   const invitationPastDue =
     invitation?.duedate && invitation.duedate < Date.now() && !invitation?.details.writable
@@ -58,21 +60,31 @@ export default function SubmissionButton({
         </button>
       </div>
 
-      {noteEditorOpen && (
-        <NoteEditorForm
-          invitation={invitation}
-          onNoteCreated={(newNote) => {
-            toggleSubmissionForm()
-            onNoteCreated(newNote)
-          }}
-          onNoteCancelled={toggleSubmissionForm}
-          onError={(isLoadingError) => {
-            if (isLoadingError) {
+      {noteEditorOpen &&
+        (newNoteEditor ? (
+          <NoteEditor
+            invitation={invitation}
+            closeNoteEditor={toggleSubmissionForm}
+            onNoteCreated={(newNote) => {
+              onNoteCreated(newNote)
+            }}
+            className="panel"
+          />
+        ) : (
+          <NoteEditorForm
+            invitation={invitation}
+            onNoteCreated={(newNote) => {
               toggleSubmissionForm()
-            }
-          }}
-        />
-      )}
+              onNoteCreated(newNote)
+            }}
+            onNoteCancelled={toggleSubmissionForm}
+            onError={(isLoadingError) => {
+              if (isLoadingError) {
+                toggleSubmissionForm()
+              }
+            }}
+          />
+        ))}
     </>
   )
 }

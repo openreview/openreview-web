@@ -6,9 +6,10 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
 import escapeRegExp from 'lodash/escapeRegExp'
-
 import List from 'rc-virtual-list'
+
 import ForumNote from './ForumNote'
+import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
 import ChatEditorForm from './ChatEditorForm'
 import FilterForm from './FilterForm'
@@ -23,7 +24,7 @@ import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
-import { prettyInvitationId } from '../../lib/utils'
+import { prettyInvitationId, useNewNoteEditor } from '../../lib/utils'
 import {
   formatNote,
   getNoteInvitations,
@@ -71,6 +72,7 @@ export default function Forum({
 
   const { id, details } = parentNote
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
+  const newNoteEditor = useNewNoteEditor(details.invitation.domain)
 
   // Process forum views config
   let replyForumViews = null
@@ -290,17 +292,6 @@ export default function Forum({
         contentExpanded: newContentExpanded,
       },
     }))
-  }
-
-  const openNoteEditor = (invitation) => {
-    if (activeInvitation && activeInvitation.id !== invitation.id) {
-      promptError(
-        'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
-        { scrollToTop: false }
-      )
-    } else {
-      setActiveInvitation(activeInvitation ? null : invitation)
-    }
   }
 
   const scrollToElement = (selector) => {
@@ -781,32 +772,48 @@ export default function Forum({
                       activeInvitation?.id === invitation.id ? 'active' : ''
                     }`}
                     data-id={invitation.id}
-                    onClick={() => openNoteEditor(invitation)}
+                    onClick={() => setActiveInvitation(activeInvitation ? null : invitation)}
                   >
                     {prettyInvitationId(invitation.id)}
                   </button>
                 )
               })}
             </div>
-
-            <NoteEditorForm
-              forumId={id}
-              replyToId={id}
-              invitation={activeInvitation}
-              onNoteCreated={(note) => {
-                updateNote(note)
-                setActiveInvitation(null)
-                scrollToElement('#forum-replies')
-              }}
-              onNoteCancelled={() => {
-                setActiveInvitation(null)
-              }}
-              onError={(isLoadingError) => {
-                if (isLoadingError) {
+            {newNoteEditor ? (
+              <NoteEditor
+                replyToNote={parentNote}
+                invitation={activeInvitation}
+                className="note-editor-reply depth-even"
+                closeNoteEditor={() => {
                   setActiveInvitation(null)
-                }
-              }}
-            />
+                }}
+                onNoteCreated={(note) => {
+                  updateNote(note)
+                  setActiveInvitation(null)
+                  scrollToElement('#forum-replies')
+                }}
+                isDirectReplyToForum={true}
+              />
+            ) : (
+              <NoteEditorForm
+                forumId={id}
+                replyToId={id}
+                invitation={activeInvitation}
+                onNoteCreated={(note) => {
+                  updateNote(note)
+                  setActiveInvitation(null)
+                  scrollToElement('#forum-replies')
+                }}
+                onNoteCancelled={() => {
+                  setActiveInvitation(null)
+                }}
+                onError={(isLoadingError) => {
+                  if (isLoadingError) {
+                    setActiveInvitation(null)
+                  }
+                }}
+              />
+            )}
           </div>
         )}
 
@@ -883,7 +890,7 @@ export default function Forum({
                       activeInvitation?.id === invitation.id ? 'active' : ''
                     }`}
                     data-id={invitation.id}
-                    onClick={() => openNoteEditor(invitation)}
+                    onClick={() => setActiveInvitation(activeInvitation ? null : invitation)}
                   >
                     {prettyInvitationId(invitation.id)}
                   </button>

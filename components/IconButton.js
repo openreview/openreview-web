@@ -15,6 +15,7 @@ const IconButton = ({
     onClick={onClick}
     title={disableReason ?? title}
     disabled={disableButton}
+    aria-label={name}
   >
     <Icon name={name} extraClasses={extraClasses} /> {text}
   </button>

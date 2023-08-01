@@ -10,12 +10,14 @@ import SpinnerButton from '../SpinnerButton'
 import Markdown from '../EditorComponents/Markdown'
 import { ReadOnlyField, ReadOnlyFieldV2 } from '../EditorComponents/ReadOnlyField'
 import VenueHeader from './VenueHeader'
-import { WebfieldWidget, WebfieldWidgetV2 } from './WebfieldWidget'
+import EditorWidget from './EditorWidget'
 import EditorComponentContext from '../EditorComponentContext'
 import WebFieldContext from '../WebFieldContext'
 import { translateInvitationMessage } from '../../lib/webfield-utils'
 
 import styles from '../../styles/components/RecruitmentForm.module.scss'
+import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
+import RecruitmentFormWidget from '../EditorComponents/RecruitmentFormWidget'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
 
@@ -175,31 +177,24 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
 
   const renderField = (fieldToRender) => {
     if (['reduced_load', 'comment'].includes(fieldToRender)) {
-      return isV2Invitation ? (
+      return (
         <EditorComponentContext.Provider
           key={fieldToRender}
           value={{
-            field: { [fieldToRender]: invitation.edit?.note?.content?.[fieldToRender] },
+            field: {
+              [fieldToRender]: isV2Invitation
+                ? invitation.edit?.note?.content?.[fieldToRender]
+                : invitation.reply?.content?.[fieldToRender],
+            },
             onChange: ({ fieldName, value }) => setFormData({ fieldName, value }),
             value: formData[fieldToRender],
             key: fieldToRender,
             isWebfield: true,
           }}
         >
-          <WebfieldWidgetV2 />
-        </EditorComponentContext.Provider>
-      ) : (
-        <EditorComponentContext.Provider
-          key={fieldToRender}
-          value={{
-            field: { [fieldToRender]: invitation.reply?.content?.[fieldToRender] },
-            onChange: ({ fieldName, value }) => setFormData({ fieldName, value }),
-            value: formData[fieldToRender],
-            key: fieldToRender,
-            isWebfield: true,
-          }}
-        >
-          <WebfieldWidget />
+          <EditorComponentHeader>
+            {isV2Invitation ? <EditorWidget /> : <RecruitmentFormWidget />}
+          </EditorComponentHeader>
         </EditorComponentContext.Provider>
       )
     }
@@ -231,11 +226,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
         {hasCommentField && (
           <>
             {renderField('comment')}
-            <SubmitButton
-              fieldRequired={formData.comment}
-              onSubmit={onSubmit}
-              isSaving={isSaving}
-            />
+            <SubmitButton fieldRequired={true} onSubmit={onSubmit} isSaving={isSaving} />
           </>
         )}
       </div>
@@ -398,9 +389,7 @@ const RecruitmentForm = () => {
     <>
       <VenueHeader headerInfo={header} />
 
-      <div className="note_editor">
-        {renderDecision()}
-      </div>
+      <div className="note_editor">{renderDecision()}</div>
     </>
   )
 }

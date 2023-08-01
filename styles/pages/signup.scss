@@ -61,6 +61,11 @@ main.sign-up {
       .password-row,
       .claim-button-row {
         padding-top: 0.5rem;
+        white-space: nowrap;
+
+        button {
+          width: auto;
+        }
       }
       .submissions-list {
         margin-top: -0.5rem;

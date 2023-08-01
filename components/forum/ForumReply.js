@@ -7,24 +7,21 @@ import Link from 'next/link'
 import copy from 'copy-to-clipboard'
 import truncate from 'lodash/truncate'
 import { NoteContentV2 } from '../NoteContent'
+import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
 import ForumReplyContext from './ForumReplyContext'
-import useUser from '../../hooks/useUser'
-import { prettyId, prettyInvitationId, forumDate, buildNoteTitle } from '../../lib/utils'
-import { getInvitationColors } from '../../lib/forum-utils'
 import Icon from '../Icon'
+import useUser from '../../hooks/useUser'
+import { prettyId, prettyInvitationId, forumDate, buildNoteTitle, useNewNoteEditor } from '../../lib/utils'
+import { getInvitationColors } from '../../lib/forum-utils'
 
 export default function ForumReply({ note, replies, replyDepth, parentId, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
-  const {
-    displayOptionsMap,
-    nesting,
-    excludedInvitations,
-    setCollapsed,
-    setContentExpanded,
-  } = useContext(ForumReplyContext)
+  const { displayOptionsMap, nesting, excludedInvitations, setCollapsed, setContentExpanded } =
+    useContext(ForumReplyContext)
   const { user } = useUser()
+  const newNoteEditor = useNewNoteEditor(activeInvitation?.domain || activeEditInvitation?.domain)
 
   const { invitations, signatures, content, ddate } = note
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
@@ -55,20 +52,11 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
   }
 
   const openNoteEditor = (invitation, type) => {
-    if (
-      (activeInvitation && activeInvitation.id !== invitation.id) ||
-      (activeEditInvitation && activeEditInvitation.id !== invitation.id)
-    ) {
-      promptError(
-        'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
-        { scrollToTop: false }
-      )
-      return
-    }
-
     if (type === 'reply') {
       setActiveInvitation(activeInvitation ? null : invitation)
+      setActiveEditInvitation(null)
     } else if (type === 'edit') {
+      setActiveInvitation(null)
       setActiveEditInvitation(activeInvitation ? null : invitation)
     }
   }
@@ -122,28 +110,41 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         setContentExpanded={setContentExpanded}
         replyDepth={replyDepth}
       >
-        <NoteEditorForm
-          note={note}
-          invitation={activeEditInvitation}
-          onLoad={() => {
-            scrollToNote(note.id)
-          }}
-          onNoteEdited={(newNote) => {
-            updateNote(newNote)
-            setActiveEditInvitation(null)
-            scrollToNote(newNote.id)
-          }}
-          onNoteCancelled={() => {
-            setActiveEditInvitation(null)
-            scrollToNote(note.id)
-          }}
-          onError={(isLoadingError) => {
-            if (isLoadingError) {
+        {newNoteEditor ? (
+          <NoteEditor
+            invitation={activeEditInvitation}
+            note={note}
+            className={`note-editor-edit depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
+            closeNoteEditor={() => setActiveEditInvitation(null)}
+            onNoteCreated={(newNote) => {
+              updateNote(newNote)
               setActiveEditInvitation(null)
-            }
-          }}
-        />
-
+              scrollToNote(newNote.id)
+            }}
+          />
+        ) : (
+          <NoteEditorForm
+            note={note}
+            invitation={activeEditInvitation}
+            onLoad={() => {
+              scrollToNote(note.id)
+            }}
+            onNoteEdited={(newNote) => {
+              updateNote(newNote)
+              setActiveEditInvitation(null)
+              scrollToNote(newNote.id)
+            }}
+            onNoteCancelled={() => {
+              setActiveEditInvitation(null)
+              scrollToNote(note.id)
+            }}
+            onError={(isLoadingError) => {
+              if (isLoadingError) {
+                setActiveEditInvitation(null)
+              }
+            }}
+          />
+        )}
         {!allRepliesHidden && (
           <>
             <hr />
@@ -377,28 +378,44 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
             })}
           </div>
 
-          <NoteEditorForm
-            forumId={note.forum}
-            invitation={activeInvitation}
-            replyToId={note.id}
-            onLoad={() => {
-              scrollToNote(note.id, true)
-            }}
-            onNoteCreated={(newNote) => {
-              updateNote(newNote)
-              setActiveInvitation(null)
-              scrollToNote(newNote.id)
-            }}
-            onNoteCancelled={() => {
-              setActiveInvitation(null)
-              scrollToNote(note.id)
-            }}
-            onError={(isLoadingError) => {
-              if (isLoadingError) {
+          {newNoteEditor ? (
+            <NoteEditor
+              invitation={activeInvitation}
+              replyToNote={note}
+              className={`note-editor-reply depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
+              closeNoteEditor={() => {
                 setActiveInvitation(null)
-              }
-            }}
-          />
+              }}
+              onNoteCreated={(newNote) => {
+                updateNote(newNote)
+                setActiveInvitation(null)
+                scrollToNote(newNote.id)
+              }}
+            />
+          ) : (
+            <NoteEditorForm
+              forumId={note.forum}
+              invitation={activeInvitation}
+              replyToId={note.id}
+              onLoad={() => {
+                scrollToNote(note.id, true)
+              }}
+              onNoteCreated={(newNote) => {
+                updateNote(newNote)
+                setActiveInvitation(null)
+                scrollToNote(newNote.id)
+              }}
+              onNoteCancelled={() => {
+                setActiveInvitation(null)
+                scrollToNote(note.id)
+              }}
+              onError={(isLoadingError) => {
+                if (isLoadingError) {
+                  setActiveInvitation(null)
+                }
+              }}
+            />
+          )}
         </div>
       )}
 
@@ -485,7 +502,12 @@ function CopyLinkButton({ forumId, noteId }) {
 
   return (
     <button type="button" className="btn btn-xs permalink-btn" onClick={copyNoteUrl}>
-      <Icon name="link" tooltip="Copy reply URL" />
+      <a
+        onClick={(e) => e.preventDefault()}
+        href={`${window.location.origin}${window.location.pathname}?id=${forumId}&noteId=${noteId}`}
+      >
+        <Icon name="link" tooltip="Copy reply URL" />
+      </a>
     </button>
   )
 }

@@ -18,16 +18,15 @@ const getTagTooltip = (id) => {
 }
 
 const Tag = ({ value }) => {
-  const segments = prettyId(value).split(/\{(\S+)\}/g)
+  const segments = prettyId(value).split(/\{(\S+\s*\S*)\}/g)
   const tooltip = getTagTooltip(value)
 
   useEffect(() => {
     if (!value) return
     $('[data-toggle="tooltip"]').tooltip()
   }, [value])
-
   return (
-    <span className={styles.value} title={tooltip} data-toggle="tooltip" data-placement="top">
+    <div className={styles.value} title={tooltip} data-toggle="tooltip" data-placement="top">
       {segments.map((segment, index) =>
         index % 2 !== 0 ? (
           <em key={index} className={styles.emphasis}>
@@ -37,7 +36,7 @@ const Tag = ({ value }) => {
           segment
         )
       )}
-    </span>
+    </div>
   )
 }
 
