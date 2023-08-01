@@ -1,0 +1,19 @@
+@use '../utils/constants';
+
+.checkboxContainer {
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
+  }
+}
+
+.checkboxOptionRow {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.25rem;
+}
+
+.optionDescription {
+  margin-left: 0.25rem;
+  font-weight: normal;
+}

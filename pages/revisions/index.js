@@ -7,6 +7,7 @@ import { useRouter } from 'next/router'
 import { truncate } from 'lodash'
 import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import NoteEditor from '../../components/NoteEditor'
 import ErrorAlert from '../../components/ErrorAlert'
 import Dropdown from '../../components/Dropdown'
 import Edit from '../../components/Edit/Edit'
@@ -14,7 +15,7 @@ import { EditButton, RestoreButton, TrashButton } from '../../components/IconBut
 import BasicModal from '../../components/BasicModal'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { buildNoteTitle, prettyId } from '../../lib/utils'
+import { buildNoteTitle, prettyId, useNewNoteEditor } from '../../lib/utils'
 import { forumLink } from '../../lib/banner-links'
 
 const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreEdit }) => {
@@ -112,6 +113,38 @@ const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreE
   )
 }
 
+const UpdateModal = ({ editInfo, setEditToChange, loadEdits }) => {
+  const [errorMessage, setErrorMessage] = useState(null)
+  const { edit, invitation } = editInfo ?? {}
+
+  if (!edit) return null
+
+  return (
+    <BasicModal id="update-modal" options={{ hideFooter: true, extraClasses: 'modal-lg' }}>
+      {errorMessage && <ErrorAlert error={{ message: errorMessage }} />}
+
+      <NoteEditor
+        note={edit?.note}
+        invitation={invitation}
+        closeNoteEditor={() => {
+          $('body').removeClass('modal-open')
+          $('.modal-backdrop').remove()
+          setEditToChange(null)
+        }}
+        onNoteCreated={() => {
+          setEditToChange(null)
+          promptMessage('Note updated successfully')
+          loadEdits()
+        }}
+        setErrorAlertMessage={(msg) => {
+          setErrorMessage(msg)
+          $('#update-modal').animate({ scrollTop: 0 }, 400)
+        }}
+      />
+    </BasicModal>
+  )
+}
+
 const RevisionsList = ({
   revisions,
   user,
@@ -123,6 +156,8 @@ const RevisionsList = ({
 }) => {
   const router = useRouter()
   const [editToDeleteRestore, setEditToDeleteRestore] = useState(null)
+  const [editToChange, setEditToChange] = useState(null)
+  const newNoteEditor = useNewNoteEditor(revisions?.[0]?.[1])
 
   const toggleSelected = (idx, checked) => {
     if (checked) {
@@ -304,6 +339,15 @@ const RevisionsList = ({
     }
   }, [editToDeleteRestore])
 
+  useEffect(() => {
+    if (editToChange) {
+      $('#update-modal').modal({ backdrop: 'static' })
+    } else {
+      $('#update-modal').modal('hide')
+      $('.modal-backdrop').remove()
+    }
+  }, [editToChange])
+
   if (!revisions) return <LoadingSpinner />
 
   return (
@@ -355,7 +399,11 @@ const RevisionsList = ({
                     invitation.edit !== true && (
                       <>
                         <EditButton
-                          onClick={() => editEdit(reference, invitation)}
+                          onClick={() =>
+                            newNoteEditor
+                              ? setEditToChange({ edit: reference, invitation })
+                              : editEdit(reference, invitation)
+                          }
                           disableButton={!isNoteWritable}
                           disableReason={
                             !isNoteWritable
@@ -393,6 +441,12 @@ const RevisionsList = ({
         user={user}
         accessToken={accessToken}
         deleteRestoreEdit={deleteRestoreEdit}
+      />
+
+      <UpdateModal
+        editInfo={editToChange}
+        setEditToChange={setEditToChange}
+        loadEdits={loadEdits}
       />
 
       {revisions.length === 0 && (

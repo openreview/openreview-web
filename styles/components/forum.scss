@@ -129,7 +129,8 @@ main.forum {
   }
 
   hr {
-    margin: 0.25rem 0;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .filters-container {
@@ -375,6 +376,27 @@ main.forum {
       padding: .5rem;
       padding-bottom: 0;
     }
+  }
+
+  .note-editor-reply {
+    border: 1px solid #eee;
+    margin-top: .5rem;
+    margin-bottom: 0;
+  }
+  .note-editor-reply.depth-odd {
+    background-color: constants.$backgroundWhite;
+  }
+  .note-editor-reply.depth-even {
+    background-color: $gray1;
+  }
+  .note-editor-edit {
+    padding: 0;
+  }
+  .note-editor-edit.depth-odd {
+    background-color: $gray1;
+  }
+  .note-editor-edit.depth-even {
+    background-color: constants.$backgroundWhite;
   }
 
   .note {

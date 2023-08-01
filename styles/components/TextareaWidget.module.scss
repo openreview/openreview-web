@@ -1,0 +1,54 @@
+@use '../utils/constants';
+
+.textAreaContainer {
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
+  }
+  display: flex;
+  :global {
+    .markdown-preview {
+      flex-grow: 1;
+      margin-top: 0;
+
+      .preview {
+        min-height: 15rem;
+        resize: vertical;
+        background-color: constants.$backgroundWhite;
+        padding: 0.375rem 0.75rem;
+        overflow-y: scroll;
+      }
+    }
+  }
+}
+
+.textarea {
+  min-height: 15rem;
+  resize: vertical;
+}
+
+.warningContainer {
+  display: flex;
+  max-width: 80%;
+  justify-content: space-between;
+}
+
+.charCounter {
+  margin-top: 0.25rem;
+  &.warning {
+    color: constants.$darkBlue;
+    font-weight: bold;
+  }
+  &.danger {
+    color: lighten(constants.$orRed, 20%);
+    font-weight: bold;
+  }
+}
+
+.invalidValue {
+  :global {
+    textarea {
+      border-color: constants.$orRed;
+    }
+  }
+}

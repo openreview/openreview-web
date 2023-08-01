@@ -1,0 +1,41 @@
+@use '../utils/constants';
+
+.fileUploadContainer {
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
+  }
+  :global {
+    input[type='file'] {
+      display: none;
+    }
+
+    .progress {
+      border-radius: 0;
+      margin-bottom: 0.5rem;
+      margin-top: 0.25rem;
+
+      .progress-bar {
+        background-color: constants.$orRed;
+      }
+    }
+
+    .btn-xs {
+      margin-left: 0.25rem;
+    }
+  }
+}
+
+.selectFileButton {
+  display: block;
+  margin-bottom: 0.25rem;
+
+  &.invalidValue {
+    border-color: constants.$orRed;
+    background-color: constants.$orRed;
+  }
+}
+
+.fileUrl {
+  font-size: 0.75rem;
+}

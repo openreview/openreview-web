@@ -1,0 +1,20 @@
+@use '../utils/constants';
+
+.radioButtonContainer {
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
+  }
+}
+
+.radioButtonOptionContainer {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.25rem;
+}
+
+.radioButtonOptionText {
+  margin-left: 0.25rem;
+  vertical-align: top;
+  font-weight: normal;
+}

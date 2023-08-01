@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { buildNoteTitle } from '../lib/utils'
 import UnlinkPublicationButton from './UnlinkPublicationButton'
+import { buildNoteTitle } from '../lib/utils'
 
 const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} }) => (
   <h4>

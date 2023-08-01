@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
-import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
+import { prettyId, prettyInvitationId, forumDate, useNewNoteEditor } from '../../lib/utils'
 
 function ForumNote({ note, updateNote }) {
   const {
@@ -27,6 +28,7 @@ function ForumNote({ note, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeNote, setActiveNote] = useState(null)
   const { user } = useUser()
+  const newNoteEditor = useNewNoteEditor(activeInvitation?.domain)
 
   const canShowIcon = (fieldName) => {
     if (!content[fieldName]?.value) return false
@@ -40,13 +42,6 @@ function ForumNote({ note, updateNote }) {
   }
 
   const openNoteEditor = (invitation, options) => {
-    if (activeInvitation && activeInvitation.id !== invitation.id) {
-      promptError(
-        'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
-        { scrollToTop: false }
-      )
-      return
-    }
     if (activeInvitation) {
       setActiveInvitation(null)
       setActiveNote(null)
@@ -78,20 +73,29 @@ function ForumNote({ note, updateNote }) {
   if (activeInvitation) {
     return (
       <div className="forum-note">
-        <NoteEditorForm
-          note={activeNote}
-          invitation={activeInvitation}
-          onNoteEdited={(newNote) => {
-            updateNote(newNote)
-            closeNoteEditor()
-          }}
-          onNoteCancelled={closeNoteEditor}
-          onError={(isLoadingError) => {
-            if (isLoadingError) {
-              setActiveInvitation(null)
-            }
-          }}
-        />
+        {newNoteEditor ? (
+          <NoteEditor
+            note={activeNote}
+            invitation={activeInvitation}
+            closeNoteEditor={closeNoteEditor}
+            onNoteCreated={(newNote) => updateNote(newNote)}
+          />
+        ) : (
+          <NoteEditorForm
+            note={activeNote}
+            invitation={activeInvitation}
+            onNoteEdited={(newNote) => {
+              updateNote(newNote)
+              closeNoteEditor()
+            }}
+            onNoteCancelled={closeNoteEditor}
+            onError={(isLoadingError) => {
+              if (isLoadingError) {
+                setActiveInvitation(null)
+              }
+            }}
+          />
+        )}
       </div>
     )
   }

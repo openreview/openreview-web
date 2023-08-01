@@ -7,12 +7,16 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
+import cloneDeep from 'lodash/cloneDeep'
+import isEmpty from 'lodash/isEmpty'
 import Table from '../../components/Table'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import Icon from '../../components/Icon'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import BasicModal from '../../components/BasicModal'
 import NoteContent from '../../components/NoteContent'
+import ErrorAlert from '../../components/ErrorAlert'
+import NoteEditor from '../../components/NoteEditor'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
@@ -22,6 +26,7 @@ import {
   formatDateTime,
   cloneAssignmentConfigNote,
   cloneAssignmentConfigNoteV2,
+  useNewNoteEditor,
 } from '../../lib/utils'
 import { getNoteContentValues } from '../../lib/forum-utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
@@ -89,9 +94,7 @@ const AssignmentRow = ({
       <td>
         {['Error', 'No Solution', 'Deployment Error'].includes(status) ? (
           <>
-            <strong>
-              {status}
-            </strong>
+            <strong>{status}</strong>
             <br />
             <a
               tabIndex="0"
@@ -190,6 +193,83 @@ const AssignmentRow = ({
   )
 }
 
+const NewNoteEditorModal = ({
+  editorNote,
+  setEditorNote,
+  configInvitation,
+  assignmentNotes,
+  getAssignmentNotes,
+}) => {
+  const [errorMessage, setErrorMessage] = useState(null)
+
+  const invitationWithHiddenFields = cloneDeep(configInvitation)
+  const fieldsToHide = [
+    'config_invitation',
+    'assignment_invitation',
+    'error_message',
+    'status',
+  ]
+  fieldsToHide.forEach((p) => {
+    const fieldDescription = invitationWithHiddenFields?.edit?.note?.content?.[p]?.value?.param
+    if (fieldDescription) {
+      fieldDescription.hidden = true
+    }
+  })
+
+  const closeModal = () => {
+    $('#new-note-editor-modal').modal('hide')
+    $('.modal-backdrop').remove()
+  }
+
+  const validator = (formData) => {
+    const noteWithMatchingTitle = assignmentNotes.find(
+      (p) =>
+        p.content.title.value === formData.title && (!editorNote || p.id !== editorNote.id)
+    )
+    if (noteWithMatchingTitle) {
+      return {
+        isValid: false,
+        errorMessage: 'The configuration title must be unique within the conference',
+      }
+    }
+    return { isValid: true }
+  }
+
+  if (!configInvitation) return null
+
+  return (
+    <BasicModal
+      id="new-note-editor-modal"
+      options={{ hideFooter: true, extraClasses: 'modal-lg' }}
+      onClose={() => {
+        setEditorNote(null)
+        setErrorMessage(null)
+      }}
+    >
+      {errorMessage && <ErrorAlert error={{ message: errorMessage }} />}
+
+      <NoteEditor
+        key={editorNote?.content?.title?.value || 'new-note'}
+        note={editorNote}
+        invitation={invitationWithHiddenFields}
+        closeNoteEditor={() => {
+          closeModal()
+        }}
+        onNoteCreated={() => {
+          closeModal()
+          promptMessage('Note updated successfully')
+          getAssignmentNotes()
+        }}
+        setErrorAlertMessage={(msg) => {
+          setErrorMessage(msg)
+          $('#new-note-editor-modal').animate({ scrollTop: 0 }, 400)
+        }}
+        customValidator={validator}
+      />
+    </BasicModal>
+  )
+}
+
 const Assignments = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
   const [configInvitation, setConfigInvitation] = useState(null)
@@ -197,8 +277,10 @@ const Assignments = ({ appContext }) => {
   const [apiVersion, setApiVersion] = useState(null)
   const [error, setError] = useState(null)
   const [viewModalContent, setViewModalContent] = useState(null)
+  const [editorNote, setEditorNote] = useState(null)
   const query = useQuery()
   const { setBannerContent } = appContext
+  const newNoteEditor = useNewNoteEditor(configInvitation?.domain)
 
   const shouldRemoveDeployLink = assignmentNotes?.some(
     (p) => p?.content?.status === 'Deployed'
@@ -307,6 +389,12 @@ const Assignments = ({ appContext }) => {
   const handleNewConfiguration = () => {
     if (!configInvitation) return
 
+    if (newNoteEditor) {
+      setEditorNote(null)
+      $('#new-note-editor-modal').modal({ backdrop: 'static' })
+      return
+    }
+
     $('#note-editor-modal').remove()
     $('main').append(
       Handlebars.templates.genericModal({
@@ -316,7 +404,6 @@ const Assignments = ({ appContext }) => {
         showFooter: false,
       })
     )
-
     $('#note-editor-modal').modal('show')
     const editorFunc = apiVersion === 2 ? view2.mkNewNoteEditor : view.mkNewNoteEditor
     editorFunc(configInvitation, null, null, null, {
@@ -331,29 +418,43 @@ const Assignments = ({ appContext }) => {
   const handleEditConfiguration = (note, version) => {
     if (!configInvitation) return
 
-    $('#note-editor-modal').remove()
-    $('main').append(
-      Handlebars.templates.genericModal({
-        id: 'note-editor-modal',
-        extraClasses: 'modal-lg',
-        showHeader: false,
-        showFooter: false,
-      })
-    )
-    $('#note-editor-modal').modal('show')
+    if (newNoteEditor) {
+      setEditorNote(note)
+      $('#new-note-editor-modal').modal({ backdrop: 'static' })
+      return
+    }
 
-    const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
-    editorFunc(note, configInvitation, null, {
-      onNoteEdited: hideEditorModal,
-      onNoteCancelled: hideEditorModal,
-      onError: showDialogErrorMessage,
-      onValidate: validateConfigNoteForm,
-      onCompleted: appendEditorToModal,
-    })
+    if (version === 1) {
+      $('#note-editor-modal').remove()
+      $('main').append(
+        Handlebars.templates.genericModal({
+          id: 'note-editor-modal',
+          extraClasses: 'modal-lg',
+          showHeader: false,
+          showFooter: false,
+        })
+      )
+      $('#note-editor-modal').modal('show')
+      const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
+      editorFunc(note, configInvitation, null, {
+        onNoteEdited: hideEditorModal,
+        onNoteCancelled: hideEditorModal,
+        onError: showDialogErrorMessage,
+        onValidate: validateConfigNoteForm,
+        onCompleted: appendEditorToModal,
+      })
+    }
   }
 
   const handleCloneConfiguration = (note, version) => {
     if (!configInvitation) return
+
+    if (newNoteEditor) {
+      const clone = cloneAssignmentConfigNoteV2(note)
+      setEditorNote(clone)
+      $('#new-note-editor-modal').modal({ backdrop: 'static' })
+      return
+    }
 
     $('#note-editor-modal').remove()
     $('main').append(
@@ -534,6 +635,14 @@ const Assignments = ({ appContext }) => {
           <LoadingSpinner inline />
         )}
       </BasicModal>
+
+      <NewNoteEditorModal
+        editorNote={editorNote}
+        configInvitation={configInvitation}
+        setEditorNote={setEditorNote}
+        assignmentNotes={assignmentNotes}
+        getAssignmentNotes={getAssignmentNotes}
+      />
     </>
   )
 }

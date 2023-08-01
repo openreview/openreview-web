@@ -230,6 +230,13 @@ const AllSubmissionsTab = ({
     setImmediateSearchTerm(searchTerm)
   }, [searchTerm])
 
+  useEffect(
+    () => () => {
+      delaySearch.cancel()
+    },
+    [delaySearch]
+  )
+
   useEffect(() => {
     getProfilesSortedByAffinity()
   }, [])

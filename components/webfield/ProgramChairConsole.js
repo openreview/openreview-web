@@ -13,6 +13,7 @@ import {
   getNumberFromGroup,
   getProfileName,
   prettyId,
+  parseNumberField,
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
@@ -510,21 +511,13 @@ const ProgramChairConsole = ({ appContext }) => {
 
       const officialReviews =
         pcConsoleData.officialReviewsByPaperNumberMap?.get(note.number)?.map((q) => {
-          const confidenceValue = q.content[reviewConfidenceName]?.value
-          const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
           const reviewValue = q.content.review?.value
           return {
             anonymousId: q.anonId,
-            confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
+            confidence: parseNumberField(q.content[reviewConfidenceName]?.value),
             ...Object.fromEntries(
               (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
-                (ratingName) => {
-                  const reviewRatingValue = q.content[ratingName]?.value
-                  const ratingNumber = reviewRatingValue
-                    ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
-                    : null
-                  return [[ratingName], ratingNumber ? parseInt(ratingNumber, 10) : null]
-                }
+                (ratingName) => [[ratingName], parseNumberField(q.content[ratingName]?.value)]
               )
             ),
             reviewLength: reviewValue?.length,

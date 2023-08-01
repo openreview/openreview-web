@@ -1,0 +1,138 @@
+@use '../utils/constants';
+
+.profileSearch {
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
+  }
+}
+
+.selectedAuthors {
+  display: flex;
+  flex-wrap: wrap;
+
+  .selectedAuthor {
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    background-color: constants.$borderGray;
+    margin-right: 0.25rem;
+    padding: 0.25rem 0.15rem 0.25rem 0.5rem;
+
+    .authorName > .authorNameLink {
+      font-style: italic;
+      color: constants.$darkBlue;
+      font-size: 1rem;
+      line-height: 1rem;
+      padding-right: 0.375rem;
+    }
+    .actionButtons {
+      display: flex;
+      flex-direction: column;
+      margin-right: 0.125rem;
+
+      button {
+        padding: 3px 5px;
+        border: none;
+        font-size: 12px;
+        line-height: 12px;
+        height: 20px;
+      }
+      button + button {
+        margin-top: .125rem;
+      }
+    }
+  }
+  .authorSeparator {
+    margin-right: 0.5rem;
+    align-self: end;
+    font-size: 1rem;
+  }
+}
+
+.searchForm {
+  display: flex;
+  margin-bottom: 0.5rem;
+
+  button {
+    margin-left: 0.25rem;
+  }
+}
+
+.noMatchingProfile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .noMatchingProfileMessage {
+    margin-bottom: 0.5rem;
+  }
+
+  .customAuthorForm {
+    display: flex;
+    margin-top: 0.25rem;
+    width: 100%;
+
+    .enterAuthorButton {
+      width: fit-content;
+    }
+
+    label {
+      white-space: nowrap;
+      margin-right: 0.25rem;
+      align-self: center;
+    }
+
+    input {
+      margin-right: 0.25rem;
+    }
+  }
+}
+
+.searchResultRow {
+  display: flex;
+  margin-bottom: 0.25rem;
+
+  .basicInfo {
+    display: flex;
+    flex: 3 1;
+    flex-direction: column;
+
+    .authorFullName {
+      font-style: italic;
+      .nameSegment {
+        color: black;
+      }
+      .idSegment {
+        color: constants.$lightGray;
+      }
+    }
+
+    .authorTitle {
+      font-size: 0.75rem;
+      color: constants.$subtleGray;
+    }
+  }
+
+  .authorEmails {
+    display: flex;
+    flex: 1 1;
+    flex-direction: column;
+    align-self: center;
+    font-size: 0.75rem;
+  }
+
+  .addButton {
+    height: fit-content;
+    align-self: center;
+    margin-left: 0.25rem;
+  }
+}
+
+input.invalidValue {
+  border-color: constants.$orRed;
+}
+button.invalidValue {
+  border-color: constants.$orRed;
+  background-color: constants.$orRedLight;
+}
