@@ -192,7 +192,7 @@ function ForumNote({ note, updateNote }) {
           note.invitations[0].split('/-/')[1].includes('Submission') ? note.number : null
         }
         presentation={details.presentation}
-        noteReaders={note.readers}
+        noteReaders={note.sortedReaders}
       />
     </div>
   )
@@ -253,7 +253,7 @@ function ForumMeta({ note }) {
           className="readers item"
           data-toggle="tooltip"
           data-placement="top"
-          title={`Visible to <br/>${note.readers.join('<br/>')}${
+          title={`Visible to <br/>${note.readers.join(',<br/>')}${
             note.odate ? `<br/>since ${forumDate(note.odate)}` : ''
           }`}
         >
