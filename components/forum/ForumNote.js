@@ -37,7 +37,8 @@ function ForumNote({ note, updateNote }) {
       ? content[fieldName].readers.sort()
       : null
     return (
-      !fieldReaders || (note.readers && fieldReaders.every((p, j) => p === note.readers[j]))
+      !fieldReaders ||
+      (note.sortedReaders && fieldReaders.every((p, j) => p === note.sortedReaders[j]))
     )
   }
 
