@@ -1,0 +1,17 @@
+@use '../utils/constants';
+
+.textboxContainer {
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
+  }
+}
+
+.textboxInput {
+  white-space: pre-wrap;
+  font-weight: 400;
+}
+
+.invalidValue {
+  border-color: constants.$orRed;
+}

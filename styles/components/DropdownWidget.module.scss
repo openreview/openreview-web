@@ -1,0 +1,14 @@
+@use '../utils/constants';
+
+.dropdownContainer {
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
+  }
+
+  :global {
+    .dropdown-select {
+      width: 100%;
+    }
+  }
+}

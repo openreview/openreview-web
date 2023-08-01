@@ -1,0 +1,76 @@
+@use '../utils/constants';
+
+.title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: constants.$orRed;
+  margin-top: 0;
+  margin-bottom: .25rem;
+}
+
+.requiredField {
+  font-weight: normal;
+  color: #cc2d2d;
+  padding-left: 0.125rem;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.description {
+  font-size: 0.75rem;
+  color: constants.$subtleGray;
+  font-weight: normal;
+  margin-bottom: 0.375rem;
+  max-width: 80%;
+
+  :global {
+    p {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.scrollDescription {
+  display: block;
+  width: 100%;
+  background-color: #eee;
+  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+  border: 2px solid lighten(constants.$mediumBlue, 10%);
+  border-radius: 0;
+  height: auto;
+  resize: vertical;
+}
+
+.inline {
+  display: flex;
+  align-items: baseline;
+
+  .title {
+    width: 20%;
+  }
+}
+
+.error {
+  color: constants.$orRed;
+  margin-top: .125rem;
+
+  .errorMessage {
+    margin-left: 0.25rem;
+    color: #cd2d2d;
+  }
+}
+
+.inlineError {
+  font-size: 0.875rem;
+  font-weight: normal;
+
+  .errorMessage {
+    margin-left: 0.25rem;
+  }
+}

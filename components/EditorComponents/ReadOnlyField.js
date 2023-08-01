@@ -5,6 +5,7 @@ export const ReadOnlyField = ({ field, value }) => {
   const fieldDescription = field[fieldName].description
   // eslint-disable-next-line prefer-destructuring
   const required = field[fieldName].required
+
   return (
     <div className="readonly-field">
       {required && <span className="required_field">*</span>}

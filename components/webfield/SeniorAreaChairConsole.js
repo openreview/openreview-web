@@ -16,6 +16,7 @@ import {
   getNumberFromGroup,
   getProfileName,
   prettyId,
+  parseNumberField,
 } from '../../lib/utils'
 import SeniorAreaChairTasks from './SeniorAreaChairConsole/SeniorAreaChairTasks'
 
@@ -246,24 +247,19 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 return p.invitations.includes(officialReviewInvitationId)
               })
               ?.map((review) => {
-                const confidenceValue = review.content[reviewConfidenceName]?.value
-                const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
                 const reviewValue = review.content.review?.value
                 return {
                   ...review,
                   anonymousId: getIndentifierFromGroup(review.signatures[0], anonReviewerName),
-                  confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
+                  confidence: parseNumberField(review.content[reviewConfidenceName]?.value),
                   ...Object.fromEntries(
                     (Array.isArray(reviewRatingName)
                       ? reviewRatingName
                       : [reviewRatingName]
-                    ).map((ratingName) => {
-                      const reviewRatingValue = review.content[ratingName]?.value
-                      const ratingNumber = reviewRatingValue
-                        ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
-                        : null
-                      return [[ratingName], ratingNumber ? parseInt(ratingNumber, 10) : null]
-                    })
+                    ).map((ratingName) => [
+                      [ratingName],
+                      parseNumberField(review.content[ratingName]?.value),
+                    ])
                   ),
                   reviewLength: reviewValue?.length,
                   forum: review.forum,

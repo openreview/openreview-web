@@ -1,0 +1,101 @@
+@use '../utils/constants';
+
+.noteEditor {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  margin-bottom: 1.875rem;
+
+  :global {
+    .dropdown-select {
+      width: 500px;
+      &__indicator-separator {
+        display: none;
+      }
+      @media #{constants.$phone-only} {
+        width: 100%;
+      }
+    }
+  }
+  & > div[class^="EditorComponentHeader_inline__"] {
+    margin-bottom: .875rem;
+  }
+  hr.titleSeparator {
+    margin-top: 0;
+    margin-bottom: .5rem;
+  }
+}
+
+.fieldContainer {
+  margin-bottom: 1.125rem;
+}
+
+.title {
+  font-weight: bold;
+  font-size: 1.375rem;
+  margin-top: 0;
+  margin-bottom: .5rem;
+}
+
+.requiredField {
+  font-size: 0.75rem;
+  color: constants.$orRed;
+  margin-bottom: 0.75rem;
+  span {
+    color: #cc2d2d;
+  }
+}
+
+.fieldReaders {
+  font-size: .75rem;
+  margin-top: .25rem;
+
+  :global {
+    span {
+      color: constants.$subtleGray;
+      padding-right: .25rem;
+    }
+    div[class^="TagsWidget_container__"] {
+      margin-top: 0;
+    }
+    div[class^="TagsWidget_value__"] {
+      padding: .125rem .25rem;
+    }
+  }
+}
+
+.responseButtons {
+  display: flex;
+  margin-top: .5rem;
+}
+
+.submitButton {
+  margin-right: 0.25rem;
+}
+
+.editReaderSignature {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 0.5rem;
+  padding-bottom: .25rem;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+
+  h2 {
+    font-size: 1rem;
+    line-height: normal;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+  hr {
+    margin-top: 0;
+    margin-bottom: .75rem;
+  }
+  & > div[class^="EditorComponentHeader_inline__"] {
+    margin-bottom: .875rem;
+  }
+}
+
+.invalidValue {
+  border-color: constants.$orRed;
+}

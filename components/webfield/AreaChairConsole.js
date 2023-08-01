@@ -19,6 +19,7 @@ import {
   prettyId,
   prettyList,
   inflect,
+  parseNumberField,
 } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
@@ -333,21 +334,16 @@ const AreaChairConsole = ({ appContext }) => {
           })
           ?.map((q) => {
             const anonymousId = getIndentifierFromGroup(q.signatures[0], anonReviewerName)
-            const confidenceValue = q.content[reviewConfidenceName]?.value
-            const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
             const reviewValue = q.content.review?.value
             return {
               anonymousId,
-              confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
+              confidence: parseNumberField(q.content[reviewConfidenceName]?.value),
               ...Object.fromEntries(
                 (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
-                  (ratingName) => {
-                    const reviewRatingValue = q.content[ratingName]?.value
-                    const ratingNumber = reviewRatingValue
-                      ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
-                      : null
-                    return [[ratingName], ratingNumber ? parseInt(ratingNumber, 10) : null]
-                  }
+                  (ratingName) => [
+                    [ratingName],
+                    parseNumberField(q.content[ratingName]?.value),
+                  ]
                 )
               ),
               reviewLength: reviewValue?.length,

@@ -65,20 +65,36 @@ main.assignments-list {
     }
   }
 
-  .modal-title {
-    margin: 0;
-  }
-  .modal-body {
-    h2 {
+  #note-editor-modal {
+    .modal-title {
       margin: 0;
     }
-    .note_editor {
-      .note_content_title {
-        font-size: 1.25rem;
-        line-height: normal;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
+    .modal-body {
+      h2 {
+        margin: 0;
+      }
+      .note_editor {
+        .note_content_title {
+          font-size: 1.25rem;
+          line-height: normal;
+          font-weight: bold;
+          margin-bottom: 0.5rem;
+        }
+      }
+
+      [class*='Container__'] {
+        max-width: 100%;
+      }
+
+      hr {
+        margin: 0.25rem 0;
       }
     }
+  }
+
+  #new-note-editor-modal .modal-body {
+    padding: 0;
+    margin-bottom: -1.875rem;
+    background-color: #f7f6f4;
   }
 }

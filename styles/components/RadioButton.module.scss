@@ -1,0 +1,35 @@
+@use '../utils/constants';
+
+.radioButton {
+  max-width: 80%;
+  margin-top: 1rem;
+  :global {
+    .title {
+      font-size: 1rem;
+      font-weight: bold;
+      color: constants.$orRed;
+    }
+
+    .description {
+      font-size: 0.75rem;
+      color: constants.$subtleGray;
+      font-weight: normal;
+
+      .scroll-description {
+        display: block;
+        width: 100%;
+        background-color: #eee;
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+        border: 2px solid lighten(constants.$mediumBlue, 10%);
+        border-radius: 0;
+        height: auto;
+        resize: vertical;
+      }
+    }
+
+    .content {
+      display: flex;
+    }
+  }
+}

@@ -1,8 +1,7 @@
-import ProfileListWithBidWidget from '../components/ProfileListWithBidWidget'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import ProfileListWithBidWidget from '../components/ProfileListWithBidWidget'
 import '@testing-library/jest-dom'
-import { render } from '@testing-library/react'
 
 describe('ProfileListWithBidWidget', () => {
   test('show only empty message if there are no profiles', () => {
@@ -11,7 +10,7 @@ describe('ProfileListWithBidWidget', () => {
       emptyMessage: 'some empty message',
     }
     render(<ProfileListWithBidWidget {...props} />)
-    expect(screen.getByText('some empty message'))
+    expect(screen.getByText('some empty message')).toBeInTheDocument()
     expect(screen.queryByRole('radio')).not.toBeInTheDocument()
   })
 
@@ -48,12 +47,12 @@ describe('ProfileListWithBidWidget', () => {
       'href',
       '/profile?id=~first_last1'
     )
-    expect(screen.getByText('student at umass amherst (umass.edu)'))
+    expect(screen.getByText('student at umass amherst (umass.edu)')).toBeInTheDocument()
     expect(screen.getByText('Expertise:').parentElement.textContent).toBe(
       'Expertise: nlp, machine learning, deep learning'
     )
     expect(screen.getAllByRole('radio').length).toEqual(5)
-    expect(screen.getByText('0.123'))
+    expect(screen.getByText('0.123')).toBeInTheDocument()
   })
 
   test('show preferred name in profile', () => {
@@ -74,7 +73,7 @@ describe('ProfileListWithBidWidget', () => {
 
     render(<ProfileListWithBidWidget {...props} />)
 
-    expect(screen.getByText('second name'))
+    expect(screen.getByText('second name')).toBeInTheDocument()
     expect(screen.queryByText('first1 last1')).not.toBeInTheDocument()
   })
 
@@ -104,7 +103,7 @@ describe('ProfileListWithBidWidget', () => {
 
     render(<ProfileListWithBidWidget {...props} />)
 
-    expect(screen.queryByText('umass amherst (umass.edu)'))
+    expect(screen.queryByText('umass amherst (umass.edu)')).toBeInTheDocument()
   })
 
   test('show latest history of a profile', () => {
@@ -203,9 +202,9 @@ describe('ProfileListWithBidWidget', () => {
 
     render(<ProfileListWithBidWidget {...props} />)
 
-    expect(screen.getByText('engineer at umass amherst (umass.edu)'))
-    expect(screen.getByText('professor at umass amherst (umass.edu)'))
-    expect(screen.getByText('cook at umass amherst (umass.edu)'))
+    expect(screen.getByText('engineer at umass amherst (umass.edu)')).toBeInTheDocument()
+    expect(screen.getByText('professor at umass amherst (umass.edu)')).toBeInTheDocument()
+    expect(screen.getByText('cook at umass amherst (umass.edu)')).toBeInTheDocument()
     expect(screen.queryByText('student', { exact: false })).not.toBeInTheDocument()
     expect(screen.queryByText('phd', { exact: false })).not.toBeInTheDocument()
     expect(screen.queryByText('waiter', { exact: false })).not.toBeInTheDocument()
@@ -250,7 +249,7 @@ describe('ProfileListWithBidWidget', () => {
   })
 
   test('show multiple profiles', () => {
-    const profiles = [...new Array(5).keys()].map((index) => ({
+    const profiles = Array.from(new Array(5), (_, index) => ({
       id: `~first_last${index}`,
       content: {
         names: [
@@ -278,7 +277,7 @@ describe('ProfileListWithBidWidget', () => {
   })
 
   test('show multiple profiles as virtual list if specified', () => {
-    const profiles = [...new Array(5).keys()].map((index) => ({
+    const profiles = Array.from(new Array(5), (_, index) => ({
       id: `~first_last${index}`,
       content: {
         names: [
@@ -380,7 +379,7 @@ describe('ProfileListWithBidWidget', () => {
     render(<ProfileListWithBidWidget {...props} />)
 
     await userEvent.click(screen.getByText('machine learning'))
-    expect(setSearchTerm).toBeCalledWith('machine learning')
+    expect(setSearchTerm).toHaveBeenCalledWith('machine learning')
 
     await userEvent.click(screen.getByText('nlp'))
     expect(setSearchTerm).toHaveBeenLastCalledWith('nlp')
