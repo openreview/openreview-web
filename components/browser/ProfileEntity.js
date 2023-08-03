@@ -273,7 +273,7 @@ export default function ProfileEntity(props) {
       return null
 
     // invited profile show only invite widget
-    if (content?.isInvitedProfile && isEmergencyReviewerStage && !isInviteInvitation)
+    if (!edge && content?.isInvitedProfile && isEmergencyReviewerStage && !isInviteInvitation)
       return null
 
     const editEdgeDropdown = (type, controlType) => (
