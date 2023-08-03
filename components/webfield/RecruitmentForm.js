@@ -54,7 +54,7 @@ const SubmitButton = ({
   isSaving,
   showCancelButton = false,
 }) => (
-  <div className="row">
+  <div className="row submit-button">
     <SpinnerButton
       type="primary"
       onClick={onSubmit}
@@ -79,6 +79,7 @@ const ReducedLoadInfo = ({
   onSubmit,
   isSaving,
   setStatus,
+  showCancelButton = true,
 }) => {
   useEffect(() => {
     setFormData('reset')
@@ -100,18 +101,20 @@ const ReducedLoadInfo = ({
           setStatus('init')
         }}
         isSaving={isSaving}
-        showCancelButton={true}
+        showCancelButton={showCancelButton}
       />
     </div>
   )
 }
 
 const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
+  console.log('responseNote', responseNote)
   const {
     declineMessage,
     reducedLoadMessage,
     args,
     entity: invitation,
+    allowAcceptWithReducedLoad = false,
   } = useContext(WebFieldContext)
   const [isSaving, setIsSaving] = useState(false)
   const isV2Invitation = invitation.apiVersion === 2
@@ -123,9 +126,11 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     : invitation.reply?.content?.comment
   const fieldsToRender = orderNoteInvitationFields(
     invitation,
-    fieldsToHide.concat(['reduced_load', 'comment'])
+    fieldsToHide.concat(['reduced_load', 'comment']),
   )
-  const [status, setStatus] = useState('init')
+  const [status, setStatus] = useState(
+    allowAcceptWithReducedLoad && !responseNote ? 'showReducedLoad' : 'init',
+  )
 
   const initialState = fieldsToRender.reduce((acc, field) => {
     acc[field] = args[field]
@@ -156,7 +161,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
       const noteToPost = constructRecruitmentResponseNote(
         invitation,
         noteContent,
-        responseNote
+        responseNote,
       )
       await api.post(isV2Invitation ? '/notes/edits' : '/notes', noteToPost, {
         version: isV2Invitation ? 2 : 1,
@@ -233,6 +238,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     )
   }
   if (status === 'showReducedLoad') {
+    console.log('!allowAcceptWithReducedLoad', !allowAcceptWithReducedLoad)
     return (
       <ReducedLoadInfo
         renderField={renderField}
@@ -242,6 +248,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
         onSubmit={onSubmit}
         isSaving={isSaving}
         setStatus={setStatus}
+        showCancelButton={responseNote}
       />
     )
   }
@@ -269,6 +276,7 @@ const RecruitmentForm = () => {
     entity: invitation,
     args,
     invitationMessage,
+    allowAcceptWithReducedLoad = false,
   } = useContext(WebFieldContext)
   const isV2Invitation = invitation.apiVersion === 2
   const responseDescription = isV2Invitation
@@ -279,15 +287,25 @@ const RecruitmentForm = () => {
     : Object.keys(invitation.reply?.content)
 
   const defaultButtonState = [
-    { loading: false, disabled: false },
-    { loading: false, disabled: false },
+    { response: 'Yes', loading: false, disabled: false },
+    { response: 'YesWithReducedLoad', loading: false, disabled: false },
+    { response: 'No', loading: false, disabled: false },
   ]
   const [buttonStatus, setButtonStatus] = useState(defaultButtonState)
 
   const onResponseClick = async (response) => {
+    if (response === 'YesWithReducedLoad') {
+      setDecision('acceptWithReducedLoad')
+      return
+    }
     setButtonStatus([
-      { loading: response === 'Yes', disabled: true },
-      { loading: response === 'No', disabled: true },
+      { response: 'Yes', loading: response === 'Yes', disabled: true },
+      {
+        response: 'YesWithReducedLoad',
+        loading: response === 'YesWithReducedLoad',
+        disabled: true,
+      },
+      { response: 'No', loading: response === 'No', disabled: true },
     ])
     try {
       const noteContent = {
@@ -296,8 +314,8 @@ const RecruitmentForm = () => {
         response,
         ...Object.fromEntries(
           Object.entries(args ?? {}).filter(
-            ([key]) => !fieldsToHide.includes(key) && invitationContentFields.includes(key)
-          )
+            ([key]) => !fieldsToHide.includes(key) && invitationContentFields.includes(key),
+          ),
         ),
       }
       const noteToPost = constructRecruitmentResponseNote(invitation, noteContent)
@@ -324,13 +342,21 @@ const RecruitmentForm = () => {
                 reducedLoad,
                 'paper',
                 'papers',
-                true
+                true,
               )}`}</h4>
             )}
             <Markdown text={translateInvitationMessage(acceptMessage, args)} />
           </div>
         )
       case 'reject':
+        return (
+          <DeclineForm
+            responseNote={responseNote}
+            setDecision={setDecision}
+            setReducedLoad={setReducedLoad}
+          />
+        )
+      case 'acceptWithReducedLoad':
         return (
           <DeclineForm
             responseNote={responseNote}
@@ -357,18 +383,34 @@ const RecruitmentForm = () => {
               <SpinnerButton
                 type="primary"
                 onClick={() => onResponseClick('Yes')}
-                loading={buttonStatus[0].loading}
-                disabled={buttonStatus[0].disabled}
+                loading={buttonStatus.find((p) => p.response === 'Yes').loading}
+                disabled={buttonStatus.find((p) => p.response === 'Yes').disabled}
                 size="lg"
               >
                 Accept
               </SpinnerButton>
+              {allowAcceptWithReducedLoad && (
+                <SpinnerButton
+                  type="primary"
+                  className="reduced-load-button"
+                  onClick={() => onResponseClick('YesWithReducedLoad')}
+                  loading={
+                    buttonStatus.find((p) => p.response === 'YesWithReducedLoad').loading
+                  }
+                  disabled={
+                    buttonStatus.find((p) => p.response === 'YesWithReducedLoad').disabled
+                  }
+                  size="lg"
+                >
+                  Accept (Reduced Load)
+                </SpinnerButton>
+              )}
               <SpinnerButton
                 type="default"
                 className="decline-button"
                 onClick={() => onResponseClick('No')}
-                loading={buttonStatus[1].loading}
-                disabled={buttonStatus[1].disabled}
+                loading={buttonStatus.find((p) => p.response === 'No').loading}
+                disabled={buttonStatus.find((p) => p.response === 'No').disabled}
                 size="lg"
               >
                 Decline
