@@ -37,7 +37,7 @@ const MessageReviewersModal = ({
           parentGroup: messageParentGroup,
           replyTo: emailReplyTo,
         },
-        { accessToken },
+        { accessToken }
       )
       $('#message-reviewers').modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
@@ -76,7 +76,7 @@ const MessageReviewersModal = ({
               preferredName: row.reviewerProfileId,
               preferredEmail: row.reviewerProfileId,
             }
-      }),
+      })
     )
   }, [messageOption])
 

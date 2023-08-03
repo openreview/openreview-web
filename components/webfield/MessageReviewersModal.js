@@ -23,7 +23,7 @@ const MessageReviewersModal = ({
   const [recipientsInfo, setRecipientsInfo] = useState([])
   const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.reviewerProfileId).reduce(
     (prev, curr) => prev + curr.count,
-    0,
+    0
   )
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
 
@@ -51,7 +51,7 @@ const MessageReviewersModal = ({
             parentGroup: `${venueId}/${submissionName}${note.number}/Reviewers`,
             replyTo: emailReplyTo,
           },
-          { accessToken },
+          { accessToken }
         )
       })
       await Promise.all(sendEmailPs)
@@ -66,7 +66,7 @@ const MessageReviewersModal = ({
   const getRecipients = (selecteNoteIds) => {
     if (!selecteNoteIds.length) return []
     const selectedRows = tableRowsDisplayed.filter((row) =>
-      selecteNoteIds.includes(row.note.id),
+      selecteNoteIds.includes(row.note.id)
     )
 
     switch (messageOption.value) {

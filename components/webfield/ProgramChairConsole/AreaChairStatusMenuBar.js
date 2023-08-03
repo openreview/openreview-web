@@ -38,7 +38,7 @@ const MessageAreaChairsModal = ({
           parentGroup: messageParentGroup,
           replyTo: emailReplyTo,
         },
-        { accessToken },
+        { accessToken }
       )
       $('#message-areachairs').modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
@@ -57,7 +57,7 @@ const MessageAreaChairsModal = ({
         return tableRows.filter((row) => row.numCompletedReviews < row.notes?.length ?? 0)
       case 'noMetaReviews':
         return tableRows.filter(
-          (row) => row.numCompletedMetaReviews === 0 && (row.notes?.length ?? 0) !== 0,
+          (row) => row.numCompletedMetaReviews === 0 && (row.notes?.length ?? 0) !== 0
         )
       case 'missingMetaReviews':
         return tableRows.filter((row) => row.numCompletedMetaReviews < row.notes?.length ?? 0)
@@ -85,7 +85,7 @@ const MessageAreaChairsModal = ({
               preferredName: row.areaChairProfileId,
               preferredEmail: row.areaChairProfileId,
             }
-      }),
+      })
     )
   }, [messageOption])
 

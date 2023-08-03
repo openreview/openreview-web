@@ -59,7 +59,7 @@ const AssignedPaperRow = ({
 }) => {
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
-    `[Area Chair Console](/group?id=${venueId}/${areaChairName}#assigned-papers)`,
+    `[Area Chair Console](/group?id=${venueId}/${areaChairName}#assigned-papers)`
   )
   return (
     <tr>
@@ -106,7 +106,7 @@ const AssignedPaperRow = ({
 
 const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
   const referrer = encodeURIComponent(
-    `[Area Chair Console](/group?id=${venueId}/${areaChairName}#areachair-tasks)`,
+    `[Area Chair Console](/group?id=${venueId}/${areaChairName}#areachair-tasks)`
   )
 
   return <ConsoleTaskList venueId={venueId} roleName={areaChairName} referrer={referrer} />
@@ -168,19 +168,19 @@ const AreaChairConsole = ({ appContext }) => {
     const sacText = `Your assigned Senior Area ${inflect(
       acConsoleData.sacProfiles.length,
       'Chair is',
-      'Chairs are',
+      'Chairs are'
     )}`
     const sacProfileLinks = acConsoleData.sacProfiles.map(
       (sacProfile) =>
         `<a href='https://openreview.net/profile?id=${
           sacProfile.id
-        }' target='_blank'>${prettyId(sacProfile.id)}</a> (${sacProfile.email})`,
+        }' target='_blank'>${prettyId(sacProfile.id)}</a> (${sacProfile.email})`
     )
     return `<p class="dark">${sacText} ${prettyList(
       sacProfileLinks,
       'long',
       'conjunction',
-      false,
+      false
     )}</p>`
   }
 
@@ -193,14 +193,14 @@ const AreaChairConsole = ({ appContext }) => {
           prefix: `${venueId}/${submissionName}.*`,
           select: 'id',
         },
-        { accessToken, version: 2 },
+        { accessToken, version: 2 }
       )
       const areaChairGroups = allGroups.filter((p) => p.id.endsWith(areaChairName))
       const anonymousAreaChairGroups = allGroups.filter((p) => p.id.includes('/Area_Chair_'))
       const areaChairPaperNums = areaChairGroups.flatMap((p) => {
         const num = getNumberFromGroup(p.id, submissionName)
         const anonymousAreaChairGroup = anonymousAreaChairGroups.find((q) =>
-          q.id.startsWith(`${venueId}/${submissionName}${num}/Area_Chair_`),
+          q.id.startsWith(`${venueId}/${submissionName}${num}/Area_Chair_`)
         )
         if (anonymousAreaChairGroup) return num
         return []
@@ -217,7 +217,7 @@ const AreaChairConsole = ({ appContext }) => {
               details: 'replies',
               sort: 'number:asc',
             },
-            { accessToken, version: 2 },
+            { accessToken, version: 2 }
           )
         : Promise.resolve([])
 
@@ -230,14 +230,14 @@ const AreaChairConsole = ({ appContext }) => {
             select: 'id,members',
             stream: true,
           },
-          { accessToken, version: 2 },
+          { accessToken, version: 2 }
         )
         .then((reviewerGroupsResult) => {
           const anonymousReviewerGroups = reviewerGroupsResult.groups.filter((p) =>
-            p.id.includes(`/${anonReviewerName}`),
+            p.id.includes(`/${anonReviewerName}`)
           )
           const reviewerGroups = reviewerGroupsResult.groups.filter((p) =>
-            p.id.includes(`/${reviewerName}`),
+            p.id.includes(`/${reviewerName}`)
           )
           return noteNumbers.map((p) => {
             const reviewers = reviewerGroups
@@ -246,12 +246,12 @@ const AreaChairConsole = ({ appContext }) => {
                 const anonymousReviewerGroup = anonymousReviewerGroups.find(
                   (t) =>
                     t.id.startsWith(`${venueId}/${submissionName}${p}/${anonReviewerName}`) &&
-                    t.members[0] === r,
+                    t.members[0] === r
                 )
                 if (anonymousReviewerGroup) {
                   const anonymousReviewerId = getIndentifierFromGroup(
                     anonymousReviewerGroup.id,
-                    anonReviewerName,
+                    anonReviewerName
                   )
                   return {
                     anonymousId: anonymousReviewerId,
@@ -275,7 +275,7 @@ const AreaChairConsole = ({ appContext }) => {
             .get(
               '/edges',
               { invitation: `${seniorAreaChairsId}/-/Assignment`, head: user.profile.id },
-              { accessToken },
+              { accessToken }
             )
             .then((result) => result?.edges?.map((edge) => edge.tail) ?? [])
         : Promise.resolve([])
@@ -298,7 +298,7 @@ const AreaChairConsole = ({ appContext }) => {
             {
               ids,
             },
-            { accessToken },
+            { accessToken }
           )
         : Promise.resolve([])
       const getProfilesByEmailsP = emails.length
@@ -307,7 +307,7 @@ const AreaChairConsole = ({ appContext }) => {
             {
               emails,
             },
-            { accessToken },
+            { accessToken }
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
@@ -316,7 +316,7 @@ const AreaChairConsole = ({ appContext }) => {
       // #region calculate reviewProgressData and metaReviewData
       const notes = result[0]
       const allProfiles = (profileResults[0].profiles ?? []).concat(
-        profileResults[1].profiles ?? [],
+        profileResults[1].profiles ?? []
       )
       const tableRows = notes.map((note) => {
         const assignedReviewers =
@@ -325,8 +325,8 @@ const AreaChairConsole = ({ appContext }) => {
           allProfiles.find(
             (p) =>
               p.content.names.some((q) => q.username === reviewer.reviewerProfileId) ||
-              p.content.emails.includes(reviewer.reviewerProfileId),
-          ),
+              p.content.emails.includes(reviewer.reviewerProfileId)
+          )
         )
         const officialReviews = note.details.replies
           .filter((p) => {
@@ -344,8 +344,8 @@ const AreaChairConsole = ({ appContext }) => {
                   (ratingName) => [
                     [ratingName],
                     parseNumberField(q.content[ratingName]?.value),
-                  ],
-                ),
+                  ]
+                )
               ),
               reviewLength: reviewValue?.length,
               id: q.id,
@@ -370,8 +370,8 @@ const AreaChairConsole = ({ appContext }) => {
                 ? Math.max(...validRatingValues)
                 : 'N/A'
               return [ratingName, { ratingAvg, ratingMin, ratingMax }]
-            },
-          ),
+            }
+          )
         )
 
         const confidences = officialReviews.map((p) => p.confidence)
@@ -386,7 +386,7 @@ const AreaChairConsole = ({ appContext }) => {
 
         const metaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
         const metaReview = note.details.replies.find((p) =>
-          p.invitations.includes(metaReviewInvitationId),
+          p.invitations.includes(metaReviewInvitationId)
         )
         return {
           note,
@@ -396,7 +396,7 @@ const AreaChairConsole = ({ appContext }) => {
               const profile = allProfiles.find(
                 (p) =>
                   p.content.names.some((q) => q.username === reviewer.reviewerProfileId) ||
-                  p.content.emails.includes(reviewer.reviewerProfileId),
+                  p.content.emails.includes(reviewer.reviewerProfileId)
               )
               return {
                 ...reviewer,
@@ -434,7 +434,7 @@ const AreaChairConsole = ({ appContext }) => {
       const sacProfiles = allProfiles.filter(
         (p) =>
           p.content.names.some((q) => result[2].includes(q.username)) ||
-          p.content.emails.some((r) => result[2].includes(r)),
+          p.content.emails.some((r) => result[2].includes(r))
       )
       // #endregion
       setAcConsoleData({
@@ -545,8 +545,8 @@ const AreaChairConsole = ({ appContext }) => {
     if (!userLoading && (!user || !user.profile || user.profile.id === 'guest')) {
       router.replace(
         `/login?redirect=${encodeURIComponent(
-          `${window.location.pathname}${window.location.search}${window.location.hash}`,
-        )}`,
+          `${window.location.pathname}${window.location.search}${window.location.hash}`
+        )}`
       )
     }
   }, [user, userLoading])
@@ -591,7 +591,7 @@ const AreaChairConsole = ({ appContext }) => {
     .map((p) => p[0])
   if (missingConfig.length > 0) {
     const errorMessage = `AC Console is missing required properties: ${missingConfig.join(
-      ', ',
+      ', '
     )}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
