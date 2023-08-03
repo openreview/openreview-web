@@ -173,7 +173,7 @@ export default forwardRef(function ChatReply(
             {datePrefix} at {formattedTime}
           </small>
 
-          {note.details?.editsCount > 1 && <small>(edited)</small>}
+          {note.tmdate !== note.tcdate && <small>(edited)</small>}
         </div>
 
         {isChatNote ? (
