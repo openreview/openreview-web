@@ -12,7 +12,7 @@ const MessageReviewersModal = ({
   messageParentGroup,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase,messageReviewersReplyTo } = useContext(WebFieldContext)
+  const { shortPhrase, emailReplyTo } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -35,9 +35,9 @@ const MessageReviewersModal = ({
           subject,
           message,
           parentGroup: messageParentGroup,
-          replyTo:messageReviewersReplyTo
+          replyTo: emailReplyTo,
         },
-        { accessToken }
+        { accessToken },
       )
       $('#message-reviewers').modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
@@ -76,7 +76,7 @@ const MessageReviewersModal = ({
               preferredName: row.reviewerProfileId,
               preferredEmail: row.reviewerProfileId,
             }
-      })
+      }),
     )
   }, [messageOption])
 

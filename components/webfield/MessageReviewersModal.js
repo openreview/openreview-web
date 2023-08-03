@@ -13,7 +13,7 @@ const MessageReviewersModal = ({
   selectedIds,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, venueId, officialReviewName, submissionName, messageReviewersReplyTo } =
+  const { shortPhrase, venueId, officialReviewName, submissionName, emailReplyTo } =
     useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
@@ -23,7 +23,7 @@ const MessageReviewersModal = ({
   const [recipientsInfo, setRecipientsInfo] = useState([])
   const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.reviewerProfileId).reduce(
     (prev, curr) => prev + curr.count,
-    0
+    0,
   )
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
 
@@ -49,9 +49,9 @@ const MessageReviewersModal = ({
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),
             parentGroup: `${venueId}/${submissionName}${note.number}/Reviewers`,
-            replyTo:messageReviewersReplyTo
+            replyTo: emailReplyTo,
           },
-          { accessToken }
+          { accessToken },
         )
       })
       await Promise.all(sendEmailPs)
@@ -66,7 +66,7 @@ const MessageReviewersModal = ({
   const getRecipients = (selecteNoteIds) => {
     if (!selecteNoteIds.length) return []
     const selectedRows = tableRowsDisplayed.filter((row) =>
-      selecteNoteIds.includes(row.note.id)
+      selecteNoteIds.includes(row.note.id),
     )
 
     switch (messageOption.value) {

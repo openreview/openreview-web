@@ -61,14 +61,14 @@ const ProgramChairConsole = ({ appContext }) => {
     areaChairStatusExportColumns,
     customStageInvitations,
     assignmentUrls,
-    messageReviewersReplyTo,
+    emailReplyTo,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || '#venue-configuration'
+    window.location.hash || '#venue-configuration',
   )
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
@@ -85,7 +85,7 @@ const ProgramChairConsole = ({ appContext }) => {
           expired: true,
           type: 'all',
         },
-        { accessToken, version: 2 }
+        { accessToken, version: 2 },
       )
       const reviewerInvitationsP = api.getAll(
         '/invitations',
@@ -94,7 +94,7 @@ const ProgramChairConsole = ({ appContext }) => {
           expired: true,
           type: 'all',
         },
-        { accessToken, version: 2 }
+        { accessToken, version: 2 },
       )
       const acInvitationsP = areaChairsId
         ? api.getAll(
@@ -104,7 +104,7 @@ const ProgramChairConsole = ({ appContext }) => {
               expired: true,
               type: 'all',
             },
-            { accessToken, version: 2 }
+            { accessToken, version: 2 },
           )
         : Promise.resolve([])
       const sacInvitationsP = seniorAreaChairsId
@@ -115,7 +115,7 @@ const ProgramChairConsole = ({ appContext }) => {
               expired: true,
               type: 'all',
             },
-            { accessToken, version: 2 }
+            { accessToken, version: 2 },
           )
         : Promise.resolve([])
 
@@ -126,7 +126,7 @@ const ProgramChairConsole = ({ appContext }) => {
               ids: customStageInvitations.map((p) => `${venueId}/-/${p.name}`),
               type: 'note',
             },
-            { accessToken, version: 2 }
+            { accessToken, version: 2 },
           )
         : Promise.resolve([])
 
@@ -150,11 +150,11 @@ const ProgramChairConsole = ({ appContext }) => {
                 limit: 1,
                 select: 'id,content',
               },
-              { accessToken } // request form is in v1
+              { accessToken }, // request form is in v1
             )
             .then(
               (result) => result.notes?.[0],
-              () => null
+              () => null,
             )
         : Promise.resolve(null)
       // #endregion
@@ -171,12 +171,12 @@ const ProgramChairConsole = ({ appContext }) => {
                   signature: venueId,
                   select: 'id,invitation,invitations,content.title',
                 },
-                { accessToken, version: 2 }
+                { accessToken, version: 2 },
               )
               .then((notes) =>
-                notes.filter((note) => note.invitations.some((p) => p.includes('Form')))
+                notes.filter((note) => note.invitations.some((p) => p.includes('Form'))),
               )
-          : Promise.resolve(null)
+          : Promise.resolve(null),
       )
       const getRegistrationFormResultsP = Promise.all(getRegistrationFormPs)
       // #endregion
@@ -184,8 +184,8 @@ const ProgramChairConsole = ({ appContext }) => {
       // #region get Reviewer,AC,SAC Members
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
-          id ? api.getGroupById(id, accessToken, { select: 'members' }) : Promise.resolve([])
-        )
+          id ? api.getGroupById(id, accessToken, { select: 'members' }) : Promise.resolve([]),
+        ),
       )
       // #endregion
 
@@ -198,7 +198,7 @@ const ProgramChairConsole = ({ appContext }) => {
           select: 'id,number,forum,content,details,invitations,readers',
           sort: 'number:asc',
         },
-        { accessToken, version: 2 }
+        { accessToken, version: 2 },
       )
       // #endregion
 
@@ -214,7 +214,7 @@ const ProgramChairConsole = ({ appContext }) => {
                   select: 'signatures',
                   stream: true,
                 },
-                { accessToken }
+                { accessToken },
               )
               .then((result) =>
                 result.groupedEdges.reduce((profileMap, edge) => {
@@ -224,7 +224,7 @@ const ProgramChairConsole = ({ appContext }) => {
                   }
                   profileMap[acId] += 1 // eslint-disable-line no-param-reassign
                   return profileMap
-                }, {})
+                }, {}),
               )
           : Promise.resolve([])
       // #endregion
@@ -240,9 +240,9 @@ const ProgramChairConsole = ({ appContext }) => {
               groupBy: 'tail',
               select: 'count',
             },
-            { accessToken, resultsKey: 'groupedEdges' }
+            { accessToken, resultsKey: 'groupedEdges' },
           )
-        })
+        }),
       )
       // #endregion
 
@@ -254,7 +254,7 @@ const ProgramChairConsole = ({ appContext }) => {
           stream: true,
           select: 'id,members',
         },
-        { accessToken }
+        { accessToken },
       )
       // #endregion
 
@@ -329,7 +329,7 @@ const ProgramChairConsole = ({ appContext }) => {
             {
               ids,
             },
-            { accessToken }
+            { accessToken },
           )
         : Promise.resolve([])
       const getProfilesByEmailsP = emails.length
@@ -338,7 +338,7 @@ const ProgramChairConsole = ({ appContext }) => {
             {
               emails,
             },
-            { accessToken }
+            { accessToken },
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
@@ -377,7 +377,7 @@ const ProgramChairConsole = ({ appContext }) => {
               review.signatures[0].startsWith('~')
                 ? anonReviewerGroups[note.number][review.signatures[0]] ?? ''
                 : review.signatures[0],
-              anonReviewerName
+              anonReviewerName,
             ),
           }))
         const metaReviews = replies
@@ -395,7 +395,7 @@ const ProgramChairConsole = ({ appContext }) => {
           ? customStageInvitations.map((p) => `/-/${p.name}`)
           : []
         const customStageReviews = replies.filter((p) =>
-          p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
+          p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r))),
         )
         officialReviewsByPaperNumberMap.set(note.number, officialReviews)
         metaReviewsByPaperNumberMap.set(note.number, metaReviews)
@@ -500,14 +500,14 @@ const ProgramChairConsole = ({ appContext }) => {
 
       const assignedSeniorAreaChairs =
         pcConsoleData.paperGroups.seniorAreaChairGroups?.find(
-          (p) => p.noteNumber === note.number
+          (p) => p.noteNumber === note.number,
         )?.members ?? []
 
       const assignedSeniorAreaChairProfiles = assignedSeniorAreaChairs.map(
         (seniorAreaChairProfileId) => ({
           id: seniorAreaChairProfileId,
           profile: pcConsoleData.allProfilesMap.get(seniorAreaChairProfileId),
-        })
+        }),
       )
 
       const officialReviews =
@@ -518,8 +518,8 @@ const ProgramChairConsole = ({ appContext }) => {
             confidence: parseNumberField(q.content[reviewConfidenceName]?.value),
             ...Object.fromEntries(
               (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
-                (ratingName) => [[ratingName], parseNumberField(q.content[ratingName]?.value)]
-              )
+                (ratingName) => [[ratingName], parseNumberField(q.content[ratingName]?.value)],
+              ),
             ),
             reviewLength: reviewValue?.length,
             forum: q.forum,
@@ -540,8 +540,8 @@ const ProgramChairConsole = ({ appContext }) => {
             const ratingMin = validRatingValues.length ? Math.min(...validRatingValues) : 'N/A'
             const ratingMax = validRatingValues.length ? Math.max(...validRatingValues) : 'N/A'
             return [ratingName, { ratingAvg, ratingMin, ratingMax }]
-          }
-        )
+          },
+        ),
       )
 
       const confidences = officialReviews.map((p) => p.confidence)
@@ -563,7 +563,7 @@ const ProgramChairConsole = ({ appContext }) => {
         const metaReviewAgreement = customStageReviews.find((p) => p.replyto === metaReview.id)
         const metaReviewAgreementConfig = metaReviewAgreement
           ? customStageInvitations.find((p) =>
-              metaReviewAgreement.invitations.some((q) => q.includes(`/-/${p.name}`))
+              metaReviewAgreement.invitations.some((q) => q.includes(`/-/${p.name}`)),
             )
           : null
         const metaReviewAgreementValue =
@@ -591,7 +591,7 @@ const ProgramChairConsole = ({ appContext }) => {
         note,
         reviewers: assignedReviewers?.map((reviewer) => {
           const profile = assignedReviewerProfiles.find(
-            (p) => p.id === reviewer.reviewerProfileId
+            (p) => p.id === reviewer.reviewerProfileId,
           )?.profile
           return {
             ...reviewer,
@@ -621,7 +621,7 @@ const ProgramChairConsole = ({ appContext }) => {
           numAreaChairsAssigned: assignedAreaChairs.length,
           areaChairs: assignedAreaChairs.map((areaChair) => {
             const profile = assignedAreaChairProfiles.find(
-              (p) => p.id === areaChair.areaChairProfileId
+              (p) => p.id === areaChair.areaChairProfileId,
             )?.profile
             return {
               ...areaChair,
@@ -633,7 +633,7 @@ const ProgramChairConsole = ({ appContext }) => {
           }),
           seniorAreaChairs: assignedSeniorAreaChairs.map((seniorAreaChairProfileId) => {
             const profile = assignedSeniorAreaChairProfiles.find(
-              (p) => p.id === seniorAreaChairProfileId
+              (p) => p.id === seniorAreaChairProfileId,
             )?.profile
             return {
               preferredName: profile ? getProfileName(profile) : seniorAreaChairProfileId,
@@ -670,7 +670,7 @@ const ProgramChairConsole = ({ appContext }) => {
               groupBy: 'head,tail',
               select: 'head,tail',
             },
-            { accessToken }
+            { accessToken },
           )
           .then((result) => result.groupedEdges)
       : []
@@ -688,13 +688,13 @@ const ProgramChairConsole = ({ appContext }) => {
 
     // #region get profile of acs/sacs without assignments
     const areaChairWithoutAssignmentIds = pcConsoleData.areaChairs.filter(
-      (areaChairProfileId) => !pcConsoleData.allProfilesMap.get(areaChairProfileId)
+      (areaChairProfileId) => !pcConsoleData.allProfilesMap.get(areaChairProfileId),
     )
     const seniorAreaChairWithoutAssignmentIds = pcConsoleData.seniorAreaChairs.filter(
-      (sacProfileId) => !pcConsoleData.allProfilesMap.get(sacProfileId)
+      (sacProfileId) => !pcConsoleData.allProfilesMap.get(sacProfileId),
     )
     const allIdsNoAssignment = areaChairWithoutAssignmentIds.concat(
-      seniorAreaChairWithoutAssignmentIds
+      seniorAreaChairWithoutAssignmentIds,
     )
     const ids = allIdsNoAssignment.filter((p) => p.startsWith('~'))
     const emails = allIdsNoAssignment.filter((p) => p.match(/.+@.+/))
@@ -704,7 +704,7 @@ const ProgramChairConsole = ({ appContext }) => {
           {
             ids,
           },
-          { accessToken }
+          { accessToken },
         )
       : Promise.resolve([])
     const getProfilesByEmailsP = emails.length
@@ -713,7 +713,7 @@ const ProgramChairConsole = ({ appContext }) => {
           {
             emails,
           },
-          { accessToken }
+          { accessToken },
         )
       : Promise.resolve([])
     const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
@@ -760,8 +760,8 @@ const ProgramChairConsole = ({ appContext }) => {
     if (!userLoading && (!user || !user.profile || user.profile.id === 'guest')) {
       router.replace(
         `/login?redirect=${encodeURIComponent(
-          `${window.location.pathname}${window.location.search}${window.location.hash}`
-        )}`
+          `${window.location.pathname}${window.location.search}${window.location.hash}`,
+        )}`,
       )
     }
   }, [user, userLoading])
