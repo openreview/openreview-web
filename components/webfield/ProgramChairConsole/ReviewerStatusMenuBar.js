@@ -12,7 +12,7 @@ const MessageReviewersModal = ({
   messageParentGroup,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase } = useContext(WebFieldContext)
+  const { shortPhrase,messageReviewersReplyTo } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -35,6 +35,7 @@ const MessageReviewersModal = ({
           subject,
           message,
           parentGroup: messageParentGroup,
+          replyTo:messageReviewersReplyTo
         },
         { accessToken }
       )
