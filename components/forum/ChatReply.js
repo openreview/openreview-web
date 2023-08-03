@@ -188,7 +188,7 @@ export default forwardRef(function ChatReply(
             id={note.id}
             content={note.content}
             presentation={presentation}
-            noteReaders={note.readers}
+            noteReaders={note.sortedReaders}
             include={['title', 'pdf', 'html']}
           />
         )}

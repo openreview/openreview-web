@@ -4959,7 +4959,7 @@ module.exports = (function () {
       gfm: true,
       headerIds: false,
       langPrefix: 'language-',
-      mangle: true,
+      mangle: false,
       renderer: renderer,
     })
   }
