@@ -16,7 +16,7 @@ import {
   buildArray,
   inflect,
   getProfileStateLabelClass,
-  getTabCountMessage,
+  getVenueTabCountMessage,
 } from '../../lib/utils'
 import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
@@ -122,7 +122,12 @@ const FullUsernameList = ({ usernames }) => (
   </ul>
 )
 
-const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMsg }) => {
+const NameDeletionTab = ({
+  accessToken,
+  superUser,
+  setNameDeletionRequestCount,
+  isActive,
+}) => {
   const [nameDeletionNotes, setNameDeletionNotes] = useState(null)
   const [nameDeletionNotesToShow, setNameDeletionNotesToShow] = useState(null)
   const [noteToReject, setNoteToReject] = useState(null)
@@ -162,11 +167,13 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
           },
           { accessToken, resultsKey: 'references' }
         )
-        processLogsP = api.getAll(
-          '/logs/process',
-          { invitation: nameDeletionDecisionInvitationId },
-          { accessToken, resultsKey: 'logs' }
-        )
+        processLogsP = isActive
+          ? api.getAll(
+              '/logs/process',
+              { invitation: nameDeletionDecisionInvitationId },
+              { accessToken, resultsKey: 'logs' }
+            )
+          : Promise.resolve([])
       }
 
       const [nameRemovalNotes, decisionResults, processLogs] = await Promise.all([
@@ -210,7 +217,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
       const pendingRequestCount = nameRemovalNotes.notes.filter(
         (p) => p.content.status === 'Pending'
       ).length
-      setNameDeletionRequestCountMsg(getTabCountMessage(pendingRequestCount, 0))
+      setNameDeletionRequestCount(pendingRequestCount)
     } catch (error) {
       promptError(error.message)
     }
@@ -295,7 +302,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
 
   useEffect(() => {
     loadNameDeletionRequests()
-  }, [])
+  }, [isActive])
 
   return (
     <>
@@ -408,7 +415,12 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
   )
 }
 
-const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMsg }) => {
+const ProfileMergeTab = ({
+  accessToken,
+  superUser,
+  setProfileMergeRequestCount,
+  isActive,
+}) => {
   const [profileMergeNotes, setProfileMergeNotes] = useState(null)
   const [profileMergeNotesToShow, setProfileMergeNotesToShow] = useState(null)
   const [noteToReject, setNoteToReject] = useState(null)
@@ -450,11 +462,13 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
           },
           { accessToken, resultsKey: 'references' }
         )
-        processLogsP = api.getAll(
-          '/logs/process',
-          { invitation: profileMergeDecisionInvitationId },
-          { accessToken, resultsKey: 'logs' }
-        )
+        processLogsP = isActive
+          ? api.getAll(
+              '/logs/process',
+              { invitation: profileMergeDecisionInvitationId },
+              { accessToken, resultsKey: 'logs' }
+            )
+          : Promise.resolve([])
       }
 
       const [profileMergeNotesResults, decisionResults, processLogs] = await Promise.all([
@@ -499,12 +513,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
       const pendingRequestCount = profileMergeNotesResults.notes.filter(
         (p) => p.content.status === 'Pending'
       ).length
-      const errorProcessCount = sortedResult.filter(
-        (p) => p.processLogStatus === 'error'
-      ).length
-      setProfileMergeRequestCountMsg(
-        getTabCountMessage(pendingRequestCount, errorProcessCount)
-      )
+      setProfileMergeRequestCount(pendingRequestCount)
     } catch (error) {
       promptError(error.message)
     }
@@ -588,7 +597,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
 
   useEffect(() => {
     loadProfileMergeRequests()
-  }, [])
+  }, [isActive])
 
   return (
     <>
@@ -831,11 +840,9 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
         (p) => p.unrepliedPcComments.length > 0
       ).length
       setPendingVenueRequestCount(
-        getTabCountMessage(
+        getVenueTabCountMessage(
           venueWithUnrepliedCommentCount,
-          venueNotDeployedInPastWeekCount,
-          'venue with comment',
-          'venue request'
+          venueNotDeployedInPastWeekCount
         )
       )
       setVenueRequestNotes(
@@ -877,7 +884,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
   )
 }
 
-const EmailDeletionTab = ({ accessToken, superUser }) => {
+const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
   const [emailDeletionNotes, setEmailDeletionNotes] = useState(null)
   const [emailDeletionNotesToShow, setEmailDeletionNotesToShow] = useState(null)
   const [page, setPage] = useState(1)
@@ -893,11 +900,13 @@ const EmailDeletionTab = ({ accessToken, superUser }) => {
         { invitation: emailRemovalInvitationId, sort: 'tcdate' },
         { accessToken }
       )
-      const processLogsP = api.getAll(
-        '/logs/process',
-        { invitation: emailRemovalInvitationId },
-        { accessToken, resultsKey: 'logs' }
-      )
+      const processLogsP = isActive
+        ? api.getAll(
+            '/logs/process',
+            { invitation: emailRemovalInvitationId },
+            { accessToken, resultsKey: 'logs' }
+          )
+        : Promise.resolve([])
       const [notes, processLogs] = await Promise.all([notesResultP, processLogsP])
       const notesWithStatus = notes.map((p) => ({
         ...p,
@@ -958,7 +967,7 @@ const EmailDeletionTab = ({ accessToken, superUser }) => {
 
   useEffect(() => {
     loadEmailDeletionNotes()
-  }, [])
+  }, [isActive])
 
   return (
     <>
@@ -1057,11 +1066,17 @@ const EmailDeletionTab = ({ accessToken, superUser }) => {
   )
 }
 
+const TabMessageCount = ({ count }) => {
+  if (!count) return null
+  return (count > 0 || typeof count === 'string') && <span className="badge">{count}</span>
+}
+
 const Moderation = ({ appContext, accessToken, superUser }) => {
   const { setBannerHidden } = appContext
-  const [nameDeletionRequestCountMsg, setNameDeletionRequestCountMsg] = useState(0)
-  const [profileMergeRequestCountMsg, setProfileMergeRequestCountMsg] = useState(0)
-  const [pendingVenueRequestCount, setPendingVenueRequestCount] = useState(0)
+  const [nameDeletionRequestCount, setNameDeletionRequestCount] = useState(null)
+  const [profileMergeRequestCount, setProfileMergeRequestCount] = useState(null)
+  const [pendingVenueRequestCount, setPendingVenueRequestCount] = useState(null)
+  const [activaTabId, setActiveTabId] = useState('#profiles')
 
   useEffect(() => {
     setBannerHidden(true)
@@ -1080,49 +1095,68 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
 
       <Tabs>
         <TabList>
-          <Tab id="reply" active>
+          <Tab
+            id="profiles"
+            active={activaTabId === '#profiles' ? true : undefined}
+            onClick={() => setActiveTabId('#profiles')}
+          >
             User Moderation
           </Tab>
-          <Tab id="email">Email Delete Requests</Tab>
-          <Tab id="preview">
-            Name Delete Requests{' '}
-            {nameDeletionRequestCountMsg && (
-              <span className="badge">{nameDeletionRequestCountMsg}</span>
-            )}
+          <Tab
+            id="email"
+            active={activaTabId === '#email' ? true : undefined}
+            onClick={() => setActiveTabId('#email')}
+          >
+            Email Delete Requests
           </Tab>
-          <Tab id="merge">
-            Profile Merge Requests{' '}
-            {profileMergeRequestCountMsg && (
-              <span className="badge">{profileMergeRequestCountMsg}</span>
-            )}
+          <Tab
+            id="name"
+            active={activaTabId === '#name' ? true : undefined}
+            onClick={() => setActiveTabId('#name')}
+          >
+            Name Delete Requests <TabMessageCount count={nameDeletionRequestCount} />
           </Tab>
-          <Tab id="requests">
-            Venue Requests{' '}
-            {pendingVenueRequestCount !== 0 && (
-              <span className="badge">{pendingVenueRequestCount}</span>
-            )}
+          <Tab
+            id="merge"
+            active={activaTabId === '#merge' ? true : undefined}
+            onClick={() => setActiveTabId('#merge')}
+          >
+            Profile Merge Requests <TabMessageCount count={profileMergeRequestCount} />
+          </Tab>
+          <Tab
+            id="requests"
+            active={activaTabId === '#requests' ? true : undefined}
+            onClick={() => setActiveTabId('#requests')}
+          >
+            Venue Requests <TabMessageCount count={pendingVenueRequestCount} />
           </Tab>
         </TabList>
 
         <TabPanels>
-          <TabPanel id="reply">
+          <TabPanel id="profiles">
             <UserModerationTab accessToken={accessToken} />
           </TabPanel>
           <TabPanel id="email">
-            <EmailDeletionTab accessToken={accessToken} superUser={superUser} />
+            <EmailDeletionTab
+              accessToken={accessToken}
+              superUser={superUser}
+              isActive={activaTabId === '#email'}
+            />
           </TabPanel>
-          <TabPanel id="preview">
+          <TabPanel id="name">
             <NameDeletionTab
               accessToken={accessToken}
               superUser={superUser}
-              setNameDeletionRequestCountMsg={setNameDeletionRequestCountMsg}
+              setNameDeletionRequestCount={setNameDeletionRequestCount}
+              isActive={activaTabId === '#name'}
             />
           </TabPanel>
           <TabPanel id="merge">
             <ProfileMergeTab
               accessToken={accessToken}
               superUser={superUser}
-              setProfileMergeRequestCountMsg={setProfileMergeRequestCountMsg}
+              setProfileMergeRequestCount={setProfileMergeRequestCount}
+              isActive={activaTabId === '#merge'}
             />
           </TabPanel>
           <TabPanel id="requests">
