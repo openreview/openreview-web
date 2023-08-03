@@ -104,7 +104,7 @@ function ForumNote({ note, updateNote }) {
       className={classNames(
         'forum-note',
         pastDue && 'trashed',
-        texDisabled && 'disable-tex-rendering',
+        texDisabled && 'disable-tex-rendering'
       )}
     >
       <ForumTitle
@@ -173,7 +173,7 @@ function ForumNote({ note, updateNote }) {
                   user,
                   (newNote) => {
                     updateNote(newNote)
-                  },
+                  }
                 )
               }}
             >
@@ -240,7 +240,7 @@ function ForumMeta({ note }) {
           note.tmdate,
           note.content.year?.value,
           note.pdate,
-          false,
+          false
         )}
       </span>
 
