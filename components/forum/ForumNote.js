@@ -8,18 +8,16 @@ import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
-import { prettyId, prettyInvitationId, forumDate, useNewNoteEditor } from '../../lib/utils'
+import {
+  prettyId,
+  prettyInvitationId,
+  forumDate,
+  useNewNoteEditor,
+  classNames,
+} from '../../lib/utils'
 
 function ForumNote({ note, updateNote }) {
-  const {
-    id,
-    content,
-    details,
-    signatures,
-    editInvitations,
-    deleteInvitation,
-    tagInvitations,
-  } = note
+  const { id, content, details, signatures, editInvitations, deleteInvitation } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
   // eslint-disable-next-line no-underscore-dangle
@@ -103,9 +101,11 @@ function ForumNote({ note, updateNote }) {
 
   return (
     <div
-      className={`forum-note ${pastDue ? 'trashed' : ''} ${
-        texDisabled ? 'disable-tex-rendering' : ''
-      }`}
+      className={classNames(
+        'forum-note',
+        pastDue && 'trashed',
+        texDisabled && 'disable-tex-rendering',
+      )}
     >
       <ForumTitle
         id={id}
@@ -173,7 +173,7 @@ function ForumNote({ note, updateNote }) {
                   user,
                   (newNote) => {
                     updateNote(newNote)
-                  }
+                  },
                 )
               }}
             >
@@ -240,7 +240,7 @@ function ForumMeta({ note }) {
           note.tmdate,
           note.content.year?.value,
           note.pdate,
-          false
+          false,
         )}
       </span>
 
