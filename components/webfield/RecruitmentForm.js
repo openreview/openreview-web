@@ -108,7 +108,6 @@ const ReducedLoadInfo = ({
 }
 
 const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
-  console.log('responseNote', responseNote)
   const {
     declineMessage,
     reducedLoadMessage,
@@ -238,7 +237,6 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     )
   }
   if (status === 'showReducedLoad') {
-    console.log('!allowAcceptWithReducedLoad', !allowAcceptWithReducedLoad)
     return (
       <ReducedLoadInfo
         renderField={renderField}

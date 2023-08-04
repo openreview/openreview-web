@@ -271,7 +271,7 @@ describe('RecruitmentForm', () => {
       ).toBeVisible()
       expect(screen.getByRole('combobox')).toBeVisible()
       expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled()
-      expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument
+      expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument()
     })
 
     await userEvent.click(screen.getByRole('combobox'))
