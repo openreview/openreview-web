@@ -29,6 +29,7 @@ const TextboxWidget = () => {
         ? convertToType(rawInputValue.trim(), dataType)
         : undefined
     }
+    if (rawInputValue.trim() === '') return undefined
     return rawInputValue.split(',').map((p) => convertToType(p.trim(), dataType))
   }
 
@@ -57,7 +58,7 @@ const TextboxWidget = () => {
         invitation?.id,
         note?.id,
         replyToNote?.id,
-        fieldName
+        fieldName,
       )
       savedText = localStorage.getItem(keyOfSavedText)
     }
