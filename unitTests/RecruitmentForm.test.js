@@ -69,7 +69,7 @@ describe('RecruitmentForm', () => {
 
     renderWithWebFieldContext(<RecruitmentForm />, providerProps)
     expect(
-      screen.getByText('The link is invalid, please refer back to recruitment email.'),
+      screen.getByText('The link is invalid, please refer back to recruitment email.')
     ).toBeInTheDocument()
   })
 
@@ -201,7 +201,7 @@ describe('RecruitmentForm', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Accept' }))
     await waitFor(() => {
       expect(
-        screen.getByText('Thank you test@email.com for accepting this invitation'),
+        screen.getByText('Thank you test@email.com for accepting this invitation')
       ).toBeVisible()
       expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, {
         version: 2,
@@ -266,8 +266,8 @@ describe('RecruitmentForm', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          'Please select the number of submissions that you would be comfortable reviewing.',
-        ),
+          'Please select the number of submissions that you would be comfortable reviewing.'
+        )
       ).toBeVisible()
       expect(screen.getByRole('combobox')).toBeVisible()
       expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled()
@@ -282,7 +282,7 @@ describe('RecruitmentForm', () => {
     expect(postResponse).toHaveBeenLastCalledWith(
       expect.anything(),
       responseEditMock,
-      expect.anything(),
+      expect.anything()
     )
     expect(screen.getByText('You have requested a reduced load of 3 papers')).toBeVisible()
     expect(screen.getByText('Thank you for accepting this invitation')).toBeVisible()
@@ -404,7 +404,7 @@ describe('RecruitmentForm', () => {
     expect(postResponse).toHaveBeenLastCalledWith(
       expect.anything(),
       responseUpdateEditMock,
-      expect.anything(),
+      expect.anything()
     )
     expect(screen.getByText('You have declined the invitation')).toBeVisible()
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument() // only show message after submit comment
@@ -471,8 +471,8 @@ describe('RecruitmentForm', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          'If you chose to decline the invitation because the paper load is too high, you can request to reduce your load. You can request a reduced reviewer load below',
-        ),
+          'If you chose to decline the invitation because the paper load is too high, you can request to reduce your load. You can request a reduced reviewer load below'
+        )
       ).toBeVisible()
       expect(screen.getByRole('button', { name: 'Request a reduced load' })).toBeVisible()
     })
@@ -481,8 +481,8 @@ describe('RecruitmentForm', () => {
     expect(screen.getByText('Reduced Load')).toBeVisible()
     expect(
       screen.getByText(
-        'Please select the number of submissions that you would be comfortable reviewing.',
-      ),
+        'Please select the number of submissions that you would be comfortable reviewing.'
+      )
     ).toBeVisible()
     expect(screen.getByRole('combobox')).toBeVisible()
     expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled()
@@ -501,7 +501,7 @@ describe('RecruitmentForm', () => {
     expect(postResponse).toHaveBeenLastCalledWith(
       expect.anything(),
       responseUpdateEditMock,
-      expect.anything(),
+      expect.anything()
     )
     expect(screen.getByText('You have requested a reduced load of 3 papers')).toBeVisible()
     expect(screen.getByText('Thank you for accepting this invitation')).toBeVisible()

@@ -125,10 +125,10 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     : invitation.reply?.content?.comment
   const fieldsToRender = orderNoteInvitationFields(
     invitation,
-    fieldsToHide.concat(['reduced_load', 'comment']),
+    fieldsToHide.concat(['reduced_load', 'comment'])
   )
   const [status, setStatus] = useState(
-    allowAcceptWithReducedLoad && !responseNote ? 'showReducedLoad' : 'init',
+    allowAcceptWithReducedLoad && !responseNote ? 'showReducedLoad' : 'init'
   )
 
   const initialState = fieldsToRender.reduce((acc, field) => {
@@ -160,7 +160,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
       const noteToPost = constructRecruitmentResponseNote(
         invitation,
         noteContent,
-        responseNote,
+        responseNote
       )
       await api.post(isV2Invitation ? '/notes/edits' : '/notes', noteToPost, {
         version: isV2Invitation ? 2 : 1,
@@ -312,8 +312,8 @@ const RecruitmentForm = () => {
         response,
         ...Object.fromEntries(
           Object.entries(args ?? {}).filter(
-            ([key]) => !fieldsToHide.includes(key) && invitationContentFields.includes(key),
-          ),
+            ([key]) => !fieldsToHide.includes(key) && invitationContentFields.includes(key)
+          )
         ),
       }
       const noteToPost = constructRecruitmentResponseNote(invitation, noteContent)
@@ -340,7 +340,7 @@ const RecruitmentForm = () => {
                 reducedLoad,
                 'paper',
                 'papers',
-                true,
+                true
               )}`}</h4>
             )}
             <Markdown text={translateInvitationMessage(acceptMessage, args)} />
