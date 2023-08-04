@@ -29,8 +29,8 @@ export default function FilterTabs({ forumId, forumViews, replyInvitations = [] 
               {view.label}
             </Link>
           </li>
-        );
+        )
       })}
     </ul>
-  );
+  )
 }

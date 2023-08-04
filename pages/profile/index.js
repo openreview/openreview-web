@@ -44,17 +44,17 @@ const RecentPublications = ({ profileId, publications, count, loading, preferred
       />
 
       {count > numPublicationsToShow && (
-        (<Link
+        <Link
           href={`/search?term=${profileId}&content=authors&group=all&source=forum&sort=cdate:desc`}
         >
           {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
           View all{count}publications
-        </Link>)
+        </Link>
       )}
     </>
   ) : (
     <p className="empty-message">No recent publications</p>
-  );
+  )
 }
 
 const CoAuthorsList = ({ coAuthors, loading }) => {
@@ -62,22 +62,15 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
   const numCoAuthorsToShow = 25
 
   const authorLink = ({ name, id, email }) => {
-    if (id)
-      return (
-        <Link href={`/profile?id=${id}`}>
-          {name}
-        </Link>
-      );
+    if (id) return <Link href={`/profile?id=${id}`}>{name}</Link>
     if (email) {
       return email.startsWith('https://dblp.org') ? (
         <a href={email} target="_blank" rel="noopener noreferrer">
           {name}
         </a>
       ) : (
-        <Link href={`/profile?email=${email}`}>
-          {name}
-        </Link>
-      );
+        <Link href={`/profile?email=${email}`}>{name}</Link>
+      )
     }
     return <span>{name}</span>
   }

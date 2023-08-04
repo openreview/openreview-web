@@ -94,10 +94,7 @@ const Privacy = () => (
         </p>
         <p>
           If you have any questions about this Privacy Policy, please{' '}
-          <Link href="/contact">
-            contact us
-          </Link>
-          .
+          <Link href="/contact">contact us</Link>.
         </p>
         <br />
       </div>

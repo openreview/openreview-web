@@ -10,13 +10,7 @@ import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import useUser from '../../hooks/useUser'
 
 export default function GroupDirectory({ appContext }) {
-  const {
-    entity: group,
-    title,
-    subtitle,
-    description,
-    links,
-  } = useContext(WebFieldContext)
+  const { entity: group, title, subtitle, description, links } = useContext(WebFieldContext)
   const [childGroupIds, setChildGroupIds] = useState(null)
   const [error, setError] = useState(null)
   const router = useRouter()
@@ -39,15 +33,19 @@ export default function GroupDirectory({ appContext }) {
       try {
         const { groups } = await api.get('/groups', { parent: group.id }, { accessToken })
         if (groups?.length > 0) {
-          setChildGroupIds(groups.map((g) => g.id).sort((a, b) => {
-            // Sort by year in descending order, or if year is not present sort alphabetically
-            const yearA = a.match(/.*(\d{4})/)?.[1] ?? 0
-            const yearB = b.match(/.*(\d{4})/)?.[1] ?? 0
-            if (!yearA && !yearB) {
-              return prettyId(a.groupId).localeCompare(prettyId(b.groupId))
-            }
-            return yearA > yearB ? -1 : 1
-          }))
+          setChildGroupIds(
+            groups
+              .map((g) => g.id)
+              .sort((a, b) => {
+                // Sort by year in descending order, or if year is not present sort alphabetically
+                const yearA = a.match(/.*(\d{4})/)?.[1] ?? 0
+                const yearB = b.match(/.*(\d{4})/)?.[1] ?? 0
+                if (!yearA && !yearB) {
+                  return prettyId(a.groupId).localeCompare(prettyId(b.groupId))
+                }
+                return yearA > yearB ? -1 : 1
+              })
+          )
         } else {
           setChildGroupIds([])
         }
@@ -64,31 +62,35 @@ export default function GroupDirectory({ appContext }) {
     }
   }, [group.id])
 
-  return <>
-    <div className="venue-header" id="header">
-      <h1>{title || prettyId(group.id)}</h1>
-      {subtitle && <h3>{subtitle}</h3>}
-      {description && <Markdown text={description} />}
-    </div>
+  return (
+    <>
+      <div className="venue-header" id="header">
+        <h1>{title || prettyId(group.id)}</h1>
+        {subtitle && <h3>{subtitle}</h3>}
+        {description && <Markdown text={description} />}
+      </div>
 
-    <hr />
+      <hr />
 
-    {error && (
-      <ErrorAlert error={error} />
-    )}
+      {error && <ErrorAlert error={error} />}
 
-    {childGroupIds && (
-      <ul className="list-unstyled venues-list">
-        {childGroupIds.length > 0 ? childGroupIds.map((id) => (
-          <li key={id}>
-            <Link href={id.startsWith('~') ? `/profile?id=${id}` : `/group?id=${id}`}>
-              {prettyId(id)}
-            </Link>
-          </li>
-        )) : (
-          <li><p className="empty-message">No groups found</p></li>
-        )}
-      </ul>
-    )}
-  </>;
+      {childGroupIds && (
+        <ul className="list-unstyled venues-list">
+          {childGroupIds.length > 0 ? (
+            childGroupIds.map((id) => (
+              <li key={id}>
+                <Link href={id.startsWith('~') ? `/profile?id=${id}` : `/group?id=${id}`}>
+                  {prettyId(id)}
+                </Link>
+              </li>
+            ))
+          ) : (
+            <li>
+              <p className="empty-message">No groups found</p>
+            </li>
+          )}
+        </ul>
+      )}
+    </>
+  )
 }

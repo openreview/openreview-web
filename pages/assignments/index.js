@@ -35,16 +35,11 @@ import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 const ActionLink = ({ label, className, iconName, href, onClick, disabled }) => {
   if (href) {
     return (
-      (<Link
-        href={href}
-        className={`action-link ${className || ''}`}
-        disabled={disabled}>
-
+      <Link href={href} className={`action-link ${className || ''}`} disabled={disabled}>
         <Icon name={iconName} />
         {label}
-
-      </Link>)
-    );
+      </Link>
+    )
   }
 
   return (
@@ -84,9 +79,7 @@ const AssignmentRow = ({
 
       <td className="assignment-label">
         <Link href={edgeBrowserUrl} disabled={edgeBrowserUrl ? null : true}>
-
           {noteContent.title ? noteContent.title : noteContent.label}
-
         </Link>
       </td>
 
@@ -193,7 +186,7 @@ const AssignmentRow = ({
         )}
       </td>
     </tr>
-  );
+  )
 }
 
 const NewNoteEditorModal = ({

@@ -108,7 +108,7 @@ const ReviewSummary = ({
                 Read Review
               </Link>
             </li>
-          );
+          )
         })}
       </ul>
 
@@ -119,7 +119,7 @@ const ReviewSummary = ({
         {maxConfidence})
       </div>
     </div>
-  );
+  )
 }
 
 const AuthorSubmissionRow = ({

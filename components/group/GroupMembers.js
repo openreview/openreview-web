@@ -247,7 +247,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
         </Link>
       </div>
     </EditorSection>
-  );
+  )
 }
 
 const GroupMembers = ({ group, accessToken, reloadGroup }) => {
@@ -588,167 +588,167 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     $('[data-toggle="tooltip"]').tooltip()
   }, [])
 
-  return <>
-    <EditorSection title={getTitle()} className="members">
-      <div className="container members-container">
-        <div className="search-row">
-          <div className="input-group">
-            <input
-              className="form-control input-sm"
-              placeholder="e.g. ~Jane_Doe1, jane@example.com, abc.com/2018/Conf/Authors"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+  return (
+    <>
+      <EditorSection title={getTitle()} className="members">
+        <div className="container members-container">
+          <div className="search-row">
+            <div className="input-group">
+              <input
+                className="form-control input-sm"
+                placeholder="e.g. ~Jane_Doe1, jane@example.com, abc.com/2018/Conf/Authors"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary mr-3 search-button"
+              disabled={!searchTerm.trim() || groupMembers.find((p) => p.id === searchTerm)}
+              onClick={() => handleAddButtonClick(searchTerm)}
+            >
+              Add to Group
+            </button>
+            <div className="space-taker" />
+            <button
+              type="button"
+              className="btn btn-sm btn-primary"
+              disabled={isFilteredEmpty}
+              onClick={() => setGroupMembers({ type: 'SELECTDESELECTALL' })}
+            >
+              {isAllFilterdSelected ? 'Deselect All' : 'Select All'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary hidden-sm hidden-xs"
+              disabled={!groupMembers.some((p) => p.isSelected)}
+              onClick={handleCopySelectedButtonClick}
+              title="Copy member IDs to clipboard. Useful for adding group members to other groups"
+              data-toggle="tooltip"
+              data-placement="top"
+            >
+              Copy Selected
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary"
+              disabled={!groupMembers.some((p) => p.isSelected)}
+              onClick={() =>
+                messageMember(groupMembers.filter((p) => p.isSelected)?.map((q) => q.id))
+              }
+            >
+              Message Selected
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary"
+              disabled={!groupMembers.some((p) => p.isSelected)}
+              onClick={() => handleRemoveSelectedButtonClick()}
+            >
+              Remove Selected
+            </button>
           </div>
-          <button
-            type="button"
-            className="btn btn-sm btn-primary mr-3 search-button"
-            disabled={!searchTerm.trim() || groupMembers.find((p) => p.id === searchTerm)}
-            onClick={() => handleAddButtonClick(searchTerm)}
-          >
-            Add to Group
-          </button>
-          <div className="space-taker" />
-          <button
-            type="button"
-            className="btn btn-sm btn-primary"
-            disabled={isFilteredEmpty}
-            onClick={() => setGroupMembers({ type: 'SELECTDESELECTALL' })}
-          >
-            {isAllFilterdSelected ? 'Deselect All' : 'Select All'}
-          </button>
-          <button
-            type="button"
-            className="btn btn-sm btn-primary hidden-sm hidden-xs"
-            disabled={!groupMembers.some((p) => p.isSelected)}
-            onClick={handleCopySelectedButtonClick}
-            title="Copy member IDs to clipboard. Useful for adding group members to other groups"
-            data-toggle="tooltip"
-            data-placement="top"
-          >
-            Copy Selected
-          </button>
-          <button
-            type="button"
-            className="btn btn-sm btn-primary"
-            disabled={!groupMembers.some((p) => p.isSelected)}
-            onClick={() =>
-              messageMember(groupMembers.filter((p) => p.isSelected)?.map((q) => q.id))
-            }
-          >
-            Message Selected
-          </button>
-          <button
-            type="button"
-            className="btn btn-sm btn-primary"
-            disabled={!groupMembers.some((p) => p.isSelected)}
-            onClick={() => handleRemoveSelectedButtonClick()}
-          >
-            Remove Selected
-          </button>
-        </div>
 
-        {filteredMembers?.length > 0 ? (
-          displayedMembers.map((member) => {
-            const hasAnonId = memberAnonIds.find((p) => p.member.includes(member.id))
-            return (
-              <div
-                key={member.id}
-                className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
-              >
-                <input
-                  type="checkbox"
-                  checked={member.isSelected}
-                  disabled={member.isDeleted}
-                  onChange={(e) => {
-                    setGroupMembers({
-                      type: e.target.checked ? 'SELECT' : 'UNSELECT',
-                      payload: member.id,
-                    })
-                  }}
-                />
-                <span
-                  className="member-id"
-                  onClick={(e) => {
-                    if (e.currentTarget !== e.target) return
-                    setGroupMembers({
-                      type: 'INVERTSELECTION',
-                      payload: member.id,
-                    })
-                  }}
+          {filteredMembers?.length > 0 ? (
+            displayedMembers.map((member) => {
+              const hasAnonId = memberAnonIds.find((p) => p.member.includes(member.id))
+              return (
+                <div
+                  key={member.id}
+                  className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
                 >
-                  <Link href={urlFromGroupId(member.id)}>
-                    {member.id}
-                  </Link>
-                  {hasAnonId && (
+                  <input
+                    type="checkbox"
+                    checked={member.isSelected}
+                    disabled={member.isDeleted}
+                    onChange={(e) => {
+                      setGroupMembers({
+                        type: e.target.checked ? 'SELECT' : 'UNSELECT',
+                        payload: member.id,
+                      })
+                    }}
+                  />
+                  <span
+                    className="member-id"
+                    onClick={(e) => {
+                      if (e.currentTarget !== e.target) return
+                      setGroupMembers({
+                        type: 'INVERTSELECTION',
+                        payload: member.id,
+                      })
+                    }}
+                  >
+                    <Link href={urlFromGroupId(member.id)}>{member.id}</Link>
+                    {hasAnonId && (
+                      <>
+                        {' | '}
+                        <Link href={urlFromGroupId(hasAnonId.anonId, true)}>
+                          {prettyId(hasAnonId.anonId)}
+                        </Link>
+                      </>
+                    )}
+                    {member.isDeleted && <> {'(Deleted)'}</>}
+                  </span>
+                  {member.isDeleted ? (
+                    <button
+                      type="button"
+                      className="btn btn-xs btn-primary"
+                      onClick={() => restoreMember(member.id)}
+                    >
+                      <Icon name="repeat" />
+                      Undo
+                    </button>
+                  ) : (
                     <>
-                      {' | '}
-                      <Link href={urlFromGroupId(hasAnonId.anonId, true)}>
-                        {prettyId(hasAnonId.anonId)}
-                      </Link>
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-primary"
+                        onClick={() => messageMember([member.id])}
+                      >
+                        <Icon name="envelope" />
+                        Message
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-primary"
+                        onClick={() => deleteMember(member.id)}
+                      >
+                        <Icon name="remove" />
+                        Remove
+                      </button>
                     </>
                   )}
-                  {member.isDeleted && <> {'(Deleted)'}</>}
-                </span>
-                {member.isDeleted ? (
-                  <button
-                    type="button"
-                    className="btn btn-xs btn-primary"
-                    onClick={() => restoreMember(member.id)}
-                  >
-                    <Icon name="repeat" />
-                    Undo
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      className="btn btn-xs btn-primary"
-                      onClick={() => messageMember([member.id])}
-                    >
-                      <Icon name="envelope" />
-                      Message
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-xs btn-primary"
-                      onClick={() => deleteMember(member.id)}
-                    >
-                      <Icon name="remove" />
-                      Remove
-                    </button>
-                  </>
-                )}
-              </div>
-            );
-          })
-        ) : (
-          <div className="empty-message-row">
-            {searchTerm
-              ? `No members matching the search "${searchTerm}" found. Click Add to Group above to add a new member.`
-              : 'No members to display'}
-          </div>
-        )}
-        <PaginationLinks
-          setCurrentPage={(e) => setCurrentPage(e)}
-          totalCount={filteredMembers.length}
-          itemsPerPage={membersPerPage}
-          currentPage={currentPage}
-          options={{ noScroll: true }}
-        />
-      </div>
-    </EditorSection>
+                </div>
+              )
+            })
+          ) : (
+            <div className="empty-message-row">
+              {searchTerm
+                ? `No members matching the search "${searchTerm}" found. Click Add to Group above to add a new member.`
+                : 'No members to display'}
+            </div>
+          )}
+          <PaginationLinks
+            setCurrentPage={(e) => setCurrentPage(e)}
+            totalCount={filteredMembers.length}
+            itemsPerPage={membersPerPage}
+            currentPage={currentPage}
+            options={{ noScroll: true }}
+          />
+        </div>
+      </EditorSection>
 
-    <MessageMemberModal
-      groupId={group.id}
-      groupDomainContent={group.details.domain?.content}
-      membersToMessage={memberToMessage}
-      accessToken={accessToken}
-      setJobId={(id) => setJobId(id)}
-    />
+      <MessageMemberModal
+        groupId={group.id}
+        groupDomainContent={group.details.domain?.content}
+        membersToMessage={memberToMessage}
+        accessToken={accessToken}
+        setJobId={(id) => setJobId(id)}
+      />
 
-    <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
-  </>;
+      <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
+    </>
+  )
 }
 
 export default GroupMembers

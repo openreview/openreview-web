@@ -266,9 +266,7 @@ function ForumMeta({ note }) {
       {note.tmdate !== note.tcdate && (
         <span className="item">
           <Icon name="duplicate" />
-          <Link href={`/revisions?id=${note.id}`}>
-            Revisions
-          </Link>
+          <Link href={`/revisions?id=${note.id}`}>Revisions</Link>
         </span>
       )}
 
@@ -289,7 +287,7 @@ function ForumMeta({ note }) {
         </span>
       )}
     </div>
-  );
+  )
 }
 
 export default ForumNote

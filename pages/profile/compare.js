@@ -401,7 +401,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   const formatLongDate = (date) => {
     if (!date) return ''
 
-    return new Date(date).toISOString().replace(/-/g, '/').replace('T', ' ').replace('Z', '');
+    return new Date(date).toISOString().replace(/-/g, '/').replace('T', ' ').replace('Z', '')
   }
 
   const addSignatureToProfile = (profile) => {

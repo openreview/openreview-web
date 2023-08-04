@@ -38,48 +38,50 @@ const EthicsChairOverview = () => {
   useEffect(() => {
     loadRecruitmentGroups()
   }, [])
-  return <>
-    <div className="row recruitment-stat-row">
-      <StatContainer
-        title="Ethics Reviewer Recruitment"
-        hint="accepted / invited"
-        value={
-          recruitmentGroups ? (
-            `${ethicsReviewersGroup?.members?.length ?? 'N/A'} / ${
-              invitedEthicsReviewersGroup?.members?.length ?? 'N/A'
-            }`
-          ) : (
-            <LoadingSpinner inline={true} text={null} />
-          )
-        }
-      />
-    </div>
-    <hr className="spacer" />
-    <div className="row recruitment-stat-row">
-      <h4>Ethics Review Roles</h4>
-      <ul>
-        <li>
-          <Link href={`/group/info?id=${venueId}/${ethicsChairsName}`}>
-            {prettyId(ethicsChairsName)}
-          </Link>
-        </li>
-        <li>
-          <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}`}>
-            {prettyId(ethicsReviewersName)}
-          </Link>{' '}
-          (
-          <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}/Invited`}>
-            Invited
-          </Link>
-          ,
-          <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}/Declined`}>
-            Declined
-          </Link>
-          )
-        </li>
-      </ul>
-    </div>
-  </>;
+  return (
+    <>
+      <div className="row recruitment-stat-row">
+        <StatContainer
+          title="Ethics Reviewer Recruitment"
+          hint="accepted / invited"
+          value={
+            recruitmentGroups ? (
+              `${ethicsReviewersGroup?.members?.length ?? 'N/A'} / ${
+                invitedEthicsReviewersGroup?.members?.length ?? 'N/A'
+              }`
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
+        />
+      </div>
+      <hr className="spacer" />
+      <div className="row recruitment-stat-row">
+        <h4>Ethics Review Roles</h4>
+        <ul>
+          <li>
+            <Link href={`/group/info?id=${venueId}/${ethicsChairsName}`}>
+              {prettyId(ethicsChairsName)}
+            </Link>
+          </li>
+          <li>
+            <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}`}>
+              {prettyId(ethicsReviewersName)}
+            </Link>{' '}
+            (
+            <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}/Invited`}>
+              Invited
+            </Link>
+            ,
+            <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}/Declined`}>
+              Declined
+            </Link>
+            )
+          </li>
+        </ul>
+      </div>
+    </>
+  )
 }
 
 export default EthicsChairOverview

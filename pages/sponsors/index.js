@@ -145,14 +145,12 @@ export default function Sponsors({ sponsors }) {
         </div>
         <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
           <p>
-            <Link href="/sponsors/2019-2022">
-              View past sponsors from 2019-2022 &raquo;
-            </Link>
+            <Link href="/sponsors/2019-2022">View past sponsors from 2019-2022 &raquo;</Link>
           </p>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 export async function getStaticProps() {
@@ -168,9 +166,7 @@ export async function getStaticProps() {
             link: 'https://sloan.org/',
           },
         ],
-        silver: [
-          { name: 'Amazon', image: 'amazon.png', link: 'https://www.amazon.science/' },
-        ],
+        silver: [{ name: 'Amazon', image: 'amazon.png', link: 'https://www.amazon.science/' }],
         bronze: [
           { name: 'Apple', image: 'apple.png', link: 'https://apple.com/' },
           { name: 'IBM', image: 'ibm.png', link: 'https://research.ibm.com/' },

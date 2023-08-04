@@ -12,7 +12,13 @@ import NoteEditorForm from '../NoteEditorForm'
 import ForumReplyContext from './ForumReplyContext'
 import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
-import { prettyId, prettyInvitationId, forumDate, buildNoteTitle, useNewNoteEditor } from '../../lib/utils'
+import {
+  prettyId,
+  prettyInvitationId,
+  forumDate,
+  buildNoteTitle,
+  useNewNoteEditor,
+} from '../../lib/utils'
 import { getInvitationColors } from '../../lib/forum-utils'
 
 export default function ForumReply({ note, replies, replyDepth, parentId, updateNote }) {
@@ -21,7 +27,9 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
   const { displayOptionsMap, nesting, excludedInvitations, setCollapsed, setContentExpanded } =
     useContext(ForumReplyContext)
   const { user } = useUser()
-  const newNoteEditor = useNewNoteEditor(activeInvitation?.domain || activeEditInvitation?.domain)
+  const newNoteEditor = useNewNoteEditor(
+    activeInvitation?.domain || activeEditInvitation?.domain
+  )
 
   const { invitations, signatures, content, ddate } = note
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
@@ -340,9 +348,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         {note.tmdate !== note.tcdate && (
           <span className="revisions">
             <Icon name="duplicate" />
-            <Link href={`/revisions?id=${note.id}`}>
-              Revisions
-            </Link>
+            <Link href={`/revisions?id=${note.id}`}>Revisions</Link>
           </span>
         )}
       </div>
@@ -428,7 +434,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         />
       )}
     </ReplyContainer>
-  );
+  )
 }
 
 function ReplyContainer({

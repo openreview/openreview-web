@@ -19,7 +19,9 @@ export default function SponsorsOld({ sponsors }) {
       <div className="row">
         <div className="col-xs-12 col-md-10 col-md-offset-1 mb-3 text-center">
           <h1>OpenReview Sponsors 2019–2022</h1>
-          <h5>We gratefully acknowledge the support of all our sponsors from previous years:</h5>
+          <h5>
+            We gratefully acknowledge the support of all our sponsors from previous years:
+          </h5>
         </div>
       </div>
 
@@ -145,14 +147,12 @@ export default function SponsorsOld({ sponsors }) {
         </div>
         <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
           <p>
-            <Link href="/sponsors">
-              View current sponsors &raquo;
-            </Link>
+            <Link href="/sponsors">View current sponsors &raquo;</Link>
           </p>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 export async function getStaticProps() {
