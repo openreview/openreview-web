@@ -156,7 +156,7 @@ describe('TextboxWidget', () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
-  test('don\'t show default value or invoke onChange editing existing note', () => {
+  test("don't show default value or invoke onChange editing existing note", () => {
     const onChange = jest.fn()
     const defaultValue = 'default paper title'
     const providerProps = {
@@ -183,7 +183,7 @@ describe('TextboxWidget', () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
-  test('don\'t show default value or invoke onChange editing existing note (array field)', () => {
+  test("don't show default value or invoke onChange editing existing note (array field)", () => {
     const onChange = jest.fn()
     const defaultValue = ['keyword one', 'keyword two', 'keyword three']
     const providerProps = {
@@ -297,6 +297,29 @@ describe('TextboxWidget', () => {
       expect.objectContaining({ value: ['keyword one', 'keyword two', 'keyword three'] })
     )
     expect(clearError).toHaveBeenCalled()
+  })
+
+  test('invoke onchange on clearing text (string[])', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          keywords: {
+            value: {
+              param: {
+                type: 'string[]',
+              },
+            },
+          },
+        },
+        value: ['keyword one', 'keyword two', 'keyword three'],
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+    const input = screen.getByDisplayValue('keyword one,keyword two,keyword three')
+    await userEvent.clear(input)
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ value: undefined }))
   })
 
   test('invoke onchange on text change (integer)(with type conversion)', async () => {
