@@ -60,7 +60,7 @@ const NoteSignatures = ({
         extraClasses={styles.signatures}
         clearError={() =>
           setErrors((existingErrors) =>
-            existingErrors.filter((p) => p.fieldName !== fieldName),
+            existingErrors.filter((p) => p.fieldName !== fieldName)
           )
         }
       />
@@ -103,7 +103,7 @@ const EditSignatures = ({
         extraClasses={styles.signatures}
         clearError={() =>
           setErrors((existingErrors) =>
-            existingErrors.filter((p) => p.fieldName !== fieldName),
+            existingErrors.filter((p) => p.fieldName !== fieldName)
           )
         }
       />
@@ -147,12 +147,12 @@ const NoteEditor = ({
         invitation.id,
         note?.id,
         replyToNote?.id,
-        fieldName,
+        fieldName
       )
       localStorage.setItem(keyOfSavedText, value ?? '')
       setAutoStorageKeys((keys) => [...keys, keyOfSavedText])
     }, 1500),
-    [invitation, note, replyToNote],
+    [invitation, note, replyToNote]
   )
 
   const defaultNoteEditorData = {
@@ -174,7 +174,7 @@ const NoteEditor = ({
   }
   const [noteEditorData, setNoteEditorData] = useReducer(
     noteEditorDataReducer,
-    defaultNoteEditorData,
+    defaultNoteEditorData
   )
 
   const renderField = (fieldName, fieldDescription) => {
@@ -210,7 +210,7 @@ const NoteEditor = ({
             setErrors,
             clearError: () => {
               setErrors((existingErrors) =>
-                existingErrors.filter((p) => p.fieldName !== fieldName),
+                existingErrors.filter((p) => p.fieldName !== fieldName)
               )
             },
           }}
@@ -302,14 +302,14 @@ const NoteEditor = ({
   const addMissingReaders = (
     readersSelected,
     readersDefinedInInvitation,
-    signatureInputValues,
+    signatureInputValues
   ) => {
     if (!readersSelected) return undefined
     if (signatureInputValues?.length && !readersSelected.includes('everyone')) {
       const signatureId = signatureInputValues[0]
       const anonReviewerIndex = Math.max(
         signatureId.indexOf('AnonReviewer'),
-        signatureId.indexOf('Reviewer_'),
+        signatureId.indexOf('Reviewer_')
       )
       if (anonReviewerIndex > 0) {
         const reviewersSubmittedGroupId = signatureId
@@ -323,7 +323,7 @@ const NoteEditor = ({
               signatureId,
               reviewersSubmittedGroupId,
               reviewersGroupId,
-            ]),
+            ])
           )
         ) {
           if (readersDefinedInInvitation?.includes(signatureId)) {
@@ -339,7 +339,7 @@ const NoteEditor = ({
       } else {
         const acIndex = Math.max(
           signatureId.indexOf('Area_Chair1'),
-          signatureId.indexOf('Area_Chair_'),
+          signatureId.indexOf('Area_Chair_')
         )
         const acGroupId =
           acIndex >= 0 ? signatureId.slice(0, acIndex).concat('Area_Chairs') : signatureId
@@ -368,7 +368,7 @@ const NoteEditor = ({
       noteEditorData.noteReaderValues,
       invitation.edit.note.readers?.param?.enum ??
         invitation.edit.note.readers?.param?.items?.map((p) => p.value), // prefix values are not used
-      signatureInputValues,
+      signatureInputValues
     )
   }
 
@@ -378,7 +378,7 @@ const NoteEditor = ({
       noteEditorData.editReaderValues,
       invitation.edit.readers?.param?.enum ??
         invitation.edit.readers?.param?.items?.map((p) => p.value),
-      noteEditorData.editSignatureInputValues,
+      noteEditorData.editSignatureInputValues
     )
   }
 
@@ -405,7 +405,7 @@ const NoteEditor = ({
       const result = await api.get(
         '/notes',
         { id: noteCreated.id, details: 'invitation,presentation,writable' },
-        { accessToken, version: 2 },
+        { accessToken, version: 2 }
       )
       return result.notes?.[0] ? result.notes[0] : constructedNote
     } catch (error) {
@@ -461,25 +461,22 @@ const NoteEditor = ({
         setErrors(
           error.errors.map((p) => {
             const fieldName = getErrorFieldName(p.details.path)
-            if (isNonDeletableError(p.details.invalidValue, p.message))
+            if (isNonDeletableError(p.details.invalidValue))
               return { fieldName, message: `${prettyField(fieldName)} is not deletable` }
             return { fieldName, message: p.message.replace(fieldName, prettyField(fieldName)) }
-          }),
+          })
         )
         const hasOnlyMissingFieldsError = error.errors.every(
-          (p) => p.name === 'MissingRequiredError',
+          (p) => p.name === 'MissingRequiredError'
         )
         displayError(
           hasOnlyMissingFieldsError
             ? 'Required field values are missing.'
-            : 'Some info submitted are invalid.',
+            : 'Some info submitted are invalid.'
         )
       } else if (error.details?.path) {
         const fieldName = getErrorFieldName(error.details.path)
-        const prettyErrorMessage = isNonDeletableError(
-          error.details.invalidValue,
-          error.message,
-        )
+        const prettyErrorMessage = isNonDeletableError(error.details.invalidValue)
           ? `${prettyField(fieldName)} is not deletable`
           : error.message.replace(fieldName, prettyField(fieldName))
         setErrors([
@@ -509,8 +506,8 @@ const NoteEditor = ({
 
     setFields(
       Object.entries(invitation.edit.note.content).sort(
-        (a, b) => (a[1].order ?? 100) - (b[1].order ?? 100),
-      ),
+        (a, b) => (a[1].order ?? 100) - (b[1].order ?? 100)
+      )
     )
   }, [invitation, user, userLoading])
 
@@ -558,7 +555,7 @@ const NoteEditor = ({
           error={errors.find((e) => e.fieldName === 'editReaderValues')}
           clearError={() =>
             setErrors((existingErrors) =>
-              existingErrors.filter((p) => p.fieldName !== 'editReaderValues'),
+              existingErrors.filter((p) => p.fieldName !== 'editReaderValues')
             )
           }
         />

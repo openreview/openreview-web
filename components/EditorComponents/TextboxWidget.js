@@ -58,7 +58,7 @@ const TextboxWidget = () => {
         invitation?.id,
         note?.id,
         replyToNote?.id,
-        fieldName,
+        fieldName
       )
       savedText = localStorage.getItem(keyOfSavedText)
     }

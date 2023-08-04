@@ -46,7 +46,7 @@ describe('TextboxWidget', () => {
     }
     reRenderWithEditorComponentContext(rerender, <TextboxWidget />, providerProps)
     expect(screen.getByDisplayValue('keyword one,keyword two,keyword three')).toHaveAttribute(
-      'readonly',
+      'readonly'
     )
 
     providerProps = {
@@ -72,7 +72,7 @@ describe('TextboxWidget', () => {
     }
     reRenderWithEditorComponentContext(rerender, <TextboxWidget />, providerProps)
     expect(screen.getByDisplayValue('keyword one,keyword two,keyword three')).toHaveAttribute(
-      'readonly',
+      'readonly'
     )
 
     providerProps = {
@@ -94,7 +94,7 @@ describe('TextboxWidget', () => {
     }
     reRenderWithEditorComponentContext(rerender, <TextboxWidget />, providerProps)
     expect(screen.getByDisplayValue('keyword one,keyword two,keyword three')).toHaveAttribute(
-      'readonly',
+      'readonly'
     )
   })
 
@@ -243,7 +243,7 @@ describe('TextboxWidget', () => {
     }
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
     expect(
-      screen.getByDisplayValue('keyword one,keyword two,keyword three'),
+      screen.getByDisplayValue('keyword one,keyword two,keyword three')
     ).toBeInTheDocument()
   })
 
@@ -294,7 +294,7 @@ describe('TextboxWidget', () => {
     const input = screen.getByDisplayValue('')
     await userEvent.type(input, '  keyword one,  keyword two    ,keyword three    ')
     expect(onChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({ value: ['keyword one', 'keyword two', 'keyword three'] }),
+      expect.objectContaining({ value: ['keyword one', 'keyword two', 'keyword three'] })
     )
     expect(clearError).toHaveBeenCalled()
   })
@@ -399,7 +399,7 @@ describe('TextboxWidget', () => {
     renderWithEditorComponentContext(<TextboxWidget />, providerProps)
     expect(getItem).toHaveBeenCalledWith('some key')
     expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ value: 'some saved value' }),
+      expect.objectContaining({ value: 'some saved value' })
     )
     expect(clearError).toHaveBeenCalled()
   })
