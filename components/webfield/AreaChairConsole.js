@@ -133,6 +133,7 @@ const AreaChairConsole = ({ appContext }) => {
     filterOperators,
     propertiesAllowed,
     enableQuerySearch,
+    emailReplyTo,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,

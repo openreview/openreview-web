@@ -13,7 +13,7 @@ const MessageReviewersModal = ({
   selectedIds,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, venueId, officialReviewName, submissionName } =
+  const { shortPhrase, venueId, officialReviewName, submissionName, emailReplyTo } =
     useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
@@ -49,6 +49,7 @@ const MessageReviewersModal = ({
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),
             parentGroup: `${venueId}/${submissionName}${note.number}/Reviewers`,
+            replyTo: emailReplyTo,
           },
           { accessToken }
         )

@@ -37,7 +37,9 @@ const ForumPage = ({ forumNote, query, appContext }) => {
     Array.isArray(content.authors) || typeof content.authors === 'string'
       ? [content.authors].flat()
       : []
-  const onlineDate = new Date(forumNote.odate || forumNote.cdate || forumNote.tcdate || Date.now())
+  const onlineDate = new Date(
+    forumNote.odate || forumNote.cdate || forumNote.tcdate || Date.now()
+  )
     .toISOString()
     .slice(0, 10)
     .replace(/-/g, '/')
@@ -88,7 +90,8 @@ const ForumPage = ({ forumNote, query, appContext }) => {
 
         {/* For more information on required meta tags for Google Scholar see: */}
         {/* https://scholar.google.com/intl/en/scholar/inclusion.html#indexing */}
-        {noteInvitation.startsWith(`${process.env.SUPER_USER}`) || noteInvitation.startsWith('dblp.org') ? (
+        {noteInvitation.startsWith(process.env.SUPER_USER) ||
+        noteInvitation.startsWith('dblp.org') ? (
           <meta name="robots" content="noindex" />
         ) : (
           <>
@@ -108,12 +111,8 @@ const ForumPage = ({ forumNote, query, appContext }) => {
             {conferenceName && (
               <meta name="citation_conference_title" content={conferenceName} />
             )}
-            {journalName && (
-              <meta name="citation_journal_title" content={journalName} />
-            )}
-            {issn && (
-              <meta name="citation_issn" content={issn} />
-            )}
+            {journalName && <meta name="citation_journal_title" content={journalName} />}
+            {issn && <meta name="citation_issn" content={issn} />}
           </>
         )}
       </Head>
