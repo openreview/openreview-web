@@ -61,6 +61,7 @@ const ProgramChairConsole = ({ appContext }) => {
     areaChairStatusExportColumns,
     customStageInvitations,
     assignmentUrls,
+    emailReplyTo,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()

@@ -332,7 +332,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           className="readers"
           data-toggle="tooltip"
           data-placement="top"
-          title={`Visible to ${note.readers.join(', ')}`}
+          title={`Visible to <br/>${note.readers.join(',<br/>')}`}
         >
           <Icon name="eye-open" />
           {note.readers.map((reader) => prettyId(reader, true)).join(', ')}
@@ -351,7 +351,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         id={note.id}
         content={content}
         presentation={note.details?.presentation}
-        noteReaders={note.readers}
+        noteReaders={note.sortedReaders}
         contentExpanded={contentExpanded}
         setContentExpanded={setContentExpanded}
         deleted={!!ddate}

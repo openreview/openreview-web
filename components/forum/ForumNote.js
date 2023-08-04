@@ -8,18 +8,16 @@ import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
-import { prettyId, prettyInvitationId, forumDate, useNewNoteEditor } from '../../lib/utils'
+import {
+  prettyId,
+  prettyInvitationId,
+  forumDate,
+  useNewNoteEditor,
+  classNames,
+} from '../../lib/utils'
 
 function ForumNote({ note, updateNote }) {
-  const {
-    id,
-    content,
-    details,
-    signatures,
-    editInvitations,
-    deleteInvitation,
-    tagInvitations,
-  } = note
+  const { id, content, details, signatures, editInvitations, deleteInvitation } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
   // eslint-disable-next-line no-underscore-dangle
@@ -37,7 +35,8 @@ function ForumNote({ note, updateNote }) {
       ? content[fieldName].readers.sort()
       : null
     return (
-      !fieldReaders || (note.readers && fieldReaders.every((p, j) => p === note.readers[j]))
+      !fieldReaders ||
+      (note.sortedReaders && fieldReaders.every((p, j) => p === note.sortedReaders[j]))
     )
   }
 
@@ -102,9 +101,11 @@ function ForumNote({ note, updateNote }) {
 
   return (
     <div
-      className={`forum-note ${pastDue ? 'trashed' : ''} ${
-        texDisabled ? 'disable-tex-rendering' : ''
-      }`}
+      className={classNames(
+        'forum-note',
+        pastDue && 'trashed',
+        texDisabled && 'disable-tex-rendering'
+      )}
     >
       <ForumTitle
         id={id}
@@ -192,7 +193,7 @@ function ForumNote({ note, updateNote }) {
           note.invitations[0].split('/-/')[1].includes('Submission') ? note.number : null
         }
         presentation={details.presentation}
-        noteReaders={note.readers}
+        noteReaders={note.sortedReaders}
       />
     </div>
   )
@@ -253,7 +254,7 @@ function ForumMeta({ note }) {
           className="readers item"
           data-toggle="tooltip"
           data-placement="top"
-          title={`Visible to <br/>${note.readers.join('<br/>')}${
+          title={`Visible to <br/>${note.readers.join(',<br/>')}${
             note.odate ? `<br/>since ${forumDate(note.odate)}` : ''
           }`}
         >

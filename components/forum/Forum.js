@@ -166,13 +166,16 @@ export default function Forum({
 
       // Don't include forum note in replyMap
       if (note.id === note.forum) {
-        setParentNote({
-          ...note,
-          editInvitations,
-          deleteInvitation,
-          replyInvitations,
-          tagInvitations,
-        })
+        setParentNote(
+          formatNote(
+            note,
+            null,
+            editInvitations,
+            deleteInvitation,
+            replyInvitations,
+            tagInvitations
+          )
+        )
         return
       }
 

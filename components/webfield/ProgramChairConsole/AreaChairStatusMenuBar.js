@@ -13,7 +13,7 @@ const MessageAreaChairsModal = ({
   messageParentGroup,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase } = useContext(WebFieldContext)
+  const { shortPhrase, emailReplyTo } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -36,6 +36,7 @@ const MessageAreaChairsModal = ({
           subject,
           message,
           parentGroup: messageParentGroup,
+          replyTo: emailReplyTo,
         },
         { accessToken }
       )
