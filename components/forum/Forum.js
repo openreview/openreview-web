@@ -133,7 +133,7 @@ export default function Forum({
       {
         forum: forumId,
         trash: true,
-        details: 'replyCount,editsCount,writable,signatures,invitation,presentation',
+        details: 'replyCount,writable,signatures,invitation,presentation',
       },
       { accessToken, version: 2 }
     )

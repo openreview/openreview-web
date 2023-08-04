@@ -263,12 +263,14 @@ function ForumMeta({ note }) {
         </span>
       )}
 
-      <span className="item">
-        <Icon name="duplicate" />
-        <Link href={`/revisions?id=${note.id}`}>
-          <a>Revisions</a>
-        </Link>
-      </span>
+      {note.tmdate !== note.tcdate && (
+        <span className="item">
+          <Icon name="duplicate" />
+          <Link href={`/revisions?id=${note.id}`}>
+            <a>Revisions</a>
+          </Link>
+        </span>
+      )}
 
       {/* eslint-disable-next-line no-underscore-dangle */}
       {note.content._bibtex?.value && (
