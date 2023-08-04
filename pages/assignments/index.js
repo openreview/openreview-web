@@ -35,13 +35,16 @@ import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 const ActionLink = ({ label, className, iconName, href, onClick, disabled }) => {
   if (href) {
     return (
-      <Link href={href}>
-        <a className={`action-link ${className || ''}`} disabled={disabled}>
-          <Icon name={iconName} />
-          {label}
-        </a>
-      </Link>
-    )
+      (<Link
+        href={href}
+        className={`action-link ${className || ''}`}
+        disabled={disabled}>
+
+        <Icon name={iconName} />
+        {label}
+
+      </Link>)
+    );
   }
 
   return (
@@ -80,10 +83,10 @@ const AssignmentRow = ({
       <td>{note.number}</td>
 
       <td className="assignment-label">
-        <Link href={edgeBrowserUrl}>
-          <a disabled={edgeBrowserUrl ? null : true}>
-            {noteContent.title ? noteContent.title : noteContent.label}
-          </a>
+        <Link href={edgeBrowserUrl} disabled={edgeBrowserUrl ? null : true}>
+
+          {noteContent.title ? noteContent.title : noteContent.label}
+
         </Link>
       </td>
 
@@ -190,7 +193,7 @@ const AssignmentRow = ({
         )}
       </td>
     </tr>
-  )
+  );
 }
 
 const NewNoteEditorModal = ({

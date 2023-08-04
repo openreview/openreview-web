@@ -25,7 +25,7 @@ export const GroupGeneralView = ({ group }) => {
     <div className="info-container">
       <GroupTableRow label="Parent Group">
         <Link href={urlFromGroupId(groupParent, true)}>
-          <a>{prettyId(groupParent)}</a>
+          {prettyId(groupParent)}
         </Link>
       </GroupTableRow>
 
@@ -83,7 +83,7 @@ export const GroupGeneralView = ({ group }) => {
         <span>{formatDateTime(group.mdate ?? group.tmdate, dateOptions)}</span>
       </GroupTableRow>
     </div>
-  )
+  );
 }
 
 const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
@@ -294,16 +294,19 @@ const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup 
             Edit General Info
           </button>
           {group.invitations?.length > 0 && (
-            <Link href={`/group/revisions?id=${group.id}`}>
-              <a role="button" className="btn btn-sm btn-default edit-group-info">
+            <Link
+              href={`/group/revisions?id=${group.id}`}
+              role="button"
+              className="btn btn-sm btn-default edit-group-info">
+              
                 View Group Revisions
-              </a>
+              
             </Link>
           )}
         </>
       )}
     </EditorSection>
-  )
+  );
 }
 
 export default GroupGeneral

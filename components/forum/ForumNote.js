@@ -267,7 +267,7 @@ function ForumMeta({ note }) {
         <span className="item">
           <Icon name="duplicate" />
           <Link href={`/revisions?id=${note.id}`}>
-            <a>Revisions</a>
+            Revisions
           </Link>
         </span>
       )}
@@ -289,7 +289,7 @@ function ForumMeta({ note }) {
         </span>
       )}
     </div>
-  )
+  );
 }
 
 export default ForumNote

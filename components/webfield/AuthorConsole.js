@@ -105,10 +105,10 @@ const ReviewSummary = ({
               <Link
                 href={`/forum?id=${review.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
               >
-                <a>Read Review</a>
+                Read Review
               </Link>
             </li>
-          )
+          );
         })}
       </ul>
 
@@ -119,7 +119,7 @@ const ReviewSummary = ({
         {maxConfidence})
       </div>
     </div>
-  )
+  );
 }
 
 const AuthorSubmissionRow = ({

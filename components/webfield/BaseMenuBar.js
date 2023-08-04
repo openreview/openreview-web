@@ -207,7 +207,7 @@ const BaseMenuBar = ({
         shouldEnableQuerySearch &&
         querySearchInfoModal({ filterOperators, propertiesAllowed })}
     </div>
-  )
+  );
 }
 
 export default BaseMenuBar

@@ -42,14 +42,14 @@ export const InvitationGeneralView = ({
         <div className="row d-flex">
           <span className="info-title">Super Invitation:</span>
           <Link href={`/invitation/edit?id=${invitation.super}`}>
-            <a>{prettyId(invitation.super)}</a>
+            {prettyId(invitation.super)}
           </Link>
         </div>
       )}
       <div className="row d-flex">
         <span className="info-title">Parent Group:</span>
         <Link href={urlFromGroupId(parentGroupId, true)}>
-          <a>{prettyId(parentGroupId)}</a>
+          {prettyId(parentGroupId)}
         </Link>
       </div>
       <div className="row d-flex">
@@ -149,7 +149,7 @@ export const InvitationGeneralView = ({
         </button>
       )}
     </div>
-  )
+  );
 }
 
 export const InvitationGeneralViewV2 = ({
@@ -165,7 +165,7 @@ export const InvitationGeneralViewV2 = ({
       <div className="row d-flex">
         <span className="info-title">Parent Group:</span>
         <Link href={urlFromGroupId(parentGroupId, true)}>
-          <a>{prettyId(parentGroupId)}</a>
+          {prettyId(parentGroupId)}
         </Link>
       </div>
       <div className="row d-flex">
@@ -270,14 +270,17 @@ export const InvitationGeneralViewV2 = ({
         </button>
       )}
       {showEditButton && (
-        <Link href={`/invitation/revisions?id=${invitation.id}`}>
-          <a role="button" className="btn btn-sm btn-default edit-group-info">
+        <Link
+          href={`/invitation/revisions?id=${invitation.id}`}
+          role="button"
+          className="btn btn-sm btn-default edit-group-info">
+          
             View Invitation Revisions
-          </a>
+          
         </Link>
       )}
     </div>
-  )
+  );
 }
 
 const InvitationGeneralEdit = ({ invitation, accessToken, loadInvitation, setIsEditMode }) => {

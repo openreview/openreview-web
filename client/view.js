@@ -1143,11 +1143,11 @@ module.exports = (function () {
           handleResponses(null, emailResponse)
         })
       } else if (hasValidName) {
-        Webfield.get('/profiles/search', { first: firstName, last: lastName }).then(function (
-          namesResponse
-        ) {
-          handleResponses(namesResponse, null)
-        })
+        Webfield.get('/profiles/search', { first: firstName, last: lastName }).then(
+          function (namesResponse) {
+            handleResponses(namesResponse, null)
+          }
+        )
       }
     }
 
@@ -2651,13 +2651,16 @@ module.exports = (function () {
         .text(invLabelText)
         .css(getInvitationColors(prettyInv))
       var iconName = note.readers.includes('everyone') ? 'globe' : 'eye-open'
-      var onlineText = note.odate && note.readers.includes('everyone')
-        ? 'Visible to everyone since ' + forumDate(note.odate)
-        : 'Reply Visibility'
+      var onlineText =
+        note.odate && note.readers.includes('everyone')
+          ? 'Visible to everyone since ' + forumDate(note.odate)
+          : 'Reply Visibility'
       $readersItem = $('<span>', { class: 'item' }).append(
         '<span class="glyphicon glyphicon-' +
           iconName +
-          '" data-toggle="tooltip" data-placement="top" title="' + onlineText + '" aria-hidden="true"></span>',
+          '" data-toggle="tooltip" data-placement="top" title="' +
+          onlineText +
+          '" aria-hidden="true"></span>',
         ' ',
         prettyReadersList(note.readers, true)
       )
@@ -3847,17 +3850,17 @@ module.exports = (function () {
             data.append('invitationId', invitation.id)
             data.append('name', fieldName)
             data.append('file', files[fieldName])
-            return Webfield.sendFile('/attachment', data, undefined, fieldName).then(function (
-              result
-            ) {
-              note.content[fieldName] = result.url
-              updateFileSection(
-                $contentMap[fieldName],
-                fieldName,
-                invitation.reply.content[fieldName],
-                note.content[fieldName]
-              )
-            })
+            return Webfield.sendFile('/attachment', data, undefined, fieldName).then(
+              function (result) {
+                note.content[fieldName] = result.url
+                updateFileSection(
+                  $contentMap[fieldName],
+                  fieldName,
+                  invitation.reply.content[fieldName],
+                  note.content[fieldName]
+                )
+              }
+            )
           }
         })
         Promise.all(promises).then(
@@ -4559,8 +4562,7 @@ module.exports = (function () {
                 return oldPromises.then(function (_) {
                   return sendSingleChunk(currentChunk, i)
                 })
-              },
-              Promise.resolve())
+              }, Promise.resolve())
               uploadInProgressFields.push({
                 fieldName,
                 noteRef: editNote,

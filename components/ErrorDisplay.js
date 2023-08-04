@@ -27,12 +27,10 @@ const ErrorDisplay = ({ statusCode, message }) => (
           </p>
           <p className="error-help">
             To add a new email to your profile, navigate to the{' '}
-            <Link href="/profile/edit">
-              <a>Edit Profile page</a>
-            </Link>
-            , click the + icon at the bottom of the Emails section and enter the new email
-            address. Then, click the Confirm button, check your email for the confirmation
-            message from OpenReview, and finally click the link to complete the confirmation.
+            <Link href="/profile/edit">Edit Profile page</Link>, click the + icon at the bottom
+            of the Emails section and enter the new email address. Then, click the Confirm
+            button, check your email for the confirmation message from OpenReview, and finally
+            click the link to complete the confirmation.
           </p>
         </>
       )}

@@ -96,13 +96,13 @@ function ConsolesList({
         return (
           <li key={groupId} className="note invitation-link">
             <Link href={`/group?id=${groupId}`}>
-              <a>{groupName} Console</a>
+              {groupName}Console
             </Link>
           </li>
-        )
+        );
       })}
     </ul>
-  )
+  );
 }
 
 export default function VenueHomepage({ appContext }) {

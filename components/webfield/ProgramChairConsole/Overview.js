@@ -757,84 +757,68 @@ const DescriptionTimelineOtherConfigRow = ({
   const notDatedInvitations = timelineInvitations.filter((p) => !p.duedate)
 
   if (!requestForm) return null
-  return (
-    <>
-      <div className="row">
-        <div className="col-md-4 col-xs-12">
-          <h4>Description:</h4>
-          <p>
-            <span>
-              {`Author And Reviewer Anonymity: ${requestFormContent?.['Author and Reviewer Anonymity']}`}
-              <br />
-              {requestFormContent?.['Open Reviewing Policy']}
-              <br />
-              {`Paper matching uses ${
-                requestFormContent?.submission_reviewer_assignment ??
-                requestFormContent?.['Paper Matching']?.join(', ')
-              }`}
-              {requestFormContent?.['Other Important Information'] && (
-                <>
-                  <br />
-                  {requestFormContent?.['Other Important Information']}
-                </>
-              )}
-            </span>
+  return <>
+    <div className="row">
+      <div className="col-md-4 col-xs-12">
+        <h4>Description:</h4>
+        <p>
+          <span>
+            {`Author And Reviewer Anonymity: ${requestFormContent?.['Author and Reviewer Anonymity']}`}
             <br />
+            {requestFormContent?.['Open Reviewing Policy']}
+            <br />
+            {`Paper matching uses ${
+              requestFormContent?.submission_reviewer_assignment ??
+              requestFormContent?.['Paper Matching']?.join(', ')
+            }`}
+            {requestFormContent?.['Other Important Information'] && (
+              <>
+                <br />
+                {requestFormContent?.['Other Important Information']}
+              </>
+            )}
+          </span>
+          <br />
+          <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
+            <strong>Full Venue Configuration</strong>
+          </a>
+        </p>
+      </div>
+      <div className="col-md-8 col-xs-12">
+        <h4>Timeline:</h4>
+        {datedInvitations.map((invitation) => (
+          <li className="overview-timeline" key={invitation.id}>
             <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
-              <strong>Full Venue Configuration</strong>
+              {invitation.displayName}
             </a>
-          </p>
-        </div>
-        <div className="col-md-8 col-xs-12">
-          <h4>Timeline:</h4>
-          {datedInvitations.map((invitation) => (
-            <li className="overview-timeline" key={invitation.id}>
-              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
-                {invitation.displayName}
-              </a>
-              {invitation.periodString}
-            </li>
-          ))}
-          {notDatedInvitations.map((invitation) => (
-            <li className="overview-timeline" key={invitation.id}>
-              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
-                {invitation.displayName}
-              </a>
-              {invitation.periodString}
-            </li>
-          ))}
-          {seniorAreaChairsId &&
-            sacRoles.map((role) => {
-              const assignmentConfig = invitations.find(
-                (p) => p.id === `${venueId}/${role}/-/Assignment_Configuration`
-              )
-              if (!assignmentConfig) return null
-              return (
-                <li className="overview-timeline" key={assignmentConfig.id}>
-                  <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
-                    {`${prettyId(role)} Paper Assignment`}
-                  </a>{' '}
-                  open until Reviewing starts
-                </li>
-              )
-            })}
-          {areaChairsId &&
-            acRoles.map((role) => {
-              const assignmentLink = getAssignmentLink(role)
-              return (
-                assignmentLink && (
-                  <li className="overview-timeline" key={role}>
-                    <a
-                      href={assignmentLink}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                    >{`${prettyId(role)} Paper Assignment`}</a>{' '}
-                    open until Reviewing starts
-                  </li>
-                )
-              )
-            })}
-          {reviewerRoles.map((role) => {
+            {invitation.periodString}
+          </li>
+        ))}
+        {notDatedInvitations.map((invitation) => (
+          <li className="overview-timeline" key={invitation.id}>
+            <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
+              {invitation.displayName}
+            </a>
+            {invitation.periodString}
+          </li>
+        ))}
+        {seniorAreaChairsId &&
+          sacRoles.map((role) => {
+            const assignmentConfig = invitations.find(
+              (p) => p.id === `${venueId}/${role}/-/Assignment_Configuration`
+            )
+            if (!assignmentConfig) return null
+            return (
+              <li className="overview-timeline" key={assignmentConfig.id}>
+                <a href={`/assignments?group=${venueId}/${role}&referrer=${referrerUrl}`}>
+                  {`${prettyId(role)} Paper Assignment`}
+                </a>{' '}
+                open until Reviewing starts
+              </li>
+            )
+          })}
+        {areaChairsId &&
+          acRoles.map((role) => {
             const assignmentLink = getAssignmentLink(role)
             return (
               assignmentLink && (
@@ -849,199 +833,213 @@ const DescriptionTimelineOtherConfigRow = ({
               )
             )
           })}
-        </div>
+        {reviewerRoles.map((role) => {
+          const assignmentLink = getAssignmentLink(role)
+          return (
+            assignmentLink && (
+              <li className="overview-timeline" key={role}>
+                <a
+                  href={assignmentLink}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >{`${prettyId(role)} Paper Assignment`}</a>{' '}
+                open until Reviewing starts
+              </li>
+            )
+          )
+        })}
       </div>
+    </div>
 
-      {/* Official Committee, Registration Forms, Bids & Recommendation */}
-      <div className="row">
-        <div className="col-md-4 col-xs-6">
-          <h4>Venue Roles:</h4>
-          <ul className="overview-list">
-            <li>
-              <Link href={`/group/edit?id=${programChairsId}`}>
-                <a>Program Chairs</a>
-              </Link>
-            </li>
-            {seniorAreaChairsId &&
-              sacRoles.map((role) => (
-                <li key={role}>
-                  <Link href={`/group/edit?id=${venueId}/${role}`}>
-                    <a>{prettyId(role)}</a>
-                  </Link>{' '}
-                  (
-                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                    <a>Invited</a>
-                  </Link>
-                  ,
-                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                    <a>Declined</a>
-                  </Link>
-                  )
-                </li>
-              ))}
-            {areaChairsId &&
-              acRoles.map((role) => (
-                <li key={role}>
-                  <Link href={`/group/edit?id=${venueId}/${role}`}>
-                    <a>{prettyId(role)}</a>
-                  </Link>{' '}
-                  (
-                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                    <a>Invited</a>
-                  </Link>
-                  ,
-                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                    <a>Declined</a>
-                  </Link>
-                  )
-                </li>
-              ))}
-            {hasEthicsChairs && (
-              <>
-                <li>
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs`}>
-                    <a>Ethics_Chairs</a>
-                  </Link>{' '}
-                  (
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Invited`}>
-                    <a>Invited</a>
-                  </Link>
-                  ,
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Declined`}>
-                    <a>Declined</a>
-                  </Link>
-                  )
-                </li>
-                <li>
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers`}>
-                    <a>Ethics_Reviewers</a>
-                  </Link>{' '}
-                  (
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Invited`}>
-                    <a>Invited</a>
-                  </Link>
-                  ,
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Declined`}>
-                    <a>Declined</a>
-                  </Link>
-                  )
-                </li>
-              </>
-            )}
-            {reviewerRoles.map((role) => (
+    {/* Official Committee, Registration Forms, Bids & Recommendation */}
+    <div className="row">
+      <div className="col-md-4 col-xs-6">
+        <h4>Venue Roles:</h4>
+        <ul className="overview-list">
+          <li>
+            <Link href={`/group/edit?id=${programChairsId}`}>
+              Program Chairs
+            </Link>
+          </li>
+          {seniorAreaChairsId &&
+            sacRoles.map((role) => (
               <li key={role}>
                 <Link href={`/group/edit?id=${venueId}/${role}`}>
-                  <a>{prettyId(role)}</a>
+                  {prettyId(role)}
                 </Link>{' '}
                 (
                 <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                  <a>Invited</a>
+                  Invited
                 </Link>
                 ,
                 <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                  <a>Declined</a>
+                  Declined
                 </Link>
                 )
               </li>
             ))}
-            <li>
-              <Link href={`/group/edit?id=${authorsId}`}>
-                <a>Authors</a>
+          {areaChairsId &&
+            acRoles.map((role) => (
+              <li key={role}>
+                <Link href={`/group/edit?id=${venueId}/${role}`}>
+                  {prettyId(role)}
+                </Link>{' '}
+                (
+                <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
+                  Invited
+                </Link>
+                ,
+                <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
+                  Declined
+                </Link>
+                )
+              </li>
+            ))}
+          {hasEthicsChairs && (
+            <>
+              <li>
+                <Link href={`/group/edit?id=${venueId}/Ethics_Chairs`}>
+                  Ethics_Chairs
+                </Link>{' '}
+                (
+                <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Invited`}>
+                  Invited
+                </Link>
+                ,
+                <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Declined`}>
+                  Declined
+                </Link>
+                )
+              </li>
+              <li>
+                <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers`}>
+                  Ethics_Reviewers
+                </Link>{' '}
+                (
+                <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Invited`}>
+                  Invited
+                </Link>
+                ,
+                <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Declined`}>
+                  Declined
+                </Link>
+                )
+              </li>
+            </>
+          )}
+          {reviewerRoles.map((role) => (
+            <li key={role}>
+              <Link href={`/group/edit?id=${venueId}/${role}`}>
+                {prettyId(role)}
               </Link>{' '}
               (
-              <Link href={`/group/edit?id=${authorsId}/Accepted`}>
-                <a>Accepted</a>
+              <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
+                Invited
+              </Link>
+              ,
+              <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
+                Declined
               </Link>
               )
             </li>
+          ))}
+          <li>
+            <Link href={`/group/edit?id=${authorsId}`}>
+              Authors
+            </Link>{' '}
+            (
+            <Link href={`/group/edit?id=${authorsId}/Accepted`}>
+              Accepted
+            </Link>
+            )
+          </li>
+        </ul>
+      </div>
+      {registrationForms && registrationForms.length !== 0 && (
+        <div className="col-md-4 col-xs-6">
+          <h4>Registration Forms:</h4>
+          <ul className="overview-list">
+            {registrationForms.map((form) => (
+              <li key={form.id} className="overview-registration-link">
+                <Link href={`/forum?id=${form.id}&referrer=${referrerUrl}`}>
+                  {form.content?.title?.value}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
-        {registrationForms && registrationForms.length !== 0 && (
-          <div className="col-md-4 col-xs-6">
-            <h4>Registration Forms:</h4>
-            <ul className="overview-list">
-              {registrationForms.map((form) => (
-                <li key={form.id} className="overview-registration-link">
-                  <Link href={`/forum?id=${form.id}&referrer=${referrerUrl}`}>
-                    <a>{form.content?.title?.value}</a>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {(reviewersBidEnabled || areaChairsBidEnabled || seniorAreaChairsBidEnabled) && (
-          <div className="col-md-4 col-xs-6">
-            <h4>Bids & Recommendations:</h4>
-            <ul className="overview-list">
-              {reviewersBidEnabled && (
+      )}
+      {(reviewersBidEnabled || areaChairsBidEnabled || seniorAreaChairsBidEnabled) && (
+        <div className="col-md-4 col-xs-6">
+          <h4>Bids & Recommendations:</h4>
+          <ul className="overview-list">
+            {reviewersBidEnabled && (
+              <li>
+                <Link
+                  href={buildEdgeBrowserUrl(
+                    null,
+                    invitations,
+                    reviewersId,
+                    bidName,
+                    scoresName
+                  )}
+                >
+                  Reviewer Bids
+                </Link>
+              </li>
+            )}
+            {seniorAreaChairsBidEnabled && (
+              <li>
+                <Link
+                  href={buildEdgeBrowserUrl(
+                    null,
+                    invitations,
+                    seniorAreaChairsId,
+                    bidName,
+                    scoresName
+                  )}
+                >
+                  Senior Area Chair Bids
+                </Link>
+              </li>
+            )}
+            {areaChairsBidEnabled && (
+              <>
                 <li>
                   <Link
                     href={buildEdgeBrowserUrl(
                       null,
                       invitations,
-                      reviewersId,
+                      areaChairsId,
                       bidName,
                       scoresName
                     )}
                   >
-                    <a>Reviewer Bids</a>
+                    Area Chair Bid
                   </Link>
                 </li>
-              )}
-              {seniorAreaChairsBidEnabled && (
-                <li>
-                  <Link
-                    href={buildEdgeBrowserUrl(
-                      null,
-                      invitations,
-                      seniorAreaChairsId,
-                      bidName,
-                      scoresName
-                    )}
-                  >
-                    <a>Senior Area Chair Bids</a>
-                  </Link>
-                </li>
-              )}
-              {areaChairsBidEnabled && (
-                <>
+                {recommendationEnabled && (
                   <li>
                     <Link
                       href={buildEdgeBrowserUrl(
                         null,
                         invitations,
-                        areaChairsId,
-                        bidName,
+                        reviewersId,
+                        recommendationName,
                         scoresName
                       )}
                     >
-                      <a>Area Chair Bid</a>
+                      Area Chair Reviewer Recommendations
                     </Link>
                   </li>
-                  {recommendationEnabled && (
-                    <li>
-                      <Link
-                        href={buildEdgeBrowserUrl(
-                          null,
-                          invitations,
-                          reviewersId,
-                          recommendationName,
-                          scoresName
-                        )}
-                      >
-                        <a>Area Chair Reviewer Recommendations</a>
-                      </Link>
-                    </li>
-                  )}
-                </>
-              )}
-            </ul>
-          </div>
-        )}
-      </div>
-    </>
-  )
+                )}
+              </>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  </>;
 }
 
 const Overview = ({ pcConsoleData }) => {

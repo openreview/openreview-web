@@ -75,7 +75,14 @@ const Note = ({ note, invitation, options }) => {
 
       <ul className="note-meta-info list-inline">
         <li>
-          {forumDate(note.cdate, note.tcdate, note.mdate, note.tmdate, note.content.year, note.pdate)}
+          {forumDate(
+            note.cdate,
+            note.tcdate,
+            note.mdate,
+            note.tmdate,
+            note.content.year,
+            note.pdate
+          )}
         </li>
         <li>
           {note.content.venue ? note.content.venue : prettyId(note.invitation)}
@@ -91,7 +98,7 @@ const Note = ({ note, invitation, options }) => {
         <li className="readers">
           Readers: <NoteReaders readers={note.readers} />
         </li>
-        {(options.replyCount && typeof note.details?.replyCount === 'number') && (
+        {options.replyCount && typeof note.details?.replyCount === 'number' && (
           <li>{inflect(note.details?.replyCount, 'Reply', 'Replies', true)}</li>
         )}
       </ul>
@@ -185,7 +192,7 @@ export const NoteV2 = ({ note, options }) => {
         <li className="readers">
           Readers: <NoteReaders readers={note.readers} />
         </li>
-        {(options.replyCount && typeof note.details?.replyCount === 'number') && (
+        {options.replyCount && typeof note.details?.replyCount === 'number' && (
           <li>{inflect(note.details?.replyCount, 'Reply', 'Replies', true)}</li>
         )}
       </ul>

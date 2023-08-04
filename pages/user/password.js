@@ -126,7 +126,7 @@ const PasswordReset = () => {
 
             <p className="help-block">
               <Link href="/login">
-                <a>Back to Login</a>
+                Back to Login
               </Link>
             </p>
           </>
@@ -135,7 +135,7 @@ const PasswordReset = () => {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 PasswordReset.bodyClass = 'reset'

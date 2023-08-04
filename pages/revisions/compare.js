@@ -185,80 +185,78 @@ const CompareRevisions = ({ appContext }) => {
 
   if (error) return <ErrorDisplay statusCode={error.status} message={error.message} />
 
-  return (
-    <>
-      <Head>
-        <title key="title">Revisions | OpenReview</title>
-      </Head>
+  return <>
+    <Head>
+      <title key="title">Revisions | OpenReview</title>
+    </Head>
 
-      <header>
-        <h1>Revision Comparison</h1>
-        <div className="button-container">
-          <Link href={`/revisions?id=${query?.id}`}>
-            <a className="btn btn-primary">Show Revisions List</a>
-          </Link>
+    <header>
+      <h1>Revision Comparison</h1>
+      <div className="button-container">
+        <Link href={`/revisions?id=${query?.id}`} className="btn btn-primary">
+          Show Revisions List
+        </Link>
+      </div>
+    </header>
+
+    {references ? (
+      <div className="comparison-viewer-container">
+        <div className="table-responsive">
+          <table className="table">
+            <thead>
+              <tr>
+                <th style={{ width: '50%' }}>
+                  Last Modified{' '}
+                  {formatTimestamp(references[0].mdate) ||
+                    formatTimestamp(references[0].tmdate)}
+                </th>
+                <th style={{ width: '50%' }}>
+                  Last Modified{' '}
+                  {formatTimestamp(references[1].mdate) ||
+                    formatTimestamp(references[1].tmdate)}
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {query.version === '2' ? (
+                <>
+                  <tr>
+                    <th colSpan="4" className="section-title">
+                      Edit Properties
+                    </th>
+                  </tr>
+                  {renderDiffSection(contentDiff?.edit, null, false)}
+
+                  <tr>
+                    <th colSpan="4" className="section-title">
+                      Note Properties
+                    </th>
+                  </tr>
+                  {renderDiffSection(contentDiff?.editNote, 'note.', false)}
+
+                  <tr>
+                    <th colSpan="4" className="section-title">
+                      Note Content Properties
+                    </th>
+                  </tr>
+                  {renderDiffSection(contentDiff?.editNoteContent, 'note.content.')}
+                </>
+              ) : (
+                renderDiffSection(contentDiff)
+              )}
+            </tbody>
+          </table>
         </div>
-      </header>
 
-      {references ? (
-        <div className="comparison-viewer-container">
-          <div className="table-responsive">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th style={{ width: '50%' }}>
-                    Last Modified{' '}
-                    {formatTimestamp(references[0].mdate) ||
-                      formatTimestamp(references[0].tmdate)}
-                  </th>
-                  <th style={{ width: '50%' }}>
-                    Last Modified{' '}
-                    {formatTimestamp(references[1].mdate) ||
-                      formatTimestamp(references[1].tmdate)}
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {query.version === '2' ? (
-                  <>
-                    <tr>
-                      <th colSpan="4" className="section-title">
-                        Edit Properties
-                      </th>
-                    </tr>
-                    {renderDiffSection(contentDiff?.edit, null, false)}
-
-                    <tr>
-                      <th colSpan="4" className="section-title">
-                        Note Properties
-                      </th>
-                    </tr>
-                    {renderDiffSection(contentDiff?.editNote, 'note.', false)}
-
-                    <tr>
-                      <th colSpan="4" className="section-title">
-                        Note Content Properties
-                      </th>
-                    </tr>
-                    {renderDiffSection(contentDiff?.editNoteContent, 'note.content.')}
-                  </>
-                ) : (
-                  renderDiffSection(contentDiff)
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {draftableUrl && (
-            <iframe title="Draftable PDF Comparison" src={draftableUrl} allowFullScreen />
-          )}
-        </div>
-      ) : (
-        <LoadingSpinner />
-      )}
-    </>
-  )
+        {draftableUrl && (
+          <iframe title="Draftable PDF Comparison" src={draftableUrl} allowFullScreen />
+        )}
+      </div>
+    ) : (
+      <LoadingSpinner />
+    )}
+  </>;
 }
 
 CompareRevisions.bodyClass = 'revisions-compare'

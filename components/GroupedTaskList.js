@@ -5,7 +5,7 @@ import TaskList from './TaskList'
 
 const HeadingLink = ({ groupId, groupInfo }) => (
   <div className="heading-link">
-    <Link href={`/group?id=${groupId}`} passHref>
+    <Link href={`/group?id=${groupId}`} passHref legacyBehavior>
       <h2 onClick={(e) => e.stopPropagation()}>
         <span className="invitation-id">{prettyId(groupId)} </span>
       </h2>

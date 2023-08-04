@@ -39,7 +39,7 @@ export const ReviewerConsoleNoteReviewStatus = ({
         <p>{review}</p>
         <p>
           <Link href={editUrl}>
-            <a>Edit Official Review</a>
+            Edit Official Review
           </Link>
         </p>
       </>
@@ -47,7 +47,7 @@ export const ReviewerConsoleNoteReviewStatus = ({
       invitationUrl && (
         <h4>
           <Link href={invitationUrl}>
-            <a>Submit Official Review</a>
+            Submit Official Review
           </Link>
         </h4>
       )

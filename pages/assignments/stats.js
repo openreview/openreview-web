@@ -290,135 +290,133 @@ const AssignmentStats = ({ appContext }) => {
 
   if (!assignmentConfigNote) return <LoadingSpinner />
 
-  return (
-    <>
-      <Head>
-        <title key="title">{`${assignmentConfigNote.content.title} Stats | OpenReview`}</title>
-      </Head>
+  return <>
+    <Head>
+      <title key="title">{`${assignmentConfigNote.content.title} Stats | OpenReview`}</title>
+    </Head>
 
-      <div className="header">
-        <h1>{`Assignment Statistics – ${assignmentConfigNote.content.title}`}</h1>
+    <div className="header">
+      <h1>{`Assignment Statistics – ${assignmentConfigNote.content.title}`}</h1>
 
-        <div className="action-dropdown text-right">
-          <div className="btn-group">
-            <button
-              type="button"
-              className="btn btn-default dropdown-toggle"
-              data-toggle="dropdown"
-              aria-haspopup="true"
-              aria-expanded="false"
-            >
-              Actions <span className="caret" />
-            </button>
-            <ul className="dropdown-menu dropdown-align-right">
-              {assignmentConfigNote && (
-                <li>
-                  <Link
-                    href={getEdgeBrowserUrl(
-                      assignmentConfigNote.content,
-                      { version: assignmentConfigNote.apiVersion }
-                    )}
-                  >
-                    <a>Browse Assignments</a>
-                  </Link>
-                </li>
-              )}
-            </ul>
-          </div>
+      <div className="action-dropdown text-right">
+        <div className="btn-group">
+          <button
+            type="button"
+            className="btn btn-default dropdown-toggle"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            Actions <span className="caret" />
+          </button>
+          <ul className="dropdown-menu dropdown-align-right">
+            {assignmentConfigNote && (
+              <li>
+                <Link
+                  href={getEdgeBrowserUrl(
+                    assignmentConfigNote.content,
+                    { version: assignmentConfigNote.apiVersion }
+                  )}
+                >
+                  Browse Assignments
+                </Link>
+              </li>
+            )}
+          </ul>
         </div>
       </div>
+    </div>
 
-      <div className="basic-stats">
+    <div className="basic-stats">
+      <ScalarStat
+        value={values.paperCount}
+        name="Number of papers / Number of papers with assignments"
+      />
+      <ScalarStat
+        value={values.userCount}
+        name="Number of users / Number of users with assignments"
+      />
+      <ScalarStat value={values.meanFinalScore} name="Mean Final Score" />
+      <ScalarStat
+        value={values.meanGroupCountPerPaper}
+        name="Mean Number of Users per Paper"
+      />
+      <ScalarStat
+        value={values.meanPaperCountPerGroup}
+        name="Mean Number of Papers per User"
+      />
+      {assignmentConfigNote?.content.randomized_fraction_of_opt && (
         <ScalarStat
-          value={values.paperCount}
-          name="Number of papers / Number of papers with assignments"
+          value={
+            Math.round(assignmentConfigNote.content.randomized_fraction_of_opt * 100) / 100
+          }
+          name="Ratio of mean score to hypothetical optimal assignment score (Randomized solver only)"
         />
-        <ScalarStat
-          value={values.userCount}
-          name="Number of users / Number of users with assignments"
-        />
-        <ScalarStat value={values.meanFinalScore} name="Mean Final Score" />
-        <ScalarStat
-          value={values.meanGroupCountPerPaper}
-          name="Mean Number of Users per Paper"
-        />
-        <ScalarStat
-          value={values.meanPaperCountPerGroup}
-          name="Mean Number of Papers per User"
-        />
-        {assignmentConfigNote?.content.randomized_fraction_of_opt && (
-          <ScalarStat
-            value={
-              Math.round(assignmentConfigNote.content.randomized_fraction_of_opt * 100) / 100
-            }
-            name="Ratio of mean score to hypothetical optimal assignment score (Randomized solver only)"
-          />
-        )}
-      </div>
-      <div>
-        <h3 className="section-header">Assignment Distributions</h3>
-        <div className="dist-stats">
-          <HistogramStat
-            id="distributionPapersByUserCount"
-            stats={values.distributionPapersByUserCount}
-            edgeBrowserUrlParams={edgeBrowserUrlParams}
-          />
-          <HistogramStat
-            id="distributionUsersByPaperCount"
-            stats={values.distributionUsersByPaperCount}
-            edgeBrowserUrlParams={edgeBrowserUrlParams}
-          />
-          <HistogramStat
-            id="distributionAssignmentByScore"
-            stats={values.distributionAssignmentByScore}
-            edgeBrowserUrlParams={edgeBrowserUrlParams}
-          />
-          <HistogramStat
-            id="distributionPapersByMeanScore"
-            stats={values.distributionPapersByMeanScore}
-            edgeBrowserUrlParams={edgeBrowserUrlParams}
-          />
-          <HistogramStat
-            id="distributionUsersByMeanScore"
-            stats={values.distributionUsersByMeanScore}
-            edgeBrowserUrlParams={edgeBrowserUrlParams}
-          />
-        </div>
-      </div>
-      {values.distributionRecomGroupCountPerPaper && (
-        <div>
-          <h3 className="section-header">Recommendation Distributions</h3>
-          <div className="dist-stats">
-            <HistogramStat
-              id="distributionRecomGroupCountPerPaper"
-              stats={values.distributionRecomGroupCountPerPaper}
-              edgeBrowserUrlParams={edgeBrowserUrlParams}
-            />
-            <HistogramStat
-              id="distributionRecomGroupCountPerWeight"
-              stats={values.distributionRecomGroupCountPerWeight}
-              edgeBrowserUrlParams={edgeBrowserUrlParams}
-            />
-          </div>
-        </div>
       )}
+    </div>
+    <div>
+      <h3 className="section-header">Assignment Distributions</h3>
+      <div className="dist-stats">
+        <HistogramStat
+          id="distributionPapersByUserCount"
+          stats={values.distributionPapersByUserCount}
+          edgeBrowserUrlParams={edgeBrowserUrlParams}
+        />
+        <HistogramStat
+          id="distributionUsersByPaperCount"
+          stats={values.distributionUsersByPaperCount}
+          edgeBrowserUrlParams={edgeBrowserUrlParams}
+        />
+        <HistogramStat
+          id="distributionAssignmentByScore"
+          stats={values.distributionAssignmentByScore}
+          edgeBrowserUrlParams={edgeBrowserUrlParams}
+        />
+        <HistogramStat
+          id="distributionPapersByMeanScore"
+          stats={values.distributionPapersByMeanScore}
+          edgeBrowserUrlParams={edgeBrowserUrlParams}
+        />
+        <HistogramStat
+          id="distributionUsersByMeanScore"
+          stats={values.distributionUsersByMeanScore}
+          edgeBrowserUrlParams={edgeBrowserUrlParams}
+        />
+      </div>
+    </div>
+    {values.distributionRecomGroupCountPerPaper && (
       <div>
-        <h3 className="section-header">Bid Distributions</h3>
+        <h3 className="section-header">Recommendation Distributions</h3>
         <div className="dist-stats">
-          {Object.keys(values)
-            .filter((key) => key.startsWith('distributionPaperCountPerGroup-bid-'))
-            .map((key) => (
-              <HistogramStat
-                id={key}
-                key={key}
-                stats={values[key]}
-                edgeBrowserUrlParams={edgeBrowserUrlParams}
-              />
-            ))}
+          <HistogramStat
+            id="distributionRecomGroupCountPerPaper"
+            stats={values.distributionRecomGroupCountPerPaper}
+            edgeBrowserUrlParams={edgeBrowserUrlParams}
+          />
+          <HistogramStat
+            id="distributionRecomGroupCountPerWeight"
+            stats={values.distributionRecomGroupCountPerWeight}
+            edgeBrowserUrlParams={edgeBrowserUrlParams}
+          />
         </div>
       </div>
-    </>
-  )
+    )}
+    <div>
+      <h3 className="section-header">Bid Distributions</h3>
+      <div className="dist-stats">
+        {Object.keys(values)
+          .filter((key) => key.startsWith('distributionPaperCountPerGroup-bid-'))
+          .map((key) => (
+            <HistogramStat
+              id={key}
+              key={key}
+              stats={values[key]}
+              edgeBrowserUrlParams={edgeBrowserUrlParams}
+            />
+          ))}
+      </div>
+    </div>
+  </>;
 }
 
 AssignmentStats.bodyClass = 'assignment-stats'

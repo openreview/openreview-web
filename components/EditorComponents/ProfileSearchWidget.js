@@ -181,7 +181,7 @@ const ProfileSearchResultRow = ({
         />
       </div>
     </div>
-  )
+  );
 }
 
 const ProfileSearchFormAndResults = ({

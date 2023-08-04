@@ -114,7 +114,7 @@ export default function Column(props) {
       writers: editInvitation.writers,
       signatures: editInvitation.signatures,
       nonreaders: editInvitation.nonreaders,
-    }
+    };
   }
 
   const buildQuery = (invitationId, invQueryObj, shouldSort = true) => {

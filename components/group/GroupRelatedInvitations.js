@@ -7,7 +7,7 @@ import { prettyId } from '../../lib/utils'
 
 const RelatedInvitationRow = ({ item }) => (
   <Link href={`/invitation/edit?id=${item.id}`}>
-    <a>{prettyId(item.id)}</a>
+    {prettyId(item.id)}
   </Link>
 )
 

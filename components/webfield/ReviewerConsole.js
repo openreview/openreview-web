@@ -25,7 +25,7 @@ const AreaChairInfo = ({ areaChairName, areaChairId }) => (
     <p>
       <strong>{prettyField(areaChairName)}:</strong>{' '}
       <Link href={`/profile?id=${areaChairId}`}>
-        <a>{prettyId(areaChairId)}</a>
+        {prettyId(areaChairId)}
       </Link>
     </p>
   </div>

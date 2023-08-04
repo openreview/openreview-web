@@ -26,11 +26,11 @@ export default function FilterTabs({ forumId, forumViews, replyInvitations = [] 
             className={view.id === currentHash ? 'active' : null}
           >
             <Link href={`?id=${forumId}#${view.id}`} shallow>
-              <a>{view.label}</a>
+              {view.label}
             </Link>
           </li>
-        )
+        );
       })}
     </ul>
-  )
+  );
 }

@@ -341,7 +341,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           <span className="revisions">
             <Icon name="duplicate" />
             <Link href={`/revisions?id=${note.id}`}>
-              <a>Revisions</a>
+              Revisions
             </Link>
           </span>
         )}
@@ -428,7 +428,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         />
       )}
     </ReplyContainer>
-  )
+  );
 }
 
 function ReplyContainer({

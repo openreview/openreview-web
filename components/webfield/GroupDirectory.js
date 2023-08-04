@@ -64,33 +64,31 @@ export default function GroupDirectory({ appContext }) {
     }
   }, [group.id])
 
-  return (
-    <>
-      <div className="venue-header" id="header">
-        <h1>{title || prettyId(group.id)}</h1>
-        {subtitle && <h3>{subtitle}</h3>}
-        {description && <Markdown text={description} />}
-      </div>
+  return <>
+    <div className="venue-header" id="header">
+      <h1>{title || prettyId(group.id)}</h1>
+      {subtitle && <h3>{subtitle}</h3>}
+      {description && <Markdown text={description} />}
+    </div>
 
-      <hr />
+    <hr />
 
-      {error && (
-        <ErrorAlert error={error} />
-      )}
+    {error && (
+      <ErrorAlert error={error} />
+    )}
 
-      {childGroupIds && (
-        <ul className="list-unstyled venues-list">
-          {childGroupIds.length > 0 ? childGroupIds.map((id) => (
-            <li key={id}>
-              <Link href={id.startsWith('~') ? `/profile?id=${id}` : `/group?id=${id}`}>
-                <a>{prettyId(id)}</a>
-              </Link>
-            </li>
-          )) : (
-            <li><p className="empty-message">No groups found</p></li>
-          )}
-        </ul>
-      )}
-    </>
-  )
+    {childGroupIds && (
+      <ul className="list-unstyled venues-list">
+        {childGroupIds.length > 0 ? childGroupIds.map((id) => (
+          <li key={id}>
+            <Link href={id.startsWith('~') ? `/profile?id=${id}` : `/group?id=${id}`}>
+              {prettyId(id)}
+            </Link>
+          </li>
+        )) : (
+          <li><p className="empty-message">No groups found</p></li>
+        )}
+      </ul>
+    )}
+  </>;
 }
