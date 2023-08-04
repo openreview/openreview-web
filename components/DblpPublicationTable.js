@@ -245,7 +245,10 @@ const DblpPublicationRow = ({
       >
         <input
           type="checkbox"
-          onChange={(e) => toggleSelected(e.target.checked)}
+          onChange={(e) => {
+            if (openReviewId || authorIsInvalid) return
+            toggleSelected(e.target.checked)
+          }}
           checked={selected}
           disabled={openReviewId || authorIsInvalid}
           title={authorIsInvalid ? 'Your name does not match the author list' : undefined}
