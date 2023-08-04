@@ -228,8 +228,7 @@ const NoteEditor = ({
           >
             <div className={styles.fieldReaders}>
               <Icon name="eye-open" />
-              <span>Visible only to:</span>{' '}
-              <EditorWidget />
+              <span>Visible only to:</span> <EditorWidget />
             </div>
           </EditorComponentContext.Provider>
         )}
