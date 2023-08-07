@@ -538,7 +538,6 @@ function NoteContentCollapsible({
         content={content}
         presentation={presentation}
         noteReaders={noteReaders}
-        include={['pdf', 'html']}
       />
       {!contentExpanded && (
         <div className="gradient-overlay">

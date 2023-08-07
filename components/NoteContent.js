@@ -195,9 +195,6 @@ export const NoteContentV2 = ({
         const showPrivateIcon =
           fieldReaders && noteReaders && !noteReaders.every((p, j) => p === fieldReaders[j])
 
-        // Only show the PDF and HTML field in note content if it has restricted readers
-        if ((fieldName === 'pdf' || fieldName === 'html') && !showPrivateIcon) return null
-
         return (
           <div key={fieldName}>
             <NoteContentField name={fieldName} customFieldName={customFieldName} />{' '}
