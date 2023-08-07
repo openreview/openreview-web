@@ -69,7 +69,7 @@ fixture`Set up test data`.before(async (ctx) => {
 })
 
 test('Set up TestVenue', async (t) => {
-  const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
+  const submissionDate = new Date(Date.now() + 48 * 60 * 60 * 1000)
   const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
     }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
@@ -161,7 +161,7 @@ test('Set up TestVenue', async (t) => {
 
   await waitForJobs(postSubmissionId, superUserToken)
 
-  const reviewDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000)
+  const reviewDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000)
   const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${reviewDeadline.getMonth() + 1
     }/${reviewDeadline.getDate()}`
   const reviewStageJson = {
@@ -196,7 +196,7 @@ test('Set up TestVenue', async (t) => {
 })
 
 test('Set up AnotherTestVenue', async (t) => {
-  const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
+  const submissionDate = new Date(Date.now() + 48 * 60 * 60 * 1000)
   const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
     }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
@@ -294,7 +294,7 @@ test('Set up AnotherTestVenue', async (t) => {
 })
 
 test('Set up ICLR', async (t) => {
-  const submissionDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
+  const submissionDate = new Date(Date.now() + 48 * 60 * 60 * 1000)
   const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
     }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
