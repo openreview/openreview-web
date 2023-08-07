@@ -593,7 +593,7 @@ const Revisions = ({ appContext }) => {
             )
             // Don't show the edit button next to an edit if it's expired and not writable
             if (
-              editInvitation.expdate &&
+              editInvitation?.expdate &&
               editInvitation.expdate < Date.now() &&
               !editInvitation.details?.writable
             ) {
