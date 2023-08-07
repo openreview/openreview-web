@@ -194,6 +194,9 @@ function ForumNote({ note, updateNote }) {
         }
         presentation={details.presentation}
         noteReaders={note.sortedReaders}
+        omit={[canShowIcon('pdf') ? 'pdf' : null, canShowIcon('html') ? 'html' : null].filter(
+          Boolean
+        )}
       />
     </div>
   )
