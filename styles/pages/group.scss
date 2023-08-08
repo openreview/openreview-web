@@ -485,6 +485,12 @@ main.invitation {
             font-size: 0.75rem;
           }
         }
+
+        .review-row {
+          display: flex;
+          flex-direction: column;
+          font-size: 0.75rem;
+        }
       }
     }
 
