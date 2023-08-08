@@ -320,6 +320,11 @@ export default function Forum({
       deleteInvitation,
       replyInvitations,
     })
+
+    setTimeout(() => {
+      typesetMathJax()
+      $('[data-toggle="tooltip"]').tooltip({ html: true })
+    }, 200)
   }
 
   // Add new reply note or update and existing reply note

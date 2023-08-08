@@ -77,7 +77,7 @@ function ForumNote({ note, updateNote }) {
             note={activeNote}
             invitation={activeInvitation}
             closeNoteEditor={closeNoteEditor}
-            onNoteCreated={(newNote) => updateNote(newNote)}
+            onNoteCreated={updateNote}
           />
         ) : (
           <NoteEditorForm
