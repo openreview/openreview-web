@@ -299,7 +299,9 @@ const ProgramChairConsole = ({ appContext }) => {
         } else if (p.id.includes(anonReviewerName)) {
           const number = getNumberFromGroup(p.id, submissionName)
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
-          if (p.members.length) anonReviewerGroups[number][p.members[0]] = p.id
+          if (p.members.length) {
+            anonReviewerGroups[number][p.members[0]] = p.id
+          }
         } else if (p.id.endsWith(`/${areaChairName}`)) {
           areaChairGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
@@ -358,6 +360,17 @@ const ProgramChairConsole = ({ appContext }) => {
         const profileEmails = profile.content.emails.filter((p) => p)
         usernames.concat(profileEmails).forEach((key) => {
           allProfilesMap.set(key, profile)
+        })
+      })
+      Object.entries(anonReviewerGroups).forEach(([noteNumber, anonReviewerGroup]) => {
+        Object.entries(anonReviewerGroup).forEach(([anonReviewerId, anonReviewerGroupId]) => {
+          const profile = allProfilesMap.get(anonReviewerId)
+          if (!profile) return
+          const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+          const profileEmails = profile.content.emails.filter((p) => p)
+          usernames.concat(profileEmails).forEach((key) => {
+            anonReviewerGroups[noteNumber][key] = anonReviewerGroupId
+          })
         })
       })
 
