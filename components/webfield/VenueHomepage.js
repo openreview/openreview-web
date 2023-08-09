@@ -96,7 +96,7 @@ function ConsolesList({
 
         return (
           <li key={groupId} className="note invitation-link">
-            <Link href={`/group?id=${groupId}`}>{groupName}Console</Link>
+            <Link href={`/group?id=${groupId}`}>{groupName} Console</Link>
           </li>
         )
       })}
