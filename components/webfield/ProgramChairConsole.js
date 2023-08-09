@@ -448,9 +448,9 @@ const ProgramChairConsole = ({ appContext }) => {
             return {
               ...reviewerGroup,
               members: reviewerGroup.members.flatMap((reviewerAnonGroup) => {
-                const reviewerGroup = paperAnonReviewerGroups[reviewerAnonGroup]
+                const deanonymizedGroup = paperAnonReviewerGroups[reviewerAnonGroup]
                 return {
-                  reviewerProfileId: reviewerGroup,
+                  reviewerProfileId: deanonymizedGroup,
                   reviewerAnonGroup,
                   anonymousId: getIndentifierFromGroup(reviewerAnonGroup, anonReviewerName),
                 }
@@ -463,9 +463,9 @@ const ProgramChairConsole = ({ appContext }) => {
             return {
               ...areaChairGroup,
               members: areaChairGroup.members.map((areaChairAnonGroup) => {
-                const areaChairGroup = paperAnonAreaChairGroups?.[areaChairAnonGroup]
+                const deanonymizedGroup = paperAnonAreaChairGroups?.[areaChairAnonGroup]
                 return {
-                  areaChairProfileId: areaChairGroup,
+                  areaChairProfileId: deanonymizedGroup,
                   areaChairAnonGroup,
                   anonymousId: areaChairAnonGroup
                     ? getIndentifierFromGroup(areaChairAnonGroup, anonAreaChairName)

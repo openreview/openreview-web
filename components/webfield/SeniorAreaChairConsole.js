@@ -146,7 +146,6 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             if (!(member in anonAreaChairGroups[number])) anonAreaChairGroups[number][member] = member
           })
         } else if (p.id.includes(anonAreaChairName)) {
-          const number = getNumberFromGroup(p.id, submissionName)
           if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
           if (p.members.length) anonAreaChairGroups[number][p.id] = p.members[0]
           allGroupMembers = allGroupMembers.concat(p.members)
@@ -160,9 +159,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         return {
           ...reviewerGroup,
           members: reviewerGroup.members.flatMap((reviewerAnonGroup) => {
-            const reviewerGroup = paperAnonReviewerGroups[reviewerAnonGroup]
+            const deanonymizedGroup = paperAnonReviewerGroups[reviewerAnonGroup]
             return {
-              reviewerProfileId: reviewerGroup,
+              reviewerProfileId: deanonymizedGroup,
               reviewerAnonGroup,
               anonymousId: getIndentifierFromGroup(reviewerAnonGroup, anonReviewerName),
             }
@@ -175,9 +174,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         return {
           ...areaChairGroup,
           members: areaChairGroup.members.map((areaChairAnonGroup) => {
-            const areaChairGroup = paperAnonAreaChairGroups?.[areaChairAnonGroup]
+            const deanonymizedGroup = paperAnonAreaChairGroups?.[areaChairAnonGroup]
             return {
-              areaChairProfileId: areaChairGroup,
+              areaChairProfileId: deanonymizedGroup,
               areaChairAnonGroup,
               anonymousId: areaChairAnonGroup
                 ? getIndentifierFromGroup(areaChairAnonGroup, anonAreaChairName)
