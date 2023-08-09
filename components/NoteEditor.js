@@ -426,7 +426,7 @@ const NoteEditor = ({
         const latestNote = (
           await api.get(
             edit ? '/notes/edits' : '/notes',
-            { id: edit?.id ?? note.id },
+            { id: edit ? edit.id : note.id },
             { accessToken, version: 2 }
           )
         )?.[edit ? 'edits' : 'notes']?.[0]
