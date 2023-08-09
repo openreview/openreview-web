@@ -302,10 +302,8 @@ const ProgramChairConsole = ({ appContext }) => {
           })
         } else if (p.id.includes(anonReviewerName)) {
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
-          if (p.members.length) {
-            anonReviewerGroups[number][p.id] = p.members[0]
-            allGroupMembers = allGroupMembers.concat(p.members)
-          }
+          if (p.members.length) anonReviewerGroups[number][p.id] = p.members[0]
+          allGroupMembers = allGroupMembers.concat(p.members)
         } else if (p.id.endsWith(`/${areaChairName}`)) {
           areaChairGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
