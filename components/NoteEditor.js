@@ -114,6 +114,7 @@ const EditSignatures = ({
 // For v2 invitations only
 const NoteEditor = ({
   invitation,
+  edit,
   note,
   replyToNote,
   closeNoteEditor,
@@ -421,6 +422,24 @@ const NoteEditor = ({
 
     // get note reader/writer/signature and edit reader/writer/signature
     try {
+      if (edit || note?.id) {
+        const latestNote = (
+          await api.get(
+            edit ? '/notes/edits' : '/notes',
+            { id: edit?.id ?? note.id },
+            { accessToken, version: 2 }
+          )
+        )?.[edit ? 'edits' : 'notes']?.[0]
+
+        if (latestNote?.tmdate && latestNote.tmdate !== note.tmdate) {
+          throw new Error(
+            `This ${
+              edit ? 'edit' : 'note'
+            } has been edited since you opened it. Please refresh the page and try again.`
+          )
+        }
+      }
+
       const formData = {
         ...noteEditorData,
         ...(note?.id &&
@@ -445,11 +464,13 @@ const NoteEditor = ({
         throw new Error(errorMessage)
       }
 
-      const editToPost = view2.constructEdit({
-        formData,
-        invitationObj: invitation,
-        noteObj: note,
-      })
+      const editToPost = edit
+        ? view2.constructUpdatedEdit(edit, invitation, formData)
+        : view2.constructEdit({
+            formData,
+            invitationObj: invitation,
+            noteObj: note,
+          })
       const result = await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
       const createdNote = await getCreatedNote(result.note)
       autoStorageKeys.forEach((key) => localStorage.removeItem(key))
