@@ -298,7 +298,9 @@ const ProgramChairConsole = ({ appContext }) => {
           })
           p.members.forEach((member) => {
             if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
-            if (!(member in anonReviewerGroups[number])) anonReviewerGroups[number][member] = member
+            if (!(member in anonReviewerGroups[number]) && member.includes(anonReviewerName)) {
+              anonReviewerGroups[number][member] = member
+            }
           })
         } else if (p.id.includes(anonReviewerName)) {
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
@@ -311,7 +313,9 @@ const ProgramChairConsole = ({ appContext }) => {
           })
           p.members.forEach((member) => {
             if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
-            if (!(member in anonAreaChairGroups[number])) anonAreaChairGroups[number][member] = member
+            if (!(member in anonAreaChairGroups[number]) && member.includes(anonAreaChairName)) {
+              anonAreaChairGroups[number][member] = member
+            }
           })
         } else if (p.id.includes(anonAreaChairName)) {
           if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
@@ -447,12 +451,18 @@ const ProgramChairConsole = ({ appContext }) => {
             const paperAnonReviewerGroups = anonReviewerGroups[reviewerGroup.noteNumber] || {}
             return {
               ...reviewerGroup,
-              members: reviewerGroup.members.flatMap((reviewerAnonGroup) => {
-                const deanonymizedGroup = paperAnonReviewerGroups[reviewerAnonGroup]
+              members: reviewerGroup.members.flatMap((member) => {
+                let deanonymizedGroup = paperAnonReviewerGroups[member]
+                let anonymizedGroup = member
+                if (!deanonymizedGroup) {
+                  deanonymizedGroup = member
+                  anonymizedGroup = Object.keys(paperAnonReviewerGroups)
+                  .find(key => paperAnonReviewerGroups[key] === member)
+                }
                 return {
                   reviewerProfileId: deanonymizedGroup,
-                  reviewerAnonGroup,
-                  anonymousId: getIndentifierFromGroup(reviewerAnonGroup, anonReviewerName),
+                  anonymizedGroup,
+                  anonymousId: getIndentifierFromGroup(anonymizedGroup, anonReviewerName),
                 }
               }),
             }
@@ -462,13 +472,19 @@ const ProgramChairConsole = ({ appContext }) => {
             const paperAnonAreaChairGroups = anonAreaChairGroups[areaChairGroup.noteNumber]
             return {
               ...areaChairGroup,
-              members: areaChairGroup.members.map((areaChairAnonGroup) => {
-                const deanonymizedGroup = paperAnonAreaChairGroups?.[areaChairAnonGroup]
+              members: areaChairGroup.members.map((member) => {
+                let deanonymizedGroup = paperAnonAreaChairGroups?.[member]
+                let anonymizedGroup = member
+                if (!deanonymizedGroup) {
+                  deanonymizedGroup = member
+                  anonymizedGroup = Object.keys(paperAnonAreaChairGroups)
+                  .find(key => paperAnonAreaChairGroups[key] === member)
+                }
                 return {
                   areaChairProfileId: deanonymizedGroup,
-                  areaChairAnonGroup,
-                  anonymousId: areaChairAnonGroup
-                    ? getIndentifierFromGroup(areaChairAnonGroup, anonAreaChairName)
+                  anonymizedGroup,
+                  anonymousId: anonymizedGroup
+                    ? getIndentifierFromGroup(anonymizedGroup, anonAreaChairName)
                     : null,
                 }
               }),

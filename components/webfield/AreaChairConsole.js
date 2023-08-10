@@ -246,10 +246,10 @@ const AreaChairConsole = ({ appContext }) => {
                 const anonymousReviewerGroup = anonymousReviewerGroups.find(
                   (t) =>
                     t.id.startsWith(`${venueId}/${submissionName}${p}/${anonReviewerName}`) &&
-                    t.id === r
+                    t.id === r || t.members[0] === r
                 )
                 return {
-                  anonymousId: getIndentifierFromGroup(r, anonReviewerName),
+                  anonymousId: getIndentifierFromGroup(anonymousReviewerGroup?.id || r, anonReviewerName),
                   reviewerProfileId: anonymousReviewerGroup?.members.length ? anonymousReviewerGroup.members[0] : r,
                 }
               })
