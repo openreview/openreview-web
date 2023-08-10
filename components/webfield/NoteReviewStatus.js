@@ -311,6 +311,42 @@ export const AcPcConsoleReviewerStatusRow = ({
   )
 }
 
+// reviewers info might not be visible so only show info of reviews
+export const AcPcConsoleReviewStatusRow = ({
+  review,
+  note,
+  referrerUrl,
+  reviewRatingName,
+  showRatingConfidence = true,
+}) => {
+  const hasConfidence = review?.confidence !== null
+
+  return (
+    <div className="review-row">
+      {showRatingConfidence && (
+        <div>
+          {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName])
+            .flatMap((ratingName, index) => {
+              const rating = review[ratingName]
+              if (rating !== null) return `${upperFirst(ratingName)}: ${rating}`
+              return []
+            })
+            .join(' / ')}
+          {hasConfidence && ` / Confidence: ${review.confidence}`}
+        </div>
+      )}
+      {review.reviewLength && <span>Review length: {review.reviewLength}</span>}
+      <a
+        href={`/forum?id=${note.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
+        target="_blank"
+        rel="nofollow noreferrer"
+      >
+        Read Review
+      </a>
+    </div>
+  )
+}
+
 // modified from noteReviewers.hbs handlebar template
 // shared by AC and PC console
 export const AcPcConsoleNoteReviewStatus = ({
@@ -328,9 +364,6 @@ export const AcPcConsoleNoteReviewStatus = ({
     numReviewsDone,
     numReviewersAssigned,
     replyCount,
-    // ratingMax,
-    // ratingMin,
-    // ratingAvg,
     ratings,
     confidenceMax,
     confidenceMin,
@@ -340,6 +373,58 @@ export const AcPcConsoleNoteReviewStatus = ({
     'edges/browse?',
     `edges/browse?start=staticList,type:head,ids:${note.id}&`
   )
+
+  // reviewers group not visible
+  if (reviewers.length === 0 && numReviewsDone > 0)
+    return (
+      <div className="console-reviewer-progress">
+        <h4>{numReviewsDone} Reviews Submitted</h4>
+        <Collapse
+          showLabel="Show reviews"
+          hideLabel="Hide reviews"
+          className="assigned-reviewers"
+        >
+          {officialReviews.map((review) => (
+            <AcPcConsoleReviewStatusRow
+              key={review.id}
+              review={review}
+              note={note}
+              referrerUrl={referrerUrl}
+              reviewRatingName={reviewRatingName}
+            />
+          ))}
+        </Collapse>
+        {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+          (ratingName, index) => {
+            const { ratingAvg, ratingMin, ratingMax } = ratings[ratingName]
+            return (
+              <span key={index}>
+                <strong>Average {upperFirst(ratingName)}:</strong> {ratingAvg} (Min:{' '}
+                {ratingMin}, Max: {ratingMax})
+              </span>
+            )
+          }
+        )}
+        <span>
+          <strong>Average Confidence:</strong> {confidenceAvg} (Min: {confidenceMin}, Max:{' '}
+          {confidenceMax})
+        </span>
+        <span>
+          <strong>Number of Forum replies:</strong> {replyCount}
+        </span>
+        {paperManualReviewerAssignmentUrl && (
+          <div className="mt-3">
+            <a
+              href={`${paperManualReviewerAssignmentUrl}&referrer=${referrerUrl}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Edit Reviewer Assignments
+            </a>
+          </div>
+        )}
+      </div>
+    )
 
   return (
     <div className="console-reviewer-progress">

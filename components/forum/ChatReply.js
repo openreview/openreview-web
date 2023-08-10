@@ -189,7 +189,7 @@ export default forwardRef(function ChatReply(
             content={note.content}
             presentation={presentation}
             noteReaders={note.sortedReaders}
-            include={['title', 'pdf', 'html']}
+            include={['title']}
           />
         )}
       </div>

@@ -75,6 +75,7 @@ const ProgramChairConsole = ({ appContext }) => {
 
   const loadData = async () => {
     if (isLoadingData) return
+
     setIsLoadingData(true)
     try {
       // #region getInvitationMap
@@ -181,7 +182,7 @@ const ProgramChairConsole = ({ appContext }) => {
       const getRegistrationFormResultsP = Promise.all(getRegistrationFormPs)
       // #endregion
 
-      // #region get Reviewer,AC,SAC Members
+      // #region get Reviewer, AC, SAC members
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
           id ? api.getGroupById(id, accessToken, { select: 'members' }) : Promise.resolve([])
@@ -229,7 +230,7 @@ const ProgramChairConsole = ({ appContext }) => {
           : Promise.resolve([])
       // #endregion
 
-      // #region get Reviewer,AC,SAC bid
+      // #region get Reviewer, AC, SAC bids
       const bidCountResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) => {
           if (!id || !bidName) return Promise.resolve({})
@@ -298,7 +299,9 @@ const ProgramChairConsole = ({ appContext }) => {
         } else if (p.id.includes(anonReviewerName)) {
           const number = getNumberFromGroup(p.id, submissionName)
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
-          if (p.members.length) anonReviewerGroups[number][p.members[0]] = p.id
+          if (p.members.length) {
+            anonReviewerGroups[number][p.members[0]] = p.id
+          }
         } else if (p.id.endsWith(`/${areaChairName}`)) {
           areaChairGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
@@ -359,23 +362,34 @@ const ProgramChairConsole = ({ appContext }) => {
           allProfilesMap.set(key, profile)
         })
       })
+      Object.entries(anonReviewerGroups).forEach(([noteNumber, anonReviewerGroup]) => {
+        Object.entries(anonReviewerGroup).forEach(([anonReviewerId, anonReviewerGroupId]) => {
+          const profile = allProfilesMap.get(anonReviewerId)
+          if (!profile) return
+          const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+          const profileEmails = profile.content.emails.filter((p) => p)
+          usernames.concat(profileEmails).forEach((key) => {
+            anonReviewerGroups[noteNumber][key] = anonReviewerGroupId
+          })
+        })
+      })
 
       const officialReviewsByPaperNumberMap = new Map()
       const metaReviewsByPaperNumberMap = new Map()
       const decisionByPaperNumberMap = new Map()
       const customStageReviewsByPaperNumberMap = new Map()
       notes.forEach((note) => {
-        const replies = note.details.replies // eslint-disable-line prefer-destructuring
+        const replies = note.details.replies ?? []
         const officialReviews = replies
           .filter((p) => {
             const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
             return p.invitations.includes(officialReviewInvitationId)
           })
-          ?.map((review) => ({
+          .map((review) => ({
             ...review,
             anonId: getIndentifierFromGroup(
               review.signatures[0].startsWith('~')
-                ? anonReviewerGroups[note.number][review.signatures[0]] ?? ''
+                ? anonReviewerGroups[note.number]?.[review.signatures[0]] ?? ''
                 : review.signatures[0],
               anonReviewerName
             ),
@@ -385,10 +399,11 @@ const ProgramChairConsole = ({ appContext }) => {
             const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
             return p.invitations.includes(officialMetaReviewInvitationId)
           })
-          ?.map((metaReview) => ({
+          .map((metaReview) => ({
             ...metaReview,
             anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
           }))
+
         const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
         const decision = replies.find((p) => p.invitations.includes(decisionInvitationId))
         const customStageInvitationIds = customStageInvitations

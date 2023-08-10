@@ -77,7 +77,7 @@ function ForumNote({ note, updateNote }) {
             note={activeNote}
             invitation={activeInvitation}
             closeNoteEditor={closeNoteEditor}
-            onNoteCreated={(newNote) => updateNote(newNote)}
+            onNoteCreated={updateNote}
           />
         ) : (
           <NoteEditorForm
@@ -194,6 +194,9 @@ function ForumNote({ note, updateNote }) {
         }
         presentation={details.presentation}
         noteReaders={note.sortedReaders}
+        omit={[canShowIcon('pdf') ? 'pdf' : null, canShowIcon('html') ? 'html' : null].filter(
+          Boolean
+        )}
       />
     </div>
   )
