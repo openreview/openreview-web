@@ -423,19 +423,25 @@ const NoteEditor = ({
     // get note reader/writer/signature and edit reader/writer/signature
     try {
       if (edit || note?.id) {
-        const latestNote = (
-          await api.get(
-            edit ? '/notes/edits' : '/notes',
-            { id: edit ? edit.id : note.id },
-            { accessToken, version: 2 }
-          )
-        )?.[edit ? 'edits' : 'notes']?.[0]
+        let apiPath
+        let noteOrEdit
+        let label
+        if (edit) {
+          apiPath = '/notes/edits'
+          noteOrEdit = edit
+          label = 'edit'
+        } else {
+          apiPath = '/notes'
+          noteOrEdit = note
+          label = 'note'
+        }
+        const latestNoteOrEdit = (
+          await api.get(apiPath, { id: noteOrEdit.id }, { accessToken, version: 2 })
+        )?.[`${label}s`]?.[0]
 
-        if (latestNote?.tmdate && latestNote.tmdate !== note.tmdate) {
+        if (latestNoteOrEdit?.tmdate && latestNoteOrEdit.tmdate !== noteOrEdit.tmdate) {
           throw new Error(
-            `This ${
-              edit ? 'edit' : 'note'
-            } has been edited since you opened it. Please refresh the page and try again.`
+            `This ${label} has been modified since you opened it. Please refresh the page and try again.`
           )
         }
       }
