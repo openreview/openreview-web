@@ -423,7 +423,13 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
         ? `${group.id.slice(0, -1)}_`
         : `${group.id}_`
       const result = await api.get(`/groups?regex=${anonGroupRegex}`, {}, { accessToken })
-      setMemberAnonIds(result.groups.map((p) => ({ member: p.members, anonId: p.id })))
+      setMemberAnonIds(
+        result.groups.map((p) =>
+          p.id.startsWith(anonGroupRegex)
+            ? { member: [p.id], anonId: p.members?.[0] }
+            : { member: p.members, anonId: p.id }
+        )
+      )
     } catch (error) {
       promptError(error.message)
     }

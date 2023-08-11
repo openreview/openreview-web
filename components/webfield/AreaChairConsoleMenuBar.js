@@ -9,12 +9,13 @@ const AreaChairConsoleMenuBar = ({
   setAcConsoleData,
   shortPhrase,
   enableQuerySearch,
+  extraExportColumns,
   filterOperators: filterOperatorsConfig,
-  propertiesAllowed: propertiesAllowedConfig,
+  propertiesAllowed: extraPropertiesAllowed,
   reviewRatingName,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
-  const propertiesAllowed = propertiesAllowedConfig ?? {
+  const propertiesAllowed = {
     number: ['note.number'],
     id: ['note.id'],
     title: ['note.content.title.value'],
@@ -37,6 +38,7 @@ const AreaChairConsoleMenuBar = ({
     confidenceMin: ['reviewProgressData.confidenceMin'],
     replyCount: ['reviewProgressData.replyCount'],
     recommendation: ['metaReviewData.recommendation'],
+    ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
   }
   const messageReviewerOptions = [
     { label: 'All Reviewers of selected papers', value: 'allReviewers' },
@@ -95,6 +97,7 @@ const AreaChairConsoleMenuBar = ({
     { header: 'max confidence', getValue: (p) => p.reviewProgressData?.confidenceMax },
     { header: 'average confidence', getValue: (p) => p.reviewProgressData?.confidenceAvg },
     { header: 'ac recommendation', getValue: (p) => p.metaReviewData?.recommendation },
+    ...(extraExportColumns ?? []),
   ]
   const sortOptions = [
     { label: 'Paper Number', value: 'Paper Number', getValue: (p) => p.note?.number },

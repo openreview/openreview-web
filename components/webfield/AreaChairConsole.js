@@ -134,6 +134,7 @@ const AreaChairConsole = ({ appContext }) => {
     propertiesAllowed,
     enableQuerySearch,
     emailReplyTo,
+    extraExportColumns,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
@@ -330,6 +331,7 @@ const AreaChairConsole = ({ appContext }) => {
             const anonymousId = getIndentifierFromGroup(q.signatures[0], anonReviewerName)
             const reviewValue = q.content.review?.value
             return {
+              ...q,
               anonymousId,
               confidence: parseNumberField(q.content[reviewConfidenceName]?.value),
               ...Object.fromEntries(
@@ -341,7 +343,6 @@ const AreaChairConsole = ({ appContext }) => {
                 )
               ),
               reviewLength: reviewValue?.length,
-              id: q.id,
             }
           })
 
@@ -464,6 +465,7 @@ const AreaChairConsole = ({ appContext }) => {
             setAcConsoleData={setAcConsoleData}
             shortPhrase={shortPhrase}
             enableQuerySearch={enableQuerySearch}
+            extraExportColumns={extraExportColumns}
             filterOperators={filterOperators}
             propertiesAllowed={propertiesAllowed}
             reviewRatingName={reviewRatingName}
@@ -480,6 +482,7 @@ const AreaChairConsole = ({ appContext }) => {
           setAcConsoleData={setAcConsoleData}
           shortPhrase={shortPhrase}
           enableQuerySearch={enableQuerySearch}
+          extraExportColumns={extraExportColumns}
           filterOperators={filterOperators}
           propertiesAllowed={propertiesAllowed}
           reviewRatingName={reviewRatingName}
