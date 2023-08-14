@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 import { prettyList } from '../../lib/utils'
+import RecentPublications from './RecentPublications'
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -119,7 +120,13 @@ const ProfileExpertise = ({ expertise }) => (
   </ProfileItem>
 )
 
-const BasicProfileView = ({ profile, publicProfile, showLinkText = false }) => {
+const BasicProfileView = ({
+  profile,
+  publicProfile,
+  showLinkText = false,
+  contentToShow = ['names', 'emails', 'links', 'history', 'relations', 'expertise'],
+  publications,
+}) => {
   const uniqueNames = profile.names.filter((name) => !name.duplicate)
   const sortedNames = [
     ...uniqueNames.filter((p) => p.preferred),
@@ -127,119 +134,131 @@ const BasicProfileView = ({ profile, publicProfile, showLinkText = false }) => {
   ]
   return (
     <>
-      <ProfileViewSection
-        name="names"
-        title="Names"
-        instructions="How do you usually write your name as author of a paper?
+      {contentToShow.includes('names') && (
+        <ProfileViewSection
+          name="names"
+          title="Names"
+          instructions="How do you usually write your name as author of a paper?
       Also add any other names you have authored papers under."
-        actionLink="Suggest Name"
-      >
-        <div className="list-compact">
-          {sortedNames
-            .map((name) => (
-              <ProfileName key={name.username || name.first + name.last} name={name} />
-            ))
-            .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
-        </div>
-      </ProfileViewSection>
+          actionLink="Suggest Name"
+        >
+          <div className="list-compact">
+            {sortedNames
+              .map((name) => (
+                <ProfileName key={name.username || name.first + name.last} name={name} />
+              ))
+              .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+          </div>
+        </ProfileViewSection>
+      )}
 
-      <ProfileViewSection
-        name="emails"
-        title="Emails"
-        instructions="Enter email addresses associated with all of your current and historical
+      {contentToShow.includes('emails') && (
+        <ProfileViewSection
+          name="emails"
+          title="Emails"
+          instructions="Enter email addresses associated with all of your current and historical
       institutional affiliations, as well as all your previous publications,
       and the Toronto Paper Matching System. This information is crucial for
       deduplicating users, and ensuring you see your reviewing assignments."
-        actionLink="Suggest Email"
-      >
-        <div className="list-compact">
-          {profile.emails
-            .filter((email) => !email.hidden)
-            .map((email) => (
-              <ProfileEmail key={nanoid()} email={email} publicProfile={publicProfile} />
-            ))
-            .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
-        </div>
-      </ProfileViewSection>
+          actionLink="Suggest Email"
+        >
+          <div className="list-compact">
+            {profile.emails
+              .filter((email) => !email.hidden)
+              .map((email) => (
+                <ProfileEmail key={nanoid()} email={email} publicProfile={publicProfile} />
+              ))
+              .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+          </div>
+        </ProfileViewSection>
+      )}
 
-      <ProfileViewSection
-        name="links"
-        title="Personal Links"
-        instructions="Add links to your profiles on other sites. (Optional)"
-        actionLink="Suggest URL"
-      >
-        {profile.links.map((link) => (
-          <ProfileLink key={link.name} link={link} showLinkText={showLinkText} />
-        ))}
-      </ProfileViewSection>
+      {contentToShow.includes('links') && (
+        <ProfileViewSection
+          name="links"
+          title="Personal Links"
+          instructions="Add links to your profiles on other sites. (Optional)"
+          actionLink="Suggest URL"
+        >
+          {profile.links.map((link) => (
+            <ProfileLink key={link.name} link={link} showLinkText={showLinkText} />
+          ))}
+        </ProfileViewSection>
+      )}
 
-      <ProfileViewSection
-        name="history"
-        title="Education &amp; Career History"
-        instructions="Enter your education and career history. The institution domain is
+      {contentToShow.includes('history') && (
+        <ProfileViewSection
+          name="history"
+          title="Education &amp; Career History"
+          instructions="Enter your education and career history. The institution domain is
       used for conflict of interest detection and institution ranking.
       For ongoing positions, leave the end field blank."
-        actionLink="Suggest Position"
-      >
-        {profile.history?.length > 0 ? (
-          profile.history.map((history) => (
-            <ProfileHistory
-              key={
-                history.institution.name +
-                (history.position || random(1, 100)) +
-                (history.start || '') +
-                (history.end || '')
-              }
-              history={history}
-            />
-          ))
-        ) : (
-          <p className="empty-message">No history added</p>
-        )}
-      </ProfileViewSection>
+          actionLink="Suggest Position"
+        >
+          {profile.history?.length > 0 ? (
+            profile.history.map((history) => (
+              <ProfileHistory
+                key={
+                  history.institution.name +
+                  (history.position || random(1, 100)) +
+                  (history.start || '') +
+                  (history.end || '')
+                }
+                history={history}
+              />
+            ))
+          ) : (
+            <p className="empty-message">No history added</p>
+          )}
+        </ProfileViewSection>
+      )}
 
-      <ProfileViewSection
-        name="relations"
-        title="Advisors, Relations &amp; Conflicts"
-        instructions="Enter all advisors, co-workers, and other people that should be
+      {contentToShow.includes('relations') && (
+        <ProfileViewSection
+          name="relations"
+          title="Advisors, Relations &amp; Conflicts"
+          instructions="Enter all advisors, co-workers, and other people that should be
       included when detecting conflicts of interest."
-        actionLink="Suggest Relation"
-      >
-        {profile.relations?.length > 0 ? (
-          profile.relations.map((relation) => (
-            <ProfileRelation
-              key={
-                relation.relation +
-                relation.name +
-                relation.email +
-                relation.start +
-                relation.end
-              }
-              relation={relation}
-            />
-          ))
-        ) : (
-          <p className="empty-message">No relations added</p>
-        )}
-      </ProfileViewSection>
+          actionLink="Suggest Relation"
+        >
+          {profile.relations?.length > 0 ? (
+            profile.relations.map((relation) => (
+              <ProfileRelation
+                key={
+                  relation.relation +
+                  relation.name +
+                  relation.email +
+                  relation.start +
+                  relation.end
+                }
+                relation={relation}
+              />
+            ))
+          ) : (
+            <p className="empty-message">No relations added</p>
+          )}
+        </ProfileViewSection>
+      )}
 
-      <ProfileViewSection
-        name="expertise"
-        title="Expertise"
-        instructions="For each line, enter comma-separated keyphrases representing an
+      {contentToShow.includes('expertise') && (
+        <ProfileViewSection
+          name="expertise"
+          title="Expertise"
+          instructions="For each line, enter comma-separated keyphrases representing an
       intersection of your interests. Think of each line as a query for papers in
       which you would have expertise and interest. For example: deep learning, RNNs,
       dependency parsing"
-        actionLink="Suggest Expertise"
-      >
-        {profile.expertise?.length > 0 ? (
-          profile.expertise.map((expertise) => (
-            <ProfileExpertise key={expertise.keywords.toString()} expertise={expertise} />
-          ))
-        ) : (
-          <p className="empty-message">No areas of expertise listed</p>
-        )}
-      </ProfileViewSection>
+          actionLink="Suggest Expertise"
+        >
+          {profile.expertise?.length > 0 ? (
+            profile.expertise.map((expertise) => (
+              <ProfileExpertise key={expertise.keywords.toString()} expertise={expertise} />
+            ))
+          ) : (
+            <p className="empty-message">No areas of expertise listed</p>
+          )}
+        </ProfileViewSection>
+      )}
     </>
   )
 }
