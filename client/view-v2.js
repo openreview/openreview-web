@@ -2714,5 +2714,6 @@ module.exports = (function () {
     mkNotePanel: mkNotePanel,
     deleteOrRestoreNote: deleteOrRestoreNote,
     constructEdit: constructEdit,
+    constructUpdatedEdit: constructUpdatedEdit,
   }
 })()

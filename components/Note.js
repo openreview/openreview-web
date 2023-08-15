@@ -110,6 +110,7 @@ const Note = ({ note, invitation, options }) => {
 
 export const NoteV2 = ({ note, options }) => {
   const privatelyRevealed = options.showPrivateIcon && !note.readers.includes('everyone')
+  const omitContentFields = ['pdf', 'html'].concat(options.omitFields ?? [])
 
   const renderNoteContent = () => {
     if (!options.showContents || (note.ddate && note.ddate <= Date.now())) return null
@@ -119,7 +120,7 @@ export const NoteV2 = ({ note, options }) => {
           <NoteContentV2
             id={note.id}
             content={note.content ?? {}}
-            omit={options.omitFields}
+            omit={omitContentFields}
             isEdit={options.isReference}
             presentation={note.details?.presentation}
             noteReaders={note.readers?.sort()}
@@ -131,7 +132,7 @@ export const NoteV2 = ({ note, options }) => {
       <NoteContentV2
         id={note.id}
         content={note.content ?? {}}
-        omit={options.omitFields}
+        omit={omitContentFields}
         isEdit={options.isReference}
         presentation={note.details?.presentation}
         noteReaders={note.readers?.sort()}

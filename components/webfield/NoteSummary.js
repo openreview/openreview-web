@@ -125,7 +125,6 @@ const NoteSummary = ({
             id={note.id}
             content={note.content}
             invitation={note.invitation}
-            include={['html']}
           />
         ) : (
           <NoteContent

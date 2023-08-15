@@ -124,6 +124,7 @@ const UpdateModal = ({ editInfo, setEditToChange, loadEdits }) => {
       {errorMessage && <ErrorAlert error={{ message: errorMessage }} />}
 
       <NoteEditor
+        edit={edit}
         note={edit?.note}
         invitation={invitation}
         closeNoteEditor={() => {
@@ -593,7 +594,7 @@ const Revisions = ({ appContext }) => {
             )
             // Don't show the edit button next to an edit if it's expired and not writable
             if (
-              editInvitation.expdate &&
+              editInvitation?.expdate &&
               editInvitation.expdate < Date.now() &&
               !editInvitation.details?.writable
             ) {
