@@ -183,6 +183,7 @@ const NoteEditor = ({
     if (!fieldNameOverwrite) {
       fieldNameOverwrite = fieldName === 'authorids' ? 'Authors' : undefined
     }
+    const isHiddenField = fieldDescription?.value?.param?.hidden
 
     const error = errors.find((e) => e.fieldName === fieldName)
 
@@ -197,7 +198,7 @@ const NoteEditor = ({
     if (fieldName === 'authors' && Array.isArray(fieldDescription?.value)) return null
 
     return (
-      <div key={fieldName} className={styles.fieldContainer}>
+      <div key={fieldName} className={isHiddenField ? null : styles.fieldContainer}>
         <EditorComponentContext.Provider
           value={{
             invitation,
