@@ -73,7 +73,7 @@ describe('RecruitmentForm', () => {
     ).toBeInTheDocument()
   })
 
-  test('show title, contact, invitation message and action buttons', () => {
+  test('show title, contact, invitation message and action buttons (no accept with reduced load)', () => {
     const providerProps = {
       value: {
         venueId: 'ICML.cc/2023/Conference',
@@ -112,6 +112,50 @@ describe('RecruitmentForm', () => {
     expect(markdownProps).toHaveBeenCalledWith({ text: providerProps.value.invitationMessage })
     expect(screen.getByText(providerProps.value.invitationMessage)).toBeVisible()
     expect(screen.getByRole('button', { name: 'Accept' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Decline' })).toBeVisible()
+  })
+
+  test('show title, contact, invitation message and action buttons (with accept with reduced load)', () => {
+    const providerProps = {
+      value: {
+        venueId: 'ICML.cc/2023/Conference',
+        header: {
+          contact: 'conact@email.com',
+          subtitle: 'ICML 2023',
+          title: 'International Conference on Machine Learning',
+          website: 'https://openreview.net',
+        },
+        entity: {
+          apiVersion: 2,
+          edit: {
+            note: {
+              content: {},
+            },
+          },
+        },
+        args: {
+          id: 'ICML.cc/2023/Conference/Area_Chairs/-/Recruitment',
+          user: 'test@email.com',
+          key: 'somekey',
+        },
+        invitationMessage: '# You have been invited #',
+        acceptMessage: 'Thank you for accepting this invitation',
+        declineMessage: 'You have declined the invitation',
+        reducedLoadMessage:
+          'If you chose to decline the invitation because the paper load is too high, you can request to reduce your load. You can request a reduced reviewer load below',
+        allowAcceptWithReducedLoad: true,
+      },
+    }
+
+    renderWithWebFieldContext(<RecruitmentForm />, providerProps)
+    expect(screen.getByText(providerProps.value.header.title)).toBeVisible()
+    expect(screen.getByText(providerProps.value.header.subtitle)).toBeVisible()
+    expect(screen.getByText(providerProps.value.header.website)).toBeVisible()
+    expect(screen.getByText(providerProps.value.header.contact)).toBeVisible()
+    expect(markdownProps).toHaveBeenCalledWith({ text: providerProps.value.invitationMessage })
+    expect(screen.getByText(providerProps.value.invitationMessage)).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Accept' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Accept (Reduced Load)' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Decline' })).toBeVisible()
   })
 
@@ -163,6 +207,85 @@ describe('RecruitmentForm', () => {
         version: 2,
       })
     })
+  })
+
+  test('call api to post response when user accept with reduced load', async () => {
+    responseEditMock = {
+      invitation: 'ICML.cc/2023/Conference/Area_Chairs/-/Recruitment',
+      note: { content: { response: { value: 'No' }, reduced_load: { value: 3 } } },
+    }
+    const postResponse = jest.fn(() => Promise.resolve({}))
+    api.post = postResponse
+    const providerProps = {
+      value: {
+        venueId: 'ICML.cc/2023/Conference',
+        header: {
+          contact: 'conact@email.com',
+          subtitle: 'ICML 2023',
+          title: 'International Conference on Machine Learning',
+          website: 'https://openreview.net',
+        },
+        entity: {
+          apiVersion: 2,
+          edit: {
+            note: {
+              content: {
+                reduced_load: {
+                  description:
+                    'Please select the number of submissions that you would be comfortable reviewing.',
+                  value: {
+                    param: {
+                      type: 'string',
+                      enum: ['1', '2', '3', '4'],
+                      input: 'select',
+                      optional: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        args: {
+          id: 'ICML.cc/2023/Conference/Area_Chairs/-/Recruitment',
+          user: 'test@email.com',
+          key: 'somekey',
+        },
+        invitationMessage: '# You have been invited #',
+        acceptMessage: 'Thank you for accepting this invitation',
+        declineMessage: 'You have declined the invitation',
+        reducedLoadMessage:
+          'If you chose to decline the invitation because the paper load is too high, you can request to reduce your load. You can request a reduced reviewer load below',
+        allowAcceptWithReducedLoad: true,
+      },
+    }
+
+    renderWithWebFieldContext(<RecruitmentForm />, providerProps)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Accept (Reduced Load)' }))
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          'Please select the number of submissions that you would be comfortable reviewing.'
+        )
+      ).toBeVisible()
+      expect(screen.getByRole('combobox')).toBeVisible()
+      expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled()
+      expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument()
+    })
+
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.click(screen.getByText('3'))
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }))
+    expect(postResponse).toHaveBeenLastCalledWith(
+      expect.anything(),
+      responseEditMock,
+      expect.anything()
+    )
+    expect(screen.getByText('You have requested a reduced load of 3 papers')).toBeVisible()
+    expect(screen.getByText('Thank you for accepting this invitation')).toBeVisible()
   })
 
   test('call api to post response when user decline', async () => {
