@@ -1,7 +1,7 @@
 /* globals promptError, promptLogin, view2, clearMessage: false */
 
 import React, { useEffect, useCallback, useReducer, useState } from 'react'
-import debounce from 'lodash/debounce'
+import throttle from 'lodash/throttle'
 import { intersection, isEmpty } from 'lodash'
 import EditorComponentContext from './EditorComponentContext'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
@@ -141,7 +141,7 @@ const NoteEditor = ({
       : (p) => promptError(p, { scrollToTop: false })
 
   const saveDraft = useCallback(
-    debounce((fieldName, value) => {
+    throttle((fieldName, value) => {
       const keyOfSavedText = getAutoStorageKey(
         user,
         invitation.id,
