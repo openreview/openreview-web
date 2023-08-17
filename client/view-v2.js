@@ -2347,6 +2347,7 @@ module.exports = (function () {
         // do not return field
         return
       }
+
       var valueObj = contentFieldValue.value
       if (valueObj) {
         if (
@@ -2355,11 +2356,20 @@ module.exports = (function () {
         ) {
           return
         } else {
+          var newVal = formData?.[contentFieldName]
+          if (
+            valueObj.param?.input === 'text' ||
+            valueObj.param?.input === 'textarea' ||
+            (valueObj.param?.type === 'string' && !value.param?.enum)
+          ) {
+            newVal = newVal?.trim()
+          }
           content[contentFieldName] = {
-            value: formData?.[contentFieldName] ?? noteObj?.content?.[contentFieldName]?.value,
+            value: newVal ?? noteObj?.content?.[contentFieldName]?.value,
           }
         }
       }
+
       var fieldReader = contentFieldValue.readers
       if (fieldReader) {
         if (!fieldReader.const) {
@@ -2715,5 +2725,6 @@ module.exports = (function () {
     mkNotePanel: mkNotePanel,
     deleteOrRestoreNote: deleteOrRestoreNote,
     constructEdit: constructEdit,
+    constructUpdatedEdit: constructUpdatedEdit,
   }
 })()

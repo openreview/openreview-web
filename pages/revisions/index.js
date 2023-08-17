@@ -124,6 +124,7 @@ const UpdateModal = ({ editInfo, setEditToChange, loadEdits }) => {
       {errorMessage && <ErrorAlert error={{ message: errorMessage }} />}
 
       <NoteEditor
+        edit={edit}
         note={edit?.note}
         invitation={invitation}
         closeNoteEditor={() => {
