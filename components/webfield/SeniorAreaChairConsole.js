@@ -1,16 +1,17 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
-import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
+import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import BasicHeader from './BasicHeader'
 import AreaChairStatus from './SeniorAreaChairConsole/AreaChairStatus'
 import PaperStatus from './SeniorAreaChairConsole/PaperStatus'
+import SeniorAreaChairTasks from './SeniorAreaChairConsole/SeniorAreaChairTasks'
 import ErrorDisplay from '../ErrorDisplay'
+import useUser from '../../hooks/useUser'
+import useQuery from '../../hooks/useQuery'
+import api from '../../lib/api-client'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import {
   getIndentifierFromGroup,
   getNumberFromGroup,
@@ -18,7 +19,6 @@ import {
   prettyId,
   parseNumberField,
 } from '../../lib/utils'
-import SeniorAreaChairTasks from './SeniorAreaChairConsole/SeniorAreaChairTasks'
 
 const SeniorAreaChairConsole = ({ appContext }) => {
   const {
@@ -55,6 +55,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
 
   const loadData = async () => {
     if (isLoadingData) return
+
     setIsLoadingData(true)
     try {
       // #region getSubmissions
@@ -428,7 +429,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!userLoading && (!user || !user.profile || user.profile.id === 'guest')) {
+    if (!userLoading && !user) {
       router.replace(
         `/login?redirect=${encodeURIComponent(
           `${window.location.pathname}${window.location.search}${window.location.hash}`
@@ -460,9 +461,11 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     )}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
+
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
+
       <Tabs>
         <TabList>
           <Tab
