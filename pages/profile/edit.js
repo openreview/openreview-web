@@ -97,7 +97,7 @@ export default function ProfileEdit({ appContext }) {
       const apiRes = await api.post('/profiles', dataToSubmit, { accessToken })
       const prefName = apiRes.content?.names?.find((name) => name.preferred === true)
       if (prefName) {
-        updateUserName(prefName.first, prefName.middle, prefName.last) // update nav dropdown
+        updateUserName(prefName.fullname) // update nav dropdown
       }
 
       await Promise.all(
