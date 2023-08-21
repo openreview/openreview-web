@@ -220,7 +220,7 @@ const EthicsChairPaperStatus = () => {
           numReviewersAssigned: assignedEthicsReviewers.length,
           replyCount: note.details.replies?.length ?? 0,
           ethicsMetaReview,
-          hasEthicsMetaReview: ethicsMetaReview ? true : false,
+          hasEthicsMetaReview: ethicsMetaReview ? true : false, // eslint-disable-line no-unneeded-ternary
         }
       })
 
