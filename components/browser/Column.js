@@ -223,7 +223,7 @@ export default function Column(props) {
         <p>
           {invitationNamePlural} for{' '}
           <strong>
-            {name.first} {name.middle} {name.last}
+            {name.fullname}
           </strong>
         </p>
       )
