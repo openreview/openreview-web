@@ -1,4 +1,4 @@
-/* globals $: false */
+/* globals $,typesetMathJax: false */
 
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
@@ -130,6 +130,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
     if (!publications) return
 
     setCoAuthors(getCoAuthorsFromPublications(profile, publications))
+    typesetMathJax()
   }, [publications])
 
   return (
