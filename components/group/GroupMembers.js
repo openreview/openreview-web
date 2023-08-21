@@ -26,13 +26,14 @@ const MessageMemberModal = ({
 
   const sendMessage = async () => {
     const sanitizedMessage = DOMPurify.sanitize(message)
+    const cleanReplytoEmail = replyToEmail.trim()
 
     if (!subject || !sanitizedMessage) {
       setError('Email Subject and Body are required to send messages.')
       return
     }
 
-    if (replyToEmail && !isValidEmail(replyToEmail)) {
+    if (cleanReplytoEmail && !isValidEmail(cleanReplytoEmail)) {
       setError('Reply to email is invalid.')
       return
     }
@@ -45,7 +46,7 @@ const MessageMemberModal = ({
           subject,
           message: sanitizedMessage,
           parentGroup: groupId,
-          replyTo: replyToEmail,
+          ...(cleanReplytoEmail && { replyTo: cleanReplytoEmail }),
           useJob: true,
         },
         { accessToken }
