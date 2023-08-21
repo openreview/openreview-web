@@ -53,9 +53,8 @@ const nameMakePreferredButton = Selector('div.container.names')
   .find('button.preferred_button')
   .filterVisible()
   .nth(0)
-const homepageUrlInput = Selector('input#homepage_url')
+const homepageUrlInput = Selector('#homepage_url')
 const yearOfBirthInput = Selector('section').nth(2).find('input')
-const linkedinUrlInput = Selector('input#linkedin_url')
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
@@ -117,9 +116,9 @@ test('user open own profile', async (t) => {
     .eql('A confirmation email has been sent to a@aa.com')
     .click(Selector('button').withText('Remove').filterVisible())
     // add empty homepage link
-    .selectText(Selector('#homepage_url'))
+    .selectText(homepageUrlInput)
     .pressKey('delete')
-    .typeText(Selector('#homepage_url'), ' ')
+    .typeText(homepageUrlInput, ' ')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql(
@@ -143,7 +142,7 @@ test('user open own profile', async (t) => {
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .notOk() // button is enabled
     // save
-    .typeText(Selector('#homepage_url'), 'http://google.com')
+    .typeText(homepageUrlInput, 'http://google.com', { replace: true })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql(
