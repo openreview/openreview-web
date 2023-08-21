@@ -9,7 +9,7 @@ import PaginationLinks from '../PaginationLinks'
 import Icon from '../Icon'
 import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
-import { prettyId, urlFromGroupId } from '../../lib/utils'
+import { isValidEmail, prettyId, urlFromGroupId } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 
 const MessageMemberModal = ({
@@ -20,16 +20,20 @@ const MessageMemberModal = ({
   setJobId,
 }) => {
   const [subject, setSubject] = useState(`Message to ${prettyId(groupId)}`)
+  const [replyToEmail, setReplyToEmail] = useState(groupDomainContent?.contact?.value)
   const [message, setMessage] = useState('')
   const [error, setError] = useState(null)
-
-  const replyToEmail = groupDomainContent?.contact?.value
 
   const sendMessage = async () => {
     const sanitizedMessage = DOMPurify.sanitize(message)
 
     if (!subject || !sanitizedMessage) {
       setError('Email Subject and Body are required to send messages.')
+      return
+    }
+
+    if (replyToEmail && !isValidEmail(replyToEmail)) {
+      setError('Reply to email is invalid.')
       return
     }
 
@@ -72,6 +76,7 @@ const MessageMemberModal = ({
       onPrimaryButtonClick={sendMessage}
       onClose={() => {
         setMessage('')
+        setError(null)
       }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
@@ -98,18 +103,16 @@ const MessageMemberModal = ({
           />
         </div>
 
-        {replyToEmail && (
-          <div className="form-group">
-            <label htmlFor="subject">Reply To</label>
-            <input
-              type="text"
-              name="replyto"
-              className="form-control"
-              value={replyToEmail}
-              disabled
-            />
-          </div>
-        )}
+        <div className="form-group">
+          <label htmlFor="subject">Reply To</label>
+          <input
+            type="text"
+            name="replyto"
+            className="form-control"
+            value={replyToEmail ?? ''}
+            onChange={(e) => setReplyToEmail(e.target.value)}
+          />
+        </div>
 
         <div className="form-group">
           <label htmlFor="message">Email Body</label>
