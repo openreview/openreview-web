@@ -28,7 +28,7 @@ export default function ProfileEdit({ appContext }) {
     try {
       const { profiles } = await api.get('/profiles', {}, { accessToken })
       if (profiles?.length > 0) {
-        const formattedProfile = formatProfileData(profiles[0], false, true)
+        const formattedProfile = formatProfileData(profiles[0], true)
         setProfile(formattedProfile)
       } else {
         setError({ statusCode: 404, message: 'Profile not found' })

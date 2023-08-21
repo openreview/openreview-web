@@ -278,7 +278,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
     <div className="container names">
       {!isMobile && (
         <div className="row">
-          <div className="small-heading col-md-2">Full Name</div>
+          <div className="small-heading col-md-4">Full Name</div>
           <div className="small-heading col-md-2" />
           <div className="small-heading col-md-2" />
         </div>
@@ -291,7 +291,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
         )
         return (
           <div className="row" key={p.key}>
-            <div className="col-md-2 names__value">
+            <div className="col-md-4 names__value">
               {isMobile && <div className="small-heading col-md-2">Full Name</div>}
               <input
                 type="text"
