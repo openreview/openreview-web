@@ -116,14 +116,10 @@ test('user open own profile', async (t) => {
     .eql('A confirmation email has been sent to a@aa.com')
     .click(Selector('button').withText('Remove').filterVisible())
     // add empty homepage link
-    .selectText(homepageUrlInput)
-    .pressKey('delete')
-    .typeText(homepageUrlInput, ' ')
+    .typeText(homepageUrlInput, ' ', { replace: true })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql(
-      'You must enter at least one personal link'
-    )
+    .eql('You must enter at least one personal link')
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
@@ -138,11 +134,11 @@ test('user open own profile', async (t) => {
     // personal links
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
-    .typeText(Selector('#dblp_url'), 'http://test.com')
+    .typeText(Selector('#dblp_url'), 'http://test.com', { replace: true, paste: true })
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .notOk() // button is enabled
     // save
-    .typeText(homepageUrlInput, 'http://google.com', { replace: true })
+    .typeText(homepageUrlInput, 'http://google.com', { replace: true, paste: true })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql(
@@ -176,7 +172,8 @@ test('add and delete year of birth', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .expect(yearOfBirthInput.value)
     .eql('2000')
-    .selectText(yearOfBirthInput).pressKey('delete')
+    .selectText(yearOfBirthInput)
+    .pressKey('delete')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
@@ -437,13 +434,41 @@ test('#84 merge profile modal should fill in id', async (t) => {
     .typeText(editEmailInputSelector, 'a@a.com')
     .click(Selector('button').withText('Confirm').filterVisible())
     .click(Selector('a').withText('Merge Profiles').filterVisible())
-    .expect(Selector('#profile-merge-modal').find('input').withAttribute('type', 'email').exists).notOk()
-    .expect(Selector('#profile-merge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').exists).ok()
-    .expect(Selector('#profile-merge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').hasAttribute('readonly')).ok()
-    .expect(Selector('#profile-merge-modal').find('button').withText('Submit').hasAttribute('disabled')).ok()
-    .typeText(Selector('#profile-merge-modal').find('textarea').withAttribute('id', 'comment'), 'some comment')
-    .expect(Selector('#profile-merge-modal').find('button').withText('Submit').hasAttribute('disabled')).notOk()
-
+    .expect(
+      Selector('#profile-merge-modal').find('input').withAttribute('type', 'email').exists
+    )
+    .notOk()
+    .expect(
+      Selector('#profile-merge-modal')
+        .find('input')
+        .withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').exists
+    )
+    .ok()
+    .expect(
+      Selector('#profile-merge-modal')
+        .find('input')
+        .withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1')
+        .hasAttribute('readonly')
+    )
+    .ok()
+    .expect(
+      Selector('#profile-merge-modal')
+        .find('button')
+        .withText('Submit')
+        .hasAttribute('disabled')
+    )
+    .ok()
+    .typeText(
+      Selector('#profile-merge-modal').find('textarea').withAttribute('id', 'comment'),
+      'some comment'
+    )
+    .expect(
+      Selector('#profile-merge-modal')
+        .find('button')
+        .withText('Submit')
+        .hasAttribute('disabled')
+    )
+    .notOk()
 })
 test('#85 confirm profile email message', async (t) => {
   await t
