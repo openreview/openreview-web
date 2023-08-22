@@ -564,7 +564,11 @@ test('#1011 remove space in personal links', async (t) => {
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .click(nameSectionPlusIconSelector)
-    .typeText(homepageUrlInput, '   https://github.com/xkOpenReview    ', { replace: true })
+    .typeText(homepageUrlInput, '   https://github.com/xkOpenReview    ', {
+      replace: true,
+      paste: true,
+    })
+    .pressKey('tab')
     .click(saveProfileButton)
     .expect(
       Selector('a')
