@@ -39,6 +39,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     officialReviewName,
     officialMetaReviewName,
     decisionName = 'Decision',
+    preliminaryDecisionName,
     recommendationName,
     edgeBrowserDeployedUrl,
     customStageInvitations,
@@ -55,6 +56,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
 
   const loadData = async () => {
     if (isLoadingData) return
+
     setIsLoadingData(true)
     try {
       // #region getSubmissions
@@ -71,12 +73,10 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               { accessToken, version: 2 }
             )
             .then((notes) =>
-              notes.filter(
-                (note) =>
-                  ![withdrawnVenueId, deskRejectedVenueId].includes(
-                    note.content?.venueid?.value
-                  )
-              )
+              notes.filter((note) => {
+                const noteVenueId = note.content?.venueid?.value
+                return noteVenueId !== withdrawnVenueId && venueId !== deskRejectedVenueId
+              })
             )
         : Promise.resolve([])
       // #endregion
@@ -311,7 +311,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
               return p.invitations.includes(officialMetaReviewInvitationId)
             })
-            ?.map((metaReview) => ({
+            .map((metaReview) => ({
               ...metaReview,
               anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
             }))
@@ -344,15 +344,29 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             })
 
           const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
-
-          let decision = 'No Decision'
-
           const decisionNote = note.details.replies.find((p) =>
             p.invitations.includes(decisionInvitationId)
           )
+          const decision = decisionNote?.content?.decision
+            ? decisionNote.content.decision?.value
+            : 'No Decision'
 
-          // eslint-disable-next-line prefer-destructuring
-          if (decisionNote?.content?.decision) decision = decisionNote.content.decision?.value
+          let preliminaryDecision = null
+          if (preliminaryDecisionName) {
+            const prelimDecisionId = `${venueId}/${submissionName}${note.number}/-/${preliminaryDecisionName}`
+            const prelimDecisionNote = note.details.replies.find((p) =>
+              p.invitations.includes(prelimDecisionId)
+            )
+            if (prelimDecisionNote) {
+              preliminaryDecision = {
+                id: prelimDecisionNote.id,
+                recommdation: prelimDecisionNote.content.recommdation?.value,
+                confidence: prelimDecisionNote.content.confidence?.value,
+                discussionNeeded: prelimDecisionNote.content.discussion_with_SAC_needed?.value,
+              }
+            }
+          }
+
           return {
             noteNumber: note.number,
             note,
@@ -408,6 +422,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 .join(' '),
             },
             decision,
+            preliminaryDecision,
           }
         }),
       })
@@ -460,6 +475,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     )}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
+
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
