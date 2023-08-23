@@ -353,7 +353,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
 
           let preliminaryDecision = null
           if (preliminaryDecisionName) {
-            const prelimDecisionId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
+            const prelimDecisionId = `${venueId}/${submissionName}${note.number}/-/${preliminaryDecisionName}`
             const prelimDecisionNote = note.details.replies.find((p) =>
               p.invitations.includes(prelimDecisionId)
             )
