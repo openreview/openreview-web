@@ -20,7 +20,7 @@ const MessageMemberModal = ({
   setJobId,
 }) => {
   const [subject, setSubject] = useState(`Message to ${prettyId(groupId)}`)
-  const [replyToEmail, setReplyToEmail] = useState(groupDomainContent?.contact?.value)
+  const [replyToEmail, setReplyToEmail] = useState(groupDomainContent?.contact?.value ?? '')
   const [message, setMessage] = useState('')
   const [error, setError] = useState(null)
 
@@ -110,7 +110,7 @@ const MessageMemberModal = ({
             type="text"
             name="replyto"
             className="form-control"
-            value={replyToEmail ?? ''}
+            value={replyToEmail}
             onChange={(e) => setReplyToEmail(e.target.value)}
           />
         </div>
