@@ -360,7 +360,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             if (prelimDecisionNote) {
               preliminaryDecision = {
                 id: prelimDecisionNote.id,
-                recommdation: prelimDecisionNote.content.recommdation?.value,
+                recommendation: prelimDecisionNote.content.recommendation?.value,
                 confidence: prelimDecisionNote.content.confidence?.value,
                 discussionNeeded: prelimDecisionNote.content.discussion_with_SAC_needed?.value,
               }
