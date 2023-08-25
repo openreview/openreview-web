@@ -32,7 +32,7 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
 const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venue }) => {
   const { venueId, officialReviewName, shortPhrase, seniorAreaChairName, submissionName } =
     useContext(WebFieldContext)
-  const { note, metaReviewData } = rowData
+  const { note } = rowData
   const referrerUrl = encodeURIComponent(
     `[Senior Area Chair Console](/group?id=${venueId}/${seniorAreaChairName}#paper-status)`
   )
@@ -154,6 +154,7 @@ const PaperStatus = ({ sacConsoleData }) => {
         setPaperStatusTabData={setPaperStatusTabData}
         reviewRatingName={reviewRatingName}
       />
+
       <Table
         className="console-table table-striped pc-console-paper-status"
         headings={[
@@ -186,6 +187,7 @@ const PaperStatus = ({ sacConsoleData }) => {
           />
         ))}
       </Table>
+
       <PaginationLinks
         currentPage={pageNumber}
         itemsPerPage={pageSize}
