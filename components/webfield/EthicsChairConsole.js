@@ -24,6 +24,7 @@ const EthicsChairConsole = ({ appContext }) => {
     ethicsReviewName,
     anonEthicsReviewerName,
     shortPhrase,
+    ethicsMetaReviewName,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const router = useRouter()
