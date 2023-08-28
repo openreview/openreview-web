@@ -8,52 +8,60 @@ import BaseActivityList from '../BaseActivityList'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 
-export default function ActivityList({ venueId, apiVersion, invitation, pageSize, shouldReload }) {
+export default function ActivityList({
+  venueId,
+  apiVersion,
+  invitation,
+  pageSize,
+  shouldReload,
+}) {
   const [activityNotes, setActivityNotes] = useState(null)
   const [error, setError] = useState(null)
   const { accessToken } = useUser()
 
   useEffect(() => {
-    const loadActivityNotes = () => api
-      .get(
-        '/notes',
-        {
-          invitation: invitation || `${venueId}/.*`,
-          details: 'forumContent,invitation,writable',
-          sort: 'tmdate:desc',
-          limit: pageSize || 50,
-        },
-        { accessToken }
-      )
-      .then(({ notes }) => {
-        setActivityNotes(notes?.length > 0 ? notes : [])
-      })
-      .catch((apiError) => {
-        setActivityNotes([])
-        setError(apiError)
-      })
-
-    const loadActivityEdits = () => api
-      .get(
-        '/notes/edits',
-        {
-          domain: venueId,
-          trash: true,
-          details: 'writable,invitation',
-          sort: 'tmdate:desc',
-          limit: pageSize || 25,
-        },
-        { accessToken, version: apiVersion }
-      )
-      .then(({ edits }) => {
-        setActivityNotes(
-          edits?.length > 0 ? edits.map((edit) => ({ ...edit, apiVersion: 2 })) : []
+    const loadActivityNotes = () =>
+      api
+        .get(
+          '/notes',
+          {
+            invitation: invitation || `${venueId}/.*`,
+            details: 'forumContent,invitation,writable',
+            sort: 'tmdate:desc',
+            limit: pageSize || 50,
+          },
+          { accessToken }
         )
-      })
-      .catch((apiError) => {
-        setActivityNotes([])
-        setError(apiError)
-      })
+        .then(({ notes }) => {
+          setActivityNotes(notes?.length > 0 ? notes : [])
+        })
+        .catch((apiError) => {
+          setActivityNotes([])
+          setError(apiError)
+        })
+
+    const loadActivityEdits = () =>
+      api
+        .get(
+          '/notes/edits',
+          {
+            domain: venueId,
+            trash: true,
+            details: 'writable,invitation',
+            sort: 'tmdate:desc',
+            limit: pageSize || 25,
+          },
+          { accessToken, version: apiVersion }
+        )
+        .then(({ edits }) => {
+          setActivityNotes(
+            edits?.length > 0 ? edits.map((edit) => ({ ...edit, apiVersion: 2 })) : []
+          )
+        })
+        .catch((apiError) => {
+          setActivityNotes([])
+          setError(apiError)
+        })
 
     setError(null)
 

@@ -53,9 +53,9 @@ const nameMakePreferredButton = Selector('div.container.names')
   .find('button.preferred_button')
   .filterVisible()
   .nth(0)
-const homepageUrlInput = Selector('input#homepage_url')
+const dblpUrlInput = Selector('#dblp_url')
+const homepageUrlInput = Selector('#homepage_url')
 const yearOfBirthInput = Selector('section').nth(2).find('input')
-const linkedinUrlInput = Selector('input#linkedin_url')
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
@@ -117,14 +117,10 @@ test('user open own profile', async (t) => {
     .eql('A confirmation email has been sent to a@aa.com')
     .click(Selector('button').withText('Remove').filterVisible())
     // add empty homepage link
-    .selectText(Selector('#homepage_url'))
-    .pressKey('delete')
-    .typeText(Selector('#homepage_url'), ' ')
+    .typeText(homepageUrlInput, ' ', { replace: true })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql(
-      'You must enter at least one personal link'
-    )
+    .eql('You must enter at least one personal link')
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
@@ -139,17 +135,17 @@ test('user open own profile', async (t) => {
     // personal links
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
-    .typeText(Selector('#dblp_url'), 'http://test.com')
+    .typeText(dblpUrlInput, 'http://test.com', { replace: true, paste: true })
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .notOk() // button is enabled
     // save
-    .typeText(Selector('#homepage_url'), 'http://google.com')
+    .typeText(homepageUrlInput, 'http://google.com', { replace: true, paste: true })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql(
       'The value http://test.com in dblp is invalid. Expected value: should include https://dblp.org, https://dblp.uni-trier.de, https://dblp2.uni-trier.de, https://dblp.dagstuhl.de, uni-trier.de'
     )
-    .selectText(Selector('#dblp_url'))
+    .selectText(dblpUrlInput)
     .pressKey('delete')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
@@ -177,7 +173,8 @@ test('add and delete year of birth', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .expect(yearOfBirthInput.value)
     .eql('2000')
-    .selectText(yearOfBirthInput).pressKey('delete')
+    .selectText(yearOfBirthInput)
+    .pressKey('delete')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
@@ -198,7 +195,7 @@ test('import paper from dblp', async (t) => {
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
     // put incorrect persistant url
-    .typeText(Selector('input#dblp_url'), 'xxx')
+    .typeText(dblpUrlInput, 'xxx', { paste: true })
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .notOk()
     .expect(Selector('#dblp-import-modal').visible)
@@ -209,19 +206,16 @@ test('import paper from dblp', async (t) => {
     .expect(Selector('#dblp-import-modal').find('div.body-message').innerText)
     .contains('Visit your DBLP home page: xxx')
     // put persistent url of other people in modal
-    .click(persistentUrlInput) // to make sure input get focus
     .typeText(persistentUrlInput, testPersistentUrl)
     .click(showPapersButton)
-    .wait(5000)
     .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText)
-    .contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.')
+    .contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.', undefined, { timeout: 5000 })
     .click(dblpImportModalCancelButton)
     // put persistent url of other people in page
-    .typeText(Selector('input#dblp_url'), testPersistentUrl, { replace: true })
+    .typeText(dblpUrlInput, testPersistentUrl, { replace: true, paste: true })
     .click(addDBLPPaperToProfileButton)
-    .wait(5000)
     .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText)
-    .contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.')
+    .contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.', undefined, { timeout: 5000 })
     .click(dblpImportModalCancelButton)
     // add name to skip validation error
     .click(nameSectionPlusIconSelector)
@@ -438,13 +432,41 @@ test('#84 merge profile modal should fill in id', async (t) => {
     .typeText(editEmailInputSelector, 'a@a.com')
     .click(Selector('button').withText('Confirm').filterVisible())
     .click(Selector('a').withText('Merge Profiles').filterVisible())
-    .expect(Selector('#profile-merge-modal').find('input').withAttribute('type', 'email').exists).notOk()
-    .expect(Selector('#profile-merge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').exists).ok()
-    .expect(Selector('#profile-merge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').hasAttribute('readonly')).ok()
-    .expect(Selector('#profile-merge-modal').find('button').withText('Submit').hasAttribute('disabled')).ok()
-    .typeText(Selector('#profile-merge-modal').find('textarea').withAttribute('id', 'comment'), 'some comment')
-    .expect(Selector('#profile-merge-modal').find('button').withText('Submit').hasAttribute('disabled')).notOk()
-
+    .expect(
+      Selector('#profile-merge-modal').find('input').withAttribute('type', 'email').exists
+    )
+    .notOk()
+    .expect(
+      Selector('#profile-merge-modal')
+        .find('input')
+        .withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').exists
+    )
+    .ok()
+    .expect(
+      Selector('#profile-merge-modal')
+        .find('input')
+        .withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1')
+        .hasAttribute('readonly')
+    )
+    .ok()
+    .expect(
+      Selector('#profile-merge-modal')
+        .find('button')
+        .withText('Submit')
+        .hasAttribute('disabled')
+    )
+    .ok()
+    .typeText(
+      Selector('#profile-merge-modal').find('textarea').withAttribute('id', 'comment'),
+      'some comment'
+    )
+    .expect(
+      Selector('#profile-merge-modal')
+        .find('button')
+        .withText('Submit')
+        .hasAttribute('disabled')
+    )
+    .notOk()
 })
 test('#85 confirm profile email message', async (t) => {
   await t
@@ -535,15 +557,18 @@ test('fail before 2099', async (t) => {
     ) // to fail in 2090, update validation regex
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('Your profile information has been successfully updated')
-    .wait(5000)
+    .eql('Your profile information has been successfully updated', undefined, { timeout: 5000 })
 })
 test('#1011 remove space in personal links', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .click(nameSectionPlusIconSelector)
-    .typeText(homepageUrlInput, '   https://github.com/xkOpenReview    ', { replace: true })
+    .typeText(homepageUrlInput, '   https://github.com/xkOpenReview    ', {
+      replace: true,
+      paste: true,
+    })
+    .pressKey('tab')
     .click(saveProfileButton)
     .expect(
       Selector('a')

@@ -17,10 +17,7 @@ const MessageContent = ({ content = '' }) => {
 
   return (
     // eslint-disable-next-line react/no-danger
-    <div
-      className="markdown-rendered"
-      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-    />
+    <div className="markdown-rendered" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
   )
 }
 
@@ -61,11 +58,13 @@ const MessageRow = ({ message }) => (
           </div>
         )}
         <div className="email-sent pull-right">
-          {(message.timestamp || message.cdate) ? (
+          {message.timestamp || message.cdate ? (
             <>
               Sent: <span>{formatTimestamp(message.timestamp * 1000 || message.cdate)}</span>
             </>
-          ) : 'Not Sent'}
+          ) : (
+            'Not Sent'
+          )}
         </div>
       </div>
 

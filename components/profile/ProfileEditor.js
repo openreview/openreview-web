@@ -398,7 +398,6 @@ export default function ProfileEditor({
           profileLinks={profile?.links}
           profileId={profile?.id}
           names={profile?.names}
-          preferredEmail={profile?.preferredEmail}
           renderPublicationsEditor={() => setRenderPublicationEditor((current) => !current)}
           hideDblpButton={hideDblpButton}
           updateLinks={(links) => setProfile({ type: 'links', data: links })}

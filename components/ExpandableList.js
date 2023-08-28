@@ -22,7 +22,7 @@ export default function ExpandableList({
         // eslint-disable-next-line jsx-a11y/anchor-is-valid
         <a
           href="#"
-          title={expanded ? "Collapse list" : "Expand list"}
+          title={expanded ? 'Collapse list' : 'Expand list'}
           role="button"
           className="show-all"
           onClick={(e) => {

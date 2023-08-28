@@ -30,7 +30,12 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
       <GroupSignedNotes groupId={group.id} accessToken={accessToken} />
       <GroupChildGroups groupId={group.id} accessToken={accessToken} />
       <GroupRelatedInvitations groupId={group.id} accessToken={accessToken} />
-      <GroupUICode group={group} profileId={profileId} accessToken={accessToken} reloadGroup={reloadGroup} />
+      <GroupUICode
+        group={group}
+        profileId={profileId}
+        accessToken={accessToken}
+        reloadGroup={reloadGroup}
+      />
     </div>
   )
 }

@@ -33,11 +33,8 @@ function Nav() {
             <span className="icon-bar" />
             <span className="icon-bar" />
           </button>
-          <Link href="/">
-            <a className="navbar-brand home push-link">
-              <strong>OpenReview</strong>
-              .net
-            </a>
+          <Link href="/" className="navbar-brand home push-link">
+            <strong>OpenReview</strong>.net
           </Link>
         </div>
 

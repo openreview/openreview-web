@@ -58,8 +58,7 @@ test('create new profile', async (t) => {
     .expect(Selector('span').withAttribute('class', 'email').innerText)
     .eql('melisa@test.com')
 
-  const { superUserToken } = t.fixtureCtx
-  const messages = await getMessages({ to: 'melisa@test.com' }, superUserToken)
+  const messages = await getMessages({ to: 'melisa@test.com' }, t.fixtureCtx.superUserToken)
   await t
     .expect(messages[0].content.text)
     .contains('http://localhost:3030/profile/activate?token=')
@@ -123,20 +122,15 @@ test('request a new activation link', async (t) => {
     .eql(
       'A confirmation email with the subject "OpenReview signup confirmation" has been sent to melisa@test.com. Please click the link in this email to confirm your email address and complete registration.'
     )
+    .wait(1000)
 
-  await new Promise((r) => {
-    setTimeout(r, 2000)
-  })
-
-  const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
     { to: 'melisa@test.com', subject: 'OpenReview signup confirmation' },
-    superUserToken
+    t.fixtureCtx.superUserToken
   )
   await t
     .expect(messages[0].content.text)
     .contains('http://localhost:3030/profile/activate?token=')
-  await t
     .expect(messages[1].content.text)
     .contains('http://localhost:3030/profile/activate?token=')
 })
@@ -217,7 +211,7 @@ fixture`Activate`
 
 test('update profile', async (t) => {
   await t
-    .typeText(Selector('input.personal-links__input').nth(0), 'http://homepage.do')
+    .typeText(Selector('#homepage_url'), 'http://homepage.do', { paste: true })
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .pressKey('M S space s t u d e n t tab')
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
@@ -273,13 +267,10 @@ test('reset password of active profile', async (t) => {
     .click(Selector('button').withText('Reset Password'))
     .expect(Selector('div').withAttribute('role', 'alert').exists)
     .ok()
-  // .expect(Selector('div').withAttribute('role', 'alert').innerText)
-  // .contains('An email with the subject "OpenReview Password Reset" has been sent to')
 
-  const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
     { to: 'melisa@test.com', subject: 'OpenReview password reset' },
-    superUserToken
+    t.fixtureCtx.superUserToken
   )
   await t
     .expect(messages[0].content.text)
@@ -329,10 +320,9 @@ test('add alternate email', async (t) => {
     .expect(messageSelector.innerText)
     .eql('A confirmation email has been sent to melisa@alternate.com')
 
-  const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
     { to: 'melisa@alternate.com', subject: 'OpenReview Account Linking' },
-    superUserToken
+    t.fixtureCtx.superUserToken
   )
   await t.expect(messages[0].content.text).contains('http://localhost:3030/confirm?token=')
 })
