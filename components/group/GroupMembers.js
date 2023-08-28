@@ -247,7 +247,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
           </>
         )}
         <Link href={`/messages?parentGroup=${groupId}`}>
-          <a>View all messages sent to this group &raquo;</a>
+          View all messages sent to this group &raquo;
         </Link>
       </div>
     </EditorSection>
@@ -682,14 +682,12 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
                       })
                     }}
                   >
-                    <Link href={urlFromGroupId(member.id)}>
-                      <a>{member.id}</a>
-                    </Link>
+                    <Link href={urlFromGroupId(member.id)}>{member.id}</Link>
                     {hasAnonId && (
                       <>
                         {' | '}
                         <Link href={urlFromGroupId(hasAnonId.anonId, true)}>
-                          <a>{prettyId(hasAnonId.anonId)}</a>
+                          {prettyId(hasAnonId.anonId)}
                         </Link>
                       </>
                     )}

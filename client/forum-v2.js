@@ -148,14 +148,16 @@ module.exports = function (forumId, noteId, invitationId, user, isBetaUser) {
       var noteRecPs = _.map(notes, function (note) {
         var deleteInvitation = invitations
           .filter(
-            (p) => p.edit?.note?.id === note.id ||
+            (p) =>
+              p.edit?.note?.id === note.id ||
               note.invitations.includes(p.edit?.note?.id?.param?.withInvitation)
           )
           .find((p) => p.edit?.note?.ddate)
         // pure delete invitation should not be edit invitation
         var isPureDeleteInvitation = !deleteInvitation?.edit?.note?.content
         var editInvitations = invitations.filter(
-          (p) => p.edit?.note?.id === note.id ||
+          (p) =>
+            p.edit?.note?.id === note.id ||
             note.invitations.includes(p.edit?.note?.id?.param?.withInvitation)
         )
         if (isPureDeleteInvitation) {
@@ -877,13 +879,15 @@ module.exports = function (forumId, noteId, invitationId, user, isBetaUser) {
     if (
       (type === 'signatures' || type === 'readers' || type === 'excluded-readers') &&
       checked.length === 0
-    ) return 'nobody'
+    )
+      return 'nobody'
     if (type === 'invitations' && checkboxes.unchecked.length === 0) return 'all'
     if (type === 'signatures' && checkboxes.unchecked.length === 0) return 'everybody'
     if (
       (type === 'readers' || type === 'excluded-readers') &&
       checkboxes.unchecked.length === 0
-    ) return 'all readers'
+    )
+      return 'all readers'
     if (checked.length === 1) return checked[0]
     if (checked.length === 2) return checked[0] + ' and ' + checked[1]
     var buttonText = ''
@@ -1181,7 +1185,9 @@ module.exports = function (forumId, noteId, invitationId, user, isBetaUser) {
   // Convert filter query string into object representing all the active filters
   // Copied from lib/forum-utils.js
   var replaceFilterWildcards = function (filterQuery, replyNote) {
-    return filterQuery.replace(/\${note\.([\w.]+)}/g, (match, field) => _.get(replyNote, field, ''))
+    return filterQuery.replace(/\${note\.([\w.]+)}/g, (match, field) =>
+      _.get(replyNote, field, '')
+    )
   }
 
   // Extract preferred id from raw profile data returned by /profiles API

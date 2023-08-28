@@ -34,22 +34,22 @@ module.exports = function (forumId, noteId, invitationId, user) {
       return profile.id
     }
 
-    return Webfield.post('/profiles/search', { confirmedEmails: authorEmails }).then(function (
-      result
-    ) {
-      var profiles = {}
-      _.forEach(result.profiles, function (p) {
-        profiles[p.email] = p
-      })
+    return Webfield.post('/profiles/search', { confirmedEmails: authorEmails }).then(
+      function (result) {
+        var profiles = {}
+        _.forEach(result.profiles, function (p) {
+          profiles[p.email] = p
+        })
 
-      _.forEach(notes, function (n) {
-        var profile = profiles[n.tauthor]
-        if (profile) {
-          n.tauthor = getPreferredUserName(profile)
-        }
-      })
-      return notes
-    })
+        _.forEach(notes, function (n) {
+          var profile = profiles[n.tauthor]
+          if (profile) {
+            n.tauthor = getPreferredUserName(profile)
+          }
+        })
+        return notes
+      }
+    )
   }
 
   var getNoteRecsP = function () {

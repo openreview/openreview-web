@@ -194,8 +194,8 @@ const CompareRevisions = ({ appContext }) => {
       <header>
         <h1>Revision Comparison</h1>
         <div className="button-container">
-          <Link href={`/revisions?id=${query?.id}`}>
-            <a className="btn btn-primary">Show Revisions List</a>
+          <Link href={`/revisions?id=${query?.id}`} className="btn btn-primary">
+            Show Revisions List
           </Link>
         </div>
       </header>

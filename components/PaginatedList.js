@@ -7,11 +7,7 @@ import Icon from './Icon'
 import BasePaginatedList from './BasePaginatedList'
 
 function DefaultListItem({ item }) {
-  return (
-    <Link href={item.href}>
-      <a>{item.title}</a>
-    </Link>
-  )
+  return <Link href={item.href}>{item.title}</Link>
 }
 
 export default function PaginatedList({

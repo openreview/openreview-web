@@ -103,9 +103,7 @@ const About = () => (
             Code for Science & Society
           </a>
           . We gratefully acknowledge the support of the great diversity of{' '}
-          <Link href="/sponsors">
-            <a>OpenReview Sponsors</a>
-          </Link>
+          <Link href="/sponsors">OpenReview Sponsors</Link>
           ––scientific peer review is sacrosanct, and should not be owned by any one sponsor.
         </p>
       </div>

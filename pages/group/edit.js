@@ -27,7 +27,11 @@ export default function GroupEdit({ appContext }) {
           let domainGroup = null
           if (groups[0].domain && groups[0].domain !== groups[0].id) {
             try {
-              const apiRes = await api.get('/groups', { id: groups[0].domain }, { accessToken })
+              const apiRes = await api.get(
+                '/groups',
+                { id: groups[0].domain },
+                { accessToken }
+              )
               domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
             } catch (e) {
               domainGroup = null
@@ -37,7 +41,7 @@ export default function GroupEdit({ appContext }) {
           }
           setGroup({
             ...groups[0],
-            details: { ...groups[0].details, domain: domainGroup }
+            details: { ...groups[0].details, domain: domainGroup },
           })
         } else if (!accessToken) {
           router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)

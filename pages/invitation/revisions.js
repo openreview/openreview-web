@@ -20,7 +20,11 @@ export default function InvitationRevisions({ appContext }) {
 
   const loadInvitation = async (id) => {
     try {
-      const { invitations } = await api.get('/invitations', { id }, { accessToken, version: 2 })
+      const { invitations } = await api.get(
+        '/invitations',
+        { id },
+        { accessToken, version: 2 }
+      )
       if (invitations?.length > 0) {
         if (invitations[0].details?.writable) {
           setInvitation(invitations[0])
@@ -80,7 +84,9 @@ export default function InvitationRevisions({ appContext }) {
   return (
     <>
       <Head>
-        <title key="title">{prettyId(invitation?.id)} Invitation Edit History | OpenReview</title>
+        <title key="title">
+          {prettyId(invitation?.id)} Invitation Edit History | OpenReview
+        </title>
       </Head>
 
       <div id="header">

@@ -30,9 +30,7 @@ export default function ChatEditorForm({
   const tabName = document.querySelector('.filter-tabs > li.active > a')?.text
   const invitationShortName = prettyInvitationId(invitation.id)
   const hasFixedReaders = Array.isArray(invitation.edit.note.readers)
-  const colorHash = signature
-    ? getSignatureColors(prettyId(signature, true))
-    : 'transparent'
+  const colorHash = signature ? getSignatureColors(prettyId(signature, true)) : 'transparent'
 
   const loadSignatureOptions = async () => {
     try {

@@ -6,9 +6,10 @@ const EditContent = ({ edit, type = 'note' }) => {
   if (!edit?.[type]?.content) return null
 
   const noteContent = edit[type].content
-  const contentOrder = edit.details?.presentation?.length > 0
-    ? edit.details.presentation.map((p) => p.name)
-    : Object.keys(noteContent)
+  const contentOrder =
+    edit.details?.presentation?.length > 0
+      ? edit.details.presentation.map((p) => p.name)
+      : Object.keys(noteContent)
 
   return (
     <ul className="list-unstyled note-content">
@@ -23,8 +24,11 @@ const EditContent = ({ edit, type = 'note' }) => {
         const enableMarkdown = edit.details?.presentation?.find(
           (p) => p.name === fieldName
         )?.markdown
-        const isEmptyValue = field === null ||
-          (field instanceof Object && !Array.isArray(field) && (field.value === undefined || field.value === null))
+        const isEmptyValue =
+          field === null ||
+          (field instanceof Object &&
+            !Array.isArray(field) &&
+            (field.value === undefined || field.value === null))
         const isEmptyArray = Array.isArray(field) && field.length === 0
 
         return (
@@ -40,9 +44,7 @@ const EditContent = ({ edit, type = 'note' }) => {
               />
             )}
             {isEmptyValue ? (
-              <span className="empty-value">
-                {`(empty${isEmptyArray ? ' list' : ''})`}
-              </span>
+              <span className="empty-value">{`(empty${isEmptyArray ? ' list' : ''})`}</span>
             ) : (
               <EditContentValue
                 editId={edit.id}

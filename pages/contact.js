@@ -13,10 +13,8 @@ const Contact = () => (
         <p className="mt-3">
           OpenReview currently supports numerous computer science conferences and workshops,
           and we are open to hosting journals and conferences in any field; please fill out the{' '}
-          <Link href="/group?id=OpenReview.net/Support">
-            <a>venue request form</a>
-          </Link>{' '}
-          to get started.
+          <Link href="/group?id=OpenReview.net/Support">venue request form</Link> to get
+          started.
         </p>
         <p>
           If you would like to report a bug or suggest features to the developers please use

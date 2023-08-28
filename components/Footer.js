@@ -9,19 +9,15 @@ const Footer = () => (
           <div className="col-sm-4">
             <ul className="list-unstyled">
               <li>
-                <Link href="/about">
-                  <a>About OpenReview</a>
-                </Link>
+                <Link href="/about">About OpenReview</Link>
               </li>
               <li>
                 <Link href={`/group?id=${process.env.SUPER_USER}/Support`}>
-                  <a>Hosting a Venue</a>
+                  Hosting a Venue
                 </Link>
               </li>
               <li>
-                <Link href="/venues">
-                  <a>All Venues</a>
-                </Link>
+                <Link href="/venues">All Venues</Link>
               </li>
             </ul>
           </div>
@@ -29,9 +25,7 @@ const Footer = () => (
           <div className="col-sm-4">
             <ul className="list-unstyled">
               <li>
-                <Link href="/contact">
-                  <a>Contact</a>
-                </Link>
+                <Link href="/contact">Contact</Link>
               </li>
               <li>
                 {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
@@ -40,9 +34,7 @@ const Footer = () => (
                 </a>
               </li>
               <li>
-                <Link href="/sponsors">
-                  <a>Sponsors</a>
-                </Link>
+                <Link href="/sponsors">Sponsors</Link>
               </li>
               <li>
                 <a
@@ -65,14 +57,10 @@ const Footer = () => (
                 </a>
               </li>
               <li>
-                <Link href="/legal/terms">
-                  <a>Terms of Service</a>
-                </Link>
+                <Link href="/legal/terms">Terms of Service</Link>
               </li>
               <li>
-                <Link href="/legal/privacy">
-                  <a>Privacy Policy</a>
-                </Link>
+                <Link href="/legal/privacy">Privacy Policy</Link>
               </li>
             </ul>
           </div>
@@ -83,24 +71,18 @@ const Footer = () => (
           <div className="col-xs-6">
             <ul className="list-unstyled">
               <li>
-                <Link href="/about">
-                  <a>About OpenReview</a>
-                </Link>
+                <Link href="/about">About OpenReview</Link>
               </li>
               <li>
                 <Link href={`/group?id=${process.env.SUPER_USER}/Support`}>
-                  <a>Hosting a Venue</a>
+                  Hosting a Venue
                 </Link>
               </li>
               <li>
-                <Link href="/venues">
-                  <a>All Venues</a>
-                </Link>
+                <Link href="/venues">All Venues</Link>
               </li>
               <li>
-                <Link href="/sponsors">
-                  <a>Sponsors</a>
-                </Link>
+                <Link href="/sponsors">Sponsors</Link>
               </li>
               <li>
                 <a
@@ -123,9 +105,7 @@ const Footer = () => (
                 </a>
               </li>
               <li>
-                <Link href="/contact">
-                  <a>Contact</a>
-                </Link>
+                <Link href="/contact">Contact</Link>
               </li>
               <li>
                 {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
@@ -134,14 +114,10 @@ const Footer = () => (
                 </a>
               </li>
               <li>
-                <Link href="/legal/terms">
-                  <a>Terms of Service</a>
-                </Link>
+                <Link href="/legal/terms">Terms of Service</Link>
               </li>
               <li>
-                <Link href="/legal/privacy">
-                  <a>Privacy Policy</a>
-                </Link>
+                <Link href="/legal/privacy">Privacy Policy</Link>
               </li>
             </ul>
           </div>

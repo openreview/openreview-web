@@ -69,10 +69,11 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
       <Link
         key={`${author} ${authorId}`}
         href={`/profile?${param}=${encodeURIComponent(authorId)}`}
+        title={authorId}
+        data-toggle="tooltip"
+        data-placement="top"
       >
-        <a title={authorId} data-toggle="tooltip" data-placement="top">
-          {author}
-        </a>
+        {author}
       </Link>
     )
   })
@@ -81,7 +82,9 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
     <ExpandableList
       items={authorsLinks}
       maxItems={maxAuthorsToShow}
-      expandLabel={`et al. (${authorsLinks.length - maxAuthorsToShow} additional authors not shown)`}
+      expandLabel={`et al. (${
+        authorsLinks.length - maxAuthorsToShow
+      } additional authors not shown)`}
       collapseLabel="(hide authors)"
     >
       {showPrivateLabel && (
@@ -145,10 +148,11 @@ export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) =
       <Link
         key={`${author} ${authorId}`}
         href={`/profile?${param}=${encodeURIComponent(authorId)}`}
+        title={authorId}
+        data-toggle="tooltip"
+        data-placement="top"
       >
-        <a title={authorId} data-toggle="tooltip" data-placement="top">
-          {author}
-        </a>
+        {author}
       </Link>
     )
   })
@@ -157,7 +161,9 @@ export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) =
     <ExpandableList
       items={authorsLinks}
       maxItems={maxAuthorsToShow}
-      expandLabel={`et al. (${authorsLinks.length - maxAuthorsToShow} additional authors not shown)`}
+      expandLabel={`et al. (${
+        authorsLinks.length - maxAuthorsToShow
+      } additional authors not shown)`}
       collapseLabel="(hide authors)"
     >
       {showPrivateLabel && (
