@@ -2,7 +2,8 @@
 
 import React, { useEffect, useCallback, useReducer, useState } from 'react'
 import throttle from 'lodash/throttle'
-import { intersection, isEmpty } from 'lodash'
+import intersection from 'lodash/intersection'
+import isEmpty from 'lodash/isEmpty'
 import EditorComponentContext from './EditorComponentContext'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import EditorWidget from './webfield/EditorWidget'

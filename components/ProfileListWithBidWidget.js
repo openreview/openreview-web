@@ -1,6 +1,6 @@
 import React from 'react'
 import List from 'rc-virtual-list'
-import { maxBy } from 'lodash'
+import maxBy from 'lodash/maxBy'
 import { getProfileName } from '../lib/utils'
 import { BidRadioButtonGroup, BidScore } from './webfield/BidWidget'
 import { getProfileLink } from '../lib/webfield-utils'

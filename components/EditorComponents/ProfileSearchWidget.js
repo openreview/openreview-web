@@ -1,7 +1,7 @@
 /* globals promptError, $: false */
 
 import React, { useContext, useState, useEffect } from 'react'
-import { maxBy } from 'lodash'
+import maxBy from 'lodash/maxBy'
 import EditorComponentContext from '../EditorComponentContext'
 import IconButton from '../IconButton'
 import LoadingSpinner from '../LoadingSpinner'

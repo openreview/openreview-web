@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import uniqBy from 'lodash/uniqBy'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import GroupMetaEditor from '../../components/group/GroupMetaEditor'
 import GroupEditor from '../../components/group/GroupEditor'
+import GroupEditInvitationsSelector from '../../components/group/GroupEditInvitationsSelector'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import { isSuperUser } from '../../lib/auth'
@@ -13,10 +16,14 @@ import useUser from '../../hooks/useUser'
 export default function GroupEdit({ appContext }) {
   const { accessToken, userLoading, user } = useUser()
   const [group, setGroup] = useState(null)
+  const [editInvitations, setEditInvitations] = useState(null)
+  const [selectedInvitation, setSelectedInvitation] = useState(null)
   const [error, setError] = useState(null)
 
   const router = useRouter()
   const { setBannerHidden, setEditBanner } = appContext
+
+  const metaInvitationId = `${group?.domain ?? ''}/-/Edit`
 
   const loadGroup = async (id) => {
     try {
@@ -68,6 +75,30 @@ export default function GroupEdit({ appContext }) {
     }
   }
 
+  const loadInviteeInvitations = async (groupId) => {
+    const { invitations } = await api.get(
+      '/invitations',
+      { prefix: `${groupId}/-/`, invitee: true, type: 'group', expired: true },
+      { accessToken, version: 2 }
+    )
+    return invitations ?? []
+  }
+
+  const loadGroupInvitations = async (groupInvitations) => {
+    const { invitations } = await api.get(
+      '/invitations',
+      { ids: groupInvitations.join(','), invitee: true, expired: true },
+      { accessToken, version: 2 }
+    )
+    return invitations ?? []
+  }
+
+  const isPostableInvitation = (inv) => {
+    const invitationEnabled = inv.cdate > Date.now()
+    const invitationExpired = inv.expdate && inv.expdate < Date.now()
+    return (invitationEnabled && !invitationExpired) || inv.details?.writable
+  }
+
   useEffect(() => {
     if (!router.isReady || userLoading) return
 
@@ -85,6 +116,25 @@ export default function GroupEdit({ appContext }) {
     // Show edit mode banner
     setBannerHidden(true)
     setEditBanner(groupModeToggle('edit', group.id))
+
+    // For v2 groups, load available group invitations, otherwise use meta editor
+    if (group.invitations) {
+      Promise.all([loadInviteeInvitations(group.id), loadGroupInvitations(group.invitations)])
+        .then(([inviteeInvitations, groupInvitations]) => {
+          const metaInvitation = isSuperUser(user) ? [{ id: metaInvitationId }] : []
+          const allInvitations = uniqBy(
+            [...inviteeInvitations, ...groupInvitations, ...metaInvitation],
+            'id'
+          ).filter(isPostableInvitation)
+          setEditInvitations(allInvitations)
+        })
+        .catch((apiError) => {
+          setError({ statusCode: apiError.status, message: apiError.message })
+        })
+    } else {
+      setEditInvitations([])
+      setSelectedInvitation({ id: metaInvitationId })
+    }
   }, [group])
 
   useEffect(() => {
@@ -99,22 +149,37 @@ export default function GroupEdit({ appContext }) {
   return (
     <>
       <Head>
-        <title key="title">Edit {prettyId(group?.id)} Group | OpenReview</title>
+        <title>{`Edit ${prettyId(router.query.id ?? '')} Group | OpenReview`}</title>
       </Head>
 
       <div id="header">
         <h1>{prettyId(router.query.id)}</h1>
       </div>
 
-      {!group && <LoadingSpinner />}
+      {(!group || !editInvitations) && <LoadingSpinner />}
 
-      <GroupEditor
-        group={group}
-        profileId={user?.profile?.id}
-        accessToken={accessToken}
-        isSuperUser={isSuperUser(user)}
-        reloadGroup={() => loadGroup(group.id)}
+      <GroupEditInvitationsSelector
+        invitations={editInvitations}
+        selectedInvitation={selectedInvitation}
+        setSelected={setSelectedInvitation}
       />
+
+      {selectedInvitation?.id === metaInvitationId ? (
+        <GroupMetaEditor
+          group={group}
+          profileId={user?.profile?.id}
+          accessToken={accessToken}
+          isSuperUser={isSuperUser(user)}
+          reloadGroup={() => loadGroup(group.id)}
+        />
+      ) : (
+        <GroupEditor
+          group={group}
+          invitation={selectedInvitation}
+          profileId={user?.profile?.id}
+          accessToken={accessToken}
+        />
+      )}
     </>
   )
 }
