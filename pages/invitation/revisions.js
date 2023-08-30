@@ -85,7 +85,7 @@ export default function InvitationRevisions({ appContext }) {
     <>
       <Head>
         <title key="title">
-          {prettyId(invitation?.id)} Invitation Edit History | OpenReview
+          {`${prettyId(router.query.id)} Invitation Edit History | OpenReview`}
         </title>
       </Head>
 
