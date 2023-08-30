@@ -99,7 +99,7 @@ export default function GroupEdit({ appContext }) {
   return (
     <>
       <Head>
-        <title key="title">Edit {prettyId(group?.id)} Group | OpenReview</title>
+        <title key="title">{`Edit ${prettyId(router.query.id)} Group | OpenReview`}</title>
       </Head>
 
       <div id="header">

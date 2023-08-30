@@ -188,7 +188,7 @@ const CompareRevisions = ({ appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">Revisions | OpenReview</title>
+        <title key="title">Compare Revisions | OpenReview</title>
       </Head>
 
       <header>
