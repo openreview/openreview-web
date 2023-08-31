@@ -32,19 +32,19 @@ const Tasks = ({ appContext }) => {
       api
         .getCombined(
           '/invitations',
-          { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes' },
-          { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes,repliedEdits' },
+          { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes', type: 'notes'},
+          { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes,repliedEdits', type: 'note' },
           commonOptions
         )
         .then(addPropertyToInvitations('noteInvitation')),
       api
-        .getCombined('/invitations', { ...commonParams, type: 'tags' }, null, commonOptions)
+        .getCombined('/invitations', { ...commonParams, type: 'tags' }, { ...commonParams, type: 'tag' }, commonOptions)
         .then(addPropertyToInvitations('tagInvitation')),
       api
         .getCombined(
           '/invitations',
           { ...commonParams, type: 'edges', details: 'repliedEdges' },
-          null,
+          { ...commonParams, type: 'edge', details: 'repliedEdges' },
           commonOptions
         )
         .then(addPropertyToInvitations('tagInvitation')),

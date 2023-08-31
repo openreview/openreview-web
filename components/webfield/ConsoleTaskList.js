@@ -30,7 +30,7 @@ const ConsoleTaskList = ({
             invitee: true,
             duedate: true,
             replyto: true,
-            type: 'notes',
+            type: 'note',
             details: `replytoNote,repliedNotes${apiVersion === 2 ? ',repliedEdits' : ''}`,
           },
           { accessToken, version: apiVersion }
@@ -42,7 +42,7 @@ const ConsoleTaskList = ({
             ...(apiVersion === 2 && { domain: venueId }),
             invitee: true,
             duedate: true,
-            type: 'edges',
+            type: 'edge',
             details: 'repliedEdges',
           },
           { accessToken, version: apiVersion }
@@ -54,7 +54,7 @@ const ConsoleTaskList = ({
             ...(apiVersion === 2 && { domain: venueId }),
             invitee: true,
             duedate: true,
-            type: 'tags',
+            type: 'tag',
             details: 'repliedTags',
           },
           { accessToken, version: apiVersion }
