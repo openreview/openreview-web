@@ -41,7 +41,9 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('search profiles by email or name')).toBeInTheDocument()
+      expect(
+        screen.getByPlaceholderText('search profiles by email or name')
+      ).toBeInTheDocument()
       expect(screen.getByText('Search')).toHaveAttribute('disabled')
     })
   })
@@ -961,6 +963,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       '~search_result1'
     )
     expect(onChange).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('Add').childElementCount).toEqual(0) // not to show loading icon
 
     await userEvent.click(screen.getByRole('button', { name: 'plus' }))
     expect(onChange).toHaveBeenNthCalledWith(
