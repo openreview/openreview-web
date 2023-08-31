@@ -380,6 +380,7 @@ const CustomAuthorForm = ({
       )
       if (results.profiles.length) {
         setProfileSearchResults(results.profiles)
+        setIsLoading(false)
         return
       }
     } catch (error) {
