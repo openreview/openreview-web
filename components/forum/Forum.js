@@ -790,7 +790,7 @@ export default function Forum({
             </div>
             {newNoteEditor ? (
               <NoteEditor
-                note={stringToObject(prefilledValue)}
+                note={selectedNoteId && selectedInvitationId && stringToObject(prefilledValue)}
                 replyToNote={parentNote}
                 invitation={activeInvitation}
                 className="note-editor-reply depth-even"
