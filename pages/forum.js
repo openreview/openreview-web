@@ -122,6 +122,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
           forumNote={forumNote}
           selectedNoteId={query.noteId}
           selectedInvitationId={query.invitationId}
+          prefilledValue={query.prefilledValue}
           clientJsLoading={clientJsLoading}
         />
       ) : (
