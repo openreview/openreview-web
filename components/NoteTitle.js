@@ -18,15 +18,18 @@ const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} })
           options.referrer ? `&referrer=${encodeURIComponent(options.referrer)}` : ''
         }`}
       >
-        <a>{content.title || buildNoteTitle(invitation, signatures)}</a>
+        {content.title || buildNoteTitle(invitation, signatures)}
       </Link>
     )}
 
     {options.pdfLink && content.pdf && (
-      <Link href={`/attachment?id=${id}&name=pdf`}>
-        <a className="pdf-link" title="Download PDF" target="_blank">
-          <img src="/images/pdf_icon_blue.svg" alt="pdf icon" />
-        </a>
+      <Link
+        href={`/attachment?id=${id}&name=pdf`}
+        className="pdf-link"
+        title="Download PDF"
+        target="_blank"
+      >
+        <img src="/images/pdf_icon_blue.svg" alt="pdf icon" />
       </Link>
     )}
 
@@ -88,15 +91,18 @@ export const NoteTitleV2 = ({
           options.referrer ? `&referrer=${encodeURIComponent(options.referrer)}` : ''
         }`}
       >
-        <a>{content.title?.value || buildNoteTitle(invitation, signatures)}</a>
+        {content.title?.value || buildNoteTitle(invitation, signatures)}
       </Link>
     )}
 
     {options.pdfLink && content.pdf?.value && (
-      <Link href={`/attachment?id=${id}&name=pdf`}>
-        <a className="pdf-link" title="Download PDF" target="_blank">
-          <img src="/images/pdf_icon_blue.svg" alt="pdf icon" />
-        </a>
+      <Link
+        href={`/attachment?id=${id}&name=pdf`}
+        className="pdf-link"
+        title="Download PDF"
+        target="_blank"
+      >
+        <img src="/images/pdf_icon_blue.svg" alt="pdf icon" />
       </Link>
     )}
 

@@ -1,4 +1,4 @@
-/* globals $: false */
+/* globals $,typesetMathJax: false */
 
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
@@ -48,7 +48,7 @@ const RecentPublications = ({ profileId, publications, count, loading, preferred
           href={`/search?term=${profileId}&content=authors&group=all&source=forum&sort=cdate:desc`}
         >
           {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-          <a>View all {count} publications</a>
+          View all{count}publications
         </Link>
       )}
     </>
@@ -62,21 +62,14 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
   const numCoAuthorsToShow = 25
 
   const authorLink = ({ name, id, email }) => {
-    if (id)
-      return (
-        <Link href={`/profile?id=${id}`}>
-          <a>{name}</a>
-        </Link>
-      )
+    if (id) return <Link href={`/profile?id=${id}`}>{name}</Link>
     if (email) {
       return email.startsWith('https://dblp.org') ? (
         <a href={email} target="_blank" rel="noopener noreferrer">
           {name}
         </a>
       ) : (
-        <Link href={`/profile?email=${email}`}>
-          <a>{name}</a>
-        </Link>
+        <Link href={`/profile?email=${email}`}>{name}</Link>
       )
     }
     return <span>{name}</span>
@@ -171,6 +164,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
     if (!publications) return
 
     setCoAuthors(getCoAuthorsFromPublications(profile, publications))
+    typesetMathJax()
   }, [publications])
 
   return (

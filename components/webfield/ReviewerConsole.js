@@ -26,9 +26,7 @@ const AreaChairInfo = ({ areaChairName, areaChairIds }) => (
       <strong>{prettyField(areaChairName)}:</strong>{' '}
       {
         areaChairIds.map((areaChairId) =>
-        <Link key={areaChairId} href={`/profile?id=${areaChairId}`}>
-          <a>{prettyId(areaChairId)}{' '}</a>
-        </Link>)
+        <Link key={areaChairId} href={`/profile?id=${areaChairId}`}>{prettyId(areaChairId)} </Link>)
       }
     </p>
   </div>
@@ -517,7 +515,7 @@ const ReviewerConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!userLoading && (!user || !user.profile || user.profile.id === 'guest')) {
+    if (!userLoading && !user) {
       router.replace(
         `/login?redirect=${encodeURIComponent(
           `${window.location.pathname}${window.location.search}${window.location.hash}`

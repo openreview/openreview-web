@@ -1,7 +1,7 @@
 /* globals promptError, promptLogin, view2, clearMessage: false */
 
 import React, { useEffect, useCallback, useReducer, useState } from 'react'
-import debounce from 'lodash/debounce'
+import throttle from 'lodash/throttle'
 import { intersection, isEmpty } from 'lodash'
 import EditorComponentContext from './EditorComponentContext'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
@@ -114,6 +114,7 @@ const EditSignatures = ({
 // For v2 invitations only
 const NoteEditor = ({
   invitation,
+  edit,
   note,
   replyToNote,
   closeNoteEditor,
@@ -141,7 +142,7 @@ const NoteEditor = ({
       : (p) => promptError(p, { scrollToTop: false })
 
   const saveDraft = useCallback(
-    debounce((fieldName, value) => {
+    throttle((fieldName, value) => {
       const keyOfSavedText = getAutoStorageKey(
         user,
         invitation.id,
@@ -182,6 +183,7 @@ const NoteEditor = ({
     if (!fieldNameOverwrite) {
       fieldNameOverwrite = fieldName === 'authorids' ? 'Authors' : undefined
     }
+    const isHiddenField = fieldDescription?.value?.param?.hidden
 
     const error = errors.find((e) => e.fieldName === fieldName)
 
@@ -196,7 +198,7 @@ const NoteEditor = ({
     if (fieldName === 'authors' && Array.isArray(fieldDescription?.value)) return null
 
     return (
-      <div key={fieldName} className={styles.fieldContainer}>
+      <div key={fieldName} className={isHiddenField ? null : styles.fieldContainer}>
         <EditorComponentContext.Provider
           value={{
             invitation,
@@ -421,6 +423,30 @@ const NoteEditor = ({
 
     // get note reader/writer/signature and edit reader/writer/signature
     try {
+      if (edit || note?.id) {
+        let apiPath
+        let noteOrEdit
+        let label
+        if (edit) {
+          apiPath = '/notes/edits'
+          noteOrEdit = edit
+          label = 'edit'
+        } else {
+          apiPath = '/notes'
+          noteOrEdit = note
+          label = 'note'
+        }
+        const latestNoteOrEdit = (
+          await api.get(apiPath, { id: noteOrEdit.id }, { accessToken, version: 2 })
+        )?.[`${label}s`]?.[0]
+
+        if (latestNoteOrEdit?.tmdate && latestNoteOrEdit.tmdate !== noteOrEdit.tmdate) {
+          throw new Error(
+            `This ${label} has been modified since you opened it. Please refresh the page and try again.`
+          )
+        }
+      }
+
       const formData = {
         ...noteEditorData,
         ...(note?.id &&
@@ -445,11 +471,13 @@ const NoteEditor = ({
         throw new Error(errorMessage)
       }
 
-      const editToPost = view2.constructEdit({
-        formData,
-        invitationObj: invitation,
-        noteObj: note,
-      })
+      const editToPost = edit
+        ? view2.constructUpdatedEdit(edit, invitation, formData)
+        : view2.constructEdit({
+            formData,
+            invitationObj: invitation,
+            noteObj: note,
+          })
       const result = await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
       const createdNote = await getCreatedNote(result.note)
       autoStorageKeys.forEach((key) => localStorage.removeItem(key))

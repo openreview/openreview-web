@@ -40,7 +40,8 @@ function ConsolesList({
       return
     }
 
-    const groupIdQuery = apiVersion === 1 ? { regex: `${venueId}/.*` } : { prefix: `${venueId}/` }
+    const groupIdQuery =
+      apiVersion === 1 ? { regex: `${venueId}/.*` } : { prefix: `${venueId}/` }
     const getUserGroupsP = api.getAll(
       '/groups',
       { ...groupIdQuery, member: user.id, web: true },
@@ -95,9 +96,7 @@ function ConsolesList({
 
         return (
           <li key={groupId} className="note invitation-link">
-            <Link href={`/group?id=${groupId}`}>
-              <a>{groupName} Console</a>
-            </Link>
+            <Link href={`/group?id=${groupId}`}>{groupName} Console</Link>
           </li>
         )
       })}

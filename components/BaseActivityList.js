@@ -4,7 +4,12 @@ import NoteActivity, { NoteActivityV2 } from './NoteActivity'
 import useUser from '../hooks/useUser'
 import { prettyId } from '../lib/utils'
 
-export default function BaseActivityList({ notes, emptyMessage, showActionButtons, showGroup }) {
+export default function BaseActivityList({
+  notes,
+  emptyMessage,
+  showActionButtons,
+  showGroup,
+}) {
   const [formattedNotes, setFormattedNotes] = useState(null)
   const { user, userLoading } = useUser()
 
@@ -19,7 +24,9 @@ export default function BaseActivityList({ notes, emptyMessage, showActionButton
 
       const noteAuthors = note.tauthor ? [note.tauthor] : note.signatures
       const userIsSignatory =
-        user && intersection(noteAuthors, user.profile.emails.concat(user.profile.usernames, user.id)).length
+        user &&
+        intersection(noteAuthors, user.profile.emails.concat(user.profile.usernames, user.id))
+          .length
       let formattedSignature
       if (userIsSignatory) {
         formattedSignature = 'You'
@@ -54,19 +61,31 @@ export default function BaseActivityList({ notes, emptyMessage, showActionButton
 
   return (
     <ul className="list-unstyled submissions-list activity-list">
-      {formattedNotes.length > 0 ? formattedNotes.map((note) => (
-        <li
-          key={note.id}
-          className={`note note-activity ${note.details.isDeleted ? 'trashed' : ''}`}
-        >
-          {note.apiVersion === 2 ? (
-            <NoteActivityV2 note={note} showActionButtons={showActionButtons} showGroup={showGroup} />
-          ) : (
-            <NoteActivity note={note} showActionButtons={showActionButtons} showGroup={showGroup} />
-          )}
+      {formattedNotes.length > 0 ? (
+        formattedNotes.map((note) => (
+          <li
+            key={note.id}
+            className={`note note-activity ${note.details.isDeleted ? 'trashed' : ''}`}
+          >
+            {note.apiVersion === 2 ? (
+              <NoteActivityV2
+                note={note}
+                showActionButtons={showActionButtons}
+                showGroup={showGroup}
+              />
+            ) : (
+              <NoteActivity
+                note={note}
+                showActionButtons={showActionButtons}
+                showGroup={showGroup}
+              />
+            )}
+          </li>
+        ))
+      ) : (
+        <li>
+          <p className="empty-message">{emptyMessage}</p>
         </li>
-      )) : (
-        <li><p className="empty-message">{emptyMessage}</p></li>
       )}
     </ul>
   )

@@ -1174,8 +1174,8 @@ module.exports = (function () {
       },
       {}
     )
-    const uploadInProgressFields = []
 
+    var uploadInProgressFields = []
     function buildEditor(editReaders, editSignatures, noteReaders, noteSignatures) {
       var $submitButton = $('<button class="btn btn-sm">Submit</button>')
       var $cancelButton = $('<button class="btn btn-sm">Cancel</button>')
@@ -1904,8 +1904,7 @@ module.exports = (function () {
       {}
     )
 
-    const uploadInProgressFields = []
-
+    var uploadInProgressFields = []
     const buildEditor = (editReaders, editSignatures, noteReaders, noteSignatures) => {
       const $submitButton = $('<button class="btn btn-sm">Submit</button>')
       const $cancelButton = $('<button class="btn btn-sm">Cancel</button>')
@@ -2347,6 +2346,7 @@ module.exports = (function () {
         // do not return field
         return
       }
+
       var valueObj = contentFieldValue.value
       if (valueObj) {
         if (
@@ -2355,11 +2355,20 @@ module.exports = (function () {
         ) {
           return
         } else {
+          var newVal = formData?.[contentFieldName]
+          if (
+            valueObj.param?.input === 'text' ||
+            valueObj.param?.input === 'textarea' ||
+            (valueObj.param?.type === 'string' && !valueObj.param?.enum)
+          ) {
+            newVal = newVal?.trim()
+          }
           content[contentFieldName] = {
-            value: formData?.[contentFieldName] ?? noteObj?.content?.[contentFieldName]?.value,
+            value: newVal ?? noteObj?.content?.[contentFieldName]?.value,
           }
         }
       }
+
       var fieldReader = contentFieldValue.readers
       if (fieldReader) {
         if (!fieldReader.const) {
@@ -2715,5 +2724,6 @@ module.exports = (function () {
     mkNotePanel: mkNotePanel,
     deleteOrRestoreNote: deleteOrRestoreNote,
     constructEdit: constructEdit,
+    constructUpdatedEdit: constructUpdatedEdit,
   }
 })()

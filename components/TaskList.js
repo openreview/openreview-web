@@ -41,7 +41,7 @@ function Invitation({ invitation, referrer }) {
             <Link
               href={`/forum?id=${invitation.details.replytoNote.forum}&referrer=${referrer}`}
             >
-              <a>{replyToTitle}</a>
+              {replyToTitle}
             </Link>
           </span>
         </div>
@@ -62,19 +62,15 @@ function InvitationLink({ invitation, referrer }) {
       <Link
         href={`/forum?id=${invitation.details.replytoNote.forum}${noteParam}${invitationParam}&referrer=${referrer}`}
       >
-        <a>{prettifiedInvitationId}</a>
+        {prettifiedInvitationId}
       </Link>
     )
   }
   if (invitation.tagInvitation) {
     return web ? (
-      <Link href={`/invitation?id=${id}&referrer=${referrer}`}>
-        <a>{prettifiedInvitationId}</a>
-      </Link>
+      <Link href={`/invitation?id=${id}&referrer=${referrer}`}>{prettifiedInvitationId}</Link>
     ) : (
-      <Link href={`/group?id=${groupId}&referrer=${referrer}`}>
-        <a>{prettifiedInvitationId}</a>
-      </Link>
+      <Link href={`/group?id=${groupId}&referrer=${referrer}`}>{prettifiedInvitationId}</Link>
     )
   }
   return null

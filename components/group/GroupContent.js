@@ -55,7 +55,12 @@ export default function GroupContent({ group, accessToken, profileId, reloadGrou
   return (
     <EditorSection title="Group Content">
       {showEditor && (
-        <CodeEditor code={modifiedContent} onChange={setModifiedContent} isJson scrollIntoView />
+        <CodeEditor
+          code={modifiedContent}
+          onChange={setModifiedContent}
+          isJson
+          scrollIntoView
+        />
       )}
 
       {showEditor ? (

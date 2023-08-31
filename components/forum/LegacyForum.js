@@ -113,7 +113,14 @@ const ForumAuthors = ({ authors, authorIds, signatures, original }) => (
 const ForumMeta = ({ note }) => (
   <div className="meta_row">
     <span className="date item">
-      {forumDate(note.cdate, note.tcdatem, note.mdate, note.tmdate, note.content.year, note.pdate)}
+      {forumDate(
+        note.cdate,
+        note.tcdatem,
+        note.mdate,
+        note.tmdate,
+        note.content.year,
+        note.pdate
+      )}
     </span>
 
     {note.content.venue ? (

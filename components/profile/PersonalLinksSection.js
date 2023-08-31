@@ -58,7 +58,6 @@ const PersonalLinksSection = ({
   updateLinks,
   profileId,
   names,
-  preferredEmail,
   renderPublicationsEditor,
   hideDblpButton,
 }) => {

@@ -210,8 +210,9 @@ export default function Notifications({ appContext }) {
                         <Link
                           href={`/notifications?email=${encodeURIComponent(email)}`}
                           shallow
+                          title={email}
                         >
-                          <a title={email}>{email}</a>
+                          {email}
                         </Link>
                         {unviewedCounts?.[email] > 0 && (
                           <span className="badge badge-light">{unviewedCounts[email]}</span>

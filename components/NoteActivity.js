@@ -34,10 +34,7 @@ export default function NoteActivity({ note, showActionButtons, showGroup }) {
           {prettyInvitationId(note.invitation)}{' '}
           {showGroup && (
             <>
-              to{' '}
-              <Link href={`/group?id=${details.group}`}>
-                <a>{prettyId(details.group)}</a>
-              </Link>
+              to <Link href={`/group?id=${details.group}`}>{prettyId(details.group)}</Link>
             </>
           )}
         </div>
@@ -63,12 +60,10 @@ export default function NoteActivity({ note, showActionButtons, showGroup }) {
             <Link
               href={`/forum?id=${note.forum}${details.isForum ? '' : `&noteId=${note.id}`}`}
             >
-              <a>
-                {details.isDeleted ? '[Deleted] ' : ''}
-                {content.title
-                  ? content.title
-                  : buildNoteTitle(note.invitation, note.signatures)}
-              </a>
+              {details.isDeleted ? '[Deleted] ' : ''}
+              {content.title
+                ? content.title
+                : buildNoteTitle(note.invitation, note.signatures)}
             </Link>
           </h4>
 
@@ -138,9 +133,7 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
           {showGroup && (
             <>
               {' to '}
-              <Link href={`/group?id=${details.group}`}>
-                <a>{prettyId(details.group)}</a>
-              </Link>
+              <Link href={`/group?id=${details.group}`}>{prettyId(details.group)}</Link>
             </>
           )}
         </div>
@@ -168,12 +161,10 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
                 details.isForum ? '' : `&noteId=${note.note.id}`
               }`}
             >
-              <a>
-                {details.isDeleted ? '[Deleted] ' : ''}
-                {content.title?.value && !content.title.value?.delete
-                  ? content.title.value
-                  : buildNoteTitle(note.invitation, note.signatures)}
-              </a>
+              {details.isDeleted ? '[Deleted] ' : ''}
+              {content.title?.value && !content.title.value?.delete
+                ? content.title.value
+                : buildNoteTitle(note.invitation, note.signatures)}
             </Link>
           </h4>
 

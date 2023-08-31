@@ -3,8 +3,8 @@ import Icon from './Icon'
 
 const VenueDetails = ({ venue }) => (
   <>
-    <Link href={`/submissions?venue=${venue.id}`}>
-      <a title="View submissions for this venue">{venue.content.name}</a>
+    <Link href={`/submissions?venue=${venue.id}`} title="View submissions for this venue">
+      {venue.content.name}
     </Link>
 
     <p className="mt-1 mb-0">
