@@ -113,18 +113,16 @@ const EditSignatures = ({
 }
 
 // For v2 invitations only
-const NoteEditor = ({
+export default function GroupEditor({
   invitation,
   edit,
-  note,
-  replyToNote,
+  group,
   closeNoteEditor,
   onNoteCreated,
-  isDirectReplyToForum,
   setErrorAlertMessage,
   customValidator,
   className,
-}) => {
+}) {
   const { user, userLoading, accessToken } = useUser()
   const [fields, setFields] = useState([])
   const [loading, setLoading] = useState({
@@ -144,22 +142,16 @@ const NoteEditor = ({
 
   const saveDraft = useCallback(
     throttle((fieldName, value) => {
-      const keyOfSavedText = getAutoStorageKey(
-        user,
-        invitation.id,
-        note?.id,
-        replyToNote?.id,
-        fieldName
-      )
+      const keyOfSavedText = getAutoStorageKey(user, invitation.id, group?.id, null, fieldName)
       localStorage.setItem(keyOfSavedText, value ?? '')
       setAutoStorageKeys((keys) => [...keys, keyOfSavedText])
     }, 1500),
-    [invitation, note, replyToNote]
+    [invitation, group]
   )
 
   const defaultNoteEditorData = {
-    ...getNoteContentValues(note?.content ?? {}),
-    ...(note && { noteReaderValues: note.readers }),
+    ...getNoteContentValues(group?.content ?? {}),
+    ...(group && { groupReaderValues: group.readers }),
   }
 
   const noteEditorDataReducer = (state, action) => {
@@ -180,34 +172,19 @@ const NoteEditor = ({
   )
 
   const renderField = (fieldName, fieldDescription) => {
-    let fieldNameOverwrite = fieldDescription?.value?.param?.fieldName
-    if (!fieldNameOverwrite) {
-      fieldNameOverwrite = fieldName === 'authorids' ? 'Authors' : undefined
-    }
+    const fieldNameOverwrite = fieldDescription?.value?.param?.fieldName
     const isHiddenField = fieldDescription?.value?.param?.hidden
-
     const error = errors.find((e) => e.fieldName === fieldName)
-
-    let fieldValue = noteEditorData[fieldName]
-    if (fieldName === 'authorids' && note) {
-      fieldValue = noteEditorData.authorids?.map((p, index) => ({
-        authorId: p,
-        authorName: noteEditorData.authors?.[index],
-      }))
-    }
-
-    if (fieldName === 'authors' && Array.isArray(fieldDescription?.value)) return null
 
     return (
       <div key={fieldName} className={isHiddenField ? null : styles.fieldContainer}>
         <EditorComponentContext.Provider
           value={{
             invitation,
-            note,
-            replyToNote,
+            note: group,
             field: { [fieldName]: fieldDescription },
             onChange: setNoteEditorData,
-            value: fieldValue,
+            value: noteEditorData[fieldName],
             isWebfield: false,
             error,
             setErrors,
@@ -240,59 +217,39 @@ const NoteEditor = ({
   }
 
   const renderNoteReaders = () => {
-    if (!invitation.edit.note.readers) return null
+    if (!invitation.edit.group.readers) return null
 
     const fieldName = 'noteReaderValues'
     const error = errors.find((e) => e.fieldName === fieldName)
     const clearError = () =>
       setErrors((existingErrors) => existingErrors.filter((p) => p.fieldName !== fieldName))
 
-    if (!note && !replyToNote) {
+    if (!group) {
       return (
         <NewNoteReaders
-          fieldDescription={invitation.edit.note.readers}
+          fieldDescription={invitation.edit.group.readers}
           closeNoteEditor={closeNoteEditor}
           value={noteEditorData[fieldName]}
           onChange={(value) => setNoteEditorData({ fieldName, value })}
           setLoading={setLoading}
-          placeholder="Select note readers"
+          placeholder="Select group readers"
           error={error}
           clearError={clearError}
         />
       )
     }
-    if (note) {
-      return (
-        <ExistingNoteReaders
-          replyToNote={replyToNote}
-          fieldDescription={invitation.edit.note.readers}
-          closeNoteEditor={closeNoteEditor}
-          value={noteEditorData[fieldName]}
-          onChange={(value) => setNoteEditorData({ fieldName, value })}
-          setLoading={setLoading}
-          placeholder="Select note readers"
-          error={error}
-          clearError={clearError}
-        />
-      )
-    }
-    if (replyToNote) {
-      return (
-        <NewReplyEditNoteReaders
-          replyToNote={replyToNote}
-          fieldDescription={invitation.edit.note.readers}
-          closeNoteEditor={closeNoteEditor}
-          value={noteEditorData.noteReaderValues}
-          onChange={(value) => setNoteEditorData({ fieldName: 'noteReaderValues', value })}
-          setLoading={setLoading}
-          isDirectReplyToForum={isDirectReplyToForum}
-          placeholder="Select note readers"
-          error={error}
-          clearError={clearError}
-        />
-      )
-    }
-    return null
+    return (
+      <ExistingNoteReaders
+        fieldDescription={invitation.edit.group.readers}
+        closeNoteEditor={closeNoteEditor}
+        value={noteEditorData[fieldName]}
+        onChange={(value) => setNoteEditorData({ fieldName, value })}
+        setLoading={setLoading}
+        placeholder="Select group readers"
+        error={error}
+        clearError={clearError}
+      />
+    )
   }
 
   const handleCancelClick = () => {
@@ -356,21 +313,21 @@ const NoteEditor = ({
   }
 
   const getNoteReaderValues = () => {
-    if (!invitation.edit.note.readers || Array.isArray(invitation.edit.note.readers)) {
+    if (!invitation.edit.group.readers || Array.isArray(invitation.edit.group.readers)) {
       return undefined
     }
 
     const constNoteSignature = // when note signature is edit signature, note reader should use edit signatures
-      invitation.edit.note?.signatures?.[0]?.includes('/signatures}') ||
-      invitation.edit.note?.signatures?.param?.const?.[0]?.includes('/signatures}')
+      invitation.edit.group?.signatures?.[0]?.includes('/signatures}') ||
+      invitation.edit.group?.signatures?.param?.const?.[0]?.includes('/signatures}')
     const signatureInputValues = constNoteSignature
       ? noteEditorData.editSignatureInputValues
       : noteEditorData.noteSignatureInputValues
 
     return addMissingReaders(
       noteEditorData.noteReaderValues,
-      invitation.edit.note.readers?.param?.enum ??
-        invitation.edit.note.readers?.param?.items?.map((p) => p.value), // prefix values are not used
+      invitation.edit.group.readers?.param?.enum ??
+        invitation.edit.group.readers?.param?.items?.map((p) => p.value), // prefix values are not used
       signatureInputValues
     )
   }
@@ -398,21 +355,21 @@ const NoteEditor = ({
     return noteEditorData.editSignatureInputValues
   }
 
-  const getCreatedNote = async (noteCreated) => {
-    const constructedNote = {
-      ...noteCreated,
+  const getCreatedNote = async (groupCreated) => {
+    const constructedGroup = {
+      ...groupCreated,
       invitations: [invitation.id],
       details: { invitation, writable: true },
     }
     try {
       const result = await api.get(
-        '/notes',
-        { id: noteCreated.id, details: 'invitation,presentation,writable' },
+        '/groups',
+        { id: groupCreated.id, details: 'invitation,presentation,writable' },
         { accessToken, version: 2 }
       )
-      return result.notes?.[0] ? result.notes[0] : constructedNote
+      return result.groups?.[0] ? result.groups[0] : constructedGroup
     } catch (error) {
-      if (error.name === 'ForbiddenError') return constructedNote
+      if (error.name === 'ForbiddenError') return constructedGroup
       throw error
     }
   }
@@ -424,18 +381,18 @@ const NoteEditor = ({
 
     // get note reader/writer/signature and edit reader/writer/signature
     try {
-      if (edit || note?.id) {
+      if (edit || group?.id) {
         let apiPath
         let noteOrEdit
         let label
         if (edit) {
-          apiPath = '/notes/edits'
+          apiPath = '/groups/edits'
           noteOrEdit = edit
           label = 'edit'
         } else {
-          apiPath = '/notes'
-          noteOrEdit = note
-          label = 'note'
+          apiPath = '/group'
+          noteOrEdit = group
+          label = 'group'
         }
         const latestNoteOrEdit = (
           await api.get(apiPath, { id: noteOrEdit.id }, { accessToken, version: 2 })
@@ -450,20 +407,13 @@ const NoteEditor = ({
 
       const formData = {
         ...noteEditorData,
-        ...(note?.id &&
+        ...(group?.id &&
           Object.entries(noteEditorData)
             .filter(([key, value]) => value === undefined)
             .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {})),
-        ...(noteEditorData.authorids
-          ? {
-              authors: noteEditorData.authorids?.map((p) => p.authorName),
-              authorids: noteEditorData.authorids?.map((p) => p.authorId),
-            }
-          : { authors: { delete: true }, authorids: { delete: true } }),
         noteReaderValues: getNoteReaderValues(),
         editReaderValues: getEditReaderValues(),
         editWriterValues: getEditWriterValues(),
-        ...(replyToNote && { replyto: replyToNote.id }),
       }
 
       const { isValid, errorMessage } =
@@ -477,9 +427,9 @@ const NoteEditor = ({
         : view2.constructEdit({
             formData,
             invitationObj: invitation,
-            noteObj: note,
+            noteObj: group,
           })
-      const result = await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
+      const result = await api.post('/groups/edits', editToPost, { accessToken, version: 2 })
       const createdNote = await getCreatedNote(result.note)
       autoStorageKeys.forEach((key) => localStorage.removeItem(key))
       setNoteEditorData({ type: 'reset' })
@@ -531,26 +481,26 @@ const NoteEditor = ({
       return
     }
 
-    if (!invitation?.edit?.note?.content) return
+    if (!invitation?.edit?.group?.content) return
 
     setFields(
-      Object.entries(invitation.edit.note.content).sort(
+      Object.entries(invitation.edit.group.content).sort(
         (a, b) => (a[1].order ?? 100) - (b[1].order ?? 100)
       )
     )
   }, [invitation, user, userLoading])
 
-  if (!invitation?.edit?.note?.content || !user) return null
+  if (!invitation?.edit?.group?.content || !user) return null
 
   return (
     <div className={classNames(className, styles.noteEditor)}>
-      {(note || replyToNote) && (
+      {group && (
         <h2 className={styles.title}>
-          {note ? 'Edit' : 'New'} {prettyInvitationId(invitation.id)}
+          {group ? 'Edit' : 'New'} {prettyInvitationId(invitation.id)}
         </h2>
       )}
 
-      {(note || replyToNote) && <hr className={styles.titleSeparator} />}
+      {group && <hr className={styles.titleSeparator} />}
 
       <div className={styles.requiredField}>
         <span>*</span> denotes a required field
@@ -561,7 +511,7 @@ const NoteEditor = ({
       {renderNoteReaders()}
 
       <NoteSignatures
-        fieldDescription={invitation.edit.note.signatures}
+        fieldDescription={invitation.edit.group.signatures}
         setLoading={setLoading}
         noteEditorData={noteEditorData}
         setNoteEditorData={setNoteEditorData}
@@ -623,5 +573,3 @@ const NoteEditor = ({
     </div>
   )
 }
-
-export default NoteEditor
