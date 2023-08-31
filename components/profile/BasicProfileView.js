@@ -155,10 +155,12 @@ const BasicProfileView = ({ profile, publicProfile, showLinkText = false }) => {
         <div className="list-compact">
           {profile.emails
             .filter((email) => !email.hidden)
-            .map((email) => (
-              <ProfileEmail key={nanoid()} email={email} publicProfile={publicProfile} />
-            ))
-            .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+            .map((email, index) => (
+              <>
+                {index > 0 && <span>,</span>}
+                <ProfileEmail key={nanoid()} email={email} publicProfile={publicProfile} />
+              </>
+            ))}
         </div>
       </ProfileViewSection>
 
