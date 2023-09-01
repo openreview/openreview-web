@@ -43,11 +43,11 @@ beforeAll(() => {
 beforeEach(() => {
   api.getAll = jest.fn((_, body) => {
     switch (body.type) {
-      case 'note':
+      case 'notes':
         return noteInvitations
-      case 'edge':
+      case 'edges':
         return edgeInvitations
-      case 'tag':
+      case 'tags':
         return tagInvitations
       default:
         return null
