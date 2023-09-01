@@ -120,7 +120,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
           {
             id: '~test_id1',
             content: {
-              names: [{ first: 'Test First', last: 'Test Last', username: '~test_id1' }],
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
               preferredEmail: 'test@email.com',
             },
           },
@@ -200,7 +200,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
           {
             id: '~test_id1',
             content: {
-              names: [{ first: 'First One', last: 'Last One', username: '~test_id1' }],
+              names: [{ fullname: 'First One Last One', username: '~test_id1' }],
               emails: ['test1@email.com'],
             },
           },
@@ -248,7 +248,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
           {
             id: '~test_id1',
             content: {
-              names: [{ first: 'Test First', last: 'Test Last', username: '~test_id1' }],
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
               emails: ['test@email.com', 'anothertest@email.com'],
             },
           },
@@ -262,7 +262,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             id: '~search_result1',
             content: {
               names: [
-                { first: 'Result one', last: 'Result one', username: '~search_result1' },
+                { fullname: 'Result one Result one', username: '~search_result1' },
               ],
               emails: ['test1@email.com', 'anothertest1@email.com'],
             },
@@ -271,7 +271,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             id: '~search_result2',
             content: {
               names: [
-                { first: 'Result two', last: 'Result two', username: '~search_result2' },
+                { fullname: 'Result two Result two', username: '~search_result2' },
               ],
               emails: ['test2@email.com', 'anothertest2@email.com'],
             },
@@ -399,7 +399,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
           {
             id: '~test_id1',
             content: {
-              names: [{ first: 'Test First', last: 'Test Last', username: '~test_id1' }],
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
               emails: ['test@email.com', 'anothertest@email.com'],
             },
           },
@@ -413,7 +413,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             id: '~search_result1',
             content: {
               names: [
-                { first: 'Result First', last: 'Result Last', username: '~search_result1' },
+                { fullname: 'Result First Result Last', username: '~search_result1' },
               ],
               emails: ['test1@email.com', 'anothertest1@email.com'],
             },
@@ -474,14 +474,14 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
           {
             id: '~test_id1',
             content: {
-              names: [{ first: 'First One', last: 'Last One', username: '~test_id1' }],
+              names: [{ fullname: 'First One Last One', username: '~test_id1' }],
               emails: ['test1@email.com'],
             },
           },
           {
             id: '~test_id2',
             content: {
-              names: [{ first: 'First Two', last: 'Last Two', username: '~test_id2' }],
+              names: [{ fullname: 'First Two Last Two', username: '~test_id2' }],
               emails: ['test2@email.com'],
             },
           },
@@ -531,14 +531,14 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
           {
             id: '~test_id1',
             content: {
-              names: [{ first: 'First One', last: 'Last One', username: '~test_id1' }],
+              names: [{ fullname: 'First One Last One', username: '~test_id1' }],
               emails: ['test1@email.com'],
             },
           },
           {
             id: '~test_id2',
             content: {
-              names: [{ first: 'First Two', last: 'Last Two', username: '~test_id2' }],
+              names: [{ fullname: 'First Two Last Two', username: '~test_id2' }],
               emails: ['test2@email.com'],
             },
           },
@@ -592,8 +592,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       content: {
         names: [
           {
-            first: `Result First ${p}`,
-            last: `Result Last${p}`,
+            fullname: `Result First ${p}`,
             username: `~search_result${p}`,
           },
         ],
@@ -905,7 +904,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             id: '~search_result1',
             content: {
               names: [
-                { first: 'profile name', last: 'of author', username: '~search_result1' },
+                { fullname: 'profile name of author', username: '~search_result1' },
               ],
               emails: ['test@email.com'],
             },
@@ -1025,7 +1024,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
             id: '~search_result1',
             content: {
               names: [
-                { first: 'Result First', last: 'Result Last', username: '~search_result1' },
+                { fullname: 'Result First Result Last', username: '~search_result1' },
               ],
               emails: ['test1@email.com', 'anothertest1@email.com'],
             },
@@ -1081,14 +1080,14 @@ describe('ProfileSearchWidget for non authorids field', () => {
           {
             id: '~test_id1',
             content: {
-              names: [{ first: 'First One', last: 'Last One', username: '~test_id1' }],
+              names: [{ fullname: 'First One Last One', username: '~test_id1' }],
               emails: ['test1@email.com'],
             },
           },
           {
             id: '~test_id2',
             content: {
-              names: [{ first: 'First Two', last: 'Last Two', username: '~test_id2' }],
+              names: [{ fullname: 'First Two Last Two', username: '~test_id2' }],
               emails: ['test2@email.com'],
             },
           },
@@ -1132,14 +1131,14 @@ describe('ProfileSearchWidget for non authorids field', () => {
           {
             id: '~test_id1',
             content: {
-              names: [{ first: 'First One', last: 'Last One', username: '~test_id1' }],
+              names: [{ fullname: 'First One Last One', username: '~test_id1' }],
               emails: ['test1@email.com'],
             },
           },
           {
             id: '~test_id2',
             content: {
-              names: [{ first: 'First Two', last: 'Last Two', username: '~test_id2' }],
+              names: [{ fullname: 'First Two Last Two', username: '~test_id2' }],
               emails: ['test2@email.com'],
             },
           },
@@ -1192,7 +1191,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
             id: '~search_result1',
             content: {
               names: [
-                { first: 'Result First', last: 'Result Last', username: '~search_result1' },
+                { fullname: 'Result First Result Last', username: '~search_result1' },
               ],
               emails: ['test1@email.com', 'anothertest1@email.com'],
             },
