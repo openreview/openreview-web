@@ -26,9 +26,7 @@ const userBAlternateId = '~Di_Xu1'
 const errorMessageSelector = Selector('#flash-message-container', {
   visibilityCheck: true,
 }).find('span.important_message')
-const editFirstNameInputSelector = Selector('input:not([readonly]).first-name')
-const editMiddleNameInputSelector = Selector('input:not([readonly]).middle-name')
-const editLastNameInputSelector = Selector('input:not([readonly]).last-name')
+const editFullNameInputSelector = Selector('input:not([readonly]).full-name')
 const nameSectionPlusIconSelector = Selector('section').nth(0).find('.glyphicon-plus-sign')
 const emailSectionPlusIconSelector = Selector('section').nth(3).find('.glyphicon-plus-sign')
 const editEmailInputSelector = Selector('input:not([readonly]).email')
@@ -89,12 +87,12 @@ test('user open own profile', async (t) => {
     // make some changes and save
     // add a name
     .click(nameSectionPlusIconSelector)
-    .typeText(editFirstNameInputSelector, '111', { paste: true })
+    .typeText(editFullNameInputSelector, '111', { paste: true })
     .expect(errorMessageSelector.innerText)
     .eql(
       'The name 111 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
-    .typeText(editFirstNameInputSelector, '`', { replace: true })
+    .typeText(editFullNameInputSelector, '`', { replace: true })
     .expect(errorMessageSelector.innerText)
     .eql(
       'The name ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
@@ -219,8 +217,7 @@ test('import paper from dblp', async (t) => {
     .click(dblpImportModalCancelButton)
     // add name to skip validation error
     .click(nameSectionPlusIconSelector)
-    .typeText(editFirstNameInputSelector, 'Di')
-    .typeText(editLastNameInputSelector, 'Xu')
+    .typeText(editFullNameInputSelector, 'Di Xu')
     .click(saveProfileButton)
     .click(Selector('a').withText('Edit Profile'))
     .click(addDBLPPaperToProfileButton)
@@ -395,7 +392,7 @@ test('open profile of other user by email', async (t) => {
     .expect(Selector('a').withText('Edit Profile').exists)
     .notOk()
     .expect(pageHeader.innerText)
-    .eql(`${hasTaskUser.first} ${hasTaskUser.last}`)
+    .eql(hasTaskUser.fullname)
     .expect(profileViewEmail.innerText)
     .contains('****') // email should be masked
 })
@@ -407,7 +404,7 @@ test('open profile of other user by id', async (t) => {
     .expect(Selector('a').withText('Edit Profile').exists)
     .notOk()
     .expect(pageHeader.innerText)
-    .eql(`${hasTaskUser.first} ${hasTaskUser.last}`)
+    .eql(hasTaskUser.fullname)
     .expect(profileViewEmail.innerText)
     .contains('****')
 })
@@ -515,35 +512,19 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
     .expect(Selector('div.title-container').find('h1').innerText)
     .eql('Di Xu')
 })
-test('#160 allow user to overwrite last/middle/first name to be lowercase', async (t) => {
+test('#160 allow user to overwrite name to be lowercase', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .click(nameSectionPlusIconSelector)
-    .typeText(editFirstNameInputSelector, 'first', { speed: 0.3 }) // it will trigger call to generate ~ id so typing fast won't trigger capitalization
-    .expect(editFirstNameInputSelector.value)
+    .typeText(editFullNameInputSelector, 'first', { speed: 0.3 }) // it will trigger call to generate ~ id so typing fast won't trigger capitalization
+    .expect(editFullNameInputSelector.value)
     .eql('First')
     .pressKey('left left left left left delete f')
-    .expect(editFirstNameInputSelector.value)
+    .expect(editFullNameInputSelector.value)
     .eql('first')
-    .typeText(editMiddleNameInputSelector, 'middle', { speed: 0.3 })
-    .expect(editMiddleNameInputSelector.value)
-    .eql('Middle')
-    .pressKey('left left left left left left delete m')
-    .expect(editMiddleNameInputSelector.value)
-    .eql('middle')
-    .typeText(editLastNameInputSelector, 'last', { speed: 0.3 })
-    .expect(editLastNameInputSelector.value)
-    .eql('Last')
-    .pressKey('left left left left delete l')
-    .expect(editLastNameInputSelector.value)
-    .eql('last')
     .click(saveProfileButton)
     .expect(Selector('span').withText('first').exists)
-    .ok()
-    .expect(Selector('span').withText('middle').exists)
-    .ok()
-    .expect(Selector('span').withText('last').exists)
     .ok()
 })
 test('fail before 2099', async (t) => {
