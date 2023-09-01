@@ -39,12 +39,13 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
     setIsLoading(true)
     try {
       const result = await Promise.all(
-        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map((invitedId) =>
-          invitedId
-            ? api.getGroupById(invitedId, accessToken, {
-                select: 'members',
-              })
-            : Promise.resolve(null)
+        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map(
+          (invitedId) =>
+            invitedId
+              ? api.getGroupById(invitedId, accessToken, {
+                  select: 'members',
+                })
+              : Promise.resolve(null)
         )
       )
       setInvitedCount({
@@ -858,71 +859,46 @@ const DescriptionTimelineOtherConfigRow = ({
           <h4>Venue Roles:</h4>
           <ul className="overview-list">
             <li>
-              <Link href={`/group/edit?id=${programChairsId}`}>
-                <a>Program Chairs</a>
-              </Link>
+              <Link href={`/group/edit?id=${programChairsId}`}>Program Chairs</Link>
             </li>
             {seniorAreaChairsId &&
               sacRoles.map((role) => (
                 <li key={role}>
-                  <Link href={`/group/edit?id=${venueId}/${role}`}>
-                    <a>{prettyId(role)}</a>
-                  </Link>{' '}
-                  (
-                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                    <a>Invited</a>
-                  </Link>
-                  ,
-                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                    <a>Declined</a>
-                  </Link>
-                  )
+                  <Link href={`/group/edit?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
+                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>Invited</Link>,
+                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>Declined</Link>)
                 </li>
               ))}
             {areaChairsId &&
               acRoles.map((role) => (
                 <li key={role}>
-                  <Link href={`/group/edit?id=${venueId}/${role}`}>
-                    <a>{prettyId(role)}</a>
-                  </Link>{' '}
-                  (
-                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                    <a>Invited</a>
-                  </Link>
-                  ,
-                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                    <a>Declined</a>
-                  </Link>
-                  )
+                  <Link href={`/group/edit?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
+                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>Invited</Link>,
+                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>Declined</Link>)
                 </li>
               ))}
             {hasEthicsChairs && (
               <>
                 <li>
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs`}>
-                    <a>Ethics_Chairs</a>
-                  </Link>{' '}
-                  (
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Invited`}>
-                    <a>Invited</a>
-                  </Link>
+                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs`}>Ethics_Chairs</Link> (
+                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Invited`}>Invited</Link>
                   ,
                   <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Declined`}>
-                    <a>Declined</a>
+                    Declined
                   </Link>
                   )
                 </li>
                 <li>
                   <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers`}>
-                    <a>Ethics_Reviewers</a>
+                    Ethics_Reviewers
                   </Link>{' '}
                   (
                   <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Invited`}>
-                    <a>Invited</a>
+                    Invited
                   </Link>
                   ,
                   <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Declined`}>
-                    <a>Declined</a>
+                    Declined
                   </Link>
                   )
                 </li>
@@ -930,29 +906,14 @@ const DescriptionTimelineOtherConfigRow = ({
             )}
             {reviewerRoles.map((role) => (
               <li key={role}>
-                <Link href={`/group/edit?id=${venueId}/${role}`}>
-                  <a>{prettyId(role)}</a>
-                </Link>{' '}
-                (
-                <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                  <a>Invited</a>
-                </Link>
-                ,
-                <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                  <a>Declined</a>
-                </Link>
-                )
+                <Link href={`/group/edit?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
+                <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>Invited</Link>,
+                <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>Declined</Link>)
               </li>
             ))}
             <li>
-              <Link href={`/group/edit?id=${authorsId}`}>
-                <a>Authors</a>
-              </Link>{' '}
-              (
-              <Link href={`/group/edit?id=${authorsId}/Accepted`}>
-                <a>Accepted</a>
-              </Link>
-              )
+              <Link href={`/group/edit?id=${authorsId}`}>Authors</Link> (
+              <Link href={`/group/edit?id=${authorsId}/Accepted`}>Accepted</Link>)
             </li>
           </ul>
         </div>
@@ -963,7 +924,7 @@ const DescriptionTimelineOtherConfigRow = ({
               {registrationForms.map((form) => (
                 <li key={form.id} className="overview-registration-link">
                   <Link href={`/forum?id=${form.id}&referrer=${referrerUrl}`}>
-                    <a>{form.content?.title?.value}</a>
+                    {form.content?.title?.value}
                   </Link>
                 </li>
               ))}
@@ -985,7 +946,7 @@ const DescriptionTimelineOtherConfigRow = ({
                       scoresName
                     )}
                   >
-                    <a>Reviewer Bids</a>
+                    Reviewer Bids
                   </Link>
                 </li>
               )}
@@ -1000,7 +961,7 @@ const DescriptionTimelineOtherConfigRow = ({
                       scoresName
                     )}
                   >
-                    <a>Senior Area Chair Bids</a>
+                    Senior Area Chair Bids
                   </Link>
                 </li>
               )}
@@ -1016,7 +977,7 @@ const DescriptionTimelineOtherConfigRow = ({
                         scoresName
                       )}
                     >
-                      <a>Area Chair Bid</a>
+                      Area Chair Bid
                     </Link>
                   </li>
                   {recommendationEnabled && (
@@ -1030,7 +991,7 @@ const DescriptionTimelineOtherConfigRow = ({
                           scoresName
                         )}
                       >
-                        <a>Area Chair Reviewer Recommendations</a>
+                        Area Chair Reviewer Recommendations
                       </Link>
                     </li>
                   )}

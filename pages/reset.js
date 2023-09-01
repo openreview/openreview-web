@@ -88,13 +88,9 @@ function Reset() {
         )}
 
         <p className="help-block">
-          <Link href="/login">
-            <a>Back to Login</a>
-          </Link>
+          <Link href="/login">Back to Login</Link>
           <br />
-          <Link href="/signup">
-            <a>Sign Up for OpenReview</a>
-          </Link>
+          <Link href="/signup">Sign Up for OpenReview</Link>
         </p>
       </div>
     </div>

@@ -10,6 +10,7 @@ const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) 
     paperStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
+    ethicsMetaReviewName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
@@ -22,6 +23,7 @@ const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) 
     numReviewersAssigned: ['numReviewersAssigned'],
     numReviewsDone: ['numReviewsDone'],
     replyCount: ['replyCount'],
+    ...(ethicsMetaReviewName && { hasEthicsMetaReview: ['hasEthicsMetaReview'] }),
   }
 
   const getValueWithDefault = (value) => {
@@ -61,6 +63,16 @@ const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) 
         getValueWithDefault(p.numReviewersAssigned) - getValueWithDefault(p.numReviewsDone),
       initialDirection: 'desc',
     },
+    ...(ethicsMetaReviewName
+      ? [
+          {
+            label: 'Ethics Meta Review',
+            value: 'Ethics Meta Review',
+            getValue: (p) => p.hasEthicsMetaReview,
+            initialDirection: 'desc',
+          },
+        ]
+      : []),
   ]
   const basicSearchFunction = (row, term) =>
     row.note.number == term || // eslint-disable-line eqeqeq

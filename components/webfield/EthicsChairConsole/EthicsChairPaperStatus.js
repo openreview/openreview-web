@@ -66,6 +66,7 @@ const EthicsChairPaperStatus = () => {
     ethicsReviewName,
     ethicsReviewersName,
     anonEthicsReviewerName,
+    ethicsMetaReviewName,
   } = useContext(WebFieldContext)
   const { accessToken } = useUser()
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
@@ -194,6 +195,12 @@ const EthicsChairPaperStatus = () => {
         const assignedEthicsReviewers =
           ethicsReviewerGroups?.find((p) => p.noteNumber === note.number)?.members ?? []
         const ethicsReviews = ethicsReviewsByPaperNumberMap?.get(note.number) ?? []
+        const ethicsMetaReview = ethicsMetaReviewName
+          ? note.details.replies.find((p) => {
+              const ethicsMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${ethicsMetaReviewName}`
+              return p.invitations.includes(ethicsMetaReviewInvitationId)
+            })
+          : null
 
         return {
           note,
@@ -212,6 +219,8 @@ const EthicsChairPaperStatus = () => {
           numReviewsDone: ethicsReviews.length,
           numReviewersAssigned: assignedEthicsReviewers.length,
           replyCount: note.details.replies?.length ?? 0,
+          ethicsMetaReview,
+          hasEthicsMetaReview: ethicsMetaReview ? true : false, // eslint-disable-line no-unneeded-ternary
         }
       })
 

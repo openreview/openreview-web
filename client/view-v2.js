@@ -1174,8 +1174,8 @@ module.exports = (function () {
       },
       {}
     )
-    const uploadInProgressFields = []
 
+    var uploadInProgressFields = []
     function buildEditor(editReaders, editSignatures, noteReaders, noteSignatures) {
       var $submitButton = $('<button class="btn btn-sm">Submit</button>')
       var $cancelButton = $('<button class="btn btn-sm">Cancel</button>')
@@ -1904,8 +1904,7 @@ module.exports = (function () {
       {}
     )
 
-    const uploadInProgressFields = []
-
+    var uploadInProgressFields = []
     const buildEditor = (editReaders, editSignatures, noteReaders, noteSignatures) => {
       const $submitButton = $('<button class="btn btn-sm">Submit</button>')
       const $cancelButton = $('<button class="btn btn-sm">Cancel</button>')
@@ -2360,7 +2359,7 @@ module.exports = (function () {
           if (
             valueObj.param?.input === 'text' ||
             valueObj.param?.input === 'textarea' ||
-            (valueObj.param?.type === 'string' && !value.param?.enum)
+            (valueObj.param?.type === 'string' && !valueObj.param?.enum)
           ) {
             newVal = newVal?.trim()
           }

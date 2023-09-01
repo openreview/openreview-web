@@ -101,7 +101,7 @@ export default function PaginationLinks({
                 href={`${baseUrl}?${queryString}`}
                 shallow={options.useShallowRouting ?? false}
               >
-                <a>{page.label}</a>
+                {page.label}
               </Link>
             )
           }

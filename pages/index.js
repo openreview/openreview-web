@@ -249,8 +249,11 @@ function VenueListItem({ groupId, dueDate, hidden, isLeadingVenue = false }) {
   return (
     <li style={styles}>
       <h2>
-        <Link href={`/group?id=${groupId}&referrer=${encodeURIComponent('[Homepage](/)')}`}>
-          <a className={`${isLeadingVenue ? 'leading-venue' : ''}`}>{prettyId(groupId)}</a>
+        <Link
+          href={`/group?id=${groupId}&referrer=${encodeURIComponent('[Homepage](/)')}`}
+          className={`${isLeadingVenue ? 'leading-venue' : ''}`}
+        >
+          {prettyId(groupId)}
         </Link>
       </h2>
       {dueDate && (

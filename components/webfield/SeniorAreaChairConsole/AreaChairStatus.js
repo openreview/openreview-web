@@ -47,6 +47,7 @@ const CommitteeSummary = ({ rowData }) => {
 const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
   const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
+
   return (
     <div className="reviewer-progress">
       <h4>

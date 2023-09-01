@@ -850,7 +850,7 @@ describe('ConsoleTaskList', () => {
       expect(rebuttalLink.nextElementSibling).toHaveClass('warning')
       expect(rebuttalLink).toHaveAttribute(
         'href',
-        expect.stringContaining('id=paper5Id&noteId=[object%20Object]&invitationId=') // issue #1467
+        expect.stringContaining('id=paper5Id&noteId=[object Object]&invitationId=') // issue #1467
       )
 
       expect(rebuttalSingleReplyLink).toBeInTheDocument()
@@ -866,7 +866,7 @@ describe('ConsoleTaskList', () => {
       expect(rebuttalMultiReplyLink.nextElementSibling).toHaveClass('warning')
       expect(rebuttalMultiReplyLink).toHaveAttribute(
         'href',
-        expect.stringContaining('id=paper5Id&noteId=[object%20Object]')
+        expect.stringContaining('id=paper5Id&noteId=[object Object]')
       )
       // #endregion
 
@@ -1359,7 +1359,7 @@ describe('ConsoleTaskList', () => {
       expect(commentFiveLink.nextElementSibling).toHaveClass('warning')
       expect(commentFiveLink).toHaveAttribute(
         'href',
-        expect.stringContaining('id=paper5Id&noteId=[object%20Object]&invitationId=') // issue #1467
+        expect.stringContaining('id=paper5Id&noteId=[object Object]&invitationId=') // issue #1467
       )
 
       expect(commentSixLink).toBeInTheDocument()
@@ -1375,7 +1375,7 @@ describe('ConsoleTaskList', () => {
       expect(commentSevenLink.nextElementSibling).toHaveClass('warning')
       expect(commentSevenLink).toHaveAttribute(
         'href',
-        expect.stringContaining('id=paper5Id&noteId=[object%20Object]')
+        expect.stringContaining('id=paper5Id&noteId=[object Object]')
       )
 
       expect(Paper123CommentSevenLink).not.toBeInTheDocument()

@@ -312,8 +312,8 @@ export default function FilterForm({
                 updateFilters({
                   excludedReaders:
                     selectedOptions.length > 0
-                        ? selectedOptions.map((option) => option.value)
-                        : null,
+                      ? selectedOptions.map((option) => option.value)
+                      : null,
                 })
               }}
               placeholder="Hidden from..."
