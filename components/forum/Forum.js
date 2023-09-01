@@ -36,7 +36,7 @@ export default function Forum({
   forumNote,
   selectedNoteId,
   selectedInvitationId,
-  prefilledValue,
+  prefilledValues,
   clientJsLoading,
 }) {
   const { userLoading, accessToken } = useUser()
@@ -790,7 +790,9 @@ export default function Forum({
             </div>
             {newNoteEditor ? (
               <NoteEditor
-                note={selectedNoteId && selectedInvitationId && stringToObject(prefilledValue)}
+                note={
+                  selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)
+                }
                 replyToNote={parentNote}
                 invitation={activeInvitation}
                 className="note-editor-reply depth-even"

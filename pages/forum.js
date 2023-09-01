@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import truncate from 'lodash/truncate'
+import pickBy from 'lodash/pickBy'
 import LegacyForum from '../components/forum/LegacyForum'
 import Forum from '../components/forum/Forum'
 import withError from '../components/withError'
@@ -122,7 +123,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
           forumNote={forumNote}
           selectedNoteId={query.noteId}
           selectedInvitationId={query.invitationId}
-          prefilledValue={query.prefilledValue}
+          prefilledValues={pickBy(query, (_, key) => key.startsWith('edit.note.'))}
           clientJsLoading={clientJsLoading}
         />
       ) : (

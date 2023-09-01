@@ -2,30 +2,43 @@ import { stringToObject } from '../lib/utils'
 
 describe('utils', () => {
   test('convert string to object in stringToObject', () => {
-    let prefilledValue = null
-    expect(stringToObject(prefilledValue)).toEqual(undefined)
+    let prefilledValues = {}
+    expect(stringToObject(prefilledValues)).toEqual(undefined)
 
-    prefilledValue = 'test'
-    expect(stringToObject(prefilledValue)).toEqual(undefined)
-
-    prefilledValue = 'test='
-    expect(stringToObject(prefilledValue)).toEqual(undefined)
-
-    prefilledValue = 'test=1'
-    expect(stringToObject(prefilledValue)).toEqual({ test: '1' })
-
-    prefilledValue = 'test=some test value'
-    expect(stringToObject(prefilledValue)).toEqual({ test: 'some test value' })
-
-    prefilledValue = 'content.some_field.value= some prefilled value'
-    expect(stringToObject(prefilledValue)).toEqual({
-      content: { some_field: { value: ' some prefilled value' } },
+    prefilledValues = { 'edit.note.content.title': 'some prefilled title' }
+    expect(stringToObject(prefilledValues)).toEqual({
+      content: { title: { value: 'some prefilled title' } },
     })
 
-    prefilledValue = 'some.ve_ry.deep_ly.nest_ed.object.value= some prefilled value'
-    expect(stringToObject(prefilledValue)).toEqual({
-      some: {
-        ve_ry: { deep_ly: { nest_ed: { object: { value: ' some prefilled value' } } } },
+    // query has duplicated key to pass array type
+    prefilledValues = {
+      'edit.note.content.reject_reason': [
+        'Other',
+        'Other',
+        'Reviewer never submitted their review',
+      ],
+    }
+    expect(stringToObject(prefilledValues)).toEqual({
+      content: {
+        reject_reason: { value: ['Other', 'Reviewer never submitted their review'] },
+      },
+    })
+
+    // fill multiple fields
+    prefilledValues = {
+      'edit.note.content.title': 'some prefilled title',
+      'edit.note.content.reject_reason': [
+        'Other',
+        'Other',
+        'Reviewer never submitted their review',
+      ],
+      'edit.note.content.comment': 'some prefilled comment',
+    }
+    expect(stringToObject(prefilledValues)).toEqual({
+      content: {
+        title: { value: 'some prefilled title' },
+        reject_reason: { value: ['Other', 'Reviewer never submitted their review'] },
+        comment: { value: 'some prefilled comment' },
       },
     })
   })
