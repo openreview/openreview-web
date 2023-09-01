@@ -191,7 +191,7 @@ export default class EdgeBrowser extends React.Component {
             entityMap[key] = {
               id: key,
               content: {
-                name: { first: key, middle: '', last: '' },
+                name: { fullname: key },
                 email: key,
                 title: '',
                 expertise: [],
@@ -210,7 +210,7 @@ export default class EdgeBrowser extends React.Component {
             entityMap[key] = {
               id: key,
               content: {
-                name: { first: prettyId(key), middle: '', last: '' },
+                name: { fullname: prettyId(key) },
                 email: key,
                 title: '',
                 expertise: [],

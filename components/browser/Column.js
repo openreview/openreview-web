@@ -339,7 +339,7 @@ export default function Column(props) {
             itemToAdd = {
               id: headOrTailId,
               content: {
-                name: { first: prettyId(headOrTailId), middle: '', last: '' },
+                name: { fullname: prettyId(headOrTailId) },
                 email: headOrTailId,
                 title: '',
                 expertise: [],
@@ -793,7 +793,7 @@ export default function Column(props) {
             itemToAdd = {
               id: headOrTailId,
               content: {
-                name: { first: prettyId(headOrTailId), middle: '', last: '' },
+                name: { fullname: prettyId(headOrTailId) },
                 email: headOrTailId,
                 title: '',
                 expertise: [],
