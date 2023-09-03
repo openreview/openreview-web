@@ -204,7 +204,7 @@ test('import paper from dblp', async (t) => {
     .expect(Selector('#dblp-import-modal').find('div.body-message').innerText)
     .contains('Visit your DBLP home page: xxx')
     // put persistent url of other people in modal
-    .typeText(persistentUrlInput, testPersistentUrl)
+    .typeText(persistentUrlInput, testPersistentUrl, { replace: true, paste: true })
     .click(showPapersButton)
     .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText)
     .contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.', undefined, { timeout: 5000 })

@@ -68,10 +68,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
 
     let bodyData = {}
     if (registrationType === 'new') {
-      const name = {
-        fullname: fullName.trim(),
-      }
-      bodyData = { email, password, name, token: turnstileToken }
+      bodyData = { email, password, fullname: fullName.trim(), token: turnstileToken }
     } else if (registrationType === 'claim') {
       bodyData = { id, email, password }
     }
@@ -145,7 +142,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
     <div className="signup-form-container">
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="row">
-          <div className="form-group col-xs-12 col-sm-4">
+          <div className="form-group col-xs-12 col-sm-6">
             <label htmlFor="first-input">Full Name</label>
             <input
               type="text"

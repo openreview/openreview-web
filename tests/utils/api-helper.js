@@ -176,7 +176,7 @@ export async function createUser({
   const { id: tildeId } = await api.post('/register', {
     email,
     password,
-    name: { fullname },
+    fullname,
   })
 
   // activate
