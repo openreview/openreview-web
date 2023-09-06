@@ -108,12 +108,14 @@ function LinksList({ links }) {
   if (!links || links.length === 0) return null
 
   return (
-    <ul className="list-unstyled venues-list">
+    <ul className="list-unstyled venues-list mt-2">
       {links.map(({ name, url }, i) => (
-        <li key={i}>
-          <Link href={url}>
-            {name}
-          </Link>
+        <li className="mb-2" key={i}>
+          {url.startsWith('/') ? (
+            <Link href={url}>{name ?? url}</Link>
+          ) : (
+            <a href={url} target="_blank" rel="noopener noreferrer">{name ?? url}</a>
+          )}
         </li>
       ))}
     </ul>
