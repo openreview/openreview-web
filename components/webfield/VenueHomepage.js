@@ -104,6 +104,22 @@ function ConsolesList({
   )
 }
 
+function LinksList({ links }) {
+  if (!links || links.length === 0) return null
+
+  return (
+    <ul className="list-unstyled venues-list">
+      {links.map(({ name, url }, i) => (
+        <li key={i}>
+          <Link href={url}>
+            {name}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export default function VenueHomepage({ appContext }) {
   const {
     entity: group,
@@ -159,6 +175,10 @@ export default function VenueHomepage({ appContext }) {
 
     if (tabConfig.type === 'markdown') {
       return <Markdown text={tabConfig.content} />
+    }
+
+    if (tabConfig.links?.length > 0) {
+      return <LinksList links={tabConfig.links} />
     }
 
     if (tabConfig.query || tabConfig.invitation) {
