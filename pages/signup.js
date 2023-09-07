@@ -337,10 +337,7 @@ const ExistingProfileForm = ({
               {buttonLabel}
             </button>
             <span className="new-username hint">
-              {usernameLabel}{' '}
-              <Link href={`/profile?id=${id}`}>
-                <a>{id}</a>
-              </Link>
+              {usernameLabel} <Link href={`/profile?id=${id}`}>{id}</Link>
             </span>
           </>
         )}
@@ -360,10 +357,7 @@ const ExistingProfileForm = ({
             <>
               <SubmitButton disabled={!isValidEmail(email)}>{buttonLabel}</SubmitButton>
               <span className="new-username hint">
-                {usernameLabel}{' '}
-                <Link href={`/profile?id=${id}`}>
-                  <a>{id}</a>
-                </Link>
+                {usernameLabel} <Link href={`/profile?id=${id}`}>{id}</Link>
               </span>
             </>
           )}
@@ -397,10 +391,7 @@ const ExistingProfileForm = ({
               {buttonLabel}
             </SubmitButton>
             <span className="new-username hint">
-              {usernameLabel}{' '}
-              <Link href={`/profile?id=${id}`}>
-                <a>{id}</a>
-              </Link>
+              {usernameLabel} <Link href={`/profile?id=${id}`}>{id}</Link>
             </span>
           </div>
         </>
@@ -494,10 +485,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
               Claim Profile
             </button>
             <span className="new-username hint">
-              for{' '}
-              <Link href={`/profile?id=${id}`}>
-                <a>{id}</a>
-              </Link>
+              for <Link href={`/profile?id=${id}`}>{id}</Link>
             </span>
           </>
         )}
@@ -519,10 +507,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
                 Claim Profile
               </button>
               <span className="new-username hint">
-                for{' '}
-                <Link href={`/profile?id=${id}`}>
-                  <a>{id}</a>
-                </Link>
+                for <Link href={`/profile?id=${id}`}>{id}</Link>
               </span>
             </>
           )}
@@ -556,10 +541,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
               Claim Profile
             </SubmitButton>
             <span className="new-username hint">
-              for{' '}
-              <Link href={`/profile?id=${id}`}>
-                <a>{id}</a>
-              </Link>
+              for <Link href={`/profile?id=${id}`}>{id}</Link>
             </span>
           </div>
         </>
@@ -726,14 +708,18 @@ const ConfirmNameModal = ({
         {middleName && (
           <>
             {', '}
-            middle name <strong>{middleName}</strong>
+            <span>
+              middle name <strong>{middleName}</strong>
+            </span>
             {','}
           </>
         )}
         {lastName && (
           <>
             {' and '}
-            last name <strong>{lastName}</strong>
+            <span>
+              last name <strong>{lastName}</strong>
+            </span>
           </>
         )}
         {'. '}

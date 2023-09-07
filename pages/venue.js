@@ -17,8 +17,11 @@ function VenuesList({ filteredVenues }) {
       <ul className="list-unstyled venues-list">
         {filteredVenues.map((venue) => (
           <li key={venue.id}>
-            <Link href={`/submissions?venue=${venue.id}`}>
-              <a title="View submissions for this venue">{prettyId(venue.id)}</a>
+            <Link
+              href={`/submissions?venue=${venue.id}`}
+              title="View submissions for this venue"
+            >
+              {prettyId(venue.id)}
             </Link>
           </li>
         ))}

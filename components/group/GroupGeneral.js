@@ -24,9 +24,7 @@ export const GroupGeneralView = ({ group }) => {
   return (
     <div className="info-container">
       <GroupTableRow label="Parent Group">
-        <Link href={urlFromGroupId(groupParent, true)}>
-          <a>{prettyId(groupParent)}</a>
-        </Link>
+        <Link href={urlFromGroupId(groupParent, true)}>{prettyId(groupParent)}</Link>
       </GroupTableRow>
 
       <GroupTableRow label="Readers">
@@ -95,16 +93,21 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
     ...state,
     [action.type]: action.value,
   })
-  const [generalInfo, setGeneralInfo] = useReducer(generalInfoReducer, group.invitations ? {} : {
-    readers: group.readers?.join(', '),
-    nonreaders: group.nonreaders?.join(', '),
-    writers: group.writers?.join(', '),
-    signatories: group.signatories?.join(', '),
-    signatures: group.signatures?.join(', '),
-    anonids: group.anonids,
-    deanonymizers: group.deanonymizers?.join(', '),
-    host: group.host,
-  })
+  const [generalInfo, setGeneralInfo] = useReducer(
+    generalInfoReducer,
+    group.invitations
+      ? {}
+      : {
+          readers: group.readers?.join(', '),
+          nonreaders: group.nonreaders?.join(', '),
+          writers: group.writers?.join(', '),
+          signatories: group.signatories?.join(', '),
+          signatures: group.signatures?.join(', '),
+          anonids: group.anonids,
+          deanonymizers: group.deanonymizers?.join(', '),
+          host: group.host,
+        }
+  )
 
   return (
     <div className="edit-container">
@@ -150,11 +153,7 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
 
       {group.invitations && (
         <GroupTableRow label="Invitations">
-          <input
-            className="form-control input-sm"
-            value={group.invitations}
-            disabled
-          />
+          <input className="form-control input-sm" value={group.invitations} disabled />
         </GroupTableRow>
       )}
 
@@ -178,7 +177,11 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
         <GroupTableRow label="Deanonymizers">
           <input
             className="form-control input-sm"
-            value={has(generalInfo, 'deanonymizers') ? generalInfo.deanonymizers : group.deanonymizers}
+            value={
+              has(generalInfo, 'deanonymizers')
+                ? generalInfo.deanonymizers
+                : group.deanonymizers
+            }
             onChange={(e) => setGeneralInfo({ type: 'deanonymizers', value: e.target.value })}
           />
         </GroupTableRow>
@@ -227,13 +230,25 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
 const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup }) => {
   const [edit, setEdit] = useState(false)
 
-  const convertInfoToArray = (value) => value?.split(',').map((p) => p.trim()).filter((p) => p)
+  const convertInfoToArray = (value) =>
+    value
+      ?.split(',')
+      .map((p) => p.trim())
+      .filter((p) => p)
 
   const saveGeneralInfo = async (generalInfo) => {
     try {
       if (group.invitations) {
         // For v2 groups POST edit
-        const arrayFields = ['readers', 'nonreaders', 'writers', 'signatories', 'signatures', 'invitations', 'deanonymizers']
+        const arrayFields = [
+          'readers',
+          'nonreaders',
+          'writers',
+          'signatories',
+          'signatures',
+          'invitations',
+          'deanonymizers',
+        ]
         arrayFields.forEach((field) => {
           // eslint-disable-next-line no-prototype-builtins
           if (generalInfo.hasOwnProperty(field)) {
@@ -244,7 +259,7 @@ const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup 
         const requestBody = {
           group: {
             id: group.id,
-            ...generalInfo
+            ...generalInfo,
           },
           readers: [profileId],
           writers: [profileId],
@@ -294,10 +309,12 @@ const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup 
             Edit General Info
           </button>
           {group.invitations?.length > 0 && (
-            <Link href={`/group/revisions?id=${group.id}`}>
-              <a role="button" className="btn btn-sm btn-default edit-group-info">
-                View Group Revisions
-              </a>
+            <Link
+              href={`/group/revisions?id=${group.id}`}
+              role="button"
+              className="btn btn-sm btn-default edit-group-info"
+            >
+              View Group Revisions
             </Link>
           )}
         </>

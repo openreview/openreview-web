@@ -210,7 +210,9 @@ const AssignmentStats = ({ appContext }) => {
   useEffect(() => {
     if (!assignmentConfigNote) return
 
-    const useEdges = assignmentConfigNote.apiVersion === 2 || !!assignmentConfigNote.content.scores_specification
+    const useEdges =
+      assignmentConfigNote.apiVersion === 2 ||
+      !!assignmentConfigNote.content.scores_specification
     if (useEdges) {
       loadMatchingDataFromEdges()
     } else {
@@ -314,12 +316,11 @@ const AssignmentStats = ({ appContext }) => {
               {assignmentConfigNote && (
                 <li>
                   <Link
-                    href={getEdgeBrowserUrl(
-                      assignmentConfigNote.content,
-                      { version: assignmentConfigNote.apiVersion }
-                    )}
+                    href={getEdgeBrowserUrl(assignmentConfigNote.content, {
+                      version: assignmentConfigNote.apiVersion,
+                    })}
                   >
-                    <a>Browse Assignments</a>
+                    Browse Assignments
                   </Link>
                 </li>
               )}

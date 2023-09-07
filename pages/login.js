@@ -82,9 +82,7 @@ const LoginForm = () => {
       </button>
 
       <p className="help-block">
-        <Link href="/reset">
-          <a>Forgot your password?</a>
-        </Link>
+        <Link href="/reset">Forgot your password?</Link>
         <br />
         {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
         <a href="#" onClick={handleResendConfirmation}>
@@ -126,8 +124,8 @@ const Login = () => {
       <div className="signup-container col-sm-6 col-md-5 col-lg-4">
         <h1>New User?</h1>
         <div>
-          <Link href="/signup">
-            <a className="btn">Sign Up</a>
+          <Link href="/signup" className="btn">
+            Sign Up
           </Link>
         </div>
       </div>

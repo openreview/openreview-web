@@ -1,7 +1,6 @@
 const nextBuildId = require('next-build-id')
 
 module.exports = {
-  swcMinify: false,
   eslint: {
     dirs: ['pages', 'components', 'hooks', 'lib', 'tests', 'unitTests'],
   },

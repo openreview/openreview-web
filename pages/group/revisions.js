@@ -80,7 +80,7 @@ export default function GroupRevisions({ appContext }) {
   return (
     <>
       <Head>
-        <title key="title">{prettyId(group?.id)} Group Edit History | OpenReview</title>
+        <title key="title">{`${prettyId(router.query.id)} Group Edit History | OpenReview`}</title>
       </Head>
 
       <div id="header">

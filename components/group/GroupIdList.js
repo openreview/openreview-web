@@ -14,9 +14,7 @@ const GroupIdList = ({ groupIds }) => {
         {commonGroups.includes(groupId) ? (
           prettyId(groupId)
         ) : (
-          <Link href={urlFromGroupId(groupId)}>
-            <a>{prettyId(groupId)}</a>
-          </Link>
+          <Link href={urlFromGroupId(groupId)}>{prettyId(groupId)}</Link>
         )}
       </span>
     ))
@@ -30,9 +28,7 @@ export const InvitationIdList = ({ invitationIds }) => {
     .map((invitationId, index) => (
       // eslint-disable-next-line react/no-array-index-key
       <span key={index}>
-        <Link href={`/invitation/edit?id=${invitationId}`}>
-          <a>{prettyId(invitationId)}</a>
-        </Link>
+        <Link href={`/invitation/edit?id=${invitationId}`}>{prettyId(invitationId)}</Link>
       </span>
     ))
     .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)

@@ -123,12 +123,13 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
           invitee: true,
           duedate: true,
           replyto: true,
-          type: 'notes',
+          type: 'note',
         },
         { accessToken, version: 2 }
       )
-      if (result.invitations.length)
+      if (result.invitations.length) {
         setMetaReviewInvitation(metaReviewData.metaReviewInvitationId)
+      }
     } catch (error) {
       promptError(error.message)
     }
@@ -137,6 +138,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
   useEffect(() => {
     loadMetaReviewInvitation()
   }, [])
+
   return (
     <div className="areachair-console-meta-review">
       {metaReviewData[metaReviewContentField] !== 'N/A' ? (
@@ -176,12 +178,13 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
   referrerUrl,
   areaChairAssignmentUrl,
 }) => {
-  const { metaReviewData, note } = rowData
+  const { note, metaReviewData, preliminaryDecision } = rowData
   const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs } = metaReviewData
   const paperManualAreaChairAssignmentUrl = areaChairAssignmentUrl?.replace(
     'edges/browse?',
     `edges/browse?start=staticList,type:head,ids:${note.id}&`
   )
+
   return (
     <div className="areachair-progress">
       <h4 className="title">{`${numMetaReviewsDone} of ${areaChairs.length} ${inflect(
@@ -264,6 +267,23 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
             rel="noreferrer"
           >
             Edit Area Chair Assignments
+          </a>
+        </div>
+      )}
+
+      {preliminaryDecision && (
+        <div className="mt-3">
+          <strong>Preliminary Decision:</strong><br />
+          <span>Recommendation: {preliminaryDecision.recommendation}</span><br />
+          <span>Confidence: {preliminaryDecision.confidence}</span><br />
+          <span>Discussion Needed: {preliminaryDecision.discussionNeeded}</span><br />
+          <br />
+          <a
+            href={`/forum?id=${note.id}&noteId=${preliminaryDecision.id}&referrer=${referrerUrl}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            View Preliminary Decision
           </a>
         </div>
       )}

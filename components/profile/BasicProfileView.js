@@ -1,9 +1,7 @@
 import random from 'lodash/random'
-import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 import { prettyList } from '../../lib/utils'
-import RecentPublications from './RecentPublications'
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -143,11 +141,10 @@ const BasicProfileView = ({
           actionLink="Suggest Name"
         >
           <div className="list-compact">
-            {sortedNames
-              .map((name) => (
-                <ProfileName key={name.username || name.first + name.last} name={name} />
-              ))
-              .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+            {sortedNames.flatMap((name, i) => [
+              i > 0 ? <span key={i}>, </span> : null,
+              <ProfileName key={name.username || name.first + name.last} name={name} />,
+            ])}
           </div>
         </ProfileViewSection>
       )}
@@ -165,10 +162,10 @@ const BasicProfileView = ({
           <div className="list-compact">
             {profile.emails
               .filter((email) => !email.hidden)
-              .map((email) => (
-                <ProfileEmail key={nanoid()} email={email} publicProfile={publicProfile} />
-              ))
-              .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
+              .flatMap((email, i) => [
+                i > 0 ? <span key={i}>, </span> : null,
+                <ProfileEmail key={email.email} email={email} publicProfile={publicProfile} />,
+              ])}
           </div>
         </ProfileViewSection>
       )}

@@ -247,19 +247,12 @@ const AreaChairConsole = ({ appContext }) => {
                 const anonymousReviewerGroup = anonymousReviewerGroups.find(
                   (t) =>
                     t.id.startsWith(`${venueId}/${submissionName}${p}/${anonReviewerName}`) &&
-                    t.members[0] === r
+                    (t.id === r || t.members[0] === r)
                 )
-                if (anonymousReviewerGroup) {
-                  const anonymousReviewerId = getIndentifierFromGroup(
-                    anonymousReviewerGroup.id,
-                    anonReviewerName
-                  )
-                  return {
-                    anonymousId: anonymousReviewerId,
-                    reviewerProfileId: r,
-                  }
+                return {
+                  anonymousId: getIndentifierFromGroup(anonymousReviewerGroup?.id || r, anonReviewerName),
+                  reviewerProfileId: anonymousReviewerGroup?.members.length ? anonymousReviewerGroup.members[0] : r,
                 }
-                return []
               })
             return {
               number: p,
@@ -545,7 +538,7 @@ const AreaChairConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!userLoading && (!user || !user.profile || user.profile.id === 'guest')) {
+    if (!userLoading && !user) {
       router.replace(
         `/login?redirect=${encodeURIComponent(
           `${window.location.pathname}${window.location.search}${window.location.hash}`

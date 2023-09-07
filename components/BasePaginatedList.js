@@ -13,11 +13,13 @@ export default function BasePaginatedList({
   return (
     <div className={className}>
       <ul className="list-unstyled list-paginated">
-        {listItems?.length > 0 ? listItems.map((item) => (
-          <li key={item.id}>
-            <ListItem item={item} />
-          </li>
-        )) : (
+        {listItems?.length > 0 ? (
+          listItems.map((item) => (
+            <li key={item.id}>
+              <ListItem item={item} />
+            </li>
+          ))
+        ) : (
           <li>
             <p className="empty-message">{emptyMessage || 'No items to display'}</p>
           </li>

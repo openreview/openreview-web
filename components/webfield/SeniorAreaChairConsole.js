@@ -1,16 +1,17 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
-import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
+import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import BasicHeader from './BasicHeader'
 import AreaChairStatus from './SeniorAreaChairConsole/AreaChairStatus'
 import PaperStatus from './SeniorAreaChairConsole/PaperStatus'
+import SeniorAreaChairTasks from './SeniorAreaChairConsole/SeniorAreaChairTasks'
 import ErrorDisplay from '../ErrorDisplay'
+import useUser from '../../hooks/useUser'
+import useQuery from '../../hooks/useQuery'
+import api from '../../lib/api-client'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import {
   getIndentifierFromGroup,
   getNumberFromGroup,
@@ -18,7 +19,6 @@ import {
   prettyId,
   parseNumberField,
 } from '../../lib/utils'
-import SeniorAreaChairTasks from './SeniorAreaChairConsole/SeniorAreaChairTasks'
 
 const SeniorAreaChairConsole = ({ appContext }) => {
   const {
@@ -39,6 +39,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     officialReviewName,
     officialMetaReviewName,
     decisionName = 'Decision',
+    preliminaryDecisionName,
     recommendationName,
     edgeBrowserDeployedUrl,
     customStageInvitations,
@@ -55,6 +56,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
 
   const loadData = async () => {
     if (isLoadingData) return
+
     setIsLoadingData(true)
     try {
       // #region getSubmissions
@@ -71,12 +73,10 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               { accessToken, version: 2 }
             )
             .then((notes) =>
-              notes.filter(
-                (note) =>
-                  ![withdrawnVenueId, deskRejectedVenueId].includes(
-                    note.content?.venueid?.value
-                  )
-              )
+              notes.filter((note) => {
+                const noteVenueId = note.content?.venueid?.value
+                return noteVenueId !== withdrawnVenueId && venueId !== deskRejectedVenueId
+              })
             )
         : Promise.resolve([])
       // #endregion
@@ -122,42 +122,58 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       const seniorAreaChairGroups = []
       let allGroupMembers = []
       perPaperGroupResults.groups?.forEach((p) => {
+        const number = getNumberFromGroup(p.id, submissionName)
         if (p.id.endsWith(`/${reviewerName}`)) {
           reviewerGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
             ...p,
           })
-          allGroupMembers = allGroupMembers.concat(p.members)
+          p.members.forEach((member) => {
+            if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
+            if (!(member in anonReviewerGroups[number]) && member.includes(anonReviewerName)) {
+              anonReviewerGroups[number][member] = member
+            }
+          })
         } else if (p.id.includes(anonReviewerName)) {
-          const number = getNumberFromGroup(p.id, submissionName)
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
-          if (p.members.length) anonReviewerGroups[number][p.members[0]] = p.id
+          if (p.members.length) anonReviewerGroups[number][p.id] = p.members[0]
+          allGroupMembers = allGroupMembers.concat(p.members)
         } else if (p.id.endsWith(`/${areaChairName}`)) {
           areaChairGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
             ...p,
           })
-          allGroupMembers = allGroupMembers.concat(p.members)
+          p.members.forEach((member) => {
+            if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
+            if (!(member in anonAreaChairGroups[number]) && member.includes(anonAreaChairName)) {
+              anonAreaChairGroups[number][member] = member
+            }
+          })
         } else if (p.id.includes(anonAreaChairName)) {
-          const number = getNumberFromGroup(p.id, submissionName)
           if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
-          if (p.members.length) anonAreaChairGroups[number][p.members[0]] = p.id
+          if (p.members.length) anonAreaChairGroups[number][p.id] = p.members[0]
+          allGroupMembers = allGroupMembers.concat(p.members)
         } else if (p.id.endsWith(seniorAreaChairName)) {
           seniorAreaChairGroups.push(p)
         }
       })
 
       reviewerGroups = reviewerGroups.map((reviewerGroup) => {
-        const paperAnonReviewerGroups = anonReviewerGroups[reviewerGroup.noteNumber]
+        const paperAnonReviewerGroups = anonReviewerGroups[reviewerGroup.noteNumber] || {}
         return {
           ...reviewerGroup,
           members: reviewerGroup.members.flatMap((member) => {
-            const reviewerAnonGroup = paperAnonReviewerGroups[member]
-            if (!reviewerAnonGroup) return []
+            let deanonymizedGroup = paperAnonReviewerGroups[member]
+            let anonymizedGroup = member
+            if (!deanonymizedGroup) {
+              deanonymizedGroup = member
+              anonymizedGroup = Object.keys(paperAnonReviewerGroups)
+              .find(key => paperAnonReviewerGroups[key] === member)
+            }
             return {
-              reviewerProfileId: member,
-              reviewerAnonGroup,
-              anonymousId: getIndentifierFromGroup(reviewerAnonGroup, anonReviewerName),
+              reviewerProfileId: deanonymizedGroup,
+              anonymizedGroup,
+              anonymousId: getIndentifierFromGroup(anonymizedGroup, anonReviewerName),
             }
           }),
         }
@@ -168,12 +184,18 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         return {
           ...areaChairGroup,
           members: areaChairGroup.members.map((member) => {
-            const areaChairAnonGroup = paperAnonAreaChairGroups?.[member]
+            let deanonymizedGroup = paperAnonAreaChairGroups?.[member]
+            let anonymizedGroup = member
+            if (!deanonymizedGroup) {
+              deanonymizedGroup = member
+              anonymizedGroup = Object.keys(paperAnonAreaChairGroups)
+              .find(key => paperAnonAreaChairGroups[key] === member)
+            }
             return {
-              areaChairProfileId: member,
-              areaChairAnonGroup,
-              anonymousId: areaChairAnonGroup
-                ? getIndentifierFromGroup(areaChairAnonGroup, anonAreaChairName)
+              areaChairProfileId: deanonymizedGroup,
+              anonymizedGroup,
+              anonymousId: anonymizedGroup
+                ? getIndentifierFromGroup(anonymizedGroup, anonAreaChairName)
                 : null,
             }
           }),
@@ -311,7 +333,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
               return p.invitations.includes(officialMetaReviewInvitationId)
             })
-            ?.map((metaReview) => ({
+            .map((metaReview) => ({
               ...metaReview,
               anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
             }))
@@ -344,15 +366,29 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             })
 
           const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
-
-          let decision = 'No Decision'
-
           const decisionNote = note.details.replies.find((p) =>
             p.invitations.includes(decisionInvitationId)
           )
+          const decision = decisionNote?.content?.decision
+            ? decisionNote.content.decision?.value
+            : 'No Decision'
 
-          // eslint-disable-next-line prefer-destructuring
-          if (decisionNote?.content?.decision) decision = decisionNote.content.decision?.value
+          let preliminaryDecision = null
+          if (preliminaryDecisionName) {
+            const prelimDecisionId = `${venueId}/${submissionName}${note.number}/-/${preliminaryDecisionName}`
+            const prelimDecisionNote = note.details.replies.find((p) =>
+              p.invitations.includes(prelimDecisionId)
+            )
+            if (prelimDecisionNote) {
+              preliminaryDecision = {
+                id: prelimDecisionNote.id,
+                recommendation: prelimDecisionNote.content.recommendation?.value,
+                confidence: prelimDecisionNote.content.confidence?.value,
+                discussionNeeded: prelimDecisionNote.content.discussion_with_SAC_needed?.value,
+              }
+            }
+          }
+
           return {
             noteNumber: note.number,
             note,
@@ -408,6 +444,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 .join(' '),
             },
             decision,
+            preliminaryDecision,
           }
         }),
       })
@@ -428,7 +465,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!userLoading && (!user || !user.profile || user.profile.id === 'guest')) {
+    if (!userLoading && !user) {
       router.replace(
         `/login?redirect=${encodeURIComponent(
           `${window.location.pathname}${window.location.search}${window.location.hash}`
@@ -460,9 +497,11 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     )}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
+
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
+
       <Tabs>
         <TabList>
           <Tab

@@ -47,7 +47,7 @@ export default function Home() {
             : Promise.resolve([]),
           api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
           api
-            .getCombined('/invitations', { invitee: '~', pastdue: false })
+            .getCombined('/invitations', { invitee: '~', pastdue: false, type: 'notes' }, { invitee: '~', pastdue: false, type: 'note' })
             .then(formatInvitationResults),
           api.get('/groups', { id: 'host' }).then(formatGroupResults).then(sortAlpha),
         ])
@@ -249,8 +249,11 @@ function VenueListItem({ groupId, dueDate, hidden, isLeadingVenue = false }) {
   return (
     <li style={styles}>
       <h2>
-        <Link href={`/group?id=${groupId}&referrer=${encodeURIComponent('[Homepage](/)')}`}>
-          <a className={`${isLeadingVenue ? 'leading-venue' : ''}`}>{prettyId(groupId)}</a>
+        <Link
+          href={`/group?id=${groupId}&referrer=${encodeURIComponent('[Homepage](/)')}`}
+          className={`${isLeadingVenue ? 'leading-venue' : ''}`}
+        >
+          {prettyId(groupId)}
         </Link>
       </h2>
       {dueDate && (

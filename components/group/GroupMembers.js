@@ -9,7 +9,7 @@ import PaginationLinks from '../PaginationLinks'
 import Icon from '../Icon'
 import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
-import { prettyId, urlFromGroupId } from '../../lib/utils'
+import { isValidEmail, prettyId, urlFromGroupId } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 
 const MessageMemberModal = ({
@@ -20,16 +20,21 @@ const MessageMemberModal = ({
   setJobId,
 }) => {
   const [subject, setSubject] = useState(`Message to ${prettyId(groupId)}`)
+  const [replyToEmail, setReplyToEmail] = useState(groupDomainContent?.contact?.value ?? '')
   const [message, setMessage] = useState('')
   const [error, setError] = useState(null)
 
-  const replyToEmail = groupDomainContent?.contact?.value
-
   const sendMessage = async () => {
     const sanitizedMessage = DOMPurify.sanitize(message)
+    const cleanReplytoEmail = replyToEmail.trim()
 
     if (!subject || !sanitizedMessage) {
       setError('Email Subject and Body are required to send messages.')
+      return
+    }
+
+    if (cleanReplytoEmail && !isValidEmail(cleanReplytoEmail)) {
+      setError('Reply to email is invalid.')
       return
     }
 
@@ -41,7 +46,7 @@ const MessageMemberModal = ({
           subject,
           message: sanitizedMessage,
           parentGroup: groupId,
-          replyTo: replyToEmail,
+          ...(cleanReplytoEmail && { replyTo: cleanReplytoEmail }),
           useJob: true,
         },
         { accessToken }
@@ -72,6 +77,7 @@ const MessageMemberModal = ({
       onPrimaryButtonClick={sendMessage}
       onClose={() => {
         setMessage('')
+        setError(null)
       }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
@@ -98,18 +104,16 @@ const MessageMemberModal = ({
           />
         </div>
 
-        {replyToEmail && (
-          <div className="form-group">
-            <label htmlFor="subject">Reply To</label>
-            <input
-              type="text"
-              name="replyto"
-              className="form-control"
-              value={replyToEmail}
-              disabled
-            />
-          </div>
-        )}
+        <div className="form-group">
+          <label htmlFor="subject">Reply To</label>
+          <input
+            type="text"
+            name="replyto"
+            className="form-control"
+            value={replyToEmail}
+            onChange={(e) => setReplyToEmail(e.target.value)}
+          />
+        </div>
 
         <div className="form-group">
           <label htmlFor="message">Email Body</label>
@@ -243,7 +247,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
           </>
         )}
         <Link href={`/messages?parentGroup=${groupId}`}>
-          <a>View all messages sent to this group &raquo;</a>
+          View all messages sent to this group &raquo;
         </Link>
       </div>
     </EditorSection>
@@ -423,7 +427,13 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
         ? `${group.id.slice(0, -1)}_`
         : `${group.id}_`
       const result = await api.get(`/groups?regex=${anonGroupRegex}`, {}, { accessToken })
-      setMemberAnonIds(result.groups.map((p) => ({ member: p.members, anonId: p.id })))
+      setMemberAnonIds(
+        result.groups.map((p) =>
+          p.id.startsWith(anonGroupRegex)
+            ? { member: [p.id], anonId: p.members?.[0] }
+            : { member: p.members, anonId: p.id }
+        )
+      )
     } catch (error) {
       promptError(error.message)
     }
@@ -678,14 +688,12 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
                       })
                     }}
                   >
-                    <Link href={urlFromGroupId(member.id)}>
-                      <a>{member.id}</a>
-                    </Link>
+                    <Link href={urlFromGroupId(member.id)}>{member.id}</Link>
                     {hasAnonId && (
                       <>
                         {' | '}
                         <Link href={urlFromGroupId(hasAnonId.anonId, true)}>
-                          <a>{prettyId(hasAnonId.anonId)}</a>
+                          {prettyId(hasAnonId.anonId)}
                         </Link>
                       </>
                     )}
