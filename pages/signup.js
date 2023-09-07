@@ -708,14 +708,18 @@ const ConfirmNameModal = ({
         {middleName && (
           <>
             {', '}
-            middle name <strong>{middleName}</strong>
+            <span>
+              middle name <strong>{middleName}</strong>
+            </span>
             {','}
           </>
         )}
         {lastName && (
           <>
             {' and '}
-            last name <strong>{lastName}</strong>
+            <span>
+              last name <strong>{lastName}</strong>
+            </span>
           </>
         )}
         {'. '}
