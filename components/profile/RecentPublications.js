@@ -41,8 +41,7 @@ const RecentPublications = ({
         <Link
           href={`/search?term=${profileId}&content=authors&group=all&source=forum&sort=cdate:desc`}
         >
-          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-          <a>View all {count} publications</a>
+          View all {count} publications
         </Link>
       )}
     </>
