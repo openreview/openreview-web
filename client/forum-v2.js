@@ -59,6 +59,7 @@ module.exports = function (forumId, noteId, invitationId, user, isBetaUser) {
         {
           replyForum: forumId,
           details: 'repliedNotes,repliedEdits',
+          type: 'note',
         },
         { handleErrors: false }
       ).then(function (result) {
@@ -75,7 +76,7 @@ module.exports = function (forumId, noteId, invitationId, user, isBetaUser) {
         '/invitations',
         {
           replyForum: forum,
-          tags: true,
+          type: 'tag',
         },
         { handleErrors: false }
       ).then(function (result) {
