@@ -1585,7 +1585,6 @@ const UserModerationQueue = ({
         profileToPreview={profileToPreview}
         setProfileToPreview={setProfileToPreview}
         setLastPreviewedProfileId={setLastPreviewedProfileId}
-        contentToShow={['publications']}
       />
     </div>
   )
