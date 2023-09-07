@@ -74,6 +74,27 @@ const UserModerationTab = ({ accessToken }) => {
     }
   }
 
+  const updateTermStamp = async () => {
+    const currentTimeStamp = dayjs().toISOString()
+    // eslint-disable-next-line no-alert
+    const result = window.confirm(`Update term stamp to ${currentTimeStamp}?`)
+    if (!result) return
+
+    try {
+      await api.post(
+        '/notes',
+        {
+          ...configNote,
+          content: { ...configNote.content, termsTimestamp: currentTimeStamp },
+        },
+        { accessToken }
+      )
+      getModerationStatus()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   return (
     <>
       {configNote && (
@@ -88,6 +109,13 @@ const UserModerationTab = ({ accessToken }) => {
             <option value="enabled">Enabled</option>
             <option value="disabled">Disabled</option>
           </select>
+
+          <span className="terms-timestamp">
+            {`Terms Timestamp is ${configNote?.content?.termsTimestamp ?? 'unset'}`}
+          </span>
+          <button type="button" className="btn btn-xs" onClick={updateTermStamp}>
+            Update Terms Stamp
+          </button>
         </div>
       )}
 

@@ -489,6 +489,16 @@ export default function ProfileEditor({
         </ProfileSection>
       )}
 
+      {hidePublicationEditor && (
+        <p className="help-block">
+          By registering, you agree to the{' '}
+          <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
+            Terms of Use
+          </a>
+          .
+        </p>
+      )}
+
       <div className="buttons-row">
         <button
           type="button"
