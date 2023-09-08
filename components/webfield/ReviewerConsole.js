@@ -20,11 +20,14 @@ import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
 
-const AreaChairInfo = ({ areaChairName, areaChairId }) => (
+const AreaChairInfo = ({ areaChairName, areaChairIds }) => (
   <div className="note-area-chairs">
     <p>
       <strong>{prettyField(areaChairName)}:</strong>{' '}
-      <Link href={`/profile?id=${areaChairId}`}>{prettyId(areaChairId)}</Link>
+      {
+        areaChairIds.map((areaChairId) =>
+        <Link key={areaChairId} href={`/profile?id=${areaChairId}`}>{prettyId(areaChairId)} </Link>)
+      }
     </p>
   </div>
 )
@@ -156,7 +159,7 @@ const AssignedPaperRow = ({
   )
   const currentTagObj = paperRankingTags?.find((p) => p.forum === note.forum)
   const anonGroupId = paperNumberAnonGroupIdMap[note.number]
-  const areaChairId = areaChairMap[note.number]
+  const areaChairIds = areaChairMap[note.number]
   const paperRatingValues = isV2Note
     ? (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
         (ratingName) => ({ [ratingName]: officialReview?.content?.[ratingName]?.value })
@@ -172,8 +175,8 @@ const AssignedPaperRow = ({
       </td>
       <td>
         <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={isV2Note} />
-        {areaChairId && (
-          <AreaChairInfo areaChairName={areaChairName} areaChairId={areaChairId} />
+        {areaChairIds?.length && (
+          <AreaChairInfo areaChairName={areaChairName} areaChairIds={areaChairIds} />
         )}
       </td>
       <td>
@@ -404,14 +407,26 @@ const ReviewerConsole = ({ appContext }) => {
             },
             { accessToken }
           )
-          .then((result) =>
-            result.groups
-              .filter((p) => p.id.endsWith(`/${areaChairName}`))
-              .reduce((prev, curr) => {
-                const num = getNumberFromGroup(curr.id, submissionName)
-                prev[num] = curr.members[0] // eslint-disable-line no-param-reassign
-                return prev
-              }, {})
+          .then((result) => {
+            const areaChairMap = {}
+            result.groups.forEach((areaChairgroup) => {
+              if (areaChairgroup.id.endsWith(`/${areaChairName}`)) {
+                const num = getNumberFromGroup(areaChairgroup.id, submissionName)
+                areaChairMap[num] = areaChairgroup.members
+              }
+            })
+            result.groups.forEach((anonGroup) => {
+              if (anonGroup.id.includes(`/Area_Chair_`)) {
+                const num = getNumberFromGroup(anonGroup.id, submissionName)
+                if (areaChairMap[num]) {
+                  const index = areaChairMap[num].indexOf(anonGroup.id)
+                  if (index >= 0) areaChairMap[num][index] = anonGroup.members[0]
+                }
+              }
+
+            })
+            return areaChairMap
+          }
           )
       : Promise.resolve({})
     // #endregion
