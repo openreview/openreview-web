@@ -104,6 +104,24 @@ function ConsolesList({
   )
 }
 
+function LinksList({ links }) {
+  if (!links || links.length === 0) return null
+
+  return (
+    <ul className="list-unstyled venues-list mt-2">
+      {links.map(({ name, url }, i) => (
+        <li className="mb-2" key={i}>
+          {url.startsWith('/') ? (
+            <Link href={url}>{name ?? url}</Link>
+          ) : (
+            <a href={url} target="_blank" rel="noopener noreferrer">{name ?? url}</a>
+          )}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export default function VenueHomepage({ appContext }) {
   const {
     entity: group,
@@ -161,6 +179,10 @@ export default function VenueHomepage({ appContext }) {
       return <Markdown text={tabConfig.content} />
     }
 
+    if (tabConfig.links?.length > 0) {
+      return <LinksList links={tabConfig.links} />
+    }
+
     if (tabConfig.query || tabConfig.invitation) {
       const query = tabConfig.invitation
         ? { invitation: tabConfig.invitation }
@@ -180,6 +202,17 @@ export default function VenueHomepage({ appContext }) {
                 currentTabs.map((t) => (t.id === tabConfig.id ? { ...t, hidden: isEmpty } : t))
               )
             }
+          }}
+          filterNotes={(note) => {
+            const { postQuery } = tabConfig.options
+            if (!postQuery) return true
+            return Object.keys(postQuery).every((key) => {
+              if (key.startsWith('content.')) {
+                const value = note.content[key.slice(8)]?.value
+                return value && (Array.isArray(value) ? value.includes(postQuery[key]) : value === postQuery[key])
+              }
+              return note[key] === postQuery[key]
+            })
           }}
         />
       )

@@ -20,6 +20,7 @@ export default function SubmissionsList({
   apiVersion,
   shouldReload,
   updateCount,
+  filterNotes,
   pageSize,
   enableSearch,
   useCredentials,
@@ -32,11 +33,15 @@ export default function SubmissionsList({
 
   const loadNotes = useCallback(
     async (limit, offset) => {
-      const { notes, count } = await api.get(
+      let { notes, count } = await api.get(
         '/notes',
         { details, ...query, limit, offset },
         { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
       )
+      if (typeof filterNotes === 'function') {
+        notes = notes.filter(filterNotes)
+        count = notes.length
+      }
       if (typeof updateCount === 'function') {
         updateCount(count ?? 0)
       }
