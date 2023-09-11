@@ -25,12 +25,11 @@ const ConsoleTaskList = ({
         api.getAll(
           '/invitations',
           {
-            ...(apiVersion !== 2 && { regex: `${venueId}/.*` }),
-            ...(apiVersion === 2 && { domain: venueId }),
+            ...(apiVersion === 2 ? { domain: venueId } : { regex: `${venueId}/.*` }),
             invitee: true,
             duedate: true,
             replyto: true,
-            type: 'notes',
+            type: apiVersion === 2 ? 'note' : 'notes',
             details: `replytoNote,repliedNotes${apiVersion === 2 ? ',repliedEdits' : ''}`,
           },
           { accessToken, version: apiVersion }
@@ -42,7 +41,7 @@ const ConsoleTaskList = ({
             ...(apiVersion === 2 && { domain: venueId }),
             invitee: true,
             duedate: true,
-            type: 'edges',
+            type: apiVersion === 2 ? 'edge' : 'edges',
             details: 'repliedEdges',
           },
           { accessToken, version: apiVersion }
@@ -54,7 +53,7 @@ const ConsoleTaskList = ({
             ...(apiVersion === 2 && { domain: venueId }),
             invitee: true,
             duedate: true,
-            type: 'tags',
+            type: apiVersion === 2 ? 'tag' : 'tags',
             details: 'repliedTags',
           },
           { accessToken, version: apiVersion }

@@ -1263,9 +1263,10 @@ module.exports = (function () {
       groups.forEach(function (group) {
         if (group.id.endsWith('/' + roleName)) {
           paperGroups.push(group)
-          memberIds = memberIds.concat(group.members)
+          memberIds = memberIds.concat(group.members.filter(function (member) {  return member.indexOf('~') === 0 || member.indexOf('@') > -1 }))
         } else if (_.includes(group.id, '/' + anonRoleName)) {
           anonPaperGroups.push(group)
+          memberIds = memberIds.concat(group.members.filter(function (member) {  return member.indexOf('~') === 0 || member.indexOf('@') > -1 }))
         }
       })
 
@@ -1284,16 +1285,17 @@ module.exports = (function () {
             var anonGroup = anonPaperGroups.find(function (anonGroup) {
               return (
                 anonGroup.id.startsWith(venueId + '/' + numberToken + number) &&
-                anonGroup.members[0] === member
+                (anonGroup.members[0] === member || anonGroup.id === member)
               )
             })
-            var profile = profilesById[member]
+            var deanonymizedMember = anonGroup ? anonGroup.members[0] : member
+            var profile = profilesById[deanonymizedMember]
             var profileInfo = {
-              id: member,
-              name: member.indexOf('~') === 0 ? view.prettyId(member) : member,
-              email: member,
-              allEmails: [member],
-              allNames: [member],
+              id: deanonymizedMember,
+              name: deanonymizedMember.indexOf('~') === 0 ? view.prettyId(deanonymizedMember) : deanonymizedMember,
+              email: deanonymizedMember,
+              allEmails: [deanonymizedMember],
+              allNames: [deanonymizedMember],
             }
             if (profile) {
               profileInfo = {
@@ -1314,7 +1316,7 @@ module.exports = (function () {
               }
             }
             memberGroups.push({
-              id: member,
+              id: deanonymizedMember,
               anonId: anonGroup && getNumberfromGroup(anonGroup.id, anonRoleName),
               name: profileInfo.name,
               email: profileInfo.email,

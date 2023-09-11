@@ -59,9 +59,11 @@ export default function FeedbackModal() {
         <p>{text}</p>
       ) : (
         <p>
-          Enter your feedback below and we&apos;ll get back to you as soon as possible. To
-          submit a bug report or feature request, you can use the official OpenReview GitHub
-          repository:
+          <span>
+            Enter your feedback below and we&apos;ll get back to you as soon as possible. To
+            submit a bug report or feature request, you can use the official OpenReview GitHub
+            repository:
+          </span>
           <br />
           <a
             href="https://github.com/openreview/openreview/issues/new/choose"
