@@ -44,7 +44,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
   const getMatchingProfiles = useCallback(
     debounce(async (name) => {
       try {
-        const { profiles } = await api.get('/profiles', { fullname: name, limit: 100 })
+        const { profiles } = await api.get('/profiles/search', { fullname: name, limit: 100, es: true })
         if (profiles) {
           setExistingProfiles(
             profiles.map((profile) => ({
