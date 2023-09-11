@@ -203,6 +203,17 @@ export default function VenueHomepage({ appContext }) {
               )
             }
           }}
+          filterNotes={(note) => {
+            const postQuery = tabConfig.options.postQuery
+            if (!postQuery) return true
+            Object.keys(postQuery).forEach((key) => {
+              if (key.startsWith('content.')) {
+                if (!note.content[key.slice(8)] || note.content[key.slice(8)]['value'] !== postQuery[key]) return false
+              } else {
+                if (note[key] !== postQuery[key]) return false
+              }
+            })
+          }}
         />
       )
     }
