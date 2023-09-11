@@ -204,14 +204,14 @@ export default function VenueHomepage({ appContext }) {
             }
           }}
           filterNotes={(note) => {
-            const postQuery = tabConfig.options.postQuery
+            const { postQuery } = tabConfig.options
             if (!postQuery) return true
-            Object.keys(postQuery).forEach((key) => {
+            return Object.keys(postQuery).every((key) => {
               if (key.startsWith('content.')) {
-                if (!note.content[key.slice(8)] || note.content[key.slice(8)]['value'] !== postQuery[key]) return false
-              } else {
-                if (note[key] !== postQuery[key]) return false
+                const value = note.content[key.slice(8)]?.value
+                return value && (Array.isArray(value) ? value.includes(postQuery[key]) : value === postQuery[key])
               }
+              return note[key] === postQuery[key]
             })
           }}
         />
