@@ -420,26 +420,24 @@ const Assignments = ({ appContext }) => {
       return
     }
 
-    if (version === 1) {
-      $('#note-editor-modal').remove()
-      $('main').append(
-        Handlebars.templates.genericModal({
-          id: 'note-editor-modal',
-          extraClasses: 'modal-lg',
-          showHeader: false,
-          showFooter: false,
-        })
-      )
-      $('#note-editor-modal').modal('show')
-      const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
-      editorFunc(note, configInvitation, null, {
-        onNoteEdited: hideEditorModal,
-        onNoteCancelled: hideEditorModal,
-        onError: showDialogErrorMessage,
-        onValidate: validateConfigNoteForm,
-        onCompleted: appendEditorToModal,
+    $('#note-editor-modal').remove()
+    $('main').append(
+      Handlebars.templates.genericModal({
+        id: 'note-editor-modal',
+        extraClasses: 'modal-lg',
+        showHeader: false,
+        showFooter: false,
       })
-    }
+    )
+    $('#note-editor-modal').modal('show')
+    const editorFunc = version === 2 ? view2.mkNoteEditor : view.mkNoteEditor
+    editorFunc(note, configInvitation, null, {
+      onNoteEdited: hideEditorModal,
+      onNoteCancelled: hideEditorModal,
+      onError: showDialogErrorMessage,
+      onValidate: validateConfigNoteForm,
+      onCompleted: appendEditorToModal,
+    })
   }
 
   const handleCloneConfiguration = (note, version) => {

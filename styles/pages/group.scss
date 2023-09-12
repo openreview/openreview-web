@@ -37,6 +37,11 @@ main.invitation {
       &.dark p {
         color: constants.$darkBlue;
       }
+
+      li {
+        color: #777777;
+        margin-bottom: 10px;
+      }
     }
     p {
       color: #777777;
