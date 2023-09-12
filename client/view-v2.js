@@ -2341,7 +2341,7 @@ module.exports = (function () {
       if (
         (formData?.[contentFieldName] === undefined ||
           formData?.[contentFieldName]?.delete === true) &&
-        noteObj?.content?.[contentFieldName] === undefined
+        noteObj?.content?.[contentFieldName]?.value === undefined
       ) {
         // do not return field
         return
