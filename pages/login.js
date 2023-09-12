@@ -75,7 +75,7 @@ const LoginForm = () => {
       <p className="help-block">
         By logging in, you agree to the{' '}
         <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
-          Terms of Use
+          <strong>Terms of Use</strong>
         </a>
         .
       </p>
