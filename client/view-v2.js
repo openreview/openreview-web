@@ -2357,9 +2357,10 @@ module.exports = (function () {
         } else {
           var newVal = formData?.[contentFieldName]
           if (
-            valueObj.param?.input === 'text' ||
-            valueObj.param?.input === 'textarea' ||
-            (valueObj.param?.type === 'string' && !valueObj.param?.enum)
+            typeof newVal === 'string' &&
+            (valueObj.param?.input === 'text' ||
+              valueObj.param?.input === 'textarea' ||
+              (valueObj.param?.type === 'string' && !valueObj.param?.enum))
           ) {
             newVal = newVal?.trim()
           }
