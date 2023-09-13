@@ -2339,7 +2339,7 @@ module.exports = (function () {
       if (
         (formData?.[contentFieldName] === undefined ||
           formData?.[contentFieldName]?.delete === true) &&
-        noteObj?.content?.[contentFieldName] === undefined
+        noteObj?.content?.[contentFieldName]?.value === undefined
       ) {
         // do not return field
         return
@@ -2355,9 +2355,10 @@ module.exports = (function () {
         } else {
           var newVal = formData?.[contentFieldName]
           if (
-            valueObj.param?.input === 'text' ||
-            valueObj.param?.input === 'textarea' ||
-            (valueObj.param?.type === 'string' && !valueObj.param?.enum)
+            typeof newVal === 'string' &&
+            (valueObj.param?.input === 'text' ||
+              valueObj.param?.input === 'textarea' ||
+              (valueObj.param?.type === 'string' && !valueObj.param?.enum))
           ) {
             newVal = newVal?.trim()
           }

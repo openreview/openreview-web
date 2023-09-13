@@ -74,6 +74,15 @@ export default class EdgeBrowser extends React.Component {
       this.buildEntityMapFromInvitation('tail'),
     ])
       .then(([headMap, tailMap]) => {
+        // filter out withdrawn notes
+        Object.keys(tailMap).forEach((tailId) => {
+          if (tailMap[tailId].heads)
+            // eslint-disable-next-line no-param-reassign
+            tailMap[tailId].traverseEdgesCount = tailMap[tailId].heads.filter(
+              (q) => headMap[q.head]
+            )?.length
+        })
+
         this.setState({
           headMap,
           tailMap,
@@ -152,7 +161,7 @@ export default class EdgeBrowser extends React.Component {
         {
           invitation: this.traverseInvitation.id,
           groupBy: headOrTail,
-          select: 'count',
+          select: `count${headOrTail === 'tail' ? ',head' : ''}`,
           ...this.traverseInvitation.query,
         },
         { accessToken: this.accessToken, version: this.version, resultsKey: 'groupedEdges' }
@@ -178,6 +187,10 @@ export default class EdgeBrowser extends React.Component {
             [entity.id, 'count'],
             0
           )
+          entityMap[entity.id].heads =
+            headOrTail === 'tail'
+              ? _.get(groupedEdges, [entity.id, 'values'], null)
+              : undefined
         }
         mainResults.forEach(buildEntityMap)
         startResults.forEach(buildEntityMap)
