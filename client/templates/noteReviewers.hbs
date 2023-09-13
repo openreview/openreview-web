@@ -43,6 +43,12 @@
                 <br>
                 <a href="#" class="show-activity-modal" data-paper-num="{{../paperNumber}}" data-reviewer-num="{{reviewerNum}}" data-reviewer-name="{{user.name}}" data-reviewer-email="{{user.email}}">Show Reviewer Activity</a>
               {{/if}}
+              {{#if user.links}}
+                {{#each user.links as |url name|}}
+                  <br>
+                  <a href="{{url}}">{{name}}</a>
+                {{/each}}
+              {{/if}}
             </td>
           </tr>
         {{/each}}
