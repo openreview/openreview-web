@@ -158,7 +158,7 @@ const NoteEditor = ({
 
   const defaultNoteEditorData = {
     ...getNoteContentValues(note?.content ?? {}),
-    ...(note && { noteReaderValues: note.readers }),
+    ...(note?.id && { noteReaderValues: note.readers }),
   }
 
   const noteEditorDataReducer = (state, action) => {
@@ -188,7 +188,7 @@ const NoteEditor = ({
     const error = errors.find((e) => e.fieldName === fieldName)
 
     let fieldValue = noteEditorData[fieldName]
-    if (fieldName === 'authorids' && note) {
+    if (fieldName === 'authorids' && note?.id) {
       fieldValue = noteEditorData.authorids?.map((p, index) => ({
         authorId: p,
         authorName: noteEditorData.authors?.[index],
@@ -246,7 +246,7 @@ const NoteEditor = ({
     const clearError = () =>
       setErrors((existingErrors) => existingErrors.filter((p) => p.fieldName !== fieldName))
 
-    if (!note && !replyToNote) {
+    if (!note?.id && !replyToNote) {
       return (
         <NewNoteReaders
           fieldDescription={invitation.edit.note.readers}
@@ -543,13 +543,13 @@ const NoteEditor = ({
 
   return (
     <div className={classNames(className, styles.noteEditor)}>
-      {(note || replyToNote) && (
+      {(note?.id || replyToNote) && (
         <h2 className={styles.title}>
-          {note ? 'Edit' : 'New'} {prettyInvitationId(invitation.id)}
+          {note?.id ? 'Edit' : 'New'} {prettyInvitationId(invitation.id)}
         </h2>
       )}
 
-      {(note || replyToNote) && <hr className={styles.titleSeparator} />}
+      {(note?.id || replyToNote) && <hr className={styles.titleSeparator} />}
 
       <div className={styles.requiredField}>
         <span>*</span> denotes a required field
