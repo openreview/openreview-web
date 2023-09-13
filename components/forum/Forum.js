@@ -24,7 +24,7 @@ import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
-import { prettyInvitationId, useNewNoteEditor } from '../../lib/utils'
+import { prettyInvitationId, stringToObject, useNewNoteEditor } from '../../lib/utils'
 import {
   formatNote,
   getNoteInvitations,
@@ -36,6 +36,7 @@ export default function Forum({
   forumNote,
   selectedNoteId,
   selectedInvitationId,
+  prefilledValues,
   clientJsLoading,
 }) {
   const { userLoading, accessToken } = useUser()
@@ -789,6 +790,9 @@ export default function Forum({
             </div>
             {newNoteEditor ? (
               <NoteEditor
+                note={
+                  selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)
+                }
                 replyToNote={parentNote}
                 invitation={activeInvitation}
                 className="note-editor-reply depth-even"
