@@ -100,8 +100,8 @@ export default function Forum({
     if (!forumId) return Promise.resolve([])
 
     const extraParams = includeTags
-      ? { tags: true, details: 'writable' }
-      : { details: 'repliedNotes,writable' }
+      ? { type: 'tag', details: 'writable' }
+      : { type: 'note', details: 'repliedNotes,writable' }
     return api
       .get(
         '/invitations',

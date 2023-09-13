@@ -222,7 +222,7 @@ const NoteEditor = ({
           </EditorComponentHeader>
         </EditorComponentContext.Provider>
 
-        {fieldDescription.readers && (
+        {!isHiddenField && fieldDescription.readers && (
           <EditorComponentContext.Provider
             value={{
               field: { [fieldName]: fieldDescription.readers },

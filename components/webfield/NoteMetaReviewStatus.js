@@ -123,7 +123,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
           invitee: true,
           duedate: true,
           replyto: true,
-          type: 'notes',
+          type: 'note',
         },
         { accessToken, version: 2 }
       )
