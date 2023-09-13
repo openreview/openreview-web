@@ -45,6 +45,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     customStageInvitations,
     withdrawnVenueId,
     deskRejectedVenueId,
+    filterFunction,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -63,21 +64,44 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       const notesP = submissionId
         ? api
             .getAll(
-              '/notes',
+              '/groups',
               {
-                invitation: submissionId,
-                details: 'replies',
-                select: 'id,number,forum,content,details,invitations,readers',
-                sort: 'number:asc',
+                member: user.id,
+                prefix: `${venueId}/${submissionName}.*`,
+                select: 'id',
               },
               { accessToken, version: 2 }
             )
-            .then((notes) =>
-              notes.filter((note) => {
-                const noteVenueId = note.content?.venueid?.value
-                return noteVenueId !== withdrawnVenueId && venueId !== deskRejectedVenueId
-              })
-            )
+            .then((groups) => {
+              const noteNumbers = groups.flatMap((p) =>
+                p.id.endsWith(`/${seniorAreaChairName}`)
+                  ? getNumberFromGroup(p.id, submissionName)
+                  : []
+              )
+              if (!noteNumbers.length) return []
+              return api
+                .getAll(
+                  '/notes',
+                  {
+                    invitation: submissionId,
+                    details: 'replies',
+                    select: 'id,number,forum,content,details,invitations,readers',
+                    sort: 'number:asc',
+                  },
+                  { accessToken, version: 2 }
+                )
+                .then((notes) =>
+                  notes.filter((note) => {
+                    const noteVenueId = note.content?.venueid?.value
+                    return (
+                      noteVenueId !== withdrawnVenueId &&
+                      venueId !== deskRejectedVenueId &&
+                      ((filterFunction && Function('note', filterFunction)(note)) ?? true) && // eslint-disable-line no-new-func
+                      noteNumbers.includes(note.number)
+                    )
+                  })
+                )
+            })
         : Promise.resolve([])
       // #endregion
 
@@ -145,7 +169,10 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           })
           p.members.forEach((member) => {
             if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
-            if (!(member in anonAreaChairGroups[number]) && member.includes(anonAreaChairName)) {
+            if (
+              !(member in anonAreaChairGroups[number]) &&
+              member.includes(anonAreaChairName)
+            ) {
               anonAreaChairGroups[number][member] = member
             }
           })
@@ -167,8 +194,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             let anonymizedGroup = member
             if (!deanonymizedGroup) {
               deanonymizedGroup = member
-              anonymizedGroup = Object.keys(paperAnonReviewerGroups)
-              .find(key => paperAnonReviewerGroups[key] === member)
+              anonymizedGroup = Object.keys(paperAnonReviewerGroups).find(
+                (key) => paperAnonReviewerGroups[key] === member
+              )
             }
             return {
               reviewerProfileId: deanonymizedGroup,
@@ -188,8 +216,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             let anonymizedGroup = member
             if (!deanonymizedGroup) {
               deanonymizedGroup = member
-              anonymizedGroup = Object.keys(paperAnonAreaChairGroups)
-              .find(key => paperAnonAreaChairGroups[key] === member)
+              anonymizedGroup = Object.keys(paperAnonAreaChairGroups).find(
+                (key) => paperAnonAreaChairGroups[key] === member
+              )
             }
             return {
               areaChairProfileId: deanonymizedGroup,
