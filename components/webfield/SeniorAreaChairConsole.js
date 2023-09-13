@@ -96,7 +96,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                     return (
                       noteVenueId !== withdrawnVenueId &&
                       venueId !== deskRejectedVenueId &&
-                      ((filterFunction && Function('note', filterFunction)(note)) ?? true) &&
+                      ((filterFunction && Function('note', filterFunction)(note)) ?? true) && // eslint-disable-line no-new-func
                       noteNumbers.includes(note.number)
                     )
                   })
