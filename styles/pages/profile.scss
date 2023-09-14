@@ -172,6 +172,10 @@ main.profile {
       }
       div:nth-child(2):not(.tooltip):not(.tooltip-inner) {
         width: calc(100% - ($nameColWidth + $dateColWidth + $badgeColWidth));
+        .geolocation {
+          margin-left: 0.25rem;
+          font-size: 0.75rem;
+        }
       }
       div:nth-child(3) {
         width: $dateColWidth;
