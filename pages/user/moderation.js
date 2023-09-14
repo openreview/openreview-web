@@ -22,10 +22,10 @@ import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
 import PaginatedList from '../../components/PaginatedList'
 import Table from '../../components/Table'
-import BasicProfileView from '../../components/profile/BasicProfileView'
 import { formatProfileData } from '../../lib/profiles'
 import Markdown from '../../components/EditorComponents/Markdown'
 import Dropdown from '../../components/Dropdown'
+import ProfilePreviewModal from '../../components/profile/ProfilePreviewModal'
 
 dayjs.extend(relativeTime)
 
@@ -1740,26 +1740,5 @@ const FullTextModal = ({ id, textToView, setTextToView }) => (
     {textToView}
   </BasicModal>
 )
-
-const ProfilePreviewModal = ({
-  profileToPreview,
-  setProfileToPreview,
-  setLastPreviewedProfileId,
-}) => {
-  if (!profileToPreview) return null
-  return (
-    <BasicModal
-      id="profile-preview"
-      primaryButtonText={null}
-      cancelButtonText="OK"
-      onClose={() => {
-        setProfileToPreview(null)
-        setLastPreviewedProfileId(profileToPreview.id)
-      }}
-    >
-      <BasicProfileView profile={profileToPreview} showLinkText={true} />
-    </BasicModal>
-  )
-}
 
 export default withAdminAuth(Moderation)
