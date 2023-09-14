@@ -5,8 +5,6 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Router, { useRouter } from 'next/router'
 import pick from 'lodash/pick'
-import { nanoid } from 'nanoid'
-import NoteList from '../../components/NoteList'
 import ProfileViewSection from '../../components/profile/ProfileViewSection'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import LimitedStatusAlert from '../../components/profile/LimitedStateAlert'
@@ -16,46 +14,7 @@ import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
 import { auth, isSuperUser } from '../../lib/auth'
 import { profileModeToggle } from '../../lib/banner-links'
-
-const RecentPublications = ({ profileId, publications, count, loading, preferredName }) => {
-  const displayOptions = {
-    pdfLink: false,
-    htmlLink: false,
-    showContents: false,
-    showPrivateIcon: true,
-    referrer: `[the profile of ${preferredName}](/profile?id=${profileId})`,
-  }
-  const numPublicationsToShow = 10
-
-  if (loading) {
-    return (
-      <p className="loading-message">
-        <em>Loading...</em>
-      </p>
-    )
-  }
-
-  return publications.length > 0 ? (
-    <>
-      <NoteList
-        key={nanoid()}
-        notes={publications.slice(0, numPublicationsToShow)}
-        displayOptions={displayOptions}
-      />
-
-      {count > numPublicationsToShow && (
-        <Link
-          href={`/search?term=${profileId}&content=authors&group=all&source=forum&sort=cdate:desc`}
-        >
-          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-          View all{count}publications
-        </Link>
-      )}
-    </>
-  ) : (
-    <p className="empty-message">No recent publications</p>
-  )
-}
+import RecentPublications from '../../components/profile/RecentPublications'
 
 const CoAuthorsList = ({ coAuthors, loading }) => {
   const [visibleCoAuthors, setVisibleCoAuthors] = useState([])
