@@ -305,7 +305,7 @@ const EducationHistorySection = ({
           const recordCopy = { ...p, institution: { ...p.institution } }
           if (p.key === action.data.key) {
             const country = action.data.value.trim()
-            recordCopy.institution.country = country.length ? action.data.value : null
+            recordCopy.institution.country = country.length ? action.data.value : undefined
           }
           return recordCopy
         })
@@ -314,7 +314,7 @@ const EducationHistorySection = ({
           const recordCopy = { ...p, institution: { ...p.institution } }
           if (p.key === action.data.key) {
             const city = action.data.value.trim()
-            recordCopy.institution.city = city.length ? action.data.value : null
+            recordCopy.institution.city = city.length ? action.data.value : undefined
           }
           return recordCopy
         })
@@ -325,7 +325,7 @@ const EducationHistorySection = ({
             const stateProvince = action.data.value.trim()
             recordCopy.institution.stateProvince = stateProvince.length
               ? action.data.value
-              : null
+              : undefined
           }
           return recordCopy
         })
@@ -334,7 +334,9 @@ const EducationHistorySection = ({
           const recordCopy = { ...p, institution: { ...p.institution } }
           if (p.key === action.data.key) {
             const department = action.data.value.trim()
-            recordCopy.institution.department = department.length ? action.data.value : null
+            recordCopy.institution.department = department.length
+              ? action.data.value
+              : undefined
           }
           return recordCopy
         })
