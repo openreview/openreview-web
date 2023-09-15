@@ -182,9 +182,11 @@ export const NoteContentV2 = ({
       {contentOrder.map((fieldName, i) => {
         if (omittedFields.includes(fieldName) || fieldName.startsWith('_')) return null
 
-        const fieldValue = prettyContentValue(
-          fieldName === 'Submission_Number' ? number : content[fieldName]?.value
-        )
+        const fieldValue =
+          presentation?.[i]?.description ??
+          prettyContentValue(
+            fieldName === 'Submission_Number' ? number : content[fieldName]?.value
+          )
         if (!fieldValue) return null
 
         const enableMarkdown = presentation?.[i]?.markdown
