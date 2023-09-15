@@ -182,7 +182,7 @@ const EducationHistoryRow = ({
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution Country</div>}
         <input
-          className="form-control institution-name"
+          className="form-control institution-country"
           placeholder="Institution Country"
           value={p.institution?.country ?? ''}
           onChange={(e) =>
@@ -196,7 +196,7 @@ const EducationHistoryRow = ({
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution City</div>}
         <input
-          className="form-control institution-name"
+          className="form-control institution-city"
           placeholder="Institution City"
           value={p.institution?.city ?? ''}
           onChange={(e) =>
@@ -210,7 +210,7 @@ const EducationHistoryRow = ({
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution State/Province</div>}
         <input
-          className="form-control institution-name"
+          className="form-control institution-state"
           placeholder="Institution State/Province"
           value={p.institution?.stateProvince ?? ''}
           onChange={(e) =>
@@ -224,7 +224,7 @@ const EducationHistoryRow = ({
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Department of Institution</div>}
         <input
-          className="form-control institution-name"
+          className="form-control institution-department"
           placeholder="Department of Institution"
           value={p.institution?.department ?? ''}
           onChange={(e) =>

@@ -138,6 +138,11 @@ test('user open own profile', async (t) => {
     .typeText(dblpUrlInput, 'http://test.com', { replace: true, paste: true })
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .notOk() // button is enabled
+    // add geolocation info of history
+    .typeText(Selector('input.institution-country'), 'AA')
+    .typeText(Selector('input.institution-city'), 'test city')
+    .typeText(Selector('input.institution-state'), 'test state')
+    .typeText(Selector('input.institution-department'), 'test department')
     // save
     .typeText(homepageUrlInput, 'http://google.com', { replace: true, paste: true })
     .click(saveProfileButton)
@@ -185,6 +190,34 @@ test('add and delete year of birth', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .expect(yearOfBirthInput.value)
     .eql('')
+})
+
+test('add and delete geolocation of history', async (t) => {
+  // add geolocation info of history
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .typeText(Selector('input.institution-country'), 'AA')
+    .typeText(Selector('input.institution-city'), 'test city')
+    .typeText(Selector('input.institution-state'), 'test state')
+    .typeText(Selector('input.institution-department'), 'test department')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).ok()
+    .expect(Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test city, test state, AA').exists)
+    .ok()
+  // remove geolocation info of history
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .selectText(Selector('input.institution-country')).pressKey('delete')
+    .selectText(Selector('input.institution-city')).pressKey('delete')
+    .selectText(Selector('input.institution-state')).pressKey('delete')
+    .selectText(Selector('input.institution-department')).pressKey('delete')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).notOk()
+
+  await t.expect(true).eql(false)
+  // remove only city/state
 })
 
 test('import paper from dblp', async (t) => {
