@@ -12,6 +12,7 @@ import ErrorAlert from '../ErrorAlert'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
 import WebFieldContext from '../WebFieldContext'
+import { prettyField } from '../../lib/utils'
 
 // modified from noteReviewStatus.hbs handlebar template
 export const ReviewerConsoleNoteReviewStatus = ({
@@ -23,8 +24,6 @@ export const ReviewerConsoleNoteReviewStatus = ({
   <div>
     {editUrl ? (
       <>
-        {/* <h4>Your Ratings:</h4>
-        <p>{paperRating}</p> */}
         {paperRatings.map((rating, index) => {
           const ratingName = Object.keys(rating)[0]
           const ratingValue = rating[ratingName]
@@ -234,7 +233,7 @@ export const AcPcConsoleReviewerStatusRow = ({
                 {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName])
                   .flatMap((ratingName, index) => {
                     const rating = completedReview[ratingName]
-                    if (rating !== null) return `${upperFirst(ratingName)}: ${rating}`
+                    if (rating !== null) return `${prettyField(ratingName)}: ${rating}`
                     return []
                   })
                   .join(' / ')}
@@ -325,7 +324,7 @@ export const AcPcConsoleReviewStatusRow = ({
           {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName])
             .flatMap((ratingName, index) => {
               const rating = review[ratingName]
-              if (rating !== null) return `${upperFirst(ratingName)}: ${rating}`
+              if (rating !== null) return `${prettyField(ratingName)}: ${rating}`
               return []
             })
             .join(' / ')}
@@ -396,7 +395,7 @@ export const AcPcConsoleNoteReviewStatus = ({
             const { ratingAvg, ratingMin, ratingMax } = ratings[ratingName]
             return (
               <span key={index}>
-                <strong>Average {upperFirst(ratingName)}:</strong> {ratingAvg} (Min:{' '}
+                <strong>Average {prettyField(ratingName)}:</strong> {ratingAvg} (Min:{' '}
                 {ratingMin}, Max: {ratingMax})
               </span>
             )
@@ -455,8 +454,8 @@ export const AcPcConsoleNoteReviewStatus = ({
           const { ratingAvg, ratingMin, ratingMax } = ratings[ratingName]
           return (
             <span key={index}>
-              <strong>Average {upperFirst(ratingName)}:</strong> {ratingAvg} (Min: {ratingMin},
-              Max: {ratingMax})
+              <strong>Average {prettyField(ratingName)}:</strong> {ratingAvg} (Min: {ratingMin}
+              , Max: {ratingMax})
             </span>
           )
         }
