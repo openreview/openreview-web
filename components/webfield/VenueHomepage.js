@@ -44,7 +44,7 @@ function ConsolesList({
       apiVersion === 1 ? { regex: `${venueId}/.*` } : { prefix: `${venueId}/` }
     const getUserGroupsP = api.getAll(
       '/groups',
-      { ...groupIdQuery, member: user.id, web: true },
+      { ...groupIdQuery, member: user.id, web: true, domain: venueId },
       { accessToken, version: apiVersion }
     )
 

@@ -83,6 +83,7 @@ const EthicsChairPaperStatus = () => {
           details: 'replies',
           select: 'id,number,forum,content,details,invitations,readers',
           sort: 'number:asc',
+          domain: venueId,
         },
         { accessToken, version: 2 }
       )
@@ -94,6 +95,7 @@ const EthicsChairPaperStatus = () => {
             prefix: `${venueId}/${submissionName}.*`,
             select: 'id,members',
             stream: true,
+            domain: venueId,
           },
           { accessToken, version: 2 }
         )
@@ -145,7 +147,7 @@ const EthicsChairPaperStatus = () => {
             {
               ids,
             },
-            { accessToken }
+            { accessToken, version: 2 }
           )
         : Promise.resolve([])
       const getProfilesByEmailsP = emails.length
@@ -154,7 +156,7 @@ const EthicsChairPaperStatus = () => {
             {
               emails,
             },
-            { accessToken }
+            { accessToken, version: 2 }
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])

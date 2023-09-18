@@ -26,6 +26,7 @@ const EthicsChairOverview = () => {
         {
           prefix: `${venueId}/${ethicsReviewersName}`,
           stream: true,
+          domain: venueId,
         },
         { accessToken, version: 2 }
       )

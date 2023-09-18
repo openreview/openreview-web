@@ -287,10 +287,11 @@ const ReviewerConsole = ({ appContext }) => {
       const memberGroups = await api.getAll(
         '/groups',
         {
-          regex: `${venueId}/${submissionName}.*`,
+          prefix: `${venueId}/${submissionName}.*`,
           member: user.id,
+          domain: group.domain,
         },
-        { accessToken }
+        { accessToken, version: apiVersion }
       )
       anonGroups = memberGroups.filter((p) => p.id.includes(`/${singularName}_`))
 
@@ -317,6 +318,7 @@ const ReviewerConsole = ({ appContext }) => {
             {
               invitation: submissionInvitationId,
               number: noteNumbers.join(','),
+              domain: group.domain,
               details: 'invitation,directReplies',
             },
             { accessToken, version: apiVersion }
@@ -332,6 +334,7 @@ const ReviewerConsole = ({ appContext }) => {
           duedate: true,
           type: 'tags',
           details: 'repliedTags',
+          domain: group.domain,
         })
       : Promise.resolve(null)
     // #endregion
@@ -343,8 +346,9 @@ const ReviewerConsole = ({ appContext }) => {
         {
           invitation: customMaxPapersInvitationId,
           tail: user.id,
+          domain: group.domain,
         },
-        { accessToken }
+        { accessToken, version: apiVersion }
       )
       .then((result) => {
         if (result.edges?.length) {
@@ -357,6 +361,7 @@ const ReviewerConsole = ({ appContext }) => {
               '/notes',
               {
                 invitation: recruitmentInvitationId,
+                domain: group.domain,
                 sort: 'cdate:desc',
               },
               { accessToken, version: 2 }
@@ -401,11 +406,12 @@ const ReviewerConsole = ({ appContext }) => {
           .get(
             '/groups',
             {
-              regex: `${venueId}/${submissionName}.*`,
+              prefix: `${venueId}/${submissionName}.*`,
               select: 'id,members',
+              domain: group.domain,
               stream: true,
             },
-            { accessToken }
+            { accessToken, version: apiVersion }
           )
           .then((result) => {
             const areaChairMap = {}
@@ -442,6 +448,7 @@ const ReviewerConsole = ({ appContext }) => {
             '/invitations',
             {
               ids: officalReviewInvitationIds,
+              domain: group.domain,
             },
             { accessToken, version: apiVersion }
           )
@@ -481,7 +488,7 @@ const ReviewerConsole = ({ appContext }) => {
             )
           } else if (hasPaperRanking) {
             paperRankingTagsP = api
-              .get('/tags', { invitation: paperRankingId }, { accessToken })
+              .get('/tags', { invitation: paperRankingId, domain: group.domain }, { accessToken })
               .then((result) => (result.tags?.length > 0 ? result.tags : []))
           }
           paperRankingTagsP.then((paperRankingTags) => {

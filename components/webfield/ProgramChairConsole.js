@@ -85,6 +85,7 @@ const ProgramChairConsole = ({ appContext }) => {
           prefix: `${venueId}/-/.*`,
           expired: true,
           type: 'all',
+          domain: venueId,
         },
         { accessToken, version: 2 }
       )
@@ -94,6 +95,7 @@ const ProgramChairConsole = ({ appContext }) => {
           prefix: `${reviewersId}/-/.*`,
           expired: true,
           type: 'all',
+          domain: venueId,
         },
         { accessToken, version: 2 }
       )
@@ -104,6 +106,7 @@ const ProgramChairConsole = ({ appContext }) => {
               prefix: `${areaChairsId}/-/.*`,
               expired: true,
               type: 'all',
+              domain: venueId,
             },
             { accessToken, version: 2 }
           )
@@ -115,6 +118,7 @@ const ProgramChairConsole = ({ appContext }) => {
               prefix: `${seniorAreaChairsId}/-/.*`,
               expired: true,
               type: 'all',
+              domain: venueId,
             },
             { accessToken, version: 2 }
           )
@@ -126,6 +130,7 @@ const ProgramChairConsole = ({ appContext }) => {
             {
               ids: customStageInvitations.map((p) => `${venueId}/-/${p.name}`),
               type: 'note',
+              domain: venueId,
             },
             { accessToken, version: 2 }
           )
@@ -171,6 +176,7 @@ const ProgramChairConsole = ({ appContext }) => {
                   invitation: `${prefix}/-/.*`,
                   signature: venueId,
                   select: 'id,invitation,invitations,content.title',
+                  domain: venueId,
                 },
                 { accessToken, version: 2 }
               )
@@ -185,7 +191,7 @@ const ProgramChairConsole = ({ appContext }) => {
       // #region get Reviewer, AC, SAC members
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
-          id ? api.getGroupById(id, accessToken, { select: 'members' }) : Promise.resolve([])
+          id ? api.getGroupById(id, accessToken, null, { select: 'members' }) : Promise.resolve([])
         )
       )
       // #endregion
@@ -198,6 +204,7 @@ const ProgramChairConsole = ({ appContext }) => {
           details: 'replies',
           select: 'id,number,forum,content,details,invitations,readers',
           sort: 'number:asc',
+          domain: venueId,
         },
         { accessToken, version: 2 }
       )
@@ -213,9 +220,9 @@ const ProgramChairConsole = ({ appContext }) => {
                   invitation: `${reviewersId}/-/${recommendationName}`,
                   groupBy: 'id',
                   select: 'signatures',
-                  stream: true,
+                  domain: venueId,
                 },
-                { accessToken }
+                { accessToken, version: 2 }
               )
               .then((result) =>
                 result.groupedEdges.reduce((profileMap, edge) => {
@@ -240,8 +247,9 @@ const ProgramChairConsole = ({ appContext }) => {
               invitation: `${id}/-/${bidName}`,
               groupBy: 'tail',
               select: 'count',
+              domain: venueId,
             },
-            { accessToken, resultsKey: 'groupedEdges' }
+            { accessToken, resultsKey: 'groupedEdges', version: 2 }
           )
         })
       )
@@ -251,11 +259,12 @@ const ProgramChairConsole = ({ appContext }) => {
       const perPaperGroupResultsP = api.get(
         '/groups',
         {
-          id: `${venueId}/${submissionName}.*`,
+          prefix: `${venueId}/${submissionName}.*`,
           stream: true,
           select: 'id,members',
+          domain: venueId,
         },
-        { accessToken }
+        { accessToken, version: 2 }
       )
       // #endregion
 
@@ -344,7 +353,7 @@ const ProgramChairConsole = ({ appContext }) => {
             {
               ids,
             },
-            { accessToken }
+            { accessToken, version: 2 }
           )
         : Promise.resolve([])
       const getProfilesByEmailsP = emails.length
@@ -353,7 +362,7 @@ const ProgramChairConsole = ({ appContext }) => {
             {
               emails,
             },
-            { accessToken }
+            { accessToken, version: 2 }
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
@@ -718,8 +727,9 @@ const ProgramChairConsole = ({ appContext }) => {
               invitation: `${seniorAreaChairsId}/-/Assignment`,
               groupBy: 'head,tail',
               select: 'head,tail',
+              domain: venueId,
             },
-            { accessToken }
+            { accessToken, version: 2 }
           )
           .then((result) => result.groupedEdges)
       : []
@@ -753,7 +763,7 @@ const ProgramChairConsole = ({ appContext }) => {
           {
             ids,
           },
-          { accessToken }
+          { accessToken, version: 2 }
         )
       : Promise.resolve([])
     const getProfilesByEmailsP = emails.length
@@ -762,7 +772,7 @@ const ProgramChairConsole = ({ appContext }) => {
           {
             emails,
           },
-          { accessToken }
+          { accessToken, version: 2 }
         )
       : Promise.resolve([])
     const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])

@@ -103,6 +103,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     immediateSearchTerm: '',
     searchTerm: '',
   })
+  console.log(invitation.domain)
 
   const getNotesSortedByAffinity = async (score = searchState.selectedScore, limit = 50) => {
     setIsLoading(true)
@@ -113,6 +114,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           'content.venueid': submissionVenueId,
           offset: (pageNumber - 1) * pageSize,
           limit,
+          domain: invitation.domain
         },
         { accessToken, version: 2 }
       )
@@ -132,6 +134,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             sort: 'weight:desc',
             offset: (pageNumber - 1) * pageSize,
             limit,
+            domain: invitation.domain
           },
           { accessToken, version: 2 }
         )
@@ -141,7 +144,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           const noteIds = edgesResult.edges.map((p) => p.head)
           const notesResult = await api.post(
             '/notes/search',
-            { ids: noteIds },
+            { ids: noteIds, domain: invitation.domain },
             { accessToken, version: 2 }
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
@@ -418,6 +421,7 @@ const NoBidTab = ({
         {
           'content.venueid': submissionVenueId,
           limit: 1000,
+          domain: invitation.domain
         },
         { accessToken, version: 2 }
       )
@@ -437,6 +441,7 @@ const NoBidTab = ({
             invitation: selectedScore,
             tail: user.profile.id,
             sort: 'weight:desc',
+            domain: invitation.domain
           },
           { accessToken, version: 2 }
         )
@@ -445,7 +450,7 @@ const NoBidTab = ({
           const noteIds = edgesResult.edges.map((p) => p.head)
           const notesResult = await api.post(
             '/notes/search',
-            { ids: noteIds },
+            { ids: noteIds, domain: invitation.domain },
             { accessToken, version: 2 }
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
@@ -550,6 +555,7 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
         '/notes/search',
         {
           ids: noteIds,
+          domain: invitation.domain
         },
         { accessToken, version: 2 }
       )
@@ -650,12 +656,12 @@ const BidConsole = ({ appContext }) => {
     try {
       const bidEdgeResultsP = api.getAll(
         '/edges',
-        { invitation: invitation.id, tail: user.profile.id },
+        { invitation: invitation.id, tail: user.profile.id, domain: invitation.domain },
         { accessToken, version: 2 }
       )
       const conflictEdgeResultsP = api.getAll(
         '/edges',
-        { invitation: conflictInvitationId, tail: user.profile.id },
+        { invitation: conflictInvitationId, tail: user.profile.id, domain: invitation.domain },
         { accessToken, version: 2 }
       )
       const results = await Promise.all([bidEdgeResultsP, conflictEdgeResultsP])

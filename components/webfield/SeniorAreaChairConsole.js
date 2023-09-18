@@ -69,6 +69,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 member: user.id,
                 prefix: `${venueId}/${submissionName}.*`,
                 select: 'id',
+                domain: group.domain,
               },
               { accessToken, version: 2 }
             )
@@ -87,6 +88,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                     details: 'replies',
                     select: 'id,number,forum,content,details,invitations,readers',
                     sort: 'number:asc',
+                    domain: group.domain,
                   },
                   { accessToken, version: 2 }
                 )
@@ -109,11 +111,12 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       const perPaperGroupResultsP = api.get(
         '/groups',
         {
-          id: `${venueId}/${submissionName}.*`,
+          prefix: `${venueId}/${submissionName}.*`,
           stream: true,
           select: 'id,members',
+          domain: group.domain,
         },
-        { accessToken }
+        { accessToken, version: 2 }
       )
       // #endregion
 
@@ -125,8 +128,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               invitation: assignmentInvitation,
               label: assignmentLabel,
               tail: user.profile.id,
+              domain: group.domain,
             },
-            { accessToken }
+            { accessToken, version: 2 }
           )
         : Promise.resolve([])
       // #endregion
@@ -242,7 +246,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             {
               ids,
             },
-            { accessToken }
+            { accessToken, version: 2 }
           )
         : Promise.resolve([])
       const getProfilesByEmailsP = emails.length
@@ -251,7 +255,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             {
               emails,
             },
-            { accessToken }
+            { accessToken, version: 2 }
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])

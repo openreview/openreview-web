@@ -66,6 +66,7 @@ const AcPcConsoleReviewerActivityModal = ({ note, reviewer, venueId, submissionN
           signature: reviewer.reviewerProfileId,
           transitiveMembers: true,
           invitation: `${venueId}/${submissionName}${note.number}/-/.*`,
+          domain: venueId,
         },
         { accessToken, version: 2 }
       )
