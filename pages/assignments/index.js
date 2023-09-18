@@ -228,6 +228,12 @@ const NewNoteEditorModal = ({
         errorMessage: 'The configuration title must be unique within the conference',
       }
     }
+    if (formData.title?.includes(',')) {
+      return {
+        isValid: false,
+        errorMessage: 'The configuration title should not contain comma',
+      }
+    }
     return { isValid: true }
   }
 
