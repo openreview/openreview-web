@@ -1,9 +1,9 @@
 /* globals promptError: false */
-import { sortBy, upperFirst } from 'lodash'
+import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
-import { getProfileName } from '../../../lib/utils'
+import { getProfileName, prettyField } from '../../../lib/utils'
 import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
@@ -108,7 +108,7 @@ const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName }) => {
                           if (!ratingValue) return null
                           return (
                             <span key={ratingName}>
-                              {upperFirst(ratingName)}: {ratingValue}{' '}
+                              {prettyField(ratingName)}: {ratingValue}{' '}
                               {index < reviewRatingName.length - 1 && '/'}{' '}
                             </span>
                           )

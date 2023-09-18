@@ -1,10 +1,10 @@
 import { useContext } from 'react'
-import { camelCase, upperFirst } from 'lodash'
+import { camelCase } from 'lodash'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import MessageReviewersModal from '../MessageReviewersModal'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
-import { prettyId } from '../../../lib/utils'
+import { prettyField, prettyId } from '../../../lib/utils'
 
 const PaperStatusMenuBar = ({
   tableRowsAll,
@@ -208,26 +208,26 @@ const PaperStatusMenuBar = ({
     ...(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
       (ratingName) => [
         {
-          label: `Average ${ratingName}`,
+          label: `Average ${prettyField(ratingName)}`,
           value: `Average ${ratingName}`,
           getValue: (p) =>
             getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg),
         },
         {
-          label: `Max ${ratingName}`,
+          label: `Max ${prettyField(ratingName)}`,
           value: `Max ${ratingName}`,
           getValue: (p) =>
             getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMax),
         },
         {
-          label: `Min ${ratingName}`,
+          label: `Min ${prettyField(ratingName)}`,
           value: `Min ${ratingName}`,
           getValue: (p) =>
             getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMin),
         },
         {
-          label: `${upperFirst(ratingName)} Range`,
-          value: `${upperFirst(ratingName)} Range`,
+          label: `${prettyField(ratingName)} Range`,
+          value: `${ratingName} Range`,
           getValue: (p) =>
             getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMax) -
             getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMin),
