@@ -103,7 +103,6 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     immediateSearchTerm: '',
     searchTerm: '',
   })
-  console.log(invitation.domain)
 
   const getNotesSortedByAffinity = async (score = searchState.selectedScore, limit = 50) => {
     setIsLoading(true)
