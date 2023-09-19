@@ -213,7 +213,7 @@ test('add and delete geolocation of history', async (t) => {
     .typeText(Selector('input.institution-country'), 'AAA')
     .pressKey('tab')
     .expect(errorMessageSelector.innerText)
-    .eql('AAA is not a valid country code.A country code consists of 2 uppercase letters, e.g. US')
+    .eql('The value AAA in country/region is invalid. Expected value: two upper case letter alpha code, e.g. US')
   // remove country code
   await t
     .useRole(userBRole)

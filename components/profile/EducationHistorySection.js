@@ -42,7 +42,7 @@ const EducationHistoryRow = ({
     const countryCode = e.target.value
     if (isValidCountryCode(countryCode)) return
     promptError(
-      `${countryCode} is not a valid country code.A country code consists of 2 uppercase letters, e.g. US`,
+      `The value ${countryCode} in country/region is invalid. Expected value: two upper case letter alpha code, e.g. US`,
       { scrollToTop: false }
     )
   }
@@ -190,10 +190,10 @@ const EducationHistoryRow = ({
         />
       </div>
       <div className="col-md-2 history__value">
-        {isMobile && <div className="small-heading col-md-4">Institution Country</div>}
+        {isMobile && <div className="small-heading col-md-4">Institution Country/Region</div>}
         <input
           className="form-control institution-country"
-          placeholder="Institution Country"
+          placeholder="Institution Country/Region"
           value={p.institution?.country ?? ''}
           onChange={(e) =>
             setHistory({
