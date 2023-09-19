@@ -1,9 +1,10 @@
+/* globals promptError: false */
 import { useEffect, useReducer, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
-import { getStartEndYear } from '../../lib/utils'
+import { getStartEndYear, isValidCountryCode } from '../../lib/utils'
 
 const CreatableDropdown = dynamic(() =>
   import('../Dropdown').then((mod) => mod.CreatableDropdown)
@@ -37,9 +38,18 @@ const EducationHistoryRow = ({
   const [isPositionClicked, setIsPositionClicked] = useState(false)
   const [isDomainClicked, setIsDomainClicked] = useState(false)
 
+  const validateCountryCode = (e) => {
+    const countryCode = e.target.value
+    if (isValidCountryCode(countryCode)) return
+    promptError(
+      `${countryCode} is not a valid country code.A country code consists of 2 uppercase letters, e.g. US`,
+      { scrollToTop: false }
+    )
+  }
+
   return (
     <div className="row">
-      <div className="col-md-4 history__value">
+      <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-2">Position</div>}
         {isPositionClicked ? (
           <CreatableDropdown
@@ -179,7 +189,7 @@ const EducationHistoryRow = ({
           }
         />
       </div>
-      <div className="col-md-3 history__value">
+      <div className="col-md-2 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution Country</div>}
         <input
           className="form-control institution-country"
@@ -191,6 +201,7 @@ const EducationHistoryRow = ({
               data: { value: e.target.value, key: p.key },
             })
           }
+          onBlur={validateCountryCode}
         />
       </div>
       <div className="col-md-3 history__value">
@@ -314,7 +325,7 @@ const EducationHistorySection = ({
           const recordCopy = { ...p, institution: { ...p.institution } }
           if (p.key === action.data.key) {
             const city = action.data.value.trim()
-            recordCopy.institution.city = city.length ? action.data.value : undefined
+            recordCopy.institution.city = city.length ? action.data.value : null
           }
           return recordCopy
         })
@@ -325,7 +336,7 @@ const EducationHistorySection = ({
             const stateProvince = action.data.value.trim()
             recordCopy.institution.stateProvince = stateProvince.length
               ? action.data.value
-              : undefined
+              : null
           }
           return recordCopy
         })
@@ -334,9 +345,7 @@ const EducationHistorySection = ({
           const recordCopy = { ...p, institution: { ...p.institution } }
           if (p.key === action.data.key) {
             const department = action.data.value.trim()
-            recordCopy.institution.department = department.length
-              ? action.data.value
-              : undefined
+            recordCopy.institution.department = department.length ? action.data.value : null
           }
           return recordCopy
         })
@@ -410,10 +419,10 @@ const EducationHistorySection = ({
     <div className="container history history-new">
       {!isMobile && (
         <div className="row">
-          <div className="small-heading col-md-4">Position</div>
+          <div className="small-heading col-md-3">Position</div>
           <div className="small-heading col-md-1">Start</div>
           <div className="small-heading col-md-1">End</div>
-          <div className="small-heading col-md-3">Institution Info</div>
+          <div className="small-heading col-md-4">Institution Info</div>
         </div>
       )}
       {history.map((p) => (

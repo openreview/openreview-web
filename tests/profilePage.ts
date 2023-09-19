@@ -205,7 +205,35 @@ test('add and delete geolocation of history', async (t) => {
     .expect(Selector('.glyphicon-map-marker').exists).ok()
     .expect(Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test city, test state, AA').exists)
     .ok()
-  // remove geolocation info of history
+  // enter invalid country code
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .selectText(Selector('input.institution-country')).pressKey('delete')
+    .typeText(Selector('input.institution-country'), 'AAA')
+    .pressKey('tab')
+    .expect(errorMessageSelector.innerText)
+    .eql('AAA is not a valid country code.A country code consists of 2 uppercase letters, e.g. US')
+  // remove country code
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .selectText(Selector('input.institution-country')).pressKey('delete')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).ok()
+    .expect(Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test city, test state').exists)
+    .ok()
+  // remove only city
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .typeText(Selector('input.institution-country'), 'AA')
+    .selectText(Selector('input.institution-city')).pressKey('delete')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).ok()
+    .expect(Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test state, AA').exists)
+    .ok()
+  // remove all geolocation info
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
@@ -215,9 +243,6 @@ test('add and delete geolocation of history', async (t) => {
     .selectText(Selector('input.institution-department')).pressKey('delete')
     .click(saveProfileButton)
     .expect(Selector('.glyphicon-map-marker').exists).notOk()
-
-  await t.expect(true).eql(false)
-  // remove only city/state
 })
 
 test('import paper from dblp', async (t) => {
