@@ -26,24 +26,34 @@ import { formatProfileData } from '../../lib/profiles'
 import Markdown from '../../components/EditorComponents/Markdown'
 import Dropdown from '../../components/Dropdown'
 import ProfilePreviewModal from '../../components/profile/ProfilePreviewModal'
+import useUser from '../../hooks/useUser'
 
 dayjs.extend(relativeTime)
 
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const [configNote, setConfigNote] = useState(null)
+  const [configNoteV2, setConfigNoteV2] = useState(null)
+  const { user } = useUser()
   const moderationDisabled = configNote?.content?.moderate === 'No'
 
   const getModerationStatus = async () => {
     try {
-      const { notes } = await api.get('/notes', {
+      const { notes } = await api.getCombined('/notes', {
         invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
         limit: 1,
       })
-      if (notes?.length > 0) {
-        setConfigNote(notes[0])
+      const configNoteV1 = notes?.find((p) => !p?.version)
+      const configNoteV2 = notes?.find((p) => p?.version === 2)
+      if (configNoteV1) {
+        setConfigNote(configNoteV1)
       } else {
         promptError('Moderation config could not be loaded')
+      }
+      if (configNoteV2) {
+        setConfigNoteV2(configNoteV2)
+      } else {
+        promptError('Moderation config could not be loaded for new API')
       }
     } catch (error) {
       promptError(error.message)
@@ -83,6 +93,23 @@ const UserModerationTab = ({ accessToken }) => {
     if (!result) return
 
     try {
+      await api.post(
+        '/notes/edits',
+        {
+          invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
+          note: {
+            ...configNoteV2,
+            content: {
+              ...configNoteV2.content,
+              terms_timestamp: {
+                value: currentTimeStamp,
+              },
+            },
+          },
+          signatures: [user.profile.id],
+        },
+        { accessToken, version: 2 }
+      )
       await api.post(
         '/notes',
         {
