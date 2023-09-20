@@ -5,6 +5,7 @@ import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import { getStartEndYear, isValidCountryCode } from '../../lib/utils'
+import Dropdown from '../Dropdown'
 
 const CreatableDropdown = dynamic(() =>
   import('../Dropdown').then((mod) => mod.CreatableDropdown)
@@ -33,19 +34,11 @@ const EducationHistoryRow = ({
   profileHistory,
   positionOptions,
   institutionDomainOptions,
+  countryOptions,
   isMobile,
 }) => {
   const [isPositionClicked, setIsPositionClicked] = useState(false)
   const [isDomainClicked, setIsDomainClicked] = useState(false)
-
-  const validateCountryCode = (e) => {
-    const countryCode = e.target.value
-    if (isValidCountryCode(countryCode)) return
-    promptError(
-      `The value ${countryCode} in country/region is invalid. Expected value: two upper case letter alpha code, e.g. US`,
-      { scrollToTop: false }
-    )
-  }
 
   return (
     <div className="row">
@@ -191,17 +184,18 @@ const EducationHistoryRow = ({
       </div>
       <div className="col-md-2 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution Country/Region</div>}
-        <input
-          className="form-control institution-country"
-          placeholder="Institution Country/Region"
-          value={p.institution?.country ?? ''}
-          onChange={(e) =>
+        <Dropdown
+          options={countryOptions}
+          onChange={(e) => {
             setHistory({
               type: institutionCountryType,
-              data: { value: e.target.value, key: p.key },
+              data: { value: e.value, key: p.key },
             })
-          }
-          onBlur={validateCountryCode}
+          }}
+          value={countryOptions?.find((q) => q.value === p.institution?.country)}
+          placeholder="Institution Country/Region"
+          classNamePrefix="country-dropdown"
+          hideArrow
         />
       </div>
       <div className="col-md-3 history__value">
@@ -266,6 +260,7 @@ const EducationHistorySection = ({
   profileHistory,
   positions,
   institutions,
+  countries,
   updateHistory,
 }) => {
   const isMobile = !useBreakpoint('lg')
@@ -273,6 +268,7 @@ const EducationHistorySection = ({
     p.id ? { value: p.id, label: p.id } : []
   )
   const positionOptions = positions?.map((p) => ({ value: p, label: p }))
+  const countryOptions = countries?.map((p) => ({ value: p, label: p }))
 
   const getInstitutionName = (domain) => {
     if (!domain) return ''
@@ -434,6 +430,7 @@ const EducationHistorySection = ({
           profileHistory={profileHistory}
           positionOptions={positionOptions}
           institutionDomainOptions={institutionDomainOptions}
+          countryOptions={countryOptions}
           isMobile={isMobile}
         />
       ))}
