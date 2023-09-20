@@ -142,7 +142,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
     <div className="signup-form-container">
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="row">
-          <div className="form-group col-xs-12 col-sm-6">
+          <div className="form-group col-xs-12">
             <label htmlFor="first-input">Full Name</label>
             <input
               type="text"
