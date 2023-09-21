@@ -21,7 +21,7 @@ import {
 } from '../../lib/utils'
 import { getInvitationColors } from '../../lib/forum-utils'
 
-export default function ForumReply({ note, replies, replyDepth, parentId, updateNote }) {
+export default function ForumReply({ note, replies, replyDepth, parentNote, updateNote }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
   const { displayOptionsMap, nesting, excludedInvitations, setCollapsed, setContentExpanded } =
@@ -98,7 +98,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           <NoteReplies
             replies={replies}
             replyDepth={replyDepth + 1}
-            parentId={note.id}
+            parentNote={note}
             updateNote={updateNote}
           />
         )}
@@ -122,6 +122,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           <NoteEditor
             invitation={activeEditInvitation}
             note={note}
+            replyToNote={parentNote}
             className={`note-editor-edit depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
             closeNoteEditor={() => setActiveEditInvitation(null)}
             onNoteCreated={(newNote) => {
@@ -159,7 +160,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
             <NoteReplies
               replies={replies}
               replyDepth={replyDepth + 1}
-              parentId={note.id}
+              parentNote={note}
               updateNote={updateNote}
             />
           </>
@@ -180,7 +181,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
       setContentExpanded={setContentExpanded}
       replyDepth={replyDepth}
     >
-      {nesting === replyDepth && note.replyto !== parentId && (
+      {nesting === replyDepth && note.replyto !== parentNote?.id && (
         <div className="parent-title">
           <h5 onClick={() => scrollToNote(note.replyto)}>
             <Icon name="share-alt" /> Replying to{' '}
@@ -429,7 +430,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         <NoteReplies
           replies={replies}
           replyDepth={replyDepth + 1}
-          parentId={note.id}
+          parentNote={note}
           updateNote={updateNote}
         />
       )}
@@ -560,7 +561,7 @@ function NoteContentCollapsible({
   )
 }
 
-function NoteReplies({ replies, replyDepth, parentId, updateNote }) {
+function NoteReplies({ replies, replyDepth, parentNote, updateNote }) {
   const { replyNoteMap } = useContext(ForumReplyContext)
 
   if (!replies?.length) return null
@@ -572,7 +573,7 @@ function NoteReplies({ replies, replyDepth, parentId, updateNote }) {
           key={childNote.id}
           note={replyNoteMap[childNote.id]}
           replyDepth={replyDepth}
-          parentId={parentId}
+          parentNote={parentNote}
           replies={childNote.replies ?? []}
           updateNote={updateNote}
         />
