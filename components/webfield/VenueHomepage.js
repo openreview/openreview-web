@@ -22,7 +22,6 @@ function ConsolesList({
   venueId,
   submissionInvitationId,
   authorsGroupId,
-  apiVersion,
   setHidden,
   shouldReload,
   options = {},
@@ -40,31 +39,16 @@ function ConsolesList({
       return
     }
 
-    const groupIdQuery =
-      apiVersion === 1 ? { regex: `${venueId}/.*` } : { prefix: `${venueId}/` }
+    const groupIdQuery = { prefix: `${venueId}/` }
     const getUserGroupsP = api.getAll(
       '/groups',
       { ...groupIdQuery, member: user.id, web: true, domain: venueId },
-      { accessToken, version: apiVersion }
+      { accessToken, version: 2 }
     )
 
-    let getUserSubmissionsP
-    if (apiVersion === 1) {
-      getUserSubmissionsP = api.get(
-        '/notes',
-        { invitation: submissionInvitationId, 'content.authorids': user.profile.id },
-        { accessToken, version: apiVersion }
-      )
-    } else {
-      getUserSubmissionsP = Promise.resolve({ notes: [] })
-    }
-
-    Promise.all([getUserGroupsP, getUserSubmissionsP])
-      .then(([userGroups, userSubmissions]) => {
+    getUserGroupsP
+      .then((userGroups) => {
         const groupIds = []
-        if (userSubmissions.notes?.length > 0) {
-          groupIds.push(authorsGroupId ?? defaultAuthorsGroupId)
-        }
         if (userGroups?.length > 0) {
           userGroups.forEach((g) => {
             groupIds.push(g.id)
@@ -130,7 +114,6 @@ export default function VenueHomepage({ appContext }) {
     submissionId,
     submissionConfirmationMessage,
     tabs,
-    apiVersion,
   } = useContext(WebFieldContext)
   const [formattedTabs, setFormattedTabs] = useState(null)
   const [shouldReload, reload] = useReducer((p) => !p, true)
@@ -147,7 +130,6 @@ export default function VenueHomepage({ appContext }) {
           venueId={group.id}
           submissionInvitationId={submissionId}
           authorsGroupId={tabConfig.authorsGroupId}
-          apiVersion={apiVersion}
           options={tabConfig.options}
           shouldReload={shouldReload}
           setHidden={(newHidden) => {
@@ -167,7 +149,7 @@ export default function VenueHomepage({ appContext }) {
       return (
         <ActivityList
           venueId={group.id}
-          apiVersion={apiVersion}
+          apiVersion={2}
           invitation={tabConfig.options.invitation}
           pageSize={tabConfig.options.pageSize}
           shouldReload={shouldReload}
@@ -191,7 +173,7 @@ export default function VenueHomepage({ appContext }) {
         <SubmissionsList
           venueId={group.id}
           query={query}
-          apiVersion={apiVersion}
+          apiVersion={2}
           pageSize={tabConfig.options.pageSize}
           enableSearch={tabConfig.options.enableSearch}
           paperDisplayOptions={tabConfig.options.paperDisplayOptions}
@@ -257,7 +239,7 @@ export default function VenueHomepage({ appContext }) {
         <div id="invitation">
           <SubmissionButton
             invitationId={submissionId}
-            apiVersion={apiVersion}
+            apiVersion={2}
             onNoteCreated={() => {
               const defaultConfirmationMessage =
                 'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
