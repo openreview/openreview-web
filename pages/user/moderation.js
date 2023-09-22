@@ -1,4 +1,4 @@
-/* globals $,promptError,promptMessage: false */
+/* globals $,promptError,promptMessage,view2: false */
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
@@ -34,24 +34,37 @@ const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const [configNote, setConfigNote] = useState(null)
   const [configNoteV2, setConfigNoteV2] = useState(null)
-  const { user } = useUser()
+
   const moderationDisabled = configNote?.content?.moderate === 'No'
 
   const getModerationStatus = async () => {
     try {
-      const { notes } = await api.getCombined('/notes', {
-        invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
-        limit: 1,
-      })
-      const configNoteV1 = notes?.find((p) => !p?.version)
-      const configNoteV2 = notes?.find((p) => p?.version === 2)
-      if (configNoteV1) {
-        setConfigNote(configNoteV1)
+      const configNoteV1P = api.get(
+        '/notes',
+        {
+          invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
+          limit: 1,
+        },
+        { accessToken }
+      )
+      const configNoteV2P = api.get(
+        '/notes',
+        {
+          invitation: `${process.env.SUPER_USER}/-/OpenReview_Config`,
+          details: 'invitation',
+          limit: 1,
+        },
+        { accessToken, version: 2 }
+      )
+      const results = await Promise.all([configNoteV1P, configNoteV2P])
+
+      if (results?.[0]?.notes?.[0]) {
+        setConfigNote(results?.[0]?.notes?.[0])
       } else {
         promptError('Moderation config could not be loaded')
       }
-      if (configNoteV2) {
-        setConfigNoteV2(configNoteV2)
+      if (results?.[1]?.notes?.[0]) {
+        setConfigNoteV2(results?.[1]?.notes?.[0])
       } else {
         promptError('Moderation config could not be loaded for new API')
       }
@@ -95,19 +108,11 @@ const UserModerationTab = ({ accessToken }) => {
     try {
       await api.post(
         '/notes/edits',
-        {
-          invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
-          note: {
-            ...configNoteV2,
-            content: {
-              ...configNoteV2.content,
-              terms_timestamp: {
-                value: currentTimeStamp,
-              },
-            },
-          },
-          signatures: [user.profile.id],
-        },
+        view2.constructEdit({
+          formData: { terms_timestamp: currentTimeStamp },
+          invitationObj: configNoteV2.details.invitation,
+          noteObj: configNoteV2,
+        }),
         { accessToken, version: 2 }
       )
       await api.post(
