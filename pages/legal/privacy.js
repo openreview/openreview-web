@@ -9,7 +9,7 @@ const Privacy = () => (
 
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1">
-        <h1>Privacy Policy</h1>
+        <h1>OpenReview Privacy Policy</h1>
       </div>
     </div>
 
