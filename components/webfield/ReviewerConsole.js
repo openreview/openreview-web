@@ -224,7 +224,6 @@ const AssignedPaperRow = ({
 const ReviewerConsoleTasks = ({
   venueId,
   reviewerName,
-  apiVersion,
   submissionName,
   noteNumbers,
 }) => {
@@ -240,7 +239,7 @@ const ReviewerConsoleTasks = ({
       filterAssignedInvitaiton={true}
       submissionName={submissionName}
       submissionNumbers={noteNumbers}
-      apiVersion={apiVersion}
+      apiVersion={2}
     />
   )
 }
@@ -250,15 +249,13 @@ const ReviewerConsole = ({ appContext }) => {
     header,
     entity: group,
     venueId,
-    apiVersion,
     reviewerName,
     officialReviewName,
     reviewRatingName,
     areaChairName,
     submissionName,
     submissionInvitationId,
-    customLoadInvitationId, // for v1 only
-    recruitmentInvitationId, // for v2 only
+    recruitmentInvitationId,
     customMaxPapersInvitationId, // to query custom load edges
     reviewLoad,
     hasPaperRanking,
@@ -291,7 +288,7 @@ const ReviewerConsole = ({ appContext }) => {
           member: user.id,
           domain: group.domain,
         },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       anonGroups = memberGroups.filter((p) => p.id.includes(`/${singularName}_`))
 
@@ -321,7 +318,7 @@ const ReviewerConsole = ({ appContext }) => {
               domain: group.domain,
               details: 'invitation,directReplies',
             },
-            { accessToken, version: apiVersion }
+            { accessToken, version: 2 }
           )
           .then((result) => result.notes ?? [])
       : Promise.resolve([])
@@ -348,55 +345,29 @@ const ReviewerConsole = ({ appContext }) => {
           tail: user.id,
           domain: group.domain,
         },
-        { accessToken, version: apiVersion }
+        { accessToken, version: 2 }
       )
       .then((result) => {
         if (result.edges?.length) {
           return result.edges[0].weight
         }
 
-        if (apiVersion === 2) {
-          return api
-            .get(
-              '/notes',
-              {
-                invitation: recruitmentInvitationId,
-                domain: group.domain,
-                sort: 'cdate:desc',
-              },
-              { accessToken, version: 2 }
-            )
-            .then((noteResult) => {
-              if (!noteResult.notes?.length) return reviewLoad
-              return noteResult.notes[0].content?.reduced_load?.value
-            })
-        }
-
         return api
           .get(
             '/notes',
             {
-              invitation: customLoadInvitationId,
-              select: 'content.reviewer_load,content.user,content.reduced_load',
+              invitation: recruitmentInvitationId,
+              domain: group.domain,
+              sort: 'cdate:desc',
             },
-            { accessToken, version: 1 }
+            { accessToken, version: 2 }
           )
           .then((noteResult) => {
             if (!noteResult.notes?.length) return reviewLoad
-            if (noteResult.notes.length === 1) {
-              return (
-                noteResult.notes[0].content.reviewer_load ||
-                noteResult.notes[0].content.reduced_load
-              )
-            }
-            // If there is more than one there might be a Program Chair
-            const loads = noteResult.notes.filter((note) =>
-              userIds.includes(note.content.user)
-            )
-            return loads.length
-              ? loads[0].content.reviewer_load || loads[0].content.reduced_load
-              : reviewLoad
+            return noteResult.notes[0].content?.reduced_load?.value
           })
+
+
       })
     // #endregion
 
@@ -411,7 +382,7 @@ const ReviewerConsole = ({ appContext }) => {
               domain: group.domain,
               stream: true,
             },
-            { accessToken, version: apiVersion }
+            { accessToken, version: 2 }
           )
           .then((result) => {
             const areaChairMap = {}
@@ -422,7 +393,7 @@ const ReviewerConsole = ({ appContext }) => {
               }
             })
             result.groups.forEach((anonGroup) => {
-              if (anonGroup.id.includes(`/Area_Chair_`)) {
+              if (anonGroup.id.includes(`/Area_Chair_`)) {  //TODO: parametrize anon group name
                 const num = getNumberFromGroup(anonGroup.id, submissionName)
                 if (areaChairMap[num]) {
                   const index = areaChairMap[num].indexOf(anonGroup.id)
@@ -450,7 +421,7 @@ const ReviewerConsole = ({ appContext }) => {
               ids: officalReviewInvitationIds,
               domain: group.domain,
             },
-            { accessToken, version: apiVersion }
+            { accessToken, version: 2 }
           )
           .then((officialReviewInvitationsResult) => [
             notes,
@@ -470,15 +441,11 @@ const ReviewerConsole = ({ appContext }) => {
         ]) => {
           const anonGroupIds = anonGroups.map((p) => p.id)
           // get official reviews from notes details
-          const officialReviewFilterFn =
-            apiVersion === 2
-              ? (p) => p.invitations.some((q) => q.includes(officialReviewName))
-              : (p) => p.invitation.includes(officialReviewName)
           const officialReviews = notes
             .flatMap((p) => p.details.directReplies)
             .filter(
               (q) =>
-                officialReviewFilterFn(q) && q.signatures.some((r) => anonGroupIds.includes(r))
+              q.invitations.some((r) => r.includes(officialReviewName)) && q.signatures.some((r) => anonGroupIds.includes(r))
             )
 
           let paperRankingTagsP = Promise.resolve(null)
@@ -554,7 +521,6 @@ const ReviewerConsole = ({ appContext }) => {
     header,
     group,
     venueId,
-    apiVersion,
     reviewerName,
     officialReviewName,
     reviewRatingName,
@@ -566,13 +532,12 @@ const ReviewerConsole = ({ appContext }) => {
   }).filter(([key, value]) => value === undefined)
   if (
     missingConfig?.length ||
-    (apiVersion === 2 && recruitmentInvitationId === undefined) ||
-    (apiVersion === 1 && customLoadInvitationId === undefined)
+    (recruitmentInvitationId === undefined)
   ) {
     const errorMessage = `Reviewer Console is missing required properties: ${
       missingConfig.length
         ? missingConfig.map((p) => p[0]).join(', ')
-        : `${apiVersion === 2 ? 'recruitmentInvitationId' : 'customLoadInvitationId'}`
+        : 'recruitmentInvitationId'
     }`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
@@ -638,7 +603,6 @@ const ReviewerConsole = ({ appContext }) => {
               <ReviewerConsoleTasks
                 venueId={venueId}
                 reviewerName={reviewerName}
-                apiVersion={apiVersion}
                 submissionName={submissionName}
                 noteNumbers={reviewerConsoleData.noteNumbers}
               />
