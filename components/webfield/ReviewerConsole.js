@@ -393,7 +393,7 @@ const ReviewerConsole = ({ appContext }) => {
               }
             })
             result.groups.forEach((anonGroup) => {
-              if (anonGroup.id.includes(`/Area_Chair_`)) {  //TODO: parametrize anon group name
+              if (anonGroup.id.includes(`/Area_Chair_`)) {  // TODO: parametrize anon group name
                 const num = getNumberFromGroup(anonGroup.id, submissionName)
                 if (areaChairMap[num]) {
                   const index = areaChairMap[num].indexOf(anonGroup.id)
@@ -445,7 +445,8 @@ const ReviewerConsole = ({ appContext }) => {
             .flatMap((p) => p.details.directReplies)
             .filter(
               (q) =>
-              q.invitations.some((r) => r.includes(officialReviewName)) && q.signatures.some((r) => anonGroupIds.includes(r))
+              q.invitations.some((r) => r.includes(officialReviewName)) &&
+              q.signatures.some((r) => anonGroupIds.includes(r))
             )
 
           let paperRankingTagsP = Promise.resolve(null)
