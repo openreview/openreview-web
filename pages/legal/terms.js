@@ -884,7 +884,7 @@ const Terms = () => (
           These Terms of Use constitute the entire contract between you and us regarding the
           System. It supersedes and extinguishes any prior contract, warranties,
           representations, understandings or other oral or written statements regarding your
-          use of the.
+          use of the System.
         </p>
         <p>
           You acknowledge that in using the System you do not rely on, and shall have no
