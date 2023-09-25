@@ -442,7 +442,7 @@ const ReviewerConsole = ({ appContext }) => {
               .get(
                 '/tags',
                 { invitation: paperRankingId, domain: group.domain },
-                { accessToken }
+                { accessToken, version: 2 }
               )
               .then((result) => (result.tags?.length > 0 ? result.tags : []))
           }
