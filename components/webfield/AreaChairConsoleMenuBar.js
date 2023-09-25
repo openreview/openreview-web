@@ -1,3 +1,4 @@
+import { prettyField } from '../../lib/utils'
 import BaseMenuBar from './BaseMenuBar'
 import MessageReviewersModal from './MessageReviewersModal'
 import QuerySearchInfoModal from './QuerySearchInfoModal'
@@ -126,7 +127,7 @@ const AreaChairConsoleMenuBar = ({
     ...(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
       (ratingName) => [
         {
-          label: `Average ${ratingName}`,
+          label: `Average ${prettyField(ratingName)}`,
           value: `Average ${ratingName}`,
           getValue: (p) =>
             p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg === 'N/A'
@@ -134,7 +135,7 @@ const AreaChairConsoleMenuBar = ({
               : p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg,
         },
         {
-          label: `Max ${ratingName}`,
+          label: `Max ${prettyField(ratingName)}`,
           value: `Max ${ratingName}`,
           getValue: (p) =>
             p.reviewProgressData?.ratings?.[ratingName]?.ratingMax === 'N/A'
@@ -142,7 +143,7 @@ const AreaChairConsoleMenuBar = ({
               : p.reviewProgressData?.ratings?.[ratingName]?.ratingMax,
         },
         {
-          label: `Min ${ratingName}`,
+          label: `Min ${prettyField(ratingName)}`,
           value: `Min ${ratingName}`,
           getValue: (p) =>
             p.reviewProgressData?.ratings?.[ratingName]?.ratingMin === 'N/A'

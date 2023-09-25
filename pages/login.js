@@ -72,7 +72,13 @@ const LoginForm = () => {
           onChange={(e) => setPassword(e.target.value)}
         />
       </div>
-
+      <p className="help-block">
+        By logging in, you agree to the{' '}
+        <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
+          <strong>Terms of Use</strong>
+        </a>
+        , last updated September 22, 2023.
+      </p>
       <button
         type="submit"
         className="btn btn-login"

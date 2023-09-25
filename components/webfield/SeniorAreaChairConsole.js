@@ -198,6 +198,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 (key) => paperAnonReviewerGroups[key] === member
               )
             }
+            if (!anonymizedGroup) return []
             return {
               reviewerProfileId: deanonymizedGroup,
               anonymizedGroup,
