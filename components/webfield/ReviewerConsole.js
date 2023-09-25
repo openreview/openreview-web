@@ -5,7 +5,6 @@ import Link from 'next/link'
 import api from '../../lib/api-client'
 import Table from '../Table'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
-import TaskList from '../TaskList'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { ReviewerConsoleNoteReviewStatus } from './NoteReviewStatus'
@@ -24,10 +23,11 @@ const AreaChairInfo = ({ areaChairName, areaChairIds }) => (
   <div className="note-area-chairs">
     <p>
       <strong>{prettyField(areaChairName)}:</strong>{' '}
-      {
-        areaChairIds.map((areaChairId) =>
-        <Link key={areaChairId} href={`/profile?id=${areaChairId}`}>{prettyId(areaChairId)} </Link>)
-      }
+      {areaChairIds.map((areaChairId) => (
+        <Link key={areaChairId} href={`/profile?id=${areaChairId}`}>
+          {prettyId(areaChairId)}{' '}
+        </Link>
+      ))}
     </p>
   </div>
 )
@@ -80,7 +80,7 @@ const PaperRankingDropdown = ({
           invitation: paperRankingInvitation?.id ?? paperRankingId,
           ddate: null,
         },
-        { accessToken }
+        { accessToken, version: 2 }
       )
 
       setReviewerConsoleData((reviewerConsoleData) => {
@@ -126,7 +126,6 @@ const AssignedPaperRow = ({
   enablePaperRanking,
   setEnablePaperRanking,
 }) => {
-  const isV2Note = note.version === 2
   const {
     officialReviewInvitations,
     paperRankingInvitation,
@@ -153,28 +152,23 @@ const AssignedPaperRow = ({
     (p) => p.id === officialReviewInvitaitonId
   )
   const officialReview = officialReviews.find((p) =>
-    isV2Note
-      ? p.invitations.includes(officialReviewInvitaitonId)
-      : p.invitation === officialReviewInvitaitonId
+    p.invitations.includes(officialReviewInvitaitonId)
   )
   const currentTagObj = paperRankingTags?.find((p) => p.forum === note.forum)
   const anonGroupId = paperNumberAnonGroupIdMap[note.number]
   const areaChairIds = areaChairMap[note.number]
-  const paperRatingValues = isV2Note
-    ? (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
-        (ratingName) => ({ [ratingName]: officialReview?.content?.[ratingName]?.value })
-      )
-    : [{ rating: officialReview?.content?.[reviewRatingName] }]
-  const review = isV2Note
-    ? officialReview?.content?.review?.value
-    : officialReview?.content?.review
+  const paperRatingValues = (
+    Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]
+  ).map((ratingName) => ({ [ratingName]: officialReview?.content?.[ratingName]?.value }))
+  const review = officialReview?.content?.review?.value
+
   return (
     <tr>
       <td>
         <strong className="note-number">{note.number}</strong>
       </td>
       <td>
-        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={isV2Note} />
+        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={true} />
         {areaChairIds?.length && (
           <AreaChairInfo areaChairName={areaChairName} areaChairIds={areaChairIds} />
         )}
@@ -221,12 +215,7 @@ const AssignedPaperRow = ({
   )
 }
 
-const ReviewerConsoleTasks = ({
-  venueId,
-  reviewerName,
-  submissionName,
-  noteNumbers,
-}) => {
+const ReviewerConsoleTasks = ({ venueId, reviewerName, submissionName, noteNumbers }) => {
   const referrer = `${encodeURIComponent(
     `[Reviewer Console](/group?id=${venueId}/${reviewerName}#reviewer-tasks)`
   )}`
@@ -239,7 +228,6 @@ const ReviewerConsoleTasks = ({
       filterAssignedInvitaiton={true}
       submissionName={submissionName}
       submissionNumbers={noteNumbers}
-      apiVersion={2}
     />
   )
 }
@@ -271,8 +259,6 @@ const ReviewerConsole = ({ appContext }) => {
   const paperRankingId = `${venueId}/${reviewerName}/-/Paper_Ranking`
 
   const loadData = async () => {
-    const userIds = [...user.profile.usernames, ...user.profile.emails]
-
     let anonGroups
     let groupByNumber
     let noteNumbers
@@ -366,8 +352,6 @@ const ReviewerConsole = ({ appContext }) => {
             if (!noteResult.notes?.length) return reviewLoad
             return noteResult.notes[0].content?.reduced_load?.value
           })
-
-
       })
     // #endregion
 
@@ -393,18 +377,17 @@ const ReviewerConsole = ({ appContext }) => {
               }
             })
             result.groups.forEach((anonGroup) => {
-              if (anonGroup.id.includes(`/Area_Chair_`)) {  // TODO: parametrize anon group name
+              if (anonGroup.id.includes(`/Area_Chair_`)) {
+                // TODO: parametrize anon group name
                 const num = getNumberFromGroup(anonGroup.id, submissionName)
                 if (areaChairMap[num]) {
                   const index = areaChairMap[num].indexOf(anonGroup.id)
                   if (index >= 0) areaChairMap[num][index] = anonGroup.members[0]
                 }
               }
-
             })
             return areaChairMap
-          }
-          )
+          })
       : Promise.resolve({})
     // #endregion
 
@@ -445,8 +428,8 @@ const ReviewerConsole = ({ appContext }) => {
             .flatMap((p) => p.details.directReplies)
             .filter(
               (q) =>
-              q.invitations.some((r) => r.includes(officialReviewName)) &&
-              q.signatures.some((r) => anonGroupIds.includes(r))
+                q.invitations.some((r) => r.includes(officialReviewName)) &&
+                q.signatures.some((r) => anonGroupIds.includes(r))
             )
 
           let paperRankingTagsP = Promise.resolve(null)
@@ -456,7 +439,11 @@ const ReviewerConsole = ({ appContext }) => {
             )
           } else if (hasPaperRanking) {
             paperRankingTagsP = api
-              .get('/tags', { invitation: paperRankingId, domain: group.domain }, { accessToken })
+              .get(
+                '/tags',
+                { invitation: paperRankingId, domain: group.domain },
+                { accessToken }
+              )
               .then((result) => (result.tags?.length > 0 ? result.tags : []))
           }
           paperRankingTagsP.then((paperRankingTags) => {
@@ -531,10 +518,7 @@ const ReviewerConsole = ({ appContext }) => {
     reviewLoad,
     hasPaperRanking,
   }).filter(([key, value]) => value === undefined)
-  if (
-    missingConfig?.length ||
-    (recruitmentInvitationId === undefined)
-  ) {
+  if (missingConfig?.length || recruitmentInvitationId === undefined) {
     const errorMessage = `Reviewer Console is missing required properties: ${
       missingConfig.length
         ? missingConfig.map((p) => p[0]).join(', ')
