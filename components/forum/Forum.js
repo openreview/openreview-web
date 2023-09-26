@@ -74,6 +74,7 @@ export default function Forum({
   const { id, details } = parentNote
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
   const newNoteEditor = useNewNoteEditor(details.invitation.domain)
+  const domain = details.invitation.domain.startsWith(process.env.SUPER_USER) ? undefined : details.invitation.domain
 
   // Process forum views config
   let replyForumViews = null
@@ -105,7 +106,7 @@ export default function Forum({
     return api
       .get(
         '/invitations',
-        { replyForum: forumId, expired: true, domain: forumNote.domain, ...extraParams },
+        { replyForum: forumId, expired: true, domain: domain, ...extraParams },
         { accessToken, version: 2 }
       )
       .then(({ invitations }) => {
@@ -135,7 +136,7 @@ export default function Forum({
         forum: forumId,
         trash: true,
         details: 'replyCount,writable,signatures,invitation,presentation',
-        domain: forumNote.domain
+        domain: domain
       },
       { accessToken, version: 2 }
     )
@@ -245,7 +246,7 @@ export default function Forum({
           sort: 'tmdate:asc',
           details: 'writable',
           trash: true,
-          domain: forumNote.domain
+          domain: domain
         },
         { accessToken, version: 2 }
       )
