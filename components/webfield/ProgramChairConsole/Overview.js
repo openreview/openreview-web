@@ -42,7 +42,7 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
         [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map(
           (invitedId) =>
             invitedId
-              ? api.getGroupById(invitedId, accessToken, {
+              ? api.getGroupById(invitedId, accessToken, null, {
                   select: 'members',
                 })
               : Promise.resolve(null)

@@ -388,6 +388,7 @@ const AuthorConsole = ({ appContext }) => {
         {
           [authorSubmissionField]: user.profile.id,
           invitation: submissionId,
+          domain: group.domain,
           details: 'directReplies',
           sort: 'number:asc',
         },

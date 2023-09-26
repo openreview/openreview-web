@@ -35,7 +35,7 @@ export default function SubmissionsList({
     async (limit, offset) => {
       let { notes, count } = await api.get(
         '/notes',
-        { details, ...query, limit, offset },
+        { details, ...query, limit, offset, domain: venueId },
         { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
       )
       if (typeof filterNotes === 'function') {

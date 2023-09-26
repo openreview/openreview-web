@@ -669,7 +669,8 @@ const Terms = () => (
           material or any other form of similar solicitation, or (c) to knowingly transmit any
           data, send or upload any material that contains viruses, Trojan horses, worms,
           time-bombs, keystroke loggers, spyware, adware or any other harmful programs or
-          similar computer code d
+          similar computer code designed to adversely affect the operation of any computer
+          software or hardware.
         </p>
         <p>
           Suspected violations of this User Code of Conduct or any of the stipulations in these
@@ -883,7 +884,7 @@ const Terms = () => (
           These Terms of Use constitute the entire contract between you and us regarding the
           System. It supersedes and extinguishes any prior contract, warranties,
           representations, understandings or other oral or written statements regarding your
-          use of the.
+          use of the System.
         </p>
         <p>
           You acknowledge that in using the System you do not rely on, and shall have no
