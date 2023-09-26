@@ -192,6 +192,8 @@ const AreaChairConsole = ({ appContext }) => {
           member: user.id,
           prefix: `${venueId}/${submissionName}.*`,
           select: 'id',
+          stream: true,
+          domain: group.domain,
         },
         { accessToken, version: 2 }
       )
@@ -216,6 +218,7 @@ const AreaChairConsole = ({ appContext }) => {
               select: 'id,number,forum,content,details',
               details: 'replies',
               sort: 'number:asc',
+              domain: group.domain,
             },
             { accessToken, version: 2 }
           )
@@ -229,6 +232,7 @@ const AreaChairConsole = ({ appContext }) => {
             prefix: `${venueId}/${submissionName}.*`,
             select: 'id,members',
             stream: true,
+            domain: group.domain,
           },
           { accessToken, version: 2 }
         )
@@ -267,8 +271,8 @@ const AreaChairConsole = ({ appContext }) => {
         ? api
             .get(
               '/edges',
-              { invitation: `${seniorAreaChairsId}/-/Assignment`, head: user.profile.id },
-              { accessToken }
+              { invitation: `${seniorAreaChairsId}/-/Assignment`, head: user.profile.id, domain: group.domain },
+              { accessToken, apiVersion: 2 }
             )
             .then((result) => result?.edges?.map((edge) => edge.tail) ?? [])
         : Promise.resolve([])
@@ -291,7 +295,7 @@ const AreaChairConsole = ({ appContext }) => {
             {
               ids,
             },
-            { accessToken }
+            { accessToken, version: 2 }
           )
         : Promise.resolve([])
       const getProfilesByEmailsP = emails.length
@@ -300,7 +304,7 @@ const AreaChairConsole = ({ appContext }) => {
             {
               emails,
             },
-            { accessToken }
+            { accessToken, version: 2 }
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])

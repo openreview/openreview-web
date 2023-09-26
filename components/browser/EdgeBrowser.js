@@ -163,6 +163,7 @@ export default class EdgeBrowser extends React.Component {
           groupBy: headOrTail,
           select: `count${headOrTail === 'tail' ? ',head' : ''}`,
           ...this.traverseInvitation.query,
+          ...(this.traverseInvitation.domain ? { domain: this.traverseInvitation.domain } : {}),
         },
         { accessToken: this.accessToken, version: this.version, resultsKey: 'groupedEdges' }
       )
