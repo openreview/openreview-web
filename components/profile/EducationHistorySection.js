@@ -189,13 +189,14 @@ const EducationHistoryRow = ({
           onChange={(e) => {
             setHistory({
               type: institutionCountryType,
-              data: { value: e.value, key: p.key },
+              data: { value: e?.value, key: p.key },
             })
           }}
           value={countryOptions?.find((q) => q.value === p.institution?.country)}
           placeholder="Institution Country/Region"
           classNamePrefix="country-dropdown"
           hideArrow
+          isClearable
         />
       </div>
       <div className="col-md-3 history__value">
@@ -268,7 +269,7 @@ const EducationHistorySection = ({
     p.id ? { value: p.id, label: p.id } : []
   )
   const positionOptions = positions?.map((p) => ({ value: p, label: p }))
-  const countryOptions = countries?.map((p) => ({ value: p, label: p }))
+  const countryOptions = countries?.map((p) => ({ value: p['alpha-2'], label: p.name }))
 
   const getInstitutionName = (domain) => {
     if (!domain) return ''
@@ -311,8 +312,7 @@ const EducationHistorySection = ({
         return state.map((p) => {
           const recordCopy = { ...p, institution: { ...p.institution } }
           if (p.key === action.data.key) {
-            const country = action.data.value.trim()
-            recordCopy.institution.country = country.length ? action.data.value : undefined
+            recordCopy.institution.country = action.data.value
           }
           return recordCopy
         })
