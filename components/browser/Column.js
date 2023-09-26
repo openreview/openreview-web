@@ -544,7 +544,7 @@ export default function Column(props) {
         getWritable,
         sort,
         promise: api
-          .getAll('/edges', apiQuery, {
+          .getAll('/edges', {...apiQuery, domain: version === '2' && invitation.domain }, {
             accessToken,
             version,
             ...(isCountQuery && { resultsKey: 'groupedEdges' }),
@@ -669,7 +669,7 @@ export default function Column(props) {
       }
       const { apiQuery } = buildQuery(startInvitation.id, startInvitation.query, false)
       api
-        .getAll('/edges', apiQuery, {
+        .getAll('/edges', { ...apiQuery, domain: version === '2' && startInvitation.domain }, {
           accessToken,
           version,
         })

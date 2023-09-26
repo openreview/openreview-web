@@ -1,4 +1,4 @@
-/* globals $,promptError,promptMessage: false */
+/* globals $,promptError,promptMessage,view2: false */
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
@@ -26,24 +26,47 @@ import { formatProfileData } from '../../lib/profiles'
 import Markdown from '../../components/EditorComponents/Markdown'
 import Dropdown from '../../components/Dropdown'
 import ProfilePreviewModal from '../../components/profile/ProfilePreviewModal'
+import useUser from '../../hooks/useUser'
 
 dayjs.extend(relativeTime)
 
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const [configNote, setConfigNote] = useState(null)
+  const [configNoteV2, setConfigNoteV2] = useState(null)
+
   const moderationDisabled = configNote?.content?.moderate === 'No'
 
   const getModerationStatus = async () => {
     try {
-      const { notes } = await api.get('/notes', {
-        invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
-        limit: 1,
-      })
-      if (notes?.length > 0) {
-        setConfigNote(notes[0])
+      const configNoteV1P = api.get(
+        '/notes',
+        {
+          invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
+          limit: 1,
+        },
+        { accessToken }
+      )
+      const configNoteV2P = api.get(
+        '/notes',
+        {
+          invitation: `${process.env.SUPER_USER}/-/OpenReview_Config`,
+          details: 'invitation',
+          limit: 1,
+        },
+        { accessToken, version: 2 }
+      )
+      const results = await Promise.all([configNoteV1P, configNoteV2P])
+
+      if (results?.[0]?.notes?.[0]) {
+        setConfigNote(results?.[0]?.notes?.[0])
       } else {
         promptError('Moderation config could not be loaded')
+      }
+      if (results?.[1]?.notes?.[0]) {
+        setConfigNoteV2(results?.[1]?.notes?.[0])
+      } else {
+        promptError('Moderation config could not be loaded for new API')
       }
     } catch (error) {
       promptError(error.message)
@@ -74,6 +97,38 @@ const UserModerationTab = ({ accessToken }) => {
     }
   }
 
+  const updateTermStamp = async () => {
+    const currentTimeStamp = dayjs().valueOf()
+    // eslint-disable-next-line no-alert
+    const result = window.confirm(
+      `Update term stamp to ${currentTimeStamp}? (${dayjs(currentTimeStamp).toISOString()})`
+    )
+    if (!result) return
+
+    try {
+      await api.post(
+        '/notes/edits',
+        view2.constructEdit({
+          formData: { terms_timestamp: currentTimeStamp },
+          invitationObj: configNoteV2.details.invitation,
+          noteObj: configNoteV2,
+        }),
+        { accessToken, version: 2 }
+      )
+      await api.post(
+        '/notes',
+        {
+          ...configNote,
+          content: { ...configNote.content, terms_timestamp: currentTimeStamp },
+        },
+        { accessToken }
+      )
+      getModerationStatus()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   return (
     <>
       {configNote && (
@@ -88,6 +143,13 @@ const UserModerationTab = ({ accessToken }) => {
             <option value="enabled">Enabled</option>
             <option value="disabled">Disabled</option>
           </select>
+
+          <span className="terms-timestamp">
+            {`Terms Timestamp is ${configNote?.content?.terms_timestamp ?? 'unset'}`}
+          </span>
+          <button type="button" className="btn btn-xs" onClick={updateTermStamp}>
+            Update Terms Stamp
+          </button>
         </div>
       )}
 
