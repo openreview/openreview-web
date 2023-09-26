@@ -269,7 +269,10 @@ const EducationHistorySection = ({
     p.id ? { value: p.id, label: p.id } : []
   )
   const positionOptions = positions?.map((p) => ({ value: p, label: p }))
-  const countryOptions = countries?.map((p) => ({ value: p['alpha-2'], label: p.name }))
+  const countryOptions = Object.entries(countries ?? {})?.map(([name, details]) => ({
+    value: details.alphaTwoCode,
+    label: name,
+  }))
 
   const getInstitutionName = (domain) => {
     if (!domain) return ''
