@@ -57,7 +57,7 @@ const Footer = () => (
                 </a>
               </li>
               <li>
-                <Link href="/legal/terms">Terms of Service</Link>
+                <Link href="/legal/terms">Terms of Use</Link>
               </li>
               <li>
                 <Link href="/legal/privacy">Privacy Policy</Link>
@@ -114,7 +114,7 @@ const Footer = () => (
                 </a>
               </li>
               <li>
-                <Link href="/legal/terms">Terms of Service</Link>
+                <Link href="/legal/terms">Terms of Use</Link>
               </li>
               <li>
                 <Link href="/legal/privacy">Privacy Policy</Link>

@@ -105,7 +105,7 @@ export default function Forum({
     return api
       .get(
         '/invitations',
-        { replyForum: forumId, expired: true, ...extraParams },
+        { replyForum: forumId, expired: true, domain: forumNote.domain, ...extraParams },
         { accessToken, version: 2 }
       )
       .then(({ invitations }) => {
@@ -135,6 +135,7 @@ export default function Forum({
         forum: forumId,
         trash: true,
         details: 'replyCount,writable,signatures,invitation,presentation',
+        domain: forumNote.domain
       },
       { accessToken, version: 2 }
     )
@@ -244,6 +245,7 @@ export default function Forum({
           sort: 'tmdate:asc',
           details: 'writable',
           trash: true,
+          domain: forumNote.domain
         },
         { accessToken, version: 2 }
       )
