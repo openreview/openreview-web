@@ -850,7 +850,7 @@ export default function Forum({
             >
               {repliesLoaded ? (
                 <ForumReplies
-                  forumId={id}
+                  forumNote={forumNote}
                   replies={orderedReplies}
                   replyNoteMap={replyNoteMap}
                   displayOptionsMap={displayOptionsMap}
@@ -939,7 +939,7 @@ export default function Forum({
 }
 
 function ForumReplies({
-  forumId,
+  forumNote,
   replies,
   replyNoteMap,
   displayOptionsMap,
@@ -957,7 +957,9 @@ function ForumReplies({
           <ChatReply
             note={replyNoteMap[reply.id]}
             parentNote={
-              reply.replyto === forumId ? null : replyNoteMap[replyNoteMap[reply.id].replyto]
+              reply.replyto === forumNote?.id
+                ? null
+                : replyNoteMap[replyNoteMap[reply.id].replyto]
             }
             displayOptions={displayOptionsMap[reply.id]}
             setChatReplyNote={setChatReplyNote}
@@ -975,7 +977,7 @@ function ForumReplies({
       note={replyNoteMap[reply.id]}
       replies={reply.replies}
       replyDepth={1}
-      parentId={forumId}
+      parentNote={forumNote}
       updateNote={updateNote}
     />
   ))
