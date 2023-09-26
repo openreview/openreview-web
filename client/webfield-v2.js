@@ -264,6 +264,10 @@ module.exports = (function () {
       query.number = options.numbers.join(',')
     }
 
+    if (options.domain) {
+      query.domain = options.domain
+    }
+
     return getAll('/notes', query)
   }
 
@@ -280,6 +284,7 @@ module.exports = (function () {
       replyto: true,
       type: 'notes',
       details: 'replytoNote,repliedNotes',
+      domain: venueId
     })
 
     var edgeInvitationsP = getAll('/invitations', {
@@ -288,6 +293,7 @@ module.exports = (function () {
       duedate: true,
       type: 'edges',
       details: 'repliedEdges',
+      domain: venueId
     })
 
     var tagInvitationsP = getAll('/invitations', {
@@ -296,6 +302,7 @@ module.exports = (function () {
       duedate: true,
       type: 'tags',
       details: 'repliedTags',
+      domain: venueId
     })
 
     var filterInviteeAndNumbers = function (inv) {
@@ -1250,6 +1257,7 @@ module.exports = (function () {
       prefix: venueId + '/' + numberToken + '.*',
       select: 'id,members',
       stream: true,
+      domain: venueId
     }
     if (options && options.assigned) {
       query.member = window.user.id
