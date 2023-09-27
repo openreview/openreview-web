@@ -227,7 +227,7 @@ const ProfileSearchFormAndResults = ({
         { accessToken }
       )
       setTotalCount(results.count)
-      setProfileSearchResults(results.profiles)
+      setProfileSearchResults(results.profiles.filter((p) => p?.content?.emails?.length))
     } catch (apiError) {
       promptError(apiError.message)
     }

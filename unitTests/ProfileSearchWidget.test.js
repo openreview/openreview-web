@@ -241,7 +241,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     })
   })
 
-  test('show profile search results', async () => {
+  test('show profile search results with emails', async () => {
     const initialGetProfile = jest.fn(() =>
       Promise.resolve({
         profiles: [
@@ -274,6 +274,15 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
                 { first: 'Result two', last: 'Result two', username: '~search_result2' },
               ],
               emails: ['test2@email.com', 'anothertest2@email.com'],
+            },
+          },
+          {
+            id: '~search_result3',
+            content: {
+              names: [
+                { first: 'Result three', last: 'Result three', username: '~search_result3' },
+              ],
+              emails: [],
             },
           },
         ],
