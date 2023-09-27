@@ -245,7 +245,7 @@ const Terms = () => (
             rel="nofollow no referrer"
           >
             Creative Commons Attribution 4.0 International (CC BY 4.0)
-          </a>
+          </a>{' '}
           license. By agreeing to these Terms of Use, Submitters also retroactively apply this
           license to such Comments and Configuration Records they submitted in the past. (Note
           that this license does not imply that all Comments or Configuration Records are
