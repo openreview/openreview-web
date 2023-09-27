@@ -21,7 +21,7 @@ export function Tab({ id, headingCount, icon, onClick, active, hidden, children 
   useEffect(() => {
     if (tabEl.current && active) {
       setTimeout(() => {
-        tabEl.current.click()
+        if (tabEl.current && active) tabEl.current.click()
       }, 100)
     }
   }, [tabEl, active])
