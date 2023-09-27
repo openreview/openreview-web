@@ -74,6 +74,7 @@ export default function Forum({
   const { id, details } = parentNote
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
   const newNoteEditor = useNewNoteEditor(details.invitation.domain)
+  const domain = details.invitation.domain.startsWith(process.env.SUPER_USER) ? undefined : details.invitation.domain
 
   // Process forum views config
   let replyForumViews = null
@@ -105,7 +106,7 @@ export default function Forum({
     return api
       .get(
         '/invitations',
-        { replyForum: forumId, expired: true, domain: forumNote.domain, ...extraParams },
+        { replyForum: forumId, expired: true, domain, ...extraParams },
         { accessToken, version: 2 }
       )
       .then(({ invitations }) => {
@@ -135,7 +136,7 @@ export default function Forum({
         forum: forumId,
         trash: true,
         details: 'replyCount,writable,signatures,invitation,presentation',
-        domain: forumNote.domain
+        domain
       },
       { accessToken, version: 2 }
     )
@@ -245,7 +246,7 @@ export default function Forum({
           sort: 'tmdate:asc',
           details: 'writable',
           trash: true,
-          domain: forumNote.domain
+          domain
         },
         { accessToken, version: 2 }
       )
@@ -849,7 +850,7 @@ export default function Forum({
             >
               {repliesLoaded ? (
                 <ForumReplies
-                  forumId={id}
+                  forumNote={forumNote}
                   replies={orderedReplies}
                   replyNoteMap={replyNoteMap}
                   displayOptionsMap={displayOptionsMap}
@@ -938,7 +939,7 @@ export default function Forum({
 }
 
 function ForumReplies({
-  forumId,
+  forumNote,
   replies,
   replyNoteMap,
   displayOptionsMap,
@@ -956,7 +957,9 @@ function ForumReplies({
           <ChatReply
             note={replyNoteMap[reply.id]}
             parentNote={
-              reply.replyto === forumId ? null : replyNoteMap[replyNoteMap[reply.id].replyto]
+              reply.replyto === forumNote?.id
+                ? null
+                : replyNoteMap[replyNoteMap[reply.id].replyto]
             }
             displayOptions={displayOptionsMap[reply.id]}
             setChatReplyNote={setChatReplyNote}
@@ -974,7 +977,7 @@ function ForumReplies({
       note={replyNoteMap[reply.id]}
       replies={reply.replies}
       replyDepth={1}
-      parentId={forumId}
+      parentNote={forumNote}
       updateNote={updateNote}
     />
   ))
