@@ -13,7 +13,8 @@ const MessageAreaChairsModal = ({
   messageParentGroup,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, emailReplyTo } = useContext(WebFieldContext)
+  const { shortPhrase, emailReplyTo, withdrawnVenueId, deskRejectedVenueId } =
+    useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -57,10 +58,26 @@ const MessageAreaChairsModal = ({
         return tableRows.filter((row) => row.numCompletedReviews < row.notes?.length ?? 0)
       case 'noMetaReviews':
         return tableRows.filter(
-          (row) => row.numCompletedMetaReviews === 0 && (row.notes?.length ?? 0) !== 0
+          (row) =>
+            row.numCompletedMetaReviews === 0 &&
+            (row.notes?.filter(
+              (p) =>
+                ![withdrawnVenueId, deskRejectedVenueId].includes(
+                  p.note.content?.venueid?.value
+                )
+            )?.length ?? 0) !== 0
         )
       case 'missingMetaReviews':
-        return tableRows.filter((row) => row.numCompletedMetaReviews < row.notes?.length ?? 0)
+        return tableRows.filter(
+          (row) =>
+            row.numCompletedMetaReviews <
+              row.notes?.filter(
+                (p) =>
+                  ![withdrawnVenueId, deskRejectedVenueId].includes(
+                    p.note.content?.venueid?.value
+                  )
+              )?.length ?? 0
+        )
       case 'missingAssignments':
         return tableRows.filter((row) => !row.notes?.length)
       default:
