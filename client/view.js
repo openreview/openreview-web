@@ -1455,7 +1455,7 @@ module.exports = (function () {
         fieldName,
         fieldDescription.description,
         fieldValue,
-        fieldDescription['value-dropdown'],
+        fieldDescription['value-dropdown'].map(function(v) { return { id: v, description: v } }),
         fieldDescription.required
       )
     } else if (_.has(fieldDescription, 'value-dropdown-hierarchy')) {
