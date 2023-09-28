@@ -360,7 +360,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     expect(getProfile).toHaveBeenCalledWith(
       '/profiles/search',
-      { email: 'test@email.com', es: true, limit: 15, offset: 0 },
+      { email: 'test@email.com', es: true, limit: 20, offset: 0 },
       expect.anything()
     )
   })
@@ -396,7 +396,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     expect(getProfile).toHaveBeenCalledWith(
       '/profiles/search',
-      { id: '~Test_User1', es: true, limit: 15, offset: 0 },
+      { id: '~Test_User1', es: true, limit: 20, offset: 0 },
       expect.anything()
     )
   })
