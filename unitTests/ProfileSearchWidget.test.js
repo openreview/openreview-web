@@ -241,7 +241,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     })
   })
 
-  test('show profile search results', async () => {
+  test('show profile search results with emails', async () => {
     const initialGetProfile = jest.fn(() =>
       Promise.resolve({
         profiles: [
@@ -274,6 +274,15 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
                 { fullname: 'Result two Result two', username: '~search_result2' },
               ],
               emails: ['test2@email.com', 'anothertest2@email.com'],
+            },
+          },
+          {
+            id: '~search_result3',
+            content: {
+              names: [
+                { first: 'Result three', last: 'Result three', username: '~search_result3' },
+              ],
+              emails: [],
             },
           },
         ],
@@ -351,7 +360,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     expect(getProfile).toHaveBeenCalledWith(
       '/profiles/search',
-      { email: 'test@email.com', es: true, limit: 15, offset: 0 },
+      { email: 'test@email.com', es: true, limit: 20, offset: 0 },
       expect.anything()
     )
   })
@@ -387,7 +396,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     expect(getProfile).toHaveBeenCalledWith(
       '/profiles/search',
-      { id: '~Test_User1', es: true, limit: 15, offset: 0 },
+      { id: '~Test_User1', es: true, limit: 20, offset: 0 },
       expect.anything()
     )
   })
