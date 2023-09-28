@@ -200,7 +200,7 @@ const ProfileSearchFormAndResults = ({
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   const [showCustomAuthorForm, setShowCustomAuthorForm] = useState(false)
   const { accessToken } = useUser()
-  const pageSize = 15
+  const pageSize = 20
 
   // eslint-disable-next-line no-shadow
   const searchProfiles = async (searchTerm, pageNumber, showLoadingSpinner = true) => {
@@ -227,7 +227,7 @@ const ProfileSearchFormAndResults = ({
         { accessToken }
       )
       setTotalCount(results.count)
-      setProfileSearchResults(results.profiles)
+      setProfileSearchResults(results.profiles.filter((p) => p.content.emails?.length))
     } catch (apiError) {
       promptError(apiError.message)
     }
