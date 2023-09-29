@@ -126,7 +126,6 @@ const ProfileSearchResultRow = ({
 }) => {
   const { field, onChange, value, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
-  const preferredId = profile.content.names?.find((p) => p.preferred)?.username ?? profile.id
 
   if (!profile) return null
 
@@ -134,8 +133,8 @@ const ProfileSearchResultRow = ({
     <div className={styles.searchResultRow}>
       <div className={styles.basicInfo}>
         <div className={styles.authorFullName}>
-          <a href={`/profile?id=${preferredId}`} target="_blank" rel="noreferrer">
-            {preferredId.split(/([^~_0-9]+|[~_0-9]+)/g).map((segment, index) => {
+          <a href={`/profile?id=${profile.id}`} target="_blank" rel="noreferrer">
+            {profile.id.split(/([^~_0-9]+|[~_0-9]+)/g).map((segment, index) => {
               if (/[^~_0-9]+/.test(segment)) {
                 return (
                   <span className={styles.nameSegment} key={index}>

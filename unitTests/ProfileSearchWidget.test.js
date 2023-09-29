@@ -263,12 +263,6 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             content: {
               names: [
                 { first: 'Result one', last: 'Result one', username: '~search_result1' },
-                {
-                  first: 'Result one preferred',
-                  last: 'Result one preferred',
-                  username: '~search_result_preferred1',
-                  preferred: true,
-                },
               ],
               emails: ['test1@email.com', 'anothertest1@email.com'],
             },
@@ -278,12 +272,6 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             content: {
               names: [
                 { first: 'Result two', last: 'Result two', username: '~search_result2' },
-                {
-                  first: 'Result two not preferred',
-                  last: 'Result two not preferred',
-                  username: '~search_result_notpreferred2',
-                  preferred: false,
-                },
               ],
               emails: ['test2@email.com', 'anothertest2@email.com'],
             },
@@ -334,7 +322,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(searchButton)
     expect(screen.getAllByText('~', { exact: false })).toHaveLength(2)
     expect(screen.getAllByText('~', { exact: false })[0].parentElement.textContent).toEqual(
-      '~search_result_preferred1'
+      '~search_result1'
     )
     expect(screen.getAllByText('~', { exact: false })[1].parentElement.textContent).toEqual(
       '~search_result2'
