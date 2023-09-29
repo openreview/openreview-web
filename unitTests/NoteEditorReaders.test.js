@@ -1901,6 +1901,39 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
+  test('show dropdown of enum groups,skip parentReaders logic when replyToNote is forumNote', async () => {
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              enum: ['~Test_IdOne1', '~Test_IdTwo1', '~Test_IdThree1'],
+              default: ['~Test_IdTwo1'],
+            },
+          },
+        },
+      },
+    }
+    const user = userEvent.setup()
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IdTwo1'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        isDirectReplyToForum={true}
+      />
+    )
+
+    await user.click(await screen.findByText('Select readers'))
+    await waitFor(() => {
+      expect(screen.getByText('Test IdTwo').parentElement.childElementCount).toEqual(3)
+    })
+  })
+
   test('show dropdown of intersection of enum groups and replyToNote readers', async () => {
     const invitation = {
       edit: {
