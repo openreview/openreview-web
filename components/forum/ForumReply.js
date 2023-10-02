@@ -21,7 +21,14 @@ import {
 } from '../../lib/utils'
 import { getInvitationColors } from '../../lib/forum-utils'
 
-export default function ForumReply({ note, replies, replyDepth, parentNote, updateNote }) {
+export default function ForumReply({
+  note,
+  replies,
+  replyDepth,
+  parentNote,
+  updateNote,
+  isDirectReplyToForum,
+}) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
   const { displayOptionsMap, nesting, excludedInvitations, setCollapsed, setContentExpanded } =
@@ -130,6 +137,7 @@ export default function ForumReply({ note, replies, replyDepth, parentNote, upda
               setActiveEditInvitation(null)
               scrollToNote(newNote.id)
             }}
+            isDirectReplyToForum={isDirectReplyToForum}
           />
         ) : (
           <NoteEditorForm
@@ -398,6 +406,7 @@ export default function ForumReply({ note, replies, replyDepth, parentNote, upda
                 setActiveInvitation(null)
                 scrollToNote(newNote.id)
               }}
+              isDirectReplyToForum={isDirectReplyToForum}
             />
           ) : (
             <NoteEditorForm
