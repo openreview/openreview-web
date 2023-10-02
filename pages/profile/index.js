@@ -97,8 +97,6 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       setPublications(apiRes.notes)
       setCount(apiRes.count)
     }
-    $('[data-toggle="tooltip"]').tooltip('enable')
-    $('[data-toggle="tooltip"]').tooltip({ container: 'body' })
   }
 
   useEffect(() => {
