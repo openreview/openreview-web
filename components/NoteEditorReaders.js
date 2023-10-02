@@ -213,8 +213,8 @@ export const NewReplyEditNoteReaders = ({
   const { user, accessToken } = useUser()
 
   const addEnumParentReaders = (groupResults, parentReaders) => {
-    if (!parentReaders?.length) return groupResults
-    if (parentReaders.includes('everyone')) return groupResults
+    if (!parentReaders?.length || parentReaders.includes('everyone') || isDirectReplyToForum)
+      return groupResults
     const readersIntersection = parentReaders.flatMap((p) => {
       const groupResult = groupResults.find((q) => q.value === p)
       return groupResult ?? []
