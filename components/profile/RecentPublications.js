@@ -24,11 +24,12 @@ const RecentPublications = ({
   }
 
   useEffect(() => {
-    if (publications)
+    if (publications) {
       setTimeout(() => {
         $('[data-toggle="tooltip"]').tooltip('enable')
         $('[data-toggle="tooltip"]').tooltip({ container: 'body' })
       }, 100)
+    }
   }, [publications])
 
   if (loading) {
