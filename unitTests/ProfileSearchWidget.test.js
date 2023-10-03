@@ -413,7 +413,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     )
   })
 
-  test('auto update author name if preferred name has changed since submission', async () => {
+  test('auto update author name if preferred name has changed since submission (invitation allows)', async () => {
     const initialGetProfile = jest.fn(() =>
       Promise.resolve({
         profiles: [
@@ -468,6 +468,56 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         'data-original-title',
         '~test_id_preferred1'
       )
+    })
+  })
+
+  test('not to auto update author name if preferred name has changed since submission (invitation is const)', async () => {
+    const initialGetProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id_preferred1',
+            content: {
+              names: [
+                { first: 'Test First', last: 'Test Last', username: '~test_id1' },
+                {
+                  // user updated preferred name after submission
+                  first: 'Test First Preferred',
+                  last: 'Test Last Preferred',
+                  username: '~test_id_preferred1',
+                  preferred: true,
+                },
+              ],
+              emails: ['test@email.com', 'anothertest@email.com'],
+            },
+          },
+        ],
+      })
+    )
+
+    api.post = initialGetProfile
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authorids: {
+            value: ['~test_id1'], // revision invitation may only allow reorder
+          },
+        },
+        value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
+
+    await waitFor(() => {
+      expect(screen.getByText('Test First Test Last')).toBeInTheDocument()
+      expect(
+        screen.queryByText('Test First Preferred Test Last Preferred')
+      ).not.toBeInTheDocument()
     })
   })
 

@@ -539,7 +539,7 @@ const ProfileSearchWidget = ({ multiple = false }) => {
       return
     }
     onChange({ fieldName, value: displayAuthors }) // update the value in the editor context to contain both id and name
-    getProfiles(multiple ? value.map((p) => p.authorId) : [value.authorId])
+    if (allowAddRemove) getProfiles(multiple ? value.map((p) => p.authorId) : [value.authorId])
   }, [])
 
   useEffect(() => {
