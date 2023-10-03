@@ -129,9 +129,9 @@ const ProfileSearchResultRow = ({
 }) => {
   const { field, onChange, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
-  const preferredId = profile.content.names?.find((p) => p.preferred)?.username ?? profile.id
 
   if (!profile) return null
+  const preferredId = profile.content.names?.find((p) => p.preferred)?.username ?? profile.id
 
   return (
     <div className={styles.searchResultRow}>
@@ -505,7 +505,7 @@ const ProfileSearchWidget = ({ multiple = false }) => {
         })
       }
 
-      const authorsWithPreferredNams = authorIds.map((authorId) => {
+      const authorsWithPreferredNames = authorIds.map((authorId) => {
         const profile = allProfiles.find((q) =>
           q.content.names.find((r) => r.username === authorId)
         )
@@ -518,10 +518,10 @@ const ProfileSearchWidget = ({ multiple = false }) => {
           authorName: profile ? getProfileName(profile) : preferredId,
         }
       })
-      setDisplayAuthors(authorsWithPreferredNams)
+      setDisplayAuthors(authorsWithPreferredNames)
       onChange({
         fieldName,
-        value: authorsWithPreferredNams,
+        value: authorsWithPreferredNames,
       })
     } catch (apiError) {
       promptError(apiError.message)
@@ -539,10 +539,7 @@ const ProfileSearchWidget = ({ multiple = false }) => {
       return
     }
     onChange({ fieldName, value: displayAuthors }) // update the value in the editor context to contain both id and name
-    // eslint-disable-next-line no-unused-expressions
-    value
-      ? getProfiles(multiple ? value.map((p) => p.authorId) : [value.authorId])
-      : setDisplayAuthors([])
+    getProfiles(multiple ? value.map((p) => p.authorId) : [value.authorId])
   }, [])
 
   useEffect(() => {
