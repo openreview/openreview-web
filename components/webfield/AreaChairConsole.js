@@ -128,7 +128,7 @@ const AreaChairConsole = ({ appContext }) => {
     officialMetaReviewName,
     reviewerName = 'Reviewers',
     anonReviewerName = 'Reviewer_',
-    metaReviewRecommendationName,
+    metaReviewRecommendationName = 'recommendation',
     shortPhrase,
     filterOperators,
     propertiesAllowed,
@@ -594,7 +594,6 @@ const AreaChairConsole = ({ appContext }) => {
     reviewRatingName,
     reviewConfidenceName,
     officialMetaReviewName,
-    metaReviewRecommendationName,
     shortPhrase,
     enableQuerySearch,
   })

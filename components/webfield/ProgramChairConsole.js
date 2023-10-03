@@ -36,7 +36,7 @@ const ProgramChairConsole = ({ appContext }) => {
     paperReviewsCompleteThreshold,
     bidName,
     recommendationName, // to get ac recommendation edges
-    metaReviewRecommendationName, // recommendation field in meta review
+    metaReviewRecommendationName = 'recommendation', // recommendation field in meta review
     requestFormId,
     submissionId,
     submissionVenueId,
@@ -848,7 +848,6 @@ const ProgramChairConsole = ({ appContext }) => {
     authorsId,
     paperReviewsCompleteThreshold,
     bidName,
-    recommendationName,
     submissionId,
     officialReviewName,
     commentName,

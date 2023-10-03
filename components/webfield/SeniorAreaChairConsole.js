@@ -40,7 +40,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     officialMetaReviewName,
     decisionName = 'Decision',
     preliminaryDecisionName,
-    metaReviewRecommendationName,
+    metaReviewRecommendationName = 'recommendation',
     edgeBrowserDeployedUrl,
     customStageInvitations,
     withdrawnVenueId,
