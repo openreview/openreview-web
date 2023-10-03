@@ -39,7 +39,7 @@ const AreaChairConsoleMenuBar = ({
     confidenceMax: ['reviewProgressData.confidenceMax'],
     confidenceMin: ['reviewProgressData.confidenceMin'],
     replyCount: ['reviewProgressData.replyCount'],
-    metaReviewRecommendationName: [`metaReviewData.${metaReviewRecommendationName}`],
+    [metaReviewRecommendationName]: [`metaReviewData.${metaReviewRecommendationName}`],
     ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
   }
   const messageReviewerOptions = [
