@@ -33,20 +33,16 @@ export default function SubmissionsList({
 
   const loadNotes = useCallback(
     async (limit, offset) => {
-      let { notes, count } = await api.get(
+      const { notes, count } = await api.get(
         '/notes',
         { details, ...query, limit, offset, domain: venueId },
         { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
       )
-      if (typeof filterNotes === 'function') {
-        notes = notes.filter(filterNotes)
-        count = notes.length
-      }
       if (typeof updateCount === 'function') {
         updateCount(count ?? 0)
       }
       return {
-        items: notes,
+        items: typeof filterNotes === 'function' ? notes.filter(filterNotes) : notes,
         count: count ?? 0,
       }
     },

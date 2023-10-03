@@ -269,6 +269,7 @@ const NoteEditor = ({
           value={noteEditorData[fieldName]}
           onChange={(value) => setNoteEditorData({ fieldName, value })}
           setLoading={setLoading}
+          isDirectReplyToForum={isDirectReplyToForum}
           placeholder="Select note readers"
           error={error}
           clearError={clearError}
