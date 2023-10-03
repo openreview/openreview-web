@@ -35,7 +35,8 @@ const ProgramChairConsole = ({ appContext }) => {
     authorsId,
     paperReviewsCompleteThreshold,
     bidName,
-    recommendationName,
+    recommendationName, // to get ac recommendation edges
+    metaReviewRecommendationName, // recommendation field in meta review
     requestFormId,
     submissionId,
     submissionVenueId,
@@ -191,7 +192,9 @@ const ProgramChairConsole = ({ appContext }) => {
       // #region get Reviewer, AC, SAC members
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
-          id ? api.getGroupById(id, accessToken, null, { select: 'members' }) : Promise.resolve([])
+          id
+            ? api.getGroupById(id, accessToken, null, { select: 'members' })
+            : Promise.resolve([])
         )
       )
       // #endregion
@@ -627,7 +630,8 @@ const ProgramChairConsole = ({ appContext }) => {
         const metaReviewAgreementValue =
           metaReviewAgreement?.content?.[metaReviewAgreementConfig?.displayField]?.value
         return {
-          [recommendationName]: metaReview?.content[recommendationName]?.value,
+          [metaReviewRecommendationName]:
+            metaReview?.content[metaReviewRecommendationName]?.value,
           ...metaReview,
           metaReviewAgreement: metaReviewAgreement
             ? {
@@ -703,7 +707,7 @@ const ProgramChairConsole = ({ appContext }) => {
           numMetaReviewsDone: metaReviews.length,
           metaReviews,
           metaReviewsSearchValue: metaReviews?.length
-            ? metaReviews.map((p) => p[recommendationName]).join(' ')
+            ? metaReviews.map((p) => p[metaReviewRecommendationName]).join(' ')
             : 'N/A',
           metaReviewAgreementSearchValue: metaReviews
             .map((p) => p.metaReviewAgreement.searchValue)

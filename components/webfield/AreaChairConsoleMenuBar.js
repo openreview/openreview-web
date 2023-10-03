@@ -14,6 +14,7 @@ const AreaChairConsoleMenuBar = ({
   filterOperators: filterOperatorsConfig,
   propertiesAllowed: extraPropertiesAllowed,
   reviewRatingName,
+  metaReviewRecommendationName,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
   const propertiesAllowed = {
@@ -38,7 +39,7 @@ const AreaChairConsoleMenuBar = ({
     confidenceMax: ['reviewProgressData.confidenceMax'],
     confidenceMin: ['reviewProgressData.confidenceMin'],
     replyCount: ['reviewProgressData.replyCount'],
-    recommendation: ['metaReviewData.recommendation'],
+    metaReviewRecommendationName: [`metaReviewData.${metaReviewRecommendationName}`],
     ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
   }
   const messageReviewerOptions = [
@@ -97,7 +98,10 @@ const AreaChairConsoleMenuBar = ({
     { header: 'min confidence', getValue: (p) => p.reviewProgressData?.confidenceMin },
     { header: 'max confidence', getValue: (p) => p.reviewProgressData?.confidenceMax },
     { header: 'average confidence', getValue: (p) => p.reviewProgressData?.confidenceAvg },
-    { header: 'ac recommendation', getValue: (p) => p.metaReviewData?.recommendation },
+    {
+      header: `ac ${metaReviewRecommendationName}`,
+      getValue: (p) => p.metaReviewData?.[metaReviewRecommendationName],
+    },
     ...(extraExportColumns ?? []),
   ]
   const sortOptions = [
@@ -177,10 +181,12 @@ const AreaChairConsoleMenuBar = ({
           : p.reviewProgressData?.confidenceMin,
     },
     {
-      label: 'Meta Review Recommendation',
-      value: 'Meta Review Recommendation',
+      label: `Meta Review ${prettyField(metaReviewRecommendationName)}`,
+      value: `Meta Review ${metaReviewRecommendationName}`,
       getValue: (p) =>
-        p.metaReviewData?.recommendation === 'N/A' ? null : p.metaReviewData?.recommendation,
+        p.metaReviewData?.[metaReviewRecommendationName] === 'N/A'
+          ? null
+          : p.metaReviewData?.[metaReviewRecommendationName],
     },
   ]
   const basicSearchFunction = (row, term) => {

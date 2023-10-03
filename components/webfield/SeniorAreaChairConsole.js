@@ -40,7 +40,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     officialMetaReviewName,
     decisionName = 'Decision',
     preliminaryDecisionName,
-    recommendationName,
+    metaReviewRecommendationName,
     edgeBrowserDeployedUrl,
     customStageInvitations,
     withdrawnVenueId,
@@ -383,7 +383,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               const metaReviewAgreementValue =
                 metaReviewAgreement?.content?.[metaReviewAgreementConfig?.displayField]?.value
               return {
-                [recommendationName]: metaReview?.content[recommendationName]?.value,
+                [metaReviewRecommendationName]:
+                  metaReview?.content[metaReviewRecommendationName]?.value,
                 ...metaReview,
                 metaReviewAgreement: metaReviewAgreement
                   ? {
@@ -471,7 +472,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               numMetaReviewsDone: metaReviews.length,
               metaReviews,
               metaReviewsSearchValue: metaReviews?.length
-                ? metaReviews.map((p) => p[recommendationName]).join(' ')
+                ? metaReviews.map((p) => p[metaReviewRecommendationName]).join(' ')
                 : 'N/A',
               metaReviewAgreementSearchValue: metaReviews
                 .map((p) => p.metaReviewAgreement?.searchValue)
