@@ -25,9 +25,12 @@ const getTitle = (profile) => {
   return title
 }
 
-const checkIsInAuthorList = (selectedAuthors, idToCheck, isAuthoridsField, multiple) => {
-  if (isAuthoridsField) return selectedAuthors?.find((p) => p.authorId === idToCheck)
-  return multiple ? selectedAuthors?.includes(idToCheck) : selectedAuthors === idToCheck
+const checkIsInAuthorList = (selectedAuthors, profileToCheck, isAuthoridsField, multiple) => {
+  const profileIds = profileToCheck.content?.names?.map((p) => p.username) ?? []
+  if (isAuthoridsField) return selectedAuthors?.find((p) => profileIds.includes(p.authorId))
+  return multiple
+    ? selectedAuthors?.find((p) => profileIds.includes(p))
+    : profileIds.includes(selectedAuthors)
 }
 
 const getUpdatedValue = (updatedDisplayAuthors, isAuthoridsField, multiple) => {
@@ -124,17 +127,18 @@ const ProfileSearchResultRow = ({
   isAuthoridsField,
   multiple,
 }) => {
-  const { field, onChange, value, clearError } = useContext(EditorComponentContext)
+  const { field, onChange, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
 
   if (!profile) return null
+  const preferredId = profile.content.names?.find((p) => p.preferred)?.username ?? profile.id
 
   return (
     <div className={styles.searchResultRow}>
       <div className={styles.basicInfo}>
         <div className={styles.authorFullName}>
-          <a href={`/profile?id=${profile.id}`} target="_blank" rel="noreferrer">
-            {profile.id.split(/([^~_0-9]+|[~_0-9]+)/g).map((segment, index) => {
+          <a href={`/profile?id=${preferredId}`} target="_blank" rel="noreferrer">
+            {preferredId.split(/([^~_0-9]+|[~_0-9]+)/g).map((segment, index) => {
               if (/[^~_0-9]+/.test(segment)) {
                 return (
                   <span className={styles.nameSegment} key={index}>
@@ -160,11 +164,16 @@ const ProfileSearchResultRow = ({
       <div className={styles.addButton}>
         <IconButton
           name="plus"
-          disableButton={checkIsInAuthorList(value, profile?.id, isAuthoridsField, multiple)}
+          disableButton={checkIsInAuthorList(
+            displayAuthors,
+            profile,
+            isAuthoridsField,
+            multiple
+          )}
           disableReason="This author is already in author list"
           onClick={() => {
             const updatedAuthors = displayAuthors.concat({
-              authorId: profile.id,
+              authorId: preferredId,
               authorName: getProfileName(profile),
             })
             setDisplayAuthors(updatedAuthors)
@@ -481,7 +490,6 @@ const ProfileSearchWidget = ({ multiple = false }) => {
       )
       setSelectedAuthorProfiles(allProfiles)
       if (!value) {
-        // existing note already have name and email info
         const currentAuthorProfile = allProfiles.find((p) =>
           p.content.names.find((q) => q.username === user.profile.id)
         )
@@ -496,19 +504,25 @@ const ProfileSearchWidget = ({ multiple = false }) => {
           ],
         })
       }
-      if (!isAuthoridsField) {
-        setDisplayAuthors(
-          authorIds.map((p) => {
-            const profile = allProfiles.find((q) =>
-              q.content.names.find((r) => r.username === p)
-            )
-            return {
-              authorId: p,
-              authorName: profile ? getProfileName(profile) : p,
-            }
-          })
+
+      const authorsWithPreferredNames = authorIds.map((authorId) => {
+        const profile = allProfiles.find((q) =>
+          q.content.names.find((r) => r.username === authorId)
         )
-      }
+        const preferredId =
+          profile?.content?.names?.find((name) => name.preferred)?.username ??
+          profile.id ??
+          authorId
+        return {
+          authorId: preferredId,
+          authorName: profile ? getProfileName(profile) : preferredId,
+        }
+      })
+      setDisplayAuthors(authorsWithPreferredNames)
+      onChange({
+        fieldName,
+        value: authorsWithPreferredNames,
+      })
     } catch (apiError) {
       promptError(apiError.message)
     }
@@ -525,6 +539,7 @@ const ProfileSearchWidget = ({ multiple = false }) => {
       return
     }
     onChange({ fieldName, value: displayAuthors }) // update the value in the editor context to contain both id and name
+    if (allowAddRemove) getProfiles(multiple ? value.map((p) => p.authorId) : [value.authorId])
   }, [])
 
   useEffect(() => {
