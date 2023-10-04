@@ -9,9 +9,7 @@ import {
   strongPassword,
 } from './utils/api-helper'
 
-const firstNameInputSelector = Selector('#first-input')
-const middleNameInputSelector = Selector('#middle-input')
-const lastNameInputSelector = Selector('#last-input')
+const fullNameInputSelector = Selector('#first-input')
 const emailAddressInputSelector = Selector('input').withAttribute(
   'placeholder',
   'Email address'
@@ -34,8 +32,7 @@ fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(as
 
 test('create new profile', async (t) => {
   await t
-    .typeText(firstNameInputSelector, 'Melisa')
-    .typeText(lastNameInputSelector, 'Bok')
+    .typeText(fullNameInputSelector, 'Melisa Bok')
     .typeText(emailAddressInputSelector, 'melisa@test.com')
     .expect(signupButtonSelector.hasAttribute('disabled'))
     .notOk('not enabled yet', { timeout: 5000 })
@@ -66,8 +63,7 @@ test('create new profile', async (t) => {
 
 test('enter invalid name', async (t) => {
   await t
-    .typeText(firstNameInputSelector, 'abc')
-    .typeText(lastNameInputSelector, '1')
+    .typeText(fullNameInputSelector, 'abc 1')
     .expect(Selector('.important_message').exists)
     .ok()
     .expect(Selector('.important_message').textContent)
@@ -77,12 +73,10 @@ test('enter invalid name', async (t) => {
 })
 
 test('enter valid name invalid email and change to valid email and register', async (t) => {
-  const firstName = 'FirstNameaac' // must be new each test run
-  const lastName = 'LastNameaac' // must be new each test run
+  const fullName = 'FirstNameaac LastNameaac' // must be new each test run
   const email = 'testemailaac@test.com' // must be new each test run
   await t
-    .typeText(firstNameInputSelector, firstName) // must be new each test run
-    .typeText(lastNameInputSelector, lastName) // must be new each test run
+    .typeText(fullNameInputSelector, fullName) // must be new each test run
     .typeText(emailAddressInputSelector, `${email}@test.com`)
     .click(signupButtonSelector)
     .expect(newPasswordInputSelector.exists)
@@ -150,8 +144,7 @@ fixture`Send Activation Link from signup page`
 
 test('Send Activation Link', async (t) => {
   await t
-    .typeText(firstNameInputSelector, inactiveUser.first.toLowerCase())
-    .typeText(lastNameInputSelector, inactiveUser.last.toLowerCase())
+    .typeText(fullNameInputSelector, inactiveUser.fullname.toLowerCase())
   const existingTildeId = await Selector('.new-username.hint').nth(0).innerText
   const newTildeId = await Selector('.new-username.hint').nth(1).innerText
   await t
@@ -179,8 +172,7 @@ fixture`Claim Profile`.page`http://localhost:${process.env.NEXT_PORT}/signup`
 test('enter invalid name', async (t) => {
   // user has no email no password and not active
   await t
-    .typeText(firstNameInputSelector, inActiveUserNoPasswordNoEmail.first)
-    .typeText(lastNameInputSelector, inActiveUserNoPasswordNoEmail.last)
+    .typeText(fullNameInputSelector, inActiveUserNoPasswordNoEmail.fullname)
     .expect(Selector('.submissions-list').find('.note').count)
     .lte(3) // at most 3 recent publications
     .expect(claimProfileButtonSelector.exists)
@@ -199,8 +191,7 @@ fixture`Sign up`.page`http://localhost:${process.env.NEXT_PORT}/signup`
 test('email address should be masked', async (t) => {
   // user has email but no password not active
   await t
-    .typeText(firstNameInputSelector, inActiveUserNoPassword.first)
-    .typeText(lastNameInputSelector, inActiveUserNoPassword.last)
+    .typeText(fullNameInputSelector, inActiveUserNoPassword.fullname)
     .expect(Selector('input').withAttribute('type', 'email').nth(0).value)
     .contains('****') // email should be masked
 })
@@ -345,22 +336,10 @@ fixture`Issue related tests`
 test('#160 allow user to overwrite last/middle/first name to be lowercase', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/signup`)
-    .typeText(firstNameInputSelector, 'first')
-    .expect(firstNameInputSelector.value)
+    .typeText(fullNameInputSelector, 'first')
+    .expect(fullNameInputSelector.value)
     .eql('First')
     .pressKey('left left left left left delete f')
-    .expect(firstNameInputSelector.value)
+    .expect(fullNameInputSelector.value)
     .eql('first')
-    .typeText(middleNameInputSelector, 'middle')
-    .expect(middleNameInputSelector.value)
-    .eql('Middle')
-    .pressKey('left left left left left left delete m')
-    .expect(middleNameInputSelector.value)
-    .eql('middle')
-    .typeText(lastNameInputSelector, 'last')
-    .expect(lastNameInputSelector.value)
-    .eql('Last')
-    .pressKey('left left left left delete l')
-    .expect(lastNameInputSelector.value)
-    .eql('last')
 })
