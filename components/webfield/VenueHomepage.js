@@ -98,7 +98,9 @@ function LinksList({ links }) {
           {url.startsWith('/') ? (
             <Link href={url}>{name ?? url}</Link>
           ) : (
-            <a href={url} target="_blank" rel="noopener noreferrer">{name ?? url}</a>
+            <a href={url} target="_blank" rel="noopener noreferrer">
+              {name ?? url}
+            </a>
           )}
         </li>
       ))}
@@ -169,6 +171,22 @@ export default function VenueHomepage({ appContext }) {
       const query = tabConfig.invitation
         ? { invitation: tabConfig.invitation }
         : tabConfig.query
+
+      const { postQuery } = tabConfig.options
+      let filterFn = null
+      if (tabConfig.options.postQuery) {
+        filterFn = (note) =>
+          Object.keys(postQuery).every((key) => {
+            const value = key.startsWith('content.')
+              ? note.content[key.slice(8)]?.value
+              : note[key]
+            if (typeof value === 'undefined' || value === null) return false
+            return Array.isArray(value)
+              ? value.includes(postQuery[key])
+              : value === postQuery[key]
+          })
+      }
+
       return (
         <SubmissionsList
           venueId={group.id}
@@ -185,17 +203,7 @@ export default function VenueHomepage({ appContext }) {
               )
             }
           }}
-          filterNotes={(note) => {
-            const { postQuery } = tabConfig.options
-            if (!postQuery) return true
-            return Object.keys(postQuery).every((key) => {
-              if (key.startsWith('content.')) {
-                const value = note.content[key.slice(8)]?.value
-                return value && (Array.isArray(value) ? value.includes(postQuery[key]) : value === postQuery[key])
-              }
-              return note[key] === postQuery[key]
-            })
-          }}
+          filterNotes={filterFn}
         />
       )
     }

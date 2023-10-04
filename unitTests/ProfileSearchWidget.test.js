@@ -241,7 +241,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     })
   })
 
-  test('show profile search results', async () => {
+  test('show profile search results with emails', async () => {
     const initialGetProfile = jest.fn(() =>
       Promise.resolve({
         profiles: [
@@ -263,6 +263,12 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             content: {
               names: [
                 { first: 'Result one', last: 'Result one', username: '~search_result1' },
+                {
+                  first: 'Result one preferred',
+                  last: 'Result one preferred',
+                  username: '~search_result_preferred1',
+                  preferred: true,
+                },
               ],
               emails: ['test1@email.com', 'anothertest1@email.com'],
             },
@@ -272,8 +278,23 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             content: {
               names: [
                 { first: 'Result two', last: 'Result two', username: '~search_result2' },
+                {
+                  first: 'Result two not preferred',
+                  last: 'Result two not preferred',
+                  username: '~search_result_notpreferred2',
+                  preferred: false,
+                },
               ],
               emails: ['test2@email.com', 'anothertest2@email.com'],
+            },
+          },
+          {
+            id: '~search_result3',
+            content: {
+              names: [
+                { first: 'Result three', last: 'Result three', username: '~search_result3' },
+              ],
+              emails: [],
             },
           },
         ],
@@ -313,7 +334,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(searchButton)
     expect(screen.getAllByText('~', { exact: false })).toHaveLength(2)
     expect(screen.getAllByText('~', { exact: false })[0].parentElement.textContent).toEqual(
-      '~search_result1'
+      '~search_result_preferred1'
     )
     expect(screen.getAllByText('~', { exact: false })[1].parentElement.textContent).toEqual(
       '~search_result2'
@@ -351,7 +372,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     expect(getProfile).toHaveBeenCalledWith(
       '/profiles/search',
-      { email: 'test@email.com', es: true, limit: 15, offset: 0 },
+      { email: 'test@email.com', es: true, limit: 20, offset: 0 },
       expect.anything()
     )
   })
@@ -387,9 +408,248 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     expect(getProfile).toHaveBeenCalledWith(
       '/profiles/search',
-      { id: '~Test_User1', es: true, limit: 15, offset: 0 },
+      { id: '~Test_User1', es: true, limit: 20, offset: 0 },
       expect.anything()
     )
+  })
+
+  test('auto update author name if preferred name has changed since submission (invitation allows)', async () => {
+    const initialGetProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id_preferred1',
+            content: {
+              names: [
+                { first: 'Test First', last: 'Test Last', username: '~test_id1' },
+                {
+                  // user updated preferred name after submission
+                  first: 'Test First Preferred',
+                  last: 'Test Last Preferred',
+                  username: '~test_id_preferred1',
+                  preferred: true,
+                },
+              ],
+              emails: ['test@email.com', 'anothertest@email.com'],
+            },
+          },
+        ],
+      })
+    )
+
+    api.post = initialGetProfile
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authorids: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
+              },
+            },
+          },
+        },
+        value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
+
+    await waitFor(() => {
+      expect(screen.queryByText('Test First Test Last')).not.toBeInTheDocument() // replaced by new preferred name
+      expect(screen.getByText('Test First Preferred Test Last Preferred')).toBeInTheDocument()
+      expect(screen.getByText('Test First Preferred Test Last Preferred')).toHaveAttribute(
+        'data-original-title',
+        '~test_id_preferred1'
+      )
+    })
+  })
+
+  test('not to auto update author name if preferred name has changed since submission (invitation is const)', async () => {
+    const initialGetProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id_preferred1',
+            content: {
+              names: [
+                { first: 'Test First', last: 'Test Last', username: '~test_id1' },
+                {
+                  // user updated preferred name after submission
+                  first: 'Test First Preferred',
+                  last: 'Test Last Preferred',
+                  username: '~test_id_preferred1',
+                  preferred: true,
+                },
+              ],
+              emails: ['test@email.com', 'anothertest@email.com'],
+            },
+          },
+        ],
+      })
+    )
+
+    api.post = initialGetProfile
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authorids: {
+            value: ['~test_id1'], // revision invitation may only allow reorder
+          },
+        },
+        value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
+
+    await waitFor(() => {
+      expect(screen.getByText('Test First Test Last')).toBeInTheDocument()
+      expect(
+        screen.queryByText('Test First Preferred Test Last Preferred')
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  test('add button is disabled when search result has been added (same profile id )', async () => {
+    const initialGetProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ first: 'Test First', last: 'Test Last', username: '~test_id1' }],
+              emails: ['test@email.com', 'anothertest@email.com'],
+            },
+          },
+        ],
+      })
+    )
+    const searchProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ first: 'Test First', last: 'Test Last', username: '~test_id1' }],
+              emails: ['test1@email.com', 'anothertest1@email.com'],
+            },
+          },
+        ],
+        count: 1,
+      })
+    )
+    api.post = initialGetProfile
+    api.get = searchProfile
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authorids: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
+              },
+            },
+          },
+        },
+        value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
+
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'anothertest1@email.com'
+    )
+    await userEvent.click(screen.getByText('Search'))
+    await expect(screen.getByRole('button', { name: 'plus' })).toHaveAttribute('disabled')
+  })
+
+  test('add button is disabled when search result has been added (different profile id because of preferred name update )', async () => {
+    const initialGetProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ first: 'Test First', last: 'Test Last', username: '~test_id1' }],
+              emails: ['test@email.com', 'anothertest@email.com'],
+            },
+          },
+        ],
+      })
+    )
+    const searchProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id_preferred1',
+            content: {
+              names: [
+                { first: 'Test First', last: 'Test Last', username: '~test_id1' },
+                // user updated preferred name after profile search modal is open
+                {
+                  first: 'Test First Preferred',
+                  last: 'Test Last Preferred',
+                  username: '~test_id_preferred1',
+                  preferred: true,
+                },
+              ],
+              emails: ['test1@email.com', 'anothertest1@email.com'],
+            },
+          },
+        ],
+        count: 1,
+      })
+    )
+    api.post = initialGetProfile
+    api.get = searchProfile
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authorids: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
+              },
+            },
+          },
+        },
+        value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
+
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'anothertest1@email.com'
+    )
+    await userEvent.click(screen.getByText('Search'))
+    await expect(screen.getByRole('button', { name: 'plus' })).toHaveAttribute('disabled')
   })
 
   test('call update when an author is added', async () => {
@@ -414,6 +674,12 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             content: {
               names: [
                 { first: 'Result First', last: 'Result Last', username: '~search_result1' },
+                {
+                  first: 'Result First Preferred',
+                  last: 'Result Last Preferred',
+                  username: '~search_result_preferred1',
+                  preferred: true,
+                },
               ],
               emails: ['test1@email.com', 'anothertest1@email.com'],
             },
@@ -458,7 +724,10 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       expect.objectContaining({
         value: [
           { authorId: '~test_id1', authorName: 'Test First Test Last' },
-          { authorId: '~search_result1', authorName: 'Result First Result Last' },
+          {
+            authorId: '~search_result_preferred1',
+            authorName: 'Result First Preferred Result Last Preferred',
+          },
         ],
       })
     )
@@ -1026,6 +1295,12 @@ describe('ProfileSearchWidget for non authorids field', () => {
             content: {
               names: [
                 { first: 'Result First', last: 'Result Last', username: '~search_result1' },
+                {
+                  first: 'Result First Preferred',
+                  last: 'Result Last Preferred',
+                  username: '~search_result_preferred1',
+                  preferred: true,
+                },
               ],
               emails: ['test1@email.com', 'anothertest1@email.com'],
             },
@@ -1066,7 +1341,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
 
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
-        value: ['~search_result1'],
+        value: ['~search_result_preferred1'],
       })
     )
     expect(clearError).toHaveBeenCalled()
