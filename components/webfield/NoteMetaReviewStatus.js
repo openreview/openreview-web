@@ -106,7 +106,7 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
 export const AreaChairConsoleNoteMetaReviewStatus = ({
   note,
   metaReviewData,
-  metaReviewContentField,
+  metaReviewRecommendationName,
   referrerUrl,
 }) => {
   const [metaReviewInvitation, setMetaReviewInvitation] = useState(null)
@@ -141,11 +141,11 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
 
   return (
     <div className="areachair-console-meta-review">
-      {metaReviewData[metaReviewContentField] !== 'N/A' ? (
+      {metaReviewData[metaReviewRecommendationName] !== 'N/A' ? (
         <>
-          <h4 className="title">{`AC ${prettyField(metaReviewContentField)}:`}</h4>
+          <h4 className="title">{`AC ${prettyField(metaReviewRecommendationName)}:`}</h4>
           <p>
-            <strong>{metaReviewData[metaReviewContentField]}</strong>
+            <strong>{metaReviewData[metaReviewRecommendationName]}</strong>
           </p>
           <p>
             <a href={editUrl} target="_blank" rel="nofollow noreferrer">{`Read${
@@ -164,7 +164,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
               Submit
             </a>
           ) : (
-            <strong>{`No ${metaReviewContentField}`}</strong>
+            <strong>{`No ${metaReviewRecommendationName}`}</strong>
           )}
         </h4>
       )}
@@ -177,6 +177,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
   rowData,
   referrerUrl,
   areaChairAssignmentUrl,
+  metaReviewRecommendationName,
 }) => {
   const { note, metaReviewData, preliminaryDecision } = rowData
   const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs } = metaReviewData
@@ -198,7 +199,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
         {areaChairs.length !== 0 &&
           areaChairs.map((areaChair) => {
             const metaReview = metaReviews.find((p) => p.anonId === areaChair.anonymousId)
-            const recommendation = metaReview?.content?.recommendation?.value
+            const recommendation = metaReview?.content?.[metaReviewRecommendationName]?.value
             const { metaReviewAgreement } = metaReview ?? {}
             return (
               <div key={areaChair.anonymousId} className="meta-review-info">
@@ -273,10 +274,14 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
 
       {preliminaryDecision && (
         <div className="mt-3">
-          <strong>Preliminary Decision:</strong><br />
-          <span>Recommendation: {preliminaryDecision.recommendation}</span><br />
-          <span>Confidence: {preliminaryDecision.confidence}</span><br />
-          <span>Discussion Needed: {preliminaryDecision.discussionNeeded}</span><br />
+          <strong>Preliminary Decision:</strong>
+          <br />
+          <span>Recommendation: {preliminaryDecision.recommendation}</span>
+          <br />
+          <span>Confidence: {preliminaryDecision.confidence}</span>
+          <br />
+          <span>Discussion Needed: {preliminaryDecision.discussionNeeded}</span>
+          <br />
           <br />
           <a
             href={`/forum?id=${note.id}&noteId=${preliminaryDecision.id}&referrer=${referrerUrl}`}
