@@ -1,6 +1,7 @@
 /* globals $,promptMessage: false */
 import uniqBy from 'lodash/uniqBy'
 import { useContext, useEffect, useState } from 'react'
+import List from 'rc-virtual-list'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import BasicModal from '../BasicModal'
@@ -26,6 +27,16 @@ const MessageReviewersModal = ({
     0
   )
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
+  const uniqueRecipientsInfo = uniqBy(recipientsInfo, (p) => p.preferredEmail)
+
+  // send at most 500 messages
+  const sendBatchMessage = async (batchMessage) => {
+    try {
+      await api.post('/messages', batchMessage, { accessToken })
+    } catch (apiError) {
+      setError(apiError.message)
+    }
+  }
 
   const handlePrimaryButtonClick = async () => {
     if (currentStep === 1) {
@@ -35,26 +46,41 @@ const MessageReviewersModal = ({
     // send emails
     setIsSending(true)
     try {
-      const sendEmailPs = selectedIds.map((noteId) => {
-        const { note } = tableRowsDisplayed.find((row) => row.note.id === noteId)
-        const reviewerIds = recipientsInfo
-          .filter((p) => p.noteNumber === note.number)
+      const simplifiedRecipientsInfo = recipientsInfo.map((p) => ({
+        reviewerProfileId: p.reviewerProfileId,
+        noteNumber: p.noteNumber,
+      }))
+      const simplifiedTableRowsDisplayed = tableRowsDisplayed.map((p) => ({
+        note: { id: p.note.id, number: p.note.number, forum: p.note.forum },
+      }))
+
+      const batchMessages = selectedIds.flatMap((noteId) => {
+        const rowData = simplifiedTableRowsDisplayed.find((row) => row.note.id === noteId)
+        const reviewerIds = simplifiedRecipientsInfo
+          .filter((p) => p.noteNumber === rowData.note.number)
           .map((q) => q.reviewerProfileId)
-        if (!reviewerIds.length) return Promise.resolve()
-        const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
-        return api.post(
-          '/messages',
-          {
-            groups: reviewerIds,
-            subject,
-            message: message.replaceAll('{{submit_review_link}}', forumUrl),
-            parentGroup: `${venueId}/${submissionName}${note.number}/Reviewers`,
-            replyTo: emailReplyTo,
-          },
-          { accessToken }
-        )
+        if (!reviewerIds.length) return []
+        const forumUrl = `https://openreview.net/forum?id=${rowData.note.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.note.number}/-/${officialReviewName}`
+        return {
+          groups: reviewerIds,
+          subject,
+          message: message.replaceAll('{{submit_review_link}}', forumUrl),
+          parentGroup: `${venueId}/${submissionName}${rowData.note.number}/Reviewers`,
+          replyTo: emailReplyTo,
+        }
       })
-      await Promise.all(sendEmailPs)
+
+      const batchSize = 500
+      const sendEmailPs = Array.from(
+        { length: Math.ceil(batchMessages.length / batchSize) },
+        (_, index) => batchMessages.slice(index * batchSize, (index + 1) * batchSize)
+      ).reduce(
+        (previousBatch, currentBatch) =>
+          previousBatch.then(() => sendBatchMessage(currentBatch)),
+        Promise.resolve()
+      )
+      await sendEmailPs
+
       $(`#${messageModalId}`).modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
     } catch (apiError) {
@@ -155,11 +181,21 @@ const MessageReviewersModal = ({
             emails will be sent to the following reviewers:
           </p>
           <div className="well reviewer-list">
-            {uniqBy(recipientsInfo, (p) => p.preferredEmail).map((recipientInfo) => (
-              <li key={recipientInfo.preferredEmail}>{`${recipientInfo.preferredName} <${
-                recipientInfo.preferredEmail
-              }>${recipientInfo.count > 1 ? ` --- (×${recipientInfo.count})` : ''}`}</li>
-            ))}
+            <List
+              data={uniqueRecipientsInfo}
+              itemHeight={18}
+              height={Math.min(uniqueRecipientsInfo.length * 18, 580)}
+              itemKey="preferredEmail"
+            >
+              {(recipientInfo) => (
+                <li>
+                  {' '}
+                  {`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>${
+                    recipientInfo.count > 1 ? ` --- (×${recipientInfo.count})` : ''
+                  }`}
+                </li>
+              )}
+            </List>
           </div>
         </>
       )}
