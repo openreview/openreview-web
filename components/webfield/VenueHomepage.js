@@ -21,15 +21,11 @@ import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 function ConsolesList({
   venueId,
   submissionInvitationId,
-  authorsGroupId,
   setHidden,
   shouldReload,
-  options = {},
 }) {
   const [userConsoles, setUserConsoles] = useState(null)
   const { user, accessToken, userLoading } = useUser()
-
-  const defaultAuthorsGroupId = `${venueId}/Authors`
 
   useEffect(() => {
     if (userLoading) return
@@ -39,15 +35,11 @@ function ConsolesList({
       return
     }
 
-    const groupIdQuery = { prefix: `${venueId}/` }
-    const getUserGroupsP = api.getAll(
+    api.getAll(
       '/groups',
-      { ...groupIdQuery, member: user.id, web: true, domain: venueId },
+      { prefix: `${venueId}/`, member: user.id, web: true, domain: venueId },
       { accessToken, version: 2 }
-    )
-
-    getUserGroupsP
-      .then((userGroups) => {
+    ).then((userGroups) => {
         const groupIds = []
         if (userGroups?.length > 0) {
           userGroups.forEach((g) => {
