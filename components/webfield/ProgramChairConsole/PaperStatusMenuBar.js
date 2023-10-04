@@ -15,7 +15,7 @@ const PaperStatusMenuBar = ({
 }) => {
   const {
     apiVersion,
-    recommendationName,
+    metaReviewRecommendationName,
     shortPhrase,
     enableQuerySearch,
     seniorAreaChairsId,
@@ -49,8 +49,8 @@ const PaperStatusMenuBar = ({
     replyCount: ['reviewProgressData.replyCount'],
     decision: ['decision'],
     venue: ['venue'],
-    ...(recommendationName && {
-      [recommendationName]: ['metaReviewData.metaReviewsSearchValue'],
+    ...(metaReviewRecommendationName && {
+      [metaReviewRecommendationName]: ['metaReviewData.metaReviewsSearchValue'],
     }),
     ...(customStageInvitations?.length > 0 &&
       customStageInvitations.reduce(
@@ -143,7 +143,7 @@ const PaperStatusMenuBar = ({
     {
       header: 'meta reviews',
       getValue: (p) =>
-        p.metaReviewData?.metaReviews?.map((q) => q[recommendationName])?.join('|'),
+        p.metaReviewData?.metaReviews?.map((q) => q[metaReviewRecommendationName])?.join('|'),
     },
     ...(seniorAreaChairsId
       ? [
