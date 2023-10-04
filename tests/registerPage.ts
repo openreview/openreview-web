@@ -339,7 +339,7 @@ test('#160 allow user to overwrite last/middle/first name to be lowercase', asyn
     .typeText(fullNameInputSelector, 'first')
     .expect(fullNameInputSelector.value)
     .eql('First')
-    .pressKey('left left left left left delete f')
+    .pressKey('left left left left left delete f tab')
     .expect(fullNameInputSelector.value)
     .eql('first')
 })
