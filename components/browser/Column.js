@@ -544,11 +544,15 @@ export default function Column(props) {
         getWritable,
         sort,
         promise: api
-          .getAll('/edges', {...apiQuery, domain: version === '2' && invitation.domain }, {
-            accessToken,
-            version,
-            ...(isCountQuery && { resultsKey: 'groupedEdges' }),
-          })
+          .getAll(
+            '/edges',
+            { ...apiQuery, ...(version === 2 && { domain: invitation.domain }) },
+            {
+              accessToken,
+              version,
+              ...(isCountQuery && { resultsKey: 'groupedEdges' }),
+            }
+          )
           .then((result) =>
             isCountQuery
               ? result?.map((p) => ({
@@ -669,10 +673,14 @@ export default function Column(props) {
       }
       const { apiQuery } = buildQuery(startInvitation.id, startInvitation.query, false)
       api
-        .getAll('/edges', { ...apiQuery, domain: version === '2' && startInvitation.domain }, {
-          accessToken,
-          version,
-        })
+        .getAll(
+          '/edges',
+          { ...apiQuery, ...(version === 2 && { domain: startInvitation.domain }) },
+          {
+            accessToken,
+            version,
+          }
+        )
         .then((startEdges) => {
           if (!startEdges) {
             setItems([])

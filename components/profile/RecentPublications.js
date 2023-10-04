@@ -1,3 +1,5 @@
+/* globals $: false */
+import { useEffect } from 'react'
 import { nanoid } from 'nanoid'
 import Link from 'next/link'
 import NoteList from '../NoteList'
@@ -20,6 +22,15 @@ const RecentPublications = ({
       profileId &&
       `[the profile of ${preferredName}](/profile?id=${profileId})`,
   }
+
+  useEffect(() => {
+    if (publications) {
+      setTimeout(() => {
+        $('[data-toggle="tooltip"]').tooltip('enable')
+        $('[data-toggle="tooltip"]').tooltip({ container: 'body' })
+      }, 100)
+    }
+  }, [publications])
 
   if (loading) {
     return (
