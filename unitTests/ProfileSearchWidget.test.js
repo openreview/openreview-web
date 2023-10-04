@@ -262,10 +262,9 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             id: '~search_result1',
             content: {
               names: [
-                { first: 'Result one', last: 'Result one', username: '~search_result1' },
+                { fullname: 'Result one Result one', username: '~search_result1' },
                 {
-                  first: 'Result one preferred',
-                  last: 'Result one preferred',
+                  fullname: 'Result one preferred Result one preferred',
                   username: '~search_result_preferred1',
                   preferred: true,
                 },
@@ -277,10 +276,9 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             id: '~search_result2',
             content: {
               names: [
-                { first: 'Result two', last: 'Result two', username: '~search_result2' },
+                { fullname: 'Result two Result two', username: '~search_result2' },
                 {
-                  first: 'Result two not preferred',
-                  last: 'Result two not preferred',
+                  fullname: 'Result two not preferred Result two not preferred',
                   username: '~search_result_notpreferred2',
                   preferred: false,
                 },
@@ -292,7 +290,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             id: '~search_result3',
             content: {
               names: [
-                { first: 'Result three', last: 'Result three', username: '~search_result3' },
+                { fullname: 'Result three Result three', username: '~search_result3' },
               ],
               emails: [],
             },
@@ -421,11 +419,10 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             id: '~test_id_preferred1',
             content: {
               names: [
-                { first: 'Test First', last: 'Test Last', username: '~test_id1' },
+                { fullname: 'Test First Test Last', username: '~test_id1' },
                 {
                   // user updated preferred name after submission
-                  first: 'Test First Preferred',
-                  last: 'Test Last Preferred',
+                  fullname: 'Test First Preferred Test Last Preferred',
                   username: '~test_id_preferred1',
                   preferred: true,
                 },
@@ -479,11 +476,10 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             id: '~test_id_preferred1',
             content: {
               names: [
-                { first: 'Test First', last: 'Test Last', username: '~test_id1' },
+                { fullname: 'Test First Test Last', username: '~test_id1' },
                 {
                   // user updated preferred name after submission
-                  first: 'Test First Preferred',
-                  last: 'Test Last Preferred',
+                  fullname: 'Test First Preferred Test Last Preferred',
                   username: '~test_id_preferred1',
                   preferred: true,
                 },
@@ -528,7 +524,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
           {
             id: '~test_id1',
             content: {
-              names: [{ first: 'Test First', last: 'Test Last', username: '~test_id1' }],
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
               emails: ['test@email.com', 'anothertest@email.com'],
             },
           },
@@ -541,7 +537,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
           {
             id: '~test_id1',
             content: {
-              names: [{ first: 'Test First', last: 'Test Last', username: '~test_id1' }],
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
               emails: ['test1@email.com', 'anothertest1@email.com'],
             },
           },
@@ -589,7 +585,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
           {
             id: '~test_id1',
             content: {
-              names: [{ first: 'Test First', last: 'Test Last', username: '~test_id1' }],
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
               emails: ['test@email.com', 'anothertest@email.com'],
             },
           },
@@ -603,11 +599,10 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             id: '~test_id_preferred1',
             content: {
               names: [
-                { first: 'Test First', last: 'Test Last', username: '~test_id1' },
+                { fullname: 'Test First Test Last', username: '~test_id1' },
                 // user updated preferred name after profile search modal is open
                 {
-                  first: 'Test First Preferred',
-                  last: 'Test Last Preferred',
+                  fullname: 'Test First Preferred Test Last Preferred',
                   username: '~test_id_preferred1',
                   preferred: true,
                 },
@@ -673,10 +668,9 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             id: '~search_result1',
             content: {
               names: [
-                { first: 'Result First', last: 'Result Last', username: '~search_result1' },
+                { fullname: 'Result First Result Last', username: '~search_result1' },
                 {
-                  first: 'Result First Preferred',
-                  last: 'Result Last Preferred',
+                  fullname: 'Result First Preferred Result Last Preferred',
                   username: '~search_result_preferred1',
                   preferred: true,
                 },
@@ -1293,10 +1287,9 @@ describe('ProfileSearchWidget for non authorids field', () => {
             id: '~search_result1',
             content: {
               names: [
-                { first: 'Result First', last: 'Result Last', username: '~search_result1' },
+                { fullname: 'Result First Result Last', username: '~search_result1' },
                 {
-                  first: 'Result First Preferred',
-                  last: 'Result Last Preferred',
+                  fullname: 'Result First Preferred Result Last Preferred',
                   username: '~search_result_preferred1',
                   preferred: true,
                 },
