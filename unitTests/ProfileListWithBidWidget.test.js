@@ -1,4 +1,4 @@
-import { screen, waitFor, render } from '@testing-library/react'
+import { screen, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ProfileListWithBidWidget from '../components/ProfileListWithBidWidget'
 import '@testing-library/jest-dom'
@@ -14,13 +14,13 @@ describe('ProfileListWithBidWidget', () => {
     expect(screen.queryByRole('radio')).not.toBeInTheDocument()
   })
 
-  test('show profile name (first),history,expertise,bid button and score', () => {
+  test('show profile name, history, expertise, bid button and score', () => {
     const props = {
       profiles: [
         {
           id: '~first_last1',
           content: {
-            names: [{ first: 'first1', last: 'last1', username: '~first_last1' }],
+            names: [{ fullname: 'first last1', username: '~first_last1' }],
             history: [
               {
                 position: 'student',
@@ -43,7 +43,7 @@ describe('ProfileListWithBidWidget', () => {
 
     render(<ProfileListWithBidWidget {...props} />)
 
-    expect(screen.getByText('first1 last1')).toHaveAttribute(
+    expect(screen.getByText('first last1')).toHaveAttribute(
       'href',
       '/profile?id=~first_last1'
     )
@@ -62,8 +62,8 @@ describe('ProfileListWithBidWidget', () => {
           id: '~first_last1',
           content: {
             names: [
-              { first: 'first1', last: 'last1', username: '~first_last1' },
-              { first: 'second', last: 'name', username: '~second_name1', preferred: true },
+              { fullname: 'first last', username: '~first_last1' },
+              { fullname: 'second name', username: '~second_name1', preferred: true },
             ],
           },
         },
@@ -74,7 +74,7 @@ describe('ProfileListWithBidWidget', () => {
     render(<ProfileListWithBidWidget {...props} />)
 
     expect(screen.getByText('second name')).toBeInTheDocument()
-    expect(screen.queryByText('first1 last1')).not.toBeInTheDocument()
+    expect(screen.queryByText('first last')).not.toBeInTheDocument()
   })
 
   test('show only institution if profile history has no position', () => {
@@ -83,7 +83,7 @@ describe('ProfileListWithBidWidget', () => {
         {
           id: '~first_last1',
           content: {
-            names: [{ first: 'first1', last: 'last1', username: '~first_last1' }],
+            names: [{ fullname: 'first last1', username: '~first_last1' }],
             history: [
               {
                 position: undefined,
@@ -112,7 +112,7 @@ describe('ProfileListWithBidWidget', () => {
         {
           id: '~first_last1',
           content: {
-            names: [{ first: 'first1', last: 'last1', username: '~first_last1' }],
+            names: [{ fullname: 'first1 last1', username: '~first_last1' }],
             history: [
               {
                 position: 'student',
@@ -138,7 +138,7 @@ describe('ProfileListWithBidWidget', () => {
         {
           id: '~first_last2',
           content: {
-            names: [{ first: 'first2', last: 'last2', username: '~first_last2' }],
+            names: [{ fullname: 'first2 last2', username: '~first_last2' }],
             history: [
               {
                 position: 'phd',
@@ -164,7 +164,7 @@ describe('ProfileListWithBidWidget', () => {
         {
           id: '~first_last3',
           content: {
-            names: [{ first: 'first3', last: 'last3', username: '~first_last3' }],
+            names: [{ fullname: 'first3 last3', username: '~first_last3' }],
             history: [
               {
                 position: 'waiter',
@@ -217,7 +217,7 @@ describe('ProfileListWithBidWidget', () => {
         {
           id: '~first_last1',
           content: {
-            names: [{ first: 'first1', last: 'last1', username: '~first_last1' }],
+            names: [{ fullname: 'first1 last1', username: '~first_last1' }],
             history: [
               {
                 position: 'student',
@@ -253,7 +253,7 @@ describe('ProfileListWithBidWidget', () => {
       id: `~first_last${index}`,
       content: {
         names: [
-          { first: `first${index}`, last: `last${index}`, username: `~first_last${index}` },
+          { fullname: `first${index} last${index}`, username: `~first_last${index}` },
         ],
         history: [
           {
@@ -281,7 +281,7 @@ describe('ProfileListWithBidWidget', () => {
       id: `~first_last${index}`,
       content: {
         names: [
-          { first: `first${index}`, last: `last${index}`, username: `~first_last${index}` },
+          { fullname: `first${index} last${index}`, username: `~first_last${index}` },
         ],
         history: [
           {
@@ -312,7 +312,7 @@ describe('ProfileListWithBidWidget', () => {
         {
           id: '~first_last1',
           content: {
-            names: [{ first: 'first1', last: 'last1', username: '~first_last1' }],
+            names: [{ fullname: 'first1 last1', username: '~first_last1' }],
             history: [
               {
                 position: 'student',
@@ -355,7 +355,7 @@ describe('ProfileListWithBidWidget', () => {
         {
           id: '~first_last1',
           content: {
-            names: [{ first: 'first1', last: 'last1', username: '~first_last1' }],
+            names: [{ fullname: 'first1 last1', username: '~first_last1' }],
             history: [
               {
                 position: 'student',

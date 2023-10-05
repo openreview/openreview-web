@@ -118,10 +118,10 @@ const MessageMemberModal = ({
         <div className="form-group">
           <label htmlFor="message">Email Body</label>
           <p className="hint">
-            Hint: You can personalize emails using template variables. The text {'{{'}firstname
-            {'}}'} and {'{{'}fullname{'}}'} will automatically be replaced with the
-            recipient&apos;s first or full name if they have an OpenReview profile. If a
-            profile isn&apos;t found their email address will be used instead.
+            Hint: You can personalize emails using template variables. The text {'{{'}fullname
+            {'}}'} will automatically be replaced with the recipient&apos;s full name if they
+            have an OpenReview profile. If a profile isn&apos;t found their email address will
+            be used instead.
           </p>
           <p className="hint">
             You can use Markdown syntax to add basic formatting to your email. Use the Preview

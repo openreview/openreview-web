@@ -103,7 +103,9 @@ const NameDeleteRequestModal = ({
     }
     setIsLoading(false)
   }
+
   if (!nameToRequestDelete) return null
+
   return (
     <BasicModal
       id="name-delete"
@@ -123,18 +125,8 @@ const NameDeleteRequestModal = ({
       </p>
       <ul>
         <li>
-          <strong>First name</strong>: {nameToRequestDelete.first}
+          <strong>Full name</strong>: {nameToRequestDelete.fullname}
         </li>
-        {nameToRequestDelete.middle && (
-          <li>
-            <strong>Middle name</strong>: {nameToRequestDelete.middle}
-          </li>
-        )}
-        {nameToRequestDelete.last && (
-          <li>
-            <strong>Last name</strong>: {nameToRequestDelete.last}
-          </li>
-        )}
       </ul>
       <textarea
         className="form-control"
@@ -183,9 +175,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
     const newNameRow = {
       key: nanoid(),
       altUsernames: [],
-      first: '',
-      last: '',
-      middle: '',
+      fullname: '',
       preferred: false,
       username: '',
       newRow: true,
@@ -193,17 +183,10 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
     setNames({ addNewName: true, data: newNameRow })
   }
 
-  const getTildUserName = useCallback(
-    // eslint-disable-next-line no-shadow
-    debounce(async (field, targetValue, key, names) => {
+  const getTildeUserName = useCallback(
+    debounce(async (targetValue, key) => {
       try {
-        const tildeUsername = await api.get('/tildeusername', {
-          first:
-            field === 'first' ? targetValue : names.find((name) => name.key === key)?.first,
-          middle:
-            field === 'middle' ? targetValue : names.find((name) => name.key === key)?.middle,
-          last: field === 'last' ? targetValue : names.find((name) => name.key === key)?.last,
-        })
+        const tildeUsername = await api.get('/tildeusername', { fullname: targetValue })
         setNames({
           updateName: true,
           data: { key, field: 'username', value: tildeUsername.username },
@@ -216,12 +199,16 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
   )
 
   const handleUpdateName = async (key, field, targetValue) => {
-    // eslint-disable-next-line no-param-reassign
-    if (targetValue.length === 1) targetValue = targetValue.toUpperCase()
-    const update = { updateName: true, data: { key, field, value: targetValue } }
-    setNames(update)
+    setNames({
+      updateName: true,
+      data: {
+        key,
+        field,
+        value: targetValue.length === 1 ? targetValue.toUpperCase() : targetValue,
+      },
+    })
     clearMessage()
-    getTildUserName(field, targetValue, key, names)
+    getTildeUserName(targetValue, key)
   }
 
   const handleRemoveName = (key) => {
@@ -291,11 +278,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
     <div className="container names">
       {!isMobile && (
         <div className="row">
-          <div className="small-heading col-md-2">First</div>
-          <div className="small-heading col-md-2">
-            Middle <span className="hint">(optional)</span>
-          </div>
-          <div className="small-heading col-md-2">Last</div>
+          <div className="small-heading col-md-4">Full Name</div>
           <div className="small-heading col-md-2" />
           <div className="small-heading col-md-2" />
         </div>
@@ -308,51 +291,19 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
         )
         return (
           <div className="row" key={p.key}>
-            <div className="col-md-2 names__value">
-              {isMobile && <div className="small-heading col-md-2">First</div>}
+            <div className="col-md-4 names__value">
+              {isMobile && <div className="small-heading col-md-2">Full Name</div>}
               <input
                 type="text"
-                className={`form-control first-name ${
+                className={`form-control full-name ${
                   profileNames.find((q) => q.key === p.key)?.valid === false
                     ? 'invalid-value'
                     : ''
                 }`}
-                value={p.first}
+                value={p.fullname}
                 readOnly={!p.newRow && p.username}
                 onChange={(e) => {
-                  handleUpdateName(p.key, 'first', e.target.value)
-                }}
-              />
-            </div>
-            <div className="col-md-2 names__value">
-              {isMobile && (
-                <div className="small-heading col-md-2">
-                  Middle <span className="hint">(optional)</span>
-                </div>
-              )}
-              <input
-                type="text"
-                className="form-control middle-name"
-                value={p.middle}
-                readOnly={!p.newRow && p.username}
-                onChange={(e) => {
-                  handleUpdateName(p.key, 'middle', e.target.value)
-                }}
-              />
-            </div>
-            <div className="col-md-2 names__value">
-              {isMobile && <div className="small-heading col-md-2">Last</div>}
-              <input
-                type="text"
-                className={`form-control last-name ${
-                  profileNames.find((q) => q.key === p.key)?.valid === false
-                    ? 'invalid-value'
-                    : ''
-                }`}
-                value={p.last}
-                readOnly={!p.newRow && p.username}
-                onChange={(e) => {
-                  handleUpdateName(p.key, 'last', e.target.value)
+                  handleUpdateName(p.key, 'fullname', e.target.value)
                 }}
               />
             </div>

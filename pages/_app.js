@@ -174,15 +174,13 @@ export default class OpenReviewApp extends App {
     }))
   }
 
-  updateUserName(first, middle, last) {
+  updateUserName(fullname) {
     this.setState((state, props) => ({
       user: {
         ...state.user,
         profile: {
           ...state.user.profile,
-          first,
-          middle,
-          last,
+          fullname,
         },
       },
     }))
