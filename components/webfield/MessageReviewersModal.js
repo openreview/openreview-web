@@ -22,6 +22,7 @@ const MessageReviewersModal = ({
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
   const [message, setMessage] = useState(null)
   const [isSending, setIsSending] = useState(false)
+  const [recipients, setRecipients] = useState([])
   const [recipientsInfo, setRecipientsInfo] = useState([])
   const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.reviewerProfileId).reduce(
     (prev, curr) => prev + curr.count,
@@ -47,7 +48,7 @@ const MessageReviewersModal = ({
     // send emails
     setIsSending(true)
     try {
-      const simplifiedRecipientsInfo = recipientsInfo.map((p) => ({
+      const simplifiedRecipients = recipients.map((p) => ({
         reviewerProfileId: p.reviewerProfileId,
         noteNumber: p.noteNumber,
       }))
@@ -57,7 +58,7 @@ const MessageReviewersModal = ({
 
       const batchMessages = selectedIds.flatMap((noteId) => {
         const rowData = simplifiedTableRowsDisplayed.find((row) => row.note.id === noteId)
-        const reviewerIds = simplifiedRecipientsInfo
+        const reviewerIds = simplifiedRecipients
           .filter((p) => p.noteNumber === rowData.note.number)
           .map((q) => q.reviewerProfileId)
         if (!reviewerIds.length) return []
@@ -119,6 +120,7 @@ const MessageReviewersModal = ({
     \n\nThank you,\n${shortPhrase} Area Chair`)
 
     const recipients = getRecipients(selectedIds)
+    setRecipients(recipients)
 
     const recipientsWithCount = {}
     recipients.forEach((recipient) => {
