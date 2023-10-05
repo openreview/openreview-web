@@ -1,5 +1,6 @@
 /* globals $,promptMessage: false */
 import uniqBy from 'lodash/uniqBy'
+import chunk from 'lodash/chunk'
 import { useContext, useEffect, useState } from 'react'
 import List from 'rc-virtual-list'
 import useUser from '../../hooks/useUser'
@@ -71,10 +72,7 @@ const MessageReviewersModal = ({
       })
 
       const batchSize = 500
-      const sendEmailPs = Array.from(
-        { length: Math.ceil(batchMessages.length / batchSize) },
-        (_, index) => batchMessages.slice(index * batchSize, (index + 1) * batchSize)
-      ).reduce(
+      const sendEmailPs = chunk(batchMessages, batchSize).reduce(
         (previousBatch, currentBatch) =>
           previousBatch.then(() => sendBatchMessage(currentBatch)),
         Promise.resolve()
