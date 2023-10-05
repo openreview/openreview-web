@@ -353,14 +353,14 @@ test('#139 no id param should show an error message', async (t) => {
     .expect(Selector('Header').innerText)
     .eql('Error 400')
     .expect(Selector('.error-message').innerText)
-    .eql('Forum ID is required')
+    .eql('Forum or note ID is required')
   await t
     .useRole(superUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum`)
     .expect(Selector('Header').innerText)
     .eql('Error 400')
     .expect(Selector('.error-message').innerText)
-    .eql('Forum ID is required')
+    .eql('Forum or note ID is required')
 })
 
 test('get forum page from a request venue form and do not render any meta tag', async (t) => {
