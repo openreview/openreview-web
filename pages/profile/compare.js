@@ -14,27 +14,21 @@ const Names = ({ names, highlightValue }) => (
   <table>
     <tbody>
       {names &&
-        names.map((name, index) => {
-          const nameStr = `${name.first} ${name.middle ?? ''} ${name.last}`.replace(
-            /\s{2,}/g,
-            ' '
-          )
-          return (
-            <tr
-              key={`${nameStr}${name.preferred}${index}`}
-              data-toggle={name.signatures && 'tooltip'}
-              title={name.signature && `Edited by ${name.signatures}`}
-              style={name.confirmed ? null : { color: '#8c1b13' }}
-            >
-              <td>
-                <span className={highlightValue.includes(nameStr) ? 'highlight ' : null}>
-                  {nameStr}
-                </span>{' '}
-                {name.preferred && <small>(Preferred)</small>}
-              </td>
-            </tr>
-          )
-        })}
+        names.map((name, index) => (
+          <tr
+            key={`${name.fullname}${name.preferred}${index}`}
+            data-toggle={name.signatures && 'tooltip'}
+            title={name.signature && `Edited by ${name.signatures}`}
+            style={name.confirmed ? null : { color: '#8c1b13' }}
+          >
+            <td>
+              <span className={highlightValue.includes(name.fullname) ? 'highlight ' : null}>
+                {name.fullname}
+              </span>{' '}
+              {name.preferred && <small>(Preferred)</small>}
+            </td>
+          </tr>
+        ))}
     </tbody>
   </table>
 )
@@ -295,9 +289,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       }
       if (key === 'names') {
         value.forEach((name) => {
-          compareFields.push(
-            `${name?.first} ${name?.middle ?? ''} ${name?.last}`.replace(/\s{2,}/g, ' ')
-          )
+          compareFields.push(name?.fullname)
         })
         return
       }

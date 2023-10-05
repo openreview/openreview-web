@@ -159,9 +159,8 @@ const AreaChairConsole = ({ appContext }) => {
 
   const getReviewerName = (reviewerProfile) => {
     const name =
-      reviewerProfile.content.names.find((t) => t.preferred) ||
-      reviewerProfile.content.names[0]
-    return name ? prettyId(reviewerProfile.id) : `${name.first} ${name.last}`
+      reviewerProfile.content.names.find((t) => t.preferred) || reviewerProfile.content.names[0]
+    return name ? name.fullname : prettyId(reviewerProfile.id)
   }
 
   const getSACLinkText = () => {

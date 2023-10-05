@@ -74,9 +74,9 @@ export default function ProfileEditor({
     // build profile content object, filtering out empty rows
     let profileContent = {
       ...profile,
-      names: profile.names.flatMap((p) => (p.first || p.middle || p.last ? p : [])),
+      names: profile.names.map((p) => (p.fullname ? p : null)).filter(Boolean),
       yearOfBirth: profile.yearOfBirth ? Number.parseInt(profile.yearOfBirth, 10) : undefined,
-      emails: profile.emails.flatMap((p) => (p.email ? p : [])),
+      emails: profile.emails.map((p) => (p.email ? p : null)).filter(Boolean),
       links: undefined,
       ...profile.links,
       history: profile.history.flatMap((p) =>
@@ -286,7 +286,7 @@ export default function ProfileEditor({
     profileContent = {
       ...profileContent,
       names: profileContent.names.map((p) => {
-        const fieldsToInclude = ['first', 'middle', 'last', 'preferred']
+        const fieldsToInclude = ['fullname', 'preferred']
         if (!p.newRow && p.username) fieldsToInclude.push('username')
         return pick(p, fieldsToInclude)
       }),
@@ -333,8 +333,7 @@ export default function ProfileEditor({
     <div className="profile-edit-container">
       <ProfileSection
         title="Names"
-        instructions="Enter your full name (first, middle, last). Also add any other names you have
-          used in the past when authoring papers."
+        instructions="Enter your full name. Also add any other names you have used in the past when authoring papers."
       >
         <NamesSection
           profileNames={profile?.names}

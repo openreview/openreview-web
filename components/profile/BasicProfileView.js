@@ -29,8 +29,7 @@ const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children 
 
 const ProfileName = ({ name }) => (
   <ProfileItem itemMeta={name.meta}>
-    <span>{name.first}</span> <span>{name.middle}</span> <span>{name.last}</span>{' '}
-    {name.preferred && <small>(Preferred)</small>}
+    <span>{name.fullname}</span> {name.preferred && <small>(Preferred)</small>}
   </ProfileItem>
 )
 
@@ -145,6 +144,7 @@ const BasicProfileView = ({
     ...uniqueNames.filter((p) => p.preferred),
     ...uniqueNames.filter((p) => !p.preferred),
   ]
+
   return (
     <>
       {contentToShow.includes('names') && (
@@ -158,7 +158,7 @@ const BasicProfileView = ({
           <div className="list-compact">
             {sortedNames.flatMap((name, i) => [
               i > 0 ? <span key={i}>, </span> : null,
-              <ProfileName key={name.username || name.first + name.last} name={name} />,
+              <ProfileName key={name.username || name.fullname} name={name} />,
             ])}
           </div>
         </ProfileViewSection>

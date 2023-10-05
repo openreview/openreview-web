@@ -214,8 +214,7 @@ describe('ProfileBidConsole', () => {
       content: {
         names: [
           {
-            first: `first${index}`,
-            last: `last${index}`,
+            fullname: `first last${index}`,
             username: `~first_last${index}`,
           },
         ],
@@ -266,8 +265,7 @@ describe('ProfileBidConsole', () => {
       content: {
         names: [
           {
-            first: `first${index}`,
-            last: `last${index}`,
+            fullname: `first last${index}`,
             username: `~first_last${index}`,
           },
         ],
@@ -337,7 +335,7 @@ describe('ProfileBidConsole', () => {
           {
             id: '~Goo_Gle1',
             content: {
-              names: [{ first: 'Goo', last: 'Gle', username: '~Goo_Gle1' }],
+              names: [{ fullname: 'Goo Gle', username: '~Goo_Gle1' }],
               history: [
                 {
                   position: 'student',
@@ -353,7 +351,7 @@ describe('ProfileBidConsole', () => {
           {
             id: '~Inter_Business1',
             content: {
-              names: [{ first: 'Inter', last: 'Business', username: '~Inter_Business1' }],
+              names: [{ fullname: 'Inter Business', username: '~Inter_Business1' }],
               history: [
                 {
                   position: 'phd',
