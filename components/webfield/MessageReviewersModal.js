@@ -144,6 +144,7 @@ const MessageReviewersModal = ({
       onClose={() => {
         setIsSending(false)
         setCurrentStep(1)
+        setError(null)
       }}
       options={{ extraClasses: 'message-reviewers-modal' }}
     >
