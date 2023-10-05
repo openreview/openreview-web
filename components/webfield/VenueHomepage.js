@@ -5,7 +5,7 @@ import { useState, useContext, useEffect, useReducer } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import uniq from 'lodash/uniq'
-import { nanoid } from 'nanoid/non-secure'
+import kebabCase from 'lodash/kebabCase'
 import WebFieldContext from '../WebFieldContext'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import VenueHeader from './VenueHeader'
@@ -18,12 +18,7 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
-function ConsolesList({
-  venueId,
-  submissionInvitationId,
-  setHidden,
-  shouldReload,
-}) {
+function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload }) {
   const [userConsoles, setUserConsoles] = useState(null)
   const { user, accessToken, userLoading } = useUser()
 
@@ -35,11 +30,13 @@ function ConsolesList({
       return
     }
 
-    api.getAll(
-      '/groups',
-      { prefix: `${venueId}/`, member: user.id, web: true, domain: venueId },
-      { accessToken, version: 2 }
-    ).then((userGroups) => {
+    api
+      .getAll(
+        '/groups',
+        { prefix: `${venueId}/`, member: user.id, web: true, domain: venueId },
+        { accessToken, version: 2 }
+      )
+      .then((userGroups) => {
         const groupIds = []
         if (userGroups?.length > 0) {
           userGroups.forEach((g) => {
@@ -211,6 +208,9 @@ export default function VenueHomepage({ appContext }) {
     } else if (parentGroupId) {
       setBannerContent(venueHomepageLink(parentGroupId))
     }
+
+    const currentHash = window.location.hash.slice(1)
+
   }, [router.isReady, router.query])
 
   useEffect(() => {
