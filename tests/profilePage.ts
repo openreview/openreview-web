@@ -185,6 +185,54 @@ test('add and delete year of birth', async (t) => {
     .eql('')
 })
 
+test('add and delete geolocation of history', async (t) => {
+  // add geolocation info of history
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(Selector('div.country-dropdown__control'))
+    .wait(500)
+    .click(Selector('div.country-dropdown__option').nth(3))
+    .typeText(Selector('input.institution-city'), 'test city')
+    .typeText(Selector('input.institution-state'), 'test state')
+    .typeText(Selector('input.institution-department'), 'test department')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).ok()
+    .expect(Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test city, test state, MX').exists)
+    .ok()
+  // remove country code
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(Selector('div.country-dropdown__control')).pressKey('delete')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).ok()
+    .expect(Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test city, test state').exists)
+    .ok()
+  // remove only city
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(Selector('div.country-dropdown__control'))
+    .wait(500)
+    .click(Selector('div.country-dropdown__option').nth(3))
+    .selectText(Selector('input.institution-city')).pressKey('delete')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).ok()
+    .expect(Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test state, MX').exists)
+    .ok()
+  // remove all geolocation info
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(Selector('div.country-dropdown__control')).pressKey('delete')
+    .selectText(Selector('input.institution-city')).pressKey('delete')
+    .selectText(Selector('input.institution-state')).pressKey('delete')
+    .selectText(Selector('input.institution-department')).pressKey('delete')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).notOk()
+})
+
 test('import paper from dblp', async (t) => {
   const testPersistentUrl = 'https://dblp.org/pid/95/7448-1'
   await t
