@@ -12,6 +12,7 @@
 /* globals typesetMathJax: false */
 /* globals OpenBanner: false */
 
+// eslint-disable-next-line wrap-iife
 module.exports = (function () {
   // Save authentication token as a private var
   var token
@@ -1307,12 +1308,10 @@ module.exports = (function () {
             if (profile) {
               profileInfo = {
                 id: profile.id,
-                name: view.prettyId(
-                  (
-                    _.find(profile.content.names, ['preferred', true]) ||
-                    _.first(profile.content.names)
-                  ).username
-                ),
+                name: (
+                  _.find(profile.content.names, ['preferred', true]) ||
+                  _.first(profile.content.names)
+                ).fullname,
                 allNames: _.map(
                   _.filter(profile.content.names, function (name) {
                     return name.username
@@ -1528,6 +1527,7 @@ module.exports = (function () {
     }
 
     // Wrap in IIFE to prevent memory leaks
+    // eslint-disable-next-line wrap-iife
     ;(function () {
       var submissionListHtml = Handlebars.templates['components/submissions']({
         heading: options.heading,

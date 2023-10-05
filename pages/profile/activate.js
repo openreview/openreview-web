@@ -25,7 +25,7 @@ const ActivateProfile = ({ appContext }) => {
     try {
       const apiRes = await api.get(`/activatable/${token}`)
 
-      setProfile(formatProfileData(apiRes.profile, false, true))
+      setProfile(formatProfileData(apiRes.profile, true))
       setActivateToken(token)
     } catch (error) {
       promptError(error.message)
