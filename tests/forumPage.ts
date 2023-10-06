@@ -227,7 +227,7 @@ test('get original note as a guest user and redirect to the blinded note', async
     .notOk()
 })
 
-test('get an forum page and see meta tags with conference title', async (t) => {
+test('get a forum page and see meta tags with conference title', async (t) => {
   const { superUserToken } = t.fixtureCtx
   const notes = await getNotes(
     { invitation: 'ICLR.cc/2021/Conference/-/Blind_Submission' },
