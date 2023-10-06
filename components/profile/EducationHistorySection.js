@@ -1,9 +1,11 @@
+/* globals promptError: false */
 import { useEffect, useReducer, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
-import { getStartEndYear } from '../../lib/utils'
+import { getStartEndYear, isValidCountryCode } from '../../lib/utils'
+import Dropdown from '../Dropdown'
 
 const CreatableDropdown = dynamic(() =>
   import('../Dropdown').then((mod) => mod.CreatableDropdown)
@@ -17,17 +19,22 @@ const startType = 'updateStart'
 const endType = 'updateEnd'
 const institutionDomainType = 'updateInstitutionDomain'
 const institutionNameType = 'updateInstitutionName'
+const institutionCountryType = 'updateInstitutionCountry'
+const institutionCityType = 'updateInstitutionCity'
+const institutionStateProvinceType = 'updateInstitutionStateProvince'
+const institutionDepartmentType = 'updateInstitutionDepartment'
 const addHistoryType = 'addHistory'
 const removeHistoryType = 'removeHistory'
 // #endregion
 
-const EducationHisotryRow = ({
+const EducationHistoryRow = ({
   p,
   history,
   setHistory,
   profileHistory,
   positionOptions,
   institutionDomainOptions,
+  countryOptions,
   isMobile,
 }) => {
   const [isPositionClicked, setIsPositionClicked] = useState(false)
@@ -35,7 +42,7 @@ const EducationHisotryRow = ({
 
   return (
     <div className="row">
-      <div className="col-md-2 history__value">
+      <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-2">Position</div>}
         {isPositionClicked ? (
           <CreatableDropdown
@@ -85,7 +92,7 @@ const EducationHisotryRow = ({
               : ''
           }`}
           value={p.start ?? ''}
-          placeholder="year"
+          placeholder="start year"
           onChange={(e) =>
             setHistory({ type: startType, data: { value: e.target.value, key: p.key } })
           }
@@ -100,7 +107,7 @@ const EducationHisotryRow = ({
               : ''
           }`}
           value={p.end ?? ''}
-          placeholder="year"
+          placeholder="end year"
           onChange={(e) =>
             setHistory({ type: endType, data: { value: e.target.value, key: p.key } })
           }
@@ -161,14 +168,75 @@ const EducationHisotryRow = ({
           />
         )}
       </div>
-      <div className="col-md-4 history__value">
+      <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution Name</div>}
         <input
           className="form-control institution-name"
+          placeholder="Institution Name"
           value={p.institution?.name ?? ''}
           onChange={(e) =>
             setHistory({
               type: institutionNameType,
+              data: { value: e.target.value, key: p.key },
+            })
+          }
+        />
+      </div>
+      <div className="col-md-2 history__value">
+        {isMobile && <div className="small-heading col-md-4">Institution Country/Region</div>}
+        <Dropdown
+          options={countryOptions}
+          onChange={(e) => {
+            setHistory({
+              type: institutionCountryType,
+              data: { value: e?.value, key: p.key },
+            })
+          }}
+          value={countryOptions?.find((q) => q.value === p.institution?.country)}
+          placeholder="Institution Country/Region"
+          classNamePrefix="country-dropdown"
+          hideArrow
+          isClearable
+        />
+      </div>
+      <div className="col-md-3 history__value">
+        {isMobile && <div className="small-heading col-md-4">Institution State/Province</div>}
+        <input
+          className="form-control institution-state"
+          placeholder="Institution State/Province"
+          value={p.institution?.stateProvince ?? ''}
+          onChange={(e) =>
+            setHistory({
+              type: institutionStateProvinceType,
+              data: { value: e.target.value, key: p.key },
+            })
+          }
+        />
+      </div>
+      <div className="col-md-3 history__value">
+        {isMobile && <div className="small-heading col-md-4">Institution City</div>}
+        <input
+          className="form-control institution-city"
+          placeholder="Institution City"
+          value={p.institution?.city ?? ''}
+          onChange={(e) =>
+            setHistory({
+              type: institutionCityType,
+              data: { value: e.target.value, key: p.key },
+            })
+          }
+        />
+      </div>
+
+      <div className="col-md-3 history__value">
+        {isMobile && <div className="small-heading col-md-4">Department of Institution</div>}
+        <input
+          className="form-control institution-department"
+          placeholder="Department of Institution"
+          value={p.institution?.department ?? ''}
+          onChange={(e) =>
+            setHistory({
+              type: institutionDepartmentType,
               data: { value: e.target.value, key: p.key },
             })
           }
@@ -194,6 +262,7 @@ const EducationHistorySection = ({
   profileHistory,
   positions,
   institutions,
+  countries,
   updateHistory,
 }) => {
   const isMobile = !useBreakpoint('lg')
@@ -201,6 +270,10 @@ const EducationHistorySection = ({
     p.id ? { value: p.id, label: p.id } : []
   )
   const positionOptions = positions?.map((p) => ({ value: p, label: p }))
+  const countryOptions = Object.entries(countries ?? {})?.map(([name, details]) => ({
+    value: details.alphaTwoCode,
+    label: name,
+  }))
 
   const getInstitutionName = (domain) => {
     if (!domain) return ''
@@ -236,6 +309,43 @@ const EducationHistorySection = ({
               domain: action.data.value,
               name: getInstitutionName(action.data.value),
             }
+          }
+          return recordCopy
+        })
+      case institutionCountryType:
+        return state.map((p) => {
+          const recordCopy = { ...p, institution: { ...p.institution } }
+          if (p.key === action.data.key) {
+            recordCopy.institution.country = action.data.value
+          }
+          return recordCopy
+        })
+      case institutionCityType:
+        return state.map((p) => {
+          const recordCopy = { ...p, institution: { ...p.institution } }
+          if (p.key === action.data.key) {
+            const city = action.data.value.trim()
+            recordCopy.institution.city = city.length ? action.data.value : null
+          }
+          return recordCopy
+        })
+      case institutionStateProvinceType:
+        return state.map((p) => {
+          const recordCopy = { ...p, institution: { ...p.institution } }
+          if (p.key === action.data.key) {
+            const stateProvince = action.data.value.trim()
+            recordCopy.institution.stateProvince = stateProvince.length
+              ? action.data.value
+              : null
+          }
+          return recordCopy
+        })
+      case institutionDepartmentType:
+        return state.map((p) => {
+          const recordCopy = { ...p, institution: { ...p.institution } }
+          if (p.key === action.data.key) {
+            const department = action.data.value.trim()
+            recordCopy.institution.department = department.length ? action.data.value : null
           }
           return recordCopy
         })
@@ -309,15 +419,14 @@ const EducationHistorySection = ({
     <div className="container history history-new">
       {!isMobile && (
         <div className="row">
-          <div className="small-heading col-md-2">Position</div>
+          <div className="small-heading col-md-3">Position</div>
           <div className="small-heading col-md-1">Start</div>
           <div className="small-heading col-md-1">End</div>
-          <div className="small-heading col-md-3">Institution Domain</div>
-          <div className="small-heading col-md-4">Institution Name</div>
+          <div className="small-heading col-md-4">Institution Info</div>
         </div>
       )}
       {history.map((p) => (
-        <EducationHisotryRow
+        <EducationHistoryRow
           key={p.key}
           p={p}
           history={history}
@@ -325,6 +434,7 @@ const EducationHistorySection = ({
           profileHistory={profileHistory}
           positionOptions={positionOptions}
           institutionDomainOptions={institutionDomainOptions}
+          countryOptions={countryOptions}
           isMobile={isMobile}
         />
       ))}

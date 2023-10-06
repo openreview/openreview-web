@@ -61,6 +61,21 @@ const ProfileHistory = ({ history }) => (
     <div className="institution">
       {history.institution.name}{' '}
       {history.institution.domain && <small>{`(${history.institution.domain})`}</small>}
+      {(history.institution.city ||
+        history.institution.stateProvince ||
+        history.institution.country) && (
+        <Icon
+          name="map-marker"
+          tooltip={[
+            history.institution.city,
+            history.institution.stateProvince,
+            history.institution.country,
+          ]
+            .filter(Boolean)
+            .join(', ')}
+          extraClasses="geolocation"
+        />
+      )}
     </div>
     <div className="timeframe">
       <em>

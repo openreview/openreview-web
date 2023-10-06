@@ -148,6 +148,18 @@ export default function Dropdown(props) {
     trim: true,
   }
   const filterOption = createFilter(props.filterOption ?? defaultFilterOption)
+
+  if (props.hideArrow) {
+    // eslint-disable-next-line no-param-reassign
+    props = {
+      ...props,
+      components: {
+        DropdownIndicator: () => null,
+        IndicatorSeparator: () => null,
+      },
+    }
+  }
+
   return (
     <Select
       className="dropdown-select"

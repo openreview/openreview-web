@@ -296,10 +296,15 @@ main.profile-edit {
   .history-new {
     min-width: 60vw;
     padding-left: 15px;
+
+    .row:not(:first-child) {
+      margin-bottom: 0.5rem;
+    }
   }
 
   .position-dropdown,
   .institution-dropdown,
+  .country-dropdown,
   .relation-dropdown {
     margin-top: 5px;
     margin-bottom: 5px;
