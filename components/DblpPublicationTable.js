@@ -237,7 +237,6 @@ const DblpPublicationRow = ({
 
   return (
     <>
-      {' '}
       <div
         className={
           category === 'nonExisting' ? 'publication-info' : `publication-info ${category}-row`
@@ -279,6 +278,11 @@ const DblpPublicationRow = ({
               </a>
               <div className="different-profile-link">{renderProfileMergeRequestLink()}</div>
             </>
+          )}
+          {authorIsInvalid && (
+            <span className="name-not-match">
+              Your name does not match the author list of this paper
+            </span>
           )}
         </div>
       </div>
