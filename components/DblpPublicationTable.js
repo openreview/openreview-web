@@ -281,7 +281,7 @@ const DblpPublicationRow = ({
           )}
           {authorIsInvalid && (
             <span className="name-not-match">
-              Your name does not match the author list of this paper
+              Your name does not match any of the authors listed for this paper
             </span>
           )}
         </div>
