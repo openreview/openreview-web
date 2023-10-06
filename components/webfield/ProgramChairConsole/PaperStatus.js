@@ -37,8 +37,14 @@ const PaperRow = ({
   venue,
   getManualAssignmentUrl,
 }) => {
-  const { areaChairsId, venueId, officialReviewName, shortPhrase, submissionName } =
-    useContext(WebFieldContext)
+  const {
+    areaChairsId,
+    venueId,
+    officialReviewName,
+    shortPhrase,
+    submissionName,
+    metaReviewRecommendationName,
+  } = useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#paper-status)`
@@ -87,6 +93,7 @@ const PaperRow = ({
             rowData={rowData}
             referrerUrl={referrerUrl}
             areaChairAssignmentUrl={getManualAssignmentUrl('Area_Chairs')}
+            metaReviewRecommendationName={metaReviewRecommendationName}
           />
         </td>
       )}
