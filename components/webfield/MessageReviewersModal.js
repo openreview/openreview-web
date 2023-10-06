@@ -1,6 +1,5 @@
 /* globals $,promptMessage: false */
 import uniqBy from 'lodash/uniqBy'
-import chunk from 'lodash/chunk'
 import { useContext, useEffect, useState } from 'react'
 import List from 'rc-virtual-list'
 import useUser from '../../hooks/useUser'
@@ -31,15 +30,6 @@ const MessageReviewersModal = ({
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
   const uniqueRecipientsInfo = uniqBy(recipientsInfo, (p) => p.preferredEmail)
 
-  // send at most 500 messages
-  const sendBatchMessage = async (batchMessage) => {
-    try {
-      await api.post('/messages', batchMessage, { accessToken })
-    } catch (apiError) {
-      setError(apiError.message)
-    }
-  }
-
   const handlePrimaryButtonClick = async () => {
     if (currentStep === 1) {
       setCurrentStep(2)
@@ -56,29 +46,26 @@ const MessageReviewersModal = ({
         note: { id: p.note.id, number: p.note.number, forum: p.note.forum },
       }))
 
-      const batchMessages = selectedIds.flatMap((noteId) => {
+      const sendEmailPs = selectedIds.map((noteId) => {
         const rowData = simplifiedTableRowsDisplayed.find((row) => row.note.id === noteId)
         const reviewerIds = simplifiedRecipients
           .filter((p) => p.noteNumber === rowData.note.number)
           .map((q) => q.reviewerProfileId)
-        if (!reviewerIds.length) return []
+        if (!reviewerIds.length) return Promise.resolve()
         const forumUrl = `https://openreview.net/forum?id=${rowData.note.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.note.number}/-/${officialReviewName}`
-        return {
-          groups: reviewerIds,
-          subject,
-          message: message.replaceAll('{{submit_review_link}}', forumUrl),
-          parentGroup: `${venueId}/${submissionName}${rowData.note.number}/Reviewers`,
-          replyTo: emailReplyTo,
-        }
+        return api.post(
+          '/messages',
+          {
+            groups: reviewerIds,
+            subject,
+            message: message.replaceAll('{{submit_review_link}}', forumUrl),
+            parentGroup: `${venueId}/${submissionName}${rowData.note.number}/Reviewers`,
+            replyTo: emailReplyTo,
+          },
+          { accessToken }
+        )
       })
-
-      const batchSize = 500
-      const sendEmailPs = chunk(batchMessages, batchSize).reduce(
-        (previousBatch, currentBatch) =>
-          previousBatch.then(() => sendBatchMessage(currentBatch)),
-        Promise.resolve()
-      )
-      await sendEmailPs
+      await Promise.all(sendEmailPs)
 
       $(`#${messageModalId}`).modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
