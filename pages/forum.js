@@ -164,12 +164,15 @@ ForumPage.getInitialProps = async (ctx) => {
     const noteIdParam = ctx.query.noteId
       ? `&noteId=${encodeURIComponent(ctx.query.noteId)}`
       : ''
+    const invIdParam = ctx.query.invitationId
+      ? `&invitationId=${encodeURIComponent(ctx.query.invitationId)}`
+      : ''
     const referrerParam = ctx.query.referrer
       ? `&referrer=${encodeURIComponent(ctx.query.referrer)}`
       : ''
     const redirectUrl = `/forum?id=${encodeURIComponent(
       forumId
-    )}${noteIdParam}${referrerParam}`
+    )}${noteIdParam}${invIdParam}${referrerParam}`
     if (ctx.req) {
       ctx.res.writeHead(302, { Location: redirectUrl }).end()
     } else {
