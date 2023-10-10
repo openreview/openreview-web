@@ -43,7 +43,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
   const defaultSubjectArea = 'All Subject Areas'
   const [notes, setNotes] = useState([])
   const { user, accessToken } = useUser()
-  const [pageNumber, setPageNumber] = useState(1)
+  const [pageNumber, setPageNumber] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [scoreEdges, setScoreEdges] = useState([])
@@ -113,7 +113,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           'content.venueid': submissionVenueId,
           offset: (pageNumber - 1) * pageSize,
           limit,
-          domain: invitation.domain
+          domain: invitation.domain,
         },
         { accessToken, version: 2 }
       )
@@ -133,7 +133,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             sort: 'weight:desc',
             offset: (pageNumber - 1) * pageSize,
             limit,
-            domain: invitation.domain
+            domain: invitation.domain,
           },
           { accessToken, version: 2 }
         )
@@ -262,6 +262,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
   }, [notes])
 
   useEffect(() => {
+    if (!pageNumber) return
     getNotesSortedByAffinity()
   }, [pageNumber])
 
@@ -299,7 +300,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
       }
       return
     }
-    getNotesSortedByAffinity()
+    setPageNumber(1)
     setShowPagination(true)
     setShowBidScore(true)
   }, [searchState])
@@ -420,7 +421,7 @@ const NoBidTab = ({
         {
           'content.venueid': submissionVenueId,
           limit: 1000,
-          domain: invitation.domain
+          domain: invitation.domain,
         },
         { accessToken, version: 2 }
       )
@@ -440,7 +441,7 @@ const NoBidTab = ({
             invitation: selectedScore,
             tail: user.profile.id,
             sort: 'weight:desc',
-            domain: invitation.domain
+            domain: invitation.domain,
           },
           { accessToken, version: 2 }
         )
@@ -554,7 +555,7 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
         '/notes/search',
         {
           ids: noteIds,
-          domain: invitation.domain
+          domain: invitation.domain,
         },
         { accessToken, version: 2 }
       )

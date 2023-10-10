@@ -206,10 +206,14 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
           (p) => p.reviewers?.length && p.reviewers?.length === p.officialReviews?.length
         ).length,
         numCompletedMetaReviews:
-          notes.filter(
-            (p) =>
-              p.metaReviewData?.numMetaReviewsDone === p.metaReviewData?.numAreaChairsAssigned
-          ).length ?? 0,
+          notes.filter((p) => {
+            const anonIdOfAC = p.metaReviewData.areaChairs.find(
+              (q) => q.areaChairProfileId === areaChairProfileId
+            )?.anonymousId
+            return (
+              anonIdOfAC && p.metaReviewData.metaReviews.find((q) => q.anonId === anonIdOfAC)
+            )
+          }).length ?? 0,
         notes,
       }
     })

@@ -40,6 +40,7 @@ export default function ProfileEditor({
   const relationReaders = dropdownOptions?.relationReaders
   const positions = dropdownOptions?.prefixedPositions
   const institutions = dropdownOptions?.institutions
+  const countries = dropdownOptions?.countries
 
   const promptInvalidValue = (type, invalidKey, message) => {
     promptError(message)
@@ -413,6 +414,7 @@ export default function ProfileEditor({
           profileHistory={profile?.history}
           positions={positions}
           institutions={institutions}
+          countries={countries}
           updateHistory={(history) => setProfile({ type: 'history', data: history })}
         />
       </ProfileSection>
