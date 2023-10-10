@@ -107,10 +107,10 @@ export default function VenueHomepage({ appContext }) {
     tabs,
   } = useContext(WebFieldContext)
   const [formattedTabs, setFormattedTabs] = useState(null)
+  const [defaultActiveTab, setDefaultActiveTab] = useState(0)
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const router = useRouter()
   const { setBannerContent } = appContext
-  const defaultActiveTab = formattedTabs?.findIndex((t) => !t.hidden) ?? 0
 
   const renderTab = (tabConfig) => {
     if (!tabConfig) return null
@@ -208,9 +208,6 @@ export default function VenueHomepage({ appContext }) {
     } else if (parentGroupId) {
       setBannerContent(venueHomepageLink(parentGroupId))
     }
-
-    const currentHash = window.location.hash.slice(1)
-
   }, [router.isReady, router.query])
 
   useEffect(() => {
@@ -218,13 +215,23 @@ export default function VenueHomepage({ appContext }) {
 
     setFormattedTabs(
       tabs.map((tab) => ({
-        id: nanoid(10),
+        id: kebabCase(tab.name),
         hidden: tab.type === 'consoles' || tab.options?.hideWhenEmpty === true,
         options: {},
         ...tab,
       }))
     )
   }, [tabs])
+
+  useEffect(() => {
+    if (!formattedTabs) return
+
+    const currentHash = window.location.hash.slice(1)
+    const currentTab = currentHash ? formattedTabs.findIndex((t) => t.id === currentHash) : -1
+    setDefaultActiveTab(
+      currentTab > -1 ? currentTab : formattedTabs.findIndex((t) => !t.hidden)
+    )
+  }, [formattedTabs])
 
   if (!header || !tabs) {
     const errorMessage = 'Venue Homepage requires both header and tabs properties to be set'
@@ -260,6 +267,12 @@ export default function VenueHomepage({ appContext }) {
                 id={tabConfig.id}
                 active={i === defaultActiveTab}
                 hidden={tabConfig.hidden}
+                onClick={() => {
+                  const currentHash = window.location.hash.slice(1)
+                  if (currentHash !== tabConfig.id) {
+                    router.replace(`#${tabConfig.id}`, undefined, { scroll: false })
+                  }
+                }}
               >
                 {tabConfig.name}
               </Tab>
