@@ -1387,7 +1387,9 @@ const UserModerationQueue = ({
   }
 
   const blockUnblockUser = async (profile) => {
-    const actionIsBlock = profile?.state !== 'Blocked'
+    if (!profile) return
+
+    const actionIsBlock = profile.state !== 'Blocked'
     const signedAuthoredNotesCount = !onlyModeration
       ? await getSignedAuthoredNotesCount(profile.id)
       : 0
@@ -1403,8 +1405,8 @@ const UserModerationQueue = ({
     // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(
       `Are you sure you want to ${actionIsBlock ? 'block' : 'unblock'} ${
-        profile?.content?.names?.[0]?.first
-      } ${profile?.content?.names?.[0]?.last}?\n\n${noteCountMessage}`
+        profile.content?.names?.[0]?.fullname
+      }?\n\n${noteCountMessage}`
     )
     if (confirmResult) {
       try {
@@ -1421,7 +1423,9 @@ const UserModerationQueue = ({
   }
 
   const deleteRestoreUser = async (profile) => {
-    const actionIsDelete = !profile?.ddate
+    if (!profile) return
+
+    const actionIsDelete = !profile.ddate
 
     const signedAuthoredNotesCount = actionIsDelete
       ? await getSignedAuthoredNotesCount(profile.id)
@@ -1437,11 +1441,11 @@ const UserModerationQueue = ({
           )} signed by this profile.`
         : ''
 
+    const actionLabel = actionIsDelete ? 'delete' : 'restore'
+    const name = profile.content?.names?.[0]?.fullname ?? 'this profile'
     // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(
-      `Are you sure you want to ${actionIsDelete ? 'delete' : 'restore'} ${
-        profile?.content?.names?.[0]?.first
-      } ${profile?.content?.names?.[0]?.last}?\n\n${noteCountMessage}`
+      `Are you sure you want to ${actionLabel} ${name}?\n\n${noteCountMessage}`
     )
     if (confirmResult) {
       try {
@@ -1515,7 +1519,7 @@ const UserModerationQueue = ({
                     rel="noreferrer"
                     title={profile.id}
                   >
-                    {name.first} {name.middle} {name.last}
+                    {name.fullname}
                   </a>
                 </span>
                 <span className="col-email text-muted">{profile.content.preferredEmail}</span>

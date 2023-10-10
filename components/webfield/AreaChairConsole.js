@@ -52,7 +52,7 @@ const AssignedPaperRow = ({
   areaChairName,
   officialReviewName,
   submissionName,
-  metaReviewContentField,
+  metaReviewRecommendationName,
   selectedNoteIds,
   setSelectedNoteIds,
   shortPhrase,
@@ -96,7 +96,7 @@ const AssignedPaperRow = ({
         <AreaChairConsoleNoteMetaReviewStatus
           note={note}
           metaReviewData={metaReviewData}
-          metaReviewContentField={metaReviewContentField}
+          metaReviewRecommendationName={metaReviewRecommendationName}
           referrerUrl={referrerUrl}
         />
       </td>
@@ -128,7 +128,7 @@ const AreaChairConsole = ({ appContext }) => {
     officialMetaReviewName,
     reviewerName = 'Reviewers',
     anonReviewerName = 'Reviewer_',
-    metaReviewContentField,
+    metaReviewRecommendationName = 'recommendation',
     shortPhrase,
     filterOperators,
     propertiesAllowed,
@@ -159,9 +159,8 @@ const AreaChairConsole = ({ appContext }) => {
 
   const getReviewerName = (reviewerProfile) => {
     const name =
-      reviewerProfile.content.names.find((t) => t.preferred) ||
-      reviewerProfile.content.names[0]
-    return name ? prettyId(reviewerProfile.id) : `${name.first} ${name.last}`
+      reviewerProfile.content.names.find((t) => t.preferred) || reviewerProfile.content.names[0]
+    return name ? name.fullname : prettyId(reviewerProfile.id)
   }
 
   const getSACLinkText = () => {
@@ -254,8 +253,13 @@ const AreaChairConsole = ({ appContext }) => {
                     (t.id === r || t.members[0] === r)
                 )
                 return {
-                  anonymousId: getIndentifierFromGroup(anonymousReviewerGroup?.id || r, anonReviewerName),
-                  reviewerProfileId: anonymousReviewerGroup?.members.length ? anonymousReviewerGroup.members[0] : r,
+                  anonymousId: getIndentifierFromGroup(
+                    anonymousReviewerGroup?.id || r,
+                    anonReviewerName
+                  ),
+                  reviewerProfileId: anonymousReviewerGroup?.members.length
+                    ? anonymousReviewerGroup.members[0]
+                    : r,
                 }
               })
             return {
@@ -272,7 +276,11 @@ const AreaChairConsole = ({ appContext }) => {
         ? api
             .get(
               '/edges',
-              { invitation: `${seniorAreaChairsId}/-/Assignment`, head: user.profile.id, domain: group.domain },
+              {
+                invitation: `${seniorAreaChairsId}/-/Assignment`,
+                head: user.profile.id,
+                domain: group.domain,
+              },
               { accessToken, apiVersion: 2 }
             )
             .then((result) => result?.edges?.map((edge) => edge.tail) ?? [])
@@ -421,8 +429,8 @@ const AreaChairConsole = ({ appContext }) => {
             replyCount: note.details.replies.length,
           },
           metaReviewData: {
-            [metaReviewContentField]:
-              metaReview?.content[metaReviewContentField]?.value ?? 'N/A',
+            [metaReviewRecommendationName]:
+              metaReview?.content[metaReviewRecommendationName]?.value ?? 'N/A',
             metaReviewInvitationId: `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`,
             metaReview,
           },
@@ -473,6 +481,7 @@ const AreaChairConsole = ({ appContext }) => {
             filterOperators={filterOperators}
             propertiesAllowed={propertiesAllowed}
             reviewRatingName={reviewRatingName}
+            metaReviewRecommendationName={metaReviewRecommendationName}
           />
           <p className="empty-message">No assigned papers matching search criteria.</p>
         </div>
@@ -490,6 +499,7 @@ const AreaChairConsole = ({ appContext }) => {
           filterOperators={filterOperators}
           propertiesAllowed={propertiesAllowed}
           reviewRatingName={reviewRatingName}
+          metaReviewRecommendationName={metaReviewRecommendationName}
         />
         <Table
           className="console-table table-striped areachair-console-table"
@@ -520,7 +530,7 @@ const AreaChairConsole = ({ appContext }) => {
               officialReviewName={officialReviewName}
               officialMetaReviewName={officialMetaReviewName}
               submissionName={submissionName}
-              metaReviewContentField={metaReviewContentField}
+              metaReviewRecommendationName={metaReviewRecommendationName}
               selectedNoteIds={selectedNoteIds}
               setSelectedNoteIds={setSelectedNoteIds}
               shortPhrase={shortPhrase}
@@ -583,7 +593,6 @@ const AreaChairConsole = ({ appContext }) => {
     reviewRatingName,
     reviewConfidenceName,
     officialMetaReviewName,
-    metaReviewContentField,
     shortPhrase,
     enableQuerySearch,
   })

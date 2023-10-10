@@ -1,8 +1,9 @@
 /* globals $, _: false */
 /* globals view, Webfield, Webfield2: false */
 /* globals promptError, typesetMathJax: false */
-/* globals marked, DOMPurify, MathJax, Handlebars: false */
+/* globals marked, nanoid, DOMPurify, MathJax, Handlebars: false */
 
+// eslint-disable-next-line wrap-iife
 module.exports = (function () {
   const valueInput = (contentInput, fieldName, fieldDescription) => {
     const $smallHeading = $('<div>', {
@@ -424,9 +425,9 @@ module.exports = (function () {
       if (params?.note) {
         authors = params.note.content.authors?.value
         authorids = params.note.content.authorids?.value
-      } else if (params && params.user) {
+      } else if (params?.user) {
         const userProfile = params.user.profile
-        authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last]
+        authors = [userProfile.fullname]
         authorids = [userProfile.preferredId]
       }
       const invitationRegex = fieldDescription.value.param?.regex
@@ -1736,9 +1737,7 @@ module.exports = (function () {
           done($readers)
         }
       )
-    }
-    //#region
-    else if (
+    } else if (
       (_.has(fieldDescription, 'param') && _.has(fieldDescription, 'const')) ||
       Array.isArray(fieldDescription)
     ) {
@@ -1783,7 +1782,6 @@ module.exports = (function () {
       $readers.find('.small_heading').prepend(requiredText)
       done($readers)
     }
-    //#endregion
   }
 
   function buildSignatures(fieldDescription, fieldValue, user, headingText = 'signatures') {

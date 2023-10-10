@@ -395,14 +395,14 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
 }
 
 const MetaReviewStatsRow = ({ pcConsoleData }) => {
-  const { areaChairsId, recommendationName } = useContext(WebFieldContext)
+  const { areaChairsId, metaReviewRecommendationName } = useContext(WebFieldContext)
   const metaReivews = [...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? [])].filter(
     (p) => p.length
   )
   const metaReviewsCount = metaReivews.length
   const allMetaReviews = metaReivews
     .flat()
-    .flatMap((p) => p?.content?.[recommendationName]?.value ?? [])
+    .flatMap((p) => p?.content?.[metaReviewRecommendationName]?.value ?? [])
 
   // map tilde id in areaChairGroups to anon areachair group id in anonAreaChairGroups
   const areaChairAnonGroupIds = {}

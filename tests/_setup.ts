@@ -45,22 +45,19 @@ fixture`Set up test data`.before(async (ctx) => {
   await setupProfileViewEdit(ctx.superUserToken)
   await setupRegister(ctx.superUserToken)
   await createUser({
-    first: 'SomeFirstName',
-    last: 'User',
+    fullname: 'SomeFirstName User',
     email: 'test@mail.com',
     password: strongPassword,
     history: undefined,
   })
   await createUser({
-    first: 'John',
-    last: 'SomeLastName',
+    fullname: 'John SomeLastName',
     email: 'john@mail.com',
     password: strongPassword,
     history: undefined,
   })
   await createUser({
-    first: 'Reviewer',
-    last: 'ICLR',
+    fullname: 'Reviewer ICLR',
     email: 'reviewer_iclr@mail.com',
     password: strongPassword,
     history: undefined,

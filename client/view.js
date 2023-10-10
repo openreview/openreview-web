@@ -3,6 +3,7 @@
 /* globals promptError, typesetMathJax: false */
 /* globals marked, DOMPurify, MathJax, Handlebars, nanoid: false */
 
+// eslint-disable-next-line wrap-iife
 module.exports = (function () {
   var mkDropdown = function (
     placeholder,
@@ -885,14 +886,6 @@ module.exports = (function () {
       }
     }
 
-    var getNameFromInput = function (first, middle, last) {
-      var firstName = _.trim(first)
-      var middleName = _.trim(middle)
-      var lastName = _.trim(last)
-      var fullName = firstName + ' ' + (middleName ? middleName + ' ' : '') + lastName
-      return $('<span>' + fullName + '</span>')
-    }
-
     var getEmails = function (emails) {
       return $(
         emails
@@ -1005,19 +998,7 @@ module.exports = (function () {
       id: 'first-name-search',
       class: 'search-input form-control note-content-search',
       type: 'text',
-      placeholder: 'First name',
-    })
-    var $middleNameSearch = $('<input>', {
-      id: 'middle-name-search',
-      class: 'search-input form-control note-content-search',
-      type: 'text',
-      placeholder: 'Middle name',
-    })
-    var $lastNameSearch = $('<input>', {
-      id: 'last-name-search',
-      class: 'search-input form-control note-content-search',
-      type: 'text',
-      placeholder: 'Last name',
+      placeholder: 'Full name',
     })
     var $emailSearch = $('<input>', {
       id: 'email-search',
@@ -1028,11 +1009,7 @@ module.exports = (function () {
 
     var addDirectly = function () {
       $(this).hide()
-      var $fullName = getNameFromInput(
-        $firstNameSearch.val(),
-        $middleNameSearch.val(),
-        $lastNameSearch.val()
-      )
+      var $fullName = $('<span>' + _.trim($firstNameSearch.val()) + '</span>')
       var $emails = $('<span>').append(_.trim($emailSearch.val()))
       $authors.append(createAuthorRow($fullName, $emails))
       $searchResults.empty()
@@ -1057,8 +1034,6 @@ module.exports = (function () {
 
     var $searchInput = $('<div class="search-container">').append(
       $firstNameSearch,
-      $middleNameSearch,
-      $lastNameSearch,
       $emailSearch,
       $addDirectlyButton,
       $spinner
@@ -1102,14 +1077,13 @@ module.exports = (function () {
       // No profiles were found using the email and now if the fields are valid, the user can add directly a person
       // with no Profile
       var email = _.trim($emailSearch.val())
-      var first = _.trim($firstNameSearch.val())
-      var last = _.trim($lastNameSearch.val())
+      var fullName = _.trim($firstNameSearch.val())
       if (
         options.allowUserDefined &&
         emailResponse &&
         !emailResponse.count &&
         isValidEmail(email) &&
-        isValidName(first, last)
+        isValidName(fullName)
       ) {
         $addDirectlyButton.show()
       }
@@ -1117,11 +1091,10 @@ module.exports = (function () {
 
     var combinedSearch = function () {
       $addDirectlyButton.hide()
-      var firstName = _.trim($firstNameSearch.val())
-      var lastName = _.trim($lastNameSearch.val())
+      var fullName = _.trim($firstNameSearch.val())
       var email = _.trim($emailSearch.val())
 
-      var hasValidName = firstName && lastName && firstName.length + lastName.length > 2
+      var hasValidName = fullName && fullName.length > 2
       var hasValidEmail = email.length > 5 && email.indexOf('@') !== -1
 
       if (hasValidName || hasValidEmail) {
@@ -1132,7 +1105,7 @@ module.exports = (function () {
       // Then we merge the responses by doing a union and prioritizing email results
       if (hasValidName && hasValidEmail) {
         Webfield.get('/profiles/search', { term: email }).then(function (emailResponse) {
-          Webfield.get('/profiles/search', { first: firstName, last: lastName }).then(
+          Webfield.get('/profiles/search', { fullname: fullName, es:true }).then(
             function (namesResponse) {
               handleResponses(namesResponse, emailResponse)
             }
@@ -1143,7 +1116,7 @@ module.exports = (function () {
           handleResponses(null, emailResponse)
         })
       } else if (hasValidName) {
-        Webfield.get('/profiles/search', { first: firstName, last: lastName }).then(
+        Webfield.get('/profiles/search', { fullname: fullName, es:true }).then(
           function (namesResponse) {
             handleResponses(namesResponse, null)
           }
@@ -1152,12 +1125,10 @@ module.exports = (function () {
     }
 
     var clearSearchWhenEmpty = function () {
-      var firstName = _.trim($firstNameSearch.val())
-      var middleName = _.trim($middleNameSearch.val())
-      var lastName = _.trim($lastNameSearch.val())
+      var fullName = _.trim($firstNameSearch.val())
       var email = _.trim($emailSearch.val())
 
-      if (!firstName && !middleName && !lastName && !email) {
+      if (!fullName && !email) {
         $searchResults.empty()
       }
     }
@@ -1165,13 +1136,6 @@ module.exports = (function () {
     var debounceSearch = _.debounce(combinedSearch, 300)
 
     $firstNameSearch.on('input', function () {
-      clearSearchWhenEmpty()
-      debounceSearch()
-    })
-    $middleNameSearch.on('input', function () {
-      clearSearchWhenEmpty()
-    })
-    $lastNameSearch.on('input', function () {
       clearSearchWhenEmpty()
       debounceSearch()
     })
@@ -1691,7 +1655,7 @@ module.exports = (function () {
         authorids = params.note.content.authorids
       } else if (params && params.user) {
         var userProfile = params.user.profile
-        authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last]
+        authors = [userProfile.fullname]
         authorids = [userProfile.preferredId]
       }
       var invitationRegex = fieldDescription['values-regex']
@@ -3321,8 +3285,8 @@ module.exports = (function () {
     return emailRegex.test(email)
   }
 
-  var isValidName = function (first, last) {
-    return first && last && first.length + last.length > 2
+  var isValidName = function (fullName) {
+    return fullName && fullName.length > 2
   }
 
   var isTildeIdAllowed = function (regex) {
