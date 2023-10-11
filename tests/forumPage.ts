@@ -227,7 +227,7 @@ test('get original note as a guest user and redirect to the blinded note', async
     .notOk()
 })
 
-test('get an forum page and see meta tags with conference title', async (t) => {
+test('get a forum page and see meta tags with conference title', async (t) => {
   const { superUserToken } = t.fixtureCtx
   const notes = await getNotes(
     { invitation: 'ICLR.cc/2021/Conference/-/Blind_Submission' },
@@ -353,14 +353,14 @@ test('#139 no id param should show an error message', async (t) => {
     .expect(Selector('Header').innerText)
     .eql('Error 400')
     .expect(Selector('.error-message').innerText)
-    .eql('Forum ID is required')
+    .eql('Forum or note ID is required')
   await t
     .useRole(superUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum`)
     .expect(Selector('Header').innerText)
     .eql('Error 400')
     .expect(Selector('.error-message').innerText)
-    .eql('Forum ID is required')
+    .eql('Forum or note ID is required')
 })
 
 test('get forum page from a request venue form and do not render any meta tag', async (t) => {

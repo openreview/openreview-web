@@ -115,6 +115,9 @@ main.profile-edit {
         color: constants.$mediumBlue;
       }
     }
+    .name-not-match {
+      color: constants.$orRed;
+    }
     .persistent-url-input {
       margin-top: 0.25rem;
       margin-bottom: 1rem;
