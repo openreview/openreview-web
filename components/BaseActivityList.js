@@ -19,14 +19,12 @@ export default function BaseActivityList({
     const tempNotes = []
 
     notes.forEach((note) => {
+      // API v2 uses edits for activity list, which may not include a forum id
       const { forum, id } = note.apiVersion === 2 ? note.note : note
-      if (!forum) return
 
       const noteAuthors = note.tauthor ? [note.tauthor] : note.signatures
-      const userIsSignatory =
-        user &&
-        intersection(noteAuthors, user.profile.emails.concat(user.profile.usernames, user.id))
-          .length
+      const userIds = user?.profile.emails.concat(user.profile.usernames, user.id) ?? []
+      const userIsSignatory = intersection(noteAuthors, userIds).length > 0
       let formattedSignature
       if (userIsSignatory) {
         formattedSignature = 'You'

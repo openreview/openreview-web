@@ -15,6 +15,7 @@ import {
   useNewNoteEditor,
   classNames,
 } from '../../lib/utils'
+import getLicenseInfo from '../../lib/forum-utils'
 
 function ForumNote({ note, updateNote }) {
   const { id, content, details, signatures, editInvitations, deleteInvitation } = note
@@ -232,6 +233,8 @@ function ForumTitle({ id, title, pdf, html }) {
 }
 
 function ForumMeta({ note }) {
+  const licenseInfo = getLicenseInfo(note.license)
+
   return (
     <div className="forum-meta">
       <span className="date item">
@@ -287,6 +290,24 @@ function ForumMeta({ note }) {
           >
             BibTeX
           </a>
+        </span>
+      )}
+
+      {note.license && (
+        <span className="item">
+          <Icon name="copyright-mark" />
+          {licenseInfo ? (
+            <a
+              href={licenseInfo.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`Licesnsed under ${licenseInfo.fullName}`}
+              data-toggle="tooltip"
+              data-placement="top"
+            >
+              {note.license}
+            </a>
+          ) : note.license}
         </span>
       )}
     </div>
