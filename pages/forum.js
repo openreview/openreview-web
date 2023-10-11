@@ -139,8 +139,9 @@ const ForumPage = ({ forumNote, query, appContext }) => {
 }
 
 ForumPage.getInitialProps = async (ctx) => {
-  if (!ctx.query.id) {
-    return { statusCode: 400, message: 'Forum ID is required' }
+  const queryId = ctx.query.id || ctx.query.noteId
+  if (!queryId) {
+    return { statusCode: 400, message: 'Forum or note ID is required' }
   }
 
   const { token } = auth(ctx)
@@ -160,18 +161,28 @@ ForumPage.getInitialProps = async (ctx) => {
     return false
   }
   const redirectForum = (forumId) => {
+    const noteIdParam = ctx.query.noteId
+      ? `&noteId=${encodeURIComponent(ctx.query.noteId)}`
+      : ''
+    const invIdParam = ctx.query.invitationId
+      ? `&invitationId=${encodeURIComponent(ctx.query.invitationId)}`
+      : ''
+    const referrerParam = ctx.query.referrer
+      ? `&referrer=${encodeURIComponent(ctx.query.referrer)}`
+      : ''
+    const redirectUrl = `/forum?id=${encodeURIComponent(
+      forumId
+    )}${noteIdParam}${invIdParam}${referrerParam}`
     if (ctx.req) {
-      ctx.res.writeHead(302, { Location: `/forum?id=${encodeURIComponent(forumId)}` }).end()
+      ctx.res.writeHead(302, { Location: redirectUrl }).end()
     } else {
-      Router.replace(
-        `/forum?id=${forumId}${ctx.query?.referrer ? `&referrer=${ctx.query.referrer}` : ''}`
-      )
+      Router.replace(redirectUrl)
     }
     return {}
   }
 
   try {
-    const note = await api.getNoteById(ctx.query.id, token, {
+    const note = await api.getNoteById(queryId, token, {
       trash: true,
       details: 'original,replyCount,writable,signatures,invitation,presentation',
     })
@@ -179,6 +190,11 @@ ForumPage.getInitialProps = async (ctx) => {
     // Only super user can see deleted forums
     if (note?.ddate && !note?.details?.writable) {
       return { statusCode: 404, message: 'Not Found' }
+    }
+
+    // Allows the UI to link to forum pages just using a note ID, that may be a reply
+    if (note && (note.id !== note.forum || !ctx.query.id)) {
+      return redirectForum(note.forum)
     }
 
     if (note?.version === 2) {
@@ -190,17 +206,17 @@ ForumPage.getInitialProps = async (ctx) => {
       return { forumNote: note, query: ctx.query }
     }
 
-    const redirect = await shouldRedirect(ctx.query.id)
+    const redirect = await shouldRedirect(queryId)
     if (redirect) {
       return redirectForum(redirect.id)
     }
     if (!note) {
-      return { statusCode: 404, message: `The Note ${ctx.query.id} was not found` }
+      return { statusCode: 404, message: `The Note ${queryId} was not found` }
     }
     return { forumNote: note, query: ctx.query }
   } catch (error) {
     if (error.name === 'ForbiddenError') {
-      const redirect = await shouldRedirect(ctx.query.id)
+      const redirect = await shouldRedirect(queryId)
       if (redirect) {
         return redirectForum(redirect.id)
       }
