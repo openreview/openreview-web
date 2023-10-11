@@ -529,7 +529,7 @@ const ProfileSearchWidget = ({ multiple = false }) => {
         )
         const preferredId =
           profile?.content?.names?.find((name) => name.preferred)?.username ??
-          profile.id ??
+          profile?.id ??
           authorId
         return {
           authorId: preferredId,
