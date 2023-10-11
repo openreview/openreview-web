@@ -193,7 +193,7 @@ ForumPage.getInitialProps = async (ctx) => {
     }
 
     // Allows the UI to link to forum pages just using a note ID, that may be a reply
-    if (note && note.id !== note.forum) {
+    if (note && (note.id !== note.forum || !ctx.query.id)) {
       return redirectForum(note.forum)
     }
 
