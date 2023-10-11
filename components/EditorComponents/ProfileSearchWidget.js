@@ -131,12 +131,6 @@ const ProfileSearchResultRow = ({
 
   if (!profile) return null
   const preferredId = profile.content.names?.find((p) => p.preferred)?.username ?? profile.id
-  const disableButton = checkIsInAuthorList(
-    displayAuthors,
-    profile,
-    isAuthoridsField,
-    multiple
-  )
 
   return (
     <div className={styles.searchResultRow}>
@@ -182,8 +176,13 @@ const ProfileSearchResultRow = ({
       <div className={styles.addButton}>
         <IconButton
           name="plus"
-          disableButton={disableButton}
-          disableReason={disableButton && 'This author is already in author list'}
+          disableButton={checkIsInAuthorList(
+            displayAuthors,
+            profile,
+            isAuthoridsField,
+            multiple
+          )}
+          disableReason="This author is already in author list"
           onClick={() => {
             const updatedAuthors = displayAuthors.concat({
               authorId: preferredId,
@@ -527,6 +526,12 @@ const ProfileSearchWidget = ({ multiple = false }) => {
         const profile = allProfiles.find((q) =>
           q.content.names.find((r) => r.username === authorId)
         )
+        if (!profile) {
+          return {
+            authorId: authorId,
+            authorName: value?.find((p) => p.authorId === authorId)?.authorName ?? authorId,
+          }
+        }
         const preferredId =
           profile?.content?.names?.find((name) => name.preferred)?.username ??
           profile?.id ??
@@ -537,10 +542,13 @@ const ProfileSearchWidget = ({ multiple = false }) => {
         }
       })
       setDisplayAuthors(authorsWithPreferredNames)
-      onChange({
-        fieldName,
-        value: authorsWithPreferredNames,
-      })
+      if (isAuthoridsField) {
+        // none-authorids field has only id which does not change
+        onChange({
+          fieldName,
+          value: authorsWithPreferredNames,
+        })
+      }
     } catch (apiError) {
       promptError(apiError.message)
     }

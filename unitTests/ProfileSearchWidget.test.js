@@ -1228,12 +1228,12 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     expect(screen.getAllByText('~', { exact: false })[0].parentElement.textContent).toEqual(
       '~search_result1'
     )
-    expect(onChange).toHaveBeenCalledTimes(1)
+    expect(onChange).toHaveBeenCalledTimes(2)
     expect(screen.getByText('Add').childElementCount).toEqual(0) // not to show loading icon
 
     await userEvent.click(screen.getByRole('button', { name: 'plus' }))
     expect(onChange).toHaveBeenNthCalledWith(
-      2,
+      3,
       expect.objectContaining({
         value: [
           { authorId: '~test_id1', authorName: 'Test First Test Last' },
@@ -1557,7 +1557,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
             },
           },
         },
-        value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
+        value: ['~test_id1'],
         onChange,
         clearError,
       },
@@ -1574,5 +1574,63 @@ describe('ProfileSearchWidget for non authorids field', () => {
     expect(
       screen.getAllByText('~', { exact: false })[0].parentElement.nextSibling
     ).toHaveAttribute('class', expect.stringContaining('glyphicon-remove-sign'))
+  })
+
+  test('display updated author name (no update of actual value) if preferred name has changed since submission', async () => {
+    const initialGetProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id_preferred1',
+            content: {
+              names: [
+                { fullname: 'Test First Test Last', username: '~test_id1' },
+                {
+                  // user updated preferred name after submission
+                  fullname: 'Test First Preferred Test Last Preferred',
+                  username: '~test_id_preferred1',
+                  preferred: true,
+                },
+              ],
+              emails: ['test@email.com', 'anothertest@email.com'],
+            },
+          },
+        ],
+      })
+    )
+
+    api.post = initialGetProfile
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          corresponding_author: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
+              },
+            },
+          },
+        },
+        value: ['~test_id1'],
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
+
+    await waitFor(() => {
+      expect(onChange).not.toHaveBeenCalled()
+      expect(screen.queryByText('Test First Test Last')).not.toBeInTheDocument() // replaced by new preferred name
+      expect(screen.getByText('Test First Preferred Test Last Preferred')).toBeInTheDocument()
+      expect(screen.getByText('Test First Preferred Test Last Preferred')).toHaveAttribute(
+        'data-original-title',
+        '~test_id_preferred1'
+      )
+    })
   })
 })
