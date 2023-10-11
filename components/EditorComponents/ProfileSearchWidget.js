@@ -12,6 +12,7 @@ import api from '../../lib/api-client'
 import { getProfileName, isValidEmail } from '../../lib/utils'
 
 import styles from '../../styles/components/ProfileSearchWidget.module.scss'
+import Icon from '../Icon'
 
 const getTitle = (profile) => {
   if (!profile.content) return null
@@ -28,9 +29,7 @@ const getTitle = (profile) => {
 const checkIsInAuthorList = (selectedAuthors, profileToCheck, isAuthoridsField, multiple) => {
   const profileIds = profileToCheck.content?.names?.map((p) => p.username) ?? []
   if (isAuthoridsField) return selectedAuthors?.find((p) => profileIds.includes(p.authorId))
-  return multiple
-    ? selectedAuthors?.find((p) => profileIds.includes(p))
-    : profileIds.includes(selectedAuthors)
+  return multiple && selectedAuthors?.find((p) => profileIds.includes(p.authorId))
 }
 
 const getUpdatedValue = (updatedDisplayAuthors, isAuthoridsField, multiple) => {
@@ -132,6 +131,12 @@ const ProfileSearchResultRow = ({
 
   if (!profile) return null
   const preferredId = profile.content.names?.find((p) => p.preferred)?.username ?? profile.id
+  const disableButton = checkIsInAuthorList(
+    displayAuthors,
+    profile,
+    isAuthoridsField,
+    multiple
+  )
 
   return (
     <div className={styles.searchResultRow}>
@@ -153,6 +158,19 @@ const ProfileSearchResultRow = ({
               )
             })}
           </a>
+          {profile?.active ? (
+            <Icon
+              name="ok-sign"
+              tooltip="Profile is active"
+              extraClasses="pl-1 text-success"
+            />
+          ) : (
+            <Icon
+              name="remove-sign"
+              tooltip="Profile is not active"
+              extraClasses="pl-1 text-danger"
+            />
+          )}
         </div>
         <div className={styles.authorTitle}>{getTitle(profile)}</div>
       </div>
@@ -164,13 +182,8 @@ const ProfileSearchResultRow = ({
       <div className={styles.addButton}>
         <IconButton
           name="plus"
-          disableButton={checkIsInAuthorList(
-            displayAuthors,
-            profile,
-            isAuthoridsField,
-            multiple
-          )}
-          disableReason="This author is already in author list"
+          disableButton={disableButton}
+          disableReason={disableButton && 'This author is already in author list'}
           onClick={() => {
             const updatedAuthors = displayAuthors.concat({
               authorId: preferredId,
@@ -320,6 +333,11 @@ const ProfileSearchFormAndResults = ({
     if (!searchTerm || !pageNumber) return
     searchProfiles(searchTerm, pageNumber, false)
   }, [pageNumber])
+
+  useEffect(() => {
+    if (!profileSearchResults?.length) return
+    $('[data-toggle="tooltip"]').tooltip()
+  }, [profileSearchResults])
 
   if (isLoading) return <LoadingSpinner inline={true} text={null} />
 

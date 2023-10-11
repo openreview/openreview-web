@@ -271,6 +271,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
               ],
               emails: ['test1@email.com', 'anothertest1@email.com'],
             },
+            active: true,
           },
           {
             id: '~search_result2',
@@ -285,13 +286,12 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
               ],
               emails: ['test2@email.com', 'anothertest2@email.com'],
             },
+            active: false,
           },
           {
             id: '~search_result3',
             content: {
-              names: [
-                { fullname: 'Result three Result three', username: '~search_result3' },
-              ],
+              names: [{ fullname: 'Result three Result three', username: '~search_result3' }],
               emails: [],
             },
           },
@@ -334,9 +334,15 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     expect(screen.getAllByText('~', { exact: false })[0].parentElement.textContent).toEqual(
       '~search_result_preferred1'
     )
+    expect(
+      screen.getAllByText('~', { exact: false })[0].parentElement.nextSibling
+    ).toHaveAttribute('class', expect.stringContaining('glyphicon-ok-sign'))
     expect(screen.getAllByText('~', { exact: false })[1].parentElement.textContent).toEqual(
       '~search_result2'
     )
+    expect(
+      screen.getAllByText('~', { exact: false })[1].parentElement.nextSibling
+    ).toHaveAttribute('class', expect.stringContaining('glyphicon-remove-sign'))
   })
 
   test('search by trimmed lowercased email if user input is email', async () => {
@@ -1166,9 +1172,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
           {
             id: '~search_result1',
             content: {
-              names: [
-                { fullname: 'profile name of author', username: '~search_result1' },
-              ],
+              names: [{ fullname: 'profile name of author', username: '~search_result1' }],
               emails: ['test@email.com'],
             },
           },
@@ -1458,9 +1462,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
           {
             id: '~search_result1',
             content: {
-              names: [
-                { fullname: 'Result First Result Last', username: '~search_result1' },
-              ],
+              names: [{ fullname: 'Result First Result Last', username: '~search_result1' }],
               emails: ['test1@email.com', 'anothertest1@email.com'],
             },
           },
@@ -1508,5 +1510,69 @@ describe('ProfileSearchWidget for non authorids field', () => {
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ value: undefined }))
     expect(screen.getByPlaceholderText('search profiles by email or name')).toBeInTheDocument()
     expect(screen.getByText('Search')).toBeInTheDocument()
+  })
+
+  test('add button is disabled when search result has been added', async () => {
+    const initialGetProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              emails: ['test@email.com', 'anothertest@email.com'],
+            },
+          },
+        ],
+      })
+    )
+    const searchProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              emails: ['test1@email.com', 'anothertest1@email.com'],
+            },
+          },
+        ],
+        count: 1,
+      })
+    )
+    api.post = initialGetProfile
+    api.get = searchProfile
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          corresponding_author: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
+              },
+            },
+          },
+        },
+        value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
+
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'anothertest1@email.com'
+    )
+    await userEvent.click(screen.getByText('Search'))
+    await expect(screen.getByRole('button', { name: 'plus' })).toHaveAttribute('disabled')
+    expect(
+      screen.getAllByText('~', { exact: false })[0].parentElement.nextSibling
+    ).toHaveAttribute('class', expect.stringContaining('glyphicon-remove-sign'))
   })
 })
