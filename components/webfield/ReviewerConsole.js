@@ -2,6 +2,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import { chunk, concat } from 'lodash'
 import api from '../../lib/api-client'
 import Table from '../Table'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -393,25 +394,31 @@ const ReviewerConsole = ({ appContext }) => {
 
     Promise.all([getNotesP, paperRankingInvitationP, getCustomLoadP, getAreaChairGroupsP])
       .then(([notes, paperRankingInvitation, customLoad, areaChairMap]) => {
-        const officalReviewInvitationIds = notes.map(
-          (note) => `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
-        )
+        const noteChunks = chunk(notes, 50)
         // get offical review invitations to show submit official review link
-        return api
-          .get(
-            '/invitations',
-            {
-              ids: officalReviewInvitationIds,
-              domain: group.domain,
-            },
-            { accessToken, version: 2 }
+        const officalReviewInvitationPs = noteChunks.map((noteChunk) => {
+          const officalReviewInvitationIds = noteChunk.map(
+            (note) => `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
           )
+          return api
+            .get(
+              '/invitations',
+              {
+                ids: officalReviewInvitationIds,
+                domain: group.domain,
+              },
+              { accessToken, version: 2 }
+            )
+            .then((result) => result.invitations)
+        })
+        return Promise.all(officalReviewInvitationPs)
+          .then((invitationChunks) => concat(...invitationChunks))
           .then((officialReviewInvitationsResult) => [
             notes,
             paperRankingInvitation,
             customLoad,
             areaChairMap,
-            officialReviewInvitationsResult.invitations,
+            officialReviewInvitationsResult,
           ])
       })
       .then(
