@@ -13,7 +13,7 @@ const IconButton = ({
     type="button"
     className="btn btn-xs"
     onClick={onClick}
-    title={disableReason ?? title}
+    title={disableButton && disableReason ? disableReason : title}
     disabled={disableButton}
     aria-label={name}
   >
