@@ -18,6 +18,7 @@ import { getErrorFieldName, isNonDeletableError } from '../lib/webfield-utils'
 import { getNoteContentValues } from '../lib/forum-utils'
 
 import styles from '../styles/components/NoteEditor.module.scss'
+import LicenseWidget from './EditorComponents/LicenseWidget'
 
 const ExistingNoteReaders = NewReplyEditNoteReaders
 
@@ -570,6 +571,8 @@ const NoteEditor = ({
         setErrors={setErrors}
       />
 
+      <LicenseWidget fieldDescription={invitation.edit.note.license} />
+
       <div className={styles.editReaderSignature}>
         <h2>Edit History</h2>
         <hr />
@@ -597,6 +600,8 @@ const NoteEditor = ({
           errors={errors}
           setErrors={setErrors}
         />
+
+        <LicenseWidget fieldDescription={invitation.edit.license} />
       </div>
 
       {Object.values(loading).some((p) => p) ? (

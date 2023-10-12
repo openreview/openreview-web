@@ -1,0 +1,16 @@
+@use '../utils/constants';
+
+.value {
+  display: inline-block;
+  white-space: nowrap;
+  cursor: default;
+  background-color: rgba(0, 0, 0, 0.08);
+  padding: 4px 10px;
+  border-radius: 2px;
+  margin-right: 0.25rem;
+  margin-bottom: 4px;
+}
+
+.emphasis {
+  color: constants.$orRed;
+}
