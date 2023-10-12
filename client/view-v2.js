@@ -2328,6 +2328,9 @@ module.exports = (function () {
           note[otherNoteField] =
             formData?.noteSignatureInputValues ?? noteObj?.[otherNoteField]
           break
+        case 'license':
+          note[otherNoteField] = formData?.noteLicenseValue ?? noteObj?.[otherNoteField]
+          break
         default:
           note[otherNoteField] = formData?.[otherNoteField] ?? noteObj?.[otherNoteField]
           break

@@ -159,7 +159,7 @@ const NoteEditor = ({
 
   const defaultNoteEditorData = {
     ...getNoteContentValues(note?.content ?? {}),
-    ...(note?.id && { noteReaderValues: note.readers }),
+    ...(note?.id && { noteReaderValues: note.readers, noteLicenseValue: note.license }),
   }
 
   const noteEditorDataReducer = (state, action) => {
@@ -559,6 +559,18 @@ const NoteEditor = ({
 
       {fields.map(([fieldName, fieldDescription]) => renderField(fieldName, fieldDescription))}
 
+      <LicenseWidget
+        fieldDescription={invitation.edit.note.license}
+        value={noteEditorData.noteLicenseValue}
+        onChange={(value) => setNoteEditorData({ fieldName: 'noteLicenseValue', value })}
+        error={errors.find((e) => e.fieldName === 'noteLicenseValue')}
+        clearError={() =>
+          setErrors((existingErrors) =>
+            existingErrors.filter((p) => p.fieldName !== 'noteLicenseValue')
+          )
+        }
+      />
+
       {renderNoteReaders()}
 
       <NoteSignatures
@@ -570,8 +582,6 @@ const NoteEditor = ({
         errors={errors}
         setErrors={setErrors}
       />
-
-      <LicenseWidget fieldDescription={invitation.edit.note.license} />
 
       <div className={styles.editReaderSignature}>
         <h2>Edit History</h2>
@@ -600,8 +610,6 @@ const NoteEditor = ({
           errors={errors}
           setErrors={setErrors}
         />
-
-        <LicenseWidget fieldDescription={invitation.edit.license} />
       </div>
 
       {Object.values(loading).some((p) => p) ? (

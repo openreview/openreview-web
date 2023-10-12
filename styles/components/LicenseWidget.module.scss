@@ -10,3 +10,11 @@
     }
   }
 }
+
+.invalidValue {
+  :global {
+    .dropdown-select__control {
+      border-color: constants.$orRed !important;
+    }
+  }
+}
