@@ -3,6 +3,7 @@ import styles from '../../styles/components/LicenseWidget.module.scss'
 import EditorComponentHeader from './EditorComponentHeader'
 import Tag from './Tag'
 import Dropdown from '../Dropdown'
+import getLicenseInfo from '../../lib/forum-utils'
 
 const LicenseWidget = ({ fieldDescription, value, error, onChange, clearError }) => {
   const [licenseOptions, setLicenseOptions] = useState(null)
@@ -12,7 +13,7 @@ const LicenseWidget = ({ fieldDescription, value, error, onChange, clearError })
     setLicenseOptions(
       fieldDescription.param.enum.map((option) => ({
         value: option.value,
-        label: option.description ?? option.value,
+        label: option.description ?? getLicenseInfo(option.value)?.fullName ?? option.value,
       }))
     )
   }, [fieldDescription])
@@ -30,7 +31,7 @@ const LicenseWidget = ({ fieldDescription, value, error, onChange, clearError })
 
   // enum - single select dropdown
   return (
-    <EditorComponentHeader fieldNameOverwrite="License" inline={true}>
+    <EditorComponentHeader fieldNameOverwrite="License" inline={true} error={error}>
       <Dropdown
         className={error ? styles.invalidValue : ''}
         options={licenseOptions}
