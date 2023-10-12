@@ -528,7 +528,7 @@ const ProfileSearchWidget = ({ multiple = false }) => {
         )
         if (!profile) {
           return {
-            authorId: authorId,
+            authorId,
             authorName: value?.find((p) => p.authorId === authorId)?.authorName ?? authorId,
           }
         }
