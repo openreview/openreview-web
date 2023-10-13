@@ -211,9 +211,13 @@ const NoteEditor = ({
             error,
             setErrors,
             clearError: () => {
-              setErrors((existingErrors) =>
-                existingErrors.filter((p) => p.fieldName !== fieldName)
-              )
+              setErrors((existingErrors) => {
+                if (fieldName === 'authorids')
+                  return existingErrors.filter(
+                    (p) => p.fieldName !== 'authorids' && p.fieldName !== 'authors'
+                  )
+                return existingErrors.filter((p) => p.fieldName !== fieldName)
+              })
             },
           }}
         >
