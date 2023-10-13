@@ -38,28 +38,24 @@ const MessageReviewersModal = ({
     // send emails
     setIsSending(true)
     try {
-      const simplifiedRecipients = allRecipients.map((p) => ({
-        reviewerProfileId: p.reviewerProfileId,
-        noteNumber: p.noteNumber,
-      }))
       const simplifiedTableRowsDisplayed = tableRowsDisplayed.map((p) => ({
-        note: { id: p.note.id, number: p.note.number, forum: p.note.forum },
+        id: p.note.id,
+        number: p.note.number,
+        forum: p.note.forum,
       }))
 
       const sendEmailPs = selectedIds.map((noteId) => {
-        const rowData = simplifiedTableRowsDisplayed.find((row) => row.note.id === noteId)
-        const reviewerIds = simplifiedRecipients
-          .filter((p) => p.noteNumber === rowData.note.number)
-          .map((q) => q.reviewerProfileId)
+        const rowData = simplifiedTableRowsDisplayed.find((row) => row.id === noteId)
+        const reviewerIds = allRecipients.get(rowData.number)
         if (!reviewerIds.length) return Promise.resolve()
-        const forumUrl = `https://openreview.net/forum?id=${rowData.note.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.note.number}/-/${officialReviewName}`
+        const forumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialReviewName}`
         return api.post(
           '/messages',
           {
             groups: reviewerIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),
-            parentGroup: `${venueId}/${submissionName}${rowData.note.number}/Reviewers`,
+            parentGroup: `${venueId}/${submissionName}${rowData.number}/Reviewers`,
             replyTo: emailReplyTo,
           },
           { accessToken }
@@ -107,17 +103,24 @@ const MessageReviewersModal = ({
     \n\nThank you,\n${shortPhrase} Area Chair`)
 
     const recipients = getRecipients(selectedIds)
-    setAllRecipients(recipients)
 
     const recipientsWithCount = {}
+    const noteNumberReviewerIdsMap = new Map()
+
     recipients.forEach((recipient) => {
+      const { noteNumber } = recipient
+      if (noteNumberReviewerIdsMap.has(noteNumber)) {
+        noteNumberReviewerIdsMap.get(noteNumber).push(recipient.reviewerProfileId)
+      } else {
+        noteNumberReviewerIdsMap.set(noteNumber, [recipient.reviewerProfileId])
+      }
       if (recipient.preferredEmail in recipientsWithCount) {
         recipientsWithCount[recipient.preferredEmail].count += 1
       } else {
         recipientsWithCount[recipient.preferredEmail] = { ...recipient, count: 1 }
       }
     })
-
+    setAllRecipients(noteNumberReviewerIdsMap)
     setRecipientsInfo(Object.values(recipientsWithCount))
   }, [messageOption])
 
