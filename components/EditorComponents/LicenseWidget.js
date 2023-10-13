@@ -32,17 +32,19 @@ const LicenseWidget = ({ fieldDescription, value, error, onChange, clearError })
   // enum - single select dropdown
   return (
     <EditorComponentHeader fieldNameOverwrite="License" inline={true} error={error}>
-      <Dropdown
-        className={error ? styles.invalidValue : ''}
-        options={licenseOptions}
-        onChange={(e) => {
-          clearError?.()
-          onChange(e ? e.value : undefined)
-        }}
-        value={licenseOptions?.find((p) => p.value === value)}
-        placeholder="Select License..."
-        isClearable={false}
-      />
+      <div className={styles.container}>
+        <Dropdown
+          className={error ? styles.invalidValue : ''}
+          options={licenseOptions}
+          onChange={(e) => {
+            clearError?.()
+            onChange(e ? e.value : undefined)
+          }}
+          value={licenseOptions?.find((p) => p.value === value)}
+          placeholder="Select License..."
+          isClearable={false}
+        />
+      </div>
     </EditorComponentHeader>
   )
 }
