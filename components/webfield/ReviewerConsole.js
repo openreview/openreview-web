@@ -2,7 +2,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { chunk, concat } from 'lodash'
+import { chunk } from 'lodash'
 import api from '../../lib/api-client'
 import Table from '../Table'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -412,7 +412,7 @@ const ReviewerConsole = ({ appContext }) => {
             .then((result) => result.invitations)
         })
         return Promise.all(officalReviewInvitationPs)
-          .then((invitationChunks) => concat(...invitationChunks))
+          .then((invitationChunks) => invitationChunks.flat())
           .then((officialReviewInvitationsResult) => [
             notes,
             paperRankingInvitation,
