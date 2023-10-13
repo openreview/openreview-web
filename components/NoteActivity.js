@@ -157,8 +157,8 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
         <div className="activity-title">
           <h4>
             <Link
-              href={`/forum?id=${note.note.forum}${
-                details.isForum ? '' : `&noteId=${note.note.id}`
+              href={`/forum?${note.note.forum ? `id=${note.note.forum}&` : ''}${
+                details.isForum ? '' : `noteId=${note.note.id}`
               }`}
             >
               {details.isDeleted ? '[Deleted] ' : ''}
