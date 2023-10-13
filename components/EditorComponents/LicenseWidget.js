@@ -41,7 +41,7 @@ const LicenseWidget = ({ fieldDescription, value, error, onChange, clearError })
         }}
         value={licenseOptions?.find((p) => p.value === value)}
         placeholder="Select License..."
-        isClearable
+        isClearable={false}
       />
     </EditorComponentHeader>
   )

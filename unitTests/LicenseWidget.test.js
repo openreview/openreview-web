@@ -61,7 +61,7 @@ describe('LicenseWidget', () => {
                 },
                 {
                   // no description, unknown license value
-                  value: 'another license',
+                  value: 'another license 4.0',
                 },
               ],
             },
@@ -79,6 +79,6 @@ describe('LicenseWidget', () => {
     expect(screen.getByText('description of CC BY 4.0'))
     expect(screen.getByText('Creative Commons Attribution-NonCommercial 4.0 International'))
     expect(screen.getByText('description of some license'))
-    expect(screen.getByText('another license'))
+    expect(screen.getByText('another license 4.0'))
   })
 })
