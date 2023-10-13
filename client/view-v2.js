@@ -2405,7 +2405,13 @@ module.exports = (function () {
     }
     const editNote = {}
     Object.keys(invitation.edit.note).forEach((p) => {
-      if (shouldSetValue(`edit.note.${p}`)) editNote[p] = edit.note[p]
+      if (shouldSetValue(`edit.note.${p}`)) {
+        if (p === 'license') {
+          editNote[p] = formContent.noteLicenseValue ?? edit.note[p]
+        } else {
+          editNote[p] = edit.note[p]
+        }
+      }
     })
 
     if (invitation.edit.note?.content) {
