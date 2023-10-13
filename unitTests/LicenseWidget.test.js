@@ -34,7 +34,7 @@ describe('LicenseWidget', () => {
     const fieldDescription = invitation.edit.note.license
     render(<LicenseWidget fieldDescription={fieldDescription} />)
 
-    expect(screen.getByText('CC BY 4.0'))
+    expect(screen.getByText('CC BY 4.0')).toBeInTheDocument()
     expect(screen.getByText('CC BY 4.0')).toHaveAttribute('title', fullLicenseName)
   })
 
@@ -51,7 +51,8 @@ describe('LicenseWidget', () => {
                   description: 'description of CC BY 4.0',
                 },
                 {
-                  // no description, known license value, correct value is Creative Commons Attribution-NonCommercial 4.0 International
+                  // no description, known license value
+                  // correct value is Creative Commons Attribution-NonCommercial 4.0 International
                   value: 'CC BY-NC 4.0',
                 },
                 {
@@ -73,12 +74,14 @@ describe('LicenseWidget', () => {
     const fieldDescription = invitation.edit.note.license
     render(<LicenseWidget fieldDescription={fieldDescription} />)
 
-    expect(screen.getByText('Select License...'))
+    expect(screen.getByText('Select License...')).toBeInTheDocument()
 
     await userEvent.click(screen.getByText('Select License...'))
-    expect(screen.getByText('description of CC BY 4.0'))
-    expect(screen.getByText('Creative Commons Attribution-NonCommercial 4.0 International'))
-    expect(screen.getByText('description of some license'))
-    expect(screen.getByText('another license 4.0'))
+    expect(screen.getByText('description of CC BY 4.0')).toBeInTheDocument()
+    expect(
+      screen.getByText('Creative Commons Attribution-NonCommercial 4.0 International')
+    ).toBeInTheDocument()
+    expect(screen.getByText('description of some license')).toBeInTheDocument()
+    expect(screen.getByText('another license 4.0')).toBeInTheDocument()
   })
 })
