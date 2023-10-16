@@ -189,7 +189,7 @@ export default function VenueHomepage({ appContext }) {
 
       return (
         <SubmissionsList
-          venueId={group.id}
+          venueId={group.domain}
           query={query}
           apiVersion={2}
           pageSize={tabConfig.options.pageSize}
