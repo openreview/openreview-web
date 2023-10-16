@@ -384,7 +384,7 @@ const CustomAuthorForm = ({
   const [customAuthorName, setCustomAuthorName] = useState('')
   const [customAuthorEmail, setCustomAuthorEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { field, onChange, value } = useContext(EditorComponentContext)
+  const { field, onChange, clearError } = useContext(EditorComponentContext)
   const { accessToken } = useUser()
   const fieldName = Object.keys(field)[0]
 
@@ -415,6 +415,7 @@ const CustomAuthorForm = ({
     setIsLoading(false)
 
     // no matching profile found, add the author using email
+    clearError?.()
     const updatedAuthors = displayAuthors.concat({
       authorId: cleanAuthorEmail,
       authorName: cleanAuthorName,

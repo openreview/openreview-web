@@ -18,6 +18,7 @@ import { getErrorFieldName, isNonDeletableError } from '../lib/webfield-utils'
 import { getNoteContentValues } from '../lib/forum-utils'
 
 import styles from '../styles/components/NoteEditor.module.scss'
+import LicenseWidget from './EditorComponents/LicenseWidget'
 
 const ExistingNoteReaders = NewReplyEditNoteReaders
 
@@ -158,7 +159,7 @@ const NoteEditor = ({
 
   const defaultNoteEditorData = {
     ...getNoteContentValues(note?.content ?? {}),
-    ...(note?.id && { noteReaderValues: note.readers }),
+    ...(note?.id && { noteReaderValues: note.readers, noteLicenseValue: note.license }),
   }
 
   const noteEditorDataReducer = (state, action) => {
@@ -211,9 +212,13 @@ const NoteEditor = ({
             error,
             setErrors,
             clearError: () => {
-              setErrors((existingErrors) =>
-                existingErrors.filter((p) => p.fieldName !== fieldName)
-              )
+              setErrors((existingErrors) => {
+                if (fieldName === 'authorids')
+                  return existingErrors.filter(
+                    (p) => p.fieldName !== 'authorids' && p.fieldName !== 'authors'
+                  )
+                return existingErrors.filter((p) => p.fieldName !== fieldName)
+              })
             },
           }}
         >
@@ -557,6 +562,18 @@ const NoteEditor = ({
       </div>
 
       {fields.map(([fieldName, fieldDescription]) => renderField(fieldName, fieldDescription))}
+
+      <LicenseWidget
+        fieldDescription={invitation.edit.note.license}
+        value={noteEditorData.noteLicenseValue}
+        onChange={(value) => setNoteEditorData({ fieldName: 'noteLicenseValue', value })}
+        error={errors.find((e) => e.fieldName === 'noteLicenseValue')}
+        clearError={() =>
+          setErrors((existingErrors) =>
+            existingErrors.filter((p) => p.fieldName !== 'noteLicenseValue')
+          )
+        }
+      />
 
       {renderNoteReaders()}
 

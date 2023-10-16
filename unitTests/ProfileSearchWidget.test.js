@@ -1113,6 +1113,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     api.post = jest.fn(() => Promise.resolve([]))
     api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
     const onChange = jest.fn()
+    const clearError = jest.fn()
 
     const providerProps = {
       value: {
@@ -1129,6 +1130,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         },
         value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
         onChange,
+        clearError,
       },
     }
 
@@ -1154,6 +1156,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     expect(screen.getByText('Add')).not.toHaveAttribute('disabled')
 
     await userEvent.click(screen.getByText('Add'))
+    expect(clearError).toHaveBeenCalled()
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         value: [
