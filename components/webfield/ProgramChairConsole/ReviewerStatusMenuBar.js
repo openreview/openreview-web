@@ -52,6 +52,8 @@ const MessageReviewersModal = ({
         return tableRows.filter((row) => row.completedBids === 0)
       case 'missingReviews':
         return tableRows.filter((row) => row.numCompletedReviews < row.notesInfo?.length ?? 0)
+      case 'submittedReviews':
+        return tableRows.filter((row) => row.numCompletedReviews > 0)
       case 'noAssignments':
         return tableRows.filter((row) => !row.notesInfo?.length)
       default:
@@ -90,6 +92,7 @@ const MessageReviewersModal = ({
       primaryButtonDisabled={!totalMessagesCount || !message}
       onClose={() => {
         setCurrentStep(1)
+        setMessage(null)
       }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
@@ -159,6 +162,7 @@ const ReviewerStatusMenuBar = ({
         ]
       : []),
     { label: 'Reviewers with unsubmitted reviews', value: 'missingReviews' },
+    { label: 'Reviewers with submitted reviews', value: 'submittedReviews' },
     { label: 'Reviewers with 0 assignments', value: 'noAssignments' },
   ]
 
