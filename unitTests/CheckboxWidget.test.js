@@ -279,6 +279,35 @@ describe('CheckboxWidget', () => {
     expect(screen.getByDisplayValue('I certify')).toHaveAttribute('checked')
   })
 
+  test('update value if existing value does not match option (enum string)', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          paper_checklist_guidelines: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string',
+                enum: ['I certify not'], // invitaiton has been changed
+              },
+            },
+          },
+        },
+        note: {},
+        value: 'I certify',
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(onChange).toHaveBeenCalledWith({
+      fieldName: 'paper_checklist_guidelines',
+      value: undefined,
+    })
+    expect(screen.getByDisplayValue('I certify not')).not.toHaveAttribute('checked')
+  })
+
   test('display option as checked when match with existing value (enum object)', () => {
     const providerProps = {
       value: {
@@ -299,6 +328,35 @@ describe('CheckboxWidget', () => {
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
     expect(screen.getByDisplayValue(1)).toHaveAttribute('checked')
+  })
+
+  test('update value if existing value does not match option (enum object)', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          paper_checklist_guidelines: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'integer',
+                enum: [{ value: 1, description: 'I certify' }], // invitaiton has been changed
+              },
+            },
+          },
+        },
+        value: 2,
+        note: {},
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(onChange).toHaveBeenCalledWith({
+      fieldName: 'paper_checklist_guidelines',
+      value: undefined,
+    })
+    expect(screen.getByDisplayValue(1)).not.toHaveAttribute('checked')
   })
 
   test('display option as checked when match with existing value (items)', () => {
@@ -325,6 +383,41 @@ describe('CheckboxWidget', () => {
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
     expect(screen.getByDisplayValue('1')).toHaveAttribute('checked')
+    expect(screen.getByDisplayValue('2')).not.toHaveAttribute('checked')
+    expect(screen.getByDisplayValue('3')).toHaveAttribute('checked')
+  })
+
+  test('update value if existing value does not match option (items)', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          paper_checklist_guidelines: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string[]',
+                items: [
+                  { value: '1', description: 'I certify', optional: true }, // invitation has changed from 1.5 to 1
+                  { value: '2', description: 'I do not certify', optional: true },
+                  { value: '3', description: 'I am not sure', optional: true },
+                ],
+              },
+            },
+          },
+        },
+        value: ['1.5', '3'],
+        note: {},
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(onChange).toHaveBeenCalledWith({
+      fieldName: 'paper_checklist_guidelines',
+      value: ['3'], // filter 1.5 out
+    })
+    expect(screen.getByDisplayValue('1')).not.toHaveAttribute('checked')
     expect(screen.getByDisplayValue('2')).not.toHaveAttribute('checked')
     expect(screen.getByDisplayValue('3')).toHaveAttribute('checked')
   })

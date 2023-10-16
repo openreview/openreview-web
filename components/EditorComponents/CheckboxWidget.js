@@ -34,26 +34,35 @@ const CheckboxWidget = () => {
     const enumValues = field[fieldName].value?.param?.enum
     const itemsValues = field[fieldName].value?.param?.items
 
+    let options = []
     if (Array.isArray(enumValues) && enumValues.length) {
       if (isArrayType) {
-        setCheckboxOptions(
-          enumValues.map((p) =>
-            typeof p === 'object'
-              ? { value: p.value, description: p.description }
-              : { value: p, description: p }
-          )
+        options = enumValues.map((p) =>
+          typeof p === 'object'
+            ? { value: p.value, description: p.description }
+            : { value: p, description: p }
         )
       } else {
         const option = enumValues[0]
         const optionValue = typeof option === 'object' ? option.value : option
         const optionDescription = typeof option === 'object' ? option.description : option
-        setCheckboxOptions([
-          { value: optionValue, description: optionDescription, optional: true },
-        ])
+        options = [{ value: optionValue, description: optionDescription, optional: true }]
       }
+      setCheckboxOptions(options)
       const defaultValue = field[fieldName].value?.param?.default
 
       if (!note && defaultValue) onChange({ fieldName, value: defaultValue })
+      if (note && value) {
+        // invitation may have been modified
+        let filteredValue
+        if (isArrayType) {
+          filteredValue = value.filter((p) => options.find((q) => q.value === p))
+        } else {
+          filteredValue = value === options[0].value ? value : undefined
+        }
+        onChange({ fieldName, value: filteredValue })
+      }
+
       return
     }
     if (Array.isArray(itemsValues) && itemsValues.length) {
@@ -64,6 +73,13 @@ const CheckboxWidget = () => {
       setCheckboxOptions(itemsValues)
       if (!note && (defaultValues?.length || mandatoryValues?.length)) {
         onChange({ fieldName, value: [...new Set([...defaultValues, ...mandatoryValues])] })
+      }
+      if (note && value) {
+        // invitation may have been modified
+        onChange({
+          fieldName,
+          value: value.filter((p) => itemsValues.find((q) => q.value === p)),
+        })
       }
     }
   }, [])
@@ -77,8 +93,10 @@ const CheckboxWidget = () => {
           <input
             type="checkbox"
             value={option.value ?? ''}
-            // eslint-disable-next-line eqeqeq
-            checked={(value == option.value || value?.find((p) => p == option.value)) ?? false}
+            checked={
+              // eslint-disable-next-line eqeqeq
+              isArrayType ? value?.find((p) => p == option.value) : value == option.value
+            }
             disabled={option.optional === false}
             onChange={handleCheckboxClick}
           />

@@ -64,32 +64,51 @@ const DropdownWidget = () => {
   useEffect(() => {
     const enumValues = field[fieldName].value?.param?.enum
     const itemsValues = field[fieldName].value?.param?.items
+    let options = []
 
     if (Array.isArray(enumValues) && enumValues.length) {
       const defaultValue = field[fieldName].value?.param?.default
-      setDropdownOptions(
-        enumValues.map((p) =>
-          typeof p === 'object'
-            ? { label: p.description ?? prettyId(p.value), value: p.value, optional: true }
-            : { label: p, value: p, optional: true }
-        )
+      // setDropdownOptions(
+      options = enumValues.map((p) =>
+        typeof p === 'object'
+          ? { label: p.description ?? prettyId(p.value), value: p.value, optional: true }
+          : { label: p, value: p, optional: true }
       )
+      // )
+      setDropdownOptions(options)
       setAllowMultiSelect(isArrayType)
       if (!value && defaultValue) onChange({ fieldName, value: defaultValue })
+      if (value) {
+        // invitation may have been modified
+        let filteredValue
+        if (isArrayType) {
+          filteredValue = value.filter((p) => options.find((q) => q.value === p))
+        } else {
+          filteredValue = options.some((p) => p.value === value) ? value : undefined
+        }
+        onChange({ fieldName, value: filteredValue })
+      }
     }
     if (Array.isArray(itemsValues) && itemsValues.length) {
       const defaultValues = field[fieldName].value?.param?.default ?? [] // array value
       const mandatoryValues =
         itemsValues.flatMap((p) => (p.optional === false ? p.value : [])) ?? []
-      setDropdownOptions(
-        itemsValues.map((p) => ({
-          label: p.description ?? prettyId(p.value),
-          value: p.value,
-          optional: p.optional,
-        }))
-      )
+      // setDropdownOptions(
+      options = itemsValues.map((p) => ({
+        label: p.description ?? prettyId(p.value),
+        value: p.value,
+        optional: p.optional,
+      }))
+      // )
+      setDropdownOptions(options)
       if (!value && (defaultValues?.length || mandatoryValues?.length)) {
         onChange({ fieldName, value: [...new Set([...defaultValues, ...mandatoryValues])] })
+      }
+      if (value) {
+        onChange({
+          fieldName,
+          value: value.filter((p) => options.find((q) => q.value === p)),
+        })
       }
     }
   }, [])
