@@ -70,7 +70,7 @@ export default function SubmissionsList({
         count: count ?? 0,
       }
     },
-    [accessToken, query, 2, useCredentials]
+    [accessToken, query, useCredentials]
   )
 
   function NoteListItem({ item }) {
