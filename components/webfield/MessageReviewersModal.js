@@ -1,6 +1,7 @@
 /* globals $,promptMessage: false */
 import uniqBy from 'lodash/uniqBy'
 import { useContext, useEffect, useState } from 'react'
+import List from 'rc-virtual-list'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import BasicModal from '../BasicModal'
@@ -20,12 +21,14 @@ const MessageReviewersModal = ({
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
   const [message, setMessage] = useState(null)
   const [isSending, setIsSending] = useState(false)
+  const [allRecipients, setAllRecipients] = useState([])
   const [recipientsInfo, setRecipientsInfo] = useState([])
   const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.reviewerProfileId).reduce(
     (prev, curr) => prev + curr.count,
     0
   )
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
+  const uniqueRecipientsInfo = uniqBy(recipientsInfo, (p) => p.preferredEmail)
 
   const handlePrimaryButtonClick = async () => {
     if (currentStep === 1) {
@@ -35,26 +38,31 @@ const MessageReviewersModal = ({
     // send emails
     setIsSending(true)
     try {
+      const simplifiedTableRowsDisplayed = tableRowsDisplayed.map((p) => ({
+        id: p.note.id,
+        number: p.note.number,
+        forum: p.note.forum,
+      }))
+
       const sendEmailPs = selectedIds.map((noteId) => {
-        const { note } = tableRowsDisplayed.find((row) => row.note.id === noteId)
-        const reviewerIds = recipientsInfo
-          .filter((p) => p.noteNumber === note.number)
-          .map((q) => q.reviewerProfileId)
+        const rowData = simplifiedTableRowsDisplayed.find((row) => row.id === noteId)
+        const reviewerIds = allRecipients.get(rowData.number)
         if (!reviewerIds.length) return Promise.resolve()
-        const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
+        const forumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialReviewName}`
         return api.post(
           '/messages',
           {
             groups: reviewerIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),
-            parentGroup: `${venueId}/${submissionName}${note.number}/Reviewers`,
+            parentGroup: `${venueId}/${submissionName}${rowData.number}/Reviewers`,
             replyTo: emailReplyTo,
           },
           { accessToken }
         )
       })
       await Promise.all(sendEmailPs)
+
       $(`#${messageModalId}`).modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
     } catch (apiError) {
@@ -97,14 +105,22 @@ const MessageReviewersModal = ({
     const recipients = getRecipients(selectedIds)
 
     const recipientsWithCount = {}
+    const noteNumberReviewerIdsMap = new Map()
+
     recipients.forEach((recipient) => {
+      const { noteNumber } = recipient
+      if (noteNumberReviewerIdsMap.has(noteNumber)) {
+        noteNumberReviewerIdsMap.get(noteNumber).push(recipient.reviewerProfileId)
+      } else {
+        noteNumberReviewerIdsMap.set(noteNumber, [recipient.reviewerProfileId])
+      }
       if (recipient.preferredEmail in recipientsWithCount) {
         recipientsWithCount[recipient.preferredEmail].count += 1
       } else {
         recipientsWithCount[recipient.preferredEmail] = { ...recipient, count: 1 }
       }
     })
-
+    setAllRecipients(noteNumberReviewerIdsMap)
     setRecipientsInfo(Object.values(recipientsWithCount))
   }, [messageOption])
 
@@ -118,6 +134,7 @@ const MessageReviewersModal = ({
       onClose={() => {
         setIsSending(false)
         setCurrentStep(1)
+        setError(null)
       }}
       options={{ extraClasses: 'message-reviewers-modal' }}
     >
@@ -155,11 +172,21 @@ const MessageReviewersModal = ({
             emails will be sent to the following reviewers:
           </p>
           <div className="well reviewer-list">
-            {uniqBy(recipientsInfo, (p) => p.preferredEmail).map((recipientInfo) => (
-              <li key={recipientInfo.preferredEmail}>{`${recipientInfo.preferredName} <${
-                recipientInfo.preferredEmail
-              }>${recipientInfo.count > 1 ? ` --- (×${recipientInfo.count})` : ''}`}</li>
-            ))}
+            <List
+              data={uniqueRecipientsInfo}
+              itemHeight={18}
+              height={Math.min(uniqueRecipientsInfo.length * 18, 580)}
+              itemKey="preferredEmail"
+            >
+              {(recipientInfo) => (
+                <li>
+                  {' '}
+                  {`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>${
+                    recipientInfo.count > 1 ? ` --- (×${recipientInfo.count})` : ''
+                  }`}
+                </li>
+              )}
+            </List>
           </div>
         </>
       )}
