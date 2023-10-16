@@ -37,6 +37,10 @@ describe('webfield-utils', () => {
     errorPath = 'note/readers' // note readers
     resultExpected = 'noteReaderValues'
     expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+
+    errorPath = 'note/license' // note license
+    resultExpected = 'noteLicenseValue'
+    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
   })
 
   test('return whether the error invalidValue is {delete:true} in isNonDeletableError', () => {
