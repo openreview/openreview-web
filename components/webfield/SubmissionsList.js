@@ -17,7 +17,6 @@ export default function SubmissionsList({
   venueId,
   query,
   ListItem,
-  apiVersion,
   shouldReload,
   updateCount,
   filterNotes,
@@ -29,14 +28,14 @@ export default function SubmissionsList({
   const { accessToken, userLoading } = useUser()
 
   const [combinedDisplayOptions, setCombinedDisplayOptions] = useState(defaultDisplayOptions)
-  const details = 'replyCount,invitation,original'
+  const details = 'replyCount,presentation'
 
   const loadNotes = useCallback(
     async (limit, offset) => {
       const { notes, count } = await api.get(
         '/notes',
         { details, ...query, limit, offset, domain: venueId },
-        { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
+        { accessToken, version: 2, useCredentials: useCredentials ?? true }
       )
       if (typeof updateCount === 'function') {
         updateCount(count ?? 0)
@@ -46,7 +45,7 @@ export default function SubmissionsList({
         count: count ?? 0,
       }
     },
-    [accessToken, query, apiVersion, useCredentials]
+    [accessToken, query, useCredentials]
   )
 
   const searchNotes = useCallback(
@@ -64,21 +63,18 @@ export default function SubmissionsList({
           limit,
           offset,
         },
-        { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
+        { accessToken, version: 2, useCredentials: useCredentials ?? true }
       )
       return {
         items: notes,
         count: count ?? 0,
       }
     },
-    [accessToken, query, apiVersion, useCredentials]
+    [accessToken, query, useCredentials]
   )
 
   function NoteListItem({ item }) {
-    if (apiVersion === 2) {
-      return <NoteV2 note={item} options={combinedDisplayOptions} />
-    }
-    return <Note note={item} options={combinedDisplayOptions} />
+    return <NoteV2 note={item} options={combinedDisplayOptions} />
   }
 
   useEffect(() => {
