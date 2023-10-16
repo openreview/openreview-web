@@ -191,7 +191,6 @@ export default function VenueHomepage({ appContext }) {
         <SubmissionsList
           venueId={group.id}
           query={query}
-          apiVersion={2}
           pageSize={tabConfig.options.pageSize}
           enableSearch={tabConfig.options.enableSearch}
           paperDisplayOptions={tabConfig.options.paperDisplayOptions}
