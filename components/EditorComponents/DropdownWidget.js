@@ -68,13 +68,11 @@ const DropdownWidget = () => {
 
     if (Array.isArray(enumValues) && enumValues.length) {
       const defaultValue = field[fieldName].value?.param?.default
-      // setDropdownOptions(
       options = enumValues.map((p) =>
         typeof p === 'object'
           ? { label: p.description ?? prettyId(p.value), value: p.value, optional: true }
           : { label: p, value: p, optional: true }
       )
-      // )
       setDropdownOptions(options)
       setAllowMultiSelect(isArrayType)
       if (!value && defaultValue) onChange({ fieldName, value: defaultValue })
@@ -93,13 +91,11 @@ const DropdownWidget = () => {
       const defaultValues = field[fieldName].value?.param?.default ?? [] // array value
       const mandatoryValues =
         itemsValues.flatMap((p) => (p.optional === false ? p.value : [])) ?? []
-      // setDropdownOptions(
       options = itemsValues.map((p) => ({
         label: p.description ?? prettyId(p.value),
         value: p.value,
         optional: p.optional,
       }))
-      // )
       setDropdownOptions(options)
       if (!value && (defaultValues?.length || mandatoryValues?.length)) {
         onChange({ fieldName, value: [...new Set([...defaultValues, ...mandatoryValues])] })

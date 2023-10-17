@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
+import sortBy from 'lodash/sortBy'
 import EditorComponentContext from '../EditorComponentContext'
 import { convertToType } from '../../lib/webfield-utils'
 
@@ -19,7 +20,9 @@ const CheckboxWidget = () => {
 
     if (isArrayType) {
       const updatedValues = isChecked
-        ? [...(value ?? []), optionValue]
+        ? sortBy([...(value ?? []), optionValue], (p) =>
+            checkboxOptions.findIndex((q) => q.value === p)
+          )
         : value?.filter((p) => p !== optionValue)
       onChange({ fieldName, value: updatedValues?.length ? updatedValues : undefined })
       return
@@ -94,8 +97,11 @@ const CheckboxWidget = () => {
             type="checkbox"
             value={option.value ?? ''}
             checked={
-              // eslint-disable-next-line eqeqeq
-              isArrayType ? value?.find((p) => p == option.value) : value == option.value
+              isArrayType
+                ? // eslint-disable-next-line eqeqeq
+                  value?.find((p) => p == option.value) ?? false
+                : // eslint-disable-next-line eqeqeq
+                  value == option.value
             }
             disabled={option.optional === false}
             onChange={handleCheckboxClick}

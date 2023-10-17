@@ -387,7 +387,7 @@ describe('CheckboxWidget', () => {
     expect(screen.getByDisplayValue('3')).toHaveAttribute('checked')
   })
 
-  test('update value if existing value does not match option (items)', () => {
+  test('update value if existing value does not match option (items)', async () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
@@ -420,6 +420,11 @@ describe('CheckboxWidget', () => {
     expect(screen.getByDisplayValue('1')).not.toHaveAttribute('checked')
     expect(screen.getByDisplayValue('2')).not.toHaveAttribute('checked')
     expect(screen.getByDisplayValue('3')).toHaveAttribute('checked')
+
+    await userEvent.click(screen.getByDisplayValue('1'))
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: ['1.5', '1', '3'] }) // should be [1,3], this is to check 1 appear before 3
+    )
   })
 
   test('update value when default value exists (enum string)', () => {
