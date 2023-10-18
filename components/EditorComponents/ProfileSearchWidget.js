@@ -12,6 +12,7 @@ import api from '../../lib/api-client'
 import { getProfileName, isValidEmail } from '../../lib/utils'
 
 import styles from '../../styles/components/ProfileSearchWidget.module.scss'
+import Icon from '../Icon'
 
 const getTitle = (profile) => {
   if (!profile.content) return null
@@ -28,9 +29,7 @@ const getTitle = (profile) => {
 const checkIsInAuthorList = (selectedAuthors, profileToCheck, isAuthoridsField, multiple) => {
   const profileIds = profileToCheck.content?.names?.map((p) => p.username) ?? []
   if (isAuthoridsField) return selectedAuthors?.find((p) => profileIds.includes(p.authorId))
-  return multiple
-    ? selectedAuthors?.find((p) => profileIds.includes(p))
-    : profileIds.includes(selectedAuthors)
+  return multiple && selectedAuthors?.find((p) => profileIds.includes(p.authorId))
 }
 
 const getUpdatedValue = (updatedDisplayAuthors, isAuthoridsField, multiple) => {
@@ -153,6 +152,19 @@ const ProfileSearchResultRow = ({
               )
             })}
           </a>
+          {profile?.active ? (
+            <Icon
+              name="ok-sign"
+              tooltip="Profile is active"
+              extraClasses="pl-1 text-success"
+            />
+          ) : (
+            <Icon
+              name="remove-sign"
+              tooltip="Profile is not active"
+              extraClasses="pl-1 text-danger"
+            />
+          )}
         </div>
         <div className={styles.authorTitle}>{getTitle(profile)}</div>
       </div>
@@ -321,6 +333,11 @@ const ProfileSearchFormAndResults = ({
     searchProfiles(searchTerm, pageNumber, false)
   }, [pageNumber])
 
+  useEffect(() => {
+    if (!profileSearchResults?.length) return
+    $('[data-toggle="tooltip"]').tooltip()
+  }, [profileSearchResults])
+
   if (isLoading) return <LoadingSpinner inline={true} text={null} />
 
   return (
@@ -367,7 +384,7 @@ const CustomAuthorForm = ({
   const [customAuthorName, setCustomAuthorName] = useState('')
   const [customAuthorEmail, setCustomAuthorEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { field, onChange, value } = useContext(EditorComponentContext)
+  const { field, onChange, clearError } = useContext(EditorComponentContext)
   const { accessToken } = useUser()
   const fieldName = Object.keys(field)[0]
 
@@ -398,6 +415,7 @@ const CustomAuthorForm = ({
     setIsLoading(false)
 
     // no matching profile found, add the author using email
+    clearError?.()
     const updatedAuthors = displayAuthors.concat({
       authorId: cleanAuthorEmail,
       authorName: cleanAuthorName,
@@ -509,9 +527,15 @@ const ProfileSearchWidget = ({ multiple = false }) => {
         const profile = allProfiles.find((q) =>
           q.content.names.find((r) => r.username === authorId)
         )
+        if (!profile) {
+          return {
+            authorId,
+            authorName: value?.find((p) => p.authorId === authorId)?.authorName ?? authorId,
+          }
+        }
         const preferredId =
           profile?.content?.names?.find((name) => name.preferred)?.username ??
-          profile.id ??
+          profile?.id ??
           authorId
         return {
           authorId: preferredId,
@@ -519,10 +543,13 @@ const ProfileSearchWidget = ({ multiple = false }) => {
         }
       })
       setDisplayAuthors(authorsWithPreferredNames)
-      onChange({
-        fieldName,
-        value: authorsWithPreferredNames,
-      })
+      if (isAuthoridsField) {
+        // none-authorids field has only id which does not change
+        onChange({
+          fieldName,
+          value: authorsWithPreferredNames,
+        })
+      }
     } catch (apiError) {
       promptError(apiError.message)
     }

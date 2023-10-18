@@ -14,6 +14,7 @@ import {
   getProfileName,
   prettyId,
   parseNumberField,
+  isValidEmail,
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
@@ -508,7 +509,7 @@ const ProgramChairConsole = ({ appContext }) => {
             const paperAnonAreaChairGroups = anonAreaChairGroups[areaChairGroup.noteNumber]
             return {
               ...areaChairGroup,
-              members: areaChairGroup.members.map((member) => {
+              members: areaChairGroup.members.flatMap((member) => {
                 let deanonymizedGroup = paperAnonAreaChairGroups?.[member]
                 let anonymizedGroup = member
                 if (!deanonymizedGroup) {
@@ -517,6 +518,8 @@ const ProgramChairConsole = ({ appContext }) => {
                     (key) => paperAnonAreaChairGroups[key] === member
                   )
                 }
+                if (!(isValidEmail(deanonymizedGroup) || deanonymizedGroup?.startsWith('~')))
+                  return []
                 return {
                   areaChairProfileId: deanonymizedGroup,
                   anonymizedGroup,

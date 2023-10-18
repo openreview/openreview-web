@@ -90,6 +90,30 @@ describe('DropdownWidget', () => {
     expect(screen.getByText('option three')).toBeInTheDocument()
   })
 
+  test('update value if existing value does not match option  (enum string single select)', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          some_select_field: {
+            value: {
+              param: {
+                input: 'select',
+                enum: ['option one', 'option two', 'option three'],
+              },
+            },
+          },
+        },
+        value: 'option non exist',
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: undefined }))
+    expect(screen.getByText('Select Some Select Field')).toBeInTheDocument()
+  })
+
   test('call update on selecting a value (enum string single select)', async () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
@@ -240,7 +264,9 @@ describe('DropdownWidget', () => {
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     expect(screen.getByText('Algorithms: Approximate Inference')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Remove Algorithms: Approximate Inference' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Remove Algorithms: Approximate Inference' })
+    ).toBeInTheDocument()
 
     await userEvent.click(
       screen.getByRole('button', { name: 'Remove Algorithms: Approximate Inference' })
@@ -284,6 +310,35 @@ describe('DropdownWidget', () => {
     expect(screen.getByText('option description one')).toBeInTheDocument()
     expect(screen.getByText('option description two')).toBeInTheDocument()
     expect(screen.getByText('option description three')).toBeInTheDocument()
+  })
+
+  test('update value if existing value does not match option  (enum obj)', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          some_select_field: {
+            value: {
+              param: {
+                input: 'select',
+                type: 'string',
+                enum: [
+                  { value: 'value one', description: 'option description one' },
+                  { value: 'value two', description: 'option description two' },
+                  { value: 'value three', description: 'option description three' },
+                ],
+              },
+            },
+          },
+        },
+        value: 'value non exist',
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+
+    expect(screen.getByText('Select Some Select Field')).toBeInTheDocument()
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: undefined }))
   })
 
   test('call update on selecting a value (enum obj no type conversion)', async () => {
@@ -437,6 +492,55 @@ describe('DropdownWidget', () => {
     expect(screen.getByText('option description two')).toBeInTheDocument()
     expect(screen.getByText('option description three')).toBeInTheDocument()
     expect(screen.getByText('value four')).toBeInTheDocument()
+  })
+
+  test('update value if existing value does not match option  (items)', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          some_select_field: {
+            value: {
+              param: {
+                input: 'select',
+                type: 'string[]',
+                items: [
+                  {
+                    value: 'value one',
+                    description: 'option description one',
+                    optional: true,
+                  },
+                  {
+                    value: 'value two',
+                    description: 'option description two',
+                    optional: true,
+                  },
+                  {
+                    value: 'value three',
+                    description: 'option description three',
+                    optional: true,
+                  },
+                  {
+                    value: 'value four',
+                    description: undefined,
+                    optional: true,
+                  },
+                ],
+              },
+            },
+          },
+        },
+        value: ['value one', 'value non exist', 'value three'],
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<DropdownWidget multiple={true} />, providerProps)
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: ['value one', 'value three'] })
+    )
+
+    expect(screen.getByText('option description one')).toBeInTheDocument()
+    expect(screen.getByText('option description three')).toBeInTheDocument()
   })
 
   test('render options (enum obj + sting[] type)', async () => {
@@ -985,12 +1089,16 @@ describe('DropdownWidget', () => {
           },
         },
         onChange,
-        value: ['value three'],
+        value: ['value three', 'value non existing'], // invitation has been changed after value non existing is submitted
       },
     }
 
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
-    expect(onChange).not.toHaveBeenCalled()
+    expect(onChange).toHaveBeenCalledTimes(1) // only the call to filter out non existing value
+    expect(onChange).toHaveBeenCalledWith({
+      fieldName: 'some_select_field',
+      value: ['value three'],
+    })
   })
 
   test('call update when a non mandatory option is added', async () => {
