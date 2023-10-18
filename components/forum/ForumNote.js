@@ -301,7 +301,7 @@ function ForumMeta({ note }) {
               href={licenseInfo.url}
               target="_blank"
               rel="noopener noreferrer"
-              title={`Licesnsed under ${licenseInfo.fullName}`}
+              title={`Licensed under ${licenseInfo.fullName}`}
               data-toggle="tooltip"
               data-placement="top"
             >
