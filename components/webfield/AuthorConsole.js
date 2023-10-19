@@ -15,7 +15,7 @@ import NoteSummary from './NoteSummary'
 import useQuery from '../../hooks/useQuery'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { parseNumberField, prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import ConsoleTaskList from './ConsoleTaskList'
@@ -38,19 +38,18 @@ const ReviewSummary = ({
   const ratings = []
   const confidences = []
 
-  const getRatingValue = (reviewNote, ratingName) =>
-    isV2Note ? reviewNote.content[ratingName]?.value : reviewNote.content[ratingName]
+  const getRatingValue = (reviewNote, ratingName) => {
+    if (isV2Note) {
+      return parseNumberField(reviewNote.content[ratingName]?.value)
+    }
+    const ratingEx = /^(\d+): .*$/
+    const ratingMatch = reviewNote.content[ratingName]?.match(ratingEx)
+    return ratingMatch ? parseInt(ratingMatch[1], 10) : null
+  }
 
   noteCompletedReviews.forEach((p) => {
-    const ratingEx = /^(\d+): .*$/
-    const ratingValue = getRatingValue(p)
-    const ratingMatch = ratingValue?.match(ratingEx)
-    ratings.push(ratingMatch ? parseInt(ratingMatch[1], 10) : null)
-    const confidenceValue = isV2Note
-      ? p.content[reviewConfidenceName]?.value
-      : p.content[reviewConfidenceName]
-    const confidenceMatch = confidenceValue?.match(ratingEx)
-    confidences.push(confidenceMatch ? parseInt(confidenceMatch[1], 10) : null)
+    ratings.push(getRatingValue(p, reviewRatingName))
+    confidences.push(getRatingValue(p, reviewConfidenceName))
   })
 
   let [averageRating, minRating, maxRating, averageConfidence, minConfidence, maxConfidence] =
