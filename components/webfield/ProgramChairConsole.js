@@ -304,6 +304,13 @@ const ProgramChairConsole = ({ appContext }) => {
       let allGroupMembers = []
       perPaperGroupResults.groups?.forEach((p) => {
         const number = getNumberFromGroup(p.id, submissionName)
+        const noteVenueId = notes.find((q) => q.number === number)?.content?.venueid?.value
+        if (
+          !noteVenueId ||
+          noteVenueId === withdrawnVenueId ||
+          noteVenueId === deskRejectedVenueId
+        )
+          return
         if (p.id.endsWith(`/${reviewerName}`)) {
           reviewerGroups.push({
             noteNumber: number,
