@@ -30,6 +30,30 @@ describe('TextAreaWidget', () => {
     expect(screen.getByDisplayValue('')).toBeInTheDocument()
   })
 
+  test('display invitation default value in textarea', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          abstract: {
+            value: {
+              param: {
+                default: 'some default value',
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: 'some default value' })
+    )
+  })
+
   test('display markdown preview tab if markdown is true', () => {
     const providerProps = {
       value: {
@@ -67,7 +91,9 @@ describe('TextAreaWidget', () => {
     }
 
     renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
-    expect(screen.getByText('Learn more about adding LaTeX formulas', { exact: false })).toBeInTheDocument()
+    expect(
+      screen.getByText('Learn more about adding LaTeX formulas', { exact: false })
+    ).toBeInTheDocument()
   })
 
   test('display char counter for min length', async () => {
@@ -194,6 +220,7 @@ describe('TextAreaWidget', () => {
                 type: 'string',
                 maxLength: 5000,
                 input: 'textarea',
+                default: 'some default value',
               },
             },
           },
@@ -212,6 +239,10 @@ describe('TextAreaWidget', () => {
     expect(getItem).toHaveBeenCalledWith('some key')
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ value: 'some saved value' })
+    )
+    expect(onChange).not.toHaveBeenCalledWith(
+      // when there's both saved value and default value, used saved value
+      expect.objectContaining({ value: 'some default value' })
     )
     expect(clearError).toHaveBeenCalled()
   })

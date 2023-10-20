@@ -70,6 +70,7 @@ const TextAreaWidget = () => {
   const { user } = useUser()
   const fieldName = Object.keys(field)[0]
   const enableMarkdown = field[fieldName].value?.param?.markdown
+  const defaultValue = field[fieldName].value?.param?.default
 
   const [showCharCounter, setShowCharCounter] = useState(false)
   const shouldSaveDraft = true
@@ -99,7 +100,11 @@ const TextAreaWidget = () => {
       fieldName
     )
     const savedText = localStorage.getItem(keyOfSavedText)
-    if (savedText) onTextUpdated(savedText)
+    if (savedText) {
+      onTextUpdated(savedText)
+      return
+    }
+    if (defaultValue) onTextUpdated(defaultValue)
   }, [])
 
   return (
