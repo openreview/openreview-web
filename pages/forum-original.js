@@ -138,7 +138,7 @@ ForumPage.getInitialProps = async (ctx) => {
         trash: true,
         details: 'replyCount,writable,signatures,invitation,presentation',
       },
-      { accessToken: token, version: 2 }
+      { accessToken: token }
     )
 
     const note = notes?.length > 0 ? notes[0] : null

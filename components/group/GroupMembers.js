@@ -483,7 +483,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
         await api.post(
           '/groups/edits',
           buildEdit('append', [...newMembers, ...existingDeleted]),
-          { accessToken, version: 2 }
+          { accessToken }
         )
       } else {
         await api.put(

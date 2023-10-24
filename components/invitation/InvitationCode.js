@@ -145,10 +145,7 @@ export const InvitationCodeV2 = ({
         signatures: [profileId],
         ...(!isMetaInvitation && { invitations: metaInvitationId }),
       }
-      await api.post('/invitations/edits', requestBody, {
-        accessToken,
-        version: 2,
-      })
+      await api.post('/invitations/edits', requestBody, { accessToken })
       promptMessage(`Code for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       loadInvitation(invitation.id)
     } catch (error) {

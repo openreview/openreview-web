@@ -392,7 +392,7 @@ const AuthorConsole = ({ appContext }) => {
           details: 'directReplies',
           sort: 'number:asc',
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
 
       setAuthorNotes(notesResult)

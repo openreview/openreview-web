@@ -272,7 +272,7 @@ const RevisionsList = ({
       if (key === 'content' || value?.param) editNote[key] = edit.note[key]
     })
     editToPost.note = editNote
-    await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
+    await api.post('/notes/edits', editToPost, { accessToken })
     setEditToDeleteRestore(null)
     loadEdits()
   }
@@ -567,7 +567,7 @@ const Revisions = ({ appContext }) => {
           details: 'writable,presentation',
           trash: true,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
     } catch (apiError) {
       setError(apiError)
@@ -583,7 +583,7 @@ const Revisions = ({ appContext }) => {
       const { invitations } = await api.get(
         '/invitations',
         { ids: invitationIds, expired: true, details: 'writable' },
-        { accessToken, version: 2 }
+        { accessToken }
       )
 
       if (invitations?.length > 0) {

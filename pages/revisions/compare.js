@@ -70,7 +70,7 @@ const CompareRevisions = ({ appContext }) => {
       const apiRes = await api.get(
         '/notes/edits',
         { 'note.id': query.id, trash: true },
-        { accessToken, version: 2 }
+        { accessToken }
       )
 
       if (apiRes.edits?.length > 1) {

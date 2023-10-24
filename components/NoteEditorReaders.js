@@ -68,7 +68,7 @@ export const NewNoteReaders = ({
       const optionsP = enumItemsConfigOptions.map((p) =>
         p.prefix
           ? api
-              .get('/groups', { prefix: p.prefix }, { accessToken, version: 2 })
+              .get('/groups', { prefix: p.prefix }, { accessToken })
               .then((result) =>
                 result.groups.map((q) => ({
                   value: q.id,
@@ -276,7 +276,7 @@ export const NewReplyEditNoteReaders = ({
       const optionsP = enumItemsConfigOptions.map((p) =>
         p.prefix
           ? api
-              .get('/groups', { prefix: p.prefix }, { accessToken, version: 2 })
+              .get('/groups', { prefix: p.prefix }, { accessToken })
               .then((result) =>
                 result.groups.map((q) => ({
                   value: q.id,

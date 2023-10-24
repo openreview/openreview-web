@@ -30,7 +30,7 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
           signatures: [profileId],
           invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
         }
-        await api.post('/groups/edits', requestBody, { accessToken, version: 2 })
+        await api.post('/groups/edits', requestBody, { accessToken })
       } else {
         const groupToPost = {
           ...group,

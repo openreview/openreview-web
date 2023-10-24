@@ -35,7 +35,7 @@ export default function SubmissionsList({
       const { notes, count } = await api.get(
         '/notes',
         { details, ...query, limit, offset, domain: venueId },
-        { accessToken, version: 2, useCredentials: useCredentials ?? true }
+        { accessToken, useCredentials: useCredentials ?? true }
       )
       if (typeof updateCount === 'function') {
         updateCount(count ?? 0)
@@ -63,7 +63,7 @@ export default function SubmissionsList({
           limit,
           offset,
         },
-        { accessToken, version: 2, useCredentials: useCredentials ?? true }
+        { accessToken, useCredentials: useCredentials ?? true }
       )
       return {
         items: notes,

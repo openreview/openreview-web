@@ -109,7 +109,7 @@ export default function Forum({
       .get(
         '/invitations',
         { replyForum: forumId, expired: true, domain, ...extraParams },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       .then(({ invitations }) => {
         if (!invitations?.length) return []
@@ -140,7 +140,7 @@ export default function Forum({
         details: 'replyCount,writable,signatures,invitation,presentation',
         domain,
       },
-      { accessToken, version: 2 }
+      { accessToken }
     )
   }
 
@@ -250,7 +250,7 @@ export default function Forum({
           trash: true,
           domain,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       return notes?.length > 0 ? notes : []
     } catch (error) {

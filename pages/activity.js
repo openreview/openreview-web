@@ -38,7 +38,7 @@ const Activity = ({ appContext }) => {
         () => []
       ),
       api
-        .get('/notes/edits', queryParamV2, { accessToken, version: 2 })
+        .get('/notes/edits', queryParamV2, { accessToken })
         .then(
           ({ edits }) => (edits?.length > 0 ? edits : []),
           () => []

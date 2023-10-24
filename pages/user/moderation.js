@@ -54,7 +54,7 @@ const UserModerationTab = ({ accessToken }) => {
           details: 'invitation',
           limit: 1,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       const results = await Promise.all([configNoteV1P, configNoteV2P])
 
@@ -113,7 +113,7 @@ const UserModerationTab = ({ accessToken }) => {
           invitationObj: configNoteV2.details.invitation,
           noteObj: configNoteV2,
         }),
-        { accessToken, version: 2 }
+        { accessToken }
       )
       await api.post(
         '/notes',
