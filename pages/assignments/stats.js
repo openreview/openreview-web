@@ -96,11 +96,22 @@ const AssignmentStats = ({ appContext }) => {
       const getNotesArgs = {
         invitation: paperInvitationElements[0],
       }
+      let track
       paperInvitationElements.slice(1).forEach((filter) => {
         const filterElements = filter.split('=')
-        getNotesArgs[filterElements[0]] = filterElements[1]
+        if (filterElements[0] === 'track') {
+          track = filterElements[1] // filter track locally
+        } else {
+          getNotesArgs[filterElements[0]] = filterElements[1]
+        }
       })
-      papersP = api.getAll('/notes', getNotesArgs, { accessToken, version: apiVersion })
+      papersP = api
+        .getAll('/notes', getNotesArgs, { accessToken, version: apiVersion })
+        .then((results) => {
+          if (track && apiVersion === 2)
+            return results.filter((p) => p.content.track?.value === track)
+          return results
+        })
     } else {
       papersP = api.get('/groups', { id: paperInvitationElements[0] }, { accessToken })
     }
