@@ -194,7 +194,7 @@ const ProgramChairConsole = ({ appContext }) => {
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
           id
-            ? api.getGroupById(id, accessToken, null, { select: 'members' })
+            ? api.getGroupById(id, accessToken, { select: 'members' })
             : Promise.resolve([])
         )
       )
