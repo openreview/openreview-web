@@ -14,14 +14,19 @@ import { getProfileName, isValidEmail } from '../../lib/utils'
 import styles from '../../styles/components/ProfileSearchWidget.module.scss'
 import Icon from '../Icon'
 
-const getTitle = (profile) => {
+const getTitle = (profile, isEditor) => {
   if (!profile.content) return null
   const latestHistory =
     profile.content.history?.find((p) => !p.end) || maxBy(profile.content.history, 'end')
+
   const title = latestHistory
     ? `${latestHistory.position ? `${latestHistory.position} at ` : ''}${
         latestHistory.institution?.name
-      }${latestHistory.institution?.domain ? ` (${latestHistory.institution?.domain})` : ''}`
+      }${
+        latestHistory.institution?.domain && isEditor
+          ? ` (${latestHistory.institution?.domain})`
+          : ''
+      }`
     : ''
   return title
 }
@@ -50,9 +55,8 @@ const Author = ({
   allowAddRemove,
   isAuthoridsField,
   multiple,
+  onChange,
 }) => {
-  const { onChange } = useContext(EditorComponentContext)
-
   const increaseAuthorIndex = () => {
     const authorIndex = displayAuthors.findIndex((p) => p.authorId === authorId)
 
@@ -125,9 +129,12 @@ const ProfileSearchResultRow = ({
   setDisplayAuthors,
   isAuthoridsField,
   multiple,
+  field,
+  onChange,
+  clearError,
+  isEditor,
 }) => {
-  const { field, onChange, clearError } = useContext(EditorComponentContext)
-  const fieldName = Object.keys(field)[0]
+  const fieldName = Object.keys(field ?? {})[0]
 
   if (!profile) return null
   const preferredId = profile.content.names?.find((p) => p.preferred)?.username ?? profile.id
@@ -166,12 +173,16 @@ const ProfileSearchResultRow = ({
             />
           )}
         </div>
-        <div className={styles.authorTitle}>{getTitle(profile)}</div>
+        <div className={styles.authorTitle}>{getTitle(profile, isEditor)}</div>
       </div>
       <div className={styles.authorEmails}>
-        {profile.content?.emailsConfirmed?.map((email, index) => (
-          <span key={index}>{email}</span>
-        ))}
+        {isEditor ? (
+          profile.content?.emailsConfirmed?.map((email, index) => (
+            <span key={index}>{email}</span>
+          ))
+        ) : (
+          <span>{profile.content?.preferredEmail}</span>
+        )}
       </div>
       <div className={styles.addButton}>
         <IconButton
@@ -189,10 +200,14 @@ const ProfileSearchResultRow = ({
               authorName: getProfileName(profile),
             })
             setDisplayAuthors(updatedAuthors)
-            onChange({
-              fieldName,
-              value: getUpdatedValue(updatedAuthors, isAuthoridsField, multiple),
-            })
+            if (isEditor === false) {
+              onChange(preferredId, getProfileName(profile), profile)
+            } else {
+              onChange({
+                fieldName,
+                value: getUpdatedValue(updatedAuthors, isAuthoridsField, multiple),
+              })
+            }
 
             clearError?.()
             setProfileSearchResults(null)
@@ -213,6 +228,12 @@ const ProfileSearchFormAndResults = ({
   error,
   isAuthoridsField,
   multiple,
+  field,
+  onChange,
+  clearError,
+  pageSize,
+  isEditor,
+  searchInputPlaceHolder,
 }) => {
   const [searchTerm, setSearchTerm] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -221,7 +242,6 @@ const ProfileSearchFormAndResults = ({
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   const [showCustomAuthorForm, setShowCustomAuthorForm] = useState(false)
   const { accessToken } = useUser()
-  const pageSize = 20
 
   // eslint-disable-next-line no-shadow
   const searchProfiles = async (searchTerm, pageNumber, showLoadingSpinner = true) => {
@@ -312,6 +332,10 @@ const ProfileSearchFormAndResults = ({
               setDisplayAuthors={setDisplayAuthors}
               isAuthoridsField={isAuthoridsField}
               multiple={multiple}
+              field={field}
+              onChange={onChange}
+              clearError={clearError}
+              isEditor={isEditor}
             />
           ))}
           <PaginationLinks
@@ -355,7 +379,7 @@ const ProfileSearchFormAndResults = ({
           type="text"
           className={`form-control ${error ? styles.invalidValue : ''}`}
           value={searchTerm ?? ''}
-          placeholder="search profiles by email or name"
+          placeholder={searchInputPlaceHolder}
           onChange={(e) => {
             setSearchTerm(e.target.value)
             setProfileSearchResults(null)
@@ -469,14 +493,26 @@ const CustomAuthorForm = ({
   )
 }
 
-const ProfileSearchWidget = ({ multiple = false }) => {
+const ProfileSearchWidget = ({
+  multiple = false,
+  isEditor = true,
+  field: propsField,
+  pageSize = 20,
+  searchInputPlaceHolder = 'search profiles by email or name',
+  onChange: propsOnChange,
+  value: propsValue,
+  className,
+}) => {
   const { user, accessToken } = useUser()
-  const { field, onChange, value, error } = useContext(EditorComponentContext)
-  const fieldName = Object.keys(field)[0]
+  const editorComponentContext = useContext(EditorComponentContext) ?? {}
+  const { field, onChange, value, error, clearError } = isEditor
+    ? editorComponentContext
+    : { field: propsField, onChange: propsOnChange, value: propsValue }
+  const fieldName = Object.keys(field ?? {})[0]
   const isAuthoridsField = fieldName === 'authorids'
   const allowUserDefined =
-    field[fieldName].value?.param?.regex?.includes('|') && isAuthoridsField
-  const allowAddRemove = field[fieldName].value?.param?.regex
+    field?.[fieldName].value?.param?.regex?.includes('|') && isAuthoridsField
+  const allowAddRemove = isEditor ? field?.[fieldName].value?.param?.regex : true
   const [selectedAuthorProfiles, setSelectedAuthorProfiles] = useState([])
   const [displayAuthors, setDisplayAuthors] = useState(!multiple && value ? [value] : value) // id+email
 
@@ -557,6 +593,10 @@ const ProfileSearchWidget = ({ multiple = false }) => {
 
   useEffect(() => {
     if (!isAuthoridsField) {
+      if (!isEditor) {
+        setDisplayAuthors([])
+        return
+      }
       // eslint-disable-next-line no-unused-expressions
       value ? getProfiles(multiple ? value : [value]) : setDisplayAuthors([])
       return
@@ -575,7 +615,7 @@ const ProfileSearchWidget = ({ multiple = false }) => {
   }, [value, displayAuthors])
 
   return (
-    <div className={styles.profileSearch}>
+    <div className={`${styles.profileSearch} ${className}`}>
       <div className={styles.selectedAuthors}>
         {displayAuthors?.map(({ authorId, authorName }, index) => {
           const authorProfile = selectedAuthorProfiles.find(
@@ -602,6 +642,7 @@ const ProfileSearchWidget = ({ multiple = false }) => {
                 allowAddRemove={allowAddRemove}
                 isAuthoridsField={isAuthoridsField}
                 multiple={multiple}
+                onChange={onChange}
               />
             </React.Fragment>
           )
@@ -617,6 +658,12 @@ const ProfileSearchWidget = ({ multiple = false }) => {
           error={error}
           isAuthoridsField={isAuthoridsField}
           multiple={multiple}
+          field={field}
+          onChange={onChange}
+          clearError={clearError}
+          pageSize={pageSize}
+          isEditor={isEditor}
+          searchInputPlaceHolder={searchInputPlaceHolder}
         />
       )}
     </div>

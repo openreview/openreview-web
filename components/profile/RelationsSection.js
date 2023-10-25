@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import { getStartEndYear } from '../../lib/utils'
+import ProfileSearchWidget from '../EditorComponents/ProfileSearchWidget'
 
 const CreatableDropdown = dynamic(() =>
   import('../Dropdown').then((mod) => mod.CreatableDropdown)
@@ -16,6 +17,7 @@ const startType = 'updateStart'
 const endType = 'updateEnd'
 const nameType = 'updateName'
 const emailType = 'updateEmail'
+const profileType = 'updateProfile'
 const addRelationType = 'addRelation'
 const removeRelationType = 'removeRelation'
 // #endregion
@@ -35,6 +37,90 @@ const RelationRow = ({
     if (!selectedValues || !selectedValues.length || selectedValues.includes('everyone'))
       return 'everyone'
     return selectedValues.join(',')
+  }
+
+  // eslint-disable-next-line no-shadow
+  const renderRelationName = (relation) => {
+    if (relation.name && relation.email) {
+      if (relation.id) {
+        // existing with id show profile search
+        return (
+          <div className="col-md-6 relation__value">
+            <input
+              className="form-control"
+              value={relation.name ?? ''}
+              onChange={(e) =>
+                setRelation({
+                  type: nameType,
+                  data: { value: e.target.value, key: relation.key },
+                })
+              }
+            />
+          </div>
+        )
+      }
+      // existing without id show name and email
+      return (
+        <>
+          <div className="col-md-3 relation__value">
+            {isMobile && <div className="small-heading col-md-3">Name</div>}
+            <input
+              className={`form-control ${
+                profileRelation?.find((q) => q.key === relation.key)?.valid === false
+                  ? 'invalid-value'
+                  : ''
+              }`}
+              value={relation.name ?? ''}
+              onChange={(e) =>
+                setRelation({
+                  type: nameType,
+                  data: { value: e.target.value, key: relation.key },
+                })
+              }
+            />
+          </div>
+          <div className="col-md-3 relation__value">
+            {isMobile && <div className="small-heading col-md-3">Email</div>}
+            <input
+              className={`form-control ${
+                profileRelation?.find((q) => q.key === relation.key)?.valid === false
+                  ? 'invalid-value'
+                  : ''
+              }`}
+              value={relation.email ?? ''}
+              onChange={(e) =>
+                setRelation({
+                  type: emailType,
+                  data: { value: e.target.value, key: relation.key },
+                })
+              }
+            />
+          </div>
+        </>
+      )
+    }
+    // empty relation show profile search
+    return (
+      <div className="col-md-6 relation__value">
+        <ProfileSearchWidget
+          multiple={false}
+          isEditor={false}
+          pageSize={5}
+          searchInputPlaceHolder="search relation with name or email"
+          value={relation.id}
+          onChange={(tildeId, preferredName, profile) => {
+            setRelation({
+              type: profileType,
+              data: {
+                value: { tildeId, preferredName, email: profile.content?.preferredEmail },
+                key: relation.key,
+              },
+            })
+          }}
+          className="relation-search"
+        />
+      </div>
+    )
   }
 
   return (
@@ -83,37 +169,9 @@ const RelationRow = ({
           />
         )}
       </div>
-      <div className="col-md-3 relation__value">
-        {isMobile && <div className="small-heading col-md-3">Name</div>}
-        <input
-          className={`form-control ${
-            profileRelation?.find((q) => q.key === relation.key)?.valid === false
-              ? 'invalid-value'
-              : ''
-          }`}
-          value={relation.name ?? ''}
-          onChange={(e) =>
-            setRelation({ type: nameType, data: { value: e.target.value, key: relation.key } })
-          }
-        />
-      </div>
-      <div className="col-md-3 relation__value">
-        {isMobile && <div className="small-heading col-md-3">Email</div>}
-        <input
-          className={`form-control ${
-            profileRelation?.find((q) => q.key === relation.key)?.valid === false
-              ? 'invalid-value'
-              : ''
-          }`}
-          value={relation.email ?? ''}
-          onChange={(e) =>
-            setRelation({
-              type: emailType,
-              data: { value: e.target.value, key: relation.key },
-            })
-          }
-        />
-      </div>
+
+      {renderRelationName(relation)}
+
       <div className="col-md-1 relation__value">
         {isMobile && <div className="small-heading col-md-1">Start</div>}
         <input
@@ -233,6 +291,16 @@ const RelationsSection = ({
         return state.map((p) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) recordCopy.email = action.data.value
+          return recordCopy
+        })
+      case profileType:
+        return state.map((p) => {
+          const recordCopy = { ...p }
+          if (p.key === action.data.key) {
+            recordCopy.id = action.data.value.tildeId
+            recordCopy.name = action.data.value.preferredName
+            recordCopy.email = action.data.value.email
+          }
           return recordCopy
         })
       case addRelationType:

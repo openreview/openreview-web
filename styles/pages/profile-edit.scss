@@ -34,7 +34,9 @@ main.profile-edit {
     margin-bottom: 0.5rem;
   }
 
-  .glyphicon {
+  .glyphicon-minus-sign,
+  .glyphicon-plus-sign,
+  .glyphicon-repeat {
     color: constants.$mediumBlue;
     font-size: 1.25rem;
   }
@@ -374,6 +376,10 @@ main.profile-edit {
   .relation-new {
     min-width: 60vw;
     padding-left: 15px;
+
+    .relation-search {
+      max-width: 100%;
+    }
   }
 
   .expertise {
