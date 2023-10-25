@@ -141,11 +141,11 @@ export function createGroup(jsonToPost, userToken) {
 }
 
 export function createInvitation(jsonToPost, userToken) {
-  return api.post('/invitations', jsonToPost, { accessToken: userToken })
+  return api.post('/invitations', jsonToPost, { accessToken: userToken, version: 1 })
 }
 
 export function createNote(jsonToPost, userToken) {
-  return api.post('/notes', jsonToPost, { accessToken: userToken })
+  return api.post('/notes', jsonToPost, { accessToken: userToken, version: 1 })
 }
 
 export function sendFile(data, userToken) {
@@ -323,7 +323,7 @@ export function getMessages(params, token) {
 }
 
 export function getNotes(params, token) {
-  return api.get('/notes', params, { accessToken: token }).then((result) => result.notes)
+  return api.get('/notes', params, { accessToken: token, version: 1 }).then((result) => result.notes)
 }
 
 export function getReferences(params, token) {
