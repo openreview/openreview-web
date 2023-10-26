@@ -145,6 +145,10 @@ const PaperStatusMenuBar = ({
       getValue: (p) =>
         p.metaReviewData?.metaReviews?.map((q) => q[metaReviewRecommendationName])?.join('|'),
     },
+    {
+      header: 'decision',
+      getValue: (p) => p.decision,
+    },
     ...(seniorAreaChairsId
       ? [
           {
