@@ -276,18 +276,18 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
     pcConsoleData.paperGroups?.reviewerGroups.forEach((reviewerGroup) => {
       if (!activeNoteNumbers.includes(reviewerGroup.noteNumber)) return
       reviewerGroup.members.forEach((reviewer) => {
-        if (!reviewer.reviewerAnonGroup) return
+        if (!reviewer.anonymizedGroup) return
         const reviewerProfileId = reviewer.reviewerProfileId // eslint-disable-line prefer-destructuring
         if (reviewerAnonGroupIds[reviewerProfileId]) {
           reviewerAnonGroupIds[reviewerProfileId].push({
             noteNumber: reviewerGroup.noteNumber,
-            anonGroupId: reviewer.reviewerAnonGroup,
+            anonGroupId: reviewer.anonymizedGroup,
           })
         } else {
           reviewerAnonGroupIds[reviewerProfileId] = [
             {
               noteNumber: reviewerGroup.noteNumber,
-              anonGroupId: reviewer.reviewerAnonGroup,
+              anonGroupId: reviewer.anonymizedGroup,
             },
           ]
         }
@@ -408,18 +408,18 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
   pcConsoleData.paperGroups?.areaChairGroups.forEach((areaChairGroup) => {
     if (!activeNoteNumbers.includes(areaChairGroup.noteNumber)) return
     areaChairGroup.members.forEach((areaChair) => {
-      if (!areaChair.areaChairAnonGroup) return
+      if (!areaChair.anonymizedGroup) return
       const areaChairProfileId = areaChair.areaChairProfileId // eslint-disable-line prefer-destructuring
       if (areaChairAnonGroupIds[areaChairProfileId]) {
         areaChairAnonGroupIds[areaChairProfileId].push({
           noteNumber: areaChairGroup.noteNumber,
-          anonGroupId: areaChair.areaChairAnonGroup,
+          anonGroupId: areaChair.anonymizedGroup,
         })
       } else {
         areaChairAnonGroupIds[areaChairProfileId] = [
           {
             noteNumber: areaChairGroup.noteNumber,
-            anonGroupId: areaChair.areaChairAnonGroup,
+            anonGroupId: areaChair.anonymizedGroup,
           },
         ]
       }

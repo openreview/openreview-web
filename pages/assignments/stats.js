@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
+import get from 'lodash/get'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ScalarStat from '../../components/assignments/ScalarStat'
@@ -87,6 +88,12 @@ const AssignmentStats = ({ appContext }) => {
     }
   }
 
+  const indexedContentFields = [
+    'content.authorids',
+    'content.venueid',
+    'content.venue',
+    'content.user',
+  ]
   const loadMatchingDataFromEdges = async () => {
     const { apiVersion, content: noteContent } = assignmentConfigNote
     const paperInvitationElements = noteContent.paper_invitation.split('&')
@@ -96,11 +103,27 @@ const AssignmentStats = ({ appContext }) => {
       const getNotesArgs = {
         invitation: paperInvitationElements[0],
       }
+      const localFilterContentFields = {}
       paperInvitationElements.slice(1).forEach((filter) => {
         const filterElements = filter.split('=')
-        getNotesArgs[filterElements[0]] = filterElements[1]
+        if (indexedContentFields.includes(filterElements[0])) {
+          getNotesArgs[filterElements[0]] = filterElements[1]
+        } else {
+          localFilterContentFields[filterElements[0]] = filterElements[1]
+        }
       })
-      papersP = api.getAll('/notes', getNotesArgs, { accessToken, version: apiVersion })
+      papersP = api
+        .getAll('/notes', getNotesArgs, { accessToken, version: apiVersion })
+        .then((results) => {
+          if (apiVersion === 2) {
+            return results.filter((p) =>
+              Object.keys(localFilterContentFields).every(
+                (key) => get(p, `${key}.value`) === localFilterContentFields[key]
+              )
+            )
+          }
+          return results
+        })
     } else {
       papersP = api.get('/groups', { id: paperInvitationElements[0] }, { accessToken })
     }

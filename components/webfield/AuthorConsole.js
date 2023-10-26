@@ -15,7 +15,7 @@ import NoteSummary from './NoteSummary'
 import useQuery from '../../hooks/useQuery'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { parseNumberField, prettyField, prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import ConsoleTaskList from './ConsoleTaskList'
@@ -35,32 +35,38 @@ const ReviewSummary = ({
     ? (p) => p.invitations.includes(officialReviewInvitationId)
     : (p) => p.invitation === officialReviewInvitationId
   const noteCompletedReviews = note.details.directReplies?.filter(directlyReplyFilterFn) ?? []
-  const ratings = []
   const confidences = []
 
-  const getRatingValue = (reviewNote, ratingName) =>
-    isV2Note ? reviewNote.content[ratingName]?.value : reviewNote.content[ratingName]
-
   noteCompletedReviews.forEach((p) => {
-    const ratingEx = /^(\d+): .*$/
-    const ratingValue = getRatingValue(p)
-    const ratingMatch = ratingValue?.match(ratingEx)
-    ratings.push(ratingMatch ? parseInt(ratingMatch[1], 10) : null)
-    const confidenceValue = isV2Note
-      ? p.content[reviewConfidenceName]?.value
-      : p.content[reviewConfidenceName]
-    const confidenceMatch = confidenceValue?.match(ratingEx)
-    confidences.push(confidenceMatch ? parseInt(confidenceMatch[1], 10) : null)
+    confidences.push(
+      parseNumberField(
+        isV2Note ? p.content?.[reviewConfidenceName]?.value : p.content?.[reviewConfidenceName]
+      )
+    )
   })
 
-  let [averageRating, minRating, maxRating, averageConfidence, minConfidence, maxConfidence] =
-    new Array(6).fill('N/A')
-  if (ratings.some((p) => p)) {
-    const validRatings = ratings.filter((p) => p)
-    minRating = Math.min(...validRatings)
-    maxRating = Math.max(...validRatings)
-    averageRating = Math.round((sum(validRatings) / validRatings.length) * 100) / 100
-  }
+  const ratings = Object.fromEntries(
+    (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+      (ratingName) => {
+        const ratingValues = noteCompletedReviews.map((p) =>
+          parseNumberField(isV2Note ? p.content?.[ratingName]?.value : p.content?.[ratingName])
+        )
+        const validRatingValues = ratingValues.filter((p) => p !== null)
+        const ratingAvg = validRatingValues.length
+          ? (
+              validRatingValues.reduce((total, curr) => total + curr, 0) /
+              validRatingValues.length
+            ).toFixed(2)
+          : 'N/A'
+        const ratingMin = validRatingValues.length ? Math.min(...validRatingValues) : 'N/A'
+        const ratingMax = validRatingValues.length ? Math.max(...validRatingValues) : 'N/A'
+        return [ratingName, { ratingAvg, ratingMin, ratingMax }]
+      }
+    )
+  )
+
+  let [averageConfidence, minConfidence, maxConfidence] = new Array(3).fill('N/A')
+
   if (confidences.some((p) => p)) {
     const validConfidences = confidences.filter((p) => p)
     minConfidence = Math.min(...validConfidences)
@@ -75,11 +81,12 @@ const ReviewSummary = ({
 
       <ul className="list-unstyled">
         {noteCompletedReviews.map((review) => {
-          // getRatingValue(review)
           const reviewRatingValues = (
             Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]
           ).flatMap((ratingName) => {
-            const ratingValue = getRatingValue(review, ratingName)
+            const ratingValue = parseNumberField(
+              isV2Note ? review.content?.[ratingName]?.value : review.content?.[ratingName]
+            )
             return ratingValue ? { [ratingName]: ratingValue } : []
           })
 
@@ -89,8 +96,6 @@ const ReviewSummary = ({
           return (
             <li key={review.id}>
               <strong>{prettyId(review.signatures[0].split('/')?.pop())}:</strong>
-              {/* Rating:{' '}
-              {reviewRatingValue ?? 'N/A'}{' '} */}
               {reviewRatingValues.map((rating, index) => {
                 const ratingName = Object.keys(rating)[0]
                 const ratingValue = rating[ratingName]
@@ -113,8 +118,17 @@ const ReviewSummary = ({
       </ul>
 
       <div>
-        <strong>Average Rating:</strong> {averageRating} (Min: {minRating}, Max: {maxRating})
-        <br />
+        {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+          (ratingName, index) => {
+            const { ratingAvg, ratingMin, ratingMax } = ratings[ratingName]
+            return (
+              <span key={index}>
+                <strong>Average {prettyField(ratingName)}:</strong> {ratingAvg} (Min:{' '}
+                {ratingMin}, Max: {ratingMax})<br />
+              </span>
+            )
+          }
+        )}
         <strong>Average Confidence:</strong> {averageConfidence} (Min: {minConfidence}, Max:{' '}
         {maxConfidence})
       </div>
