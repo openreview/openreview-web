@@ -137,7 +137,7 @@ export async function setupRegister(superUserToken) {
 
 // #region API helper functions
 export function createGroup(jsonToPost, userToken) {
-  return api.post('/groups', jsonToPost, { accessToken: userToken })
+  return api.post('/groups', jsonToPost, { accessToken: userToken, version: 1 })
 }
 
 export function createInvitation(jsonToPost, userToken) {
@@ -160,7 +160,7 @@ export function addMembersToGroup(groupId, membersList, userToken) {
   return api.put(
     '/groups/members',
     { id: groupId, members: membersList },
-    { accessToken: userToken }
+    { accessToken: userToken, version: 1 }
   )
 }
 
@@ -195,7 +195,7 @@ export async function createUser({
         altUsernames: [],
       },
     ],
-    emails: [{ email, confirmed: true, preferred: true }],
+    emails: [email],
     links: [],
     id: tildeId,
     gender: '',

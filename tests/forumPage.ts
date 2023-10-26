@@ -18,7 +18,7 @@ const privateAuthorLabel = Selector('.private-author-label')
 const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
     .click(Selector('a').withText('Login'))
-    .typeText(emailInput, 'test@mail.com')
+    .typeText(emailInput, 'fakeemail@mail.com')
     .typeText(passwordInput, strongPassword)
     .click(loginButton)
 })
@@ -109,7 +109,7 @@ test('get a forbidden error for a guest user', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
     .expect(getPageUrl())
     .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
-    .typeText(emailInput, 'test@mail.com')
+    .typeText(emailInput, 'fakeemail@mail.com')
     .typeText(passwordInput, strongPassword)
     .click(loginButton)
     .expect(Selector('#content').exists)

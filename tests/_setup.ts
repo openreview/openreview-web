@@ -46,7 +46,7 @@ fixture`Set up test data`.before(async (ctx) => {
   await setupRegister(ctx.superUserToken)
   await createUser({
     fullname: 'SomeFirstName User',
-    email: 'test@mail.com',
+    email: 'fakeemail@mail.com',
     password: strongPassword,
     history: undefined,
   })

@@ -19,7 +19,7 @@ const reviewerRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
 const testRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
     .click(Selector('a').withText('Login'))
-    .typeText(emailInput, 'test@mail.com')
+    .typeText(emailInput, 'fakeemail@mail.com')
     .typeText(passwordInput, strongPassword)
     .click(loginButton)
 })
@@ -49,7 +49,7 @@ test('guest user should be redirected to login page and get a forbidden error', 
   await t
     .expect(getPageUrl())
     .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
-    .typeText(emailInput, 'test@mail.com')
+    .typeText(emailInput, 'fakeemail@mail.com')
     .typeText(passwordInput, strongPassword)
     .click(loginButton)
     .expect(content.exists)
