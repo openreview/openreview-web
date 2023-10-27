@@ -358,19 +358,19 @@ test('unlink paper', async (t) => {
 
 test('check import history', async (t) => {
   const { superUserToken } = t.fixtureCtx
-  const notes = await getNotes({ 'content.authorids': `${userB.tildeId}` }, superUserToken)
   // should have only 1 note
+  const notes = await getNotes({ 'content.authorids': userB.tildeId }, superUserToken)
   await t.expect(notes.length).eql(1)
+
+  // shoud have 2 references: add paper and update authorid
   const importedPaperId = notes[0].id
   const references = await getReferences(
-    { referent: `${importedPaperId}`, sort: 'mdate' },
+    { referent: importedPaperId, sort: 'mdate' },
     superUserToken
   )
-  // shoud have 2 references: add paper and update authorid
   await t
     .expect(references.length)
     .eql(2)
-    // eslint-disable-next-line max-len
     .expect(references[1].content.authorids.includes(userBAlternateId))
     .notOk() // 1st post of paper has all dblp authorid
     .expect(references[0].content.authorids.includes(userBAlternateId))
