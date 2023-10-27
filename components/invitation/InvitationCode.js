@@ -26,14 +26,13 @@ const InvitationCode = ({ invitation, accessToken, loadInvitation, codeType }) =
     setIsSaving(true)
 
     try {
-      const requestPath = '/invitations'
       const requestBody = {
         ...invitation,
         [codeType]: code,
         apiVersion: undefined,
         rdate: undefined,
       }
-      await api.post(requestPath, requestBody, {
+      await api.post('/invitations', requestBody, {
         accessToken,
         version: 1,
       })

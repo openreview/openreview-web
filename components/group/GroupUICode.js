@@ -36,7 +36,7 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
           ...group,
           web: modifiedWebCode.trim() ? modifiedWebCode.trim() : null,
         }
-        await api.post('/groups', groupToPost, { accessToken })
+        await api.post('/groups', groupToPost, { accessToken, version: 1 })
       }
       promptMessage(`UI code for ${group.id} has been updated`, { scrollToTop: false })
       setShowCodeEditor(false)

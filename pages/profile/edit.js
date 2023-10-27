@@ -82,7 +82,7 @@ export default function ProfileEdit({ appContext }) {
         authorids: authorIds,
       },
     }
-    return api.post('/notes', updateAuthorIdsObject, { accessToken })
+    return api.post('/notes', updateAuthorIdsObject, { accessToken, version: 1 })
   }
 
   const saveProfile = async (profileContent, profileReaders, publicationIdsToUnlink) => {

@@ -48,7 +48,7 @@ const CompareRevisions = ({ appContext }) => {
           original: true,
           trash: true,
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
 
       if (apiRes.references?.length > 1) {

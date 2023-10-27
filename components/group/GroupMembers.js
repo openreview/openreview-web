@@ -382,10 +382,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
 
     try {
       if (group.invitations) {
-        await api.post('/groups/edits', buildEdit('remove', [memberId]), {
-          accessToken,
-          version: 2,
-        })
+        await api.post('/groups/edits', buildEdit('remove', [memberId]), { accessToken })
       } else {
         await api.delete(
           '/groups/members',
@@ -403,10 +400,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   const restoreMember = async (memberId) => {
     try {
       if (group.invitations) {
-        await api.post('/groups/edits', buildEdit('append', [memberId]), {
-          accessToken,
-          version: 2,
-        })
+        await api.post('/groups/edits', buildEdit('append', [memberId]), { accessToken })
       } else {
         await api.put(
           '/groups/members',
@@ -426,7 +420,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       const anonGroupRegex = group.id.endsWith('s')
         ? `${group.id.slice(0, -1)}_`
         : `${group.id}_`
-      const result = await api.get(`/groups?regex=${anonGroupRegex}`, {}, { accessToken })
+      const result = await api.get(`/groups?prefix=${anonGroupRegex}`, {}, { accessToken })
       setMemberAnonIds(
         result.groups.map((p) =>
           p.id.startsWith(anonGroupRegex)
@@ -530,10 +524,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
 
     try {
       if (group.invitations) {
-        await api.post('/groups/edits', buildEdit('remove', membersToRemove), {
-          accessToken,
-          version: 2,
-        })
+        await api.post('/groups/edits', buildEdit('remove', membersToRemove), { accessToken })
       } else {
         await api.delete(
           '/groups/members',

@@ -141,7 +141,7 @@ test('user open own profile', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql(
-      'The value http://test.com in dblp is invalid. Expected value: should include https://dblp.org, https://dblp.uni-trier.de, https://dblp2.uni-trier.de, https://dblp.dagstuhl.de, uni-trier.de'
+      'dblp link is invalid. A valid link should include https://dblp.org, https://dblp.uni-trier.de, https://dblp2.uni-trier.de, https://dblp.dagstuhl.de, uni-trier.de'
     )
     .selectText(dblpUrlInput)
     .pressKey('delete')
@@ -158,7 +158,7 @@ test('add and delete year of birth', async (t) => {
     .typeText(yearOfBirthInput, '0000')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .contains('The value 0 in yearOfBirth is invalid')
+    .contains('yearOfBirth must be >= 1923')
     // add valid year of birth
     .typeText(yearOfBirthInput, '2000')
     .click(saveProfileButton)

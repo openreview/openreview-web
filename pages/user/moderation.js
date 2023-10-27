@@ -45,7 +45,7 @@ const UserModerationTab = ({ accessToken }) => {
           invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
           limit: 1,
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       const configNoteV2P = api.get(
         '/notes',
@@ -89,7 +89,7 @@ const UserModerationTab = ({ accessToken }) => {
           ...configNote,
           content: { ...configNote.content, moderate: moderationDisabled ? 'Yes' : 'No' },
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       getModerationStatus()
     } catch (error) {
@@ -101,7 +101,7 @@ const UserModerationTab = ({ accessToken }) => {
     const currentTimeStamp = dayjs().valueOf()
     // eslint-disable-next-line no-alert
     const result = window.confirm(
-      `Update term stamp to ${currentTimeStamp}? (${dayjs(currentTimeStamp).toISOString()})`
+      `Update terms of service timestamp to ${currentTimeStamp}? (${dayjs(currentTimeStamp).toISOString()})`
     )
     if (!result) return
 
@@ -121,7 +121,7 @@ const UserModerationTab = ({ accessToken }) => {
           ...configNote,
           content: { ...configNote.content, terms_timestamp: currentTimeStamp },
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       getModerationStatus()
     } catch (error) {
@@ -207,11 +207,11 @@ const NameDeletionTab = ({
       let processLogsP
 
       if (noteId) {
-        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken, version: 1 })
         decisionResultsP = api.getAll(
           '/references',
           { referent: noteId, invitation: nameDeletionDecisionInvitationId },
-          { accessToken, resultsKey: 'references' }
+          { accessToken, resultsKey: 'references', version: 1 }
         )
         processLogsP = Promise.resolve(null)
       } else {
@@ -220,14 +220,14 @@ const NameDeletionTab = ({
           {
             invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
           },
-          { accessToken }
+          { accessToken, version: 1 }
         )
         decisionResultsP = api.getAll(
           '/references',
           {
             invitation: nameDeletionDecisionInvitationId,
           },
-          { accessToken, resultsKey: 'references' }
+          { accessToken, resultsKey: 'references', version: 1 }
         )
         processLogsP = isActive
           ? api.getAll(
@@ -296,7 +296,7 @@ const NameDeletionTab = ({
       const invitationResult = await api.get(
         '/invitations',
         { id: nameDeletionDecisionInvitationId },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       const nameDeletionDecisionInvitation = invitationResult.invitations[0]
       const noteToPost = {
@@ -314,7 +314,7 @@ const NameDeletionTab = ({
           superUser.profile.id
         ),
       }
-      const result = await api.post('/notes', noteToPost, { accessToken })
+      const result = await api.post('/notes', noteToPost, { accessToken, version: 1 })
       $('#name-delete-reject').modal('hide')
       loadNameDeletionRequests(nameDeletionNote.id)
     } catch (error) {
@@ -502,11 +502,11 @@ const ProfileMergeTab = ({
       let processLogsP
 
       if (noteId) {
-        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken, version: 1 })
         decisionResultsP = api.getAll(
           '/references',
           { referent: noteId, invitation: profileMergeDecisionInvitationId },
-          { accessToken, resultsKey: 'references' }
+          { accessToken, resultsKey: 'references', version: 1 }
         )
         processLogsP = Promise.resolve(null)
       } else {
@@ -515,14 +515,14 @@ const ProfileMergeTab = ({
           {
             invitation: profileMergeInvitationId,
           },
-          { accessToken }
+          { accessToken, version: 1 }
         )
         decisionResultsP = api.getAll(
           '/references',
           {
             invitation: profileMergeDecisionInvitationId,
           },
-          { accessToken, resultsKey: 'references' }
+          { accessToken, resultsKey: 'references', version: 1 }
         )
         processLogsP = isActive
           ? api.getAll(
@@ -591,7 +591,7 @@ const ProfileMergeTab = ({
       const invitationResult = await api.get(
         '/invitations',
         { id: profileMergeDecisionInvitationId },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       const profileMergeDecisionInvitation = invitationResult.invitations[0]
       const noteToPost = {
@@ -609,7 +609,7 @@ const ProfileMergeTab = ({
           superUser.profile.id
         ),
       }
-      const result = await api.post('/notes', noteToPost, { accessToken })
+      const result = await api.post('/notes', noteToPost, { accessToken, version: 1 })
       $('#name-delete-reject').modal('hide')
       loadProfileMergeRequests(profileMergeNote.id)
     } catch (error) {
@@ -869,7 +869,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
           details: 'replies',
           select: `id,forum,tcdate,content['Abbreviated Venue Name'],content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
 
       const allVenueRequests = notes?.map((p) => ({
@@ -960,7 +960,7 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
       const notesResultP = api.getAll(
         '/notes',
         { invitation: emailRemovalInvitationId, sort: 'tcdate' },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       const processLogsP = isActive
         ? api.getAll(
@@ -997,7 +997,7 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
       const invitationResults = await api.get(
         '/invitations',
         { id: emailRemovalInvitationId },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       const emailRemovalInvitation = invitationResults.invitations[0]
       const noteToPost = {
@@ -1007,7 +1007,7 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
         writers: buildArray(emailRemovalInvitation, 'writers', superUser.profile.id),
         signatures: buildArray(emailRemovalInvitation, 'signatures', superUser.profile.id),
       }
-      const result = await api.post('/notes', noteToPost, { accessToken })
+      const result = await api.post('/notes', noteToPost, { accessToken, version: 1 })
 
       const updatedEmailDeletionNotes = [
         { ...result, processLogStatus: 'running' },

@@ -149,7 +149,7 @@ export function createNote(jsonToPost, userToken) {
 }
 
 export function sendFile(data, userToken) {
-  return api.put('/attachment', data, { accessToken: userToken, contentType: 'unset' })
+  return api.put('/attachment', data, { accessToken: userToken, contentType: 'unset', version: 1 })
 }
 
 export function getToken(id, password) {
@@ -328,7 +328,7 @@ export function getNotes(params, token) {
 
 export function getReferences(params, token) {
   return api
-    .get('/references', params, { accessToken: token })
+    .get('/references', params, { accessToken: token, version: 1 })
     .then((result) => result.references)
 }
 
@@ -337,5 +337,5 @@ export function getProcessLogs(id, token) {
 }
 
 export function getJobsStatus(token) {
-  return api.get('/jobs/status', {}, { accessToken: token })
+  return api.get('/jobs/status', {}, { accessToken: token, version: 1 })
 }

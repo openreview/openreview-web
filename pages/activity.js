@@ -11,7 +11,7 @@ import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 
 const Activity = ({ appContext }) => {
-  const { user, accessToken } = useLoginRedirect()
+  const { accessToken } = useLoginRedirect()
   const [activityNotes, setActivityNotes] = useState(null)
   const [error, setError] = useState(null)
   const { setBannerHidden } = appContext
@@ -33,7 +33,7 @@ const Activity = ({ appContext }) => {
     }
 
     Promise.all([
-      api.get('/notes', queryParamV1, { accessToken }).then(
+      api.get('/notes', queryParamV1, { accessToken, version: 1 }).then(
         ({ notes }) => (notes?.length > 0 ? notes : []),
         () => []
       ),

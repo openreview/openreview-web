@@ -279,7 +279,7 @@ const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup 
           anonids: generalInfo.anonids,
           deanonymizers: convertInfoToArray(generalInfo.deanonymizers),
         }
-        await api.post('/groups', resultToPost, { accessToken })
+        await api.post('/groups', resultToPost, { accessToken, version: 1 })
       }
       promptMessage(`Settings for ${prettyId(group.id)} updated`, { scrollToTop: false })
       await reloadGroup()

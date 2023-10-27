@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import Note, { NoteV2 } from '../Note'
+import { NoteV2 } from '../Note'
 import PaginatedList from '../PaginatedList'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'

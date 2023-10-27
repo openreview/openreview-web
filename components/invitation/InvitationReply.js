@@ -55,9 +55,8 @@ export default function InvitationReply({
       setIsSaving(true)
       const cleanReplyString = replyString.trim()
       const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
-      const requestPath = '/invitations'
       const requestBody = getRequestBody(replyObj)
-      await api.post(requestPath, requestBody, {
+      await api.post('/invitations', requestBody, {
         accessToken,
         version: 1,
       })
