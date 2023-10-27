@@ -18,6 +18,7 @@ const endType = 'updateEnd'
 const nameType = 'updateName'
 const emailType = 'updateEmail'
 const profileType = 'updateProfile'
+const customProfileType = 'updateCustomProfile'
 const addRelationType = 'addRelation'
 const removeRelationType = 'removeRelation'
 // #endregion
@@ -41,8 +42,8 @@ const RelationRow = ({
 
   // eslint-disable-next-line no-shadow
   const renderRelationName = (relation) => {
-    if (relation.name && relation.email) {
-      if (relation.id) {
+    if (relation.name) {
+      if (relation.username) {
         // existing with id show profile search
         return (
           <div className="col-md-6 relation__value">
@@ -106,16 +107,28 @@ const RelationRow = ({
           multiple={false}
           isEditor={false}
           pageSize={5}
+          field={{ _: { value: { param: { fieldName: 'relation' } } } }}
           searchInputPlaceHolder="search relation with name or email"
-          value={relation.id}
-          onChange={(tildeId, preferredName, profile) => {
-            setRelation({
-              type: profileType,
-              data: {
-                value: { tildeId, preferredName, email: profile.content?.preferredEmail },
-                key: relation.key,
-              },
-            })
+          value={relation.username}
+          onChange={(username, name, email, profile) => {
+            if (username) {
+              setRelation({
+                type: profileType,
+                data: {
+                  value: { username, name },
+                  key: relation.key,
+                },
+              })
+            } else {
+              // custom relation
+              setRelation({
+                type: customProfileType,
+                data: {
+                  value: { name, email },
+                  key: relation.key,
+                },
+              })
+            }
           }}
           className="relation-search"
         />
@@ -297,8 +310,18 @@ const RelationsSection = ({
         return state.map((p) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) {
-            recordCopy.id = action.data.value.tildeId
-            recordCopy.name = action.data.value.preferredName
+            recordCopy.username = action.data.value.username
+            recordCopy.name = action.data.value.name
+            recordCopy.email = undefined
+          }
+          return recordCopy
+        })
+      case customProfileType:
+        return state.map((p) => {
+          const recordCopy = { ...p }
+          if (p.key === action.data.key) {
+            recordCopy.username = undefined
+            recordCopy.name = action.data.value.name
             recordCopy.email = action.data.value.email
           }
           return recordCopy

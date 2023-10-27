@@ -201,7 +201,7 @@ export default function ProfileEditor({
     // #region validate relations
     if (
       (invalidRecord = profileContent.relations.find(
-        (p) => !p.relation || !p.name || !p.email
+        (p) => !p.relation || !p.name || (!p.email && !p.username)
       ))
     ) {
       return promptInvalidValue(
@@ -210,7 +210,11 @@ export default function ProfileEditor({
         'You must enter relation, name and email information for each entry in your advisor and other relations'
       )
     }
-    if ((invalidRecord = profileContent.relations.find((p) => !isValidEmail(p.email)))) {
+    if (
+      (invalidRecord = profileContent.relations.find(
+        (p) => !p.username && !isValidEmail(p.email)
+      ))
+    ) {
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -296,7 +300,7 @@ export default function ProfileEditor({
       ),
       expertise: profileContent.expertise.map((p) => pick(p, ['keywords', 'start', 'end'])),
       relations: profileContent.relations.map((p) =>
-        pick(p, ['relation', 'name', 'email', 'start', 'end', 'readers'])
+        pick(p, ['relation', 'username', 'name', 'email', 'start', 'end', 'readers'])
       ),
       preferredEmail: profileContent.emails.find((p) => p.preferred)?.email,
       homepage: profileContent.homepage?.value?.trim(),

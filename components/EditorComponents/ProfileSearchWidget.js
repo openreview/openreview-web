@@ -1,7 +1,7 @@
 /* globals promptError, $: false */
 
 import React, { useContext, useState, useEffect } from 'react'
-import { maxBy } from 'lodash'
+import { maxBy, upperFirst } from 'lodash'
 import EditorComponentContext from '../EditorComponentContext'
 import IconButton from '../IconButton'
 import LoadingSpinner from '../LoadingSpinner'
@@ -201,7 +201,12 @@ const ProfileSearchResultRow = ({
             })
             setDisplayAuthors(updatedAuthors)
             if (isEditor === false) {
-              onChange(preferredId, getProfileName(profile), profile)
+              onChange(
+                preferredId,
+                getProfileName(profile),
+                profile?.content?.preferredEmail,
+                profile
+              )
             } else {
               onChange({
                 fieldName,
@@ -242,6 +247,8 @@ const ProfileSearchFormAndResults = ({
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   const [showCustomAuthorForm, setShowCustomAuthorForm] = useState(false)
   const { accessToken } = useUser()
+  const fieldName = Object.keys(field ?? {})[0]
+  const placeHolderName = Object.values(field ?? {})?.[0]?.value?.param?.fieldName ?? fieldName
 
   // eslint-disable-next-line no-shadow
   const searchProfiles = async (searchTerm, pageNumber, showLoadingSpinner = true) => {
@@ -294,20 +301,25 @@ const ProfileSearchFormAndResults = ({
             setSearchTerm={setSearchTerm}
             displayAuthors={displayAuthors}
             setDisplayAuthors={setDisplayAuthors}
+            fieldName={Object.keys(field ?? {})[0]}
+            onChange={onChange}
+            clearError={clearError}
+            placeHolderName={placeHolderName}
+            isEditor={isEditor}
           />
         ) : (
           <>
             <div className={styles.noMatchingProfileMessage}>
               {isEmptyResult
                 ? 'No results found for your search query.'
-                : 'Coauthor not found? Provide their information by clicking button below.'}
+                : 'Profile not found? Provide their information by clicking button below.'}
             </div>
 
             <button
               className={`btn btn-xs ${styles.enterAuthorButton}`}
               onClick={() => setShowCustomAuthorForm(true)}
             >
-              Manually Enter Author Info
+              {`Manually Enter ${upperFirst(placeHolderName)} Info`}
             </button>
           </>
         )}
@@ -404,13 +416,16 @@ const CustomAuthorForm = ({
   setSearchTerm,
   displayAuthors,
   setDisplayAuthors,
+  fieldName,
+  onChange,
+  clearError,
+  placeHolderName,
+  isEditor,
 }) => {
   const [customAuthorName, setCustomAuthorName] = useState('')
   const [customAuthorEmail, setCustomAuthorEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { field, onChange, clearError } = useContext(EditorComponentContext)
   const { accessToken } = useUser()
-  const fieldName = Object.keys(field)[0]
 
   const disableAddButton =
     isLoading || !(customAuthorName.trim() && isValidEmail(customAuthorEmail))
@@ -445,10 +460,15 @@ const CustomAuthorForm = ({
       authorName: cleanAuthorName,
     })
     setDisplayAuthors(updatedAuthors)
-    onChange({
-      fieldName,
-      value: updatedAuthors,
-    })
+    if (isEditor === false) {
+      onChange(undefined, cleanAuthorName, cleanAuthorEmail, undefined)
+    } else {
+      onChange({
+        fieldName,
+        value: updatedAuthors,
+      })
+    }
+
     setProfileSearchResults(null)
     setSearchTerm('')
   }
@@ -469,7 +489,7 @@ const CustomAuthorForm = ({
         name="fullName"
         className="form-control"
         value={customAuthorName}
-        placeholder="full name of the author to add"
+        placeholder={`full name${placeHolderName ? ` of the ${placeHolderName}` : ''} to add`}
         onChange={(e) => setCustomAuthorName(e.target.value)}
       />
       <label htmlFor="email">Email:</label>
@@ -478,7 +498,7 @@ const CustomAuthorForm = ({
         name="email"
         className="form-control"
         value={customAuthorEmail}
-        placeholder="email of the author to add"
+        placeHolder={`email${placeHolderName ? ` of the ${placeHolderName}` : ''} to add`}
         onChange={(e) => setCustomAuthorEmail(e.target.value)}
       />
       <SpinnerButton
@@ -511,7 +531,7 @@ const ProfileSearchWidget = ({
   const fieldName = Object.keys(field ?? {})[0]
   const isAuthoridsField = fieldName === 'authorids'
   const allowUserDefined =
-    field?.[fieldName].value?.param?.regex?.includes('|') && isAuthoridsField
+    !isEditor || (field?.[fieldName].value?.param?.regex?.includes('|') && isAuthoridsField)
   const allowAddRemove = isEditor ? field?.[fieldName].value?.param?.regex : true
   const [selectedAuthorProfiles, setSelectedAuthorProfiles] = useState([])
   const [displayAuthors, setDisplayAuthors] = useState(!multiple && value ? [value] : value) // id+email

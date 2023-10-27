@@ -1,4 +1,5 @@
 import random from 'lodash/random'
+import Link from 'next/link'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 import { prettyList } from '../../lib/utils'
@@ -93,7 +94,11 @@ const ProfileRelation = ({ relation }) => (
       <strong>{relation.relation}</strong>
     </div>
     <div>
-      <span>{relation.name}</span>
+      {relation.username ? (
+        <Link href={`/profile?id=${relation.username}`}>{relation.name}</Link>
+      ) : (
+        <span>{relation.name}</span>
+      )}
     </div>
     <div>
       <small>{relation.email}</small>
@@ -137,7 +142,6 @@ const BasicProfileView = ({
   publicProfile,
   showLinkText = false,
   contentToShow = ['names', 'emails', 'links', 'history', 'relations', 'expertise'],
-  publications,
 }) => {
   const uniqueNames = profile.names.filter((name) => !name.duplicate)
   const sortedNames = [
