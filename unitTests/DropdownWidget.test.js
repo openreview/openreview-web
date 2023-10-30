@@ -1246,7 +1246,9 @@ describe('DropdownWidget', () => {
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     await userEvent.click(clearButton)
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: undefined })) // mandatory value is also cleared
+
+    // mandatory value is also cleared
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: undefined }))
   })
 
   test('show clear all button when all values are mandatory', async () => {
