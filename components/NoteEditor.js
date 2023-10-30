@@ -333,7 +333,7 @@ const NoteEditor = ({
         ) {
           if (
             readersDefinedInInvitation?.includes(signatureId) ||
-            readersDefinedInInvitation.some(
+            readersDefinedInInvitation?.some(
               (p) => p.endsWith('.*') && signatureId.startsWith(p.slice(0, -2))
             )
           ) {
@@ -375,7 +375,7 @@ const NoteEditor = ({
     const invitationNoteReaderValues =
       invitation.edit.note.readers?.param?.enum ??
       invitation.edit.note.readers?.param?.items?.map((p) =>
-        p.value ?? p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
+        p.value ?? (p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`)
       )
 
     return addMissingReaders(
