@@ -374,8 +374,8 @@ const NoteEditor = ({
 
     const invitationNoteReaderValues =
       invitation.edit.note.readers?.param?.enum ??
-      invitation.edit.note.readers?.param?.items?.map((p) =>
-        p.value ?? (p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`)
+      invitation.edit.note.readers?.param?.items?.map(
+        (p) => p.value ?? (p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`)
       )
 
     return addMissingReaders(
