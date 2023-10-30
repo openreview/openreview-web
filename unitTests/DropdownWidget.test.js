@@ -25,7 +25,7 @@ describe('DropdownWidget', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  test('render nothing if enum is not an arry', () => {
+  test('render nothing if enum is not an array', () => {
     const providerProps = {
       value: {
         field: {
@@ -45,7 +45,7 @@ describe('DropdownWidget', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  test('render nothing if items is not an arry', () => {
+  test('render nothing if items is not an array', () => {
     const providerProps = {
       value: {
         field: {
@@ -1013,7 +1013,7 @@ describe('DropdownWidget', () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: undefined }))
   })
 
-  test('update value with default and mandatory values (no existing value)', () => {
+  test('update value with default ( but not mandatory) values (no existing value)', () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
@@ -1051,9 +1051,7 @@ describe('DropdownWidget', () => {
     }
 
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ value: ['value two', 'value three'] })
-    )
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: ['value two'] }))
   })
 
   test('not to update value with default and mandatory values (has existing value)', () => {
@@ -1101,7 +1099,7 @@ describe('DropdownWidget', () => {
     })
   })
 
-  test('call update when a non mandatory option is added', async () => {
+  test('show remove button for mandatory value and call update when mandatory option is removed', async () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
@@ -1133,24 +1131,26 @@ describe('DropdownWidget', () => {
           },
         },
         onChange,
-        value: ['value three'], // the mandatory value that is already selected
+        value: ['value one', 'value three'],
       },
     }
 
     renderWithEditorComponentContext(<DropdownWidget />, providerProps)
-    expect(
-      screen.queryByRole('button', { name: 'Remove option description three' })
-    ).not.toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('combobox'))
-    expect(screen.getByText('option description one').parentElement.childElementCount).toEqual(
-      2 // option three not to appear in dropdown
-    )
+    const optionOneRemoveButton = screen.getByRole('button', {
+      name: 'Remove option description one',
+    })
+    const optionThreeRemoveButton = screen.getByRole('button', {
+      name: 'Remove option description three',
+    })
+    expect(optionOneRemoveButton).toBeInTheDocument()
+    expect(optionThreeRemoveButton).toBeInTheDocument()
 
-    await userEvent.click(screen.getByText('option description one'))
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ value: ['value three', 'value one'] })
-    )
+    await userEvent.click(optionOneRemoveButton)
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: ['value three'] }))
+
+    await userEvent.click(optionThreeRemoveButton)
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: ['value one'] }))
   })
 
   test('call update when a non mandatory option is removed', async () => {
@@ -1197,13 +1197,13 @@ describe('DropdownWidget', () => {
     expect(optionOneRemoveButton).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Remove option description three' })
-    ).not.toBeInTheDocument()
+    ).toBeInTheDocument()
 
     await userEvent.click(optionOneRemoveButton)
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: ['value three'] }))
   })
 
-  test('call update when all non mandatory values are cleared', async () => {
+  test('call update when all values are cleared', async () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
@@ -1246,10 +1246,10 @@ describe('DropdownWidget', () => {
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     await userEvent.click(clearButton)
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: ['value three'] })) // mandatory value should not be cleared
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: undefined })) // mandatory value is also cleared
   })
 
-  test('not to show clear all button when all values are mandatory', () => {
+  test('show clear all button when all values are mandatory', async () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
@@ -1288,7 +1288,10 @@ describe('DropdownWidget', () => {
     const { container } = renderWithEditorComponentContext(<DropdownWidget />, providerProps)
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
-    expect(clearButton).not.toBeInTheDocument()
+    expect(clearButton).toBeInTheDocument()
+
+    await userEvent.click(clearButton)
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: undefined }))
   })
 
   test('render selected options in the order selected (items)', async () => {
