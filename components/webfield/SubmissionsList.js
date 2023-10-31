@@ -17,6 +17,7 @@ export default function SubmissionsList({
   venueId,
   query,
   ListItem,
+  apiVersion,
   shouldReload,
   updateCount,
   filterNotes,
@@ -34,8 +35,8 @@ export default function SubmissionsList({
     async (limit, offset) => {
       const { notes, count } = await api.get(
         '/notes',
-        { details, ...query, limit, offset, domain: venueId },
-        { accessToken, version: 2, useCredentials: useCredentials ?? true }
+        { details, ...query, limit, offset, domain: apiVersion === 1 ? undefined : venueId },
+        { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
       )
       if (typeof updateCount === 'function') {
         updateCount(count ?? 0)
@@ -45,7 +46,7 @@ export default function SubmissionsList({
         count: count ?? 0,
       }
     },
-    [accessToken, query, useCredentials]
+    [accessToken, query, apiVersion, useCredentials]
   )
 
   const searchNotes = useCallback(
@@ -63,18 +64,21 @@ export default function SubmissionsList({
           limit,
           offset,
         },
-        { accessToken, version: 2, useCredentials: useCredentials ?? true }
+        { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
       )
       return {
         items: notes,
         count: count ?? 0,
       }
     },
-    [accessToken, query, useCredentials]
+    [accessToken, query, apiVersion, useCredentials]
   )
 
   function NoteListItem({ item }) {
-    return <NoteV2 note={item} options={combinedDisplayOptions} />
+    if (apiVersion === 2) {
+      return <NoteV2 note={item} options={combinedDisplayOptions} />
+    }
+    return <Note note={item} options={combinedDisplayOptions} />
   }
 
   useEffect(() => {
