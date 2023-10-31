@@ -425,8 +425,15 @@ export default function ProfileEditor({
 
       <ProfileSection
         title="Advisors &amp; Other Relations"
-        instructions="Enter all advisors, co-workers, and other people that should be included when
-          detecting conflicts of interest."
+        instructions={
+          <>
+            Enter all advisors, co-workers, and other people that should be included when
+            detecting conflicts of interest.
+            <br />
+            For example, you can choose &lsquo;PhD advisor&rsquo; and enter the name of your
+            PhD advisor.
+          </>
+        }
       >
         <RelationsSection
           profileRelation={profile?.relations}
