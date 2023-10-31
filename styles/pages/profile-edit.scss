@@ -379,6 +379,9 @@ main.profile-edit {
 
     .relation-search {
       max-width: 100%;
+      form:last-child {
+        margin-bottom: 0;
+      }
     }
   }
 
