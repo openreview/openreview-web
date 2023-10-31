@@ -47,7 +47,7 @@ const MessageReviewersModal = ({
       const sendEmailPs = selectedIds.map((noteId) => {
         const rowData = simplifiedTableRowsDisplayed.find((row) => row.id === noteId)
         const reviewerIds = allRecipients.get(rowData.number)
-        if (!reviewerIds.length) return Promise.resolve()
+        if (!reviewerIds?.length) return Promise.resolve()
         const forumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialReviewName}`
         return api.post(
           '/messages',

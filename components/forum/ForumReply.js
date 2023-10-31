@@ -406,7 +406,7 @@ export default function ForumReply({
                 setActiveInvitation(null)
                 scrollToNote(newNote.id)
               }}
-              isDirectReplyToForum={isDirectReplyToForum}
+              isDirectReplyToForum={false} // reply to direct reply
             />
           ) : (
             <NoteEditorForm
@@ -585,6 +585,7 @@ function NoteReplies({ replies, replyDepth, parentNote, updateNote }) {
           parentNote={parentNote}
           replies={childNote.replies ?? []}
           updateNote={updateNote}
+          isDirectReplyToForum={false}
         />
       ))}
     </div>

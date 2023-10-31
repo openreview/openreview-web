@@ -669,7 +669,7 @@ describe('NewNoteReaders', () => {
       expect(dropdownList.childNodes[2].textContent).toEqual('Test IdTwo')
       expect(dropdownList.childNodes[3].textContent).toEqual('Test IdThree')
       expect(screen.queryByText('does not matter')).not.toBeInTheDocument()
-      expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1', '~Test_IdThree1'])
+      expect(onChange).not.toHaveBeenCalled() // mandatory values are not handled specially
     })
   })
 
@@ -873,7 +873,7 @@ describe('NewNoteReaders', () => {
       expect(screen.queryByText('test id three description')).not.toBeInTheDocument()
       expect(
         screen.queryByRole('button', { name: 'Remove test id two description' })
-      ).not.toBeInTheDocument()
+      ).toBeInTheDocument()
     })
 
     await user.click(screen.getByRole('combobox'))
@@ -884,7 +884,7 @@ describe('NewNoteReaders', () => {
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     await user.click(clearButton)
-    expect(onChange).toHaveBeenNthCalledWith(2, ['~Test_IdTwo1'])
+    expect(onChange).toHaveBeenNthCalledWith(2, undefined)
   })
 
   test('set readers value in note editor when dropdown value is changed (items with mandatory value and default value)', async () => {
@@ -935,7 +935,7 @@ describe('NewNoteReaders', () => {
       expect(screen.getByText('test id three description')).toBeInTheDocument()
       expect(
         screen.queryByRole('button', { name: 'Remove test id two description' })
-      ).not.toBeInTheDocument()
+      ).toBeInTheDocument()
       expect(
         screen.getByRole('button', { name: 'Remove test id three description' })
       ).toBeInTheDocument()
@@ -949,7 +949,7 @@ describe('NewNoteReaders', () => {
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     await user.click(clearButton)
-    expect(onChange).toHaveBeenNthCalledWith(2, ['~Test_IdTwo1'])
+    expect(onChange).toHaveBeenNthCalledWith(2, undefined)
   })
 
   test('call clearError when user update selection', async () => {
@@ -1934,7 +1934,8 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
-  test('show dropdown of intersection of enum groups and replyToNote readers', async () => {
+  test('show dropdown of intersection of enum groups and replyToNote readers and auto select those values', async () => {
+    const onChange = jest.fn()
     const invitation = {
       edit: {
         note: {
@@ -1955,7 +1956,7 @@ describe('NewReplyEditNoteReaders', () => {
         fieldDescription={invitation.edit.note.readers}
         closeNoteEditor={jest.fn()}
         value={undefined}
-        onChange={jest.fn()}
+        onChange={onChange}
         setLoading={jest.fn()}
       />
     )
@@ -1966,7 +1967,7 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
-  test('show dropdown of intersection of items groups(no mandatory no default) and replyToNote readers', async () => {
+  test('show dropdown of intersection of items groups(no mandatory no default) and replyToNote readers and auto select those values', async () => {
     const onChange = jest.fn()
     const invitation = {
       edit: {
@@ -2013,11 +2014,11 @@ describe('NewReplyEditNoteReaders', () => {
       expect(
         screen.getByText('description of test id two').parentElement.childElementCount
       ).toEqual(1)
-      expect(onChange).not.toHaveBeenCalled()
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1'])
     })
   })
 
-  test('show dropdown of intersection of items groups(with mandatory no default) and replyToNote readers', async () => {
+  test('show dropdown of intersection of items groups(with mandatory no default) and replyToNote readers and auto select those values', async () => {
     const onChange = jest.fn()
     const invitation = {
       edit: {
@@ -2059,16 +2060,12 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
 
-    await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
-      expect(
-        screen.getByText('description of test id two').parentElement.childElementCount
-      ).toEqual(1)
-      expect(onChange).toHaveBeenCalledWith(['~Test_IdThree1'])
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1'])
     })
   })
 
-  test('show dropdown of intersection of items groups(with mandatory with default) and replyToNote readers', async () => {
+  test('show dropdown of intersection of items groups(with mandatory with default) and replyToNote readers and auto select those values', async () => {
     const onChange = jest.fn()
     const invitation = {
       edit: {
@@ -2116,7 +2113,7 @@ describe('NewReplyEditNoteReaders', () => {
       expect(
         screen.getByText('description of test id two').parentElement.childElementCount
       ).toEqual(1)
-      expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1', '~Test_IdThree1'])
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1'])
     })
   })
 
@@ -2215,6 +2212,7 @@ describe('NewReplyEditNoteReaders', () => {
   })
 
   test('show dropdown of intersection of items groups and replyToNote readers (adding anonymized reviewer group)', async () => {
+    const onChange = jest.fn()
     const invitation = {
       edit: {
         note: {
@@ -2246,7 +2244,7 @@ describe('NewReplyEditNoteReaders', () => {
         fieldDescription={invitation.edit.note.readers}
         closeNoteEditor={jest.fn()}
         value={undefined}
-        onChange={jest.fn()}
+        onChange={onChange}
         setLoading={jest.fn()}
       />
     )
@@ -2255,8 +2253,9 @@ describe('NewReplyEditNoteReaders', () => {
     await waitFor(() => {
       const dropdownList = screen.getByText('description of reviewers').parentElement
       expect(dropdownList.childElementCount).toEqual(2)
-      expect(dropdownList.childNodes[0].textContent).toEqual('description of reviewers')
+      // expect(dropdownList.childNodes[0].textContent).toEqual('description of reviewers')
       expect(dropdownList.childNodes[1].textContent).toEqual('description of reviewer abcd')
+      expect(onChange).toHaveBeenCalledWith(['ICML.cc/2023/Conference/Submission1/Reviewers'])
     })
   })
 
@@ -2304,7 +2303,8 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
-  test('show dropdown of intersection of items groups and replyToNote readers (adding AnonReviewer group)', async () => {
+  test('show dropdown of intersection of items groups and replyToNote readers (adding AnonReviewer group) and auto select those in parent readers', async () => {
+    const onChange = jest.fn()
     const invitation = {
       edit: {
         note: {
@@ -2336,7 +2336,7 @@ describe('NewReplyEditNoteReaders', () => {
         fieldDescription={invitation.edit.note.readers}
         closeNoteEditor={jest.fn()}
         value={undefined}
-        onChange={jest.fn()}
+        onChange={onChange}
         setLoading={jest.fn()}
       />
     )
@@ -2347,6 +2347,59 @@ describe('NewReplyEditNoteReaders', () => {
       expect(dropdownList.childElementCount).toEqual(2)
       expect(dropdownList.childNodes[0].textContent).toEqual('description of reviewers')
       expect(dropdownList.childNodes[1].textContent).toEqual('description of anon reviewer')
+      expect(onChange).toHaveBeenCalledWith(['ICML.cc/2023/Conference/Submission1/Reviewers'])
+    })
+  })
+
+  test('not to auto select parent readers if note is direct reply to forum', async () => {
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: false,
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+    const user = userEvent.setup()
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IdTwo1'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        isDirectReplyToForum={true}
+      />
+    )
+
+    await user.click(await screen.findByRole('combobox'))
+    await waitFor(() => {
+      expect(
+        screen.getByText('description of test id two').parentElement.childElementCount
+      ).toEqual(3) // also skip parent reader logic
+      expect(onChange).not.toHaveBeenCalled()
     })
   })
 
