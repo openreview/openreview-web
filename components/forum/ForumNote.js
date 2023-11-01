@@ -112,7 +112,7 @@ function ForumNote({ note, updateNote }) {
         id={id}
         title={content.title?.value}
         pdf={canShowIcon('pdf')}
-        html={canShowIcon('html')}
+        html={content.html?.value}
       />
 
       <div className="forum-authors mb-2">
