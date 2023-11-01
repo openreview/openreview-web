@@ -5,11 +5,27 @@ import { convertToType } from '../../lib/webfield-utils'
 
 import styles from '../../styles/components/CheckboxWidget.module.scss'
 
-const CheckboxWidget = () => {
-  const { field, onChange, value, clearError, note } = useContext(EditorComponentContext)
-  const fieldName = Object.keys(field)[0]
-  const fieldType = field[fieldName]?.value?.param?.type
-  const isArrayType = fieldType?.endsWith('[]')
+const CheckboxWidget = ({
+  field: propsField,
+  onChange: propsOnChange,
+  value: propsValue,
+  clearError: propsClearError,
+  options: propsOptions,
+  isEditor = true,
+  isArrayType: propsIsArrayType,
+}) => {
+  const editorComponentContext = useContext(EditorComponentContext) ?? {}
+  const { field, onChange, value, clearError, note } = isEditor
+    ? editorComponentContext
+    : {
+        field: propsField,
+        onChange: propsOnChange,
+        value: propsValue,
+        clearError: propsClearError,
+      }
+  const fieldName = Object.keys(field ?? {})[0]
+  const fieldType = field?.[fieldName]?.value?.param?.type
+  const isArrayType = propsIsArrayType ?? fieldType?.endsWith('[]')
   const dataType = isArrayType ? fieldType?.slice(0, -2) : fieldType
   const [checkboxOptions, setCheckboxOptions] = useState([])
 
@@ -34,22 +50,24 @@ const CheckboxWidget = () => {
   }
 
   useEffect(() => {
-    const enumValues = field[fieldName].value?.param?.enum
-    const itemsValues = field[fieldName].value?.param?.items
+    if (!isEditor) {
+      setCheckboxOptions(propsOptions)
+      return
+    }
+    const enumValues = field?.[fieldName].value?.param?.enum
+    const itemsValues = field?.[fieldName].value?.param?.items
 
     let options = []
     if (Array.isArray(enumValues) && enumValues.length) {
       if (isArrayType) {
         options = enumValues.map((p) =>
-          typeof p === 'object'
-            ? { value: p.value, description: p.description }
-            : { value: p, description: p }
+          typeof p === 'object' ? { value: p.value, label: p.label } : { value: p, label: p }
         )
       } else {
         const option = enumValues[0]
         const optionValue = typeof option === 'object' ? option.value : option
-        const optionDescription = typeof option === 'object' ? option.description : option
-        options = [{ value: optionValue, description: optionDescription, optional: true }]
+        const optionlabel = typeof option === 'object' ? option.label : option
+        options = [{ value: optionValue, label: optionlabel, optional: true }]
       }
       setCheckboxOptions(options)
       const defaultValue = field[fieldName].value?.param?.default
@@ -106,7 +124,7 @@ const CheckboxWidget = () => {
             disabled={option.optional === false}
             onChange={handleCheckboxClick}
           />
-          <span className={styles.optionDescription}>{option.description}</span>
+          <span className={styles.optionDescription}>{option.label}</span>
         </label>
       ))}
     </div>

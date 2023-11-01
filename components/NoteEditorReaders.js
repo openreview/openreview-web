@@ -8,6 +8,7 @@ import { NoteEditorReadersDropdown } from './Dropdown'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyId } from '../lib/utils'
+import CheckboxWidget from './EditorComponents/CheckboxWidget'
 
 export const NewNoteReaders = ({
   fieldDescription,
@@ -22,6 +23,7 @@ export const NewNoteReaders = ({
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
   const { user, accessToken } = useUser()
+  const useCheckboxWidget = true
 
   const getRegexReaders = async () => {
     setLoading((loading) => ({ ...loading, fieldName: true }))
@@ -71,6 +73,7 @@ export const NewNoteReaders = ({
                 result.groups.map((q) => ({
                   value: q.id,
                   description: prettyId(q.id, false),
+                  optional: p.optional,
                 }))
               )
           : Promise.resolve([
@@ -96,7 +99,10 @@ export const NewNoteReaders = ({
           break
         default:
           options = groupResults.flat().map((p) => ({
-            label: p.description,
+            label:
+              useCheckboxWidget && p.optional === false
+                ? `${p.description} [Mandatory]`
+                : p.description,
             value: p.value,
           }))
           defaultValues = fieldDescription?.param?.default ?? []
@@ -144,14 +150,33 @@ export const NewNoteReaders = ({
         )
       case 'regex':
       case 'enum':
-        return readerOptions ? (
+        if (!readerOptions) return null
+        return useCheckboxWidget ? (
+          <CheckboxWidget
+            field={{ reader: { value: fieldDescription } }}
+            value={value}
+            options={readerOptions}
+            // eslint-disable-next-line no-shadow
+            onChange={({ fieldName, value }) => {
+              if (value?.includes('everyone')) {
+                onChange(['everyone'])
+              } else {
+                onChange(value)
+              }
+            }}
+            isEditor={false}
+            isArrayType={true}
+            clearError={clearError}
+          />
+        ) : (
           <NoteEditorReadersDropdown
             placeholder={placeholder}
             options={readerOptions}
             value={value?.map((p) => readerOptions.find((q) => q.value === p))}
             onChange={dropdownChangeHandler}
           />
-        ) : null
+        )
+
       case 'singleValueEnum':
         return readerOptions ? (
           <TagsWidget values={readerOptions} fieldNameOverwrite="Readers" />
@@ -201,6 +226,7 @@ export const NewReplyEditNoteReaders = ({
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
   const { user, accessToken } = useUser()
+  const useCheckboxWidget = true
 
   const addEnumParentReaders = (groupResults, parentReaders) => {
     if (!parentReaders?.length || parentReaders.includes('everyone') || isDirectReplyToForum)
@@ -270,6 +296,7 @@ export const NewReplyEditNoteReaders = ({
                 result.groups.map((q) => ({
                   value: q.id,
                   description: prettyId(q.id, false),
+                  optional: p.optional,
                 }))
               )
           : Promise.resolve([
@@ -323,7 +350,10 @@ export const NewReplyEditNoteReaders = ({
           }
 
           options = optionWithParentReaders.map((p) => ({
-            label: p.description,
+            label:
+              useCheckboxWidget && p.optional === false
+                ? `${p.description} [Mandatory]`
+                : p.description,
             value: p.value,
           }))
           parentReadersToAutoSelect = isDirectReplyToForum
@@ -410,14 +440,32 @@ export const NewReplyEditNoteReaders = ({
         ) : null
       case 'regex':
       case 'enum':
-        return readerOptions ? (
+        if (!readerOptions) return null
+        return useCheckboxWidget ? (
+          <CheckboxWidget
+            field={{ reader: { value: fieldDescription } }}
+            value={value}
+            options={readerOptions}
+            // eslint-disable-next-line no-shadow
+            onChange={({ fieldName, value }) => {
+              if (value?.includes('everyone')) {
+                onChange(['everyone'])
+              } else {
+                onChange(value)
+              }
+            }}
+            isEditor={false}
+            isArrayType={true}
+            clearError={clearError}
+          />
+        ) : (
           <NoteEditorReadersDropdown
             placeholder={placeholder}
             options={readerOptions}
             value={value?.map((p) => readerOptions.find((q) => q.value === p))}
             onChange={dropdownChangeHandler}
           />
-        ) : null
+        )
       case 'singleValueEnum':
         return readerOptions ? (
           <TagsWidget values={readerOptions} fieldNameOverwrite="Readers" />
