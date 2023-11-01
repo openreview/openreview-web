@@ -283,6 +283,12 @@ const RecruitmentForm = () => {
   const invitationContentFields = isV2Invitation
     ? Object.keys(invitation.edit?.note?.content)
     : Object.keys(invitation.reply?.content)
+  const acceptDescription = isV2Invitation
+    ? invitation.edit?.note?.content?.response?.value?.param?.enum?.find(v => v.value ? v.value.startsWith('Yes') : v)?.description || 'Accept'
+    : 'Accept'
+  const declineDescription = isV2Invitation
+    ? invitation.edit?.note?.content?.response?.value?.param?.enum?.find(v => v.value ? v.value.startsWith('No'): v)?.description || 'Decline'
+    : 'Decline'
 
   const defaultButtonState = [
     { response: 'Yes', loading: false, disabled: false },
@@ -385,7 +391,7 @@ const RecruitmentForm = () => {
                 disabled={buttonStatus.find((p) => p.response === 'Yes').disabled}
                 size="lg"
               >
-                Accept
+                {acceptDescription}
               </SpinnerButton>
               {allowAcceptWithReducedLoad && (
                 <SpinnerButton
@@ -400,7 +406,7 @@ const RecruitmentForm = () => {
                   }
                   size="lg"
                 >
-                  Accept (Reduced Load)
+                  {acceptDescription} (Reduced Load)
                 </SpinnerButton>
               )}
               <SpinnerButton
@@ -411,7 +417,7 @@ const RecruitmentForm = () => {
                 disabled={buttonStatus.find((p) => p.response === 'No').disabled}
                 size="lg"
               >
-                Decline
+                {declineDescription}
               </SpinnerButton>
             </div>
           </div>
