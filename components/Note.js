@@ -80,7 +80,7 @@ const Note = ({ note, invitation, options }) => {
             note.tcdate,
             note.mdate,
             note.tmdate,
-            note.content.year?.value,
+            note.content.year,
             note.pdate
           )}
         </li>
