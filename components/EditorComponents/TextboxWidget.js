@@ -21,7 +21,11 @@ const TextboxWidget = () => {
   const isHiddenField = field[fieldName].value?.param?.hidden
   const shouldSaveDraft = true
 
-  const [displayValue, setDisplayValue] = useState(isArrayType ? value?.join(',') : value)
+  let initialValue = isNil(value) ? value : value.toString()
+  if (isArrayType) {
+    initialValue = value?.join(',')
+  }
+  const [displayValue, setDisplayValue] = useState(initialValue)
 
   const getInputValue = (rawInputValue) => {
     if (!isArrayType) {
