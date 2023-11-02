@@ -3,6 +3,7 @@
 /* globals promptError: false */
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { flushSync } from 'react-dom'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
 import escapeRegExp from 'lodash/escapeRegExp'
@@ -19,6 +20,7 @@ import ForumReply from './ForumReply'
 import ChatReply from './ChatReply'
 import LoadingSpinner from '../LoadingSpinner'
 import ForumReplyContext from './ForumReplyContext'
+import ConfirmDeleteModal from './ConfirmDeleteModal'
 
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
@@ -61,6 +63,7 @@ export default function Forum({
   })
   const [defaultFilters, setDefaultFilters] = useState(null)
   const [activeInvitation, setActiveInvitation] = useState(null)
+  const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [attachedToBottom, setAttachedToBottom] = useState(true)
   const [enableLiveUpdate, setEnableLiveUpdate] = useState(false)
@@ -313,6 +316,13 @@ export default function Forum({
     window.scrollTo({ top: y, behavior: 'smooth' })
   }
 
+  const deleteOrRestoreNote = (note, invitation, updateNote) => {
+    flushSync(() => {
+      setConfirmDeleteModalData({ note, invitation, updateNote })
+    })
+    $('#confirm-delete-modal').modal('show')
+  }
+
   // Update forum note after new edit
   const updateParentNote = (note) => {
     const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
@@ -320,12 +330,7 @@ export default function Forum({
       note
     )
 
-    setParentNote({
-      ...note,
-      editInvitations,
-      deleteInvitation,
-      replyInvitations,
-    })
+    setParentNote(formatNote(note, null, editInvitations, deleteInvitation, replyInvitations))
 
     setTimeout(() => {
       typesetMathJax()
@@ -727,7 +732,11 @@ export default function Forum({
 
   return (
     <div className="forum-container">
-      <ForumNote note={parentNote} updateNote={updateParentNote} />
+      <ForumNote
+        note={parentNote}
+        updateNote={updateParentNote}
+        deleteOrRestoreNote={deleteOrRestoreNote}
+      />
 
       {repliesLoaded && orderedReplies.length > 0 && (
         <div className="filters-container mt-4">
@@ -860,6 +869,7 @@ export default function Forum({
                   chatReplyNote={chatReplyNote}
                   setChatReplyNote={setChatReplyNote}
                   updateNote={updateNote}
+                  deleteOrRestoreNote={deleteOrRestoreNote}
                 />
               ) : (
                 <LoadingSpinner inline />
@@ -936,6 +946,19 @@ export default function Forum({
           )}
         </div>
       )}
+
+      {confirmDeleteModalData && (
+        <ConfirmDeleteModal
+          note={confirmDeleteModalData.note}
+          invitation={confirmDeleteModalData.invitation}
+          updateNote={confirmDeleteModalData.updateNote}
+          accessToken={accessToken}
+          onClose={() => {
+            $('#confirm-delete-modal').modal('hide')
+            setConfirmDeleteModalData(null)
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -948,6 +971,7 @@ function ForumReplies({
   chatReplyNote,
   layout,
   updateNote,
+  deleteOrRestoreNote,
   setChatReplyNote,
 }) {
   if (!replies) return null
@@ -980,6 +1004,7 @@ function ForumReplies({
       replies={reply.replies}
       replyDepth={1}
       parentNote={forumNote}
+      deleteOrRestoreNote={deleteOrRestoreNote}
       updateNote={updateNote}
       isDirectReplyToForum={true}
     />

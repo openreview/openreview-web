@@ -632,3 +632,9 @@ main.forum {
     color: constants.$subtleGray;
   }
 }
+
+#confirm-delete-modal {
+  .note-editor h5 {
+    width: 140px;
+  }
+}
