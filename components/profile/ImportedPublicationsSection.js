@@ -43,17 +43,16 @@ const ImportedPublicationsSection = ({
         '/notes',
         {
           'content.authorids': profileId,
-          details: 'invitation,original',
           sort: 'tmdate:desc',
           offset: (pageNumber - 1) * pageSize,
           limit: pageSize,
           invitations: [
-            'dblp.org/-/record',
+            'DBLP.org/-/Record',
             'OpenReview.net/Archive/-/Imported_Record',
             'OpenReview.net/Archive/-/Direct_Upload',
           ],
         },
-        { accessToken }
+        { accessToken, version: 2 }
       )
       setPublications(result.notes)
       setTotalCount(result.count)
