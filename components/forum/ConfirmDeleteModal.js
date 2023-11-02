@@ -79,7 +79,6 @@ export default function ConfirmDeleteModal({
       </p>
 
       <NewReplyEditNoteReaders
-        replyToNote={note}
         fieldDescription={invitation.edit.readers}
         closeNoteEditor={() => {}}
         value={noteEditorData[readersFieldName]}
