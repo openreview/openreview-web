@@ -247,8 +247,13 @@ const ProfileSearchFormAndResults = ({
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   const [showCustomAuthorForm, setShowCustomAuthorForm] = useState(false)
   const { accessToken } = useUser()
-  const fieldName = Object.keys(field ?? {})[0]
-  const placeHolderName = Object.values(field ?? {})?.[0]?.value?.param?.fieldName ?? fieldName
+  // eslint-disable-next-line no-use-before-define
+  const placeHolderName = getPlaceHolderName()
+
+  function getPlaceHolderName() {
+    if (!field) return null
+    return Object.keys(field)[0] === 'authorids' ? 'author' : Object.keys(field)[0]
+  }
 
   // eslint-disable-next-line no-shadow
   const searchProfiles = async (searchTerm, pageNumber, showLoadingSpinner = true) => {
@@ -319,7 +324,9 @@ const ProfileSearchFormAndResults = ({
               className={`btn btn-xs ${styles.enterAuthorButton}`}
               onClick={() => setShowCustomAuthorForm(true)}
             >
-              {`Manually Enter ${upperFirst(placeHolderName)} Info`}
+              {`Manually Enter${
+                placeHolderName ? ` ${upperFirst(placeHolderName)}` : ''
+              } Info`}
             </button>
           </>
         )}

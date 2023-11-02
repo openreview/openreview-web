@@ -107,7 +107,7 @@ const RelationRow = ({
           multiple={false}
           isEditor={false}
           pageSize={5}
-          field={{ _: { value: { param: { fieldName: 'relation' } } } }}
+          field={{ relation: '' }}
           searchInputPlaceHolder="search relation with name or email"
           value={relation.username}
           onChange={(username, name, email, profile) => {
