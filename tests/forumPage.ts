@@ -10,10 +10,7 @@ const emailInput = Selector('#email-input')
 const passwordInput = Selector('#password-input')
 const loginButton = Selector('button').withText('Login to OpenReview')
 const container = Selector('.forum-container')
-const content = Selector('#content')
-const errorCodeLabel = Selector('#content h1')
-const errorMessageLabel = Selector('.error-message')
-const privateAuthorLabel = Selector('.private-author-label')
+const confirmDeleteModal = Selector('#confirm-delete-modal')
 
 const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
@@ -67,7 +64,7 @@ test('show a valid forum', async (t) => {
     .eql('Paper Abstract')
 })
 
-test('delete the note and restore it', async (t) => {
+test('delete the forum note and restore it', async (t) => {
   const { superUserToken } = t.fixtureCtx
   const notes = await getNotes(
     { invitation: 'TestVenue/2023/Conference/-/Submission' },
@@ -82,12 +79,24 @@ test('delete the note and restore it', async (t) => {
     .ok()
     .expect(Selector('.forum-note').exists)
     .ok()
+    // Delete the note
     .click(Selector('.invitation-buttons').find('button').withAttribute('type', 'button').nth(1))
-    .expect(Selector('#confirm-delete-modal').exists)
+    .expect(confirmDeleteModal.exists)
     .ok()
-    .click(Selector('.modal-footer').find('button').withText('Delete'))
-    .expect(Selector('.invitation-buttons').find('button').withAttribute('type', 'button').withText('Restore').exists)
+    .click(confirmDeleteModal.find('.modal-footer > button').withText('Delete'))
+    .expect(confirmDeleteModal.exists)
+    .notOk()
+    .expect(Selector('.forum-note').hasClass('trashed'))
     .ok()
+    // Restore the note
+    .click(Selector('.invitation-buttons').find('button').withAttribute('type', 'button').nth(0))
+    .expect(confirmDeleteModal.exists)
+    .ok()
+    .click(confirmDeleteModal.find('.modal-footer > button').withText('Restore'))
+    .expect(confirmDeleteModal.exists)
+    .notOk()
+    .expect(Selector('.forum-note').hasClass('trashed'))
+    .notOk()
 })
 
 
