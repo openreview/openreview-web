@@ -23,11 +23,11 @@ const waitForJobs = (noteId, superUserToken) =>
       try {
         const logs = await getProcessLogs(noteId, superUserToken)
         if (logs.length > 0) {
-          if (logs[0].status == 'error') {
+          if (logs[0].status === 'error') {
             clearInterval(interval)
-            reject(new Error('Process function failed: ' + JSON.stringify(logs[0])))
+            reject(new Error(`Process function failed: ${JSON.stringify(logs[0])}`))
           }
-          if (logs[0].status == 'ok') {
+          if (logs[0].status === 'ok') {
             clearInterval(interval)
             resolve(null)
           }
