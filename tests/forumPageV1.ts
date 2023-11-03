@@ -369,7 +369,7 @@ test('get forum page from a request venue form and do not render any meta tag', 
     { invitation: 'openreview.net/Support/-/Request_Form', sort: 'cdate' },
     superUserToken
   )
-  const forum = notes[0].id
+  const forum = notes[1].id
   await t
     .useRole(superUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
