@@ -23,7 +23,7 @@ test('show active venues', async (t) => {
 
     // Open for submissions
     .expect(openVenues.find('li').count)
-    .eql(3)
+    .eql(4)
     .expect(openVenues.find('a').nth(0).textContent)
     .eql(conferenceGroupName)
     .expect(openVenues.find('a').nth(1).textContent)
