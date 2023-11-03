@@ -5,7 +5,7 @@ import {
   createUser,
   getToken,
   addMembersToGroup,
-  getJobsStatus,
+  getProcessLogs,
   hasTaskUser,
   hasNoTaskUser,
   conferenceGroupId,
@@ -21,18 +21,16 @@ const waitForJobs = (noteId, superUserToken) =>
   new Promise((resolve, reject) => {
     const interval = setInterval(async () => {
       try {
-        const statuses = await getJobsStatus(superUserToken)
-        if (Object.values(statuses).some((p: any) => p.failed > 0)) {
-          clearInterval(interval)
-          reject(new Error('Process function failed'))
-        }
-        const queueCount = Object.values(statuses).reduce(
-          (count, job: any) => count + job.waiting + job.active + job.delayed,
-          0
-        )
-        if (queueCount === 0) {
-          clearInterval(interval)
-          resolve(null)
+        const logs = await getProcessLogs(noteId, superUserToken)
+        if (logs.length > 0) {
+          if (logs[0].status == 'error') {
+            clearInterval(interval)
+            reject(new Error('Process function failed: ' + JSON.stringify(logs[0])))
+          }
+          if (logs[0].status == 'ok') {
+            clearInterval(interval)
+            resolve(null)
+          }
         }
       } catch (err) {
         clearInterval(interval)
