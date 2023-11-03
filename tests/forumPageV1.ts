@@ -39,7 +39,7 @@ const superUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t
     .click(loginButton)
 })
 
-fixture`Forum Page v1`.page`http://localhost:${process.env.NEXT_PORT}`.before(async (ctx) => {
+fixture`Forum page v1`.page`http://localhost:${process.env.NEXT_PORT}`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
   return ctx
 })
