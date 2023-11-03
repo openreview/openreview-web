@@ -115,10 +115,9 @@ export default function ConfirmDeleteModal({
         <Signatures
           fieldDescription={invitation.edit.signatures}
           onChange={(value) => {
-            if (value.value) {
+            // Ignore loading messages from the signatures component
+            if (typeof value.value !== 'undefined') {
               setNoteEditorData({ ...noteEditorData, [signaturesFieldName]: value })
-            } else {
-              setNoteEditorData({ ...noteEditorData, [signaturesFieldName]: undefined })
             }
           }}
           currentValue={noteEditorData[signaturesFieldName]}
