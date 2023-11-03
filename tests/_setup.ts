@@ -1,6 +1,7 @@
 import { FormData, fileFromSync } from 'node-fetch-cjs'
 import {
   createNote,
+  createNoteEdit,
   createUser,
   getToken,
   addMembersToGroup,
@@ -413,4 +414,84 @@ test('Set up ICLR', async (t) => {
     ['reviewer_iclr@mail.com'],
     superUserToken
   )
+})
+
+test('Set up TestVenue using API 2', async (t) => {
+  const submissionDate = new Date(Date.now() + 48 * 60 * 60 * 1000)
+  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
+    }/${submissionDate.getDate()}`
+  const { superUserToken } = t.fixtureCtx
+  const requestVenueJson = {
+    invitation: 'openreview.net/Support/-/Request_Form',
+    signatures: ['~Super_User1'],
+    readers: ['openreview.net/Support', '~Super_User1', 'john@mail.com', 'tom@mail.com'],
+    writers: [],
+    content: {
+      title: 'Test Venue Conference V2',
+      'Official Venue Name': 'Test Venue Conference V2',
+      'Abbreviated Venue Name': 'Test Venue V2',
+      'Official Website URL': 'https://testvenue.cc',
+      program_chair_emails: ['john@mail.com', 'tom@mail.com'],
+      contact_email: 'testvenue@mail.com',
+      'Area Chairs (Metareviewers)': 'No, our venue does not have Area Chairs',
+      'Venue Start Date': '2021/11/01',
+      'Submission Deadline': submissionDateString,
+      Location: 'Virtual',
+      submission_reviewer_assignment: 'Automatic',
+      'Author and Reviewer Anonymity': 'No anonymity',
+      'Open Reviewing Policy': 'Submissions and reviews should both be public.',
+      submission_readers: 'Everyone (submissions are public)',
+      withdrawn_submissions_visibility: 'Yes, withdrawn submissions should be made public.',
+      withdrawn_submissions_author_anonymity:
+        'Yes, author identities of withdrawn submissions should be revealed.',
+      email_pcs_for_withdrawn_submissions: 'Yes, email PCs.',
+      desk_rejected_submissions_visibility:
+        'Yes, desk rejected submissions should be made public.',
+      desk_rejected_submissions_author_anonymity:
+        'Yes, author identities of desk rejected submissions should be revealed.',
+      'How did you hear about us?': 'ML conferences',
+      'Expected Submissions': '6000',
+      'publication_chairs':'No, our venue does not have Publication Chairs',
+      'api_version': '2'
+    },
+  }
+  const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
+
+  await waitForJobs(requestForumId, superUserToken)
+
+  const deployVenueJson = {
+    content: { venue_id: 'TestVenue/2023/Conference' },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Deploy`,
+    readers: ['openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['openreview.net/Support'],
+    writers: ['openreview.net/Support'],
+  }
+
+  const { id: deployId } = await createNote(deployVenueJson, superUserToken)
+
+  await waitForJobs(deployId, superUserToken)
+
+  const hasTaskUserTildeId = hasTaskUser.tildeId
+  const hasTaskUserToken = await getToken(hasTaskUser.email, hasTaskUser.password)
+
+  // add a note
+  const ediJson = {
+    invitation: 'TestVenue/2023/Conference/-/Submission',
+    signatures: [hasTaskUserTildeId],
+    note: {
+      content: {
+        title: { 'value': 'Paper Title 1' },
+        authors: { 'value': ['FirstA LastA'] },
+        authorids: { 'value': [hasTaskUserTildeId] },
+        abstract: { 'value': 'Paper Abstract' },
+        keywords: { 'value': ['keyword1', 'keyword2'] },
+        pdf: { 'value': '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf'},
+      }
+    }
+  }
+  await createNoteEdit(ediJson, hasTaskUserToken)
+
 })

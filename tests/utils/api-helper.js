@@ -148,6 +148,10 @@ export function createNote(jsonToPost, userToken) {
   return api.post('/notes', jsonToPost, { accessToken: userToken })
 }
 
+export function createNoteEdit(jsonToPost, userToken) {
+  return api.post('/notes/edits', jsonToPost, { accessToken: userToken, version: 2 })
+}
+
 export function sendFile(data, userToken) {
   return api.put('/attachment', data, { accessToken: userToken, contentType: 'unset' })
 }
@@ -322,8 +326,8 @@ export function getMessages(params, token) {
   return api.get('/messages', params, { accessToken: token }).then((result) => result.messages)
 }
 
-export function getNotes(params, token) {
-  return api.get('/notes', params, { accessToken: token }).then((result) => result.notes)
+export function getNotes(params, token, version = 1) {
+  return api.get('/notes', params, { accessToken: token, version }).then((result) => result.notes)
 }
 
 export function getReferences(params, token) {
