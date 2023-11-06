@@ -54,10 +54,16 @@ jobs:
         with:
           repository: openreview/openreview-py
           path: openreview-py
-      - name: Checkout openreview-api
+      - name: Checkout openreview-api-v1
         uses: actions/checkout@v3
         with:
           repository: openreview/openreview-api-v1
+          token: ${{ secrets.OPENREVIEW_ACCESS_TOKEN }}
+          path: openreview-api-v1
+      - name: Checkout openreview-api
+        uses: actions/checkout@v3
+        with:
+          repository: openreview/openreview-api
           token: ${{ secrets.OPENREVIEW_ACCESS_TOKEN }}
           path: openreview-api
       - name: Checkout openreview-web
@@ -77,6 +83,11 @@ jobs:
           cd openreview-py
           python -m pip install --upgrade pip
           pip install -e .
+      - name: Setup openreview-api-v1
+        run: |
+          cd openreview-api-v1
+          mkdir -p logs files/attachments files/pdfs files/temp
+          npm ci
       - name: Setup openreview-api
         run: |
           cd openreview-api
@@ -96,19 +107,23 @@ jobs:
           cd openreview-web
           npm ci
           cp .env.example .env.local
-          NODE_ENV=production API_V2_URL= npm run build
+          NODE_ENV=production SUPER_USER=openreview.net npm run build
       - name: Run Unit Tests
         run: |
           cd openreview-web
           npm run unit-test
+      - name: Run openreview-api-v1
+        run: |
+          cd openreview-api-v1
+          NODE_ENV=circleci node scripts/clean_start_app.js &
       - name: Run openreview-api
         run: |
           cd openreview-api
-          NODE_ENV=circleci node scripts/clean_start_app.js &
+          NODE_ENV=circleci node scripts/setup_app.js &
       - name: Run openreview-web
         run: |
           cd openreview-web
-          NODE_ENV=production API_V2_URL= npm run start &
+          NODE_ENV=production SUPER_USER=openreview.net npm run start &
       - name: Run TestCafe Tests
         run: |
           cd openreview-web

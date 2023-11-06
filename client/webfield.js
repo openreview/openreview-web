@@ -3,7 +3,6 @@
 /* globals Handlebars: false */
 /* globals moment: false */
 /* globals MathJax: false */
-/* globals Webfield: false */
 /* globals view: false */
 /* globals view2: false */
 /* globals promptError: false */

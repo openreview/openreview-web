@@ -1,5 +1,5 @@
 /* globals $, _: false */
-/* globals view, view2, Webfield, Webfield2: false */
+/* globals view, view2: false */
 /* globals promptError, promptMessage, promptLogin, generalPrompt, translateErrorMessage: false */
 /* globals marked, DOMPurify, MathJax, Handlebars: false */
 
