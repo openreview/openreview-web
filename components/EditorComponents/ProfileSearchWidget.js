@@ -20,8 +20,8 @@ const getTitle = (profile, isEditor) => {
     profile.content.history?.find((p) => !p.end) || maxBy(profile.content.history, 'end')
 
   const title = latestHistory
-    ? `${latestHistory.position ? `${latestHistory.position} at ` : ''}${
-        latestHistory.institution?.name
+    ? `${latestHistory.position ? `${latestHistory.position}` : ''}${
+        latestHistory.institution?.name ? ` at ${latestHistory.institution?.name}` : ''
       }${
         latestHistory.institution?.domain && isEditor
           ? ` (${latestHistory.institution?.domain})`
@@ -224,8 +224,6 @@ const ProfileSearchResultRow = ({
     </div>
   )
 }
-
-const DefaultSearchForm = () => {}
 
 const ProfileSearchFormAndResults = ({
   setSelectedAuthorProfiles,
