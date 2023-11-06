@@ -18,12 +18,12 @@ import {
   strongPassword,
 } from './utils/api-helper'
 
-const waitForJobs = (noteId, superUserToken, invitation?) =>
+const waitForJobs = (noteId, superUserToken, count = 1) =>
   new Promise((resolve, reject) => {
     const interval = setInterval(async () => {
       try {
-        const logs = await getProcessLogs(noteId, superUserToken, invitation)
-        if (logs.length > 0) {
+        const logs = await getProcessLogs(noteId, superUserToken)
+        if (logs.length >= count) {
           if (logs[0].status === 'error') {
             clearInterval(interval)
             reject(new Error(`Process function failed: ${JSON.stringify(logs[0])}`))
@@ -503,8 +503,12 @@ test('Set up TestVenue using API 2', async (t) => {
 
   // close deadline
   const submissionCloseDate = new Date(Date.now() - (28  * 60 * 1000)) // 28 minutes ago
-  const submissionCloseDateString = `${submissionCloseDate.getFullYear()}/${submissionCloseDate.getMonth() + 1
-    }/${submissionCloseDate.getDate()} ${submissionCloseDate.getHours()}:${submissionCloseDate.getMinutes()}`
+  const year = submissionCloseDate.getUTCFullYear();
+  const month = ("0" + (submissionCloseDate.getUTCMonth() + 1)).slice(-2);
+  const day = ("0" + submissionCloseDate.getUTCDate()).slice(-2);
+  const hours = ("0" + submissionCloseDate.getUTCHours()).slice(-2);
+  const minutes = ("0" + submissionCloseDate.getUTCMinutes()).slice(-2);
+  const submissionCloseDateString = `${year}/${month}/${day} ${hours}:${minutes}`;
   const editVenueJson = {
     content: {
       title: 'Test Venue Conference V2',
@@ -531,7 +535,7 @@ test('Set up TestVenue using API 2', async (t) => {
   const { id: referenceId } = await createNote(editVenueJson, superUserToken)
 
   await waitForJobs(referenceId, superUserToken)
-  await waitForJobs('TestVenue/2023/Conference/-/Post_Submission-0-1', superUserToken)
+  await waitForJobs('TestVenue/2023/Conference/-/Post_Submission-0-0', superUserToken)
 
   const reviewDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000)
   const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${reviewDeadline.getMonth() + 1

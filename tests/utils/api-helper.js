@@ -354,8 +354,8 @@ export function getReferences(params, token) {
     .then((result) => result.references)
 }
 
-export function getProcessLogs(id, token, invitation) {
-  return api.get('/logs/process', { id, invitation }, { accessToken: token }).then((result) => result.logs)
+export function getProcessLogs(id, token) {
+  return api.get('/logs/process', { id }, { accessToken: token }).then((result) => result.logs)
 }
 
 export function getJobsStatus(token) {
