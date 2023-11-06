@@ -39,7 +39,7 @@
         height: 20px;
       }
       button + button {
-        margin-top: .125rem;
+        margin-top: 0.125rem;
       }
     }
   }
@@ -52,7 +52,6 @@
 
 .searchForm {
   display: flex;
-  margin-bottom: 0.5rem;
 
   button {
     margin-left: 0.25rem;
@@ -87,6 +86,10 @@
       margin-right: 0.25rem;
     }
   }
+}
+
+.searchResults {
+  margin-top: 0.25rem;
 }
 
 .searchResultRow {

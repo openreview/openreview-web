@@ -372,6 +372,35 @@ main.profile-edit {
       margin-top: 0.5rem;
       top: 0;
     }
+
+    .relation-name-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 2px solid #4d8093;
+      padding-left: 0.25rem;
+      height: 34px;
+      background-color: #fffaf4;
+
+      button {
+        margin-right: 0;
+        border-radius: 0;
+        border-color: #4d8093;
+        background-color: #4d8093;
+        height: 100%;
+      }
+
+      .search-input {
+        height: 100%;
+        width: 100%;
+        border: none;
+        background-color: unset;
+
+        &:focus-visible {
+          outline: none;
+        }
+      }
+    }
   }
   .relation-new {
     min-width: 60vw;

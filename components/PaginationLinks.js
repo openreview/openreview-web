@@ -16,7 +16,7 @@ export default function PaginationLinks({
 
   const overflow = totalCount % itemsPerPage === 0 ? 0 : 1
   const pageCount = Math.floor(totalCount / itemsPerPage) + overflow
-  const pageListLength = Math.min(14, pageCount + 4)
+  const pageListLength = Math.min(options.pageListLength ?? 14, pageCount + 4)
   const pageList = Array(pageListLength)
 
   // Create entries for Next, Previous, First and Last links
@@ -51,7 +51,10 @@ export default function PaginationLinks({
 
   // Create entries for numbered page links, try to display an equal number of
   // pages on either side of the current page
-  let counter = Math.min(Math.max(currentPage - 5, 1), Math.max(pageCount - 9, 1))
+  let counter = Math.min(
+    Math.max(currentPage - Math.floor((pageListLength - 4) / 2), 1),
+    Math.max(pageCount - (pageListLength - 5), 1)
+  )
   for (let i = 2; i < pageListLength - 2; i += 1) {
     pageList[i] = {
       active: counter === currentPage,

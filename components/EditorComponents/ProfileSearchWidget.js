@@ -225,6 +225,8 @@ const ProfileSearchResultRow = ({
   )
 }
 
+const DefaultSearchForm = () => {}
+
 const ProfileSearchFormAndResults = ({
   setSelectedAuthorProfiles,
   displayAuthors,
@@ -237,8 +239,10 @@ const ProfileSearchFormAndResults = ({
   onChange,
   clearError,
   pageSize,
+  pageListLength,
   isEditor,
   searchInputPlaceHolder,
+  CustomProfileSearchForm,
 }) => {
   const [searchTerm, setSearchTerm] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -280,7 +284,11 @@ const ProfileSearchFormAndResults = ({
         { accessToken }
       )
       setTotalCount(results.count)
-      setProfileSearchResults(results.profiles.filter((p) => p.content.emails?.length))
+      setProfileSearchResults(
+        isEditor === false
+          ? results.profiles
+          : results.profiles.filter((p) => p.content.emails?.length)
+      )
     } catch (apiError) {
       promptError(apiError.message)
     }
@@ -302,6 +310,7 @@ const ProfileSearchFormAndResults = ({
         {showCustomAuthorForm ? (
           <CustomAuthorForm
             searchTerm={searchTerm}
+            setTotalCount={setTotalCount}
             setProfileSearchResults={setProfileSearchResults}
             setSearchTerm={setSearchTerm}
             displayAuthors={displayAuthors}
@@ -337,6 +346,7 @@ const ProfileSearchFormAndResults = ({
   const displayResults = () => {
     if (!profileSearchResults) return null
     if (!profileSearchResults.length) return displayCustomAuthorForm(true)
+
     return (
       <div className={styles.searchResults}>
         <>
@@ -362,7 +372,7 @@ const ProfileSearchFormAndResults = ({
             itemsPerPage={pageSize}
             totalCount={totalCount}
             setCurrentPage={setPageNumber}
-            options={{ noScroll: true, showCount: false }}
+            options={{ noScroll: true, showCount: false, pageListLength }}
           />
         </>
 
@@ -382,36 +392,49 @@ const ProfileSearchFormAndResults = ({
   }, [profileSearchResults])
 
   if (isLoading) return <LoadingSpinner inline={true} text={null} />
-
   return (
     <>
-      <form
-        className={styles.searchForm}
-        onSubmit={(e) => {
-          e.preventDefault()
-          setShowCustomAuthorForm(false)
-          searchProfiles(searchTerm, 1)
-          setPageNumber(null)
-        }}
-      >
-        <input
-          type="text"
-          className={`form-control ${error ? styles.invalidValue : ''}`}
-          value={searchTerm ?? ''}
-          placeholder={searchInputPlaceHolder}
-          onChange={(e) => {
-            setSearchTerm(e.target.value)
-            setProfileSearchResults(null)
-          }}
+      {CustomProfileSearchForm ? (
+        <CustomProfileSearchForm
+          error={error}
+          styles={styles}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          setProfileSearchResults={setProfileSearchResults}
+          setShowCustomAuthorForm={setShowCustomAuthorForm}
+          searchProfiles={searchProfiles}
+          setPageNumber={setPageNumber}
         />
-        <button
-          className={`btn btn-sm ${error ? styles.invalidValue : ''}`}
-          disabled={!searchTerm?.trim()}
-          type="submit"
+      ) : (
+        <form
+          className={styles.searchForm}
+          onSubmit={(e) => {
+            e.preventDefault()
+            setShowCustomAuthorForm(false)
+            searchProfiles(searchTerm, 1)
+            setPageNumber(null)
+          }}
         >
-          Search
-        </button>
-      </form>
+          <input
+            type="text"
+            className={`form-control ${error ? styles.invalidValue : ''}`}
+            value={searchTerm ?? ''}
+            placeholder={searchInputPlaceHolder}
+            onChange={(e) => {
+              setSearchTerm(e.target.value)
+              setProfileSearchResults(null)
+            }}
+          />
+          <button
+            className={`btn btn-sm ${error ? styles.invalidValue : ''}`}
+            disabled={!searchTerm?.trim()}
+            type="submit"
+          >
+            Search
+          </button>
+        </form>
+      )}
+
       {displayResults()}
     </>
   )
@@ -419,6 +442,7 @@ const ProfileSearchFormAndResults = ({
 
 const CustomAuthorForm = ({
   searchTerm,
+  setTotalCount,
   setProfileSearchResults,
   setSearchTerm,
   displayAuthors,
@@ -451,6 +475,7 @@ const CustomAuthorForm = ({
         { accessToken }
       )
       if (results.profiles.length) {
+        setTotalCount(results.count)
         setProfileSearchResults(results.profiles)
         setIsLoading(false)
         return
@@ -476,6 +501,7 @@ const CustomAuthorForm = ({
       })
     }
 
+    setTotalCount(0)
     setProfileSearchResults(null)
     setSearchTerm('')
   }
@@ -505,7 +531,7 @@ const CustomAuthorForm = ({
         name="email"
         className="form-control"
         value={customAuthorEmail}
-        placeHolder={`email${placeHolderName ? ` of the ${placeHolderName}` : ''} to add`}
+        placeholder={`email${placeHolderName ? ` of the ${placeHolderName}` : ''} to add`}
         onChange={(e) => setCustomAuthorEmail(e.target.value)}
       />
       <SpinnerButton
@@ -525,16 +551,19 @@ const ProfileSearchWidget = ({
   isEditor = true,
   field: propsField,
   pageSize = 20,
+  pageListLength,
   searchInputPlaceHolder = 'search profiles by email or name',
   onChange: propsOnChange,
   value: propsValue,
+  error: propsError,
   className,
+  CustomProfileSearchForm,
 }) => {
   const { user, accessToken } = useUser()
   const editorComponentContext = useContext(EditorComponentContext) ?? {}
   const { field, onChange, value, error, clearError } = isEditor
     ? editorComponentContext
-    : { field: propsField, onChange: propsOnChange, value: propsValue }
+    : { field: propsField, onChange: propsOnChange, value: propsValue, error: propsError }
   const fieldName = Object.keys(field ?? {})[0]
   const isAuthoridsField = fieldName === 'authorids'
   const allowUserDefined =
@@ -689,8 +718,10 @@ const ProfileSearchWidget = ({
           onChange={onChange}
           clearError={clearError}
           pageSize={pageSize}
+          pageListLength={pageListLength}
           isEditor={isEditor}
           searchInputPlaceHolder={searchInputPlaceHolder}
+          CustomProfileSearchForm={CustomProfileSearchForm}
         />
       )}
     </div>
