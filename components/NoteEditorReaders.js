@@ -196,7 +196,9 @@ export const NewReplyEditNoteReaders = ({
   isDirectReplyToForum,
   placeholder,
   error,
+  onError,
   clearError,
+  className,
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
@@ -247,7 +249,11 @@ export const NewReplyEditNoteReaders = ({
         orderAdjustedGroups.map((p) => ({ label: prettyId(p.id), value: p.id }))
       )
     } catch (apiError) {
-      promptError(apiError.message)
+      if (typeof onError === 'function') {
+        onError(apiError.message)
+      } else {
+        promptError(apiError.message)
+      }
       closeNoteEditor()
     }
     setLoading((loading) => ({ ...loading, fieldName: false }))
@@ -338,7 +344,11 @@ export const NewReplyEditNoteReaders = ({
           setReaderOptions(options)
       }
     } catch (apiError) {
-      promptError(apiError.message)
+      if (typeof onError === 'function') {
+        onError(apiError.message)
+      } else {
+        promptError(apiError.message)
+      }
       closeNoteEditor()
     }
     setLoading((loading) => ({ ...loading, fieldName: false }))
@@ -376,14 +386,20 @@ export const NewReplyEditNoteReaders = ({
     if (isDirectReplyToForum || isEqualOrSubset(replyReaders, parentReaders)) {
       setReaderOptions(replyReaders)
     } else {
-      promptError('Can not create note, readers must match parent note')
+      const errorMessage = 'Can not create note, readers must match parent note'
+      if (typeof onError === 'function') {
+        onError(errorMessage)
+      } else {
+        promptError(errorMessage)
+      }
       closeNoteEditor()
     }
   }
 
   const dropdownChangeHandler = (_, actionMeta) => {
+    if (typeof clearError === 'function') clearError()
+
     let updatedValue
-    clearError?.()
     switch (actionMeta.action) {
       case 'select-option':
         updatedValue = (value ?? []).concat(actionMeta.option.value)
@@ -392,7 +408,6 @@ export const NewReplyEditNoteReaders = ({
       case 'remove-value':
         updatedValue = value.filter((p) => p !== actionMeta.removedValue.value)
         onChange(updatedValue.length ? updatedValue : undefined)
-
         break
       case 'clear':
         onChange(undefined)
@@ -447,7 +462,12 @@ export const NewReplyEditNoteReaders = ({
   if (!user || !fieldDescription) return null
 
   return (
-    <EditorComponentHeader fieldNameOverwrite="Readers" inline={true} error={error}>
+    <EditorComponentHeader
+      fieldNameOverwrite="Readers"
+      inline={true}
+      error={error}
+      className={className}
+    >
       {renderReaders()}
     </EditorComponentHeader>
   )
