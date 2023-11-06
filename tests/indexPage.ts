@@ -23,17 +23,15 @@ test('show active venues', async (t) => {
 
     // Open for submissions
     .expect(openVenues.find('li').count)
-    .eql(4)
+    .eql(3)
     .expect(openVenues.find('a').nth(0).textContent)
-    .eql('TestVenue 2023 Conference')
-    .expect(openVenues.find('a').nth(1).textContent)
     .eql(conferenceGroupName)
-    .expect(openVenues.find('a').nth(2).textContent)
+    .expect(openVenues.find('a').nth(1).textContent)
     .eql(`Another${conferenceGroupName}`)
-    .expect(openVenues.find('a').nth(3).textContent)
+    .expect(openVenues.find('a').nth(2).textContent)
     .eql('ICLR 2021 Conference')
     .expect(openVenues.find('p').withText('Due').count)
-    .eql(4)
+    .eql(3)
 
     // All venues
     .expect(allVenues.find('li').count)
