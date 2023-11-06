@@ -160,7 +160,21 @@ export function getToken(id, password) {
   return api.post('/login', { id, password }).then((apiRes) => apiRes.token)
 }
 
-export function addMembersToGroup(groupId, membersList, userToken) {
+export function addMembersToGroup(groupId, membersList, userToken, version) {
+  if (version == 2) {
+    return api.post(
+      '/groups/edits',
+      {
+        invitation: 'openreview.net/-/Edit',
+        signatures: ['~Super_User1'],
+        group: {
+          id: groupId,
+          members: { 'append': membersList }
+        }
+      },
+      { accessToken: userToken, version }
+    )
+  }
   return api.put(
     '/groups/members',
     { id: groupId, members: membersList },
@@ -330,14 +344,18 @@ export function getNotes(params, token, version = 1) {
   return api.get('/notes', params, { accessToken: token, version }).then((result) => result.notes)
 }
 
+export function getGroups(params, token, version = 1) {
+  return api.get('/groups', params, { accessToken: token, version }).then((result) => result.groups)
+}
+
 export function getReferences(params, token) {
   return api
     .get('/references', params, { accessToken: token })
     .then((result) => result.references)
 }
 
-export function getProcessLogs(id, token) {
-  return api.get('/logs/process', { id }, { accessToken: token }).then((result) => result.logs)
+export function getProcessLogs(id, token, invitation) {
+  return api.get('/logs/process', { id, invitation }, { accessToken: token }).then((result) => result.logs)
 }
 
 export function getJobsStatus(token) {

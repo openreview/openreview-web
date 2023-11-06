@@ -28,6 +28,14 @@ const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =
     .click(loginButton)
 })
 
+const pcRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
+  await t
+    .click(Selector('a').withText('Login'))
+    .typeText(emailInput, 'program_chair@mail.com')
+    .typeText(passwordInput, strongPassword)
+    .click(loginButton)
+})
+
 const superUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
     .click(Selector('a').withText('Login'))
@@ -59,7 +67,7 @@ test('show a valid forum', async (t) => {
     .expect(titleLabel.innerText)
     .eql('Paper Title 1')
     .expect(authorLabel.innerText)
-    .eql('FirstA LastA')
+    .eql('FirstA LastA ')
     .expect(abstractLabel.innerText)
     .eql('Paper Abstract')
 })
@@ -73,7 +81,7 @@ test('delete the forum note and restore it', async (t) => {
   )
   const forum = notes[0].id
   await t
-    .useRole(authorRole)
+    .useRole(pcRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
     .expect(container.exists)
     .ok()
@@ -83,19 +91,57 @@ test('delete the forum note and restore it', async (t) => {
     .click(Selector('.invitation-buttons').find('button').withAttribute('type', 'button').nth(1))
     .expect(confirmDeleteModal.exists)
     .ok()
+    // .click(Selector('.dropdown-select'))
+    // .click(Selector('.modal-dialog div').withText('TestVenue 2023 Conference Program Chairs'))
+    // .click(confirmDeleteModal.find('.modal-footer > button').withText('Delete'))
+    // .expect(confirmDeleteModal.exists)
+    // .notOk()
+    // .expect(Selector('.forum-note').hasClass('trashed'))
+    // .ok()
+    // // Restore the note
+    // .click(Selector('.invitation-buttons').find('button').withAttribute('type', 'button').nth(0))
+    // .expect(confirmDeleteModal.exists)
+    // .ok()
+    // .click(confirmDeleteModal.find('.modal-footer > button').withText('Restore'))
+    // .expect(confirmDeleteModal.exists)
+    // .notOk()
+    // .expect(Selector('.forum-note').hasClass('trashed'))
+    // .notOk()
+})
+
+
+test('delete the forum reply note and restore it', async (t) => {
+  const { superUserToken } = t.fixtureCtx
+  const notes = await getNotes(
+    { invitation: 'TestVenue/2023/Conference/-/Submission' },
+    superUserToken,
+    2
+  )
+  const forum = notes[0].id
+  await t
+    .useRole(testUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
+    .expect(container.exists)
+    .ok()
+    .expect(Selector('#forum-replies').exists)
+    .ok()
+    // Delete the note
+    .click(Selector('#forum-replies').find('button').withAttribute('type', 'button').nth(5))
+    .expect(confirmDeleteModal.exists)
+    .ok()
     .click(confirmDeleteModal.find('.modal-footer > button').withText('Delete'))
     .expect(confirmDeleteModal.exists)
     .notOk()
-    .expect(Selector('.forum-note').hasClass('trashed'))
+    .expect(Selector('.note').hasClass('deleted'))
     .ok()
     // Restore the note
-    .click(Selector('.invitation-buttons').find('button').withAttribute('type', 'button').nth(0))
+    .click(Selector('#forum-replies').find('button').withAttribute('type', 'button').nth(4))
     .expect(confirmDeleteModal.exists)
     .ok()
     .click(confirmDeleteModal.find('.modal-footer > button').withText('Restore'))
     .expect(confirmDeleteModal.exists)
     .notOk()
-    .expect(Selector('.forum-note').hasClass('trashed'))
+    .expect(Selector('.note').hasClass('deleted'))
     .notOk()
 })
 

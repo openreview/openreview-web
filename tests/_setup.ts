@@ -5,6 +5,7 @@ import {
   createUser,
   getToken,
   addMembersToGroup,
+  getGroups,
   getProcessLogs,
   hasTaskUser,
   hasNoTaskUser,
@@ -17,11 +18,11 @@ import {
   strongPassword,
 } from './utils/api-helper'
 
-const waitForJobs = (noteId, superUserToken) =>
+const waitForJobs = (noteId, superUserToken, invitation?) =>
   new Promise((resolve, reject) => {
     const interval = setInterval(async () => {
       try {
-        const logs = await getProcessLogs(noteId, superUserToken)
+        const logs = await getProcessLogs(noteId, superUserToken, invitation)
         if (logs.length > 0) {
           if (logs[0].status === 'error') {
             clearInterval(interval)
@@ -58,6 +59,12 @@ fixture`Set up test data`.before(async (ctx) => {
   await createUser({
     fullname: 'Reviewer ICLR',
     email: 'reviewer_iclr@mail.com',
+    password: strongPassword,
+    history: undefined,
+  })
+  await createUser({
+    fullname: 'Program Chair',
+    email: 'program_chair@mail.com',
     password: strongPassword,
     history: undefined,
   })
@@ -422,21 +429,21 @@ test('Set up TestVenue using API 2', async (t) => {
   const requestVenueJson = {
     invitation: 'openreview.net/Support/-/Request_Form',
     signatures: ['~Super_User1'],
-    readers: ['openreview.net/Support', '~Super_User1', 'john@mail.com', 'tom@mail.com'],
+    readers: ['openreview.net/Support', '~Super_User1', 'john@mail.com', 'tom@mail.com', 'program_chair@mail.com'],
     writers: [],
     content: {
       title: 'Test Venue Conference V2',
       'Official Venue Name': 'Test Venue Conference V2',
       'Abbreviated Venue Name': 'Test Venue V2',
       'Official Website URL': 'https://testvenue.cc',
-      program_chair_emails: ['john@mail.com', 'tom@mail.com'],
+      program_chair_emails: ['john@mail.com', 'tom@mail.com', 'program_chair@mail.com'],
       contact_email: 'testvenue@mail.com',
       'Area Chairs (Metareviewers)': 'No, our venue does not have Area Chairs',
       'Venue Start Date': '2021/11/01',
       'Submission Deadline': submissionDateString,
       Location: 'Virtual',
       submission_reviewer_assignment: 'Automatic',
-      'Author and Reviewer Anonymity': 'No anonymity',
+      'Author and Reviewer Anonymity': 'Double-blind',
       'Open Reviewing Policy': 'Submissions and reviews should both be public.',
       submission_readers: 'Everyone (submissions are public)',
       withdrawn_submissions_visibility: 'Yes, withdrawn submissions should be made public.',
@@ -490,6 +497,91 @@ test('Set up TestVenue using API 2', async (t) => {
       }
     }
   }
-  await createNoteEdit(ediJson, hasTaskUserToken)
+  const { id: editId } = await createNoteEdit(ediJson, hasTaskUserToken)
+
+  await waitForJobs(editId, superUserToken)
+
+  // close deadline
+  const submissionCloseDate = new Date(Date.now() - (28  * 60 * 1000)) // 28 minutes ago
+  const submissionCloseDateString = `${submissionCloseDate.getFullYear()}/${submissionCloseDate.getMonth() + 1
+    }/${submissionCloseDate.getDate()} ${submissionCloseDate.getHours()}:${submissionCloseDate.getMinutes()}`
+  const editVenueJson = {
+    content: {
+      title: 'Test Venue Conference V2',
+      'Official Venue Name': 'Test Venue Conference V2',
+      'Abbreviated Venue Name': 'Test Venue V2',
+      'Official Website URL': 'https://testvenue.cc',
+      program_chair_emails: ['john@mail.com', 'tom@mail.com', 'program_chair@mail.com'],
+      contact_email: 'testvenue@mail.com',
+      'Venue Start Date': '2021/11/01',
+      'Submission Deadline': submissionCloseDateString,
+      Location: 'Virtual',
+      submission_reviewer_assignment: 'Automatic',
+      'Expected Submissions': '6000',
+      'publication_chairs': 'No, our venue does not have Publication Chairs',
+    },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Revision`,
+    readers: ['TestVenue/2023/Conference/Program_Chairs', 'openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['~Super_User1'],
+    writers: [],
+  }
+  const { id: referenceId } = await createNote(editVenueJson, superUserToken)
+
+  await waitForJobs(referenceId, superUserToken)
+  await waitForJobs('TestVenue/2023/Conference/-/Post_Submission-0-1', superUserToken)
+
+  const reviewDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000)
+  const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${reviewDeadline.getMonth() + 1
+    }/${reviewDeadline.getDate()}`
+  const reviewStageJson = {
+    content: {
+      review_deadline: reviewDeadlineString,
+      make_reviews_public: 'No, reviews should NOT be revealed publicly when they are posted',
+      release_reviews_to_authors: 'No, reviews should NOT be revealed when they are posted to the paper\'s authors',
+      release_reviews_to_reviewers: 'Review should not be revealed to any reviewer, except to the author of the review',
+      email_program_chairs_about_reviews: 'No, do not email program chairs about received reviews',
+    },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Review_Stage`,
+    readers: ['TestVenue/2023/Conference/Program_Chairs', 'openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['openreview.net/Support'],
+    writers: [],
+  }
+
+  const { id: reviewStageId } = await createNote(reviewStageJson, superUserToken)
+
+  await waitForJobs(reviewStageId, superUserToken)
+
+  await addMembersToGroup(
+    'TestVenue/2023/Conference/Submission1/Reviewers',
+    ['~SomeFirstName_User1'],
+    superUserToken,
+    2
+  )
+
+  const reviewersGroups = await getGroups({ id: 'TestVenue/2023/Conference/Submission1/Reviewers' }, superUserToken, 2)
+  const testUserToken = await getToken('test@mail.com', hasTaskUser.password)
+
+  // Add a review
+  const reviewJson = {
+    invitation: 'TestVenue/2023/Conference/Submission1/-/Official_Review',
+    signatures: [reviewersGroups[0].members[0]],
+    note: {
+      content: {
+        title: { 'value': 'Review Title 1' },
+        review: { 'value': 'Great paper!' },
+        rating: { 'value': 7 },
+        confidence: { 'value': 5 }
+      }
+    }
+  }
+  const { id: editReviewId } = await createNoteEdit(reviewJson, testUserToken)
+
+  await waitForJobs(editReviewId, superUserToken)
 
 })
