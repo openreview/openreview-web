@@ -161,7 +161,7 @@ export function getToken(id, password) {
 }
 
 export function addMembersToGroup(groupId, membersList, userToken, version) {
-  if (version == 2) {
+  if (version === 2) {
     return api.post(
       '/groups/edits',
       {
