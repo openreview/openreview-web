@@ -253,7 +253,7 @@ test('add relation', async (t) => {
     .click(Selector('div.relation-dropdown__option').nth(3))
     .typeText(secondRelationRow.find('input.search-input'), 'Some Relation Name')
     .pressKey('enter')
-    .expect(secondRelationRow.find('No results found for your search query.')).ok()
+    .expect(secondRelationRow.find('div').withText('No results found for your search query.').exists).ok()
     .click(secondRelationRow.find('button').withText('Manually Enter Relation Info'))
     .typeText(secondRelationRow.find('input').withAttribute('name', 'fullName'), 'Some Relation Name')
     .typeText(secondRelationRow.find('input').withAttribute('name', 'email'), 'test@relation.test')
