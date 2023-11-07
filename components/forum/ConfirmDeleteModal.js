@@ -7,6 +7,7 @@ import Signatures from '../Signatures'
 import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
+import { getNoteContentValues } from '../../lib/forum-utils'
 
 export default function ConfirmDeleteModal({
   note,
@@ -39,6 +40,7 @@ export default function ConfirmDeleteModal({
     let editToPost
     if (isEdit) {
       editToPost = view2.constructUpdatedEdit({ ...note, ddate }, invitation, {
+        ...getNoteContentValues(note.note.content),
         editSignatureInputValues: editSignatureValues,
         editReaderValues,
       })
