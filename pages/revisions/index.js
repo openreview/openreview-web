@@ -1,7 +1,7 @@
 /* globals $,view,view2,Handlebars,promptLogin,promptError,promptMessage: false */
-/* eslint-disable no-param-reassign */
 
 import { useEffect, useContext, useState } from 'react'
+import { flushSync } from 'react-dom'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { truncate } from 'lodash'
@@ -9,109 +9,14 @@ import UserContext from '../../components/UserContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import NoteEditor from '../../components/NoteEditor'
 import ErrorAlert from '../../components/ErrorAlert'
-import Dropdown from '../../components/Dropdown'
 import Edit from '../../components/Edit/Edit'
 import { EditButton, RestoreButton, TrashButton } from '../../components/IconButton'
 import BasicModal from '../../components/BasicModal'
+import ConfirmDeleteModal from '../../components/forum/ConfirmDeleteModal'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { buildNoteTitle, prettyId, useNewNoteEditor } from '../../lib/utils'
+import { useNewNoteEditor } from '../../lib/utils'
 import { forumLink } from '../../lib/banner-links'
-
-const ConfirmDeleteRestoreModal = ({ editInfo, user, accessToken, deleteRestoreEdit }) => {
-  const [signature, setSignature] = useState(null)
-  const [signatureDropdownOptions, setSignatureDropdownOptions] = useState([])
-  const { edit, invitation } = editInfo ?? {}
-  const isSignatureRequired = !invitation?.edit?.signatures?.param?.optional
-  const showSignatureDropdown = signatureDropdownOptions.length > 0
-
-  useEffect(() => {
-    if (!edit || !invitation) return
-
-    const getAllSignatures = async () => {
-      const result = await api.get(
-        '/groups',
-        {
-          regex: invitation.edit.signatures.param.regex,
-          signatory: user.id,
-        },
-        { accessToken }
-      )
-      setSignatureDropdownOptions(
-        result.groups.flatMap((p, i) => {
-          if (result.groups.findIndex((q) => q.id === p.id) === i) {
-            return {
-              value: p.id,
-              label: prettyId(p.id),
-            }
-          }
-          return []
-        })
-      )
-    }
-
-    if (invitation.edit?.signatures?.param?.regex) {
-      if (invitation.edit.signatures.param.regex === '~.*') {
-        setSignature(user.profile.preferredId ?? user.profile.id)
-        setSignatureDropdownOptions([])
-      } else {
-        setSignature(null)
-        getAllSignatures()
-      }
-    } else {
-      setSignature(null)
-      setSignatureDropdownOptions([])
-    }
-  }, [editInfo])
-
-  if (!edit || !invitation) {
-    return null
-  }
-
-  return (
-    <BasicModal
-      id="confirm-delete-restore-modal"
-      title={`${edit.ddate ? 'Restore' : 'Delete'} Edit`}
-      primaryButtonText={`${edit.ddate ? 'Restore' : 'Delete'}`}
-      primaryButtonDisabled={showSignatureDropdown && !signature}
-      onPrimaryButtonClick={() => {
-        $('body').removeClass('modal-open')
-        deleteRestoreEdit(edit, invitation, signature)
-      }}
-    >
-      <p className="mb-4">
-        {/* eslint-disable-next-line react/destructuring-assignment */}
-        {`Are you sure you want to ${edit.ddate ? 'restore' : 'delete'} "${
-          edit.note.content.title?.value || buildNoteTitle(invitation.id, edit.signatures)
-        }" by ${prettyId(edit.signatures[0])}?
-        ${
-          showSignatureDropdown
-            ? 'The deleted edit will be updated with the signature you choose below.'
-            : ''
-        }`}
-      </p>
-      {showSignatureDropdown && (
-        <div className="row">
-          <div className="col-sm-2">
-            <span className="signature-dropdown-label">{`${
-              isSignatureRequired ? '* ' : ''
-            }Signature`}</span>
-          </div>
-          <div className="col-sm-10">
-            <Dropdown
-              options={signatureDropdownOptions}
-              placeholder="Signature"
-              value={signature ? { value: signature, label: prettyId(signature) } : null}
-              onChange={(e) => {
-                setSignature(e.value)
-              }}
-            />
-          </div>
-        </div>
-      )}
-    </BasicModal>
-  )
-}
 
 const UpdateModal = ({ editInfo, setEditToChange, loadEdits }) => {
   const [errorMessage, setErrorMessage] = useState(null)
@@ -156,8 +61,8 @@ const RevisionsList = ({
   isNoteWritable,
 }) => {
   const router = useRouter()
-  const [editToDeleteRestore, setEditToDeleteRestore] = useState(null)
   const [editToChange, setEditToChange] = useState(null)
+  const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
   const newNoteEditor = useNewNoteEditor(revisions?.[0]?.[1])
 
   const toggleSelected = (idx, checked) => {
@@ -182,6 +87,7 @@ const RevisionsList = ({
 
     // Tell the note editor to submit both the referent and the note id so that
     // the API doesn't create a new reference
+    // eslint-disable-next-line no-param-reassign
     note.updateId = note.id
 
     view.mkNoteEditor(note, invitation, user, {
@@ -219,6 +125,7 @@ const RevisionsList = ({
 
   const buildNotePanel = (note, revisionInvitation) => {
     if (!revisionInvitation && note.details) {
+      // eslint-disable-next-line no-param-reassign
       note.details.originalWritable = false
     }
     if (
@@ -226,6 +133,7 @@ const RevisionsList = ({
       typeof note.details.writable === 'undefined' &&
       note.details.originalWritable
     ) {
+      // eslint-disable-next-line no-param-reassign
       note.details.writable = true
     }
 
@@ -253,28 +161,11 @@ const RevisionsList = ({
       .removeClass('panel')
   }
 
-  const deleteRestoreEdit = async (edit, invitation, signature) => {
-    if (!invitation.edit) {
-      promptError('invitation is invalid')
-      return
-    }
-    const editToPost = {}
-    Object.entries(invitation.edit).forEach(([key, value]) => {
-      if (!value.param) return
-      editToPost[key] = edit[key]
+  const deleteOrRestoreNote = (edit, invitation) => {
+    flushSync(() => {
+      setConfirmDeleteModalData({ edit, invitation })
     })
-    editToPost.id = edit.id
-    editToPost.ddate = edit.ddate ? undefined : Date.now()
-    editToPost.invitation = edit.invitation
-    if (signature) editToPost.signatures = [signature]
-    const editNote = {}
-    Object.entries(invitation.edit.note).forEach(([key, value]) => {
-      if (key === 'content' || value?.param) editNote[key] = edit.note[key]
-    })
-    editToPost.note = editNote
-    await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
-    setEditToDeleteRestore(null)
-    loadEdits()
+    $('#confirm-delete-modal').modal('show')
   }
 
   const editEdit = (edit, invitation) => {
@@ -332,15 +223,6 @@ const RevisionsList = ({
   }, [revisions])
 
   useEffect(() => {
-    if (editToDeleteRestore) {
-      $('#confirm-delete-restore-modal').modal({ backdrop: 'static' })
-    } else {
-      $('#confirm-delete-restore-modal').modal('hide')
-      $('.modal-backdrop').remove()
-    }
-  }, [editToDeleteRestore])
-
-  useEffect(() => {
     if (editToChange) {
       $('#update-modal').modal({ backdrop: 'static' })
     } else {
@@ -388,7 +270,9 @@ const RevisionsList = ({
                 <div className="meta_actions">
                   {reference.ddate ? (
                     <RestoreButton
-                      onClick={() => setEditToDeleteRestore({ edit: reference, invitation })}
+                      onClick={() =>
+                        deleteOrRestoreNote(reference, invitation)
+                      }
                       disableButton={!isNoteWritable}
                       disableReason={
                         !isNoteWritable
@@ -415,7 +299,7 @@ const RevisionsList = ({
                         {invitation.edit.ddate && (
                           <TrashButton
                             onClick={() =>
-                              setEditToDeleteRestore({ edit: reference, invitation })
+                              deleteOrRestoreNote(reference, invitation)
                             }
                             disableButton={!isNoteWritable}
                             disableReason={
@@ -437,12 +321,21 @@ const RevisionsList = ({
         </div>
       ))}
 
-      <ConfirmDeleteRestoreModal
-        editInfo={editToDeleteRestore}
-        user={user}
-        accessToken={accessToken}
-        deleteRestoreEdit={deleteRestoreEdit}
-      />
+      {confirmDeleteModalData && (
+        <ConfirmDeleteModal
+          note={confirmDeleteModalData.edit}
+          invitation={confirmDeleteModalData.invitation}
+          updateNote={() => {
+            loadEdits()
+          }}
+          accessToken={accessToken}
+          onClose={() => {
+            $('#confirm-delete-modal').modal('hide')
+            setConfirmDeleteModalData(null)
+          }}
+          isEdit={true}
+        />
+      )}
 
       <UpdateModal
         editInfo={editToChange}

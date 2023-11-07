@@ -1,10 +1,8 @@
-import fetch from 'node-fetch-cjs'
-import { Selector, ClientFunction, Role } from 'testcafe'
+import { Selector, Role } from 'testcafe'
 import { getToken, getNotes, superUserName, strongPassword } from './utils/api-helper'
 
 const titleLabel = Selector('.forum-title h2')
 const authorLabel = Selector('.forum-authors span')
-const signaturesLabel = Selector('.signatures')
 const abstractLabel = Selector('.note-content-value p')
 const emailInput = Selector('#email-input')
 const passwordInput = Selector('#password-input')
@@ -19,7 +17,6 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
     .typeText(passwordInput, strongPassword)
     .click(loginButton)
 })
-
 const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
     .click(Selector('a').withText('Login'))
@@ -27,7 +24,6 @@ const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =
     .typeText(passwordInput, strongPassword)
     .click(loginButton)
 })
-
 const pcRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
     .click(Selector('a').withText('Login'))
@@ -35,7 +31,6 @@ const pcRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
     .typeText(passwordInput, strongPassword)
     .click(loginButton)
 })
-
 const superUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
     .click(Selector('a').withText('Login'))
@@ -80,6 +75,7 @@ test('delete the forum note and restore it', async (t) => {
     2
   )
   const forum = notes[0].id
+
   await t
     .useRole(pcRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
@@ -111,7 +107,6 @@ test('delete the forum note and restore it', async (t) => {
     .notOk()
 })
 
-
 test('delete the forum reply note and restore it', async (t) => {
   const { superUserToken } = t.fixtureCtx
   const notes = await getNotes(
@@ -120,6 +115,7 @@ test('delete the forum reply note and restore it', async (t) => {
     2
   )
   const forum = notes[0].id
+
   await t
     .useRole(testUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)

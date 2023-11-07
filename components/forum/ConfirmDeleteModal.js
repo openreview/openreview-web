@@ -14,36 +14,46 @@ export default function ConfirmDeleteModal({
   accessToken,
   updateNote,
   onClose,
+  isEdit,
 }) {
-  const readersFieldName = 'editReaders'
-  const signaturesFieldName = 'editSignatures'
+  const [editReaders, setEditReaders] = useState({ value: note?.readers })
+  const [editSignatures, setEditSignatures] = useState(null)
+  const [readersError, setReadersError] = useState(null)
+  const [signaturesError, setSignaturesError] = useState(null)
+
   const noteTitle = note?.content?.title?.value ?? note?.generatedTitle ?? 'Untitled'
   const isDeleted = note && note.ddate && note.ddate < Date.now()
   const actionText = isDeleted ? 'Restore' : 'Delete'
 
-  const [noteEditorData, setNoteEditorData] = useState({
-    [readersFieldName]: { value: note.readers },
-  })
-  const [errors, setErrors] = useState([])
-
   const postUpdatedNote = () => {
-    const ddate = isDeleted ? { delete: true } : Date.now()
-    const editSignatureValues = noteEditorData[signaturesFieldName]?.value
-    const editReaderValues = noteEditorData[readersFieldName]?.value
+    // eslint-disable-next-line no-nested-ternary
+    const ddate = isDeleted
+      ? (isEdit ? undefined : { delete: true })
+      : Date.now()
+    const editSignatureValues = editSignatures?.value
+    const editReaderValues = editReaders?.value
     if (!editSignatureValues || !editReaderValues?.length) {
       return
     }
 
-    const editToPost = view2.constructEdit({
-      formData: { editSignatureInputValues: editSignatureValues, editReaderValues },
-      noteObj: { ...note, ddate },
-      invitationObj: invitation,
-    })
+    let editToPost
+    if (isEdit) {
+      editToPost = view2.constructUpdatedEdit({ ...note, ddate }, invitation, {
+        editSignatureInputValues: editSignatureValues,
+        editReaderValues,
+      })
+    } else {
+      editToPost = view2.constructEdit({
+        formData: { editSignatureInputValues: editSignatureValues, editReaderValues },
+        noteObj: { ...note, ddate },
+        invitationObj: invitation,
+      })
+    }
     api
       .post('/notes/edits', editToPost, { accessToken, version: 2 })
-      .then(() =>
+      .then((res) =>
         // the return of the post is an edit not the full note, so get the updated note again
-        api.get('/notes', { id: note.id, trash: !isDeleted }, { accessToken, version: 2 })
+        api.get('/notes', { id: res.note.id, trash: !isDeleted }, { accessToken, version: 2 })
       )
       .then((result) => {
         if (result.notes?.length > 0) {
@@ -62,54 +72,44 @@ export default function ConfirmDeleteModal({
   return (
     <BasicModal
       id="confirm-delete-modal"
-      title={note ? `${actionText} Note` : null}
+      title={note ? `${actionText} ${isEdit ? 'Edit' : 'Note'}` : null}
       primaryButtonText={actionText}
-      primaryButtonDisabled={
-        !noteEditorData[readersFieldName]?.value || !noteEditorData[signaturesFieldName]?.value
-      }
+      primaryButtonDisabled={!editReaders?.value || !editSignatures?.value}
       onPrimaryButtonClick={postUpdatedNote}
       onClose={() => {
         if (typeof onClose === 'function') onClose()
       }}
     >
       <p className="mb-4">
-        Are you sure you want to {actionText.toLowerCase()} the note &quot;{noteTitle}
-        &quot; by {prettyId(note.signatures[0])}? The {actionText.toLowerCase()}d note will be
-        updated with the signature you choose below.
+        Are you sure you want to {actionText.toLowerCase()}{' '}
+        {isEdit ? 'this edit' : `the note "${noteTitle}" by ${prettyId(note.signatures[0])}`}?
+        The {actionText.toLowerCase()}d {isEdit ? 'edit' : 'note'} will be updated with the
+        signature you choose below.
       </p>
 
       <NewReplyEditNoteReaders
         fieldDescription={invitation.edit.readers}
         closeNoteEditor={() => {}}
-        value={noteEditorData[readersFieldName]}
+        value={editReaders}
         onChange={(value) => {
-          if (value) {
-            setNoteEditorData({ ...noteEditorData, [readersFieldName]: { value } })
-          } else {
-            setNoteEditorData({ ...noteEditorData, [readersFieldName]: undefined })
-          }
+          setEditReaders(value ? { value } : null)
         }}
         setLoading={() => {}}
         placeholder="Select edit readers"
-        error={errors.find((e) => e.fieldName === readersFieldName)}
+        error={readersError}
         onError={(errorMessage) => {
-          setErrors((existingErrors) => [
-            ...existingErrors,
-            { fieldName: readersFieldName, message: errorMessage },
-          ])
+          setReadersError({ fieldName: 'editReaders', message: errorMessage })
         }}
-        clearError={() =>
-          setErrors((existingErrors) =>
-            existingErrors.filter((p) => p.fieldName !== readersFieldName)
-          )
-        }
+        clearError={() => {
+          setReadersError(null)
+        }}
         className="note-editor mb-2"
       />
 
       <EditorComponentHeader
         fieldNameOverwrite="Signatures"
         inline={true}
-        error={errors.find((e) => e.fieldName === signaturesFieldName)}
+        error={signaturesError}
         className="note-editor mb-2"
       >
         <Signatures
@@ -117,21 +117,16 @@ export default function ConfirmDeleteModal({
           onChange={(value) => {
             // Ignore loading messages from the signatures component
             if (typeof value.value !== 'undefined') {
-              setNoteEditorData({ ...noteEditorData, [signaturesFieldName]: value })
+              setEditSignatures(value)
             }
           }}
-          currentValue={noteEditorData[signaturesFieldName]}
+          currentValue={editSignatures}
           onError={(errorMessage) => {
-            setErrors((existingErrors) => [
-              ...existingErrors,
-              { fieldName: signaturesFieldName, message: errorMessage },
-            ])
+            setSignaturesError({ fieldName: 'editSignatures', message: errorMessage })
           }}
-          clearError={() =>
-            setErrors((existingErrors) =>
-              existingErrors.filter((p) => p.fieldName !== signaturesFieldName)
-            )
-          }
+          clearError={() => {
+            setSignaturesError(null)
+          }}
         />
       </EditorComponentHeader>
     </BasicModal>
