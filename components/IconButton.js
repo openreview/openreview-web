@@ -23,10 +23,12 @@ const IconButton = ({
 
 // eslint-disable-next-line react/jsx-props-no-spreading
 export const TrashButton = (props) => <IconButton name="trash" {...props} />
+
 // eslint-disable-next-line react/jsx-props-no-spreading
 export const RestoreButton = (props) => (
   <IconButton name="repeat" extraClasses="mirror" {...props} />
 )
+
 // eslint-disable-next-line react/jsx-props-no-spreading
 export const EditButton = (props) => <IconButton name="edit" {...props} />
 

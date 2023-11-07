@@ -1,5 +1,5 @@
 /* globals $, _: false */
-/* globals view, view2, Webfield, Webfield2: false */
+/* globals view, view2: false */
 /* globals marked, DOMPurify, Handlebars: false */
 
 Handlebars.registerHelper('truncate', function (str, len) {

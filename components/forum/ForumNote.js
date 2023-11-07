@@ -1,4 +1,4 @@
-/* globals promptError, view2: false */
+/* globals $, promptError, view2: false */
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -17,7 +17,7 @@ import {
 } from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
 
-function ForumNote({ note, updateNote }) {
+function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
   const { id, content, details, signatures, editInvitations, deleteInvitation } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
@@ -167,15 +167,7 @@ function ForumNote({ note, updateNote }) {
               type="button"
               className="btn btn-xs"
               onClick={() => {
-                view2.deleteOrRestoreNote(
-                  note,
-                  deleteInvitation,
-                  content.title?.value,
-                  user,
-                  (newNote) => {
-                    updateNote(newNote)
-                  }
-                )
+                deleteOrRestoreNote(note, deleteInvitation, updateNote)
               }}
             >
               <Icon
@@ -307,7 +299,9 @@ function ForumMeta({ note }) {
             >
               {note.license}
             </a>
-          ) : note.license}
+          ) : (
+            note.license
+          )}
         </span>
       )}
     </div>
