@@ -100,9 +100,7 @@ const ProfileRelation = ({ relation }) => (
         <span>{relation.name}</span>
       )}
     </div>
-    <div>
-      <small>{relation.email}</small>
-    </div>
+    <div />
     <div>
       <em>
         {relation.start}

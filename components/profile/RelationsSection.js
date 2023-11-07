@@ -17,7 +17,6 @@ const readersType = 'updateReaders'
 const startType = 'updateStart'
 const endType = 'updateEnd'
 const nameType = 'updateName'
-const emailType = 'updateEmail'
 const profileType = 'updateProfile'
 const customProfileType = 'updateCustomProfile'
 const addRelationType = 'addRelation'
@@ -334,12 +333,6 @@ const RelationsSection = ({
         return state.map((p) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) recordCopy.name = action.data.value
-          return recordCopy
-        })
-      case emailType:
-        return state.map((p) => {
-          const recordCopy = { ...p }
-          if (p.key === action.data.key) recordCopy.email = action.data.value
           return recordCopy
         })
       case profileType:
