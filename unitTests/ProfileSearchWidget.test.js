@@ -1677,6 +1677,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
     expect(initialGetProfile).not.toHaveBeenCalled()
   })
 
+  // how many results per page
   test('paginate results based on pageSize prop', async () => {
     const profiles = Array.from(new Array(150), (_, p) => ({
       id: `~search_result${p}`,
@@ -1722,6 +1723,54 @@ describe('ProfileSearchWidget to be used by itself', () => {
     expect(screen.getByRole('link', { name: '~ search _ result 1' })).toBeInTheDocument()
     screen.debug()
     expect(screen.queryByRole('link', { name: '~ search _ result 2' })).not.toBeInTheDocument()
+  })
+
+  // how many pagination link to show
+  test('paginate results based on pageListLength prop', async () => {
+    const profiles = Array.from(new Array(150), (_, p) => ({
+      id: `~search_result${p}`,
+      content: {
+        names: [
+          {
+            fullname: `Result First ${p}`,
+            username: `~search_result${p}`,
+          },
+        ],
+        emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
+      },
+    }))
+    const searchProfile = jest.fn((_, { offset, limit }) =>
+      Promise.resolve({
+        profiles: profiles.slice(offset, offset + limit),
+        count: 150,
+      })
+    )
+    api.get = searchProfile
+    const props = {
+      isEditor: false,
+      searchInputPlaceHolder: 'search relation with name or email',
+      pageSize: 2,
+      pageListLength: 12,
+    }
+
+    render(<ProfileSearchWidget {...props} />)
+
+    await userEvent.type(
+      screen.getByPlaceholderText(props.searchInputPlaceHolder),
+      'search text'
+    )
+    await userEvent.click(screen.getByText('Search'))
+
+    expect(searchProfile).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' }),
+      expect.anything()
+    )
+
+    expect(screen.getByRole('navigation')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '8' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '9' })).not.toBeInTheDocument()
   })
 
   test('show text based on fieldName', async () => {
@@ -1894,5 +1943,19 @@ describe('ProfileSearchWidget to be used by itself', () => {
       'test@email.nomatch',
       undefined
     )
+  })
+
+  test('allow consumer to provide a custom search form', () => {
+    const props = {
+      isEditor: false,
+      searchInputPlaceHolder: 'search relation with name or email',
+      pageSize: 2,
+      field: { relation: '' },
+      CustomProfileSearchForm: () => <div>custom search form</div>,
+    }
+
+    render(<ProfileSearchWidget {...props} />)
+    expect(screen.getByText('custom search form')).toBeInTheDocument()
+    expect(screen.queryByText(props.searchInputPlaceHolder)).not.toBeInTheDocument() // default form not shown
   })
 })
