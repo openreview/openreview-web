@@ -24,13 +24,14 @@ export default function ConfirmDeleteModal({
 
   const noteTitle = note?.content?.title?.value ?? note?.generatedTitle ?? 'Untitled'
   const isDeleted = note && note.ddate && note.ddate < Date.now()
+  const hasConstReaders =
+    Array.isArray(invitation.edit.readers) || invitation.edit.readers.param?.const
   const actionText = isDeleted ? 'Restore' : 'Delete'
+  const actionTextLower = actionText.toLowerCase()
 
   const postUpdatedNote = () => {
     // eslint-disable-next-line no-nested-ternary
-    const ddate = isDeleted
-      ? (isEdit ? undefined : { delete: true })
-      : Date.now()
+    const ddate = isDeleted ? (isEdit ? undefined : { delete: true }) : Date.now()
     const editSignatureValues = editSignatures?.value
     const editReaderValues = editReaders?.value
     if (!editSignatureValues || !editReaderValues?.length) {
@@ -83,30 +84,32 @@ export default function ConfirmDeleteModal({
       }}
     >
       <p className="mb-4">
-        Are you sure you want to {actionText.toLowerCase()}{' '}
+        Are you sure you want to {actionTextLower}{' '}
         {isEdit ? 'this edit' : `the note "${noteTitle}" by ${prettyId(note.signatures[0])}`}?
-        The {actionText.toLowerCase()}d {isEdit ? 'edit' : 'note'} will be updated with the
-        signature you choose below.
+        The {isEdit ? 'edit' : `${actionTextLower}d note`} will be updated with the signature
+        you choose below.
       </p>
 
-      <NewReplyEditNoteReaders
-        fieldDescription={invitation.edit.readers}
-        closeNoteEditor={() => {}}
-        value={editReaders}
-        onChange={(value) => {
-          setEditReaders(value ? { value } : null)
-        }}
-        setLoading={() => {}}
-        placeholder="Select edit readers"
-        error={readersError}
-        onError={(errorMessage) => {
-          setReadersError({ fieldName: 'editReaders', message: errorMessage })
-        }}
-        clearError={() => {
-          setReadersError(null)
-        }}
-        className="note-editor mb-2"
-      />
+      {!hasConstReaders && (
+        <NewReplyEditNoteReaders
+          fieldDescription={invitation.edit.readers}
+          closeNoteEditor={() => {}}
+          value={editReaders}
+          onChange={(value) => {
+            setEditReaders(value ? { value } : null)
+          }}
+          setLoading={() => {}}
+          placeholder="Select edit readers"
+          error={readersError}
+          onError={(errorMessage) => {
+            setReadersError({ fieldName: 'editReaders', message: errorMessage })
+          }}
+          clearError={() => {
+            setReadersError(null)
+          }}
+          className="note-editor mb-2"
+        />
+      )}
 
       <EditorComponentHeader
         fieldNameOverwrite="Signatures"

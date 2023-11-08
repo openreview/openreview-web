@@ -31,30 +31,30 @@ const pcRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
     .typeText(passwordInput, strongPassword)
     .click(loginButton)
 })
-const superUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
-  await t
-    .click(Selector('a').withText('Login'))
-    .typeText(emailInput, 'openreview.net')
-    .typeText(passwordInput, strongPassword)
-    .click(loginButton)
-})
 
 fixture`Forum page`.page`http://localhost:${process.env.NEXT_PORT}`.before(async (ctx) => {
-  ctx.superUserToken = await getToken(superUserName, strongPassword)
-  return ctx
-})
-
-test('show a valid forum', async (t) => {
-  const { superUserToken } = t.fixtureCtx
+  const superUserToken = await getToken(superUserName, strongPassword)
   const notes = await getNotes(
     { invitation: 'TestVenue/2023/Conference/-/Submission' },
     superUserToken,
     2
   )
-  const forum = notes[0].id
+  ctx.forumId = notes[0].id
+
+  const replyNotes = await getNotes(
+    { invitation: 'TestVenue/2023/Conference/-/Official_Review' },
+    superUserToken,
+    2
+  )
+  ctx.reviewId = notes[0].id
+  return ctx
+})
+
+test('show a valid forum', async (t) => {
+  const { forumId } = t.fixtureCtx
   await t
     .useRole(authorRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forumId}`)
     .expect(container.exists)
     .ok()
     .expect(Selector('.forum-note').exists)
@@ -68,17 +68,11 @@ test('show a valid forum', async (t) => {
 })
 
 test('delete the forum note and restore it', async (t) => {
-  const { superUserToken } = t.fixtureCtx
-  const notes = await getNotes(
-    { invitation: 'TestVenue/2023/Conference/-/Submission' },
-    superUserToken,
-    2
-  )
-  const forum = notes[0].id
+  const { forumId } = t.fixtureCtx
 
   await t
     .useRole(pcRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forumId}`)
     .expect(container.exists)
     .ok()
     .expect(Selector('.forum-note').exists)
@@ -108,17 +102,11 @@ test('delete the forum note and restore it', async (t) => {
 })
 
 test('delete the forum reply note and restore it', async (t) => {
-  const { superUserToken } = t.fixtureCtx
-  const notes = await getNotes(
-    { invitation: 'TestVenue/2023/Conference/-/Submission' },
-    superUserToken,
-    2
-  )
-  const forum = notes[0].id
+  const { forumId } = t.fixtureCtx
 
   await t
     .useRole(testUserRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forum}`)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forumId}`)
     .expect(container.exists)
     .ok()
     .expect(Selector('#forum-replies').exists)
@@ -143,5 +131,32 @@ test('delete the forum reply note and restore it', async (t) => {
     .notOk()
 })
 
+test('delete and restore an edit on the revisions page', async (t) => {
+  const { reviewId } = t.fixtureCtx
 
-
+  await t
+    .useRole(testUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/revisions?id=${reviewId}`)
+    .expect(Selector('.references-list').exists)
+    .ok()
+    .expect(Selector('.references-list > div').count)
+    .eql(3)
+    .expect(Selector('.references-list > div').nth(0).find('.edit > h4').textContent)
+    .contains('Official Review Edit of Submission1 by Reviewer')
+    .click(Selector('.references-list > div').nth(0).find('.meta-actions > button').nth(1))
+    .expect(confirmDeleteModal.exists)
+    .ok()
+    .click(confirmDeleteModal.find('.modal-footer > button').withText('Delete'))
+    .expect(confirmDeleteModal.exists)
+    .notOk()
+    .expect(Selector('.references-list > div').nth(0).find('.edit').hasClass('edit-trashed'))
+    .ok()
+    .click(Selector('.references-list > div').nth(0).find('.meta-actions > button').nth(0))
+    .expect(confirmDeleteModal.exists)
+    .ok()
+    .click(confirmDeleteModal.find('.modal-footer > button').withText('Restore'))
+    .expect(confirmDeleteModal.exists)
+    .notOk()
+    .expect(Selector('.references-list > div').nth(0).find('.edit').hasClass('edit-trashed'))
+    .notOk()
+})

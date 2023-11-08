@@ -2388,20 +2388,22 @@ module.exports = (function () {
   const constructUpdatedEdit = (edit, invitation, formContent) => {
     const shouldSetValue = (fieldPath) => {
       const field = _.get(invitation, fieldPath)
-      return field && field.param
+      return field && field.param && !field.param.const
     }
 
     const editToPost = {}
     Object.keys(invitation.edit).forEach((p) => {
-      editToPost[p] = edit[p]
+      if (invitation.edit[p].param && !invitation.edit[p].param.const && edit[p]) {
+        editToPost[p] = edit[p]
+      }
     })
     editToPost.id = edit.id
     editToPost.invitation = edit.invitation
     if (shouldSetValue('edit.readers')) {
-      editToPost.readers = formContent.editReaderValues
+      editToPost.readers = formContent.editReaderValues ?? edit.readers
     }
     if (shouldSetValue('edit.signatures')) {
-      editToPost.signatures = formContent.editSignatureInputValues
+      editToPost.signatures = formContent.editSignatureInputValues ?? edit.signatures
     }
 
     const editNote = {}
