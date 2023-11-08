@@ -183,6 +183,50 @@ describe('TextboxWidget', () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
+  test('show value of differernt type correctly editing existing note (integer)', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          year: {
+            value: {
+              param: { type: 'integer' },
+            },
+          },
+        },
+        value: 2023,
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 2023 }))
+    expect(screen.getByDisplayValue('2023')).toBeInTheDocument()
+  })
+
+  test('show value of differernt type correctly editing existing note (integer[])', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          year: {
+            value: {
+              param: { type: 'integer[]' },
+            },
+          },
+        },
+        value: [2023, 2024, 2025],
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: [2023, 2024, 2025] })
+    )
+    expect(screen.getByDisplayValue('2023,2024,2025')).toBeInTheDocument()
+  })
+
   test("don't show default value or invoke onChange editing existing note (array field)", () => {
     const onChange = jest.fn()
     const defaultValue = ['keyword one', 'keyword two', 'keyword three']
