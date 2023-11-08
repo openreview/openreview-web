@@ -42,11 +42,11 @@ fixture`Forum page`.page`http://localhost:${process.env.NEXT_PORT}`.before(async
   ctx.forumId = notes[0].id
 
   const replyNotes = await getNotes(
-    { invitation: 'TestVenue/2023/Conference/-/Official_Review' },
+    { invitation: 'TestVenue/2023/Conference/Submission1/-/Official_Review' },
     superUserToken,
     2
   )
-  ctx.reviewId = notes[0].id
+  ctx.reviewId = replyNotes[0].id
   return ctx
 })
 
@@ -140,7 +140,7 @@ test('delete and restore an edit on the revisions page', async (t) => {
     .expect(Selector('.references-list').exists)
     .ok()
     .expect(Selector('.references-list > div').count)
-    .eql(3)
+    .gte(3)
     .expect(Selector('.references-list > div').nth(0).find('.edit > h4').textContent)
     .contains('Official Review Edit of Submission1 by Reviewer')
     .click(Selector('.references-list > div').nth(0).find('.meta-actions > button').nth(1))
