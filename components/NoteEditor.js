@@ -315,10 +315,7 @@ const NoteEditor = ({
     if (!readersSelected) return undefined
     if (signatureInputValues?.length && !readersSelected.includes('everyone')) {
       const signatureId = signatureInputValues[0]
-      const anonReviewerIndex = Math.max(
-        signatureId.indexOf('AnonReviewer'),
-        signatureId.indexOf('Reviewer_')
-      )
+      const anonReviewerIndex = signatureId.indexOf('Reviewer_')
       if (anonReviewerIndex > 0) {
         const reviewersSubmittedGroupId = signatureId
           .slice(0, anonReviewerIndex)
@@ -334,7 +331,12 @@ const NoteEditor = ({
             ])
           )
         ) {
-          if (readersDefinedInInvitation?.includes(signatureId)) {
+          if (
+            readersDefinedInInvitation?.includes(signatureId) ||
+            readersDefinedInInvitation?.some(
+              (p) => p.endsWith('.*') && signatureId.startsWith(p.slice(0, -2))
+            )
+          ) {
             return [...readersSelected, signatureId]
           }
           if (readersDefinedInInvitation?.includes(reviewersSubmittedGroupId)) {
@@ -345,10 +347,8 @@ const NoteEditor = ({
           }
         }
       } else {
-        const acIndex = Math.max(
-          signatureId.indexOf('Area_Chair1'),
-          signatureId.indexOf('Area_Chair_')
-        )
+        const acIndex = signatureId.indexOf('Area_Chair_')
+
         const acGroupId =
           acIndex >= 0 ? signatureId.slice(0, acIndex).concat('Area_Chairs') : signatureId
 
@@ -372,20 +372,31 @@ const NoteEditor = ({
       ? noteEditorData.editSignatureInputValues
       : noteEditorData.noteSignatureInputValues
 
+    const invitationNoteReaderValues =
+      invitation.edit.note.readers?.param?.enum ??
+      invitation.edit.note.readers?.param?.items?.map(
+        (p) => p.value ?? (p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`)
+      )
+
     return addMissingReaders(
       noteEditorData.noteReaderValues,
-      invitation.edit.note.readers?.param?.enum ??
-        invitation.edit.note.readers?.param?.items?.map((p) => p.value), // prefix values are not used
+      invitationNoteReaderValues,
       signatureInputValues
     )
   }
 
   const getEditReaderValues = () => {
     if (Array.isArray(invitation.edit.readers)) return undefined
+
+    const invitationEditReaderValues =
+      invitation.edit.readers?.param?.enum ??
+      invitation.edit.readers?.param?.items?.map((p) =>
+        p.value ?? p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
+      )
+
     return addMissingReaders(
       noteEditorData.editReaderValues,
-      invitation.edit.readers?.param?.enum ??
-        invitation.edit.readers?.param?.items?.map((p) => p.value),
+      invitationEditReaderValues,
       noteEditorData.editSignatureInputValues
     )
   }

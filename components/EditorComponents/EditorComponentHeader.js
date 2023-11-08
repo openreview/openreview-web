@@ -10,6 +10,7 @@ const EditorComponentHeader = ({
   inline = false,
   fieldNameOverwrite,
   error: propsError,
+  className,
   children,
 }) => {
   const editorComponentContext = useContext(EditorComponentContext)
@@ -23,11 +24,12 @@ const EditorComponentHeader = ({
   const { optional, deletable, scroll, hidden } = field[fieldName].value?.param ?? {}
 
   return (
-    <div className={classNames(hidden ? 'hidden' : '', inline ? styles.inline : '')}>
+    <div className={classNames(hidden ? 'hidden' : '', inline ? styles.inline : '', className)}>
       <h5 className={styles.title}>
         {fieldNameOverwrite ?? prettyField(fieldName)}
         {!optional && !deletable && <span className={styles.requiredField}>*</span>}
       </h5>
+
       <div className={styles.content}>
         {description && (
           <div className={styles.description}>

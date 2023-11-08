@@ -11,7 +11,7 @@ import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
 import ForumReplyContext from './ForumReplyContext'
 import Icon from '../Icon'
-import useUser from '../../hooks/useUser'
+import { getInvitationColors } from '../../lib/forum-utils'
 import {
   prettyId,
   prettyInvitationId,
@@ -19,7 +19,6 @@ import {
   buildNoteTitle,
   useNewNoteEditor,
 } from '../../lib/utils'
-import { getInvitationColors } from '../../lib/forum-utils'
 
 export default function ForumReply({
   note,
@@ -27,13 +26,13 @@ export default function ForumReply({
   replyDepth,
   parentNote,
   updateNote,
+  deleteOrRestoreNote,
   isDirectReplyToForum,
 }) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
   const { displayOptionsMap, nesting, excludedInvitations, setCollapsed, setContentExpanded } =
     useContext(ForumReplyContext)
-  const { user } = useUser()
   const newNoteEditor = useNewNoteEditor(
     activeInvitation?.domain || activeEditInvitation?.domain
   )
@@ -107,6 +106,7 @@ export default function ForumReply({
             replyDepth={replyDepth + 1}
             parentNote={note}
             updateNote={updateNote}
+            deleteOrRestoreNote={deleteOrRestoreNote}
           />
         )}
       </ReplyContainer>
@@ -170,6 +170,7 @@ export default function ForumReply({
               replyDepth={replyDepth + 1}
               parentNote={note}
               updateNote={updateNote}
+              deleteOrRestoreNote={deleteOrRestoreNote}
             />
           </>
         )}
@@ -250,16 +251,7 @@ export default function ForumReply({
             type="button"
             className="btn btn-xs"
             onClick={() => {
-              view2.deleteOrRestoreNote(
-                note,
-                note.deleteInvitation,
-                content.title?.value ? content.title.value : note.generatedTitle,
-                user,
-                (newNote) => {
-                  updateNote(newNote)
-                  scrollToNote(newNote.id)
-                }
-              )
+              deleteOrRestoreNote(note, note.deleteInvitation, updateNote)
             }}
           >
             <Icon name={ddate ? 'repeat' : 'trash'} />
@@ -406,7 +398,7 @@ export default function ForumReply({
                 setActiveInvitation(null)
                 scrollToNote(newNote.id)
               }}
-              isDirectReplyToForum={isDirectReplyToForum}
+              isDirectReplyToForum={false} // reply to direct reply
             />
           ) : (
             <NoteEditorForm
@@ -441,6 +433,7 @@ export default function ForumReply({
           replyDepth={replyDepth + 1}
           parentNote={note}
           updateNote={updateNote}
+          deleteOrRestoreNote={deleteOrRestoreNote}
         />
       )}
     </ReplyContainer>
@@ -570,7 +563,7 @@ function NoteContentCollapsible({
   )
 }
 
-function NoteReplies({ replies, replyDepth, parentNote, updateNote }) {
+function NoteReplies({ replies, replyDepth, parentNote, updateNote, deleteOrRestoreNote }) {
   const { replyNoteMap } = useContext(ForumReplyContext)
 
   if (!replies?.length) return null
@@ -585,6 +578,8 @@ function NoteReplies({ replies, replyDepth, parentNote, updateNote }) {
           parentNote={parentNote}
           replies={childNote.replies ?? []}
           updateNote={updateNote}
+          deleteOrRestoreNote={deleteOrRestoreNote}
+          isDirectReplyToForum={false}
         />
       ))}
     </div>

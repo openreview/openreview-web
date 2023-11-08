@@ -148,6 +148,10 @@ export function createNote(jsonToPost, userToken) {
   return api.post('/notes', jsonToPost, { accessToken: userToken, version: 1 })
 }
 
+export function createNoteEdit(jsonToPost, userToken) {
+  return api.post('/notes/edits', jsonToPost, { accessToken: userToken, version: 2 })
+}
+
 export function sendFile(data, userToken) {
   return api.put('/attachment', data, { accessToken: userToken, contentType: 'unset', version: 1 })
 }
@@ -156,7 +160,21 @@ export function getToken(id, password) {
   return api.post('/login', { id, password }).then((apiRes) => apiRes.token)
 }
 
-export function addMembersToGroup(groupId, membersList, userToken) {
+export function addMembersToGroup(groupId, membersList, userToken, version) {
+  if (version === 2) {
+    return api.post(
+      '/groups/edits',
+      {
+        invitation: 'openreview.net/-/Edit',
+        signatures: ['~Super_User1'],
+        group: {
+          id: groupId,
+          members: { 'append': membersList }
+        }
+      },
+      { accessToken: userToken, version }
+    )
+  }
   return api.put(
     '/groups/members',
     { id: groupId, members: membersList },
@@ -322,8 +340,12 @@ export function getMessages(params, token) {
   return api.get('/messages', params, { accessToken: token }).then((result) => result.messages)
 }
 
-export function getNotes(params, token) {
-  return api.get('/notes', params, { accessToken: token, version: 1 }).then((result) => result.notes)
+export function getNotes(params, token, version = 1) {
+  return api.get('/notes', params, { accessToken: token, version }).then((result) => result.notes)
+}
+
+export function getGroups(params, token, version = 1) {
+  return api.get('/groups', params, { accessToken: token, version }).then((result) => result.groups)
 }
 
 export function getReferences(params, token) {

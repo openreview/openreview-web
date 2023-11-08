@@ -112,6 +112,17 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
   const { details } = note
   const { content = {} } = note.note
 
+  let actionDescription
+  if (details.isDeleted) {
+    actionDescription = 'deleted a'
+  } else if (details.isRestored) {
+    actionDescription = 'restored a'
+  } else if (details.isUpdated) {
+    actionDescription = 'edited a'
+  } else {
+    actionDescription = 'added a new'
+  }
+
   const readersFiltered = note.readers?.includes('everyone')
     ? ['Everyone']
     : without(
@@ -129,7 +140,7 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
           <span className={details.userIsSignatory ? '' : 'sig'}>
             {details.formattedSignature}
           </span>
-          {` added a ${prettyInvitationId(note.invitation)} edit`}
+          {` ${actionDescription} a ${prettyInvitationId(note.invitation)} edit`}
           {showGroup && (
             <>
               {' to '}
@@ -168,7 +179,7 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
             </Link>
           </h4>
 
-          {details.isForum && (
+          {content.authors && content.authorids && (
             <div className="note-authors">
               <NoteAuthorsV2
                 authors={content.authors}
@@ -183,12 +194,14 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
         {showActionButtons && details.writable && <div className="activity-actions"></div>}
       </div>
 
-      {details.isForum ? (
-        <Collapse showLabel="Show details" hideLabel="Hide details" indent>
+      {!details.isDeleted && (
+        details.isForum ? (
+          <Collapse showLabel="Show details" hideLabel="Hide details" indent>
+            <NoteContentV2 id={note.id} content={content} invitation={details.invitation} />
+          </Collapse>
+        ) : (
           <NoteContentV2 id={note.id} content={content} invitation={details.invitation} />
-        </Collapse>
-      ) : (
-        <NoteContentV2 id={note.id} content={content} invitation={details.invitation} />
+        )
       )}
     </div>
   )

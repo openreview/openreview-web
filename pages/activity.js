@@ -1,5 +1,4 @@
 /* globals $: false */
-/* globals Webfield, Webfield2: false */
 /* globals typesetMathJax: false */
 
 import { useState, useEffect } from 'react'

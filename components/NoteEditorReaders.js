@@ -44,7 +44,6 @@ export const NewNoteReaders = ({
         orderAdjustedGroups.map((p) => ({
           label: prettyId(p.id),
           value: p.id,
-          optional: true,
         }))
       )
     } catch (apiError) {
@@ -62,7 +61,6 @@ export const NewNoteReaders = ({
         ? fieldDescription.param.enum.map((p) => ({
             [p.includes('.*') ? 'prefix' : 'value']: p,
             description: p,
-            optional: true,
           }))
         : fieldDescription.param.items
       const optionsP = enumItemsConfigOptions.map((p) =>
@@ -73,7 +71,6 @@ export const NewNoteReaders = ({
                 result.groups.map((q) => ({
                   value: q.id,
                   description: prettyId(q.id, false),
-                  optional: p.optional,
                 }))
               )
           : Promise.resolve([
@@ -88,7 +85,6 @@ export const NewNoteReaders = ({
       )
       const groupResults = await Promise.all(optionsP)
       let options
-      let mandatoryValues
       let defaultValues
       switch (groupResults.flat().length) {
         case 0:
@@ -102,13 +98,11 @@ export const NewNoteReaders = ({
           options = groupResults.flat().map((p) => ({
             label: p.description,
             value: p.value,
-            optional: p.optional,
           }))
-          mandatoryValues = options.flatMap((p) => (p.optional === false ? p.value : [])) ?? []
           defaultValues = fieldDescription?.param?.default ?? []
 
-          if (!value && (defaultValues?.length || mandatoryValues?.length)) {
-            onChange([...new Set([...defaultValues, ...mandatoryValues])])
+          if (!value && defaultValues?.length) {
+            onChange([...new Set([...defaultValues])])
           }
           setReaderOptions(options)
       }
@@ -119,9 +113,8 @@ export const NewNoteReaders = ({
     setLoading((loading) => ({ ...loading, fieldName: false }))
   }
 
-  const dropdownChangeHandler = (selectedOptions, actionMeta) => {
+  const dropdownChangeHandler = (_, actionMeta) => {
     let updatedValue
-    let mandatoryValues
     clearError?.()
     switch (actionMeta.action) {
       case 'select-option':
@@ -129,14 +122,11 @@ export const NewNoteReaders = ({
         onChange(updatedValue)
         break
       case 'remove-value':
-        if (actionMeta.removedValue.optional) {
-          updatedValue = value.filter((p) => p !== actionMeta.removedValue.value)
-          onChange(updatedValue.length ? updatedValue : undefined)
-        }
+        updatedValue = value.filter((p) => p !== actionMeta.removedValue.value)
+        onChange(updatedValue.length ? updatedValue : undefined)
         break
       case 'clear':
-        mandatoryValues = readerOptions.flatMap((p) => (p.optional === true ? [] : p.value))
-        onChange(mandatoryValues.length ? mandatoryValues : undefined)
+        onChange(undefined)
         break
       default:
         break
@@ -206,7 +196,9 @@ export const NewReplyEditNoteReaders = ({
   isDirectReplyToForum,
   placeholder,
   error,
+  onError,
   clearError,
+  className,
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
@@ -257,7 +249,11 @@ export const NewReplyEditNoteReaders = ({
         orderAdjustedGroups.map((p) => ({ label: prettyId(p.id), value: p.id }))
       )
     } catch (apiError) {
-      promptError(apiError.message)
+      if (typeof onError === 'function') {
+        onError(apiError.message)
+      } else {
+        promptError(apiError.message)
+      }
       closeNoteEditor()
     }
     setLoading((loading) => ({ ...loading, fieldName: false }))
@@ -270,7 +266,6 @@ export const NewReplyEditNoteReaders = ({
         ? fieldDescription.param.enum.map((p) => ({
             [p.includes('.*') ? 'prefix' : 'value']: p,
             description: p,
-            optional: true,
           }))
         : fieldDescription.param.items
       const optionsP = enumItemsConfigOptions.map((p) =>
@@ -281,7 +276,6 @@ export const NewReplyEditNoteReaders = ({
                 result.groups.map((q) => ({
                   value: q.id,
                   description: prettyId(q.id, false),
-                  optional: p.optional,
                 }))
               )
           : Promise.resolve([
@@ -302,8 +296,8 @@ export const NewReplyEditNoteReaders = ({
       )
 
       let options
-      let mandatoryValues
       let defaultValues
+      let parentReadersToAutoSelect
       switch (groupResults.flat().length) {
         case 0:
           throw new Error('You do not have permission to create a note')
@@ -337,20 +331,24 @@ export const NewReplyEditNoteReaders = ({
           options = optionWithParentReaders.map((p) => ({
             label: p.description,
             value: p.value,
-            optional: p.optional,
           }))
-          mandatoryValues =
-            groupResults.flat().flatMap((p) => (p.optional === false ? p.value : [])) ?? []
+          parentReadersToAutoSelect = isDirectReplyToForum
+            ? []
+            : replyToNote?.readers?.filter((p) =>
+                optionWithParentReaders.find((q) => q.value === p)
+              ) ?? []
           defaultValues = fieldDescription?.param?.default ?? []
 
-          if (value && mandatoryValues.length)
-            onChange([...new Set([...value, ...mandatoryValues])])
-          if (!value && (defaultValues.length || mandatoryValues.length))
-            onChange([...new Set([...defaultValues, ...mandatoryValues])])
+          if (!value && (defaultValues.length || parentReadersToAutoSelect.length))
+            onChange([...new Set([...defaultValues, ...parentReadersToAutoSelect])])
           setReaderOptions(options)
       }
     } catch (apiError) {
-      promptError(apiError.message)
+      if (typeof onError === 'function') {
+        onError(apiError.message)
+      } else {
+        promptError(apiError.message)
+      }
       closeNoteEditor()
     }
     setLoading((loading) => ({ ...loading, fieldName: false }))
@@ -361,6 +359,7 @@ export const NewReplyEditNoteReaders = ({
     return replyReaders.every((p) => {
       if (parentReaders.includes(p)) return true
       if (p.includes('/Reviewer_')) return parentReaders.find((q) => q.includes('/Reviewers'))
+      if (p.includes('/signatures')) return true
       return false
     })
   }
@@ -388,29 +387,31 @@ export const NewReplyEditNoteReaders = ({
     if (isDirectReplyToForum || isEqualOrSubset(replyReaders, parentReaders)) {
       setReaderOptions(replyReaders)
     } else {
-      promptError('Can not create note, readers must match parent note')
+      const errorMessage = 'Can not create note, readers must match parent note'
+      if (typeof onError === 'function') {
+        onError(errorMessage)
+      } else {
+        promptError(errorMessage)
+      }
       closeNoteEditor()
     }
   }
 
-  const dropdownChangeHandler = (selectedOptions, actionMeta) => {
+  const dropdownChangeHandler = (_, actionMeta) => {
+    if (typeof clearError === 'function') clearError()
+
     let updatedValue
-    let mandatoryValues
-    clearError?.()
     switch (actionMeta.action) {
       case 'select-option':
         updatedValue = (value ?? []).concat(actionMeta.option.value)
         onChange(updatedValue)
         break
       case 'remove-value':
-        if (actionMeta.removedValue.optional) {
-          updatedValue = value.filter((p) => p !== actionMeta.removedValue.value)
-          onChange(updatedValue.length ? updatedValue : undefined)
-        }
+        updatedValue = value.filter((p) => p !== actionMeta.removedValue.value)
+        onChange(updatedValue.length ? updatedValue : undefined)
         break
       case 'clear':
-        mandatoryValues = readerOptions.flatMap((p) => (p.optional === true ? [] : p.value))
-        onChange(mandatoryValues.length ? mandatoryValues : undefined)
+        onChange(undefined)
         break
       default:
         break
@@ -462,7 +463,12 @@ export const NewReplyEditNoteReaders = ({
   if (!user || !fieldDescription) return null
 
   return (
-    <EditorComponentHeader fieldNameOverwrite="Readers" inline={true} error={error}>
+    <EditorComponentHeader
+      fieldNameOverwrite="Readers"
+      inline={true}
+      error={error}
+      className={className}
+    >
       {renderReaders()}
     </EditorComponentHeader>
   )
