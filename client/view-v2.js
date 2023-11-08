@@ -2393,7 +2393,7 @@ module.exports = (function () {
 
     const editToPost = {}
     Object.keys(invitation.edit).forEach((p) => {
-      if (invitation.edit[p].param && !invitation.edit[p].param.const && edit[p]) {
+      if (shouldSetValue(`edit.${p}`) && edit[p]) {
         editToPost[p] = edit[p]
       }
     })
