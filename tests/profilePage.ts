@@ -270,14 +270,14 @@ test('add relation', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .expect(firstRelationRow.find('a').withAttribute('href', '/profile?id=~FirstA_LastA1').textContent).eql('FirstA LastA')
     .expect(secondRelationRow.find('span').withText('Some Relation Name').exists).ok()
-    .expect(secondRelationRow.find('span').withText('<test@relations.test>').exists).ok()
+    .expect(secondRelationRow.find('span').withText('<test@relation.test>').exists).ok()
     // clear value
     .click(firstRelationRow.find('.glyphicon-edit'))
     .expect(firstRelationRow.find('input.search-input').withAttribute('placeholder', 'search relation with name or email').exists).ok()
     .click(secondRelationRow.find('.glyphicon-edit'))
     .expect(secondRelationRow.find('input.search-input').withAttribute('placeholder', 'search relation with name or email').exists).ok()
-    .click(secondRelationRow.find('.glyphicon-remove'))
-    .click(firstRelationRow.find('.glyphicon-remove'))
+    .click(firstRelationRow.find('.glyphicon-minus-sign'))
+    .click(firstRelationRow.find('.glyphicon-minus-sign')) // second row becomes first row
     .click(saveProfileButton)
 })
 
