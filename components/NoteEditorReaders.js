@@ -359,6 +359,7 @@ export const NewReplyEditNoteReaders = ({
     return replyReaders.every((p) => {
       if (parentReaders.includes(p)) return true
       if (p.includes('/Reviewer_')) return parentReaders.find((q) => q.includes('/Reviewers'))
+      if (p.includes('/signatures')) return true
       return false
     })
   }
