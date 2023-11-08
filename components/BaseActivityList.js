@@ -20,7 +20,8 @@ export default function BaseActivityList({
 
     notes.forEach((note) => {
       // API v2 uses edits for activity list, which may not include a forum id
-      const { forum, id } = note.apiVersion === 2 ? note.note : note
+      const { forum, id, ddate } = note.apiVersion === 2 ? note.note : note
+      const modifiedDate = note.mdate ?? note.tmdate
 
       const noteAuthors = note.tauthor ? [note.tauthor] : note.signatures
       const userIds = user?.profile.emails.concat(user.profile.usernames, user.id) ?? []
@@ -42,8 +43,9 @@ export default function BaseActivityList({
         details: {
           ...note.details,
           group: note.invitation.split('/-/')[0],
-          isDeleted: note.ddate && note.ddate < Date.now(),
-          isUpdated: note.tmdate > note.tcdate,
+          isDeleted: ddate && ddate < Date.now(),
+          isRestored: ddate && ddate.delete === true,
+          isUpdated: modifiedDate > note.tcdate,
           isForum: forum === id,
           userIsSignatory,
           formattedSignature,

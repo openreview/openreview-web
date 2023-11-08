@@ -1,5 +1,5 @@
 /* globals $, jQuery, _: false */
-/* globals view, Webfield, Webfield2: false */
+/* globals view, Webfield: false */
 /* globals promptError, typesetMathJax: false */
 /* globals marked, DOMPurify, MathJax, Handlebars, nanoid: false */
 
