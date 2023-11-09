@@ -15,7 +15,7 @@ const confirmDeleteModal = Selector('#confirm-delete-modal')
 const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
     .click(Selector('a').withText('Login'))
-    .typeText(emailInput, 'fakeemail@mail.com')
+    .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
     .click(loginButton)
 })
