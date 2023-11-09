@@ -16,10 +16,10 @@ const johnRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => 
     .click(loginButton)
 })
 
-const testRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
+const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
     .click(Selector('a').withText('Login'))
-    .typeText(emailInput, 'fakeemail@mail.com')
+    .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
     .click(loginButton)
 })
@@ -49,7 +49,7 @@ test('guest user should be redirected to login page and get a forbidden', async 
   await t
     .expect(getPageUrl())
     .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
-    .typeText(emailInput, 'fakeemail@mail.com')
+    .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
     .click(loginButton)
     .expect(content.exists)
@@ -76,7 +76,7 @@ test('logged user should access to the group', async (t) => {
 
 test('logged user should get a forbidden error', async (t) => {
   await t
-    .useRole(testRole)
+    .useRole(testUserRole)
     .navigateTo(
       `http://localhost:${process.env.NEXT_PORT}/group?id=ICLR.cc/2021/Conference/Program_Chairs`
     )

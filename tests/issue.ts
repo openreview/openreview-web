@@ -16,7 +16,7 @@ test('user not redirected to group page', async (t) => {
     .click(Selector('section#active-venues a'))
     .click(openreviewLogo)
     .click(loginLink)
-    .typeText('#email-input', 'fakeemail@mail.com')
+    .typeText('#email-input', 'test@mail.com')
     .typeText('#password-input', strongPassword)
     .click(loginButton)
     .expect(getLocation())
@@ -38,7 +38,7 @@ routesToSkipRedirection.forEach((route) => {
     await t
       .navigateTo(`${homepageUrl}${route}`)
       .click(loginLink)
-      .typeText('#email-input', 'fakeemail@mail.com')
+      .typeText('#email-input', 'test@mail.com')
       .typeText('#password-input', strongPassword)
       .click(loginButton)
       .expect(getLocation())
