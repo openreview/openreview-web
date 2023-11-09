@@ -66,7 +66,7 @@ const CheckboxWidget = ({
       } else {
         const option = enumValues[0]
         const optionValue = typeof option === 'object' ? option.value : option
-        const optionlabel = typeof option === 'object' ? option.label : option
+        const optionlabel = typeof option === 'object' ? option.description : option
         options = [{ value: optionValue, label: optionlabel, optional: true }]
       }
       setCheckboxOptions(options)

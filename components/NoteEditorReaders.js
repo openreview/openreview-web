@@ -19,11 +19,11 @@ export const NewNoteReaders = ({
   placeholder,
   error,
   clearError,
+  useCheckboxWidget,
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
   const { user, accessToken } = useUser()
-  const useCheckboxWidget = true
 
   const getRegexReaders = async () => {
     setLoading((loading) => ({ ...loading, fieldName: true }))
@@ -224,11 +224,11 @@ export const NewReplyEditNoteReaders = ({
   onError,
   clearError,
   className,
+  useCheckboxWidget,
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
   const { user, accessToken } = useUser()
-  const useCheckboxWidget = true
 
   const addEnumParentReaders = (groupResults, parentReaders) => {
     if (!parentReaders?.length || parentReaders.includes('everyone') || isDirectReplyToForum)
