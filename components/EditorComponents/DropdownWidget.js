@@ -15,19 +15,9 @@ const DropdownWidget = () => {
   const [dropdownOptions, setDropdownOptions] = useState([])
   const [allowMultiSelect, setAllowMultiSelect] = useState(isArrayType)
 
-  const customStyles = {
-    multiValueLabel: (base, state) =>
-      state.data.optional
-        ? base
-        : { ...base, opacity: '60%', cursor: 'not-allowed', paddingRight: 6 },
-    multiValueRemove: (base, state) =>
-      state.data.optional ? base : { ...base, display: 'none' },
-  }
-
   const dropdownChangeHandler = (selectedOption, actionMeta) => {
     clearError?.()
     let updatedValue
-    let mandatoryValues
     switch (actionMeta.action) {
       case 'select-option':
         updatedValue = allowMultiSelect
@@ -39,21 +29,18 @@ const DropdownWidget = () => {
         })
         break
       case 'remove-value': // only applicable for multiselect
-        if (actionMeta.removedValue.optional) {
-          updatedValue = value.filter(
-            (p) => p !== convertToType(actionMeta.removedValue.value, dataType)
-          )
-          onChange({
-            fieldName,
-            value: updatedValue.length ? updatedValue : undefined,
-          })
-        }
-        break
-      case 'clear':
-        mandatoryValues = dropdownOptions.flatMap((p) => (p.optional === true ? [] : p.value))
+        updatedValue = value.filter(
+          (p) => p !== convertToType(actionMeta.removedValue.value, dataType)
+        )
         onChange({
           fieldName,
-          value: allowMultiSelect && mandatoryValues.length ? mandatoryValues : undefined,
+          value: updatedValue.length ? updatedValue : undefined,
+        })
+        break
+      case 'clear':
+        onChange({
+          fieldName,
+          value: undefined,
         })
         break
       default:
@@ -70,8 +57,8 @@ const DropdownWidget = () => {
       const defaultValue = field[fieldName].value?.param?.default
       options = enumValues.map((p) =>
         typeof p === 'object'
-          ? { label: p.description ?? prettyId(p.value), value: p.value, optional: true }
-          : { label: p, value: p, optional: true }
+          ? { label: p.description ?? prettyId(p.value), value: p.value }
+          : { label: p, value: p }
       )
       setDropdownOptions(options)
       setAllowMultiSelect(isArrayType)
@@ -89,16 +76,13 @@ const DropdownWidget = () => {
     }
     if (Array.isArray(itemsValues) && itemsValues.length) {
       const defaultValues = field[fieldName].value?.param?.default ?? [] // array value
-      const mandatoryValues =
-        itemsValues.flatMap((p) => (p.optional === false ? p.value : [])) ?? []
       options = itemsValues.map((p) => ({
         label: p.description ?? prettyId(p.value),
         value: p.value,
-        optional: p.optional,
       }))
       setDropdownOptions(options)
-      if (!value && (defaultValues?.length || mandatoryValues?.length)) {
-        onChange({ fieldName, value: [...new Set([...defaultValues, ...mandatoryValues])] })
+      if (!value && defaultValues?.length) {
+        onChange({ fieldName, value: [...new Set([...defaultValues])] })
       }
       if (value) {
         onChange({
@@ -114,7 +98,6 @@ const DropdownWidget = () => {
   return (
     <div className={styles.dropdownContainer}>
       <Dropdown
-        styles={customStyles}
         options={dropdownOptions}
         onChange={dropdownChangeHandler}
         value={
@@ -122,8 +105,7 @@ const DropdownWidget = () => {
             ? value?.map((p) => dropdownOptions.find((q) => q.value == p)) // eslint-disable-line eqeqeq
             : dropdownOptions.filter((p) => p.value == value) // eslint-disable-line eqeqeq
         }
-        isClearable={dropdownOptions.some((p) => p.optional === true)}
-        isOptionDisabled={(p) => p.optional === false}
+        isClearable={true}
         isMulti={allowMultiSelect}
         placeholder={`Select ${prettyField(fieldName)}`}
         components={{
