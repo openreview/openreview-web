@@ -991,8 +991,8 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     ).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
-    expect(screen.getByPlaceholderText('full name of the author to add')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('email of the author to add')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Full name of the author to add')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Email of the author to add')).toBeInTheDocument()
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
   })
 
@@ -1032,8 +1032,8 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     ).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
-    expect(screen.getByPlaceholderText('full name of the author to add')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('email of the author to add')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Full name of the author to add')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Email of the author to add')).toBeInTheDocument()
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
   })
 
@@ -1100,14 +1100,14 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
 
-    expect(screen.getByPlaceholderText('full name of the author to add')).toHaveValue('') // not to fill for name incase it's not complete name
+    expect(screen.getByPlaceholderText('Full name of the author to add')).toHaveValue('') // not to fill for name incase it's not complete name
 
     await userEvent.clear(screen.getByPlaceholderText('search profiles by email or name'))
     await userEvent.type(searchInput, '   test@EMAIL.COM   ')
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
 
-    expect(screen.getByPlaceholderText('email of the author to add')).toHaveValue(
+    expect(screen.getByPlaceholderText('Email of the author to add')).toHaveValue(
       'test@email.com'
     )
   })
@@ -1147,13 +1147,13 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
 
     await userEvent.type(
-      screen.getByPlaceholderText('full name of the author to add'),
+      screen.getByPlaceholderText('Full name of the author to add'),
       'fullname of the author'
     )
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
 
     await userEvent.type(
-      screen.getByPlaceholderText('email of the author to add'),
+      screen.getByPlaceholderText('Email of the author to add'),
       'test@email.com'
     )
     expect(screen.getByText('Add')).not.toHaveAttribute('disabled')
@@ -1217,13 +1217,13 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
 
     await userEvent.type(
-      screen.getByPlaceholderText('full name of the author to add'),
+      screen.getByPlaceholderText('Full name of the author to add'),
       'fullname of the author'
     )
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
 
     await userEvent.type(
-      screen.getByPlaceholderText('email of the author to add'),
+      screen.getByPlaceholderText('Email of the author to add'),
       'test@email.com'
     )
     expect(screen.getByText('Add')).not.toHaveAttribute('disabled')
@@ -1721,7 +1721,6 @@ describe('ProfileSearchWidget to be used by itself', () => {
     expect(screen.getByRole('navigation')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '~ search _ result 0' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '~ search _ result 1' })).toBeInTheDocument()
-    screen.debug()
     expect(screen.queryByRole('link', { name: '~ search _ result 2' })).not.toBeInTheDocument()
   })
 
@@ -1795,10 +1794,10 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     await userEvent.click(manualEnterButton)
     expect(
-      screen.getByPlaceholderText('full name of the some dummy name to add')
+      screen.getByPlaceholderText('Full name of the some dummy name to add')
     ).toBeInTheDocument()
     expect(
-      screen.getByPlaceholderText('email of the some dummy name to add')
+      screen.getByPlaceholderText('Email of the some dummy name to add')
     ).toBeInTheDocument()
   })
 
@@ -1887,12 +1886,12 @@ describe('ProfileSearchWidget to be used by itself', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Relation Info' }))
 
     await userEvent.type(
-      screen.getByPlaceholderText('full name of the relation to add'),
+      screen.getByPlaceholderText('Full name of the relation to add'),
       'fullname'
     )
 
     await userEvent.type(
-      screen.getByPlaceholderText('email of the relation to add'),
+      screen.getByPlaceholderText('Email of the relation to add'),
       'test@email.com'
     )
 
@@ -1927,12 +1926,12 @@ describe('ProfileSearchWidget to be used by itself', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Relation Info' }))
 
     await userEvent.type(
-      screen.getByPlaceholderText('full name of the relation to add'),
+      screen.getByPlaceholderText('Full name of the relation to add'),
       'fullname'
     )
 
     await userEvent.type(
-      screen.getByPlaceholderText('email of the relation to add'),
+      screen.getByPlaceholderText('Email of the relation to add'),
       'test@email.nomatch' // does not match search result
     )
 
