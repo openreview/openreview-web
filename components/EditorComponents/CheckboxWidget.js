@@ -13,6 +13,7 @@ const CheckboxWidget = ({
   options: propsOptions,
   isEditor = true,
   isArrayType: propsIsArrayType,
+  dataType: propsDataType,
 }) => {
   const editorComponentContext = useContext(EditorComponentContext) ?? {}
   const { field, onChange, value, clearError, note } = isEditor
@@ -26,8 +27,14 @@ const CheckboxWidget = ({
   const fieldName = Object.keys(field ?? {})[0]
   const fieldType = field?.[fieldName]?.value?.param?.type
   const isArrayType = propsIsArrayType ?? fieldType?.endsWith('[]')
-  const dataType = isArrayType ? fieldType?.slice(0, -2) : fieldType
+  let dataType
   const [checkboxOptions, setCheckboxOptions] = useState([])
+
+  if (isEditor) {
+    dataType = isArrayType ? fieldType?.slice(0, -2) : fieldType
+  } else {
+    dataType = propsDataType ?? 'string'
+  }
 
   const handleCheckboxClick = (e) => {
     clearError?.()

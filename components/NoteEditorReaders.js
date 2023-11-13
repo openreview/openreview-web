@@ -166,6 +166,7 @@ export const NewNoteReaders = ({
             }}
             isEditor={false}
             isArrayType={true}
+            dataType="string"
             clearError={clearError}
           />
         ) : (
@@ -472,6 +473,7 @@ export const NewReplyEditNoteReaders = ({
             }}
             isEditor={false}
             isArrayType={true}
+            dataType="string"
             clearError={clearError}
           />
         ) : (

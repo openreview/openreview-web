@@ -1,10 +1,10 @@
-import { screen } from '@testing-library/react'
+import { screen, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import CheckboxWidget from '../components/EditorComponents/CheckboxWidget'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
-describe('CheckboxWidget', () => {
+describe('CheckboxWidget in context of note editor', () => {
   test('render nothing if field description does not have enum or items', () => {
     const providerProps = {
       value: {
@@ -916,5 +916,114 @@ describe('CheckboxWidget', () => {
       fieldName: 'paper_checklist_guidelines',
       value: undefined,
     })
+  })
+})
+
+describe('CheckboxWdiget to be used by itself', () => {
+  test('display options from props', () => {
+    const props = {
+      isEditor: false,
+      options: [
+        { label: 'label one', value: 'value one' },
+        { label: 'label two', value: 'value two' },
+        { label: 'label three', value: 'value three' },
+      ],
+    }
+
+    render(<CheckboxWidget {...props} />)
+
+    expect(screen.getAllByRole('checkbox').length).toEqual(3)
+    expect(screen.getByRole('checkbox', { name: 'label one' })).toHaveAttribute(
+      'value',
+      'value one'
+    )
+    expect(screen.getByRole('checkbox', { name: 'label two' })).toHaveAttribute(
+      'value',
+      'value two'
+    )
+    expect(screen.getByRole('checkbox', { name: 'label three' })).toHaveAttribute(
+      'value',
+      'value three'
+    )
+  })
+
+  test('show value from props (array and non-array types)', () => {
+    const props = {
+      isEditor: false,
+      options: [
+        { label: 'label one', value: 'value one' },
+        { label: 'label two', value: 'value two' },
+        { label: 'label three', value: 'value three' },
+      ],
+      value: 'value two',
+      isArrayType: false,
+    }
+
+    const { rerender } = render(<CheckboxWidget {...props} />)
+
+    expect(screen.getByRole('checkbox', { name: 'label two' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'label one' })).not.toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'label three' })).not.toBeChecked()
+
+    props.isArrayType = true
+    props.value = ['value two', 'value three']
+
+    rerender(<CheckboxWidget {...props} />)
+    expect(screen.getByRole('checkbox', { name: 'label one' })).not.toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'label two' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'label three' })).toBeChecked()
+  })
+
+  test('call onChange when option is checked or unchecked based on isArrayType and dataType', async () => {
+    let onChange = jest.fn()
+    const props = {
+      isEditor: false,
+      options: [
+        { label: 'label one', value: 'value one' },
+        { label: 'label two', value: 'value two' },
+        { label: 'label three', value: 'value three' },
+      ],
+      isArrayType: false,
+      dataType: 'string',
+      onChange,
+    }
+
+    const { rerender } = render(<CheckboxWidget {...props} />)
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'label one' }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 'value one' }))
+
+    onChange = jest.fn()
+    props.isArrayType = true
+    props.onChange = onChange
+    rerender(<CheckboxWidget {...props} />)
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'label one' }))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: ['value one'] }))
+  })
+
+  test('call clearError when options is checked or unchecked', async () => {
+    const clearError = jest.fn()
+    const props = {
+      isEditor: false,
+      options: [
+        { label: 'label one', value: 'value one' },
+        { label: 'label two', value: 'value two' },
+        { label: 'label three', value: 'value three' },
+      ],
+      isArrayType: true,
+      dataType: 'string',
+      value: ['value three'],
+      onChange: jest.fn(),
+      clearError,
+    }
+
+    render(<CheckboxWidget {...props} />)
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'label one' }))
+    expect(clearError).toHaveBeenCalledTimes(1)
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'label three' }))
+    expect(clearError).toHaveBeenCalledTimes(2)
   })
 })
