@@ -382,6 +382,10 @@ main.profile-edit {
       height: 34px;
       background-color: #fffaf4;
 
+      &.invalid-value {
+        border-color: #8c1b13;
+      }
+
       button {
         margin-right: 0;
         border-radius: 0;

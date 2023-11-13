@@ -389,7 +389,14 @@ const ProfileSearchFormAndResults = ({
     $('[data-toggle="tooltip"]').tooltip()
   }, [profileSearchResults])
 
-  if (isLoading) return <LoadingSpinner inline={true} text={null} />
+  if (isLoading)
+    return (
+      <LoadingSpinner
+        inline={true}
+        text={null}
+        extraClass={isEditor === false ? styles.spinnerSmall : ''}
+      />
+    )
   return (
     <>
       {CustomProfileSearchForm ? (
@@ -520,7 +527,7 @@ const CustomAuthorForm = ({
         name="fullName"
         className="form-control"
         value={customAuthorName}
-        placeholder={`full name${placeHolderName ? ` of the ${placeHolderName}` : ''} to add`}
+        placeholder={`Full name${placeHolderName ? ` of the ${placeHolderName}` : ''} to add`}
         onChange={(e) => setCustomAuthorName(e.target.value)}
       />
       <label htmlFor="email">Email:</label>
@@ -529,7 +536,7 @@ const CustomAuthorForm = ({
         name="email"
         className="form-control"
         value={customAuthorEmail}
-        placeholder={`email${placeHolderName ? ` of the ${placeHolderName}` : ''} to add`}
+        placeholder={`Email${placeHolderName ? ` of the ${placeHolderName}` : ''} to add`}
         onChange={(e) => setCustomAuthorEmail(e.target.value)}
       />
       <SpinnerButton

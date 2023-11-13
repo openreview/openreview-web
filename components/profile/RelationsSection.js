@@ -33,7 +33,7 @@ const CustomProfileSearchForm = ({
   searchProfiles,
   setPageNumber,
 }) => (
-  <div className="relation-name-container">
+  <div className={`relation-name-container${error ? ' invalid-value' : ''}`}>
     <input
       type="text"
       className={`search-input ${error ? styles.invalidValue : ''}`}
