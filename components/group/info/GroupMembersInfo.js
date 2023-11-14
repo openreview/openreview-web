@@ -12,11 +12,38 @@ const GroupMembersInfo = ({ group }) => {
     count: group.members.length,
   })
 
-  const memberCount = group.members?.length > 0 ? `(${group.members.length})` : ''
+  const searchMembers = (term, limit, offset) => {
+    const termLower = term.toLowerCase()
+    const filteredMembers = group.members.filter((member) => {
+      const memberLower = member.toLowerCase()
+      return (
+        memberLower.includes(termLower) || memberLower.replace(/_|-/g, ' ').includes(termLower)
+      )
+    })
+    return {
+      items: filteredMembers.slice(offset, offset + limit).map((member) => ({
+        id: member,
+        title: member,
+        href: urlFromGroupId(member, true),
+      })),
+      count: filteredMembers.length,
+    }
+  }
+
+  const memberCount = group.members?.length ?? 0
 
   return (
-    <EditorSection title={`Group Members ${memberCount}`} className="members">
-      <PaginatedList loadItems={loadMembers} emptyMessage="No members to display" />
+    <EditorSection
+      title={`Group Members ${memberCount > 0 ? ` (${memberCount})` : ''}`}
+      className="members"
+    >
+      <PaginatedList
+        loadItems={loadMembers}
+        searchItems={memberCount > 20 ? searchMembers : null}
+        emptyMessage="No members to display"
+        searchPlaceholder="Search members by username"
+        itemsPerPage={20}
+      />
     </EditorSection>
   )
 }
