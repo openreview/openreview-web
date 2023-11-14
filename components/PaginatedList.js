@@ -15,6 +15,7 @@ export default function PaginatedList({
   searchItems,
   ListItem,
   emptyMessage,
+  searchPlaceholder,
   itemsPerPage = 15,
   shouldReload,
   className,
@@ -85,7 +86,7 @@ export default function PaginatedList({
             <input
               type="text"
               className="form-control"
-              placeholder="Search submissions by title and metadata"
+              placeholder={searchPlaceholder || 'Search submissions by title and metadata'}
               autoComplete="off"
               onChange={(e) => {
                 const term = e.target.value.trim()
