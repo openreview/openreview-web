@@ -62,14 +62,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: 0.25rem;
 
   .noMatchingProfileMessage {
+    margin-top: 0.5rem;
     margin-bottom: 0.5rem;
   }
 
   .customAuthorForm {
     display: flex;
-    margin-top: 0.25rem;
+    margin-top: 0.5rem;
     width: 100%;
 
     .enterAuthorButton {
@@ -79,6 +81,7 @@
     label {
       white-space: nowrap;
       margin-right: 0.25rem;
+      margin-bottom: 0;
       align-self: center;
     }
 

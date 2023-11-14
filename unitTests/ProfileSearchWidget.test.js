@@ -1647,7 +1647,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
   test('show search input and search button', async () => {
     const props = {
       isEditor: false,
-      searchInputPlaceHolder: 'search relation with name or email',
+      searchInputPlaceHolder: 'Search relation by name or email',
       className: 'test-class-name',
     }
     const { container } = render(<ProfileSearchWidget {...props} />)
@@ -1670,7 +1670,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     const props = {
       isEditor: false,
-      searchInputPlaceHolder: 'search relation with name or email',
+      searchInputPlaceHolder: 'Search relation by name or email',
     }
     render(<ProfileSearchWidget {...props} />)
 
@@ -1700,7 +1700,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
     api.get = searchProfile
     const props = {
       isEditor: false,
-      searchInputPlaceHolder: 'search relation with name or email',
+      searchInputPlaceHolder: 'Search relation by name or email',
       pageSize: 2,
     }
 
@@ -1747,7 +1747,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
     api.get = searchProfile
     const props = {
       isEditor: false,
-      searchInputPlaceHolder: 'search relation with name or email',
+      searchInputPlaceHolder: 'Search relation by name or email',
       pageSize: 2,
       pageListLength: 12,
     }
@@ -1776,7 +1776,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
     api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
     const props = {
       isEditor: false,
-      searchInputPlaceHolder: 'search relation with name or email',
+      searchInputPlaceHolder: 'Search relation by name or email',
       pageSize: 2,
       field: { 'some dummy name': '' },
     }
@@ -1827,7 +1827,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     const props = {
       isEditor: false,
-      searchInputPlaceHolder: 'search relation with name or email',
+      searchInputPlaceHolder: 'Search relation by name or email',
       pageSize: 2,
       field: { relation: '' },
       onChange,
@@ -1870,7 +1870,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     const props = {
       isEditor: false,
-      searchInputPlaceHolder: 'search relation with name or email',
+      searchInputPlaceHolder: 'Search relation by name or email',
       pageSize: 2,
       field: { relation: '' },
       onChange,
@@ -1910,7 +1910,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     const props = {
       isEditor: false,
-      searchInputPlaceHolder: 'search relation with name or email',
+      searchInputPlaceHolder: 'Search relation by name or email',
       pageSize: 2,
       field: { relation: '' },
       onChange,
@@ -1947,7 +1947,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
   test('allow consumer to provide a custom search form', () => {
     const props = {
       isEditor: false,
-      searchInputPlaceHolder: 'search relation with name or email',
+      searchInputPlaceHolder: 'Search relation by name or email',
       pageSize: 2,
       field: { relation: '' },
       CustomProfileSearchForm: () => <div>custom search form</div>,

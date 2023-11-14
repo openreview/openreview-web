@@ -273,9 +273,9 @@ test('add relation', async (t) => {
     .expect(secondRelationRow.find('span').withText('<test@relation.test>').exists).ok()
     // clear value
     .click(firstRelationRow.find('.glyphicon-edit'))
-    .expect(firstRelationRow.find('input.search-input').withAttribute('placeholder', 'search relation with name or email').exists).ok()
+    .expect(firstRelationRow.find('input.search-input').withAttribute('placeholder', 'Search relation by name or email').exists).ok()
     .click(secondRelationRow.find('.glyphicon-edit'))
-    .expect(secondRelationRow.find('input.search-input').withAttribute('placeholder', 'search relation with name or email').exists).ok()
+    .expect(secondRelationRow.find('input.search-input').withAttribute('placeholder', 'Search relation by name or email').exists).ok()
     .click(firstRelationRow.find('.glyphicon-minus-sign'))
     .click(firstRelationRow.find('.glyphicon-minus-sign')) // second row becomes first row
     .click(saveProfileButton)

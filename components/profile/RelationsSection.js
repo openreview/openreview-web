@@ -38,7 +38,7 @@ const CustomProfileSearchForm = ({
       type="text"
       className={`search-input ${error ? styles.invalidValue : ''}`}
       value={searchTerm ?? ''}
-      placeholder="search relation with name or email"
+      placeholder="Search relation by name or email"
       onChange={(e) => {
         setSearchTerm(e.target.value)
         setProfileSearchResults(null)
@@ -136,13 +136,14 @@ const RelationRow = ({
     // empty relation show profile search
     return (
       <div className="col-md-6 relation__value">
+        {isMobile && <div className="small-heading col-md-3">Name</div>}
         <ProfileSearchWidget
           multiple={false}
           isEditor={false}
           pageSize={10}
           pageListLength={12}
           field={{ relation: '' }}
-          searchInputPlaceHolder="search relation with name or email"
+          searchInputPlaceHolder="Search relation by name or email"
           error={profileRelation?.find((q) => q.key === relation.key)?.valid === false}
           onChange={(username, name, email, profile) => {
             if (username) {
