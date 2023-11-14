@@ -49,7 +49,7 @@ const MessageMemberModal = ({
       const newMembers = get(apiRes, 'groups.0.members', [])
       if (!membersToMessage.every((p) => newMembers.includes(p))) {
         throw new Error(
-          'Group members have changed since the page was opened. Please reload and try again.'
+          'The members of this group, including members selected below, have changed since the page was opened. Please reload the page and try again.'
         )
       }
     } catch (e) {
