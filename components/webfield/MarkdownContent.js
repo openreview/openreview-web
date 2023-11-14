@@ -1,6 +1,6 @@
-/* globals DOMPurify, marked, MathJax: false */
+/* globals DOMPurify, marked: false */
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function MarkdownContent({ content }) {
   const [sanitizedHtml, setSanitizedHtml] = useState('')
