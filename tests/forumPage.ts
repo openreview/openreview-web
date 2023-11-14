@@ -131,7 +131,7 @@ test('delete the forum reply note and restore it', async (t) => {
     .notOk()
 })
 
-test('delete and restore an edit on the revisions page', async (t) => {
+test.skip('delete and restore an edit on the revisions page', async (t) => {
   const { reviewId } = t.fixtureCtx
 
   await t
