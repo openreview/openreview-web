@@ -19,6 +19,7 @@ const LoadingContext = createContext()
 
 const SignupForm = ({ setSignupConfirmation }) => {
   const [fullName, setFullName] = useState('')
+  const [confirmFullName, setConfirmFullName] = useState(false)
   const [newUsername, setNewUsername] = useState('')
   const [nameConfirmed, setNameConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -44,7 +45,11 @@ const SignupForm = ({ setSignupConfirmation }) => {
   const getMatchingProfiles = useCallback(
     debounce(async (name) => {
       try {
-        const { profiles } = await api.get('/profiles/search', { fullname: name, limit: 100, es: true })
+        const { profiles } = await api.get('/profiles/search', {
+          fullname: name,
+          limit: 100,
+          es: true,
+        })
         if (profiles) {
           setExistingProfiles(
             profiles.map((profile) => ({
@@ -143,7 +148,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="row">
           <div className="form-group col-xs-12">
-            <label htmlFor="first-input">Full Name</label>
+            <label htmlFor="first-input">Full Name for Publication</label>
             <input
               type="text"
               id="first-input"
@@ -160,72 +165,92 @@ const SignupForm = ({ setSignupConfirmation }) => {
             />
           </div>
         </div>
+        <div className="name-confirmation">
+          <input
+            type="checkbox"
+            checked={confirmFullName}
+            onChange={() => {
+              if (!fullName) {
+                setConfirmFullName(false)
+                return
+              }
+              // eslint-disable-next-line no-shadow
+              setConfirmFullName((confirmFullName) => !confirmFullName)
+            }}
+          />{' '}
+          <span>I confirm this is the name that appears in my submission.</span>
+        </div>
       </form>
 
-      <hr className="spacer" />
+      {confirmFullName && (
+        <>
+          <hr className="spacer" />
+          <LoadingContext.Provider value={loading}>
+            {existingProfiles.map((profile) => {
+              let formComponents
+              const allEmails = profile.active
+                ? profile.emailsConfirmed
+                : [...profile.emailsConfirmed, ...profile.emails]
 
-      <LoadingContext.Provider value={loading}>
-        {existingProfiles.map((profile) => {
-          let formComponents
-          const allEmails = profile.active
-            ? profile.emailsConfirmed
-            : [...profile.emailsConfirmed, ...profile.emails]
+              if (allEmails.length > 0) {
+                formComponents = Array.from(new Set(allEmails)).map((email) => (
+                  <ExistingProfileForm
+                    key={`${profile.id} ${email}`}
+                    id={profile.id}
+                    obfuscatedEmail={email}
+                    hasPassword={profile.password}
+                    isActive={profile.active}
+                    registerUser={registerUser}
+                    resetPassword={resetPassword}
+                    sendActivationLink={sendActivationLink}
+                  />
+                ))
+              } else {
+                formComponents = [
+                  <ClaimProfileForm
+                    key={profile.id}
+                    id={profile.id}
+                    registerUser={registerUser}
+                  />,
+                ]
+              }
+              return formComponents.concat(
+                <hr key={`${profile.id}-spacer`} className="spacer" />
+              )
+            })}
 
-          if (allEmails.length > 0) {
-            formComponents = Array.from(new Set(allEmails)).map((email) => (
-              <ExistingProfileForm
-                key={`${profile.id} ${email}`}
-                id={profile.id}
-                obfuscatedEmail={email}
-                hasPassword={profile.password}
-                isActive={profile.active}
-                registerUser={registerUser}
-                resetPassword={resetPassword}
-                sendActivationLink={sendActivationLink}
-              />
-            ))
-          } else {
-            formComponents = [
-              <ClaimProfileForm
-                key={profile.id}
-                id={profile.id}
-                registerUser={registerUser}
-              />,
-            ]
-          }
-          return formComponents.concat(<hr key={`${profile.id}-spacer`} className="spacer" />)
-        })}
+            <NewProfileForm
+              id={newUsername}
+              registerUser={registerUser}
+              nameConfirmed={nameConfirmed}
+            />
+          </LoadingContext.Provider>
 
-        <NewProfileForm
-          id={newUsername}
-          registerUser={registerUser}
-          nameConfirmed={nameConfirmed}
-        />
-      </LoadingContext.Provider>
+          {existingProfiles.length > 0 && (
+            <p className="merge-message hint">
+              If two or more of the profiles above belong to you, please{' '}
+              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+              <a href="#" data-toggle="modal" data-target="#profile-merge-modal">
+                contact us
+              </a>{' '}
+              and we will assist you in merging your profiles.
+            </p>
+          )}
 
-      {existingProfiles.length > 0 && (
-        <p className="merge-message hint">
-          If two or more of the profiles above belong to you, please{' '}
-          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a href="#" data-toggle="modal" data-target="#profile-merge-modal">
-            contact us
-          </a>{' '}
-          and we will assist you in merging your profiles.
-        </p>
+          <ConfirmNameModal
+            fullName={fullName}
+            newUsername={newUsername}
+            onConfirm={() => {
+              setNameConfirmed(true)
+              $('#confirm-name-modal').modal('hide')
+            }}
+            turnstileToken={turnstileToken}
+            setTurnstileToken={setTurnstileToken}
+          />
+
+          <ProfileMergeModal />
+        </>
       )}
-
-      <ConfirmNameModal
-        fullName={fullName}
-        newUsername={newUsername}
-        onConfirm={() => {
-          setNameConfirmed(true)
-          $('#confirm-name-modal').modal('hide')
-        }}
-        turnstileToken={turnstileToken}
-        setTurnstileToken={setTurnstileToken}
-      />
-
-      <ProfileMergeModal />
     </div>
   )
 }
@@ -505,6 +530,8 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
+  const [institutionDomains, setInstitutionDomains] = useState([])
+  const isInstitutionEmail = institutionDomains.some((domain) => email.endsWith(domain))
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -515,6 +542,15 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
     }
 
     $('#confirm-name-modal').modal({ show: true, backdrop: 'static' })
+  }
+
+  const getInstitutionDomains = async () => {
+    try {
+      const domains = await api.get('/settings/institutionDomains')
+      setInstitutionDomains(domains)
+    } catch (error) {
+      setInstitutionDomains([])
+    }
   }
 
   useEffect(() => {
@@ -531,6 +567,10 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
       registerUser('new', email, password)
     }
   }, [nameConfirmed])
+
+  useEffect(() => {
+    getInstitutionDomains()
+  }, [])
 
   return (
     <form className="form-inline" onSubmit={handleSubmit}>
@@ -551,6 +591,24 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
         )}
         {!passwordVisible && id && <span className="new-username hint">{`as ${id}`}</span>}
       </div>
+      {email && !isInstitutionEmail && (
+        <div className="activation-message-row">
+          <div>
+            <Icon name="warning-sign" extraClasses="email-tooltip" />
+            <span>
+              It can take up to 2 weeks for profiles with non-institution email to be
+              activated.
+            </span>
+          </div>
+          <div className="text-muted">
+            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+            <a href="#" data-toggle="modal" data-target="#feedback-modal">
+              Contact us
+            </a>{' '}
+            to add your institution if you are already using institution email.
+          </div>
+        </div>
+      )}
       {passwordVisible && (
         <>
           <div className="password-row">

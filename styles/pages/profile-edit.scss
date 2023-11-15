@@ -264,6 +264,16 @@ main.profile-edit {
     }
   }
 
+  .activation-message {
+    display: flex;
+    color: constants.$orRed;
+    .glyphicon {
+      color: constants.$orRed;
+      margin-right: 0.5rem;
+      font-size: 1rem;
+    }
+  }
+
   .personal-links {
     &__input {
       max-width: 100%;

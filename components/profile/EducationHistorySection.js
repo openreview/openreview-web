@@ -6,6 +6,7 @@ import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import { getStartEndYear, isValidCountryCode } from '../../lib/utils'
 import Dropdown from '../Dropdown'
+import api from '../../lib/api-client'
 
 const CreatableDropdown = dynamic(() =>
   import('../Dropdown').then((mod) => mod.CreatableDropdown)
@@ -39,6 +40,41 @@ const EducationHistoryRow = ({
 }) => {
   const [isPositionClicked, setIsPositionClicked] = useState(false)
   const [isDomainClicked, setIsDomainClicked] = useState(false)
+
+  const updateDomain = async (domain, key) => {
+    if (!domain) {
+      setHistory({
+        type: institutionDomainType,
+        data: { value: { institutionDomain: '', institutionName: '' }, key },
+      })
+      return
+    }
+    try {
+      let institutionName = ''
+      const institution = (await api.get('/settings/institutions', { domain }))
+        ?.institutions?.[0]
+
+      if (institution?.parent) {
+        const parentInstitution = (
+          await api.get('/settings/institutions', { domain: institution.parent })
+        )?.institutions?.[0]
+        institutionName = `${institution.fullname}${
+          parentInstitution?.fullname ? `, ${parentInstitution.fullname}` : ''
+        }`
+      } else {
+        institutionName = institution.fullname
+      }
+      setHistory({
+        type: institutionDomainType,
+        data: { value: { institutionDomain: domain, institutionName }, key },
+      })
+    } catch (error) {
+      setHistory({
+        type: institutionDomainType,
+        data: { value: { institutionDomain: domain, institutionName: '' }, key },
+      })
+    }
+  }
 
   return (
     <div className="row">
@@ -131,18 +167,12 @@ const EducationHistoryRow = ({
                 : null
             }
             onChange={(e) => {
-              setHistory({
-                type: institutionDomainType,
-                data: { value: e ? e.value : '', key: p.key },
-              })
+              updateDomain(e?.value ?? '', p.key)
               if (e) setIsDomainClicked(false)
             }}
             onBlur={(e) => {
               if (e.target.value) {
-                setHistory({
-                  type: institutionDomainType,
-                  data: { value: e.target.value, key: p.key },
-                })
+                updateDomain(e.target.value, p.key)
                 setIsDomainClicked(false)
               }
             }}
@@ -261,29 +291,20 @@ const EducationHistoryRow = ({
 const EducationHistorySection = ({
   profileHistory,
   positions,
-  institutions,
+  institutionDomains,
   countries,
   updateHistory,
 }) => {
   const isMobile = !useBreakpoint('lg')
-  const institutionDomainOptions = institutions?.flatMap((p) =>
-    p.id ? { value: p.id, label: p.id } : []
-  )
+  const institutionDomainOptions = institutionDomains?.map((p) => ({
+    value: p,
+    label: p,
+  }))
   const positionOptions = positions?.map((p) => ({ value: p, label: p }))
   const countryOptions = Object.entries(countries ?? {})?.map(([name, details]) => ({
     value: details.alphaTwoCode,
     label: name,
   }))
-
-  const getInstitutionName = (domain) => {
-    if (!domain) return ''
-    const institution = institutions?.find((i) => i.id === domain)
-    if (!institution) return ''
-    const parentInstitution = institutions?.find((i) => i.id === institution.parent)
-    return `${institution.fullname}${
-      parentInstitution?.fullname ? `, ${parentInstitution.fullname}` : ''
-    }`
-  }
 
   const historyReducer = (state, action) => {
     switch (action.type) {
@@ -306,8 +327,8 @@ const EducationHistorySection = ({
           const recordCopy = { ...p, institution: { ...p.institution } }
           if (p.key === action.data.key) {
             recordCopy.institution = {
-              domain: action.data.value,
-              name: getInstitutionName(action.data.value),
+              domain: action.data.value.institutionDomain,
+              name: action.data.value.institutionName,
             }
           }
           return recordCopy

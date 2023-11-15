@@ -26,6 +26,7 @@ export default function ProfileEditor({
   hideDblpButton,
   hidePublicationEditor,
   loading,
+  isNewProfile,
 }) {
   const profileReducer = (state, action) => ({
     ...state,
@@ -39,7 +40,7 @@ export default function ProfileEditor({
   const prefixedRelations = dropdownOptions?.prefixedRelations
   const relationReaders = dropdownOptions?.relationReaders
   const positions = dropdownOptions?.prefixedPositions
-  const institutions = dropdownOptions?.institutions
+  const institutionDomains = dropdownOptions?.institutionDomains
   const countries = dropdownOptions?.countries
 
   const promptInvalidValue = (type, invalidKey, message) => {
@@ -320,8 +321,20 @@ export default function ProfileEditor({
   useEffect(() => {
     const loadOptions = async () => {
       try {
-        const result = await api.get('/profiles/options')
-        setDropdownOptions(result)
+        const result = await Promise.all([
+          api.get('/settings/prefixedRelations'),
+          api.get('/settings/relationReaders'),
+          api.get('/settings/prefixedPositions'),
+          api.get('/settings/institutionDomains'),
+          api.get('/settings/countries'),
+        ])
+        setDropdownOptions({
+          prefixedRelations: result[0],
+          relationReaders: result[1],
+          prefixedPositions: result[2],
+          institutionDomains: result[3],
+          countries: result[4],
+        })
       } catch (apiError) {
         setDropdownOptions({})
       }
@@ -386,6 +399,8 @@ export default function ProfileEditor({
           profileEmails={profile?.emails}
           profileId={profile?.id}
           updateEmails={(emails) => setProfile({ type: 'emails', data: emails })}
+          institutionDomains={institutionDomains}
+          isNewProfile={isNewProfile}
         />
       </ProfileSection>
 
@@ -413,7 +428,7 @@ export default function ProfileEditor({
         <EducationHistorySection
           profileHistory={profile?.history}
           positions={positions}
-          institutions={institutions}
+          institutionDomains={institutionDomains}
           countries={countries}
           updateHistory={(history) => setProfile({ type: 'history', data: history })}
         />

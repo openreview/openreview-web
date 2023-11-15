@@ -97,6 +97,7 @@ const ActivateProfile = ({ appContext }) => {
           hideDblpButton
           hidePublicationEditor
           loading={loading}
+          isNewProfile={true}
         />
       ) : (
         <LoadingSpinner inline />

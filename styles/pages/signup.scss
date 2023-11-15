@@ -29,6 +29,15 @@ main.sign-up {
         margin-bottom: 0;
       }
     }
+    .name-confirmation {
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: flex-start;
+
+      input {
+        margin-right: 0.5rem;
+      }
+    }
     label {
       color: constants.$orRed;
     }
@@ -67,6 +76,19 @@ main.sign-up {
         padding-top: 0.5rem;
         white-space: nowrap;
       }
+
+      .activation-message-row {
+        display: flex;
+        flex-direction: column;
+        margin-top: 0.25rem;
+        font-size: 0.75rem;
+        color: constants.$orRed;
+
+        .email-tooltip {
+          margin-right: 0.25rem;
+        }
+      }
+
       .submissions-list {
         margin-top: -0.5rem;
       }
