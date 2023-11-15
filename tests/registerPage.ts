@@ -33,9 +33,13 @@ fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(as
 test('create new profile', async (t) => {
   await t
     .typeText(fullNameInputSelector, 'Melisa Bok')
+    .expect(emailAddressInputSelector.exists).notOk()
+    .expect(Selector('span').withText("I confirm this is the name that appears in my submission.").exists).ok()
+    .click(Selector('div.name-confirmation').find('input'))
     .typeText(emailAddressInputSelector, 'melisa@test.com')
     .expect(signupButtonSelector.hasAttribute('disabled'))
     .notOk('not enabled yet', { timeout: 5000 })
+    .expect(Selector('span').withText('It can take up to 2 weeks for profiles with non-institution email to be activated').exists).ok()
     .click(signupButtonSelector)
     .expect(newPasswordInputSelector.exists)
     .ok()
@@ -202,6 +206,7 @@ fixture`Activate`
 
 test('update profile', async (t) => {
   await t
+    .expect(Selector('span').withText('Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.').exists).ok()
     .typeText(Selector('#homepage_url'), 'http://homepage.do', { paste: true })
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .pressKey('M S space s t u d e n t tab')
