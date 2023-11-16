@@ -52,9 +52,11 @@ const CustomProfileSearchForm = ({
         }
       }}
       onBlur={() => {
-        setShowCustomAuthorForm(false)
-        searchProfiles(searchTerm, 1)
-        setPageNumber(null)
+        if (searchTerm?.trim()) {
+          setShowCustomAuthorForm(false)
+          searchProfiles(searchTerm, 1)
+          setPageNumber(null)
+        }
       }}
     />
 
