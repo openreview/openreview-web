@@ -117,22 +117,24 @@ const CheckboxWidget = ({
   return (
     <div className={styles.checkboxContainer}>
       {checkboxOptions.map((option) => (
-        <label key={`${fieldName}-${option.value}`} className={styles.checkboxOptionRow}>
-          <input
-            type="checkbox"
-            value={option.value ?? ''}
-            checked={
-              isArrayType
-                ? // eslint-disable-next-line eqeqeq
-                  value?.find((p) => p == option.value) ?? false
-                : // eslint-disable-next-line eqeqeq
-                  value == option.value
-            }
-            disabled={option.optional === false}
-            onChange={handleCheckboxClick}
-          />
-          <span className={styles.optionDescription}>{option.label}</span>
-        </label>
+        <div className="checkbox" key={`${fieldName}-${option.value}`}>
+          <label>
+            <input
+              type="checkbox"
+              value={option.value ?? ''}
+              checked={
+                isArrayType
+                  ? // eslint-disable-next-line eqeqeq
+                    value?.find((p) => p == option.value) ?? false
+                  : // eslint-disable-next-line eqeqeq
+                    value == option.value
+              }
+              disabled={option.optional === false}
+              onChange={handleCheckboxClick}
+            />
+            {option.label}
+          </label>
+        </div>
       ))}
     </div>
   )

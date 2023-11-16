@@ -280,6 +280,7 @@ const NoteEditor = ({
           placeholder="Select note readers"
           error={error}
           clearError={clearError}
+          useCheckboxWidget={useCheckboxWidget}
         />
       )
     }
