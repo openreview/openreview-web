@@ -1,7 +1,8 @@
 /* globals promptError: false */
 
 import React, { useEffect, useState } from 'react'
-import { difference, isEqual } from 'lodash'
+import difference from 'lodash/difference'
+import isEqual from 'lodash/isEqual'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import TagsWidget from './EditorComponents/TagsWidget'
 import { NoteEditorReadersDropdown } from './Dropdown'
@@ -157,11 +158,13 @@ export const NewNoteReaders = ({
             value={value}
             options={readerOptions}
             // eslint-disable-next-line no-shadow
-            onChange={({ fieldName, value }) => {
-              if (value?.includes('everyone')) {
+            onChange={({ fieldName, value: updatedValue }) => {
+              if (isEqual(value, ['everyone'])) {
+                onChange(updatedValue?.filter((p) => p !== 'everyone'))
+              } else if (updatedValue?.includes('everyone')) {
                 onChange(['everyone'])
               } else {
-                onChange(value)
+                onChange(updatedValue)
               }
             }}
             isEditor={false}
@@ -464,11 +467,13 @@ export const NewReplyEditNoteReaders = ({
             value={value}
             options={readerOptions}
             // eslint-disable-next-line no-shadow
-            onChange={({ fieldName, value }) => {
-              if (value?.includes('everyone')) {
+            onChange={({ fieldName, value: updatedValue }) => {
+              if (isEqual(value, ['everyone'])) {
+                onChange(updatedValue?.filter((p) => p !== 'everyone'))
+              } else if (updatedValue?.includes('everyone')) {
                 onChange(['everyone'])
               } else {
-                onChange(value)
+                onChange(updatedValue)
               }
             }}
             isEditor={false}

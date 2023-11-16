@@ -249,7 +249,7 @@ describe('NewNoteReaders', () => {
     )
     await waitFor(() => {
       const checkboxContainer = screen.getByRole('checkbox', { name: 'Everyone' })
-        .parentElement.parentElement
+        .parentElement.parentElement.parentElement
 
       expect(checkboxContainer.childNodes[0].textContent).toEqual('Everyone')
       expect(screen.getByRole('checkbox', { name: 'Everyone' })).toHaveAttribute(
@@ -661,7 +661,7 @@ describe('NewNoteReaders', () => {
 
     await waitFor(() => {
       const checkboxContainer = screen.getByRole('checkbox', { name: 'Test IdOne' })
-        .parentElement.parentElement
+        .parentElement.parentElement.parentElement
       expect(checkboxContainer.childNodes[0].textContent).toEqual('Test IdOne')
       expect(screen.getByRole('checkbox', { name: 'Test IdOne' })).toHaveAttribute(
         'value',
@@ -1550,7 +1550,72 @@ describe('NewNoteReaders', () => {
     expect(onChange).toHaveBeenCalledWith(['everyone'])
   })
 
-  test('not to allow any other value to be checked when everyone is checked', async () => {
+  test('uncheck other options when everyone is checked', async () => {
+    const getGroups = jest.fn(() =>
+      Promise.resolve({
+        groups: [
+          { id: '~Test_IdOne1' },
+          { id: '~Test_IdTwo1' },
+          { id: 'everyone' },
+          { id: '~Test_IdThree1' },
+        ],
+      })
+    )
+    api.get = getGroups
+
+    const promptError = jest.fn()
+    global.promptError = promptError
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              regex: 'regex1.*',
+            },
+          },
+        },
+      },
+    }
+
+    const user = userEvent.setup()
+
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['~Test_IdOne1', '~Test_IdTwo1', '~Test_IdThree1']}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+        clearError={clearError}
+      />
+    )
+
+    let testIdOneCheckbox
+    let testIdTwoCheckbox
+    let testIdThreeCheckbox
+    let everyoneCheckbox
+    await waitFor(() => {
+      testIdOneCheckbox = screen.getByRole('checkbox', { name: 'Test IdOne' })
+      testIdTwoCheckbox = screen.getByRole('checkbox', { name: 'Test IdTwo' })
+      testIdThreeCheckbox = screen.getByRole('checkbox', { name: 'Test IdThree' })
+      everyoneCheckbox = screen.getByRole('checkbox', { name: 'Everyone' })
+    })
+
+    expect(clearError).not.toHaveBeenCalled()
+    expect(testIdOneCheckbox).toBeChecked()
+    expect(testIdTwoCheckbox).toBeChecked()
+    expect(testIdThreeCheckbox).toBeChecked()
+
+    await user.click(everyoneCheckbox)
+    expect(onChange).toHaveBeenNthCalledWith(1, ['everyone'])
+    expect(clearError).toHaveBeenCalledTimes(1)
+  })
+
+  test('uncheck everyone when another options is checked', async () => {
     const getGroups = jest.fn(() =>
       Promise.resolve({
         groups: [
@@ -1597,21 +1662,28 @@ describe('NewNoteReaders', () => {
     let testIdOneCheckbox
     let testIdTwoCheckbox
     let testIdThreeCheckbox
+    let everyoneCheckbox
     await waitFor(() => {
       testIdOneCheckbox = screen.getByRole('checkbox', { name: 'Test IdOne' })
       testIdTwoCheckbox = screen.getByRole('checkbox', { name: 'Test IdTwo' })
       testIdThreeCheckbox = screen.getByRole('checkbox', { name: 'Test IdThree' })
+      everyoneCheckbox = screen.getByRole('checkbox', { name: 'Everyone' })
     })
 
     expect(clearError).not.toHaveBeenCalled()
+    expect(testIdOneCheckbox).not.toBeChecked()
+    expect(testIdTwoCheckbox).not.toBeChecked()
+    expect(testIdThreeCheckbox).not.toBeChecked()
+    expect(everyoneCheckbox).toBeChecked()
+
     await user.click(testIdOneCheckbox)
-    expect(onChange).toHaveBeenNthCalledWith(1, ['everyone'])
+    expect(onChange).toHaveBeenNthCalledWith(1, ['~Test_IdOne1'])
     expect(clearError).toHaveBeenCalledTimes(1)
     await user.click(testIdTwoCheckbox)
-    expect(onChange).toHaveBeenNthCalledWith(2, ['everyone'])
+    expect(onChange).toHaveBeenNthCalledWith(2, ['~Test_IdTwo1'])
     expect(clearError).toHaveBeenCalledTimes(2)
     await user.click(testIdThreeCheckbox)
-    expect(onChange).toHaveBeenNthCalledWith(3, ['everyone'])
+    expect(onChange).toHaveBeenNthCalledWith(3, ['~Test_IdThree1'])
     expect(clearError).toHaveBeenCalledTimes(3)
   })
 })
@@ -2093,7 +2165,7 @@ describe('NewReplyEditNoteReaders', () => {
 
     await waitFor(() => {
       const checkboxContainer = screen.getByRole('checkbox', { name: 'Everyone' })
-        .parentElement.parentElement
+        .parentElement.parentElement.parentElement
 
       expect(checkboxContainer.childNodes[0].textContent).toEqual('Everyone')
       expect(screen.getByRole('checkbox', { name: 'Everyone' })).toHaveAttribute(
