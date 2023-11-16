@@ -184,6 +184,7 @@ export default function VenueHomepage({ appContext }) {
           pageSize={tabConfig.options.pageSize}
           enableSearch={tabConfig.options.enableSearch}
           paperDisplayOptions={tabConfig.options.paperDisplayOptions}
+          shouldReload={shouldReload}
           updateCount={(itemCount) => {
             const isEmpty = !itemCount
             if (tabConfig.options.hideWhenEmpty && tabConfig.hidden !== isEmpty) {
