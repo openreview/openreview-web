@@ -204,6 +204,7 @@ export const NewNoteReaders = ({
   }, [descriptionType])
 
   if (!user || !fieldDescription) return null
+
   return (
     <EditorComponentHeader fieldNameOverwrite="Readers" inline={true} error={error}>
       {renderReaders()}
@@ -450,14 +451,13 @@ export const NewReplyEditNoteReaders = ({
   }
 
   const renderReaders = () => {
+    if (!readerOptions) return null
+
     switch (descriptionType) {
       case 'const':
-        return readerOptions ? (
-          <TagsWidget values={readerOptions} fieldNameOverwrite="Readers" />
-        ) : null
+        return <TagsWidget values={readerOptions} fieldNameOverwrite="Readers" />
       case 'regex':
       case 'enum':
-        if (!readerOptions) return null
         return useCheckboxWidget ? (
           <CheckboxWidget
             field={{ reader: { value: fieldDescription } }}
@@ -485,9 +485,7 @@ export const NewReplyEditNoteReaders = ({
           />
         )
       case 'singleValueEnum':
-        return readerOptions ? (
-          <TagsWidget values={readerOptions} fieldNameOverwrite="Readers" />
-        ) : null
+        return <TagsWidget values={readerOptions} fieldNameOverwrite="Readers" />
       default:
         return null
     }
