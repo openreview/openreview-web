@@ -207,7 +207,7 @@ export default function ProfileEditor({
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
-        'You must enter relation, name and email information for each entry in your advisor and other relations'
+        'You must enter relation and select the profile for each entry in your advisor and other relations'
       )
     }
     if (
