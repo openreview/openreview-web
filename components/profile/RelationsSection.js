@@ -51,6 +51,11 @@ const CustomProfileSearchForm = ({
           setPageNumber(null)
         }
       }}
+      onBlur={() => {
+        setShowCustomAuthorForm(false)
+        searchProfiles(searchTerm, 1)
+        setPageNumber(null)
+      }}
     />
 
     <SearchButton

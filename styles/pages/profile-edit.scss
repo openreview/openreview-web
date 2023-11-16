@@ -239,6 +239,9 @@ main.profile-edit {
       overflow-x: hidden;
       text-overflow: ellipsis;
     }
+    button {
+      margin-right: 0.5rem;
+    }
     button.disabled {
       pointer-events: none;
       opacity: 0.5;
