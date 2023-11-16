@@ -199,11 +199,15 @@ const ReviewerStatusMenuBar = ({
       value: 'Reviewer Name',
       getValue: (p) => p.reviewerProfile?.preferredName ?? p.reviewerProfileId,
     },
-    {
-      label: 'Bids Completed',
-      value: 'Bids Completed',
-      getValue: (p) => p.completedBids,
-    },
+    ...(bidEnabled
+      ? [
+          {
+            label: 'Bids Completed',
+            value: 'Bids Completed',
+            getValue: (p) => p.completedBids,
+          },
+        ]
+      : []),
     {
       label: 'Papers Assigned',
       value: 'Papers Assigned',
