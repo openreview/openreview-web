@@ -81,6 +81,7 @@ test('enter valid name invalid email and change to valid email and register', as
   const email = 'testemailaac@test.com' // must be new each test run
   await t
     .typeText(fullNameInputSelector, fullName) // must be new each test run
+    .click(Selector('div.name-confirmation').find('input'))
     .typeText(emailAddressInputSelector, `${email}@test.com`)
     .click(signupButtonSelector)
     .expect(newPasswordInputSelector.exists)
