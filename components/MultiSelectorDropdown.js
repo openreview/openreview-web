@@ -22,7 +22,7 @@ export default function MultiSelectorDropdown({
     if (selectedValues?.includes(value)) {
       setSelectedValues(selectedValues?.filter((v) => v !== value))
     } else {
-      setSelectedValues([...selectedValues, value])
+      setSelectedValues([...(selectedValues ?? []), value])
     }
   }
 
