@@ -271,7 +271,7 @@ export default function VenueHomepage({ appContext }) {
                 onClick={() => {
                   const currentHash = window.location.hash.slice(1)
                   if (currentHash !== tabConfig.id) {
-                    router.replace(`#${tabConfig.id}`, undefined, { scroll: false })
+                    router.replace(`#${tabConfig.id}`, undefined, { scroll: false, shallow: true })
                   }
                 }}
               >
