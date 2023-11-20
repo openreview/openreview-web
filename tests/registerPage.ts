@@ -150,6 +150,7 @@ fixture`Send Activation Link from signup page`
 test('Send Activation Link', async (t) => {
   await t
     .typeText(fullNameInputSelector, inactiveUser.fullname.toLowerCase())
+    .click(Selector('div.name-confirmation').find('input'))
   const existingTildeId = await Selector('.new-username.hint').nth(0).innerText
   const newTildeId = await Selector('.new-username.hint').nth(1).innerText
   await t
@@ -178,6 +179,7 @@ test('enter invalid name', async (t) => {
   // user has no email no password and not active
   await t
     .typeText(fullNameInputSelector, inActiveUserNoPasswordNoEmail.fullname)
+    .click(Selector('div.name-confirmation').find('input'))
     .expect(Selector('.submissions-list').find('.note').count)
     .lte(3) // at most 3 recent publications
     .expect(claimProfileButtonSelector.exists)
@@ -197,6 +199,7 @@ test('email address should be masked', async (t) => {
   // user has email but no password not active
   await t
     .typeText(fullNameInputSelector, inActiveUserNoPassword.fullname)
+    .click(Selector('div.name-confirmation').find('input'))
     .expect(Selector('input').withAttribute('type', 'email').nth(0).value)
     .contains('****') // email should be masked
 })
