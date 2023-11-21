@@ -148,7 +148,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="row">
           <div className="form-group col-xs-12">
-            <label htmlFor="first-input">Full Name for Publication</label>
+            <label htmlFor="first-input">Full Name as in Publication Authorship</label>
             <input
               type="text"
               id="first-input"
@@ -178,7 +178,10 @@ const SignupForm = ({ setSignupConfirmation }) => {
               setConfirmFullName((confirmFullName) => !confirmFullName)
             }}
           />{' '}
-          <span>I confirm this is the name that appears in my submission.</span>
+          <span>
+            I confirm that this name is typed exactly as it would appear as an author in my
+            publications
+          </span>
         </div>
       </form>
 
@@ -531,10 +534,22 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [institutionDomains, setInstitutionDomains] = useState([])
-  const isInstitutionEmail = institutionDomains.some((domain) => email.endsWith(domain))
+  const [institutionErrorMessage, setInstitutionErrorMessage] = useState(null)
+
+  const isInstitutionEmail = (emailToCheck) =>
+    institutionDomains.some((domain) => emailToCheck.endsWith(domain))
+
+  const getInstitutionErrorMessage = (invalidEmail) => `${invalidEmail
+    .split('@')
+    .pop()} does not appear in our list of publishing institutions. If you have an email address with an educational or employing
+institution domain, please use this. Otherwise, it can take up to 2 weeks for
+profiles with generic email service domains to be activated.`
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    if (!isInstitutionEmail(email)) {
+      setInstitutionErrorMessage(getInstitutionErrorMessage(email))
+    }
 
     if (!passwordVisible) {
       setPasswordVisible(true)
@@ -581,7 +596,18 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
           placeholder="Email address"
           value={email}
           maxLength={254}
-          onChange={(e) => setEmail(e.target.value.trim())}
+          onChange={(e) => {
+            const cleanEmail = e.target.value.trim()
+            setEmail(cleanEmail)
+            if (!cleanEmail) setInstitutionErrorMessage(null)
+          }}
+          onBlur={(e) => {
+            const cleanEmail = e.target.value.trim()
+            if (cleanEmail && !isInstitutionEmail(cleanEmail)) {
+              setInstitutionErrorMessage(getInstitutionErrorMessage(cleanEmail))
+            }
+            if (!cleanEmail || isInstitutionEmail(cleanEmail)) setInstitutionErrorMessage(null)
+          }}
           autoComplete="email"
         />
         {!passwordVisible && (
@@ -591,21 +617,18 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
         )}
         {!passwordVisible && id && <span className="new-username hint">{`as ${id}`}</span>}
       </div>
-      {email && !isInstitutionEmail && (
+      {institutionErrorMessage && (
         <div className="activation-message-row">
           <div>
             <Icon name="warning-sign" extraClasses="email-tooltip" />
-            <span>
-              It can take up to 2 weeks for profiles with non-institution email to be
-              activated.
-            </span>
+            <span>{institutionErrorMessage}</span>
           </div>
           <div className="text-muted">
             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a href="#" data-toggle="modal" data-target="#feedback-modal">
               Contact us
             </a>{' '}
-            to add your institution if you are already using institution email.
+            to add your institution to our list.
           </div>
         </div>
       )}
