@@ -114,6 +114,7 @@ export default function VenueHomepage({ appContext }) {
     header,
     parentGroupId,
     submissionId,
+    submissionIds,
     submissionConfirmationMessage,
     tabs,
   } = useContext(WebFieldContext)
@@ -122,6 +123,13 @@ export default function VenueHomepage({ appContext }) {
   const router = useRouter()
   const { setBannerContent } = appContext
   const defaultActiveTab = formattedTabs?.findIndex((t) => !t.hidden) ?? 0
+
+  let allSubmissionIds = []
+  if (Array.isArray(submissionIds)) {
+    allSubmissionIds = submissionIds
+  } else if (submissionId) {
+    allSubmissionIds = [submissionId]
+  }
 
   const renderTab = (tabConfig) => {
     if (!tabConfig) return null
@@ -242,19 +250,22 @@ export default function VenueHomepage({ appContext }) {
     <>
       <VenueHeader headerInfo={header} />
 
-      {submissionId && (
+      {allSubmissionIds.length > 0 && (
         <div id="invitation">
-          <SubmissionButton
-            invitationId={submissionId}
-            apiVersion={2}
-            onNoteCreated={() => {
-              const defaultConfirmationMessage =
-                'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
-              promptMessage(submissionConfirmationMessage || defaultConfirmationMessage)
-              reload()
-            }}
-            options={{ largeLabel: true }}
-          />
+          {allSubmissionIds.filter(Boolean).map((invitationId) => (
+            <SubmissionButton
+              key={invitationId}
+              invitationId={invitationId}
+              apiVersion={2}
+              onNoteCreated={() => {
+                const defaultConfirmationMessage =
+                  'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
+                promptMessage(submissionConfirmationMessage || defaultConfirmationMessage)
+                reload()
+              }}
+              options={{ largeLabel: true }}
+            />
+          ))}
         </div>
       )}
 
