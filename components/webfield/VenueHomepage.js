@@ -126,7 +126,7 @@ export default function VenueHomepage({ appContext }) {
 
   let allSubmissionIds = []
   if (Array.isArray(submissionIds)) {
-    allSubmissionIds = submissionIds
+    allSubmissionIds = submissionIds.filter(Boolean)
   } else if (submissionId) {
     allSubmissionIds = [submissionId]
   }
@@ -252,7 +252,7 @@ export default function VenueHomepage({ appContext }) {
 
       {allSubmissionIds.length > 0 && (
         <div id="invitation">
-          {allSubmissionIds.filter(Boolean).map((invitationId) => (
+          {allSubmissionIds.map((invitationId) => (
             <SubmissionButton
               key={invitationId}
               invitationId={invitationId}
