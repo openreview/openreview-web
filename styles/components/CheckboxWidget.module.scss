@@ -5,4 +5,10 @@
   @media #{constants.$large} {
     max-width: 80%;
   }
+
+  :global {
+    .mandatory-value {
+      color: constants.$orRed;
+    }
+  }
 }

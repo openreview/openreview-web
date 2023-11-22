@@ -132,7 +132,7 @@ const CheckboxWidget = ({
               disabled={option.optional === false}
               onChange={handleCheckboxClick}
             />
-            {option.label}
+            {typeof option.label === 'function' ? <option.label /> : option.label}
           </label>
         </div>
       ))}

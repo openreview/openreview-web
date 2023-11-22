@@ -920,7 +920,7 @@ describe('CheckboxWidget in context of note editor', () => {
 })
 
 describe('CheckboxWdiget to be used by itself', () => {
-  test('display options from props', () => {
+  test('display options from props (string)', () => {
     const props = {
       isEditor: false,
       options: [
@@ -945,6 +945,31 @@ describe('CheckboxWdiget to be used by itself', () => {
       'value',
       'value three'
     )
+  })
+
+  test('display options from props (function)', () => {
+    const props = {
+      isEditor: false,
+      options: [
+        { label: <div>some component for label one</div>, value: 'value one' },
+        { label: 'label two', value: 'value two' },
+        { label: <div>some component for label three</div>, value: 'value three' },
+      ],
+    }
+
+    render(<CheckboxWidget {...props} />)
+
+    expect(screen.getAllByRole('checkbox').length).toEqual(3)
+    expect(
+      screen.getByRole('checkbox', { name: 'some component for label one' })
+    ).toHaveAttribute('value', 'value one')
+    expect(screen.getByRole('checkbox', { name: 'label two' })).toHaveAttribute(
+      'value',
+      'value two'
+    )
+    expect(
+      screen.getByRole('checkbox', { name: 'some component for label three' })
+    ).toHaveAttribute('value', 'value three')
   })
 
   test('show value from props (array and non-array types)', () => {

@@ -101,9 +101,13 @@ export const NewNoteReaders = ({
         default:
           options = groupResults.flat().map((p) => ({
             label:
-              useCheckboxWidget && p.optional === false
-                ? `${p.description} [Mandatory]`
-                : p.description,
+              useCheckboxWidget && p.optional === false ? (
+                <span>
+                  {p.description} <span className="mandatory-value">[Mandatory]</span>
+                </span>
+              ) : (
+                p.description
+              ),
             value: p.value,
           }))
           defaultValues = fieldDescription?.param?.default ?? []
@@ -362,9 +366,13 @@ export const NewReplyEditNoteReaders = ({
 
           options = optionWithParentReaders.map((p) => ({
             label:
-              useCheckboxWidget && p.optional === false
-                ? `${p.description} [Mandatory]`
-                : p.description,
+              useCheckboxWidget && p.optional === false ? (
+                <span>
+                  {p.description} <span className="mandatory-value">[Mandatory]</span>
+                </span>
+              ) : (
+                p.description
+              ),
             value: p.value,
           }))
           parentReadersToAutoSelect = isDirectReplyToForum
