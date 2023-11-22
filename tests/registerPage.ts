@@ -34,7 +34,7 @@ test('create new profile', async (t) => {
   await t
     .typeText(fullNameInputSelector, 'Melisa Bok')
     .expect(emailAddressInputSelector.exists).notOk()
-    .expect(Selector('span').withText("I confirm this is the name that appears in my submission.").exists).ok()
+    .expect(Selector('span').withText("I confirm that this name is typed exactly as it would appear as an author in my publications").exists).ok()
     .click(Selector('div.name-confirmation').find('input'))
     .typeText(emailAddressInputSelector, 'melisa@test.com')
     .expect(signupButtonSelector.hasAttribute('disabled'))
@@ -44,7 +44,20 @@ test('create new profile', async (t) => {
     .ok()
     .expect(confirmPasswordInputSelector.exists)
     .ok()
-    .expect(Selector('span').withText('It can take up to 2 weeks for profiles with non-institution email to be activated').exists).ok()
+    .expect(Selector('span').withText(`test.com does not appear in our list of publishing institutions. If you have an email address with an educational or employing institution domain, please use this. Otherwise, it can take up to 2 weeks for profiles with generic email service domains to be activated.`).exists).ok()
+    // type another non institution email
+    .selectText(emailAddressInputSelector).pressKey('delete')
+    .typeText(emailAddressInputSelector, 'non@institution.email')
+    .click(signupButtonSelector)
+    .expect(Selector('span').withText(`institution.email does not appear in our list of publishing institutions. If you have an email address with an educational or employing institution domain, please use this. Otherwise, it can take up to 2 weeks for profiles with generic email service domains to be activated.`).exists).ok()
+    // correct email to be institution email
+    .selectText(emailAddressInputSelector).pressKey('delete')
+    .typeText(emailAddressInputSelector, 'validemail@umass.edu')
+    .click(signupButtonSelector)
+    .expect(Selector('div.activation-message-row').exists).notOk() // no warning
+    .selectText(emailAddressInputSelector).pressKey('delete')
+    .typeText(emailAddressInputSelector, 'melisa@test.com')
+    .click(signupButtonSelector)
     .typeText(newPasswordInputSelector, strongPassword)
     .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
