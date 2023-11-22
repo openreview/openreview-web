@@ -87,6 +87,10 @@ main.sign-up {
         .email-tooltip {
           margin-right: 0.25rem;
         }
+
+        a {
+          color: constants.$subtleGray;
+        }
       }
 
       .submissions-list {
