@@ -534,21 +534,24 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [institutionDomains, setInstitutionDomains] = useState([])
-  const [institutionErrorMessage, setInstitutionErrorMessage] = useState(null)
+  const [nonInstitutionEmail, setNonInstitutionEmail] = useState(null)
 
   const isInstitutionEmail = (emailToCheck) =>
     institutionDomains.some((domain) => emailToCheck.endsWith(domain))
 
-  const getInstitutionErrorMessage = (invalidEmail) => `${invalidEmail
-    .split('@')
-    .pop()} does not appear in our list of publishing institutions. If you have an email address with an educational or employing
-institution domain, please use this. Otherwise, it can take up to 2 weeks for
-profiles with generic email service domains to be activated.`
+  const InstitutionErrorMessage = ({ email: invalidEmail }) => (
+    <span>
+      <strong>{invalidEmail.split('@').pop()}</strong> does not appear in our list of
+      publishing institutions. If you have an email address with an educational or employing
+      institution domain, please use this. Otherwise, it can take up to{' '}
+      <strong>2 weeks</strong> for profiles with generic email service domains to be activated.
+    </span>
+  )
 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!isInstitutionEmail(email)) {
-      setInstitutionErrorMessage(getInstitutionErrorMessage(email))
+      setNonInstitutionEmail(email)
     }
 
     if (!passwordVisible) {
@@ -599,14 +602,14 @@ profiles with generic email service domains to be activated.`
           onChange={(e) => {
             const cleanEmail = e.target.value.trim()
             setEmail(cleanEmail)
-            if (!cleanEmail) setInstitutionErrorMessage(null)
+            if (!cleanEmail) setNonInstitutionEmail(null)
           }}
           onBlur={(e) => {
             const cleanEmail = e.target.value.trim()
             if (cleanEmail && !isInstitutionEmail(cleanEmail)) {
-              setInstitutionErrorMessage(getInstitutionErrorMessage(cleanEmail))
+              setNonInstitutionEmail(cleanEmail)
             }
-            if (!cleanEmail || isInstitutionEmail(cleanEmail)) setInstitutionErrorMessage(null)
+            if (!cleanEmail || isInstitutionEmail(cleanEmail)) setNonInstitutionEmail(null)
           }}
           autoComplete="email"
         />
@@ -617,11 +620,11 @@ profiles with generic email service domains to be activated.`
         )}
         {!passwordVisible && id && <span className="new-username hint">{`as ${id}`}</span>}
       </div>
-      {institutionErrorMessage && (
+      {nonInstitutionEmail && (
         <div className="activation-message-row">
           <div>
             <Icon name="warning-sign" extraClasses="email-tooltip" />
-            <span>{institutionErrorMessage}</span>
+            <InstitutionErrorMessage email={nonInstitutionEmail} />
           </div>
           <div className="text-muted">
             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
