@@ -10,7 +10,13 @@ import { getDefaultTimezone } from '../lib/utils'
 dayjs.extend(timezone)
 dayjs.extend(utc)
 
-const DatetimePicker = ({ existingValue, onChange, timeZone }) => {
+const DatetimePicker = ({
+  existingValue,
+  onChange,
+  timeZone,
+  placeholder,
+  autoFocus = true,
+}) => {
   const [value, setValue] = useState(existingValue ? dayjs(existingValue) : '')
 
   const handleOkClick = (e) => {
@@ -35,9 +41,9 @@ const DatetimePicker = ({ existingValue, onChange, timeZone }) => {
       value={value}
       onOk={handleOkClick}
       onChange={handleChange}
-      placeholder="Select datetime"
+      placeholder={placeholder ?? 'Select datetime'}
       use12Hours
-      autoFocus
+      autoFocus={autoFocus}
       allowClear
     />
   )

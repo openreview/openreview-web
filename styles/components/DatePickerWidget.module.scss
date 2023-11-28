@@ -1,0 +1,37 @@
+@use '../utils/constants';
+
+.datePickerContainer {
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  @media #{constants.$large} {
+    max-width: 80%;
+    flex-direction: row;
+  }
+
+  :global {
+    .rc-picker-input > input {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 0.875rem;
+      height: 30px;
+    }
+    .rc-picker-clear {
+      top: 0;
+    }
+  }
+}
+
+.timeZonePicker {
+  margin-top: 0.25rem;
+  display: flex;
+  width: 100%;
+
+  @media #{constants.$large} {
+    margin-top: 0;
+  }
+
+  .timeZoneDropdown {
+    width: 100%;
+  }
+}
