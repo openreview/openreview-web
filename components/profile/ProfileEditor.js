@@ -201,16 +201,20 @@ export default function ProfileEditor({
     // #region validate relations
     if (
       (invalidRecord = profileContent.relations.find(
-        (p) => !p.relation || !p.name || !p.email
+        (p) => !p.relation || !p.name || (!p.email && !p.username)
       ))
     ) {
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
-        'You must enter relation, name and email information for each entry in your advisor and other relations'
+        'You must enter relation and select the profile for each entry in your advisor and other relations'
       )
     }
-    if ((invalidRecord = profileContent.relations.find((p) => !isValidEmail(p.email)))) {
+    if (
+      (invalidRecord = profileContent.relations.find(
+        (p) => !p.username && !isValidEmail(p.email)
+      ))
+    ) {
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -296,7 +300,7 @@ export default function ProfileEditor({
       ),
       expertise: profileContent.expertise.map((p) => pick(p, ['keywords', 'start', 'end'])),
       relations: profileContent.relations.map((p) =>
-        pick(p, ['relation', 'name', 'email', 'start', 'end', 'readers'])
+        pick(p, ['relation', 'username', 'name', 'email', 'start', 'end', 'readers'])
       ),
       preferredEmail: profileContent.emails.find((p) => p.preferred)?.email,
       homepage: profileContent.homepage?.value?.trim(),
@@ -421,8 +425,15 @@ export default function ProfileEditor({
 
       <ProfileSection
         title="Advisors &amp; Other Relations"
-        instructions="Enter all advisors, co-workers, and other people that should be included when
-          detecting conflicts of interest."
+        instructions={
+          <>
+            Enter all advisors, co-workers, and other people that should be included when
+            detecting conflicts of interest.
+            <br />
+            For example, you can choose &lsquo;PhD advisor&rsquo; and enter the name of your
+            PhD advisor.
+          </>
+        }
       >
         <RelationsSection
           profileRelation={profile?.relations}

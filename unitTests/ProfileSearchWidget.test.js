@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ProfileSearchWidget from '../components/EditorComponents/ProfileSearchWidget'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
@@ -868,9 +868,9 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
       },
     }))
-    const searchProfile = jest.fn(() =>
+    const searchProfile = jest.fn((_, { offset, limit }) =>
       Promise.resolve({
-        profiles,
+        profiles: profiles.slice(offset, offset + limit),
         count: 150,
       })
     )
@@ -903,12 +903,15 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     )
     await userEvent.click(screen.getByText('Search'))
     expect(screen.getByRole('navigation')).toBeInTheDocument()
-    expect(screen.queryByText('Showing 1-15 of 150')).not.toBeInTheDocument() // not to show count
+    expect(screen.queryByText('Showing 1-20 of 150')).not.toBeInTheDocument() // not to show count
     expect(screen.getByRole('link', { name: '~ search _ result 2' })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: '~ search _ result 130' })
+    ).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: '7' }))
-    expect(screen.queryByText('Showing 91-105 of 150')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: '~ search _ result 105' })).toBeInTheDocument()
+    expect(screen.queryByText('Showing 121-140 of 150')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '~ search _ result 130' })).toBeInTheDocument()
   })
 
   test('show error message when profile search end point is not working', async () => {
@@ -988,8 +991,8 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     ).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
-    expect(screen.getByPlaceholderText('full name of the author to add')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('email of the author to add')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Full name of the author to add')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Email of the author to add')).toBeInTheDocument()
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
   })
 
@@ -1029,8 +1032,8 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     ).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
-    expect(screen.getByPlaceholderText('full name of the author to add')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('email of the author to add')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Full name of the author to add')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Email of the author to add')).toBeInTheDocument()
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
   })
 
@@ -1097,14 +1100,14 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
 
-    expect(screen.getByPlaceholderText('full name of the author to add')).toHaveValue('') // not to fill for name incase it's not complete name
+    expect(screen.getByPlaceholderText('Full name of the author to add')).toHaveValue('') // not to fill for name incase it's not complete name
 
     await userEvent.clear(screen.getByPlaceholderText('search profiles by email or name'))
     await userEvent.type(searchInput, '   test@EMAIL.COM   ')
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
 
-    expect(screen.getByPlaceholderText('email of the author to add')).toHaveValue(
+    expect(screen.getByPlaceholderText('Email of the author to add')).toHaveValue(
       'test@email.com'
     )
   })
@@ -1144,13 +1147,13 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
 
     await userEvent.type(
-      screen.getByPlaceholderText('full name of the author to add'),
+      screen.getByPlaceholderText('Full name of the author to add'),
       'fullname of the author'
     )
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
 
     await userEvent.type(
-      screen.getByPlaceholderText('email of the author to add'),
+      screen.getByPlaceholderText('Email of the author to add'),
       'test@email.com'
     )
     expect(screen.getByText('Add')).not.toHaveAttribute('disabled')
@@ -1214,13 +1217,13 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
 
     await userEvent.type(
-      screen.getByPlaceholderText('full name of the author to add'),
+      screen.getByPlaceholderText('Full name of the author to add'),
       'fullname of the author'
     )
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
 
     await userEvent.type(
-      screen.getByPlaceholderText('email of the author to add'),
+      screen.getByPlaceholderText('Email of the author to add'),
       'test@email.com'
     )
     expect(screen.getByText('Add')).not.toHaveAttribute('disabled')
@@ -1635,5 +1638,323 @@ describe('ProfileSearchWidget for non authorids field', () => {
         '~test_id_preferred1'
       )
     })
+  })
+})
+
+describe('ProfileSearchWidget to be used by itself', () => {
+  // for example to be used in profile relation
+  // properties will be passed directly instead of through context
+  test('show search input and search button', async () => {
+    const props = {
+      isEditor: false,
+      searchInputPlaceHolder: 'Search relation by name or email',
+      className: 'test-class-name',
+    }
+    const { container } = render(<ProfileSearchWidget {...props} />)
+
+    expect(container.firstChild).toHaveAttribute(
+      'class',
+      expect.stringContaining(props.className)
+    )
+    const searchInput = screen.getByPlaceholderText(props.searchInputPlaceHolder)
+    expect(searchInput).toBeInTheDocument()
+    expect(screen.getByText('Search')).toHaveAttribute('disabled')
+
+    await userEvent.type(searchInput, 'some text')
+    expect(screen.getByText('Search')).not.toHaveAttribute('disabled')
+  })
+
+  test('not to get profile of current user', () => {
+    const initialGetProfile = jest.fn()
+    api.post = initialGetProfile
+
+    const props = {
+      isEditor: false,
+      searchInputPlaceHolder: 'Search relation by name or email',
+    }
+    render(<ProfileSearchWidget {...props} />)
+
+    expect(initialGetProfile).not.toHaveBeenCalled()
+  })
+
+  // how many results per page
+  test('paginate results based on pageSize prop', async () => {
+    const profiles = Array.from(new Array(150), (_, p) => ({
+      id: `~search_result${p}`,
+      content: {
+        names: [
+          {
+            fullname: `Result First ${p}`,
+            username: `~search_result${p}`,
+          },
+        ],
+        emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
+      },
+    }))
+    const searchProfile = jest.fn((_, { offset, limit }) =>
+      Promise.resolve({
+        profiles: profiles.slice(offset, offset + limit),
+        count: 150,
+      })
+    )
+    api.get = searchProfile
+    const props = {
+      isEditor: false,
+      searchInputPlaceHolder: 'Search relation by name or email',
+      pageSize: 2,
+    }
+
+    render(<ProfileSearchWidget {...props} />)
+
+    await userEvent.type(
+      screen.getByPlaceholderText(props.searchInputPlaceHolder),
+      'search text'
+    )
+    await userEvent.click(screen.getByText('Search'))
+
+    expect(searchProfile).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' }),
+      expect.anything()
+    )
+
+    expect(screen.getByRole('navigation')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '~ search _ result 0' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '~ search _ result 1' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: '~ search _ result 2' })).not.toBeInTheDocument()
+  })
+
+  // how many pagination link to show
+  test('paginate results based on pageListLength prop', async () => {
+    const profiles = Array.from(new Array(150), (_, p) => ({
+      id: `~search_result${p}`,
+      content: {
+        names: [
+          {
+            fullname: `Result First ${p}`,
+            username: `~search_result${p}`,
+          },
+        ],
+        emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
+      },
+    }))
+    const searchProfile = jest.fn((_, { offset, limit }) =>
+      Promise.resolve({
+        profiles: profiles.slice(offset, offset + limit),
+        count: 150,
+      })
+    )
+    api.get = searchProfile
+    const props = {
+      isEditor: false,
+      searchInputPlaceHolder: 'Search relation by name or email',
+      pageSize: 2,
+      pageListLength: 12,
+    }
+
+    render(<ProfileSearchWidget {...props} />)
+
+    await userEvent.type(
+      screen.getByPlaceholderText(props.searchInputPlaceHolder),
+      'search text'
+    )
+    await userEvent.click(screen.getByText('Search'))
+
+    expect(searchProfile).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' }),
+      expect.anything()
+    )
+
+    expect(screen.getByRole('navigation')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '8' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '9' })).not.toBeInTheDocument()
+  })
+
+  test('show text based on fieldName', async () => {
+    api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
+    const props = {
+      isEditor: false,
+      searchInputPlaceHolder: 'Search relation by name or email',
+      pageSize: 2,
+      field: { 'some dummy name': '' },
+    }
+
+    render(<ProfileSearchWidget {...props} />)
+
+    await userEvent.type(
+      screen.getByPlaceholderText(props.searchInputPlaceHolder),
+      'search text'
+    )
+    await userEvent.click(screen.getByText('Search'))
+
+    const manualEnterButton = screen.getByText('Manually Enter Some dummy name Info')
+    expect(manualEnterButton).toBeInTheDocument()
+
+    await userEvent.click(manualEnterButton)
+    expect(
+      screen.getByPlaceholderText('Full name of the some dummy name to add')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByPlaceholderText('Email of the some dummy name to add')
+    ).toBeInTheDocument()
+  })
+
+  test('call onChange passing info of select profile', async () => {
+    const profile = {
+      id: '~search_result1',
+      content: {
+        names: [
+          { fullname: 'Result First Result Last', username: '~search_result1' },
+          {
+            fullname: 'preferred name',
+            username: '~preferred_name1',
+            preferred: true,
+          },
+        ],
+        emails: ['test1@email.com', 'anothertest1@email.com'],
+      },
+    }
+    const searchProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles: [profile],
+        count: 1,
+      })
+    )
+    api.get = searchProfile
+    const onChange = jest.fn()
+
+    const props = {
+      isEditor: false,
+      searchInputPlaceHolder: 'Search relation by name or email',
+      pageSize: 2,
+      field: { relation: '' },
+      onChange,
+    }
+
+    render(<ProfileSearchWidget {...props} />)
+
+    await userEvent.type(
+      screen.getByPlaceholderText(props.searchInputPlaceHolder),
+      'some name/email/tildeid to search'
+    )
+    await userEvent.click(screen.getByText('Search'))
+    await userEvent.click(screen.getByRole('button', { name: 'plus' }))
+
+    // use username and name
+    expect(onChange).toHaveBeenCalledWith(
+      '~preferred_name1',
+      'preferred name',
+      undefined, // this profile has no preferred email
+      profile
+    )
+  })
+
+  test('show search results when profile is manually entered (has matching profile)', async () => {
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~search_result1',
+            content: {
+              names: [{ fullname: 'profile name of author', username: '~search_result1' }],
+              emails: ['test@email.com'],
+            },
+          },
+        ],
+        count: 1,
+      })
+    )
+    const onChange = jest.fn()
+
+    const props = {
+      isEditor: false,
+      searchInputPlaceHolder: 'Search relation by name or email',
+      pageSize: 2,
+      field: { relation: '' },
+      onChange,
+    }
+
+    render(<ProfileSearchWidget {...props} />)
+
+    await userEvent.type(
+      screen.getByPlaceholderText(props.searchInputPlaceHolder),
+      'some name/email/tildeid to search'
+    )
+    await userEvent.click(screen.getByText('Search'))
+    await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Relation Info' }))
+
+    await userEvent.type(
+      screen.getByPlaceholderText('Full name of the relation to add'),
+      'fullname'
+    )
+
+    await userEvent.type(
+      screen.getByPlaceholderText('Email of the relation to add'),
+      'test@email.com'
+    )
+
+    await userEvent.click(screen.getByText('Add'))
+
+    // show search results found by custom email entered
+    expect(screen.getAllByText('~', { exact: false })[0].parentElement.textContent).toEqual(
+      '~search_result1'
+    )
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  test('call onChange passing name and email when profile is manually entered (no matching profile)', async () => {
+    api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
+    const onChange = jest.fn()
+
+    const props = {
+      isEditor: false,
+      searchInputPlaceHolder: 'Search relation by name or email',
+      pageSize: 2,
+      field: { relation: '' },
+      onChange,
+    }
+
+    render(<ProfileSearchWidget {...props} />)
+
+    await userEvent.type(
+      screen.getByPlaceholderText(props.searchInputPlaceHolder),
+      'some name/email/tildeid to search'
+    )
+    await userEvent.click(screen.getByText('Search'))
+    await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Relation Info' }))
+
+    await userEvent.type(
+      screen.getByPlaceholderText('Full name of the relation to add'),
+      'fullname'
+    )
+
+    await userEvent.type(
+      screen.getByPlaceholderText('Email of the relation to add'),
+      'test@email.nomatch' // does not match search result
+    )
+
+    await userEvent.click(screen.getByText('Add'))
+    expect(onChange).toHaveBeenCalledWith(
+      undefined,
+      'fullname',
+      'test@email.nomatch',
+      undefined
+    )
+  })
+
+  test('allow consumer to provide a custom search form', () => {
+    const props = {
+      isEditor: false,
+      searchInputPlaceHolder: 'Search relation by name or email',
+      pageSize: 2,
+      field: { relation: '' },
+      CustomProfileSearchForm: () => <div>custom search form</div>,
+    }
+
+    render(<ProfileSearchWidget {...props} />)
+    expect(screen.getByText('custom search form')).toBeInTheDocument()
+    expect(screen.queryByText(props.searchInputPlaceHolder)).not.toBeInTheDocument() // default form not shown
   })
 })
