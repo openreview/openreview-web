@@ -25,19 +25,13 @@
     border-collapse: separate;
     border-spacing: 0 5px;
   }
-  .glyphicon {
-    color: constants.$mediumBlue;
-    font-size: 1.25rem;
-  }
   input {
     margin-right: 0.5rem;
   }
   .invalid_value {
     border-color: constants.$orRed;
   }
-  button {
-    margin-right: 0.5rem;
-  }
+
   .unlinked-publication {
     opacity: 0.5;
     pointer-events: none;
