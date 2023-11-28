@@ -11,5 +11,11 @@
       color: constants.$orRed;
       font-weight: bold;
     }
+    .checkbox:first-child {
+      margin-top: 0;
+    }
+    .checkbox:last-child {
+      margin-bottom: 0;
+    }
   }
 }
