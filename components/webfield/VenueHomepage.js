@@ -18,18 +18,9 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
-function ConsolesList({
-  venueId,
-  submissionInvitationId,
-  authorsGroupId,
-  setHidden,
-  shouldReload,
-  options = {},
-}) {
+function ConsolesList({ venueId, setHidden, shouldReload }) {
   const [userConsoles, setUserConsoles] = useState(null)
   const { user, accessToken, userLoading } = useUser()
-
-  const defaultAuthorsGroupId = `${venueId}/Authors`
 
   useEffect(() => {
     if (userLoading) return
@@ -60,7 +51,7 @@ function ConsolesList({
         setUserConsoles([])
         promptError(error.message)
       })
-  }, [user, accessToken, userLoading, venueId, submissionInvitationId, shouldReload])
+  }, [user, accessToken, userLoading, venueId, shouldReload])
 
   useEffect(() => {
     if (!userConsoles || typeof setHidden !== 'function') return
@@ -138,9 +129,6 @@ export default function VenueHomepage({ appContext }) {
       return (
         <ConsolesList
           venueId={group.id}
-          submissionInvitationId={submissionId}
-          authorsGroupId={tabConfig.authorsGroupId}
-          options={tabConfig.options}
           shouldReload={shouldReload}
           setHidden={(newHidden) => {
             if (newHidden === tabConfig.hidden) return
