@@ -84,7 +84,7 @@ export default function Edit({ edit, type, className, showContents }) {
 
   return (
     <div className={`edit ${className ?? ''}`}>
-      <h4>{buildNoteTitle(edit.invitations?.[0] ?? edit.invitation, edit.signatures)}</h4>
+      <h4>{buildNoteTitle(edit.invitations?.[0] ?? edit.invitation, edit.signatures, true)}</h4>
 
       <ul className="edit_meta_info list-inline">
         <li>
@@ -152,7 +152,6 @@ export default function Edit({ edit, type, className, showContents }) {
       <div className="edit_info">
         <h4>Edit Info</h4>
         <hr className="small" />
-        {edit.license && <EditValue name="License" value={edit.license} />}
         <EditValue name="Readers" value={prettyList(edit.readers, 'long', 'unit')} />
         <EditValue name="Writers" value={prettyList(edit.writers, 'long', 'unit')} />
         <EditValue name="Signatures" value={prettyList(edit.signatures, 'long', 'unit')} />

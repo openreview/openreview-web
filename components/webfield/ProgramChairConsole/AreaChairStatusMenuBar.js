@@ -246,11 +246,15 @@ const AreaChairStatusMenuBar = ({
       value: 'Area Chair Name',
       getValue: (p) => p.areaChairProfile?.preferredName ?? p.areaChairProfileId,
     },
-    {
-      label: 'Bids Completed',
-      value: 'Bids Completed',
-      getValue: (p) => p.completedBids,
-    },
+    ...(bidEnabled
+      ? [
+          {
+            label: 'Bids Completed',
+            value: 'Bids Completed',
+            getValue: (p) => p.completedBids,
+          },
+        ]
+      : []),
     {
       label: 'Reviewer Recommendations Completed',
       value: 'Reviewer Recommendations Completed',

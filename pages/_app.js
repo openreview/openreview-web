@@ -5,6 +5,7 @@ import Router from 'next/router'
 import DOMPurify from 'dompurify'
 import { nanoid } from 'nanoid'
 import random from 'lodash/random'
+import { marked } from 'marked'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import { auth, getTokenPayload, cookieExpiration, refreshExpiration } from '../lib/auth'
@@ -278,7 +279,6 @@ export default class OpenReviewApp extends App {
     require('bootstrap')
     window._ = require('lodash')
     window.Handlebars = require('handlebars/runtime')
-    const { marked } = require('marked')
     window.marked = marked
     window.DOMPurify = DOMPurify
     window.MathJax = mathjaxConfig

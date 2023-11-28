@@ -110,7 +110,7 @@ export default function NoteActivity({ note, showActionButtons, showGroup }) {
 
 export function NoteActivityV2({ note, showGroup, showActionButtons }) {
   const { details } = note
-  const { content = {} } = note.note
+  const { id, forum, content = {} } = note.note
 
   let actionDescription
   if (details.isDeleted) {
@@ -126,7 +126,7 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
   const readersFiltered = note.readers?.includes('everyone')
     ? ['Everyone']
     : without(
-        note.readers?.map((id) => prettyId(id)),
+        note.readers?.map((groupId) => prettyId(groupId)),
         'Super User',
         '',
         null,
@@ -168,8 +168,8 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
         <div className="activity-title">
           <h4>
             <Link
-              href={`/forum?${note.note.forum ? `id=${note.note.forum}&` : ''}${
-                details.isForum ? '' : `noteId=${note.note.id}`
+              href={`/forum?${forum ? `id=${forum}&` : ''}${
+                details.isForum ? '' : `noteId=${id}`
               }`}
             >
               {details.isDeleted ? '[Deleted] ' : ''}
@@ -194,15 +194,14 @@ export function NoteActivityV2({ note, showGroup, showActionButtons }) {
         {showActionButtons && details.writable && <div className="activity-actions"></div>}
       </div>
 
-      {!details.isDeleted && (
-        details.isForum ? (
+      {!details.isDeleted &&
+        (details.isForum ? (
           <Collapse showLabel="Show details" hideLabel="Hide details" indent>
-            <NoteContentV2 id={note.id} content={content} invitation={details.invitation} />
+            <NoteContentV2 id={id} content={content} invitation={details.invitation} />
           </Collapse>
         ) : (
-          <NoteContentV2 id={note.id} content={content} invitation={details.invitation} />
-        )
-      )}
+          <NoteContentV2 id={id} content={content} invitation={details.invitation} />
+        ))}
     </div>
   )
 }
