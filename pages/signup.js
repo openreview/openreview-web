@@ -544,7 +544,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
       <strong>{invalidEmail.split('@').pop()}</strong> does not appear in our list of
       publishing institutions. If you have an email address with an educational or employing
       institution domain, please use this. Otherwise, it can take up to{' '}
-      <strong>2 weeks</strong> for profiles with generic email service domains to be activated.
+      <strong>2 weeks</strong> for profiles using public email services to be activated.
     </span>
   )
 
