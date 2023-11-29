@@ -188,7 +188,7 @@ describe('NewNoteReaders', () => {
     )
   })
 
-  test('show regex group results with everyone on top', async () => {
+  test('show regex group results with everyone on top (both dropdown and checkbox)', async () => {
     const getGroups = jest.fn(() =>
       Promise.resolve({
         groups: [
@@ -217,13 +217,14 @@ describe('NewNoteReaders', () => {
     }
     const user = userEvent.setup()
 
-    render(
+    const { rerender } = render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
         closeNoteEditor={jest.fn()}
         value={undefined}
         onChange={jest.fn()}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -234,6 +235,42 @@ describe('NewNoteReaders', () => {
       expect(dropdownList.childNodes[1].textContent).toEqual('Test IdOne')
       expect(dropdownList.childNodes[2].textContent).toEqual('Test IdTwo')
       expect(dropdownList.childNodes[3].textContent).toEqual('Test IdThree')
+    })
+
+    rerender(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+    await waitFor(() => {
+      const checkboxContainer = screen.getByRole('checkbox', { name: 'Everyone' })
+        .parentElement.parentElement.parentElement
+
+      expect(checkboxContainer.childNodes[0].textContent).toEqual('Everyone')
+      expect(screen.getByRole('checkbox', { name: 'Everyone' })).toHaveAttribute(
+        'value',
+        'everyone'
+      )
+      expect(checkboxContainer.childNodes[1].textContent).toEqual('Test IdOne')
+      expect(screen.getByRole('checkbox', { name: 'Test IdOne' })).toHaveAttribute(
+        'value',
+        '~Test_IdOne1'
+      )
+      expect(checkboxContainer.childNodes[2].textContent).toEqual('Test IdTwo')
+      expect(screen.getByRole('checkbox', { name: 'Test IdTwo' })).toHaveAttribute(
+        'value',
+        '~Test_IdTwo1'
+      )
+      expect(checkboxContainer.childNodes[3].textContent).toEqual('Test IdThree')
+      expect(screen.getByRole('checkbox', { name: 'Test IdThree' })).toHaveAttribute(
+        'value',
+        '~Test_IdThree1'
+      )
     })
   })
 
@@ -302,7 +339,7 @@ describe('NewNoteReaders', () => {
     }
     const user = userEvent.setup()
 
-    render(
+    const { rerender } = render(
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
         value={undefined}
@@ -316,6 +353,22 @@ describe('NewNoteReaders', () => {
     })
 
     await user.click(screen.getByRole('combobox'))
+    expect(screen.getAllByText('does not matter')).toHaveLength(2)
+
+    rerender(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(getGroups).not.toHaveBeenCalled()
+    })
+
     expect(screen.getAllByText('does not matter')).toHaveLength(2)
   })
 
@@ -524,7 +577,7 @@ describe('NewNoteReaders', () => {
     })
   })
 
-  test('show multiselect dropdown for enum values', async () => {
+  test('show multiselect dropdown for enum values when useCheckboxWidget is not set', async () => {
     const getGroups = jest.fn(() =>
       Promise.resolve({
         groups: [
@@ -555,6 +608,7 @@ describe('NewNoteReaders', () => {
         value={undefined}
         onChange={jest.fn()}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -571,7 +625,64 @@ describe('NewNoteReaders', () => {
     })
   })
 
-  test('show dropdown for items values (no mandatory value)', async () => {
+  test('show checkboxes for enum values when useCheckboxWidget is true', async () => {
+    const getGroups = jest.fn(() =>
+      Promise.resolve({
+        groups: [
+          { id: 'ICML.cc/2023/Conference/Submission5/Reviewer_abc' },
+          { id: 'ICML.cc/2023/Conference/Submission5/Reviewer_xyz' },
+        ],
+      })
+    )
+    api.get = getGroups
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              enum: ['~Test_IdOne1', 'ICML.cc/2023/Conference/Submission5/Reviewer_.*'],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      const checkboxContainer = screen.getByRole('checkbox', { name: 'Test IdOne' })
+        .parentElement.parentElement.parentElement
+      expect(checkboxContainer.childNodes[0].textContent).toEqual('Test IdOne')
+      expect(screen.getByRole('checkbox', { name: 'Test IdOne' })).toHaveAttribute(
+        'value',
+        '~Test_IdOne1'
+      )
+      expect(checkboxContainer.childNodes[1].textContent).toEqual(
+        'ICML 2023 Conference Submission5 Reviewer abc'
+      )
+      expect(
+        screen.getByRole('checkbox', { name: 'ICML 2023 Conference Submission5 Reviewer abc' })
+      ).toHaveAttribute('value', 'ICML.cc/2023/Conference/Submission5/Reviewer_abc')
+      expect(checkboxContainer.childNodes[2].textContent).toEqual(
+        'ICML 2023 Conference Submission5 Reviewer xyz'
+      )
+      expect(
+        screen.getByRole('checkbox', { name: 'ICML 2023 Conference Submission5 Reviewer xyz' })
+      ).toHaveAttribute('value', 'ICML.cc/2023/Conference/Submission5/Reviewer_xyz')
+    })
+  })
+
+  test('show dropdown for items values (no mandatory value) when useCheckboxWidget is not set', async () => {
     const getGroups = jest.fn(() =>
       Promise.resolve({ groups: [{ id: '~Test_IdTwo1' }, { id: '~Test_IdThree1' }] })
     )
@@ -605,6 +716,7 @@ describe('NewNoteReaders', () => {
         value={undefined}
         onChange={onChange}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -619,7 +731,55 @@ describe('NewNoteReaders', () => {
     })
   })
 
-  test('show dropdown for items values (with mandatory value)', async () => {
+  test('show checkboxes for items values (no mandatory value)', async () => {
+    const getGroups = jest.fn(() =>
+      Promise.resolve({ groups: [{ id: '~Test_IdTwo1' }, { id: '~Test_IdThree1' }] })
+    )
+    const onChange = jest.fn()
+    api.get = getGroups
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'test id one description',
+                  optional: true,
+                },
+                { prefix: 'regex1.*', description: 'does not matter', optional: true },
+              ],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      const checkboxesContainer = screen.getByText('test id one description').parentElement
+        .parentElement
+      expect(checkboxesContainer.childNodes[0].textContent).toEqual('test id one description')
+      expect(checkboxesContainer.childNodes[1].textContent).toEqual('Test IdTwo')
+      expect(checkboxesContainer.childNodes[2].textContent).toEqual('Test IdThree')
+      expect(screen.queryByText('does not matter')).not.toBeInTheDocument()
+      expect(onChange).not.toHaveBeenCalled()
+    })
+  })
+
+  test('show dropdown for items values (with mandatory value) when useCheckboxWidget is not set', async () => {
     const getGroups = jest.fn(() =>
       Promise.resolve({ groups: [{ id: '~Test_IdTwo1' }, { id: '~Test_IdThree1' }] })
     )
@@ -673,7 +833,65 @@ describe('NewNoteReaders', () => {
     })
   })
 
-  test('show dropdown for items values (with mandatory value and default value)', async () => {
+  test('show checkboxes for items values (with mandatory value) when useCheckboxWidget is true', async () => {
+    const getGroups = jest.fn(() =>
+      Promise.resolve({ groups: [{ id: '~Test_IdTwo1' }, { id: '~Test_IdThree1' }] })
+    )
+    const onChange = jest.fn()
+    api.get = getGroups
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdZero1',
+                  description: undefined,
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdOne1',
+                  description: 'test id one description',
+                  optional: true,
+                },
+                { prefix: 'regex1.*', description: 'does not matter', optional: false },
+              ],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      const checkboxContainer = screen.getByText('test id one description').parentElement
+        .parentElement
+      expect(checkboxContainer.childNodes[0].textContent).toEqual('Test IdZero')
+      expect(checkboxContainer.childNodes[1].textContent).toEqual('test id one description')
+      expect(checkboxContainer.childNodes[2].textContent).toEqual('Test IdTwo [Mandatory]') // mandatory values are marked with [Mandatory]
+      expect(screen.getByRole('checkbox', { name: 'Test IdTwo [Mandatory]' })).toHaveAttribute(
+        'value',
+        '~Test_IdTwo1'
+      )
+      expect(checkboxContainer.childNodes[3].textContent).toEqual('Test IdThree [Mandatory]')
+      expect(screen.queryByText('does not matter')).not.toBeInTheDocument()
+      expect(onChange).not.toHaveBeenCalled() // mandatory values are not auto checked
+    })
+  })
+
+  test('show dropdown for items values (with mandatory value and default value) when useCheckboxWidget is not set', async () => {
     const getGroups = jest.fn(() =>
       Promise.resolve({ groups: [{ id: '~Test_IdTwo1' }, { id: '~Test_IdThree1' }] })
     )
@@ -708,6 +926,7 @@ describe('NewNoteReaders', () => {
         value={['~Test_IdOne1']} // default has triggerd value change
         onChange={onChange}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -722,6 +941,56 @@ describe('NewNoteReaders', () => {
       const dropdownList = screen.getByText('Test IdTwo').parentElement
       expect(dropdownList.childNodes[0].textContent).toEqual('Test IdTwo')
       expect(dropdownList.childNodes[1].textContent).toEqual('Test IdThree')
+      expect(screen.queryByText('does not matter')).not.toBeInTheDocument()
+    })
+  })
+
+  test('show checkboxes for items values (with mandatory value and default value) when useCheckboxWidget is true', async () => {
+    const getGroups = jest.fn(() =>
+      Promise.resolve({ groups: [{ id: '~Test_IdTwo1' }, { id: '~Test_IdThree1' }] })
+    )
+    const onChange = jest.fn()
+    api.get = getGroups
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'test id one description',
+                  optional: true,
+                },
+                { prefix: 'regex1.*', description: 'does not matter', optional: false },
+              ],
+              default: ['~Test_IdOne1'],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['~Test_IdOne1']} // default has triggerd value change
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole('checkbox', { name: 'test id one description' })).toBeChecked()
+      expect(
+        screen.getByRole('checkbox', { name: 'Test IdTwo [Mandatory]' })
+      ).not.toBeChecked()
+      expect(
+        screen.getByRole('checkbox', { name: 'Test IdThree [Mandatory]' })
+      ).not.toBeChecked()
       expect(screen.queryByText('does not matter')).not.toBeInTheDocument()
     })
   })
@@ -748,6 +1017,7 @@ describe('NewNoteReaders', () => {
         value={['~Test_IdTwo1']}
         onChange={onChange}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -762,6 +1032,47 @@ describe('NewNoteReaders', () => {
 
     await user.click(screen.getByRole('combobox'))
     await user.click(screen.getByText('Test IdThree'))
+    await waitFor(() =>
+      expect(onChange).toHaveBeenNthCalledWith(2, ['~Test_IdTwo1', '~Test_IdThree1'])
+    )
+  })
+
+  test('set readers value in note editor when checkbox value is checked/unchecked (enum)', async () => {
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              enum: ['~Test_IdOne1', '~Test_IdTwo1', '~Test_IdThree1'],
+            },
+          },
+        },
+      },
+    }
+    const user = userEvent.setup()
+
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['~Test_IdTwo1']}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole('checkbox', { name: 'Test IdTwo' })).toBeChecked()
+      expect(screen.getByRole('checkbox', { name: 'Test IdOne' })).not.toBeChecked()
+      expect(screen.getByRole('checkbox', { name: 'Test IdThree' })).not.toBeChecked()
+    })
+
+    await user.click(screen.getByRole('checkbox', { name: 'Test IdTwo' }))
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith(undefined))
+
+    await user.click(screen.getByRole('checkbox', { name: 'Test IdThree' }))
     await waitFor(() =>
       expect(onChange).toHaveBeenNthCalledWith(2, ['~Test_IdTwo1', '~Test_IdThree1'])
     )
@@ -805,6 +1116,7 @@ describe('NewNoteReaders', () => {
         value={['~Test_IdTwo1']}
         onChange={onChange}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -824,6 +1136,68 @@ describe('NewNoteReaders', () => {
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     await user.click(clearButton)
     expect(onChange).toHaveBeenNthCalledWith(3, undefined)
+  })
+
+  test('set readers value in note editor when checkbox value is checked/unchecked (items no mandatory value)', async () => {
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'test id one description',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'test id two description',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'test id three description',
+                  optional: true,
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+    const user = userEvent.setup()
+
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['~Test_IdTwo1']}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    let testIdTwoCheckbox
+    let testIdThreeCheckbox
+    await waitFor(() => {
+      testIdTwoCheckbox = screen.getByRole('checkbox', { name: 'test id two description' })
+      testIdThreeCheckbox = screen.getByRole('checkbox', { name: 'test id three description' })
+
+      expect(testIdTwoCheckbox).toBeChecked()
+      expect(
+        screen.getByRole('checkbox', { name: 'test id one description' })
+      ).not.toBeChecked()
+      expect(testIdThreeCheckbox).not.toBeChecked()
+    })
+
+    await user.click(testIdTwoCheckbox)
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith(undefined))
+
+    await user.click(testIdThreeCheckbox)
+    expect(onChange).toHaveBeenNthCalledWith(2, ['~Test_IdTwo1', '~Test_IdThree1'])
   })
 
   test('set readers value in note editor when dropdown value is changed (items with mandatory value)', async () => {
@@ -864,6 +1238,7 @@ describe('NewNoteReaders', () => {
         value={['~Test_IdTwo1']}
         onChange={onChange}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -884,6 +1259,72 @@ describe('NewNoteReaders', () => {
 
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     await user.click(clearButton)
+    expect(onChange).toHaveBeenNthCalledWith(2, undefined)
+  })
+
+  test('set readers value in note editor when checkbox value is checked/unchecked (items with mandatory value)', async () => {
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'test id one description',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'test id two description',
+                  optional: false,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'test id three description',
+                  optional: true,
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+    const user = userEvent.setup()
+
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['~Test_IdThree1']}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    let testIdThreeCheckbox
+    let testIdTwoCheckbox
+    await waitFor(() => {
+      testIdThreeCheckbox = screen.getByRole('checkbox', { name: 'test id three description' })
+      testIdTwoCheckbox = screen.getByRole('checkbox', {
+        name: 'test id two description [Mandatory]',
+      })
+
+      expect(testIdTwoCheckbox).not.toBeChecked()
+      expect(
+        screen.getByRole('checkbox', { name: 'test id one description' })
+      ).not.toBeChecked()
+      expect(testIdThreeCheckbox).toBeChecked()
+    })
+
+    await user.click(testIdTwoCheckbox)
+    await waitFor(() =>
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1', '~Test_IdThree1'])
+    )
+
+    await user.click(testIdThreeCheckbox)
     expect(onChange).toHaveBeenNthCalledWith(2, undefined)
   })
 
@@ -926,6 +1367,7 @@ describe('NewNoteReaders', () => {
         value={['~Test_IdTwo1', '~Test_IdThree1']}
         onChange={onChange}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -950,6 +1392,77 @@ describe('NewNoteReaders', () => {
     const clearButton = container.querySelector('svg[height="20"][width="20"]')
     await user.click(clearButton)
     expect(onChange).toHaveBeenNthCalledWith(2, undefined)
+  })
+
+  test('set readers value in note editor when checkbox value is checked/unchecked (items with mandatory value and default value)', async () => {
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'test id one description',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'test id two description',
+                  optional: false,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'test id three description',
+                  optional: true,
+                },
+              ],
+              default: ['~Test_IdThree1'],
+            },
+          },
+        },
+      },
+    }
+    const user = userEvent.setup()
+
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['~Test_IdTwo1', '~Test_IdThree1']}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    let testIdTwoCheckbox
+    let testIdOneCheckbox
+    let testIdThreeCheckbox
+    await waitFor(() => {
+      testIdTwoCheckbox = screen.getByRole('checkbox', {
+        name: 'test id two description [Mandatory]',
+      })
+      testIdOneCheckbox = screen.getByRole('checkbox', { name: 'test id one description' })
+      testIdThreeCheckbox = screen.getByRole('checkbox', { name: 'test id three description' })
+
+      expect(testIdTwoCheckbox).toBeChecked()
+      expect(testIdTwoCheckbox).not.toHaveAttribute('disabled')
+      expect(testIdOneCheckbox).not.toBeChecked()
+      expect(testIdThreeCheckbox).toBeChecked()
+    })
+
+    await user.click(testIdOneCheckbox)
+    await waitFor(() =>
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdOne1', '~Test_IdTwo1', '~Test_IdThree1'])
+    )
+
+    await user.click(testIdTwoCheckbox)
+    expect(onChange).toHaveBeenNthCalledWith(2, ['~Test_IdThree1'])
+
+    await user.click(testIdThreeCheckbox)
+    expect(onChange).toHaveBeenNthCalledWith(3, ['~Test_IdTwo1'])
   })
 
   test('call clearError when user update selection', async () => {
@@ -985,6 +1498,193 @@ describe('NewNoteReaders', () => {
       expect(onChange).toHaveBeenCalledWith(['~Test_IdThree1'])
       expect(clearError).toHaveBeenCalled()
     })
+  })
+
+  test('uncheck all other value when everyone is in options', async () => {
+    const getGroups = jest.fn(() =>
+      Promise.resolve({
+        groups: [
+          { id: '~Test_IdOne1' },
+          { id: '~Test_IdTwo1' },
+          { id: 'everyone' },
+          { id: '~Test_IdThree1' },
+        ],
+      })
+    )
+    api.get = getGroups
+
+    const promptError = jest.fn()
+    global.promptError = promptError
+    const onChange = jest.fn()
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              regex: 'regex1.*',
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['~Test_IdOne1', '~Test_IdTwo1', '~Test_IdThree1']}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    let everyoneCheckbox
+    const user = userEvent.setup()
+    await waitFor(() => {
+      everyoneCheckbox = screen.getByRole('checkbox', { name: 'Everyone' })
+    })
+
+    await user.click(everyoneCheckbox)
+    expect(onChange).toHaveBeenCalledWith(['everyone'])
+  })
+
+  test('uncheck other options when everyone is checked', async () => {
+    const getGroups = jest.fn(() =>
+      Promise.resolve({
+        groups: [
+          { id: '~Test_IdOne1' },
+          { id: '~Test_IdTwo1' },
+          { id: 'everyone' },
+          { id: '~Test_IdThree1' },
+        ],
+      })
+    )
+    api.get = getGroups
+
+    const promptError = jest.fn()
+    global.promptError = promptError
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              regex: 'regex1.*',
+            },
+          },
+        },
+      },
+    }
+
+    const user = userEvent.setup()
+
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['~Test_IdOne1', '~Test_IdTwo1', '~Test_IdThree1']}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+        clearError={clearError}
+      />
+    )
+
+    let testIdOneCheckbox
+    let testIdTwoCheckbox
+    let testIdThreeCheckbox
+    let everyoneCheckbox
+    await waitFor(() => {
+      testIdOneCheckbox = screen.getByRole('checkbox', { name: 'Test IdOne' })
+      testIdTwoCheckbox = screen.getByRole('checkbox', { name: 'Test IdTwo' })
+      testIdThreeCheckbox = screen.getByRole('checkbox', { name: 'Test IdThree' })
+      everyoneCheckbox = screen.getByRole('checkbox', { name: 'Everyone' })
+    })
+
+    expect(clearError).not.toHaveBeenCalled()
+    expect(testIdOneCheckbox).toBeChecked()
+    expect(testIdTwoCheckbox).toBeChecked()
+    expect(testIdThreeCheckbox).toBeChecked()
+
+    await user.click(everyoneCheckbox)
+    expect(onChange).toHaveBeenNthCalledWith(1, ['everyone'])
+    expect(clearError).toHaveBeenCalledTimes(1)
+  })
+
+  test('uncheck everyone when another options is checked', async () => {
+    const getGroups = jest.fn(() =>
+      Promise.resolve({
+        groups: [
+          { id: '~Test_IdOne1' },
+          { id: '~Test_IdTwo1' },
+          { id: 'everyone' },
+          { id: '~Test_IdThree1' },
+        ],
+      })
+    )
+    api.get = getGroups
+
+    const promptError = jest.fn()
+    global.promptError = promptError
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              regex: 'regex1.*',
+            },
+          },
+        },
+      },
+    }
+
+    const user = userEvent.setup()
+
+    render(
+      <NewNoteReaders
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['everyone']}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+        clearError={clearError}
+      />
+    )
+
+    let testIdOneCheckbox
+    let testIdTwoCheckbox
+    let testIdThreeCheckbox
+    let everyoneCheckbox
+    await waitFor(() => {
+      testIdOneCheckbox = screen.getByRole('checkbox', { name: 'Test IdOne' })
+      testIdTwoCheckbox = screen.getByRole('checkbox', { name: 'Test IdTwo' })
+      testIdThreeCheckbox = screen.getByRole('checkbox', { name: 'Test IdThree' })
+      everyoneCheckbox = screen.getByRole('checkbox', { name: 'Everyone' })
+    })
+
+    expect(clearError).not.toHaveBeenCalled()
+    expect(testIdOneCheckbox).not.toBeChecked()
+    expect(testIdTwoCheckbox).not.toBeChecked()
+    expect(testIdThreeCheckbox).not.toBeChecked()
+    expect(everyoneCheckbox).toBeChecked()
+
+    await user.click(testIdOneCheckbox)
+    expect(onChange).toHaveBeenNthCalledWith(1, ['~Test_IdOne1'])
+    expect(clearError).toHaveBeenCalledTimes(1)
+    await user.click(testIdTwoCheckbox)
+    expect(onChange).toHaveBeenNthCalledWith(2, ['~Test_IdTwo1'])
+    expect(clearError).toHaveBeenCalledTimes(2)
+    await user.click(testIdThreeCheckbox)
+    expect(onChange).toHaveBeenNthCalledWith(3, ['~Test_IdThree1'])
+    expect(clearError).toHaveBeenCalledTimes(3)
   })
 })
 
@@ -1401,7 +2101,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
   })
 
-  test('show regex group results with everyone on top', async () => {
+  test('show regex group results with everyone on top (dropdown and checkbox)', async () => {
     const getGroups = jest.fn(() =>
       Promise.resolve({
         groups: [
@@ -1430,7 +2130,7 @@ describe('NewReplyEditNoteReaders', () => {
     }
     const user = userEvent.setup()
 
-    render(
+    const { rerender } = render(
       <NewReplyEditNoteReaders
         replyToNote={null}
         fieldDescription={invitation.edit.note.readers}
@@ -1438,6 +2138,7 @@ describe('NewReplyEditNoteReaders', () => {
         value={undefined}
         onChange={jest.fn()}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -1448,6 +2149,44 @@ describe('NewReplyEditNoteReaders', () => {
       expect(dropdownList.childNodes[1].textContent).toEqual('Test IdOne')
       expect(dropdownList.childNodes[2].textContent).toEqual('Test IdTwo')
       expect(dropdownList.childNodes[3].textContent).toEqual('Test IdThree')
+    })
+
+    rerender(
+      <NewReplyEditNoteReaders
+        replyToNote={null}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      const checkboxContainer = screen.getByRole('checkbox', { name: 'Everyone' })
+        .parentElement.parentElement.parentElement
+
+      expect(checkboxContainer.childNodes[0].textContent).toEqual('Everyone')
+      expect(screen.getByRole('checkbox', { name: 'Everyone' })).toHaveAttribute(
+        'value',
+        'everyone'
+      )
+      expect(checkboxContainer.childNodes[1].textContent).toEqual('Test IdOne')
+      expect(screen.getByRole('checkbox', { name: 'Test IdOne' })).toHaveAttribute(
+        'value',
+        '~Test_IdOne1'
+      )
+      expect(checkboxContainer.childNodes[2].textContent).toEqual('Test IdTwo')
+      expect(screen.getByRole('checkbox', { name: 'Test IdTwo' })).toHaveAttribute(
+        'value',
+        '~Test_IdTwo1'
+      )
+      expect(checkboxContainer.childNodes[3].textContent).toEqual('Test IdThree')
+      expect(screen.getByRole('checkbox', { name: 'Test IdThree' })).toHaveAttribute(
+        'value',
+        '~Test_IdThree1'
+      )
     })
   })
 
@@ -1769,7 +2508,7 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
-  test('show dropdown when enum return multiple groups, with replyToNote readers includes everyone', async () => {
+  test('show dropdown/checkbox when enum return multiple groups, with replyToNote readers includes everyone', async () => {
     const invitation = {
       edit: {
         note: {
@@ -1784,7 +2523,7 @@ describe('NewReplyEditNoteReaders', () => {
     }
     const user = userEvent.setup()
 
-    render(
+    const { rerender } = render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['~Test_IDFive1', 'everyone'] }}
         fieldDescription={invitation.edit.note.readers}
@@ -1792,6 +2531,7 @@ describe('NewReplyEditNoteReaders', () => {
         value={undefined}
         onChange={jest.fn()}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -1799,9 +2539,25 @@ describe('NewReplyEditNoteReaders', () => {
     await waitFor(() => {
       expect(screen.getByText('Test IdOne').parentElement.childElementCount).toEqual(3)
     })
+
+    rerender(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IDFive1', 'everyone'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(3)
+    })
   })
 
-  test('show dropdown when items return multiple groups, with replyToNote readers includes everyone (no mandatory)', async () => {
+  test('show dropdown/checkbox when items return multiple groups, with replyToNote readers includes everyone (no mandatory)', async () => {
     const invitation = {
       edit: {
         note: {
@@ -1832,7 +2588,7 @@ describe('NewReplyEditNoteReaders', () => {
     }
     const user = userEvent.setup()
 
-    render(
+    const { rerender } = render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['~Test_IDFive1', 'everyone'] }}
         fieldDescription={invitation.edit.note.readers}
@@ -1840,6 +2596,7 @@ describe('NewReplyEditNoteReaders', () => {
         value={undefined}
         onChange={jest.fn()}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -1848,6 +2605,22 @@ describe('NewReplyEditNoteReaders', () => {
       expect(
         screen.getByText('description of test id one').parentElement.childElementCount
       ).toEqual(3)
+    })
+
+    rerender(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IDFive1', 'everyone'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(3)
     })
   })
 
@@ -1874,34 +2647,100 @@ describe('NewReplyEditNoteReaders', () => {
                   optional: true,
                 },
               ],
-              default: ['~Test_IdOne1', '~Test_IdTwo1'],
+              default: ['~Test_IdOne1'],
             },
           },
         },
       },
     }
     const user = userEvent.setup()
+    const onChange = jest.fn()
 
     render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['~Test_IDFive1', 'everyone'] }}
         fieldDescription={invitation.edit.note.readers}
         closeNoteEditor={jest.fn()}
-        value={['~Test_IdOne1', '~Test_IdTwo1']} // triggered by onChange
-        onChange={jest.fn()}
+        value={['~Test_IdOne1']} // triggered by onChange of default value
+        onChange={onChange}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
-    await user.click(await screen.findByRole('combobox'))
     await waitFor(() => {
       expect(
-        screen.getByText('description of test id one').parentElement.childElementCount
-      ).toEqual(2)
+        screen.getByRole('button', { name: 'Remove description of test id one' })
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: 'Remove description of test id two' }) // no special treatment of mandatory values
+      ).not.toBeInTheDocument()
+      expect(onChange).not.toHaveBeenCalled()
+    })
+
+    await user.click(await screen.findByRole('combobox'))
+    expect(
+      screen.getByText('description of test id two').parentElement.childElementCount
+    ).toEqual(2)
+  })
+
+  test('show checkbox when items return multiple groups, with replyToNote readers includes everyone (with mandatory)', async () => {
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: false,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: true,
+                },
+              ],
+              default: ['~Test_IdOne1'],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IDFive1', 'everyone'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['~Test_IdOne1']} // triggered by onChange of default value
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(3)
+      expect(
+        screen.getByRole('checkbox', { name: 'description of test id one' })
+      ).toBeChecked()
+      expect(
+        screen.getByRole('checkbox', { name: 'description of test id two [Mandatory]' }) // no special treatment of mandatory values
+      ).not.toBeChecked()
+      expect(
+        screen.getByRole('checkbox', { name: 'description of test id three' })
+      ).not.toBeChecked()
     })
   })
 
-  test('show dropdown of enum groups,skip parentReaders logic when replyToNote is forumNote', async () => {
+  test('show dropdown/checkbox of enum groups,skip parentReaders logic when replyToNote is forumNote', async () => {
     const invitation = {
       edit: {
         note: {
@@ -1916,7 +2755,7 @@ describe('NewReplyEditNoteReaders', () => {
     }
     const user = userEvent.setup()
 
-    render(
+    const { rerender } = render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['~Test_IdTwo1'] }}
         fieldDescription={invitation.edit.note.readers}
@@ -1925,6 +2764,7 @@ describe('NewReplyEditNoteReaders', () => {
         onChange={jest.fn()}
         setLoading={jest.fn()}
         isDirectReplyToForum={true}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -1932,9 +2772,26 @@ describe('NewReplyEditNoteReaders', () => {
     await waitFor(() => {
       expect(screen.getByText('Test IdTwo').parentElement.childElementCount).toEqual(3)
     })
+
+    rerender(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IdTwo1'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        isDirectReplyToForum={true}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(3)
+    })
   })
 
-  test('show dropdown of intersection of enum groups and replyToNote readers and auto select those values', async () => {
+  test('show dropdown/checkbox of intersection of enum groups and replyToNote readers and auto select those values', async () => {
     const onChange = jest.fn()
     const invitation = {
       edit: {
@@ -1950,7 +2807,7 @@ describe('NewReplyEditNoteReaders', () => {
     }
     const user = userEvent.setup()
 
-    render(
+    const { rerender } = render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['~Test_IdTwo1'] }}
         fieldDescription={invitation.edit.note.readers}
@@ -1958,12 +2815,28 @@ describe('NewReplyEditNoteReaders', () => {
         value={undefined}
         onChange={onChange}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
     await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       expect(screen.getByText('Test IdTwo').parentElement.childElementCount).toEqual(1)
+    })
+
+    rerender(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IdTwo1'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(1)
     })
   })
 
@@ -2006,6 +2879,7 @@ describe('NewReplyEditNoteReaders', () => {
         value={undefined}
         onChange={onChange}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -2016,6 +2890,55 @@ describe('NewReplyEditNoteReaders', () => {
       ).toEqual(1)
       expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1'])
     })
+  })
+
+  test('show checkbox of intersection of items groups(no mandatory no default) and replyToNote readers and auto select those values', async () => {
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: true,
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+    const user = userEvent.setup()
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IdTwo1'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(1)
+    })
+    expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1'])
   })
 
   test('show dropdown of intersection of items groups(with mandatory no default) and replyToNote readers and auto select those values', async () => {
@@ -2057,6 +2980,54 @@ describe('NewReplyEditNoteReaders', () => {
         value={undefined}
         onChange={onChange}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
+      />
+    )
+
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1'])
+    })
+  })
+
+  test('show checkbox of intersection of items groups(with mandatory no default) and replyToNote readers and auto select those values', async () => {
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: false,
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IdTwo1'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
       />
     )
 
@@ -2105,6 +3076,7 @@ describe('NewReplyEditNoteReaders', () => {
         value={undefined}
         onChange={onChange}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -2113,6 +3085,58 @@ describe('NewReplyEditNoteReaders', () => {
       expect(
         screen.getByText('description of test id two').parentElement.childElementCount
       ).toEqual(1)
+      expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1'])
+    })
+  })
+
+  test('show checkbox of intersection of items groups(with mandatory with default) and replyToNote readers and auto select those values', async () => {
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: false,
+                },
+              ],
+              default: ['~Test_IdTwo1'],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IdTwo1'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(1)
+      expect(
+        screen.getByRole('checkbox', { name: 'description of test id two' })
+      ).toBeInTheDocument()
       expect(onChange).toHaveBeenCalledWith(['~Test_IdTwo1'])
     })
   })
@@ -2167,7 +3191,7 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
-  test('show dropdown of intersection of enum groups and replyToNote readers (adding anonymized reviewer group)', async () => {
+  test('show dropdown/checkbox of intersection of enum groups and replyToNote readers (adding anonymized reviewer group)', async () => {
     const invitation = {
       edit: {
         note: {
@@ -2185,7 +3209,7 @@ describe('NewReplyEditNoteReaders', () => {
     }
     const user = userEvent.setup()
 
-    render(
+    const { rerender } = render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
         fieldDescription={invitation.edit.note.readers}
@@ -2193,6 +3217,7 @@ describe('NewReplyEditNoteReaders', () => {
         value={undefined}
         onChange={jest.fn()}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -2207,6 +3232,35 @@ describe('NewReplyEditNoteReaders', () => {
       )
       expect(dropdownList.childNodes[1].textContent).toEqual(
         'ICML 2023 Conference Submission1 Reviewer abcd'
+      )
+    })
+
+    rerender(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(2)
+      expect(screen.getAllByRole('checkbox')[0].nextSibling.textContent).toEqual(
+        'ICML 2023 Conference Submission1 Reviewers'
+      )
+      expect(screen.getAllByRole('checkbox')[0]).toHaveAttribute(
+        'value',
+        'ICML.cc/2023/Conference/Submission1/Reviewers'
+      )
+      expect(screen.getAllByRole('checkbox')[1].nextSibling.textContent).toEqual(
+        'ICML 2023 Conference Submission1 Reviewer abcd'
+      )
+      expect(screen.getAllByRole('checkbox')[1]).toHaveAttribute(
+        'value',
+        'ICML.cc/2023/Conference/Submission1/Reviewer_abcd'
       )
     })
   })
@@ -2246,6 +3300,7 @@ describe('NewReplyEditNoteReaders', () => {
         value={undefined}
         onChange={onChange}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -2253,13 +3308,62 @@ describe('NewReplyEditNoteReaders', () => {
     await waitFor(() => {
       const dropdownList = screen.getByText('description of reviewers').parentElement
       expect(dropdownList.childElementCount).toEqual(2)
-      // expect(dropdownList.childNodes[0].textContent).toEqual('description of reviewers')
       expect(dropdownList.childNodes[1].textContent).toEqual('description of reviewer abcd')
       expect(onChange).toHaveBeenCalledWith(['ICML.cc/2023/Conference/Submission1/Reviewers'])
     })
   })
 
-  test('show dropdown of intersection of enum groups and replyToNote readers (adding AnonReviewer group)', async () => {
+  test('show checkbox of intersection of items groups and replyToNote readers (adding anonymized reviewer group)', async () => {
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: 'ICML.cc/2023/Conference/Submission1/Reviewer_abcd',
+                  description: 'description of reviewer abcd',
+                  optional: true,
+                },
+                {
+                  value: 'ICML.cc/2023/Conference/Submission1/Reviewers',
+                  description: 'description of reviewers',
+                  optional: true,
+                },
+              ],
+              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(2)
+      expect(
+        screen.getByRole('checkbox', { name: 'description of reviewers' })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('checkbox', { name: 'description of reviewer abcd' })
+      ).toBeInTheDocument()
+      expect(onChange).toHaveBeenCalledWith(['ICML.cc/2023/Conference/Submission1/Reviewers'])
+    })
+  })
+
+  test('show dropdown/checkbox of intersection of enum groups and replyToNote readers (adding AnonReviewer group)', async () => {
     const invitation = {
       edit: {
         note: {
@@ -2277,7 +3381,7 @@ describe('NewReplyEditNoteReaders', () => {
     }
     const user = userEvent.setup()
 
-    render(
+    const { rerender } = render(
       <NewReplyEditNoteReaders
         replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
         fieldDescription={invitation.edit.note.readers}
@@ -2285,6 +3389,7 @@ describe('NewReplyEditNoteReaders', () => {
         value={undefined}
         onChange={jest.fn()}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -2299,6 +3404,35 @@ describe('NewReplyEditNoteReaders', () => {
       )
       expect(dropdownList.childNodes[1].textContent).toEqual(
         'ICML 2023 Conference Submission1 AnonReviewer'
+      )
+    })
+
+    rerender(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(2)
+      expect(screen.getAllByRole('checkbox')[0].nextSibling.textContent).toEqual(
+        'ICML 2023 Conference Submission1 Reviewers'
+      )
+      expect(screen.getAllByRole('checkbox')[0]).toHaveAttribute(
+        'value',
+        'ICML.cc/2023/Conference/Submission1/Reviewers'
+      )
+      expect(screen.getAllByRole('checkbox')[1].nextSibling.textContent).toEqual(
+        'ICML 2023 Conference Submission1 AnonReviewer'
+      )
+      expect(screen.getAllByRole('checkbox')[1]).toHaveAttribute(
+        'value',
+        'ICML.cc/2023/Conference/Submission1/AnonReviewer'
       )
     })
   })
@@ -2338,6 +3472,7 @@ describe('NewReplyEditNoteReaders', () => {
         value={undefined}
         onChange={onChange}
         setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -2351,7 +3486,65 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
-  test('not to auto select parent readers if note is direct reply to forum', async () => {
+  test('show checkbox of intersection of items groups and replyToNote readers (adding AnonReviewer group) and auto select those in parent readers', async () => {
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: 'ICML.cc/2023/Conference/Submission1/AnonReviewer',
+                  description: 'description of anon reviewer',
+                  optional: true,
+                },
+                {
+                  value: 'ICML.cc/2023/Conference/Submission1/Reviewers',
+                  description: 'description of reviewers',
+                  optional: true,
+                },
+              ],
+              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(2)
+      expect(screen.getAllByRole('checkbox')[0].nextSibling.textContent).toEqual(
+        'description of reviewers'
+      )
+      expect(screen.getAllByRole('checkbox')[0]).toHaveAttribute(
+        'value',
+        'ICML.cc/2023/Conference/Submission1/Reviewers'
+      )
+      expect(screen.getAllByRole('checkbox')[1].nextSibling.textContent).toEqual(
+        'description of anon reviewer'
+      )
+      expect(screen.getAllByRole('checkbox')[1]).toHaveAttribute(
+        'value',
+        'ICML.cc/2023/Conference/Submission1/AnonReviewer'
+      )
+      expect(onChange).toHaveBeenCalledWith(['ICML.cc/2023/Conference/Submission1/Reviewers'])
+    })
+  })
+
+  test('not to auto select parent readers if note is direct reply to forum (dropdown)', async () => {
     const onChange = jest.fn()
     const invitation = {
       edit: {
@@ -2391,6 +3584,7 @@ describe('NewReplyEditNoteReaders', () => {
         onChange={onChange}
         setLoading={jest.fn()}
         isDirectReplyToForum={true}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -2399,6 +3593,65 @@ describe('NewReplyEditNoteReaders', () => {
       expect(
         screen.getByText('description of test id two').parentElement.childElementCount
       ).toEqual(3) // also skip parent reader logic
+      expect(onChange).not.toHaveBeenCalled()
+    })
+  })
+
+  test('not to auto check parent readers if note is direct reply to forum (checkbox)', async () => {
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: false,
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+    const user = userEvent.setup()
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IdTwo1'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        isDirectReplyToForum={true}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(3)
+      expect(
+        screen.getByRole('checkbox', { name: 'description of test id one' })
+      ).not.toBeChecked()
+      expect(
+        screen.getByRole('checkbox', { name: 'description of test id two' })
+      ).not.toBeChecked()
+      expect(
+        screen.getByRole('checkbox', { name: 'description of test id three [Mandatory]' })
+      ).not.toBeChecked()
       expect(onChange).not.toHaveBeenCalled()
     })
   })
@@ -2440,6 +3693,7 @@ describe('NewReplyEditNoteReaders', () => {
         onChange={onChange}
         setLoading={jest.fn()}
         clearError={clearError}
+        useCheckboxWidget={undefined}
       />
     )
 
@@ -2448,5 +3702,64 @@ describe('NewReplyEditNoteReaders', () => {
     await waitFor(() => {
       expect(clearError).toHaveBeenCalled()
     })
+  })
+
+  test('call clearError when user check/uncheck selection', async () => {
+    const clearError = jest.fn()
+    const onChange = jest.fn()
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: 'ICML.cc/2023/Conference/Submission1/AnonReviewer',
+                  description: 'description of anon reviewer',
+                  optional: true,
+                },
+                {
+                  value: 'ICML.cc/2023/Conference/Submission1/Reviewers',
+                  description: 'description of reviewers',
+                  optional: true,
+                },
+              ],
+              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
+            },
+          },
+        },
+      },
+    }
+    const user = userEvent.setup()
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['ICML.cc/2023/Conference/Submission1/Reviewers']}
+        onChange={onChange}
+        setLoading={jest.fn()}
+        clearError={clearError}
+        useCheckboxWidget={true}
+      />
+    )
+
+    let reviewerCheckbox
+    let anonReviewerCheckbox
+    await waitFor(() => {
+      reviewerCheckbox = screen.getByRole('checkbox', { name: 'description of reviewers' })
+      anonReviewerCheckbox = screen.getByRole('checkbox', {
+        name: 'description of anon reviewer',
+      })
+
+      expect(reviewerCheckbox).toBeChecked()
+      expect(anonReviewerCheckbox).not.toBeChecked()
+    })
+
+    await user.click(reviewerCheckbox)
+    expect(clearError).toHaveBeenCalledTimes(1)
+    await user.click(anonReviewerCheckbox)
+    expect(clearError).toHaveBeenCalledTimes(2)
   })
 })

@@ -5,15 +5,17 @@
   @media #{constants.$large} {
     max-width: 80%;
   }
-}
 
-.checkboxOptionRow {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 0.25rem;
-}
-
-.optionDescription {
-  margin-left: 0.25rem;
-  font-weight: normal;
+  :global {
+    .mandatory-value {
+      color: constants.$orRed;
+      font-weight: bold;
+    }
+    .checkbox:first-child {
+      margin-top: 0;
+    }
+    .checkbox:last-child {
+      margin-bottom: 0;
+    }
+  }
 }
