@@ -16,6 +16,9 @@ const DatetimePicker = ({
   timeZone,
   placeholder,
   autoFocus = true,
+  showTime = {
+    showSecond: false,
+  },
 }) => {
   const [value, setValue] = useState(existingValue ? dayjs(existingValue) : '')
 
@@ -35,9 +38,9 @@ const DatetimePicker = ({
   return (
     <Picker
       generateConfig={dayjsGenerator}
-      showTime={{ showSecond: false }}
+      showTime={showTime}
       locale={locale}
-      format="YYYY-MM-DD hh:mm A"
+      format={showTime === false ? 'YYYY-MM-DD' : 'YYYY-MM-DD hh:mm A'}
       value={value}
       onOk={handleOkClick}
       onChange={handleChange}
@@ -45,6 +48,7 @@ const DatetimePicker = ({
       use12Hours
       autoFocus={autoFocus}
       allowClear
+      showToday={true}
     />
   )
 }

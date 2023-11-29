@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, render } from '@testing-library/react'
 import { renderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 import DatePickerWidget from '../components/EditorComponents/DatePickerWidget'
@@ -42,7 +42,7 @@ beforeEach(() => {
   mockedOnDateTimeChange = null
 })
 
-describe('DatePickerWidget', () => {
+describe('DatePickerWidget in context of note editor', () => {
   test('render datetime picker and timezone dropdown', () => {
     const providerProps = {
       value: {
@@ -66,6 +66,7 @@ describe('DatePickerWidget', () => {
 
   test('pass props to date time picker and timezone dropdown', () => {
     const onChange = jest.fn()
+    const clearError = jest.fn()
 
     const providerProps = {
       value: {
@@ -81,6 +82,7 @@ describe('DatePickerWidget', () => {
         },
         value: 1234567890,
         onChange,
+        clearError,
       },
     }
 
@@ -100,6 +102,7 @@ describe('DatePickerWidget', () => {
         onChange: expect.anything(),
       })
     )
+    expect(clearError).toHaveBeenCalledTimes(1) // timezone change
 
     mockedOnDateTimeChange(9876543210) // user select new date
     expect(onChange).toHaveBeenNthCalledWith(2, {
@@ -107,5 +110,52 @@ describe('DatePickerWidget', () => {
       fieldName: 'some_date_field',
       value: 9876543210,
     })
+    expect(clearError).toHaveBeenCalledTimes(2)
+
+    mockedOnDateTimeChange(null) // user cleared value
+    expect(onChange).toHaveBeenNthCalledWith(3, {
+      fieldName: 'some_date_field',
+      value: undefined,
+    })
+    expect(clearError).toHaveBeenCalledTimes(3)
+  })
+})
+
+describe('DatePickerWidget used by itself', () => {
+  test('render datetime picker and timezone dropdown', () => {
+    render(<DatePickerWidget isEditor={false} />)
+    expect(screen.getByText('Date and time picker')).toBeInTheDocument()
+    expect(screen.getByText('Timezone dropdown')).toBeInTheDocument()
+  })
+
+  test('render only datetimepicker when showTime is false', () => {
+    render(<DatePickerWidget isEditor={false} showTime={false} />)
+    expect(screen.getByText('Date and time picker')).toBeInTheDocument()
+    expect(screen.queryByText('Timezone dropdown')).not.toBeInTheDocument()
+  })
+
+  test('pass props to datetimepicker', () => {
+    const field = { 'publication date': undefined }
+    const onChange = jest.fn()
+
+    render(
+      <DatePickerWidget isEditor={false} field={field} value={12345678} onChange={onChange} />
+    )
+    expect(dateTimePickerProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        placeholder: 'Select Publication Date',
+        existingValue: 12345678,
+      })
+    )
+  })
+
+  test('call onChange pased to DatePickerWidget', () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+
+    render(<DatePickerWidget isEditor={false} onChange={onChange} clearError={clearError} />)
+    mockedOnDateTimeChange(9876543210)
+    expect(onChange).toHaveBeenCalledWith({ fieldName: undefined, value: 9876543210 }) // field props is not passed
+    expect(clearError).toHaveBeenCalled()
   })
 })

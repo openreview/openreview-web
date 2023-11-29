@@ -116,7 +116,9 @@ $input-placeholder-color: hsv(0, 0, 75%);
     cursor: pointer;
     outline: none;
     border: none;
-    transition: background 0.3s, border 0.3s;
+    transition:
+      background 0.3s,
+      border 0.3s;
 
     &:hover {
       background: rgba(55, 11, 7, 0.1);
@@ -149,7 +151,8 @@ $input-placeholder-color: hsv(0, 0, 75%);
   }
 }
 
-.rc-picker-now {
+.rc-picker-now,
+.rc-picker-today-btn {
   cursor: pointer;
   background-color: #4d8093;
   border: 2px solid #3f6978;
@@ -162,6 +165,12 @@ $input-placeholder-color: hsv(0, 0, 75%);
   padding: 1px 6px;
 
   .rc-picker-now-btn {
+    color: white;
+  }
+}
+.rc-picker-today-btn {
+  color: white;
+  &:hover {
     color: white;
   }
 }
@@ -184,7 +193,8 @@ $input-placeholder-color: hsv(0, 0, 75%);
 
 // ================== Year & Month Panel ==================
 .rc-picker-year-panel,
-.rc-picker-month-panel {
+.rc-picker-month-panel,
+.rc-picker-decade-panel {
   .rc-picker-cell-inner {
     width: 80px;
   }
