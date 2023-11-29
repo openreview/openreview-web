@@ -107,13 +107,20 @@ export default function VenueHomepage({ appContext }) {
     tabs,
   } = useContext(WebFieldContext)
   const [formattedTabs, setFormattedTabs] = useState(null)
-  const [defaultActiveTab, setDefaultActiveTab] = useState(0)
+  const [tabsLoaded, setTabsLoaded] = useState(null)
+  const [defaultActiveTab, setDefaultActiveTab] = useState(-1)
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const router = useRouter()
   const { setBannerContent } = appContext
 
-  const renderTab = (tabConfig) => {
+  const renderTab = (tabConfig, tabIndex) => {
     if (!tabConfig) return null
+
+    const markTabLoaded = () => {
+      setTabsLoaded((currentTabsLoaded) =>
+        currentTabsLoaded.map((loaded, i) => (i === tabIndex ? true : loaded))
+      )
+    }
 
     if (tabConfig.type === 'consoles') {
       return (
@@ -124,13 +131,12 @@ export default function VenueHomepage({ appContext }) {
           options={tabConfig.options}
           shouldReload={shouldReload}
           setHidden={(newHidden) => {
-            if (newHidden === tabConfig.hidden) return
-
-            setFormattedTabs(
-              formattedTabs.map((t) =>
-                t.id === tabConfig.id ? { ...t, hidden: newHidden } : t
+            if (newHidden !== tabConfig.hidden) {
+              setFormattedTabs((currentTabs) =>
+                currentTabs.map((t) => (t.id === tabConfig.id ? { ...t, hidden: newHidden } : t))
               )
-            )
+            }
+            markTabLoaded()
           }}
         />
       )
@@ -192,6 +198,7 @@ export default function VenueHomepage({ appContext }) {
                 currentTabs.map((t) => (t.id === tabConfig.id ? { ...t, hidden: isEmpty } : t))
               )
             }
+            markTabLoaded()
           }}
           filterNotes={filterFn}
         />
@@ -222,17 +229,26 @@ export default function VenueHomepage({ appContext }) {
         ...tab,
       }))
     )
+    // Currently only the consoles and submission list tabs are loaded asynchronously
+    setTabsLoaded(
+      tabs.map(
+        (tab) => tab.type === 'activity' || tab.type === 'activity' || tab.links?.length > 0
+      )
+    )
   }, [tabs])
 
   useEffect(() => {
-    if (!formattedTabs) return
+    // Only set an active tab after all the tabs have loaded
+    if (!formattedTabs || !tabsLoaded?.every(Boolean)) return
 
     const currentHash = window.location.hash.slice(1)
-    const currentTab = currentHash ? formattedTabs.findIndex((t) => t.id === currentHash) : -1
-    setDefaultActiveTab(
-      currentTab > -1 ? currentTab : formattedTabs.findIndex((t) => !t.hidden)
+    const currentHashTab = currentHash
+      ? formattedTabs.findIndex((t) => t.id === currentHash)
+      : -1
+    setDefaultActiveTab((currActiveTab) =>
+      currentHashTab > -1 ? currentHashTab : formattedTabs.findIndex((t) => !t.hidden)
     )
-  }, [formattedTabs])
+  }, [formattedTabs, tabsLoaded])
 
   if (!header || !tabs) {
     const errorMessage = 'Venue Homepage requires both header and tabs properties to be set'
@@ -271,7 +287,10 @@ export default function VenueHomepage({ appContext }) {
                 onClick={() => {
                   const currentHash = window.location.hash.slice(1)
                   if (currentHash !== tabConfig.id) {
-                    router.replace(`#${tabConfig.id}`, undefined, { scroll: false, shallow: true })
+                    router.replace(`#${tabConfig.id}`, undefined, {
+                      scroll: false,
+                      shallow: true,
+                    })
                   }
                 }}
               >
@@ -281,9 +300,9 @@ export default function VenueHomepage({ appContext }) {
           </TabList>
 
           <TabPanels>
-            {formattedTabs?.map((tabConfig) => (
+            {formattedTabs?.map((tabConfig, i) => (
               <TabPanel key={`${tabConfig.id}-panel`} id={tabConfig.id}>
-                {renderTab(tabConfig)}
+                {renderTab(tabConfig, i)}
               </TabPanel>
             ))}
           </TabPanels>
