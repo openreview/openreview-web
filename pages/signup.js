@@ -180,16 +180,23 @@ const SignupForm = ({ setSignupConfirmation }) => {
           />{' '}
           <span>
             I confirm that this name is typed exactly as it would appear as an author in my
-            publications
+            publications. I understand that any future changes to my name will require
+            moderation by the OpenReview.net Staff, and may require two weeks processing time
           </span>
         </div>
       </form>
 
       {confirmFullName && (
         <>
+          {existingProfiles.length > 0 && (
+            <div className="existing-profiles-title">
+              We found the following profiles with your name, please click on signup, claim or
+              reset password
+            </div>
+          )}
           <hr className="spacer" />
           <LoadingContext.Provider value={loading}>
-            {existingProfiles.map((profile) => {
+            {existingProfiles.map((profile, index) => {
               let formComponents
               const allEmails = profile.active
                 ? profile.emailsConfirmed
@@ -217,6 +224,21 @@ const SignupForm = ({ setSignupConfirmation }) => {
                   />,
                 ]
               }
+              if (index === existingProfiles.length - 1)
+                return (
+                  <>
+                    {formComponents}
+                    <p className="merge-message hint">
+                      If two or more of the profiles above belong to you, please{' '}
+                      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                      <a href="#" data-toggle="modal" data-target="#profile-merge-modal">
+                        contact us
+                      </a>{' '}
+                      and we will assist you in merging your profiles.
+                    </p>
+                    <hr key={`${profile.id}-spacer`} className="spacer" />
+                  </>
+                )
               return formComponents.concat(
                 <hr key={`${profile.id}-spacer`} className="spacer" />
               )
@@ -228,17 +250,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
               nameConfirmed={nameConfirmed}
             />
           </LoadingContext.Provider>
-
-          {existingProfiles.length > 0 && (
-            <p className="merge-message hint">
-              If two or more of the profiles above belong to you, please{' '}
-              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-              <a href="#" data-toggle="modal" data-target="#profile-merge-modal">
-                contact us
-              </a>{' '}
-              and we will assist you in merging your profiles.
-            </p>
-          )}
 
           <ConfirmNameModal
             fullName={fullName}
@@ -543,8 +554,13 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
     <span>
       <strong>{invalidEmail.split('@').pop()}</strong> does not appear in our list of
       publishing institutions. If you have an email address with an educational or employing
-      institution domain, please use this. Otherwise, it can take up to{' '}
-      <strong>2 weeks</strong> for profiles using public email services to be activated.
+      institution domain, please use that. If your institution is not yet in our list,{' '}
+      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+      <a href="#" data-toggle="modal" data-target="#feedback-modal">
+        contact us
+      </a>{' '}
+      to request that it be added. Otherwise, it can take up to <strong>two weeks</strong> for
+      profiles with generic email service domains to be activated.
     </span>
   )
 
@@ -625,13 +641,6 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
           <div>
             <Icon name="warning-sign" extraClasses="email-tooltip" />
             <InstitutionErrorMessage email={nonInstitutionEmail} />
-          </div>
-          <div className="text-muted">
-            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-            <a href="#" data-toggle="modal" data-target="#feedback-modal">
-              Contact us
-            </a>{' '}
-            to add your institution to our list.
           </div>
         </div>
       )}
