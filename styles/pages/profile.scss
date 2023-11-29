@@ -64,10 +64,6 @@ main.profile {
       font-size: 0.75rem;
       color: constants.$subtleGray;
     }
-    .instructions {
-      display: none; // TODO: for now always hide instructions
-      margin-bottom: 0.5rem;
-    }
     .empty-message {
       color: constants.$subtleGray;
       font-style: italic;

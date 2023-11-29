@@ -212,6 +212,18 @@ const EducationHistoryRow = ({
           }
         />
       </div>
+      <div className="col-md-1 history__value">
+        {history.length > 1 && (
+          <div
+            role="button"
+            aria-label="remove history"
+            tabIndex={0}
+            onClick={() => setHistory({ type: removeHistoryType, data: { key: p.key } })}
+          >
+            <Icon name="minus-sign" tooltip="remove history" />
+          </div>
+        )}
+      </div>
       <div className="col-md-2 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution Country/Region</div>}
         <Dropdown
@@ -257,7 +269,6 @@ const EducationHistoryRow = ({
           }
         />
       </div>
-
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Department of Institution</div>}
         <input
@@ -271,18 +282,6 @@ const EducationHistoryRow = ({
             })
           }
         />
-      </div>
-      <div className="col-md-1 history__value">
-        {history.length > 1 && (
-          <div
-            role="button"
-            aria-label="remove history"
-            tabIndex={0}
-            onClick={() => setHistory({ type: removeHistoryType, data: { key: p.key } })}
-          >
-            <Icon name="minus-sign" tooltip="remove history" />
-          </div>
-        )}
       </div>
     </div>
   )
