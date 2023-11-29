@@ -39,7 +39,7 @@
         height: 20px;
       }
       button + button {
-        margin-top: .125rem;
+        margin-top: 0.125rem;
       }
     }
   }
@@ -52,7 +52,6 @@
 
 .searchForm {
   display: flex;
-  margin-bottom: 0.5rem;
 
   button {
     margin-left: 0.25rem;
@@ -63,14 +62,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: 0.25rem;
 
   .noMatchingProfileMessage {
+    margin-top: 0.5rem;
     margin-bottom: 0.5rem;
   }
 
   .customAuthorForm {
     display: flex;
-    margin-top: 0.25rem;
+    margin-top: 0.5rem;
     width: 100%;
 
     .enterAuthorButton {
@@ -80,6 +81,7 @@
     label {
       white-space: nowrap;
       margin-right: 0.25rem;
+      margin-bottom: 0;
       align-self: center;
     }
 
@@ -87,6 +89,10 @@
       margin-right: 0.25rem;
     }
   }
+}
+
+.searchResults {
+  margin-top: 0.25rem;
 }
 
 .searchResultRow {
@@ -135,4 +141,8 @@ input.invalidValue {
 button.invalidValue {
   border-color: constants.$orRed;
   background-color: constants.$orRedLight;
+}
+
+.spinnerSmall {
+  height: 34px;
 }

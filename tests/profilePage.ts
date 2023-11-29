@@ -233,6 +233,54 @@ test('add and delete geolocation of history', async (t) => {
     .expect(Selector('.glyphicon-map-marker').exists).notOk()
 })
 
+test('add relation', async (t) => {
+  const firstRelationRow = Selector('div.relation').find('div.row').nth(1)
+  const secondRelationRow = Selector('div.relation').find('div.row').nth(2)
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    // add a relation by name
+    .click(firstRelationRow.find('div.relation__value').nth(0)) // relation dropdown
+    .click(Selector('div.relation-dropdown__option').nth(3))
+    .typeText(firstRelationRow.find('input.search-input'), 'FirstA')
+    .pressKey('enter')
+    .expect(firstRelationRow.find('a').withAttribute('href', "/profile?id=~FirstA_LastA1").exists).ok()
+    .click(firstRelationRow.find('.glyphicon-plus'))
+    .typeText(firstRelationRow.find('input').withAttribute('placeholder', 'year').nth(0), '1999')
+    .typeText(firstRelationRow.find('input').withAttribute('placeholder', 'year').nth(1), '2023')
+    // add a custom relation
+    .click(secondRelationRow.find('div.relation__value').nth(0)) // relation dropdown
+    .click(Selector('div.relation-dropdown__option').nth(3))
+    .typeText(secondRelationRow.find('input.search-input'), 'Some Relation Name')
+    .pressKey('enter')
+    .expect(secondRelationRow.find('div').withText('No results found for your search query.').exists).ok()
+    .click(secondRelationRow.find('button').withText('Manually Enter Relation Info'))
+    .typeText(secondRelationRow.find('input').withAttribute('name', 'fullName'), 'Some Relation Name')
+    .typeText(secondRelationRow.find('input').withAttribute('name', 'email'), 'test@relation.test')
+    .click(secondRelationRow.find('button').withText('Add'))
+    .typeText(secondRelationRow.find('input').withAttribute('placeholder', 'year').nth(0), '1999')
+    .typeText(secondRelationRow.find('input').withAttribute('placeholder', 'year').nth(1), '2023')
+    .click(saveProfileButton)
+    // verify relation is added
+    .expect(Selector('span').withText('Some Relation Name').exists).ok()
+    .expect(Selector('a').withAttribute('href', '/profile?id=~FirstA_LastA1').textContent).eql('FirstA LastA')
+
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .expect(firstRelationRow.find('a').withAttribute('href', '/profile?id=~FirstA_LastA1').textContent).eql('FirstA LastA')
+    .expect(secondRelationRow.find('span').withText('Some Relation Name').exists).ok()
+    .expect(secondRelationRow.find('span').withText('<test@relation.test>').exists).ok()
+    // clear value
+    .click(firstRelationRow.find('.glyphicon-edit'))
+    .expect(firstRelationRow.find('input.search-input').withAttribute('placeholder', 'Search relation by name or email').exists).ok()
+    .click(secondRelationRow.find('.glyphicon-edit'))
+    .expect(secondRelationRow.find('input.search-input').withAttribute('placeholder', 'Search relation by name or email').exists).ok()
+    .click(firstRelationRow.find('.glyphicon-minus-sign'))
+    .click(firstRelationRow.find('.glyphicon-minus-sign')) // second row becomes first row
+    .click(saveProfileButton)
+})
+
 test('import paper from dblp', async (t) => {
   const testPersistentUrl = 'https://dblp.org/pid/95/7448-1'
   await t
