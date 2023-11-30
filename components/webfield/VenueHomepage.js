@@ -5,7 +5,7 @@ import { useState, useContext, useEffect, useReducer } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import uniq from 'lodash/uniq'
-import { nanoid } from 'nanoid/non-secure'
+import kebabCase from 'lodash/kebabCase'
 import WebFieldContext from '../WebFieldContext'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import VenueHeader from './VenueHeader'
@@ -18,18 +18,9 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
-function ConsolesList({
-  venueId,
-  submissionInvitationId,
-  authorsGroupId,
-  setHidden,
-  shouldReload,
-  options = {},
-}) {
+function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload }) {
   const [userConsoles, setUserConsoles] = useState(null)
   const { user, accessToken, userLoading } = useUser()
-
-  const defaultAuthorsGroupId = `${venueId}/Authors`
 
   useEffect(() => {
     if (userLoading) return
@@ -39,14 +30,12 @@ function ConsolesList({
       return
     }
 
-    const groupIdQuery = { prefix: `${venueId}/` }
-    const getUserGroupsP = api.getAll(
-      '/groups',
-      { ...groupIdQuery, member: user.id, web: true, domain: venueId },
-      { accessToken, version: 2 }
-    )
-
-    getUserGroupsP
+    api
+      .getAll(
+        '/groups',
+        { prefix: `${venueId}/`, member: user.id, web: true, domain: venueId },
+        { accessToken, version: 2 }
+      )
       .then((userGroups) => {
         const groupIds = []
         if (userGroups?.length > 0) {
@@ -118,13 +107,21 @@ export default function VenueHomepage({ appContext }) {
     tabs,
   } = useContext(WebFieldContext)
   const [formattedTabs, setFormattedTabs] = useState(null)
+  const [tabsLoaded, setTabsLoaded] = useState([])
+  const [defaultActiveTab, setDefaultActiveTab] = useState(-1)
+  const [tabsDisabled, setTabsDisabled] = useState(false)
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const router = useRouter()
   const { setBannerContent } = appContext
-  const defaultActiveTab = formattedTabs?.findIndex((t) => !t.hidden) ?? 0
 
-  const renderTab = (tabConfig) => {
+  const renderTab = (tabConfig, tabIndex) => {
     if (!tabConfig) return null
+
+    const markTabLoaded = () => {
+      setTabsLoaded((currentTabsLoaded) =>
+        currentTabsLoaded.map((loaded, i) => (i === tabIndex ? true : loaded))
+      )
+    }
 
     if (tabConfig.type === 'consoles') {
       return (
@@ -135,13 +132,12 @@ export default function VenueHomepage({ appContext }) {
           options={tabConfig.options}
           shouldReload={shouldReload}
           setHidden={(newHidden) => {
-            if (newHidden === tabConfig.hidden) return
-
-            setFormattedTabs(
-              formattedTabs.map((t) =>
-                t.id === tabConfig.id ? { ...t, hidden: newHidden } : t
+            if (newHidden !== tabConfig.hidden) {
+              setFormattedTabs((currentTabs) =>
+                currentTabs.map((t) => (t.id === tabConfig.id ? { ...t, hidden: newHidden } : t))
               )
-            )
+            }
+            markTabLoaded()
           }}
         />
       )
@@ -191,9 +187,11 @@ export default function VenueHomepage({ appContext }) {
         <SubmissionsList
           venueId={group.domain}
           query={query}
+          apiVersion={tabConfig.apiVersion || 2}
           pageSize={tabConfig.options.pageSize}
           enableSearch={tabConfig.options.enableSearch}
           paperDisplayOptions={tabConfig.options.paperDisplayOptions}
+          shouldReload={shouldReload}
           updateCount={(itemCount) => {
             const isEmpty = !itemCount
             if (tabConfig.options.hideWhenEmpty && tabConfig.hidden !== isEmpty) {
@@ -201,6 +199,7 @@ export default function VenueHomepage({ appContext }) {
                 currentTabs.map((t) => (t.id === tabConfig.id ? { ...t, hidden: isEmpty } : t))
               )
             }
+            markTabLoaded()
           }}
           filterNotes={filterFn}
         />
@@ -208,6 +207,17 @@ export default function VenueHomepage({ appContext }) {
     }
     return null
   }
+
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setTabsDisabled(false)
+    }
+
+    router.events.on('hashChangeComplete', handleRouteChange)
+    return () => {
+      router.events.off('hashChangeComplete', handleRouteChange)
+    }
+  }, [])
 
   useEffect(() => {
     // Set referrer banner
@@ -225,13 +235,33 @@ export default function VenueHomepage({ appContext }) {
 
     setFormattedTabs(
       tabs.map((tab) => ({
-        id: nanoid(10),
+        id: kebabCase(tab.name),
         hidden: tab.type === 'consoles' || tab.options?.hideWhenEmpty === true,
         options: {},
         ...tab,
       }))
     )
+    // Currently only the consoles and submission list tabs are loaded asynchronously
+    setTabsLoaded(
+      tabs.map(
+        (tab) => tab.type === 'activity' || tab.type === 'activity' || tab.links?.length > 0
+      )
+    )
   }, [tabs])
+
+  useEffect(() => {
+    // Only set an active tab after all the tabs have loaded
+    if (!formattedTabs || !tabsLoaded.every(Boolean)) return
+
+    // Remove the prefix "#tab-" from the hash to get the id of the tab
+    const currentHash = window.location.hash.slice(5)
+    const currentHashTab = currentHash
+      ? formattedTabs.findIndex((t) => t.id === currentHash)
+      : -1
+    setDefaultActiveTab((currActiveTab) =>
+      currentHashTab > -1 ? currentHashTab : formattedTabs.findIndex((t) => !t.hidden)
+    )
+  }, [formattedTabs, tabsLoaded])
 
   if (!header || !tabs) {
     const errorMessage = 'Venue Homepage requires both header and tabs properties to be set'
@@ -267,6 +297,19 @@ export default function VenueHomepage({ appContext }) {
                 id={tabConfig.id}
                 active={i === defaultActiveTab}
                 hidden={tabConfig.hidden}
+                onClick={() => {
+                  // Don't allow the user to switch tabs while tabs are changing
+                  if (defaultActiveTab === -1 || tabsDisabled) return
+
+                  const currentHash = window.location.hash.slice(5)
+                  if (currentHash !== tabConfig.id) {
+                    setTabsDisabled(true)
+                    router.replace(`#tab-${tabConfig.id}`, undefined, {
+                      scroll: false,
+                      shallow: true,
+                    })
+                  }
+                }}
               >
                 {tabConfig.name}
               </Tab>
@@ -274,9 +317,9 @@ export default function VenueHomepage({ appContext }) {
           </TabList>
 
           <TabPanels>
-            {formattedTabs?.map((tabConfig) => (
+            {formattedTabs?.map((tabConfig, i) => (
               <TabPanel key={`${tabConfig.id}-panel`} id={tabConfig.id}>
-                {renderTab(tabConfig)}
+                {renderTab(tabConfig, i)}
               </TabPanel>
             ))}
           </TabPanels>
