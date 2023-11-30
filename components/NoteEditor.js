@@ -605,7 +605,7 @@ const NoteEditor = ({
             isEditor={false}
             showTime={false}
             field={{ 'publication date': null }}
-            value={noteEditorData.notePDateValue}
+            value={noteEditorData.notePDateValue ?? ''}
             error={errors.find((e) => e.fieldName === 'notePDateValue')}
             clearError={() =>
               setErrors((existingErrors) =>
