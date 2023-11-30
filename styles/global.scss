@@ -530,6 +530,12 @@ header {
     textarea {
       max-width: 100%;
     }
+    .feedback-dropdown {
+      border: 2px solid #659aae;
+      .dropdown-select__control {
+        border: 0;
+      }
+    }
   }
 }
 .modal-body {

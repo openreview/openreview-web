@@ -181,7 +181,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
           <span>
             I confirm that this name is typed exactly as it would appear as an author in my
             publications. I understand that any future changes to my name will require
-            moderation by the OpenReview.net Staff, and may require two weeks processing time
+            moderation by the OpenReview.net Staff, and may require two weeks processing time.
           </span>
         </div>
       </form>
