@@ -107,8 +107,9 @@ export default function VenueHomepage({ appContext }) {
     tabs,
   } = useContext(WebFieldContext)
   const [formattedTabs, setFormattedTabs] = useState(null)
-  const [tabsLoaded, setTabsLoaded] = useState(null)
+  const [tabsLoaded, setTabsLoaded] = useState([])
   const [defaultActiveTab, setDefaultActiveTab] = useState(-1)
+  const [tabsDisabled, setTabsDisabled] = useState(false)
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const router = useRouter()
   const { setBannerContent } = appContext
@@ -208,6 +209,17 @@ export default function VenueHomepage({ appContext }) {
   }
 
   useEffect(() => {
+    const handleRouteChange = () => {
+      setTabsDisabled(false)
+    }
+
+    router.events.on('hashChangeComplete', handleRouteChange)
+    return () => {
+      router.events.off('hashChangeComplete', handleRouteChange)
+    }
+  }, [])
+
+  useEffect(() => {
     // Set referrer banner
     if (!router.isReady) return
 
@@ -239,9 +251,10 @@ export default function VenueHomepage({ appContext }) {
 
   useEffect(() => {
     // Only set an active tab after all the tabs have loaded
-    if (!formattedTabs || !tabsLoaded?.every(Boolean)) return
+    if (!formattedTabs || !tabsLoaded.every(Boolean)) return
 
-    const currentHash = window.location.hash.slice(1)
+    // Remove the prefix "#tab-" from the hash to get the id of the tab
+    const currentHash = window.location.hash.slice(5)
     const currentHashTab = currentHash
       ? formattedTabs.findIndex((t) => t.id === currentHash)
       : -1
@@ -285,9 +298,13 @@ export default function VenueHomepage({ appContext }) {
                 active={i === defaultActiveTab}
                 hidden={tabConfig.hidden}
                 onClick={() => {
-                  const currentHash = window.location.hash.slice(1)
+                  // Don't allow the user to switch tabs while tabs are changing
+                  if (defaultActiveTab === -1 || tabsDisabled) return
+
+                  const currentHash = window.location.hash.slice(5)
                   if (currentHash !== tabConfig.id) {
-                    router.replace(`#${tabConfig.id}`, undefined, {
+                    setTabsDisabled(true)
+                    router.replace(`#tab-${tabConfig.id}`, undefined, {
                       scroll: false,
                       shallow: true,
                     })
