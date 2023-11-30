@@ -19,6 +19,7 @@ import { getNoteContentValues } from '../lib/forum-utils'
 
 import styles from '../styles/components/NoteEditor.module.scss'
 import LicenseWidget from './EditorComponents/LicenseWidget'
+import DatePickerWidget from './EditorComponents/DatePickerWidget'
 
 const ExistingNoteReaders = NewReplyEditNoteReaders
 
@@ -160,7 +161,11 @@ const NoteEditor = ({
 
   const defaultNoteEditorData = {
     ...getNoteContentValues(note?.content ?? {}),
-    ...(note?.id && { noteReaderValues: note.readers, noteLicenseValue: note.license }),
+    ...(note?.id && {
+      noteReaderValues: note.readers,
+      noteLicenseValue: note.license,
+      notePDateValue: note.pdate,
+    }),
   }
 
   const noteEditorDataReducer = (state, action) => {
@@ -589,6 +594,30 @@ const NoteEditor = ({
           )
         }
       />
+
+      {invitation.edit.note.pdate && (
+        <EditorComponentHeader
+          inline={true}
+          fieldNameOverwrite="Publication Date"
+          error={errors.find((e) => e.fieldName === 'notePDateValue')}
+        >
+          <DatePickerWidget
+            isEditor={false}
+            showTime={false}
+            field={{ 'publication date': null }}
+            value={noteEditorData.notePDateValue}
+            error={errors.find((e) => e.fieldName === 'notePDateValue')}
+            clearError={() =>
+              setErrors((existingErrors) =>
+                existingErrors.filter((p) => p.fieldName !== 'notePDateValue')
+              )
+            }
+            onChange={({ fieldName, value }) =>
+              setNoteEditorData({ fieldName: 'notePDateValue', value })
+            }
+          />
+        </EditorComponentHeader>
+      )}
 
       {renderNoteReaders()}
 

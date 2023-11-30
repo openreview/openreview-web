@@ -12,17 +12,19 @@ const DatePickerWidget = ({
   showTime = true,
   onChange: propsOnChange,
   field: propsField,
+  error: propsError,
   clearError: propsClearError,
   value: propsValue,
 }) => {
   const editorComponentContext = useContext(EditorComponentContext) ?? {}
-  const { field, onChange, value, clearError } = isEditor
+  const { field, onChange, value, error, clearError } = isEditor
     ? editorComponentContext
     : {
         field: propsField,
         onChange: propsOnChange,
         clearError: propsClearError,
         value: propsValue,
+        error: propsError,
       }
   const fieldName = Object.keys(field ?? {})[0]
   const [timeZone, setTimeZone] = useState(getDefaultTimezone().value)
@@ -39,7 +41,7 @@ const DatePickerWidget = ({
   }, [timeZone])
 
   return (
-    <div className={styles.datePickerContainer}>
+    <div className={`${styles.datePickerContainer} ${error ? styles.invalidValue : ''}`}>
       <DatetimePicker
         existingValue={value}
         timeZone={timeZone}

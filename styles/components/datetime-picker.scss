@@ -373,6 +373,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
 .rc-picker-dropdown {
   position: absolute;
   box-shadow: 0 0 1px #659aae;
+  z-index: 1050;
 
   .rc-picker-dropdown-range {
     padding: 10px 0;

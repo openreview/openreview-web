@@ -20,7 +20,9 @@ const DatetimePicker = ({
     showSecond: false,
   },
 }) => {
-  const [value, setValue] = useState(existingValue ? dayjs(existingValue) : '')
+  const [value, setValue] = useState(
+    dayjs(existingValue).isValid() ? dayjs(existingValue) : ''
+  )
 
   const handleOkClick = (e) => {
     onChange(e.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
