@@ -9,7 +9,7 @@ import styles from '../../styles/components/DatePickerWidget.module.scss'
 
 const DatePickerWidget = ({
   isEditor = true,
-  showTime = true,
+  showTime,
   onChange: propsOnChange,
   field: propsField,
   error: propsError,

@@ -515,9 +515,11 @@ const NoteEditor = ({
         setErrors(
           error.errors.map((p) => {
             const fieldName = getErrorFieldName(p.details.path)
+            const fieldNameInError =
+              fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
             if (isNonDeletableError(p.details.invalidValue))
-              return { fieldName, message: `${prettyField(fieldName)} is not deletable` }
-            return { fieldName, message: p.message.replace(fieldName, prettyField(fieldName)) }
+              return { fieldName, message: `${fieldNameInError} is not deletable` }
+            return { fieldName, message: p.message.replace(fieldName, fieldNameInError) }
           })
         )
         const hasOnlyMissingFieldsError = error.errors.every(
@@ -530,9 +532,11 @@ const NoteEditor = ({
         )
       } else if (error.details?.path) {
         const fieldName = getErrorFieldName(error.details.path)
+        const fieldNameInError =
+          fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
         const prettyErrorMessage = isNonDeletableError(error.details.invalidValue)
-          ? `${prettyField(fieldName)} is not deletable`
-          : error.message.replace(fieldName, prettyField(fieldName))
+          ? `${fieldNameInError} is not deletable`
+          : error.message.replace(fieldName, fieldNameInError)
         setErrors([
           {
             fieldName,
@@ -603,7 +607,6 @@ const NoteEditor = ({
         >
           <DatePickerWidget
             isEditor={false}
-            showTime={false}
             field={{ 'publication date': null }}
             value={noteEditorData.notePDateValue ?? ''}
             error={errors.find((e) => e.fieldName === 'notePDateValue')}

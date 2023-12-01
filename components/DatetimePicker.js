@@ -34,7 +34,11 @@ const DatetimePicker = ({
       onChange(null)
       return
     }
-    onChange(date.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
+    if (showTime === false) {
+      onChange(date.tz('UTC').startOf('date').toISOString())
+    } else {
+      onChange(date.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
+    }
   }
 
   return (
