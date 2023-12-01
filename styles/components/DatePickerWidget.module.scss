@@ -26,6 +26,7 @@
   margin-top: 0.25rem;
   display: flex;
   width: 100%;
+  max-width: 420px;
 
   @media #{constants.$large} {
     margin-top: 0;
