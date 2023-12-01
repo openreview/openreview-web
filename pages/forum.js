@@ -182,10 +182,12 @@ ForumPage.getInitialProps = async (ctx) => {
   }
 
   try {
-    const note = await api.getNoteById(queryId, token, {
-      trash: true,
-      details: 'original,replyCount,writable,signatures,invitation,presentation',
-    })
+    const note = await api.getNoteById(
+      queryId,
+      token,
+      { trash: true, details: 'writable,presentation' },
+      { trash: true, details: 'original,replyCount,writable' }
+    )
 
     // Only super user can see deleted forums
     if (note?.ddate && !note?.details?.writable) {

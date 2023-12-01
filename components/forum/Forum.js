@@ -76,10 +76,10 @@ export default function Forum({
 
   const { id, details } = parentNote
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
-  const newNoteEditor = useNewNoteEditor(details.invitation.domain)
-  const domain = details.invitation.domain.startsWith(process.env.SUPER_USER)
-    ? undefined
-    : details.invitation.domain
+  const newNoteEditor = useNewNoteEditor(parentNote.domain ?? details.invitation?.domain)
+  const domain = !parentNote.domain?.startsWith(process.env.SUPER_USER)
+    ? parentNote.domain
+    : undefined
 
   // Process forum views config
   let replyForumViews = null
