@@ -680,14 +680,20 @@ const DescriptionTimelineOtherConfigRow = ({
 
   const timelineInvitations = [
     { id: submissionId, displayName: 'Paper Submissions' },
-    { id: `${reviewersId}/-/${bidName}`, displayName: 'Reviewers Bidding' },
+    ...(bidName
+      ? [{ id: `${reviewersId}/-/${bidName}`, displayName: 'Reviewers Bidding' }]
+      : []),
     { id: `${reviewersId}/-/${recruitmentName}`, displayName: 'Reviewers Recruitment' },
     ...(seniorAreaChairsId
       ? [
-          {
-            id: `${seniorAreaChairsId}/-/${bidName}`,
-            displayName: 'Senior Area Chairs Bidding',
-          },
+          ...(bidName
+            ? [
+                {
+                  id: `${seniorAreaChairsId}/-/${bidName}`,
+                  displayName: 'Senior Area Chairs Bidding',
+                },
+              ]
+            : []),
           {
             id: `${seniorAreaChairsId}/-/${recruitmentName}`,
             displayName: 'Senior Area Chairs Recruitment',
@@ -696,10 +702,14 @@ const DescriptionTimelineOtherConfigRow = ({
       : []),
     ...(areaChairsId
       ? [
-          {
-            id: `${areaChairsId}/-/${bidName}`,
-            displayName: 'Area Chairs Bidding',
-          },
+          ...(bidName
+            ? [
+                {
+                  id: `${areaChairsId}/-/${bidName}`,
+                  displayName: 'Area Chairs Bidding',
+                },
+              ]
+            : []),
           {
             id: `${areaChairsId}/-/${recruitmentName}`,
             displayName: 'Area Chairs Recruitment',
@@ -1008,7 +1018,9 @@ const Overview = ({ pcConsoleData }) => {
     useContext(WebFieldContext)
 
   const isBidEnabled = (groupId) =>
-    pcConsoleData.invitations?.find((p) => p.id === `${groupId}/-/${bidName}`)
+    bidName
+      ? pcConsoleData.invitations?.find((p) => p.id === `${groupId}/-/${bidName}`)
+      : false
 
   const reviewersBidEnabled = isBidEnabled(reviewersId)
   const areaChairsBidEnabled = isBidEnabled(areaChairsId)

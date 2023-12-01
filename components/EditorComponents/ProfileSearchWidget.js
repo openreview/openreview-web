@@ -1,7 +1,7 @@
 /* globals promptError, $: false */
 
 import React, { useContext, useState, useEffect } from 'react'
-import { maxBy } from 'lodash'
+import { maxBy, upperFirst } from 'lodash'
 import EditorComponentContext from '../EditorComponentContext'
 import IconButton from '../IconButton'
 import LoadingSpinner from '../LoadingSpinner'
@@ -14,14 +14,19 @@ import { getProfileName, isValidEmail } from '../../lib/utils'
 import styles from '../../styles/components/ProfileSearchWidget.module.scss'
 import Icon from '../Icon'
 
-const getTitle = (profile) => {
+const getTitle = (profile, isEditor) => {
   if (!profile.content) return null
   const latestHistory =
     profile.content.history?.find((p) => !p.end) || maxBy(profile.content.history, 'end')
+
   const title = latestHistory
-    ? `${latestHistory.position ? `${latestHistory.position} at ` : ''}${
-        latestHistory.institution?.name
-      }${latestHistory.institution?.domain ? ` (${latestHistory.institution?.domain})` : ''}`
+    ? `${latestHistory.position ? `${latestHistory.position}` : ''}${
+        latestHistory.institution?.name ? ` at ${latestHistory.institution?.name}` : ''
+      }${
+        latestHistory.institution?.domain && isEditor
+          ? ` (${latestHistory.institution?.domain})`
+          : ''
+      }`
     : ''
   return title
 }
@@ -50,9 +55,8 @@ const Author = ({
   allowAddRemove,
   isAuthoridsField,
   multiple,
+  onChange,
 }) => {
-  const { onChange } = useContext(EditorComponentContext)
-
   const increaseAuthorIndex = () => {
     const authorIndex = displayAuthors.findIndex((p) => p.authorId === authorId)
 
@@ -125,9 +129,12 @@ const ProfileSearchResultRow = ({
   setDisplayAuthors,
   isAuthoridsField,
   multiple,
+  field,
+  onChange,
+  clearError,
+  isEditor,
 }) => {
-  const { field, onChange, clearError } = useContext(EditorComponentContext)
-  const fieldName = Object.keys(field)[0]
+  const fieldName = Object.keys(field ?? {})[0]
 
   if (!profile) return null
   const preferredId = profile.content.names?.find((p) => p.preferred)?.username ?? profile.id
@@ -166,12 +173,16 @@ const ProfileSearchResultRow = ({
             />
           )}
         </div>
-        <div className={styles.authorTitle}>{getTitle(profile)}</div>
+        <div className={styles.authorTitle}>{getTitle(profile, isEditor)}</div>
       </div>
       <div className={styles.authorEmails}>
-        {profile.content?.emailsConfirmed?.map((email, index) => (
-          <span key={index}>{email}</span>
-        ))}
+        {isEditor ? (
+          profile.content?.emailsConfirmed?.map((email, index) => (
+            <span key={index}>{email}</span>
+          ))
+        ) : (
+          <span>{profile.content?.preferredEmail}</span>
+        )}
       </div>
       <div className={styles.addButton}>
         <IconButton
@@ -189,10 +200,19 @@ const ProfileSearchResultRow = ({
               authorName: getProfileName(profile),
             })
             setDisplayAuthors(updatedAuthors)
-            onChange({
-              fieldName,
-              value: getUpdatedValue(updatedAuthors, isAuthoridsField, multiple),
-            })
+            if (isEditor === false) {
+              onChange(
+                preferredId,
+                getProfileName(profile),
+                profile?.content?.preferredEmail,
+                profile
+              )
+            } else {
+              onChange({
+                fieldName,
+                value: getUpdatedValue(updatedAuthors, isAuthoridsField, multiple),
+              })
+            }
 
             clearError?.()
             setProfileSearchResults(null)
@@ -213,6 +233,14 @@ const ProfileSearchFormAndResults = ({
   error,
   isAuthoridsField,
   multiple,
+  field,
+  onChange,
+  clearError,
+  pageSize,
+  pageListLength,
+  isEditor,
+  searchInputPlaceHolder,
+  CustomProfileSearchForm,
 }) => {
   const [searchTerm, setSearchTerm] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -221,7 +249,13 @@ const ProfileSearchFormAndResults = ({
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   const [showCustomAuthorForm, setShowCustomAuthorForm] = useState(false)
   const { accessToken } = useUser()
-  const pageSize = 20
+  // eslint-disable-next-line no-use-before-define
+  const placeHolderName = getPlaceHolderName()
+
+  function getPlaceHolderName() {
+    if (!field) return null
+    return Object.keys(field)[0] === 'authorids' ? 'author' : Object.keys(field)[0]
+  }
 
   // eslint-disable-next-line no-shadow
   const searchProfiles = async (searchTerm, pageNumber, showLoadingSpinner = true) => {
@@ -248,7 +282,11 @@ const ProfileSearchFormAndResults = ({
         { accessToken }
       )
       setTotalCount(results.count)
-      setProfileSearchResults(results.profiles.filter((p) => p.content.emails?.length))
+      setProfileSearchResults(
+        isEditor === false
+          ? results.profiles
+          : results.profiles.filter((p) => p.content.emails?.length)
+      )
     } catch (apiError) {
       promptError(apiError.message)
     }
@@ -270,24 +308,32 @@ const ProfileSearchFormAndResults = ({
         {showCustomAuthorForm ? (
           <CustomAuthorForm
             searchTerm={searchTerm}
+            setTotalCount={setTotalCount}
             setProfileSearchResults={setProfileSearchResults}
             setSearchTerm={setSearchTerm}
             displayAuthors={displayAuthors}
             setDisplayAuthors={setDisplayAuthors}
+            fieldName={Object.keys(field ?? {})[0]}
+            onChange={onChange}
+            clearError={clearError}
+            placeHolderName={placeHolderName}
+            isEditor={isEditor}
           />
         ) : (
           <>
             <div className={styles.noMatchingProfileMessage}>
               {isEmptyResult
                 ? 'No results found for your search query.'
-                : 'Coauthor not found? Provide their information by clicking button below.'}
+                : 'Profile not found? Provide their information by clicking button below.'}
             </div>
 
             <button
               className={`btn btn-xs ${styles.enterAuthorButton}`}
               onClick={() => setShowCustomAuthorForm(true)}
             >
-              Manually Enter Author Info
+              {`Manually Enter${
+                placeHolderName ? ` ${upperFirst(placeHolderName)}` : ''
+              } Info`}
             </button>
           </>
         )}
@@ -298,6 +344,7 @@ const ProfileSearchFormAndResults = ({
   const displayResults = () => {
     if (!profileSearchResults) return null
     if (!profileSearchResults.length) return displayCustomAuthorForm(true)
+
     return (
       <div className={styles.searchResults}>
         <>
@@ -312,6 +359,10 @@ const ProfileSearchFormAndResults = ({
               setDisplayAuthors={setDisplayAuthors}
               isAuthoridsField={isAuthoridsField}
               multiple={multiple}
+              field={field}
+              onChange={onChange}
+              clearError={clearError}
+              isEditor={isEditor}
             />
           ))}
           <PaginationLinks
@@ -319,7 +370,7 @@ const ProfileSearchFormAndResults = ({
             itemsPerPage={pageSize}
             totalCount={totalCount}
             setCurrentPage={setPageNumber}
-            options={{ noScroll: true, showCount: false }}
+            options={{ noScroll: true, showCount: false, pageListLength }}
           />
         </>
 
@@ -338,37 +389,57 @@ const ProfileSearchFormAndResults = ({
     $('[data-toggle="tooltip"]').tooltip()
   }, [profileSearchResults])
 
-  if (isLoading) return <LoadingSpinner inline={true} text={null} />
-
+  if (isLoading)
+    return (
+      <LoadingSpinner
+        inline={true}
+        text={null}
+        extraClass={isEditor === false ? styles.spinnerSmall : ''}
+      />
+    )
   return (
     <>
-      <form
-        className={styles.searchForm}
-        onSubmit={(e) => {
-          e.preventDefault()
-          setShowCustomAuthorForm(false)
-          searchProfiles(searchTerm, 1)
-          setPageNumber(null)
-        }}
-      >
-        <input
-          type="text"
-          className={`form-control ${error ? styles.invalidValue : ''}`}
-          value={searchTerm ?? ''}
-          placeholder="search profiles by email or name"
-          onChange={(e) => {
-            setSearchTerm(e.target.value)
-            setProfileSearchResults(null)
-          }}
+      {CustomProfileSearchForm ? (
+        <CustomProfileSearchForm
+          error={error}
+          styles={styles}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          setProfileSearchResults={setProfileSearchResults}
+          setShowCustomAuthorForm={setShowCustomAuthorForm}
+          searchProfiles={searchProfiles}
+          setPageNumber={setPageNumber}
         />
-        <button
-          className={`btn btn-sm ${error ? styles.invalidValue : ''}`}
-          disabled={!searchTerm?.trim()}
-          type="submit"
+      ) : (
+        <form
+          className={styles.searchForm}
+          onSubmit={(e) => {
+            e.preventDefault()
+            setShowCustomAuthorForm(false)
+            searchProfiles(searchTerm, 1)
+            setPageNumber(null)
+          }}
         >
-          Search
-        </button>
-      </form>
+          <input
+            type="text"
+            className={`form-control ${error ? styles.invalidValue : ''}`}
+            value={searchTerm ?? ''}
+            placeholder={searchInputPlaceHolder}
+            onChange={(e) => {
+              setSearchTerm(e.target.value)
+              setProfileSearchResults(null)
+            }}
+          />
+          <button
+            className={`btn btn-sm ${error ? styles.invalidValue : ''}`}
+            disabled={!searchTerm?.trim()}
+            type="submit"
+          >
+            Search
+          </button>
+        </form>
+      )}
+
       {displayResults()}
     </>
   )
@@ -376,17 +447,21 @@ const ProfileSearchFormAndResults = ({
 
 const CustomAuthorForm = ({
   searchTerm,
+  setTotalCount,
   setProfileSearchResults,
   setSearchTerm,
   displayAuthors,
   setDisplayAuthors,
+  fieldName,
+  onChange,
+  clearError,
+  placeHolderName,
+  isEditor,
 }) => {
   const [customAuthorName, setCustomAuthorName] = useState('')
   const [customAuthorEmail, setCustomAuthorEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { field, onChange, clearError } = useContext(EditorComponentContext)
   const { accessToken } = useUser()
-  const fieldName = Object.keys(field)[0]
 
   const disableAddButton =
     isLoading || !(customAuthorName.trim() && isValidEmail(customAuthorEmail))
@@ -405,6 +480,7 @@ const CustomAuthorForm = ({
         { accessToken }
       )
       if (results.profiles.length) {
+        setTotalCount(results.count)
         setProfileSearchResults(results.profiles)
         setIsLoading(false)
         return
@@ -421,10 +497,16 @@ const CustomAuthorForm = ({
       authorName: cleanAuthorName,
     })
     setDisplayAuthors(updatedAuthors)
-    onChange({
-      fieldName,
-      value: updatedAuthors,
-    })
+    if (isEditor === false) {
+      onChange(undefined, cleanAuthorName, cleanAuthorEmail, undefined)
+    } else {
+      onChange({
+        fieldName,
+        value: updatedAuthors,
+      })
+    }
+
+    setTotalCount(0)
     setProfileSearchResults(null)
     setSearchTerm('')
   }
@@ -445,7 +527,7 @@ const CustomAuthorForm = ({
         name="fullName"
         className="form-control"
         value={customAuthorName}
-        placeholder="full name of the author to add"
+        placeholder={`Full name${placeHolderName ? ` of the ${placeHolderName}` : ''} to add`}
         onChange={(e) => setCustomAuthorName(e.target.value)}
       />
       <label htmlFor="email">Email:</label>
@@ -454,7 +536,7 @@ const CustomAuthorForm = ({
         name="email"
         className="form-control"
         value={customAuthorEmail}
-        placeholder="email of the author to add"
+        placeholder={`Email${placeHolderName ? ` of the ${placeHolderName}` : ''} to add`}
         onChange={(e) => setCustomAuthorEmail(e.target.value)}
       />
       <SpinnerButton
@@ -469,14 +551,29 @@ const CustomAuthorForm = ({
   )
 }
 
-const ProfileSearchWidget = ({ multiple = false }) => {
+const ProfileSearchWidget = ({
+  multiple = false,
+  isEditor = true,
+  field: propsField,
+  pageSize = 20,
+  pageListLength,
+  searchInputPlaceHolder = 'search profiles by email or name',
+  onChange: propsOnChange,
+  value: propsValue,
+  error: propsError,
+  className,
+  CustomProfileSearchForm,
+}) => {
   const { user, accessToken } = useUser()
-  const { field, onChange, value, error } = useContext(EditorComponentContext)
-  const fieldName = Object.keys(field)[0]
+  const editorComponentContext = useContext(EditorComponentContext) ?? {}
+  const { field, onChange, value, error, clearError } = isEditor
+    ? editorComponentContext
+    : { field: propsField, onChange: propsOnChange, value: propsValue, error: propsError }
+  const fieldName = Object.keys(field ?? {})[0]
   const isAuthoridsField = fieldName === 'authorids'
   const allowUserDefined =
-    field[fieldName].value?.param?.regex?.includes('|') && isAuthoridsField
-  const allowAddRemove = field[fieldName].value?.param?.regex
+    !isEditor || (field?.[fieldName].value?.param?.regex?.includes('|') && isAuthoridsField)
+  const allowAddRemove = isEditor ? field?.[fieldName].value?.param?.regex : true
   const [selectedAuthorProfiles, setSelectedAuthorProfiles] = useState([])
   const [displayAuthors, setDisplayAuthors] = useState(!multiple && value ? [value] : value) // id+email
 
@@ -557,6 +654,10 @@ const ProfileSearchWidget = ({ multiple = false }) => {
 
   useEffect(() => {
     if (!isAuthoridsField) {
+      if (!isEditor) {
+        setDisplayAuthors([])
+        return
+      }
       // eslint-disable-next-line no-unused-expressions
       value ? getProfiles(multiple ? value : [value]) : setDisplayAuthors([])
       return
@@ -575,7 +676,7 @@ const ProfileSearchWidget = ({ multiple = false }) => {
   }, [value, displayAuthors])
 
   return (
-    <div className={styles.profileSearch}>
+    <div className={`${styles.profileSearch} ${className}`}>
       <div className={styles.selectedAuthors}>
         {displayAuthors?.map(({ authorId, authorName }, index) => {
           const authorProfile = selectedAuthorProfiles.find(
@@ -602,6 +703,7 @@ const ProfileSearchWidget = ({ multiple = false }) => {
                 allowAddRemove={allowAddRemove}
                 isAuthoridsField={isAuthoridsField}
                 multiple={multiple}
+                onChange={onChange}
               />
             </React.Fragment>
           )
@@ -617,6 +719,14 @@ const ProfileSearchWidget = ({ multiple = false }) => {
           error={error}
           isAuthoridsField={isAuthoridsField}
           multiple={multiple}
+          field={field}
+          onChange={onChange}
+          clearError={clearError}
+          pageSize={pageSize}
+          pageListLength={pageListLength}
+          isEditor={isEditor}
+          searchInputPlaceHolder={searchInputPlaceHolder}
+          CustomProfileSearchForm={CustomProfileSearchForm}
         />
       )}
     </div>

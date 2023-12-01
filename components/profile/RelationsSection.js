@@ -4,6 +4,8 @@ import dynamic from 'next/dynamic'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import { getStartEndYear } from '../../lib/utils'
+import ProfileSearchWidget from '../EditorComponents/ProfileSearchWidget'
+import { EditButton, SearchButton } from '../IconButton'
 
 const CreatableDropdown = dynamic(() =>
   import('../Dropdown').then((mod) => mod.CreatableDropdown)
@@ -15,10 +17,60 @@ const readersType = 'updateReaders'
 const startType = 'updateStart'
 const endType = 'updateEnd'
 const nameType = 'updateName'
-const emailType = 'updateEmail'
+const profileType = 'updateProfile'
+const customProfileType = 'updateCustomProfile'
 const addRelationType = 'addRelation'
 const removeRelationType = 'removeRelation'
 // #endregion
+
+const CustomProfileSearchForm = ({
+  error,
+  styles,
+  searchTerm,
+  setSearchTerm,
+  setProfileSearchResults,
+  setShowCustomAuthorForm,
+  searchProfiles,
+  setPageNumber,
+}) => (
+  <div className={`relation-name-container${error ? ' invalid-value' : ''}`}>
+    <input
+      type="text"
+      className={`search-input ${error ? styles.invalidValue : ''}`}
+      value={searchTerm ?? ''}
+      placeholder="Search relation by name or email"
+      onChange={(e) => {
+        setSearchTerm(e.target.value)
+        setProfileSearchResults(null)
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          setShowCustomAuthorForm(false)
+          searchProfiles(searchTerm, 1)
+          setPageNumber(null)
+        }
+      }}
+      onBlur={() => {
+        if (searchTerm?.trim()) {
+          setShowCustomAuthorForm(false)
+          searchProfiles(searchTerm, 1)
+          setPageNumber(null)
+        }
+      }}
+    />
+
+    <SearchButton
+      disableButton={!searchTerm?.trim()}
+      onClick={(e) => {
+        e.preventDefault()
+        setShowCustomAuthorForm(false)
+        searchProfiles(searchTerm, 1)
+        setPageNumber(null)
+      }}
+    />
+  </div>
+)
 
 const RelationRow = ({
   relation,
@@ -35,6 +87,96 @@ const RelationRow = ({
     if (!selectedValues || !selectedValues.length || selectedValues.includes('everyone'))
       return 'everyone'
     return selectedValues.join(',')
+  }
+
+  // eslint-disable-next-line no-shadow
+  const renderRelationName = (relation) => {
+    if (relation.name) {
+      if (relation.username) {
+        // existing with id show profile search
+        return (
+          <div className="col-md-6 relation__value">
+            <div className="relation-name-container">
+              <a
+                href={`/profile?id=${relation.username}`}
+                target="_blank"
+                rel="nofollow noreferrer"
+              >
+                {relation.name}
+              </a>
+              <EditButton
+                onClick={() =>
+                  setRelation({
+                    type: nameType,
+                    data: { value: undefined, key: relation.key },
+                  })
+                }
+              />
+            </div>
+          </div>
+        )
+      }
+      // existing without id show name and email
+      return (
+        <>
+          <div className="col-md-6 relation__value">
+            {isMobile && <div className="small-heading col-md-3">Name</div>}
+            <div className="relation-name-container">
+              <div>
+                <span>{relation.name}</span>
+                {relation.email && <span>{` <${relation.email}>`}</span>}
+              </div>
+
+              <EditButton
+                onClick={() =>
+                  setRelation({
+                    type: nameType,
+                    data: { value: undefined, key: relation.key },
+                  })
+                }
+              />
+            </div>
+          </div>
+        </>
+      )
+    }
+    // empty relation show profile search
+    return (
+      <div className="col-md-6 relation__value">
+        {isMobile && <div className="small-heading col-md-3">Name</div>}
+        <ProfileSearchWidget
+          multiple={false}
+          isEditor={false}
+          pageSize={10}
+          pageListLength={12}
+          field={{ relation: '' }}
+          searchInputPlaceHolder="Search relation by name or email"
+          error={profileRelation?.find((q) => q.key === relation.key)?.valid === false}
+          onChange={(username, name, email, profile) => {
+            if (username) {
+              setRelation({
+                type: profileType,
+                data: {
+                  value: { username, name },
+                  key: relation.key,
+                },
+              })
+            } else {
+              // custom relation
+              setRelation({
+                type: customProfileType,
+                data: {
+                  value: { name, email },
+                  key: relation.key,
+                },
+              })
+            }
+          }}
+          className="relation-search"
+          CustomProfileSearchForm={CustomProfileSearchForm}
+        />
+      </div>
+    )
   }
 
   return (
@@ -83,37 +225,9 @@ const RelationRow = ({
           />
         )}
       </div>
-      <div className="col-md-3 relation__value">
-        {isMobile && <div className="small-heading col-md-3">Name</div>}
-        <input
-          className={`form-control ${
-            profileRelation?.find((q) => q.key === relation.key)?.valid === false
-              ? 'invalid-value'
-              : ''
-          }`}
-          value={relation.name ?? ''}
-          onChange={(e) =>
-            setRelation({ type: nameType, data: { value: e.target.value, key: relation.key } })
-          }
-        />
-      </div>
-      <div className="col-md-3 relation__value">
-        {isMobile && <div className="small-heading col-md-3">Email</div>}
-        <input
-          className={`form-control ${
-            profileRelation?.find((q) => q.key === relation.key)?.valid === false
-              ? 'invalid-value'
-              : ''
-          }`}
-          value={relation.email ?? ''}
-          onChange={(e) =>
-            setRelation({
-              type: emailType,
-              data: { value: e.target.value, key: relation.key },
-            })
-          }
-        />
-      </div>
+
+      {renderRelationName(relation)}
+
       <div className="col-md-1 relation__value">
         {isMobile && <div className="small-heading col-md-1">Start</div>}
         <input
@@ -229,10 +343,24 @@ const RelationsSection = ({
           if (p.key === action.data.key) recordCopy.name = action.data.value
           return recordCopy
         })
-      case emailType:
+      case profileType:
         return state.map((p) => {
           const recordCopy = { ...p }
-          if (p.key === action.data.key) recordCopy.email = action.data.value
+          if (p.key === action.data.key) {
+            recordCopy.username = action.data.value.username
+            recordCopy.name = action.data.value.name
+            recordCopy.email = undefined
+          }
+          return recordCopy
+        })
+      case customProfileType:
+        return state.map((p) => {
+          const recordCopy = { ...p }
+          if (p.key === action.data.key) {
+            recordCopy.username = undefined
+            recordCopy.name = action.data.value.name
+            recordCopy.email = action.data.value.email
+          }
           return recordCopy
         })
       case addRelationType:
@@ -296,8 +424,7 @@ const RelationsSection = ({
       {!isMobile && (
         <div className="row">
           <div className="small-heading col-md-2">Relation</div>
-          <div className="small-heading col-md-3">Name</div>
-          <div className="small-heading col-md-3">Email</div>
+          <div className="small-heading col-md-6">Name</div>
           <div className="small-heading col-md-1">Start</div>
           <div className="small-heading col-md-1">End</div>
           <div className="small-heading col-md-1">Visible to</div>

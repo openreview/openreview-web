@@ -120,14 +120,12 @@ export async function setupProfileViewEdit(superUserToken) {
 export async function setupRegister(superUserToken) {
   // create inactive user
   await createUser(inactiveUser)
-  // eslint-disable-next-line max-len
   await createProfile(
     inActiveUserNoPassword.fullname,
     inActiveUserNoPassword.email,
     inActiveUserNoPassword.tildeId,
     superUserToken
   )
-  // eslint-disable-next-line max-len
   await createEmptyProfile(
     inActiveUserNoPasswordNoEmail.fullname,
     inActiveUserNoPasswordNoEmail.tildeId,

@@ -136,6 +136,7 @@ const NoteEditor = ({
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState([])
+  const useCheckboxWidget = true
 
   const displayError =
     typeof setErrorAlertMessage === 'function'
@@ -262,6 +263,7 @@ const NoteEditor = ({
           placeholder="Select note readers"
           error={error}
           clearError={clearError}
+          useCheckboxWidget={useCheckboxWidget}
         />
       )
     }
@@ -278,6 +280,7 @@ const NoteEditor = ({
           placeholder="Select note readers"
           error={error}
           clearError={clearError}
+          useCheckboxWidget={useCheckboxWidget}
         />
       )
     }
@@ -294,6 +297,7 @@ const NoteEditor = ({
           placeholder="Select note readers"
           error={error}
           clearError={clearError}
+          useCheckboxWidget={useCheckboxWidget}
         />
       )
     }

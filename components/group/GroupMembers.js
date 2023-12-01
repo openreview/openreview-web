@@ -1,6 +1,7 @@
 /* globals DOMPurify,marked,$,promptError,promptMessage: false */
 import React, { useEffect, useReducer, useRef, useState } from 'react'
 import Link from 'next/link'
+import get from 'lodash/get'
 import copy from 'copy-to-clipboard'
 import BasicModal from '../BasicModal'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
@@ -35,6 +36,24 @@ const MessageMemberModal = ({
 
     if (cleanReplytoEmail && !isValidEmail(cleanReplytoEmail)) {
       setError('Reply to email is invalid.')
+      return
+    }
+
+    // Reload group to make sure members haven't been removed since the modal was opened
+    try {
+      const apiRes = await api.get(
+        '/groups',
+        { id: groupId, select: 'members' },
+        { accessToken }
+      )
+      const newMembers = get(apiRes, 'groups.0.members', [])
+      if (!membersToMessage.every((p) => newMembers.includes(p))) {
+        throw new Error(
+          'The members of this group, including members selected below, have changed since the page was opened. Please reload the page and try again.'
+        )
+      }
+    } catch (e) {
+      setError(e.message)
       return
     }
 

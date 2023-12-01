@@ -244,7 +244,7 @@ const ProgramChairConsole = ({ appContext }) => {
       // #region get Reviewer, AC, SAC bids
       const bidCountResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) => {
-          if (!id || !bidName) return Promise.resolve({})
+          if (!id || !bidName) return Promise.resolve([])
           return api.getAll(
             '/edges',
             {
@@ -857,7 +857,6 @@ const ProgramChairConsole = ({ appContext }) => {
     programChairsId,
     authorsId,
     paperReviewsCompleteThreshold,
-    bidName,
     submissionId,
     officialReviewName,
     commentName,

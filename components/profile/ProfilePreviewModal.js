@@ -59,7 +59,6 @@ const ProfilePreviewModal = ({
         profile={profileToPreview}
         showLinkText={true}
         contentToShow={contentToShow}
-        publications={publications}
       />
       {contentToShow?.includes('publications') && (
         <ProfileViewSection name="publications" title="Publications">

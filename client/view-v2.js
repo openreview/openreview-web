@@ -2388,21 +2388,24 @@ module.exports = (function () {
   const constructUpdatedEdit = (edit, invitation, formContent) => {
     const shouldSetValue = (fieldPath) => {
       const field = _.get(invitation, fieldPath)
-      return field && field.param
+      return field && field.param && !field.param.const
     }
 
     const editToPost = {}
     Object.keys(invitation.edit).forEach((p) => {
-      editToPost[p] = edit[p]
+      if (shouldSetValue(`edit.${p}`) && edit[p]) {
+        editToPost[p] = edit[p]
+      }
     })
     editToPost.id = edit.id
     editToPost.invitation = edit.invitation
     if (shouldSetValue('edit.readers')) {
-      editToPost.readers = formContent.editReaderValues
+      editToPost.readers = formContent.editReaderValues ?? edit.readers
     }
     if (shouldSetValue('edit.signatures')) {
-      editToPost.signatures = formContent.editSignatureInputValues
+      editToPost.signatures = formContent.editSignatureInputValues ?? edit.signatures
     }
+
     const editNote = {}
     Object.keys(invitation.edit.note).forEach((p) => {
       if (shouldSetValue(`edit.note.${p}`)) {
@@ -2415,29 +2418,23 @@ module.exports = (function () {
     })
 
     if (invitation.edit.note?.content) {
-      editNote.content = Object.entries(invitation.edit.note.content).reduce(
-        (acc, [fieldName, fieldValue]) => {
-          if (formContent[fieldName] === undefined) {
-            if (
-              fieldValue.readers &&
-              shouldSetValue(`edit.note.content.${fieldName}.readers`)
-            ) {
-              acc[fieldName] = {
-                readers: edit.note?.content?.[fieldName]?.readers,
-              }
+      editNote.content = {}
+      Object.keys(invitation.edit.note.content).forEach((fieldName) => {
+        if (formContent[fieldName] === undefined) {
+          if (shouldSetValue(`edit.note.content.${fieldName}.readers`)) {
+            editNote.content[fieldName] = {
+              readers: edit.note.content[fieldName].readers,
             }
-            return acc
           }
-          acc[fieldName] = {
-            value: formContent[fieldName],
-            ...(shouldSetValue(`edit.note.content.${fieldName}.readers`) && {
-              readers: edit.note?.content?.[fieldName]?.readers,
-            }),
-          }
-          return acc
-        },
-        {}
-      )
+          return
+        }
+        editNote.content[fieldName] = {
+          value: formContent[fieldName],
+          ...(shouldSetValue(`edit.note.content.${fieldName}.readers`) && {
+            readers: edit.note.content[fieldName].readers,
+          }),
+        }
+      })
     }
     editToPost.note = editNote
 
