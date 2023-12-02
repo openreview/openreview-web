@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
-import { cloneDeep, orderBy, sortBy } from 'lodash'
+import { cloneDeep, orderBy, set, sortBy } from 'lodash'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import withAdminAuth from '../../components/withAdminAuth'
@@ -1128,6 +1128,232 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
   )
 }
 
+const InstitutionTab = ({ accessToken, superUser, isActive }) => {
+  const [institutions, setInstitutions] = useState(null)
+  const [institutionsToShow, setInstitutionsToShow] = useState(null)
+  const [institutionToEdit, setInstitutionToEdit] = useState(null)
+  const [page, setPage] = useState(1)
+  const institutionSearchFormRef = useRef(null)
+  const pageSize = 25
+
+  const loadInstitutionsDomains = async () => {
+    try {
+      const result = await api.get('/settings/institutiondomains')
+      setInstitutions(result)
+      setInstitutionsToShow(
+        result.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
+      )
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const getInstitutionDetails = async (institutionDomain) => {
+    try {
+      const result = await api.get('/settings/institutions', { domain: institutionDomain })
+      const institution = result.institutions[0]
+      if (!institution) return
+      setInstitutionToEdit({ ...institution, domains: institution.domains.join(',') })
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const saveInstitution = async () => {
+    try {
+      const result = await api.post(
+        '/settings/institutions',
+        {
+          id: institutionToEdit.id,
+          shortname: institutionToEdit.shortname ? institutionToEdit.shortname.trim() : null,
+          fullname: institutionToEdit.fullname ? institutionToEdit.fullname.trim() : null,
+          parent: institutionToEdit.parent ? institutionToEdit.parent.trim() : null,
+          domains: institutionToEdit.domains
+            ? institutionToEdit.domains.split(',').map((p) => p.trim())
+            : [],
+        },
+        { accessToken }
+      )
+      promptMessage(`${institutionToEdit.id} saved.`)
+      setInstitutionToEdit(null)
+      loadInstitutionsDomains()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const searchInstitution = (e) => {
+    e.preventDefault()
+    const formData = new FormData(institutionSearchFormRef.current)
+    const formContent = {}
+    formData.forEach((value, name) => {
+      const cleanValue = value.trim()
+      formContent[name] = cleanValue?.length ? cleanValue.toLowerCase() : undefined
+    })
+    setPage(1)
+    if (formContent.institutionId?.length) {
+      setInstitutions(
+        institutions.filter((p) => p.toLowerCase().includes(formContent.institutionId))
+      )
+    } else {
+      loadInstitutionsDomains()
+    }
+  }
+
+  useEffect(() => {
+    if (!institutions) return
+    setInstitutionsToShow(
+      institutions.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
+    )
+  }, [page, institutions])
+
+  useEffect(() => {
+    loadInstitutionsDomains()
+  }, [isActive])
+
+  return (
+    <>
+      <div className="institution-container">
+        <form
+          className="well mt-3"
+          ref={institutionSearchFormRef}
+          onSubmit={searchInstitution}
+        >
+          <input
+            type="text"
+            name="institutionId"
+            className="form-control input-sm"
+            placeholder="Institution ID"
+          />
+
+          <button type="submit" className="btn btn-xs">
+            Search
+          </button>
+        </form>
+        <div>
+          {institutionsToShow ? (
+            <>
+              <Table
+                headings={[
+                  { content: '', width: '8%' },
+                  { content: 'Id', width: '15%' },
+                  { content: 'Short Name', width: '25%' },
+                  { content: 'Full Name', width: '25%' },
+                  { content: 'Parent', width: '25%' },
+                  { content: 'Domains', width: '15%' },
+                ]}
+              />
+              {institutionsToShow.map((institutionDomain) => (
+                <div className="institution-row" key={institutionDomain}>
+                  <span className="col-actions">
+                    {institutionDomain === institutionToEdit?.id ? (
+                      <button type="button" className="btn btn-xs " onClick={saveInstitution}>
+                        <Icon name="floppy-disk" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn-xs "
+                        onClick={() => {
+                          getInstitutionDetails(institutionDomain)
+                        }}
+                      >
+                        <Icon name="edit" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-xs btn-delete-institution"
+                      onClick={() => {}}
+                    >
+                      <Icon name="trash" />
+                    </button>
+                  </span>
+
+                  {institutionDomain === institutionToEdit?.id ? (
+                    <>
+                      <span className="col-id">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.id ?? ''}
+                          onChange={() => {}}
+                        />
+                      </span>
+                      <span className="col-short-name">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.shortname ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              shortname: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                      <span className="col-full-name">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.fullname ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              fullname: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                      <span className="col-parent">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.parent ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              parent: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                      <span className="col-domains">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.domains ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              domains: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                    </>
+                  ) : (
+                    <span className="col-id">{institutionDomain}</span>
+                  )}
+                </div>
+              ))}
+              {institutions.length === 0 ? (
+                <p className="empty-message">No matching domains found.</p>
+              ) : (
+                <PaginationLinks
+                  currentPage={page}
+                  itemsPerPage={pageSize}
+                  totalCount={institutions.length}
+                  options={{ useShallowRouting: true }}
+                  setCurrentPage={setPage}
+                />
+              )}
+            </>
+          ) : (
+            <LoadSpinner inline />
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
 const TabMessageCount = ({ count }) => {
   if (!count) return null
   return (count > 0 || typeof count === 'string') && <span className="badge">{count}</span>
@@ -1186,6 +1412,13 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
             Profile Merge Requests <TabMessageCount count={profileMergeRequestCount} />
           </Tab>
           <Tab
+            id="institution"
+            active={activeTabId === '#institution' ? true : undefined}
+            onClick={() => setActiveTabId('#institution')}
+          >
+            Institution List
+          </Tab>
+          <Tab
             id="requests"
             active={activeTabId === '#requests' ? true : undefined}
             onClick={() => setActiveTabId('#requests')}
@@ -1218,6 +1451,13 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
               accessToken={accessToken}
               superUser={superUser}
               setProfileMergeRequestCount={setProfileMergeRequestCount}
+              isActive={activeTabId === '#merge'}
+            />
+          </TabPanel>
+          <TabPanel id="institution">
+            <InstitutionTab
+              accessToken={accessToken}
+              superUser={superUser}
               isActive={activeTabId === '#merge'}
             />
           </TabPanel>

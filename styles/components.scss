@@ -1427,6 +1427,45 @@ table.table-minimal {
   }
 }
 
+.institution-container {
+  form {
+    display: flex;
+    margin-bottom: 0.75rem;
+
+    .form-control {
+      margin-right: 0.5rem;
+      width: 25%;
+      &.comment {
+        width: 40%;
+      }
+    }
+  }
+  .institution-row {
+    display: flex;
+    justify-content: left;
+    margin-bottom: 0.5rem;
+    line-height: 30px;
+
+    .col-actions {
+      display: flex;
+      width: 8%;
+      .btn-delete-institution {
+        margin-left: 0.25rem;
+      }
+    }
+    .col-short-name,
+    .col-full-name,
+    .col-parent {
+      width: 25%;
+      padding-left: 0.25rem;
+    }
+    .col-domains {
+      width: 15%;
+      padding-left: 0.25rem;
+    }
+  }
+}
+
 // Profile Search Widget
 .search-profile {
   .submission-authors,
