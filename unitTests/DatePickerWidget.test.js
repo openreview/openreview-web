@@ -102,22 +102,20 @@ describe('DatePickerWidget in context of note editor', () => {
         onChange: expect.anything(),
       })
     )
-    expect(clearError).toHaveBeenCalledTimes(1) // timezone change
 
     mockedOnDateTimeChange(9876543210) // user select new date
-    expect(onChange).toHaveBeenNthCalledWith(2, {
-      // 1st call is timezone change
+    expect(onChange).toHaveBeenNthCalledWith(1, {
       fieldName: 'some_date_field',
       value: 9876543210,
     })
-    expect(clearError).toHaveBeenCalledTimes(2)
+    expect(clearError).toHaveBeenCalledTimes(1)
 
     mockedOnDateTimeChange(null) // user cleared value
-    expect(onChange).toHaveBeenNthCalledWith(3, {
+    expect(onChange).toHaveBeenNthCalledWith(2, {
       fieldName: 'some_date_field',
       value: undefined,
     })
-    expect(clearError).toHaveBeenCalledTimes(3)
+    expect(clearError).toHaveBeenCalledTimes(2)
   })
 })
 

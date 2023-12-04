@@ -19,12 +19,6 @@ const DatePickerWidget = (props) => {
     onChange({ fieldName, value: e ?? undefined })
   }
 
-  useEffect(() => {
-    clearError?.()
-    if (!value) return
-    onChange({ fieldName, value: dayjs(value).tz(timeZone, true).valueOf() })
-  }, [timeZone])
-
   return (
     <div className={`${styles.datePickerContainer} ${error ? styles.invalidValue : ''}`}>
       <DatetimePicker
@@ -40,7 +34,12 @@ const DatePickerWidget = (props) => {
           <TimezoneDropdown
             className={styles.timeZoneDropdown}
             value={timeZone}
-            onChange={(e) => setTimeZone(e.value)}
+            onChange={(e) => {
+              setTimeZone(e.value)
+              clearError?.()
+              if (!value) return
+              onChange({ fieldName, value: dayjs(value).tz(e.value, true).valueOf() })
+            }}
           />
         </div>
       )}
