@@ -22,6 +22,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
   display: inline-flex;
   width: 50%;
   margin-right: 0.5rem;
+  max-width: 250px;
 }
 
 .rc-picker-panel {
@@ -60,14 +61,14 @@ $input-placeholder-color: hsv(0, 0, 75%);
   .rc-picker-header-super-next-btn,
   .rc-picker-header-super-prev-btn {
     padding: 0;
-    color: #00000040;
+    color: constants.$mediumBlue;
     line-height: 40px;
     background: 0 0;
     border: 0;
     cursor: pointer;
     transition: color 0.3s;
     min-width: 1.6em;
-    font-size: 14px;
+    font-size: 1rem;
   }
 
   .rc-picker-header-view {
@@ -82,7 +83,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
         margin-left: 8px;
       }
       padding: 0;
-      color: #00000040;
+      color: constants.$mediumBlue;
       line-height: 40px;
       background: 0 0;
       border: 0;
@@ -100,7 +101,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
 
   &.rc-picker-cell-selected {
     color: #fff;
-    background: #4d8093;
+    background: constants.$mediumBlue;
   }
 
   .rc-picker-cell-inner {
@@ -116,7 +117,9 @@ $input-placeholder-color: hsv(0, 0, 75%);
     cursor: pointer;
     outline: none;
     border: none;
-    transition: background 0.3s, border 0.3s;
+    transition:
+      background 0.3s,
+      border 0.3s;
 
     &:hover {
       background: rgba(55, 11, 7, 0.1);
@@ -149,9 +152,10 @@ $input-placeholder-color: hsv(0, 0, 75%);
   }
 }
 
-.rc-picker-now {
+.rc-picker-now,
+.rc-picker-today-btn {
   cursor: pointer;
-  background-color: #4d8093;
+  background-color: constants.$mediumBlue;
   border: 2px solid #3f6978;
   font-weight: bold;
   font-size: 0.75rem;
@@ -165,13 +169,19 @@ $input-placeholder-color: hsv(0, 0, 75%);
     color: white;
   }
 }
+.rc-picker-today-btn {
+  color: white;
+  &:hover {
+    color: white;
+  }
+}
 
 .rc-picker-ok {
   float: right;
   color: #fff;
 
   button {
-    background-color: #4d8093;
+    background-color: constants.$mediumBlue;
     border: 2px solid #3f6978;
     font-weight: bold;
     font-size: 0.75rem;
@@ -184,7 +194,8 @@ $input-placeholder-color: hsv(0, 0, 75%);
 
 // ================== Year & Month Panel ==================
 .rc-picker-year-panel,
-.rc-picker-month-panel {
+.rc-picker-month-panel,
+.rc-picker-decade-panel {
   .rc-picker-cell-inner {
     width: 80px;
   }
@@ -195,7 +206,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
   .rc-picker-week-panel-row {
     &:hover {
       .rc-picker-cell {
-        background: #4d8093;
+        background: constants.$mediumBlue;
       }
     }
 
@@ -219,7 +230,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
 
   .rc-picker-cell:hover > .rc-picker-cell-inner,
   .rc-picker-cell-selected > .rc-picker-cell-inner {
-    background: #4d8093;
+    background: constants.$mediumBlue;
   }
 }
 
@@ -261,7 +272,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
 
     .rc-picker-time-panel-cell-selected {
       color: #fff;
-      background: #4d8093;
+      background: constants.$mediumBlue;
     }
 
     .rc-picker-time-panel-column-active {
@@ -363,6 +374,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
 .rc-picker-dropdown {
   position: absolute;
   box-shadow: 0 0 1px #659aae;
+  z-index: 1050;
 
   .rc-picker-dropdown-range {
     padding: 10px 0;
