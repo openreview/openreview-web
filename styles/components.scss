@@ -1099,7 +1099,7 @@ table.table-minimal {
 // User Moderation
 .moderation-status {
   width: 1100px;
-  margin: 1.75rem auto 0 auto;
+  margin: 1.75rem auto 0 -1rem;
   display: flex;
   align-items: center;
 
@@ -1120,6 +1120,7 @@ table.table-minimal {
   }
 }
 .moderation-container {
+  margin-left: -1rem;
   .filter-form {
     display: flex;
     margin-bottom: 0.75rem;
@@ -1137,7 +1138,7 @@ table.table-minimal {
 
   .profiles-list {
     width: 1100px;
-    margin: 1.75rem auto;
+    margin: 1.75rem 0;
     min-height: 100px;
 
     h4 {
@@ -1269,6 +1270,7 @@ table.table-minimal {
 }
 
 .name-deletion-list {
+  margin-left: -1rem;
   .name-deletion-row {
     display: flex;
     justify-content: space-between;
@@ -1319,6 +1321,7 @@ table.table-minimal {
 }
 
 .profile-merge-list {
+  margin-left: -1rem;
   .profile-merge-row {
     display: flex;
     justify-content: space-between;
@@ -1365,6 +1368,7 @@ table.table-minimal {
 }
 
 .venue-request-list {
+  margin-left: -1rem;
   .venue-request-row {
     display: flex;
     justify-content: flex-start;
@@ -1400,6 +1404,7 @@ table.table-minimal {
 }
 
 .email-deletion-container {
+  margin-left: -1rem;
   form {
     display: flex;
     margin-bottom: 0.75rem;
@@ -1428,15 +1433,21 @@ table.table-minimal {
 }
 
 .institution-container {
-  form {
-    display: flex;
-    margin-bottom: 0.75rem;
+  margin-left: -1rem;
+  .search-forms {
+    margin-bottom: 0;
 
-    .form-control {
-      margin-right: 0.5rem;
-      width: 25%;
-      &.comment {
-        width: 40%;
+    .institution-search-form,
+    .institution-add-form {
+      display: flex;
+      margin-bottom: 0.75rem;
+
+      .form-control {
+        margin-right: 0.5rem;
+        width: 25%;
+        &.comment {
+          width: 40%;
+        }
       }
     }
   }

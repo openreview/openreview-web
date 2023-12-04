@@ -1134,11 +1134,18 @@ const InstitutionTab = ({ accessToken, superUser, isActive }) => {
   const [institutionToEdit, setInstitutionToEdit] = useState(null)
   const [page, setPage] = useState(1)
   const institutionSearchFormRef = useRef(null)
+  const [searchAddForm, setSearchAddForm] = useReducer((state, action) => {
+    if (action.type === 'reset') return {}
+    return { ...state, [action.type]: action.payload }
+  }, {})
+
   const pageSize = 25
 
-  const loadInstitutionsDomains = async () => {
+  const loadInstitutionsDomains = async (noCache) => {
     try {
-      const result = await api.get('/settings/institutiondomains')
+      const result = await api.get(
+        `/settings/institutiondomains${noCache ? '?cache=false' : ''}`
+      )
       setInstitutions(result)
       setInstitutionsToShow(
         result.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
@@ -1152,7 +1159,14 @@ const InstitutionTab = ({ accessToken, superUser, isActive }) => {
     try {
       const result = await api.get('/settings/institutions', { domain: institutionDomain })
       const institution = result.institutions[0]
-      if (!institution) return
+      if (!institution) {
+        promptError(`Institution ${institutionDomain} not found.`)
+        return
+      }
+      if (institution.id !== institutionDomain) {
+        promptError(`Id of ${institutionDomain} is ${institution.id}`)
+        return
+      }
       setInstitutionToEdit({ ...institution, domains: institution.domains.join(',') })
     } catch (error) {
       promptError(error.message)
@@ -1182,21 +1196,60 @@ const InstitutionTab = ({ accessToken, superUser, isActive }) => {
     }
   }
 
-  const searchInstitution = (e) => {
-    e.preventDefault()
-    const formData = new FormData(institutionSearchFormRef.current)
-    const formContent = {}
-    formData.forEach((value, name) => {
-      const cleanValue = value.trim()
-      formContent[name] = cleanValue?.length ? cleanValue.toLowerCase() : undefined
-    })
+  const deleteInstitution = async (institutionId) => {
+    // eslint-disable-next-line no-alert
+    const confirmed = window.confirm(`Are you sure you want to delete ${institutionId}?`)
+    if (!confirmed) return
+    try {
+      await api.delete(`/settings/institutions/${institutionId}`, undefined, { accessToken })
+      promptMessage(`${institutionId} is deleted.`)
+      loadInstitutionsDomains(true)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const searchInstitution = () => {
+    const institutionIdToSearch = searchAddForm.institutionIdToSearch?.trim()
     setPage(1)
-    if (formContent.institutionId?.length) {
-      setInstitutions(
-        institutions.filter((p) => p.toLowerCase().includes(formContent.institutionId))
-      )
-    } else {
+    if (!institutionIdToSearch?.length) {
       loadInstitutionsDomains()
+      return
+    }
+
+    setInstitutions(
+      institutions.filter((p) => p.toLowerCase().includes(institutionIdToSearch.toLowerCase()))
+    )
+  }
+
+  const addInstitution = async () => {
+    const institutionId = searchAddForm.id?.trim()?.toLowerCase()
+    if (!institutionId) {
+      promptError('Institution ID is required.')
+      return
+    }
+
+    const institutionDomains = searchAddForm.domains
+      ?.split(',')
+      .flatMap((p) => (p.trim().toLowerCase()?.length ? p.trim().toLowerCase() : []))
+
+    try {
+      await api.post(
+        '/settings/institutions',
+        {
+          id: institutionId,
+          shortname: searchAddForm.shortname?.trim(),
+          fullname: searchAddForm.fullname?.trim(),
+          parent: searchAddForm.parent?.trim(),
+          domains: institutionDomains,
+        },
+        { accessToken }
+      )
+      promptMessage(`${searchAddForm.id} added.`)
+      setSearchAddForm({ type: 'reset' })
+      loadInstitutionsDomains(true)
+    } catch (error) {
+      promptError(error.message)
     }
   }
 
@@ -1214,22 +1267,89 @@ const InstitutionTab = ({ accessToken, superUser, isActive }) => {
   return (
     <>
       <div className="institution-container">
-        <form
-          className="well mt-3"
-          ref={institutionSearchFormRef}
-          onSubmit={searchInstitution}
-        >
-          <input
-            type="text"
-            name="institutionId"
-            className="form-control input-sm"
-            placeholder="Institution ID"
-          />
+        <div className="well search-forms">
+          <div className="institution-search-form">
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Institution ID to Search"
+              value={searchAddForm.institutionIdToSearch ?? ''}
+              onChange={(e) => {
+                if (!e.target.value?.trim()?.length) {
+                  setPage(1)
+                  loadInstitutionsDomains(true)
+                }
+                setSearchAddForm({ type: 'institutionIdToSearch', payload: e.target.value })
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  searchInstitution()
+                }
+              }}
+            />
 
-          <button type="submit" className="btn btn-xs">
-            Search
-          </button>
-        </form>
+            <button type="submit" className="btn btn-xs" onClick={searchInstitution}>
+              Search
+            </button>
+          </div>
+          <div className="institution-add-form">
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Institution ID (the domain)"
+              value={searchAddForm.id ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'id', payload: e.target.value })
+              }}
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Short Name"
+              value={searchAddForm.shortname ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'shortname', payload: e.target.value })
+              }}
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Full Name"
+              value={searchAddForm.fullname ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'fullname', payload: e.target.value })
+              }}
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Parent"
+              value={searchAddForm.parent ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'parent', payload: e.target.value })
+              }}
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Domains"
+              value={searchAddForm.domains ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'domains', payload: e.target.value })
+              }}
+            />
+
+            <button type="submit" className="btn btn-xs" onClick={addInstitution}>
+              Add
+            </button>
+          </div>
+        </div>
         <div>
           {institutionsToShow ? (
             <>
@@ -1264,7 +1384,9 @@ const InstitutionTab = ({ accessToken, superUser, isActive }) => {
                     <button
                       type="button"
                       className="btn btn-xs btn-delete-institution"
-                      onClick={() => {}}
+                      onClick={() => {
+                        deleteInstitution(institutionDomain)
+                      }}
                     >
                       <Icon name="trash" />
                     </button>
