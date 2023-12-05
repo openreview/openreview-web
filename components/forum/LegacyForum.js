@@ -4,7 +4,7 @@ import LoadingSpinner from '../LoadingSpinner'
 import NoteAuthors from '../NoteAuthors'
 import NoteReaders from '../NoteReaders'
 import NoteContent from '../NoteContent'
-import { prettyId, inflect, forumDate } from '../../lib/utils'
+import { prettyId, inflect, forumDate, classNames } from '../../lib/utils'
 
 export default function LegacyForum({
   forumNote,
@@ -72,10 +72,12 @@ const ForumTitle = ({ id, title, pdf, html }) => (
       {title}
 
       {pdf && (
-        // eslint-disable-next-line react/jsx-no-target-blank
         <a
-          className="note_content_pdf citation_pdf_url"
-          href={`/pdf?id=${id}`}
+          className={classNames(
+            'note_content_pdf',
+            pdf.startsWith('/pdf') ? 'citation_pdf_url' : null
+          )}
+          href={pdf.startsWith('/pdf') ? `/pdf?id=${id}` : pdf}
           title="Download PDF"
           target="_blank"
         >
