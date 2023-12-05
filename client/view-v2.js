@@ -2331,6 +2331,9 @@ module.exports = (function () {
         case 'license':
           note[otherNoteField] = formData?.noteLicenseValue ?? noteObj?.[otherNoteField]
           break
+        case 'pdate':
+          note[otherNoteField] = formData?.notePDateValue ?? noteObj?.[otherNoteField]
+          break
         default:
           note[otherNoteField] = formData?.[otherNoteField] ?? noteObj?.[otherNoteField]
           break
@@ -2409,10 +2412,16 @@ module.exports = (function () {
     const editNote = {}
     Object.keys(invitation.edit.note).forEach((p) => {
       if (shouldSetValue(`edit.note.${p}`)) {
-        if (p === 'license') {
-          editNote[p] = formContent.noteLicenseValue ?? edit.note[p]
-        } else {
-          editNote[p] = edit.note[p]
+        switch (p) {
+          case 'license':
+            editNote[p] = formContent.noteLicenseValue ?? edit.note[p]
+            break
+          case 'pdate':
+            editNote[p] = formContent.notePDateValue ?? edit.note[p]
+            break
+          default:
+            editNote[p] = edit.note[p]
+            break
         }
       }
     })
