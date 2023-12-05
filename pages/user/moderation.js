@@ -207,11 +207,11 @@ const NameDeletionTab = ({
       let processLogsP
 
       if (noteId) {
-        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken, version: 2 })
         decisionResultsP = api.getAll(
-          '/references',
-          { referent: noteId, invitation: nameDeletionDecisionInvitationId },
-          { accessToken, resultsKey: 'references' }
+          '/notes/edits',
+          { 'note.id': noteId },
+          { accessToken, version: 2, resultsKey: 'edits' }
         )
         processLogsP = Promise.resolve(null)
       } else {
@@ -220,14 +220,14 @@ const NameDeletionTab = ({
           {
             invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
           },
-          { accessToken }
+          { accessToken, version: 2 }
         )
         decisionResultsP = api.getAll(
-          '/references',
+          '/notes/edits',
           {
             invitation: nameDeletionDecisionInvitationId,
           },
-          { accessToken, resultsKey: 'references' }
+          { accessToken, version: 2, resultsKey: 'edits' }
         )
         processLogsP = isActive
           ? api.getAll(
@@ -246,7 +246,7 @@ const NameDeletionTab = ({
       const sortedResult = noteId
         ? [
             ...nameDeletionNotes.filter(
-              (p) => p.content.status === 'Pending' && p.id !== noteId
+              (p) => p.content.status.value === 'Pending' && p.id !== noteId
             ),
             {
               ...nameRemovalNotes.notes[0],
@@ -256,19 +256,19 @@ const NameDeletionTab = ({
             ...nameDeletionNotes.filter((p) => p.content.status !== 'Pending'),
           ]
         : [
-            ...nameRemovalNotes.notes.filter((p) => p.content.status === 'Pending'),
-            ...nameRemovalNotes.notes.filter((p) => p.content.status !== 'Pending'),
+            ...nameRemovalNotes.notes.filter((p) => p.content.status.value === 'Pending'),
+            ...nameRemovalNotes.notes.filter((p) => p.content.status.value !== 'Pending'),
           ].map((p) => {
-            const decisionReference = decisionResults.find((q) => q.referent === p.id)
+            const decisionEdit = decisionResults.find((q) => q.note.id === p.id)
             let processLogStatus = 'N/A'
-            if (p.content.status !== 'Pending')
+            if (p.content.status.value !== 'Pending')
               processLogStatus =
-                processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
+                processLogs.find((q) => q.id === decisionEdit.id)?.status ?? 'running'
             return {
               ...p,
               processLogStatus,
-              processLogUrl: decisionReference
-                ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
+              processLogUrl: decisionEdit
+                ? `${process.env.API_URL}/logs/process?id=${decisionEdit.id}`
                 : null,
             }
           })
@@ -293,28 +293,20 @@ const NameDeletionTab = ({
     const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
     try {
       setIdsLoading((p) => [...p, nameDeletionNote.id])
-      const invitationResult = await api.get(
-        '/invitations',
-        { id: nameDeletionDecisionInvitationId },
-        { accessToken }
+      const nameDeletionDecisionInvitation = await api.getInvitationById(
+        nameDeletionDecisionInvitationId,
+        accessToken
       )
-      const nameDeletionDecisionInvitation = invitationResult.invitations[0]
-      const noteToPost = {
-        referent: nameDeletionNote.id,
-        invitation: nameDeletionDecisionInvitation.id,
-        content: {
+
+      const editToPost = view2.constructEdit({
+        formData: {
+          id: nameDeletionNote.id,
           status: response,
           ...(response === 'Rejected' && { support_comment: supportComment }),
         },
-        readers: buildArray(nameDeletionDecisionInvitation, 'readers', superUser.profile.id),
-        writers: buildArray(nameDeletionDecisionInvitation, 'writers', superUser.profile.id),
-        signatures: buildArray(
-          nameDeletionDecisionInvitation,
-          'signatures',
-          superUser.profile.id
-        ),
-      }
-      const result = await api.post('/notes', noteToPost, { accessToken })
+        invitationObj: nameDeletionDecisionInvitation,
+      })
+      const result = await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
       $('#name-delete-reject').modal('hide')
       loadNameDeletionRequests(nameDeletionNote.id)
     } catch (error) {
@@ -324,7 +316,7 @@ const NameDeletionTab = ({
   }
 
   const getStatusLabelClass = (note) => {
-    switch (note.content.status) {
+    switch (note.content.status.value) {
       case 'Accepted':
         return 'label label-success'
       case 'Rejected':
@@ -383,7 +375,9 @@ const NameDeletionTab = ({
             {nameDeletionNotesToShow.map((note) => (
               <div className="name-deletion-row" key={note.id}>
                 <span className="col-status">
-                  <span className={getStatusLabelClass(note)}>{note.content.status}</span>
+                  <span className={getStatusLabelClass(note)}>
+                    {note.content.status.value}
+                  </span>
                 </span>
                 <span className="col-status">
                   <a href={note.processLogUrl} target="_blank" rel="noreferrer">
@@ -404,23 +398,25 @@ const NameDeletionTab = ({
                 <span
                   className="usernames"
                   onClick={() =>
-                    setCommentToView(<FullUsernameList usernames={note.content.usernames} />)
+                    setCommentToView(
+                      <FullUsernameList usernames={note.content.usernames.value} />
+                    )
                   }
                 >
-                  {note.content.usernames.join(',')}
+                  {note.content.usernames.value.join(',')}
                 </span>
                 <div className="comment">
                   <span
                     onClick={() =>
-                      setCommentToView(<FullComment comment={note.content.comment} />)
+                      setCommentToView(<FullComment comment={note.content.comment.value} />)
                     }
                   >
-                    {note.content.comment}
+                    {note.content.comment.value}
                   </span>
                 </div>
                 <span className="col-created">{formatDateTime(note.tcdate)}</span>
                 <span className="col-actions">
-                  {note.content.status === 'Pending' && (
+                  {note.content.status.value === 'Pending' && (
                     <>
                       <button
                         type="button"
@@ -502,11 +498,11 @@ const ProfileMergeTab = ({
       let processLogsP
 
       if (noteId) {
-        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken, version: 2 })
         decisionResultsP = api.getAll(
-          '/references',
-          { referent: noteId, invitation: profileMergeDecisionInvitationId },
-          { accessToken, resultsKey: 'references' }
+          '/notes/edits',
+          { 'note.id': noteId },
+          { accessToken, resultsKey: 'edits', version: 2 }
         )
         processLogsP = Promise.resolve(null)
       } else {
@@ -515,14 +511,14 @@ const ProfileMergeTab = ({
           {
             invitation: profileMergeInvitationId,
           },
-          { accessToken }
+          { accessToken, version: 2 }
         )
         decisionResultsP = api.getAll(
-          '/references',
+          '/notes/edits',
           {
             invitation: profileMergeDecisionInvitationId,
           },
-          { accessToken, resultsKey: 'references' }
+          { accessToken, resultsKey: 'edits', version: 2 }
         )
         processLogsP = isActive
           ? api.getAll(
@@ -542,29 +538,33 @@ const ProfileMergeTab = ({
       const sortedResult = noteId
         ? [
             ...profileMergeNotes.filter(
-              (p) => p.content.status === 'Pending' && p.id !== noteId
+              (p) => p.content.status.value === 'Pending' && p.id !== noteId
             ),
             {
               ...profileMergeNotesResults.notes[0],
               processLogStatus: 'running',
               processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
             },
-            ...profileMergeNotes.filter((p) => p.content.status !== 'Pending'),
+            ...profileMergeNotes.filter((p) => p.content.status.value !== 'Pending'),
           ]
         : [
-            ...profileMergeNotesResults.notes.filter((p) => p.content.status === 'Pending'),
-            ...profileMergeNotesResults.notes.filter((p) => p.content.status !== 'Pending'),
+            ...profileMergeNotesResults.notes.filter(
+              (p) => p.content.status.value === 'Pending'
+            ),
+            ...profileMergeNotesResults.notes.filter(
+              (p) => p.content.status.value !== 'Pending'
+            ),
           ].map((p) => {
-            const decisionReference = decisionResults.find((q) => q.referent === p.id)
+            const decisionEdit = decisionResults.find((q) => q.note.id === p.id)
             let processLogStatus = 'N/A'
-            if (p.content.status !== 'Pending')
+            if (p.content.status.value !== 'Pending')
               processLogStatus =
-                processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
+                processLogs.find((q) => q.id === decisionEdit.id)?.status ?? 'running'
             return {
               ...p,
               processLogStatus,
-              processLogUrl: decisionReference
-                ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
+              processLogUrl: decisionEdit
+                ? `${process.env.API_URL}/logs/process?id=${decisionEdit.id}`
                 : null,
             }
           })
@@ -573,7 +573,7 @@ const ProfileMergeTab = ({
         sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
       )
       const pendingRequestCount = profileMergeNotesResults.notes.filter(
-        (p) => p.content.status === 'Pending'
+        (p) => p.content.status.value === 'Pending'
       ).length
       setProfileMergeRequestCount(pendingRequestCount)
     } catch (error) {
@@ -588,28 +588,19 @@ const ProfileMergeTab = ({
   const acceptRejectProfileMergeNote = async (profileMergeNote, response, supportComment) => {
     try {
       setIdsLoading((p) => [...p, profileMergeNote.id])
-      const invitationResult = await api.get(
-        '/invitations',
-        { id: profileMergeDecisionInvitationId },
-        { accessToken }
+      const profileMergeDecisionInvitation = await api.getInvitationById(
+        profileMergeDecisionInvitationId,
+        accessToken
       )
-      const profileMergeDecisionInvitation = invitationResult.invitations[0]
-      const noteToPost = {
-        referent: profileMergeNote.id,
-        invitation: profileMergeDecisionInvitation.id,
-        content: {
+      const editToPost = view2.constructEdit({
+        formData: {
+          id: profileMergeNote.id,
           status: response,
           ...(response === 'Rejected' && { support_comment: supportComment }),
         },
-        readers: buildArray(profileMergeDecisionInvitation, 'readers', superUser.profile.id),
-        writers: buildArray(profileMergeDecisionInvitation, 'writers', superUser.profile.id),
-        signatures: buildArray(
-          profileMergeDecisionInvitation,
-          'signatures',
-          superUser.profile.id
-        ),
-      }
-      const result = await api.post('/notes', noteToPost, { accessToken })
+        invitationObj: profileMergeDecisionInvitation,
+      })
+      const result = await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
       $('#name-delete-reject').modal('hide')
       loadProfileMergeRequests(profileMergeNote.id)
     } catch (error) {
@@ -619,7 +610,7 @@ const ProfileMergeTab = ({
   }
 
   const getStatusLabelClass = (note) => {
-    switch (note.content.status) {
+    switch (note.content.status.value) {
       case 'Accepted':
         return 'label label-success'
       case 'Rejected':
@@ -680,12 +671,14 @@ const ProfileMergeTab = ({
                   <span
                     className={getStatusLabelClass(note)}
                     onClick={() => {
-                      if (note.content.support_comment) {
-                        setTextToView(<FullComment comment={note.content.support_comment} />)
+                      if (note.content.support_comment.value) {
+                        setTextToView(
+                          <FullComment comment={note.content.support_comment.value} />
+                        )
                       }
                     }}
                   >
-                    {note.content.status}
+                    {note.content.status.value}
                   </span>
                 </span>
                 <span className="col-status">
@@ -699,10 +692,10 @@ const ProfileMergeTab = ({
                   {note.signatures[0] === '(guest)' ? (
                     <span
                       onClick={() =>
-                        setTextToView(<FullComment comment={note.content.email} />)
+                        setTextToView(<FullComment comment={note.content.email.value} />)
                       }
                     >
-                      {note.content.email}
+                      {note.content.email.value}
                     </span>
                   ) : (
                     <a
@@ -718,26 +711,26 @@ const ProfileMergeTab = ({
                   className={`compare${note.id === lastComparedNote ? ' last-previewed' : ''}`}
                 >
                   <a
-                    href={`/profile/compare?left=${note.content.left}&right=${note.content.right}`}
+                    href={`/profile/compare?left=${note.content.left.value}&right=${note.content.right.value}`}
                     target="_blank"
                     rel="noreferrer"
                     onClick={() => setLastComparedNote(note.id)}
                   >
-                    {`${note.content.left},${note.content.right}`}
+                    {`${note.content.left.value},${note.content.right.value}`}
                   </a>
                 </span>
                 <div className="comment">
                   <span
                     onClick={() =>
-                      setTextToView(<FullComment comment={note.content.comment} />)
+                      setTextToView(<FullComment comment={note.content.comment.value} />)
                     }
                   >
-                    {note.content.comment}
+                    {note.content.comment.value}
                   </span>
                 </div>
                 <span className="col-created">{formatDateTime(note.tcdate)}</span>
                 <span className="col-actions">
-                  {note.content.status === 'Pending' && (
+                  {note.content.status.value === 'Pending' && (
                     <>
                       <button
                         type="button"
@@ -960,7 +953,7 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
       const notesResultP = api.getAll(
         '/notes',
         { invitation: emailRemovalInvitationId, sort: 'tcdate' },
-        { accessToken }
+        { accessToken, version: 2 }
       )
       const processLogsP = isActive
         ? api.getAll(
@@ -994,12 +987,11 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
       formContent[name] = cleanValue?.length ? cleanValue : undefined
     })
     try {
-      const invitationResults = await api.get(
-        '/invitations',
-        { id: emailRemovalInvitationId },
-        { accessToken }
+      const emailRemovalInvitation = await api.getInvitationById(
+        emailRemovalInvitationId,
+        accessToken
       )
-      const emailRemovalInvitation = invitationResults.invitations[0]
+
       const noteToPost = {
         invitation: emailRemovalInvitation.id,
         content: formContent,
@@ -1007,10 +999,19 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
         writers: buildArray(emailRemovalInvitation, 'writers', superUser.profile.id),
         signatures: buildArray(emailRemovalInvitation, 'signatures', superUser.profile.id),
       }
-      const result = await api.post('/notes', noteToPost, { accessToken })
+      const editToPost = view2.constructEdit({
+        formData: formContent,
+        invitationObj: emailRemovalInvitation,
+      })
+
+      const editResult = await api.post('/notes/edits', editToPost, {
+        accessToken,
+        version: 2,
+      })
+      const noteResult = await api.getNoteById(editResult.note.id, accessToken)
 
       const updatedEmailDeletionNotes = [
-        { ...result, processLogStatus: 'running' },
+        { ...noteResult, processLogStatus: 'running' },
         ...emailDeletionNotes,
       ]
       setEmailDeletionNotes(updatedEmailDeletionNotes)
@@ -1092,7 +1093,7 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
                     </a>
                   </span>
                   <span className="col-email">
-                    <span>{note.content.email}</span>
+                    <span>{note.content.email.value}</span>
                   </span>
                   <span className="col-profile">
                     <a
@@ -1100,10 +1101,10 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      {note.content.profile_id}
+                      {note.content.profile_id.value}
                     </a>
                   </span>
-                  <span className="col-comment">{note.content.comment}</span>
+                  <span className="col-comment">{note.content.comment.value}</span>
                   <span className="col-created">{formatDateTime(note.tcdate)}</span>
                 </div>
               ))}
@@ -1774,7 +1775,7 @@ const RequestRejectionModal = ({ noteToReject, acceptRejectNote, setNoteToReject
         >
           <div className="form-group form-rejection">
             <label htmlFor="message" className="mb-1">
-              Reason for rejecting {noteToReject.content.name}:
+              Reason for rejecting {noteToReject.content.name?.value}:
             </label>
             <textarea
               name="message"
