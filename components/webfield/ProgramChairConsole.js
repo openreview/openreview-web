@@ -158,7 +158,7 @@ const ProgramChairConsole = ({ appContext }) => {
                 limit: 1,
                 select: 'id,content',
               },
-              { accessToken } // request form is in v1
+              { accessToken, version: 1 } // request form is currently in v1
             )
             .then(
               (result) => result.notes?.[0],
