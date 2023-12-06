@@ -433,7 +433,7 @@ const NoteEditor = ({
       const result = await api.get(
         '/notes',
         { id: noteCreated.id, details: 'invitation,presentation,writable' },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       return result.notes?.[0] ? result.notes[0] : constructedNote
     } catch (error) {
@@ -463,7 +463,7 @@ const NoteEditor = ({
           label = 'note'
         }
         const latestNoteOrEdit = (
-          await api.get(apiPath, { id: noteOrEdit.id }, { accessToken, version: 2 })
+          await api.get(apiPath, { id: noteOrEdit.id }, { accessToken })
         )?.[`${label}s`]?.[0]
 
         if (latestNoteOrEdit?.tmdate && latestNoteOrEdit.tmdate !== noteOrEdit.tmdate) {
@@ -504,7 +504,7 @@ const NoteEditor = ({
             invitationObj: invitation,
             noteObj: note,
           })
-      const result = await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
+      const result = await api.post('/notes/edits', editToPost, { accessToken })
       const createdNote = await getCreatedNote(result.note)
       autoStorageKeys.forEach((key) => localStorage.removeItem(key))
       setNoteEditorData({ type: 'reset' })

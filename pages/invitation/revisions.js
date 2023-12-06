@@ -23,7 +23,7 @@ export default function InvitationRevisions({ appContext }) {
       const { invitations } = await api.get(
         '/invitations',
         { id },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       if (invitations?.length > 0) {
         if (invitations[0].details?.writable) {

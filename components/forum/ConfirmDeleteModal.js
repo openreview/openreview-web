@@ -53,10 +53,10 @@ export default function ConfirmDeleteModal({
       })
     }
     api
-      .post('/notes/edits', editToPost, { accessToken, version: 2 })
+      .post('/notes/edits', editToPost, { accessToken })
       .then((res) =>
         // the return of the post is an edit not the full note, so get the updated note again
-        api.get('/notes', { id: res.note.id, trash: !isDeleted }, { accessToken, version: 2 })
+        api.get('/notes', { id: res.note.id, trash: !isDeleted }, { accessToken })
       )
       .then((result) => {
         if (result.notes?.length > 0) {

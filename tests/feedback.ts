@@ -25,11 +25,25 @@ fixture`Feedback Modal`.page`http://localhost:${process.env.NEXT_PORT}`.before(a
   return ctx
 })
 
-test('send incomplete feedback as a guest user', async (t) => {
+test('send empty feedback as a guest user', async (t) => {
   await t
     .click(feedbackLink)
     .expect(feedbackModal.exists)
     .ok()
+    .expect(sendButton.hasAttribute('disabled')).notOk({ timeout: 5000 })
+    .click(sendButton)
+    .expect(alertPanel.innerText)
+    .eql(' Error: Please fill in all fields.')
+})
+
+test('send feedback with no message as a guest user', async (t) => {
+  await t
+    .click(feedbackLink)
+    .expect(feedbackModal.exists)
+    .ok()
+    .expect(emailInput.exists)
+    .ok()
+    .typeText(emailInput, 'melisa@test.com')
     .expect(sendButton.hasAttribute('disabled')).notOk({ timeout: 5000 })
     .click(sendButton)
     .expect(alertPanel.innerText)

@@ -85,7 +85,7 @@ const EthicsChairPaperStatus = () => {
           sort: 'number:asc',
           domain: venueId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
 
       const perPaperGroupResultsP = api
@@ -97,7 +97,7 @@ const EthicsChairPaperStatus = () => {
             stream: true,
             domain: venueId,
           },
-          { accessToken, version: 2 }
+          { accessToken }
         )
         .then((result) => result.groups ?? [])
 
@@ -147,7 +147,7 @@ const EthicsChairPaperStatus = () => {
             {
               ids,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
       const getProfilesByEmailsP = emails.length
@@ -156,7 +156,7 @@ const EthicsChairPaperStatus = () => {
             {
               emails,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])

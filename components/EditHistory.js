@@ -32,7 +32,7 @@ export default function EditHistory({ group, invitation, accessToken, setError }
             offset: (page - 1) * pageSize,
             trash: true,
           },
-          { accessToken, version: 2 }
+          { accessToken }
         )
         if (apiRes.edits?.length > 0) {
           setEdits(
