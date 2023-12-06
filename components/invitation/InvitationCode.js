@@ -26,14 +26,13 @@ const InvitationCode = ({ invitation, accessToken, loadInvitation, codeType }) =
     setIsSaving(true)
 
     try {
-      const requestPath = '/invitations'
       const requestBody = {
         ...invitation,
         [codeType]: code,
         apiVersion: undefined,
         rdate: undefined,
       }
-      await api.post(requestPath, requestBody, {
+      await api.post('/invitations', requestBody, {
         accessToken,
         version: 1,
       })
@@ -145,10 +144,7 @@ export const InvitationCodeV2 = ({
         signatures: [profileId],
         ...(!isMetaInvitation && { invitations: metaInvitationId }),
       }
-      await api.post('/invitations/edits', requestBody, {
-        accessToken,
-        version: 2,
-      })
+      await api.post('/invitations/edits', requestBody, { accessToken })
       promptMessage(`Code for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       loadInvitation(invitation.id)
     } catch (error) {

@@ -16,7 +16,7 @@ const johnRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => 
     .click(loginButton)
 })
 
-const testRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
+const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'test@mail.com')
@@ -76,7 +76,7 @@ test('logged user should access to the group', async (t) => {
 
 test('logged user should get a forbidden error', async (t) => {
   await t
-    .useRole(testRole)
+    .useRole(testUserRole)
     .navigateTo(
       `http://localhost:${process.env.NEXT_PORT}/group?id=ICLR.cc/2021/Conference/Program_Chairs`
     )

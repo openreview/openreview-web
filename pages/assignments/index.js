@@ -278,8 +278,10 @@ const Assignments = ({ appContext }) => {
   const { setBannerContent } = appContext
   const newNoteEditor = useNewNoteEditor(configInvitation?.domain)
 
-  const shouldRemoveDeployLink = assignmentNotes?.some(
-    (p) => p?.content?.status === 'Deployed'
+  const shouldRemoveDeployLink = assignmentNotes?.some((p) =>
+    apiVersion === 2
+      ? p?.content?.status?.value === 'Deployed'
+      : p?.content?.status === 'Deployed'
   )
 
   // API functions

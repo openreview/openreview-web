@@ -71,7 +71,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 select: 'id',
                 domain: group.domain,
               },
-              { accessToken, version: 2 }
+              { accessToken }
             )
             .then((groups) => {
               const noteNumbers = groups.flatMap((p) =>
@@ -90,7 +90,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                     sort: 'number:asc',
                     domain: group.domain,
                   },
-                  { accessToken, version: 2 }
+                  { accessToken }
                 )
                 .then((notes) =>
                   notes.filter((note) => {
@@ -116,7 +116,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           select: 'id,members',
           domain: group.domain,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       // #endregion
 
@@ -130,7 +130,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               tail: user.profile.id,
               domain: group.domain,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
       // #endregion
@@ -247,7 +247,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             {
               ids,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
       const getProfilesByEmailsP = emails.length
@@ -256,7 +256,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             {
               emails,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])

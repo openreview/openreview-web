@@ -34,7 +34,7 @@ function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload
       .getAll(
         '/groups',
         { prefix: `${venueId}/`, member: user.id, web: true, domain: venueId },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       .then((userGroups) => {
         const groupIds = []
@@ -134,7 +134,9 @@ export default function VenueHomepage({ appContext }) {
           setHidden={(newHidden) => {
             if (newHidden !== tabConfig.hidden) {
               setFormattedTabs((currentTabs) =>
-                currentTabs.map((t) => (t.id === tabConfig.id ? { ...t, hidden: newHidden } : t))
+                currentTabs.map((t) =>
+                  t.id === tabConfig.id ? { ...t, hidden: newHidden } : t
+                )
               )
             }
             markTabLoaded()
