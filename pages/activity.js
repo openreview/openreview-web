@@ -32,12 +32,12 @@ const Activity = ({ appContext }) => {
     }
 
     Promise.all([
-      api.get('/notes', queryParamV1, { accessToken }).then(
+      api.get('/notes', queryParamV1, { accessToken, version: 1 }).then(
         ({ notes }) => (notes?.length > 0 ? notes : []),
         () => []
       ),
       api
-        .get('/notes/edits', queryParamV2, { accessToken, version: 2 })
+        .get('/notes/edits', queryParamV2, { accessToken })
         .then(
           ({ edits }) => (edits?.length > 0 ? edits : []),
           () => []

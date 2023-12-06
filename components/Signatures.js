@@ -75,7 +75,7 @@ const Signatures = ({
           ? { prefix: p.prefix, signatory: user?.id }
           : { id: p.value, signatory: user?.id }
         return api
-          .get('/groups', params, { accessToken, version: 2 })
+          .get('/groups', params, { accessToken })
           .then((result) => result.groups ?? [])
       })
       const groupResults = await Promise.all(optionsP)

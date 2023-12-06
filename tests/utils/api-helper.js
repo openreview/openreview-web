@@ -135,15 +135,15 @@ export async function setupRegister(superUserToken) {
 
 // #region API helper functions
 export function createGroup(jsonToPost, userToken) {
-  return api.post('/groups', jsonToPost, { accessToken: userToken })
+  return api.post('/groups', jsonToPost, { accessToken: userToken, version: 1 })
 }
 
 export function createInvitation(jsonToPost, userToken) {
-  return api.post('/invitations', jsonToPost, { accessToken: userToken })
+  return api.post('/invitations', jsonToPost, { accessToken: userToken, version: 1 })
 }
 
 export function createNote(jsonToPost, userToken) {
-  return api.post('/notes', jsonToPost, { accessToken: userToken })
+  return api.post('/notes', jsonToPost, { accessToken: userToken, version: 1 })
 }
 
 export function createNoteEdit(jsonToPost, userToken) {
@@ -151,7 +151,7 @@ export function createNoteEdit(jsonToPost, userToken) {
 }
 
 export function sendFile(data, userToken) {
-  return api.put('/attachment', data, { accessToken: userToken, contentType: 'unset' })
+  return api.put('/attachment', data, { accessToken: userToken, contentType: 'unset', version: 1 })
 }
 
 export function getToken(id, password) {
@@ -176,7 +176,7 @@ export function addMembersToGroup(groupId, membersList, userToken, version) {
   return api.put(
     '/groups/members',
     { id: groupId, members: membersList },
-    { accessToken: userToken }
+    { accessToken: userToken, version: 1 }
   )
 }
 
@@ -211,7 +211,7 @@ export async function createUser({
         altUsernames: [],
       },
     ],
-    emails: [{ email, confirmed: true, preferred: true }],
+    emails: [email],
     links: [],
     id: tildeId,
     gender: '',
@@ -348,7 +348,7 @@ export function getGroups(params, token, version = 1) {
 
 export function getReferences(params, token) {
   return api
-    .get('/references', params, { accessToken: token })
+    .get('/references', params, { accessToken: token, version: 1 })
     .then((result) => result.references)
 }
 
@@ -357,5 +357,5 @@ export function getProcessLogs(id, token) {
 }
 
 export function getJobsStatus(token) {
-  return api.get('/jobs/status', {}, { accessToken: token })
+  return api.get('/jobs/status', {}, { accessToken: token, version: 1 })
 }

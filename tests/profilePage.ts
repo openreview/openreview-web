@@ -141,7 +141,7 @@ test('user open own profile', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql(
-      'The value http://test.com in dblp is invalid. Expected value: should include https://dblp.org, https://dblp.uni-trier.de, https://dblp2.uni-trier.de, https://dblp.dagstuhl.de, uni-trier.de'
+      'dblp link is invalid. A valid link should include https://dblp.org, https://dblp.uni-trier.de, https://dblp2.uni-trier.de, https://dblp.dagstuhl.de, uni-trier.de'
     )
     .selectText(dblpUrlInput)
     .pressKey('delete')
@@ -158,7 +158,7 @@ test('add and delete year of birth', async (t) => {
     .typeText(yearOfBirthInput, '0000')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .contains('The value 0 in yearOfBirth is invalid')
+    .contains('yearOfBirth must be >= 1923')
     // add valid year of birth
     .typeText(yearOfBirthInput, '2000')
     .click(saveProfileButton)
@@ -406,19 +406,19 @@ test('unlink paper', async (t) => {
 
 test('check import history', async (t) => {
   const { superUserToken } = t.fixtureCtx
-  const notes = await getNotes({ 'content.authorids': `${userB.tildeId}` }, superUserToken)
   // should have only 1 note
+  const notes = await getNotes({ 'content.authorids': userB.tildeId }, superUserToken)
   await t.expect(notes.length).eql(1)
+
+  // shoud have 2 references: add paper and update authorid
   const importedPaperId = notes[0].id
   const references = await getReferences(
-    { referent: `${importedPaperId}`, sort: 'mdate' },
+    { referent: importedPaperId, sort: 'mdate' },
     superUserToken
   )
-  // shoud have 2 references: add paper and update authorid
   await t
     .expect(references.length)
     .eql(2)
-    // eslint-disable-next-line max-len
     .expect(references[1].content.authorids.includes(userBAlternateId))
     .notOk() // 1st post of paper has all dblp authorid
     .expect(references[0].content.authorids.includes(userBAlternateId))
