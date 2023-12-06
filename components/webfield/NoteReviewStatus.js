@@ -67,7 +67,7 @@ const AcPcConsoleReviewerActivityModal = ({ note, reviewer, venueId, submissionN
           invitation: `${venueId}/${submissionName}${note.number}/-/.*`,
           domain: venueId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       setActivityNotes(result.notes)
     } catch (apiError) {

@@ -57,7 +57,7 @@ const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
     Promise.all(
       ids.map((id) => {
         if (!id) return Promise.resolve([])
-        return api.getAll('/notes', { 'content.venueid': id, domain: venueId }, { accessToken, version: 2 })
+        return api.getAll('/notes', { 'content.venueid': id, domain: venueId }, { accessToken })
       })
     )
 

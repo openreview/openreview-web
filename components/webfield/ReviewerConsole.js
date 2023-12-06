@@ -81,7 +81,7 @@ const PaperRankingDropdown = ({
           invitation: paperRankingInvitation?.id ?? paperRankingId,
           ddate: null,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
 
       setReviewerConsoleData((reviewerConsoleData) => {
@@ -275,7 +275,7 @@ const ReviewerConsole = ({ appContext }) => {
           member: user.id,
           domain: group.domain,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       anonGroups = memberGroups.filter((p) => p.id.includes(`/${singularName}_`))
 
@@ -305,7 +305,7 @@ const ReviewerConsole = ({ appContext }) => {
               domain: group.domain,
               details: 'invitation,directReplies',
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
           .then((result) => result.notes ?? [])
       : Promise.resolve([])
@@ -332,7 +332,7 @@ const ReviewerConsole = ({ appContext }) => {
           tail: user.id,
           domain: group.domain,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       .then((result) => {
         if (result.edges?.length) {
@@ -347,7 +347,7 @@ const ReviewerConsole = ({ appContext }) => {
               domain: group.domain,
               sort: 'cdate:desc',
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
           .then((noteResult) => {
             if (!noteResult.notes?.length) return reviewLoad
@@ -367,7 +367,7 @@ const ReviewerConsole = ({ appContext }) => {
               domain: group.domain,
               stream: true,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
           .then((result) => {
             const areaChairMap = {}
@@ -407,7 +407,7 @@ const ReviewerConsole = ({ appContext }) => {
                 ids: officalReviewInvitationIds,
                 domain: group.domain,
               },
-              { accessToken, version: 2 }
+              { accessToken }
             )
             .then((result) => result.invitations)
         })
@@ -449,7 +449,7 @@ const ReviewerConsole = ({ appContext }) => {
               .get(
                 '/tags',
                 { invitation: paperRankingId, domain: group.domain },
-                { accessToken, version: 2 }
+                { accessToken }
               )
               .then((result) => (result.tags?.length > 0 ? result.tags : []))
           }

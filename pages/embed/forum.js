@@ -56,7 +56,7 @@ export default function EmbeddedForum({ appContext, userContext }) {
       readers: ['everyone'],
       writers: [signature],
     }
-    return api.post('/notes', note, { accessToken })
+    return api.post('/notes/edits', note, { accessToken })
   }
 
   useEffect(() => {

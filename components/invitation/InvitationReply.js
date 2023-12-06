@@ -55,9 +55,8 @@ export default function InvitationReply({
       setIsSaving(true)
       const cleanReplyString = replyString.trim()
       const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
-      const requestPath = '/invitations'
       const requestBody = getRequestBody(replyObj)
-      await api.post(requestPath, requestBody, {
+      await api.post('/invitations', requestBody, {
         accessToken,
         version: 1,
       })
@@ -162,10 +161,7 @@ export function InvitationReplyV2({
       const cleanReplyString = replyString.trim()
       const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
       const requestBody = getRequestBody(replyObj)
-      await api.post('/invitations/edits', requestBody, {
-        accessToken,
-        version: 2,
-      })
+      await api.post('/invitations/edits', requestBody, { accessToken })
       promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       loadInvitation(invitation.id)
     } catch (error) {

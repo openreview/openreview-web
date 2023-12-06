@@ -10,8 +10,19 @@ import { getDefaultTimezone } from '../lib/utils'
 dayjs.extend(timezone)
 dayjs.extend(utc)
 
-const DatetimePicker = ({ existingValue, onChange, timeZone }) => {
-  const [value, setValue] = useState(existingValue ? dayjs(existingValue) : '')
+const DatetimePicker = ({
+  existingValue,
+  onChange,
+  timeZone,
+  placeholder,
+  autoFocus = true,
+  showTime = {
+    showSecond: false,
+  },
+}) => {
+  const [value, setValue] = useState(
+    dayjs(existingValue).isValid() ? dayjs(existingValue) : ''
+  )
 
   const handleOkClick = (e) => {
     onChange(e.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
@@ -23,22 +34,27 @@ const DatetimePicker = ({ existingValue, onChange, timeZone }) => {
       onChange(null)
       return
     }
-    onChange(date.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
+    if (showTime === false) {
+      onChange(date.tz('UTC').startOf('date').toISOString())
+    } else {
+      onChange(date.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
+    }
   }
 
   return (
     <Picker
       generateConfig={dayjsGenerator}
-      showTime={{ showSecond: false }}
+      showTime={showTime}
       locale={locale}
-      format="YYYY-MM-DD hh:mm A"
+      format={showTime === false ? 'YYYY-MM-DD' : 'YYYY-MM-DD hh:mm A'}
       value={value}
       onOk={handleOkClick}
       onChange={handleChange}
-      placeholder="Select datetime"
+      placeholder={placeholder ?? 'Select datetime'}
       use12Hours
-      autoFocus
+      autoFocus={autoFocus}
       allowClear
+      showToday={true}
     />
   )
 }
