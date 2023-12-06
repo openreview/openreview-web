@@ -2,7 +2,7 @@
 
 [![Next.js CI](https://github.com/openreview/openreview-web/workflows/Next.js%20CI/badge.svg?branch=master)](https://github.com/openreview/openreview-web/actions)
 
-The next-generation web interface to the [OpenReview API](https://github.com/openreview/openreview/),
+The official web interface to the [OpenReview API](https://github.com/openreview/openreview/),
 built with React and Next.js.
 
 ## Installation
@@ -26,7 +26,7 @@ values for your environment:
 cp .env.example .env.local
 ```
 
-Unless you have a non-standard configuration, you may not need to change any of these variables.
+You may not need to change any of these variables, unless you have a non-standard configuration.
 
 ## Development
 
@@ -40,7 +40,7 @@ This will watch for any changes and rebuild the page. The OpenReview API server
 also has to be running at the same time, and accessible at the URL specified by
 the `$API_URL` env var.
 
-After editing any Handlebars template file, make sure to run:
+After editing any Handlebars template file (deprecated), make sure to run:
 
 ```bash
 npm run templates
@@ -112,7 +112,8 @@ npm run test-setup
 
 ## Deployment
 
-To create an optimized production build of the application run:
+To create an optimized production build of the application make sure `NODE_ENV` is
+set to `production` and run:
 
 ```bash
 npm run build
