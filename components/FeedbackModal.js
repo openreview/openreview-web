@@ -17,6 +17,8 @@ export default function FeedbackModal() {
     if (action.type === 'reset') return {}
     return { ...state, [action.type]: action.payload }
   }, {})
+
+  const missingToken = process.env.TURNSTILE_SITEKEY && !turnstileToken
   const fields = [
     {
       name: 'from',
@@ -190,7 +192,7 @@ export default function FeedbackModal() {
       title="Send Feedback"
       primaryButtonText="Send"
       onPrimaryButtonClick={sendFeedback}
-      primaryButtonDisabled={submitting || !turnstileToken}
+      primaryButtonDisabled={submitting || missingToken}
       onClose={resetForm}
       onOpen={() => {
         if (!process.env.TURNSTILE_SITEKEY) return
