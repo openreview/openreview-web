@@ -10,6 +10,7 @@ import Dropdown from './Dropdown'
 export default function FeedbackModal() {
   const [text, setText] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState(null)
   const [error, setError] = useState(null)
   const { accessToken } = useContext(UserContext)
   const [formData, setFormData] = useReducer((state, action) => {
@@ -106,6 +107,7 @@ export default function FeedbackModal() {
       const feedbackData = {
         from: formData.from.trim(),
         subject: formData.subject.trim(),
+        token: turnstileToken,
       }
 
       switch (formData.category) {
@@ -188,8 +190,26 @@ export default function FeedbackModal() {
       title="Send Feedback"
       primaryButtonText="Send"
       onPrimaryButtonClick={sendFeedback}
-      primaryButtonDisabled={submitting}
+      primaryButtonDisabled={submitting || !turnstileToken}
       onClose={resetForm}
+      onOpen={() => {
+        if (!process.env.TURNSTILE_SITEKEY) return
+
+        if (window.turnstile) {
+          window.turnstile.render('#turnstile-feedback', {
+            sitekey: process.env.TURNSTILE_SITEKEY,
+            action: 'feedback',
+            callback: (token) => {
+              setTurnstileToken(token)
+            },
+          })
+        } else {
+          setError({
+            message:
+              'Could not verify browser. Please make sure third-party scripts are not being blocked and try again.',
+          })
+        }
+      }}
     >
       {text ? (
         <p>{text}</p>
@@ -220,6 +240,7 @@ export default function FeedbackModal() {
           </div>
         ))}
       </form>
+      {process.env.TURNSTILE_SITEKEY && <div id="turnstile-feedback"></div>}
     </BasicModal>
   )
 }

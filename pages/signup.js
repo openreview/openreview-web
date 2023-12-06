@@ -834,11 +834,6 @@ const SignUp = () => {
           <SignupForm setSignupConfirmation={setSignupConfirmation} />
         </div>
       )}
-
-      <Script
-        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-        crossorigin="anonymous"
-      />
     </div>
   )
 }

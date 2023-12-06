@@ -1128,12 +1128,11 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
   )
 }
 
-const InstitutionTab = ({ accessToken, superUser, isActive }) => {
+const InstitutionTab = ({ accessToken, isActive }) => {
   const [institutions, setInstitutions] = useState(null)
   const [institutionsToShow, setInstitutionsToShow] = useState(null)
   const [institutionToEdit, setInstitutionToEdit] = useState(null)
   const [page, setPage] = useState(1)
-  const institutionSearchFormRef = useRef(null)
   const [searchAddForm, setSearchAddForm] = useReducer((state, action) => {
     if (action.type === 'reset') return {}
     return { ...state, [action.type]: action.payload }
@@ -1261,7 +1260,7 @@ const InstitutionTab = ({ accessToken, superUser, isActive }) => {
   }, [page, institutions])
 
   useEffect(() => {
-    loadInstitutionsDomains()
+    loadInstitutionsDomains(true)
   }, [isActive])
 
   return (
@@ -1579,8 +1578,7 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
           <TabPanel id="institution">
             <InstitutionTab
               accessToken={accessToken}
-              superUser={superUser}
-              isActive={activeTabId === '#merge'}
+              isActive={activeTabId === '#institution'}
             />
           </TabPanel>
           <TabPanel id="requests">
