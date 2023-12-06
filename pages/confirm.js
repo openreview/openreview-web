@@ -20,7 +20,7 @@ const Confirm = () => {
     }
 
     api
-      .put(`/activatelink/${router.query.token}`)
+      .put(`/activatelink/${router.query.token}`, {}, { version: 1 })
       .then(({ confirmedEmail }) => {
         promptMessage(`Thank you for confirming your email ${confirmedEmail ?? ''}`)
         router.replace('/')
