@@ -30,13 +30,7 @@ main.sign-up {
       }
     }
     .name-confirmation {
-      margin-top: 0.5rem;
-      display: flex;
-      align-items: flex-start;
-
-      input {
-        margin-right: 0.5rem;
-      }
+      color: #333;
     }
     label {
       color: constants.$orRed;

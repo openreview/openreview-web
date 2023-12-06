@@ -165,24 +165,23 @@ const SignupForm = ({ setSignupConfirmation }) => {
             />
           </div>
         </div>
-        <div className="name-confirmation">
-          <input
-            type="checkbox"
-            checked={confirmFullName}
-            onChange={() => {
-              if (!fullName) {
-                setConfirmFullName(false)
-                return
-              }
-              // eslint-disable-next-line no-shadow
-              setConfirmFullName((confirmFullName) => !confirmFullName)
-            }}
-          />{' '}
-          <span>
+        <div className=" checkbox">
+          <label className="name-confirmation">
+            <input
+              type="checkbox"
+              checked={confirmFullName}
+              onChange={() => {
+                if (!fullName) {
+                  setConfirmFullName(false)
+                  return
+                }
+                setConfirmFullName((confirmFullNameProp) => !confirmFullNameProp)
+              }}
+            />
             I confirm that this name is typed exactly as it would appear as an author in my
             publications. I understand that any future changes to my name will require
             moderation by the OpenReview.net Staff, and may require two weeks processing time.
-          </span>
+          </label>
         </div>
       </form>
 
@@ -547,8 +546,10 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const [institutionDomains, setInstitutionDomains] = useState([])
   const [nonInstitutionEmail, setNonInstitutionEmail] = useState(null)
 
-  const isInstitutionEmail = (emailToCheck) =>
-    institutionDomains.some((domain) => emailToCheck.endsWith(domain))
+  const isInstitutionEmail = (emailToCheck) => {
+    const emailDomain = emailToCheck.split('@').pop()?.trim()?.toLowerCase()
+    institutionDomains.some((domain) => domain === emailDomain)
+  }
 
   const InstitutionErrorMessage = ({ email: invalidEmail }) => (
     <span>
