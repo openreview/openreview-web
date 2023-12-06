@@ -94,6 +94,7 @@ export default function FeedbackModal() {
   const resetForm = () => {
     setError(null)
     setText(null)
+    setTurnstileToken(null)
     setFormData({ type: 'reset' })
   }
 
