@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import omit from 'lodash/omit'
 import useQuery from '../hooks/useQuery'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import MessagesTable from '../components/MessagesTable'
@@ -35,7 +36,9 @@ const FilterForm = ({ searchQuery, loading }) => {
   }, [])
 
   const onFiltersChange = (field, value) => {
-    const newSearchQuery = { ...searchQuery, [field]: value, page: 1 }
+    const newSearchQuery = value
+      ? { ...searchQuery, [field]: value, page: 1 }
+      : { ...omit(searchQuery, field), page: 1 }
     router.push({ pathname: '/messages', query: newSearchQuery }, undefined, { shallow: true })
   }
 
@@ -126,7 +129,7 @@ const Messages = ({ appContext }) => {
       const apiRes = await api.get(
         '/messages',
         {
-          ...query,
+          ...omit(query, 'page'),
           status: validStatus,
           limit: pageSize,
           offset: pageSize * (page - 1),
