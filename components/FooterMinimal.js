@@ -9,6 +9,8 @@ const FooterMinimal = () => (
           <Link href="/legal/terms">Terms of Use</Link>
           &nbsp;&nbsp;&bull;&nbsp;&nbsp;
           <Link href="/legal/privacy">Privacy Policy</Link>
+          &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+          <Link href="https://github.com/openreview/openreview-web">Source Code</Link>
         </p>
       </div>
     </div>

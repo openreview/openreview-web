@@ -37,6 +37,9 @@ const Footer = () => (
                 <Link href="/sponsors">Sponsors</Link>
               </li>
               <li>
+                <Link href="https://github.com/openreview/openreview-web">Source Code</Link>
+              </li>
+              <li>
                 <a
                   className="join-the-team"
                   href="https://codeforscience.org/jobs?job=OpenReview-Developer"
@@ -83,6 +86,9 @@ const Footer = () => (
               </li>
               <li>
                 <Link href="/sponsors">Sponsors</Link>
+              </li>
+              <li>
+                <Link href="https://github.com/openreview/openreview-web">Source Code</Link>
               </li>
               <li>
                 <a

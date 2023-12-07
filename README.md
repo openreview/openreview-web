@@ -124,3 +124,9 @@ To start the production server running execute:
 ```bash
 npm run start
 ```
+
+## License & Trademarks
+
+Openreview-web is open source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. The full license [can be found here](https://github.com/openreview/openreview-web/blob/master/LICENSE.md).
+
+Copyright © 2019-2024 OpenReview
