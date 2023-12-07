@@ -74,7 +74,7 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
       const result = await api.get(
         '/invitations',
         { id: profileMergeInvitationId },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       const profileMergeInvitation = result.invitations[0]
       await Promise.all(
@@ -102,7 +102,7 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
               ),
               signatures: [user?.profile?.preferredId ?? '(guest)'],
             },
-            { accessToken }
+            { accessToken, version: 1 }
           )
         )
       )

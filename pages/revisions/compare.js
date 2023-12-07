@@ -48,7 +48,7 @@ const CompareRevisions = ({ appContext }) => {
           original: true,
           trash: true,
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
 
       if (apiRes.references?.length > 1) {
@@ -70,7 +70,7 @@ const CompareRevisions = ({ appContext }) => {
       const apiRes = await api.get(
         '/notes/edits',
         { 'note.id': query.id, trash: true },
-        { accessToken, version: 2 }
+        { accessToken }
       )
 
       if (apiRes.edits?.length > 1) {

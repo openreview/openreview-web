@@ -407,7 +407,7 @@ const Revisions = ({ appContext }) => {
           original: true,
           trash: true,
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
     } catch (apiError) {
       setError(apiError)
@@ -424,10 +424,14 @@ const Revisions = ({ appContext }) => {
     )
 
     try {
-      const { invitations } = await api.get('/invitations', {
-        ids: invitationIds,
-        expired: true,
-      })
+      const { invitations } = await api.get(
+        '/invitations',
+        {
+          ids: invitationIds,
+          expired: true,
+        },
+        { accessToken, version: 1 }
+      )
 
       if (invitations?.length > 0) {
         setRevisions(
@@ -460,7 +464,7 @@ const Revisions = ({ appContext }) => {
           details: 'writable,presentation',
           trash: true,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
     } catch (apiError) {
       setError(apiError)
@@ -476,7 +480,7 @@ const Revisions = ({ appContext }) => {
       const { invitations } = await api.get(
         '/invitations',
         { ids: invitationIds, expired: true, details: 'writable' },
-        { accessToken, version: 2 }
+        { accessToken }
       )
 
       if (invitations?.length > 0) {
@@ -534,12 +538,7 @@ const Revisions = ({ appContext }) => {
     const loadNote = async () => {
       let note
       try {
-        note = await api.getNoteById(
-          noteId,
-          accessToken,
-          { details: 'writable,forumContent' },
-          true
-        )
+        note = await api.getNoteById(noteId, accessToken, { details: 'writable,forumContent' })
       } catch (apiError) {
         setBannerHidden(true)
         setError(apiError)

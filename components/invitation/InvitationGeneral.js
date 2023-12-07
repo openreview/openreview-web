@@ -671,7 +671,7 @@ const InvitationGeneralEditV2 = ({
       if (!isMetaInvitation && !requestBody.invitations) {
         throw new Error('No meta invitation found')
       }
-      await api.post('/invitations/edits', requestBody, { accessToken, version: 2 })
+      await api.post('/invitations/edits', requestBody, { accessToken })
       promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       setIsEditMode(false)
       loadInvitation(invitation.id)

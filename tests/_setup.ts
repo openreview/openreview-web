@@ -123,7 +123,6 @@ test('Set up TestVenue', async (t) => {
     signatures: ['openreview.net/Support'],
     writers: ['openreview.net/Support'],
   }
-
   const { id: deployId } = await createNote(deployVenueJson, superUserToken)
 
   await waitForJobs(deployId, superUserToken)
@@ -160,7 +159,6 @@ test('Set up TestVenue', async (t) => {
     signatures: ['openreview.net/Support'],
     writers: [],
   }
-
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
 
   await waitForJobs(postSubmissionId, superUserToken)
@@ -187,7 +185,6 @@ test('Set up TestVenue', async (t) => {
     signatures: ['openreview.net/Support'],
     writers: [],
   }
-
   const { id: reviewStageId } = await createNote(reviewStageJson, superUserToken)
 
   await waitForJobs(reviewStageId, superUserToken)
@@ -253,12 +250,12 @@ test('Set up AnotherTestVenue', async (t) => {
     signatures: ['openreview.net/Support'],
     writers: ['openreview.net/Support'],
   }
-
   const { id: deployId } = await createNote(deployVenueJson, superUserToken)
 
   await waitForJobs(deployId, superUserToken)
 
   const hasTaskUserToken = await getToken(hasTaskUser.email, hasTaskUser.password)
+
   const noteJson = {
     content: {
       title: 'this is á "paper" title',
@@ -275,6 +272,7 @@ test('Set up AnotherTestVenue', async (t) => {
     ddate: undefined,
   }
   const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
+
   noteJson.ddate = Date.now()
   const { id: deletedNoteId } = await createNote(noteJson, hasTaskUserToken)
 
@@ -292,7 +290,6 @@ test('Set up AnotherTestVenue', async (t) => {
     signatures: ['openreview.net/Support'],
     writers: [],
   }
-
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
 
   await waitForJobs(postSubmissionId, superUserToken)
@@ -352,7 +349,6 @@ test('Set up ICLR', async (t) => {
     signatures: ['openreview.net/Support'],
     writers: ['openreview.net/Support'],
   }
-
   const { id: deployId } = await createNote(deployVenueJson, superUserToken)
 
   await waitForJobs(deployId, superUserToken)
@@ -379,7 +375,6 @@ test('Set up ICLR', async (t) => {
     signatures: ['~FirstA_LastA1'],
     writers: ['ICLR.cc/2021/Conference', '~FirstA_LastA1'],
   }
-
   const { id: noteId } = await createNote(noteJson, userToken)
 
   await waitForJobs(noteId, superUserToken)

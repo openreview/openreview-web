@@ -415,10 +415,7 @@ const DateProcessesEditor = ({
         signatures: [profileId],
         ...(!isMetaInvitation && { invitations: metaInvitationId }),
       }
-      await api.post(requestPath, requestBody, {
-        accessToken,
-        version: 2,
-      })
+      await api.post(requestPath, requestBody, { accessToken })
       promptMessage(`Date processes for ${prettyId(invitation.id)} updated`, {
         scrollToTop: false,
       })
