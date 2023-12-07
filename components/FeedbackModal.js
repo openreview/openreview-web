@@ -1,11 +1,11 @@
 /* globals $: false */
 
-import { useState, useContext, useRef, useReducer } from 'react'
+import { useState, useContext, useReducer } from 'react'
 import BasicModal from './BasicModal'
 import UserContext from './UserContext'
 import ErrorAlert from './ErrorAlert'
 import api from '../lib/api-client'
-import Dropdown from './Dropdown'
+import { CreatableDropdown } from './Dropdown'
 
 export default function FeedbackModal() {
   const [text, setText] = useState(null)
@@ -19,6 +19,20 @@ export default function FeedbackModal() {
   }, {})
 
   const missingToken = process.env.TURNSTILE_SITEKEY && !turnstileToken
+  const profileSubject = 'My OpenReview profile'
+  const submissionSubject = 'A conference I submitted to'
+  const organizationSubject = 'A conference I organized'
+  const institutionSubject = 'My institution email is not recognized'
+  const subjectOptions = [
+    profileSubject,
+    submissionSubject,
+    organizationSubject,
+    institutionSubject,
+  ].map((subject) => ({
+    label: subject,
+    value: subject,
+  }))
+
   const fields = [
     {
       name: 'from',
@@ -29,58 +43,47 @@ export default function FeedbackModal() {
     },
     {
       name: 'subject',
-      type: 'input',
-      placeholder: 'Subject',
-      required: () => true,
-      showIf: () => true,
-    },
-    {
-      name: 'category',
       type: 'select',
-      placeholder: 'My feedback is about...',
+      placeholder: 'Select or type what your need help with',
       required: () => true,
       showIf: () => true,
-      options: [
-        { label: 'My OpenReview profile', value: 'profile' },
-        { label: 'A conference I submitted to', value: 'submission' },
-        { label: 'A conference I organized', value: 'organization' },
-        { label: 'My institution email is not recognized', value: 'institution' },
-      ],
+      options: subjectOptions,
     },
     {
       name: 'profileId',
       type: 'input',
       placeholder: 'Profile ID',
-      required: () => formData.category === 'profile',
-      showIf: () => formData.category === 'profile',
+      required: () => formData.subject === profileSubject,
+      showIf: () => formData.subject === profileSubject,
     },
     {
       name: 'venueId',
       type: 'input',
       placeholder: 'Venue ID or Conference Name',
       required: () => false,
-      showIf: () => formData.category === 'submission' || formData.category === 'organization',
+      showIf: () =>
+        formData.subject === submissionSubject || formData.subject === organizationSubject,
     },
     {
       name: 'submissionId',
       type: 'input',
       placeholder: 'Submission ID',
       required: () => false,
-      showIf: () => formData.category === 'submission',
+      showIf: () => formData.subject === submissionSubject,
     },
     {
       name: 'institutionDomain',
       type: 'input',
       placeholder: 'Email Domain of Your Institution',
-      required: () => formData.category === 'institution',
-      showIf: () => formData.category === 'institution',
+      required: () => formData.subject === institutionSubject,
+      showIf: () => formData.subject === institutionSubject,
     },
     {
       name: 'institutionUrl',
       type: 'input',
       placeholder: 'URL of Your Institution',
-      required: () => formData.category === 'institution',
-      showIf: () => formData.category === 'institution',
+      required: () => formData.subject === institutionSubject,
+      showIf: () => formData.subject === institutionSubject,
     },
     {
       name: 'message',
@@ -113,17 +116,17 @@ export default function FeedbackModal() {
         token: turnstileToken,
       }
 
-      switch (formData.category) {
-        case 'profile':
+      switch (formData.subject) {
+        case profileSubject:
           feedbackData.message = `Profile ID: ${formData.profileId}\n\n${formData.message}`
           break
-        case 'submission':
+        case submissionSubject:
           feedbackData.message = `Venue ID: ${formData.venueId}\nSubmission ID: ${formData.submissionId}\n\n${formData.message}`
           break
-        case 'organization':
+        case organizationSubject:
           feedbackData.message = `Venue ID: ${formData.venueId}\n\n${formData.message}`
           break
-        case 'institution':
+        case institutionSubject:
           feedbackData.message = `Institution Domain: ${formData.institutionDomain}\nInstitution URL: ${formData.institutionUrl}\n\n${formData.message}`
           break
         default:
@@ -171,10 +174,20 @@ export default function FeedbackModal() {
           />
         )
       case 'select':
-        return (
-          <Dropdown
+        return formData[field.name]?.length > 0 ? (
+          <input
+            type="text"
+            className="form-control"
+            value={formData[field.name] ?? ''}
+            onChange={(e) => {
+              setFormData({ type: field.name, payload: e.target.value })
+            }}
+          />
+        ) : (
+          <CreatableDropdown
             options={field.options}
-            className="feedback-dropdown"
+            hideArrow
+            classNamePrefix="feedback-dropdown"
             placeholder={field.placeholder}
             value={field.options.find((p) => p.value === formData[field.name]) ?? null}
             onChange={(e) =>
