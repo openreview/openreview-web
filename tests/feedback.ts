@@ -15,11 +15,24 @@ fixture`Feedback Modal`.page`http://localhost:${process.env.NEXT_PORT}`.before(a
   return ctx
 })
 
-test('send incomplete feedback as a guest user', async (t) => {
+test('send empty feedback as a guest user', async (t) => {
   await t
     .click(feedbackLink)
     .expect(feedbackModal.exists)
     .ok()
+    .click(sendButton)
+    .expect(alertPanel.innerText)
+    .eql(' Error: from must NOT have fewer than 1 characters')
+})
+
+test('send feedback with no message as a guest user', async (t) => {
+  await t
+    .click(feedbackLink)
+    .expect(feedbackModal.exists)
+    .ok()
+    .expect(emailInput.exists)
+    .ok()
+    .typeText(emailInput, 'melisa@test.com')
     .click(sendButton)
     .expect(alertPanel.innerText)
     .eql(' Error: message must NOT have fewer than 1 characters')

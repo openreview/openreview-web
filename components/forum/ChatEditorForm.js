@@ -40,7 +40,7 @@ export default function ChatEditorForm({
           ? { prefix: p, signatory: user?.id }
           : { id: p, signatory: user?.id }
         return api
-          .get('/groups', params, { accessToken, version: 2 })
+          .get('/groups', params, { accessToken })
           .then((result) => result.groups ?? [])
       })
       const groupResults = await Promise.all(optionsP)
@@ -84,7 +84,7 @@ export default function ChatEditorForm({
     }
 
     api
-      .post('/notes/edits', noteEdit, { accessToken, version: 2 })
+      .post('/notes/edits', noteEdit, { accessToken })
       .then((result) => {
         setMessage('')
         setReplyToNote(null)
@@ -105,7 +105,7 @@ export default function ChatEditorForm({
           .get(
             '/notes',
             { id: result.note.id, details: 'invitation,presentation,writable' },
-            { accessToken, version: 2 }
+            { accessToken }
           )
           .then((noteRes) => {
             onSubmit(noteRes.notes?.length > 0 ? noteRes.notes[0] : constructedNote)

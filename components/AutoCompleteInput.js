@@ -67,7 +67,9 @@ const AutoCompleteInput = () => {
         null,
         { resultsKey: 'notes' }
       )
+
       if (cancelRequest) return
+
       const tokenObjects = getTokenObjects(notes, term)
       const titleObjects = getTitleObjects(notes, term)
       if (tokenObjects.length && titleObjects.length) {

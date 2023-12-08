@@ -37,7 +37,6 @@ const FileUploadWidget = () => {
       const result = await api.put('/attachment/chunk', data, {
         accessToken,
         contentType: 'unset',
-        version: 2,
       })
       if (result.url) {
         // upload is completed

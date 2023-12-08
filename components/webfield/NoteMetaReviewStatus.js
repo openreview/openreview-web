@@ -125,7 +125,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
           replyto: true,
           type: 'note',
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       if (result.invitations.length) {
         setMetaReviewInvitation(metaReviewData.metaReviewInvitationId)

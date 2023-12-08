@@ -344,7 +344,7 @@ const AuthorConsole = ({ appContext }) => {
             sort: 'number:asc',
             [authorSubmissionField]: user.profile.id,
           },
-          { accessToken }
+          { accessToken, version: 1 }
         )
         .then((result) => {
           const originalNotes = result.notes
@@ -363,7 +363,7 @@ const AuthorConsole = ({ appContext }) => {
                   details: 'directReplies',
                   sort: 'number:asc',
                 },
-                { accessToken }
+                { accessToken, version: 1 }
               )
               .then((blindNotesResult) =>
                 (blindNotesResult.notes || [])
@@ -406,7 +406,7 @@ const AuthorConsole = ({ appContext }) => {
           details: 'directReplies',
           sort: 'number:asc',
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
 
       setAuthorNotes(notesResult)

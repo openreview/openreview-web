@@ -72,19 +72,19 @@ npx jest --collectCoverage
 ## Integration Testing
 
 OpenReview Web uses [TestCafe](https://devexpress.github.io/testcafe/) to run
-end-to-end tests of the UI. To run the test suite, first start openreview-api-v1
+end-to-end tests of the UI. To run the test suite, first start openreview-api-v1 and openreview-api
 in test mode:
 
 ```bash
-NODE_ENV=circleci node scripts/clean_start_app.js
+npm run cleanStart
 ```
 
 Then create a production build of the frontend using the proper value for the `$SUPER_USER`
 env var and start the Next.js server:
 
 ```bash
-NODE_ENV=production SUPER_USER=openreview.net API_V2_URL= npm run build
-NODE_ENV=production SUPER_USER=openreview.net API_V2_URL= npm run start
+NODE_ENV=production SUPER_USER=openreview.net npm run build
+NODE_ENV=production SUPER_USER=openreview.net npm run start
 ```
 
 Finally, run the tests:
