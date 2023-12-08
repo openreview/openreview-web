@@ -406,7 +406,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
         await api.delete(
           '/groups/members',
           { id: group.id, members: [memberId] },
-          { accessToken }
+          { accessToken, version: 1 }
         )
       }
       setGroupMembers({ type: 'DELETE', payload: [memberId] })
@@ -424,7 +424,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
         await api.put(
           '/groups/members',
           { id: group.id, members: [memberId] },
-          { accessToken }
+          { accessToken, version: 1 }
         )
       }
       setGroupMembers({ type: 'RESTORE', payload: [memberId] })
@@ -502,7 +502,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
         await api.put(
           '/groups/members',
           { id: group.id, members: [...newMembers, ...existingDeleted] },
-          { accessToken }
+          { accessToken, version: 1 }
         )
       }
       setSearchTerm('')
@@ -548,7 +548,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
         await api.delete(
           '/groups/members',
           { id: group.id, members: membersToRemove },
-          { accessToken }
+          { accessToken, version: 1 }
         )
       }
       setGroupMembers({ type: 'DELETE', payload: membersToRemove })

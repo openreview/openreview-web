@@ -13,13 +13,15 @@ test('show active venues', async (t) => {
   await t
     // Active venues
     .expect(activeVenues.find('li').count)
-    .eql(3)
+    .eql(4)
     .expect(activeVenues.find('a').nth(0).textContent)
     .eql(conferenceGroupName)
     .expect(activeVenues.find('a').nth(1).textContent)
     .eql(`Another${conferenceGroupName}`)
     .expect(activeVenues.find('a').nth(2).textContent)
     .eql('ICLR 2021 Conference')
+    .expect(activeVenues.find('a').nth(3).textContent)
+    .eql('TestVenue 2023 Conference')
 
     // Open for submissions
     .expect(openVenues.find('li').count)
