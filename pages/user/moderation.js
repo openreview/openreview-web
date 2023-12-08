@@ -1600,7 +1600,7 @@ const UserModerationQueue = ({
                           <Icon name="remove-circle" /> Reject
                         </button>
                       )}
-                      {profile.state === 'Limited' && (
+                      {profile.state === 'Limited' && profile.content.yearOfBirth && (
                         <button
                           type="button"
                           className="btn btn-xs"
