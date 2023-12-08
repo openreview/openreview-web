@@ -13,7 +13,8 @@ const profileIdInput = Selector('#feedback-modal form input[placeholder="Profile
 const venueIdInput = Selector('#feedback-modal form input[placeholder="Venue ID or Conference Name"]')
 const submissionIdInput = Selector('#feedback-modal form input[placeholder="Submission ID"]')
 const institutionEmailDomainInput = Selector('#feedback-modal form input[placeholder="Email Domain of Your Institution"]')
-const institutionURLInput = Selector('#feedback-modal form input[placeholder="URL of Your Institution"]')
+const institutionNameInput = Selector('#feedback-modal form input[placeholder="Full Name of Your Institution"]')
+const institutionURLInput = Selector('#feedback-modal form input[placeholder="Official Website URL of Your Institution"]')
 const messageInput = Selector('#feedback-modal form textarea[placeholder="Message"]')
 const sendButton = Selector('#feedback-modal button:nth-child(2)')
 const alertPanel = Selector('#feedback-modal .alert-danger')
@@ -76,6 +77,7 @@ test('send feedback selecting subject', async (t) => {
     .click(subjectDropdown)
     .click(institutionDropdownOption)
     .expect(institutionEmailDomainInput.exists).ok()
+    .expect(institutionNameInput.exists).ok()
     .expect(institutionURLInput.exists).ok()
 
 

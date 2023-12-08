@@ -106,6 +106,12 @@ main.sign-up {
       font-weight: 700;
     }
 
+    .new-profile-title {
+      color: constants.$orRed;
+      font-size: 0.875rem;
+      font-weight: 700;
+    }
+
     #profile-merge-modal {
       label {
         color: unset;

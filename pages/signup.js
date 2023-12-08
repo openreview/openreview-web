@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useContext, createContext } from 'react'
 import Head from 'next/head'
-import Script from 'next/script'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
@@ -242,6 +241,10 @@ const SignupForm = ({ setSignupConfirmation }) => {
                 <hr key={`${profile.id}-spacer`} className="spacer" />
               )
             })}
+
+            <div className="new-profile-title">
+              Create a new profile if none of the profiles above belong to you
+            </div>
 
             <NewProfileForm
               id={newUsername}
@@ -548,7 +551,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
 
   const isInstitutionEmail = (emailToCheck) => {
     const emailDomain = emailToCheck.split('@').pop()?.trim()?.toLowerCase()
-    institutionDomains.some((domain) => domain === emailDomain)
+    return institutionDomains.includes(emailDomain)
   }
 
   const InstitutionErrorMessage = ({ email: invalidEmail }) => (
@@ -557,11 +560,17 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
       publishing institutions. If you have an email address with an educational or employing
       institution domain, please use that. If your institution is not yet in our list,{' '}
       {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-      <a href="#" data-toggle="modal" data-target="#feedback-modal">
+      <a
+        href="#"
+        data-toggle="modal"
+        data-target="#feedback-modal"
+        data-from={email}
+        data-subject="My institution email is not recognized"
+      >
         contact us
       </a>{' '}
-      to request that it be added. Otherwise, it can take up to <strong>two weeks</strong> for
-      profiles with generic email service domains to be activated.
+      to request that it be added. Otherwise, it can take up to <strong>2 weeks</strong> for
+      profiles using public email services to be activated.
     </span>
   )
 

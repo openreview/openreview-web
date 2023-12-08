@@ -15,6 +15,7 @@ export default function FeedbackModal() {
   const { accessToken } = useContext(UserContext)
   const [formData, setFormData] = useReducer((state, action) => {
     if (action.type === 'reset') return {}
+    if (action.type === 'prefill') return action.payload
     return { ...state, [action.type]: action.payload }
   }, {})
 
@@ -79,9 +80,16 @@ export default function FeedbackModal() {
       showIf: () => formData.subject === institutionSubject,
     },
     {
+      name: 'institutionName',
+      type: 'input',
+      placeholder: 'Full Name of Your Institution',
+      required: () => formData.subject === institutionSubject,
+      showIf: () => formData.subject === institutionSubject,
+    },
+    {
       name: 'institutionUrl',
       type: 'input',
-      placeholder: 'URL of Your Institution',
+      placeholder: 'Official Website URL of Your Institution',
       required: () => formData.subject === institutionSubject,
       showIf: () => formData.subject === institutionSubject,
     },
@@ -127,13 +135,13 @@ export default function FeedbackModal() {
           feedbackData.message = `Venue ID: ${formData.venueId}\n\n${formData.message}`
           break
         case institutionSubject:
-          feedbackData.message = `Institution Domain: ${formData.institutionDomain}\nInstitution URL: ${formData.institutionUrl}\n\n${formData.message}`
+          feedbackData.message = `Institution Domain: ${formData.institutionDomain}\nInstitution Fullname: ${formData.institutionName}\nInstitution URL: ${formData.institutionUrl}\n\n${formData.message}`
           break
         default:
           feedbackData.message = formData.message
       }
 
-      await api.put('/feedback', feedbackData, { accessToken })
+      await api.put('/feedback', feedbackData, { accessToken, version: 1 })
       setError(null)
       setText('Your feedback has been submitted. Thank you.')
       setTimeout(() => {
@@ -208,7 +216,12 @@ export default function FeedbackModal() {
       onPrimaryButtonClick={sendFeedback}
       primaryButtonDisabled={submitting || missingToken}
       onClose={resetForm}
-      onOpen={() => {
+      onOpen={(e) => {
+        if (e) {
+          const from = e.getAttribute('data-from')
+          const subject = e.getAttribute('data-subject')
+          setFormData({ type: 'prefill', payload: { from, subject } })
+        }
         if (!process.env.TURNSTILE_SITEKEY) return
 
         if (window.turnstile) {
