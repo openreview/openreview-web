@@ -23,7 +23,7 @@ const About = () => (
           database API enabling the following:
         </p>
         <ul className="list-unstyled">
-          <li>
+          <li className="mb-2">
             <strong>Open Peer Review:</strong> We provide a configurable platform for peer
             review that generalizes over many subtle gradations of openness, allowing
             conference organizers, journals, and other &quot;reviewing entities&quot; to
@@ -32,34 +32,34 @@ const About = () => (
             while addressing legitimate concerns regarding confidentiality, attribution, and
             bias.
           </li>
-          <li>
+          <li className="mb-2">
             <strong>Open Publishing:</strong> Track submissions, coordinate the efforts of
             editors, reviewers and authors, and host… Sharded and distributed for speed and
             reliability.
           </li>
-          <li>
+          <li className="mb-2">
             <strong>Open Access:</strong> Free access to papers for all, free paper
             submissions. No fees.
           </li>
-          <li>
+          <li className="mb-2">
             <strong>Open Discussion:</strong> Hosting of accepted papers, with their reviews,
             comments. Continued discussion forum associated with the paper post acceptance.
             Publication venue chairs/editors can control structure of review/comment forms,
             read/write access, and its timing.
           </li>
-          <li>
+          <li className="mb-2">
             <strong>Open Directory:</strong> Collection of people, with conflict-of-interest
             information, including institutions and relations, such as co-authors, co-PIs,
             co-workers, advisors/advisees, and family connections.
           </li>
-          <li>
+          <li className="mb-2">
             <strong>Open Recommendations:</strong> Models of scientific topics and expertise.
             Directory of people includes scientific expertise. Reviewer-paper matching for
             conferences with thousands of submissions, incorporating expertise, bidding,
             constraints, and reviewer balancing of various sorts. Paper recommendation to
             users.
           </li>
-          <li>
+          <li className="mb-2">
             <strong>Open API:</strong> We provide a simple REST API for accessing and uploading
             records of people, their groupings, document content, invitations and reviewing
             assignments, conflict-of-interest designations, and reviewing workflow patterns.
@@ -67,9 +67,18 @@ const About = () => (
             permissions. Track submissions, monitor review process, send customized bulk email
             messages, automate workflow actions.
           </li>
-          <li>
-            <strong>Open Source:</strong> We are committed to open source. Many parts of
-            OpenReview are already in the{' '}
+          <li className="mb-2">
+            <strong>Open Source:</strong> We are committed to open source. The OpenReview web
+            application is open source and licensed under the{' '}
+            <a
+              href="https://github.com/openreview/openreview-web/blob/master/LICENSE.md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              AGPL v3
+            </a>
+            . Many other parts of the OpenReview platform are also open source, and available
+            in the{' '}
             <a href="https://github.com/openreview" target="_blank" rel="noopener noreferrer">
               OpenReview organization on GitHub.
             </a>{' '}

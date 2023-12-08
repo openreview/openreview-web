@@ -150,6 +150,14 @@ const Footer = () => (
               <a href="/sponsors" target="_blank">
                 OpenReview Sponsors
               </a>
+              . The OpenReview web application is open source and licensed under the{' '}
+              <a
+                href="https://github.com/openreview/openreview-web/blob/master/LICENSE.md"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                AGPL v3
+              </a>
               .
             </p>
           </div>
