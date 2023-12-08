@@ -9,10 +9,10 @@ import { prettyId } from '../lib/utils'
 import { auth } from '../lib/auth'
 import useUser from '../hooks/useUser'
 
-const Submissions = ({ groupId, notes, pagination, appContext }) => {
-  const { userLoading, accessToken } = useUser()
+const Submissions = ({ group, notes, pagination, appContext }) => {
+  const { userLoading } = useUser()
 
-  const title = `${prettyId(groupId)} Submissions`
+  const title = `${prettyId(group.id)} Submissions`
   const displayOptions = {
     pdfLink: false,
     htmlLink: false,
@@ -21,23 +21,10 @@ const Submissions = ({ groupId, notes, pagination, appContext }) => {
   const { setBannerContent } = appContext
 
   useEffect(() => {
-    if (userLoading) return
+    if (userLoading || !group.host) return
 
-    const getHostGroupId = async () => {
-      try {
-        const { groups } = await api.get('/groups', { id: groupId }, { accessToken })
-        return groups?.length > 0 ? groups[0].host : null
-      } catch (error) {
-        return null
-      }
-    }
-
-    getHostGroupId().then((hostGroupId) => {
-      if (hostGroupId) {
-        setBannerContent(referrerLink(`[${prettyId(hostGroupId)}](/venue?id=${hostGroupId})`))
-      }
-    })
-  }, [userLoading, groupId, notes])
+    setBannerContent(referrerLink(`[${prettyId(group.host)}](/venue?id=${group.host})`))
+  }, [userLoading, group.host])
 
   return (
     <div>
@@ -72,32 +59,42 @@ Submissions.getInitialProps = async (ctx) => {
   }
 
   const { token } = auth(ctx)
+  let group
+  try {
+    const { groups } = await api.get('/groups', { id: groupId }, { accessToken: token })
+    group = groups?.length > 0 ? groups[0] : null
+  } catch (error) {
+    group = null
+  }
+  if (!group) {
+    return { statusCode: 404, message: `The venue ${groupId} could not be found` }
+  }
 
-  const getInvitationId = (idToTest, apiVersion = 1) =>
+  const getInvitationId = (idToTest) =>
     api
       .get(
         '/invitations',
         { id: idToTest, expired: true },
-        { accessToken: token, version: apiVersion }
+        { accessToken: token, version: 1 }
       )
       .then((res) => res.invitations?.[0]?.id || null)
       .catch((err) => null)
 
-  let isV2Group = false
-  const potentialIds = await Promise.all([
-    getInvitationId(`${groupId}/-/Blind_Submission`),
-    getInvitationId(`${groupId}/-/blind_submission`),
-    getInvitationId(`${groupId}/-/Submission`),
-    getInvitationId(`${groupId}/-/submission`),
-  ])
-  let invitationId = potentialIds.filter(Boolean)[0]
-
-  // For now there is no way to know if a group is using the v2 API, so test if the invitation exists
-  if (!invitationId) {
-    invitationId = await getInvitationId(`${groupId}/-/Submission`, 2)
+  let isV2Group
+  let invitationId
+  if (group.content?.submission_id?.value) {
     isV2Group = true
+    invitationId = group.content.submission_id.value
+  } else {
+    isV2Group = false
+    const potentialIds = await Promise.all([
+      getInvitationId(`${groupId}/-/Blind_Submission`),
+      getInvitationId(`${groupId}/-/blind_submission`),
+      getInvitationId(`${groupId}/-/Submission`),
+      getInvitationId(`${groupId}/-/submission`),
+    ])
+    invitationId = potentialIds.filter(Boolean)[0]
   }
-
   if (!invitationId) {
     return { statusCode: 400, message: `No submission invitation found for venue ${groupId}` }
   }
@@ -127,7 +124,7 @@ Submissions.getInitialProps = async (ctx) => {
     baseUrl: '/submissions',
     queryParams: { venue: groupId },
   }
-  return { groupId, notes, pagination }
+  return { group, notes, pagination }
 }
 
 Submissions.bodyClass = 'submissions'
