@@ -95,7 +95,7 @@ test('send feedback selecting subject', async (t) => {
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
-    { subject: 'OpenReview Feedback: subject' },
+    { subject: 'OpenReview Feedback: My OpenReview profile - melisa@test.com' },
     superUserToken
   )
   await t
@@ -125,16 +125,14 @@ test('send feedback custom subject', async (t) => {
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
-    { subject: 'OpenReview Feedback: subject' },
+    { subject: 'OpenReview Feedback: something that is not listed - melisa@test.com' },
     superUserToken
   )
   await t
     .expect(messages.length)
-    .eql(2)
-    .expect(messages[1].content.replyTo)
+    .eql(1)
+    .expect(messages[0].content.replyTo)
     .eql('melisa@test.com')
-    .expect(messages[1].content.subject)
-    .eql('something that is not listed')
-    .expect(messages[1].content.text)
+    .expect(messages[0].content.text)
     .eql('this is my feedback')
 })

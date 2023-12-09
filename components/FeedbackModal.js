@@ -120,7 +120,7 @@ export default function FeedbackModal() {
       }
       const feedbackData = {
         from: formData.from.trim(),
-        subject: formData.subject.trim(),
+        subject: `${formData.subject.trim()} - ${formData.from.trim()}`,
         token: turnstileToken,
       }
 
@@ -201,6 +201,11 @@ export default function FeedbackModal() {
             onChange={(e) =>
               setFormData({ type: field.name, payload: e ? e.value : undefined })
             }
+            onBlur={(e) => {
+              if (e.target.value) {
+                setFormData({ type: field.name, payload: e.target.value })
+              }
+            }}
           />
         )
       default:
