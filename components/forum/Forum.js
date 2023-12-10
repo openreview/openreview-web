@@ -11,7 +11,6 @@ import List from 'rc-virtual-list'
 
 import ForumNote from './ForumNote'
 import NoteEditor from '../NoteEditor'
-import NoteEditorForm from '../NoteEditorForm'
 import ChatEditorForm from './ChatEditorForm'
 import FilterForm from './FilterForm'
 import ChatFilterForm from './ChatFilterForm'
@@ -26,7 +25,7 @@ import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
-import { prettyInvitationId, stringToObject, useNewNoteEditor } from '../../lib/utils'
+import { prettyInvitationId, stringToObject } from '../../lib/utils'
 import {
   formatNote,
   getNoteInvitations,
@@ -76,7 +75,6 @@ export default function Forum({
 
   const { id, details } = parentNote
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
-  const newNoteEditor = useNewNoteEditor(parentNote.domain ?? details.invitation?.domain)
   const domain = !parentNote.domain?.startsWith(process.env.SUPER_USER)
     ? parentNote.domain
     : undefined
@@ -802,44 +800,23 @@ export default function Forum({
                 )
               })}
             </div>
-            {newNoteEditor ? (
-              <NoteEditor
-                note={
-                  selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)
-                }
-                replyToNote={parentNote}
-                invitation={activeInvitation}
-                className="note-editor-reply depth-even"
-                closeNoteEditor={() => {
-                  setActiveInvitation(null)
-                }}
-                onNoteCreated={(note) => {
-                  updateNote(note)
-                  setActiveInvitation(null)
-                  scrollToElement('#forum-replies')
-                }}
-                isDirectReplyToForum={true}
-              />
-            ) : (
-              <NoteEditorForm
-                forumId={id}
-                replyToId={id}
-                invitation={activeInvitation}
-                onNoteCreated={(note) => {
-                  updateNote(note)
-                  setActiveInvitation(null)
-                  scrollToElement('#forum-replies')
-                }}
-                onNoteCancelled={() => {
-                  setActiveInvitation(null)
-                }}
-                onError={(isLoadingError) => {
-                  if (isLoadingError) {
-                    setActiveInvitation(null)
-                  }
-                }}
-              />
-            )}
+            <NoteEditor
+              note={
+                selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)
+              }
+              replyToNote={parentNote}
+              invitation={activeInvitation}
+              className="note-editor-reply depth-even"
+              closeNoteEditor={() => {
+                setActiveInvitation(null)
+              }}
+              onNoteCreated={(note) => {
+                updateNote(note)
+                setActiveInvitation(null)
+                scrollToElement('#forum-replies')
+              }}
+              isDirectReplyToForum={true}
+            />
           </div>
         )}
 
@@ -924,23 +901,18 @@ export default function Forum({
                 ))}
               </div>
 
-              <NoteEditorForm
-                forumId={id}
-                replyToId={id}
+              <NoteEditor
+                replyToNote={parentNote}
                 invitation={activeInvitation}
+                closeNoteEditor={() => {
+                  setActiveInvitation(null)
+                }}
                 onNoteCreated={(note) => {
                   updateNote(note)
                   setActiveInvitation(null)
                   scrollToElement('#forum-replies')
                 }}
-                onNoteCancelled={() => {
-                  setActiveInvitation(null)
-                }}
-                onError={(isLoadingError) => {
-                  if (isLoadingError) {
-                    setActiveInvitation(null)
-                  }
-                }}
+                isDirectReplyToForum={true}
               />
             </>
           )}
