@@ -45,7 +45,7 @@ const UserModerationTab = ({ accessToken }) => {
           invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
           limit: 1,
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       const configNoteV2P = api.get(
         '/notes',
@@ -54,7 +54,7 @@ const UserModerationTab = ({ accessToken }) => {
           details: 'invitation',
           limit: 1,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       const results = await Promise.all([configNoteV1P, configNoteV2P])
 
@@ -89,7 +89,7 @@ const UserModerationTab = ({ accessToken }) => {
           ...configNote,
           content: { ...configNote.content, moderate: moderationDisabled ? 'Yes' : 'No' },
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       getModerationStatus()
     } catch (error) {
@@ -101,7 +101,7 @@ const UserModerationTab = ({ accessToken }) => {
     const currentTimeStamp = dayjs().valueOf()
     // eslint-disable-next-line no-alert
     const result = window.confirm(
-      `Update term stamp to ${currentTimeStamp}? (${dayjs(currentTimeStamp).toISOString()})`
+      `Update terms of service timestamp to ${currentTimeStamp}? (${dayjs(currentTimeStamp).toISOString()})`
     )
     if (!result) return
 
@@ -113,7 +113,7 @@ const UserModerationTab = ({ accessToken }) => {
           invitationObj: configNoteV2.details.invitation,
           noteObj: configNoteV2,
         }),
-        { accessToken, version: 2 }
+        { accessToken }
       )
       await api.post(
         '/notes',
@@ -121,7 +121,7 @@ const UserModerationTab = ({ accessToken }) => {
           ...configNote,
           content: { ...configNote.content, terms_timestamp: currentTimeStamp },
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       getModerationStatus()
     } catch (error) {
@@ -207,11 +207,11 @@ const NameDeletionTab = ({
       let processLogsP
 
       if (noteId) {
-        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken, version: 2 })
+        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken })
         decisionResultsP = api.getAll(
           '/notes/edits',
           { 'note.id': noteId },
-          { accessToken, version: 2, resultsKey: 'edits' }
+          { accessToken, resultsKey: 'edits' }
         )
         processLogsP = Promise.resolve(null)
       } else {
@@ -220,14 +220,14 @@ const NameDeletionTab = ({
           {
             invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
           },
-          { accessToken, version: 2 }
+          { accessToken }
         )
         decisionResultsP = api.getAll(
           '/notes/edits',
           {
             invitation: nameDeletionDecisionInvitationId,
           },
-          { accessToken, version: 2, resultsKey: 'edits' }
+          { accessToken, resultsKey: 'edits' }
         )
         processLogsP = isActive
           ? api.getAll(
@@ -304,9 +304,10 @@ const NameDeletionTab = ({
           status: response,
           ...(response === 'Rejected' && { support_comment: supportComment }),
         },
+
         invitationObj: nameDeletionDecisionInvitation,
       })
-      const result = await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
+      const result = await api.post('/notes/edits', editToPost, { accessToken })
       $('#name-delete-reject').modal('hide')
       loadNameDeletionRequests(nameDeletionNote.id)
     } catch (error) {
@@ -498,11 +499,11 @@ const ProfileMergeTab = ({
       let processLogsP
 
       if (noteId) {
-        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken, version: 2 })
+        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken })
         decisionResultsP = api.getAll(
           '/notes/edits',
           { 'note.id': noteId },
-          { accessToken, resultsKey: 'edits', version: 2 }
+          { accessToken, resultsKey: 'edits' }
         )
         processLogsP = Promise.resolve(null)
       } else {
@@ -511,14 +512,14 @@ const ProfileMergeTab = ({
           {
             invitation: profileMergeInvitationId,
           },
-          { accessToken, version: 2 }
+          { accessToken }
         )
         decisionResultsP = api.getAll(
           '/notes/edits',
           {
             invitation: profileMergeDecisionInvitationId,
           },
-          { accessToken, resultsKey: 'edits', version: 2 }
+          { accessToken, resultsKey: 'edits' }
         )
         processLogsP = isActive
           ? api.getAll(
@@ -600,7 +601,7 @@ const ProfileMergeTab = ({
         },
         invitationObj: profileMergeDecisionInvitation,
       })
-      const result = await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
+      const result = await api.post('/notes/edits', editToPost, { accessToken })
       $('#name-delete-reject').modal('hide')
       loadProfileMergeRequests(profileMergeNote.id)
     } catch (error) {
@@ -862,7 +863,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
           details: 'replies',
           select: `id,forum,tcdate,content['Abbreviated Venue Name'],content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
 
       const allVenueRequests = notes?.map((p) => ({
@@ -953,7 +954,7 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
       const notesResultP = api.getAll(
         '/notes',
         { invitation: emailRemovalInvitationId, sort: 'tcdate' },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       const processLogsP = isActive
         ? api.getAll(
@@ -992,13 +993,6 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
         accessToken
       )
 
-      const noteToPost = {
-        invitation: emailRemovalInvitation.id,
-        content: formContent,
-        readers: buildArray(emailRemovalInvitation, 'readers', superUser.profile.id),
-        writers: buildArray(emailRemovalInvitation, 'writers', superUser.profile.id),
-        signatures: buildArray(emailRemovalInvitation, 'signatures', superUser.profile.id),
-      }
       const editToPost = view2.constructEdit({
         formData: formContent,
         invitationObj: emailRemovalInvitation,

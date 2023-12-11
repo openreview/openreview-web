@@ -87,7 +87,7 @@ const NameDeleteRequestModal = ({
         },
         invitationObj: profileNameRemovalInvitation,
       })
-      await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
+      await api.post('/notes/edits', editToPost, { accessToken })
       $('#name-delete').modal('hide')
       promptMessage('Your request has been submitted')
       loadPendingNameDeletionNotes()
@@ -217,7 +217,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
     const result = await api.get(
       '/notes',
       { invitation: nameDeletionInvitationId },
-      { accessToken, version: 2 }
+      { accessToken }
     )
     return result.notes
   }

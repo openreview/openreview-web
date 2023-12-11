@@ -88,7 +88,7 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
             },
             invitationObj: profileMergeInvitation,
           })
-          return api.post('/notes/edits', editToPost, { accessToken, version: 2 })
+          return api.post('/notes/edits', editToPost, { accessToken })
         })
       )
 

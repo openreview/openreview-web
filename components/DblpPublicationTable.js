@@ -201,7 +201,7 @@ const DblpPublicationRow = ({
         },
         invitationObj: profileMergeInvitation,
       })
-      await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
+      await api.post('/notes/edits', editToPost, { accessToken })
       setProfileMergeStatus('posted')
     } catch (apiError) {
       setError(apiError)
