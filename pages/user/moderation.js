@@ -13,7 +13,6 @@ import api from '../../lib/api-client'
 import {
   prettyId,
   formatDateTime,
-  buildArray,
   inflect,
   getProfileStateLabelClass,
   getVenueTabCountMessage,
@@ -26,7 +25,6 @@ import { formatProfileData } from '../../lib/profiles'
 import Markdown from '../../components/EditorComponents/Markdown'
 import Dropdown from '../../components/Dropdown'
 import ProfilePreviewModal from '../../components/profile/ProfilePreviewModal'
-import useUser from '../../hooks/useUser'
 
 dayjs.extend(relativeTime)
 
@@ -101,7 +99,9 @@ const UserModerationTab = ({ accessToken }) => {
     const currentTimeStamp = dayjs().valueOf()
     // eslint-disable-next-line no-alert
     const result = window.confirm(
-      `Update terms of service timestamp to ${currentTimeStamp}? (${dayjs(currentTimeStamp).toISOString()})`
+      `Update terms of service timestamp to ${currentTimeStamp}? (${dayjs(
+        currentTimeStamp
+      ).toISOString()})`
     )
     if (!result) return
 

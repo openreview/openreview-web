@@ -6,7 +6,7 @@ import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import api from '../../lib/api-client'
 import BasicModal from '../BasicModal'
-import { buildArray, getNameString } from '../../lib/utils'
+import { getNameString } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 
 const NamesButton = ({
