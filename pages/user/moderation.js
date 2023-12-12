@@ -1456,6 +1456,22 @@ const UserModerationQueue = ({
     }
   }
 
+  const addSDNException = async (profileId) => {
+    try {
+      await api.put(
+        '/groups/members',
+        {
+          id: `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`,
+          members: [profileId],
+        },
+        { accessToken, version: 1 }
+      )
+      promptMessage(`${profileId} is added to SDN exception group`)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   useEffect(() => {
     getProfiles()
   }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
@@ -1564,13 +1580,26 @@ const UserModerationQueue = ({
                     </>
                   ) : (
                     <>
-                      {!(profile.state === 'Blocked' || profile.ddate) && (
+                      {!(
+                        profile.state === 'Blocked' ||
+                        profile.state === 'Limited' ||
+                        profile.ddate
+                      ) && (
                         <button
                           type="button"
                           className="btn btn-xs"
                           onClick={() => showRejectionModal(profile.id)}
                         >
                           <Icon name="remove-circle" /> Reject
+                        </button>
+                      )}
+                      {profile.state === 'Limited' && profile.content.yearOfBirth && (
+                        <button
+                          type="button"
+                          className="btn btn-xs"
+                          onClick={() => addSDNException(profile.id)}
+                        >
+                          <Icon name="plus" /> Exception
                         </button>
                       )}{' '}
                       {!profile.ddate && (

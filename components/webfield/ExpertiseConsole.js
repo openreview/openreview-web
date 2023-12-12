@@ -70,7 +70,7 @@ Please contact info@openreview.net with any questions or concerns about this int
       <div id="invitation">
         <SubmissionButton
           invitationId={uploadInvitationId ?? defaultUploadInvitationId}
-          apiVersion={1}
+          apiVersion={2}
           onNoteCreated={() => {
             promptMessage('Your paper has been added to the OpenReview Archive')
             reload()
