@@ -33,7 +33,7 @@ export default class OpenReviewApp extends App {
       bannerHidden: false,
       bannerContent: null,
       editBannerContent: null,
-      layoutOptions: { fullWidth: false, footerMinimal: false },
+      layoutOptions: { fullWidth: false, minimalFooter: false },
     }
     this.shouldResetBanner = false
     this.shouldResetEditBanner = false
@@ -111,7 +111,11 @@ export default class OpenReviewApp extends App {
     window.Webfield.setToken(null)
     window.Webfield2.setToken(null)
 
-    this.setState({ user: null, accessToken: null, logoutRedirect: !!redirectPath })
+    this.setState({
+      user: null,
+      accessToken: null,
+      logoutRedirect: !!redirectPath,
+    })
 
     clearTimeout(this.refreshTimer)
 
@@ -256,7 +260,7 @@ export default class OpenReviewApp extends App {
     }
     if (this.shouldResetLayout) {
       this.setState({
-        layoutOptions: { fullWidth: false, footerMinimal: false },
+        layoutOptions: { fullWidth: false, minimalFooter: false },
       })
     }
     if (this.shouldResetEditBanner) {
