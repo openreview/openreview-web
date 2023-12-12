@@ -454,9 +454,8 @@ const Revisions = ({ appContext }) => {
   }
 
   const loadEdits = async () => {
-    let edits
     try {
-      const apiRes = await api.get(
+      const { edits } = await api.get(
         '/notes/edits',
         {
           'note.id': query.id,
@@ -466,26 +465,10 @@ const Revisions = ({ appContext }) => {
         },
         { accessToken }
       )
-      edits = apiRes.edits ?? []
+      setRevisions((edits ?? []).map((edit) => [edit, edit.details.invitation]))
     } catch (apiError) {
       setError(apiError)
-      return
     }
-
-    setRevisions(
-      edits.map((edit) => {
-        // Don't show the edit button next to an edit if it's expired and not writable
-        let editInvitation = edit.details.invitation
-        if (
-          editInvitation?.expdate &&
-          editInvitation.expdate < Date.now() &&
-          !editInvitation.details?.writable
-        ) {
-          editInvitation = null
-        }
-        return [edit, editInvitation]
-      })
-    )
   }
 
   const getPageTitle = () => {
