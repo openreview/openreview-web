@@ -147,7 +147,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="row">
           <div className="form-group col-xs-12">
-            <label htmlFor="first-input">Enter your full name as you would write it as the author of a paper</label>
+            <label htmlFor="first-input" className="mb-2">Enter your full name as you would write it as the author of a paper</label>
             <input
               type="text"
               id="first-input"
