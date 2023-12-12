@@ -956,6 +956,11 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
         { invitation: emailRemovalInvitationId, sort: 'tcdate' },
         { accessToken }
       )
+      const editResultsP = api.getAll(
+        '/notes/edits',
+        { invitation: emailRemovalInvitationId },
+        { accessToken, resultsKey: 'edits'}
+      )
       const processLogsP = isActive
         ? api.getAll(
             '/logs/process',
@@ -963,11 +968,14 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
             { accessToken, resultsKey: 'logs' }
           )
         : Promise.resolve([])
-      const [notes, processLogs] = await Promise.all([notesResultP, processLogsP])
-      const notesWithStatus = notes.map((p) => ({
+      const [notes,edits, processLogs] = await Promise.all([notesResultP, editResultsP,processLogsP])
+
+      const notesWithStatus = notes.map((p) => {
+        const edit = edits.find((q) => q.note.id === p.id)
+        return {
         ...p,
-        processLogStatus: processLogs.find((q) => q.id === p.id)?.status ?? 'running',
-      }))
+        processLogStatus: processLogs.find((q) => q.id === edit?.id)?.status ?? 'running',
+      }})
 
       setEmailDeletionNotes(notesWithStatus)
       setEmailDeletionNotesToShow(
