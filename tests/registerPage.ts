@@ -35,7 +35,7 @@ test('create new profile', async (t) => {
     .typeText(fullNameInputSelector, 'Melisa Bok')
     .expect(emailAddressInputSelector.exists).notOk()
     .expect(Selector('label').withText("I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.").exists).ok()
-    .click(Selector('div.name-confirmation').find('input'))
+    .click(Selector('label.name-confirmation'))
     .typeText(emailAddressInputSelector, 'melisa@test.com')
     .expect(signupButtonSelector.hasAttribute('disabled'))
     .notOk('not enabled yet', { timeout: 5000 })
@@ -94,7 +94,7 @@ test('enter valid name invalid email and change to valid email and register', as
   const email = 'testemailaac@test.com' // must be new each test run
   await t
     .typeText(fullNameInputSelector, fullName) // must be new each test run
-    .click(Selector('div.name-confirmation').find('input'))
+    .click(Selector('label.name-confirmation'))
     .typeText(emailAddressInputSelector, `${email}@test.com`)
     .click(signupButtonSelector)
     .expect(newPasswordInputSelector.exists)
@@ -163,7 +163,7 @@ fixture`Send Activation Link from signup page`
 test('Send Activation Link', async (t) => {
   await t
     .typeText(fullNameInputSelector, inactiveUser.fullname.toLowerCase())
-    .click(Selector('div.name-confirmation').find('input'))
+    .click(Selector('label.name-confirmation'))
   const existingTildeId = await Selector('.new-username.hint').nth(0).innerText
   const newTildeId = await Selector('.new-username.hint').nth(1).innerText
   await t
@@ -192,7 +192,7 @@ test('enter invalid name', async (t) => {
   // user has no email no password and not active
   await t
     .typeText(fullNameInputSelector, inActiveUserNoPasswordNoEmail.fullname)
-    .click(Selector('div.name-confirmation').find('input'))
+    .click(Selector('label.name-confirmation'))
     .expect(Selector('.submissions-list').find('.note').count)
     .lte(3) // at most 3 recent publications
     .expect(claimProfileButtonSelector.exists)
@@ -212,7 +212,7 @@ test('email address should be masked', async (t) => {
   // user has email but no password not active
   await t
     .typeText(fullNameInputSelector, inActiveUserNoPassword.fullname)
-    .click(Selector('div.name-confirmation').find('input'))
+    .click(Selector('label.name-confirmation'))
     .expect(Selector('input').withAttribute('type', 'email').nth(0).value)
     .contains('****') // email should be masked
 })
