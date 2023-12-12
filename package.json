@@ -54,6 +54,7 @@
     "universal-cookie": "^5.0.0"
   },
   "devDependencies": {
+    "@babel/plugin-transform-private-methods": "^7.23.3",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@next/env": "^13.4.17",
     "@testing-library/jest-dom": "^6.0.0",
