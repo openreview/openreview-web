@@ -141,7 +141,7 @@ export default function FeedbackModal() {
           feedbackData.message = formData.message
       }
 
-      await api.put('/feedback', feedbackData, { accessToken, version: 2 })
+      await api.put('/feedback', feedbackData, { accessToken })
       setError(null)
       setText('Your feedback has been submitted. Thank you.')
       setTimeout(() => {
