@@ -1,6 +1,6 @@
 /* globals promptError,$,clearMessage: false */
 
-import { useState, useEffect, useCallback, useContext, createContext } from 'react'
+import React, { useState, useEffect, useCallback, useContext, createContext } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -147,7 +147,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="row">
           <div className="form-group col-xs-12">
-            <label htmlFor="first-input">Full Name as in Publication Authorship</label>
+            <label htmlFor="first-input">Enter your full name as you would write it as the author of a paper</label>
             <input
               type="text"
               id="first-input"
@@ -188,8 +188,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
         <>
           {existingProfiles.length > 0 && (
             <div className="existing-profiles-title">
-              We found the following profiles with your name, please click on signup, claim or
-              reset password
+              We found the following profiles with the name {fullName}
             </div>
           )}
           <hr className="spacer" />
@@ -224,7 +223,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               }
               if (index === existingProfiles.length - 1)
                 return (
-                  <>
+                  <React.Fragment  key={index}>
                     {formComponents}
                     <p className="merge-message hint">
                       If two or more of the profiles above belong to you, please{' '}
@@ -235,7 +234,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
                       and we will assist you in merging your profiles.
                     </p>
                     <hr key={`${profile.id}-spacer`} className="spacer" />
-                  </>
+                  </React.Fragment>
                 )
               return formComponents.concat(
                 <hr key={`${profile.id}-spacer`} className="spacer" />
@@ -243,7 +242,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
             })}
 
             <div className="new-profile-title">
-              Create a new profile if none of the profiles above belong to you
+              Create a new profile {existingProfiles.length > 0?'if none of the profiles above belong to you':''}
             </div>
 
             <NewProfileForm
@@ -837,10 +836,6 @@ const SignUp = () => {
       ) : (
         <div className="col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
           <h1>Sign Up for OpenReview</h1>
-          <p className="text-muted">
-            Enter your name as you would normally write it as the author of a paper.
-          </p>
-
           <SignupForm setSignupConfirmation={setSignupConfirmation} />
         </div>
       )}

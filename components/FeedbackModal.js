@@ -45,7 +45,7 @@ export default function FeedbackModal() {
     {
       name: 'subject',
       type: 'select',
-      placeholder: 'Select or type what your need help with',
+      placeholder: 'Select a topic or type what you need help with',
       required: () => true,
       showIf: () => true,
       options: subjectOptions,
@@ -193,8 +193,8 @@ export default function FeedbackModal() {
           />
         ) : (
           <CreatableDropdown
+            instanceId={`feedback-${field.name}`}
             options={field.options}
-            hideArrow
             classNamePrefix="feedback-dropdown"
             placeholder={field.placeholder}
             value={field.options.find((p) => p.value === formData[field.name]) ?? null}
