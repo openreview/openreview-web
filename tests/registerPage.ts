@@ -34,7 +34,7 @@ test('create new profile', async (t) => {
   await t
     .typeText(fullNameInputSelector, 'Melisa Bok')
     .expect(emailAddressInputSelector.exists).notOk()
-    .expect(Selector('span').withText("I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.").exists).ok()
+    .expect(Selector('label').withText("I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.").exists).ok()
     .click(Selector('div.name-confirmation').find('input'))
     .typeText(emailAddressInputSelector, 'melisa@test.com')
     .expect(signupButtonSelector.hasAttribute('disabled'))
