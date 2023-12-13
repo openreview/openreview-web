@@ -1,3 +1,4 @@
+import { prettyField } from '../../lib/utils'
 import BaseMenuBar from './BaseMenuBar'
 import MessageReviewersModal from './MessageReviewersModal'
 import QuerySearchInfoModal from './QuerySearchInfoModal'
@@ -9,11 +10,14 @@ const AreaChairConsoleMenuBar = ({
   setAcConsoleData,
   shortPhrase,
   enableQuerySearch,
+  extraExportColumns,
   filterOperators: filterOperatorsConfig,
-  propertiesAllowed: propertiesAllowedConfig,
+  propertiesAllowed: extraPropertiesAllowed,
+  reviewRatingName,
+  metaReviewRecommendationName,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
-  const propertiesAllowed = propertiesAllowedConfig ?? {
+  const propertiesAllowed = {
     number: ['note.number'],
     id: ['note.id'],
     title: ['note.content.title.value'],
@@ -22,14 +26,21 @@ const AreaChairConsoleMenuBar = ({
     reviewer: ['reviewers'],
     numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
     numReviewsDone: ['reviewProgressData.numReviewsDone'],
-    ratingAvg: ['reviewProgressData.ratingAvg'],
-    ratingMax: ['reviewProgressData.ratingMax'],
-    ratingMin: ['reviewProgressData.ratingMin'],
+    ...Object.fromEntries(
+      (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
+        (ratingName) => [
+          [`${ratingName}Avg`, [`reviewProgressData.ratings.${ratingName}.ratingAvg`]],
+          [`${ratingName}Max`, [`reviewProgressData.ratings.${ratingName}.ratingMax`]],
+          [`${ratingName}Min`, [`reviewProgressData.ratings.${ratingName}.ratingMin`]],
+        ]
+      )
+    ),
     confidenceAvg: ['reviewProgressData.confidenceAvg'],
     confidenceMax: ['reviewProgressData.confidenceMax'],
     confidenceMin: ['reviewProgressData.confidenceMin'],
     replyCount: ['reviewProgressData.replyCount'],
-    recommendation: ['metaReviewData.recommendation'],
+    [metaReviewRecommendationName]: [`metaReviewData.${metaReviewRecommendationName}`],
+    ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
   }
   const messageReviewerOptions = [
     { label: 'All Reviewers of selected papers', value: 'allReviewers' },
@@ -68,13 +79,30 @@ const AreaChairConsoleMenuBar = ({
       getValue: (p) =>
         p.reviewers.map((q) => `${q.preferredName}<${q.preferredEmail}>`).join(','),
     },
-    { header: 'min rating', getValue: (p) => p.reviewProgressData?.ratingMin },
-    { header: 'max rating', getValue: (p) => p.reviewProgressData?.ratingMax },
-    { header: 'average rating', getValue: (p) => p.reviewProgressData?.ratingAvg },
+    ...(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
+      (ratingName) => [
+        {
+          header: `min ${ratingName}`,
+          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingMin,
+        },
+        {
+          header: `max ${ratingName}`,
+          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingMax,
+        },
+        {
+          header: `average ${ratingName}`,
+          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg,
+        },
+      ]
+    ),
     { header: 'min confidence', getValue: (p) => p.reviewProgressData?.confidenceMin },
     { header: 'max confidence', getValue: (p) => p.reviewProgressData?.confidenceMax },
     { header: 'average confidence', getValue: (p) => p.reviewProgressData?.confidenceAvg },
-    { header: 'ac recommendation', getValue: (p) => p.metaReviewData?.recommendation },
+    {
+      header: `ac ${metaReviewRecommendationName}`,
+      getValue: (p) => p.metaReviewData?.[metaReviewRecommendationName],
+    },
+    ...(extraExportColumns ?? []),
   ]
   const sortOptions = [
     { label: 'Paper Number', value: 'Paper Number', getValue: (p) => p.note?.number },
@@ -100,24 +128,34 @@ const AreaChairConsoleMenuBar = ({
         (p.reviewProgressData?.numReviewersAssigned ?? 0) -
         (p.reviewProgressData?.numReviewsDone ?? 0),
     },
-    {
-      label: 'Average Rating',
-      value: 'Average Rating',
-      getValue: (p) =>
-        p.reviewProgressData?.ratingAvg === 'N/A' ? 0 : p.reviewProgressData?.ratingAvg,
-    },
-    {
-      label: 'Max Rating',
-      value: 'Max Rating',
-      getValue: (p) =>
-        p.reviewProgressData?.ratingMax === 'N/A' ? 0 : p.reviewProgressData?.ratingMax,
-    },
-    {
-      label: 'Min Rating',
-      value: 'Min Rating',
-      getValue: (p) =>
-        p.reviewProgressData?.ratingMin === 'N/A' ? 0 : p.reviewProgressData?.ratingMin,
-    },
+    ...(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
+      (ratingName) => [
+        {
+          label: `Average ${prettyField(ratingName)}`,
+          value: `Average ${ratingName}`,
+          getValue: (p) =>
+            p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg === 'N/A'
+              ? 0
+              : p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg,
+        },
+        {
+          label: `Max ${prettyField(ratingName)}`,
+          value: `Max ${ratingName}`,
+          getValue: (p) =>
+            p.reviewProgressData?.ratings?.[ratingName]?.ratingMax === 'N/A'
+              ? 0
+              : p.reviewProgressData?.ratings?.[ratingName]?.ratingMax,
+        },
+        {
+          label: `Min ${prettyField(ratingName)}`,
+          value: `Min ${ratingName}`,
+          getValue: (p) =>
+            p.reviewProgressData?.ratings?.[ratingName]?.ratingMin === 'N/A'
+              ? 0
+              : p.reviewProgressData?.ratings?.[ratingName]?.ratingMin,
+        },
+      ]
+    ),
     {
       label: 'Average Confidence',
       value: 'Average Confidence',
@@ -143,10 +181,12 @@ const AreaChairConsoleMenuBar = ({
           : p.reviewProgressData?.confidenceMin,
     },
     {
-      label: 'Meta Review Recommendation',
-      value: 'Meta Review Recommendation',
+      label: `Meta Review ${prettyField(metaReviewRecommendationName)}`,
+      value: `Meta Review ${metaReviewRecommendationName}`,
       getValue: (p) =>
-        p.metaReviewData?.recommendation === 'N/A' ? null : p.metaReviewData?.recommendation,
+        p.metaReviewData?.[metaReviewRecommendationName] === 'N/A'
+          ? null
+          : p.metaReviewData?.[metaReviewRecommendationName],
     },
   ]
   const basicSearchFunction = (row, term) => {

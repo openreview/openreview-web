@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import Select, { components, createFilter } from 'react-select'
 import CreatableSelect from 'react-select/creatable'
 import List from 'rc-virtual-list'
-import { getDefaultTimezone, timezoneOptions } from '../lib/utils'
+import { getDefaultTimezone, prettyId, timezoneOptions } from '../lib/utils'
 
 // For more details see https://react-select.com/styles#overriding-the-theme
 const createCustomTheme = (height) => (theme) => ({
@@ -34,6 +34,24 @@ export const TimezoneDropdown = ({ className, onChange, value }) => {
     />
   )
 }
+
+export const NoteEditorReadersDropdown = ({
+  options,
+  value,
+  onChange,
+  placeholder = 'Select readers',
+}) => (
+  <Dropdown
+    options={options}
+    placeholder={placeholder}
+    isMulti
+    value={value}
+    onChange={onChange}
+    components={{
+      DropdownIndicator: () => null,
+    }}
+  />
+)
 
 const CustomOption = ({ children, ...props }) => {
   const { onMouseMove, onMouseOver, ...rest } = props.innerProps
@@ -119,6 +137,18 @@ export default function Dropdown(props) {
     trim: true,
   }
   const filterOption = createFilter(props.filterOption ?? defaultFilterOption)
+
+  if (props.hideArrow) {
+    // eslint-disable-next-line no-param-reassign
+    props = {
+      ...props,
+      components: {
+        DropdownIndicator: () => null,
+        IndicatorSeparator: () => null,
+      },
+    }
+  }
+
   return (
     <Select
       className="dropdown-select"

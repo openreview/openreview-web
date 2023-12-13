@@ -125,9 +125,7 @@ const PasswordReset = () => {
             <ResetForm resetToken={resetToken} />
 
             <p className="help-block">
-              <Link href="/login">
-                <a>Back to Login</a>
-              </Link>
+              <Link href="/login">Back to Login</Link>
             </p>
           </>
         ) : (

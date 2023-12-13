@@ -50,9 +50,7 @@ const NavUserLinks = () => {
     return (
       <ul className="nav navbar-nav navbar-right">
         <li id="user-menu">
-          <Link href={loginPath}>
-            <a>Login</a>
-          </Link>
+          <Link href={loginPath}>Login</Link>
         </li>
       </ul>
     )
@@ -62,21 +60,15 @@ const NavUserLinks = () => {
     <ul className="nav navbar-nav navbar-right">
       <li className="hidden-sm">
         <Link href="/notifications">
-          <a>
-            Notifications
-            {unreadNotifications > 0 && <span className="badge">{unreadNotifications}</span>}
-          </a>
+          Notifications
+          {unreadNotifications > 0 && <span className="badge">{unreadNotifications}</span>}
         </Link>
       </li>
       <li className="hidden-sm">
-        <Link href="/activity">
-          <a>Activity</a>
-        </Link>
+        <Link href="/activity">Activity</Link>
       </li>
       <li className="hidden-sm">
-        <Link href="/tasks">
-          <a>Tasks</a>
-        </Link>
+        <Link href="/tasks">Tasks</Link>
       </li>
       <li id="user-menu" className="dropdown">
         <a
@@ -87,9 +79,7 @@ const NavUserLinks = () => {
           aria-expanded="false"
         >
           <span>
-            {truncate(`${user.profile.first} ${user.profile.middle ?? ''} ${user.profile.last ?? ''}`, {
-              length: user.impersonator ? 15 : 22,
-            })}
+            {truncate(user.profile.fullname, { length: user.impersonator ? 15 : 22 })}
             {user.impersonator && ' (Impersonated)'}
           </span>{' '}
           <span className="caret" />
@@ -97,27 +87,19 @@ const NavUserLinks = () => {
 
         <ul className="dropdown-menu">
           <li>
-            <Link href="/profile">
-              <a>Profile</a>
-            </Link>
+            <Link href="/profile">Profile</Link>
           </li>
           <li className="visible-sm-block">
             <Link href="/notifications">
-              <a>
-                Notifications
-                {unreadNotifications > 0 && <span className="badge">{unreadNotifications}</span>}
-              </a>
+              Notifications
+              {unreadNotifications > 0 && <span className="badge">{unreadNotifications}</span>}
             </Link>
           </li>
           <li className="visible-sm-block">
-            <Link href="/activity">
-              <a>Activity</a>
-            </Link>
+            <Link href="/activity">Activity</Link>
           </li>
           <li className="visible-sm-block">
-            <Link href="/tasks">
-              <a>Tasks</a>
-            </Link>
+            <Link href="/tasks">Tasks</Link>
           </li>
           <li role="separator" className="divider hidden-xs" />
           <li>

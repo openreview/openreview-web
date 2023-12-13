@@ -1,5 +1,4 @@
 /* globals $: false */
-/* globals Webfield, Webfield2: false */
 /* globals typesetMathJax: false */
 
 import { useState, useEffect } from 'react'
@@ -11,7 +10,7 @@ import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
 
 const Activity = ({ appContext }) => {
-  const { user, accessToken } = useLoginRedirect()
+  const { accessToken } = useLoginRedirect()
   const [activityNotes, setActivityNotes] = useState(null)
   const [error, setError] = useState(null)
   const { setBannerHidden } = appContext
@@ -33,11 +32,16 @@ const Activity = ({ appContext }) => {
     }
 
     Promise.all([
-      api.get('/notes', queryParamV1, { accessToken })
-        .then(({ notes }) => notes?.length > 0 ? notes : [], () => []),
+      api.get('/notes', queryParamV1, { accessToken, version: 1 }).then(
+        ({ notes }) => (notes?.length > 0 ? notes : []),
+        () => []
+      ),
       api
-        .get('/notes/edits', queryParamV2, { accessToken, version: 2 })
-        .then(({ edits }) => edits?.length > 0 ? edits : [], () => [])
+        .get('/notes/edits', queryParamV2, { accessToken })
+        .then(
+          ({ edits }) => (edits?.length > 0 ? edits : []),
+          () => []
+        )
         .then((edits) => edits.map((edit) => ({ ...edit, apiVersion: 2 }))),
     ])
       .then(([notes, edits]) => {

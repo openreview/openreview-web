@@ -17,35 +17,30 @@ export const conferenceGroupId = 'TestVenue/2020/Conference'
 export const conferenceSubmissionInvitationId = `${conferenceGroupId}/-/Submission`
 
 export const hasTaskUser = {
-  first: 'FirstA',
-  last: 'LastA',
+  fullname: 'FirstA LastA',
   email: 'a@a.com',
   password: strongPassword,
   tildeId: '~FirstA_LastA1',
 }
 export const hasNoTaskUser = {
-  first: 'FirstB',
-  last: 'LastB',
+  fullname: 'FirstB LastB',
   email: 'b@b.com',
   password: strongPassword,
   tildeId: '~FirstB_LastB1',
 }
 export const inactiveUser = {
-  first: 'FirstC',
-  last: 'LastC',
+  fullname: 'FirstC LastC',
   email: 'c@c.com',
   password: strongPassword,
   activate: false,
 }
 export const inActiveUserNoPassword = {
-  first: 'FirstD',
-  last: 'LastD',
+  fullname: 'FirstD LastD',
   email: 'd@d.com',
   tildeId: '~FirstD_LastD1',
 }
 export const inActiveUserNoPasswordNoEmail = {
-  first: 'FirstE',
-  last: 'LastE',
+  fullname: 'FirstE LastE',
   tildeId: '~FirstE_LastE1',
 }
 // #endregion
@@ -125,18 +120,14 @@ export async function setupProfileViewEdit(superUserToken) {
 export async function setupRegister(superUserToken) {
   // create inactive user
   await createUser(inactiveUser)
-  // eslint-disable-next-line max-len
   await createProfile(
-    inActiveUserNoPassword.first,
-    inActiveUserNoPassword.last,
+    inActiveUserNoPassword.fullname,
     inActiveUserNoPassword.email,
     inActiveUserNoPassword.tildeId,
     superUserToken
   )
-  // eslint-disable-next-line max-len
   await createEmptyProfile(
-    inActiveUserNoPasswordNoEmail.first,
-    inActiveUserNoPasswordNoEmail.last,
+    inActiveUserNoPasswordNoEmail.fullname,
     inActiveUserNoPasswordNoEmail.tildeId,
     superUserToken
   )
@@ -144,37 +135,53 @@ export async function setupRegister(superUserToken) {
 
 // #region API helper functions
 export function createGroup(jsonToPost, userToken) {
-  return api.post('/groups', jsonToPost, { accessToken: userToken })
+  return api.post('/groups', jsonToPost, { accessToken: userToken, version: 1 })
 }
 
 export function createInvitation(jsonToPost, userToken) {
-  return api.post('/invitations', jsonToPost, { accessToken: userToken })
+  return api.post('/invitations', jsonToPost, { accessToken: userToken, version: 1 })
 }
 
 export function createNote(jsonToPost, userToken) {
-  return api.post('/notes', jsonToPost, { accessToken: userToken })
+  return api.post('/notes', jsonToPost, { accessToken: userToken, version: 1 })
+}
+
+export function createNoteEdit(jsonToPost, userToken) {
+  return api.post('/notes/edits', jsonToPost, { accessToken: userToken, version: 2 })
 }
 
 export function sendFile(data, userToken) {
-  return api.put('/attachment', data, { accessToken: userToken, contentType: 'unset' })
+  return api.put('/attachment', data, { accessToken: userToken, contentType: 'unset', version: 1 })
 }
 
 export function getToken(id, password) {
   return api.post('/login', { id, password }).then((apiRes) => apiRes.token)
 }
 
-export function addMembersToGroup(groupId, membersList, userToken) {
+export function addMembersToGroup(groupId, membersList, userToken, version) {
+  if (version === 2) {
+    return api.post(
+      '/groups/edits',
+      {
+        invitation: 'openreview.net/-/Edit',
+        signatures: ['~Super_User1'],
+        group: {
+          id: groupId,
+          members: { 'append': membersList }
+        }
+      },
+      { accessToken: userToken, version }
+    )
+  }
   return api.put(
     '/groups/members',
     { id: groupId, members: membersList },
-    { accessToken: userToken }
+    { accessToken: userToken, version: 1 }
   )
 }
 
 export async function createUser({
-  first,
-  middle = '',
-  last,
+  fullname,
   email,
   password,
   homepage = 'http://www.google.com',
@@ -185,7 +192,7 @@ export async function createUser({
   const { id: tildeId } = await api.post('/register', {
     email,
     password,
-    name: { first, middle, last },
+    fullname,
   })
 
   // activate
@@ -198,27 +205,23 @@ export async function createUser({
   const activateJson = {
     names: [
       {
-        first,
-        middle,
-        last,
+        fullname,
         preferred: true,
         username: tildeId,
         altUsernames: [],
       },
     ],
-    emails: [{ email, confirmed: true, preferred: true }],
+    emails: [email],
     links: [],
     id: tildeId,
     gender: '',
-    preferredName: `${first} ${last}`,
+    preferredName: fullname,
     preferredEmail: email,
     currentInstitution: null,
     content: {
       names: [
         {
-          first,
-          middle,
-          last,
+          fullname,
           username: tildeId,
           preferred: true,
         },
@@ -243,7 +246,7 @@ export async function createUser({
   return null
 }
 
-export async function createProfile(first, last, email, tildeId, superUserToken) {
+export async function createProfile(fullname, email, tildeId, superUserToken) {
   // post tilde group
   const tildeGroupJson = {
     id: tildeId,
@@ -286,9 +289,7 @@ export async function createProfile(first, last, email, tildeId, superUserToken)
       homepage: 'http://homepage.do',
       names: [
         {
-          first,
-          middle: '',
-          last,
+          fullname,
           username: tildeId,
         },
       ],
@@ -297,7 +298,7 @@ export async function createProfile(first, last, email, tildeId, superUserToken)
   await api.post('/profiles', profileJson, { accessToken: superUserToken })
 }
 
-export async function createEmptyProfile(first, last, tildeId, superUserToken) {
+export async function createEmptyProfile(fullname, tildeId, superUserToken) {
   // post tilde group
   const tildeGroupJson = {
     id: tildeId,
@@ -323,9 +324,7 @@ export async function createEmptyProfile(first, last, tildeId, superUserToken) {
       dblp: 'https://dblp.org/dummy',
       names: [
         {
-          first,
-          middle: '',
-          last,
+          fullname,
           username: tildeId,
         },
       ],
@@ -339,13 +338,17 @@ export function getMessages(params, token) {
   return api.get('/messages', params, { accessToken: token }).then((result) => result.messages)
 }
 
-export function getNotes(params, token) {
-  return api.get('/notes', params, { accessToken: token }).then((result) => result.notes)
+export function getNotes(params, token, version = 1) {
+  return api.get('/notes', params, { accessToken: token, version }).then((result) => result.notes)
+}
+
+export function getGroups(params, token, version = 1) {
+  return api.get('/groups', params, { accessToken: token, version }).then((result) => result.groups)
 }
 
 export function getReferences(params, token) {
   return api
-    .get('/references', params, { accessToken: token })
+    .get('/references', params, { accessToken: token, version: 1 })
     .then((result) => result.references)
 }
 
@@ -354,5 +357,5 @@ export function getProcessLogs(id, token) {
 }
 
 export function getJobsStatus(token) {
-  return api.get('/jobs/status', {}, { accessToken: token })
+  return api.get('/jobs/status', {}, { accessToken: token, version: 1 })
 }

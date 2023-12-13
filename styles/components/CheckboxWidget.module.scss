@@ -1,0 +1,21 @@
+@use '../utils/constants';
+
+.checkboxContainer {
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
+  }
+
+  :global {
+    .mandatory-value {
+      color: constants.$orRed;
+      font-weight: bold;
+    }
+    .checkbox:first-child {
+      margin-top: 0;
+    }
+    .checkbox:last-child {
+      margin-bottom: 0;
+    }
+  }
+}

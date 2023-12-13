@@ -12,6 +12,7 @@
 /* globals typesetMathJax: false */
 /* globals OpenBanner: false */
 
+// eslint-disable-next-line wrap-iife
 module.exports = (function () {
   // Save authentication token as a private var
   var token
@@ -254,7 +255,7 @@ module.exports = (function () {
     }
 
     if (options['content.venueid']) {
-      query['content.venueid'] = options['content.venueid'];
+      query['content.venueid'] = options['content.venueid']
     }
 
     if (Array.isArray(options.numbers)) {
@@ -262,6 +263,10 @@ module.exports = (function () {
         return []
       }
       query.number = options.numbers.join(',')
+    }
+
+    if (options.domain) {
+      query.domain = options.domain
     }
 
     return getAll('/notes', query)
@@ -280,6 +285,7 @@ module.exports = (function () {
       replyto: true,
       type: 'notes',
       details: 'replytoNote,repliedNotes',
+      domain: venueId
     })
 
     var edgeInvitationsP = getAll('/invitations', {
@@ -288,6 +294,7 @@ module.exports = (function () {
       duedate: true,
       type: 'edges',
       details: 'repliedEdges',
+      domain: venueId
     })
 
     var tagInvitationsP = getAll('/invitations', {
@@ -296,6 +303,7 @@ module.exports = (function () {
       duedate: true,
       type: 'tags',
       details: 'repliedTags',
+      domain: venueId
     })
 
     var filterInviteeAndNumbers = function (inv) {
@@ -310,14 +318,12 @@ module.exports = (function () {
       )
     }
 
-    return $.when(invitationsP, edgeInvitationsP, tagInvitationsP).then(function (
-      noteInvitations,
-      edgeInvitations,
-      tagInvitations
-    ) {
-      var invitations = noteInvitations.concat(edgeInvitations).concat(tagInvitations)
-      return _.filter(invitations, filterInviteeAndNumbers)
-    })
+    return $.when(invitationsP, edgeInvitationsP, tagInvitationsP).then(
+      function (noteInvitations, edgeInvitations, tagInvitations) {
+        var invitations = noteInvitations.concat(edgeInvitations).concat(tagInvitations)
+        return _.filter(invitations, filterInviteeAndNumbers)
+      }
+    )
   }
 
   var getNumberfromGroup = function (groupId, name) {
@@ -1251,20 +1257,24 @@ module.exports = (function () {
     var query = {
       prefix: venueId + '/' + numberToken + '.*',
       select: 'id,members',
+      stream: true,
+      domain: venueId
     }
     if (options && options.assigned) {
       query.member = window.user.id
     }
-    return getAll('/groups', query).then(function (groups) {
+    return get('/groups', query).then(function (result) {
+      var groups = result.groups
       var paperGroups = []
       var anonPaperGroups = []
       var memberIds = []
       groups.forEach(function (group) {
         if (group.id.endsWith('/' + roleName)) {
           paperGroups.push(group)
-          memberIds = memberIds.concat(group.members)
+          memberIds = memberIds.concat(group.members.filter(function (member) {  return member.indexOf('~') === 0 || member.indexOf('@') > -1 }))
         } else if (_.includes(group.id, '/' + anonRoleName)) {
           anonPaperGroups.push(group)
+          memberIds = memberIds.concat(group.members.filter(function (member) {  return member.indexOf('~') === 0 || member.indexOf('@') > -1 }))
         }
       })
 
@@ -1283,26 +1293,25 @@ module.exports = (function () {
             var anonGroup = anonPaperGroups.find(function (anonGroup) {
               return (
                 anonGroup.id.startsWith(venueId + '/' + numberToken + number) &&
-                anonGroup.members[0] === member
+                (anonGroup.members[0] === member || anonGroup.id === member)
               )
             })
-            var profile = profilesById[member]
+            var deanonymizedMember = anonGroup ? anonGroup.members[0] : member
+            var profile = profilesById[deanonymizedMember]
             var profileInfo = {
-              id: member,
-              name: member.indexOf('~') === 0 ? view.prettyId(member) : member,
-              email: member,
-              allEmails: [member],
-              allNames: [member],
+              id: deanonymizedMember,
+              name: deanonymizedMember.indexOf('~') === 0 ? view.prettyId(deanonymizedMember) : deanonymizedMember,
+              email: deanonymizedMember,
+              allEmails: [deanonymizedMember],
+              allNames: [deanonymizedMember],
             }
             if (profile) {
               profileInfo = {
                 id: profile.id,
-                name: view.prettyId(
-                  (
-                    _.find(profile.content.names, ['preferred', true]) ||
-                    _.first(profile.content.names)
-                  ).username
-                ),
+                name: (
+                  _.find(profile.content.names, ['preferred', true]) ||
+                  _.first(profile.content.names)
+                ).fullname,
                 allNames: _.map(
                   _.filter(profile.content.names, function (name) {
                     return name.username
@@ -1315,7 +1324,7 @@ module.exports = (function () {
               }
             }
             memberGroups.push({
-              id: member,
+              id: deanonymizedMember,
               anonId: anonGroup && getNumberfromGroup(anonGroup.id, anonRoleName),
               name: profileInfo.name,
               email: profileInfo.email,
@@ -1334,50 +1343,50 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
 
-    return get('/groups', { id: groupId, select: 'id,members', limit: 1 }).then(function (
-      result
-    ) {
-      var group = result.groups?.length > 0 ? result.groups[0] : null
-      if (group && options.withProfiles) {
-        return post('/profiles/search', { ids: group.members }).then(function (result) {
-          var profilesById = _.keyBy(result.profiles, 'id')
-          var groupWithProfiles = { id: group.id, members: [] }
-          groupWithProfiles.members = group.members.map(function (id) {
-            var profile = profilesById[id]
-            if (profile) {
-              return {
-                id: profile.id,
-                name: view.prettyId(
-                  (
-                    _.find(profile.content.names, ['preferred', true]) ||
-                    _.first(profile.content.names)
-                  ).username
-                ),
-                allNames: _.map(
-                  _.filter(profile.content.names, function (name) {
-                    return name.username
-                  }),
-                  'username'
-                ),
-                email: profile.content.preferredEmail || profile.content.emailsConfirmed[0],
-                allEmails: profile.content.emailsConfirmed,
-                affiliation: profile.content.history && profile.content.history[0],
+    return get('/groups', { id: groupId, select: 'id,members', limit: 1 }).then(
+      function (result) {
+        var group = result.groups?.length > 0 ? result.groups[0] : null
+        if (group && options.withProfiles) {
+          return post('/profiles/search', { ids: group.members }).then(function (result) {
+            var profilesById = _.keyBy(result.profiles, 'id')
+            var groupWithProfiles = { id: group.id, members: [] }
+            groupWithProfiles.members = group.members.map(function (id) {
+              var profile = profilesById[id]
+              if (profile) {
+                return {
+                  id: profile.id,
+                  name: view.prettyId(
+                    (
+                      _.find(profile.content.names, ['preferred', true]) ||
+                      _.first(profile.content.names)
+                    ).username
+                  ),
+                  allNames: _.map(
+                    _.filter(profile.content.names, function (name) {
+                      return name.username
+                    }),
+                    'username'
+                  ),
+                  email: profile.content.preferredEmail || profile.content.emailsConfirmed[0],
+                  allEmails: profile.content.emailsConfirmed,
+                  affiliation: profile.content.history && profile.content.history[0],
+                }
+              } else {
+                return {
+                  id: id,
+                  name: id.indexOf('~') === 0 ? view.prettyId(id) : id,
+                  email: id,
+                  allEmails: [id],
+                  allNames: [id],
+                }
               }
-            } else {
-              return {
-                id: id,
-                name: id.indexOf('~') === 0 ? view.prettyId(id) : id,
-                email: id,
-                allEmails: [id],
-                allNames: [id],
-              }
-            }
+            })
+            return groupWithProfiles
           })
-          return groupWithProfiles
-        })
+        }
+        return group
       }
-      return group
-    })
+    )
   }
 
   var renderInvitationButton = function (container, invitationId, options) {
@@ -1518,6 +1527,7 @@ module.exports = (function () {
     }
 
     // Wrap in IIFE to prevent memory leaks
+    // eslint-disable-next-line wrap-iife
     ;(function () {
       var submissionListHtml = Handlebars.templates['components/submissions']({
         heading: options.heading,
@@ -2077,7 +2087,7 @@ module.exports = (function () {
       paperDisplayOptions: {},
       pageSize: 50,
       query: {},
-      localSearch: false
+      localSearch: false,
     }
 
     options = _.defaults(options, defaults)

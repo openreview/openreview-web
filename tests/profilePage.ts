@@ -26,9 +26,7 @@ const userBAlternateId = '~Di_Xu1'
 const errorMessageSelector = Selector('#flash-message-container', {
   visibilityCheck: true,
 }).find('span.important_message')
-const editFirstNameInputSelector = Selector('input:not([readonly]).first-name')
-const editMiddleNameInputSelector = Selector('input:not([readonly]).middle-name')
-const editLastNameInputSelector = Selector('input:not([readonly]).last-name')
+const editFullNameInputSelector = Selector('input:not([readonly]).full-name')
 const nameSectionPlusIconSelector = Selector('section').nth(0).find('.glyphicon-plus-sign')
 const emailSectionPlusIconSelector = Selector('section').nth(3).find('.glyphicon-plus-sign')
 const editEmailInputSelector = Selector('input:not([readonly]).email')
@@ -53,9 +51,9 @@ const nameMakePreferredButton = Selector('div.container.names')
   .find('button.preferred_button')
   .filterVisible()
   .nth(0)
-const homepageUrlInput = Selector('input#homepage_url')
+const dblpUrlInput = Selector('#dblp_url')
+const homepageUrlInput = Selector('#homepage_url')
 const yearOfBirthInput = Selector('section').nth(2).find('input')
-const linkedinUrlInput = Selector('input#linkedin_url')
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
@@ -89,12 +87,12 @@ test('user open own profile', async (t) => {
     // make some changes and save
     // add a name
     .click(nameSectionPlusIconSelector)
-    .typeText(editFirstNameInputSelector, '111', { paste: true })
+    .typeText(editFullNameInputSelector, '111', { paste: true })
     .expect(errorMessageSelector.innerText)
     .eql(
       'The name 111 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
-    .typeText(editFirstNameInputSelector, '`', { replace: true })
+    .typeText(editFullNameInputSelector, '`', { replace: true })
     .expect(errorMessageSelector.innerText)
     .eql(
       'The name ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
@@ -117,14 +115,10 @@ test('user open own profile', async (t) => {
     .eql('A confirmation email has been sent to a@aa.com')
     .click(Selector('button').withText('Remove').filterVisible())
     // add empty homepage link
-    .selectText(Selector('#homepage_url'))
-    .pressKey('delete')
-    .typeText(Selector('#homepage_url'), ' ')
+    .typeText(homepageUrlInput, ' ', { replace: true })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql(
-      'You must enter at least one personal link'
-    )
+    .eql('You must enter at least one personal link')
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
@@ -139,17 +133,17 @@ test('user open own profile', async (t) => {
     // personal links
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
-    .typeText(Selector('#dblp_url'), 'http://test.com')
+    .typeText(dblpUrlInput, 'http://test.com', { replace: true, paste: true })
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .notOk() // button is enabled
     // save
-    .typeText(Selector('#homepage_url'), 'http://google.com')
+    .typeText(homepageUrlInput, 'http://google.com', { replace: true, paste: true })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql(
-      'The value http://test.com in dblp is invalid. Expected value: should include https://dblp.org, https://dblp.uni-trier.de, https://dblp2.uni-trier.de, https://dblp.dagstuhl.de, uni-trier.de'
+      'dblp link is invalid. A valid link should include https://dblp.org, https://dblp.uni-trier.de, https://dblp2.uni-trier.de, https://dblp.dagstuhl.de, uni-trier.de'
     )
-    .selectText(Selector('#dblp_url'))
+    .selectText(dblpUrlInput)
     .pressKey('delete')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
@@ -164,7 +158,7 @@ test('add and delete year of birth', async (t) => {
     .typeText(yearOfBirthInput, '0000')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .contains('The value 0 in yearOfBirth is invalid')
+    .contains('yearOfBirth must be >= 1923')
     // add valid year of birth
     .typeText(yearOfBirthInput, '2000')
     .click(saveProfileButton)
@@ -177,7 +171,8 @@ test('add and delete year of birth', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .expect(yearOfBirthInput.value)
     .eql('2000')
-    .selectText(yearOfBirthInput).pressKey('delete')
+    .selectText(yearOfBirthInput)
+    .pressKey('delete')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
@@ -190,6 +185,102 @@ test('add and delete year of birth', async (t) => {
     .eql('')
 })
 
+test('add and delete geolocation of history', async (t) => {
+  // add geolocation info of history
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(Selector('div.country-dropdown__control'))
+    .wait(500)
+    .click(Selector('div.country-dropdown__option').nth(3))
+    .typeText(Selector('input.institution-city'), 'test city')
+    .typeText(Selector('input.institution-state'), 'test state')
+    .typeText(Selector('input.institution-department'), 'test department')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).ok()
+    .expect(Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test city, test state, MX').exists)
+    .ok()
+  // remove country code
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(Selector('div.country-dropdown__control')).pressKey('delete')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).ok()
+    .expect(Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test city, test state').exists)
+    .ok()
+  // remove only city
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(Selector('div.country-dropdown__control'))
+    .wait(500)
+    .click(Selector('div.country-dropdown__option').nth(3))
+    .selectText(Selector('input.institution-city')).pressKey('delete')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).ok()
+    .expect(Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test state, MX').exists)
+    .ok()
+  // remove all geolocation info
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(Selector('div.country-dropdown__control')).pressKey('delete')
+    .selectText(Selector('input.institution-city')).pressKey('delete')
+    .selectText(Selector('input.institution-state')).pressKey('delete')
+    .selectText(Selector('input.institution-department')).pressKey('delete')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).notOk()
+})
+
+test('add relation', async (t) => {
+  const firstRelationRow = Selector('div.relation').find('div.row').nth(1)
+  const secondRelationRow = Selector('div.relation').find('div.row').nth(2)
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    // add a relation by name
+    .click(firstRelationRow.find('div.relation__value').nth(0)) // relation dropdown
+    .click(Selector('div.relation-dropdown__option').nth(3))
+    .typeText(firstRelationRow.find('input.search-input'), 'FirstA')
+    .pressKey('enter')
+    .expect(firstRelationRow.find('a').withAttribute('href', "/profile?id=~FirstA_LastA1").exists).ok()
+    .click(firstRelationRow.find('.glyphicon-plus'))
+    .typeText(firstRelationRow.find('input').withAttribute('placeholder', 'year').nth(0), '1999')
+    .typeText(firstRelationRow.find('input').withAttribute('placeholder', 'year').nth(1), '2023')
+    // add a custom relation
+    .click(secondRelationRow.find('div.relation__value').nth(0)) // relation dropdown
+    .click(Selector('div.relation-dropdown__option').nth(3))
+    .typeText(secondRelationRow.find('input.search-input'), 'Some Relation Name')
+    .pressKey('enter')
+    .expect(secondRelationRow.find('div').withText('No results found for your search query.').exists).ok()
+    .click(secondRelationRow.find('button').withText('Manually Enter Relation Info'))
+    .typeText(secondRelationRow.find('input').withAttribute('name', 'fullName'), 'Some Relation Name')
+    .typeText(secondRelationRow.find('input').withAttribute('name', 'email'), 'test@relation.test')
+    .click(secondRelationRow.find('button').withText('Add'))
+    .typeText(secondRelationRow.find('input').withAttribute('placeholder', 'year').nth(0), '1999')
+    .typeText(secondRelationRow.find('input').withAttribute('placeholder', 'year').nth(1), '2023')
+    .click(saveProfileButton)
+    // verify relation is added
+    .expect(Selector('span').withText('Some Relation Name').exists).ok()
+    .expect(Selector('a').withAttribute('href', '/profile?id=~FirstA_LastA1').textContent).eql('FirstA LastA')
+
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .expect(firstRelationRow.find('a').withAttribute('href', '/profile?id=~FirstA_LastA1').textContent).eql('FirstA LastA')
+    .expect(secondRelationRow.find('span').withText('Some Relation Name').exists).ok()
+    .expect(secondRelationRow.find('span').withText('<test@relation.test>').exists).ok()
+    // clear value
+    .click(firstRelationRow.find('.glyphicon-edit'))
+    .expect(firstRelationRow.find('input.search-input').withAttribute('placeholder', 'Search relation by name or email').exists).ok()
+    .click(secondRelationRow.find('.glyphicon-edit'))
+    .expect(secondRelationRow.find('input.search-input').withAttribute('placeholder', 'Search relation by name or email').exists).ok()
+    .click(firstRelationRow.find('.glyphicon-minus-sign'))
+    .click(firstRelationRow.find('.glyphicon-minus-sign')) // second row becomes first row
+    .click(saveProfileButton)
+})
+
 test('import paper from dblp', async (t) => {
   const testPersistentUrl = 'https://dblp.org/pid/95/7448-1'
   await t
@@ -198,7 +289,7 @@ test('import paper from dblp', async (t) => {
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
     // put incorrect persistant url
-    .typeText(Selector('input#dblp_url'), 'xxx')
+    .typeText(dblpUrlInput, 'xxx', { paste: true })
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .notOk()
     .expect(Selector('#dblp-import-modal').visible)
@@ -209,24 +300,20 @@ test('import paper from dblp', async (t) => {
     .expect(Selector('#dblp-import-modal').find('div.body-message').innerText)
     .contains('Visit your DBLP home page: xxx')
     // put persistent url of other people in modal
-    .click(persistentUrlInput) // to make sure input get focus
-    .typeText(persistentUrlInput, testPersistentUrl)
+    .typeText(persistentUrlInput, testPersistentUrl, { replace: true, paste: true })
     .click(showPapersButton)
-    .wait(5000)
     .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText)
-    .contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.')
+    .contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.', undefined, { timeout: 5000 })
     .click(dblpImportModalCancelButton)
     // put persistent url of other people in page
-    .typeText(Selector('input#dblp_url'), testPersistentUrl, { replace: true })
+    .typeText(dblpUrlInput, testPersistentUrl, { replace: true, paste: true })
     .click(addDBLPPaperToProfileButton)
-    .wait(5000)
     .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText)
-    .contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.')
+    .contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.', undefined, { timeout: 5000 })
     .click(dblpImportModalCancelButton)
     // add name to skip validation error
     .click(nameSectionPlusIconSelector)
-    .typeText(editFirstNameInputSelector, 'Di')
-    .typeText(editLastNameInputSelector, 'Xu')
+    .typeText(editFullNameInputSelector, 'Di Xu')
     .click(saveProfileButton)
     .click(Selector('a').withText('Edit Profile'))
     .click(addDBLPPaperToProfileButton)
@@ -319,19 +406,19 @@ test('unlink paper', async (t) => {
 
 test('check import history', async (t) => {
   const { superUserToken } = t.fixtureCtx
-  const notes = await getNotes({ 'content.authorids': `${userB.tildeId}` }, superUserToken)
   // should have only 1 note
+  const notes = await getNotes({ 'content.authorids': userB.tildeId }, superUserToken)
   await t.expect(notes.length).eql(1)
+
+  // shoud have 2 references: add paper and update authorid
   const importedPaperId = notes[0].id
   const references = await getReferences(
-    { referent: `${importedPaperId}`, sort: 'mdate' },
+    { referent: importedPaperId, sort: 'mdate' },
     superUserToken
   )
-  // shoud have 2 references: add paper and update authorid
   await t
     .expect(references.length)
     .eql(2)
-    // eslint-disable-next-line max-len
     .expect(references[1].content.authorids.includes(userBAlternateId))
     .notOk() // 1st post of paper has all dblp authorid
     .expect(references[0].content.authorids.includes(userBAlternateId))
@@ -401,7 +488,7 @@ test('open profile of other user by email', async (t) => {
     .expect(Selector('a').withText('Edit Profile').exists)
     .notOk()
     .expect(pageHeader.innerText)
-    .eql(`${hasTaskUser.first} ${hasTaskUser.last}`)
+    .eql(hasTaskUser.fullname)
     .expect(profileViewEmail.innerText)
     .contains('****') // email should be masked
 })
@@ -413,7 +500,7 @@ test('open profile of other user by id', async (t) => {
     .expect(Selector('a').withText('Edit Profile').exists)
     .notOk()
     .expect(pageHeader.innerText)
-    .eql(`${hasTaskUser.first} ${hasTaskUser.last}`)
+    .eql(hasTaskUser.fullname)
     .expect(profileViewEmail.innerText)
     .contains('****')
 })
@@ -438,13 +525,41 @@ test('#84 merge profile modal should fill in id', async (t) => {
     .typeText(editEmailInputSelector, 'a@a.com')
     .click(Selector('button').withText('Confirm').filterVisible())
     .click(Selector('a').withText('Merge Profiles').filterVisible())
-    .expect(Selector('#profile-merge-modal').find('input').withAttribute('type', 'email').exists).notOk()
-    .expect(Selector('#profile-merge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').exists).ok()
-    .expect(Selector('#profile-merge-modal').find('input').withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').hasAttribute('readonly')).ok()
-    .expect(Selector('#profile-merge-modal').find('button').withText('Submit').hasAttribute('disabled')).ok()
-    .typeText(Selector('#profile-merge-modal').find('textarea').withAttribute('id', 'comment'), 'some comment')
-    .expect(Selector('#profile-merge-modal').find('button').withText('Submit').hasAttribute('disabled')).notOk()
-
+    .expect(
+      Selector('#profile-merge-modal').find('input').withAttribute('type', 'email').exists
+    )
+    .notOk()
+    .expect(
+      Selector('#profile-merge-modal')
+        .find('input')
+        .withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').exists
+    )
+    .ok()
+    .expect(
+      Selector('#profile-merge-modal')
+        .find('input')
+        .withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1')
+        .hasAttribute('readonly')
+    )
+    .ok()
+    .expect(
+      Selector('#profile-merge-modal')
+        .find('button')
+        .withText('Submit')
+        .hasAttribute('disabled')
+    )
+    .ok()
+    .typeText(
+      Selector('#profile-merge-modal').find('textarea').withAttribute('id', 'comment'),
+      'some comment'
+    )
+    .expect(
+      Selector('#profile-merge-modal')
+        .find('button')
+        .withText('Submit')
+        .hasAttribute('disabled')
+    )
+    .notOk()
 })
 test('#85 confirm profile email message', async (t) => {
   await t
@@ -493,35 +608,19 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
     .expect(Selector('div.title-container').find('h1').innerText)
     .eql('Di Xu')
 })
-test('#160 allow user to overwrite last/middle/first name to be lowercase', async (t) => {
+test('#160 allow user to overwrite name to be lowercase', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .click(nameSectionPlusIconSelector)
-    .typeText(editFirstNameInputSelector, 'first', { speed: 0.3 }) // it will trigger call to generate ~ id so typing fast won't trigger capitalization
-    .expect(editFirstNameInputSelector.value)
+    .typeText(editFullNameInputSelector, 'first', { speed: 0.3 }) // it will trigger call to generate ~ id so typing fast won't trigger capitalization
+    .expect(editFullNameInputSelector.value)
     .eql('First')
     .pressKey('left left left left left delete f')
-    .expect(editFirstNameInputSelector.value)
+    .expect(editFullNameInputSelector.value)
     .eql('first')
-    .typeText(editMiddleNameInputSelector, 'middle', { speed: 0.3 })
-    .expect(editMiddleNameInputSelector.value)
-    .eql('Middle')
-    .pressKey('left left left left left left delete m')
-    .expect(editMiddleNameInputSelector.value)
-    .eql('middle')
-    .typeText(editLastNameInputSelector, 'last', { speed: 0.3 })
-    .expect(editLastNameInputSelector.value)
-    .eql('Last')
-    .pressKey('left left left left delete l')
-    .expect(editLastNameInputSelector.value)
-    .eql('last')
     .click(saveProfileButton)
     .expect(Selector('span').withText('first').exists)
-    .ok()
-    .expect(Selector('span').withText('middle').exists)
-    .ok()
-    .expect(Selector('span').withText('last').exists)
     .ok()
 })
 test('fail before 2099', async (t) => {
@@ -535,15 +634,18 @@ test('fail before 2099', async (t) => {
     ) // to fail in 2090, update validation regex
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('Your profile information has been successfully updated')
-    .wait(5000)
+    .eql('Your profile information has been successfully updated', undefined, { timeout: 5000 })
 })
 test('#1011 remove space in personal links', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .click(nameSectionPlusIconSelector)
-    .typeText(homepageUrlInput, '   https://github.com/xkOpenReview    ', { replace: true })
+    .typeText(homepageUrlInput, '   https://github.com/xkOpenReview    ', {
+      replace: true,
+      paste: true,
+    })
+    .pressKey('tab')
     .click(saveProfileButton)
     .expect(
       Selector('a')

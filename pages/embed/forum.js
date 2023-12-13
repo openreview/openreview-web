@@ -56,7 +56,7 @@ export default function EmbeddedForum({ appContext, userContext }) {
       readers: ['everyone'],
       writers: [signature],
     }
-    return api.post('/notes', note, { accessToken })
+    return api.post('/notes/edits', note, { accessToken })
   }
 
   useEffect(() => {
@@ -150,7 +150,7 @@ export default function EmbeddedForum({ appContext, userContext }) {
         ) : forumNote && user ? (
           <>
             <ForumReplies
-              forumId={forumNote.id}
+              forumNote={forumNote}
               invitationId={query.invitation}
               contentField={query.content}
               accessToken={accessToken}

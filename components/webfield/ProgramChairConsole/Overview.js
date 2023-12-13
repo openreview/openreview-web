@@ -39,12 +39,11 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
     setIsLoading(true)
     try {
       const result = await Promise.all(
-        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map((invitedId) =>
-          invitedId
-            ? api.getGroupById(invitedId, accessToken, {
-                select: 'members',
-              })
-            : Promise.resolve(null)
+        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map(
+          (invitedId) =>
+            invitedId
+              ? api.getGroupById(invitedId, accessToken, { select: 'members' })
+              : Promise.resolve(null)
         )
       )
       setInvitedCount({
@@ -277,18 +276,18 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
     pcConsoleData.paperGroups?.reviewerGroups.forEach((reviewerGroup) => {
       if (!activeNoteNumbers.includes(reviewerGroup.noteNumber)) return
       reviewerGroup.members.forEach((reviewer) => {
-        if (!reviewer.reviewerAnonGroup) return
+        if (!reviewer.anonymizedGroup) return
         const reviewerProfileId = reviewer.reviewerProfileId // eslint-disable-line prefer-destructuring
         if (reviewerAnonGroupIds[reviewerProfileId]) {
           reviewerAnonGroupIds[reviewerProfileId].push({
             noteNumber: reviewerGroup.noteNumber,
-            anonGroupId: reviewer.reviewerAnonGroup,
+            anonGroupId: reviewer.anonymizedGroup,
           })
         } else {
           reviewerAnonGroupIds[reviewerProfileId] = [
             {
               noteNumber: reviewerGroup.noteNumber,
-              anonGroupId: reviewer.reviewerAnonGroup,
+              anonGroupId: reviewer.anonymizedGroup,
             },
           ]
         }
@@ -394,14 +393,14 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
 }
 
 const MetaReviewStatsRow = ({ pcConsoleData }) => {
-  const { areaChairsId, recommendationName } = useContext(WebFieldContext)
+  const { areaChairsId, metaReviewRecommendationName } = useContext(WebFieldContext)
   const metaReivews = [...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? [])].filter(
     (p) => p.length
   )
   const metaReviewsCount = metaReivews.length
   const allMetaReviews = metaReivews
     .flat()
-    .flatMap((p) => p?.content?.[recommendationName]?.value ?? [])
+    .flatMap((p) => p?.content?.[metaReviewRecommendationName]?.value ?? [])
 
   // map tilde id in areaChairGroups to anon areachair group id in anonAreaChairGroups
   const areaChairAnonGroupIds = {}
@@ -409,18 +408,18 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
   pcConsoleData.paperGroups?.areaChairGroups.forEach((areaChairGroup) => {
     if (!activeNoteNumbers.includes(areaChairGroup.noteNumber)) return
     areaChairGroup.members.forEach((areaChair) => {
-      if (!areaChair.areaChairAnonGroup) return
+      if (!areaChair.anonymizedGroup) return
       const areaChairProfileId = areaChair.areaChairProfileId // eslint-disable-line prefer-destructuring
       if (areaChairAnonGroupIds[areaChairProfileId]) {
         areaChairAnonGroupIds[areaChairProfileId].push({
           noteNumber: areaChairGroup.noteNumber,
-          anonGroupId: areaChair.areaChairAnonGroup,
+          anonGroupId: areaChair.anonymizedGroup,
         })
       } else {
         areaChairAnonGroupIds[areaChairProfileId] = [
           {
             noteNumber: areaChairGroup.noteNumber,
-            anonGroupId: areaChair.areaChairAnonGroup,
+            anonGroupId: areaChair.anonymizedGroup,
           },
         ]
       }
@@ -681,14 +680,20 @@ const DescriptionTimelineOtherConfigRow = ({
 
   const timelineInvitations = [
     { id: submissionId, displayName: 'Paper Submissions' },
-    { id: `${reviewersId}/-/${bidName}`, displayName: 'Reviewers Bidding' },
+    ...(bidName
+      ? [{ id: `${reviewersId}/-/${bidName}`, displayName: 'Reviewers Bidding' }]
+      : []),
     { id: `${reviewersId}/-/${recruitmentName}`, displayName: 'Reviewers Recruitment' },
     ...(seniorAreaChairsId
       ? [
-          {
-            id: `${seniorAreaChairsId}/-/${bidName}`,
-            displayName: 'Senior Area Chairs Bidding',
-          },
+          ...(bidName
+            ? [
+                {
+                  id: `${seniorAreaChairsId}/-/${bidName}`,
+                  displayName: 'Senior Area Chairs Bidding',
+                },
+              ]
+            : []),
           {
             id: `${seniorAreaChairsId}/-/${recruitmentName}`,
             displayName: 'Senior Area Chairs Recruitment',
@@ -697,10 +702,14 @@ const DescriptionTimelineOtherConfigRow = ({
       : []),
     ...(areaChairsId
       ? [
-          {
-            id: `${areaChairsId}/-/${bidName}`,
-            displayName: 'Area Chairs Bidding',
-          },
+          ...(bidName
+            ? [
+                {
+                  id: `${areaChairsId}/-/${bidName}`,
+                  displayName: 'Area Chairs Bidding',
+                },
+              ]
+            : []),
           {
             id: `${areaChairsId}/-/${recruitmentName}`,
             displayName: 'Area Chairs Recruitment',
@@ -858,71 +867,46 @@ const DescriptionTimelineOtherConfigRow = ({
           <h4>Venue Roles:</h4>
           <ul className="overview-list">
             <li>
-              <Link href={`/group/edit?id=${programChairsId}`}>
-                <a>Program Chairs</a>
-              </Link>
+              <Link href={`/group/edit?id=${programChairsId}`}>Program Chairs</Link>
             </li>
             {seniorAreaChairsId &&
               sacRoles.map((role) => (
                 <li key={role}>
-                  <Link href={`/group/edit?id=${venueId}/${role}`}>
-                    <a>{prettyId(role)}</a>
-                  </Link>{' '}
-                  (
-                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                    <a>Invited</a>
-                  </Link>
-                  ,
-                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                    <a>Declined</a>
-                  </Link>
-                  )
+                  <Link href={`/group/edit?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
+                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>Invited</Link>,
+                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>Declined</Link>)
                 </li>
               ))}
             {areaChairsId &&
               acRoles.map((role) => (
                 <li key={role}>
-                  <Link href={`/group/edit?id=${venueId}/${role}`}>
-                    <a>{prettyId(role)}</a>
-                  </Link>{' '}
-                  (
-                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                    <a>Invited</a>
-                  </Link>
-                  ,
-                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                    <a>Declined</a>
-                  </Link>
-                  )
+                  <Link href={`/group/edit?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
+                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>Invited</Link>,
+                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>Declined</Link>)
                 </li>
               ))}
             {hasEthicsChairs && (
               <>
                 <li>
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs`}>
-                    <a>Ethics_Chairs</a>
-                  </Link>{' '}
-                  (
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Invited`}>
-                    <a>Invited</a>
-                  </Link>
+                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs`}>Ethics_Chairs</Link> (
+                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Invited`}>Invited</Link>
                   ,
                   <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Declined`}>
-                    <a>Declined</a>
+                    Declined
                   </Link>
                   )
                 </li>
                 <li>
                   <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers`}>
-                    <a>Ethics_Reviewers</a>
+                    Ethics_Reviewers
                   </Link>{' '}
                   (
                   <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Invited`}>
-                    <a>Invited</a>
+                    Invited
                   </Link>
                   ,
                   <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Declined`}>
-                    <a>Declined</a>
+                    Declined
                   </Link>
                   )
                 </li>
@@ -930,29 +914,14 @@ const DescriptionTimelineOtherConfigRow = ({
             )}
             {reviewerRoles.map((role) => (
               <li key={role}>
-                <Link href={`/group/edit?id=${venueId}/${role}`}>
-                  <a>{prettyId(role)}</a>
-                </Link>{' '}
-                (
-                <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>
-                  <a>Invited</a>
-                </Link>
-                ,
-                <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>
-                  <a>Declined</a>
-                </Link>
-                )
+                <Link href={`/group/edit?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
+                <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>Invited</Link>,
+                <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>Declined</Link>)
               </li>
             ))}
             <li>
-              <Link href={`/group/edit?id=${authorsId}`}>
-                <a>Authors</a>
-              </Link>{' '}
-              (
-              <Link href={`/group/edit?id=${authorsId}/Accepted`}>
-                <a>Accepted</a>
-              </Link>
-              )
+              <Link href={`/group/edit?id=${authorsId}`}>Authors</Link> (
+              <Link href={`/group/edit?id=${authorsId}/Accepted`}>Accepted</Link>)
             </li>
           </ul>
         </div>
@@ -963,7 +932,7 @@ const DescriptionTimelineOtherConfigRow = ({
               {registrationForms.map((form) => (
                 <li key={form.id} className="overview-registration-link">
                   <Link href={`/forum?id=${form.id}&referrer=${referrerUrl}`}>
-                    <a>{form.content?.title?.value}</a>
+                    {form.content?.title?.value}
                   </Link>
                 </li>
               ))}
@@ -985,7 +954,7 @@ const DescriptionTimelineOtherConfigRow = ({
                       scoresName
                     )}
                   >
-                    <a>Reviewer Bids</a>
+                    Reviewer Bids
                   </Link>
                 </li>
               )}
@@ -1000,7 +969,7 @@ const DescriptionTimelineOtherConfigRow = ({
                       scoresName
                     )}
                   >
-                    <a>Senior Area Chair Bids</a>
+                    Senior Area Chair Bids
                   </Link>
                 </li>
               )}
@@ -1016,7 +985,7 @@ const DescriptionTimelineOtherConfigRow = ({
                         scoresName
                       )}
                     >
-                      <a>Area Chair Bid</a>
+                      Area Chair Bid
                     </Link>
                   </li>
                   {recommendationEnabled && (
@@ -1030,7 +999,7 @@ const DescriptionTimelineOtherConfigRow = ({
                           scoresName
                         )}
                       >
-                        <a>Area Chair Reviewer Recommendations</a>
+                        Area Chair Reviewer Recommendations
                       </Link>
                     </li>
                   )}
@@ -1049,7 +1018,9 @@ const Overview = ({ pcConsoleData }) => {
     useContext(WebFieldContext)
 
   const isBidEnabled = (groupId) =>
-    pcConsoleData.invitations?.find((p) => p.id === `${groupId}/-/${bidName}`)
+    bidName
+      ? pcConsoleData.invitations?.find((p) => p.id === `${groupId}/-/${bidName}`)
+      : false
 
   const reviewersBidEnabled = isBidEnabled(reviewersId)
   const areaChairsBidEnabled = isBidEnabled(areaChairsId)
@@ -1084,3 +1055,4 @@ const Overview = ({ pcConsoleData }) => {
 }
 
 export default Overview
+export { StatContainer }

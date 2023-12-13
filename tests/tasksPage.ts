@@ -39,6 +39,7 @@ test('should open tasks page and complete pending task', async (t) => {
         )
     ) // fill in comment content
     .click(Selector('button').withText('Submit')) // submit
+
     // should see 0 pending task and 1 completed
     .click(Selector('a').withText('Tasks')) // go tasks page
     .expect(Selector('span.task-count-message').innerText)

@@ -32,7 +32,7 @@ export default function GroupContent({ group, accessToken, profileId, reloadGrou
         signatures: [profileId],
         invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
       }
-      await api.post('/groups/edits', requestBody, { accessToken, version: 2 })
+      await api.post('/groups/edits', requestBody, { accessToken })
       promptMessage(`Content object for ${group.id} has been updated`, { scrollToTop: false })
       reloadGroup()
     } catch (error) {
@@ -55,7 +55,12 @@ export default function GroupContent({ group, accessToken, profileId, reloadGrou
   return (
     <EditorSection title="Group Content">
       {showEditor && (
-        <CodeEditor code={modifiedContent} onChange={setModifiedContent} isJson scrollIntoView />
+        <CodeEditor
+          code={modifiedContent}
+          onChange={setModifiedContent}
+          isJson
+          scrollIntoView
+        />
       )}
 
       {showEditor ? (

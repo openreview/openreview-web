@@ -1,8 +1,15 @@
-import { prettyId } from '../../lib/utils'
+import { prettyContentValue, prettyId } from '../../lib/utils'
 import Icon from '../Icon'
 
 const EditValue = ({ name, value }) => {
   if (!Array.isArray(value)) {
+    if (value instanceof Object) {
+      return (
+        <div className={name}>
+          <span className="line_heading">{name}:</span> <pre>{prettyContentValue(value)}</pre>
+        </div>
+      )
+    }
     return (
       <div className={name}>
         <span className="line_heading">{name}:</span>{' '}

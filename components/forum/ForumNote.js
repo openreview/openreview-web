@@ -1,24 +1,23 @@
-/* globals promptError, view2: false */
+/* globals $, promptError, view2: false */
 
 import { useState } from 'react'
 import Link from 'next/link'
+import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
-import { prettyId, prettyInvitationId, forumDate } from '../../lib/utils'
-import useUser from '../../hooks/useUser'
+import {
+  prettyId,
+  prettyInvitationId,
+  forumDate,
+  useNewNoteEditor,
+  classNames,
+} from '../../lib/utils'
+import getLicenseInfo from '../../lib/forum-utils'
 
-function ForumNote({ note, updateNote }) {
-  const {
-    id,
-    content,
-    details,
-    signatures,
-    editInvitations,
-    deleteInvitation,
-    tagInvitations,
-  } = note
+function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
+  const { id, content, details, signatures, editInvitations, deleteInvitation } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
   // eslint-disable-next-line no-underscore-dangle
@@ -26,27 +25,24 @@ function ForumNote({ note, updateNote }) {
 
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeNote, setActiveNote] = useState(null)
-  const { user } = useUser()
+  const newNoteEditor = useNewNoteEditor(activeInvitation?.domain)
 
   const canShowIcon = (fieldName) => {
-    if (!content[fieldName]?.value) return false
+    if (!content[fieldName]?.value) return null
 
     const fieldReaders = Array.isArray(content[fieldName].readers)
       ? content[fieldName].readers.sort()
       : null
-    return (
-      !fieldReaders || (note.readers && fieldReaders.every((p, j) => p === note.readers[j]))
-    )
+    if (
+      !fieldReaders ||
+      (note.sortedReaders && fieldReaders.every((p, j) => p === note.sortedReaders[j]))
+    ) {
+      return content[fieldName].value
+    }
+    return null
   }
 
   const openNoteEditor = (invitation, options) => {
-    if (activeInvitation && activeInvitation.id !== invitation.id) {
-      promptError(
-        'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
-        { scrollToTop: false }
-      )
-      return
-    }
     if (activeInvitation) {
       setActiveInvitation(null)
       setActiveNote(null)
@@ -78,29 +74,40 @@ function ForumNote({ note, updateNote }) {
   if (activeInvitation) {
     return (
       <div className="forum-note">
-        <NoteEditorForm
-          note={activeNote}
-          invitation={activeInvitation}
-          onNoteEdited={(newNote) => {
-            updateNote(newNote)
-            closeNoteEditor()
-          }}
-          onNoteCancelled={closeNoteEditor}
-          onError={(isLoadingError) => {
-            if (isLoadingError) {
-              setActiveInvitation(null)
-            }
-          }}
-        />
+        {newNoteEditor ? (
+          <NoteEditor
+            note={activeNote}
+            invitation={activeInvitation}
+            closeNoteEditor={closeNoteEditor}
+            onNoteCreated={updateNote}
+          />
+        ) : (
+          <NoteEditorForm
+            note={activeNote}
+            invitation={activeInvitation}
+            onNoteEdited={(newNote) => {
+              updateNote(newNote)
+              closeNoteEditor()
+            }}
+            onNoteCancelled={closeNoteEditor}
+            onError={(isLoadingError) => {
+              if (isLoadingError) {
+                setActiveInvitation(null)
+              }
+            }}
+          />
+        )}
       </div>
     )
   }
 
   return (
     <div
-      className={`forum-note ${pastDue ? 'trashed' : ''} ${
-        texDisabled ? 'disable-tex-rendering' : ''
-      }`}
+      className={classNames(
+        'forum-note',
+        pastDue && 'trashed',
+        texDisabled && 'disable-tex-rendering'
+      )}
     >
       <ForumTitle
         id={id}
@@ -161,15 +168,7 @@ function ForumNote({ note, updateNote }) {
               type="button"
               className="btn btn-xs"
               onClick={() => {
-                view2.deleteOrRestoreNote(
-                  note,
-                  deleteInvitation,
-                  content.title?.value,
-                  user,
-                  (newNote) => {
-                    updateNote(newNote)
-                  }
-                )
+                deleteOrRestoreNote(note, deleteInvitation, updateNote)
               }}
             >
               <Icon
@@ -188,7 +187,10 @@ function ForumNote({ note, updateNote }) {
           note.invitations[0].split('/-/')[1].includes('Submission') ? note.number : null
         }
         presentation={details.presentation}
-        noteReaders={note.readers}
+        noteReaders={note.sortedReaders}
+        omit={[canShowIcon('pdf') ? 'pdf' : null, canShowIcon('html') ? 'html' : null].filter(
+          Boolean
+        )}
       />
     </div>
   )
@@ -202,8 +204,8 @@ function ForumTitle({ id, title, pdf, html }) {
       {pdf && (
         <div className="forum-content-link">
           <a
-            className="citation_pdf_url"
-            href={`/pdf?id=${id}`}
+            className={pdf.startsWith('/pdf') ? 'citation_pdf_url' : null}
+            href={pdf.startsWith('/pdf') ? `/pdf?id=${id}` : pdf}
             title="Download PDF"
             target="_blank"
             rel="noreferrer"
@@ -224,6 +226,8 @@ function ForumTitle({ id, title, pdf, html }) {
 }
 
 function ForumMeta({ note }) {
+  const licenseInfo = getLicenseInfo(note.license)
+
   return (
     <div className="forum-meta">
       <span className="date item">
@@ -249,19 +253,21 @@ function ForumMeta({ note }) {
           className="readers item"
           data-toggle="tooltip"
           data-placement="top"
-          title={`Visible to ${note.readers.join(', ')}${note.odate ? ` since ${forumDate(note.odate)}` : ''}`}
+          title={`Visible to <br/>${note.readers.join(',<br/>')}${
+            note.odate ? `<br/>since ${forumDate(note.odate)}` : ''
+          }`}
         >
           <Icon name="eye-open" />
           {note.readers.map((reader) => prettyId(reader, true)).join(', ')}
         </span>
       )}
 
-      <span className="item">
-        <Icon name="duplicate" />
-        <Link href={`/revisions?id=${note.id}`}>
-          <a>Revisions</a>
-        </Link>
-      </span>
+      {note.tmdate !== note.tcdate && (
+        <span className="item">
+          <Icon name="duplicate" />
+          <Link href={`/revisions?id=${note.id}`}>Revisions</Link>
+        </span>
+      )}
 
       {/* eslint-disable-next-line no-underscore-dangle */}
       {note.content._bibtex?.value && (
@@ -277,6 +283,26 @@ function ForumMeta({ note }) {
           >
             BibTeX
           </a>
+        </span>
+      )}
+
+      {note.license && (
+        <span className="item">
+          <Icon name="copyright-mark" />
+          {licenseInfo ? (
+            <a
+              href={licenseInfo.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`Licensed under ${licenseInfo.fullName}`}
+              data-toggle="tooltip"
+              data-placement="top"
+            >
+              {note.license}
+            </a>
+          ) : (
+            note.license
+          )}
         </span>
       )}
     </div>

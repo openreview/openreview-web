@@ -9,9 +9,7 @@ import {
   strongPassword,
 } from './utils/api-helper'
 
-const firstNameInputSelector = Selector('#first-input')
-const middleNameInputSelector = Selector('#middle-input')
-const lastNameInputSelector = Selector('#last-input')
+const fullNameInputSelector = Selector('#first-input')
 const emailAddressInputSelector = Selector('input').withAttribute(
   'placeholder',
   'Email address'
@@ -34,8 +32,7 @@ fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(as
 
 test('create new profile', async (t) => {
   await t
-    .typeText(firstNameInputSelector, 'Melisa')
-    .typeText(lastNameInputSelector, 'Bok')
+    .typeText(fullNameInputSelector, 'Melisa Bok')
     .typeText(emailAddressInputSelector, 'melisa@test.com')
     .expect(signupButtonSelector.hasAttribute('disabled'))
     .notOk('not enabled yet', { timeout: 5000 })
@@ -58,8 +55,7 @@ test('create new profile', async (t) => {
     .expect(Selector('span').withAttribute('class', 'email').innerText)
     .eql('melisa@test.com')
 
-  const { superUserToken } = t.fixtureCtx
-  const messages = await getMessages({ to: 'melisa@test.com' }, superUserToken)
+  const messages = await getMessages({ to: 'melisa@test.com' }, t.fixtureCtx.superUserToken)
   await t
     .expect(messages[0].content.text)
     .contains('http://localhost:3030/profile/activate?token=')
@@ -67,8 +63,7 @@ test('create new profile', async (t) => {
 
 test('enter invalid name', async (t) => {
   await t
-    .typeText(firstNameInputSelector, 'abc')
-    .typeText(lastNameInputSelector, '1')
+    .typeText(fullNameInputSelector, 'abc 1')
     .expect(Selector('.important_message').exists)
     .ok()
     .expect(Selector('.important_message').textContent)
@@ -78,12 +73,10 @@ test('enter invalid name', async (t) => {
 })
 
 test('enter valid name invalid email and change to valid email and register', async (t) => {
-  const firstName = 'FirstNameaac' // must be new each test run
-  const lastName = 'LastNameaac' // must be new each test run
+  const fullName = 'FirstNameaac LastNameaac' // must be new each test run
   const email = 'testemailaac@test.com' // must be new each test run
   await t
-    .typeText(firstNameInputSelector, firstName) // must be new each test run
-    .typeText(lastNameInputSelector, lastName) // must be new each test run
+    .typeText(fullNameInputSelector, fullName) // must be new each test run
     .typeText(emailAddressInputSelector, `${email}@test.com`)
     .click(signupButtonSelector)
     .expect(newPasswordInputSelector.exists)
@@ -123,20 +116,15 @@ test('request a new activation link', async (t) => {
     .eql(
       'A confirmation email with the subject "OpenReview signup confirmation" has been sent to melisa@test.com. Please click the link in this email to confirm your email address and complete registration.'
     )
+    .wait(1000)
 
-  await new Promise((r) => {
-    setTimeout(r, 2000)
-  })
-
-  const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
     { to: 'melisa@test.com', subject: 'OpenReview signup confirmation' },
-    superUserToken
+    t.fixtureCtx.superUserToken
   )
   await t
     .expect(messages[0].content.text)
     .contains('http://localhost:3030/profile/activate?token=')
-  await t
     .expect(messages[1].content.text)
     .contains('http://localhost:3030/profile/activate?token=')
 })
@@ -156,8 +144,7 @@ fixture`Send Activation Link from signup page`
 
 test('Send Activation Link', async (t) => {
   await t
-    .typeText(firstNameInputSelector, inactiveUser.first.toLowerCase())
-    .typeText(lastNameInputSelector, inactiveUser.last.toLowerCase())
+    .typeText(fullNameInputSelector, inactiveUser.fullname.toLowerCase())
   const existingTildeId = await Selector('.new-username.hint').nth(0).innerText
   const newTildeId = await Selector('.new-username.hint').nth(1).innerText
   await t
@@ -185,8 +172,7 @@ fixture`Claim Profile`.page`http://localhost:${process.env.NEXT_PORT}/signup`
 test('enter invalid name', async (t) => {
   // user has no email no password and not active
   await t
-    .typeText(firstNameInputSelector, inActiveUserNoPasswordNoEmail.first)
-    .typeText(lastNameInputSelector, inActiveUserNoPasswordNoEmail.last)
+    .typeText(fullNameInputSelector, inActiveUserNoPasswordNoEmail.fullname)
     .expect(Selector('.submissions-list').find('.note').count)
     .lte(3) // at most 3 recent publications
     .expect(claimProfileButtonSelector.exists)
@@ -205,8 +191,7 @@ fixture`Sign up`.page`http://localhost:${process.env.NEXT_PORT}/signup`
 test('email address should be masked', async (t) => {
   // user has email but no password not active
   await t
-    .typeText(firstNameInputSelector, inActiveUserNoPassword.first)
-    .typeText(lastNameInputSelector, inActiveUserNoPassword.last)
+    .typeText(fullNameInputSelector, inActiveUserNoPassword.fullname)
     .expect(Selector('input').withAttribute('type', 'email').nth(0).value)
     .contains('****') // email should be masked
 })
@@ -217,7 +202,7 @@ fixture`Activate`
 
 test('update profile', async (t) => {
   await t
-    .typeText(Selector('input.personal-links__input').nth(0), 'http://homepage.do')
+    .typeText(Selector('#homepage_url'), 'http://homepage.do', { paste: true })
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .pressKey('M S space s t u d e n t tab')
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
@@ -273,13 +258,10 @@ test('reset password of active profile', async (t) => {
     .click(Selector('button').withText('Reset Password'))
     .expect(Selector('div').withAttribute('role', 'alert').exists)
     .ok()
-  // .expect(Selector('div').withAttribute('role', 'alert').innerText)
-  // .contains('An email with the subject "OpenReview Password Reset" has been sent to')
 
-  const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
     { to: 'melisa@test.com', subject: 'OpenReview password reset' },
-    superUserToken
+    t.fixtureCtx.superUserToken
   )
   await t
     .expect(messages[0].content.text)
@@ -329,10 +311,9 @@ test('add alternate email', async (t) => {
     .expect(messageSelector.innerText)
     .eql('A confirmation email has been sent to melisa@alternate.com')
 
-  const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
     { to: 'melisa@alternate.com', subject: 'OpenReview Account Linking' },
-    superUserToken
+    t.fixtureCtx.superUserToken
   )
   await t.expect(messages[0].content.text).contains('http://localhost:3030/confirm?token=')
 })
@@ -355,22 +336,10 @@ fixture`Issue related tests`
 test('#160 allow user to overwrite last/middle/first name to be lowercase', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/signup`)
-    .typeText(firstNameInputSelector, 'first')
-    .expect(firstNameInputSelector.value)
+    .typeText(fullNameInputSelector, 'first')
+    .expect(fullNameInputSelector.value)
     .eql('First')
-    .pressKey('left left left left left delete f')
-    .expect(firstNameInputSelector.value)
+    .pressKey('left left left left left delete f tab')
+    .expect(fullNameInputSelector.value)
     .eql('first')
-    .typeText(middleNameInputSelector, 'middle')
-    .expect(middleNameInputSelector.value)
-    .eql('Middle')
-    .pressKey('left left left left left left delete m')
-    .expect(middleNameInputSelector.value)
-    .eql('middle')
-    .typeText(lastNameInputSelector, 'last')
-    .expect(lastNameInputSelector.value)
-    .eql('Last')
-    .pressKey('left left left left delete l')
-    .expect(lastNameInputSelector.value)
-    .eql('last')
 })

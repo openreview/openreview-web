@@ -2,7 +2,8 @@
 
 // modified from noteReviewStatus.hbs handlebar template
 import Link from 'next/link'
-import { useState } from 'react'
+import React, { useContext, useState } from 'react'
+import upperFirst from 'lodash/upperFirst'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import BasicModal from '../BasicModal'
@@ -10,33 +11,39 @@ import Collapse from '../Collapse'
 import ErrorAlert from '../ErrorAlert'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
+import WebFieldContext from '../WebFieldContext'
+import { prettyField } from '../../lib/utils'
 
 // modified from noteReviewStatus.hbs handlebar template
 export const ReviewerConsoleNoteReviewStatus = ({
   editUrl,
-  paperRating,
+  paperRatings,
   review,
   invitationUrl,
 }) => (
   <div>
     {editUrl ? (
       <>
-        <h4>Your Ratings:</h4>
-        <p>{paperRating}</p>
+        {paperRatings.map((rating, index) => {
+          const ratingName = Object.keys(rating)[0]
+          const ratingValue = rating[ratingName]
+          return (
+            <div key={index}>
+              <h4>{upperFirst(ratingName)}:</h4>
+              <p>{ratingValue}</p>
+            </div>
+          )
+        })}
         <h4>Your Review:</h4>
         <p>{review}</p>
         <p>
-          <Link href={editUrl}>
-            <a>Edit Official Review</a>
-          </Link>
+          <Link href={editUrl}>Edit Official Review</Link>
         </p>
       </>
     ) : (
       invitationUrl && (
         <h4>
-          <Link href={invitationUrl}>
-            <a>Submit Official Review</a>
-          </Link>
+          <Link href={invitationUrl}>Submit Official Review</Link>
         </h4>
       )
     )}
@@ -55,9 +62,12 @@ const AcPcConsoleReviewerActivityModal = ({ note, reviewer, venueId, submissionN
       const result = await api.get(
         '/notes',
         {
-          signature: `${venueId}/${submissionName}${note.number}/Reviewer_${reviewer.anonymousId}`,
+          signature: reviewer.reviewerProfileId,
+          transitiveMembers: true,
+          invitation: `${venueId}/${submissionName}${note.number}/-/.*`,
+          domain: venueId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       setActivityNotes(result.notes)
     } catch (apiError) {
@@ -191,10 +201,13 @@ export const AcPcConsoleReviewerStatusRow = ({
   referrerUrl,
   shortPhrase,
   submissionName,
+  reviewRatingName,
+  showRatingConfidence = true,
+  showActivity = true,
 }) => {
   const [updateLastSent, setUpdateLastSent] = useState(true)
   const completedReview = officialReviews.find((p) => p.anonymousId === reviewer.anonymousId)
-  const hasRating = completedReview?.rating !== null
+  // const hasRating = completedReview?.rating !== null
   const hasConfidence = completedReview?.confidence !== null
   const lastReminderSent = localStorage.getItem(
     `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}|${reviewer.reviewerProfileId}`
@@ -215,10 +228,18 @@ export const AcPcConsoleReviewerStatusRow = ({
         </span>
         {completedReview ? (
           <>
-            <div>
-              {hasRating && `Rating: ${completedReview.rating}${hasConfidence ? ' / ' : ''}`}
-              {hasConfidence && `Confidence: ${completedReview.confidence}`}
-            </div>
+            {showRatingConfidence && (
+              <div>
+                {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName])
+                  .flatMap((ratingName, index) => {
+                    const rating = completedReview[ratingName]
+                    if (rating !== null) return `${prettyField(ratingName)}: ${rating}`
+                    return []
+                  })
+                  .join(' / ')}
+                {hasConfidence && ` / Confidence: ${completedReview.confidence}`}
+              </div>
+            )}
             {completedReview.reviewLength && (
               <span>Review length: {completedReview.reviewLength}</span>
             )}
@@ -260,7 +281,7 @@ export const AcPcConsoleReviewerStatusRow = ({
             )}
           </div>
         )}
-        {completedReview && (
+        {completedReview && showActivity && (
           <>
             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a
@@ -286,6 +307,42 @@ export const AcPcConsoleReviewerStatusRow = ({
   )
 }
 
+// reviewers info might not be visible so only show info of reviews
+export const AcPcConsoleReviewStatusRow = ({
+  review,
+  note,
+  referrerUrl,
+  reviewRatingName,
+  showRatingConfidence = true,
+}) => {
+  const hasConfidence = review?.confidence !== null
+
+  return (
+    <div className="review-row">
+      {showRatingConfidence && (
+        <div>
+          {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName])
+            .flatMap((ratingName, index) => {
+              const rating = review[ratingName]
+              if (rating !== null) return `${prettyField(ratingName)}: ${rating}`
+              return []
+            })
+            .join(' / ')}
+          {hasConfidence && ` / Confidence: ${review.confidence}`}
+        </div>
+      )}
+      {review.reviewLength && <span>Review length: {review.reviewLength}</span>}
+      <a
+        href={`/forum?id=${note.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
+        target="_blank"
+        rel="nofollow noreferrer"
+      >
+        Read Review
+      </a>
+    </div>
+  )
+}
+
 // modified from noteReviewers.hbs handlebar template
 // shared by AC and PC console
 export const AcPcConsoleNoteReviewStatus = ({
@@ -298,13 +355,12 @@ export const AcPcConsoleNoteReviewStatus = ({
   reviewerAssignmentUrl,
 }) => {
   const { officialReviews, reviewers, note } = rowData
+  const { reviewRatingName } = useContext(WebFieldContext)
   const {
     numReviewsDone,
     numReviewersAssigned,
     replyCount,
-    ratingMax,
-    ratingMin,
-    ratingAvg,
+    ratings,
     confidenceMax,
     confidenceMin,
     confidenceAvg,
@@ -313,6 +369,58 @@ export const AcPcConsoleNoteReviewStatus = ({
     'edges/browse?',
     `edges/browse?start=staticList,type:head,ids:${note.id}&`
   )
+
+  // reviewers group not visible
+  if (reviewers.length === 0 && numReviewsDone > 0)
+    return (
+      <div className="console-reviewer-progress">
+        <h4>{numReviewsDone} Reviews Submitted</h4>
+        <Collapse
+          showLabel="Show reviews"
+          hideLabel="Hide reviews"
+          className="assigned-reviewers"
+        >
+          {officialReviews.map((review) => (
+            <AcPcConsoleReviewStatusRow
+              key={review.id}
+              review={review}
+              note={note}
+              referrerUrl={referrerUrl}
+              reviewRatingName={reviewRatingName}
+            />
+          ))}
+        </Collapse>
+        {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+          (ratingName, index) => {
+            const { ratingAvg, ratingMin, ratingMax } = ratings[ratingName]
+            return (
+              <span key={index}>
+                <strong>Average {prettyField(ratingName)}:</strong> {ratingAvg} (Min:{' '}
+                {ratingMin}, Max: {ratingMax})
+              </span>
+            )
+          }
+        )}
+        <span>
+          <strong>Average Confidence:</strong> {confidenceAvg} (Min: {confidenceMin}, Max:{' '}
+          {confidenceMax})
+        </span>
+        <span>
+          <strong>Number of Forum replies:</strong> {replyCount}
+        </span>
+        {paperManualReviewerAssignmentUrl && (
+          <div className="mt-3">
+            <a
+              href={`${paperManualReviewerAssignmentUrl}&referrer=${referrerUrl}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Edit Reviewer Assignments
+            </a>
+          </div>
+        )}
+      </div>
+    )
 
   return (
     <div className="console-reviewer-progress">
@@ -336,13 +444,22 @@ export const AcPcConsoleNoteReviewStatus = ({
               referrerUrl={referrerUrl}
               shortPhrase={shortPhrase}
               submissionName={submissionName}
+              reviewRatingName={reviewRatingName}
             />
           ))}
         </div>
       </Collapse>
-      <span>
-        <strong>Average Rating:</strong> {ratingAvg} (Min: {ratingMin}, Max: {ratingMax})
-      </span>
+      {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+        (ratingName, index) => {
+          const { ratingAvg, ratingMin, ratingMax } = ratings[ratingName]
+          return (
+            <span key={index}>
+              <strong>Average {prettyField(ratingName)}:</strong> {ratingAvg} (Min: {ratingMin}
+              , Max: {ratingMax})
+            </span>
+          )
+        }
+      )}
       <span>
         <strong>Average Confidence:</strong> {confidenceAvg} (Min: {confidenceMin}, Max:{' '}
         {confidenceMax})
@@ -361,6 +478,77 @@ export const AcPcConsoleNoteReviewStatus = ({
           </a>
         </div>
       )}
+    </div>
+  )
+}
+
+export const EthicsReviewStatus = ({
+  rowData,
+  venueId,
+  ethicsReviewersName,
+  ethicsReviewName,
+  referrerUrl,
+  shortPhrase,
+  submissionName,
+}) => {
+  const {
+    ethicsReviews,
+    ethicsReviewers,
+    note,
+    numReviewsDone,
+    numReviewersAssigned,
+    replyCount,
+  } = rowData
+
+  const ethicsReviewersId = `${venueId}/${ethicsReviewersName}`
+  const editAssigmentUrl = `/edges/browse?start=staticList,type:head,ids:${note.id}
+&traverse=${ethicsReviewersId}/-/Assignment
+&edit=${ethicsReviewersId}/-/Assignment
+&browse=${ethicsReviewersId}/-/Affinity_Score;${ethicsReviewersId}/-/Conflict&version=2`
+
+  return (
+    <div className="console-reviewer-progress">
+      <h4>
+        {numReviewsDone} of {numReviewersAssigned} Reviews Submitted
+      </h4>
+      {ethicsReviewers.length > 0 && (
+        <Collapse
+          showLabel="Show reviewers"
+          hideLabel="Hide reviewers"
+          className="assigned-reviewers"
+        >
+          <div>
+            {ethicsReviewers.map((ethicsReviewer) => (
+              <AcPcConsoleReviewerStatusRow
+                key={ethicsReviewer.anonymousId}
+                officialReviews={ethicsReviews}
+                reviewer={ethicsReviewer}
+                note={note}
+                venueId={venueId}
+                officialReviewName={ethicsReviewName}
+                referrerUrl={referrerUrl}
+                shortPhrase={shortPhrase}
+                submissionName={submissionName}
+                showRatingConfidence={false}
+                showActivity={false}
+              />
+            ))}
+          </div>
+        </Collapse>
+      )}
+
+      <span>
+        <strong>Number of Forum replies:</strong> {replyCount}
+      </span>
+      <div className="mt-3">
+        <a
+          href={`${editAssigmentUrl}&referrer=${referrerUrl}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Edit Assignments
+        </a>
+      </div>
     </div>
   )
 }

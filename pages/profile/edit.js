@@ -28,7 +28,7 @@ export default function ProfileEdit({ appContext }) {
     try {
       const { profiles } = await api.get('/profiles', {}, { accessToken })
       if (profiles?.length > 0) {
-        const formattedProfile = formatProfileData(profiles[0], false, true)
+        const formattedProfile = formatProfileData(profiles[0], true)
         setProfile(formattedProfile)
       } else {
         setError({ statusCode: 404, message: 'Profile not found' })
@@ -39,9 +39,17 @@ export default function ProfileEdit({ appContext }) {
   }
 
   const unlinkPublication = async (profileId, noteId) => {
-    const notes = await api.get('/notes', { id: noteId }, { accessToken })
-    const authorIds = get(notes, 'notes[0].content.authorids')
-    const invitation = get(notes, 'notes[0].invitation')
+    const note = await api.getNoteById(noteId, accessToken)
+    let authorIds
+    let invitation
+    if (note.invitations) {
+      authorIds = note.content.authorids?.value
+      invitation = note.invitations[0]
+    } else {
+      authorIds = note.content.authorids
+      // eslint-disable-next-line prefer-destructuring
+      invitation = note.invitation
+    }
     const invitationMap = {
       'dblp.org/-/record': 'dblp.org/-/author_coreference',
       'OpenReview.net/Archive/-/Imported_Record':
@@ -82,7 +90,7 @@ export default function ProfileEdit({ appContext }) {
         authorids: authorIds,
       },
     }
-    return api.post('/notes', updateAuthorIdsObject, { accessToken })
+    return api.post('/notes', updateAuthorIdsObject, { accessToken, version: 1 })
   }
 
   const saveProfile = async (profileContent, profileReaders, publicationIdsToUnlink) => {
@@ -97,7 +105,7 @@ export default function ProfileEdit({ appContext }) {
       const apiRes = await api.post('/profiles', dataToSubmit, { accessToken })
       const prefName = apiRes.content?.names?.find((name) => name.preferred === true)
       if (prefName) {
-        updateUserName(prefName.first, prefName.middle, prefName.last) // update nav dropdown
+        updateUserName(prefName.fullname) // update nav dropdown
       }
 
       await Promise.all(

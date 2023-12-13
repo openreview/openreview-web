@@ -89,7 +89,7 @@ export default forwardRef(function ChatReply(
       },
     }
     api
-      .post('/notes/edits', noteEdit, { accessToken, version: 2 })
+      .post('/notes/edits', noteEdit, { accessToken })
       .then((res) => {
         updateNote({ ...note, ddate: now })
         setLoading(false)
@@ -173,7 +173,7 @@ export default forwardRef(function ChatReply(
             {datePrefix} at {formattedTime}
           </small>
 
-          {note.details?.editsCount > 1 && <small>(edited)</small>}
+          {note.tmdate !== note.tcdate && <small>(edited)</small>}
         </div>
 
         {isChatNote ? (
@@ -188,8 +188,8 @@ export default forwardRef(function ChatReply(
             id={note.id}
             content={note.content}
             presentation={presentation}
-            noteReaders={note.readers}
-            include={['title', 'pdf', 'html']}
+            noteReaders={note.sortedReaders}
+            include={['title']}
           />
         )}
       </div>
@@ -297,8 +297,10 @@ function ChatSignature({ groupId, signatureGroup }) {
                 {prettyId(q, true)}
               </a>
             ))
-            .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
-          {' '}
+            .reduce(
+              (accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]),
+              null
+            )}{' '}
           {signatureGroup.members.length > 4 && (
             <a
               key="others"

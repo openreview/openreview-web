@@ -14,27 +14,21 @@ const Names = ({ names, highlightValue }) => (
   <table>
     <tbody>
       {names &&
-        names.map((name, index) => {
-          const nameStr = `${name.first} ${name.middle ?? ''} ${name.last}`.replace(
-            /\s{2,}/g,
-            ' '
-          )
-          return (
-            <tr
-              key={`${nameStr}${name.preferred}${index}`}
-              data-toggle={name.signatures && 'tooltip'}
-              title={name.signature && `Edited by ${name.signatures}`}
-              style={name.confirmed ? null : { color: '#8c1b13' }}
-            >
-              <td>
-                <span className={highlightValue.includes(nameStr) ? 'highlight ' : null}>
-                  {nameStr}
-                </span>{' '}
-                {name.preferred && <small>(Preferred)</small>}
-              </td>
-            </tr>
-          )
-        })}
+        names.map((name, index) => (
+          <tr
+            key={`${name.fullname}${name.preferred}${index}`}
+            data-toggle={name.signatures && 'tooltip'}
+            title={name.signature && `Edited by ${name.signatures}`}
+            style={name.confirmed ? null : { color: '#8c1b13' }}
+          >
+            <td>
+              <span className={highlightValue.includes(name.fullname) ? 'highlight ' : null}>
+                {name.fullname}
+              </span>{' '}
+              {name.preferred && <small>(Preferred)</small>}
+            </td>
+          </tr>
+        ))}
     </tbody>
   </table>
 )
@@ -262,20 +256,30 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       return []
     }
     try {
-      const { notes } = await api.get(
+      const { notes } = await api.getCombined(
         '/notes',
         {
           'content.authorids': profileId,
-          sort: 'cdate',
+          sort: 'cdate:desc',
         },
-        { accessToken }
+        null,
+        { accessToken, includeVersion: true }
       )
       if (notes?.length > 0) {
         return notes.map((publication) => ({
           forum: publication.forum,
-          title: publication.content.title,
-          authors: publication.content.authors,
-          authorids: publication.content.authorids.filter((id) => id),
+          title:
+            publication.apiVersion === 1
+              ? publication.content.title
+              : publication.content.title.value,
+          authors:
+            publication.apiVersion === 1
+              ? publication.content.authors
+              : publication.content.authors.value,
+          authorids: (publication.apiVersion === 1
+            ? publication.content.authorids
+            : publication.content.authorids.value
+          ).filter((id) => id),
         }))
       }
     } catch (error) {
@@ -295,9 +299,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       }
       if (key === 'names') {
         value.forEach((name) => {
-          compareFields.push(
-            `${name?.first} ${name?.middle ?? ''} ${name?.last}`.replace(/\s{2,}/g, ' ')
-          )
+          compareFields.push(name?.fullname)
         })
         return
       }

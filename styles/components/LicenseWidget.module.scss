@@ -1,0 +1,20 @@
+@use '../utils/constants';
+
+.container {
+  display: inline-block;
+  margin-top: 4px;
+  width: 500px;
+  :global {
+    .tooltip-inner {
+      max-width: unset;
+    }
+  }
+}
+
+.invalidValue {
+  :global {
+    .dropdown-select__control {
+      border-color: constants.$orRed !important;
+    }
+  }
+}

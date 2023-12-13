@@ -77,7 +77,11 @@ const Browse = ({ appContext }) => {
     try {
       const apiRes = await api.get(
         '/invitations',
-        { ids: idsToLoad.join(','), expired: true, type: 'edges' },
+        {
+          ids: idsToLoad.join(','),
+          expired: true,
+          type: apiVersion === 2 ? 'edge' : 'edges',
+        },
         { accessToken, version: apiVersion }
       )
       if (!apiRes.invitations?.length) {
@@ -132,6 +136,7 @@ const Browse = ({ appContext }) => {
           writers,
           signatures,
           nonreaders,
+          domain: fullInvitation?.domain,
         })
       })
       if (!allValid) {

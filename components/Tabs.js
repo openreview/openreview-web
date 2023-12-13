@@ -15,7 +15,7 @@ export function TabList({ children }) {
   )
 }
 
-export function Tab({ id, headingCount, icon, onClick, active, hidden, children }) {
+export function Tab({ id, headingCount, icon, onClick, active, hidden, disabled, children }) {
   const tabEl = useRef(null)
 
   useEffect(() => {
@@ -25,22 +25,28 @@ export function Tab({ id, headingCount, icon, onClick, active, hidden, children 
   }, [tabEl, active])
 
   const handleClick = (e) => {
+    if (disabled) {
+      e.preventDefault()
+      return false
+    }
+
     if (typeof onClick === 'function') {
       onClick(e)
     }
+    return true
   }
 
   if (hidden) return null
 
   return (
-    <li role="presentation" onClick={handleClick}>
+    <li role="presentation" className={disabled ? 'disabled' : null}>
       <a
         href={`#${id}`}
         aria-controls={id}
         role="tab"
         data-toggle="tab"
-        data-modify-history="true"
         ref={tabEl}
+        onClick={handleClick}
       >
         {children}
         {Number.isInteger(headingCount) && <span className="badge">{headingCount}</span>}

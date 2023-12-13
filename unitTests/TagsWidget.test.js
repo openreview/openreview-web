@@ -1,7 +1,6 @@
+import { screen, render } from '@testing-library/react'
 import TagsWidget from '../components/EditorComponents/TagsWidget'
-import { screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import { render } from '@testing-library/react'
 
 global.$ = jest.fn(() => ({
   tooltip: jest.fn(),
@@ -27,9 +26,9 @@ describe('TagsWidget', () => {
 
     render(<TagsWidget values={values} />)
 
-    expect(screen.getByText('value 1'))
-    expect(screen.getByText('value 2'))
-    expect(screen.getByText('value 3'))
+    expect(screen.getByText('value 1')).toBeInTheDocument()
+    expect(screen.getByText('value 2')).toBeInTheDocument()
+    expect(screen.getByText('value 3')).toBeInTheDocument()
   })
 
   test('display text between {} as emphasis', () => {
@@ -38,13 +37,15 @@ describe('TagsWidget', () => {
       '${2/note/content/authorids/value}',
       '${3/signatures}',
       'ICML.cc/2023/Conference/Submission${2/note/number}/Authors',
+      '${2/content/venue_id/value}',
     ]
 
     render(<TagsWidget values={values} />)
-    expect(screen.getByText('ICML 2023 Conference'))
+    expect(screen.getByText('ICML 2023 Conference')).toBeInTheDocument()
     expect(screen.getByText('authorids')).toHaveClass('emphasis')
     expect(screen.getByText('signatures')).toHaveClass('emphasis')
     expect(screen.getByText('number')).toHaveClass('emphasis')
+    expect(screen.getByText('venue id')).toHaveClass('emphasis')
   })
 
   test('display tooltip based on id', () => {
@@ -57,9 +58,9 @@ describe('TagsWidget', () => {
 
     render(<TagsWidget values={values} />)
     const textTag = screen.getByText('ICML 2023 Conference')
-    const valueTag = screen.getByText('authorids').closest('span')
-    const signaturesTag = screen.getByText('signatures').closest('span')
-    const numberTag = screen.getByText('number').closest('span')
+    const valueTag = screen.getByText('authorids').closest('div')
+    const signaturesTag = screen.getByText('signatures').closest('div')
+    const numberTag = screen.getByText('number').closest('div')
     expect(textTag).toHaveAttribute('title', 'ICML.cc/2023/Conference')
     expect(valueTag).toHaveAttribute(
       'title',

@@ -10,8 +10,8 @@ const VenueItemDBLP = ({ venue }) => (
   <p>
     {venue.content.shortname}
     {' – '}
-    <Link href={`/venue?id=${venue.id}`}>
-      <a title={`View proceedings of ${venue.content.name}`}>{venue.content.name}</a>
+    <Link href={`/venue?id=${venue.id}`} title={`View proceedings of ${venue.content.name}`}>
+      {venue.content.name}
     </Link>
   </p>
 )
@@ -19,8 +19,8 @@ const VenueItemDBLP = ({ venue }) => (
 // Post migration Delete this
 const VenueItem = ({ id, name }) => (
   <h3>
-    <Link href={`/venue?id=${id}`}>
-      <a title={`View venues of ${name}`}>{name}</a>
+    <Link href={`/venue?id=${id}`} title={`View venues of ${name}`}>
+      {name}
     </Link>
   </h3>
 )

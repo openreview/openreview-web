@@ -13,6 +13,8 @@ import {
   getNumberFromGroup,
   getProfileName,
   prettyId,
+  parseNumberField,
+  isValidEmail,
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
@@ -34,7 +36,8 @@ const ProgramChairConsole = ({ appContext }) => {
     authorsId,
     paperReviewsCompleteThreshold,
     bidName,
-    recommendationName,
+    recommendationName, // to get ac recommendation edges
+    metaReviewRecommendationName = 'recommendation', // recommendation field in meta review
     requestFormId,
     submissionId,
     submissionVenueId,
@@ -60,6 +63,7 @@ const ProgramChairConsole = ({ appContext }) => {
     areaChairStatusExportColumns,
     customStageInvitations,
     assignmentUrls,
+    emailReplyTo,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -73,6 +77,7 @@ const ProgramChairConsole = ({ appContext }) => {
 
   const loadData = async () => {
     if (isLoadingData) return
+
     setIsLoadingData(true)
     try {
       // #region getInvitationMap
@@ -82,8 +87,9 @@ const ProgramChairConsole = ({ appContext }) => {
           prefix: `${venueId}/-/.*`,
           expired: true,
           type: 'all',
+          domain: venueId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       const reviewerInvitationsP = api.getAll(
         '/invitations',
@@ -91,8 +97,9 @@ const ProgramChairConsole = ({ appContext }) => {
           prefix: `${reviewersId}/-/.*`,
           expired: true,
           type: 'all',
+          domain: venueId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       const acInvitationsP = areaChairsId
         ? api.getAll(
@@ -101,8 +108,9 @@ const ProgramChairConsole = ({ appContext }) => {
               prefix: `${areaChairsId}/-/.*`,
               expired: true,
               type: 'all',
+              domain: venueId,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
       const sacInvitationsP = seniorAreaChairsId
@@ -112,8 +120,9 @@ const ProgramChairConsole = ({ appContext }) => {
               prefix: `${seniorAreaChairsId}/-/.*`,
               expired: true,
               type: 'all',
+              domain: venueId,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
 
@@ -123,8 +132,9 @@ const ProgramChairConsole = ({ appContext }) => {
             {
               ids: customStageInvitations.map((p) => `${venueId}/-/${p.name}`),
               type: 'note',
+              domain: venueId,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
 
@@ -148,7 +158,7 @@ const ProgramChairConsole = ({ appContext }) => {
                 limit: 1,
                 select: 'id,content',
               },
-              { accessToken } // request form is in v1
+              { accessToken, version: 1 } // request form is currently in v1
             )
             .then(
               (result) => result.notes?.[0],
@@ -168,8 +178,9 @@ const ProgramChairConsole = ({ appContext }) => {
                   invitation: `${prefix}/-/.*`,
                   signature: venueId,
                   select: 'id,invitation,invitations,content.title',
+                  domain: venueId,
                 },
-                { accessToken, version: 2 }
+                { accessToken }
               )
               .then((notes) =>
                 notes.filter((note) => note.invitations.some((p) => p.includes('Form')))
@@ -179,10 +190,12 @@ const ProgramChairConsole = ({ appContext }) => {
       const getRegistrationFormResultsP = Promise.all(getRegistrationFormPs)
       // #endregion
 
-      // #region get Reviewer,AC,SAC Members
+      // #region get Reviewer, AC, SAC members
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
-          id ? api.getGroupById(id, accessToken, { select: 'members' }) : Promise.resolve([])
+          id
+            ? api.getGroupById(id, accessToken, { select: 'members' })
+            : Promise.resolve([])
         )
       )
       // #endregion
@@ -195,8 +208,9 @@ const ProgramChairConsole = ({ appContext }) => {
           details: 'replies',
           select: 'id,number,forum,content,details,invitations,readers',
           sort: 'number:asc',
+          domain: venueId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       // #endregion
 
@@ -210,7 +224,7 @@ const ProgramChairConsole = ({ appContext }) => {
                   invitation: `${reviewersId}/-/${recommendationName}`,
                   groupBy: 'id',
                   select: 'signatures',
-                  stream: true,
+                  domain: venueId,
                 },
                 { accessToken }
               )
@@ -227,16 +241,17 @@ const ProgramChairConsole = ({ appContext }) => {
           : Promise.resolve([])
       // #endregion
 
-      // #region get Reviewer,AC,SAC bid
+      // #region get Reviewer, AC, SAC bids
       const bidCountResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) => {
-          if (!id || !bidName) return Promise.resolve({})
+          if (!id || !bidName) return Promise.resolve([])
           return api.getAll(
             '/edges',
             {
               invitation: `${id}/-/${bidName}`,
               groupBy: 'tail',
               select: 'count',
+              domain: venueId,
             },
             { accessToken, resultsKey: 'groupedEdges' }
           )
@@ -248,9 +263,10 @@ const ProgramChairConsole = ({ appContext }) => {
       const perPaperGroupResultsP = api.get(
         '/groups',
         {
-          id: `${venueId}/${submissionName}.*`,
+          prefix: `${venueId}/${submissionName}.*`,
           stream: true,
           select: 'id,members',
+          domain: venueId,
         },
         { accessToken }
       )
@@ -287,26 +303,47 @@ const ProgramChairConsole = ({ appContext }) => {
       const seniorAreaChairGroups = []
       let allGroupMembers = []
       perPaperGroupResults.groups?.forEach((p) => {
+        const number = getNumberFromGroup(p.id, submissionName)
+        const noteVenueId = notes.find((q) => q.number === number)?.content?.venueid?.value
+        if (
+          !noteVenueId ||
+          noteVenueId === withdrawnVenueId ||
+          noteVenueId === deskRejectedVenueId
+        )
+          return
         if (p.id.endsWith(`/${reviewerName}`)) {
           reviewerGroups.push({
-            noteNumber: getNumberFromGroup(p.id, submissionName),
+            noteNumber: number,
             ...p,
           })
-          allGroupMembers = allGroupMembers.concat(p.members)
+          p.members.forEach((member) => {
+            if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
+            if (!(member in anonReviewerGroups[number]) && member.includes(anonReviewerName)) {
+              anonReviewerGroups[number][member] = member
+            }
+          })
         } else if (p.id.includes(anonReviewerName)) {
-          const number = getNumberFromGroup(p.id, submissionName)
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
-          if (p.members.length) anonReviewerGroups[number][p.members[0]] = p.id
+          if (p.members.length) anonReviewerGroups[number][p.id] = p.members[0]
+          allGroupMembers = allGroupMembers.concat(p.members)
         } else if (p.id.endsWith(`/${areaChairName}`)) {
           areaChairGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
             ...p,
           })
-          allGroupMembers = allGroupMembers.concat(p.members)
+          p.members.forEach((member) => {
+            if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
+            if (
+              !(member in anonAreaChairGroups[number]) &&
+              member.includes(anonAreaChairName)
+            ) {
+              anonAreaChairGroups[number][member] = member
+            }
+          })
         } else if (p.id.includes(anonAreaChairName)) {
-          const number = getNumberFromGroup(p.id, submissionName)
           if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
-          if (p.members.length) anonAreaChairGroups[number][p.members[0]] = p.id
+          if (p.members.length) anonAreaChairGroups[number][p.id] = p.members[0]
+          allGroupMembers = allGroupMembers.concat(p.members)
         } else if (p.id.endsWith(seniorAreaChairName)) {
           seniorAreaChairGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
@@ -363,25 +400,51 @@ const ProgramChairConsole = ({ appContext }) => {
       const decisionByPaperNumberMap = new Map()
       const customStageReviewsByPaperNumberMap = new Map()
       notes.forEach((note) => {
-        const replies = note.details.replies // eslint-disable-line prefer-destructuring
+        const replies = note.details.replies ?? []
         const officialReviews = replies
           .filter((p) => {
             const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
             return p.invitations.includes(officialReviewInvitationId)
           })
-          ?.map((review) => ({
-            ...review,
-            anonId: getIndentifierFromGroup(review.signatures[0], anonReviewerName),
-          }))
+          .map((review) => {
+            let anonymousGroupId
+            if (review.signatures[0].startsWith('~')) {
+              const idToAnonIdMap = Object.keys(anonReviewerGroups[note.number] ?? {}).reduce(
+                (prev, curr) => ({ ...prev, [anonReviewerGroups[note.number][curr]]: curr }),
+                {}
+              )
+
+              Object.entries(idToAnonIdMap).forEach(
+                ([anonReviewerId, anonReviewerGroupId]) => {
+                  const profile = allProfilesMap.get(anonReviewerId)
+                  if (!profile) return
+                  const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+                  const profileEmails = profile.content.emails.filter((p) => p)
+                  usernames.concat(profileEmails).forEach((key) => {
+                    idToAnonIdMap[key] = anonReviewerGroupId
+                  })
+                }
+              )
+              anonymousGroupId = idToAnonIdMap?.[review.signatures[0]] ?? ''
+            } else {
+              anonymousGroupId = review.signatures[0]
+            }
+
+            return {
+              ...review,
+              anonId: getIndentifierFromGroup(anonymousGroupId, anonReviewerName),
+            }
+          })
         const metaReviews = replies
           .filter((p) => {
             const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
             return p.invitations.includes(officialMetaReviewInvitationId)
           })
-          ?.map((metaReview) => ({
+          .map((metaReview) => ({
             ...metaReview,
             anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
           }))
+
         const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
         const decision = replies.find((p) => p.invitations.includes(decisionInvitationId))
         const customStageInvitationIds = customStageInvitations
@@ -428,16 +491,22 @@ const ProgramChairConsole = ({ appContext }) => {
         paperGroups: {
           anonReviewerGroups,
           reviewerGroups: reviewerGroups.map((reviewerGroup) => {
-            const paperAnonReviewerGroups = anonReviewerGroups[reviewerGroup.noteNumber]
+            const paperAnonReviewerGroups = anonReviewerGroups[reviewerGroup.noteNumber] || {}
             return {
               ...reviewerGroup,
               members: reviewerGroup.members.flatMap((member) => {
-                const reviewerAnonGroup = paperAnonReviewerGroups[member]
-                if (!reviewerAnonGroup) return []
+                let deanonymizedGroup = paperAnonReviewerGroups[member]
+                let anonymizedGroup = member
+                if (!deanonymizedGroup) {
+                  deanonymizedGroup = member
+                  anonymizedGroup = Object.keys(paperAnonReviewerGroups).find(
+                    (key) => paperAnonReviewerGroups[key] === member
+                  )
+                }
                 return {
-                  reviewerProfileId: member,
-                  reviewerAnonGroup,
-                  anonymousId: getIndentifierFromGroup(reviewerAnonGroup, anonReviewerName),
+                  reviewerProfileId: deanonymizedGroup,
+                  anonymizedGroup,
+                  anonymousId: getIndentifierFromGroup(anonymizedGroup, anonReviewerName),
                 }
               }),
             }
@@ -447,13 +516,22 @@ const ProgramChairConsole = ({ appContext }) => {
             const paperAnonAreaChairGroups = anonAreaChairGroups[areaChairGroup.noteNumber]
             return {
               ...areaChairGroup,
-              members: areaChairGroup.members.map((member) => {
-                const areaChairAnonGroup = paperAnonAreaChairGroups?.[member]
+              members: areaChairGroup.members.flatMap((member) => {
+                let deanonymizedGroup = paperAnonAreaChairGroups?.[member]
+                let anonymizedGroup = member
+                if (!deanonymizedGroup) {
+                  deanonymizedGroup = member
+                  anonymizedGroup = Object.keys(paperAnonAreaChairGroups).find(
+                    (key) => paperAnonAreaChairGroups[key] === member
+                  )
+                }
+                if (!(isValidEmail(deanonymizedGroup) || deanonymizedGroup?.startsWith('~')))
+                  return []
                 return {
-                  areaChairProfileId: member,
-                  areaChairAnonGroup,
-                  anonymousId: areaChairAnonGroup
-                    ? getIndentifierFromGroup(areaChairAnonGroup, anonAreaChairName)
+                  areaChairProfileId: deanonymizedGroup,
+                  anonymizedGroup,
+                  anonymousId: anonymizedGroup
+                    ? getIndentifierFromGroup(anonymizedGroup, anonAreaChairName)
                     : null,
                 }
               }),
@@ -505,30 +583,37 @@ const ProgramChairConsole = ({ appContext }) => {
 
       const officialReviews =
         pcConsoleData.officialReviewsByPaperNumberMap?.get(note.number)?.map((q) => {
-          const reviewRatingValue = q.content[reviewRatingName]?.value
-          const ratingNumber = reviewRatingValue
-            ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
-            : null
-          const confidenceValue = q.content[reviewConfidenceName]?.value
-
-          const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
           const reviewValue = q.content.review?.value
           return {
             anonymousId: q.anonId,
-            confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
-            rating: ratingNumber ? parseInt(ratingNumber, 10) : null,
+            confidence: parseNumberField(q.content[reviewConfidenceName]?.value),
+            ...Object.fromEntries(
+              (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+                (ratingName) => [[ratingName], parseNumberField(q.content[ratingName]?.value)]
+              )
+            ),
             reviewLength: reviewValue?.length,
             forum: q.forum,
             id: q.id,
           }
         }) ?? []
-      const ratings = officialReviews.map((p) => p.rating)
-      const validRatings = ratings.filter((p) => p !== null)
-      const ratingAvg = validRatings.length
-        ? (validRatings.reduce((sum, curr) => sum + curr, 0) / validRatings.length).toFixed(2)
-        : 'N/A'
-      const ratingMin = validRatings.length ? Math.min(...validRatings) : 'N/A'
-      const ratingMax = validRatings.length ? Math.max(...validRatings) : 'N/A'
+      const ratings = Object.fromEntries(
+        (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+          (ratingName) => {
+            const ratingValues = officialReviews.map((p) => p[ratingName])
+            const validRatingValues = ratingValues.filter((p) => p !== null)
+            const ratingAvg = validRatingValues.length
+              ? (
+                  validRatingValues.reduce((sum, curr) => sum + curr, 0) /
+                  validRatingValues.length
+                ).toFixed(2)
+              : 'N/A'
+            const ratingMin = validRatingValues.length ? Math.min(...validRatingValues) : 'N/A'
+            const ratingMax = validRatingValues.length ? Math.max(...validRatingValues) : 'N/A'
+            return [ratingName, { ratingAvg, ratingMin, ratingMax }]
+          }
+        )
+      )
 
       const confidences = officialReviews.map((p) => p.confidence)
       const validConfidences = confidences.filter((p) => p !== null)
@@ -555,7 +640,8 @@ const ProgramChairConsole = ({ appContext }) => {
         const metaReviewAgreementValue =
           metaReviewAgreement?.content?.[metaReviewAgreementConfig?.displayField]?.value
         return {
-          [recommendationName]: metaReview?.content[recommendationName]?.value,
+          [metaReviewRecommendationName]:
+            metaReview?.content[metaReviewRecommendationName]?.value,
           ...metaReview,
           metaReviewAgreement: metaReviewAgreement
             ? {
@@ -597,9 +683,7 @@ const ProgramChairConsole = ({ appContext }) => {
           reviewers: assignedReviewerProfiles,
           numReviewersAssigned: assignedReviewers.length,
           numReviewsDone: officialReviews.length,
-          ratingAvg,
-          ratingMax,
-          ratingMin,
+          ratings,
           confidenceAvg,
           confidenceMax,
           confidenceMin,
@@ -633,7 +717,7 @@ const ProgramChairConsole = ({ appContext }) => {
           numMetaReviewsDone: metaReviews.length,
           metaReviews,
           metaReviewsSearchValue: metaReviews?.length
-            ? metaReviews.map((p) => p[recommendationName]).join(' ')
+            ? metaReviews.map((p) => p[metaReviewRecommendationName]).join(' ')
             : 'N/A',
           metaReviewAgreementSearchValue: metaReviews
             .map((p) => p.metaReviewAgreement.searchValue)
@@ -657,6 +741,7 @@ const ProgramChairConsole = ({ appContext }) => {
               invitation: `${seniorAreaChairsId}/-/Assignment`,
               groupBy: 'head,tail',
               select: 'head,tail',
+              domain: venueId,
             },
             { accessToken }
           )
@@ -745,7 +830,7 @@ const ProgramChairConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!userLoading && (!user || !user.profile || user.profile.id === 'guest')) {
+    if (!userLoading && !user) {
       router.replace(
         `/login?redirect=${encodeURIComponent(
           `${window.location.pathname}${window.location.search}${window.location.hash}`
@@ -761,7 +846,7 @@ const ProgramChairConsole = ({ appContext }) => {
 
   useEffect(() => {
     if (!activeTabId) return
-    window.history.replaceState(null, null, activeTabId)
+    router.replace(activeTabId)
   }, [activeTabId])
 
   const missingConfig = Object.entries({
@@ -772,8 +857,6 @@ const ProgramChairConsole = ({ appContext }) => {
     programChairsId,
     authorsId,
     paperReviewsCompleteThreshold,
-    bidName,
-    recommendationName,
     submissionId,
     officialReviewName,
     commentName,

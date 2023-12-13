@@ -4,46 +4,53 @@ import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import MessageReviewersModal from '../MessageReviewersModal'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
-import { prettyId } from '../../../lib/utils'
+import { prettyField, prettyId } from '../../../lib/utils'
 
 const PaperStatusMenuBar = ({
   tableRowsAll,
   tableRows,
   selectedNoteIds,
   setPaperStatusTabData,
+  reviewRatingName,
 }) => {
   const {
     apiVersion,
-    recommendationName,
+    metaReviewRecommendationName,
     shortPhrase,
     enableQuerySearch,
     seniorAreaChairsId,
     paperStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
-    propertiesAllowed: propertiesAllowedConfig,
+    propertiesAllowed: extraPropertiesAllowed,
     customStageInvitations = [],
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
-  const propertiesAllowed = propertiesAllowedConfig ?? {
+  const propertiesAllowed = {
     number: ['note.number'],
     id: ['note.id'],
-    title: ['note.content.title', 'note.content.title.value'],
+    title: ['note.content.title.value'],
     author: ['note.content.authors.value', 'note.content.authorids.value'],
-    keywords: ['note.content.keywords', 'note.content.keywords.value'],
+    keywords: ['note.content.keywords.value'],
     reviewer: ['reviewers'],
     numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
     numReviewsDone: ['reviewProgressData.numReviewsDone'],
-    ratingAvg: ['reviewProgressData.ratingAvg'],
-    ratingMax: ['reviewProgressData.ratingMax'],
-    ratingMin: ['reviewProgressData.ratingMin'],
+    ...Object.fromEntries(
+      (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
+        (ratingName) => [
+          [`${ratingName}Avg`, [`reviewProgressData.ratings.${ratingName}.ratingAvg`]],
+          [`${ratingName}Max`, [`reviewProgressData.ratings.${ratingName}.ratingMax`]],
+          [`${ratingName}Min`, [`reviewProgressData.ratings.${ratingName}.ratingMin`]],
+        ]
+      )
+    ),
     confidenceAvg: ['reviewProgressData.confidenceAvg'],
     confidenceMax: ['reviewProgressData.confidenceMax'],
     confidenceMin: ['reviewProgressData.confidenceMin'],
     replyCount: ['reviewProgressData.replyCount'],
     decision: ['decision'],
     venue: ['venue'],
-    ...(recommendationName && {
-      [recommendationName]: ['metaReviewData.metaReviewsSearchValue'],
+    ...(metaReviewRecommendationName && {
+      [metaReviewRecommendationName]: ['metaReviewData.metaReviewsSearchValue'],
     }),
     ...(customStageInvitations?.length > 0 &&
       customStageInvitations.reduce(
@@ -53,7 +60,15 @@ const PaperStatusMenuBar = ({
         }),
         {}
       )),
+    ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
   }
+
+  Object.keys(propertiesAllowed).forEach((key) => {
+    if (!Array.isArray(propertiesAllowed[key]) || propertiesAllowed[key].length === 0) {
+      delete propertiesAllowed[key]
+    }
+  })
+
   const messageReviewerOptions = [
     { label: 'All Reviewers of selected papers', value: 'allReviewers' },
     { label: 'Reviewers of selected papers with submitted reviews', value: 'withReviews' },
@@ -91,9 +106,22 @@ const PaperStatusMenuBar = ({
       getValue: (p) =>
         p.reviewers.map((q) => `${q.preferredName}<${q.preferredEmail}>`).join(','),
     },
-    { header: 'min rating', getValue: (p) => p.reviewProgressData?.ratingMin },
-    { header: 'max rating', getValue: (p) => p.reviewProgressData?.ratingMax },
-    { header: 'average rating', getValue: (p) => p.reviewProgressData?.ratingAvg },
+    ...(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
+      (ratingName) => [
+        {
+          header: `min ${ratingName}`,
+          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingMin,
+        },
+        {
+          header: `max ${ratingName}`,
+          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingMax,
+        },
+        {
+          header: `average ${ratingName}`,
+          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg,
+        },
+      ]
+    ),
     { header: 'min confidence', getValue: (p) => p.reviewProgressData?.confidenceMin },
     { header: 'max confidence', getValue: (p) => p.reviewProgressData?.confidenceMax },
     { header: 'average confidence', getValue: (p) => p.reviewProgressData?.confidenceAvg },
@@ -115,7 +143,11 @@ const PaperStatusMenuBar = ({
     {
       header: 'meta reviews',
       getValue: (p) =>
-        p.metaReviewData?.metaReviews?.map((q) => q[recommendationName])?.join('|'),
+        p.metaReviewData?.metaReviews?.map((q) => q[metaReviewRecommendationName])?.join('|'),
+    },
+    {
+      header: 'decision',
+      getValue: (p) => p.decision,
     },
     ...(seniorAreaChairsId
       ? [
@@ -177,29 +209,35 @@ const PaperStatusMenuBar = ({
         getValueWithDefault(p.reviewProgressData?.numReviewsDone),
       initialDirection: 'desc',
     },
-
-    {
-      label: 'Average Rating',
-      value: 'Average Rating',
-      getValue: (p) => getValueWithDefault(p.reviewProgressData?.ratingAvg),
-    },
-    {
-      label: 'Max Rating',
-      value: 'Max Rating',
-      getValue: (p) => getValueWithDefault(p.reviewProgressData?.ratingMax),
-    },
-    {
-      label: 'Min Rating',
-      value: 'Min Rating',
-      getValue: (p) => getValueWithDefault(p.reviewProgressData?.ratingMin),
-    },
-    {
-      label: 'Rating Range',
-      value: 'Rating Range',
-      getValue: (p) =>
-        getValueWithDefault(p.reviewProgressData.ratingMax) -
-        getValueWithDefault(p.reviewProgressData?.ratingMin),
-    },
+    ...(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
+      (ratingName) => [
+        {
+          label: `Average ${prettyField(ratingName)}`,
+          value: `Average ${ratingName}`,
+          getValue: (p) =>
+            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg),
+        },
+        {
+          label: `Max ${prettyField(ratingName)}`,
+          value: `Max ${ratingName}`,
+          getValue: (p) =>
+            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMax),
+        },
+        {
+          label: `Min ${prettyField(ratingName)}`,
+          value: `Min ${ratingName}`,
+          getValue: (p) =>
+            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMin),
+        },
+        {
+          label: `${prettyField(ratingName)} Range`,
+          value: `${ratingName} Range`,
+          getValue: (p) =>
+            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMax) -
+            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMin),
+        },
+      ]
+    ),
     {
       label: 'Average Confidence',
       value: 'Average Confidence',
@@ -245,6 +283,7 @@ const PaperStatusMenuBar = ({
         ]
       : []),
   ]
+
   const basicSearchFunction = (row, term) =>
     row.note.number == term || // eslint-disable-line eqeqeq
     row.note.content?.title?.value?.toLowerCase()?.includes(term)

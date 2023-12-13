@@ -30,9 +30,15 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
 }
 
 const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venue }) => {
-  const { venueId, officialReviewName, shortPhrase, seniorAreaChairName, submissionName } =
-    useContext(WebFieldContext)
-  const { note, metaReviewData } = rowData
+  const {
+    venueId,
+    officialReviewName,
+    shortPhrase,
+    seniorAreaChairName,
+    submissionName,
+    metaReviewRecommendationName,
+  } = useContext(WebFieldContext)
+  const { note } = rowData
   const referrerUrl = encodeURIComponent(
     `[Senior Area Chair Console](/group?id=${venueId}/${seniorAreaChairName}#paper-status)`
   )
@@ -77,6 +83,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
         <ProgramChairConsolePaperAreaChairProgress
           rowData={rowData}
           referrerUrl={referrerUrl}
+          metaReviewRecommendationName={metaReviewRecommendationName}
         />
       </td>
       <td className="console-decision">
@@ -92,6 +99,7 @@ const PaperStatus = ({ sacConsoleData }) => {
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(sacConsoleData.notes?.length ?? 0)
+  const { reviewRatingName } = useContext(WebFieldContext)
   const pageSize = 25
 
   useEffect(() => {
@@ -139,6 +147,7 @@ const PaperStatus = ({ sacConsoleData }) => {
           tableRows={paperStatusTabData.tableRows}
           selectedNoteIds={selectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
+          reviewRatingName={reviewRatingName}
         />
         <p className="empty-message">No papers matching search criteria.</p>
       </div>
@@ -150,7 +159,9 @@ const PaperStatus = ({ sacConsoleData }) => {
         tableRows={paperStatusTabData.tableRows}
         selectedNoteIds={selectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
+        reviewRatingName={reviewRatingName}
       />
+
       <Table
         className="console-table table-striped pc-console-paper-status"
         headings={[
@@ -183,6 +194,7 @@ const PaperStatus = ({ sacConsoleData }) => {
           />
         ))}
       </Table>
+
       <PaginationLinks
         currentPage={pageNumber}
         itemsPerPage={pageSize}

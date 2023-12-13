@@ -13,7 +13,7 @@ const MessageAreaChairsModal = ({
   messageParentGroup,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase } = useContext(WebFieldContext)
+  const { shortPhrase, emailReplyTo, submissionVenueId } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -36,6 +36,7 @@ const MessageAreaChairsModal = ({
           subject,
           message,
           parentGroup: messageParentGroup,
+          replyTo: emailReplyTo,
         },
         { accessToken }
       )
@@ -56,10 +57,18 @@ const MessageAreaChairsModal = ({
         return tableRows.filter((row) => row.numCompletedReviews < row.notes?.length ?? 0)
       case 'noMetaReviews':
         return tableRows.filter(
-          (row) => row.numCompletedMetaReviews === 0 && (row.notes?.length ?? 0) !== 0
+          (row) =>
+            row.numCompletedMetaReviews === 0 &&
+            (row.notes?.filter((p) => p.note.content?.venueid?.value === submissionVenueId)
+              .length ?? 0) !== 0
         )
       case 'missingMetaReviews':
-        return tableRows.filter((row) => row.numCompletedMetaReviews < row.notes?.length ?? 0)
+        return tableRows.filter(
+          (row) =>
+            row.numCompletedMetaReviews <
+              row.notes?.filter((p) => p.note.content?.venueid?.value === submissionVenueId)
+                .length ?? 0
+        )
       case 'missingAssignments':
         return tableRows.filter((row) => !row.notes?.length)
       default:
@@ -237,11 +246,15 @@ const AreaChairStatusMenuBar = ({
       value: 'Area Chair Name',
       getValue: (p) => p.areaChairProfile?.preferredName ?? p.areaChairProfileId,
     },
-    {
-      label: 'Bids Completed',
-      value: 'Bids Completed',
-      getValue: (p) => p.completedBids,
-    },
+    ...(bidEnabled
+      ? [
+          {
+            label: 'Bids Completed',
+            value: 'Bids Completed',
+            getValue: (p) => p.completedBids,
+          },
+        ]
+      : []),
     {
       label: 'Reviewer Recommendations Completed',
       value: 'Reviewer Recommendations Completed',

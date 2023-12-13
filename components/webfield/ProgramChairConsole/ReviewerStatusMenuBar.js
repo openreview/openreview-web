@@ -12,7 +12,7 @@ const MessageReviewersModal = ({
   messageParentGroup,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase } = useContext(WebFieldContext)
+  const { shortPhrase, emailReplyTo } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -35,6 +35,7 @@ const MessageReviewersModal = ({
           subject,
           message,
           parentGroup: messageParentGroup,
+          replyTo: emailReplyTo,
         },
         { accessToken }
       )
@@ -51,6 +52,8 @@ const MessageReviewersModal = ({
         return tableRows.filter((row) => row.completedBids === 0)
       case 'missingReviews':
         return tableRows.filter((row) => row.numCompletedReviews < row.notesInfo?.length ?? 0)
+      case 'submittedReviews':
+        return tableRows.filter((row) => row.numCompletedReviews > 0)
       case 'noAssignments':
         return tableRows.filter((row) => !row.notesInfo?.length)
       default:
@@ -89,6 +92,7 @@ const MessageReviewersModal = ({
       primaryButtonDisabled={!totalMessagesCount || !message}
       onClose={() => {
         setCurrentStep(1)
+        setMessage(null)
       }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
@@ -158,6 +162,7 @@ const ReviewerStatusMenuBar = ({
         ]
       : []),
     { label: 'Reviewers with unsubmitted reviews', value: 'missingReviews' },
+    { label: 'Reviewers with submitted reviews', value: 'submittedReviews' },
     { label: 'Reviewers with 0 assignments', value: 'noAssignments' },
   ]
 
@@ -194,11 +199,15 @@ const ReviewerStatusMenuBar = ({
       value: 'Reviewer Name',
       getValue: (p) => p.reviewerProfile?.preferredName ?? p.reviewerProfileId,
     },
-    {
-      label: 'Bids Completed',
-      value: 'Bids Completed',
-      getValue: (p) => p.completedBids,
-    },
+    ...(bidEnabled
+      ? [
+          {
+            label: 'Bids Completed',
+            value: 'Bids Completed',
+            getValue: (p) => p.completedBids,
+          },
+        ]
+      : []),
     {
       label: 'Papers Assigned',
       value: 'Papers Assigned',

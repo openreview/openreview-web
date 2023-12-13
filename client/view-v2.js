@@ -1,8 +1,9 @@
 /* globals $, _: false */
 /* globals view, Webfield, Webfield2: false */
 /* globals promptError, typesetMathJax: false */
-/* globals marked, DOMPurify, MathJax, Handlebars: false */
+/* globals marked, nanoid, DOMPurify, MathJax, Handlebars: false */
 
+// eslint-disable-next-line wrap-iife
 module.exports = (function () {
   const valueInput = (contentInput, fieldName, fieldDescription) => {
     const $smallHeading = $('<div>', {
@@ -424,9 +425,9 @@ module.exports = (function () {
       if (params?.note) {
         authors = params.note.content.authors?.value
         authorids = params.note.content.authorids?.value
-      } else if (params && params.user) {
+      } else if (params?.user) {
         const userProfile = params.user.profile
-        authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last]
+        authors = [userProfile.fullname]
         authorids = [userProfile.preferredId]
       }
       const invitationRegex = fieldDescription.value.param?.regex
@@ -702,12 +703,11 @@ module.exports = (function () {
         $elem.text(valueString)
         $elem.html(view.autolinkHtml($elem.html()))
       }
+      var formattedFieldName = presentationDetails?.fieldName ?? view.prettyField(fieldName)
 
       $contents.push(
         $('<div>', { class: 'note_contents' }).append(
-          $('<span>', { class: 'note_content_field' }).text(
-            view.prettyField(fieldName) + ': '
-          ),
+          $('<span>', { class: 'note_content_field' }).text(formattedFieldName + ': '),
           privateLabel,
           $elem
         )
@@ -1175,8 +1175,8 @@ module.exports = (function () {
       },
       {}
     )
-    const uploadInProgressFields = []
 
+    var uploadInProgressFields = []
     function buildEditor(editReaders, editSignatures, noteReaders, noteSignatures) {
       var $submitButton = $('<button class="btn btn-sm">Submit</button>')
       var $cancelButton = $('<button class="btn btn-sm">Cancel</button>')
@@ -1902,8 +1902,7 @@ module.exports = (function () {
       {}
     )
 
-    const uploadInProgressFields = []
-
+    var uploadInProgressFields = []
     const buildEditor = (editReaders, editSignatures, noteReaders, noteSignatures) => {
       const $submitButton = $('<button class="btn btn-sm">Submit</button>')
       const $cancelButton = $('<button class="btn btn-sm">Cancel</button>')
@@ -2329,6 +2328,12 @@ module.exports = (function () {
           note[otherNoteField] =
             formData?.noteSignatureInputValues ?? noteObj?.[otherNoteField]
           break
+        case 'license':
+          note[otherNoteField] = formData?.noteLicenseValue ?? noteObj?.[otherNoteField]
+          break
+        case 'pdate':
+          note[otherNoteField] = formData?.notePDateValue ?? noteObj?.[otherNoteField]
+          break
         default:
           note[otherNoteField] = formData?.[otherNoteField] ?? noteObj?.[otherNoteField]
           break
@@ -2338,12 +2343,14 @@ module.exports = (function () {
     // content fields
     Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
       if (
-        formData?.[contentFieldName] === undefined &&
-        noteObj?.content?.[contentFieldName] === undefined
+        (formData?.[contentFieldName] === undefined ||
+          formData?.[contentFieldName]?.delete === true) &&
+        noteObj?.content?.[contentFieldName]?.value === undefined
       ) {
         // do not return field
         return
       }
+
       var valueObj = contentFieldValue.value
       if (valueObj) {
         if (
@@ -2352,11 +2359,21 @@ module.exports = (function () {
         ) {
           return
         } else {
+          var newVal = formData?.[contentFieldName]
+          if (
+            typeof newVal === 'string' &&
+            (valueObj.param?.input === 'text' ||
+              valueObj.param?.input === 'textarea' ||
+              (valueObj.param?.type === 'string' && !valueObj.param?.enum))
+          ) {
+            newVal = newVal?.trim()
+          }
           content[contentFieldName] = {
-            value: formData?.[contentFieldName] ?? noteObj?.content?.[contentFieldName]?.value,
+            value: newVal ?? noteObj?.content?.[contentFieldName]?.value,
           }
         }
       }
+
       var fieldReader = contentFieldValue.readers
       if (fieldReader) {
         if (!fieldReader.const) {
@@ -2374,50 +2391,59 @@ module.exports = (function () {
   const constructUpdatedEdit = (edit, invitation, formContent) => {
     const shouldSetValue = (fieldPath) => {
       const field = _.get(invitation, fieldPath)
-      return field && field.param
+      return field && field.param && !field.param.const
     }
 
     const editToPost = {}
     Object.keys(invitation.edit).forEach((p) => {
-      editToPost[p] = edit[p]
+      if (shouldSetValue(`edit.${p}`) && edit[p]) {
+        editToPost[p] = edit[p]
+      }
     })
     editToPost.id = edit.id
     editToPost.invitation = edit.invitation
     if (shouldSetValue('edit.readers')) {
-      editToPost.readers = formContent.editReaderValues
+      editToPost.readers = formContent.editReaderValues ?? edit.readers
     }
     if (shouldSetValue('edit.signatures')) {
-      editToPost.signatures = formContent.editSignatureInputValues
+      editToPost.signatures = formContent.editSignatureInputValues ?? edit.signatures
     }
+
     const editNote = {}
     Object.keys(invitation.edit.note).forEach((p) => {
-      if (shouldSetValue(`edit.note.${p}`)) editNote[p] = edit.note[p]
+      if (shouldSetValue(`edit.note.${p}`)) {
+        switch (p) {
+          case 'license':
+            editNote[p] = formContent.noteLicenseValue ?? edit.note[p]
+            break
+          case 'pdate':
+            editNote[p] = formContent.notePDateValue ?? edit.note[p]
+            break
+          default:
+            editNote[p] = edit.note[p]
+            break
+        }
+      }
     })
 
     if (invitation.edit.note?.content) {
-      editNote.content = Object.entries(invitation.edit.note.content).reduce(
-        (acc, [fieldName, fieldValue]) => {
-          if (formContent[fieldName] === undefined) {
-            if (
-              fieldValue.readers &&
-              shouldSetValue(`edit.note.content.${fieldName}.readers`)
-            ) {
-              acc[fieldName] = {
-                readers: edit.note?.content?.[fieldName]?.readers,
-              }
+      editNote.content = {}
+      Object.keys(invitation.edit.note.content).forEach((fieldName) => {
+        if (formContent[fieldName] === undefined) {
+          if (shouldSetValue(`edit.note.content.${fieldName}.readers`)) {
+            editNote.content[fieldName] = {
+              readers: edit.note.content[fieldName].readers,
             }
-            return acc
           }
-          acc[fieldName] = {
-            value: formContent[fieldName],
-            ...(shouldSetValue(`edit.note.content.${fieldName}.readers`) && {
-              readers: edit.note?.content?.[fieldName]?.readers,
-            }),
-          }
-          return acc
-        },
-        {}
-      )
+          return
+        }
+        editNote.content[fieldName] = {
+          value: formContent[fieldName],
+          ...(shouldSetValue(`edit.note.content.${fieldName}.readers`) && {
+            readers: edit.note.content[fieldName].readers,
+          }),
+        }
+      })
     }
     editToPost.note = editNote
 
@@ -2712,5 +2738,6 @@ module.exports = (function () {
     mkNotePanel: mkNotePanel,
     deleteOrRestoreNote: deleteOrRestoreNote,
     constructEdit: constructEdit,
+    constructUpdatedEdit: constructUpdatedEdit,
   }
 })()

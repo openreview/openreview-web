@@ -72,7 +72,13 @@ const LoginForm = () => {
           onChange={(e) => setPassword(e.target.value)}
         />
       </div>
-
+      <p className="help-block">
+        By logging in, you agree to the{' '}
+        <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
+          <strong>Terms of Use</strong>
+        </a>
+        , last updated September 22, 2023.
+      </p>
       <button
         type="submit"
         className="btn btn-login"
@@ -82,9 +88,7 @@ const LoginForm = () => {
       </button>
 
       <p className="help-block">
-        <Link href="/reset">
-          <a>Forgot your password?</a>
-        </Link>
+        <Link href="/reset">Forgot your password?</Link>
         <br />
         {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
         <a href="#" onClick={handleResendConfirmation}>
@@ -126,8 +130,8 @@ const Login = () => {
       <div className="signup-container col-sm-6 col-md-5 col-lg-4">
         <h1>New User?</h1>
         <div>
-          <Link href="/signup">
-            <a className="btn">Sign Up</a>
+          <Link href="/signup" className="btn">
+            Sign Up
           </Link>
         </div>
       </div>

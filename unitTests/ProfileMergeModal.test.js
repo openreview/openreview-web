@@ -1,19 +1,18 @@
-import ProfileMergeModal from '../components/ProfileMergeModal'
 import { screen, render, waitFor } from '@testing-library/react'
+import ProfileMergeModal from '../components/ProfileMergeModal'
 import '@testing-library/jest-dom'
 import api from '../lib/api-client'
+// eslint-disable-next-line import/order
 import userEvent from '@testing-library/user-event'
 
-jest.mock('../hooks/useUser', () => {
-  return () => ({
-    user: {
-      profile: {
-        id: 'some id',
-      },
+jest.mock('../hooks/useUser', () => () => ({
+  user: {
+    profile: {
+      id: 'some id',
     },
-    accessToken: 'some token',
-  })
-})
+  },
+  accessToken: 'some token',
+}))
 global.$ = jest.fn(() => ({ on: jest.fn(), off: jest.fn(), modal: jest.fn() }))
 global.promptMessage = jest.fn()
 
@@ -21,10 +20,10 @@ describe('ProfileMergeModal', () => {
   test('display email, id, comment input and buttons', () => {
     render(<ProfileMergeModal />)
 
-    expect(screen.getByLabelText('Your email'))
-    expect(screen.getByLabelText('Profile IDs or emails to merge, separated by commas'))
-    expect(screen.getByLabelText('Comment'))
-    expect(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.getByLabelText('Your email')).toBeInTheDocument()
+    expect(screen.getByLabelText('Profile IDs or emails to merge, separated by commas')).toBeInTheDocument()
+    expect(screen.getByLabelText('Comment')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Submit' })).toHaveAttribute('disabled')
   })
 
@@ -80,9 +79,7 @@ describe('ProfileMergeModal', () => {
       '   ~Test_Id1   ,    test@email.com    ,~Test_Id1,TEST@EMAIL.COM'
     )
     await userEvent.type(commentInput, 'some comment')
-    await waitFor(() => {
-      userEvent.click(submitButton)
-    })
+    await userEvent.click(submitButton)
     await waitFor(() =>
       expect(postNote).toHaveBeenCalledWith(
         expect.anything(),
@@ -110,9 +107,7 @@ describe('ProfileMergeModal', () => {
     await userEvent.type(emailInput, 'valid@email.com')
     await userEvent.type(idsInput, '~Test_Id1,test1@email.com,~Test_Id2,test2@email.com')
     await userEvent.type(commentInput, 'some comment')
-    await waitFor(() => {
-      userEvent.click(submitButton)
-    })
+    await userEvent.click(submitButton)
     await waitFor(() => expect(postNote).toHaveBeenCalledTimes(6))
   })
 
@@ -132,9 +127,7 @@ describe('ProfileMergeModal', () => {
     await userEvent.type(emailInput, 'valid@email.com')
     await userEvent.type(idsInput, 'Test_Id1,Test_Id2')
     await userEvent.type(commentInput, 'some comment')
-    await waitFor(() => {
-      userEvent.click(submitButton)
-    })
+    await userEvent.click(submitButton)
     await waitFor(() =>
       expect(postNote).toHaveBeenCalledWith(
         expect.anything(),

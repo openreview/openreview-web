@@ -9,6 +9,10 @@ main.sign-up {
     margin-bottom: 2rem;
   }
 
+  #first-input {
+    max-width: 510px;
+  }
+
   .signup-form-container {
     margin-top: 1.5rem;
     margin-bottom: 2rem;
@@ -61,6 +65,7 @@ main.sign-up {
       .password-row,
       .claim-button-row {
         padding-top: 0.5rem;
+        white-space: nowrap;
       }
       .submissions-list {
         margin-top: -0.5rem;
@@ -73,6 +78,7 @@ main.sign-up {
         input {
           display: block;
           width: 100%;
+          max-width: 510px;
           margin-bottom: 15px;
           margin-right: 0;
         }

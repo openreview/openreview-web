@@ -48,7 +48,7 @@ const CompareRevisions = ({ appContext }) => {
           original: true,
           trash: true,
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
 
       if (apiRes.references?.length > 1) {
@@ -70,7 +70,7 @@ const CompareRevisions = ({ appContext }) => {
       const apiRes = await api.get(
         '/notes/edits',
         { 'note.id': query.id, trash: true },
-        { accessToken, version: 2 }
+        { accessToken }
       )
 
       if (apiRes.edits?.length > 1) {
@@ -188,14 +188,14 @@ const CompareRevisions = ({ appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">Revisions | OpenReview</title>
+        <title key="title">Compare Revisions | OpenReview</title>
       </Head>
 
       <header>
         <h1>Revision Comparison</h1>
         <div className="button-container">
-          <Link href={`/revisions?id=${query?.id}`}>
-            <a className="btn btn-primary">Show Revisions List</a>
+          <Link href={`/revisions?id=${query?.id}`} className="btn btn-primary">
+            Show Revisions List
           </Link>
         </div>
       </header>

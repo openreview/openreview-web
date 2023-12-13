@@ -153,7 +153,7 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
 }
 
 // modified based on notesAreaChairStatus.hbs
-const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
+const NoteAreaChairStatus = ({ rowData, referrerUrl, metaReviewRecommendationName }) => {
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
@@ -179,7 +179,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
                       <div key={metaReview.id} className="meta-review">
                         <span>{`${
                           metaReviewContent.venue ? `${metaReviewContent.venue} - ` : ''
-                        }${metaReviewContent.recommendation ?? ''}`}</span>
+                        }${metaReviewContent[metaReviewRecommendationName] ?? ''}`}</span>
                         {metaReviewContent.format && (
                           <span>Format: {metaReviewContent.format}</span>
                         )}
@@ -209,8 +209,8 @@ const AreaChairStatusRow = ({
   rowData,
   bidEnabled,
   recommendationEnabled,
-  acBids,
   invitations,
+  metaReviewRecommendationName,
   referrerUrl,
 }) => (
   <tr>
@@ -222,7 +222,6 @@ const AreaChairStatusRow = ({
         rowData={rowData}
         bidEnabled={bidEnabled}
         recommendationEnabled={recommendationEnabled}
-        acBids={acBids}
         invitations={invitations}
       />
     </td>
@@ -230,7 +229,11 @@ const AreaChairStatusRow = ({
       <NoteAreaChairProgress rowData={rowData} referrerUrl={referrerUrl} />
     </td>
     <td>
-      <NoteAreaChairStatus rowData={rowData} referrerUrl={referrerUrl} />
+      <NoteAreaChairStatus
+        rowData={rowData}
+        referrerUrl={referrerUrl}
+        metaReviewRecommendationName={metaReviewRecommendationName}
+      />
     </td>
   </tr>
 )
@@ -244,14 +247,15 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
     reviewersId,
     bidName,
     recommendationName,
+    metaReviewRecommendationName,
     venueId,
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.areaChairs?.length ?? 0)
   const pageSize = 25
-  const bidEnabled = pcConsoleData.invitations?.find(
-    (p) => p.id === `${areaChairsId}/-/${bidName}`
-  )
+  const bidEnabled = bidName
+    ? pcConsoleData.invitations?.find((p) => p.id === `${areaChairsId}/-/${bidName}`)
+    : false
   const recommendationEnabled = pcConsoleData.invitations?.some(
     (p) => p.id === `${reviewersId}/-/${recommendationName}`
   )
@@ -429,6 +433,7 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
             bidEnabled={bidEnabled}
             recommendationEnabled={recommendationEnabled}
             invitations={pcConsoleData.invitations}
+            metaReviewRecommendationName={metaReviewRecommendationName}
             referrerUrl={referrerUrl}
           />
         ))}

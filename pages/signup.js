@@ -18,9 +18,7 @@ import Icon from '../components/Icon'
 const LoadingContext = createContext()
 
 const SignupForm = ({ setSignupConfirmation }) => {
-  const [firstName, setFirstName] = useState('')
-  const [middleName, setMiddleName] = useState('')
-  const [lastName, setLastName] = useState('')
+  const [fullName, setFullName] = useState('')
   const [newUsername, setNewUsername] = useState('')
   const [nameConfirmed, setNameConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -29,9 +27,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
   const [turnstileToken, setTurnstileToken] = useState(null)
 
   const getNewUsername = useCallback(
-    debounce(async (first, middle, last) => {
+    debounce(async (name) => {
       try {
-        const { username } = await api.get('/tildeusername', { first, middle, last })
+        const { username } = await api.get('/tildeusername', { fullname: name })
         if (username) {
           setNewUsername(username)
         }
@@ -44,10 +42,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
   )
 
   const getMatchingProfiles = useCallback(
-    debounce(async (first, last) => {
+    debounce(async (name) => {
       try {
-        // Don't include middle name in profile search to find more results
-        const { profiles } = await api.get('/profiles', { first, last, limit: 100 })
+        const { profiles } = await api.get('/profiles/search', { fullname: name, limit: 100, es: true })
         if (profiles) {
           setExistingProfiles(
             profiles.map((profile) => ({
@@ -71,12 +68,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
 
     let bodyData = {}
     if (registrationType === 'new') {
-      const name = {
-        first: firstName.trim(),
-        middle: middleName.trim(),
-        last: lastName.trim(),
-      }
-      bodyData = { email, password, name, token: turnstileToken }
+      bodyData = { email, password, fullname: fullName.trim(), token: turnstileToken }
     } else if (registrationType === 'claim') {
       bodyData = { id, email, password }
     }
@@ -125,86 +117,46 @@ const SignupForm = ({ setSignupConfirmation }) => {
   useEffect(() => {
     if (isComposing) return
 
-    if (firstName.length === 1) setFirstName(firstName.toUpperCase())
-    if (middleName.length === 1) setMiddleName(middleName.toUpperCase())
-    if (lastName.length === 1) setLastName(lastName.toUpperCase())
+    if (fullName.length === 1) setFullName(fullName.toUpperCase())
 
-    if (firstName.trim().length < 1) {
+    if (fullName.trim().length < 1) {
       setNewUsername('')
       return
     }
 
-    getNewUsername(firstName, middleName, lastName)
-  }, [firstName, middleName, lastName, isComposing])
+    getNewUsername(fullName)
+  }, [fullName, isComposing])
 
   useEffect(() => {
     if (isComposing) return
 
-    if (firstName.trim().length < 2 || lastName.trim().length < 2) {
+    if (fullName.trim().length < 2) {
       setExistingProfiles([])
       return
     }
 
-    getMatchingProfiles(firstName, lastName)
-  }, [firstName, lastName, isComposing])
+    getMatchingProfiles(fullName)
+  }, [fullName, isComposing])
 
   return (
     <div className="signup-form-container">
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="row">
-          <div className="form-group col-xs-12 col-sm-4">
-            <label htmlFor="first-input">First</label>
+          <div className="form-group col-xs-12">
+            <label htmlFor="first-input">Full Name</label>
             <input
               type="text"
               id="first-input"
               className="form-control"
-              value={firstName}
+              value={fullName}
               onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
               onCompositionEnd={() => setIsComposing(false)}
               onChange={(e) => {
                 clearMessage()
-                setFirstName(e.target.value)
+                setFullName(e.target.value)
               }}
-              placeholder="First name"
-              autoComplete="given-name"
-            />
-          </div>
-
-          <div className="form-group col-xs-12 col-sm-4">
-            <label htmlFor="middle-input">
-              Middle <span className="hint">(optional)</span>
-            </label>
-            <input
-              type="text"
-              id="middle-input"
-              className="form-control"
-              value={middleName}
-              onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
-              onCompositionEnd={() => setIsComposing(false)}
-              onChange={(e) => {
-                clearMessage()
-                setMiddleName(e.target.value)
-              }}
-              placeholder="Middle name"
-              autoComplete="additional-name"
-            />
-          </div>
-
-          <div className="form-group col-xs-12 col-sm-4">
-            <label htmlFor="last-input">Last</label>
-            <input
-              type="text"
-              id="last-input"
-              className="form-control"
-              value={lastName}
-              onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
-              onCompositionEnd={() => setIsComposing(false)}
-              onChange={(e) => {
-                clearMessage()
-                setLastName(e.target.value)
-              }}
-              placeholder="Last name"
-              autoComplete="family-name"
+              placeholder="Full name"
+              autoComplete="name"
             />
           </div>
         </div>
@@ -263,9 +215,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
       )}
 
       <ConfirmNameModal
-        firstName={firstName}
-        middleName={middleName}
-        lastName={lastName}
+        fullName={fullName}
         newUsername={newUsername}
         onConfirm={() => {
           setNameConfirmed(true)
@@ -337,10 +287,7 @@ const ExistingProfileForm = ({
               {buttonLabel}
             </button>
             <span className="new-username hint">
-              {usernameLabel}{' '}
-              <Link href={`/profile?id=${id}`}>
-                <a>{id}</a>
-              </Link>
+              {usernameLabel} <Link href={`/profile?id=${id}`}>{id}</Link>
             </span>
           </>
         )}
@@ -360,10 +307,7 @@ const ExistingProfileForm = ({
             <>
               <SubmitButton disabled={!isValidEmail(email)}>{buttonLabel}</SubmitButton>
               <span className="new-username hint">
-                {usernameLabel}{' '}
-                <Link href={`/profile?id=${id}`}>
-                  <a>{id}</a>
-                </Link>
+                {usernameLabel} <Link href={`/profile?id=${id}`}>{id}</Link>
               </span>
             </>
           )}
@@ -397,10 +341,7 @@ const ExistingProfileForm = ({
               {buttonLabel}
             </SubmitButton>
             <span className="new-username hint">
-              {usernameLabel}{' '}
-              <Link href={`/profile?id=${id}`}>
-                <a>{id}</a>
-              </Link>
+              {usernameLabel} <Link href={`/profile?id=${id}`}>{id}</Link>
             </span>
           </div>
         </>
@@ -494,10 +435,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
               Claim Profile
             </button>
             <span className="new-username hint">
-              for{' '}
-              <Link href={`/profile?id=${id}`}>
-                <a>{id}</a>
-              </Link>
+              for <Link href={`/profile?id=${id}`}>{id}</Link>
             </span>
           </>
         )}
@@ -519,10 +457,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
                 Claim Profile
               </button>
               <span className="new-username hint">
-                for{' '}
-                <Link href={`/profile?id=${id}`}>
-                  <a>{id}</a>
-                </Link>
+                for <Link href={`/profile?id=${id}`}>{id}</Link>
               </span>
             </>
           )}
@@ -556,10 +491,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
               Claim Profile
             </SubmitButton>
             <span className="new-username hint">
-              for{' '}
-              <Link href={`/profile?id=${id}`}>
-                <a>{id}</a>
-              </Link>
+              for <Link href={`/profile?id=${id}`}>{id}</Link>
             </span>
           </div>
         </>
@@ -680,9 +612,7 @@ const SubmitButton = ({ disabled, children }) => {
 }
 
 const ConfirmNameModal = ({
-  firstName,
-  middleName,
-  lastName,
+  fullName,
   newUsername,
   onConfirm,
   turnstileToken,
@@ -722,24 +652,8 @@ const ConfirmNameModal = ({
       {error && <ErrorAlert error={error} />}
 
       <p className="mb-3">
-        You are registering with the first name <strong>{firstName}</strong>
-        {middleName && (
-          <>
-            {', '}
-            middle name <strong>{middleName}</strong>
-            {','}
-          </>
-        )}
-        {lastName && (
-          <>
-            {' and '}
-            last name <strong>{lastName}</strong>
-          </>
-        )}
-        {'. '}
-        On your OpenReview profile your name will appear as{' '}
-        <strong>{`${firstName} ${lastName}`}</strong> and your username will be{' '}
-        <strong>{newUsername}</strong>.
+        You are registering with the name <strong>{fullName}</strong>. On your OpenReview
+        profile your username will be <strong>{newUsername}</strong>.
       </p>
       <div className="checkbox mb-3">
         <label>

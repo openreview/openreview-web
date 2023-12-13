@@ -1,5 +1,5 @@
 /* globals $, _: false */
-/* globals view, view2, Webfield, Webfield2: false */
+/* globals view, view2, Webfield: false */
 /* globals promptError, promptMessage, promptLogin, typesetMathJax, mkStateManager: false */
 /* globals marked, DOMPurify, MathJax, Handlebars: false */
 
@@ -34,20 +34,22 @@ module.exports = function (forumId, noteId, invitationId, user) {
       return profile.id
     }
 
-    return Webfield.post('/profiles/search', { emails: authorEmails }).then(function (result) {
-      var profiles = {}
-      _.forEach(result.profiles, function (p) {
-        profiles[p.email] = p
-      })
+    return Webfield.post('/profiles/search', { confirmedEmails: authorEmails }).then(
+      function (result) {
+        var profiles = {}
+        _.forEach(result.profiles, function (p) {
+          profiles[p.email] = p
+        })
 
-      _.forEach(notes, function (n) {
-        var profile = profiles[n.tauthor]
-        if (profile) {
-          n.tauthor = getPreferredUserName(profile)
-        }
-      })
-      return notes
-    })
+        _.forEach(notes, function (n) {
+          var profile = profiles[n.tauthor]
+          if (profile) {
+            n.tauthor = getPreferredUserName(profile)
+          }
+        })
+        return notes
+      }
+    )
   }
 
   var getNoteRecsP = function () {
@@ -62,14 +64,11 @@ module.exports = function (forumId, noteId, invitationId, user) {
       notesP = $.Deferred().resolve([])
       invitationsP = $.Deferred().resolve([])
     } else {
-      notesP = Webfield.getAll(
-        '/notes',
-        {
-          forum: forumId,
-          trash: true,
-          details: 'replyCount,writable,revisions,original,overwriting,invitation,tags',
-        }
-      ).then(function (notes) {
+      notesP = Webfield.getAll('/notes', {
+        forum: forumId,
+        trash: true,
+        details: 'replyCount,writable,revisions,original,overwriting,invitation,tags',
+      }).then(function (notes) {
         if (!notes || !notes.length) {
           location.href = '/'
           return
@@ -84,13 +83,10 @@ module.exports = function (forumId, noteId, invitationId, user) {
         return getProfilesP(notes)
       }, onError)
 
-      invitationsP = Webfield.getAll(
-        '/invitations',
-        {
-          replyForum: forumId,
-          details: 'repliedNotes',
-        }
-      ).fail(onError)
+      invitationsP = Webfield.getAll('/invitations', {
+        replyForum: forumId,
+        details: 'repliedNotes',
+      }).fail(onError)
     }
 
     var tagInvitationsP = function (forum) {
@@ -268,11 +264,18 @@ module.exports = function (forumId, noteId, invitationId, user) {
             noteToRender.updateId = noteToRender.id
           }
         }
-        mkEditor(rec, noteToRender || rec.note, invitation, $anchor, function (editor) {
-          if (editor) {
-            $note.replaceWith(editor)
-          }
-        }, { isReference: options?.revision })
+        mkEditor(
+          rec,
+          noteToRender || rec.note,
+          invitation,
+          $anchor,
+          function (editor) {
+            if (editor) {
+              $note.replaceWith(editor)
+            }
+          },
+          { isReference: options?.revision }
+        )
       },
       withContent: true,
       withRevisionsLink: true,
@@ -409,11 +412,16 @@ module.exports = function (forumId, noteId, invitationId, user) {
 
     if (maxLength < sortedReplyNotes.length) {
       var $viewMoreLink = $('<div class="note_with_children comment-level-odd">').append(
-        $('<a href="#"><strong>View More Replies &rarr;</strong></a>').on('click', function (e) {
-          $(this).parent().hide()
-          $childrenAnchor.append(mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1, offset + 250))
-          return false
-        })
+        $('<a href="#"><strong>View More Replies &rarr;</strong></a>').on(
+          'click',
+          function (e) {
+            $(this).parent().hide()
+            $childrenAnchor.append(
+              mkReplyNotes(replytoIdToChildren, replytoIdToChildren[forumId], 1, offset + 250)
+            )
+            return false
+          }
+        )
       )
       childrenList.push($viewMoreLink)
     }
@@ -908,13 +916,15 @@ module.exports = function (forumId, noteId, invitationId, user) {
     if (
       (type === 'signatures' || type === 'readers' || type === 'excluded-readers') &&
       checked.length === 0
-    ) return 'nobody'
+    )
+      return 'nobody'
     if (type === 'invitations' && checkboxes.unchecked.length === 0) return 'all'
     if (type === 'signatures' && checkboxes.unchecked.length === 0) return 'everybody'
     if (
       (type === 'readers' || type === 'excluded-readers') &&
       checkboxes.unchecked.length === 0
-    ) return 'all readers'
+    )
+      return 'all readers'
     if (checked.length === 1) return checked[0]
     if (checked.length === 2) return checked[0] + ' and ' + checked[1]
     var buttonText = ''
@@ -1215,7 +1225,9 @@ module.exports = function (forumId, noteId, invitationId, user) {
   // Convert filter query string into object representing all the active filters
   // Copied from lib/forum-utils.js
   var replaceFilterWildcards = function (filterQuery, replyNote) {
-    return filterQuery.replace(/\${note\.([\w.]+)}/g, (match, field) => _.get(replyNote, field, ''))
+    return filterQuery.replace(/\${note\.([\w.]+)}/g, (match, field) =>
+      _.get(replyNote, field, '')
+    )
   }
 
   onTokenChange()

@@ -65,8 +65,8 @@ main.revisions {
     }
     .note-content-value pre {
       margin-bottom: 0;
-      padding: .375rem;
-      font-size: .75rem;
+      padding: 0.375rem;
+      font-size: 0.75rem;
     }
 
     &.hide-sidebar {
@@ -263,6 +263,17 @@ main.revisions {
     }
   }
 
+  #update-modal {
+    .modal-body {
+      padding: 0.5rem;
+      margin-bottom: -1.875rem;
+
+      hr {
+        margin: 0.25rem 0;
+      }
+    }
+  }
+
   .edit {
     padding: 0;
     margin-bottom: 2rem;
@@ -310,6 +321,11 @@ main.revisions {
         padding-right: 0.25rem;
       }
       .edit_value {
+        font-size: 0.75rem;
+      }
+      pre {
+        margin-bottom: 0;
+        padding: 0.375rem;
         font-size: 0.75rem;
       }
     }

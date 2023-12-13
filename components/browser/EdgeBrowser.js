@@ -87,16 +87,28 @@ export default class EdgeBrowser extends React.Component {
     // Get all head or tail objects referenced by the traverse parameter invitation
     const invReplyObj = this.traverseInvitation[headOrTail]
     const requestParams = { ...invReplyObj?.query } // avoid polluting invReplyObj which is used for compare
+    const localQuery = invReplyObj?.localQuery
     const apiUrlMap = {
       note: '/notes',
       profile: '/profiles',
       group: '/groups',
       tag: '/tags',
     }
-    const mainResultsP = api.getAll(apiUrlMap[invReplyObj.type], requestParams, {
-      accessToken: this.accessToken,
-      version: this.version,
-    })
+    const mainResultsP = api
+      .getAll(apiUrlMap[invReplyObj.type], requestParams, {
+        accessToken: this.accessToken,
+        version: this.version,
+      })
+      .then((results) =>
+        results.filter((result) => {
+          if (localQuery?.content) {
+            return Object.keys(localQuery.content).every(
+              (key) => result.content[key]?.value === localQuery.content[key]
+            )
+          }
+          return true
+        })
+      )
 
     // Get all head or tail objects referenced by the start parameter edge
     // invitation. Note: currently startInvitation has to have the same head
@@ -142,6 +154,7 @@ export default class EdgeBrowser extends React.Component {
           groupBy: headOrTail,
           select: 'count',
           ...this.traverseInvitation.query,
+          ...(this.traverseInvitation.domain ? { domain: this.traverseInvitation.domain } : {}),
         },
         { accessToken: this.accessToken, version: this.version, resultsKey: 'groupedEdges' }
       )
@@ -179,7 +192,7 @@ export default class EdgeBrowser extends React.Component {
             entityMap[key] = {
               id: key,
               content: {
-                name: { first: key, middle: '', last: '' },
+                name: { fullname: key },
                 email: key,
                 title: '',
                 expertise: [],
@@ -198,12 +211,12 @@ export default class EdgeBrowser extends React.Component {
             entityMap[key] = {
               id: key,
               content: {
-                name: { first: prettyId(key), middle: '', last: '' },
+                name: { fullname: prettyId(key) },
                 email: key,
                 title: '',
                 expertise: [],
                 isDummyProfile: true,
-                isInvitedProfile: true
+                isInvitedProfile: true,
               },
               searchText: key,
               traverseEdgesCount: groupedEdges[key].count,

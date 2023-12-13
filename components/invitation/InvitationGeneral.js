@@ -42,15 +42,13 @@ export const InvitationGeneralView = ({
         <div className="row d-flex">
           <span className="info-title">Super Invitation:</span>
           <Link href={`/invitation/edit?id=${invitation.super}`}>
-            <a>{prettyId(invitation.super)}</a>
+            {prettyId(invitation.super)}
           </Link>
         </div>
       )}
       <div className="row d-flex">
         <span className="info-title">Parent Group:</span>
-        <Link href={urlFromGroupId(parentGroupId, true)}>
-          <a>{prettyId(parentGroupId)}</a>
-        </Link>
+        <Link href={urlFromGroupId(parentGroupId, true)}>{prettyId(parentGroupId)}</Link>
       </div>
       <div className="row d-flex">
         <span className="info-title">Readers:</span>
@@ -164,9 +162,7 @@ export const InvitationGeneralViewV2 = ({
     <div>
       <div className="row d-flex">
         <span className="info-title">Parent Group:</span>
-        <Link href={urlFromGroupId(parentGroupId, true)}>
-          <a>{prettyId(parentGroupId)}</a>
-        </Link>
+        <Link href={urlFromGroupId(parentGroupId, true)}>{prettyId(parentGroupId)}</Link>
       </div>
       <div className="row d-flex">
         <span className="info-title">Invitations:</span>
@@ -270,10 +266,12 @@ export const InvitationGeneralViewV2 = ({
         </button>
       )}
       {showEditButton && (
-        <Link href={`/invitation/revisions?id=${invitation.id}`}>
-          <a role="button" className="btn btn-sm btn-default edit-group-info">
-            View Invitation Revisions
-          </a>
+        <Link
+          href={`/invitation/revisions?id=${invitation.id}`}
+          role="button"
+          className="btn btn-sm btn-default edit-group-info"
+        >
+          View Invitation Revisions
         </Link>
       )}
     </div>
@@ -673,7 +671,7 @@ const InvitationGeneralEditV2 = ({
       if (!isMetaInvitation && !requestBody.invitations) {
         throw new Error('No meta invitation found')
       }
-      await api.post('/invitations/edits', requestBody, { accessToken, version: 2 })
+      await api.post('/invitations/edits', requestBody, { accessToken })
       promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       setIsEditMode(false)
       loadInvitation(invitation.id)

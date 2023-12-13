@@ -19,6 +19,7 @@ import {
   prettyId,
   prettyList,
   inflect,
+  parseNumberField,
 } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
@@ -51,7 +52,7 @@ const AssignedPaperRow = ({
   areaChairName,
   officialReviewName,
   submissionName,
-  metaReviewContentField,
+  metaReviewRecommendationName,
   selectedNoteIds,
   setSelectedNoteIds,
   shortPhrase,
@@ -95,7 +96,7 @@ const AssignedPaperRow = ({
         <AreaChairConsoleNoteMetaReviewStatus
           note={note}
           metaReviewData={metaReviewData}
-          metaReviewContentField={metaReviewContentField}
+          metaReviewRecommendationName={metaReviewRecommendationName}
           referrerUrl={referrerUrl}
         />
       </td>
@@ -127,11 +128,13 @@ const AreaChairConsole = ({ appContext }) => {
     officialMetaReviewName,
     reviewerName = 'Reviewers',
     anonReviewerName = 'Reviewer_',
-    metaReviewContentField,
+    metaReviewRecommendationName = 'recommendation',
     shortPhrase,
     filterOperators,
     propertiesAllowed,
     enableQuerySearch,
+    emailReplyTo,
+    extraExportColumns,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
@@ -156,9 +159,8 @@ const AreaChairConsole = ({ appContext }) => {
 
   const getReviewerName = (reviewerProfile) => {
     const name =
-      reviewerProfile.content.names.find((t) => t.preferred) ||
-      reviewerProfile.content.names[0]
-    return name ? prettyId(reviewerProfile.id) : `${name.first} ${name.last}`
+      reviewerProfile.content.names.find((t) => t.preferred) || reviewerProfile.content.names[0]
+    return name ? name.fullname : prettyId(reviewerProfile.id)
   }
 
   const getSACLinkText = () => {
@@ -190,8 +192,10 @@ const AreaChairConsole = ({ appContext }) => {
           member: user.id,
           prefix: `${venueId}/${submissionName}.*`,
           select: 'id',
+          stream: true,
+          domain: group.domain,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       const areaChairGroups = allGroups.filter((p) => p.id.endsWith(areaChairName))
       const anonymousAreaChairGroups = allGroups.filter((p) => p.id.includes('/Area_Chair_'))
@@ -214,26 +218,29 @@ const AreaChairConsole = ({ appContext }) => {
               select: 'id,number,forum,content,details',
               details: 'replies',
               sort: 'number:asc',
+              domain: group.domain,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
 
       // #region getReviewerGroups(noteNumbers)
       const reviewerGroupsP = api
-        .getAll(
+        .get(
           '/groups',
           {
             prefix: `${venueId}/${submissionName}.*`,
             select: 'id,members',
+            stream: true,
+            domain: group.domain,
           },
-          { accessToken, version: 2 }
+          { accessToken }
         )
         .then((reviewerGroupsResult) => {
-          const anonymousReviewerGroups = reviewerGroupsResult.filter((p) =>
+          const anonymousReviewerGroups = reviewerGroupsResult.groups.filter((p) =>
             p.id.includes(`/${anonReviewerName}`)
           )
-          const reviewerGroups = reviewerGroupsResult.filter((p) =>
+          const reviewerGroups = reviewerGroupsResult.groups.filter((p) =>
             p.id.includes(`/${reviewerName}`)
           )
           return noteNumbers.map((p) => {
@@ -243,19 +250,17 @@ const AreaChairConsole = ({ appContext }) => {
                 const anonymousReviewerGroup = anonymousReviewerGroups.find(
                   (t) =>
                     t.id.startsWith(`${venueId}/${submissionName}${p}/${anonReviewerName}`) &&
-                    t.members[0] === r
+                    (t.id === r || t.members[0] === r)
                 )
-                if (anonymousReviewerGroup) {
-                  const anonymousReviewerId = getIndentifierFromGroup(
-                    anonymousReviewerGroup.id,
+                return {
+                  anonymousId: getIndentifierFromGroup(
+                    anonymousReviewerGroup?.id || r,
                     anonReviewerName
-                  )
-                  return {
-                    anonymousId: anonymousReviewerId,
-                    reviewerProfileId: r,
-                  }
+                  ),
+                  reviewerProfileId: anonymousReviewerGroup?.members.length
+                    ? anonymousReviewerGroup.members[0]
+                    : r,
                 }
-                return []
               })
             return {
               number: p,
@@ -271,7 +276,11 @@ const AreaChairConsole = ({ appContext }) => {
         ? api
             .get(
               '/edges',
-              { invitation: `${seniorAreaChairsId}/-/Assignment`, head: user.profile.id },
+              {
+                invitation: `${seniorAreaChairsId}/-/Assignment`,
+                head: user.profile.id,
+                domain: group.domain,
+              },
               { accessToken }
             )
             .then((result) => result?.edges?.map((edge) => edge.tail) ?? [])
@@ -332,30 +341,44 @@ const AreaChairConsole = ({ appContext }) => {
           })
           ?.map((q) => {
             const anonymousId = getIndentifierFromGroup(q.signatures[0], anonReviewerName)
-            const reviewRatingValue = q.content[reviewRatingName]?.value
-            const ratingNumber = reviewRatingValue
-              ? reviewRatingValue.substring(0, reviewRatingValue.indexOf(':'))
-              : null
-            const confidenceValue = q.content[reviewConfidenceName]?.value
-            const confidenceMatch = confidenceValue && confidenceValue.match(/^(\d+): .*/)
             const reviewValue = q.content.review?.value
             return {
+              ...q,
               anonymousId,
-              confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : null,
-              rating: ratingNumber ? parseInt(ratingNumber, 10) : null,
+              confidence: parseNumberField(q.content[reviewConfidenceName]?.value),
+              ...Object.fromEntries(
+                (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+                  (ratingName) => [
+                    [ratingName],
+                    parseNumberField(q.content[ratingName]?.value),
+                  ]
+                )
+              ),
               reviewLength: reviewValue?.length,
-              id: q.id,
             }
           })
-        const ratings = officialReviews.map((p) => p.rating)
-        const validRatings = ratings.filter((p) => p !== null)
-        const ratingAvg = validRatings.length
-          ? (validRatings.reduce((sum, curr) => sum + curr, 0) / validRatings.length).toFixed(
-              2
-            )
-          : 'N/A'
-        const ratingMin = validRatings.length ? Math.min(...validRatings) : 'N/A'
-        const ratingMax = validRatings.length ? Math.max(...validRatings) : 'N/A'
+
+        const ratings = Object.fromEntries(
+          (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+            (ratingName) => {
+              const ratingValues = officialReviews.map((p) => p[ratingName])
+              const validRatingValues = ratingValues.filter((p) => p !== null)
+              const ratingAvg = validRatingValues.length
+                ? (
+                    validRatingValues.reduce((sum, curr) => sum + curr, 0) /
+                    validRatingValues.length
+                  ).toFixed(2)
+                : 'N/A'
+              const ratingMin = validRatingValues.length
+                ? Math.min(...validRatingValues)
+                : 'N/A'
+              const ratingMax = validRatingValues.length
+                ? Math.max(...validRatingValues)
+                : 'N/A'
+              return [ratingName, { ratingAvg, ratingMin, ratingMax }]
+            }
+          )
+        )
 
         const confidences = officialReviews.map((p) => p.confidence)
         const validConfidences = confidences.filter((p) => p !== null)
@@ -399,17 +422,15 @@ const AreaChairConsole = ({ appContext }) => {
             reviewers: assignedReviewerProfiles,
             numReviewersAssigned: assignedReviewers.length,
             numReviewsDone: officialReviews.length,
-            ratingAvg,
-            ratingMax,
-            ratingMin,
+            ratings,
             confidenceAvg,
             confidenceMax,
             confidenceMin,
             replyCount: note.details.replies.length,
           },
           metaReviewData: {
-            [metaReviewContentField]:
-              metaReview?.content[metaReviewContentField]?.value ?? 'N/A',
+            [metaReviewRecommendationName]:
+              metaReview?.content[metaReviewRecommendationName]?.value ?? 'N/A',
             metaReviewInvitationId: `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`,
             metaReview,
           },
@@ -456,8 +477,11 @@ const AreaChairConsole = ({ appContext }) => {
             setAcConsoleData={setAcConsoleData}
             shortPhrase={shortPhrase}
             enableQuerySearch={enableQuerySearch}
+            extraExportColumns={extraExportColumns}
             filterOperators={filterOperators}
             propertiesAllowed={propertiesAllowed}
+            reviewRatingName={reviewRatingName}
+            metaReviewRecommendationName={metaReviewRecommendationName}
           />
           <p className="empty-message">No assigned papers matching search criteria.</p>
         </div>
@@ -471,8 +495,11 @@ const AreaChairConsole = ({ appContext }) => {
           setAcConsoleData={setAcConsoleData}
           shortPhrase={shortPhrase}
           enableQuerySearch={enableQuerySearch}
+          extraExportColumns={extraExportColumns}
           filterOperators={filterOperators}
           propertiesAllowed={propertiesAllowed}
+          reviewRatingName={reviewRatingName}
+          metaReviewRecommendationName={metaReviewRecommendationName}
         />
         <Table
           className="console-table table-striped areachair-console-table"
@@ -503,7 +530,7 @@ const AreaChairConsole = ({ appContext }) => {
               officialReviewName={officialReviewName}
               officialMetaReviewName={officialMetaReviewName}
               submissionName={submissionName}
-              metaReviewContentField={metaReviewContentField}
+              metaReviewRecommendationName={metaReviewRecommendationName}
               selectedNoteIds={selectedNoteIds}
               setSelectedNoteIds={setSelectedNoteIds}
               shortPhrase={shortPhrase}
@@ -525,7 +552,7 @@ const AreaChairConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!userLoading && (!user || !user.profile || user.profile.id === 'guest')) {
+    if (!userLoading && !user) {
       router.replace(
         `/login?redirect=${encodeURIComponent(
           `${window.location.pathname}${window.location.search}${window.location.hash}`
@@ -566,7 +593,6 @@ const AreaChairConsole = ({ appContext }) => {
     reviewRatingName,
     reviewConfidenceName,
     officialMetaReviewName,
-    metaReviewContentField,
     shortPhrase,
     enableQuerySearch,
   })

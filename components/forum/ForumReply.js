@@ -7,26 +7,37 @@ import Link from 'next/link'
 import copy from 'copy-to-clipboard'
 import truncate from 'lodash/truncate'
 import { NoteContentV2 } from '../NoteContent'
+import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
 import ForumReplyContext from './ForumReplyContext'
-import useUser from '../../hooks/useUser'
-import { prettyId, prettyInvitationId, forumDate, buildNoteTitle } from '../../lib/utils'
-import { getInvitationColors } from '../../lib/forum-utils'
 import Icon from '../Icon'
+import { getInvitationColors } from '../../lib/forum-utils'
+import {
+  prettyId,
+  prettyInvitationId,
+  forumDate,
+  buildNoteTitle,
+  useNewNoteEditor,
+} from '../../lib/utils'
 
-export default function ForumReply({ note, replies, replyDepth, parentId, updateNote }) {
+export default function ForumReply({
+  note,
+  replies,
+  replyDepth,
+  parentNote,
+  updateNote,
+  deleteOrRestoreNote,
+  isDirectReplyToForum,
+}) {
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
-  const {
-    displayOptionsMap,
-    nesting,
-    excludedInvitations,
-    setCollapsed,
-    setContentExpanded,
-  } = useContext(ForumReplyContext)
-  const { user } = useUser()
+  const { displayOptionsMap, nesting, excludedInvitations, setCollapsed, setContentExpanded } =
+    useContext(ForumReplyContext)
+  const newNoteEditor = useNewNoteEditor(
+    activeInvitation?.domain || activeEditInvitation?.domain
+  )
 
-  const { invitations, content, signatures, ddate } = note
+  const { invitations, signatures, content, ddate } = note
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
   const allChildIds = replies.reduce(
     (acc, reply) =>
@@ -55,20 +66,11 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
   }
 
   const openNoteEditor = (invitation, type) => {
-    if (
-      (activeInvitation && activeInvitation.id !== invitation.id) ||
-      (activeEditInvitation && activeEditInvitation.id !== invitation.id)
-    ) {
-      promptError(
-        'There is currently another editor pane open on the page. Please submit your changes or click Cancel before continuing',
-        { scrollToTop: false }
-      )
-      return
-    }
-
     if (type === 'reply') {
       setActiveInvitation(activeInvitation ? null : invitation)
+      setActiveEditInvitation(null)
     } else if (type === 'edit') {
+      setActiveInvitation(null)
       setActiveEditInvitation(activeInvitation ? null : invitation)
     }
   }
@@ -102,8 +104,9 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           <NoteReplies
             replies={replies}
             replyDepth={replyDepth + 1}
-            parentId={note.id}
+            parentNote={note}
             updateNote={updateNote}
+            deleteOrRestoreNote={deleteOrRestoreNote}
           />
         )}
       </ReplyContainer>
@@ -122,36 +125,52 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         setContentExpanded={setContentExpanded}
         replyDepth={replyDepth}
       >
-        <NoteEditorForm
-          note={note}
-          invitation={activeEditInvitation}
-          onLoad={() => {
-            scrollToNote(note.id)
-          }}
-          onNoteEdited={(newNote) => {
-            updateNote(newNote)
-            setActiveEditInvitation(null)
-            scrollToNote(newNote.id)
-          }}
-          onNoteCancelled={() => {
-            setActiveEditInvitation(null)
-            scrollToNote(note.id)
-          }}
-          onError={(isLoadingError) => {
-            if (isLoadingError) {
+        {newNoteEditor ? (
+          <NoteEditor
+            invitation={activeEditInvitation}
+            note={note}
+            replyToNote={parentNote}
+            className={`note-editor-edit depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
+            closeNoteEditor={() => setActiveEditInvitation(null)}
+            onNoteCreated={(newNote) => {
+              updateNote(newNote)
               setActiveEditInvitation(null)
-            }
-          }}
-        />
-
+              scrollToNote(newNote.id)
+            }}
+            isDirectReplyToForum={isDirectReplyToForum}
+          />
+        ) : (
+          <NoteEditorForm
+            note={note}
+            invitation={activeEditInvitation}
+            onLoad={() => {
+              scrollToNote(note.id)
+            }}
+            onNoteEdited={(newNote) => {
+              updateNote(newNote)
+              setActiveEditInvitation(null)
+              scrollToNote(newNote.id)
+            }}
+            onNoteCancelled={() => {
+              setActiveEditInvitation(null)
+              scrollToNote(note.id)
+            }}
+            onError={(isLoadingError) => {
+              if (isLoadingError) {
+                setActiveEditInvitation(null)
+              }
+            }}
+          />
+        )}
         {!allRepliesHidden && (
           <>
             <hr />
             <NoteReplies
               replies={replies}
               replyDepth={replyDepth + 1}
-              parentId={note.id}
+              parentNote={note}
               updateNote={updateNote}
+              deleteOrRestoreNote={deleteOrRestoreNote}
             />
           </>
         )}
@@ -171,7 +190,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
       setContentExpanded={setContentExpanded}
       replyDepth={replyDepth}
     >
-      {nesting === replyDepth && note.replyto !== parentId && (
+      {nesting === replyDepth && note.replyto !== parentNote?.id && (
         <div className="parent-title">
           <h5 onClick={() => scrollToNote(note.replyto)}>
             <Icon name="share-alt" /> Replying to{' '}
@@ -232,16 +251,7 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
             type="button"
             className="btn btn-xs"
             onClick={() => {
-              view2.deleteOrRestoreNote(
-                note,
-                note.deleteInvitation,
-                content.title?.value ? content.title.value : note.generatedTitle,
-                user,
-                (newNote) => {
-                  updateNote(newNote)
-                  scrollToNote(newNote.id)
-                }
-              )
+              deleteOrRestoreNote(note, note.deleteInvitation, updateNote)
             }}
           >
             <Icon name={ddate ? 'repeat' : 'trash'} />
@@ -331,26 +341,24 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
           className="readers"
           data-toggle="tooltip"
           data-placement="top"
-          title={`Visible to ${note.readers.join(', ')}`}
+          title={`Visible to <br/>${note.readers.join(',<br/>')}`}
         >
           <Icon name="eye-open" />
           {note.readers.map((reader) => prettyId(reader, true)).join(', ')}
         </span>
-        {note.details?.editsCount > 1 && (
+        {note.tmdate !== note.tcdate && (
           <span className="revisions">
             <Icon name="duplicate" />
-            <Link href={`/revisions?id=${note.id}`}>
-              <a>Revisions</a>
-            </Link>
+            <Link href={`/revisions?id=${note.id}`}>Revisions</Link>
           </span>
         )}
       </div>
 
       <NoteContentCollapsible
         id={note.id}
-        content={note.content}
+        content={content}
         presentation={note.details?.presentation}
-        noteReaders={note.readers}
+        noteReaders={note.sortedReaders}
         contentExpanded={contentExpanded}
         setContentExpanded={setContentExpanded}
         deleted={!!ddate}
@@ -377,28 +385,45 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
             })}
           </div>
 
-          <NoteEditorForm
-            forumId={note.forum}
-            invitation={activeInvitation}
-            replyToId={note.id}
-            onLoad={() => {
-              scrollToNote(note.id, true)
-            }}
-            onNoteCreated={(newNote) => {
-              updateNote(newNote)
-              setActiveInvitation(null)
-              scrollToNote(newNote.id)
-            }}
-            onNoteCancelled={() => {
-              setActiveInvitation(null)
-              scrollToNote(note.id)
-            }}
-            onError={(isLoadingError) => {
-              if (isLoadingError) {
+          {newNoteEditor ? (
+            <NoteEditor
+              invitation={activeInvitation}
+              replyToNote={note}
+              className={`note-editor-reply depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
+              closeNoteEditor={() => {
                 setActiveInvitation(null)
-              }
-            }}
-          />
+              }}
+              onNoteCreated={(newNote) => {
+                updateNote(newNote)
+                setActiveInvitation(null)
+                scrollToNote(newNote.id)
+              }}
+              isDirectReplyToForum={false} // reply to direct reply
+            />
+          ) : (
+            <NoteEditorForm
+              forumId={note.forum}
+              invitation={activeInvitation}
+              replyToId={note.id}
+              onLoad={() => {
+                scrollToNote(note.id, true)
+              }}
+              onNoteCreated={(newNote) => {
+                updateNote(newNote)
+                setActiveInvitation(null)
+                scrollToNote(newNote.id)
+              }}
+              onNoteCancelled={() => {
+                setActiveInvitation(null)
+                scrollToNote(note.id)
+              }}
+              onError={(isLoadingError) => {
+                if (isLoadingError) {
+                  setActiveInvitation(null)
+                }
+              }}
+            />
+          )}
         </div>
       )}
 
@@ -406,8 +431,9 @@ export default function ForumReply({ note, replies, replyDepth, parentId, update
         <NoteReplies
           replies={replies}
           replyDepth={replyDepth + 1}
-          parentId={note.id}
+          parentNote={note}
           updateNote={updateNote}
+          deleteOrRestoreNote={deleteOrRestoreNote}
         />
       )}
     </ReplyContainer>
@@ -485,7 +511,12 @@ function CopyLinkButton({ forumId, noteId }) {
 
   return (
     <button type="button" className="btn btn-xs permalink-btn" onClick={copyNoteUrl}>
-      <Icon name="link" tooltip="Copy reply URL" />
+      <a
+        onClick={(e) => e.preventDefault()}
+        href={`${window.location.origin}${window.location.pathname}?id=${forumId}&noteId=${noteId}`}
+      >
+        <Icon name="link" tooltip="Copy reply URL" />
+      </a>
     </button>
   )
 }
@@ -516,7 +547,6 @@ function NoteContentCollapsible({
         content={content}
         presentation={presentation}
         noteReaders={noteReaders}
-        include={['pdf', 'html']}
       />
       {!contentExpanded && (
         <div className="gradient-overlay">
@@ -533,7 +563,7 @@ function NoteContentCollapsible({
   )
 }
 
-function NoteReplies({ replies, replyDepth, parentId, updateNote }) {
+function NoteReplies({ replies, replyDepth, parentNote, updateNote, deleteOrRestoreNote }) {
   const { replyNoteMap } = useContext(ForumReplyContext)
 
   if (!replies?.length) return null
@@ -545,9 +575,11 @@ function NoteReplies({ replies, replyDepth, parentId, updateNote }) {
           key={childNote.id}
           note={replyNoteMap[childNote.id]}
           replyDepth={replyDepth}
-          parentId={parentId}
+          parentNote={parentNote}
           replies={childNote.replies ?? []}
           updateNote={updateNote}
+          deleteOrRestoreNote={deleteOrRestoreNote}
+          isDirectReplyToForum={false}
         />
       ))}
     </div>

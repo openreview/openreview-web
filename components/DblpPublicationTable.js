@@ -188,7 +188,7 @@ const DblpPublicationRow = ({
       const result = await api.get(
         '/invitations',
         { id: profileMergeInvitationId },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       const profileMergeInvitation = result.invitations[0]
       await api.post(
@@ -206,7 +206,7 @@ const DblpPublicationRow = ({
           writers: buildArray(profileMergeInvitation, 'writers', user.profile.preferredId),
           signatures: [user.profile.preferredId],
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       setProfileMergeStatus('posted')
     } catch (apiError) {
@@ -237,7 +237,6 @@ const DblpPublicationRow = ({
 
   return (
     <>
-      {' '}
       <div
         className={
           category === 'nonExisting' ? 'publication-info' : `publication-info ${category}-row`
@@ -245,7 +244,10 @@ const DblpPublicationRow = ({
       >
         <input
           type="checkbox"
-          onChange={(e) => toggleSelected(e.target.checked)}
+          onChange={(e) => {
+            if (openReviewId || authorIsInvalid) return
+            toggleSelected(e.target.checked)
+          }}
           checked={selected}
           disabled={openReviewId || authorIsInvalid}
           title={authorIsInvalid ? 'Your name does not match the author list' : undefined}
@@ -276,6 +278,11 @@ const DblpPublicationRow = ({
               </a>
               <div className="different-profile-link">{renderProfileMergeRequestLink()}</div>
             </>
+          )}
+          {authorIsInvalid && (
+            <span className="name-not-match">
+              Your name does not match any of the authors listed for this paper
+            </span>
           )}
         </div>
       </div>

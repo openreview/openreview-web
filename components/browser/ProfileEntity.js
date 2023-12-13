@@ -273,7 +273,7 @@ export default function ProfileEntity(props) {
       return null
 
     // invited profile show only invite widget
-    if (content?.isInvitedProfile && isEmergencyReviewerStage && !isInviteInvitation)
+    if (!edge && content?.isInvitedProfile && isEmergencyReviewerStage && !isInviteInvitation)
       return null
 
     const editEdgeDropdown = (type, controlType) => (
@@ -403,8 +403,7 @@ export default function ProfileEntity(props) {
             target="_blank"
             rel="noreferrer"
           >
-            {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-            {content.name.first} {content.name.middle} {content.name.last}
+            {content.name.fullname}
           </a>{' '}
           <span>({content.email})</span>
         </h3>

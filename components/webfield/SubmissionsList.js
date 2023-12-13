@@ -20,6 +20,7 @@ export default function SubmissionsList({
   apiVersion,
   shouldReload,
   updateCount,
+  filterNotes,
   pageSize,
   enableSearch,
   useCredentials,
@@ -28,20 +29,20 @@ export default function SubmissionsList({
   const { accessToken, userLoading } = useUser()
 
   const [combinedDisplayOptions, setCombinedDisplayOptions] = useState(defaultDisplayOptions)
-  const details = 'replyCount,invitation,original'
+  const details = 'replyCount,presentation'
 
   const loadNotes = useCallback(
     async (limit, offset) => {
       const { notes, count } = await api.get(
         '/notes',
-        { details, ...query, limit, offset },
+        { details, ...query, limit, offset, domain: apiVersion === 1 ? undefined : venueId },
         { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
       )
       if (typeof updateCount === 'function') {
         updateCount(count ?? 0)
       }
       return {
-        items: notes,
+        items: typeof filterNotes === 'function' ? notes.filter(filterNotes) : notes,
         count: count ?? 0,
       }
     },

@@ -18,7 +18,11 @@
         font-size: 1.25rem;
         line-height: 1.5rem;
         width: 10rem;
-        margin-right: .5rem;
+        margin-right: 0.5rem;
+
+        &.reduced-load-button {
+          width: fit-content;
+        }
       }
       .btn-lg:last-child {
         margin-right: 0;
@@ -61,6 +65,10 @@
     textarea.note_content_value,
     .note-editor-preview textarea.note_content_value {
       height: 100px;
+    }
+
+    .submit-button {
+      margin-top: 1rem;
     }
   }
 }

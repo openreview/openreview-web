@@ -1,4 +1,4 @@
-/* globals $,promptError,promptMessage: false */
+/* globals $,promptError,promptMessage,view2: false */
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
@@ -16,34 +16,57 @@ import {
   buildArray,
   inflect,
   getProfileStateLabelClass,
-  getTabCountMessage,
+  getVenueTabCountMessage,
 } from '../../lib/utils'
 import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
 import PaginatedList from '../../components/PaginatedList'
 import Table from '../../components/Table'
-import BasicProfileView from '../../components/profile/BasicProfileView'
 import { formatProfileData } from '../../lib/profiles'
 import Markdown from '../../components/EditorComponents/Markdown'
 import Dropdown from '../../components/Dropdown'
+import ProfilePreviewModal from '../../components/profile/ProfilePreviewModal'
+import useUser from '../../hooks/useUser'
 
 dayjs.extend(relativeTime)
 
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const [configNote, setConfigNote] = useState(null)
+  const [configNoteV2, setConfigNoteV2] = useState(null)
+
   const moderationDisabled = configNote?.content?.moderate === 'No'
 
   const getModerationStatus = async () => {
     try {
-      const { notes } = await api.get('/notes', {
-        invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
-        limit: 1,
-      })
-      if (notes?.length > 0) {
-        setConfigNote(notes[0])
+      const configNoteV1P = api.get(
+        '/notes',
+        {
+          invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
+          limit: 1,
+        },
+        { accessToken, version: 1 }
+      )
+      const configNoteV2P = api.get(
+        '/notes',
+        {
+          invitation: `${process.env.SUPER_USER}/-/OpenReview_Config`,
+          details: 'invitation',
+          limit: 1,
+        },
+        { accessToken }
+      )
+      const results = await Promise.all([configNoteV1P, configNoteV2P])
+
+      if (results?.[0]?.notes?.[0]) {
+        setConfigNote(results?.[0]?.notes?.[0])
       } else {
         promptError('Moderation config could not be loaded')
+      }
+      if (results?.[1]?.notes?.[0]) {
+        setConfigNoteV2(results?.[1]?.notes?.[0])
+      } else {
+        promptError('Moderation config could not be loaded for new API')
       }
     } catch (error) {
       promptError(error.message)
@@ -66,7 +89,41 @@ const UserModerationTab = ({ accessToken }) => {
           ...configNote,
           content: { ...configNote.content, moderate: moderationDisabled ? 'Yes' : 'No' },
         },
+        { accessToken, version: 1 }
+      )
+      getModerationStatus()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const updateTermStamp = async () => {
+    const currentTimeStamp = dayjs().valueOf()
+    // eslint-disable-next-line no-alert
+    const result = window.confirm(
+      `Update terms of service timestamp to ${currentTimeStamp}? (${dayjs(
+        currentTimeStamp
+      ).toISOString()})`
+    )
+    if (!result) return
+
+    try {
+      await api.post(
+        '/notes/edits',
+        view2.constructEdit({
+          formData: { terms_timestamp: currentTimeStamp },
+          invitationObj: configNoteV2.details.invitation,
+          noteObj: configNoteV2,
+        }),
         { accessToken }
+      )
+      await api.post(
+        '/notes',
+        {
+          ...configNote,
+          content: { ...configNote.content, terms_timestamp: currentTimeStamp },
+        },
+        { accessToken, version: 1 }
       )
       getModerationStatus()
     } catch (error) {
@@ -88,6 +145,13 @@ const UserModerationTab = ({ accessToken }) => {
             <option value="enabled">Enabled</option>
             <option value="disabled">Disabled</option>
           </select>
+
+          <span className="terms-timestamp">
+            {`Terms Timestamp is ${configNote?.content?.terms_timestamp ?? 'unset'}`}
+          </span>
+          <button type="button" className="btn btn-xs" onClick={updateTermStamp}>
+            Update Terms Stamp
+          </button>
         </div>
       )}
 
@@ -122,7 +186,12 @@ const FullUsernameList = ({ usernames }) => (
   </ul>
 )
 
-const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMsg }) => {
+const NameDeletionTab = ({
+  accessToken,
+  superUser,
+  setNameDeletionRequestCount,
+  isActive,
+}) => {
   const [nameDeletionNotes, setNameDeletionNotes] = useState(null)
   const [nameDeletionNotesToShow, setNameDeletionNotesToShow] = useState(null)
   const [noteToReject, setNoteToReject] = useState(null)
@@ -140,11 +209,11 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
       let processLogsP
 
       if (noteId) {
-        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken, version: 1 })
         decisionResultsP = api.getAll(
           '/references',
           { referent: noteId, invitation: nameDeletionDecisionInvitationId },
-          { accessToken, resultsKey: 'references' }
+          { accessToken, resultsKey: 'references', version: 1 }
         )
         processLogsP = Promise.resolve(null)
       } else {
@@ -153,20 +222,22 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
           {
             invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
           },
-          { accessToken }
+          { accessToken, version: 1 }
         )
         decisionResultsP = api.getAll(
           '/references',
           {
             invitation: nameDeletionDecisionInvitationId,
           },
-          { accessToken, resultsKey: 'references' }
+          { accessToken, resultsKey: 'references', version: 1 }
         )
-        processLogsP = api.getAll(
-          '/logs/process',
-          { invitation: nameDeletionDecisionInvitationId },
-          { accessToken, resultsKey: 'logs' }
-        )
+        processLogsP = isActive
+          ? api.getAll(
+              '/logs/process',
+              { invitation: nameDeletionDecisionInvitationId },
+              { accessToken, resultsKey: 'logs' }
+            )
+          : Promise.resolve([])
       }
 
       const [nameRemovalNotes, decisionResults, processLogs] = await Promise.all([
@@ -210,7 +281,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
       const pendingRequestCount = nameRemovalNotes.notes.filter(
         (p) => p.content.status === 'Pending'
       ).length
-      setNameDeletionRequestCountMsg(getTabCountMessage(pendingRequestCount, 0))
+      setNameDeletionRequestCount(pendingRequestCount)
     } catch (error) {
       promptError(error.message)
     }
@@ -227,7 +298,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
       const invitationResult = await api.get(
         '/invitations',
         { id: nameDeletionDecisionInvitationId },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       const nameDeletionDecisionInvitation = invitationResult.invitations[0]
       const noteToPost = {
@@ -245,7 +316,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
           superUser.profile.id
         ),
       }
-      const result = await api.post('/notes', noteToPost, { accessToken })
+      const result = await api.post('/notes', noteToPost, { accessToken, version: 1 })
       $('#name-delete-reject').modal('hide')
       loadNameDeletionRequests(nameDeletionNote.id)
     } catch (error) {
@@ -295,7 +366,7 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
 
   useEffect(() => {
     loadNameDeletionRequests()
-  }, [])
+  }, [isActive])
 
   return (
     <>
@@ -408,7 +479,12 @@ const NameDeletionTab = ({ accessToken, superUser, setNameDeletionRequestCountMs
   )
 }
 
-const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMsg }) => {
+const ProfileMergeTab = ({
+  accessToken,
+  superUser,
+  setProfileMergeRequestCount,
+  isActive,
+}) => {
   const [profileMergeNotes, setProfileMergeNotes] = useState(null)
   const [profileMergeNotesToShow, setProfileMergeNotesToShow] = useState(null)
   const [noteToReject, setNoteToReject] = useState(null)
@@ -428,11 +504,11 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
       let processLogsP
 
       if (noteId) {
-        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken, version: 1 })
         decisionResultsP = api.getAll(
           '/references',
           { referent: noteId, invitation: profileMergeDecisionInvitationId },
-          { accessToken, resultsKey: 'references' }
+          { accessToken, resultsKey: 'references', version: 1 }
         )
         processLogsP = Promise.resolve(null)
       } else {
@@ -441,20 +517,22 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
           {
             invitation: profileMergeInvitationId,
           },
-          { accessToken }
+          { accessToken, version: 1 }
         )
         decisionResultsP = api.getAll(
           '/references',
           {
             invitation: profileMergeDecisionInvitationId,
           },
-          { accessToken, resultsKey: 'references' }
+          { accessToken, resultsKey: 'references', version: 1 }
         )
-        processLogsP = api.getAll(
-          '/logs/process',
-          { invitation: profileMergeDecisionInvitationId },
-          { accessToken, resultsKey: 'logs' }
-        )
+        processLogsP = isActive
+          ? api.getAll(
+              '/logs/process',
+              { invitation: profileMergeDecisionInvitationId },
+              { accessToken, resultsKey: 'logs' }
+            )
+          : Promise.resolve([])
       }
 
       const [profileMergeNotesResults, decisionResults, processLogs] = await Promise.all([
@@ -499,12 +577,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
       const pendingRequestCount = profileMergeNotesResults.notes.filter(
         (p) => p.content.status === 'Pending'
       ).length
-      const errorProcessCount = sortedResult.filter(
-        (p) => p.processLogStatus === 'error'
-      ).length
-      setProfileMergeRequestCountMsg(
-        getTabCountMessage(pendingRequestCount, errorProcessCount)
-      )
+      setProfileMergeRequestCount(pendingRequestCount)
     } catch (error) {
       promptError(error.message)
     }
@@ -520,7 +593,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
       const invitationResult = await api.get(
         '/invitations',
         { id: profileMergeDecisionInvitationId },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       const profileMergeDecisionInvitation = invitationResult.invitations[0]
       const noteToPost = {
@@ -538,7 +611,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
           superUser.profile.id
         ),
       }
-      const result = await api.post('/notes', noteToPost, { accessToken })
+      const result = await api.post('/notes', noteToPost, { accessToken, version: 1 })
       $('#name-delete-reject').modal('hide')
       loadProfileMergeRequests(profileMergeNote.id)
     } catch (error) {
@@ -588,7 +661,7 @@ const ProfileMergeTab = ({ accessToken, superUser, setProfileMergeRequestCountMs
 
   useEffect(() => {
     loadProfileMergeRequests()
-  }, [])
+  }, [isActive])
 
   return (
     <>
@@ -796,8 +869,9 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
           invitation: 'OpenReview.net/Support/-/Request_Form',
           sort: 'tcdate',
           details: 'replies',
+          select: `id,forum,tcdate,content['Abbreviated Venue Name'],content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
 
       const allVenueRequests = notes?.map((p) => ({
@@ -806,15 +880,15 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
         tcdate: p.tcdate,
         isCreatedInPastWeek: dayjs().diff(dayjs(p.tcdate), 'd') < 7,
         abbreviatedName: p.content?.['Abbreviated Venue Name'],
-        hasOfficialReply: p.details.replies.find((q) =>
+        hasOfficialReply: p.details?.replies?.find((q) =>
           q.signatures.includes('OpenReview.net/Support')
         ),
         unrepliedPcComments: sortBy(
-          p.details.replies.filter(
+          p.details?.replies?.filter(
             (q) =>
               q.invitation.endsWith('Comment') &&
               !q.signatures.includes('OpenReview.net/Support') &&
-              !hasBeenReplied(q, p.details.replies) &&
+              !hasBeenReplied(q, p.details?.replies ?? []) &&
               dayjs().diff(dayjs(q.cdate), 'd') < 7
           ),
           (s) => -s.cdate
@@ -830,11 +904,9 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
         (p) => p.unrepliedPcComments.length > 0
       ).length
       setPendingVenueRequestCount(
-        getTabCountMessage(
+        getVenueTabCountMessage(
           venueWithUnrepliedCommentCount,
-          venueNotDeployedInPastWeekCount,
-          'venue with comment',
-          'venue request'
+          venueNotDeployedInPastWeekCount
         )
       )
       setVenueRequestNotes(
@@ -876,7 +948,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
   )
 }
 
-const EmailDeletionTab = ({ accessToken, superUser }) => {
+const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
   const [emailDeletionNotes, setEmailDeletionNotes] = useState(null)
   const [emailDeletionNotesToShow, setEmailDeletionNotesToShow] = useState(null)
   const [page, setPage] = useState(1)
@@ -890,13 +962,15 @@ const EmailDeletionTab = ({ accessToken, superUser }) => {
       const notesResultP = api.getAll(
         '/notes',
         { invitation: emailRemovalInvitationId, sort: 'tcdate' },
-        { accessToken }
+        { accessToken, version: 1 }
       )
-      const processLogsP = api.getAll(
-        '/logs/process',
-        { invitation: emailRemovalInvitationId },
-        { accessToken, resultsKey: 'logs' }
-      )
+      const processLogsP = isActive
+        ? api.getAll(
+            '/logs/process',
+            { invitation: emailRemovalInvitationId },
+            { accessToken, resultsKey: 'logs' }
+          )
+        : Promise.resolve([])
       const [notes, processLogs] = await Promise.all([notesResultP, processLogsP])
       const notesWithStatus = notes.map((p) => ({
         ...p,
@@ -925,7 +999,7 @@ const EmailDeletionTab = ({ accessToken, superUser }) => {
       const invitationResults = await api.get(
         '/invitations',
         { id: emailRemovalInvitationId },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       const emailRemovalInvitation = invitationResults.invitations[0]
       const noteToPost = {
@@ -935,7 +1009,7 @@ const EmailDeletionTab = ({ accessToken, superUser }) => {
         writers: buildArray(emailRemovalInvitation, 'writers', superUser.profile.id),
         signatures: buildArray(emailRemovalInvitation, 'signatures', superUser.profile.id),
       }
-      const result = await api.post('/notes', noteToPost, { accessToken })
+      const result = await api.post('/notes', noteToPost, { accessToken, version: 1 })
 
       const updatedEmailDeletionNotes = [
         { ...result, processLogStatus: 'running' },
@@ -957,7 +1031,7 @@ const EmailDeletionTab = ({ accessToken, superUser }) => {
 
   useEffect(() => {
     loadEmailDeletionNotes()
-  }, [])
+  }, [isActive])
 
   return (
     <>
@@ -1056,11 +1130,17 @@ const EmailDeletionTab = ({ accessToken, superUser }) => {
   )
 }
 
+const TabMessageCount = ({ count }) => {
+  if (!count) return null
+  return (count > 0 || typeof count === 'string') && <span className="badge">{count}</span>
+}
+
 const Moderation = ({ appContext, accessToken, superUser }) => {
   const { setBannerHidden } = appContext
-  const [nameDeletionRequestCountMsg, setNameDeletionRequestCountMsg] = useState(0)
-  const [profileMergeRequestCountMsg, setProfileMergeRequestCountMsg] = useState(0)
-  const [pendingVenueRequestCount, setPendingVenueRequestCount] = useState(0)
+  const [nameDeletionRequestCount, setNameDeletionRequestCount] = useState(null)
+  const [profileMergeRequestCount, setProfileMergeRequestCount] = useState(null)
+  const [pendingVenueRequestCount, setPendingVenueRequestCount] = useState(null)
+  const [activeTabId, setActiveTabId] = useState('#profiles')
 
   useEffect(() => {
     setBannerHidden(true)
@@ -1079,49 +1159,68 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
 
       <Tabs>
         <TabList>
-          <Tab id="reply" active>
+          <Tab
+            id="profiles"
+            active={activeTabId === '#profiles' ? true : undefined}
+            onClick={() => setActiveTabId('#profiles')}
+          >
             User Moderation
           </Tab>
-          <Tab id="email">Email Delete Requests</Tab>
-          <Tab id="preview">
-            Name Delete Requests{' '}
-            {nameDeletionRequestCountMsg && (
-              <span className="badge">{nameDeletionRequestCountMsg}</span>
-            )}
+          <Tab
+            id="email"
+            active={activeTabId === '#email' ? true : undefined}
+            onClick={() => setActiveTabId('#email')}
+          >
+            Email Delete Requests
           </Tab>
-          <Tab id="merge">
-            Profile Merge Requests{' '}
-            {profileMergeRequestCountMsg && (
-              <span className="badge">{profileMergeRequestCountMsg}</span>
-            )}
+          <Tab
+            id="name"
+            active={activeTabId === '#name' ? true : undefined}
+            onClick={() => setActiveTabId('#name')}
+          >
+            Name Delete Requests <TabMessageCount count={nameDeletionRequestCount} />
           </Tab>
-          <Tab id="requests">
-            Venue Requests{' '}
-            {pendingVenueRequestCount !== 0 && (
-              <span className="badge">{pendingVenueRequestCount}</span>
-            )}
+          <Tab
+            id="merge"
+            active={activeTabId === '#merge' ? true : undefined}
+            onClick={() => setActiveTabId('#merge')}
+          >
+            Profile Merge Requests <TabMessageCount count={profileMergeRequestCount} />
+          </Tab>
+          <Tab
+            id="requests"
+            active={activeTabId === '#requests' ? true : undefined}
+            onClick={() => setActiveTabId('#requests')}
+          >
+            Venue Requests <TabMessageCount count={pendingVenueRequestCount} />
           </Tab>
         </TabList>
 
         <TabPanels>
-          <TabPanel id="reply">
+          <TabPanel id="profiles">
             <UserModerationTab accessToken={accessToken} />
           </TabPanel>
           <TabPanel id="email">
-            <EmailDeletionTab accessToken={accessToken} superUser={superUser} />
+            <EmailDeletionTab
+              accessToken={accessToken}
+              superUser={superUser}
+              isActive={activeTabId === '#email'}
+            />
           </TabPanel>
-          <TabPanel id="preview">
+          <TabPanel id="name">
             <NameDeletionTab
               accessToken={accessToken}
               superUser={superUser}
-              setNameDeletionRequestCountMsg={setNameDeletionRequestCountMsg}
+              setNameDeletionRequestCount={setNameDeletionRequestCount}
+              isActive={activeTabId === '#name'}
             />
           </TabPanel>
           <TabPanel id="merge">
             <ProfileMergeTab
               accessToken={accessToken}
               superUser={superUser}
-              setProfileMergeRequestCountMsg={setProfileMergeRequestCountMsg}
+              setProfileMergeRequestCount={setProfileMergeRequestCount}
+              isActive={activeTabId === '#merge'}
             />
           </TabPanel>
           <TabPanel id="requests">
@@ -1237,12 +1336,34 @@ const UserModerationQueue = ({
     }
   }
 
+  const getSignedAuthoredNotesCount = async (profileId) => {
+    const signedNotesCountP = api.getCombined(
+      '/notes',
+      { signature: profileId, select: 'id' },
+      null,
+      {
+        accessToken,
+      }
+    )
+    const authoredNotesCountP = api.getCombined(
+      '/notes',
+      { 'content.authorids': profileId, select: 'id' },
+      null,
+      { accessToken }
+    )
+
+    const [signedNotes, authoredNotes] = await Promise.all([
+      signedNotesCountP,
+      authoredNotesCountP,
+    ])
+
+    return [...new Set([...signedNotes.notes, ...authoredNotes.notes].map((p) => p.id))].length
+  }
+
   const showRejectionModal = async (profileId) => {
     if (!onlyModeration) {
-      const signedNotes = await api.getCombined('/notes', { signature: profileId }, null, {
-        accessToken,
-      })
-      setSignedNotesCount(signedNotes.count)
+      const signedAuthoredNotesCount = await getSignedAuthoredNotesCount(profileId)
+      setSignedNotesCount(signedAuthoredNotesCount)
     }
     setProfileIdToReject(profileId)
 
@@ -1268,21 +1389,26 @@ const UserModerationQueue = ({
   }
 
   const blockUnblockUser = async (profile) => {
-    const actionIsBlock = profile?.state !== 'Blocked'
-    const signedNotes = !onlyModeration
-      ? await api.getCombined('/notes', { signature: profile.id }, null, {
-          accessToken,
-        })
-      : {}
+    if (!profile) return
+
+    const actionIsBlock = profile.state !== 'Blocked'
+    const signedAuthoredNotesCount = !onlyModeration
+      ? await getSignedAuthoredNotesCount(profile.id)
+      : 0
+    const noteCountMessage =
+      !onlyModeration && actionIsBlock && signedAuthoredNotesCount
+        ? `There ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
+            signedAuthoredNotesCount,
+            'note',
+            'notes',
+            true
+          )} signed by this profile.`
+        : ''
     // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(
       `Are you sure you want to ${actionIsBlock ? 'block' : 'unblock'} ${
-        profile?.content?.names?.[0]?.first
-      } ${profile?.content?.names?.[0]?.last}?${
-        !onlyModeration && actionIsBlock && signedNotes.count
-          ? `\n\nThere are ${signedNotes.count} notes signed by this profile.`
-          : ''
-      }`
+        profile.content?.names?.[0]?.fullname
+      }?\n\n${noteCountMessage}`
     )
     if (confirmResult) {
       try {
@@ -1299,30 +1425,29 @@ const UserModerationQueue = ({
   }
 
   const deleteRestoreUser = async (profile) => {
-    const actionIsDelete = !profile?.ddate
+    if (!profile) return
 
-    if (actionIsDelete) {
-      const signedNotes = await api.getCombined('/notes', { signature: profile.id }, null, {
-        accessToken,
-      })
-      if (signedNotes.count) {
-        promptError(
-          `There are ${inflect(
-            signedNotes.count,
+    const actionIsDelete = !profile.ddate
+
+    const signedAuthoredNotesCount = actionIsDelete
+      ? await getSignedAuthoredNotesCount(profile.id)
+      : 0
+
+    const noteCountMessage =
+      actionIsDelete && signedAuthoredNotesCount
+        ? `There ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
+            signedAuthoredNotesCount,
             'note',
             'notes',
             true
           )} signed by this profile.`
-        )
-        return
-      }
-    }
+        : ''
 
+    const actionLabel = actionIsDelete ? 'delete' : 'restore'
+    const name = profile.content?.names?.[0]?.fullname ?? 'this profile'
     // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(
-      `Are you sure you want to ${actionIsDelete ? 'delete' : 'restore'} ${
-        profile?.content?.names?.[0]?.first
-      } ${profile?.content?.names?.[0]?.last}?`
+      `Are you sure you want to ${actionLabel} ${name}?\n\n${noteCountMessage}`
     )
     if (confirmResult) {
       try {
@@ -1335,6 +1460,22 @@ const UserModerationQueue = ({
         promptError(error.message, { scrollToTop: false })
       }
       reload()
+    }
+  }
+
+  const addSDNException = async (profileId) => {
+    try {
+      await api.put(
+        '/groups/members',
+        {
+          id: `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`,
+          members: [profileId],
+        },
+        { accessToken, version: 1 }
+      )
+      promptMessage(`${profileId} is added to SDN exception group`)
+    } catch (error) {
+      promptError(error.message)
     }
   }
 
@@ -1396,7 +1537,7 @@ const UserModerationQueue = ({
                     rel="noreferrer"
                     title={profile.id}
                   >
-                    {name.first} {name.middle} {name.last}
+                    {name.fullname}
                   </a>
                 </span>
                 <span className="col-email text-muted">{profile.content.preferredEmail}</span>
@@ -1446,13 +1587,26 @@ const UserModerationQueue = ({
                     </>
                   ) : (
                     <>
-                      {!(profile.state === 'Blocked' || profile.ddate) && (
+                      {!(
+                        profile.state === 'Blocked' ||
+                        profile.state === 'Limited' ||
+                        profile.ddate
+                      ) && (
                         <button
                           type="button"
                           className="btn btn-xs"
                           onClick={() => showRejectionModal(profile.id)}
                         >
                           <Icon name="remove-circle" /> Reject
+                        </button>
+                      )}
+                      {profile.state === 'Limited' && profile.content.yearOfBirth && (
+                        <button
+                          type="button"
+                          className="btn btn-xs"
+                          onClick={() => addSDNException(profile.id)}
+                        >
+                          <Icon name="plus" /> Exception
                         </button>
                       )}{' '}
                       {!profile.ddate && (
@@ -1616,7 +1770,12 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount })
           </div>
         </form>
         {signedNotesCount > 0 && (
-          <h4>{`There are ${signedNotesCount} notes signed by this profile.`}</h4>
+          <h4>{`There ${inflect(signedNotesCount, 'is', 'are', false)} ${inflect(
+            signedNotesCount,
+            'note',
+            'notes',
+            true
+          )} signed by this profile.`}</h4>
         )}
       </>
     </BasicModal>
@@ -1674,26 +1833,5 @@ const FullTextModal = ({ id, textToView, setTextToView }) => (
     {textToView}
   </BasicModal>
 )
-
-const ProfilePreviewModal = ({
-  profileToPreview,
-  setProfileToPreview,
-  setLastPreviewedProfileId,
-}) => {
-  if (!profileToPreview) return null
-  return (
-    <BasicModal
-      id="profile-preview"
-      primaryButtonText={null}
-      cancelButtonText="OK"
-      onClose={() => {
-        setProfileToPreview(null)
-        setLastPreviewedProfileId(profileToPreview.id)
-      }}
-    >
-      <BasicProfileView profile={profileToPreview} showLinkText={true} />
-    </BasicModal>
-  )
-}
 
 export default withAdminAuth(Moderation)

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import truncate from 'lodash/truncate'
+import pickBy from 'lodash/pickBy'
 import LegacyForum from '../components/forum/LegacyForum'
 import Forum from '../components/forum/Forum'
 import withError from '../components/withError'
@@ -37,11 +38,13 @@ const ForumPage = ({ forumNote, query, appContext }) => {
     Array.isArray(content.authors) || typeof content.authors === 'string'
       ? [content.authors].flat()
       : []
-  const onlineDate = new Date(forumNote.odate || forumNote.cdate || forumNote.tcdate || Date.now())
+  const onlineDate = new Date(
+    forumNote.odate || forumNote.cdate || forumNote.tcdate || Date.now()
+  )
     .toISOString()
     .slice(0, 10)
     .replace(/-/g, '/')
-  const modificationDate = new Date(forumNote.pdate || forumNote.tmdate || Date.now())
+  const modificationDate = new Date(forumNote.tmdate || Date.now())
     .toISOString()
     .slice(0, 10)
     .replace(/-/g, '/')
@@ -88,7 +91,8 @@ const ForumPage = ({ forumNote, query, appContext }) => {
 
         {/* For more information on required meta tags for Google Scholar see: */}
         {/* https://scholar.google.com/intl/en/scholar/inclusion.html#indexing */}
-        {noteInvitation.startsWith(`${process.env.SUPER_USER}`) || noteInvitation.startsWith('dblp.org') ? (
+        {noteInvitation.startsWith(process.env.SUPER_USER) ||
+        noteInvitation.startsWith('dblp.org') ? (
           <meta name="robots" content="noindex" />
         ) : (
           <>
@@ -96,8 +100,8 @@ const ForumPage = ({ forumNote, query, appContext }) => {
             {authors.map((author) => (
               <meta key={author} name="citation_author" content={author} />
             ))}
-            <meta name="citation_publication_date" content={modificationDate} />
-            <meta name="citation_online_date" content={onlineDate} />
+            <meta name="citation_publication_date" content={onlineDate} />
+            <meta name="citation_online_date" content={modificationDate} />
             {content.pdf && (
               <meta
                 name="citation_pdf_url"
@@ -108,12 +112,8 @@ const ForumPage = ({ forumNote, query, appContext }) => {
             {conferenceName && (
               <meta name="citation_conference_title" content={conferenceName} />
             )}
-            {journalName && (
-              <meta name="citation_journal_title" content={journalName} />
-            )}
-            {issn && (
-              <meta name="citation_issn" content={issn} />
-            )}
+            {journalName && <meta name="citation_journal_title" content={journalName} />}
+            {issn && <meta name="citation_issn" content={issn} />}
           </>
         )}
       </Head>
@@ -123,6 +123,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
           forumNote={forumNote}
           selectedNoteId={query.noteId}
           selectedInvitationId={query.invitationId}
+          prefilledValues={pickBy(query, (_, key) => key.startsWith('edit.note.'))}
           clientJsLoading={clientJsLoading}
         />
       ) : (
@@ -138,8 +139,9 @@ const ForumPage = ({ forumNote, query, appContext }) => {
 }
 
 ForumPage.getInitialProps = async (ctx) => {
-  if (!ctx.query.id) {
-    return { statusCode: 400, message: 'Forum ID is required' }
+  const queryId = ctx.query.id || ctx.query.noteId
+  if (!queryId) {
+    return { statusCode: 400, message: 'Forum or note ID is required' }
   }
 
   const { token } = auth(ctx)
@@ -148,7 +150,7 @@ ForumPage.getInitialProps = async (ctx) => {
     const blindNotesResult = await api.get(
       '/notes',
       { original: noteId },
-      { accessToken: token }
+      { accessToken: token, version: 1 }
     )
 
     // if no blind submission found return the current forum
@@ -159,25 +161,42 @@ ForumPage.getInitialProps = async (ctx) => {
     return false
   }
   const redirectForum = (forumId) => {
+    const noteIdParam = ctx.query.noteId
+      ? `&noteId=${encodeURIComponent(ctx.query.noteId)}`
+      : ''
+    const invIdParam = ctx.query.invitationId
+      ? `&invitationId=${encodeURIComponent(ctx.query.invitationId)}`
+      : ''
+    const referrerParam = ctx.query.referrer
+      ? `&referrer=${encodeURIComponent(ctx.query.referrer)}`
+      : ''
+    const redirectUrl = `/forum?id=${encodeURIComponent(
+      forumId
+    )}${noteIdParam}${invIdParam}${referrerParam}`
     if (ctx.req) {
-      ctx.res.writeHead(302, { Location: `/forum?id=${encodeURIComponent(forumId)}` }).end()
+      ctx.res.writeHead(302, { Location: redirectUrl }).end()
     } else {
-      Router.replace(
-        `/forum?id=${forumId}${ctx.query?.referrer ? `&referrer=${ctx.query.referrer}` : ''}`
-      )
+      Router.replace(redirectUrl)
     }
     return {}
   }
 
   try {
-    const note = await api.getNoteById(ctx.query.id, token, {
-      trash: true,
-      details: 'original,replyCount,writable,signatures,invitation,presentation',
-    })
+    const note = await api.getNoteById(
+      queryId,
+      token,
+      { trash: true, details: 'writable,presentation' },
+      { trash: true, details: 'original,replyCount,writable' }
+    )
 
     // Only super user can see deleted forums
     if (note?.ddate && !note?.details?.writable) {
       return { statusCode: 404, message: 'Not Found' }
+    }
+
+    // Allows the UI to link to forum pages just using a note ID, that may be a reply
+    if (note && (note.id !== note.forum || !ctx.query.id)) {
+      return redirectForum(note.forum)
     }
 
     if (note?.version === 2) {
@@ -189,17 +208,17 @@ ForumPage.getInitialProps = async (ctx) => {
       return { forumNote: note, query: ctx.query }
     }
 
-    const redirect = await shouldRedirect(ctx.query.id)
+    const redirect = await shouldRedirect(queryId)
     if (redirect) {
       return redirectForum(redirect.id)
     }
     if (!note) {
-      return { statusCode: 404, message: `The Note ${ctx.query.id} was not found` }
+      return { statusCode: 404, message: `The Note ${queryId} was not found` }
     }
     return { forumNote: note, query: ctx.query }
   } catch (error) {
     if (error.name === 'ForbiddenError') {
-      const redirect = await shouldRedirect(ctx.query.id)
+      const redirect = await shouldRedirect(queryId)
       if (redirect) {
         return redirectForum(redirect.id)
       }

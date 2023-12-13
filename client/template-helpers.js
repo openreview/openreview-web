@@ -1,5 +1,5 @@
 /* globals $, _: false */
-/* globals view, view2, Webfield, Webfield2: false */
+/* globals view, view2: false */
 /* globals marked, DOMPurify, Handlebars: false */
 
 Handlebars.registerHelper('truncate', function (str, len) {
@@ -480,11 +480,13 @@ Handlebars.registerHelper('noteContentCollapsible', function (noteObj, options) 
 
     var renderMarkdown
     var renderMarkdownInline
+    var customFieldName
     if (noteObj.version === 2) {
       var presentationDetails =
         noteObj.details?.presentation?.find((p) => p.name === fieldName) ?? {}
       renderMarkdown = presentationDetails.markdown || presentationDetails.markdownInline
       renderMarkdownInline = presentationDetails.markdownInline
+      customFieldName = presentationDetails.fieldName
     } else {
       var invitationField = invitation?.reply?.content?.[fieldName] ?? {}
       renderMarkdown = invitationField?.markdown
@@ -534,6 +536,7 @@ Handlebars.registerHelper('noteContentCollapsible', function (noteObj, options) 
 
     contents.push({
       fieldName: fieldName,
+      customFieldName: customFieldName,
       fieldValue: new Handlebars.SafeString(valueString),
       markdownRendered: renderMarkdown,
     })

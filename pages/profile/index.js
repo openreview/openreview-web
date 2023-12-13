@@ -1,12 +1,10 @@
-/* globals $: false */
+/* globals $,typesetMathJax: false */
 
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import pick from 'lodash/pick'
-import { nanoid } from 'nanoid'
-import NoteList from '../../components/NoteList'
 import ProfileViewSection from '../../components/profile/ProfileViewSection'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import LimitedStatusAlert from '../../components/profile/LimitedStateAlert'
@@ -16,67 +14,21 @@ import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
 import { auth, isSuperUser } from '../../lib/auth'
 import { profileModeToggle } from '../../lib/banner-links'
-
-const RecentPublications = ({ profileId, publications, count, loading, preferredName }) => {
-  const displayOptions = {
-    pdfLink: false,
-    htmlLink: false,
-    showContents: false,
-    showPrivateIcon: true,
-    referrer: `[the profile of ${preferredName}](/profile?id=${profileId})`,
-  }
-  const numPublicationsToShow = 10
-
-  if (loading) {
-    return (
-      <p className="loading-message">
-        <em>Loading...</em>
-      </p>
-    )
-  }
-
-  return publications.length > 0 ? (
-    <>
-      <NoteList
-        key={nanoid()}
-        notes={publications.slice(0, numPublicationsToShow)}
-        displayOptions={displayOptions}
-      />
-
-      {count > numPublicationsToShow && (
-        <Link
-          href={`/search?term=${profileId}&content=authors&group=all&source=forum&sort=cdate:desc`}
-        >
-          {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-          <a>View all {count} publications</a>
-        </Link>
-      )}
-    </>
-  ) : (
-    <p className="empty-message">No recent publications</p>
-  )
-}
+import RecentPublications from '../../components/profile/RecentPublications'
 
 const CoAuthorsList = ({ coAuthors, loading }) => {
   const [visibleCoAuthors, setVisibleCoAuthors] = useState([])
   const numCoAuthorsToShow = 25
 
   const authorLink = ({ name, id, email }) => {
-    if (id)
-      return (
-        <Link href={`/profile?id=${id}`}>
-          <a>{name}</a>
-        </Link>
-      )
+    if (id) return <Link href={`/profile?id=${id}`}>{name}</Link>
     if (email) {
       return email.startsWith('https://dblp.org') ? (
         <a href={email} target="_blank" rel="noopener noreferrer">
           {name}
         </a>
       ) : (
-        <Link href={`/profile?email=${email}`}>
-          <a>{name}</a>
-        </Link>
+        <Link href={`/profile?email=${email}`}>{name}</Link>
       )
     }
     return <span>{name}</span>
@@ -145,8 +97,6 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       setPublications(apiRes.notes)
       setCount(apiRes.count)
     }
-    $('[data-toggle="tooltip"]').tooltip('enable')
-    $('[data-toggle="tooltip"]').tooltip({ container: 'body' })
   }
 
   useEffect(() => {
@@ -171,6 +121,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
     if (!publications) return
 
     setCoAuthors(getCoAuthorsFromPublications(profile, publications))
+    typesetMathJax()
   }, [publications])
 
   return (
@@ -219,7 +170,13 @@ Profile.getInitialProps = async (ctx) => {
   let profileQuery = pick(ctx.query, ['id', 'email'])
   const { token, user } = auth(ctx)
   if (!user && !profileQuery.id && !profileQuery.email) {
-    return { statusCode: 400, message: 'Profile ID or email is required' }
+    if (ctx.req) {
+      ctx.res
+        .writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` })
+        .end()
+    } else {
+      Router.replace(`/login?redirect=${encodeURIComponent(ctx.asPath)}`)
+    }
   }
 
   // Don't use query params if this is user's own profile
@@ -262,7 +219,7 @@ Profile.getInitialProps = async (ctx) => {
   }
 
   return {
-    profile: formatProfileData(profile, true),
+    profile: formatProfileData(profile),
     publicProfile: Object.keys(profileQuery).length > 0,
   }
 }

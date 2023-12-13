@@ -1,9 +1,10 @@
-import { render, screen, waitFor } from '@testing-library/react'
+/* eslint-disable one-var */
 import '@testing-library/jest-dom'
+import { render, screen, waitFor } from '@testing-library/react'
 import ConsoleTaskList from '../components/webfield/ConsoleTaskList'
+import api from '../lib/api-client'
 
 jest.mock('../lib/api-client')
-import api from '../lib/api-client'
 jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
 
 let venueId, submissionName
@@ -42,10 +43,13 @@ beforeAll(() => {
 beforeEach(() => {
   api.getAll = jest.fn((_, body) => {
     switch (body.type) {
+      case 'note':
       case 'notes':
         return noteInvitations
+      case 'edge':
       case 'edges':
         return edgeInvitations
+      case 'tag':
       case 'tags':
         return tagInvitations
       default:
@@ -70,7 +74,7 @@ describe('ConsoleTaskList', () => {
         apiVersion={1}
       />
     )
-    await waitFor(() => expect(screen.getByText('No outstanding tasks for this conference')))
+    expect(await screen.findByText('No outstanding tasks for this conference')).toBeVisible()
   })
 
   test('show empty message if there is no task (v2 venue)', async () => {
@@ -88,7 +92,7 @@ describe('ConsoleTaskList', () => {
         apiVersion={2}
       />
     )
-    await waitFor(() => expect(screen.getByText('No outstanding tasks for this conference')))
+    expect(await screen.findByText('No outstanding tasks for this conference')).toBeVisible()
   })
 
   test('show tasks of authors (v1 venue)', async () => {
@@ -339,7 +343,7 @@ describe('ConsoleTaskList', () => {
       />
     )
     await waitFor(() => {
-      //#region note invitation assertions
+      // #region note invitation assertions
       const commentOneLink = screen.getByText('Submission5 CommentOne')
       const commentTwoLink = screen.getByText('Submission5 CommentTwo')
       const commentThreeLink = screen.queryByText('Submission5 CommentThree')
@@ -353,7 +357,7 @@ describe('ConsoleTaskList', () => {
       )
       expect(commentOneLink.nextElementSibling).toHaveClass('warning')
       expect(commentOneLink.parentElement.parentElement).not.toHaveClass('completed')
-      expect(screen.getByText('title of note that comment one replied to'))
+      expect(screen.getByText('title of note that comment one replied to')).toBeInTheDocument()
 
       expect(commentTwoLink).toBeInTheDocument()
       expect(commentTwoLink).toHaveAttribute(
@@ -371,7 +375,9 @@ describe('ConsoleTaskList', () => {
       )
       expect(commentFourLink.nextElementSibling).toHaveClass('expired')
       expect(commentFourLink.parentElement.parentElement).not.toHaveClass('completed')
-      expect(screen.getByText('title of note that comment four replied to'))
+      expect(
+        screen.getByText('title of note that comment four replied to')
+      ).toBeInTheDocument()
 
       expect(commentFiveLink).toBeInTheDocument()
       expect(commentFiveLink).toHaveAttribute(
@@ -381,9 +387,9 @@ describe('ConsoleTaskList', () => {
       expect(commentFiveLink.nextElementSibling).toHaveClass('duedate', { exact: true })
       expect(commentFiveLink.parentElement.parentElement).toHaveClass('completed')
 
-      //#endregion
+      // #endregion
 
-      //#region edge invitation assertions
+      // #region edge invitation assertions
       const expSel1Link = screen.getByText('Expertise Selection One')
       const expSel2Link = screen.getByText('Expertise Selection Two')
       const expSel3Link = screen.queryByText('Expertise Selection Three')
@@ -424,9 +430,9 @@ describe('ConsoleTaskList', () => {
       expect(expSel5Link.parentElement.parentElement).toHaveClass('completed')
       expect(expSel5Link.nextElementSibling).toHaveClass('warning')
 
-      //#endregion
+      // #endregion
 
-      //#region tag invitation assertions
+      // #region tag invitation assertions
       const paperRank1Link = screen.getByText('Paper Ranking One')
       const paperRank2Link = screen.getByText('Paper Ranking Two')
       const paperRank3Link = screen.queryByText('Paper Ranking Three')
@@ -467,7 +473,7 @@ describe('ConsoleTaskList', () => {
       expect(paperRank5Link.parentElement.parentElement).toHaveClass('completed')
       expect(paperRank5Link.nextElementSibling).toHaveClass('warning')
 
-      //#endregion
+      // #endregion
     })
   })
 
@@ -792,7 +798,7 @@ describe('ConsoleTaskList', () => {
     )
 
     await waitFor(() => {
-      //#region note invitation assertions
+      // #region note invitation assertions
       const noReplyLink = screen.queryByText('Submission5 No Reply')
       const revisionLink = screen.getByText('Submission5 Revision')
       const revisionCompleteLink = screen.getByText('Submission5 Revision Complete')
@@ -847,7 +853,7 @@ describe('ConsoleTaskList', () => {
       expect(rebuttalLink.nextElementSibling).toHaveClass('warning')
       expect(rebuttalLink).toHaveAttribute(
         'href',
-        expect.stringContaining('id=paper5Id&noteId=[object%20Object]&invitationId=') // issue #1467
+        expect.stringContaining('id=paper5Id&noteId=[object Object]&invitationId=') // issue #1467
       )
 
       expect(rebuttalSingleReplyLink).toBeInTheDocument()
@@ -863,11 +869,11 @@ describe('ConsoleTaskList', () => {
       expect(rebuttalMultiReplyLink.nextElementSibling).toHaveClass('warning')
       expect(rebuttalMultiReplyLink).toHaveAttribute(
         'href',
-        expect.stringContaining('id=paper5Id&noteId=[object%20Object]')
+        expect.stringContaining('id=paper5Id&noteId=[object Object]')
       )
-      //#endregion
+      // #endregion
 
-      //#region edge invitation assertions
+      // #region edge invitation assertions
       const acRecom1Link = screen.getByText('Action Editor Recommendation')
       const acRecom2Link = screen.getByText('Action Editor Recommendation Two')
       const acRecom3Link = screen.queryByText('Action Editor Recommendation Three')
@@ -908,9 +914,9 @@ describe('ConsoleTaskList', () => {
       expect(acRecom5Link.parentElement.parentElement).toHaveClass('completed')
       expect(acRecom5Link.nextElementSibling).toHaveClass('warning')
 
-      //#endregion
+      // #endregion
 
-      //#region tag invitation assertions
+      // #region tag invitation assertions
       const paperRank1Link = screen.getByText('Paper Ranking One')
       const paperRank2Link = screen.getByText('Paper Ranking Two')
       const paperRank3Link = screen.queryByText('Paper Ranking Three')
@@ -951,7 +957,7 @@ describe('ConsoleTaskList', () => {
       expect(paperRank5Link.parentElement.parentElement).toHaveClass('completed')
       expect(paperRank5Link.nextElementSibling).toHaveClass('warning')
 
-      //#endregion
+      // #endregion
     })
   })
 
@@ -1356,7 +1362,7 @@ describe('ConsoleTaskList', () => {
       expect(commentFiveLink.nextElementSibling).toHaveClass('warning')
       expect(commentFiveLink).toHaveAttribute(
         'href',
-        expect.stringContaining('id=paper5Id&noteId=[object%20Object]&invitationId=') // issue #1467
+        expect.stringContaining('id=paper5Id&noteId=[object Object]&invitationId=') // issue #1467
       )
 
       expect(commentSixLink).toBeInTheDocument()
@@ -1372,7 +1378,7 @@ describe('ConsoleTaskList', () => {
       expect(commentSevenLink.nextElementSibling).toHaveClass('warning')
       expect(commentSevenLink).toHaveAttribute(
         'href',
-        expect.stringContaining('id=paper5Id&noteId=[object%20Object]')
+        expect.stringContaining('id=paper5Id&noteId=[object Object]')
       )
 
       expect(Paper123CommentSevenLink).not.toBeInTheDocument()

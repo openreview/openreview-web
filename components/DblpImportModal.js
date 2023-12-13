@@ -108,8 +108,8 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
       if (
         !allDblpPublications.some((pub) =>
           profileNames.some((name) =>
-            deburrString(pub.note.content.dblp, true).includes(
-              deburrString(getNameString(name), true)
+            deburrString(pub.note.content.dblp, false).includes(
+              deburrString(getNameString(name), false)
             )
           )
         )
@@ -318,17 +318,19 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
               </form>
             )}
 
-            {isFetchingPublications && <LoadingSpinner inline />}
-
-            <DblpPublicationTable
-              dblpPublications={publications}
-              orPublications={publicationsInOpenReview.current}
-              orPublicationsImportedByOtherProfile={
-                publicationsImportedByOtherProfiles.current
-              }
-              selectedPublications={selectedPublications}
-              setSelectedPublications={setSelectedPublications}
-            />
+            {isFetchingPublications ? (
+              <LoadingSpinner inline />
+            ) : (
+              <DblpPublicationTable
+                dblpPublications={publications}
+                orPublications={publicationsInOpenReview.current}
+                orPublicationsImportedByOtherProfile={
+                  publicationsImportedByOtherProfiles.current
+                }
+                selectedPublications={selectedPublications}
+                setSelectedPublications={setSelectedPublications}
+              />
+            )}
 
             {isSavingPublications && (
               <div className="saving-overlay">

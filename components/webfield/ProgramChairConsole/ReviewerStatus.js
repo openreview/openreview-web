@@ -3,7 +3,7 @@ import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
-import { getProfileName } from '../../../lib/utils'
+import { getProfileName, prettyField } from '../../../lib/utils'
 import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
@@ -64,7 +64,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
 }
 
 // modified from notesReviewerProgress.hbs
-const ReviewerProgress = ({ rowData, referrerUrl }) => {
+const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName }) => {
   const numPapers = rowData.notesInfo.length
   const { numCompletedReviews, notesInfo } = rowData
 
@@ -99,8 +99,21 @@ const ReviewerProgress = ({ rowData, referrerUrl }) => {
                       </>
                     ) : (
                       <span>
-                        Rating: {officialReview.rating} / Confidence:{' '}
-                        {officialReview.confidence} / Review length:{' '}
+                        {/* Rating: {officialReview.rating} / Confidence:{' '} */}
+                        {(Array.isArray(reviewRatingName)
+                          ? reviewRatingName
+                          : [reviewRatingName]
+                        ).map((ratingName, index) => {
+                          const ratingValue = officialReview[ratingName]
+                          if (!ratingValue) return null
+                          return (
+                            <span key={ratingName}>
+                              {prettyField(ratingName)}: {ratingValue}{' '}
+                              {index < reviewRatingName.length - 1 && '/'}{' '}
+                            </span>
+                          )
+                        })}
+                        Confidence: {officialReview.confidence} / Review length:{' '}
                         {officialReview.reviewLength}
                       </span>
                     )}
@@ -158,7 +171,13 @@ const ReviewerStatus = ({ rowData }) => {
   )
 }
 
-const ReviewerStatusRow = ({ rowData, referrerUrl, bidEnabled, invitations }) => (
+const ReviewerStatusRow = ({
+  rowData,
+  referrerUrl,
+  bidEnabled,
+  invitations,
+  reviewRatingName,
+}) => (
   <tr>
     <td>
       <strong>{rowData.number}</strong>
@@ -167,7 +186,11 @@ const ReviewerStatusRow = ({ rowData, referrerUrl, bidEnabled, invitations }) =>
       <ReviewerSummary rowData={rowData} bidEnabled={bidEnabled} invitations={invitations} />
     </td>
     <td>
-      <ReviewerProgress rowData={rowData} referrerUrl={referrerUrl} />
+      <ReviewerProgress
+        rowData={rowData}
+        referrerUrl={referrerUrl}
+        reviewRatingName={reviewRatingName}
+      />
     </td>
     <td>
       <ReviewerStatus rowData={rowData} />
@@ -177,8 +200,14 @@ const ReviewerStatusRow = ({ rowData, referrerUrl, bidEnabled, invitations }) =>
 
 const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showContent }) => {
   const [reviewerStatusTabData, setReviewerStatusTabData] = useState({})
-  const { venueId, bidName, reviewersId, shortPhrase, reviewerStatusExportColumns } =
-    useContext(WebFieldContext)
+  const {
+    venueId,
+    bidName,
+    reviewersId,
+    shortPhrase,
+    reviewerStatusExportColumns,
+    reviewRatingName,
+  } = useContext(WebFieldContext)
   const { accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.reviewers?.length ?? 0)
@@ -186,9 +215,9 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#reviewer-status)`
   )
-  const bidEnabled = pcConsoleData.invitations?.find(
-    (p) => p.id === `${reviewersId}/-/${bidName}`
-  )
+  const bidEnabled = bidName
+    ? pcConsoleData.invitations?.find((p) => p.id === `${reviewersId}/-/${bidName}`)
+    : false
 
   const loadReviewerData = async () => {
     if (reviewerStatusTabData.tableRowsAll) return
@@ -388,6 +417,7 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
             referrerUrl={referrerUrl}
             bidEnabled={bidEnabled}
             invitations={pcConsoleData.invitations}
+            reviewRatingName={reviewRatingName}
           />
         ))}
       </Table>

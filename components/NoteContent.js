@@ -71,8 +71,12 @@ function NoteContent({
   )
 }
 
-function NoteContentField({ name }) {
-  return <strong className="note-content-field">{prettyField(name)}:</strong>
+function NoteContentField({ name, customFieldName }) {
+  return (
+    <strong className="note-content-field disable-tex-rendering">
+      {customFieldName ?? prettyField(name)}:
+    </strong>
+  )
 }
 
 export function NoteContentValue({ content = '', enableMarkdown }) {
@@ -178,24 +182,31 @@ export const NoteContentV2 = ({
       {contentOrder.map((fieldName, i) => {
         if (omittedFields.includes(fieldName) || fieldName.startsWith('_')) return null
 
-        const fieldValue = prettyContentValue(
-          fieldName === 'Submission_Number' ? number : content[fieldName]?.value
-        )
+        let rawFieldValue = presentation?.[i]?.description
+        if (Array.isArray(rawFieldValue)) {
+          rawFieldValue = rawFieldValue.filter(Boolean)
+          if (rawFieldValue.length === 0) rawFieldValue = null
+        }
+
+        if (!rawFieldValue) {
+          rawFieldValue =
+            fieldName === 'Submission_Number' ? number : content[fieldName]?.value
+        }
+        const fieldValue = prettyContentValue(rawFieldValue)
+
         if (!fieldValue) return null
 
         const enableMarkdown = presentation?.[i]?.markdown
+        const customFieldName = presentation?.[i]?.fieldName
         const fieldReaders = Array.isArray(content[fieldName]?.readers)
           ? content[fieldName].readers.sort()
           : null
         const showPrivateIcon =
           fieldReaders && noteReaders && !noteReaders.every((p, j) => p === fieldReaders[j])
 
-        // Only show the PDF and HTML field in note content if it has restricted readers
-        if ((fieldName === 'pdf' || fieldName === 'html') && !showPrivateIcon) return null
-
         return (
           <div key={fieldName}>
-            <NoteContentField name={fieldName} />{' '}
+            <NoteContentField name={fieldName} customFieldName={customFieldName} />{' '}
             {showPrivateIcon && (
               <Icon
                 name="eye-open"
@@ -205,7 +216,7 @@ export const NoteContentV2 = ({
                   .join(', ')}`}
               />
             )}
-            {(fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/')) ? (
+            {fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/') ? (
               <span className="note-content-value">
                 <DownloadLink
                   noteId={id}

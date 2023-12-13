@@ -119,7 +119,7 @@ const InvitationInfo = ({ appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">{prettyId(invitation?.id)} Invitation Info | OpenReview</title>
+        <title key="title">{`${prettyId(router.query.id)} Invitation Info | OpenReview`}</title>
       </Head>
 
       <div id="header">

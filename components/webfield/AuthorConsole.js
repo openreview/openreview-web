@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import sum from 'lodash/sum'
+import upperFirst from 'lodash/upperFirst'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
@@ -14,7 +15,7 @@ import NoteSummary from './NoteSummary'
 import useQuery from '../../hooks/useQuery'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { parseNumberField, prettyField, prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import ConsoleTaskList from './ConsoleTaskList'
@@ -34,39 +35,38 @@ const ReviewSummary = ({
     ? (p) => p.invitations.includes(officialReviewInvitationId)
     : (p) => p.invitation === officialReviewInvitationId
   const noteCompletedReviews = note.details.directReplies?.filter(directlyReplyFilterFn) ?? []
-  const ratings = []
   const confidences = []
 
-  const getRatingValue = (reviewNote) => {
-    const ratingName = Array.isArray(reviewRatingName)
-      ? reviewRatingName.find((name) =>
-          isV2Note ? reviewNote.content[name]?.value : reviewNote.content[name]
-        )
-      : reviewRatingName
-
-    return isV2Note ? reviewNote.content[ratingName]?.value : reviewNote.content[ratingName]
-  }
-
   noteCompletedReviews.forEach((p) => {
-    const ratingEx = /^(\d+): .*$/
-    const ratingValue = getRatingValue(p)
-    const ratingMatch = ratingValue?.match(ratingEx)
-    ratings.push(ratingMatch ? parseInt(ratingMatch[1], 10) : null)
-    const confidenceValue = isV2Note
-      ? p.content[reviewConfidenceName]?.value
-      : p.content[reviewConfidenceName]
-    const confidenceMatch = confidenceValue?.match(ratingEx)
-    confidences.push(confidenceMatch ? parseInt(confidenceMatch[1], 10) : null)
+    confidences.push(
+      parseNumberField(
+        isV2Note ? p.content?.[reviewConfidenceName]?.value : p.content?.[reviewConfidenceName]
+      )
+    )
   })
 
-  let [averageRating, minRating, maxRating, averageConfidence, minConfidence, maxConfidence] =
-    new Array(6).fill('N/A')
-  if (ratings.some((p) => p)) {
-    const validRatings = ratings.filter((p) => p)
-    minRating = Math.min(...validRatings)
-    maxRating = Math.max(...validRatings)
-    averageRating = Math.round((sum(validRatings) / validRatings.length) * 100) / 100
-  }
+  const ratings = Object.fromEntries(
+    (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+      (ratingName) => {
+        const ratingValues = noteCompletedReviews.map((p) =>
+          parseNumberField(isV2Note ? p.content?.[ratingName]?.value : p.content?.[ratingName])
+        )
+        const validRatingValues = ratingValues.filter((p) => p !== null)
+        const ratingAvg = validRatingValues.length
+          ? (
+              validRatingValues.reduce((total, curr) => total + curr, 0) /
+              validRatingValues.length
+            ).toFixed(2)
+          : 'N/A'
+        const ratingMin = validRatingValues.length ? Math.min(...validRatingValues) : 'N/A'
+        const ratingMax = validRatingValues.length ? Math.max(...validRatingValues) : 'N/A'
+        return [ratingName, { ratingAvg, ratingMin, ratingMax }]
+      }
+    )
+  )
+
+  let [averageConfidence, minConfidence, maxConfidence] = new Array(3).fill('N/A')
+
   if (confidences.some((p) => p)) {
     const validConfidences = confidences.filter((p) => p)
     minConfidence = Math.min(...validConfidences)
@@ -81,21 +81,36 @@ const ReviewSummary = ({
 
       <ul className="list-unstyled">
         {noteCompletedReviews.map((review) => {
-          const reviewRatingValue = getRatingValue(review)
+          const reviewRatingValues = (
+            Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]
+          ).flatMap((ratingName) => {
+            const ratingValue = parseNumberField(
+              isV2Note ? review.content?.[ratingName]?.value : review.content?.[ratingName]
+            )
+            return ratingValue ? { [ratingName]: ratingValue } : []
+          })
 
           const reviewConfidenceValue = isV2Note
             ? review.content?.[reviewConfidenceName]?.value
             : review.content?.[reviewConfidenceName]
           return (
             <li key={review.id}>
-              <strong>{prettyId(review.signatures[0].split('/')?.pop())}:</strong> Rating:{' '}
-              {reviewRatingValue ?? 'N/A'}{' '}
+              <strong>{prettyId(review.signatures[0].split('/')?.pop())}:</strong>
+              {reviewRatingValues.map((rating, index) => {
+                const ratingName = Object.keys(rating)[0]
+                const ratingValue = rating[ratingName]
+                return (
+                  <span key={index}>
+                    {`${index === 0 ? ' ' : ' / '}${upperFirst(ratingName)}: ${ratingValue}`}{' '}
+                  </span>
+                )
+              })}
               {reviewConfidenceValue ? `/ Confidence: ${reviewConfidenceValue}` : ''}
               <br />
               <Link
                 href={`/forum?id=${review.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
               >
-                <a>Read Review</a>
+                Read Review
               </Link>
             </li>
           )
@@ -103,8 +118,17 @@ const ReviewSummary = ({
       </ul>
 
       <div>
-        <strong>Average Rating:</strong> {averageRating} (Min: {minRating}, Max: {maxRating})
-        <br />
+        {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
+          (ratingName, index) => {
+            const { ratingAvg, ratingMin, ratingMax } = ratings[ratingName]
+            return (
+              <span key={index}>
+                <strong>Average {prettyField(ratingName)}:</strong> {ratingAvg} (Min:{' '}
+                {ratingMin}, Max: {ratingMax})<br />
+              </span>
+            )
+          }
+        )}
         <strong>Average Confidence:</strong> {averageConfidence} (Min: {minConfidence}, Max:{' '}
         {maxConfidence})
       </div>
@@ -320,7 +344,7 @@ const AuthorConsole = ({ appContext }) => {
             sort: 'number:asc',
             [authorSubmissionField]: user.profile.id,
           },
-          { accessToken }
+          { accessToken, version: 1 }
         )
         .then((result) => {
           const originalNotes = result.notes
@@ -339,7 +363,7 @@ const AuthorConsole = ({ appContext }) => {
                   details: 'directReplies',
                   sort: 'number:asc',
                 },
-                { accessToken }
+                { accessToken, version: 1 }
               )
               .then((blindNotesResult) =>
                 (blindNotesResult.notes || [])
@@ -378,10 +402,11 @@ const AuthorConsole = ({ appContext }) => {
         {
           [authorSubmissionField]: user.profile.id,
           invitation: submissionId,
+          domain: group.domain,
           details: 'directReplies',
           sort: 'number:asc',
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
 
       setAuthorNotes(notesResult)
@@ -407,7 +432,7 @@ const AuthorConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!userLoading && (!user || !user.profile || user.profile.id === 'guest')) {
+    if (!userLoading && !user) {
       router.replace(
         `/login?redirect=${encodeURIComponent(
           `${window.location.pathname}${window.location.search}${window.location.hash}`

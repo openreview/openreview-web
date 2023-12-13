@@ -1,8 +1,9 @@
 /* globals $, jQuery, _: false */
-/* globals view, Webfield, Webfield2: false */
+/* globals view, Webfield: false */
 /* globals promptError, typesetMathJax: false */
 /* globals marked, DOMPurify, MathJax, Handlebars, nanoid: false */
 
+// eslint-disable-next-line wrap-iife
 module.exports = (function () {
   var mkDropdown = function (
     placeholder,
@@ -885,14 +886,6 @@ module.exports = (function () {
       }
     }
 
-    var getNameFromInput = function (first, middle, last) {
-      var firstName = _.trim(first)
-      var middleName = _.trim(middle)
-      var lastName = _.trim(last)
-      var fullName = firstName + ' ' + (middleName ? middleName + ' ' : '') + lastName
-      return $('<span>' + fullName + '</span>')
-    }
-
     var getEmails = function (emails) {
       return $(
         emails
@@ -1005,19 +998,7 @@ module.exports = (function () {
       id: 'first-name-search',
       class: 'search-input form-control note-content-search',
       type: 'text',
-      placeholder: 'First name',
-    })
-    var $middleNameSearch = $('<input>', {
-      id: 'middle-name-search',
-      class: 'search-input form-control note-content-search',
-      type: 'text',
-      placeholder: 'Middle name',
-    })
-    var $lastNameSearch = $('<input>', {
-      id: 'last-name-search',
-      class: 'search-input form-control note-content-search',
-      type: 'text',
-      placeholder: 'Last name',
+      placeholder: 'Full name',
     })
     var $emailSearch = $('<input>', {
       id: 'email-search',
@@ -1028,11 +1009,7 @@ module.exports = (function () {
 
     var addDirectly = function () {
       $(this).hide()
-      var $fullName = getNameFromInput(
-        $firstNameSearch.val(),
-        $middleNameSearch.val(),
-        $lastNameSearch.val()
-      )
+      var $fullName = $('<span>' + _.trim($firstNameSearch.val()) + '</span>')
       var $emails = $('<span>').append(_.trim($emailSearch.val()))
       $authors.append(createAuthorRow($fullName, $emails))
       $searchResults.empty()
@@ -1057,8 +1034,6 @@ module.exports = (function () {
 
     var $searchInput = $('<div class="search-container">').append(
       $firstNameSearch,
-      $middleNameSearch,
-      $lastNameSearch,
       $emailSearch,
       $addDirectlyButton,
       $spinner
@@ -1102,14 +1077,13 @@ module.exports = (function () {
       // No profiles were found using the email and now if the fields are valid, the user can add directly a person
       // with no Profile
       var email = _.trim($emailSearch.val())
-      var first = _.trim($firstNameSearch.val())
-      var last = _.trim($lastNameSearch.val())
+      var fullName = _.trim($firstNameSearch.val())
       if (
         options.allowUserDefined &&
         emailResponse &&
         !emailResponse.count &&
         isValidEmail(email) &&
-        isValidName(first, last)
+        isValidName(fullName)
       ) {
         $addDirectlyButton.show()
       }
@@ -1117,11 +1091,10 @@ module.exports = (function () {
 
     var combinedSearch = function () {
       $addDirectlyButton.hide()
-      var firstName = _.trim($firstNameSearch.val())
-      var lastName = _.trim($lastNameSearch.val())
+      var fullName = _.trim($firstNameSearch.val())
       var email = _.trim($emailSearch.val())
 
-      var hasValidName = firstName && lastName && firstName.length + lastName.length > 2
+      var hasValidName = fullName && fullName.length > 2
       var hasValidEmail = email.length > 5 && email.indexOf('@') !== -1
 
       if (hasValidName || hasValidEmail) {
@@ -1132,7 +1105,7 @@ module.exports = (function () {
       // Then we merge the responses by doing a union and prioritizing email results
       if (hasValidName && hasValidEmail) {
         Webfield.get('/profiles/search', { term: email }).then(function (emailResponse) {
-          Webfield.get('/profiles/search', { first: firstName, last: lastName }).then(
+          Webfield.get('/profiles/search', { fullname: fullName, es: true }).then(
             function (namesResponse) {
               handleResponses(namesResponse, emailResponse)
             }
@@ -1143,21 +1116,19 @@ module.exports = (function () {
           handleResponses(null, emailResponse)
         })
       } else if (hasValidName) {
-        Webfield.get('/profiles/search', { first: firstName, last: lastName }).then(function (
-          namesResponse
-        ) {
-          handleResponses(namesResponse, null)
-        })
+        Webfield.get('/profiles/search', { fullname: fullName, es: true }).then(
+          function (namesResponse) {
+            handleResponses(namesResponse, null)
+          }
+        )
       }
     }
 
     var clearSearchWhenEmpty = function () {
-      var firstName = _.trim($firstNameSearch.val())
-      var middleName = _.trim($middleNameSearch.val())
-      var lastName = _.trim($lastNameSearch.val())
+      var fullName = _.trim($firstNameSearch.val())
       var email = _.trim($emailSearch.val())
 
-      if (!firstName && !middleName && !lastName && !email) {
+      if (!fullName && !email) {
         $searchResults.empty()
       }
     }
@@ -1165,13 +1136,6 @@ module.exports = (function () {
     var debounceSearch = _.debounce(combinedSearch, 300)
 
     $firstNameSearch.on('input', function () {
-      clearSearchWhenEmpty()
-      debounceSearch()
-    })
-    $middleNameSearch.on('input', function () {
-      clearSearchWhenEmpty()
-    })
-    $lastNameSearch.on('input', function () {
       clearSearchWhenEmpty()
       debounceSearch()
     })
@@ -1691,7 +1655,7 @@ module.exports = (function () {
         authorids = params.note.content.authorids
       } else if (params && params.user) {
         var userProfile = params.user.profile
-        authors = [userProfile.first + ' ' + userProfile.middle + ' ' + userProfile.last]
+        authors = [userProfile.fullname]
         authorids = [userProfile.preferredId]
       }
       var invitationRegex = fieldDescription['values-regex']
@@ -2651,13 +2615,16 @@ module.exports = (function () {
         .text(invLabelText)
         .css(getInvitationColors(prettyInv))
       var iconName = note.readers.includes('everyone') ? 'globe' : 'eye-open'
-      var onlineText = note.odate && note.readers.includes('everyone')
-        ? 'Visible to everyone since ' + forumDate(note.odate)
-        : 'Reply Visibility'
+      var onlineText =
+        note.odate && note.readers.includes('everyone')
+          ? 'Visible to everyone since ' + forumDate(note.odate)
+          : 'Reply Visibility'
       $readersItem = $('<span>', { class: 'item' }).append(
         '<span class="glyphicon glyphicon-' +
           iconName +
-          '" data-toggle="tooltip" data-placement="top" title="' + onlineText + '" aria-hidden="true"></span>',
+          '" data-toggle="tooltip" data-placement="top" title="' +
+          onlineText +
+          '" aria-hidden="true"></span>',
         ' ',
         prettyReadersList(note.readers, true)
       )
@@ -3292,10 +3259,12 @@ module.exports = (function () {
           if (_.startsWith(v, '{')) {
             var field = v.slice(1, -1)
             var fieldValue = _.get(original, field)
-            if (!Array.isArray(fieldValue)) {
-              fieldValue = [fieldValue]
+            if (!_.isNil(fieldValue)) {
+              if (!Array.isArray(fieldValue)) {
+                fieldValue = [fieldValue]
+              }
+              content[key] = _.union(content[key] || [], fieldValue)
             }
-            content[key] = _.union(content[key] || [], fieldValue)
           } else {
             content[key] = _.union(content[key] || [], [v])
           }
@@ -3316,8 +3285,8 @@ module.exports = (function () {
     return emailRegex.test(email)
   }
 
-  var isValidName = function (first, last) {
-    return first && last && first.length + last.length > 2
+  var isValidName = function (fullName) {
+    return fullName && fullName.length > 2
   }
 
   var isTildeIdAllowed = function (regex) {
@@ -3456,6 +3425,8 @@ module.exports = (function () {
           if (values && values.length) {
             inputVal = values[0]
           }
+        } else if (contentObj.hasOwnProperty('value-regex')) {
+          inputVal = inputVal.trim()
         } else if (contentObj.hasOwnProperty('values-regex')) {
           var inputArray = inputVal.split(',')
           inputVal = _.filter(
@@ -3845,17 +3816,17 @@ module.exports = (function () {
             data.append('invitationId', invitation.id)
             data.append('name', fieldName)
             data.append('file', files[fieldName])
-            return Webfield.sendFile('/attachment', data, undefined, fieldName).then(function (
-              result
-            ) {
-              note.content[fieldName] = result.url
-              updateFileSection(
-                $contentMap[fieldName],
-                fieldName,
-                invitation.reply.content[fieldName],
-                note.content[fieldName]
-              )
-            })
+            return Webfield.sendFile('/attachment', data, undefined, fieldName).then(
+              function (result) {
+                note.content[fieldName] = result.url
+                updateFileSection(
+                  $contentMap[fieldName],
+                  fieldName,
+                  invitation.reply.content[fieldName],
+                  note.content[fieldName]
+                )
+              }
+            )
           }
         })
         Promise.all(promises).then(
@@ -4557,8 +4528,7 @@ module.exports = (function () {
                 return oldPromises.then(function (_) {
                   return sendSingleChunk(currentChunk, i)
                 })
-              },
-              Promise.resolve())
+              }, Promise.resolve())
               uploadInProgressFields.push({
                 fieldName,
                 noteRef: editNote,
@@ -4957,7 +4927,7 @@ module.exports = (function () {
       gfm: true,
       headerIds: false,
       langPrefix: 'language-',
-      mangle: true,
+      mangle: false,
       renderer: renderer,
     })
   }
@@ -5009,7 +4979,6 @@ module.exports = (function () {
     isTildeIdAllowed: isTildeIdAllowed,
     mkSearchProfile: mkSearchProfile,
     mkFileInput: mkFileInput,
-    getContent: getContent,
     idsFromListAdder: idsFromListAdder,
     getReaders: getReaders,
     getWriters: getWriters,

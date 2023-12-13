@@ -83,7 +83,7 @@ const AllSubmissionsTab = ({
         {
           group: profileGroupId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       return {
         ...result,
@@ -100,7 +100,7 @@ const AllSubmissionsTab = ({
             tail: user.profile.id,
             sort: 'weight:desc',
           },
-          { accessToken, version: 2 }
+          { accessToken }
         )
 
         if (edgesResult.count) {
@@ -109,7 +109,7 @@ const AllSubmissionsTab = ({
           const profilesResult = await api.post(
             '/profiles/search',
             { ids: profileIds },
-            { accessToken, version: 2 }
+            { accessToken }
           )
           const filteredProfiles = profileIds.flatMap((profileId) => {
             const matchingProfile = profilesResult.profiles.find((p) => p.id === profileId)
@@ -172,7 +172,7 @@ const AllSubmissionsTab = ({
       const result = await api.post(
         '/edges',
         getBidObjectToPost(bidId, updatedOption, invitation, profile, user.profile.id, ddate),
-        { accessToken, version: 2 }
+        { accessToken }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -229,6 +229,13 @@ const AllSubmissionsTab = ({
     }
     setImmediateSearchTerm(searchTerm)
   }, [searchTerm])
+
+  useEffect(
+    () => () => {
+      delaySearch.cancel()
+    },
+    [delaySearch]
+  )
 
   useEffect(() => {
     getProfilesSortedByAffinity()
@@ -330,7 +337,7 @@ const BidOptionTab = ({
         {
           ids: profileIds,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       setProfiles(profileSearchResults.profiles)
     } catch (error) {
@@ -350,7 +357,7 @@ const BidOptionTab = ({
       const result = await api.post(
         '/edges',
         getBidObjectToPost(bidId, updatedOption, invitation, profile, user.profile.id, ddate),
-        { accessToken, version: 2 }
+        { accessToken }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -419,13 +426,13 @@ const ProfileBidConsole = ({ appContext }) => {
       const bidEdgeResultsP = api.getAll(
         '/edges',
         { invitation: invitation.id, tail: user.profile.id },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       const conflictEdgeResultsP = conflictInvitationId
         ? api.getAll(
             '/edges',
             { invitation: conflictInvitationId, tail: user.profile.id },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
       const results = await Promise.all([bidEdgeResultsP, conflictEdgeResultsP])
