@@ -76,7 +76,7 @@ const NameDeleteRequestModal = ({
       const result = await api.get(
         '/invitations',
         { id: nameDeletionInvitationId },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       const profileNameRemovalInvitation = result.invitations[0]
       await api.post(
@@ -93,7 +93,7 @@ const NameDeleteRequestModal = ({
           writers: buildArray(profileNameRemovalInvitation, 'writers', preferredUsername),
           signatures: [preferredUsername],
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       $('#name-delete').modal('hide')
       promptMessage('Your request has been submitted')
@@ -224,7 +224,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
     const result = await api.get(
       '/notes',
       { invitation: nameDeletionInvitationId },
-      { accessToken }
+      { accessToken, version: 1 }
     )
     return result.notes
   }

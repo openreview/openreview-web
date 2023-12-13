@@ -7,7 +7,6 @@ import NoteEditorForm from '../NoteEditorForm'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
-import useUser from '../../hooks/useUser'
 import {
   prettyId,
   prettyInvitationId,
@@ -26,19 +25,21 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
 
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeNote, setActiveNote] = useState(null)
-  const { user } = useUser()
   const newNoteEditor = useNewNoteEditor(activeInvitation?.domain)
 
   const canShowIcon = (fieldName) => {
-    if (!content[fieldName]?.value) return false
+    if (!content[fieldName]?.value) return null
 
     const fieldReaders = Array.isArray(content[fieldName].readers)
       ? content[fieldName].readers.sort()
       : null
-    return (
+    if (
       !fieldReaders ||
       (note.sortedReaders && fieldReaders.every((p, j) => p === note.sortedReaders[j]))
-    )
+    ) {
+      return content[fieldName].value
+    }
+    return null
   }
 
   const openNoteEditor = (invitation, options) => {
@@ -203,8 +204,8 @@ function ForumTitle({ id, title, pdf, html }) {
       {pdf && (
         <div className="forum-content-link">
           <a
-            className="citation_pdf_url"
-            href={`/pdf?id=${id}`}
+            className={pdf.startsWith('/pdf') ? 'citation_pdf_url' : null}
+            href={pdf.startsWith('/pdf') ? `/pdf?id=${id}` : pdf}
             title="Download PDF"
             target="_blank"
             rel="noreferrer"

@@ -35,14 +35,14 @@ const InvitationEdit = ({ appContext }) => {
     return `${prettyId(invitation?.id)} ${type}`
   }
 
-  // Try loading invitation from v1 API first and if not found load from v2
+  // Try loading invitation from API v2 first and if not found load from v1
   const loadInvitation = async (invitationId) => {
     try {
       const invitationObj = await api.getInvitationById(
         invitationId,
         accessToken,
-        { details: 'writable', expired: true },
-        { details: 'writable,writableWith', expired: true }
+        { details: 'writable,writableWith', expired: true },
+        { details: 'writable', expired: true }
       )
       if (invitationObj) {
         if (invitationObj.details?.writable) {

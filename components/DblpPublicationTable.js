@@ -188,7 +188,7 @@ const DblpPublicationRow = ({
       const result = await api.get(
         '/invitations',
         { id: profileMergeInvitationId },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       const profileMergeInvitation = result.invitations[0]
       await api.post(
@@ -206,7 +206,7 @@ const DblpPublicationRow = ({
           writers: buildArray(profileMergeInvitation, 'writers', user.profile.preferredId),
           signatures: [user.profile.preferredId],
         },
-        { accessToken }
+        { accessToken, version: 1 }
       )
       setProfileMergeStatus('posted')
     } catch (apiError) {

@@ -39,9 +39,17 @@ export default function ProfileEdit({ appContext }) {
   }
 
   const unlinkPublication = async (profileId, noteId) => {
-    const notes = await api.get('/notes', { id: noteId }, { accessToken })
-    const authorIds = get(notes, 'notes[0].content.authorids')
-    const invitation = get(notes, 'notes[0].invitation')
+    const note = await api.getNoteById(noteId, accessToken)
+    let authorIds
+    let invitation
+    if (note.invitations) {
+      authorIds = note.content.authorids?.value
+      invitation = note.invitations[0]
+    } else {
+      authorIds = note.content.authorids
+      // eslint-disable-next-line prefer-destructuring
+      invitation = note.invitation
+    }
     const invitationMap = {
       'dblp.org/-/record': 'dblp.org/-/author_coreference',
       'OpenReview.net/Archive/-/Imported_Record':
@@ -82,7 +90,7 @@ export default function ProfileEdit({ appContext }) {
         authorids: authorIds,
       },
     }
-    return api.post('/notes', updateAuthorIdsObject, { accessToken })
+    return api.post('/notes', updateAuthorIdsObject, { accessToken, version: 1 })
   }
 
   const saveProfile = async (profileContent, profileReaders, publicationIdsToUnlink) => {

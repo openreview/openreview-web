@@ -256,20 +256,30 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       return []
     }
     try {
-      const { notes } = await api.get(
+      const { notes } = await api.getCombined(
         '/notes',
         {
           'content.authorids': profileId,
-          sort: 'cdate',
+          sort: 'cdate:desc',
         },
-        { accessToken }
+        null,
+        { accessToken, includeVersion: true }
       )
       if (notes?.length > 0) {
         return notes.map((publication) => ({
           forum: publication.forum,
-          title: publication.content.title,
-          authors: publication.content.authors,
-          authorids: publication.content.authorids.filter((id) => id),
+          title:
+            publication.apiVersion === 1
+              ? publication.content.title
+              : publication.content.title.value,
+          authors:
+            publication.apiVersion === 1
+              ? publication.content.authors
+              : publication.content.authors.value,
+          authorids: (publication.apiVersion === 1
+            ? publication.content.authorids
+            : publication.content.authorids.value
+          ).filter((id) => id),
         }))
       }
     } catch (error) {

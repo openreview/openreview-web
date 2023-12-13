@@ -115,7 +115,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           limit,
           domain: invitation.domain,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       return {
         ...result,
@@ -135,7 +135,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
             limit,
             domain: invitation.domain,
           },
-          { accessToken, version: 2 }
+          { accessToken }
         )
         if (edgesResult.count) {
           setTotalCount(edgesResult.count)
@@ -144,7 +144,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           const notesResult = await api.post(
             '/notes/search',
             { ids: noteIds, domain: invitation.domain },
-            { accessToken, version: 2 }
+            { accessToken }
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
@@ -186,7 +186,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           offset: 0,
           venueid: submissionVenueId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)).slice(0, 100))
     } catch (error) {
@@ -206,7 +206,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
       const result = await api.post(
         '/edges',
         getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
-        { accessToken, version: 2 }
+        { accessToken }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -240,7 +240,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           offset: 0,
           venueid: submissionVenueId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)).slice(0, 100))
     } catch (error) {
@@ -423,7 +423,7 @@ const NoBidTab = ({
           limit: 1000,
           domain: invitation.domain,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       return {
         ...result,
@@ -443,7 +443,7 @@ const NoBidTab = ({
             sort: 'weight:desc',
             domain: invitation.domain,
           },
-          { accessToken, version: 2 }
+          { accessToken }
         )
         if (edgesResult.count) {
           setScoreEdges(edgesResult.edges)
@@ -451,7 +451,7 @@ const NoBidTab = ({
           const notesResult = await api.post(
             '/notes/search',
             { ids: noteIds, domain: invitation.domain },
-            { accessToken, version: 2 }
+            { accessToken }
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
@@ -494,7 +494,7 @@ const NoBidTab = ({
       const result = await api.post(
         '/edges',
         getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
-        { accessToken, version: 2 }
+        { accessToken }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -557,7 +557,7 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
           ids: noteIds,
           domain: invitation.domain,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       setNotes(noteSearchResults.notes)
     } catch (error) {
@@ -577,7 +577,7 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
       const result = await api.post(
         '/edges',
         getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
-        { accessToken, version: 2 }
+        { accessToken }
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -657,12 +657,12 @@ const BidConsole = ({ appContext }) => {
       const bidEdgeResultsP = api.getAll(
         '/edges',
         { invitation: invitation.id, tail: user.profile.id, domain: invitation.domain },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       const conflictEdgeResultsP = api.getAll(
         '/edges',
         { invitation: conflictInvitationId, tail: user.profile.id, domain: invitation.domain },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       const results = await Promise.all([bidEdgeResultsP, conflictEdgeResultsP])
       setBidEdges(results[0])

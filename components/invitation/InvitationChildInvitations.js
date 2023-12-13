@@ -68,7 +68,7 @@ export const InvitationChildInvitationsV2 = ({ invitation, accessToken }) => {
         offset,
         expired: true,
       },
-      { accessToken, version: 2 }
+      { accessToken }
     )
 
     let translatedInvitations = []

@@ -266,7 +266,7 @@ const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup 
           signatures: [profileId],
           invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
         }
-        await api.post('/groups/edits', requestBody, { accessToken, version: 2 })
+        await api.post('/groups/edits', requestBody, { accessToken })
       } else {
         const result = await api.getGroupById(group.id, accessToken)
         const resultToPost = {
@@ -279,7 +279,7 @@ const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup 
           anonids: generalInfo.anonids,
           deanonymizers: convertInfoToArray(generalInfo.deanonymizers),
         }
-        await api.post('/groups', resultToPost, { accessToken })
+        await api.post('/groups', resultToPost, { accessToken, version: 1 })
       }
       promptMessage(`Settings for ${prettyId(group.id)} updated`, { scrollToTop: false })
       await reloadGroup()

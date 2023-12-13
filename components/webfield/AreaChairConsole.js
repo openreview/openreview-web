@@ -195,7 +195,7 @@ const AreaChairConsole = ({ appContext }) => {
           stream: true,
           domain: group.domain,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       const areaChairGroups = allGroups.filter((p) => p.id.endsWith(areaChairName))
       const anonymousAreaChairGroups = allGroups.filter((p) => p.id.includes('/Area_Chair_'))
@@ -220,7 +220,7 @@ const AreaChairConsole = ({ appContext }) => {
               sort: 'number:asc',
               domain: group.domain,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
 
@@ -234,7 +234,7 @@ const AreaChairConsole = ({ appContext }) => {
             stream: true,
             domain: group.domain,
           },
-          { accessToken, version: 2 }
+          { accessToken }
         )
         .then((reviewerGroupsResult) => {
           const anonymousReviewerGroups = reviewerGroupsResult.groups.filter((p) =>
@@ -281,7 +281,7 @@ const AreaChairConsole = ({ appContext }) => {
                 head: user.profile.id,
                 domain: group.domain,
               },
-              { accessToken, apiVersion: 2 }
+              { accessToken }
             )
             .then((result) => result?.edges?.map((edge) => edge.tail) ?? [])
         : Promise.resolve([])
@@ -304,7 +304,7 @@ const AreaChairConsole = ({ appContext }) => {
             {
               ids,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
       const getProfilesByEmailsP = emails.length
@@ -313,7 +313,7 @@ const AreaChairConsole = ({ appContext }) => {
             {
               emails,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])

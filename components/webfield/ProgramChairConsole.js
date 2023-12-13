@@ -89,7 +89,7 @@ const ProgramChairConsole = ({ appContext }) => {
           type: 'all',
           domain: venueId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       const reviewerInvitationsP = api.getAll(
         '/invitations',
@@ -99,7 +99,7 @@ const ProgramChairConsole = ({ appContext }) => {
           type: 'all',
           domain: venueId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       const acInvitationsP = areaChairsId
         ? api.getAll(
@@ -110,7 +110,7 @@ const ProgramChairConsole = ({ appContext }) => {
               type: 'all',
               domain: venueId,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
       const sacInvitationsP = seniorAreaChairsId
@@ -122,7 +122,7 @@ const ProgramChairConsole = ({ appContext }) => {
               type: 'all',
               domain: venueId,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
 
@@ -134,7 +134,7 @@ const ProgramChairConsole = ({ appContext }) => {
               type: 'note',
               domain: venueId,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
 
@@ -158,7 +158,7 @@ const ProgramChairConsole = ({ appContext }) => {
                 limit: 1,
                 select: 'id,content',
               },
-              { accessToken } // request form is in v1
+              { accessToken, version: 1 } // request form is currently in v1
             )
             .then(
               (result) => result.notes?.[0],
@@ -180,7 +180,7 @@ const ProgramChairConsole = ({ appContext }) => {
                   select: 'id,invitation,invitations,content.title',
                   domain: venueId,
                 },
-                { accessToken, version: 2 }
+                { accessToken }
               )
               .then((notes) =>
                 notes.filter((note) => note.invitations.some((p) => p.includes('Form')))
@@ -194,7 +194,7 @@ const ProgramChairConsole = ({ appContext }) => {
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
           id
-            ? api.getGroupById(id, accessToken, null, { select: 'members' })
+            ? api.getGroupById(id, accessToken, { select: 'members' })
             : Promise.resolve([])
         )
       )
@@ -210,7 +210,7 @@ const ProgramChairConsole = ({ appContext }) => {
           sort: 'number:asc',
           domain: venueId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       // #endregion
 
@@ -226,7 +226,7 @@ const ProgramChairConsole = ({ appContext }) => {
                   select: 'signatures',
                   domain: venueId,
                 },
-                { accessToken, version: 2 }
+                { accessToken }
               )
               .then((result) =>
                 result.groupedEdges.reduce((profileMap, edge) => {
@@ -253,7 +253,7 @@ const ProgramChairConsole = ({ appContext }) => {
               select: 'count',
               domain: venueId,
             },
-            { accessToken, resultsKey: 'groupedEdges', version: 2 }
+            { accessToken, resultsKey: 'groupedEdges' }
           )
         })
       )
@@ -268,7 +268,7 @@ const ProgramChairConsole = ({ appContext }) => {
           select: 'id,members',
           domain: venueId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       // #endregion
 
@@ -364,7 +364,7 @@ const ProgramChairConsole = ({ appContext }) => {
             {
               ids,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
       const getProfilesByEmailsP = emails.length
@@ -373,7 +373,7 @@ const ProgramChairConsole = ({ appContext }) => {
             {
               emails,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
@@ -743,7 +743,7 @@ const ProgramChairConsole = ({ appContext }) => {
               select: 'head,tail',
               domain: venueId,
             },
-            { accessToken, version: 2 }
+            { accessToken }
           )
           .then((result) => result.groupedEdges)
       : []
@@ -777,7 +777,7 @@ const ProgramChairConsole = ({ appContext }) => {
           {
             ids,
           },
-          { accessToken, version: 2 }
+          { accessToken }
         )
       : Promise.resolve([])
     const getProfilesByEmailsP = emails.length
@@ -786,7 +786,7 @@ const ProgramChairConsole = ({ appContext }) => {
           {
             emails,
           },
-          { accessToken, version: 2 }
+          { accessToken }
         )
       : Promise.resolve([])
     const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])

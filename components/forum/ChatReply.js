@@ -89,7 +89,7 @@ export default forwardRef(function ChatReply(
       },
     }
     api
-      .post('/notes/edits', noteEdit, { accessToken, version: 2 })
+      .post('/notes/edits', noteEdit, { accessToken })
       .then((res) => {
         updateNote({ ...note, ddate: now })
         setLoading(false)

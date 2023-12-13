@@ -28,7 +28,7 @@ const EthicsChairOverview = () => {
           stream: true,
           domain: venueId,
         },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       setRecruitmentGroups(result.groups ?? [])
     } catch (error) {

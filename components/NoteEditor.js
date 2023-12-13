@@ -19,6 +19,7 @@ import { getNoteContentValues } from '../lib/forum-utils'
 
 import styles from '../styles/components/NoteEditor.module.scss'
 import LicenseWidget from './EditorComponents/LicenseWidget'
+import DatePickerWidget from './EditorComponents/DatePickerWidget'
 
 const ExistingNoteReaders = NewReplyEditNoteReaders
 
@@ -160,7 +161,11 @@ const NoteEditor = ({
 
   const defaultNoteEditorData = {
     ...getNoteContentValues(note?.content ?? {}),
-    ...(note?.id && { noteReaderValues: note.readers, noteLicenseValue: note.license }),
+    ...(note?.id && {
+      noteReaderValues: note.readers,
+      noteLicenseValue: note.license,
+      notePDateValue: note.pdate,
+    }),
   }
 
   const noteEditorDataReducer = (state, action) => {
@@ -428,7 +433,7 @@ const NoteEditor = ({
       const result = await api.get(
         '/notes',
         { id: noteCreated.id, details: 'invitation,presentation,writable' },
-        { accessToken, version: 2 }
+        { accessToken }
       )
       return result.notes?.[0] ? result.notes[0] : constructedNote
     } catch (error) {
@@ -458,7 +463,7 @@ const NoteEditor = ({
           label = 'note'
         }
         const latestNoteOrEdit = (
-          await api.get(apiPath, { id: noteOrEdit.id }, { accessToken, version: 2 })
+          await api.get(apiPath, { id: noteOrEdit.id }, { accessToken })
         )?.[`${label}s`]?.[0]
 
         if (latestNoteOrEdit?.tmdate && latestNoteOrEdit.tmdate !== noteOrEdit.tmdate) {
@@ -499,7 +504,7 @@ const NoteEditor = ({
             invitationObj: invitation,
             noteObj: note,
           })
-      const result = await api.post('/notes/edits', editToPost, { accessToken, version: 2 })
+      const result = await api.post('/notes/edits', editToPost, { accessToken })
       const createdNote = await getCreatedNote(result.note)
       autoStorageKeys.forEach((key) => localStorage.removeItem(key))
       setNoteEditorData({ type: 'reset' })
@@ -510,9 +515,11 @@ const NoteEditor = ({
         setErrors(
           error.errors.map((p) => {
             const fieldName = getErrorFieldName(p.details.path)
+            const fieldNameInError =
+              fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
             if (isNonDeletableError(p.details.invalidValue))
-              return { fieldName, message: `${prettyField(fieldName)} is not deletable` }
-            return { fieldName, message: p.message.replace(fieldName, prettyField(fieldName)) }
+              return { fieldName, message: `${fieldNameInError} is not deletable` }
+            return { fieldName, message: p.message.replace(fieldName, fieldNameInError) }
           })
         )
         const hasOnlyMissingFieldsError = error.errors.every(
@@ -525,9 +532,11 @@ const NoteEditor = ({
         )
       } else if (error.details?.path) {
         const fieldName = getErrorFieldName(error.details.path)
+        const fieldNameInError =
+          fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
         const prettyErrorMessage = isNonDeletableError(error.details.invalidValue)
-          ? `${prettyField(fieldName)} is not deletable`
-          : error.message.replace(fieldName, prettyField(fieldName))
+          ? `${fieldNameInError} is not deletable`
+          : error.message.replace(fieldName, fieldNameInError)
         setErrors([
           {
             fieldName,
@@ -589,6 +598,29 @@ const NoteEditor = ({
           )
         }
       />
+
+      {invitation.edit.note.pdate && (
+        <EditorComponentHeader
+          inline={true}
+          fieldNameOverwrite="Publication Date"
+          error={errors.find((e) => e.fieldName === 'notePDateValue')}
+        >
+          <DatePickerWidget
+            isEditor={false}
+            field={{ 'publication date': null }}
+            value={noteEditorData.notePDateValue ?? ''}
+            error={errors.find((e) => e.fieldName === 'notePDateValue')}
+            clearError={() =>
+              setErrors((existingErrors) =>
+                existingErrors.filter((p) => p.fieldName !== 'notePDateValue')
+              )
+            }
+            onChange={({ fieldName, value }) =>
+              setNoteEditorData({ fieldName: 'notePDateValue', value })
+            }
+          />
+        </EditorComponentHeader>
+      )}
 
       {renderNoteReaders()}
 

@@ -1105,7 +1105,7 @@ module.exports = (function () {
       // Then we merge the responses by doing a union and prioritizing email results
       if (hasValidName && hasValidEmail) {
         Webfield.get('/profiles/search', { term: email }).then(function (emailResponse) {
-          Webfield.get('/profiles/search', { fullname: fullName, es:true }).then(
+          Webfield.get('/profiles/search', { fullname: fullName, es: true }).then(
             function (namesResponse) {
               handleResponses(namesResponse, emailResponse)
             }
@@ -1116,7 +1116,7 @@ module.exports = (function () {
           handleResponses(null, emailResponse)
         })
       } else if (hasValidName) {
-        Webfield.get('/profiles/search', { fullname: fullName, es:true }).then(
+        Webfield.get('/profiles/search', { fullname: fullName, es: true }).then(
           function (namesResponse) {
             handleResponses(namesResponse, null)
           }
