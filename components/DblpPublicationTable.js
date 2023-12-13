@@ -191,7 +191,7 @@ const DblpPublicationRow = ({
         accessToken
       )
       const editToPost = view2.constructEdit({
-        FormData: {
+        formData: {
           email: user.profile.preferredEmail,
           left: user.id,
           right: otherProfileId,
