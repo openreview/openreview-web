@@ -49,7 +49,7 @@ const ActivateProfile = ({ appContext }) => {
       } else {
         // If user moderation is enabled, PUT /activate/${token} will return an empty response
         promptMessage(
-          'Your OpenReview profile has been created. Please allow up to 12 hours for your profile to be activated.'
+          'Your OpenReview profile has been created. Please allow up to two weeks for your profile to be processed.'
         )
         router.push('/')
       }
