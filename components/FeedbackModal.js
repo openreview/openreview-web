@@ -120,7 +120,7 @@ export default function FeedbackModal() {
       }
       const feedbackData = {
         from: formData.from.trim(),
-        subject: `${formData.subject.trim()} - ${formData.from.trim()}`,
+        subject: formData.subject.trim(),
         token: turnstileToken,
       }
 
@@ -136,6 +136,7 @@ export default function FeedbackModal() {
           break
         case institutionSubject:
           feedbackData.message = `Institution Domain: ${formData.institutionDomain}\nInstitution Fullname: ${formData.institutionName}\nInstitution URL: ${formData.institutionUrl}\n\n${formData.message}`
+          feedbackData.subject = `${formData.subject} - ${formData.institutionDomain}`
           break
         default:
           feedbackData.message = formData.message
