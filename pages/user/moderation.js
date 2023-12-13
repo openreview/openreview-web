@@ -184,12 +184,7 @@ const FullUsernameList = ({ usernames }) => (
   </ul>
 )
 
-const NameDeletionTab = ({
-  accessToken,
-  superUser,
-  setNameDeletionRequestCount,
-  isActive,
-}) => {
+const NameDeletionTab = ({ accessToken, setNameDeletionRequestCount, isActive }) => {
   const [nameDeletionNotes, setNameDeletionNotes] = useState(null)
   const [nameDeletionNotesToShow, setNameDeletionNotesToShow] = useState(null)
   const [noteToReject, setNoteToReject] = useState(null)
@@ -210,7 +205,7 @@ const NameDeletionTab = ({
         nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken })
         decisionResultsP = api.getAll(
           '/notes/edits',
-          { 'note.id': noteId },
+          { 'note.id': noteId, invitation: nameDeletionDecisionInvitationId },
           { accessToken, resultsKey: 'edits' }
         )
         processLogsP = Promise.resolve(null)
@@ -253,7 +248,7 @@ const NameDeletionTab = ({
               processLogStatus: 'running',
               processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
             },
-            ...nameDeletionNotes.filter((p) => p.content.status !== 'Pending'),
+            ...nameDeletionNotes.filter((p) => p.content.status.value !== 'Pending'),
           ]
         : [
             ...nameRemovalNotes.notes.filter((p) => p.content.status.value === 'Pending'),
@@ -277,7 +272,7 @@ const NameDeletionTab = ({
         sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
       )
       const pendingRequestCount = nameRemovalNotes.notes.filter(
-        (p) => p.content.status === 'Pending'
+        (p) => p.content.status.value === 'Pending'
       ).length
       setNameDeletionRequestCount(pendingRequestCount)
     } catch (error) {
@@ -846,7 +841,10 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
     // checks the reply itself or its replies have been replied by support
     const replies = allReplies.filter((p) => p.replyto === comment.id)
     if (!replies.length) return false
-    if (replies.length === 1 && replies[0].signatures.includes('OpenReview.net/Support')) {
+    if (
+      replies.length === 1 &&
+      replies[0].signatures.includes(`${process.env.SUPER_USER}/Support`)
+    ) {
       return true
     }
 
@@ -858,7 +856,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
       const { notes, count } = await api.get(
         '/notes',
         {
-          invitation: 'OpenReview.net/Support/-/Request_Form',
+          invitation: `${process.env.SUPER_USER}/Support/-/Request_Form`,
           sort: 'tcdate',
           details: 'replies',
           select: `id,forum,tcdate,content['Abbreviated Venue Name'],content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
@@ -873,13 +871,13 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
         isCreatedInPastWeek: dayjs().diff(dayjs(p.tcdate), 'd') < 7,
         abbreviatedName: p.content?.['Abbreviated Venue Name'],
         hasOfficialReply: p.details?.replies?.find((q) =>
-          q.signatures.includes('OpenReview.net/Support')
+          q.signatures.includes(`${process.env.SUPER_USER}/Support`)
         ),
         unrepliedPcComments: sortBy(
           p.details?.replies?.filter(
             (q) =>
               q.invitation.endsWith('Comment') &&
-              !q.signatures.includes('OpenReview.net/Support') &&
+              !q.signatures.includes(`${process.env.SUPER_USER}/Support`) &&
               !hasBeenReplied(q, p.details?.replies ?? []) &&
               dayjs().diff(dayjs(q.cdate), 'd') < 7
           ),
@@ -940,7 +938,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
   )
 }
 
-const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
+const EmailDeletionTab = ({ accessToken, isActive }) => {
   const [emailDeletionNotes, setEmailDeletionNotes] = useState(null)
   const [emailDeletionNotesToShow, setEmailDeletionNotesToShow] = useState(null)
   const [page, setPage] = useState(1)
@@ -959,7 +957,7 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
       const editResultsP = api.getAll(
         '/notes/edits',
         { invitation: emailRemovalInvitationId },
-        { accessToken, resultsKey: 'edits'}
+        { accessToken, resultsKey: 'edits' }
       )
       const processLogsP = isActive
         ? api.getAll(
@@ -968,14 +966,19 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
             { accessToken, resultsKey: 'logs' }
           )
         : Promise.resolve([])
-      const [notes,edits, processLogs] = await Promise.all([notesResultP, editResultsP,processLogsP])
+      const [notes, edits, processLogs] = await Promise.all([
+        notesResultP,
+        editResultsP,
+        processLogsP,
+      ])
 
       const notesWithStatus = notes.map((p) => {
         const edit = edits.find((q) => q.note.id === p.id)
         return {
-        ...p,
-        processLogStatus: processLogs.find((q) => q.id === edit?.id)?.status ?? 'running',
-      }})
+          ...p,
+          processLogStatus: processLogs.find((q) => q.id === edit?.id)?.status ?? 'running',
+        }
+      })
 
       setEmailDeletionNotes(notesWithStatus)
       setEmailDeletionNotesToShow(
@@ -1202,16 +1205,11 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
             <UserModerationTab accessToken={accessToken} />
           </TabPanel>
           <TabPanel id="email">
-            <EmailDeletionTab
-              accessToken={accessToken}
-              superUser={superUser}
-              isActive={activeTabId === '#email'}
-            />
+            <EmailDeletionTab accessToken={accessToken} isActive={activeTabId === '#email'} />
           </TabPanel>
           <TabPanel id="name">
             <NameDeletionTab
               accessToken={accessToken}
-              superUser={superUser}
               setNameDeletionRequestCount={setNameDeletionRequestCount}
               isActive={activeTabId === '#name'}
             />
