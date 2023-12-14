@@ -48,7 +48,6 @@ describe('ProfileMergeModal', () => {
     await userEvent.type(emailInput, 'invalid email')
     await userEvent.type(idsInput, '~Test_Id1,~Test_Id2')
     await userEvent.type(commentInput, 'some comment')
-    screen.debug()
 
     expect(submitButton).toHaveAttribute('disabled')
 
