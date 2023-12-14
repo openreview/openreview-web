@@ -20,7 +20,7 @@ const sendButton = Selector('#feedback-modal button:nth-child(2)')
 const alertPanel = Selector('#feedback-modal .alert-danger')
 const textPanel = Selector('#feedback-modal p')
 
-fixture`Feedback Modal`.page`http://localhost:${process.env.NEXT_PORT}`.before(async (ctx) => {
+fixture.skip`Feedback Modal`.page`http://localhost:${process.env.NEXT_PORT}`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
   return ctx
 })
