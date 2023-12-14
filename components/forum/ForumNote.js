@@ -204,8 +204,8 @@ function ForumTitle({ id, title, pdf, html }) {
       {pdf && (
         <div className="forum-content-link">
           <a
-            className={pdf.startsWith('/pdf') ? 'citation_pdf_url' : null}
-            href={pdf.startsWith('/pdf') ? `/pdf?id=${id}` : pdf}
+            className={pdf.startsWith('http') ? null : 'citation_pdf_url'}
+            href={pdf.startsWith('http') ? pdf : `/pdf?id=${id}`}
             title="Download PDF"
             target="_blank"
             rel="noreferrer"
