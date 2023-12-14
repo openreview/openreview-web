@@ -6,7 +6,11 @@
 import { nanoid } from 'nanoid'
 import React, { useContext } from 'react'
 import api from '../../lib/api-client'
-import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
+import {
+  getInterpolatedValues,
+  getSignatures,
+  isInvitationForInvite,
+} from '../../lib/edge-utils'
 import UserContext from '../UserContext'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
@@ -159,8 +163,7 @@ export default function ProfileEntity(props) {
     const editInvitation = isTraverseEdge
       ? traverseInvitation
       : editInvitations.filter((p) => p.id === editEdgeTemplate.invitation)?.[0]
-    const isInviteInvitation =
-      editInvitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
+    const isInviteInvitation = isInvitationForInvite(editInvitation, props.columnType)
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const isCustomLoadInvitation = editInvitation.id.includes('Custom_Max_Papers')
     const maxLoadInvitationHead = editInvitation.head?.query?.id
@@ -216,8 +219,7 @@ export default function ProfileEntity(props) {
 
   const renderEditEdgeWidget = ({ edge, invitation, isTraverseEdge = false }) => {
     const isAssigned = metadata.isAssigned || metadata.isUserAssigned
-    const isInviteInvitation =
-      invitation[props.columnType]?.query?.['value-regex'] === '~.*|.+@.+'
+    const isInviteInvitation = isInvitationForInvite(invitation, props.columnType)
     const isProposedAssignmentInvitation = invitation.id.includes('Proposed_Assignment')
     const isAssignmentInvitation = invitation.id.includes('/Assignment')
     const isCustomLoadInvitation = invitation.id.includes('Custom_Max_Papers')
@@ -376,10 +378,10 @@ export default function ProfileEntity(props) {
       traverseInvitation.id.includes('/Assignment') &&
       editEdges?.some(
         (p) =>
-          editInvitations.find((q) => q.id === p.invitation)?.[props.columnType]?.query?.[
-            'value-regex'
-          ] === '~.*|.+@.+' && // invite invitation
-          p.label === 'Accepted'
+          p.label === 'Accepted' &&
+          editInvitations.find(
+            (q) => q.id === p.invitation && isInvitationForInvite(q, props.columnType)
+          )
       )
     ) {
       return renderEditEdgeWidget({

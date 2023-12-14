@@ -96,8 +96,6 @@ export default function Column(props) {
 
   const buildNewEditEdge = (editInvitation, entityId, weight = 0) => {
     if (!editInvitation) return null
-    const isInviteInvitation =
-      editInvitation[otherType]?.query?.['value-regex'] === '~.*|.+@.+'
 
     return {
       invitation: editInvitation.id,
@@ -221,10 +219,7 @@ export default function Column(props) {
       // eslint-disable-next-line react/jsx-one-expression-per-line
       return (
         <p>
-          {invitationNamePlural} for{' '}
-          <strong>
-            {name.fullname}
-          </strong>
+          {invitationNamePlural} for <strong>{name.fullname}</strong>
         </p>
       )
     }

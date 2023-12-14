@@ -14,7 +14,11 @@ import ScoresList from './ScoresList'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import api from '../../lib/api-client'
 import UserContext from '../UserContext'
-import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
+import {
+  getInterpolatedValues,
+  getSignatures,
+  isInvitationForInvite,
+} from '../../lib/edge-utils'
 
 export default function NoteEntity(props) {
   const { editInvitations, traverseInvitation, availableSignaturesInvitationMap, version } =
@@ -114,8 +118,7 @@ export default function NoteEntity(props) {
       (p) => p.id === editEdgeTemplate.invitation
     )?.[0]
     const otherColumnType = props.columnType === 'head' ? 'tail' : 'head'
-    const isInviteInvitation =
-      editInvitation[otherColumnType]?.query?.['value-regex'] === '~.*|.+@.+'
+    const isInviteInvitation = isInvitationForInvite(editInvitation, otherColumnType)
     const signatures = getSignatures(
       editInvitation,
       availableSignaturesInvitationMap,
@@ -178,8 +181,7 @@ export default function NoteEntity(props) {
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {
     const parentColumnType = props.columnType === 'head' ? 'tail' : 'head'
     const isAssigned = metadata.isAssigned || metadata.isUserAssigned
-    const isInviteInvitation =
-      editInvitation[parentColumnType]?.query?.['value-regex'] === '~.*|.+@.+'
+    const isInviteInvitation = isInvitationForInvite(editInvitation, parentColumnType)
     const isReviewerAssignmentStage = editInvitations.some((p) =>
       p.id.includes('Proposed_Assignment')
     )

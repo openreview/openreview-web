@@ -3,7 +3,11 @@
 
 import { useContext, useState } from 'react'
 import api from '../../lib/api-client'
-import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
+import {
+  getInterpolatedValues,
+  getSignatures,
+  isInvitationForInvite,
+} from '../../lib/edge-utils'
 import { isValidEmail, prettyInvitationId } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
 import UserContext from '../UserContext'
@@ -23,10 +27,7 @@ const EditEdgeInviteEmail = ({
     useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
-  const editInvitation = editInvitations?.filter(
-    (p) => p?.[type]?.query?.['value-regex'] === '~.*|.+@.+'
-  )?.[0]
-
+  const inviteInvitation = editInvitations.find((p) => isInvitationForInvite(p, type) === true)
   // readers/nonreaders/writers
   const getValues = (value, email) =>
     getInterpolatedValues({
@@ -46,20 +47,20 @@ const EditEdgeInviteEmail = ({
     setLoading(true)
     // construct the template
     const newEdgeJson = {
-      invitation: editInvitation.id,
+      invitation: inviteInvitation.id,
       [type]: email,
       [otherType]: parentId,
-      label: editInvitation.label?.default,
+      label: inviteInvitation.label?.default,
       weight: 0,
-      readers: getValues(editInvitation.readers, email),
-      writers: getValues(editInvitation.writers, email),
+      readers: getValues(inviteInvitation.readers, email),
+      writers: getValues(inviteInvitation.writers, email),
       signatures: getSignatures(
-        editInvitation,
+        inviteInvitation,
         availableSignaturesInvitationMap,
         parentNumber,
         user
       ),
-      nonreaders: getValues(editInvitation.nonreaders, email),
+      nonreaders: getValues(inviteInvitation.nonreaders, email),
     }
     // post
     try {
@@ -80,7 +81,7 @@ const EditEdgeInviteEmail = ({
     return !isValidEmail(emailToInvite.trim())
   }
 
-  if (!editInvitation || entityType !== 'profile') return null
+  if (!inviteInvitation || entityType !== 'profile') return null
   return (
     <div className="">
       <form
@@ -96,8 +97,8 @@ const EditEdgeInviteEmail = ({
           className="form-control input-sm"
           autoComplete="off"
           value={emailToInvite}
-          placeholder={editInvitation[type].description}
-          title={editInvitation[type].description}
+          placeholder={inviteInvitation[type].description}
+          title={inviteInvitation[type].description}
           onChange={(e) => setEmailToInvite(e.target.value)}
         />
         <button
@@ -106,7 +107,7 @@ const EditEdgeInviteEmail = ({
           disabled={shouldDisableSubmitBtn()}
         >
           {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
-          {prettyInvitationId(editInvitation.id)}
+          {prettyInvitationId(inviteInvitation.id)}
         </button>
       </form>
     </div>
