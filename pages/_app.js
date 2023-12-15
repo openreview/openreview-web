@@ -388,7 +388,6 @@ export default class OpenReviewApp extends App {
     // Set required constants
     window.OR_API_URL = process.env.API_URL
     window.OR_API_V2_URL = process.env.API_V2_URL
-    window.USE_PARALLEL_UPLOAD = process.env.USE_PARALLEL_UPLOAD === 'true'
 
     // Register route change handlers
     Router.events.on('routeChangeStart', this.onRouteChangeStart)

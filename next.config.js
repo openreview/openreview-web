@@ -11,7 +11,6 @@ module.exports = {
     ACCESS_TOKEN_NAME: process.env.ACCESS_TOKEN_NAME,
     SUPER_USER: process.env.SUPER_USER,
     USE_DBLP_VENUES: process.env.USE_DBLP_VENUES,
-    USE_PARALLEL_UPLOAD: process.env.USE_PARALLEL_UPLOAD,
     GA_PROPERTY_ID: process.env.GA_PROPERTY_ID,
     TURNSTILE_SITEKEY: process.env.TURNSTILE_SITEKEY,
   },
