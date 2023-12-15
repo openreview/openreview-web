@@ -82,9 +82,9 @@ Submissions.getInitialProps = async (ctx) => {
 
   let isV2Group
   let invitationId
-  if (group.content?.submission_id?.value) {
+  if (group.invitations) {
     isV2Group = true
-    invitationId = group.content.submission_id.value
+    invitationId = group.content?.submission_id?.value
   } else {
     isV2Group = false
     const potentialIds = await Promise.all([
