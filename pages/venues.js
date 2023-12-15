@@ -106,7 +106,7 @@ Venues.getInitialProps = async (ctx) => {
 
     const venues = group.members
       .map((id) => ({ id, name: prettyId(id) }))
-      .sort((a, b) => a.name.localeCompare(prettyId(b.name)))
+      .sort((a, b) => a.name.localeCompare(b.name))
 
     return { venues }
   }
