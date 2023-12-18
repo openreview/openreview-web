@@ -37,7 +37,7 @@ const Venues = ({ venues, pagination }) => (
     </header>
 
     <div className="groups">
-      {process.env.USE_DBLP_VENUES ? (
+      {process.env.USE_DBLP_VENUES === 'true' ? (
         venues.map((venue) => <VenueItemDBLP key={venue.id} venue={venue} />)
       ) : (
         <ul className="list-unstyled venues-list">
@@ -50,7 +50,7 @@ const Venues = ({ venues, pagination }) => (
       )}
     </div>
 
-    {process.env.USE_DBLP_VENUES && (
+    {process.env.USE_DBLP_VENUES === 'true' && (
       <PaginationLinks
         currentPage={pagination.currentPage}
         itemsPerPage={pagination.notesPerPage}
@@ -62,7 +62,7 @@ const Venues = ({ venues, pagination }) => (
 )
 
 Venues.getInitialProps = async (ctx) => {
-  if (process.env.USE_DBLP_VENUES) {
+  if (process.env.USE_DBLP_VENUES === 'true') {
     const currentPage = Math.max(parseInt(ctx.query.page, 10) || 1, 1)
     const notesPerPage = 25
 
