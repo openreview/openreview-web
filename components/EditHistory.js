@@ -55,10 +55,7 @@ export default function EditHistory({ group, invitation, accessToken, setError }
 
   if (!group && !invitation) return null
 
-  if (
-    (group && !group.invitations?.length > 0) ||
-    (invitation && invitation.apiVersion === 1)
-  ) {
+  if ((group && !group.invitations) || (invitation && invitation.apiVersion === 1)) {
     return (
       <div>
         <EmptyMessage id={group?.id ?? invitation?.id} />
