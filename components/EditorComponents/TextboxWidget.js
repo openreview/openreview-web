@@ -2,7 +2,11 @@ import { useContext, useEffect, useState } from 'react'
 import isNil from 'lodash/isNil'
 import EditorComponentContext from '../EditorComponentContext'
 import useUser from '../../hooks/useUser'
-import { convertToType, getFieldConstValue } from '../../lib/webfield-utils'
+import {
+  convertToStringArray,
+  convertToType,
+  getFieldConstValue,
+} from '../../lib/webfield-utils'
 import { getAutoStorageKey } from '../../lib/utils'
 
 import styles from '../../styles/components/TextboxWidget.module.scss'
@@ -23,7 +27,7 @@ const TextboxWidget = () => {
 
   let initialValue = isNil(value) ? value : value.toString()
   if (isArrayType) {
-    initialValue = value?.join(',')
+    initialValue = convertToStringArray(value, true)?.join(',')
   }
   const [displayValue, setDisplayValue] = useState(initialValue)
 
@@ -68,7 +72,9 @@ const TextboxWidget = () => {
     }
     let defaultStr
     if (!note) {
-      defaultStr = isArrayType ? defaultValue?.join(',') : defaultValue
+      defaultStr = isArrayType
+        ? convertToStringArray(defaultValue, true)?.join(',')
+        : convertToStringArray(defaultValue, false)
     }
 
     if (savedText || defaultStr) {
