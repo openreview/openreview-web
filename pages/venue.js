@@ -108,10 +108,10 @@ Venue.getInitialProps = async (ctx) => {
   const [hostGroup, venues] = await Promise.all([
     api
       .get('/groups', { id: ctx.query.id }, { accessToken: token })
-      .then((res) => res.groups?.[0]),
+      .then((res) => res.groups?.[0] ?? null),
     api
       .get('/groups', { host: ctx.query.id }, { accessToken: token })
-      .then((res) => res.groups),
+      .then((res) => res.groups ?? []),
   ])
 
   if (!hostGroup) {
