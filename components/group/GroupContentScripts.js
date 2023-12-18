@@ -85,6 +85,7 @@ function GroupCodeEditor({ group, fieldName, profileId, accessToken, reloadGroup
       <CodeEditor
         code={code}
         onChange={setCode}
+        isText
       />
 
       <div className="mt-3">
