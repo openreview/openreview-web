@@ -247,7 +247,7 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
     reviewersId,
     bidName,
     recommendationName,
-    metaReviewRecommendationName,
+    metaReviewRecommendationName = 'recommendation',
     venueId,
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
