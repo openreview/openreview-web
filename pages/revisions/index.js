@@ -15,7 +15,6 @@ import BasicModal from '../../components/BasicModal'
 import ConfirmDeleteModal from '../../components/forum/ConfirmDeleteModal'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { useNewNoteEditor } from '../../lib/utils'
 import { forumLink } from '../../lib/banner-links'
 
 const UpdateModal = ({ editInfo, setEditToChange, loadEdits }) => {
@@ -63,7 +62,7 @@ const RevisionsList = ({
   const router = useRouter()
   const [editToChange, setEditToChange] = useState(null)
   const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
-  const newNoteEditor = useNewNoteEditor(revisions?.[0]?.[1])
+  const newNoteEditor = revisions?.[0]?.[1]?.domain
 
   const toggleSelected = (idx, checked) => {
     if (checked) {

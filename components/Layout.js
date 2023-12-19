@@ -44,7 +44,7 @@ export default function Layout({
         <meta name="twitter:site" content="@openreviewnet" />
 
         {/* Google Analytics */}
-        {process.env.IS_PRODUCTION || process.env.IS_STAGING ? (
+        {process.env.SERVER_ENV === 'production' || process.env.SERVER_ENV === 'staging' ? (
           <>
             <script
               async

@@ -36,7 +36,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
     shortPhrase,
     seniorAreaChairName,
     submissionName,
-    metaReviewRecommendationName,
+    metaReviewRecommendationName = 'recommendation',
   } = useContext(WebFieldContext)
   const { note } = rowData
   const referrerUrl = encodeURIComponent(
