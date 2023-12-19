@@ -1,4 +1,4 @@
-/* globals $,promptMessage: false */
+/* globals $,promptMessage,view2: false */
 
 import { useState, useReducer, useEffect } from 'react'
 import BasicModal from './BasicModal'
@@ -71,40 +71,25 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
   const postProfileMergeRequest = async () => {
     setIsLoading(true)
     try {
-      const result = await api.get(
-        '/invitations',
-        { id: profileMergeInvitationId },
-        { accessToken, version: 1 }
+      const profileMergeInvitation = await api.getInvitationById(
+        profileMergeInvitationId,
+        accessToken
       )
-      const profileMergeInvitation = result.invitations[0]
       await Promise.all(
-        profileMergeInfo.idPairsToMerge.map((idPairToMerge) =>
-          api.post(
-            '/notes',
-            {
-              invitation: profileMergeInvitation.id,
-              content: {
-                email: profileMergeInfo.email,
-                left: idPairToMerge.left,
-                right: idPairToMerge.right,
-                comment: profileMergeInfo.comment,
-                status: 'Pending',
-              },
-              readers: buildArray(
-                profileMergeInvitation,
-                'readers',
-                user?.profile?.preferredId
-              ),
-              writers: buildArray(
-                profileMergeInvitation,
-                'writers',
-                user?.profile?.preferredId
-              ),
-              signatures: [user?.profile?.preferredId ?? '(guest)'],
+        profileMergeInfo.idPairsToMerge.map((idPairToMerge) => {
+          const editToPost = view2.constructEdit({
+            formData: {
+              email: profileMergeInfo.email,
+              left: idPairToMerge.left,
+              right: idPairToMerge.right,
+              comment: profileMergeInfo.comment,
+              status: 'Pending',
+              editSignatureInputValues: [user?.profile?.preferredId ?? '(guest)'],
             },
-            { accessToken, version: 1 }
-          )
-        )
+            invitationObj: profileMergeInvitation,
+          })
+          return api.post('/notes/edits', editToPost, { accessToken })
+        })
       )
 
       $('#profile-merge-modal').modal('hide')
