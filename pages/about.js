@@ -69,7 +69,7 @@ const About = () => (
           </li>
           <li className="mb-2">
             <strong>Open Source:</strong> We are committed to open source. The OpenReview web
-            application is open source and licensed under the{' '}
+            interface is open source and licensed under the{' '}
             <a
               href="https://github.com/openreview/openreview-web/blob/master/LICENSE.md"
               target="_blank"
