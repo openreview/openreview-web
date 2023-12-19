@@ -43,7 +43,7 @@ const PaperRow = ({
     officialReviewName,
     shortPhrase,
     submissionName,
-    metaReviewRecommendationName,
+    metaReviewRecommendationName = 'recommendation',
   } = useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
