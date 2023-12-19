@@ -269,7 +269,7 @@ export default class OpenReviewApp extends App {
 
     // Track pageview in Google Analytics
     // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
-    if (process.env.IS_PRODUCTION || process.env.IS_STAGING) {
+    if (process.env.SERVER_ENV === 'production' || process.env.SERVER_ENV === 'staging') {
       window.gtag('config', process.env.GA_PROPERTY_ID, {
         page_location: window.location.origin + url,
       })
@@ -371,7 +371,7 @@ export default class OpenReviewApp extends App {
 
     // Track unhandled JavaScript errors
     const reportError = (errorDescription) => {
-      if (process.env.IS_PRODUCTION || process.env.IS_STAGING) {
+      if (process.env.SERVER_ENV === 'production' || process.env.SERVER_ENV === 'staging') {
         window.gtag('event', 'exception', {
           description: errorDescription,
           fatal: true,
@@ -392,7 +392,6 @@ export default class OpenReviewApp extends App {
     // Set required constants
     window.OR_API_URL = process.env.API_URL
     window.OR_API_V2_URL = process.env.API_V2_URL
-    window.USE_PARALLEL_UPLOAD = process.env.USE_PARALLEL_UPLOAD
 
     // Register route change handlers
     Router.events.on('routeChangeStart', this.onRouteChangeStart)
@@ -451,7 +450,7 @@ export default class OpenReviewApp extends App {
 // Send page page performace information to Google Analytics. For more info see:
 // https://nextjs.org/docs/advanced-features/measuring-performance
 export function reportWebVitals({ id, name, label, value }) {
-  if (process.env.IS_PRODUCTION || process.env.IS_STAGING) {
+  if (process.env.SERVER_ENV === 'production' || process.env.SERVER_ENV === 'staging') {
     window.gtag('event', name, {
       event_category: label === 'web-vital' ? 'Web Vitals' : 'Next.js Metrics',
       value: Math.round(name === 'CLS' ? value * 1000 : value),

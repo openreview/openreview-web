@@ -247,7 +247,7 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
     reviewersId,
     bidName,
     recommendationName,
-    metaReviewRecommendationName,
+    metaReviewRecommendationName = 'recommendation',
     venueId,
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
@@ -320,7 +320,7 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
             completedRecommendations:
               pcConsoleData.acRecommendationsCount?.[areaChairProfileId] ?? 0,
             completedBids:
-              pcConsoleData.bidCount?.areaChairs?.find(
+              pcConsoleData.bidCounts?.areaChairs?.find(
                 (p) => p.id?.tail === areaChairProfileId
               )?.count ?? 0,
             numCompletedReviews: notes.filter(
