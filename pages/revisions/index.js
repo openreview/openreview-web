@@ -15,7 +15,6 @@ import BasicModal from '../../components/BasicModal'
 import ConfirmDeleteModal from '../../components/forum/ConfirmDeleteModal'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { useNewNoteEditor } from '../../lib/utils'
 import { forumLink } from '../../lib/banner-links'
 
 const UpdateModal = ({ editInfo, setEditToChange, loadEdits }) => {
@@ -63,7 +62,7 @@ const RevisionsList = ({
   const router = useRouter()
   const [editToChange, setEditToChange] = useState(null)
   const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
-  const newNoteEditor = useNewNoteEditor(revisions?.[0]?.[1])
+  const newNoteEditor = revisions?.[0]?.[1]?.domain
 
   const toggleSelected = (idx, checked) => {
     if (checked) {
@@ -454,55 +453,18 @@ const Revisions = ({ appContext }) => {
   }
 
   const loadEdits = async () => {
-    let apiRes
     try {
-      apiRes = await api.get(
+      const { edits } = await api.get(
         '/notes/edits',
         {
           'note.id': query.id,
           sort: 'tcdate',
-          details: 'writable,presentation',
+          details: 'writable,presentation,invitation',
           trash: true,
         },
         { accessToken }
       )
-    } catch (apiError) {
-      setError(apiError)
-      return
-    }
-
-    // for reusing mkNotePanel
-    const edits =
-      apiRes.edits.map((edit) => ({ ...edit, invitations: [edit.invitation] })) || []
-    const invitationIds = Array.from(new Set(edits.map((edit) => edit.invitation)))
-
-    try {
-      const { invitations } = await api.get(
-        '/invitations',
-        { ids: invitationIds, expired: true, details: 'writable' },
-        { accessToken }
-      )
-
-      if (invitations?.length > 0) {
-        setRevisions(
-          edits.map((edit) => {
-            let editInvitation = invitations.find(
-              (invitation) => invitation.id === edit.invitation
-            )
-            // Don't show the edit button next to an edit if it's expired and not writable
-            if (
-              editInvitation?.expdate &&
-              editInvitation.expdate < Date.now() &&
-              !editInvitation.details?.writable
-            ) {
-              editInvitation = null
-            }
-            return [edit, editInvitation]
-          })
-        )
-      } else {
-        setRevisions([])
-      }
+      setRevisions((edits ?? []).map((edit) => [edit, edit.details.invitation]))
     } catch (apiError) {
       setError(apiError)
     }

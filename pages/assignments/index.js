@@ -26,7 +26,6 @@ import {
   formatDateTime,
   cloneAssignmentConfigNote,
   cloneAssignmentConfigNoteV2,
-  useNewNoteEditor,
 } from '../../lib/utils'
 import { getNoteContentValues } from '../../lib/forum-utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
@@ -276,7 +275,7 @@ const Assignments = ({ appContext }) => {
   const [editorNote, setEditorNote] = useState(null)
   const query = useQuery()
   const { setBannerContent } = appContext
-  const newNoteEditor = useNewNoteEditor(configInvitation?.domain)
+  const newNoteEditor = configInvitation?.domain
 
   const shouldRemoveDeployLink = assignmentNotes?.some((p) =>
     apiVersion === 2
