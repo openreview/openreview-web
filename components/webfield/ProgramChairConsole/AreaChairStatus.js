@@ -50,38 +50,42 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
         ) : (
           <h4>{rowData.areaChairProfileId}</h4>
         )}
-        <p>
+        <div>
           {bidEnabled && (
             <>
-              {`Completed Bids: ${completedBids}`}
+              <span>{`Completed Bids: ${completedBids}`}</span>
               {completedBids > 0 && (
-                <a
-                  href={edgeBrowserBidsUrl}
-                  className="show-reviewer-bids"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  view all
-                </a>
+                <div>
+                  <a
+                    href={edgeBrowserBidsUrl}
+                    className="show-reviewer-bids"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    view all
+                  </a>
+                </div>
               )}
             </>
           )}
           {recommendationEnabled && (
             <>
-              {`Reviewers Recommended: ${completedRecs}`}
+              <span>{`Reviewers Recommended: ${completedRecs}`}</span>
               {completedBids > 0 && (
-                <a
-                  href={edgeBrowserRecsUrl}
-                  className="show-reviewer-bids"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  view all
-                </a>
+                <div>
+                  <a
+                    href={edgeBrowserRecsUrl}
+                    className="show-reviewer-bids"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    view all
+                  </a>
+                </div>
               )}
             </>
           )}
-        </p>
+        </div>
       </div>
       {sacProfile && (
         <>
