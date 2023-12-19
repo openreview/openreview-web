@@ -1,8 +1,9 @@
+/* globals view2: false */
 import { groupBy } from 'lodash'
 import { useContext, useState } from 'react'
 import Accordion from './Accordion'
 import Table from './Table'
-import { buildArray, inflect } from '../lib/utils'
+import { inflect } from '../lib/utils'
 import UserContext from './UserContext'
 import api from '../lib/api-client'
 import ErrorAlert from './ErrorAlert'
@@ -185,29 +186,22 @@ const DblpPublicationRow = ({
     setError(null)
     setProfileMergeStatus('loading')
     try {
-      const result = await api.get(
-        '/invitations',
-        { id: profileMergeInvitationId },
-        { accessToken, version: 1 }
+      const profileMergeInvitation = await api.getInvitationById(
+        profileMergeInvitationId,
+        accessToken
       )
-      const profileMergeInvitation = result.invitations[0]
-      await api.post(
-        '/notes',
-        {
-          invitation: profileMergeInvitation.id,
-          content: {
-            email: user.profile.preferredEmail,
-            left: user.id,
-            right: otherProfileId,
-            comment: 'DBLP import',
-            status: 'Pending',
-          },
-          readers: buildArray(profileMergeInvitation, 'readers', user.profile.preferredId),
-          writers: buildArray(profileMergeInvitation, 'writers', user.profile.preferredId),
-          signatures: [user.profile.preferredId],
+      const editToPost = view2.constructEdit({
+        formData: {
+          email: user.profile.preferredEmail,
+          left: user.id,
+          right: otherProfileId,
+          comment: 'DBLP import',
+          status: 'Pending',
+          editSignatureInputValues: [user.profile.preferredId],
         },
-        { accessToken, version: 1 }
-      )
+        invitationObj: profileMergeInvitation,
+      })
+      await api.post('/notes/edits', editToPost, { accessToken })
       setProfileMergeStatus('posted')
     } catch (apiError) {
       setError(apiError)
