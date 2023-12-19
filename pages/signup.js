@@ -147,7 +147,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="row">
           <div className="form-group col-xs-12">
-            <label htmlFor="first-input" className="mb-2">Enter your full name as you would write it as the author of a paper</label>
+            <label htmlFor="first-input" className="mb-2">
+              Enter your full name as you would write it as the author of a paper
+            </label>
             <input
               type="text"
               id="first-input"
@@ -170,7 +172,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               type="checkbox"
               checked={confirmFullName}
               onChange={() => {
-                if (!fullName) {
+                if (!newUsername) {
                   setConfirmFullName(false)
                   return
                 }
@@ -223,7 +225,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               }
               if (index === existingProfiles.length - 1)
                 return (
-                  <React.Fragment  key={index}>
+                  <React.Fragment key={index}>
                     {formComponents}
                     <p className="merge-message hint">
                       If two or more of the profiles above belong to you, please{' '}
@@ -242,7 +244,10 @@ const SignupForm = ({ setSignupConfirmation }) => {
             })}
 
             <div className="new-profile-title">
-              Create a new profile {existingProfiles.length > 0?'if none of the profiles above belong to you':''}
+              Create a new profile{' '}
+              {existingProfiles.length > 0
+                ? 'if none of the profiles above belong to you'
+                : ''}
             </div>
 
             <NewProfileForm
@@ -556,8 +561,10 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const InstitutionErrorMessage = ({ email: invalidEmail }) => (
     <span>
       <strong>{invalidEmail.split('@').pop()}</strong> does not appear in our list of
-      publishing institutions. If you have an email address with an educational or employing
-      institution domain, please use that. If your institution is not yet in our list,{' '}
+      publishing institutions. It can take up to <strong>2 weeks</strong> for profiles using
+      public email services to be activated. To activate immediately, please sign up with an
+      email address that uses an educational or employing institution domain. If your
+      institution is not yet in our list,{' '}
       {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
       <a
         href="#"
@@ -568,8 +575,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
       >
         contact us
       </a>{' '}
-      to request that it be added. Otherwise, it can take up to <strong>2 weeks</strong> for
-      profiles using public email services to be activated.
+      to request that it be added.
     </span>
   )
 

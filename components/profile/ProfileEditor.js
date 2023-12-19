@@ -385,10 +385,11 @@ export default function ProfileEditor({
         title="Emails"
         instructions={
           <>
-            Enter all email addresses associated with your current and historical institutional
-            affiliations, your previous publications, and any other related systems, such as
-            TPMS, CMT, and ArXiv.
-            <br />
+            <div>
+              Enter all email addresses associated with your current and historical
+              institutional affiliations, your previous publications, and any other related
+              systems, such as TPMS, CMT, and ArXiv.
+            </div>
             <strong>
               Emails associated with former affiliations (including previous employers) should
               not be deleted.
@@ -462,10 +463,11 @@ export default function ProfileEditor({
         title="Expertise"
         instructions={
           <>
-            For each line, enter comma-separated keyphrases representing an intersection of
-            your interests. Think of each line as a query for papers in which you would have
-            expertise and interest. For example:
-            <br />
+            <div>
+              For each line, enter comma-separated keyphrases representing an intersection of
+              your interests. Think of each line as a query for papers in which you would have
+              expertise and interest. For example:
+            </div>
             <em>topic models, social network analysis, computational social science</em>
             <br />
             <em>deep learning, RNNs, dependency parsing</em>

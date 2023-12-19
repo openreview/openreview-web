@@ -32,6 +32,9 @@ main.profile-edit {
     color: constants.$subtleGray;
     max-width: 800px;
     margin-bottom: 0.5rem;
+    :first-child {
+      margin-bottom: 0.5rem;
+    }
   }
 
   .glyphicon-minus-sign,

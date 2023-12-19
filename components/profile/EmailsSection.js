@@ -14,10 +14,13 @@ const EmailsButton = ({
   handleRemove,
   handleConfirm,
   handleMakePreferred,
+  isNewProfile,
 }) => {
   const { confirmed, preferred, email, isValid } = emailObj
 
   if (type === 'confirmed') {
+    if (isNewProfile) return null
+
     if (confirmed) {
       return <div className="emails__confirmed-text hint">(Confirmed)</div>
     }
@@ -180,6 +183,7 @@ const EmailsSection = ({
                 type="confirmed"
                 emailObj={emailObj}
                 handleConfirm={() => handleConfirmEmail(emailObj.key)}
+                isNewProfile={isNewProfile}
               />
             </div>
             <div className="col-md-1 emails__value">
