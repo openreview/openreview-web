@@ -8,7 +8,6 @@ import copy from 'copy-to-clipboard'
 import truncate from 'lodash/truncate'
 import { NoteContentV2 } from '../NoteContent'
 import NoteEditor from '../NoteEditor'
-import NoteEditorForm from '../NoteEditorForm'
 import ForumReplyContext from './ForumReplyContext'
 import Icon from '../Icon'
 import { getInvitationColors } from '../../lib/forum-utils'
@@ -17,7 +16,6 @@ import {
   prettyInvitationId,
   forumDate,
   buildNoteTitle,
-  useNewNoteEditor,
 } from '../../lib/utils'
 
 export default function ForumReply({
@@ -33,9 +31,6 @@ export default function ForumReply({
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
   const { displayOptionsMap, nesting, excludedInvitations, setCollapsed, setContentExpanded } =
     useContext(ForumReplyContext)
-  const newNoteEditor = useNewNoteEditor(
-    activeInvitation?.domain || activeEditInvitation?.domain
-  )
 
   const { invitations, signatures, content, ddate } = note
   const { hidden, collapsed, contentExpanded } = displayOptionsMap[note.id]
@@ -125,43 +120,19 @@ export default function ForumReply({
         setContentExpanded={setContentExpanded}
         replyDepth={replyDepth}
       >
-        {newNoteEditor ? (
-          <NoteEditor
-            invitation={activeEditInvitation}
-            note={note}
-            replyToNote={parentNote}
-            className={`note-editor-edit depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
-            closeNoteEditor={() => setActiveEditInvitation(null)}
-            onNoteCreated={(newNote) => {
-              updateNote(newNote)
-              setActiveEditInvitation(null)
-              scrollToNote(newNote.id)
-            }}
-            isDirectReplyToForum={isDirectReplyToForum}
-          />
-        ) : (
-          <NoteEditorForm
-            note={note}
-            invitation={activeEditInvitation}
-            onLoad={() => {
-              scrollToNote(note.id)
-            }}
-            onNoteEdited={(newNote) => {
-              updateNote(newNote)
-              setActiveEditInvitation(null)
-              scrollToNote(newNote.id)
-            }}
-            onNoteCancelled={() => {
-              setActiveEditInvitation(null)
-              scrollToNote(note.id)
-            }}
-            onError={(isLoadingError) => {
-              if (isLoadingError) {
-                setActiveEditInvitation(null)
-              }
-            }}
-          />
-        )}
+        <NoteEditor
+          invitation={activeEditInvitation}
+          note={note}
+          replyToNote={parentNote}
+          className={`note-editor-edit depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
+          closeNoteEditor={() => setActiveEditInvitation(null)}
+          onNoteCreated={(newNote) => {
+            updateNote(newNote)
+            setActiveEditInvitation(null)
+            scrollToNote(newNote.id)
+          }}
+          isDirectReplyToForum={isDirectReplyToForum}
+        />
         {!allRepliesHidden && (
           <>
             <hr />
@@ -385,45 +356,20 @@ export default function ForumReply({
             })}
           </div>
 
-          {newNoteEditor ? (
-            <NoteEditor
-              invitation={activeInvitation}
-              replyToNote={note}
-              className={`note-editor-reply depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
-              closeNoteEditor={() => {
-                setActiveInvitation(null)
-              }}
-              onNoteCreated={(newNote) => {
-                updateNote(newNote)
-                setActiveInvitation(null)
-                scrollToNote(newNote.id)
-              }}
-              isDirectReplyToForum={false} // reply to direct reply
-            />
-          ) : (
-            <NoteEditorForm
-              forumId={note.forum}
-              invitation={activeInvitation}
-              replyToId={note.id}
-              onLoad={() => {
-                scrollToNote(note.id, true)
-              }}
-              onNoteCreated={(newNote) => {
-                updateNote(newNote)
-                setActiveInvitation(null)
-                scrollToNote(newNote.id)
-              }}
-              onNoteCancelled={() => {
-                setActiveInvitation(null)
-                scrollToNote(note.id)
-              }}
-              onError={(isLoadingError) => {
-                if (isLoadingError) {
-                  setActiveInvitation(null)
-                }
-              }}
-            />
-          )}
+          <NoteEditor
+            invitation={activeInvitation}
+            replyToNote={note}
+            className={`note-editor-reply depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
+            closeNoteEditor={() => {
+              setActiveInvitation(null)
+            }}
+            onNoteCreated={(newNote) => {
+              updateNote(newNote)
+              setActiveInvitation(null)
+              scrollToNote(newNote.id)
+            }}
+            isDirectReplyToForum={false} // reply to direct reply
+          />
         </div>
       )}
 

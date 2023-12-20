@@ -99,9 +99,14 @@ const LoginForm = () => {
   )
 }
 
-const Login = () => {
+const Login = ({ appContext }) => {
   const { user, userLoading } = useContext(UserContext)
   const { isReady, query, replace } = useRouter()
+  const { setLayoutOptions } = appContext
+
+  useEffect(() => {
+    setLayoutOptions({ fullWidth: false, minimalFooter: false })
+  }, [])
 
   // Redirect user to the specified page or the homepage if already logged in.
   // Effect should not run when user changes, otherwise the page will redirect

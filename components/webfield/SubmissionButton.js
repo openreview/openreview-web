@@ -3,7 +3,7 @@ import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId, useNewNoteEditor } from '../../lib/utils'
+import { prettyId } from '../../lib/utils'
 
 export default function SubmissionButton({
   invitationId,
@@ -14,7 +14,7 @@ export default function SubmissionButton({
   const [invitation, setInvitation] = useState(null)
   const [noteEditorOpen, setNoteEditorOpen] = useState(false)
   const { accessToken, userLoading } = useUser()
-  const newNoteEditor = useNewNoteEditor(invitation?.domain)
+  const newNoteEditor = invitation?.domain
 
   const invitationPastDue =
     invitation?.duedate && invitation.duedate < Date.now() && !invitation?.details.writable

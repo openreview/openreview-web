@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import NoteEditor from '../NoteEditor'
-import NoteEditorForm from '../NoteEditorForm'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
@@ -11,7 +10,6 @@ import {
   prettyId,
   prettyInvitationId,
   forumDate,
-  useNewNoteEditor,
   classNames,
 } from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
@@ -25,7 +23,6 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
 
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeNote, setActiveNote] = useState(null)
-  const newNoteEditor = useNewNoteEditor(activeInvitation?.domain)
 
   const canShowIcon = (fieldName) => {
     if (!content[fieldName]?.value) return null
@@ -74,29 +71,12 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
   if (activeInvitation) {
     return (
       <div className="forum-note">
-        {newNoteEditor ? (
-          <NoteEditor
-            note={activeNote}
-            invitation={activeInvitation}
-            closeNoteEditor={closeNoteEditor}
-            onNoteCreated={updateNote}
-          />
-        ) : (
-          <NoteEditorForm
-            note={activeNote}
-            invitation={activeInvitation}
-            onNoteEdited={(newNote) => {
-              updateNote(newNote)
-              closeNoteEditor()
-            }}
-            onNoteCancelled={closeNoteEditor}
-            onError={(isLoadingError) => {
-              if (isLoadingError) {
-                setActiveInvitation(null)
-              }
-            }}
-          />
-        )}
+        <NoteEditor
+          note={activeNote}
+          invitation={activeInvitation}
+          closeNoteEditor={closeNoteEditor}
+          onNoteCreated={updateNote}
+        />
       </div>
     )
   }
@@ -204,8 +184,8 @@ function ForumTitle({ id, title, pdf, html }) {
       {pdf && (
         <div className="forum-content-link">
           <a
-            className={pdf.startsWith('/pdf') ? 'citation_pdf_url' : null}
-            href={pdf.startsWith('/pdf') ? `/pdf?id=${id}` : pdf}
+            className={pdf.startsWith('http') ? null : 'citation_pdf_url'}
+            href={pdf.startsWith('http') ? pdf : `/pdf?id=${id}`}
             title="Download PDF"
             target="_blank"
             rel="noreferrer"
