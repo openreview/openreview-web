@@ -1,8 +1,8 @@
 /* globals promptError: false */
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import uniq from 'lodash/uniq'
-import useQuery from '../../hooks/useQuery'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import EdgeBrowser from '../../components/browser/EdgeBrowser'
@@ -18,14 +18,14 @@ import {
 import { referrerLink } from '../../lib/banner-links'
 
 const Browse = ({ appContext }) => {
-  const { user, accessToken, userLoading } = useLoginRedirect()
+  const { user, accessToken } = useLoginRedirect()
   const [version, setVersion] = useState(1)
   const [invitations, setInvitations] = useState(null)
   const [titleInvitation, setTitleInvitation] = useState(null)
   const [maxColumns, setMaxColumns] = useState(-1)
   const [showCounter, setShowCounter] = useState(true)
   const [error, setError] = useState(null)
-  const query = useQuery()
+  const { isReady, query } = useRouter()
   const { setBannerHidden, setBannerContent, setLayoutOptions } = appContext
 
   const notFoundError = {
@@ -177,7 +177,7 @@ const Browse = ({ appContext }) => {
   }
 
   useEffect(() => {
-    if (userLoading || !query) return
+    if (!user || !isReady) return
 
     if (!query.traverse) {
       setError(notFoundError)
@@ -193,7 +193,7 @@ const Browse = ({ appContext }) => {
     }
 
     loadAllInvitations()
-  }, [userLoading, query, user])
+  }, [user, isReady, query])
 
   useEffect(() => {
     if (!error) return
