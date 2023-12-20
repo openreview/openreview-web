@@ -1,4 +1,4 @@
-/* globals promptError,clearMessage,$, promptMessage: false */
+/* globals promptError,clearMessage,$, promptMessage,view2: false */
 import { useCallback, useEffect, useReducer, useState } from 'react'
 import { nanoid } from 'nanoid'
 import debounce from 'lodash/debounce'
@@ -6,7 +6,7 @@ import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import api from '../../lib/api-client'
 import BasicModal from '../BasicModal'
-import { buildArray, getNameString } from '../../lib/utils'
+import { getNameString } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 
 const NamesButton = ({
@@ -73,28 +73,21 @@ const NameDeleteRequestModal = ({
   const postNameDeleteRequest = async () => {
     setIsLoading(true)
     try {
-      const result = await api.get(
-        '/invitations',
-        { id: nameDeletionInvitationId },
-        { accessToken, version: 1 }
+      const profileNameRemovalInvitation = await api.getInvitationById(
+        nameDeletionInvitationId,
+        accessToken
       )
-      const profileNameRemovalInvitation = result.invitations[0]
-      await api.post(
-        '/notes',
-        {
-          invitation: profileNameRemovalInvitation.id,
-          content: {
-            name: getNameString(nameToRequestDelete),
-            usernames: [nameToRequestDelete.username, ...nameToRequestDelete.altUsernames],
-            comment: reason,
-            status: 'Pending',
-          },
-          readers: buildArray(profileNameRemovalInvitation, 'readers', preferredUsername),
-          writers: buildArray(profileNameRemovalInvitation, 'writers', preferredUsername),
-          signatures: [preferredUsername],
+      const editToPost = view2.constructEdit({
+        formData: {
+          name: getNameString(nameToRequestDelete),
+          usernames: [nameToRequestDelete.username, ...nameToRequestDelete.altUsernames],
+          comment: reason,
+          status: 'Pending',
+          editSignatureInputValues: [preferredUsername],
         },
-        { accessToken, version: 1 }
-      )
+        invitationObj: profileNameRemovalInvitation,
+      })
+      await api.post('/notes/edits', editToPost, { accessToken })
       $('#name-delete').modal('hide')
       promptMessage('Your request has been submitted')
       loadPendingNameDeletionNotes()
@@ -224,7 +217,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
     const result = await api.get(
       '/notes',
       { invitation: nameDeletionInvitationId },
-      { accessToken, version: 1 }
+      { accessToken }
     )
     return result.notes
   }
@@ -243,8 +236,8 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
       const nameDeletionNotes = await getNameDeletionRequests()
       const hasPendingNameDeletionRequest = nameDeletionNotes?.find(
         (p) =>
-          p?.content?.usernames.includes(nameToDelete.username) &&
-          p?.content?.status === 'Pending'
+          p?.content?.usernames.value.includes(nameToDelete.username) &&
+          p?.content?.status.value === 'Pending'
       )
       if (hasPendingNameDeletionRequest) {
         promptError(`Request to remove ${getNameString(nameToDelete)} has been submitted.`)
@@ -287,7 +280,9 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
       {names.map((p) => {
         if (p.duplicate) return null
         const hasPendingNameDeletionRequest = pendingNameDeletionRequests?.find(
-          (q) => q?.content?.usernames.includes(p.username) && q?.content?.status === 'Pending'
+          (q) =>
+            q?.content?.usernames.value.includes(p.username) &&
+            q?.content?.status.value === 'Pending'
         )
         return (
           <div className="row" key={p.key}>
