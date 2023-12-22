@@ -1,13 +1,8 @@
 import { useContext, useEffect, useState } from 'react'
-import dynamic from 'next/dynamic'
+import CodeEditor from '../CodeEditor'
 import EditorComponentContext from '../EditorComponentContext'
-import LoadingSpinner from '../LoadingSpinner'
 
 import styles from '../../styles/components/CodeEditorWidget.module.scss'
-
-const CodeEditor = dynamic(() => import('../CodeEditor'), {
-  loading: () => <LoadingSpinner inline />,
-})
 
 const CodeEditorWidget = () => {
   const { field, onChange, value, error, clearError, setErrors, note } =
