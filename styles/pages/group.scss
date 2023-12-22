@@ -829,6 +829,19 @@ main.invitation {
     }
   }
 
+  section.process-functions {
+    .tabs-container .tab-pane {
+      padding: 0;
+    }
+    .code-editor {
+      margin-top: -1px;
+      z-index: 1;
+    }
+    ul.nav-tabs > li.active {
+      z-index: 10;
+    }
+  }
+
   .group-members-table {
     margin-top: -1rem;
     margin-bottom: 0.25rem;

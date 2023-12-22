@@ -5,6 +5,7 @@ import GroupChildGroups from './GroupChildGroups'
 import GroupRelatedInvitations from './GroupRelatedInvitations'
 import GroupUICode from './GroupUICode'
 import GroupContent from './GroupContent'
+import GroupContentScripts from './GroupContentScripts'
 
 const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }) => {
   if (!group) return null
@@ -21,6 +22,15 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
       <GroupMembers group={group} accessToken={accessToken} reloadGroup={reloadGroup} />
       {group.invitations && (
         <GroupContent
+          group={group}
+          profileId={profileId}
+          accessToken={accessToken}
+          reloadGroup={reloadGroup}
+        />
+      )}
+      {group.invitations && (
+        <GroupContentScripts
+          key={`${group.id}-content-scripts`}
           group={group}
           profileId={profileId}
           accessToken={accessToken}
