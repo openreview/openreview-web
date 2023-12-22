@@ -245,17 +245,18 @@ export const NewReplyEditNoteReaders = ({
       return groupResult ?? []
     })
 
-    const parentHasActionEditor = parentReaders.find((p) => p.endsWith('/Action_Editors'))
-    const invitationActionEditor = groupResults.find((p) =>
-      p.value.endsWith('/Action_Editors')
-    )
-    if (
-      parentHasActionEditor &&
-      invitationActionEditor &&
-      !readersIntersection.find((p) => p.value.endsWith('/Action_Editors'))
-    ) {
-      readersIntersection.push(invitationActionEditor)
-    }
+    const mismatchingRoles = ['Area_Chairs', 'Senior_Area_Chairs', 'Action_Editors']
+    mismatchingRoles.forEach((role) => {
+      const parentHasRole = parentReaders.find((p) => p.endsWith(`/${role}`)) // role group
+      const invitationRole = groupResults.find((p) => p.value.endsWith(`/${role}`)) // per paper role group
+      if (
+        parentHasRole &&
+        invitationRole &&
+        !readersIntersection.find((p) => p.value.endsWith(`/${role}`))
+      ) {
+        readersIntersection.push(invitationRole)
+      }
+    })
 
     if (
       readersIntersection.find((p) => p.value.endsWith('/Reviewers')) &&

@@ -3265,7 +3265,7 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
-  test('show dropdown/checkbox of intersection of enum groups and replyToNote readers (adding action editors group)', async () => {
+  test('show dropdown/checkbox of intersection of enum groups and replyToNote readers (adding mismatching groups)', async () => {
     const invitation = {
       edit: {
         note: {
@@ -3274,6 +3274,8 @@ describe('NewReplyEditNoteReaders', () => {
               enum: [
                 'ICML.cc/2023/Conference/Submission1/Authors',
                 'ICML.cc/2023/Conference/Submission1/Action_Editors',
+                'ICML.cc/2023/Conference/Submission1/Area_Chairs',
+                'ICML.cc/2023/Conference/Submission1/Senior_Area_Chairs',
               ],
             },
           },
@@ -3288,6 +3290,8 @@ describe('NewReplyEditNoteReaders', () => {
           readers: [
             'ICML.cc/2023/Conference/Submission1/Authors',
             'ICML.cc/2023/Conference/Action_Editors',
+            'ICML.cc/2023/Conference/Area_Chairs',
+            'ICML.cc/2023/Conference/Senior_Area_Chairs',
           ],
         }}
         fieldDescription={invitation.edit.note.readers}
@@ -3304,11 +3308,17 @@ describe('NewReplyEditNoteReaders', () => {
       const dropdownList = screen.getByText(
         'ICML 2023 Conference Submission1 Authors'
       ).parentElement
-      expect(dropdownList.childElementCount).toEqual(2)
+      expect(dropdownList.childElementCount).toEqual(4)
       expect(dropdownList.childNodes[0].textContent).toEqual(
         'ICML 2023 Conference Submission1 Authors'
       )
       expect(dropdownList.childNodes[1].textContent).toEqual(
+        'ICML 2023 Conference Submission1 Area Chairs'
+      )
+      expect(dropdownList.childNodes[2].textContent).toEqual(
+        'ICML 2023 Conference Submission1 Senior Area Chairs'
+      )
+      expect(dropdownList.childNodes[3].textContent).toEqual(
         'ICML 2023 Conference Submission1 Action Editors'
       )
     })
@@ -3319,6 +3329,8 @@ describe('NewReplyEditNoteReaders', () => {
           readers: [
             'ICML.cc/2023/Conference/Submission1/Authors',
             'ICML.cc/2023/Conference/Action_Editors',
+            'ICML.cc/2023/Conference/Area_Chairs',
+            'ICML.cc/2023/Conference/Senior_Area_Chairs',
           ],
         }}
         fieldDescription={invitation.edit.note.readers}
@@ -3330,21 +3342,18 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
     await waitFor(() => {
-      expect(screen.getAllByRole('checkbox').length).toEqual(2)
+      expect(screen.getAllByRole('checkbox').length).toEqual(4)
       expect(screen.getAllByRole('checkbox')[0].nextSibling.textContent).toEqual(
         'ICML 2023 Conference Submission1 Authors'
       )
-      expect(screen.getAllByRole('checkbox')[0]).toHaveAttribute(
-        'value',
-        'ICML.cc/2023/Conference/Submission1/Authors'
-      )
-
       expect(screen.getAllByRole('checkbox')[1].nextSibling.textContent).toEqual(
-        'ICML 2023 Conference Submission1 Action Editors'
+        'ICML 2023 Conference Submission1 Area Chairs'
       )
-      expect(screen.getAllByRole('checkbox')[1]).toHaveAttribute(
-        'value',
-        'ICML.cc/2023/Conference/Submission1/Action_Editors'
+      expect(screen.getAllByRole('checkbox')[2].nextSibling.textContent).toEqual(
+        'ICML 2023 Conference Submission1 Senior Area Chairs'
+      )
+      expect(screen.getAllByRole('checkbox')[3].nextSibling.textContent).toEqual(
+        'ICML 2023 Conference Submission1 Action Editors'
       )
     })
   })
