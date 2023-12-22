@@ -68,15 +68,13 @@ export const NewNoteReaders = ({
         : fieldDescription.param.items
       const optionsP = enumItemsConfigOptions.map((p) =>
         p.prefix
-          ? api
-              .get('/groups', { prefix: p.prefix }, { accessToken })
-              .then((result) =>
-                result.groups.map((q) => ({
-                  value: q.id,
-                  description: prettyId(q.id, false),
-                  optional: p.optional,
-                }))
-              )
+          ? api.get('/groups', { prefix: p.prefix }, { accessToken }).then((result) =>
+              result.groups.map((q) => ({
+                value: q.id,
+                description: prettyId(q.id, false),
+                optional: p.optional,
+              }))
+            )
           : Promise.resolve([
               {
                 ...p,
@@ -247,6 +245,18 @@ export const NewReplyEditNoteReaders = ({
       return groupResult ?? []
     })
 
+    const parentHasActionEditor = parentReaders.find((p) => p.endsWith('/Action_Editors'))
+    const invitationActionEditor = groupResults.find((p) =>
+      p.value.endsWith('/Action_Editors')
+    )
+    if (
+      parentHasActionEditor &&
+      invitationActionEditor &&
+      !readersIntersection.find((p) => p.value.endsWith('/Action_Editors'))
+    ) {
+      readersIntersection.push(invitationActionEditor)
+    }
+
     if (
       readersIntersection.find((p) => p.value.endsWith('/Reviewers')) &&
       !readersIntersection.find(
@@ -305,15 +315,13 @@ export const NewReplyEditNoteReaders = ({
         : fieldDescription.param.items
       const optionsP = enumItemsConfigOptions.map((p) =>
         p.prefix
-          ? api
-              .get('/groups', { prefix: p.prefix }, { accessToken })
-              .then((result) =>
-                result.groups.map((q) => ({
-                  value: q.id,
-                  description: prettyId(q.id, false),
-                  optional: p.optional,
-                }))
-              )
+          ? api.get('/groups', { prefix: p.prefix }, { accessToken }).then((result) =>
+              result.groups.map((q) => ({
+                value: q.id,
+                description: prettyId(q.id, false),
+                optional: p.optional,
+              }))
+            )
           : Promise.resolve([
               {
                 ...p,
