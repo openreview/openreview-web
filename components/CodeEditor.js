@@ -18,6 +18,7 @@ const CodeEditor = ({
   onChange = undefined,
   isJson = false,
   isPython = false,
+  isText = false,
   scrollIntoView = false,
   readOnly = false,
   defaultToMinHeight = false,
@@ -30,10 +31,12 @@ const CodeEditor = ({
     json: [new LanguageSupport(jsonLanguage), linter(jsonParseLinter())],
     python: [new LanguageSupport(pythonLanguage), linter(() => [])],
     javascript: [new LanguageSupport(javascriptLanguage), linter(esLint(new Linter()))],
+    text: [],
   }
 
   const getDefaultLanguage = () => {
     if (isJson) return 'json'
+    if (isText) return 'text'
     if (code?.startsWith('def process') || isPython) return 'python'
     return 'javascript'
   }
@@ -47,6 +50,7 @@ const CodeEditor = ({
 
   useEffect(() => {
     if (!extensions) return
+
     if (!editorRef.current) {
       editorRef.current = new EditorView({
         doc: code,
@@ -67,14 +71,23 @@ const CodeEditor = ({
       ...languageSupports[language],
       ...(wrap ? [EditorView.lineWrapping] : []),
       ...(readOnly ? [EditorView.editable.of(false)] : []),
-      ...(onChange && typeof onChange === 'function'
-        ? [
-            EditorView.updateListener.of((view) => {
-              const value = view.state.doc.toString()
-              onChange(value)
-            }),
-          ]
-        : []),
+      EditorView.updateListener.of((view) => {
+        const value = view.state.doc.toString()
+
+        // Detect if the user starts typing a process function, and if so change language  to python
+        if (language !== 'json' && language !== 'text') {
+          if (value.startsWith('def process') && language !== 'python') {
+            setLanguage('python')
+          }
+          if (!value.startsWith('def process') && language !== 'javascript') {
+            setLanguage('javascript')
+          }
+        }
+
+        if (typeof onChange === 'function') {
+          onChange(value)
+        }
+      }),
       EditorView.theme({
         '&': {
           minHeight,
@@ -87,17 +100,6 @@ const CodeEditor = ({
       }),
     ])
   }, [language])
-
-  useEffect(() => {
-    const firstLine = editorRef.current?.viewState?.state?.doc?.lineAt(0)?.text
-    if (language === 'json') return
-    if (firstLine?.startsWith('def process') && language !== 'python') {
-      setLanguage('python')
-    }
-    if (!firstLine?.startsWith('def process') && language !== 'javascript') {
-      setLanguage('javascript')
-    }
-  })
 
   return <div className="code-editor" ref={containerRef} />
 }
