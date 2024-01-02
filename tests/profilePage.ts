@@ -158,7 +158,7 @@ test('add and delete year of birth', async (t) => {
     .typeText(yearOfBirthInput, '0000')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .contains('yearOfBirth must be >= 1923')
+    .contains(`yearOfBirth must be >= ${new Date().getFullYear() - 100}`)
     // add valid year of birth
     .typeText(yearOfBirthInput, '2000')
     .click(saveProfileButton)
