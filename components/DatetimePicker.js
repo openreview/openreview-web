@@ -21,7 +21,7 @@ const DatetimePicker = ({
   },
 }) => {
   const [value, setValue] = useState(
-    dayjs(existingValue).isValid() ? dayjs(existingValue) : ''
+    existingValue && dayjs(existingValue).isValid() ? dayjs(existingValue) : ''
   )
 
   const handleOkClick = (e) => {
