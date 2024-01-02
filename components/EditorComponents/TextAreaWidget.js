@@ -6,7 +6,7 @@ import useUser from '../../hooks/useUser'
 import { getAutoStorageKey } from '../../lib/utils'
 
 import styles from '../../styles/components/TextareaWidget.module.scss'
-import { convertToStringArray } from '../../lib/webfield-utils'
+import { convertToString } from '../../lib/webfield-utils'
 
 const CharCounter = ({ minLength = 0, maxLength = 0, contentLength }) => {
   const charsRemaining = maxLength - contentLength
@@ -71,7 +71,7 @@ const TextAreaWidget = () => {
   const { user } = useUser()
   const fieldName = Object.keys(field)[0]
   const enableMarkdown = field[fieldName].value?.param?.markdown
-  const defaultValue = convertToStringArray(field[fieldName].value?.param?.default, false)
+  const defaultValue = convertToString(field[fieldName].value?.param?.default)
 
   const [showCharCounter, setShowCharCounter] = useState(false)
   const shouldSaveDraft = true
@@ -128,7 +128,7 @@ const TextAreaWidget = () => {
         ) : (
           <textarea
             className={`form-control ${styles.textarea}`}
-            value={convertToStringArray(value, false) ?? ''}
+            value={convertToString(value) ?? ''}
             onChange={(e) => {
               const updatedValue = e.target.value?.trim() === '' ? undefined : e.target.value
               onTextUpdated(updatedValue)
@@ -142,10 +142,10 @@ const TextAreaWidget = () => {
           <CharCounter
             minLength={field[fieldName]?.value?.param?.minLength}
             maxLength={field[fieldName]?.value?.param?.maxLength}
-            contentLength={convertToStringArray(value, false)?.trim()?.length ?? 0}
+            contentLength={convertToString(value)?.trim()?.length ?? 0}
           />
         )}
-        {enableMarkdown && <MathJaxWarning content={convertToStringArray(value, false)} />}
+        {enableMarkdown && <MathJaxWarning content={convertToString(value)} />}
       </div>
     </>
   )

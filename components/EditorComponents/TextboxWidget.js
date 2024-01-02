@@ -3,7 +3,8 @@ import isNil from 'lodash/isNil'
 import EditorComponentContext from '../EditorComponentContext'
 import useUser from '../../hooks/useUser'
 import {
-  convertToStringArray,
+  convertToArray,
+  convertToString,
   convertToType,
   getFieldConstValue,
 } from '../../lib/webfield-utils'
@@ -27,7 +28,7 @@ const TextboxWidget = () => {
 
   let initialValue = isNil(value) ? value : value.toString()
   if (isArrayType) {
-    initialValue = convertToStringArray(value, true)?.join(',')
+    initialValue = convertToArray(value)?.join(',')
   }
   const [displayValue, setDisplayValue] = useState(initialValue)
 
@@ -73,8 +74,8 @@ const TextboxWidget = () => {
     let defaultStr
     if (!note) {
       defaultStr = isArrayType
-        ? convertToStringArray(defaultValue, true)?.join(',')
-        : convertToStringArray(defaultValue, false)
+        ? convertToArray(defaultValue)?.join(',')
+        : convertToString(defaultValue, false)
     }
 
     if (savedText || defaultStr) {

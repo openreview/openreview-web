@@ -1,9 +1,9 @@
-import { convertToStringArray } from '../../lib/webfield-utils'
+import { convertToArray } from '../../lib/webfield-utils'
 import styles from '../../styles/components/TagsWidget.module.scss'
 import Tag from './Tag'
 
 const TagsWidget = ({ values }) => {
-  const valuesArray = convertToStringArray(values, true)
+  const valuesArray = convertToArray(values)
   if (!valuesArray) return null
 
   return (
