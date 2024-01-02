@@ -156,6 +156,60 @@ describe('TextboxWidget', () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
+  test('perform type conversion when type of default value is wrong (string to array)', () => {
+    const onChange = jest.fn()
+    const defaultValueWithWrongType = 'keyword one, keyword two, keyword three'
+    const defaultValueWithCorrectType = ['keyword one', 'keyword two', 'keyword three']
+    const providerProps = {
+      value: {
+        field: {
+          keywords: {
+            value: {
+              param: {
+                type: 'string[]',
+                default: defaultValueWithWrongType,
+              },
+            },
+          },
+        },
+        value: undefined,
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: defaultValueWithCorrectType })
+    )
+  })
+
+  test('perform type conversion when type of default value is wrong (array to string)', () => {
+    const onChange = jest.fn()
+    const defaultValueWithWrongType = ['keyword one', 'keyword two', 'keyword three']
+    const defaultValueWithCorrectType = 'keyword one,keyword two,keyword three'
+    const providerProps = {
+      value: {
+        field: {
+          keywords: {
+            value: {
+              param: {
+                type: 'string',
+                default: defaultValueWithWrongType,
+              },
+            },
+          },
+        },
+        value: undefined,
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: defaultValueWithCorrectType })
+    )
+  })
+
   test("don't show default value or invoke onChange editing existing note", () => {
     const onChange = jest.fn()
     const defaultValue = 'default paper title'
@@ -225,6 +279,56 @@ describe('TextboxWidget', () => {
       expect.objectContaining({ value: [2023, 2024, 2025] })
     )
     expect(screen.getByDisplayValue('2023,2024,2025')).toBeInTheDocument()
+  })
+
+  test('perform type conversion when type of existing value is wrong (string to array)', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          keywords: {
+            value: {
+              param: { type: 'string[]' },
+            },
+          },
+        },
+        value: 'keyword one, keyword two, keyword three',
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: ['keyword one', 'keyword two', 'keyword three'] })
+    )
+    expect(
+      screen.getByDisplayValue('keyword one, keyword two, keyword three')
+    ).toBeInTheDocument()
+  })
+
+  test('perform type conversion when type of existing value is wrong (array to string)', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          keywords: {
+            value: {
+              param: { type: 'string' },
+            },
+          },
+        },
+        value: ['keyword one', 'keyword two', 'keyword three'],
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<TextboxWidget />, providerProps)
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: 'keyword one,keyword two,keyword three' })
+    )
+    expect(
+      screen.getByDisplayValue('keyword one,keyword two,keyword three')
+    ).toBeInTheDocument()
   })
 
   test("don't show default value or invoke onChange editing existing note (array field)", () => {
