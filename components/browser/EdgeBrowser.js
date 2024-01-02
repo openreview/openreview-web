@@ -154,7 +154,9 @@ export default class EdgeBrowser extends React.Component {
           groupBy: headOrTail,
           select: 'count',
           ...this.traverseInvitation.query,
-          ...(this.traverseInvitation.domain ? { domain: this.traverseInvitation.domain } : {}),
+          ...(this.traverseInvitation.domain
+            ? { domain: this.traverseInvitation.domain }
+            : {}),
         },
         { accessToken: this.accessToken, version: this.version, resultsKey: 'groupedEdges' }
       )
@@ -351,7 +353,7 @@ export default class EdgeBrowser extends React.Component {
           try {
             const defaultLookupResult = await api.get(
               '/groups',
-              { regex: editInvitation.signatures.default, signatory: this.userId },
+              { id: editInvitation.signatures.default, signatory: this.userId },
               { accessToken: this.accessToken, version: this.version }
             )
             if (defaultLookupResult.groups.length === 1) {
