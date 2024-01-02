@@ -285,7 +285,7 @@ module.exports = (function () {
       replyto: true,
       type: 'notes',
       details: 'replytoNote,repliedNotes',
-      domain: venueId
+      domain: venueId,
     })
 
     var edgeInvitationsP = getAll('/invitations', {
@@ -294,7 +294,7 @@ module.exports = (function () {
       duedate: true,
       type: 'edges',
       details: 'repliedEdges',
-      domain: venueId
+      domain: venueId,
     })
 
     var tagInvitationsP = getAll('/invitations', {
@@ -303,7 +303,7 @@ module.exports = (function () {
       duedate: true,
       type: 'tags',
       details: 'repliedTags',
-      domain: venueId
+      domain: venueId,
     })
 
     var filterInviteeAndNumbers = function (inv) {
@@ -1258,7 +1258,7 @@ module.exports = (function () {
       prefix: venueId + '/' + numberToken + '.*',
       select: 'id,members',
       stream: true,
-      domain: venueId
+      domain: venueId,
     }
     if (options && options.assigned) {
       query.member = window.user.id
@@ -1271,10 +1271,18 @@ module.exports = (function () {
       groups.forEach(function (group) {
         if (group.id.endsWith('/' + roleName)) {
           paperGroups.push(group)
-          memberIds = memberIds.concat(group.members.filter(function (member) {  return member.indexOf('~') === 0 || member.indexOf('@') > -1 }))
+          memberIds = memberIds.concat(
+            group.members.filter(function (member) {
+              return member.indexOf('~') === 0 || member.indexOf('@') > -1
+            })
+          )
         } else if (_.includes(group.id, '/' + anonRoleName)) {
           anonPaperGroups.push(group)
-          memberIds = memberIds.concat(group.members.filter(function (member) {  return member.indexOf('~') === 0 || member.indexOf('@') > -1 }))
+          memberIds = memberIds.concat(
+            group.members.filter(function (member) {
+              return member.indexOf('~') === 0 || member.indexOf('@') > -1
+            })
+          )
         }
       })
 
@@ -1300,7 +1308,10 @@ module.exports = (function () {
             var profile = profilesById[deanonymizedMember]
             var profileInfo = {
               id: deanonymizedMember,
-              name: deanonymizedMember.indexOf('~') === 0 ? view.prettyId(deanonymizedMember) : deanonymizedMember,
+              name:
+                deanonymizedMember.indexOf('~') === 0
+                  ? view.prettyId(deanonymizedMember)
+                  : deanonymizedMember,
               email: deanonymizedMember,
               allEmails: [deanonymizedMember],
               allNames: [deanonymizedMember],
