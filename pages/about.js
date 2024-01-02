@@ -68,17 +68,8 @@ const About = () => (
             messages, automate workflow actions.
           </li>
           <li className="mb-2">
-            <strong>Open Source:</strong> We are committed to open source. The OpenReview web
-            interface is open source and licensed under the{' '}
-            <a
-              href="https://github.com/openreview/openreview-web/blob/master/LICENSE.md"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              AGPL v3
-            </a>
-            . Many other parts of the OpenReview platform are also open source, and available
-            in the{' '}
+            <strong>Open Source:</strong> We are committed to open source. Many other parts of
+            the OpenReview platform are open source, and available in the{' '}
             <a href="https://github.com/openreview" target="_blank" rel="noopener noreferrer">
               OpenReview organization on GitHub.
             </a>{' '}

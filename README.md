@@ -127,6 +127,6 @@ npm run start
 
 ## License
 
-Openreview-web is open source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. The full license [can be found here](https://github.com/openreview/openreview-web/blob/master/LICENSE.md).
+Openreview-web is open source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. The full license [can be found here](https://github.com/openreview/openreview-web/blob/master/LICENSE.md). The code is provided "as is" without warranty of any kind.
 
 Copyright © 2019-2024 OpenReview
