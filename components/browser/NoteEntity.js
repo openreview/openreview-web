@@ -17,6 +17,7 @@ import UserContext from '../UserContext'
 import {
   getInterpolatedValues,
   getSignatures,
+  isInvitationForExternalInvite,
   isInvitationForInvite,
 } from '../../lib/edge-utils'
 
@@ -182,6 +183,10 @@ export default function NoteEntity(props) {
     const parentColumnType = props.columnType === 'head' ? 'tail' : 'head'
     const isAssigned = metadata.isAssigned || metadata.isUserAssigned
     const isInviteInvitation = isInvitationForInvite(editInvitation, parentColumnType)
+    const isExternalInviteInvitation = isInvitationForExternalInvite(
+      editInvitation,
+      parentColumnType
+    )
     const isReviewerAssignmentStage = editInvitations.some((p) =>
       p.id.includes('Proposed_Assignment')
     )
@@ -198,6 +203,8 @@ export default function NoteEntity(props) {
     const isNotWritable = editEdge?.writable === false
     let shouldDisableControl = false
     let disableControlReason = null
+
+    if (isExternalInviteInvitation && !isInviteInvitation) return null
 
     // invited profile show only invite edge and proposed assignment edge
     if (isParentInvited && !(isInviteInvitation || isProposedAssignmentInvitation)) return null

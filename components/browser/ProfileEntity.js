@@ -9,6 +9,7 @@ import api from '../../lib/api-client'
 import {
   getInterpolatedValues,
   getSignatures,
+  isInvitationForExternalInvite,
   isInvitationForInvite,
 } from '../../lib/edge-utils'
 import UserContext from '../UserContext'
@@ -220,6 +221,10 @@ export default function ProfileEntity(props) {
   const renderEditEdgeWidget = ({ edge, invitation, isTraverseEdge = false }) => {
     const isAssigned = metadata.isAssigned || metadata.isUserAssigned
     const isInviteInvitation = isInvitationForInvite(invitation, props.columnType)
+    const isExternalInviteInvitation = isInvitationForExternalInvite(
+      invitation,
+      props.columnType
+    )
     const isProposedAssignmentInvitation = invitation.id.includes('Proposed_Assignment')
     const isAssignmentInvitation = invitation.id.includes('/Assignment')
     const isCustomLoadInvitation = invitation.id.includes('Custom_Max_Papers')
@@ -254,6 +259,8 @@ export default function ProfileEntity(props) {
     ) {
       disableControlReason = 'The reviewer has already been invited'
     }
+
+    if (isExternalInviteInvitation && !isInviteInvitation) return null
 
     // reviewer assignmet stage (1st stage) don't show invite assignment except for invited (has editEdge)
     if (isReviewerAssignmentStage && isInviteInvitation && !edge) return null
@@ -380,7 +387,10 @@ export default function ProfileEntity(props) {
         (p) =>
           p.label === 'Accepted' &&
           editInvitations.find(
-            (q) => q.id === p.invitation && isInvitationForInvite(q, props.columnType)
+            (q) =>
+              q.id === p.invitation &&
+              (isInvitationForInvite(q, props.columnType) ||
+                isInvitationForExternalInvite(q, props.columnType))
           )
       )
     ) {
