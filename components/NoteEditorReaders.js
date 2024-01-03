@@ -245,10 +245,26 @@ export const NewReplyEditNoteReaders = ({
       return groupResult ?? []
     })
 
-    const mismatchingRoles = ['Area_Chairs', 'Senior_Area_Chairs', 'Action_Editors']
+    const mismatchingRoles = [
+      'Area_Chairs',
+      'Senior_Area_Chairs',
+      'Action_Editors',
+      'Reviewers',
+    ]
+
     mismatchingRoles.forEach((role) => {
-      const parentHasRole = parentReaders.find((p) => p.endsWith(`/${role}`)) // role group
-      const invitationRole = groupResults.find((p) => p.value.endsWith(`/${role}`)) // per paper role group
+      const parentHasRole = parentReaders.find((p) => {
+        if (!p.endsWith(`/${role}`)) return false
+        const tokens = p.split('/')
+        const tokenBeforeRole = tokens[tokens.length - 2]
+        return !/[a-zA-Z]+\d+/.test(tokenBeforeRole)
+      }) // role group
+      const invitationRole = groupResults.find((p) => {
+        if (!p.value.endsWith(`/${role}`)) return false
+        const tokens = p.value.split('/')
+        const tokenBeforeRole = tokens[tokens.length - 2]
+        return /[a-zA-Z]+\d+/.test(tokenBeforeRole)
+      }) // per paper role group
       if (
         parentHasRole &&
         invitationRole &&
