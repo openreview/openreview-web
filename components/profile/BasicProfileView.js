@@ -1,4 +1,3 @@
-/* globals $: false */
 import random from 'lodash/random'
 import Link from 'next/link'
 import Icon from '../Icon'
@@ -96,14 +95,7 @@ const ProfileRelation = ({ relation }) => (
     </div>
     <div>
       {relation.username ? (
-        <Link
-          href={`/profile?id=${relation.username}`}
-          onClick={() => {
-            $('#profile-preview').modal('hide')
-          }}
-        >
-          {relation.name}
-        </Link>
+        <Link href={`/profile?id=${relation.username}`}>{relation.name}</Link>
       ) : (
         <span>{relation.name}</span>
       )}
