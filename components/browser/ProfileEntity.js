@@ -260,7 +260,7 @@ export default function ProfileEntity(props) {
       disableControlReason = 'The reviewer has already been invited'
     }
 
-    if (isExternalInviteInvitation && !isInviteInvitation) return null
+    if (isExternalInviteInvitation && !isInviteInvitation && !edge) return null
 
     // reviewer assignmet stage (1st stage) don't show invite assignment except for invited (has editEdge)
     if (isReviewerAssignmentStage && isInviteInvitation && !edge) return null

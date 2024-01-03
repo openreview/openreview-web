@@ -204,7 +204,7 @@ export default function NoteEntity(props) {
     let shouldDisableControl = false
     let disableControlReason = null
 
-    if (isExternalInviteInvitation && !isInviteInvitation) return null
+    if (isExternalInviteInvitation && !isInviteInvitation && !editEdge) return null
 
     // invited profile show only invite edge and proposed assignment edge
     if (isParentInvited && !(isInviteInvitation || isProposedAssignmentInvitation)) return null

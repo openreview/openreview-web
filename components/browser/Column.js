@@ -9,7 +9,12 @@ import EdgeBrowserContext from './EdgeBrowserContext'
 import EntityList from './EntityList'
 import { prettyId, prettyInvitationId, pluralizeString } from '../../lib/utils'
 import EditEdgeInviteEmail from './EditEdgeInviteEmail'
-import { getInvitationPrefix, transformName } from '../../lib/edge-utils'
+import {
+  getInvitationPrefix,
+  isInvitationForExternalInvite,
+  isInvitationForInvite,
+  transformName,
+} from '../../lib/edge-utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
@@ -330,7 +335,7 @@ export default function Column(props) {
 
         if (fieldName === 'editEdges' && entityType === 'profile') {
           const editInvitation = editInvitations.filter((p) => p.id === edge.invitation)?.[0]
-          if (editInvitation[type]?.query?.['value-regex']) {
+          if (isInvitationForExternalInvite(editInvitation, type)) {
             itemToAdd = {
               id: headOrTailId,
               content: {
@@ -788,7 +793,7 @@ export default function Column(props) {
         if (!itemToAdd) {
           if (entityType === 'profile') {
             const hasInviteInvitation = editInvitations.some(
-              (p) => p[type]?.query?.['value-regex']
+              (p) => isInvitationForExternalInvite(p, type) || isInvitationForInvite(p, type)
             )
             const hasProposedAssignmentInvitation = editInvitations.some((p) =>
               p.id.includes('Proposed_Assignment')
