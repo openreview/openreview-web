@@ -68,8 +68,31 @@ const About = () => (
             messages, automate workflow actions.
           </li>
           <li className="mb-2">
-            <strong>Open Source:</strong> We are committed to open source. Many other parts of
-            the OpenReview platform are open source, and available in the{' '}
+            <strong>Open Source:</strong> We are committed to open source. The OpenReview web
+            interface is free software: you can redistribute it and/or modify it under the
+            terms under the terms of the{' '}
+            <a
+              href="https://github.com/openreview/openreview-web/blob/master/LICENSE.md"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GNU Affero General Public License v3
+            </a>
+            . This software is distributed in the hope that it will be useful, but without any
+            warranty; without even the implied warranty of merchantability or fitness for a
+            particular purpose. The source code is available on{' '}
+            <a
+              href="https://github.com/openreview/openreview-web"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub
+            </a>
+            .
+          </li>
+          <li>
+            Many other parts of the OpenReview platform are also open source, and are available in
+            the{' '}
             <a href="https://github.com/openreview" target="_blank" rel="noopener noreferrer">
               OpenReview organization on GitHub.
             </a>{' '}
@@ -78,9 +101,9 @@ const About = () => (
         </ul>
 
         <p>
-          OpenReview.net is created by Andrew McCallum’s Information Extraction and Synthesis
-          Laboratory in the College of Information and Computer Sciences at University of
-          Massachusetts Amherst
+          OpenReview.net is created by Andrew McCallum&apos;s Information Extraction and
+          Synthesis Laboratory in the College of Information and Computer Sciences at
+          University of Massachusetts Amherst
         </p>
 
         <p>
