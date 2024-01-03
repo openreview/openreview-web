@@ -33,6 +33,10 @@ fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(as
 test('create new profile', async (t) => {
   await t
     .typeText(fullNameInputSelector, 'Melisa Bok')
+    .expect(emailAddressInputSelector.exists).notOk()
+    .expect(Selector('label').withText("I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.").exists).ok()
+    .wait(500)
+    .click(Selector('label.name-confirmation'))
     .typeText(emailAddressInputSelector, 'melisa@test.com')
     .expect(signupButtonSelector.hasAttribute('disabled'))
     .notOk('not enabled yet', { timeout: 5000 })
@@ -41,6 +45,20 @@ test('create new profile', async (t) => {
     .ok()
     .expect(confirmPasswordInputSelector.exists)
     .ok()
+    .expect(Selector('span').withText(`test.com does not appear in our list of publishing institutions.`).exists).ok()
+    // type another non institution email
+    .selectText(emailAddressInputSelector).pressKey('delete')
+    .typeText(emailAddressInputSelector, 'non@institution.email')
+    .click(signupButtonSelector)
+    .expect(Selector('span').withText(`institution.email does not appear in our list of publishing institutions.`,).exists).ok()
+    // correct email to be institution email
+    .selectText(emailAddressInputSelector).pressKey('delete')
+    .typeText(emailAddressInputSelector, 'validemail@umass.edu')
+    .click(signupButtonSelector)
+    .expect(Selector('div.activation-message-row').exists).notOk() // no warning
+    .selectText(emailAddressInputSelector).pressKey('delete')
+    .typeText(emailAddressInputSelector, 'melisa@test.com')
+    .click(signupButtonSelector)
     .typeText(newPasswordInputSelector, strongPassword)
     .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
@@ -49,6 +67,7 @@ test('create new profile', async (t) => {
     .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
     .ok()
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
+    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled')).notOk({ timeout: 5000 })
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
@@ -77,6 +96,8 @@ test('enter valid name invalid email and change to valid email and register', as
   const email = 'testemailaac@test.com' // must be new each test run
   await t
     .typeText(fullNameInputSelector, fullName) // must be new each test run
+    .wait(500)
+    .click(Selector('label.name-confirmation'))
     .typeText(emailAddressInputSelector, `${email}@test.com`)
     .click(signupButtonSelector)
     .expect(newPasswordInputSelector.exists)
@@ -92,6 +113,7 @@ test('enter valid name invalid email and change to valid email and register', as
     .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
+    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled')).notOk({ timeout: 5000 })
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
@@ -145,6 +167,8 @@ fixture`Send Activation Link from signup page`
 test('Send Activation Link', async (t) => {
   await t
     .typeText(fullNameInputSelector, inactiveUser.fullname.toLowerCase())
+    .wait(500)
+    .click(Selector('label.name-confirmation'))
   const existingTildeId = await Selector('.new-username.hint').nth(0).innerText
   const newTildeId = await Selector('.new-username.hint').nth(1).innerText
   await t
@@ -173,6 +197,8 @@ test('enter invalid name', async (t) => {
   // user has no email no password and not active
   await t
     .typeText(fullNameInputSelector, inActiveUserNoPasswordNoEmail.fullname)
+    .wait(500)
+    .click(Selector('label.name-confirmation'))
     .expect(Selector('.submissions-list').find('.note').count)
     .lte(3) // at most 3 recent publications
     .expect(claimProfileButtonSelector.exists)
@@ -192,6 +218,8 @@ test('email address should be masked', async (t) => {
   // user has email but no password not active
   await t
     .typeText(fullNameInputSelector, inActiveUserNoPassword.fullname)
+    .wait(500)
+    .click(Selector('label.name-confirmation'))
     .expect(Selector('input').withAttribute('type', 'email').nth(0).value)
     .contains('****') // email should be masked
 })
@@ -202,6 +230,7 @@ fixture`Activate`
 
 test('update profile', async (t) => {
   await t
+    .expect(Selector('p').withText('Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.').exists).ok()
     .typeText(Selector('#homepage_url'), 'http://homepage.do', { paste: true })
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .pressKey('M S space s t u d e n t tab')

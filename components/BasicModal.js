@@ -22,9 +22,9 @@ export default function BasicModal({
         onClose()
       }
     })
-    $(modalRef.current).on('show.bs.modal', () => {
+    $(modalRef.current).on('show.bs.modal', (e) => {
       if (typeof onOpen === 'function') {
-        onOpen()
+        onOpen(e.relatedTarget)
       }
     })
 

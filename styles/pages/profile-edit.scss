@@ -32,6 +32,9 @@ main.profile-edit {
     color: constants.$subtleGray;
     max-width: 800px;
     margin-bottom: 0.5rem;
+    :first-child {
+      margin-bottom: 0.5rem;
+    }
   }
 
   .glyphicon-minus-sign,
@@ -266,6 +269,16 @@ main.profile-edit {
     }
     .btn {
       padding-right: 0.5rem;
+    }
+  }
+
+  .activation-message {
+    display: flex;
+    color: constants.$orRed;
+    .glyphicon {
+      color: constants.$orRed;
+      margin-right: 0.5rem;
+      font-size: 1rem;
     }
   }
 

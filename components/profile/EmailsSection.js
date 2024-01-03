@@ -14,10 +14,13 @@ const EmailsButton = ({
   handleRemove,
   handleConfirm,
   handleMakePreferred,
+  isNewProfile,
 }) => {
   const { confirmed, preferred, email, isValid } = emailObj
 
   if (type === 'confirmed') {
+    if (isNewProfile) return null
+
     if (confirmed) {
       return <div className="emails__confirmed-text hint">(Confirmed)</div>
     }
@@ -54,7 +57,13 @@ const EmailsButton = ({
   return null
 }
 
-const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
+const EmailsSection = ({
+  profileEmails,
+  profileId,
+  updateEmails,
+  institutionDomains,
+  isNewProfile,
+}) => {
   const emailsReducer = (state, action) => {
     if (action.addNewEmail) return [...state, action.data]
     if (action.updateEmail) {
@@ -83,6 +92,9 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
   )
   const { accessToken } = useUser()
   const [alreadyConfirmedError, setAlreadyConfirmedError] = useState(null)
+  const hasInstitutionEmail = emails.some(
+    (p) => p.confirmed && institutionDomains?.some((q) => p.email.endsWith(q))
+  )
 
   const handleAddEmail = () => {
     setEmails({ addNewEmail: true, data: { email: '', key: nanoid(), isValid: true } })
@@ -141,6 +153,15 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
 
   return (
     <div>
+      {isNewProfile && !hasInstitutionEmail && (
+        <div className="activation-message">
+          <Icon name="warning-sign" />
+          <p>
+            Your profile does not contain any institution email and it can take up to 2 weeks
+            for your profile to be activated.
+          </p>
+        </div>
+      )}
       <div className="container emails">
         {emails.map((emailObj) => (
           <div className="row d-flex" key={emailObj.key}>
@@ -162,6 +183,7 @@ const EmailsSection = ({ profileEmails, profileId, updateEmails }) => {
                 type="confirmed"
                 emailObj={emailObj}
                 handleConfirm={() => handleConfirmEmail(emailObj.key)}
+                isNewProfile={isNewProfile}
               />
             </div>
             <div className="col-md-1 emails__value">
