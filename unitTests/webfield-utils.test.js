@@ -2,6 +2,8 @@ import {
   getErrorFieldName,
   filterCollections,
   isNonDeletableError,
+  convertToString,
+  convertToArray,
 } from '../lib/webfield-utils'
 
 const filterOperators = ['!=', '>=', '<=', '>', '<', '==', '=']
@@ -520,5 +522,54 @@ describe('filterCollections', () => {
       uniqueIdentifier
     )
     expect(result.filteredRows.map((p) => p.id)).toEqual([1, 3])
+  })
+})
+
+describe('convertToString', () => {
+  test('return string when value to cast is string', () => {
+    const valueToCast = 'some string'
+    expect(convertToString(valueToCast)).toBe(valueToCast)
+  })
+  test('return string when value to cast is array', () => {
+    const valueToCast = ['value one', 'value two', 'value three']
+    const expectedValue = 'value one,value two,value three'
+    expect(convertToString(valueToCast)).toBe(expectedValue)
+  })
+  test('return undefined when value to cast is object', () => {
+    const valueToCast = { value: 'some value' }
+    const expectedValue = undefined
+    expect(convertToString(valueToCast)).toBe(expectedValue)
+  })
+  test('return undefined when value to cast is null', () => {
+    const valueToCast = null
+    const expectedValue = undefined
+    expect(convertToString(valueToCast)).toBe(expectedValue)
+  })
+})
+
+describe('convertToArray', () => {
+  test('return array when value to cast is array', () => {
+    const valueToCast = ['value one', 'value two', 'value three']
+    expect(convertToArray(valueToCast)).toEqual(valueToCast)
+  })
+  test('return array when value to cast is string with no comma', () => {
+    const valueToCast = 'some string'
+    const expectedValue = ['some string']
+    expect(convertToArray(valueToCast)).toEqual(expectedValue)
+  })
+  test('return array when value to cast is string with comma', () => {
+    const valueToCast = 'value one,value two,value three'
+    const expectedValue = ['value one', 'value two', 'value three']
+    expect(convertToArray(valueToCast)).toEqual(expectedValue)
+  })
+  test('return undefined when value to cast is non-array object', () => {
+    const valueToCast = { value: 'some string' }
+    const expectedValue = undefined
+    expect(convertToArray(valueToCast)).toBe(expectedValue)
+  })
+  test('return undefined when value to cast is undefined', () => {
+    const valueToCast = undefined
+    const expectedValue = undefined
+    expect(convertToArray(valueToCast)).toBe(expectedValue)
   })
 })
