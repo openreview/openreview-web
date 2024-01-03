@@ -29,6 +29,9 @@ main.sign-up {
         margin-bottom: 0;
       }
     }
+    .name-confirmation {
+      color: #333;
+    }
     label {
       color: constants.$orRed;
     }
@@ -37,7 +40,7 @@ main.sign-up {
       margin-bottom: 0;
     }
     .form-inline {
-      margin-top: 0.75rem;
+      margin-top: 0.5rem;
       overflow: hidden;
 
       input {
@@ -67,6 +70,17 @@ main.sign-up {
         padding-top: 0.5rem;
         white-space: nowrap;
       }
+
+      .activation-message-row {
+        margin-top: 0.25rem;
+        font-size: 0.75rem;
+        color: constants.$orRed;
+
+        .email-tooltip {
+          margin-right: 0.25rem;
+        }
+      }
+
       .submissions-list {
         margin-top: -0.5rem;
       }
@@ -83,6 +97,19 @@ main.sign-up {
           margin-right: 0;
         }
       }
+    }
+    .existing-profiles-title {
+      margin-top: 2rem;
+      margin-bottom: -1.5rem;
+      color: constants.$orRed;
+      font-size: 0.875rem;
+      font-weight: 700;
+    }
+
+    .new-profile-title {
+      color: constants.$orRed;
+      font-size: 0.875rem;
+      font-weight: 700;
     }
 
     #profile-merge-modal {
@@ -113,7 +140,7 @@ main.sign-up {
   }
 
   .merge-message {
-    margin-top: 2rem;
+    margin-top: 1rem;
   }
 
   #confirm-name-modal {

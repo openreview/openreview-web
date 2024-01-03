@@ -99,6 +99,7 @@ test('user open own profile', async (t) => {
     )
     .click(Selector('button.remove_button').filterVisible())
     // add a email
+    .expect(Selector('p').withText('Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.').exists).notOk() // not activation
     .click(emailSectionPlusIconSelector)
     .typeText(editEmailInputSelector, 'a@aa.')
     .expect(emailConfirmButtons.exists)

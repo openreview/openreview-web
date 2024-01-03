@@ -26,6 +26,7 @@ export default function ProfileEditor({
   hideDblpButton,
   hidePublicationEditor,
   loading,
+  isNewProfile,
 }) {
   const profileReducer = (state, action) => ({
     ...state,
@@ -39,7 +40,7 @@ export default function ProfileEditor({
   const prefixedRelations = dropdownOptions?.prefixedRelations
   const relationReaders = dropdownOptions?.relationReaders
   const positions = dropdownOptions?.prefixedPositions
-  const institutions = dropdownOptions?.institutions
+  const institutionDomains = dropdownOptions?.institutionDomains
   const countries = dropdownOptions?.countries
 
   const promptInvalidValue = (type, invalidKey, message) => {
@@ -324,8 +325,20 @@ export default function ProfileEditor({
   useEffect(() => {
     const loadOptions = async () => {
       try {
-        const result = await api.get('/profiles/options')
-        setDropdownOptions(result)
+        const result = await Promise.all([
+          api.get('/settings/prefixedRelations'),
+          api.get('/settings/relationReaders'),
+          api.get('/settings/prefixedPositions'),
+          api.get('/settings/institutionDomains'),
+          api.get('/settings/countries'),
+        ])
+        setDropdownOptions({
+          prefixedRelations: result[0],
+          relationReaders: result[1],
+          prefixedPositions: result[2],
+          institutionDomains: result[3],
+          countries: result[4],
+        })
       } catch (apiError) {
         setDropdownOptions({})
       }
@@ -372,10 +385,11 @@ export default function ProfileEditor({
         title="Emails"
         instructions={
           <>
-            Enter all email addresses associated with your current and historical institutional
-            affiliations, your previous publications, and any other related systems, such as
-            TPMS, CMT, and ArXiv.
-            <br />
+            <div>
+              Enter all email addresses associated with your current and historical
+              institutional affiliations, your previous publications, and any other related
+              systems, such as TPMS, CMT, and ArXiv.
+            </div>
             <strong>
               Emails associated with former affiliations (including previous employers) should
               not be deleted.
@@ -390,6 +404,8 @@ export default function ProfileEditor({
           profileEmails={profile?.emails}
           profileId={profile?.id}
           updateEmails={(emails) => setProfile({ type: 'emails', data: emails })}
+          institutionDomains={institutionDomains}
+          isNewProfile={isNewProfile}
         />
       </ProfileSection>
 
@@ -417,7 +433,7 @@ export default function ProfileEditor({
         <EducationHistorySection
           profileHistory={profile?.history}
           positions={positions}
-          institutions={institutions}
+          institutionDomains={institutionDomains}
           countries={countries}
           updateHistory={(history) => setProfile({ type: 'history', data: history })}
         />
@@ -447,10 +463,11 @@ export default function ProfileEditor({
         title="Expertise"
         instructions={
           <>
-            For each line, enter comma-separated keyphrases representing an intersection of
-            your interests. Think of each line as a query for papers in which you would have
-            expertise and interest. For example:
-            <br />
+            <div>
+              For each line, enter comma-separated keyphrases representing an intersection of
+              your interests. Think of each line as a query for papers in which you would have
+              expertise and interest. For example:
+            </div>
             <em>topic models, social network analysis, computational social science</em>
             <br />
             <em>deep learning, RNNs, dependency parsing</em>

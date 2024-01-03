@@ -1,8 +1,7 @@
 /* globals promptError,$,clearMessage: false */
 
-import { useState, useEffect, useCallback, useContext, createContext } from 'react'
+import React, { useState, useEffect, useCallback, useContext, createContext } from 'react'
 import Head from 'next/head'
-import Script from 'next/script'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import debounce from 'lodash/debounce'
@@ -19,6 +18,7 @@ const LoadingContext = createContext()
 
 const SignupForm = ({ setSignupConfirmation }) => {
   const [fullName, setFullName] = useState('')
+  const [confirmFullName, setConfirmFullName] = useState(false)
   const [newUsername, setNewUsername] = useState('')
   const [nameConfirmed, setNameConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -44,7 +44,11 @@ const SignupForm = ({ setSignupConfirmation }) => {
   const getMatchingProfiles = useCallback(
     debounce(async (name) => {
       try {
-        const { profiles } = await api.get('/profiles/search', { fullname: name, limit: 100, es: true })
+        const { profiles } = await api.get('/profiles/search', {
+          fullname: name,
+          limit: 100,
+          es: true,
+        })
         if (profiles) {
           setExistingProfiles(
             profiles.map((profile) => ({
@@ -143,7 +147,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="row">
           <div className="form-group col-xs-12">
-            <label htmlFor="first-input">Full Name</label>
+            <label htmlFor="first-input" className="mb-2">
+              Enter your full name as you would write it as the author of a paper
+            </label>
             <input
               type="text"
               id="first-input"
@@ -160,72 +166,111 @@ const SignupForm = ({ setSignupConfirmation }) => {
             />
           </div>
         </div>
+        <div className=" checkbox">
+          <label className="name-confirmation">
+            <input
+              type="checkbox"
+              checked={confirmFullName}
+              onChange={() => {
+                if (!newUsername) {
+                  setConfirmFullName(false)
+                  return
+                }
+                setConfirmFullName((confirmFullNameProp) => !confirmFullNameProp)
+              }}
+            />
+            I confirm that this name is typed exactly as it would appear as an author in my
+            publications. I understand that any future changes to my name will require
+            moderation by the OpenReview.net Staff, and may require two weeks processing time.
+          </label>
+        </div>
       </form>
 
-      <hr className="spacer" />
+      {confirmFullName && (
+        <>
+          {existingProfiles.length > 0 && (
+            <div className="existing-profiles-title">
+              We found the following profiles with the name {fullName}
+            </div>
+          )}
+          <hr className="spacer" />
+          <LoadingContext.Provider value={loading}>
+            {existingProfiles.map((profile, index) => {
+              let formComponents
+              const allEmails = profile.active
+                ? profile.emailsConfirmed
+                : [...profile.emailsConfirmed, ...profile.emails]
 
-      <LoadingContext.Provider value={loading}>
-        {existingProfiles.map((profile) => {
-          let formComponents
-          const allEmails = profile.active
-            ? profile.emailsConfirmed
-            : [...profile.emailsConfirmed, ...profile.emails]
+              if (allEmails.length > 0) {
+                formComponents = Array.from(new Set(allEmails)).map((email) => (
+                  <ExistingProfileForm
+                    key={`${profile.id} ${email}`}
+                    id={profile.id}
+                    obfuscatedEmail={email}
+                    hasPassword={profile.password}
+                    isActive={profile.active}
+                    registerUser={registerUser}
+                    resetPassword={resetPassword}
+                    sendActivationLink={sendActivationLink}
+                  />
+                ))
+              } else {
+                formComponents = [
+                  <ClaimProfileForm
+                    key={profile.id}
+                    id={profile.id}
+                    registerUser={registerUser}
+                  />,
+                ]
+              }
+              if (index === existingProfiles.length - 1)
+                return (
+                  <React.Fragment key={index}>
+                    {formComponents}
+                    <p className="merge-message hint">
+                      If two or more of the profiles above belong to you, please{' '}
+                      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                      <a href="#" data-toggle="modal" data-target="#profile-merge-modal">
+                        contact us
+                      </a>{' '}
+                      and we will assist you in merging your profiles.
+                    </p>
+                    <hr key={`${profile.id}-spacer`} className="spacer" />
+                  </React.Fragment>
+                )
+              return formComponents.concat(
+                <hr key={`${profile.id}-spacer`} className="spacer" />
+              )
+            })}
 
-          if (allEmails.length > 0) {
-            formComponents = Array.from(new Set(allEmails)).map((email) => (
-              <ExistingProfileForm
-                key={`${profile.id} ${email}`}
-                id={profile.id}
-                obfuscatedEmail={email}
-                hasPassword={profile.password}
-                isActive={profile.active}
-                registerUser={registerUser}
-                resetPassword={resetPassword}
-                sendActivationLink={sendActivationLink}
-              />
-            ))
-          } else {
-            formComponents = [
-              <ClaimProfileForm
-                key={profile.id}
-                id={profile.id}
-                registerUser={registerUser}
-              />,
-            ]
-          }
-          return formComponents.concat(<hr key={`${profile.id}-spacer`} className="spacer" />)
-        })}
+            <div className="new-profile-title">
+              Create a new profile{' '}
+              {existingProfiles.length > 0
+                ? 'if none of the profiles above belong to you'
+                : ''}
+            </div>
 
-        <NewProfileForm
-          id={newUsername}
-          registerUser={registerUser}
-          nameConfirmed={nameConfirmed}
-        />
-      </LoadingContext.Provider>
+            <NewProfileForm
+              id={newUsername}
+              registerUser={registerUser}
+              nameConfirmed={nameConfirmed}
+            />
+          </LoadingContext.Provider>
 
-      {existingProfiles.length > 0 && (
-        <p className="merge-message hint">
-          If two or more of the profiles above belong to you, please{' '}
-          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a href="#" data-toggle="modal" data-target="#profile-merge-modal">
-            contact us
-          </a>{' '}
-          and we will assist you in merging your profiles.
-        </p>
+          <ConfirmNameModal
+            fullName={fullName}
+            newUsername={newUsername}
+            onConfirm={() => {
+              setNameConfirmed(true)
+              $('#confirm-name-modal').modal('hide')
+            }}
+            turnstileToken={turnstileToken}
+            setTurnstileToken={setTurnstileToken}
+          />
+
+          <ProfileMergeModal />
+        </>
       )}
-
-      <ConfirmNameModal
-        fullName={fullName}
-        newUsername={newUsername}
-        onConfirm={() => {
-          setNameConfirmed(true)
-          $('#confirm-name-modal').modal('hide')
-        }}
-        turnstileToken={turnstileToken}
-        setTurnstileToken={setTurnstileToken}
-      />
-
-      <ProfileMergeModal />
     </div>
   )
 }
@@ -505,9 +550,40 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
+  const [institutionDomains, setInstitutionDomains] = useState([])
+  const [nonInstitutionEmail, setNonInstitutionEmail] = useState(null)
+
+  const isInstitutionEmail = (emailToCheck) => {
+    const emailDomain = emailToCheck.split('@').pop()?.trim()?.toLowerCase()
+    return institutionDomains.includes(emailDomain)
+  }
+
+  const InstitutionErrorMessage = ({ email: invalidEmail }) => (
+    <span>
+      <strong>{invalidEmail.split('@').pop()}</strong> does not appear in our list of
+      publishing institutions. It can take up to <strong>2 weeks</strong> for profiles using
+      public email services to be activated. To activate immediately, please sign up with an
+      email address that uses an educational or employing institution domain. If your
+      institution is not yet in our list,{' '}
+      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+      <a
+        href="#"
+        data-toggle="modal"
+        data-target="#feedback-modal"
+        data-from={email}
+        data-subject="My institution email is not recognized"
+      >
+        contact us
+      </a>{' '}
+      to request that it be added.
+    </span>
+  )
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    if (!isInstitutionEmail(email)) {
+      setNonInstitutionEmail(email)
+    }
 
     if (!passwordVisible) {
       setPasswordVisible(true)
@@ -515,6 +591,15 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
     }
 
     $('#confirm-name-modal').modal({ show: true, backdrop: 'static' })
+  }
+
+  const getInstitutionDomains = async () => {
+    try {
+      const domains = await api.get('/settings/institutionDomains')
+      setInstitutionDomains(domains)
+    } catch (error) {
+      setInstitutionDomains([])
+    }
   }
 
   useEffect(() => {
@@ -532,6 +617,10 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
     }
   }, [nameConfirmed])
 
+  useEffect(() => {
+    getInstitutionDomains()
+  }, [])
+
   return (
     <form className="form-inline" onSubmit={handleSubmit}>
       <div>
@@ -541,7 +630,18 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
           placeholder="Email address"
           value={email}
           maxLength={254}
-          onChange={(e) => setEmail(e.target.value.trim())}
+          onChange={(e) => {
+            const cleanEmail = e.target.value.trim()
+            setEmail(cleanEmail)
+            if (!cleanEmail) setNonInstitutionEmail(null)
+          }}
+          onBlur={(e) => {
+            const cleanEmail = e.target.value.trim()
+            if (cleanEmail && !isInstitutionEmail(cleanEmail)) {
+              setNonInstitutionEmail(cleanEmail)
+            }
+            if (!cleanEmail || isInstitutionEmail(cleanEmail)) setNonInstitutionEmail(null)
+          }}
           autoComplete="email"
         />
         {!passwordVisible && (
@@ -551,6 +651,14 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
         )}
         {!passwordVisible && id && <span className="new-username hint">{`as ${id}`}</span>}
       </div>
+      {nonInstitutionEmail && (
+        <div className="activation-message-row">
+          <div>
+            <Icon name="warning-sign" extraClasses="email-tooltip" />
+            <InstitutionErrorMessage email={nonInstitutionEmail} />
+          </div>
+        </div>
+      )}
       {passwordVisible && (
         <>
           <div className="password-row">
@@ -734,18 +842,9 @@ const SignUp = () => {
       ) : (
         <div className="col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
           <h1>Sign Up for OpenReview</h1>
-          <p className="text-muted">
-            Enter your name as you would normally write it as the author of a paper.
-          </p>
-
           <SignupForm setSignupConfirmation={setSignupConfirmation} />
         </div>
       )}
-
-      <Script
-        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-        crossorigin="anonymous"
-      />
     </div>
   )
 }
