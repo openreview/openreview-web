@@ -54,6 +54,51 @@ describe('TextAreaWidget', () => {
     )
   })
 
+  test('perform type conversion when invitation default value has wrong type', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          abstract: {
+            value: {
+              param: {
+                default: ['line 1', 'line 2', 'line 3'],
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+    renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: 'line 1,line 2,line 3' })
+    )
+  })
+
+  test('perform type conversion when existing value has wrong type', () => {
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitaitonId' },
+        field: {
+          abstract: {
+            value: {
+              param: {
+                markdown: false,
+              },
+            },
+          },
+        },
+        value: ['line 1', 'line 2', 'line 3'],
+      },
+    }
+
+    renderWithEditorComponentContext(<TextAreaWidget />, providerProps)
+    expect(screen.getByText('line 1,line 2,line 3')).toBeInTheDocument()
+  })
+
   test('display markdown preview tab if markdown is true', () => {
     const providerProps = {
       value: {
