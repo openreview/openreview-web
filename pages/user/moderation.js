@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
-import { cloneDeep, orderBy, set, sortBy } from 'lodash'
+import { cloneDeep, orderBy, sortBy, uniqBy } from 'lodash'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import withAdminAuth from '../../components/withAdminAuth'
@@ -1607,7 +1607,7 @@ const UserModerationQueue = ({
   const [pageNumber, setPageNumber] = useState(1)
   const [filters, setFilters] = useState({})
   const [profileIdToReject, setProfileIdToReject] = useState(null)
-  const [signedNotesCount, setSignedNotesCount] = useState(0)
+  const [signedNotes, setSignedNotes] = useState(0)
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
   const [pageSize, setPageSize] = useState(15)
@@ -1696,33 +1696,34 @@ const UserModerationQueue = ({
   }
 
   const getSignedAuthoredNotesCount = async (profileId) => {
-    const signedNotesCountP = api.getCombined(
+    const signedNotesP = api.getCombined(
       '/notes',
       { signature: profileId, select: 'id' },
       null,
       {
         accessToken,
+        includeVersion: true,
       }
     )
-    const authoredNotesCountP = api.getCombined(
+    const authoredNotesP = api.getCombined(
       '/notes',
       { 'content.authorids': profileId, select: 'id' },
       null,
-      { accessToken }
+      { accessToken, includeVersion: true }
     )
 
-    const [signedNotes, authoredNotes] = await Promise.all([
-      signedNotesCountP,
-      authoredNotesCountP,
+    const [signedNotesResult, authoredNotesResult] = await Promise.all([
+      signedNotesP,
+      authoredNotesP,
     ])
 
-    return [...new Set([...signedNotes.notes, ...authoredNotes.notes].map((p) => p.id))].length
+    return uniqBy([...signedNotesResult.notes, ...authoredNotesResult.notes], 'id')
   }
 
   const showRejectionModal = async (profileId) => {
     if (!onlyModeration) {
-      const signedAuthoredNotesCount = await getSignedAuthoredNotesCount(profileId)
-      setSignedNotesCount(signedAuthoredNotesCount)
+      const signedAuthoredNotes = await getSignedAuthoredNotesCount(profileId)
+      setSignedNotes(signedAuthoredNotes)
     }
     setProfileIdToReject(profileId)
 
@@ -1751,9 +1752,8 @@ const UserModerationQueue = ({
     if (!profile) return
 
     const actionIsBlock = profile.state !== 'Blocked'
-    const signedAuthoredNotesCount = !onlyModeration
-      ? await getSignedAuthoredNotesCount(profile.id)
-      : 0
+    const signedAuthoredNotesCount = (await getSignedAuthoredNotesCount(profile.id)).length
+
     const noteCountMessage =
       !onlyModeration && actionIsBlock && signedAuthoredNotesCount
         ? `There ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
@@ -1789,7 +1789,7 @@ const UserModerationQueue = ({
     const actionIsDelete = !profile.ddate
 
     const signedAuthoredNotesCount = actionIsDelete
-      ? await getSignedAuthoredNotesCount(profile.id)
+      ? (await getSignedAuthoredNotesCount(profile.id)).length
       : 0
 
     const noteCountMessage =
@@ -2035,18 +2035,27 @@ const UserModerationQueue = ({
         id={modalId}
         profileIdToReject={profileIdToReject}
         rejectUser={rejectUser}
-        signedNotesCount={signedNotesCount}
+        signedNotes={signedNotes}
       />
       <ProfilePreviewModal
         profileToPreview={profileToPreview}
         setProfileToPreview={setProfileToPreview}
         setLastPreviewedProfileId={setLastPreviewedProfileId}
+        contentToShow={[
+          'names',
+          'emails',
+          'links',
+          'history',
+          'relations',
+          'expertise',
+          'publications',
+        ]}
       />
     </div>
   )
 }
 
-const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount }) => {
+const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
   const selectRef = useRef(null)
 
@@ -2128,13 +2137,28 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount })
             />
           </div>
         </form>
-        {signedNotesCount > 0 && (
-          <h4>{`There ${inflect(signedNotesCount, 'is', 'are', false)} ${inflect(
-            signedNotesCount,
-            'note',
-            'notes',
-            true
-          )} signed by this profile.`}</h4>
+        {signedNotes.length > 0 && (
+          <>
+            <h4>{`There ${inflect(signedNotes.length, 'is', 'are', false)} ${inflect(
+              signedNotes.length,
+              'note',
+              'notes',
+              true
+            )} signed by this profile.`}</h4>
+            {signedNotes.slice(0, 10).map((p) => (
+              <div key={p.id}>
+                <a
+                  href={`${
+                    p.apiVersion === 2 ? process.env.API_V2_URL : process.env.API_URL
+                  }/notes?id=${p.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {p.id}
+                </a>
+              </div>
+            ))}
+          </>
         )}
       </>
     </BasicModal>
