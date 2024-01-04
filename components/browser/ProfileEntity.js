@@ -255,7 +255,7 @@ export default function ProfileEntity(props) {
       content?.isInvitedProfile &&
       isAssigned &&
       isReviewerAssignmentStage &&
-      isInviteInvitation
+      (isInviteInvitation || isExternalInviteInvitation)
     ) {
       disableControlReason = 'The reviewer has already been invited'
     }
@@ -263,10 +263,20 @@ export default function ProfileEntity(props) {
     if (isExternalInviteInvitation && !isInviteInvitation && !edge) return null
 
     // reviewer assignmet stage (1st stage) don't show invite assignment except for invited (has editEdge)
-    if (isReviewerAssignmentStage && isInviteInvitation && !edge) return null
+    if (
+      isReviewerAssignmentStage &&
+      (isInviteInvitation || isExternalInviteInvitation) &&
+      !edge
+    )
+      return null
 
     // can't be invited/uninvited when assigned already(except invited profile to enable delete)
-    if (isAssigned && isInviteInvitation && !content?.isInvitedProfile) return null
+    if (
+      isAssigned &&
+      (isInviteInvitation || isExternalInviteInvitation) &&
+      !content?.isInvitedProfile
+    )
+      return null
 
     // invited reviewer with assigned edge,don't show custom load edge
     if (isAssigned && content?.isInvitedProfile && isCustomLoadInvitation) return null
@@ -277,12 +287,17 @@ export default function ProfileEntity(props) {
       !isInviteAcceptedProfile &&
       !isAssigned &&
       isReviewerAssignmentStage &&
-      !isInviteInvitation
+      !(isInviteInvitation || isExternalInviteInvitation)
     )
       return null
 
     // invited profile show only invite widget
-    if (!edge && content?.isInvitedProfile && isEmergencyReviewerStage && !isInviteInvitation)
+    if (
+      !edge &&
+      content?.isInvitedProfile &&
+      isEmergencyReviewerStage &&
+      !(isInviteInvitation || isExternalInviteInvitation)
+    )
       return null
 
     const editEdgeDropdown = (type, controlType) => (
@@ -314,7 +329,7 @@ export default function ProfileEntity(props) {
           invitation.multiReply
         } // no editedge or invitation allow multiple edges
         editEdgeTemplate={editEdgeTemplates?.find((p) => p?.invitation === invitation.id)} // required for adding new
-        isInviteInvitation={isInviteInvitation}
+        isInviteInvitation={isInviteInvitation || isExternalInviteInvitation}
         shouldDisableControl={!!disableControlReason}
         disableControlReason={disableControlReason}
         isTraverseEdge={isTraverseEdge}
@@ -387,10 +402,7 @@ export default function ProfileEntity(props) {
         (p) =>
           p.label === 'Accepted' &&
           editInvitations.find(
-            (q) =>
-              q.id === p.invitation &&
-              (isInvitationForInvite(q, props.columnType) ||
-                isInvitationForExternalInvite(q, props.columnType))
+            (q) => q.id === p.invitation && isInvitationForExternalInvite(q, props.columnType)
           )
       )
     ) {
