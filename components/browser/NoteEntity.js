@@ -204,7 +204,15 @@ export default function NoteEntity(props) {
     let shouldDisableControl = false
     let disableControlReason = null
 
+    // show invite only at bottom of column
     if (isExternalInviteInvitation && !isInviteInvitation && !editEdge) return null
+
+    // not to show invite assignment when removed from reviewers group
+    if (
+      (isInviteInvitation || isExternalInviteInvitation) &&
+      props.parentInfo.content?.isDummyProfile
+    )
+      return null
 
     // invited profile show only invite edge and proposed assignment edge
     if (
