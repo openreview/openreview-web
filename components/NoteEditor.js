@@ -113,6 +113,26 @@ const EditSignatures = ({
   )
 }
 
+const EditContent = ({ content }) => {
+  if (!content) return null
+  return Object.entries(content).map(([fieldName, fieldDescription]) => (
+    <div
+      key={fieldName}
+      className={fieldDescription?.value?.param?.hidden ? null : styles.fieldContainer}
+    >
+      <EditorComponentContext.Provider
+        value={{
+          field: { [fieldName]: fieldDescription },
+        }}
+      >
+        <EditorComponentHeader>
+          <EditorWidget />
+        </EditorComponentHeader>
+      </EditorComponentContext.Provider>
+    </div>
+  ))
+}
+
 // For v2 invitations only
 const NoteEditor = ({
   invitation,
@@ -196,6 +216,7 @@ const NoteEditor = ({
 
     let fieldValue = noteEditorData[fieldName]
     if (fieldName === 'authorids' && note?.id) {
+      if (fieldDescription?.value?.param?.const?.replace) return null
       fieldValue = noteEditorData.authorids?.map((p, index) => ({
         authorId: p,
         authorName: noteEditorData.authors?.[index],
@@ -637,6 +658,8 @@ const NoteEditor = ({
       <div className={styles.editReaderSignature}>
         <h2>Edit History</h2>
         <hr />
+
+        <EditContent content={invitation.edit.content} />
 
         <EditReaders
           fieldDescription={invitation.edit.readers}

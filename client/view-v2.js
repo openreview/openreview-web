@@ -2255,6 +2255,7 @@ module.exports = (function () {
     const result = {}
     const note = {}
     const content = {}
+    const editContent = {}
     const { note: noteFields, ...otherFields } = invitationObj.edit
 
     // editToPost.readers/writers etc.
@@ -2272,12 +2273,33 @@ module.exports = (function () {
           break
         case 'ddate':
           break
+
         default:
           // readers/writers/signatures collected in editor default to note readers/writers/signatures
           result[field] = formData?.[field] ?? noteObj?.[field]
           break
       }
     })
+
+    // editToPost.edit.content fields
+    Object.entries(otherFields.content ?? {}).forEach(
+      ([editContentFieldName, editContentFieldValue]) => {
+        if (!_.has(editContentFieldValue.value, 'param')) return
+        var newVal = formData?.editContent?.[editContentFieldName]
+        if (
+          typeof newVal === 'string' &&
+          (editContentFieldValue.param?.input === 'text' ||
+            editContentFieldValue.value.param?.input === 'textarea' ||
+            (editContentFieldValue.value.param?.type === 'string' &&
+              !editContentFieldValue.value.param?.enum))
+        ) {
+          newVal = newVal?.trim()
+        }
+        editContent[editContentFieldName] = {
+          value: newVal,
+        }
+      }
+    )
 
     const { content: contentFields, ...otherNoteFields } = noteFields
 
@@ -2322,6 +2344,11 @@ module.exports = (function () {
           (!_.has(valueObj, 'param') || valueObj.param.const)
         ) {
           return
+        } else if (
+          fieldsToIgnoreConst.includes(contentFieldName) &&
+          valueObj.param?.const?.replace
+        ) {
+          return
         } else {
           var newVal = formData?.[contentFieldName]
           if (
@@ -2349,6 +2376,7 @@ module.exports = (function () {
     result.invitation = invitationObj.id
     if (Object.keys(content).length) note.content = content
     if (Object.keys(note).length) result.note = note
+    if (Object.keys(editContent).length) result.content = editContent
     return result
   }
 
