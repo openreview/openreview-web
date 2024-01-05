@@ -11,8 +11,9 @@ import { prettyId, prettyInvitationId, pluralizeString } from '../../lib/utils'
 import EditEdgeInviteEmail from './EditEdgeInviteEmail'
 import {
   getInvitationPrefix,
+  isForBothGroupTypesInvite,
   isInvitationForExternalInvite,
-  isInvitationForInvite,
+  isNotInGroupInvite,
   transformName,
 } from '../../lib/edge-utils'
 import api from '../../lib/api-client'
@@ -793,7 +794,7 @@ export default function Column(props) {
         if (!itemToAdd) {
           if (entityType === 'profile') {
             const hasInviteInvitation = editInvitations.some(
-              (p) => isInvitationForExternalInvite(p, type) || isInvitationForInvite(p, type)
+              (p) => isNotInGroupInvite(p, type) || isForBothGroupTypesInvite(p, type)
             )
             const hasProposedAssignmentInvitation = editInvitations.some((p) =>
               p.id.includes('Proposed_Assignment')

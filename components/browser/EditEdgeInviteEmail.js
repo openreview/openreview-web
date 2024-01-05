@@ -6,7 +6,8 @@ import api from '../../lib/api-client'
 import {
   getInterpolatedValues,
   getSignatures,
-  isInvitationForExternalInvite,
+  isForBothGroupTypesInvite,
+  isNotInGroupInvite,
 } from '../../lib/edge-utils'
 import { isValidEmail, prettyInvitationId } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
@@ -27,7 +28,9 @@ const EditEdgeInviteEmail = ({
     useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
 
-  const inviteInvitation = editInvitations.find((p) => isInvitationForExternalInvite(p, type))
+  const inviteInvitation = editInvitations.find(
+    (p) => isNotInGroupInvite(p, type) || isForBothGroupTypesInvite(p, type)
+  )
   // readers/nonreaders/writers
   const getValues = (value, email) =>
     getInterpolatedValues({

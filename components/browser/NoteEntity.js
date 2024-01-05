@@ -17,8 +17,9 @@ import UserContext from '../UserContext'
 import {
   getInterpolatedValues,
   getSignatures,
-  isInvitationForExternalInvite,
-  isInvitationForInvite,
+  isForBothGroupTypesInvite,
+  isInGroupInvite,
+  isNotInGroupInvite,
 } from '../../lib/edge-utils'
 
 export default function NoteEntity(props) {
@@ -119,7 +120,9 @@ export default function NoteEntity(props) {
       (p) => p.id === editEdgeTemplate.invitation
     )?.[0]
     const otherColumnType = props.columnType === 'head' ? 'tail' : 'head'
-    const isInviteInvitation = isInvitationForInvite(editInvitation, otherColumnType)
+    const isInviteInvitation =
+      isInGroupInvite(editInvitation, otherColumnType) ||
+      isForBothGroupTypesInvite(editInvitation, otherColumnType)
     const signatures = getSignatures(
       editInvitation,
       availableSignaturesInvitationMap,
@@ -182,11 +185,11 @@ export default function NoteEntity(props) {
   const renderEditEdgeWidget = ({ editEdge, editInvitation }) => {
     const parentColumnType = props.columnType === 'head' ? 'tail' : 'head'
     const isAssigned = metadata.isAssigned || metadata.isUserAssigned
-    const isInviteInvitation = isInvitationForInvite(editInvitation, parentColumnType)
-    const isExternalInviteInvitation = isInvitationForExternalInvite(
-      editInvitation,
-      parentColumnType
-    )
+    const isInviteInvitation =
+      isInGroupInvite(editInvitation, parentColumnType) ||
+      isNotInGroupInvite(editInvitation, parentColumnType) ||
+      isForBothGroupTypesInvite(editInvitation, parentColumnType)
+    const isExternalOnlyInviteInvitation = isNotInGroupInvite(editInvitation, parentColumnType)
     const isReviewerAssignmentStage = editInvitations.some((p) =>
       p.id.includes('Proposed_Assignment')
     )
@@ -205,33 +208,20 @@ export default function NoteEntity(props) {
     let disableControlReason = null
 
     // show invite only at bottom of column
-    if (isExternalInviteInvitation && !isInviteInvitation && !editEdge) return null
+    if (isExternalOnlyInviteInvitation && !editEdge) return null
 
     // not to show invite assignment when removed from reviewers group
-    if (
-      (isInviteInvitation || isExternalInviteInvitation) &&
-      props.parentInfo.content?.isDummyProfile
-    )
-      return null
+    if (isInviteInvitation && props.parentInfo.content?.isDummyProfile) return null
 
     // invited profile show only invite edge and proposed assignment edge
-    if (
-      isParentInvited &&
-      !(isInviteInvitation || isExternalInviteInvitation || isProposedAssignmentInvitation)
-    )
-      return null
+    if (isParentInvited && !(isInviteInvitation || isProposedAssignmentInvitation)) return null
     // show existing invite edge for normal reviewers
-    if (!isParentInvited && (isInviteInvitation || isExternalInviteInvitation) && !editEdge)
-      return null
+    if (!isParentInvited && isInviteInvitation && !editEdge) return null
     // head of head:ignore edge is group id and does not make sense for note
     if (isIgnoreHeadEditInvitation) return null
     if (
-      ((isReviewerAssignmentStage &&
-        (isProposedAssignmentInvitation ||
-          isInviteInvitation ||
-          isExternalInviteInvitation)) ||
-        (isEmergencyReviewerStage &&
-          (isAssignmentInvitation || isInviteInvitation || isExternalInviteInvitation))) &&
+      ((isReviewerAssignmentStage && (isProposedAssignmentInvitation || isInviteInvitation)) ||
+        (isEmergencyReviewerStage && (isAssignmentInvitation || isInviteInvitation))) &&
       Number.isInteger(parentCustomLoad) &&
       parentCustomLoad <= parentExistingLoad &&
       !editEdge
@@ -241,12 +231,7 @@ export default function NoteEntity(props) {
     }
 
     // invited external reviewer and assigned should disabled invite assignment
-    if (
-      isParentInvited &&
-      isAssigned &&
-      isReviewerAssignmentStage &&
-      (isInviteInvitation || isExternalInviteInvitation)
-    ) {
+    if (isParentInvited && isAssigned && isReviewerAssignmentStage && isInviteInvitation) {
       shouldDisableControl = true
       disableControlReason = 'The Reviewer has been invited.'
     }
@@ -288,7 +273,7 @@ export default function NoteEntity(props) {
         editEdgeTemplate={editEdgeTemplates?.find((p) => p.invitation === editInvitation.id)} // required for adding new
         shouldDisableControl={shouldDisableControl}
         disableControlReason={disableControlReason}
-        isInviteInvitation={isInviteInvitation || isExternalInviteInvitation}
+        isInviteInvitation={isInviteInvitation}
       />
     )
     const editEdgeTwoDropdowns = (controlType) => (
