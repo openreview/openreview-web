@@ -392,10 +392,12 @@ export default function ProfileEntity(props) {
       traverseInvitation.id.includes('/Assignment') &&
       editEdges?.some(
         (p) =>
-          p.label === 'Accepted' &&
           editInvitations.find(
-            (q) => q.id === p.invitation && isInvitationForExternalInvite(q, props.columnType)
-          )
+            (q) =>
+              q.id === p.invitation &&
+              (isNotInGroupInvite(q, props.columnType) ||
+                isForBothGroupTypesInvite(q, props.columnType))
+          ) && p.label === 'Accepted'
       )
     ) {
       return renderEditEdgeWidget({

@@ -12,7 +12,6 @@ import EditEdgeInviteEmail from './EditEdgeInviteEmail'
 import {
   getInvitationPrefix,
   isForBothGroupTypesInvite,
-  isInvitationForExternalInvite,
   isNotInGroupInvite,
   transformName,
 } from '../../lib/edge-utils'
@@ -336,7 +335,10 @@ export default function Column(props) {
 
         if (fieldName === 'editEdges' && entityType === 'profile') {
           const editInvitation = editInvitations.filter((p) => p.id === edge.invitation)?.[0]
-          if (isInvitationForExternalInvite(editInvitation, type)) {
+          if (
+            isNotInGroupInvite(editInvitation, type) ||
+            isForBothGroupTypesInvite(editInvitation, type)
+          ) {
             itemToAdd = {
               id: headOrTailId,
               content: {
