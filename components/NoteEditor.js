@@ -128,9 +128,7 @@ const EditContent = ({ content, editContentData, setEditContentData, errors, set
           error: errors.find((e) => e.fieldName === `content.${fieldName}`),
           setErrors,
           clearError: () => {
-            setErrors((existingErrors) =>
-              existingErrors.filter((p) => p.fieldName !== `content.${fieldName}`)
-            )
+            setErrors([])
           },
         }}
       >
