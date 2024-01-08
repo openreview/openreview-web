@@ -365,7 +365,8 @@ fixture`Issue related tests`
 test('#160 allow user to overwrite last/middle/first name to be lowercase', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/signup`)
-    .typeText(fullNameInputSelector, 'first')
+    .click(fullNameInputSelector)
+    .pressKey('f i r s t')
     .expect(fullNameInputSelector.value)
     .eql('First')
     .pressKey('left left left left left delete f tab')
