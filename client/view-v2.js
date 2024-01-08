@@ -2401,6 +2401,17 @@ module.exports = (function () {
       editToPost.signatures = formContent.editSignatureInputValues ?? edit.signatures
     }
 
+    const editContent = {}
+    Object.keys(invitation.edit.content).forEach((editContentFieldName) => {
+      if (shouldSetValue(`edit.content.${editContentFieldName}.value`)) {
+        editContent[editContentFieldName] = {
+          value: formContent.editContent?.[editContentFieldName],
+        }
+      }
+    })
+
+    if (Object.keys(editContent).length) editToPost.content = editContent
+
     const editNote = {}
     Object.keys(invitation.edit.note).forEach((p) => {
       if (shouldSetValue(`edit.note.${p}`)) {
