@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
+import pickBy from 'lodash/pickBy'
 import api from '../../lib/api-client'
 import EditorSection from '../EditorSection'
 import LoadingSpinner from '../LoadingSpinner'
@@ -15,9 +16,7 @@ const CodeEditor = dynamic(() => import('../CodeEditor'), {
 export default function GroupContent({ group, accessToken, profileId, reloadGroup }) {
   const [showEditor, setShowEditor] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [modifiedContent, setModifiedContent] = useState(
-    JSON.stringify(group.content, undefined, 2)
-  )
+  const [modifiedContent, setModifiedContent] = useState(null)
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -25,7 +24,10 @@ export default function GroupContent({ group, accessToken, profileId, reloadGrou
       const requestBody = {
         group: {
           id: group.id,
-          content: JSON.parse(modifiedContent || '{}'),
+          content: {
+            ...group.content,
+            ...JSON.parse(modifiedContent || '{}'),
+          },
         },
         readers: [profileId],
         writers: [profileId],
@@ -49,7 +51,12 @@ export default function GroupContent({ group, accessToken, profileId, reloadGrou
     // Close editor and reset contents when changing groups
     setShowEditor(false)
 
-    setModifiedContent(JSON.stringify(group.content, undefined, 2))
+    // Filter out any content fields that are scripts. These are shown by GroupContentScripts
+    const filteredContent = pickBy(
+      group.content,
+      (valueObj, key) => !key.endsWith('_script') || typeof valueObj.value !== 'string'
+    )
+    setModifiedContent(JSON.stringify(filteredContent, undefined, 2))
   }, [group.id])
 
   return (

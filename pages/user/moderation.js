@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
-import { cloneDeep, orderBy, sortBy } from 'lodash'
+import { cloneDeep, orderBy, sortBy, uniqBy } from 'lodash'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import withAdminAuth from '../../components/withAdminAuth'
@@ -13,7 +13,6 @@ import api from '../../lib/api-client'
 import {
   prettyId,
   formatDateTime,
-  buildArray,
   inflect,
   getProfileStateLabelClass,
   getVenueTabCountMessage,
@@ -26,7 +25,6 @@ import { formatProfileData } from '../../lib/profiles'
 import Markdown from '../../components/EditorComponents/Markdown'
 import Dropdown from '../../components/Dropdown'
 import ProfilePreviewModal from '../../components/profile/ProfilePreviewModal'
-import useUser from '../../hooks/useUser'
 
 dayjs.extend(relativeTime)
 
@@ -186,12 +184,7 @@ const FullUsernameList = ({ usernames }) => (
   </ul>
 )
 
-const NameDeletionTab = ({
-  accessToken,
-  superUser,
-  setNameDeletionRequestCount,
-  isActive,
-}) => {
+const NameDeletionTab = ({ accessToken, setNameDeletionRequestCount, isActive }) => {
   const [nameDeletionNotes, setNameDeletionNotes] = useState(null)
   const [nameDeletionNotesToShow, setNameDeletionNotesToShow] = useState(null)
   const [noteToReject, setNoteToReject] = useState(null)
@@ -209,11 +202,11 @@ const NameDeletionTab = ({
       let processLogsP
 
       if (noteId) {
-        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken, version: 1 })
+        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken })
         decisionResultsP = api.getAll(
-          '/references',
-          { referent: noteId, invitation: nameDeletionDecisionInvitationId },
-          { accessToken, resultsKey: 'references', version: 1 }
+          '/notes/edits',
+          { 'note.id': noteId, invitation: nameDeletionDecisionInvitationId },
+          { accessToken, resultsKey: 'edits' }
         )
         processLogsP = Promise.resolve(null)
       } else {
@@ -222,14 +215,14 @@ const NameDeletionTab = ({
           {
             invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
           },
-          { accessToken, version: 1 }
+          { accessToken }
         )
         decisionResultsP = api.getAll(
-          '/references',
+          '/notes/edits',
           {
             invitation: nameDeletionDecisionInvitationId,
           },
-          { accessToken, resultsKey: 'references', version: 1 }
+          { accessToken, resultsKey: 'edits' }
         )
         processLogsP = isActive
           ? api.getAll(
@@ -248,29 +241,29 @@ const NameDeletionTab = ({
       const sortedResult = noteId
         ? [
             ...nameDeletionNotes.filter(
-              (p) => p.content.status === 'Pending' && p.id !== noteId
+              (p) => p.content.status.value === 'Pending' && p.id !== noteId
             ),
             {
               ...nameRemovalNotes.notes[0],
               processLogStatus: 'running',
               processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
             },
-            ...nameDeletionNotes.filter((p) => p.content.status !== 'Pending'),
+            ...nameDeletionNotes.filter((p) => p.content.status.value !== 'Pending'),
           ]
         : [
-            ...nameRemovalNotes.notes.filter((p) => p.content.status === 'Pending'),
-            ...nameRemovalNotes.notes.filter((p) => p.content.status !== 'Pending'),
+            ...nameRemovalNotes.notes.filter((p) => p.content.status.value === 'Pending'),
+            ...nameRemovalNotes.notes.filter((p) => p.content.status.value !== 'Pending'),
           ].map((p) => {
-            const decisionReference = decisionResults.find((q) => q.referent === p.id)
+            const decisionEdit = decisionResults.find((q) => q.note.id === p.id)
             let processLogStatus = 'N/A'
-            if (p.content.status !== 'Pending')
+            if (p.content.status.value !== 'Pending')
               processLogStatus =
-                processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
+                processLogs.find((q) => q.id === decisionEdit.id)?.status ?? 'running'
             return {
               ...p,
               processLogStatus,
-              processLogUrl: decisionReference
-                ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
+              processLogUrl: decisionEdit
+                ? `${process.env.API_URL}/logs/process?id=${decisionEdit.id}`
                 : null,
             }
           })
@@ -279,7 +272,7 @@ const NameDeletionTab = ({
         sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
       )
       const pendingRequestCount = nameRemovalNotes.notes.filter(
-        (p) => p.content.status === 'Pending'
+        (p) => p.content.status.value === 'Pending'
       ).length
       setNameDeletionRequestCount(pendingRequestCount)
     } catch (error) {
@@ -295,28 +288,21 @@ const NameDeletionTab = ({
     const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
     try {
       setIdsLoading((p) => [...p, nameDeletionNote.id])
-      const invitationResult = await api.get(
-        '/invitations',
-        { id: nameDeletionDecisionInvitationId },
-        { accessToken, version: 1 }
+      const nameDeletionDecisionInvitation = await api.getInvitationById(
+        nameDeletionDecisionInvitationId,
+        accessToken
       )
-      const nameDeletionDecisionInvitation = invitationResult.invitations[0]
-      const noteToPost = {
-        referent: nameDeletionNote.id,
-        invitation: nameDeletionDecisionInvitation.id,
-        content: {
+
+      const editToPost = view2.constructEdit({
+        formData: {
+          id: nameDeletionNote.id,
           status: response,
           ...(response === 'Rejected' && { support_comment: supportComment }),
         },
-        readers: buildArray(nameDeletionDecisionInvitation, 'readers', superUser.profile.id),
-        writers: buildArray(nameDeletionDecisionInvitation, 'writers', superUser.profile.id),
-        signatures: buildArray(
-          nameDeletionDecisionInvitation,
-          'signatures',
-          superUser.profile.id
-        ),
-      }
-      const result = await api.post('/notes', noteToPost, { accessToken, version: 1 })
+
+        invitationObj: nameDeletionDecisionInvitation,
+      })
+      const result = await api.post('/notes/edits', editToPost, { accessToken })
       $('#name-delete-reject').modal('hide')
       loadNameDeletionRequests(nameDeletionNote.id)
     } catch (error) {
@@ -326,7 +312,7 @@ const NameDeletionTab = ({
   }
 
   const getStatusLabelClass = (note) => {
-    switch (note.content.status) {
+    switch (note.content.status.value) {
       case 'Accepted':
         return 'label label-success'
       case 'Rejected':
@@ -385,7 +371,9 @@ const NameDeletionTab = ({
             {nameDeletionNotesToShow.map((note) => (
               <div className="name-deletion-row" key={note.id}>
                 <span className="col-status">
-                  <span className={getStatusLabelClass(note)}>{note.content.status}</span>
+                  <span className={getStatusLabelClass(note)}>
+                    {note.content.status.value}
+                  </span>
                 </span>
                 <span className="col-status">
                   <a href={note.processLogUrl} target="_blank" rel="noreferrer">
@@ -406,23 +394,25 @@ const NameDeletionTab = ({
                 <span
                   className="usernames"
                   onClick={() =>
-                    setCommentToView(<FullUsernameList usernames={note.content.usernames} />)
+                    setCommentToView(
+                      <FullUsernameList usernames={note.content.usernames.value} />
+                    )
                   }
                 >
-                  {note.content.usernames.join(',')}
+                  {note.content.usernames.value.join(',')}
                 </span>
                 <div className="comment">
                   <span
                     onClick={() =>
-                      setCommentToView(<FullComment comment={note.content.comment} />)
+                      setCommentToView(<FullComment comment={note.content.comment.value} />)
                     }
                   >
-                    {note.content.comment}
+                    {note.content.comment.value}
                   </span>
                 </div>
                 <span className="col-created">{formatDateTime(note.tcdate)}</span>
                 <span className="col-actions">
-                  {note.content.status === 'Pending' && (
+                  {note.content.status.value === 'Pending' && (
                     <>
                       <button
                         type="button"
@@ -504,11 +494,11 @@ const ProfileMergeTab = ({
       let processLogsP
 
       if (noteId) {
-        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken, version: 1 })
+        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken })
         decisionResultsP = api.getAll(
-          '/references',
-          { referent: noteId, invitation: profileMergeDecisionInvitationId },
-          { accessToken, resultsKey: 'references', version: 1 }
+          '/notes/edits',
+          { 'note.id': noteId },
+          { accessToken, resultsKey: 'edits' }
         )
         processLogsP = Promise.resolve(null)
       } else {
@@ -517,14 +507,14 @@ const ProfileMergeTab = ({
           {
             invitation: profileMergeInvitationId,
           },
-          { accessToken, version: 1 }
+          { accessToken }
         )
         decisionResultsP = api.getAll(
-          '/references',
+          '/notes/edits',
           {
             invitation: profileMergeDecisionInvitationId,
           },
-          { accessToken, resultsKey: 'references', version: 1 }
+          { accessToken, resultsKey: 'edits' }
         )
         processLogsP = isActive
           ? api.getAll(
@@ -544,29 +534,33 @@ const ProfileMergeTab = ({
       const sortedResult = noteId
         ? [
             ...profileMergeNotes.filter(
-              (p) => p.content.status === 'Pending' && p.id !== noteId
+              (p) => p.content.status.value === 'Pending' && p.id !== noteId
             ),
             {
               ...profileMergeNotesResults.notes[0],
               processLogStatus: 'running',
               processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
             },
-            ...profileMergeNotes.filter((p) => p.content.status !== 'Pending'),
+            ...profileMergeNotes.filter((p) => p.content.status.value !== 'Pending'),
           ]
         : [
-            ...profileMergeNotesResults.notes.filter((p) => p.content.status === 'Pending'),
-            ...profileMergeNotesResults.notes.filter((p) => p.content.status !== 'Pending'),
+            ...profileMergeNotesResults.notes.filter(
+              (p) => p.content.status.value === 'Pending'
+            ),
+            ...profileMergeNotesResults.notes.filter(
+              (p) => p.content.status.value !== 'Pending'
+            ),
           ].map((p) => {
-            const decisionReference = decisionResults.find((q) => q.referent === p.id)
+            const decisionEdit = decisionResults.find((q) => q.note.id === p.id)
             let processLogStatus = 'N/A'
-            if (p.content.status !== 'Pending')
+            if (p.content.status.value !== 'Pending')
               processLogStatus =
-                processLogs.find((q) => q.id === decisionReference.id)?.status ?? 'running'
+                processLogs.find((q) => q.id === decisionEdit.id)?.status ?? 'running'
             return {
               ...p,
               processLogStatus,
-              processLogUrl: decisionReference
-                ? `${process.env.API_URL}/logs/process?id=${decisionReference.id}`
+              processLogUrl: decisionEdit
+                ? `${process.env.API_URL}/logs/process?id=${decisionEdit.id}`
                 : null,
             }
           })
@@ -575,7 +569,7 @@ const ProfileMergeTab = ({
         sortedResult.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
       )
       const pendingRequestCount = profileMergeNotesResults.notes.filter(
-        (p) => p.content.status === 'Pending'
+        (p) => p.content.status.value === 'Pending'
       ).length
       setProfileMergeRequestCount(pendingRequestCount)
     } catch (error) {
@@ -590,28 +584,19 @@ const ProfileMergeTab = ({
   const acceptRejectProfileMergeNote = async (profileMergeNote, response, supportComment) => {
     try {
       setIdsLoading((p) => [...p, profileMergeNote.id])
-      const invitationResult = await api.get(
-        '/invitations',
-        { id: profileMergeDecisionInvitationId },
-        { accessToken, version: 1 }
+      const profileMergeDecisionInvitation = await api.getInvitationById(
+        profileMergeDecisionInvitationId,
+        accessToken
       )
-      const profileMergeDecisionInvitation = invitationResult.invitations[0]
-      const noteToPost = {
-        referent: profileMergeNote.id,
-        invitation: profileMergeDecisionInvitation.id,
-        content: {
+      const editToPost = view2.constructEdit({
+        formData: {
+          id: profileMergeNote.id,
           status: response,
           ...(response === 'Rejected' && { support_comment: supportComment }),
         },
-        readers: buildArray(profileMergeDecisionInvitation, 'readers', superUser.profile.id),
-        writers: buildArray(profileMergeDecisionInvitation, 'writers', superUser.profile.id),
-        signatures: buildArray(
-          profileMergeDecisionInvitation,
-          'signatures',
-          superUser.profile.id
-        ),
-      }
-      const result = await api.post('/notes', noteToPost, { accessToken, version: 1 })
+        invitationObj: profileMergeDecisionInvitation,
+      })
+      const result = await api.post('/notes/edits', editToPost, { accessToken })
       $('#name-delete-reject').modal('hide')
       loadProfileMergeRequests(profileMergeNote.id)
     } catch (error) {
@@ -621,7 +606,7 @@ const ProfileMergeTab = ({
   }
 
   const getStatusLabelClass = (note) => {
-    switch (note.content.status) {
+    switch (note.content.status.value) {
       case 'Accepted':
         return 'label label-success'
       case 'Rejected':
@@ -682,12 +667,14 @@ const ProfileMergeTab = ({
                   <span
                     className={getStatusLabelClass(note)}
                     onClick={() => {
-                      if (note.content.support_comment) {
-                        setTextToView(<FullComment comment={note.content.support_comment} />)
+                      if (note.content.support_comment.value) {
+                        setTextToView(
+                          <FullComment comment={note.content.support_comment.value} />
+                        )
                       }
                     }}
                   >
-                    {note.content.status}
+                    {note.content.status.value}
                   </span>
                 </span>
                 <span className="col-status">
@@ -701,10 +688,10 @@ const ProfileMergeTab = ({
                   {note.signatures[0] === '(guest)' ? (
                     <span
                       onClick={() =>
-                        setTextToView(<FullComment comment={note.content.email} />)
+                        setTextToView(<FullComment comment={note.content.email.value} />)
                       }
                     >
-                      {note.content.email}
+                      {note.content.email.value}
                     </span>
                   ) : (
                     <a
@@ -720,26 +707,26 @@ const ProfileMergeTab = ({
                   className={`compare${note.id === lastComparedNote ? ' last-previewed' : ''}`}
                 >
                   <a
-                    href={`/profile/compare?left=${note.content.left}&right=${note.content.right}`}
+                    href={`/profile/compare?left=${note.content.left.value}&right=${note.content.right.value}`}
                     target="_blank"
                     rel="noreferrer"
                     onClick={() => setLastComparedNote(note.id)}
                   >
-                    {`${note.content.left},${note.content.right}`}
+                    {`${note.content.left.value},${note.content.right.value}`}
                   </a>
                 </span>
                 <div className="comment">
                   <span
                     onClick={() =>
-                      setTextToView(<FullComment comment={note.content.comment} />)
+                      setTextToView(<FullComment comment={note.content.comment.value} />)
                     }
                   >
-                    {note.content.comment}
+                    {note.content.comment.value}
                   </span>
                 </div>
                 <span className="col-created">{formatDateTime(note.tcdate)}</span>
                 <span className="col-actions">
-                  {note.content.status === 'Pending' && (
+                  {note.content.status.value === 'Pending' && (
                     <>
                       <button
                         type="button"
@@ -854,7 +841,10 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
     // checks the reply itself or its replies have been replied by support
     const replies = allReplies.filter((p) => p.replyto === comment.id)
     if (!replies.length) return false
-    if (replies.length === 1 && replies[0].signatures.includes('OpenReview.net/Support')) {
+    if (
+      replies.length === 1 &&
+      replies[0].signatures.includes(`${process.env.SUPER_USER}/Support`)
+    ) {
       return true
     }
 
@@ -866,7 +856,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
       const { notes, count } = await api.get(
         '/notes',
         {
-          invitation: 'OpenReview.net/Support/-/Request_Form',
+          invitation: `${process.env.SUPER_USER}/Support/-/Request_Form`,
           sort: 'tcdate',
           details: 'replies',
           select: `id,forum,tcdate,content['Abbreviated Venue Name'],content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
@@ -881,13 +871,13 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
         isCreatedInPastWeek: dayjs().diff(dayjs(p.tcdate), 'd') < 7,
         abbreviatedName: p.content?.['Abbreviated Venue Name'],
         hasOfficialReply: p.details?.replies?.find((q) =>
-          q.signatures.includes('OpenReview.net/Support')
+          q.signatures.includes(`${process.env.SUPER_USER}/Support`)
         ),
         unrepliedPcComments: sortBy(
           p.details?.replies?.filter(
             (q) =>
               q.invitation.endsWith('Comment') &&
-              !q.signatures.includes('OpenReview.net/Support') &&
+              !q.signatures.includes(`${process.env.SUPER_USER}/Support`) &&
               !hasBeenReplied(q, p.details?.replies ?? []) &&
               dayjs().diff(dayjs(q.cdate), 'd') < 7
           ),
@@ -948,7 +938,7 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
   )
 }
 
-const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
+const EmailDeletionTab = ({ accessToken, isActive }) => {
   const [emailDeletionNotes, setEmailDeletionNotes] = useState(null)
   const [emailDeletionNotesToShow, setEmailDeletionNotesToShow] = useState(null)
   const [page, setPage] = useState(1)
@@ -962,7 +952,12 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
       const notesResultP = api.getAll(
         '/notes',
         { invitation: emailRemovalInvitationId, sort: 'tcdate' },
-        { accessToken, version: 1 }
+        { accessToken }
+      )
+      const editResultsP = api.getAll(
+        '/notes/edits',
+        { invitation: emailRemovalInvitationId },
+        { accessToken, resultsKey: 'edits' }
       )
       const processLogsP = isActive
         ? api.getAll(
@@ -971,11 +966,19 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
             { accessToken, resultsKey: 'logs' }
           )
         : Promise.resolve([])
-      const [notes, processLogs] = await Promise.all([notesResultP, processLogsP])
-      const notesWithStatus = notes.map((p) => ({
-        ...p,
-        processLogStatus: processLogs.find((q) => q.id === p.id)?.status ?? 'running',
-      }))
+      const [notes, edits, processLogs] = await Promise.all([
+        notesResultP,
+        editResultsP,
+        processLogsP,
+      ])
+
+      const notesWithStatus = notes.map((p) => {
+        const edit = edits.find((q) => q.note.id === p.id)
+        return {
+          ...p,
+          processLogStatus: processLogs.find((q) => q.id === edit?.id)?.status ?? 'running',
+        }
+      })
 
       setEmailDeletionNotes(notesWithStatus)
       setEmailDeletionNotesToShow(
@@ -996,23 +999,24 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
       formContent[name] = cleanValue?.length ? cleanValue : undefined
     })
     try {
-      const invitationResults = await api.get(
-        '/invitations',
-        { id: emailRemovalInvitationId },
-        { accessToken, version: 1 }
+      const emailRemovalInvitation = await api.getInvitationById(
+        emailRemovalInvitationId,
+        accessToken
       )
-      const emailRemovalInvitation = invitationResults.invitations[0]
-      const noteToPost = {
-        invitation: emailRemovalInvitation.id,
-        content: formContent,
-        readers: buildArray(emailRemovalInvitation, 'readers', superUser.profile.id),
-        writers: buildArray(emailRemovalInvitation, 'writers', superUser.profile.id),
-        signatures: buildArray(emailRemovalInvitation, 'signatures', superUser.profile.id),
-      }
-      const result = await api.post('/notes', noteToPost, { accessToken, version: 1 })
+
+      const editToPost = view2.constructEdit({
+        formData: formContent,
+        invitationObj: emailRemovalInvitation,
+      })
+
+      const editResult = await api.post('/notes/edits', editToPost, {
+        accessToken,
+        version: 2,
+      })
+      const noteResult = await api.getNoteById(editResult.note.id, accessToken)
 
       const updatedEmailDeletionNotes = [
-        { ...result, processLogStatus: 'running' },
+        { ...noteResult, processLogStatus: 'running' },
         ...emailDeletionNotes,
       ]
       setEmailDeletionNotes(updatedEmailDeletionNotes)
@@ -1094,7 +1098,7 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
                     </a>
                   </span>
                   <span className="col-email">
-                    <span>{note.content.email}</span>
+                    <span>{note.content.email.value}</span>
                   </span>
                   <span className="col-profile">
                     <a
@@ -1102,10 +1106,10 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      {note.content.profile_id}
+                      {note.content.profile_id.value}
                     </a>
                   </span>
-                  <span className="col-comment">{note.content.comment}</span>
+                  <span className="col-comment">{note.content.comment.value}</span>
                   <span className="col-created">{formatDateTime(note.tcdate)}</span>
                 </div>
               ))}
@@ -1116,6 +1120,353 @@ const EmailDeletionTab = ({ accessToken, superUser, isActive }) => {
                   currentPage={page}
                   itemsPerPage={pageSize}
                   totalCount={emailDeletionNotes.length}
+                  options={{ useShallowRouting: true }}
+                  setCurrentPage={setPage}
+                />
+              )}
+            </>
+          ) : (
+            <LoadSpinner inline />
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
+const InstitutionTab = ({ accessToken, isActive }) => {
+  const [institutions, setInstitutions] = useState(null)
+  const [institutionsToShow, setInstitutionsToShow] = useState(null)
+  const [institutionToEdit, setInstitutionToEdit] = useState(null)
+  const [page, setPage] = useState(1)
+  const [searchAddForm, setSearchAddForm] = useReducer((state, action) => {
+    if (action.type === 'reset') return {}
+    return { ...state, [action.type]: action.payload }
+  }, {})
+
+  const pageSize = 25
+
+  const loadInstitutionsDomains = async (noCache) => {
+    try {
+      const result = await api.get(
+        `/settings/institutiondomains${noCache ? '?cache=false' : ''}`
+      )
+      setInstitutions(result)
+      setInstitutionsToShow(
+        result.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
+      )
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const getInstitutionDetails = async (institutionDomain) => {
+    try {
+      const result = await api.get('/settings/institutions', { domain: institutionDomain })
+      const institution = result.institutions[0]
+      if (!institution) {
+        promptError(`Institution ${institutionDomain} not found.`)
+        return
+      }
+      if (institution.id !== institutionDomain) {
+        promptError(`Id of ${institutionDomain} is ${institution.id}`)
+        return
+      }
+      setInstitutionToEdit({ ...institution, domains: institution.domains.join(',') })
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const saveInstitution = async () => {
+    try {
+      const result = await api.post(
+        '/settings/institutions',
+        {
+          id: institutionToEdit.id,
+          shortname: institutionToEdit.shortname ? institutionToEdit.shortname.trim() : null,
+          fullname: institutionToEdit.fullname ? institutionToEdit.fullname.trim() : null,
+          parent: institutionToEdit.parent ? institutionToEdit.parent.trim() : null,
+          domains: institutionToEdit.domains
+            ? institutionToEdit.domains.split(',').map((p) => p.trim())
+            : [],
+        },
+        { accessToken }
+      )
+      promptMessage(`${institutionToEdit.id} saved.`)
+      setInstitutionToEdit(null)
+      loadInstitutionsDomains()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const deleteInstitution = async (institutionId) => {
+    // eslint-disable-next-line no-alert
+    const confirmed = window.confirm(`Are you sure you want to delete ${institutionId}?`)
+    if (!confirmed) return
+    try {
+      await api.delete(`/settings/institutions/${institutionId}`, undefined, { accessToken })
+      promptMessage(`${institutionId} is deleted.`)
+      loadInstitutionsDomains(true)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const searchInstitution = () => {
+    const institutionIdToSearch = searchAddForm.institutionIdToSearch?.trim()
+    setPage(1)
+    if (!institutionIdToSearch?.length) {
+      loadInstitutionsDomains()
+      return
+    }
+
+    setInstitutions(
+      institutions.filter((p) => p.toLowerCase().includes(institutionIdToSearch.toLowerCase()))
+    )
+  }
+
+  const addInstitution = async () => {
+    const institutionId = searchAddForm.id?.trim()?.toLowerCase()
+    if (!institutionId) {
+      promptError('Institution ID is required.')
+      return
+    }
+
+    const institutionDomains = searchAddForm.domains
+      ?.split(',')
+      .flatMap((p) => (p.trim().toLowerCase()?.length ? p.trim().toLowerCase() : []))
+
+    try {
+      await api.post(
+        '/settings/institutions',
+        {
+          id: institutionId,
+          shortname: searchAddForm.shortname?.trim(),
+          fullname: searchAddForm.fullname?.trim(),
+          parent: searchAddForm.parent?.trim(),
+          domains: institutionDomains,
+        },
+        { accessToken }
+      )
+      promptMessage(`${searchAddForm.id} added.`)
+      setSearchAddForm({ type: 'reset' })
+      loadInstitutionsDomains(true)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  useEffect(() => {
+    if (!institutions) return
+    setInstitutionsToShow(
+      institutions.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
+    )
+  }, [page, institutions])
+
+  useEffect(() => {
+    loadInstitutionsDomains(true)
+  }, [isActive])
+
+  return (
+    <>
+      <div className="institution-container">
+        <div className="well search-forms">
+          <div className="institution-search-form">
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Institution ID to Search"
+              value={searchAddForm.institutionIdToSearch ?? ''}
+              onChange={(e) => {
+                if (!e.target.value?.trim()?.length) {
+                  setPage(1)
+                  loadInstitutionsDomains(true)
+                }
+                setSearchAddForm({ type: 'institutionIdToSearch', payload: e.target.value })
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  searchInstitution()
+                }
+              }}
+            />
+
+            <button type="submit" className="btn btn-xs" onClick={searchInstitution}>
+              Search
+            </button>
+          </div>
+          <div className="institution-add-form">
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Institution ID (the domain)"
+              value={searchAddForm.id ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'id', payload: e.target.value })
+              }}
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Short Name"
+              value={searchAddForm.shortname ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'shortname', payload: e.target.value })
+              }}
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Full Name"
+              value={searchAddForm.fullname ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'fullname', payload: e.target.value })
+              }}
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Parent"
+              value={searchAddForm.parent ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'parent', payload: e.target.value })
+              }}
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Domains"
+              value={searchAddForm.domains ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'domains', payload: e.target.value })
+              }}
+            />
+
+            <button type="submit" className="btn btn-xs" onClick={addInstitution}>
+              Add
+            </button>
+          </div>
+        </div>
+        <div>
+          {institutionsToShow ? (
+            <>
+              <Table
+                headings={[
+                  { content: '', width: '8%' },
+                  { content: 'Id', width: '15%' },
+                  { content: 'Short Name', width: '25%' },
+                  { content: 'Full Name', width: '25%' },
+                  { content: 'Parent', width: '25%' },
+                  { content: 'Domains', width: '15%' },
+                ]}
+              />
+              {institutionsToShow.map((institutionDomain) => (
+                <div className="institution-row" key={institutionDomain}>
+                  <span className="col-actions">
+                    {institutionDomain === institutionToEdit?.id ? (
+                      <button type="button" className="btn btn-xs " onClick={saveInstitution}>
+                        <Icon name="floppy-disk" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn-xs "
+                        onClick={() => {
+                          getInstitutionDetails(institutionDomain)
+                        }}
+                      >
+                        <Icon name="edit" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-xs btn-delete-institution"
+                      onClick={() => {
+                        deleteInstitution(institutionDomain)
+                      }}
+                    >
+                      <Icon name="trash" />
+                    </button>
+                  </span>
+
+                  {institutionDomain === institutionToEdit?.id ? (
+                    <>
+                      <span className="col-id">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.id ?? ''}
+                          onChange={() => {}}
+                        />
+                      </span>
+                      <span className="col-short-name">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.shortname ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              shortname: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                      <span className="col-full-name">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.fullname ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              fullname: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                      <span className="col-parent">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.parent ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              parent: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                      <span className="col-domains">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.domains ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              domains: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                    </>
+                  ) : (
+                    <span className="col-id">{institutionDomain}</span>
+                  )}
+                </div>
+              ))}
+              {institutions.length === 0 ? (
+                <p className="empty-message">No matching domains found.</p>
+              ) : (
+                <PaginationLinks
+                  currentPage={page}
+                  itemsPerPage={pageSize}
+                  totalCount={institutions.length}
                   options={{ useShallowRouting: true }}
                   setCurrentPage={setPage}
                 />
@@ -1188,6 +1539,13 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
             Profile Merge Requests <TabMessageCount count={profileMergeRequestCount} />
           </Tab>
           <Tab
+            id="institution"
+            active={activeTabId === '#institution' ? true : undefined}
+            onClick={() => setActiveTabId('#institution')}
+          >
+            Institution List
+          </Tab>
+          <Tab
             id="requests"
             active={activeTabId === '#requests' ? true : undefined}
             onClick={() => setActiveTabId('#requests')}
@@ -1201,16 +1559,11 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
             <UserModerationTab accessToken={accessToken} />
           </TabPanel>
           <TabPanel id="email">
-            <EmailDeletionTab
-              accessToken={accessToken}
-              superUser={superUser}
-              isActive={activeTabId === '#email'}
-            />
+            <EmailDeletionTab accessToken={accessToken} isActive={activeTabId === '#email'} />
           </TabPanel>
           <TabPanel id="name">
             <NameDeletionTab
               accessToken={accessToken}
-              superUser={superUser}
               setNameDeletionRequestCount={setNameDeletionRequestCount}
               isActive={activeTabId === '#name'}
             />
@@ -1221,6 +1574,12 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
               superUser={superUser}
               setProfileMergeRequestCount={setProfileMergeRequestCount}
               isActive={activeTabId === '#merge'}
+            />
+          </TabPanel>
+          <TabPanel id="institution">
+            <InstitutionTab
+              accessToken={accessToken}
+              isActive={activeTabId === '#institution'}
             />
           </TabPanel>
           <TabPanel id="requests">
@@ -1248,7 +1607,7 @@ const UserModerationQueue = ({
   const [pageNumber, setPageNumber] = useState(1)
   const [filters, setFilters] = useState({})
   const [profileIdToReject, setProfileIdToReject] = useState(null)
-  const [signedNotesCount, setSignedNotesCount] = useState(0)
+  const [signedNotes, setSignedNotes] = useState(0)
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
   const [pageSize, setPageSize] = useState(15)
@@ -1337,33 +1696,34 @@ const UserModerationQueue = ({
   }
 
   const getSignedAuthoredNotesCount = async (profileId) => {
-    const signedNotesCountP = api.getCombined(
+    const signedNotesP = api.getCombined(
       '/notes',
       { signature: profileId, select: 'id' },
       null,
       {
         accessToken,
+        includeVersion: true,
       }
     )
-    const authoredNotesCountP = api.getCombined(
+    const authoredNotesP = api.getCombined(
       '/notes',
       { 'content.authorids': profileId, select: 'id' },
       null,
-      { accessToken }
+      { accessToken, includeVersion: true }
     )
 
-    const [signedNotes, authoredNotes] = await Promise.all([
-      signedNotesCountP,
-      authoredNotesCountP,
+    const [signedNotesResult, authoredNotesResult] = await Promise.all([
+      signedNotesP,
+      authoredNotesP,
     ])
 
-    return [...new Set([...signedNotes.notes, ...authoredNotes.notes].map((p) => p.id))].length
+    return uniqBy([...signedNotesResult.notes, ...authoredNotesResult.notes], 'id')
   }
 
   const showRejectionModal = async (profileId) => {
     if (!onlyModeration) {
-      const signedAuthoredNotesCount = await getSignedAuthoredNotesCount(profileId)
-      setSignedNotesCount(signedAuthoredNotesCount)
+      const signedAuthoredNotes = await getSignedAuthoredNotesCount(profileId)
+      setSignedNotes(signedAuthoredNotes)
     }
     setProfileIdToReject(profileId)
 
@@ -1392,9 +1752,8 @@ const UserModerationQueue = ({
     if (!profile) return
 
     const actionIsBlock = profile.state !== 'Blocked'
-    const signedAuthoredNotesCount = !onlyModeration
-      ? await getSignedAuthoredNotesCount(profile.id)
-      : 0
+    const signedAuthoredNotesCount = (await getSignedAuthoredNotesCount(profile.id)).length
+
     const noteCountMessage =
       !onlyModeration && actionIsBlock && signedAuthoredNotesCount
         ? `There ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
@@ -1430,7 +1789,7 @@ const UserModerationQueue = ({
     const actionIsDelete = !profile.ddate
 
     const signedAuthoredNotesCount = actionIsDelete
-      ? await getSignedAuthoredNotesCount(profile.id)
+      ? (await getSignedAuthoredNotesCount(profile.id)).length
       : 0
 
     const noteCountMessage =
@@ -1676,18 +2035,27 @@ const UserModerationQueue = ({
         id={modalId}
         profileIdToReject={profileIdToReject}
         rejectUser={rejectUser}
-        signedNotesCount={signedNotesCount}
+        signedNotes={signedNotes}
       />
       <ProfilePreviewModal
         profileToPreview={profileToPreview}
         setProfileToPreview={setProfileToPreview}
         setLastPreviewedProfileId={setLastPreviewedProfileId}
+        contentToShow={[
+          'names',
+          'emails',
+          'links',
+          'history',
+          'relations',
+          'expertise',
+          'publications',
+        ]}
       />
     </div>
   )
 }
 
-const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount }) => {
+const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
   const selectRef = useRef(null)
 
@@ -1769,13 +2137,28 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount })
             />
           </div>
         </form>
-        {signedNotesCount > 0 && (
-          <h4>{`There ${inflect(signedNotesCount, 'is', 'are', false)} ${inflect(
-            signedNotesCount,
-            'note',
-            'notes',
-            true
-          )} signed by this profile.`}</h4>
+        {signedNotes.length > 0 && (
+          <>
+            <h4>{`There ${inflect(signedNotes.length, 'is', 'are', false)} ${inflect(
+              signedNotes.length,
+              'note',
+              'notes',
+              true
+            )} signed by this profile.`}</h4>
+            {signedNotes.slice(0, 10).map((p) => (
+              <div key={p.id}>
+                <a
+                  href={`${
+                    p.apiVersion === 2 ? process.env.API_V2_URL : process.env.API_URL
+                  }/notes?id=${p.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {p.id}
+                </a>
+              </div>
+            ))}
+          </>
         )}
       </>
     </BasicModal>
@@ -1805,7 +2188,7 @@ const RequestRejectionModal = ({ noteToReject, acceptRejectNote, setNoteToReject
         >
           <div className="form-group form-rejection">
             <label htmlFor="message" className="mb-1">
-              Reason for rejecting {noteToReject.content.name}:
+              Reason for rejecting {noteToReject.content.name?.value}:
             </label>
             <textarea
               name="message"

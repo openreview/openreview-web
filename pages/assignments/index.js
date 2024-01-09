@@ -8,7 +8,6 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Head from 'next/head'
 import cloneDeep from 'lodash/cloneDeep'
-import isEmpty from 'lodash/isEmpty'
 import Table from '../../components/Table'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import Icon from '../../components/Icon'
@@ -17,6 +16,7 @@ import BasicModal from '../../components/BasicModal'
 import NoteContent from '../../components/NoteContent'
 import ErrorAlert from '../../components/ErrorAlert'
 import NoteEditor from '../../components/NoteEditor'
+import PaginationLinks from '../../components/PaginationLinks'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
@@ -26,7 +26,6 @@ import {
   formatDateTime,
   cloneAssignmentConfigNote,
   cloneAssignmentConfigNoteV2,
-  useNewNoteEditor,
 } from '../../lib/utils'
 import { getNoteContentValues } from '../../lib/forum-utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
@@ -270,13 +269,16 @@ const Assignments = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
   const [configInvitation, setConfigInvitation] = useState(null)
   const [assignmentNotes, setAssignmentNotes] = useState(null)
+  const [totalCount, setTotalCount] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
   const [apiVersion, setApiVersion] = useState(null)
   const [error, setError] = useState(null)
   const [viewModalContent, setViewModalContent] = useState(null)
   const [editorNote, setEditorNote] = useState(null)
   const query = useQuery()
   const { setBannerContent } = appContext
-  const newNoteEditor = useNewNoteEditor(configInvitation?.domain)
+  const newNoteEditor = configInvitation?.domain
+  const pageSize = 25
 
   const shouldRemoveDeployLink = assignmentNotes?.some((p) =>
     apiVersion === 2
@@ -313,15 +315,18 @@ const Assignments = ({ appContext }) => {
 
   const getAssignmentNotes = async () => {
     try {
-      const { notes } = await api.get(
+      const { notes, count } = await api.get(
         '/notes',
         {
           invitation: `${query.group}/-/Assignment_Configuration`,
+          offset: pageSize * (currentPage - 1),
+          limit: pageSize,
         },
         { accessToken, version: apiVersion }
       )
 
       setAssignmentNotes(notes || [])
+      setTotalCount(count || 0)
     } catch (apiError) {
       promptError(apiError.message)
     }
@@ -531,7 +536,7 @@ const Assignments = ({ appContext }) => {
     if (apiVersion) {
       getAssignmentNotes()
     }
-  }, [apiVersion])
+  }, [apiVersion, currentPage])
 
   useEffect(() => {
     if (assignmentNotes) {
@@ -612,6 +617,13 @@ const Assignments = ({ appContext }) => {
               button above to get started.
             </p>
           )}
+
+          <PaginationLinks
+            setCurrentPage={setCurrentPage}
+            totalCount={totalCount}
+            itemsPerPage={pageSize}
+            currentPage={currentPage}
+          />
         </div>
       </div>
 
