@@ -144,7 +144,7 @@ const Footer = () => (
               <a href="/sponsors" target="_blank">
                 OpenReview Sponsors
               </a>
-              .
+              . &copy; {new Date().getFullYear()} OpenReview
             </p>
           </div>
         </div>
