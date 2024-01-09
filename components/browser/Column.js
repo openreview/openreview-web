@@ -9,7 +9,12 @@ import EdgeBrowserContext from './EdgeBrowserContext'
 import EntityList from './EntityList'
 import { prettyId, prettyInvitationId, pluralizeString } from '../../lib/utils'
 import EditEdgeInviteEmail from './EditEdgeInviteEmail'
-import { getInvitationPrefix, transformName } from '../../lib/edge-utils'
+import {
+  getInvitationPrefix,
+  isForBothGroupTypesInvite,
+  isNotInGroupInvite,
+  transformName,
+} from '../../lib/edge-utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
@@ -96,8 +101,6 @@ export default function Column(props) {
 
   const buildNewEditEdge = (editInvitation, entityId, weight = 0) => {
     if (!editInvitation) return null
-    const isInviteInvitation =
-      editInvitation[otherType]?.query?.['value-regex'] === '~.*|.+@.+'
 
     return {
       invitation: editInvitation.id,
@@ -221,10 +224,7 @@ export default function Column(props) {
       // eslint-disable-next-line react/jsx-one-expression-per-line
       return (
         <p>
-          {invitationNamePlural} for{' '}
-          <strong>
-            {name.fullname}
-          </strong>
+          {invitationNamePlural} for <strong>{name.fullname}</strong>
         </p>
       )
     }
@@ -335,7 +335,10 @@ export default function Column(props) {
 
         if (fieldName === 'editEdges' && entityType === 'profile') {
           const editInvitation = editInvitations.filter((p) => p.id === edge.invitation)?.[0]
-          if (editInvitation[type]?.query?.['value-regex']) {
+          if (
+            isNotInGroupInvite(editInvitation, type) ||
+            isForBothGroupTypesInvite(editInvitation, type)
+          ) {
             itemToAdd = {
               id: headOrTailId,
               content: {
@@ -793,7 +796,7 @@ export default function Column(props) {
         if (!itemToAdd) {
           if (entityType === 'profile') {
             const hasInviteInvitation = editInvitations.some(
-              (p) => p[type]?.query?.['value-regex']
+              (p) => isNotInGroupInvite(p, type) || isForBothGroupTypesInvite(p, type)
             )
             const hasProposedAssignmentInvitation = editInvitations.some((p) =>
               p.id.includes('Proposed_Assignment')
