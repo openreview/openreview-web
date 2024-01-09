@@ -14,7 +14,13 @@ import ScoresList from './ScoresList'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import api from '../../lib/api-client'
 import UserContext from '../UserContext'
-import { getInterpolatedValues, getSignatures } from '../../lib/edge-utils'
+import {
+  getInterpolatedValues,
+  getSignatures,
+  isForBothGroupTypesInvite,
+  isInGroupInvite,
+  isNotInGroupInvite,
+} from '../../lib/edge-utils'
 
 export default function NoteEntity(props) {
   const { editInvitations, traverseInvitation, availableSignaturesInvitationMap, version } =
@@ -115,7 +121,8 @@ export default function NoteEntity(props) {
     )?.[0]
     const otherColumnType = props.columnType === 'head' ? 'tail' : 'head'
     const isInviteInvitation =
-      editInvitation[otherColumnType]?.query?.['value-regex'] === '~.*|.+@.+'
+      isInGroupInvite(editInvitation, otherColumnType) ||
+      isForBothGroupTypesInvite(editInvitation, otherColumnType)
     const signatures = getSignatures(
       editInvitation,
       availableSignaturesInvitationMap,
@@ -179,7 +186,10 @@ export default function NoteEntity(props) {
     const parentColumnType = props.columnType === 'head' ? 'tail' : 'head'
     const isAssigned = metadata.isAssigned || metadata.isUserAssigned
     const isInviteInvitation =
-      editInvitation[parentColumnType]?.query?.['value-regex'] === '~.*|.+@.+'
+      isInGroupInvite(editInvitation, parentColumnType) ||
+      isNotInGroupInvite(editInvitation, parentColumnType) ||
+      isForBothGroupTypesInvite(editInvitation, parentColumnType)
+    const isExternalOnlyInviteInvitation = isNotInGroupInvite(editInvitation, parentColumnType)
     const isReviewerAssignmentStage = editInvitations.some((p) =>
       p.id.includes('Proposed_Assignment')
     )
@@ -196,6 +206,12 @@ export default function NoteEntity(props) {
     const isNotWritable = editEdge?.writable === false
     let shouldDisableControl = false
     let disableControlReason = null
+
+    // show invite only at bottom of column
+    if (isExternalOnlyInviteInvitation && !editEdge) return null
+
+    // not to show invite assignment when removed from reviewers group
+    if (isInviteInvitation && props.parentInfo.content?.isDummyProfile) return null
 
     // invited profile show only invite edge and proposed assignment edge
     if (isParentInvited && !(isInviteInvitation || isProposedAssignmentInvitation)) return null
