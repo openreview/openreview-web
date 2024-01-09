@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useReducer, useRef, useCallback } from 'react'
 import Head from 'next/head'
-import { cloneDeep, orderBy, sortBy } from 'lodash'
+import { cloneDeep, orderBy, sortBy, uniqBy } from 'lodash'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import withAdminAuth from '../../components/withAdminAuth'
@@ -1134,6 +1134,353 @@ const EmailDeletionTab = ({ accessToken, isActive }) => {
   )
 }
 
+const InstitutionTab = ({ accessToken, isActive }) => {
+  const [institutions, setInstitutions] = useState(null)
+  const [institutionsToShow, setInstitutionsToShow] = useState(null)
+  const [institutionToEdit, setInstitutionToEdit] = useState(null)
+  const [page, setPage] = useState(1)
+  const [searchAddForm, setSearchAddForm] = useReducer((state, action) => {
+    if (action.type === 'reset') return {}
+    return { ...state, [action.type]: action.payload }
+  }, {})
+
+  const pageSize = 25
+
+  const loadInstitutionsDomains = async (noCache) => {
+    try {
+      const result = await api.get(
+        `/settings/institutiondomains${noCache ? '?cache=false' : ''}`
+      )
+      setInstitutions(result)
+      setInstitutionsToShow(
+        result.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
+      )
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const getInstitutionDetails = async (institutionDomain) => {
+    try {
+      const result = await api.get('/settings/institutions', { domain: institutionDomain })
+      const institution = result.institutions[0]
+      if (!institution) {
+        promptError(`Institution ${institutionDomain} not found.`)
+        return
+      }
+      if (institution.id !== institutionDomain) {
+        promptError(`Id of ${institutionDomain} is ${institution.id}`)
+        return
+      }
+      setInstitutionToEdit({ ...institution, domains: institution.domains.join(',') })
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const saveInstitution = async () => {
+    try {
+      const result = await api.post(
+        '/settings/institutions',
+        {
+          id: institutionToEdit.id,
+          shortname: institutionToEdit.shortname ? institutionToEdit.shortname.trim() : null,
+          fullname: institutionToEdit.fullname ? institutionToEdit.fullname.trim() : null,
+          parent: institutionToEdit.parent ? institutionToEdit.parent.trim() : null,
+          domains: institutionToEdit.domains
+            ? institutionToEdit.domains.split(',').map((p) => p.trim())
+            : [],
+        },
+        { accessToken }
+      )
+      promptMessage(`${institutionToEdit.id} saved.`)
+      setInstitutionToEdit(null)
+      loadInstitutionsDomains()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const deleteInstitution = async (institutionId) => {
+    // eslint-disable-next-line no-alert
+    const confirmed = window.confirm(`Are you sure you want to delete ${institutionId}?`)
+    if (!confirmed) return
+    try {
+      await api.delete(`/settings/institutions/${institutionId}`, undefined, { accessToken })
+      promptMessage(`${institutionId} is deleted.`)
+      loadInstitutionsDomains(true)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const searchInstitution = () => {
+    const institutionIdToSearch = searchAddForm.institutionIdToSearch?.trim()
+    setPage(1)
+    if (!institutionIdToSearch?.length) {
+      loadInstitutionsDomains()
+      return
+    }
+
+    setInstitutions(
+      institutions.filter((p) => p.toLowerCase().includes(institutionIdToSearch.toLowerCase()))
+    )
+  }
+
+  const addInstitution = async () => {
+    const institutionId = searchAddForm.id?.trim()?.toLowerCase()
+    if (!institutionId) {
+      promptError('Institution ID is required.')
+      return
+    }
+
+    const institutionDomains = searchAddForm.domains
+      ?.split(',')
+      .flatMap((p) => (p.trim().toLowerCase()?.length ? p.trim().toLowerCase() : []))
+
+    try {
+      await api.post(
+        '/settings/institutions',
+        {
+          id: institutionId,
+          shortname: searchAddForm.shortname?.trim(),
+          fullname: searchAddForm.fullname?.trim(),
+          parent: searchAddForm.parent?.trim(),
+          domains: institutionDomains,
+        },
+        { accessToken }
+      )
+      promptMessage(`${searchAddForm.id} added.`)
+      setSearchAddForm({ type: 'reset' })
+      loadInstitutionsDomains(true)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  useEffect(() => {
+    if (!institutions) return
+    setInstitutionsToShow(
+      institutions.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
+    )
+  }, [page, institutions])
+
+  useEffect(() => {
+    loadInstitutionsDomains(true)
+  }, [isActive])
+
+  return (
+    <>
+      <div className="institution-container">
+        <div className="well search-forms">
+          <div className="institution-search-form">
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Institution ID to Search"
+              value={searchAddForm.institutionIdToSearch ?? ''}
+              onChange={(e) => {
+                if (!e.target.value?.trim()?.length) {
+                  setPage(1)
+                  loadInstitutionsDomains(true)
+                }
+                setSearchAddForm({ type: 'institutionIdToSearch', payload: e.target.value })
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  searchInstitution()
+                }
+              }}
+            />
+
+            <button type="submit" className="btn btn-xs" onClick={searchInstitution}>
+              Search
+            </button>
+          </div>
+          <div className="institution-add-form">
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Institution ID (the domain)"
+              value={searchAddForm.id ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'id', payload: e.target.value })
+              }}
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Short Name"
+              value={searchAddForm.shortname ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'shortname', payload: e.target.value })
+              }}
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Full Name"
+              value={searchAddForm.fullname ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'fullname', payload: e.target.value })
+              }}
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Parent"
+              value={searchAddForm.parent ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'parent', payload: e.target.value })
+              }}
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Domains"
+              value={searchAddForm.domains ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'domains', payload: e.target.value })
+              }}
+            />
+
+            <button type="submit" className="btn btn-xs" onClick={addInstitution}>
+              Add
+            </button>
+          </div>
+        </div>
+        <div>
+          {institutionsToShow ? (
+            <>
+              <Table
+                headings={[
+                  { content: '', width: '8%' },
+                  { content: 'Id', width: '15%' },
+                  { content: 'Short Name', width: '25%' },
+                  { content: 'Full Name', width: '25%' },
+                  { content: 'Parent', width: '25%' },
+                  { content: 'Domains', width: '15%' },
+                ]}
+              />
+              {institutionsToShow.map((institutionDomain) => (
+                <div className="institution-row" key={institutionDomain}>
+                  <span className="col-actions">
+                    {institutionDomain === institutionToEdit?.id ? (
+                      <button type="button" className="btn btn-xs " onClick={saveInstitution}>
+                        <Icon name="floppy-disk" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn-xs "
+                        onClick={() => {
+                          getInstitutionDetails(institutionDomain)
+                        }}
+                      >
+                        <Icon name="edit" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-xs btn-delete-institution"
+                      onClick={() => {
+                        deleteInstitution(institutionDomain)
+                      }}
+                    >
+                      <Icon name="trash" />
+                    </button>
+                  </span>
+
+                  {institutionDomain === institutionToEdit?.id ? (
+                    <>
+                      <span className="col-id">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.id ?? ''}
+                          onChange={() => {}}
+                        />
+                      </span>
+                      <span className="col-short-name">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.shortname ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              shortname: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                      <span className="col-full-name">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.fullname ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              fullname: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                      <span className="col-parent">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.parent ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              parent: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                      <span className="col-domains">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.domains ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              domains: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                    </>
+                  ) : (
+                    <span className="col-id">{institutionDomain}</span>
+                  )}
+                </div>
+              ))}
+              {institutions.length === 0 ? (
+                <p className="empty-message">No matching domains found.</p>
+              ) : (
+                <PaginationLinks
+                  currentPage={page}
+                  itemsPerPage={pageSize}
+                  totalCount={institutions.length}
+                  options={{ useShallowRouting: true }}
+                  setCurrentPage={setPage}
+                />
+              )}
+            </>
+          ) : (
+            <LoadSpinner inline />
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
 const TabMessageCount = ({ count }) => {
   if (!count) return null
   return (count > 0 || typeof count === 'string') && <span className="badge">{count}</span>
@@ -1192,6 +1539,13 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
             Profile Merge Requests <TabMessageCount count={profileMergeRequestCount} />
           </Tab>
           <Tab
+            id="institution"
+            active={activeTabId === '#institution' ? true : undefined}
+            onClick={() => setActiveTabId('#institution')}
+          >
+            Institution List
+          </Tab>
+          <Tab
             id="requests"
             active={activeTabId === '#requests' ? true : undefined}
             onClick={() => setActiveTabId('#requests')}
@@ -1222,6 +1576,12 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
               isActive={activeTabId === '#merge'}
             />
           </TabPanel>
+          <TabPanel id="institution">
+            <InstitutionTab
+              accessToken={accessToken}
+              isActive={activeTabId === '#institution'}
+            />
+          </TabPanel>
           <TabPanel id="requests">
             <VenueRequestsTab
               accessToken={accessToken}
@@ -1247,7 +1607,7 @@ const UserModerationQueue = ({
   const [pageNumber, setPageNumber] = useState(1)
   const [filters, setFilters] = useState({})
   const [profileIdToReject, setProfileIdToReject] = useState(null)
-  const [signedNotesCount, setSignedNotesCount] = useState(0)
+  const [signedNotes, setSignedNotes] = useState(0)
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
   const [pageSize, setPageSize] = useState(15)
@@ -1336,33 +1696,34 @@ const UserModerationQueue = ({
   }
 
   const getSignedAuthoredNotesCount = async (profileId) => {
-    const signedNotesCountP = api.getCombined(
+    const signedNotesP = api.getCombined(
       '/notes',
       { signature: profileId, select: 'id' },
       null,
       {
         accessToken,
+        includeVersion: true,
       }
     )
-    const authoredNotesCountP = api.getCombined(
+    const authoredNotesP = api.getCombined(
       '/notes',
       { 'content.authorids': profileId, select: 'id' },
       null,
-      { accessToken }
+      { accessToken, includeVersion: true }
     )
 
-    const [signedNotes, authoredNotes] = await Promise.all([
-      signedNotesCountP,
-      authoredNotesCountP,
+    const [signedNotesResult, authoredNotesResult] = await Promise.all([
+      signedNotesP,
+      authoredNotesP,
     ])
 
-    return [...new Set([...signedNotes.notes, ...authoredNotes.notes].map((p) => p.id))].length
+    return uniqBy([...signedNotesResult.notes, ...authoredNotesResult.notes], 'id')
   }
 
   const showRejectionModal = async (profileId) => {
     if (!onlyModeration) {
-      const signedAuthoredNotesCount = await getSignedAuthoredNotesCount(profileId)
-      setSignedNotesCount(signedAuthoredNotesCount)
+      const signedAuthoredNotes = await getSignedAuthoredNotesCount(profileId)
+      setSignedNotes(signedAuthoredNotes)
     }
     setProfileIdToReject(profileId)
 
@@ -1391,9 +1752,8 @@ const UserModerationQueue = ({
     if (!profile) return
 
     const actionIsBlock = profile.state !== 'Blocked'
-    const signedAuthoredNotesCount = !onlyModeration
-      ? await getSignedAuthoredNotesCount(profile.id)
-      : 0
+    const signedAuthoredNotesCount = (await getSignedAuthoredNotesCount(profile.id)).length
+
     const noteCountMessage =
       !onlyModeration && actionIsBlock && signedAuthoredNotesCount
         ? `There ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
@@ -1429,7 +1789,7 @@ const UserModerationQueue = ({
     const actionIsDelete = !profile.ddate
 
     const signedAuthoredNotesCount = actionIsDelete
-      ? await getSignedAuthoredNotesCount(profile.id)
+      ? (await getSignedAuthoredNotesCount(profile.id)).length
       : 0
 
     const noteCountMessage =
@@ -1675,18 +2035,27 @@ const UserModerationQueue = ({
         id={modalId}
         profileIdToReject={profileIdToReject}
         rejectUser={rejectUser}
-        signedNotesCount={signedNotesCount}
+        signedNotes={signedNotes}
       />
       <ProfilePreviewModal
         profileToPreview={profileToPreview}
         setProfileToPreview={setProfileToPreview}
         setLastPreviewedProfileId={setLastPreviewedProfileId}
+        contentToShow={[
+          'names',
+          'emails',
+          'links',
+          'history',
+          'relations',
+          'expertise',
+          'publications',
+        ]}
       />
     </div>
   )
 }
 
-const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount }) => {
+const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
   const selectRef = useRef(null)
 
@@ -1768,13 +2137,28 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotesCount })
             />
           </div>
         </form>
-        {signedNotesCount > 0 && (
-          <h4>{`There ${inflect(signedNotesCount, 'is', 'are', false)} ${inflect(
-            signedNotesCount,
-            'note',
-            'notes',
-            true
-          )} signed by this profile.`}</h4>
+        {signedNotes.length > 0 && (
+          <>
+            <h4>{`There ${inflect(signedNotes.length, 'is', 'are', false)} ${inflect(
+              signedNotes.length,
+              'note',
+              'notes',
+              true
+            )} signed by this profile.`}</h4>
+            {signedNotes.slice(0, 10).map((p) => (
+              <div key={p.id}>
+                <a
+                  href={`${
+                    p.apiVersion === 2 ? process.env.API_V2_URL : process.env.API_URL
+                  }/notes?id=${p.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {p.id}
+                </a>
+              </div>
+            ))}
+          </>
         )}
       </>
     </BasicModal>

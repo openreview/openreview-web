@@ -166,18 +166,6 @@ main.invitation {
     }
   }
 
-  section.process-functions {
-    .tabs-container .tab-pane {
-      padding: 0;
-    }
-    .code-editor {
-      margin-top: -1px;
-      z-index: 1;
-    }
-    ul.nav-tabs > li.active {
-      z-index: 10;
-    }
-  }
   .dateprocess-editor {
     .glyphicon-minus-sign,
     .glyphicon-plus-sign {
