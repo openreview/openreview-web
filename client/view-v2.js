@@ -2273,7 +2273,6 @@ module.exports = (function () {
           break
         case 'ddate':
           break
-
         default:
           // readers/writers/signatures collected in editor default to note readers/writers/signatures
           result[field] = formData?.[field] ?? noteObj?.[field]

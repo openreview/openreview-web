@@ -113,15 +113,22 @@ const EditSignatures = ({
   )
 }
 
-const EditContent = ({ content, editContentData, setEditContentData, errors, setErrors }) => {
-  if (!content) return null
-  return Object.entries(content).map(([fieldName, fieldDescription]) => (
+const EditContent = ({
+  invitation,
+  editContentData,
+  setEditContentData,
+  errors,
+  setErrors,
+}) => {
+  if (!invitation.edit?.content) return null
+  return Object.entries(invitation.edit.content).map(([fieldName, fieldDescription]) => (
     <div
       key={fieldName}
       className={fieldDescription?.value?.param?.hidden ? null : styles.fieldContainer}
     >
       <EditorComponentContext.Provider
         value={{
+          invitation,
           field: { [fieldName]: fieldDescription },
           value: editContentData[fieldName],
           onChange: setEditContentData,
@@ -677,7 +684,7 @@ const NoteEditor = ({
         <hr />
 
         <EditContent
-          content={invitation.edit.content}
+          invitation={invitation}
           editContentData={editContentData}
           setEditContentData={setEditContentData}
           errors={errors}
