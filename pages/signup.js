@@ -557,7 +557,6 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
     const emailDomain = emailToCheck.split('@').pop()?.trim()?.toLowerCase()
     return institutionDomains.includes(emailDomain)
   }
-
   const InstitutionErrorMessage = ({ email: invalidEmail }) => (
     <span>
       <strong>{invalidEmail.split('@').pop()}</strong> does not appear in our list of
@@ -571,7 +570,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
         data-toggle="modal"
         data-target="#feedback-modal"
         data-from={email}
-        data-subject="My institution email is not recognized"
+        data-subject="Please add to your list of publishing institutions"
       >
         contact us
       </a>{' '}
