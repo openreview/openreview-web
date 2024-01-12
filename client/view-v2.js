@@ -2283,7 +2283,7 @@ module.exports = (function () {
     // editToPost.edit.content fields
     Object.entries(otherFields.content ?? {}).forEach(
       ([editContentFieldName, editContentFieldValue]) => {
-        if (editContentFieldValue.value.param) return
+        if (!editContentFieldValue.value.param) return
         var newVal = formData?.editContent?.[editContentFieldName]
         if (
           typeof newVal === 'string' &&
