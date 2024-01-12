@@ -7,7 +7,7 @@ import {
   getToken,
   getMessages,
   getNotes,
-  getReferences,
+  getNoteEdits,
   superUserName,
   strongPassword,
 } from './utils/api-helper'
@@ -408,21 +408,21 @@ test('unlink paper', async (t) => {
 test('check import history', async (t) => {
   const { superUserToken } = t.fixtureCtx
   // should have only 1 note
-  const notes = await getNotes({ 'content.authorids': userB.tildeId }, superUserToken)
+  const notes = await getNotes({ 'content.authorids': userB.tildeId }, superUserToken, 2)
   await t.expect(notes.length).eql(1)
 
   // shoud have 2 references: add paper and update authorid
   const importedPaperId = notes[0].id
-  const references = await getReferences(
-    { referent: importedPaperId, sort: 'mdate' },
+  const edits = await getNoteEdits(
+    { 'note.id': importedPaperId, sort: 'tcdate' },
     superUserToken
   )
   await t
-    .expect(references.length)
+    .expect(edits.length)
     .eql(2)
-    .expect(references[1].content.authorids.includes(userBAlternateId))
-    .notOk() // 1st post of paper has all dblp authorid
-    .expect(references[0].content.authorids.includes(userBAlternateId))
+    .expect(edits[1].note.content.authorids.value.includes(userBAlternateId))
+    .ok() // 1st post of paper has all dblp authorid
+    .expect(edits[0].note.content.authorids.value.includes(userBAlternateId))
     .ok() // authorid is updated
 })
 
