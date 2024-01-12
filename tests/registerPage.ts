@@ -56,6 +56,11 @@ test('create new profile', async (t) => {
     .typeText(emailAddressInputSelector, 'validemail@umass.edu')
     .click(signupButtonSelector)
     .expect(Selector('div.activation-message-row').exists).notOk() // no warning
+    // change email to subdomain of institution email
+    .selectText(emailAddressInputSelector).pressKey('delete')
+    .typeText(emailAddressInputSelector, 'validemail@test.umass.edu')
+    .click(signupButtonSelector)
+    .expect(Selector('div.activation-message-row').exists).notOk() // no warning
     .selectText(emailAddressInputSelector).pressKey('delete')
     .typeText(emailAddressInputSelector, 'melisa@test.com')
     .click(signupButtonSelector)

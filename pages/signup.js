@@ -554,8 +554,22 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const [nonInstitutionEmail, setNonInstitutionEmail] = useState(null)
 
   const isInstitutionEmail = (emailToCheck) => {
-    const emailDomain = emailToCheck.split('@').pop()?.trim()?.toLowerCase()
-    return institutionDomains.includes(emailDomain)
+    const emailDomainTokens = emailToCheck.split('@').pop()?.trim()?.toLowerCase().split('.')
+    return institutionDomains.some((institutionDomain) => {
+      const institutionDomainTokens = institutionDomain.split('.')
+      if (institutionDomainTokens.length > emailDomainTokens.length) {
+        return false
+      }
+      for (let i = 1; i <= institutionDomainTokens.length; i += 1) {
+        if (
+          institutionDomainTokens[institutionDomainTokens.length - i] !==
+          emailDomainTokens[emailDomainTokens.length - i]
+        ) {
+          return false
+        }
+      }
+      return true
+    })
   }
 
   const InstitutionErrorMessage = ({ email: invalidEmail }) => (
