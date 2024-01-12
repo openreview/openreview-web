@@ -24,7 +24,7 @@ export default function FeedbackModal() {
   const profileSubject = 'My OpenReview profile'
   const submissionSubject = 'A conference I submitted to'
   const organizationSubject = 'A conference I organized'
-  const institutionSubject = 'Please add to your list of publishing institutions'
+  const institutionSubject = 'Please add my domain to your list of publishing institutions'
   const subjectOptions = [
     profileSubject,
     submissionSubject,

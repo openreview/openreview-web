@@ -82,7 +82,7 @@ test('send feedback selecting subject', async (t) => {
 
 
   await t
-    .selectText(Selector('#feedback-modal form input[value="Please add to your list of publishing institutions"]'))
+    .selectText(Selector('#feedback-modal form input[value="Please add my domain to your list of publishing institutions"]'))
     .pressKey('delete')
     .click(subjectDropdown)
     .click(profileDropdownOption)
