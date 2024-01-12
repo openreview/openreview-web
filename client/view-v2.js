@@ -2283,14 +2283,14 @@ module.exports = (function () {
     // editToPost.edit.content fields
     Object.entries(otherFields.content ?? {}).forEach(
       ([editContentFieldName, editContentFieldValue]) => {
-        if (!_.has(editContentFieldValue.value, 'param')) return
+        if (editContentFieldValue.value.param) return
         var newVal = formData?.editContent?.[editContentFieldName]
         if (
           typeof newVal === 'string' &&
-          (editContentFieldValue.param?.input === 'text' ||
-            editContentFieldValue.value.param?.input === 'textarea' ||
-            (editContentFieldValue.value.param?.type === 'string' &&
-              !editContentFieldValue.value.param?.enum))
+          (editContentFieldValue.value.param.input === 'text' ||
+            editContentFieldValue.value.param.input === 'textarea' ||
+            (editContentFieldValue.value.param.type === 'string' &&
+              !editContentFieldValue.value.param.enum))
         ) {
           newVal = newVal?.trim()
         }
@@ -2338,14 +2338,10 @@ module.exports = (function () {
 
       var valueObj = contentFieldValue.value
       if (valueObj) {
+        const shouldKeepConstValue = fieldsToIgnoreConst.includes(contentFieldName)
         if (
-          !fieldsToIgnoreConst.includes(contentFieldName) &&
-          (!_.has(valueObj, 'param') || valueObj.param.const)
-        ) {
-          return
-        } else if (
-          fieldsToIgnoreConst.includes(contentFieldName) &&
-          valueObj.param?.const?.replace
+          (!shouldKeepConstValue && (!_.has(valueObj, 'param') || valueObj.param.const)) ||
+          (shouldKeepConstValue && valueObj.param?.const?.replace)
         ) {
           return
         } else {
