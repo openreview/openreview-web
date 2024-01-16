@@ -95,7 +95,11 @@ Venues.getInitialProps = async (ctx) => {
     // Post migration delete the entire else clause
     // eslint-disable-next-line no-else-return
   } else {
-    const { groups } = await api.get('/groups', { id: 'host' })
+    const { groups } = await api.get(
+      '/groups',
+      { id: 'host' },
+      { remoteIpAddress: ctx.req?.headers['x-forwarded-for'] }
+    )
     const group = groups?.length > 0 ? groups[0] : null
     if (!group) {
       return {
