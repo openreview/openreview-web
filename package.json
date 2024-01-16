@@ -35,6 +35,7 @@
     "dompurify": "^3.0.6",
     "eslint-plugin-jest": "^27.6.0",
     "eslint4b-prebuilt": "^6.7.2",
+    "firebase": "^10.7.1",
     "handlebars": "^4.7.8",
     "jquery": "^2.2.4",
     "jwt-decode": "^4.0.0",

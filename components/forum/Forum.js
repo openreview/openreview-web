@@ -25,7 +25,7 @@ import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
-import { prettyInvitationId, stringToObject } from '../../lib/utils'
+import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import {
   formatNote,
   getNoteInvitations,
@@ -68,6 +68,7 @@ export default function Forum({
   const [enableLiveUpdate, setEnableLiveUpdate] = useState(false)
   const [latestMdate, setLatestMdate] = useState(null)
   const [chatReplyNote, setChatReplyNote] = useState(null)
+  const [notificationPermissions, setNotificationPermissions] = useState('loading')
   const invitationMapRef = useRef(null)
   const signaturesMapRef = useRef(null)
   const router = useRouter()
@@ -446,8 +447,22 @@ export default function Forum({
     }
   }
 
+  const getNotificationState = () => {
+    if (!('Notification' in window)) {
+      return Promise.resolve('denied')
+    }
+    if (navigator.permissions) {
+      return navigator.permissions
+        .query({ name: 'notifications' })
+        .then((result) => result.state)
+    }
+    return Promise.resolve(Notification.permission)
+  }
+
   // Handle url hash changes
   useEffect(() => {
+    if (!parentNote) return
+
     const handleRouteChange = (url) => {
       const [_, tabId] = url.split('#')
       if (!tabId || !replyForumViews) return
@@ -479,11 +494,12 @@ export default function Forum({
 
     router.events.on('hashChangeComplete', handleRouteChange)
     router.events.on('routeChangeComplete', handleRouteChange)
+    // eslint-disable-next-line consistent-return
     return () => {
       router.events.off('hashChangeComplete', handleRouteChange)
       router.events.on('routeChangeComplete', handleRouteChange)
     }
-  }, [])
+  }, [parentNote])
 
   // Load forum replies
   useEffect(() => {
@@ -493,6 +509,10 @@ export default function Forum({
     setLatestMdate(Date.now() - 1000)
 
     loadNotesAndInvitations()
+    getNotificationState().then((state) => {
+      // Can be 'granted', 'denied', or 'prompt'
+      setNotificationPermissions(state)
+    })
   }, [userLoading])
 
   // Update forum nesting level
@@ -709,6 +729,8 @@ export default function Forum({
     if (!repliesLoaded || !enableLiveUpdate) return
 
     loadNewReplies().then((newReplies) => {
+      let newMessageAuthor = ''
+      let additionalReplyCount = 0
       newReplies.forEach((note) => {
         const invId = note.invitations[0]
         // eslint-disable-next-line no-param-reassign
@@ -719,11 +741,27 @@ export default function Forum({
         note.details.signatures = note.signatures.flatMap(
           (sigId) => signaturesMapRef.current[sigId] ?? []
         )
+        if (!note.details.writable) {
+          if (!newMessageAuthor) {
+            newMessageAuthor = prettyId(note.signatures[0], true)
+          } else {
+            additionalReplyCount += 1
+          }
+        }
         updateNote(note)
       })
 
       if (newReplies.length > 0) {
         setLatestMdate(newReplies[newReplies.length - 1].tmdate)
+      }
+
+      if (notificationPermissions === 'granted' && newMessageAuthor) {
+        const notif = new Notification('New forum message', {
+          body: additionalReplyCount > 0
+            ? `${newMessageAuthor} and ${additionalReplyCount} others posted new messages.`
+            : `${newMessageAuthor} posted a new message.`,
+          icon: '/images/openreview_logo_256.png',
+        })
       }
     })
   }, 2000)
@@ -801,9 +839,7 @@ export default function Forum({
               })}
             </div>
             <NoteEditor
-              note={
-                selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)
-              }
+              note={selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)}
               replyToNote={parentNote}
               invitation={activeInvitation}
               className="note-editor-reply depth-even"

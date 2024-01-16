@@ -23,6 +23,8 @@ export default function ChatEditorForm({
   const [signatureOptions, setSignatureOptions] = useState([])
   const [showSignatureDropdown, setShowSignatureDropdown] = useState(false)
   const [showMessagePreview, setShowMessagePreview] = useState(false)
+  const [notificationPermissions, setNotificationPermissions] = useState('loading')
+  const [pushSubscribed, setPushSubscribed] = useState(false)
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const [loading, setLoading] = useState(false)
   const { user, accessToken } = useUser()
@@ -122,10 +124,34 @@ export default function ChatEditorForm({
       })
   }
 
+  const getNotificationState = () => {
+    if (!('Notification' in window)) {
+      return Promise.resolve('denied')
+    }
+    if (navigator.permissions) {
+      return navigator.permissions
+        .query({ name: 'notifications' })
+        .then((result) => result.state)
+    }
+    return Promise.resolve(Notification.permission)
+  }
+
+  const subscribeToPushNotifications = async () => {
+    setPushSubscribed(true)
+  }
+
+  const unsubscribeFromPushNotifications = async () => {
+    setPushSubscribed(false)
+  }
+
   useEffect(() => {
     if (!invitation) return
 
     loadSignatureOptions()
+    getNotificationState().then((state) => {
+      // Can be 'granted', 'denied', or 'prompt'
+      setNotificationPermissions(state)
+    })
   }, [invitation])
 
   useEffect(() => {
@@ -246,6 +272,43 @@ export default function ChatEditorForm({
           )}
         </div>
         <div className="pull-right">
+          {'Notification' in window && (
+            <div className="custom-switch custom-control">
+              <input
+                id="notifications-toggle"
+                type="checkbox"
+                className="custom-control-input"
+                value="notify"
+                checked={pushSubscribed}
+                onChange={(e) => {
+                  if (
+                    notificationPermissions === 'denied' ||
+                    notificationPermissions === 'loading'
+                  ) {
+                    return
+                  }
+
+                  if (!pushSubscribed) {
+                    if (notificationPermissions === 'prompt') {
+                      Notification.requestPermission().then((permission) => {
+                        setNotificationPermissions(permission)
+                        subscribeToPushNotifications()
+                      })
+                    } else {
+                      // Notification permission is already granted
+                      subscribeToPushNotifications()
+                    }
+                  } else {
+                    unsubscribeFromPushNotifications()
+                  }
+                }}
+              />
+              <label className="custom-control-label" htmlFor="notifications-toggle">
+                Notifications
+              </label>
+            </div>
+          )}
+
           <button
             type="button"
             className="btn btn-sm btn-default mr-2"
@@ -259,6 +322,7 @@ export default function ChatEditorForm({
             {showMessagePreview ? 'Edit' : 'Preview'}
             {/* <SvgIcon name="markdown" /> */}
           </button>
+
           <button
             type="submit"
             className="btn btn-sm btn-primary"

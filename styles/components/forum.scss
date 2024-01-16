@@ -118,6 +118,10 @@ main.forum {
       overflow-x: scroll;
       @include mixins.markdown-content-styles;
     }
+    .custom-switch {
+      display: inline-block;
+      padding-right: 1.25rem;
+    }
   }
 
   #tab-message {
