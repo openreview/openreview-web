@@ -64,8 +64,8 @@ const Invitation = ({ invitationId, webfieldCode, writable, componentObj, appCon
     Object.keys(componentObj.properties).forEach((propName) => {
       const prop = componentObj.properties[propName]
       if (prop?.component) {
-        componentProps[propName] = dynamic(() =>
-          import(`../../components/webfield/${prop.component}`)
+        componentProps[propName] = dynamic(
+          () => import(`../../components/webfield/${prop.component}`)
         )
       } else {
         componentProps[propName] = prop
@@ -109,7 +109,13 @@ Invitation.getInitialProps = async (ctx) => {
 
   let invitation
   try {
-    invitation = await api.getInvitationById(ctx.query.id, accessToken)
+    invitation = await api.getInvitationById(
+      ctx.query.id,
+      accessToken,
+      null,
+      null,
+      ctx.req?.headers['x-forwarded-for']
+    )
     if (!invitation) {
       return { statusCode: 404, message: `The Invitation ${ctx.query.id} was not found` }
     }
@@ -136,7 +142,11 @@ Invitation.getInitialProps = async (ctx) => {
   let domainGroup = null
   if (isWebfieldComponent && invitation.domain) {
     try {
-      const apiRes = await api.get('/groups', { id: invitation.domain }, { accessToken })
+      const apiRes = await api.get(
+        '/groups',
+        { id: invitation.domain },
+        { accessToken, remoteIpAddress: ctx.req?.headers['x-forwarded-for'] }
+      )
       domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
     } catch (error) {
       domainGroup = null

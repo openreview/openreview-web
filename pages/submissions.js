@@ -61,7 +61,11 @@ Submissions.getInitialProps = async (ctx) => {
   const { token } = auth(ctx)
   let group
   try {
-    const { groups } = await api.get('/groups', { id: groupId }, { accessToken: token })
+    const { groups } = await api.get(
+      '/groups',
+      { id: groupId },
+      { accessToken: token, remoteIpAddress: ctx.req?.headers['x-forwarded-for'] }
+    )
     group = groups?.length > 0 ? groups[0] : null
   } catch (error) {
     group = null
@@ -75,7 +79,11 @@ Submissions.getInitialProps = async (ctx) => {
       .get(
         '/invitations',
         { id: idToTest, expired: true },
-        { accessToken: token, version: 1 }
+        {
+          accessToken: token,
+          version: 1,
+          remoteIpAddress: ctx.req?.headers['x-forwarded-for'],
+        }
       )
       .then((res) => res.invitations?.[0]?.id || null)
       .catch((err) => null)
@@ -108,7 +116,11 @@ Submissions.getInitialProps = async (ctx) => {
       limit: notesPerPage,
       offset: notesPerPage * (currentPage - 1),
     },
-    { accessToken: token, version: isV2Group ? 2 : 1 }
+    {
+      accessToken: token,
+      version: isV2Group ? 2 : 1,
+      remoteIpAddress: ctx.req?.headers['x-forwarded-for'],
+    }
   )
   if (!notes) {
     return {

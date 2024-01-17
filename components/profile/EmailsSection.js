@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { isValidEmail } from '../../lib/utils'
+import { isInstitutionEmail, isValidEmail } from '../../lib/utils'
 import ProfileMergeModal from '../ProfileMergeModal'
 
 const EmailsButton = ({
@@ -93,7 +93,7 @@ const EmailsSection = ({
   const { accessToken } = useUser()
   const [alreadyConfirmedError, setAlreadyConfirmedError] = useState(null)
   const hasInstitutionEmail = emails.some(
-    (p) => p.confirmed && institutionDomains?.some((q) => p.email.endsWith(q))
+    (p) => p.confirmed && isInstitutionEmail(p.email, institutionDomains)
   )
 
   const handleAddEmail = () => {

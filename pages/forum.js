@@ -150,7 +150,7 @@ ForumPage.getInitialProps = async (ctx) => {
     const blindNotesResult = await api.get(
       '/notes',
       { original: noteId },
-      { accessToken: token, version: 1 }
+      { accessToken: token, version: 1, remoteIpAddress: ctx.req?.headers['x-forwarded-for'] }
     )
 
     // if no blind submission found return the current forum
@@ -186,7 +186,8 @@ ForumPage.getInitialProps = async (ctx) => {
       queryId,
       token,
       { trash: true, details: 'writable,presentation' },
-      { trash: true, details: 'original,replyCount,writable' }
+      { trash: true, details: 'original,replyCount,writable' },
+      ctx.req?.headers['x-forwarded-for']
     )
 
     // Only super user can see deleted forums

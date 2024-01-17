@@ -1,4 +1,4 @@
-import { stringToObject } from '../lib/utils'
+import { isInstitutionEmail, stringToObject } from '../lib/utils'
 
 describe('utils', () => {
   test('convert string to object in stringToObject', () => {
@@ -41,5 +41,33 @@ describe('utils', () => {
         comment: { value: 'some prefilled comment' },
       },
     })
+  })
+
+  test('valid institution email in isInstitutionEmail', () => {
+    const institutionDomains = ['umass.edu', 'cs.umass.edu']
+
+    let validEmail = 'test@umass.edu'
+    expect(isInstitutionEmail(validEmail, institutionDomains)).toEqual(true)
+
+    validEmail = 'test@cs.umass.edu'
+    expect(isInstitutionEmail(validEmail, institutionDomains)).toEqual(true)
+
+    let validSubdomainEmail = 'test@test.umass.edu'
+    expect(isInstitutionEmail(validSubdomainEmail, institutionDomains)).toEqual(true)
+
+    validSubdomainEmail = 'test@a.long.sub.domain.cs.umass.edu'
+    expect(isInstitutionEmail(validSubdomainEmail, institutionDomains)).toEqual(true)
+
+    let invalidEmail = 'test@umass.com'
+    expect(isInstitutionEmail(invalidEmail, institutionDomains)).toEqual(false)
+
+    invalidEmail = 'test@fakeumass.com'
+    expect(isInstitutionEmail(invalidEmail, institutionDomains)).toEqual(false)
+
+    invalidEmail = 'test@fakeumass.edu'
+    expect(isInstitutionEmail(invalidEmail, institutionDomains)).toEqual(false)
+
+    invalidEmail = 'test@cs.edu'
+    expect(isInstitutionEmail(invalidEmail, institutionDomains)).toEqual(false)
   })
 })
