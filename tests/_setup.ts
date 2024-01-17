@@ -107,6 +107,7 @@ test('Set up TestVenue', async (t) => {
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
       'publication_chairs': 'No, our venue does not have Publication Chairs',
+      submission_license: ['CC BY 4.0'],
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
@@ -234,6 +235,7 @@ test('Set up AnotherTestVenue', async (t) => {
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
       'publication_chairs': 'No, our venue does not have Publication Chairs',
+      submission_license: ['CC BY 4.0'],
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
@@ -333,6 +335,7 @@ test('Set up ICLR', async (t) => {
       'Expected Submissions': '6000',
       reviewer_identity: ['Program Chairs', 'Assigned Area Chair'],
       'publication_chairs': 'No, our venue does not have Publication Chairs',
+      submission_license: ['CC BY 4.0'],
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
@@ -452,7 +455,8 @@ test('Set up TestVenue using API 2', async (t) => {
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
       'publication_chairs': 'No, our venue does not have Publication Chairs',
-      'api_version': '2'
+      'api_version': '2',
+      submission_license: ['CC BY 4.0'],
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
@@ -488,7 +492,7 @@ test('Set up TestVenue using API 2', async (t) => {
         authorids: { 'value': [hasTaskUserTildeId] },
         abstract: { 'value': 'Paper Abstract' },
         keywords: { 'value': ['keyword1', 'keyword2'] },
-        pdf: { 'value': '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf'},
+        pdf: { 'value': '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf' },
       }
     }
   }
@@ -497,7 +501,7 @@ test('Set up TestVenue using API 2', async (t) => {
   await waitForJobs(editId, superUserToken)
 
   // close deadline
-  const submissionCloseDate = new Date(Date.now() - (28  * 60 * 1000)) // 28 minutes ago
+  const submissionCloseDate = new Date(Date.now() - (28 * 60 * 1000)) // 28 minutes ago
   const year = submissionCloseDate.getUTCFullYear()
   const month = `0${submissionCloseDate.getUTCMonth() + 1}`.slice(-2)
   const day = `0${submissionCloseDate.getUTCDate()}`.slice(-2)
