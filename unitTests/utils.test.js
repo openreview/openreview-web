@@ -66,5 +66,8 @@ describe('utils', () => {
 
     invalidEmail = 'test@fakeumass.edu'
     expect(isInstitutionEmail(invalidEmail, institutionDomains)).toEqual(false)
+
+    invalidEmail = 'test@cs.edu'
+    expect(isInstitutionEmail(invalidEmail, institutionDomains)).toEqual(false)
   })
 })
