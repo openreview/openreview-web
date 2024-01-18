@@ -2339,10 +2339,8 @@ module.exports = (function () {
       }
 
       var fieldReader = contentFieldValue.readers
-      if (fieldReader) {
-        if (fieldReader.param) {
-          content[contentFieldName].readers = noteObj?.content?.[contentFieldName]?.readers
-        }
+      if (fieldReader?.param) {
+        content[contentFieldName].readers = noteObj?.content?.[contentFieldName]?.readers
       }
     })
 
