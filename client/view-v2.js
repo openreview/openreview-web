@@ -2340,7 +2340,7 @@ module.exports = (function () {
 
       var fieldReader = contentFieldValue.readers
       if (fieldReader) {
-        if (!fieldReader.const) {
+        if (fieldReader.param) {
           content[contentFieldName].readers = noteObj?.content?.[contentFieldName]?.readers
         }
       }
