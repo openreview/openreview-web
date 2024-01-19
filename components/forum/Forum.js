@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
+import truncate from 'lodash/truncate'
 import escapeRegExp from 'lodash/escapeRegExp'
 import List from 'rc-virtual-list'
 
@@ -730,6 +731,7 @@ export default function Forum({
 
     loadNewReplies().then((newReplies) => {
       let newMessageAuthor = ''
+      let newMessage = ''
       let additionalReplyCount = 0
       newReplies.forEach((note) => {
         const invId = note.invitations[0]
@@ -741,9 +743,10 @@ export default function Forum({
         note.details.signatures = note.signatures.flatMap(
           (sigId) => signaturesMapRef.current[sigId] ?? []
         )
-        if (!note.details.writable) {
+        if (!note.details.writable && !note.ddate) {
           if (!newMessageAuthor) {
             newMessageAuthor = prettyId(note.signatures[0], true)
+            newMessage = truncate(note.content.message.value, { length: 60 })
           } else {
             additionalReplyCount += 1
           }
@@ -756,10 +759,10 @@ export default function Forum({
       }
 
       if (notificationPermissions === 'granted' && newMessageAuthor) {
-        const notif = new Notification('New forum message', {
+        const notif = new Notification('New Forum Post', {
           body: additionalReplyCount > 0
             ? `${newMessageAuthor} and ${additionalReplyCount} others posted new messages.`
-            : `${newMessageAuthor} posted a new message.`,
+            : `${newMessageAuthor} posted a new message: ${newMessage}`,
           icon: '/images/openreview_logo_256.png',
         })
       }

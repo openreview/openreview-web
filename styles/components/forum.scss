@@ -46,7 +46,7 @@ main.forum {
   .chat-invitations-container {
     background-color: $gray1;
     border: 1px solid #eee;
-    padding: 0.75rem;
+    padding: 0.5rem;
     padding-top: .625rem;
     // box-shadow: 0 0 8px rgba(0,0,0,0.2);
     // clip-path: inset(-8px 0px 0px 0px);
@@ -73,7 +73,7 @@ main.forum {
       }
     }
     .form-group {
-      margin-bottom: .375rem;
+      margin-bottom: .5rem;
     }
     .form-control {
       border-radius: 2px;
@@ -97,7 +97,7 @@ main.forum {
       strong {
         padding-left: 1.25rem;
         font-size: 1rem;
-        line-height: 1rem;
+        line-height: .875rem;
       }
       a {
         font-size: .75rem;
