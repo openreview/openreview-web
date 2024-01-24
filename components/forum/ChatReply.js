@@ -111,7 +111,9 @@ export default forwardRef(function ChatReply(
     promptMessage('Reply URL copied to clipboard', { scrollToTop: false })
   }
 
+  // Deleted Reply
   if (note.ddate) {
+    const signature = note.signatures[0]
     return (
       <div className={`${styles.container}`} data-id={note.id} ref={ref}>
         <div className="chat-body deleted clearfix">
@@ -119,7 +121,7 @@ export default forwardRef(function ChatReply(
 
           <div className="header">
             <span className="indicator" style={{ backgroundColor: '#ddd' }} />
-            <strong>{prettyId(note.signatures[0], true)}</strong>
+            <ChatSignature groupId={signature} />
           </div>
           <div className="note-content">
             <div className="note-content-value markdown-rendered">
@@ -278,7 +280,7 @@ function ChatSignature({ groupId, signatureGroup }) {
 
   return (
     <strong>
-      {groupId.startsWith('~') ? (
+      {groupId?.startsWith('~') ? (
         <a href={`/profile?id=${groupId}`} target="_blank" rel="noreferrer">
           {prettyId(groupId, true)}
         </a>
