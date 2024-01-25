@@ -6,8 +6,6 @@ import DOMPurify from 'dompurify'
 import { nanoid } from 'nanoid'
 import random from 'lodash/random'
 import { marked } from 'marked'
-// import { initializeApp } from 'firebase/app'
-// import { getAnalytics } from 'firebase/analytics'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import { auth, getTokenPayload, cookieExpiration, refreshExpiration } from '../lib/auth'
@@ -318,19 +316,6 @@ export default class OpenReviewApp extends App {
         console.warn('Failed to register service worker: ', error)
       })
     }
-
-    // // Setup Firebase for forum chat notifications
-    // const firebaseConfig = {
-    //   apiKey: "AIzaSyAGyUOg-kd5CR32kA9KBb3qRqR4bvMrjPA", // TODO: move to env
-    //   authDomain: "sunlit-realm-131518.firebaseapp.com",
-    //   projectId: "sunlit-realm-131518",
-    //   storageBucket: "sunlit-realm-131518.appspot.com",
-    //   messagingSenderId: "997553930042",
-    //   appId: "1:997553930042:web:656b99a2b167e6ad5d1a03",
-    //   measurementId: "G-6P4YG5NT5F"
-    // }
-    // const firebaseApp = initializeApp(firebaseConfig)
-    // const firebaseAnalytics = getAnalytics(firebaseApp)
 
     const setUserState = ({ user, token, expiration }) => {
       if (!user) {
