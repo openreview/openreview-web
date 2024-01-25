@@ -68,8 +68,8 @@ const Group = ({ groupId, webfieldCode, writable, componentObj, appContext }) =>
     Object.keys(componentObj.properties).forEach((propName) => {
       const prop = componentObj.properties[propName]
       if (prop?.component) {
-        componentProps[propName] = dynamic(() =>
-          import(`../../components/webfield/${prop.component}`)
+        componentProps[propName] = dynamic(
+          () => import(`../../components/webfield/${prop.component}`)
         )
       } else {
         componentProps[propName] = prop
@@ -120,7 +120,11 @@ Group.getInitialProps = async (ctx) => {
 
   let group
   try {
-    const { groups } = await api.get('/groups', { id: ctx.query.id }, { accessToken: token })
+    const { groups } = await api.get(
+      '/groups',
+      { id: ctx.query.id },
+      { accessToken: token, remoteIpAddress: ctx.req?.headers['x-forwarded-for'] }
+    )
     group = groups?.length > 0 ? groups[0] : null
     if (!group) {
       return { statusCode: 404, message: `The Group ${ctx.query.id} was not found` }
@@ -168,7 +172,11 @@ return {
   let domainGroup = null
   if (isWebfieldComponent && group.domain !== group.id) {
     try {
-      const apiRes = await api.get('/groups', { id: group.domain }, { accessToken: token })
+      const apiRes = await api.get(
+        '/groups',
+        { id: group.domain },
+        { accessToken: token, remoteIpAddress: ctx.req?.headers['x-forwarded-for'] }
+      )
       domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
     } catch (error) {
       domainGroup = null

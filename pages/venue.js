@@ -104,14 +104,16 @@ Venue.getInitialProps = async (ctx) => {
   }
 
   const { token } = auth(ctx)
+  const requestOptions = {
+    accessToken: token,
+    remoteIpAddress: ctx.req?.headers['x-forwarded-for'],
+  }
 
   const [hostGroup, venues] = await Promise.all([
     api
-      .get('/groups', { id: ctx.query.id }, { accessToken: token })
+      .get('/groups', { id: ctx.query.id }, requestOptions)
       .then((res) => res.groups?.[0] ?? null),
-    api
-      .get('/groups', { host: ctx.query.id }, { accessToken: token })
-      .then((res) => res.groups ?? []),
+    api.get('/groups', { host: ctx.query.id }, requestOptions).then((res) => res.groups ?? []),
   ])
 
   if (!hostGroup) {

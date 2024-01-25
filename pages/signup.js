@@ -9,7 +9,7 @@ import UserContext from '../components/UserContext'
 import NoteList from '../components/NoteList'
 import BasicModal from '../components/BasicModal'
 import api from '../lib/api-client'
-import { isValidEmail, isValidPassword } from '../lib/utils'
+import { isInstitutionEmail, isValidEmail, isValidPassword } from '../lib/utils'
 import ProfileMergeModal from '../components/ProfileMergeModal'
 import ErrorAlert from '../components/ErrorAlert'
 import Icon from '../components/Icon'
@@ -553,10 +553,6 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const [institutionDomains, setInstitutionDomains] = useState([])
   const [nonInstitutionEmail, setNonInstitutionEmail] = useState(null)
 
-  const isInstitutionEmail = (emailToCheck) => {
-    const emailDomain = emailToCheck.split('@').pop()?.trim()?.toLowerCase()
-    return institutionDomains.includes(emailDomain)
-  }
   const InstitutionErrorMessage = ({ email: invalidEmail }) => (
     <span>
       <strong>{invalidEmail.split('@').pop()}</strong> does not appear in our list of
@@ -580,7 +576,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!isInstitutionEmail(email)) {
+    if (!isInstitutionEmail(email, institutionDomains)) {
       setNonInstitutionEmail(email)
     }
 
@@ -636,10 +632,11 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
           }}
           onBlur={(e) => {
             const cleanEmail = e.target.value.trim()
-            if (cleanEmail && !isInstitutionEmail(cleanEmail)) {
+            if (cleanEmail && !isInstitutionEmail(cleanEmail, institutionDomains)) {
               setNonInstitutionEmail(cleanEmail)
             }
-            if (!cleanEmail || isInstitutionEmail(cleanEmail)) setNonInstitutionEmail(null)
+            if (!cleanEmail || isInstitutionEmail(cleanEmail, institutionDomains))
+              setNonInstitutionEmail(null)
           }}
           autoComplete="email"
         />
