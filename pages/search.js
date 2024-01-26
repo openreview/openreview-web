@@ -138,7 +138,7 @@ const Search = ({ appContext }) => {
           limit: 1000,
         },
         null,
-        { accessToken, resultsKey: 'notes', sort: 'tmdate:desc' }
+        { accessToken, resultsKey: 'notes' }
       )
 
       if (searchRes.notes) {
