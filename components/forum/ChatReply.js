@@ -118,15 +118,17 @@ export default forwardRef(function ChatReply(
       <div className={`${styles.container}`} data-id={note.id} ref={ref}>
         <div className="chat-body deleted clearfix">
           <ReplyInfo parentNote={parentNote} parentTitle={note.parentTitle} />
-
+          {/* TODO: uncomment when signatures are sent with deleted notes */}
+          {/*
           <div className="header">
             <span className="indicator" style={{ backgroundColor: '#ddd' }} />
             <ChatSignature groupId={signature} />
           </div>
+          */}
           <div className="note-content">
             <div className="note-content-value markdown-rendered">
               <p className="text-muted">
-                <em>Message Deleted</em>
+                <em>This message has been deleted</em>
               </p>
             </div>
           </div>
