@@ -475,6 +475,38 @@ test('reimport unlinked paper and import all', async (t) => {
     .gt(0)
 })
 
+test('add current history history', async (t) => {
+  // add past end date
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .typeText(Selector('div.history').find('input.end').nth(0), (new Date().getFullYear() - 1).toString(), {
+      replace: true,
+      paste: true,
+    })
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText)
+    .notEql('You must enter current education and career info')
+    // add current end date
+    .typeText(Selector('div.history').find('input.end').nth(0), (new Date().getFullYear()).toString(), {
+      replace: true,
+      paste: true,
+    })
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).notOk()
+
+  // add empty end date
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .typeText(Selector('div.history').find('input.end').nth(0), '', {
+      replace: true,
+      paste: true,
+    })
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).notOk()
+})
+
 // eslint-disable-next-line no-unused-expressions
 fixture`Profile page different user`
 

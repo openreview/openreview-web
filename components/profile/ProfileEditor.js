@@ -197,6 +197,13 @@ export default function ProfileEditor({
         'You must enter position, institution, and domain information for each entry in your education and career history'
       )
     }
+    if (!profileContent.history.some((p) => !p.end || p.end >= new Date().getFullYear())) {
+      return promptInvalidValue(
+        'history',
+        profile.history?.[0]?.key,
+        'You must enter current education and career info'
+      )
+    }
     // #endregion
 
     // #region validate relations
