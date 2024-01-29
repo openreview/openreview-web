@@ -500,10 +500,8 @@ test('validate current history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .typeText(firstHistoryEndInput, '', {
-      replace: true,
-      paste: true,
-    })
+    .selectText(firstHistoryEndInput)
+    .pressKey('delete')
     .click(saveProfileButton)
     .expect(Selector('.glyphicon-map-marker').exists).notOk()
 })
