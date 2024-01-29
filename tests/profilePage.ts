@@ -475,7 +475,7 @@ test('reimport unlinked paper and import all', async (t) => {
     .gt(0)
 })
 
-test('add current history history', async (t) => {
+test('validate current history', async (t) => {
   // add past end date
   await t
     .useRole(userBRole)
