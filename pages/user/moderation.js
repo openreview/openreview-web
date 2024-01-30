@@ -1102,7 +1102,7 @@ const EmailDeletionTab = ({ accessToken, isActive }) => {
                   </span>
                   <span className="col-profile">
                     <a
-                      href={`/profile?id=${note.content.profile_id}`}
+                      href={`/profile?id=${note.content.profile_id.value}`}
                       target="_blank"
                       rel="noreferrer"
                     >
