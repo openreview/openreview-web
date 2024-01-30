@@ -58,12 +58,16 @@ function InvitationLink({ invitation, referrer }) {
   if (invitation.noteInvitation) {
     const noteParam = replyTo ? `&noteId=${noteId}` : ''
     const invitationParam = completed ? '' : `&invitationId=${id}`
-    return (
-      <Link
-        href={`/forum?id=${invitation.details.replytoNote.forum}${noteParam}${invitationParam}&referrer=${referrer}`}
-      >
-        {prettifiedInvitationId}
-      </Link>
+    return web ? (
+      <Link href={`/invitation?id=${id}&referrer=${referrer}`}>{prettifiedInvitationId}</Link>
+    ) : (
+      noteParam && (
+        <Link
+          href={`/forum?id=${invitation.details.replytoNote.forum}${noteParam}${invitationParam}&referrer=${referrer}`}
+        >
+          {prettifiedInvitationId}
+        </Link>
+      )
     )
   }
   if (invitation.tagInvitation) {
