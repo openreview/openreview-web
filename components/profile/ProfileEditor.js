@@ -182,8 +182,8 @@ export default function ProfileEditor({
     if (!profileContent.history.length) {
       return promptInvalidValue(
         'history',
-        profile.history?.[0]?.key,
-        'You must enter at least one position for your education and career history'
+        profileContent.history?.[0]?.key,
+        'Education and career history cannot be empty'
       )
     }
     if (
