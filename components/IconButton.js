@@ -35,4 +35,7 @@ export const EditButton = (props) => <IconButton name="edit" {...props} />
 // eslint-disable-next-line react/jsx-props-no-spreading
 export const SearchButton = (props) => <IconButton name="search" {...props} />
 
+// eslint-disable-next-line react/jsx-props-no-spreading
+export const ClearButton = (props) => <IconButton name="remove" {...props} />
+
 export default IconButton

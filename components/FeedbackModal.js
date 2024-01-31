@@ -6,6 +6,7 @@ import UserContext from './UserContext'
 import ErrorAlert from './ErrorAlert'
 import api from '../lib/api-client'
 import { CreatableDropdown } from './Dropdown'
+import { ClearButton } from './IconButton'
 
 export default function FeedbackModal() {
   const [text, setText] = useState(null)
@@ -23,7 +24,7 @@ export default function FeedbackModal() {
   const profileSubject = 'My OpenReview profile'
   const submissionSubject = 'A conference I submitted to'
   const organizationSubject = 'A conference I organized'
-  const institutionSubject = 'My institution email is not recognized'
+  const institutionSubject = 'Please add my domain to your list of publishing institutions'
   const subjectOptions = [
     profileSubject,
     submissionSubject,
@@ -184,14 +185,21 @@ export default function FeedbackModal() {
         )
       case 'select':
         return formData[field.name]?.length > 0 ? (
-          <input
-            type="text"
-            className="form-control"
-            value={formData[field.name] ?? ''}
-            onChange={(e) => {
-              setFormData({ type: field.name, payload: e.target.value })
-            }}
-          />
+          <div className="clearable-input">
+            <input
+              type="text"
+              className="form-control"
+              value={formData[field.name] ?? ''}
+              onChange={(e) => {
+                setFormData({ type: field.name, payload: e.target.value })
+              }}
+            />
+            <ClearButton
+              onClick={(e) => {
+                setFormData({ type: field.name, payload: '' })
+              }}
+            />
+          </div>
         ) : (
           <CreatableDropdown
             instanceId={`feedback-${field.name}`}
