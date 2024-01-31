@@ -1437,22 +1437,46 @@ table.table-minimal {
   .search-forms {
     margin-bottom: 0;
 
-    .institution-search-form,
-    .institution-add-form {
+    .institution-search-form {
       display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
       margin-bottom: 0.75rem;
+
+      .search-button {
+        margin-bottom: 0.25rem;
+      }
 
       .form-control {
         margin-right: 0.5rem;
-        width: 25%;
-        &.comment {
-          width: 40%;
+        margin-bottom: 0.25rem;
+        width: 24%;
+      }
+    }
+
+    .institution-add-form {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+
+      .add-button {
+        height: 30px;
+      }
+
+      .form-control,
+      .dropdown-select {
+        margin-right: 0.5rem;
+        margin-bottom: 0.25rem;
+        width: 24%;
+        .dropdown-select__option {
+          height: auto;
         }
       }
     }
   }
   .institution-row {
     display: flex;
+    flex-wrap: wrap;
     justify-content: left;
     margin-bottom: 0.5rem;
     line-height: 30px;
@@ -1467,12 +1491,23 @@ table.table-minimal {
     .col-short-name,
     .col-full-name,
     .col-parent {
-      width: 25%;
+      width: 20%;
       padding-left: 0.25rem;
     }
     .col-domains {
       width: 15%;
       padding-left: 0.25rem;
+    }
+    .col-country,
+    .col-state,
+    .col-webpages {
+      width: 20%;
+      margin-right: 0.25rem;
+
+      .dropdown-select__option {
+        height: auto;
+        line-height: 20px;
+      }
     }
   }
 }
