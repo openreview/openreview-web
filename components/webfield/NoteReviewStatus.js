@@ -232,8 +232,19 @@ export const AcPcConsoleReviewerStatusRow = ({
               <div>
                 {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName])
                   .flatMap((ratingName, index) => {
-                    const rating = completedReview[ratingName]
-                    if (rating !== null) return `${prettyField(ratingName)}: ${rating}`
+                    let ratingValue
+                    let ratingDisplayName
+                    if (typeof ratingName === 'object') {
+                      ratingDisplayName = Object.keys(ratingName)[0]
+                      ratingValue = Object.values(ratingName)[0]
+                        .map((p) => completedReview[p])
+                        .find((q) => q !== undefined)
+                    } else {
+                      ratingDisplayName = ratingName
+                      ratingValue = completedReview[ratingName]
+                    }
+                    if (ratingValue !== null)
+                      return `${prettyField(ratingDisplayName)}: ${ratingValue}`
                     return []
                   })
                   .join(' / ')}
@@ -323,8 +334,19 @@ export const AcPcConsoleReviewStatusRow = ({
         <div>
           {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName])
             .flatMap((ratingName, index) => {
-              const rating = review[ratingName]
-              if (rating !== null) return `${prettyField(ratingName)}: ${rating}`
+              let ratingValue
+              let ratingDisplayName
+              if (typeof ratingName === 'object') {
+                ratingDisplayName = Object.keys(ratingName)[0]
+                ratingValue = Object.values(ratingName)[0]
+                  .map((p) => review[p])
+                  .find((q) => q !== undefined)
+              } else {
+                ratingDisplayName = ratingName
+                ratingValue = review[ratingName]
+              }
+              if (ratingValue !== null)
+                return `${prettyField(ratingDisplayName)}: ${ratingValue}`
               return []
             })
             .join(' / ')}
@@ -449,17 +471,18 @@ export const AcPcConsoleNoteReviewStatus = ({
           ))}
         </div>
       </Collapse>
-      {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
-        (ratingName, index) => {
-          const { ratingAvg, ratingMin, ratingMax } = ratings[ratingName]
-          return (
-            <span key={index}>
-              <strong>Average {prettyField(ratingName)}:</strong> {ratingAvg} (Min: {ratingMin}
-              , Max: {ratingMax})
-            </span>
-          )
-        }
-      )}
+      {(Array.isArray(reviewRatingName)
+        ? reviewRatingName.map((p) => (typeof p === 'object' ? Object.keys(p)[0] : p))
+        : [reviewRatingName]
+      ).map((ratingName, index) => {
+        const { ratingAvg, ratingMin, ratingMax } = ratings[ratingName]
+        return (
+          <span key={index}>
+            <strong>Average {prettyField(ratingName)}:</strong> {ratingAvg} (Min: {ratingMin},
+            Max: {ratingMax})
+          </span>
+        )
+      })}
       <span>
         <strong>Average Confidence:</strong> {confidenceAvg} (Min: {confidenceMin}, Max:{' '}
         {confidenceMax})

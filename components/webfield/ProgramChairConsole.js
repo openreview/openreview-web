@@ -193,9 +193,7 @@ const ProgramChairConsole = ({ appContext }) => {
       // #region get Reviewer, AC, SAC members
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
-          id
-            ? api.getGroupById(id, accessToken, { select: 'members' })
-            : Promise.resolve([])
+          id ? api.getGroupById(id, accessToken, { select: 'members' }) : Promise.resolve([])
         )
       )
       // #endregion
@@ -600,7 +598,20 @@ const ProgramChairConsole = ({ appContext }) => {
       const ratings = Object.fromEntries(
         (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
           (ratingName) => {
-            const ratingValues = officialReviews.map((p) => p[ratingName])
+            let displayName
+            let ratingCandidates
+            if (typeof ratingName === 'object') {
+              // eslint-disable-next-line prefer-destructuring
+              displayName = Object.keys(ratingName)[0]
+              ratingCandidates = Object.values(ratingName)[0]
+            } else {
+              displayName = ratingName
+              ratingCandidates = [ratingName]
+            }
+            const ratingValues = officialReviews.map((p) =>
+              ratingCandidates.map((candidate) => p[candidate]).find((q) => q !== undefined)
+            )
+
             const validRatingValues = ratingValues.filter((p) => p !== null)
             const ratingAvg = validRatingValues.length
               ? (
@@ -610,7 +621,7 @@ const ProgramChairConsole = ({ appContext }) => {
               : 'N/A'
             const ratingMin = validRatingValues.length ? Math.min(...validRatingValues) : 'N/A'
             const ratingMax = validRatingValues.length ? Math.max(...validRatingValues) : 'N/A'
-            return [ratingName, { ratingAvg, ratingMin, ratingMax }]
+            return [displayName, { ratingAvg, ratingMin, ratingMax }]
           }
         )
       )
