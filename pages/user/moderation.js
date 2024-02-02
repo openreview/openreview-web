@@ -33,7 +33,7 @@ const UserModerationTab = ({ accessToken }) => {
   const [configNote, setConfigNote] = useState(null)
   const [configNoteV2, setConfigNoteV2] = useState(null)
 
-  const moderationDisabled = configNote?.content?.moderate === 'No'
+  const moderationDisabled = configNoteV2?.content?.moderate?.value === 'No'
 
   const getModerationStatus = async () => {
     try {
@@ -82,12 +82,13 @@ const UserModerationTab = ({ accessToken }) => {
 
     try {
       await api.post(
-        '/notes',
-        {
-          ...configNote,
-          content: { ...configNote.content, moderate: moderationDisabled ? 'Yes' : 'No' },
-        },
-        { accessToken, version: 1 }
+        '/notes/edits',
+        view2.constructEdit({
+          formData: { moderate: moderationDisabled ? 'Yes' : 'No' },
+          invitationObj: configNoteV2.details.invitation,
+          noteObj: configNoteV2,
+        }),
+        { accessToken }
       )
       getModerationStatus()
     } catch (error) {
@@ -131,7 +132,7 @@ const UserModerationTab = ({ accessToken }) => {
 
   return (
     <>
-      {configNote && (
+      {configNoteV2 && (
         <div className="moderation-status">
           <h4>Moderation Status:</h4>
 
@@ -145,7 +146,7 @@ const UserModerationTab = ({ accessToken }) => {
           </select>
 
           <span className="terms-timestamp">
-            {`Terms Timestamp is ${configNote?.content?.terms_timestamp ?? 'unset'}`}
+            {`Terms Timestamp is ${configNoteV2?.content?.terms_timestamp?.value ?? 'unset'}`}
           </span>
           <button type="button" className="btn btn-xs" onClick={updateTermStamp}>
             Update Terms Stamp
