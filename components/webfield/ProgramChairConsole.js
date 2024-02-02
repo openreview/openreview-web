@@ -587,7 +587,17 @@ const ProgramChairConsole = ({ appContext }) => {
             confidence: parseNumberField(q.content[reviewConfidenceName]?.value),
             ...Object.fromEntries(
               (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
-                (ratingName) => [[ratingName], parseNumberField(q.content[ratingName]?.value)]
+                (ratingName) => {
+                  const displayRatingName =
+                    typeof ratingName === 'object' ? Object.keys(ratingName)[0] : ratingName
+                  const ratingValue =
+                    typeof ratingName === 'object'
+                      ? Object.values(ratingName)[0]
+                          .map((r) => q.content[r]?.value)
+                          .find((s) => s !== undefined)
+                      : q.content[ratingName]?.value
+                  return [[displayRatingName], parseNumberField(ratingValue)]
+                }
               )
             ),
             reviewLength: reviewValue?.length,
@@ -598,19 +608,9 @@ const ProgramChairConsole = ({ appContext }) => {
       const ratings = Object.fromEntries(
         (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
           (ratingName) => {
-            let displayName
-            let ratingCandidates
-            if (typeof ratingName === 'object') {
-              // eslint-disable-next-line prefer-destructuring
-              displayName = Object.keys(ratingName)[0]
-              ratingCandidates = Object.values(ratingName)[0]
-            } else {
-              displayName = ratingName
-              ratingCandidates = [ratingName]
-            }
-            const ratingValues = officialReviews.map((p) =>
-              ratingCandidates.map((candidate) => p[candidate]).find((q) => q !== undefined)
-            )
+            const ratingDisplayName =
+              typeof ratingName === 'object' ? Object.keys(ratingName)[0] : ratingName
+            const ratingValues = officialReviews.map((p) => p[ratingDisplayName])
 
             const validRatingValues = ratingValues.filter((p) => p !== null)
             const ratingAvg = validRatingValues.length
@@ -621,7 +621,7 @@ const ProgramChairConsole = ({ appContext }) => {
               : 'N/A'
             const ratingMin = validRatingValues.length ? Math.min(...validRatingValues) : 'N/A'
             const ratingMax = validRatingValues.length ? Math.max(...validRatingValues) : 'N/A'
-            return [displayName, { ratingAvg, ratingMin, ratingMax }]
+            return [ratingDisplayName, { ratingAvg, ratingMin, ratingMax }]
           }
         )
       )

@@ -160,7 +160,20 @@ const AssignedPaperRow = ({
   const areaChairIds = areaChairMap[note.number]
   const paperRatingValues = (
     Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]
-  ).map((ratingName) => ({ [ratingName]: officialReview?.content?.[ratingName]?.value }))
+  ).map((ratingName) => {
+    let ratingDisplayName
+    let ratingValue
+    if (typeof ratingName === 'object') {
+      ratingDisplayName = Object.keys(ratingName)[0]
+      ratingValue = Object.values(ratingName)[0]
+        .map((p) => officialReview.content?.[p]?.value)
+        .find((q) => q !== undefined)
+    } else {
+      ratingDisplayName = ratingName
+      ratingValue = officialReview?.content?.[ratingName]?.value
+    }
+    return { [ratingDisplayName]: ratingValue }
+  })
   const review = officialReview?.content?.review?.value
 
   return (

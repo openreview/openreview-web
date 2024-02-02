@@ -207,7 +207,6 @@ export const AcPcConsoleReviewerStatusRow = ({
 }) => {
   const [updateLastSent, setUpdateLastSent] = useState(true)
   const completedReview = officialReviews.find((p) => p.anonymousId === reviewer.anonymousId)
-  // const hasRating = completedReview?.rating !== null
   const hasConfidence = completedReview?.confidence !== null
   const lastReminderSent = localStorage.getItem(
     `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}|${reviewer.reviewerProfileId}`
@@ -236,9 +235,7 @@ export const AcPcConsoleReviewerStatusRow = ({
                     let ratingDisplayName
                     if (typeof ratingName === 'object') {
                       ratingDisplayName = Object.keys(ratingName)[0]
-                      ratingValue = Object.values(ratingName)[0]
-                        .map((p) => completedReview[p])
-                        .find((q) => q !== undefined)
+                      ratingValue = completedReview[ratingDisplayName]
                     } else {
                       ratingDisplayName = ratingName
                       ratingValue = completedReview[ratingName]
