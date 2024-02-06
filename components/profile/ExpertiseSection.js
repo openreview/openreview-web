@@ -21,7 +21,9 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
           const recordCopy = { ...p }
           if (p.key === action.data.key) {
             recordCopy.keyWordsValue = action.data.value
-            recordCopy.keywords = action.data.value.split(',').map((q) => q.trim())
+            recordCopy.keywords = action.data.value.trim().length
+              ? action.data.value.split(',').map((q) => q.trim())
+              : []
           }
           return recordCopy
         })
