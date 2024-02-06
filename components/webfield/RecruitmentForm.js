@@ -268,6 +268,7 @@ const RecruitmentForm = () => {
   const [decision, setDecision] = useState(null)
   const [responseNote, setResponseNote] = useState(null)
   const [reducedLoad, setReducedLoad] = useState(null)
+  const [turnstileToken, setTurnstileToken] = useState(null)
   const {
     acceptMessage,
     header,
@@ -283,6 +284,7 @@ const RecruitmentForm = () => {
   const invitationContentFields = isV2Invitation
     ? Object.keys(invitation.edit?.note?.content)
     : Object.keys(invitation.reply?.content)
+  const invalidTurnstileToken = process.env.TURNSTILE_SITEKEY && !turnstileToken
 
   const defaultButtonState = [
     { response: 'Yes', loading: false, disabled: false },
@@ -377,12 +379,18 @@ const RecruitmentForm = () => {
             ) : (
               <Markdown text={responseDescription} />
             )}
+            {process.env.TURNSTILE_SITEKEY && (
+              <div id="turnstile-recruitment" className="mt-3 mb-2 "></div>
+            )}
             <div className="response-buttons">
               <SpinnerButton
                 type="primary"
                 onClick={() => onResponseClick('Yes')}
                 loading={buttonStatus.find((p) => p.response === 'Yes').loading}
-                disabled={buttonStatus.find((p) => p.response === 'Yes').disabled}
+                disabled={
+                  buttonStatus.find((p) => p.response === 'Yes').disabled ||
+                  invalidTurnstileToken
+                }
                 size="lg"
               >
                 Accept
@@ -396,7 +404,8 @@ const RecruitmentForm = () => {
                     buttonStatus.find((p) => p.response === 'YesWithReducedLoad').loading
                   }
                   disabled={
-                    buttonStatus.find((p) => p.response === 'YesWithReducedLoad').disabled
+                    buttonStatus.find((p) => p.response === 'YesWithReducedLoad').disabled ||
+                    invalidTurnstileToken
                   }
                   size="lg"
                 >
@@ -408,7 +417,10 @@ const RecruitmentForm = () => {
                 className="decline-button"
                 onClick={() => onResponseClick('No')}
                 loading={buttonStatus.find((p) => p.response === 'No').loading}
-                disabled={buttonStatus.find((p) => p.response === 'No').disabled}
+                disabled={
+                  buttonStatus.find((p) => p.response === 'No').disabled ||
+                  invalidTurnstileToken
+                }
                 size="lg"
               >
                 Decline
@@ -418,6 +430,23 @@ const RecruitmentForm = () => {
         )
     }
   }
+
+  useEffect(() => {
+    if (decision || !process.env.TURNSTILE_SITEKEY) return
+    if (window.turnstile) {
+      window.turnstile.render('#turnstile-recruitment', {
+        sitekey: process.env.TURNSTILE_SITEKEY,
+        action: 'recruitment',
+        callback: (token) => {
+          setTurnstileToken(token)
+        },
+      })
+    } else {
+      promptError(
+        'Could not verify browser. Please make sure third-party scripts are not being blocked and try again.'
+      )
+    }
+  }, [decision])
 
   useEffect(() => {
     if (!['id', 'user', 'key'].every((p) => typeof args[p] === 'string')) {
