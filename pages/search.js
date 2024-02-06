@@ -134,10 +134,11 @@ const Search = ({ appContext }) => {
           content: query.content || 'all',
           group: query.group || 'all',
           source: Object.keys(sourceOptions).includes(query.source) ? query.source : 'all',
+          sort: 'tmdate:desc',
           limit: 1000,
         },
         null,
-        { accessToken, resultsKey: 'notes', sort: 'none' }
+        { accessToken, resultsKey: 'notes' }
       )
 
       if (searchRes.notes) {
