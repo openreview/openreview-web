@@ -146,6 +146,8 @@ test('user open own profile', async (t) => {
     )
     .selectText(dblpUrlInput)
     .pressKey('delete')
+    // add empty expertise
+    .typeText(Selector('div.expertise').find('input').nth(0), '        ')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
