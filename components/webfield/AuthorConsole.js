@@ -111,9 +111,11 @@ const ReviewSummary = ({
             return ratingValue ? { [ratingDisplayName]: ratingValue } : []
           })
 
-          const reviewConfidenceValue = isV2Note
-            ? review.content?.[reviewConfidenceName]?.value
-            : review.content?.[reviewConfidenceName]
+          const reviewConfidenceValue = parseNumberField(
+            isV2Note
+              ? review.content?.[reviewConfidenceName]?.value
+              : review.content?.[reviewConfidenceName]
+          )
           return (
             <li key={review.id}>
               <strong>{prettyId(review.signatures[0].split('/')?.pop())}:</strong>
@@ -126,7 +128,7 @@ const ReviewSummary = ({
                   </span>
                 )
               })}
-              {reviewConfidenceValue ? `/ Confidence: ${reviewConfidenceValue}` : ''}
+              {reviewConfidenceValue !== null ? `/ Confidence: ${reviewConfidenceValue}` : ''}
               <br />
               <Link
                 href={`/forum?id=${review.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
