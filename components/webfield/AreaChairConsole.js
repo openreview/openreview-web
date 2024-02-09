@@ -204,7 +204,7 @@ const AreaChairConsole = ({ appContext }) => {
       )
       const areaChairGroups = allGroups.filter((p) => p.id.endsWith(areaChairName))
       const secondaryAreaChairGroups = secondaryAreaChairName
-        ? allGroups.filter((p) => p.id.includes(`/${secondaryAreaChairName}_`))
+        ? allGroups.filter((p) => p.id.endsWith(secondaryAreaChairName))
         : []
       const anonymousAreaChairGroups = allGroups.filter((p) => p.id.includes('/Area_Chair_'))
       const areaChairPaperNums = areaChairGroups.flatMap((p) => {
