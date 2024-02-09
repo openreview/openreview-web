@@ -379,9 +379,6 @@ const RecruitmentForm = () => {
             ) : (
               <Markdown text={responseDescription} />
             )}
-            {process.env.TURNSTILE_SITEKEY && (
-              <div id="turnstile-recruitment" className="mt-3 mb-2 "></div>
-            )}
             <div className="response-buttons">
               <SpinnerButton
                 type="primary"
@@ -426,6 +423,9 @@ const RecruitmentForm = () => {
                 Decline
               </SpinnerButton>
             </div>
+            {process.env.TURNSTILE_SITEKEY && (
+              <div id="turnstile-recruitment" className="mt-4 text-center"></div>
+            )}
           </div>
         )
     }
