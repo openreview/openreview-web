@@ -699,7 +699,7 @@ const AreaChairConsole = ({ appContext }) => {
               active={activeTabId === '#triplet-ac-assignments' ? true : undefined}
               onClick={() => setActiveTabId('#triplet-ac-assignments')}
             >
-              Triplet AC Assignments
+              Secondary AC Assignments
             </Tab>
           )}
           <Tab
