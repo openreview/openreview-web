@@ -599,7 +599,7 @@ const AreaChairConsole = ({ appContext }) => {
               key={row.note.id}
               rowData={row}
               venueId={venueId}
-              areaChairName={secondaryAreaChairName}
+              areaChairName={areaChairName}
               officialReviewName={officialReviewName}
               officialMetaReviewName={officialMetaReviewName}
               submissionName={submissionName}
