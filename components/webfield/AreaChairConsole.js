@@ -362,10 +362,17 @@ const AreaChairConsole = ({ appContext }) => {
               confidence: parseNumberField(q.content[reviewConfidenceName]?.value),
               ...Object.fromEntries(
                 (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
-                  (ratingName) => [
-                    [ratingName],
-                    parseNumberField(q.content[ratingName]?.value),
-                  ]
+                  (ratingName) => {
+                    const ratingDisplayName =
+                      typeof ratingName === 'object' ? Object.keys(ratingName)[0] : ratingName
+                    const ratingValue =
+                      typeof ratingName === 'object'
+                        ? Object.values(ratingName)[0]
+                            .map((r) => q.content[r]?.value)
+                            .find((s) => s !== undefined)
+                        : q.content[ratingName]?.value
+                    return [[ratingDisplayName], parseNumberField(ratingValue)]
+                  }
                 )
               ),
               reviewLength: reviewValue?.length,
@@ -375,7 +382,9 @@ const AreaChairConsole = ({ appContext }) => {
         const ratings = Object.fromEntries(
           (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
             (ratingName) => {
-              const ratingValues = officialReviews.map((p) => p[ratingName])
+              const displayRatingName =
+                typeof ratingName === 'object' ? Object.keys(ratingName)[0] : ratingName
+              const ratingValues = officialReviews.map((p) => p[displayRatingName])
               const validRatingValues = ratingValues.filter((p) => p !== null)
               const ratingAvg = validRatingValues.length
                 ? (
@@ -389,7 +398,7 @@ const AreaChairConsole = ({ appContext }) => {
               const ratingMax = validRatingValues.length
                 ? Math.max(...validRatingValues)
                 : 'N/A'
-              return [ratingName, { ratingAvg, ratingMin, ratingMax }]
+              return [displayRatingName, { ratingAvg, ratingMin, ratingMax }]
             }
           )
         )

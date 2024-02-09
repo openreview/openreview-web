@@ -312,10 +312,19 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                     (Array.isArray(reviewRatingName)
                       ? reviewRatingName
                       : [reviewRatingName]
-                    ).map((ratingName) => [
-                      [ratingName],
-                      parseNumberField(review.content[ratingName]?.value),
-                    ])
+                    ).map((ratingName) => {
+                      const displayRatingName =
+                        typeof ratingName === 'object'
+                          ? Object.keys(ratingName)[0]
+                          : ratingName
+                      const ratingValue =
+                        typeof ratingName === 'object'
+                          ? Object.values(ratingName)[0]
+                              .map((r) => review.content[r]?.value)
+                              .find((s) => s !== undefined)
+                          : review.content[ratingName]?.value
+                      return [[displayRatingName], parseNumberField(ratingValue)]
+                    })
                   ),
                   reviewLength: reviewValue?.length,
                   forum: review.forum,
@@ -326,7 +335,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           const ratings = Object.fromEntries(
             (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
               (ratingName) => {
-                const ratingValues = officialReviews.map((p) => p[ratingName])
+                const ratingDisplayName =
+                  typeof ratingName === 'object' ? Object.keys(ratingName)[0] : ratingName
+                const ratingValues = officialReviews.map((p) => p[ratingDisplayName])
                 const validRatingValues = ratingValues.filter((p) => p !== null)
                 const ratingAvg = validRatingValues.length
                   ? (
@@ -340,7 +351,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 const ratingMax = validRatingValues.length
                   ? Math.max(...validRatingValues)
                   : 'N/A'
-                return [ratingName, { ratingAvg, ratingMin, ratingMax }]
+                return [ratingDisplayName, { ratingAvg, ratingMin, ratingMax }]
               }
             )
           )
