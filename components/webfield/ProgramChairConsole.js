@@ -686,7 +686,8 @@ const ProgramChairConsole = ({ appContext }) => {
       const metaReviews = (
         pcConsoleData.metaReviewsByPaperNumberMap?.get(note.number) ?? []
       ).map((metaReview) => {
-        const metaReviewAgreement = customStageReviews.find((p) => p.replyto === metaReview.id || p.forum === metaReview.forum)
+        const metaReviewAgreement = customStageReviews.find((p) => p.replyto === metaReview.id
+        || p.forum === metaReview.forum)
         const metaReviewAgreementConfig = metaReviewAgreement
           ? customStageInvitations.find((p) =>
               metaReviewAgreement.invitations.some((q) => q.includes(`/-/${p.name}`))
