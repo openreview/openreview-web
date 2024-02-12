@@ -602,11 +602,16 @@ const ProgramChairConsole = ({ appContext }) => {
         pcConsoleData.paperGroups.areaChairGroups?.find((p) => p.noteNumber === note.number)
           ?.members ?? []
 
+      const assignedAreaChairProfiles = assignedAreaChairs.map((areaChair) => ({
+        id: areaChair.areaChairProfileId,
+        profile: pcConsoleData.allProfilesMap.get(areaChair.areaChairProfileId),
+      }))
+
       const secondaryAreaChairs =
         pcConsoleData.paperGroups.areaChairGroups?.find((p) => p.noteNumber === note.number)
           ?.secondaries ?? []
 
-      const assignedAreaChairProfiles = assignedAreaChairs.map((areaChair) => ({
+      const secondaryAreaChairProfiles = secondaryAreaChairs.map((areaChair) => ({
         id: areaChair.areaChairProfileId,
         profile: pcConsoleData.allProfilesMap.get(areaChair.areaChairProfileId),
       }))
@@ -760,7 +765,7 @@ const ProgramChairConsole = ({ appContext }) => {
             }
           }),
           secondaryAreaChairs: secondaryAreaChairs.map((areaChair) => {
-            const profile = assignedAreaChairProfiles.find(
+            const profile = secondaryAreaChairProfiles.find(
               (p) => p.id === areaChair.areaChairProfileId
             )?.profile
             return {
