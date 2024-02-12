@@ -358,7 +358,8 @@ const ProgramChairConsole = ({ appContext }) => {
             ...p,
           })
           p.members.forEach((member) => {
-            if (!(number in secondaryAnonAreaChairGroups)) secondaryAnonAreaChairGroups[number] = {}
+            if (!(number in secondaryAnonAreaChairGroups))
+              secondaryAnonAreaChairGroups[number] = {}
             if (
               !(member in secondaryAnonAreaChairGroups[number]) &&
               member.includes(`/${secondaryAnonAreaChairName}`)
@@ -367,7 +368,8 @@ const ProgramChairConsole = ({ appContext }) => {
             }
           })
         } else if (secondaryAreaChairName && p.id.includes(`/${secondaryAnonAreaChairName}`)) {
-          if (!(number in secondaryAnonAreaChairGroups)) secondaryAnonAreaChairGroups[number] = {}
+          if (!(number in secondaryAnonAreaChairGroups))
+            secondaryAnonAreaChairGroups[number] = {}
           if (p.members.length) secondaryAnonAreaChairGroups[number][p.id] = p.members[0]
           allGroupMembers = allGroupMembers.concat(p.members)
         }
@@ -556,22 +558,25 @@ const ProgramChairConsole = ({ appContext }) => {
                 }
               }),
               secondaries: areaChairGroup.members.flatMap((member) => {
+                if (!secondaryAreaChairName || !member.endsWith(`/${secondaryAreaChairName}`))
+                  return []
 
-                if (secondaryAreaChairName && member.endsWith(`/${secondaryAreaChairName}`)) {
-                  const secondaryAreaChairGroup = secondaryAreaChairGroups.find(
-                    (p) => p.noteNumber === areaChairGroup.noteNumber
-                  )
-                  if (secondaryAreaChairGroup) {
-                    return secondaryAreaChairGroup.members.map((secondaryMember) => ({
-                        areaChairProfileId: secondaryAnonAreaChairGroups[areaChairGroup.noteNumber]?.[secondaryMember]
-                        ?? secondaryMember,
-                        anonymizedGroup: secondaryMember,
-                        anonymousId: getIndentifierFromGroup(secondaryMember, secondaryAnonAreaChairName),
-                      }
-                    ))
-                  }
-                }
-                return []
+                const acGroupNoteNumber = areaChairGroup.noteNumber
+                const secondaryAreaChairGroup = secondaryAreaChairGroups.find(
+                  (p) => p.noteNumber === acGroupNoteNumber
+                )
+                if (!secondaryAreaChairGroup) return []
+
+                return secondaryAreaChairGroup.members.map((secondaryMember) => ({
+                  areaChairProfileId:
+                    secondaryAnonAreaChairGroups[acGroupNoteNumber]?.[secondaryMember] ??
+                    secondaryMember,
+                  anonymizedGroup: secondaryMember,
+                  anonymousId: getIndentifierFromGroup(
+                    secondaryMember,
+                    secondaryAnonAreaChairName
+                  ),
+                }))
               }),
             }
           }),
@@ -691,8 +696,9 @@ const ProgramChairConsole = ({ appContext }) => {
       const metaReviews = (
         pcConsoleData.metaReviewsByPaperNumberMap?.get(note.number) ?? []
       ).map((metaReview) => {
-        const metaReviewAgreement = customStageReviews.find((p) => p.replyto === metaReview.id
-        || p.forum === metaReview.forum)
+        const metaReviewAgreement = customStageReviews.find(
+          (p) => p.replyto === metaReview.id || p.forum === metaReview.forum
+        )
         const metaReviewAgreementConfig = metaReviewAgreement
           ? customStageInvitations.find((p) =>
               metaReviewAgreement.invitations.some((q) => q.includes(`/-/${p.name}`))
