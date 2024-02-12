@@ -269,7 +269,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             const secondaryAreaChairGroup = secondaryAreaChairGroups.find(
               (p) => p.noteNumber === acGroupNoteNum
             )
-            if (secondaryAreaChairGroup) return []
+            if (!secondaryAreaChairGroup) return []
 
             return secondaryAreaChairGroup.members.map((secondaryMember) => ({
               areaChairProfileId:
