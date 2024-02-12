@@ -166,7 +166,7 @@ const AssignedPaperRow = ({
     if (typeof ratingName === 'object') {
       ratingDisplayName = Object.keys(ratingName)[0]
       ratingValue = Object.values(ratingName)[0]
-        .map((p) => officialReview.content?.[p]?.value)
+        .map((p) => officialReview?.content?.[p]?.value)
         .find((q) => q !== undefined)
     } else {
       ratingDisplayName = ratingName
