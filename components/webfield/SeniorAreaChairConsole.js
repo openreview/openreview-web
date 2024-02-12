@@ -196,7 +196,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             ...p,
           })
           p.members.forEach((member) => {
-            if (!(number in secondaryAnonAreaChairGroups)) secondaryAnonAreaChairGroups[number] = {}
+            if (!(number in secondaryAnonAreaChairGroups))
+              secondaryAnonAreaChairGroups[number] = {}
             if (
               !(member in secondaryAnonAreaChairGroups[number]) &&
               member.includes(`/${secondaryAnonAreaChairName}`)
@@ -205,7 +206,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             }
           })
         } else if (secondaryAreaChairName && p.id.includes(`/${secondaryAnonAreaChairName}`)) {
-          if (!(number in secondaryAnonAreaChairGroups)) secondaryAnonAreaChairGroups[number] = {}
+          if (!(number in secondaryAnonAreaChairGroups))
+            secondaryAnonAreaChairGroups[number] = {}
           if (p.members.length) secondaryAnonAreaChairGroups[number][p.id] = p.members[0]
           allGroupMembers = allGroupMembers.concat(p.members)
         }
@@ -259,22 +261,26 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             }
           }),
           secondaries: areaChairGroup.members.flatMap((member) => {
-
-            if (secondaryAreaChairName && member.endsWith(`/${secondaryAreaChairName}`)) {
-              const secondaryAreaChairGroup = secondaryAreaChairGroups.find(
-                (p) => p.noteNumber === areaChairGroup.noteNumber
-              )
-              if (secondaryAreaChairGroup) {
-                return secondaryAreaChairGroup.members.map((secondaryMember) => ({
-                    areaChairProfileId: secondaryAnonAreaChairGroups[areaChairGroup.noteNumber]?.[secondaryMember]
-                    ?? secondaryMember,
-                    anonymizedGroup: secondaryMember,
-                    anonymousId: getIndentifierFromGroup(secondaryMember, secondaryAnonAreaChairName),
-                  }
-                ))
-              }
+            if (!secondaryAreaChairName || !member.endsWith(`/${secondaryAreaChairName}`)) {
+              return []
             }
-            return []
+
+            const acGroupNoteNum = areaChairGroup.noteNumber
+            const secondaryAreaChairGroup = secondaryAreaChairGroups.find(
+              (p) => p.noteNumber === acGroupNoteNum
+            )
+            if (secondaryAreaChairGroup) return []
+
+            return secondaryAreaChairGroup.members.map((secondaryMember) => ({
+              areaChairProfileId:
+                secondaryAnonAreaChairGroups[acGroupNoteNum]?.[secondaryMember] ??
+                secondaryMember,
+              anonymizedGroup: secondaryMember,
+              anonymousId: getIndentifierFromGroup(
+                secondaryMember,
+                secondaryAnonAreaChairName
+              ),
+            }))
           }),
         }
       })
