@@ -663,11 +663,12 @@ describe('ConsoleTaskList', () => {
             replyto: 'review1Id',
           },
         },
-        invitees: [`${venueId}/${submissionName}5/Reviewer_xcr`],
+        invitees: [`${venueId}/${submissionName}5/${authorName}`],
         details: {
           replytoNote: {
             id: 'review1Id',
             forum: 'paper5Id',
+            replyto: 'paper5Id',
           },
           repliedNotes: [],
         },
@@ -894,9 +895,7 @@ describe('ConsoleTaskList', () => {
 
       expect(reviewRatingLink).toBeInTheDocument()
       expect(reviewRatingLink.parentElement.parentElement).not.toHaveClass('completed')
-      expect(reviewRatingLink.nextElementSibling).toHaveClass('duedate', {
-        exact: true,
-      })
+      expect(reviewRatingLink.nextElementSibling).toHaveClass('warning')
       expect(reviewRatingLink).toHaveAttribute(
         'href',
         expect.stringContaining('id=paper5Id&noteId=review1Id')
