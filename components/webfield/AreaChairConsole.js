@@ -56,6 +56,7 @@ const AssignedPaperRow = ({
   selectedNoteIds,
   setSelectedNoteIds,
   shortPhrase,
+  showCheckbox = true,
 }) => {
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
@@ -63,19 +64,21 @@ const AssignedPaperRow = ({
   )
   return (
     <tr>
-      <td>
-        <input
-          type="checkbox"
-          checked={selectedNoteIds.includes(note.id)}
-          onChange={(e) => {
-            if (e.target.checked) {
-              setSelectedNoteIds((noteIds) => [...noteIds, note.id])
-              return
-            }
-            setSelectedNoteIds((noteIds) => noteIds.filter((p) => p !== note.id))
-          }}
-        />
-      </td>
+      {showCheckbox && (
+        <td>
+          <input
+            type="checkbox"
+            checked={selectedNoteIds.includes(note.id)}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setSelectedNoteIds((noteIds) => [...noteIds, note.id])
+                return
+              }
+              setSelectedNoteIds((noteIds) => noteIds.filter((p) => p !== note.id))
+            }}
+          />
+        </td>
+      )}
       <td>
         <strong className="note-number">{note.number}</strong>
       </td>
@@ -121,6 +124,7 @@ const AreaChairConsole = ({ appContext }) => {
     submissionInvitationId,
     seniorAreaChairsId,
     areaChairName,
+    secondaryAreaChairName,
     submissionName,
     officialReviewName,
     reviewRatingName,
@@ -147,8 +151,8 @@ const AreaChairConsole = ({ appContext }) => {
   const query = useQuery()
   const { setBannerContent } = appContext
   const [acConsoleData, setAcConsoleData] = useState({})
-  const [activeTabIndex, setActiveTabIndex] = useState(0)
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
+  const [activeTabId, setActiveTabId] = useState(window.location.hash || '#assigned-papers')
 
   const edgeBrowserUrl = proposedAssignmentTitle
     ? edgeBrowserProposedUrl
@@ -159,7 +163,8 @@ const AreaChairConsole = ({ appContext }) => {
 
   const getReviewerName = (reviewerProfile) => {
     const name =
-      reviewerProfile.content.names.find((t) => t.preferred) || reviewerProfile.content.names[0]
+      reviewerProfile.content.names.find((t) => t.preferred) ||
+      reviewerProfile.content.names[0]
     return name ? name.fullname : prettyId(reviewerProfile.id)
   }
 
@@ -197,7 +202,11 @@ const AreaChairConsole = ({ appContext }) => {
         },
         { accessToken }
       )
-      const areaChairGroups = allGroups.filter((p) => p.id.endsWith(areaChairName))
+      const areaChairGroups = allGroups.filter((p) => p.id.endsWith(`/${areaChairName}`))
+      const secondaryAreaChairGroups = secondaryAreaChairName
+        ? allGroups.filter((p) => p.id.endsWith(`/${secondaryAreaChairName}`))
+        : []
+
       const anonymousAreaChairGroups = allGroups.filter((p) => p.id.includes('/Area_Chair_'))
       const areaChairPaperNums = areaChairGroups.flatMap((p) => {
         const num = getNumberFromGroup(p.id, submissionName)
@@ -207,8 +216,14 @@ const AreaChairConsole = ({ appContext }) => {
         if (anonymousAreaChairGroup) return num
         return []
       })
+      const secondaryAreaChairPaperNums = secondaryAreaChairGroups.map((p) =>
+        getNumberFromGroup(p.id, submissionName)
+      )
 
-      const noteNumbers = [...new Set(areaChairPaperNums)]
+      const noteNumbers = [
+        ...new Set(areaChairPaperNums),
+        ...new Set(secondaryAreaChairPaperNums),
+      ]
       const blindedNotesP = noteNumbers.length
         ? api.getAll(
             '/notes',
@@ -292,7 +307,7 @@ const AreaChairConsole = ({ appContext }) => {
       // #region get assigned reviewer , sac and all reviewer group members profiles
       const allIds = [
         ...new Set([
-          ...result[1].flatMap((p) => p.reviewers).map((p) => p.reviewerProfileId),
+          ...result[1].flatMap((p) => p.reviewers ?? []).map((p) => p.reviewerProfileId),
           ...result[2],
         ]),
       ]
@@ -348,10 +363,17 @@ const AreaChairConsole = ({ appContext }) => {
               confidence: parseNumberField(q.content[reviewConfidenceName]?.value),
               ...Object.fromEntries(
                 (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
-                  (ratingName) => [
-                    [ratingName],
-                    parseNumberField(q.content[ratingName]?.value),
-                  ]
+                  (ratingName) => {
+                    const ratingDisplayName =
+                      typeof ratingName === 'object' ? Object.keys(ratingName)[0] : ratingName
+                    const ratingValue =
+                      typeof ratingName === 'object'
+                        ? Object.values(ratingName)[0]
+                            .map((r) => q.content[r]?.value)
+                            .find((s) => s !== undefined)
+                        : q.content[ratingName]?.value
+                    return [[ratingDisplayName], parseNumberField(ratingValue)]
+                  }
                 )
               ),
               reviewLength: reviewValue?.length,
@@ -361,7 +383,9 @@ const AreaChairConsole = ({ appContext }) => {
         const ratings = Object.fromEntries(
           (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
             (ratingName) => {
-              const ratingValues = officialReviews.map((p) => p[ratingName])
+              const displayRatingName =
+                typeof ratingName === 'object' ? Object.keys(ratingName)[0] : ratingName
+              const ratingValues = officialReviews.map((p) => p[displayRatingName])
               const validRatingValues = ratingValues.filter((p) => p !== null)
               const ratingAvg = validRatingValues.length
                 ? (
@@ -375,7 +399,7 @@ const AreaChairConsole = ({ appContext }) => {
               const ratingMax = validRatingValues.length
                 ? Math.max(...validRatingValues)
                 : 'N/A'
-              return [ratingName, { ratingAvg, ratingMin, ratingMax }]
+              return [displayRatingName, { ratingAvg, ratingMin, ratingMax }]
             }
           )
         )
@@ -442,10 +466,19 @@ const AreaChairConsole = ({ appContext }) => {
           p.content.names.some((q) => result[2].includes(q.username)) ||
           p.content.emails.some((r) => result[2].includes(r))
       )
+
+      const assignedPaperRows = tableRows.filter((p) =>
+        areaChairPaperNums.includes(p.note.number)
+      )
+      const tripletACPaperRows = tableRows.filter((p) =>
+        secondaryAreaChairPaperNums.includes(p.note.number)
+      )
+
       // #endregion
       setAcConsoleData({
-        tableRowsAll: tableRows,
-        tableRows,
+        tableRowsAll: assignedPaperRows,
+        tableRows: assignedPaperRows,
+        tripletACtableRows: tripletACPaperRows,
         reviewersInfo: result[1],
         allProfiles,
         sacProfiles: sacProfiles.map((sacProfile) => ({
@@ -541,6 +574,45 @@ const AreaChairConsole = ({ appContext }) => {
     )
   }
 
+  const renderTripletACTable = () => {
+    if (!acConsoleData.tableRows) return <LoadingSpinner />
+    if (acConsoleData.tableRows?.length === 0)
+      return (
+        <p className="empty-message">
+          No assigned papers.Check back later or contact info@openreview.net if you believe
+          this to be an error.
+        </p>
+      )
+    return (
+      <div className="table-container">
+        <Table
+          className="console-table table-striped areachair-console-table"
+          headings={[
+            { id: 'number', content: '#', width: '55px' },
+            { id: 'summary', content: 'Paper Summary', width: '34%' },
+            { id: 'reviewProgress', content: 'Review Progress', width: '34%' },
+            { id: 'metaReviewStatus', content: 'Meta Review Status', width: 'auto' },
+          ]}
+        >
+          {acConsoleData.tripletACtableRows?.map((row) => (
+            <AssignedPaperRow
+              key={row.note.id}
+              rowData={row}
+              venueId={venueId}
+              areaChairName={areaChairName}
+              officialReviewName={officialReviewName}
+              officialMetaReviewName={officialMetaReviewName}
+              submissionName={submissionName}
+              metaReviewRecommendationName={metaReviewRecommendationName}
+              shortPhrase={shortPhrase}
+              showCheckbox={false}
+            />
+          ))}
+        </Table>
+      </div>
+    )
+  }
+
   useEffect(() => {
     if (!query) return
 
@@ -614,18 +686,38 @@ const AreaChairConsole = ({ appContext }) => {
 
       <Tabs>
         <TabList>
-          <Tab id="assigned-papers" active>
+          <Tab
+            id="assigned-papers"
+            active={activeTabId === '#assigned-papers' ? true : undefined}
+            onClick={() => setActiveTabId('#assigned-papers')}
+          >
             Assigned Papers
           </Tab>
-          <Tab id="areachair-tasks" onClick={() => setActiveTabIndex(1)}>
+          {secondaryAreaChairName && (
+            <Tab
+              id="triplet-ac-assignments"
+              active={activeTabId === '#triplet-ac-assignments' ? true : undefined}
+              onClick={() => setActiveTabId('#triplet-ac-assignments')}
+            >
+              Secondary AC Assignments
+            </Tab>
+          )}
+          <Tab
+            id="areachair-tasks"
+            active={activeTabId === '#areachair-tasks' ? true : undefined}
+            onClick={() => setActiveTabId('#areachair-tasks')}
+          >
             Area Chair Tasks
           </Tab>
         </TabList>
 
         <TabPanels>
           <TabPanel id="assigned-papers">{renderTable()}</TabPanel>
+          {secondaryAreaChairName && (
+            <TabPanel id="triplet-ac-assignments">{renderTripletACTable()}</TabPanel>
+          )}
           <TabPanel id="areachair-tasks">
-            {activeTabIndex === 1 && (
+            {activeTabId === '#areachair-tasks' && (
               <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />
             )}
           </TabPanel>
