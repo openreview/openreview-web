@@ -653,6 +653,26 @@ describe('ConsoleTaskList', () => {
           ],
         },
       },
+      {
+        id: `${venueId}/${submissionName}5/Official_Review1/-/Rating`,
+        duedate: now + oneDay,
+        edit: {
+          note: {
+            id: { param: { withInvitation: `${venueId}/${submissionName}5/Official_Review1/-/Rating` } },
+            forum: 'paper5Id',
+            replyto: 'review1Id',
+          },
+        },
+        invitees: [`${venueId}/${submissionName}5/${authorName}`],
+        details: {
+          replytoNote: {
+            id: 'review1Id',
+            forum: 'paper5Id',
+            replyto: 'paper5Id',
+          },
+          repliedNotes: [],
+        },
+      },
     ]
     edgeInvitations = [
       {
@@ -809,6 +829,7 @@ describe('ConsoleTaskList', () => {
       const rebuttalLink = screen.getByText('Submission5 Rebuttal')
       const rebuttalSingleReplyLink = screen.getByText('Submission5 Rebuttal Single Reply')
       const rebuttalMultiReplyLink = screen.getByText('Submission5 Rebuttal Multi Reply')
+      const reviewRatingLink = screen.getByText('Submission5 Official Review1 Rating')
 
       expect(noReplyLink).not.toBeInTheDocument()
 
@@ -870,6 +891,14 @@ describe('ConsoleTaskList', () => {
       expect(rebuttalMultiReplyLink).toHaveAttribute(
         'href',
         expect.stringContaining('id=paper5Id&noteId=[object Object]')
+      )
+
+      expect(reviewRatingLink).toBeInTheDocument()
+      expect(reviewRatingLink.parentElement.parentElement).not.toHaveClass('completed')
+      expect(reviewRatingLink.nextElementSibling).toHaveClass('warning')
+      expect(reviewRatingLink).toHaveAttribute(
+        'href',
+        expect.stringContaining('id=paper5Id&noteId=review1Id')
       )
       // #endregion
 
