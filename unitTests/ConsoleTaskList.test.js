@@ -69,7 +69,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={authorName}
         referrer={authorConsoleReferrer}
-        filterAssignedInvitaiton={true}
+        filterAssignedInvitation={true}
         submissionName={submissionName}
         apiVersion={1}
       />
@@ -87,7 +87,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={authorName}
         referrer={authorConsoleReferrer}
-        filterAssignedInvitaiton={false}
+        filterAssignedInvitation={false}
         submissionName={undefined}
         apiVersion={2}
       />
@@ -337,7 +337,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={authorName}
         referrer={authorConsoleReferrer}
-        filterAssignedInvitaiton={true}
+        filterAssignedInvitation={true}
         submissionName={submissionName}
         apiVersion={1}
       />
@@ -811,7 +811,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={authorName}
         referrer={authorConsoleReferrer}
-        filterAssignedInvitaiton={true}
+        filterAssignedInvitation={true}
         submissionName={submissionName}
         apiVersion={2}
       />
@@ -1081,7 +1081,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={reviewerName}
         referrer={reviewerConsoleReferrer}
-        filterAssignedInvitaiton={true}
+        filterAssignedInvitation={true}
         submissionName={submissionName}
         submissionNumbers={submissionNumbers}
         apiVersion={1}
@@ -1340,7 +1340,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={reviewerName}
         referrer={reviewerConsoleReferrer}
-        filterAssignedInvitaiton={true}
+        filterAssignedInvitation={true}
         submissionName={submissionName}
         submissionNumbers={submissionNumbers}
       />
@@ -1543,7 +1543,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={areaChairName}
         referrer={areaChairConsoleReferrer}
-        filterAssignedInvitaiton={false}
+        filterAssignedInvitation={false}
         submissionName={undefined}
         submissionNumbers={undefined}
       />
@@ -1702,7 +1702,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={seniorAreaChairName}
         referrer={seniorAreaChairConsoleReferrer}
-        filterAssignedInvitaiton={false}
+        filterAssignedInvitation={false}
         submissionName={undefined}
         submissionNumbers={undefined}
       />

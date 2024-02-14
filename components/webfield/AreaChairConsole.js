@@ -112,7 +112,7 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
     `[Area Chair Console](/group?id=${venueId}/${areaChairName}#areachair-tasks)`
   )
 
-  return <ConsoleTaskList venueId={venueId} roleName={areaChairName} referrer={referrer} />
+  return <ConsoleTaskList venueId={venueId} roleName={areaChairName} filterAssignedInvitation={true} referrer={referrer} />
 }
 
 const AreaChairConsole = ({ appContext }) => {
