@@ -65,13 +65,11 @@ const ConsoleTaskList = ({
           .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true, apiVersion })))
       )
 
-      console.log(allInvitations)
       allInvitations = allInvitations.filter((p) =>
         filterAssignedInvitation
           ? filterAssignedInvitations(p, roleName, submissionName, submissionNumbers)
           : p.invitees.some((q) => q.includes(roleName))
       )
-      console.log(allInvitations)
 
       setInvitations(formatTasksData([allInvitations, [], []], true))
     } catch (error) {
