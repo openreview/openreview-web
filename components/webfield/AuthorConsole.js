@@ -272,7 +272,7 @@ const AuthorConsoleTasks = () => {
       venueId={venueId}
       roleName={authorName}
       referrer={referrer}
-      filterAssignedInvitaiton={true}
+      filterAssignedInvitation={true}
       submissionName={submissionName}
       apiVersion={apiVersion}
     />

@@ -239,7 +239,7 @@ const ReviewerConsoleTasks = ({ venueId, reviewerName, submissionName, noteNumbe
       venueId={venueId}
       roleName={reviewerName}
       referrer={referrer}
-      filterAssignedInvitaiton={true}
+      filterAssignedInvitation={true}
       submissionName={submissionName}
       submissionNumbers={noteNumbers}
     />

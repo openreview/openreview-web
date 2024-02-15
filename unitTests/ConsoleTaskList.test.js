@@ -69,7 +69,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={authorName}
         referrer={authorConsoleReferrer}
-        filterAssignedInvitaiton={true}
+        filterAssignedInvitation={true}
         submissionName={submissionName}
         apiVersion={1}
       />
@@ -87,7 +87,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={authorName}
         referrer={authorConsoleReferrer}
-        filterAssignedInvitaiton={false}
+        filterAssignedInvitation={false}
         submissionName={undefined}
         apiVersion={2}
       />
@@ -337,7 +337,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={authorName}
         referrer={authorConsoleReferrer}
-        filterAssignedInvitaiton={true}
+        filterAssignedInvitation={true}
         submissionName={submissionName}
         apiVersion={1}
       />
@@ -673,6 +673,26 @@ describe('ConsoleTaskList', () => {
           repliedNotes: [],
         },
       },
+      {
+        id: `${venueId}/${submissionName}5/Meta_Review1/-/Revision`,
+        duedate: now + oneDay,
+        edit: {
+          note: {
+            id: 'metareview1Id',
+            forum: 'paper5Id',
+            replyto: 'paper5Id',
+          },
+        },
+        invitees: [`${venueId}/${submissionName}5/${authorName}`],
+        details: {
+          replytoNote: {
+            id: 'metareview1Id',
+            forum: 'paper5Id',
+            replyto: 'paper5Id',
+          },
+          repliedNotes: [],
+        },
+      },
     ]
     edgeInvitations = [
       {
@@ -811,7 +831,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={authorName}
         referrer={authorConsoleReferrer}
-        filterAssignedInvitaiton={true}
+        filterAssignedInvitation={true}
         submissionName={submissionName}
         apiVersion={2}
       />
@@ -830,6 +850,7 @@ describe('ConsoleTaskList', () => {
       const rebuttalSingleReplyLink = screen.getByText('Submission5 Rebuttal Single Reply')
       const rebuttalMultiReplyLink = screen.getByText('Submission5 Rebuttal Multi Reply')
       const reviewRatingLink = screen.getByText('Submission5 Official Review1 Rating')
+      const metaReviewRevisionLink = screen.getByText('Submission5 Meta Review1 Revision')
 
       expect(noReplyLink).not.toBeInTheDocument()
 
@@ -899,6 +920,14 @@ describe('ConsoleTaskList', () => {
       expect(reviewRatingLink).toHaveAttribute(
         'href',
         expect.stringContaining('id=paper5Id&noteId=review1Id')
+      )
+
+      expect(metaReviewRevisionLink).toBeInTheDocument()
+      expect(metaReviewRevisionLink.parentElement.parentElement).not.toHaveClass('completed')
+      expect(metaReviewRevisionLink.nextElementSibling).toHaveClass('warning')
+      expect(metaReviewRevisionLink).toHaveAttribute(
+        'href',
+        expect.stringContaining('id=paper5Id&noteId=paper5Id&invitationId=ICML.cc/2023/Conference/Submission5/Meta_Review1/-/Revision')
       )
       // #endregion
 
@@ -1081,7 +1110,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={reviewerName}
         referrer={reviewerConsoleReferrer}
-        filterAssignedInvitaiton={true}
+        filterAssignedInvitation={true}
         submissionName={submissionName}
         submissionNumbers={submissionNumbers}
         apiVersion={1}
@@ -1340,7 +1369,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={reviewerName}
         referrer={reviewerConsoleReferrer}
-        filterAssignedInvitaiton={true}
+        filterAssignedInvitation={true}
         submissionName={submissionName}
         submissionNumbers={submissionNumbers}
       />
@@ -1543,7 +1572,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={areaChairName}
         referrer={areaChairConsoleReferrer}
-        filterAssignedInvitaiton={false}
+        filterAssignedInvitation={false}
         submissionName={undefined}
         submissionNumbers={undefined}
       />
@@ -1702,7 +1731,7 @@ describe('ConsoleTaskList', () => {
         venueId={venueId}
         roleName={seniorAreaChairName}
         referrer={seniorAreaChairConsoleReferrer}
-        filterAssignedInvitaiton={false}
+        filterAssignedInvitation={false}
         submissionName={undefined}
         submissionNumbers={undefined}
       />
