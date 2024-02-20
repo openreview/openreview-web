@@ -487,7 +487,7 @@ test('validate current history', async (t) => {
     })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('You must enter at least one current history record that could be education or career info')
+    .eql('Your Education & Career History must include at least one current position.')
     // add current end date
     .typeText(firstHistoryEndInput, (new Date().getFullYear()).toString(), {
       replace: true,

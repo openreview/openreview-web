@@ -201,7 +201,7 @@ export default function ProfileEditor({
       return promptInvalidValue(
         'history',
         profile.history?.[0]?.key,
-        'You must enter at least one current history record that could be education or career info'
+        'Your Education & Career History must include at least one current position.'
       )
     }
     // #endregion
