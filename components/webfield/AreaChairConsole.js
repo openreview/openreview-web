@@ -112,12 +112,14 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
     `[Area Chair Console](/group?id=${venueId}/${areaChairName}#areachair-tasks)`
   )
 
-  return <ConsoleTaskList
-    venueId={venueId}
-    roleName={areaChairName}
-    filterAssignedInvitation={true}
-    referrer={referrer}
-  />
+  return (
+    <ConsoleTaskList
+      venueId={venueId}
+      roleName={areaChairName}
+      filterAssignedInvitation={true}
+      referrer={referrer}
+    />
+  )
 }
 
 const AreaChairConsole = ({ appContext }) => {
@@ -435,7 +437,7 @@ const AreaChairConsole = ({ appContext }) => {
               )
               return {
                 ...reviewer,
-                type: 'reviewer',
+                type: 'profile',
                 profile,
                 hasReview: officialReviews.some((p) => p.anonymousId === reviewer.anonymousId),
                 noteNumber: note.number,

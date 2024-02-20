@@ -734,7 +734,7 @@ const ProgramChairConsole = ({ appContext }) => {
           )?.profile
           return {
             ...reviewer,
-            type: 'reviewer',
+            type: 'profile',
             profile,
             hasReview: officialReviews.some((p) => p.anonymousId === reviewer.anonymousId),
             noteNumber: note.number,
@@ -787,6 +787,7 @@ const ProgramChairConsole = ({ appContext }) => {
               (p) => p.id === seniorAreaChairProfileId
             )?.profile
             return {
+              type: 'profile',
               preferredName: profile ? getProfileName(profile) : seniorAreaChairProfileId,
               preferredEmail: profile
                 ? profile.content.preferredEmail ?? profile.content.emails[0]

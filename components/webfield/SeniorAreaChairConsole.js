@@ -493,7 +493,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               const profile = allProfilesMap.get(reviewer.reviewerProfileId)
               return {
                 ...reviewer,
-                type: 'reviewer',
+                type: 'profile',
                 profile,
                 hasReview: officialReviews.some((p) => p.anonymousId === reviewer.anonymousId),
                 noteNumber: note.number,
