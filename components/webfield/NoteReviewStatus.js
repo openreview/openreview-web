@@ -20,6 +20,7 @@ export const ReviewerConsoleNoteReviewStatus = ({
   paperRatings,
   review,
   invitationUrl,
+  reviewField,
 }) => (
   <div>
     {editUrl ? (
@@ -34,7 +35,7 @@ export const ReviewerConsoleNoteReviewStatus = ({
             </div>
           )
         })}
-        <h4>Your Review:</h4>
+        <h4>Your {prettyField(reviewField)}:</h4>
         <p>{review}</p>
         <p>
           <Link href={editUrl}>Edit Official Review</Link>
