@@ -11,7 +11,7 @@ const ConsoleTaskList = ({
   venueId,
   roleName,
   referrer,
-  filterAssignedInvitaiton = false,
+  filterAssignedInvitation = false,
   submissionName,
   submissionNumbers,
   apiVersion = 2,
@@ -66,7 +66,7 @@ const ConsoleTaskList = ({
       )
 
       allInvitations = allInvitations.filter((p) =>
-        filterAssignedInvitaiton
+        filterAssignedInvitation
           ? filterAssignedInvitations(p, roleName, submissionName, submissionNumbers)
           : p.invitees.some((q) => q.includes(roleName))
       )

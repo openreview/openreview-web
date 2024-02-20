@@ -416,7 +416,7 @@ test('check import history', async (t) => {
   // shoud have 2 references: add paper and update authorid
   const importedPaperId = notes[0].id
   const references = await getReferences(
-    { referent: importedPaperId, sort: 'mdate' },
+    { referent: importedPaperId, sort: 'tmdate' },
     superUserToken
   )
   await t
