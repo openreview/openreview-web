@@ -357,12 +357,21 @@ const NoteEditor = ({
         }
       } else {
         const acIndex = signatureId.indexOf('Area_Chair_')
+        const secondaryAcIndex = signatureId.indexOf('Secondary_Area_Chair_')
 
         const acGroupId =
           acIndex >= 0 ? signatureId.slice(0, acIndex).concat('Area_Chairs') : signatureId
+        const secondaryAcGroupId =
+          secondaryAcIndex >= 0
+            ? signatureId.slice(0, secondaryAcIndex).concat('Area_Chairs')
+            : signatureId
 
-        return readersDefinedInInvitation?.includes(acGroupId)
-          ? [...new Set([...readersSelected, acGroupId])]
+        const groupToAdd = [acGroupId, secondaryAcGroupId].filter((p) =>
+          readersDefinedInInvitation?.includes(p)
+        )
+
+        return groupToAdd.length
+          ? [...new Set([...readersSelected, ...groupToAdd])]
           : readersSelected
       }
     }

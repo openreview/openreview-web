@@ -33,7 +33,7 @@ const UserModerationTab = ({ accessToken }) => {
   const [configNote, setConfigNote] = useState(null)
   const [configNoteV2, setConfigNoteV2] = useState(null)
 
-  const moderationDisabled = configNote?.content?.moderate === 'No'
+  const moderationDisabled = configNoteV2?.content?.moderate?.value === 'No'
 
   const getModerationStatus = async () => {
     try {
@@ -82,12 +82,13 @@ const UserModerationTab = ({ accessToken }) => {
 
     try {
       await api.post(
-        '/notes',
-        {
-          ...configNote,
-          content: { ...configNote.content, moderate: moderationDisabled ? 'Yes' : 'No' },
-        },
-        { accessToken, version: 1 }
+        '/notes/edits',
+        view2.constructEdit({
+          formData: { moderate: moderationDisabled ? 'Yes' : 'No' },
+          invitationObj: configNoteV2.details.invitation,
+          noteObj: configNoteV2,
+        }),
+        { accessToken }
       )
       getModerationStatus()
     } catch (error) {
@@ -131,7 +132,7 @@ const UserModerationTab = ({ accessToken }) => {
 
   return (
     <>
-      {configNote && (
+      {configNoteV2 && (
         <div className="moderation-status">
           <h4>Moderation Status:</h4>
 
@@ -145,7 +146,7 @@ const UserModerationTab = ({ accessToken }) => {
           </select>
 
           <span className="terms-timestamp">
-            {`Terms Timestamp is ${configNote?.content?.terms_timestamp ?? 'unset'}`}
+            {`Terms Timestamp is ${configNoteV2?.content?.terms_timestamp?.value ?? 'unset'}`}
           </span>
           <button type="button" className="btn btn-xs" onClick={updateTermStamp}>
             Update Terms Stamp
@@ -1138,6 +1139,7 @@ const InstitutionTab = ({ accessToken, isActive }) => {
   const [institutions, setInstitutions] = useState(null)
   const [institutionsToShow, setInstitutionsToShow] = useState(null)
   const [institutionToEdit, setInstitutionToEdit] = useState(null)
+  const [countryOptions, setCountryOptions] = useState([])
   const [page, setPage] = useState(1)
   const [searchAddForm, setSearchAddForm] = useReducer((state, action) => {
     if (action.type === 'reset') return {}
@@ -1160,6 +1162,16 @@ const InstitutionTab = ({ accessToken, isActive }) => {
     }
   }
 
+  const loadCountryOptions = async () => {
+    const result = await api.get('/settings/countries')
+    setCountryOptions(
+      Object.entries(result ?? {})?.map(([name, details]) => ({
+        value: details.alphaTwoCode,
+        label: name,
+      }))
+    )
+  }
+
   const getInstitutionDetails = async (institutionDomain) => {
     try {
       const result = await api.get('/settings/institutions', { domain: institutionDomain })
@@ -1172,7 +1184,11 @@ const InstitutionTab = ({ accessToken, isActive }) => {
         promptError(`Id of ${institutionDomain} is ${institution.id}`)
         return
       }
-      setInstitutionToEdit({ ...institution, domains: institution.domains.join(',') })
+      setInstitutionToEdit({
+        ...institution,
+        domains: institution.domains.join(','),
+        webPages: institution.webPages?.join(',') ?? '',
+      })
     } catch (error) {
       promptError(error.message)
     }
@@ -1190,6 +1206,14 @@ const InstitutionTab = ({ accessToken, isActive }) => {
           domains: institutionToEdit.domains
             ? institutionToEdit.domains.split(',').map((p) => p.trim())
             : [],
+          country: institutionToEdit.country,
+          alphaTwoCode: institutionToEdit.alphaTwoCode,
+          stateProvince: institutionToEdit.stateProvince
+            ? institutionToEdit.stateProvince.trim()
+            : null,
+          webPages: institutionToEdit.webPages
+            ? institutionToEdit.webPages.split(',').map((p) => p.trim())
+            : null,
         },
         { accessToken }
       )
@@ -1237,6 +1261,9 @@ const InstitutionTab = ({ accessToken, isActive }) => {
     const institutionDomains = searchAddForm.domains
       ?.split(',')
       .flatMap((p) => (p.trim().toLowerCase()?.length ? p.trim().toLowerCase() : []))
+    const webPages = searchAddForm.webPages
+      ?.split(',')
+      .flatMap((p) => (p.trim().toLowerCase()?.length ? p.trim().toLowerCase() : []))
 
     try {
       await api.post(
@@ -1247,6 +1274,10 @@ const InstitutionTab = ({ accessToken, isActive }) => {
           fullname: searchAddForm.fullname?.trim(),
           parent: searchAddForm.parent?.trim(),
           domains: institutionDomains,
+          country: searchAddForm.country?.label,
+          alphaTwoCode: searchAddForm.country?.value,
+          stateProvince: searchAddForm.stateProvince?.trim(),
+          webPages,
         },
         { accessToken }
       )
@@ -1267,6 +1298,7 @@ const InstitutionTab = ({ accessToken, isActive }) => {
 
   useEffect(() => {
     loadInstitutionsDomains(true)
+    loadCountryOptions()
   }, [isActive])
 
   return (
@@ -1293,10 +1325,15 @@ const InstitutionTab = ({ accessToken, isActive }) => {
                 }
               }}
             />
-
-            <button type="submit" className="btn btn-xs" onClick={searchInstitution}>
+            {/* <div className="search-button"> */}
+            <button
+              type="submit"
+              className="btn btn-xs search-button"
+              onClick={searchInstitution}
+            >
               Search
             </button>
+            {/* </div> */}
           </div>
           <div className="institution-add-form">
             <input
@@ -1349,8 +1386,43 @@ const InstitutionTab = ({ accessToken, isActive }) => {
                 setSearchAddForm({ type: 'domains', payload: e.target.value })
               }}
             />
-
-            <button type="submit" className="btn btn-xs" onClick={addInstitution}>
+            <Dropdown
+              options={countryOptions}
+              onChange={(e) => {
+                setSearchAddForm({
+                  type: 'country',
+                  payload: e,
+                })
+              }}
+              value={
+                countryOptions?.find((q) => q.value === searchAddForm.country?.value) ?? null
+              }
+              placeholder="Institution Country/Region"
+              className="dropdown-select dropdown-sm"
+              hideArrow
+              isClearable
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="State/Province"
+              value={searchAddForm.stateProvince ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'stateProvince', payload: e.target.value })
+              }}
+            />
+            <input
+              type="text"
+              name="institutionId"
+              className="form-control input-sm"
+              placeholder="Web pages e.g. https://www.umass.edu"
+              value={searchAddForm.webPages ?? ''}
+              onChange={(e) => {
+                setSearchAddForm({ type: 'webPages', payload: e.target.value })
+              }}
+            />
+            <button type="submit" className="btn btn-xs add-button" onClick={addInstitution}>
               Add
             </button>
           </div>
@@ -1450,6 +1522,62 @@ const InstitutionTab = ({ accessToken, isActive }) => {
                             setInstitutionToEdit((p) => ({
                               ...p,
                               domains: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                      <th key="empty" scope="col" style={{ width: '8%' }}></th>
+                      <th key="country" scope="col" style={{ width: '20%' }}>
+                        Country/Region
+                      </th>
+                      <th key="state" scope="col" style={{ width: '20%' }}>
+                        State/Province
+                      </th>
+                      <th key="webpages" scope="col" style={{ width: '50%' }}>
+                        Webpages
+                      </th>
+                      <span className="col-actions"></span>
+                      <span className="col-country">
+                        <Dropdown
+                          options={countryOptions}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              country: e?.label ?? null,
+                              alphaTwoCode: e?.value ?? null,
+                            }))
+                          }}
+                          value={
+                            countryOptions?.find(
+                              (q) => q.value === institutionToEdit.alphaTwoCode
+                            ) ?? null
+                          }
+                          placeholder="Institution Country/Region"
+                          className="dropdown-select dropdown-sm"
+                          hideArrow
+                          isClearable
+                        />
+                      </span>
+                      <span className="col-state">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.stateProvince ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              stateProvince: e.target.value,
+                            }))
+                          }}
+                        />
+                      </span>
+                      <span className="col-webpages">
+                        <input
+                          className="form-control input-sm"
+                          value={institutionToEdit.webPages ?? ''}
+                          onChange={(e) => {
+                            setInstitutionToEdit((p) => ({
+                              ...p,
+                              webPages: e.target.value,
                             }))
                           }}
                         />

@@ -35,13 +35,14 @@ const PaperStatusMenuBar = ({
     numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
     numReviewsDone: ['reviewProgressData.numReviewsDone'],
     ...Object.fromEntries(
-      (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
-        (ratingName) => [
-          [`${ratingName}Avg`, [`reviewProgressData.ratings.${ratingName}.ratingAvg`]],
-          [`${ratingName}Max`, [`reviewProgressData.ratings.${ratingName}.ratingMax`]],
-          [`${ratingName}Min`, [`reviewProgressData.ratings.${ratingName}.ratingMin`]],
-        ]
-      )
+      (Array.isArray(reviewRatingName)
+        ? reviewRatingName.map((p) => (typeof p === 'object' ? Object.keys(p)[0] : p))
+        : [reviewRatingName]
+      ).flatMap((ratingName) => [
+        [`${ratingName}Avg`, [`reviewProgressData.ratings.${ratingName}.ratingAvg`]],
+        [`${ratingName}Max`, [`reviewProgressData.ratings.${ratingName}.ratingMax`]],
+        [`${ratingName}Min`, [`reviewProgressData.ratings.${ratingName}.ratingMin`]],
+      ])
     ),
     confidenceAvg: ['reviewProgressData.confidenceAvg'],
     confidenceMax: ['reviewProgressData.confidenceMax'],
@@ -106,22 +107,23 @@ const PaperStatusMenuBar = ({
       getValue: (p) =>
         p.reviewers.map((q) => `${q.preferredName}<${q.preferredEmail}>`).join(','),
     },
-    ...(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
-      (ratingName) => [
-        {
-          header: `min ${ratingName}`,
-          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingMin,
-        },
-        {
-          header: `max ${ratingName}`,
-          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingMax,
-        },
-        {
-          header: `average ${ratingName}`,
-          getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg,
-        },
-      ]
-    ),
+    ...(Array.isArray(reviewRatingName)
+      ? reviewRatingName.map((p) => (typeof p === 'object' ? Object.keys(p)[0] : p))
+      : [reviewRatingName]
+    ).flatMap((ratingName) => [
+      {
+        header: `min ${ratingName}`,
+        getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingMin,
+      },
+      {
+        header: `max ${ratingName}`,
+        getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingMax,
+      },
+      {
+        header: `average ${ratingName}`,
+        getValue: (p) => p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg,
+      },
+    ]),
     { header: 'min confidence', getValue: (p) => p.reviewProgressData?.confidenceMin },
     { header: 'max confidence', getValue: (p) => p.reviewProgressData?.confidenceMax },
     { header: 'average confidence', getValue: (p) => p.reviewProgressData?.confidenceAvg },
@@ -209,35 +211,36 @@ const PaperStatusMenuBar = ({
         getValueWithDefault(p.reviewProgressData?.numReviewsDone),
       initialDirection: 'desc',
     },
-    ...(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).flatMap(
-      (ratingName) => [
-        {
-          label: `Average ${prettyField(ratingName)}`,
-          value: `Average ${ratingName}`,
-          getValue: (p) =>
-            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg),
-        },
-        {
-          label: `Max ${prettyField(ratingName)}`,
-          value: `Max ${ratingName}`,
-          getValue: (p) =>
-            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMax),
-        },
-        {
-          label: `Min ${prettyField(ratingName)}`,
-          value: `Min ${ratingName}`,
-          getValue: (p) =>
-            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMin),
-        },
-        {
-          label: `${prettyField(ratingName)} Range`,
-          value: `${ratingName} Range`,
-          getValue: (p) =>
-            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMax) -
-            getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMin),
-        },
-      ]
-    ),
+    ...(Array.isArray(reviewRatingName)
+      ? reviewRatingName.map((p) => (typeof p === 'object' ? Object.keys(p)[0] : p))
+      : [reviewRatingName]
+    ).flatMap((ratingName) => [
+      {
+        label: `Average ${prettyField(ratingName)}`,
+        value: `Average ${ratingName}`,
+        getValue: (p) =>
+          getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg),
+      },
+      {
+        label: `Max ${prettyField(ratingName)}`,
+        value: `Max ${ratingName}`,
+        getValue: (p) =>
+          getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMax),
+      },
+      {
+        label: `Min ${prettyField(ratingName)}`,
+        value: `Min ${ratingName}`,
+        getValue: (p) =>
+          getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMin),
+      },
+      {
+        label: `${prettyField(ratingName)} Range`,
+        value: `${ratingName} Range`,
+        getValue: (p) =>
+          getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMax) -
+          getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingMin),
+      },
+    ]),
     {
       label: 'Average Confidence',
       value: 'Average Confidence',
