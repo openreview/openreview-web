@@ -104,11 +104,21 @@ const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName }) => {
                           ? reviewRatingName
                           : [reviewRatingName]
                         ).map((ratingName, index) => {
-                          const ratingValue = officialReview[ratingName]
+                          let ratingValue
+                          let ratingDisplayName
+                          if (typeof ratingName === 'object') {
+                            ratingDisplayName = Object.keys(ratingName)[0]
+                            ratingValue = Object.values(ratingName)[0]
+                              .map((p) => officialReview[p])
+                              .find((q) => q !== undefined)
+                          } else {
+                            ratingDisplayName = ratingName
+                            ratingValue = officialReview[ratingName]
+                          }
                           if (!ratingValue) return null
                           return (
                             <span key={ratingName}>
-                              {prettyField(ratingName)}: {ratingValue}{' '}
+                              {prettyField(ratingDisplayName)}: {ratingValue}{' '}
                               {index < reviewRatingName.length - 1 && '/'}{' '}
                             </span>
                           )
