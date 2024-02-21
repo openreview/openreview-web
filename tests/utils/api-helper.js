@@ -297,6 +297,14 @@ export async function createProfile(fullname, email, tildeId, superUserToken) {
           username: tildeId,
         },
       ],
+      history: [
+        {
+          position: 'Postdoc',
+          start: 2000,
+          end: new Date().getFullYear(),
+          institution: { domain: 'umass.edu', name: 'University of Massachusetts, Amherst' },
+        },
+      ],
     },
   }
   await api.post('/profiles', profileJson, { accessToken: superUserToken })
@@ -330,6 +338,14 @@ export async function createEmptyProfile(fullname, tildeId, superUserToken) {
         {
           fullname,
           username: tildeId,
+        },
+      ],
+      history: [
+        {
+          position: 'Postdoc',
+          start: 2000,
+          end: new Date().getFullYear(),
+          institution: { domain: 'umass.edu', name: 'University of Massachusetts, Amherst' },
         },
       ],
     },
