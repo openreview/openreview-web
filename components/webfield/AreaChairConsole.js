@@ -57,6 +57,7 @@ const AssignedPaperRow = ({
   setSelectedNoteIds,
   shortPhrase,
   showCheckbox = true,
+  additionalMetaReviewFields,
 }) => {
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
@@ -101,6 +102,7 @@ const AssignedPaperRow = ({
           metaReviewData={metaReviewData}
           metaReviewRecommendationName={metaReviewRecommendationName}
           referrerUrl={referrerUrl}
+          additionalMetaReviewFields={additionalMetaReviewFields}
         />
       </td>
     </tr>
@@ -140,6 +142,7 @@ const AreaChairConsole = ({ appContext }) => {
     reviewerName = 'Reviewers',
     anonReviewerName = 'Reviewer_',
     metaReviewRecommendationName = 'recommendation',
+    additionalMetaReviewFields = [],
     shortPhrase,
     filterOperators,
     propertiesAllowed,
@@ -462,6 +465,10 @@ const AreaChairConsole = ({ appContext }) => {
           metaReviewData: {
             [metaReviewRecommendationName]:
               metaReview?.content[metaReviewRecommendationName]?.value ?? 'N/A',
+            ...additionalMetaReviewFields.reduce((prev, curr) => {
+              const additionalMetaReviewFieldValue = metaReview?.content[curr]?.value ?? 'N/A'
+              return { ...prev, [curr]: additionalMetaReviewFieldValue }
+            }, {}),
             metaReviewInvitationId: `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`,
             metaReview,
           },
@@ -522,6 +529,7 @@ const AreaChairConsole = ({ appContext }) => {
             propertiesAllowed={propertiesAllowed}
             reviewRatingName={reviewRatingName}
             metaReviewRecommendationName={metaReviewRecommendationName}
+            additionalMetaReviewFields={additionalMetaReviewFields}
           />
           <p className="empty-message">No assigned papers matching search criteria.</p>
         </div>
@@ -540,6 +548,7 @@ const AreaChairConsole = ({ appContext }) => {
           propertiesAllowed={propertiesAllowed}
           reviewRatingName={reviewRatingName}
           metaReviewRecommendationName={metaReviewRecommendationName}
+          additionalMetaReviewFields={additionalMetaReviewFields}
         />
         <Table
           className="console-table table-striped areachair-console-table"
@@ -574,6 +583,7 @@ const AreaChairConsole = ({ appContext }) => {
               selectedNoteIds={selectedNoteIds}
               setSelectedNoteIds={setSelectedNoteIds}
               shortPhrase={shortPhrase}
+              additionalMetaReviewFields={additionalMetaReviewFields}
             />
           ))}
         </Table>
@@ -613,6 +623,7 @@ const AreaChairConsole = ({ appContext }) => {
               metaReviewRecommendationName={metaReviewRecommendationName}
               shortPhrase={shortPhrase}
               showCheckbox={false}
+              additionalMetaReviewFields={additionalMetaReviewFields}
             />
           ))}
         </Table>
