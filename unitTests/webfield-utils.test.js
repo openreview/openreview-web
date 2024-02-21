@@ -530,7 +530,12 @@ describe('filterCollections', () => {
         id: 1,
         metaReviewData: {
           seniorAreaChairs: [
-            { preferredName: 'Name One', preferredEmail: 'one@email.com', type: 'profile' },
+            {
+              preferredName: 'Name One',
+              preferredEmail: 'one@email.com',
+              preferredId: '~Id1',
+              type: 'profile',
+            },
           ],
         },
       },
@@ -538,7 +543,12 @@ describe('filterCollections', () => {
         id: 2,
         metaReviewData: {
           seniorAreaChairs: [
-            { preferredName: 'Name TWO', preferredEmail: 'two@email.com', type: 'profile' },
+            {
+              preferredName: 'Name TWO',
+              preferredEmail: 'two@email.com',
+              preferredId: '~Id2',
+              type: 'profile',
+            },
           ],
         },
       },
@@ -546,7 +556,12 @@ describe('filterCollections', () => {
         id: 3,
         metaReviewData: {
           seniorAreaChairs: [
-            { preferredName: 'Name two', preferredEmail: 'three@email.com', type: 'profile' },
+            {
+              preferredName: 'Name two',
+              preferredEmail: 'three@email.com',
+              preferredId: undefined, // no id, should not throw error
+              type: 'profile',
+            },
           ],
         },
       },
@@ -578,6 +593,28 @@ describe('filterCollections', () => {
 
     // email exact match
     filterString = 'sac=="two@email.com"'
+    result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([2])
+
+    // filter by id
+    filterString = 'sac=~Id'
+    result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([1, 2])
+
+    // filter by exact id
+    filterString = 'sac=~Id2'
     result = filterCollections(
       collections,
       filterString,

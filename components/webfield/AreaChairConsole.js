@@ -444,6 +444,7 @@ const AreaChairConsole = ({ appContext }) => {
                 profile,
                 hasReview: officialReviews.some((p) => p.anonymousId === reviewer.anonymousId),
                 noteNumber: note.number,
+                preferredId: reviewer.reviewerProfileId,
                 preferredName: profile ? getReviewerName(profile) : reviewer.reviewerProfileId,
                 preferredEmail: profile
                   ? profile.content.preferredEmail ?? profile.content.emails[0]
