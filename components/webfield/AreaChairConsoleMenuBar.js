@@ -1,3 +1,4 @@
+import { camelCase, upperFirst } from 'lodash'
 import { prettyField } from '../../lib/utils'
 import BaseMenuBar from './BaseMenuBar'
 import MessageReviewersModal from './MessageReviewersModal'
@@ -15,6 +16,7 @@ const AreaChairConsoleMenuBar = ({
   propertiesAllowed: extraPropertiesAllowed,
   reviewRatingName,
   metaReviewRecommendationName,
+  additionalMetaReviewFields,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
   const propertiesAllowed = {
@@ -41,6 +43,14 @@ const AreaChairConsoleMenuBar = ({
     confidenceMin: ['reviewProgressData.confidenceMin'],
     replyCount: ['reviewProgressData.replyCount'],
     [metaReviewRecommendationName]: [`metaReviewData.${metaReviewRecommendationName}`],
+    ...(additionalMetaReviewFields?.length > 0 &&
+      additionalMetaReviewFields.reduce(
+        (prev, curr) => ({
+          ...prev,
+          [`MetaReview${upperFirst(camelCase(curr))}`]: [`metaReviewData.${curr}`],
+        }),
+        {}
+      )),
     ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
   }
   const messageReviewerOptions = [
