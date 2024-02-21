@@ -38,6 +38,7 @@ const ProgramChairConsole = ({ appContext }) => {
     bidName,
     recommendationName, // to get ac recommendation edges
     metaReviewRecommendationName = 'recommendation', // recommendation field in meta review
+    additionalMetaReviewFields = [],
     requestFormId,
     submissionId,
     submissionVenueId,
@@ -709,6 +710,16 @@ const ProgramChairConsole = ({ appContext }) => {
         return {
           [metaReviewRecommendationName]:
             metaReview?.content[metaReviewRecommendationName]?.value,
+          ...additionalMetaReviewFields?.reduce((prev, curr) => {
+            const additionalMetaReviewFieldValue = metaReview?.content[curr]?.value
+            return {
+              ...prev,
+              [curr]: {
+                value: additionalMetaReviewFieldValue,
+                searchValue: additionalMetaReviewFieldValue ?? 'N/A',
+              },
+            }
+          }, {}),
           ...metaReview,
           metaReviewAgreement: metaReviewAgreement
             ? {
@@ -801,6 +812,13 @@ const ProgramChairConsole = ({ appContext }) => {
           metaReviewAgreementSearchValue: metaReviews
             .map((p) => p.metaReviewAgreement.searchValue)
             .join(' '),
+          ...additionalMetaReviewFields?.reduce((prev, curr) => {
+            const additionalMetaReviewValues = metaReviews.map((p) => p[curr]?.searchValue)
+            return {
+              ...prev,
+              [`${curr}SearchValue`]: additionalMetaReviewValues.join(' '),
+            }
+          }, {}),
         },
 
         decision,
