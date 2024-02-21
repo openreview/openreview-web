@@ -45,7 +45,6 @@ export const ReviewerConsoleNoteReviewStatus = ({
             </div>
           )
         })}
-
         <p>
           <Link href={editUrl}>Edit Official Review</Link>
         </p>
