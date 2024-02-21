@@ -151,7 +151,11 @@ export function createNoteEdit(jsonToPost, userToken) {
 }
 
 export function sendFile(data, userToken) {
-  return api.put('/attachment', data, { accessToken: userToken, contentType: 'unset', version: 1 })
+  return api.put('/attachment', data, {
+    accessToken: userToken,
+    contentType: 'unset',
+    version: 1,
+  })
 }
 
 export function getToken(id, password) {
@@ -167,8 +171,8 @@ export function addMembersToGroup(groupId, membersList, userToken, version) {
         signatures: ['~Super_User1'],
         group: {
           id: groupId,
-          members: { 'append': membersList }
-        }
+          members: { append: membersList },
+        },
       },
       { accessToken: userToken, version }
     )
@@ -199,7 +203,7 @@ export async function createUser({
   const defaultHistory = {
     position: 'Postdoc',
     start: 2000,
-    end: 2000,
+    end: new Date().getFullYear(),
     institution: { domain: 'umass.edu', name: 'University of Massachusetts, Amherst' },
   }
   const activateJson = {
@@ -293,6 +297,14 @@ export async function createProfile(fullname, email, tildeId, superUserToken) {
           username: tildeId,
         },
       ],
+      history: [
+        {
+          position: 'Postdoc',
+          start: 2000,
+          end: new Date().getFullYear(),
+          institution: { domain: 'umass.edu', name: 'University of Massachusetts, Amherst' },
+        },
+      ],
     },
   }
   await api.post('/profiles', profileJson, { accessToken: superUserToken })
@@ -328,6 +340,14 @@ export async function createEmptyProfile(fullname, tildeId, superUserToken) {
           username: tildeId,
         },
       ],
+      history: [
+        {
+          position: 'Postdoc',
+          start: 2000,
+          end: new Date().getFullYear(),
+          institution: { domain: 'umass.edu', name: 'University of Massachusetts, Amherst' },
+        },
+      ],
     },
   }
   await api.post('/profiles', profileJson, { accessToken: superUserToken })
@@ -339,11 +359,15 @@ export function getMessages(params, token) {
 }
 
 export function getNotes(params, token, version = 1) {
-  return api.get('/notes', params, { accessToken: token, version }).then((result) => result.notes)
+  return api
+    .get('/notes', params, { accessToken: token, version })
+    .then((result) => result.notes)
 }
 
 export function getGroups(params, token, version = 1) {
-  return api.get('/groups', params, { accessToken: token, version }).then((result) => result.groups)
+  return api
+    .get('/groups', params, { accessToken: token, version })
+    .then((result) => result.groups)
 }
 
 export function getReferences(params, token) {
