@@ -54,6 +54,7 @@ const nameMakePreferredButton = Selector('div.container.names')
 const dblpUrlInput = Selector('#dblp_url')
 const homepageUrlInput = Selector('#homepage_url')
 const yearOfBirthInput = Selector('section').nth(2).find('input')
+const firstHistoryEndInput = Selector('div.history').find('input').withAttribute('placeholder', 'end year').nth(0)
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
@@ -475,6 +476,36 @@ test('reimport unlinked paper and import all', async (t) => {
     .gt(0)
 })
 
+test('validate current history', async (t) => {
+  // add past end date
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .typeText(firstHistoryEndInput, (new Date().getFullYear() - 1).toString(), {
+      replace: true,
+      paste: true,
+    })
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText)
+    .eql('Your Education & Career History must include at least one current position.')
+    // add current end date
+    .typeText(firstHistoryEndInput, (new Date().getFullYear()).toString(), {
+      replace: true,
+      paste: true,
+    })
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).notOk()
+
+  // add empty end date
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .selectText(firstHistoryEndInput)
+    .pressKey('delete')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).notOk()
+})
+
 // eslint-disable-next-line no-unused-expressions
 fixture`Profile page different user`
 
@@ -574,19 +605,6 @@ test('#85 confirm profile email message', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
     .contains('A confirmation email has been sent to x@x.com')
-})
-test.skip('#2143 date validation', async (t) => {
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    // modify history start date with invalid value
-    .typeText(Selector('div.history').find('input.start').nth(0), '-2e-5', {
-      replace: true,
-      paste: true,
-    })
-    .click(saveProfileButton)
-    .expect(errorMessageSelector.innerText)
-    .notEql('Your profile information has been successfully updated') // should not save successfully
 })
 test('#98 trailing slash error page', async (t) => {
   await t

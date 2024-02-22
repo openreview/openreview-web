@@ -523,6 +523,107 @@ describe('filterCollections', () => {
     )
     expect(result.filteredRows.map((p) => p.id)).toEqual([1, 3])
   })
+
+  test('filter profiles', () => {
+    const collections = [
+      {
+        id: 1,
+        metaReviewData: {
+          seniorAreaChairs: [
+            {
+              preferredName: 'Name One',
+              preferredEmail: 'one@email.com',
+              preferredId: '~Id1',
+              type: 'profile',
+            },
+          ],
+        },
+      },
+      {
+        id: 2,
+        metaReviewData: {
+          seniorAreaChairs: [
+            {
+              preferredName: 'Name TWO',
+              preferredEmail: 'two@email.com',
+              preferredId: '~Id2',
+              type: 'profile',
+            },
+          ],
+        },
+      },
+      {
+        id: 3,
+        metaReviewData: {
+          seniorAreaChairs: [
+            {
+              preferredName: 'Name two',
+              preferredEmail: 'three@email.com',
+              preferredId: undefined, // no id, should not throw error
+              type: 'profile',
+            },
+          ],
+        },
+      },
+    ]
+    let filterString = 'sac=two'
+    const propertiesAllowed = {
+      sac: ['metaReviewData.seniorAreaChairs'],
+    }
+
+    let result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([2, 3])
+
+    // exact match
+    filterString = 'sac=="Name two"'
+    result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([3])
+
+    // email exact match
+    filterString = 'sac=="two@email.com"'
+    result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([2])
+
+    // filter by id
+    filterString = 'sac=~Id'
+    result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([1, 2])
+
+    // filter by exact id
+    filterString = 'sac=~Id2'
+    result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([2])
+  })
 })
 
 describe('convertToString', () => {
