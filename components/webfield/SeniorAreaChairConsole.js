@@ -43,6 +43,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     decisionName = 'Decision',
     preliminaryDecisionName,
     metaReviewRecommendationName = 'recommendation',
+    additionalMetaReviewFields = [],
     edgeBrowserDeployedUrl,
     customStageInvitations,
     withdrawnVenueId,
@@ -448,6 +449,16 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 [metaReviewRecommendationName]:
                   metaReview?.content[metaReviewRecommendationName]?.value,
                 ...metaReview,
+                ...additionalMetaReviewFields?.reduce((prev, curr) => {
+                  const additionalMetaReviewFieldValue = metaReview?.content[curr]?.value
+                  return {
+                    ...prev,
+                    [curr]: {
+                      value: additionalMetaReviewFieldValue,
+                      searchValue: additionalMetaReviewFieldValue ?? 'N/A',
+                    },
+                  }
+                }, {}),
                 metaReviewAgreement: metaReviewAgreement
                   ? {
                       searchValue: metaReviewAgreementValue,
@@ -493,10 +504,11 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               const profile = allProfilesMap.get(reviewer.reviewerProfileId)
               return {
                 ...reviewer,
-                type: 'reviewer',
+                type: 'profile',
                 profile,
                 hasReview: officialReviews.some((p) => p.anonymousId === reviewer.anonymousId),
                 noteNumber: note.number,
+                preferredId: reviewer.reviewerProfileId,
                 preferredName: profile ? getProfileName(profile) : reviewer.reviewerProfileId,
                 preferredEmail: profile
                   ? profile.content.preferredEmail ?? profile.content.emails[0]
@@ -551,6 +563,13 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               metaReviewAgreementSearchValue: metaReviews
                 .map((p) => p.metaReviewAgreement?.searchValue)
                 .join(' '),
+              ...additionalMetaReviewFields?.reduce((prev, curr) => {
+                const additionalMetaReviewValues = metaReviews.map((p) => p[curr]?.searchValue)
+                return {
+                  ...prev,
+                  [`${curr}SearchValue`]: additionalMetaReviewValues.join(' '),
+                }
+              }, {}),
             },
             decision,
             preliminaryDecision,
