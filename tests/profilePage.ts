@@ -283,6 +283,31 @@ test('add relation', async (t) => {
     .click(saveProfileButton)
 })
 
+test('add expertise', async (t) => {
+  const firstExpertiseRow = Selector('div.expertise').find('div.row').nth(1)
+  const secondExpertiseRow = Selector('div.expertise').find('div.row').nth(2)
+  const thirdExpertiseRow = Selector('div.expertise').find('div.row').nth(3)
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    // add expertise correctly
+    .typeText(firstExpertiseRow.find('div.expertise__value').nth(0).find('input'), 'some,correct,expertise')
+    .typeText(firstExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
+    .typeText(firstExpertiseRow.find('div.expertise__value').nth(2).find('input'), '2000')
+    // add empty expertise
+    .typeText(secondExpertiseRow.find('div.expertise__value').nth(0).find('input'), '   ,   ,   ,   ')
+    .typeText(secondExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
+    // add expertise with empty value
+    .typeText(thirdExpertiseRow.find('div.expertise__value').nth(0).find('input'), 'other expertise,   ')
+    .typeText(thirdExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
+    .click(saveProfileButton)
+    // verify relation is added
+    .expect(Selector('span').withText('other expertise').exists).ok()
+    .expect(Selector('span').withText('some, correct, expertise').exists).ok()
+    .expect(Selector('div.start-end-year').withText('1999 – Present').exists).ok()
+    .expect(Selector('div.start-end-year').withText('1999 – 2000').exists).ok()
+})
+
 test('import paper from dblp', async (t) => {
   const testPersistentUrl = 'https://dblp.org/pid/95/7448-1'
   await t
