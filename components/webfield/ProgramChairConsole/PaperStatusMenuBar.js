@@ -33,6 +33,7 @@ const PaperStatusMenuBar = ({
     author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords.value'],
     reviewer: ['reviewers'],
+    sac: ['metaReviewData.seniorAreaChairs'],
     numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
     numReviewsDone: ['reviewProgressData.numReviewsDone'],
     ...Object.fromEntries(
