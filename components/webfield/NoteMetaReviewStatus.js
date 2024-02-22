@@ -108,6 +108,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
   metaReviewData,
   metaReviewRecommendationName,
   referrerUrl,
+  additionalMetaReviewFields,
 }) => {
   const [metaReviewInvitation, setMetaReviewInvitation] = useState(null)
   const { accessToken } = useUser()
@@ -143,10 +144,18 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
     <div className="areachair-console-meta-review">
       {metaReviewData[metaReviewRecommendationName] !== 'N/A' ? (
         <>
-          <h4 className="title">{`AC ${prettyField(metaReviewRecommendationName)}:`}</h4>
+          <h4 className="title">{prettyField(metaReviewRecommendationName)}:</h4>
           <p>
             <strong>{metaReviewData[metaReviewRecommendationName]}</strong>
           </p>
+          {additionalMetaReviewFields.map((additionalMetaReviewField) => {
+            const fieldValue = metaReviewData[additionalMetaReviewField]
+            return (
+              <p key={additionalMetaReviewField}>
+                <strong>{prettyField(additionalMetaReviewField)}:</strong> {fieldValue}
+              </p>
+            )
+          })}
           <p>
             <a href={editUrl} target="_blank" rel="nofollow noreferrer">{`Read${
               metaReviewInvitation ? '/Edit' : ''
@@ -157,7 +166,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
         <h4>
           {metaReviewInvitation ? (
             <a
-              href={`/forum?id=${note.forum}&noteId=${note.id}&invitationId=${metaReviewData.metaReviewInvitation}&referrer=${referrerUrl}`}
+              href={`/forum?id=${note.forum}&noteId=${note.id}&invitationId=${metaReviewData.metaReviewInvitationId}&referrer=${referrerUrl}`}
               target="_blank"
               rel="nofollow noreferrer"
             >
@@ -178,9 +187,16 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
   referrerUrl,
   areaChairAssignmentUrl,
   metaReviewRecommendationName,
+  additionalMetaReviewFields,
 }) => {
   const { note, metaReviewData, preliminaryDecision } = rowData
-  const { numMetaReviewsDone, areaChairs, metaReviews, seniorAreaChairs } = metaReviewData
+  const {
+    numMetaReviewsDone,
+    areaChairs,
+    metaReviews,
+    seniorAreaChairs,
+    secondaryAreaChairs,
+  } = metaReviewData
   const paperManualAreaChairAssignmentUrl = areaChairAssignmentUrl?.replace(
     'edges/browse?',
     `edges/browse?start=staticList,type:head,ids:${note.id}&`
@@ -199,7 +215,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
         {areaChairs.length !== 0 &&
           areaChairs.map((areaChair) => {
             const metaReview = metaReviews.find((p) => p.anonId === areaChair.anonymousId)
-            const recommendation = metaReview?.content?.[metaReviewRecommendationName]?.value
+            const recommendation = metaReview?.[metaReviewRecommendationName]
             const { metaReviewAgreement } = metaReview ?? {}
             return (
               <div key={areaChair.anonymousId} className="meta-review-info">
@@ -211,16 +227,32 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                 </div>
                 {metaReview && (
                   <div>
-                    <span className="recommendation">Recommendation: {recommendation}</span>
-                    <div>
-                      <a
-                        href={`/forum?id=${metaReview.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Read Meta Review
-                      </a>
-                    </div>
+                    <span className="recommendation">
+                      {prettyField(metaReviewRecommendationName)}: {recommendation}
+                    </span>
+                  </div>
+                )}
+                {additionalMetaReviewFields &&
+                  additionalMetaReviewFields.map((additionalMetaReviewField) => {
+                    const fieldValue = metaReview?.[additionalMetaReviewField]?.value
+                    if (!fieldValue) return null
+                    return (
+                      <div key={additionalMetaReviewField}>
+                        <span className="recommendation">
+                          {prettyField(additionalMetaReviewField)}: {fieldValue}
+                        </span>
+                      </div>
+                    )
+                  })}
+                {metaReview && (
+                  <div>
+                    <a
+                      href={`/forum?id=${metaReview.forum}&noteId=${metaReview.id}&referrer=${referrerUrl}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Read Meta Review
+                    </a>
                   </div>
                 )}
                 {metaReviewAgreement?.value && (
@@ -243,6 +275,24 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
             )
           })}
       </div>
+
+      {secondaryAreaChairs?.length > 0 && (
+        <div>
+          <strong>Secondary Area Chair:</strong>
+          <div>
+            {secondaryAreaChairs.map((areaChair) => (
+              <div key={areaChair.anonymousId} className="meta-review-info">
+                <div className="areachair-contact">
+                  <span>
+                    {areaChair.preferredName}{' '}
+                    <span className="text-muted">&lt;{areaChair.preferredEmail}&gt;</span>
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {seniorAreaChairs?.length > 0 && (
         <div className="senior-areachair">

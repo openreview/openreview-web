@@ -48,9 +48,18 @@ const ReviewSummary = ({
   const ratings = Object.fromEntries(
     (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
       (ratingName) => {
-        const ratingValues = noteCompletedReviews.map((p) =>
-          parseNumberField(isV2Note ? p.content?.[ratingName]?.value : p.content?.[ratingName])
-        )
+        const ratingDisplayName =
+          typeof ratingName === 'object' ? Object.keys(ratingName)[0] : ratingName
+        const ratingValues = noteCompletedReviews.map((p) => {
+          if (!isV2Note) return parseNumberField(p.content?.[ratingName])
+          if (typeof ratingName === 'object') {
+            const ratingValue = Object.values(ratingName)[0]
+              .map((q) => p.content?.[q]?.value)
+              .find((r) => r !== undefined)
+            return parseNumberField(ratingValue)
+          }
+          return parseNumberField(p.content?.[ratingName]?.value)
+        })
         const validRatingValues = ratingValues.filter((p) => p !== null)
         const ratingAvg = validRatingValues.length
           ? (
@@ -60,7 +69,7 @@ const ReviewSummary = ({
           : 'N/A'
         const ratingMin = validRatingValues.length ? Math.min(...validRatingValues) : 'N/A'
         const ratingMax = validRatingValues.length ? Math.max(...validRatingValues) : 'N/A'
-        return [ratingName, { ratingAvg, ratingMin, ratingMax }]
+        return [ratingDisplayName, { ratingAvg, ratingMin, ratingMax }]
       }
     )
   )
@@ -84,15 +93,29 @@ const ReviewSummary = ({
           const reviewRatingValues = (
             Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]
           ).flatMap((ratingName) => {
-            const ratingValue = parseNumberField(
-              isV2Note ? review.content?.[ratingName]?.value : review.content?.[ratingName]
-            )
-            return ratingValue ? { [ratingName]: ratingValue } : []
+            let ratingDisplayName = ratingName
+            let ratingValue = null
+            if (isV2Note) {
+              if (typeof ratingName === 'object') {
+                const ratingFieldValue = Object.values(ratingName)[0]
+                  .map((p) => review.content?.[p]?.value)
+                  .find((q) => q !== undefined)
+                ratingDisplayName = Object.keys(ratingName)[0]
+                ratingValue = parseNumberField(ratingFieldValue)
+              } else {
+                ratingValue = parseNumberField(review.content?.[ratingName]?.value)
+              }
+            } else {
+              ratingValue = parseNumberField(review.content?.[ratingName])
+            }
+            return ratingValue ? { [ratingDisplayName]: ratingValue } : []
           })
 
-          const reviewConfidenceValue = isV2Note
-            ? review.content?.[reviewConfidenceName]?.value
-            : review.content?.[reviewConfidenceName]
+          const reviewConfidenceValue = parseNumberField(
+            isV2Note
+              ? review.content?.[reviewConfidenceName]?.value
+              : review.content?.[reviewConfidenceName]
+          )
           return (
             <li key={review.id}>
               <strong>{prettyId(review.signatures[0].split('/')?.pop())}:</strong>
@@ -105,7 +128,7 @@ const ReviewSummary = ({
                   </span>
                 )
               })}
-              {reviewConfidenceValue ? `/ Confidence: ${reviewConfidenceValue}` : ''}
+              {reviewConfidenceValue !== null ? `/ Confidence: ${reviewConfidenceValue}` : ''}
               <br />
               <Link
                 href={`/forum?id=${review.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
@@ -120,10 +143,12 @@ const ReviewSummary = ({
       <div>
         {(Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
           (ratingName, index) => {
-            const { ratingAvg, ratingMin, ratingMax } = ratings[ratingName]
+            const ratingDisplayName =
+              typeof ratingName === 'object' ? Object.keys(ratingName)[0] : ratingName
+            const { ratingAvg, ratingMin, ratingMax } = ratings[ratingDisplayName]
             return (
               <span key={index}>
-                <strong>Average {prettyField(ratingName)}:</strong> {ratingAvg} (Min:{' '}
+                <strong>Average {prettyField(ratingDisplayName)}:</strong> {ratingAvg} (Min:{' '}
                 {ratingMin}, Max: {ratingMax})<br />
               </span>
             )
@@ -247,7 +272,7 @@ const AuthorConsoleTasks = () => {
       venueId={venueId}
       roleName={authorName}
       referrer={referrer}
-      filterAssignedInvitaiton={true}
+      filterAssignedInvitation={true}
       submissionName={submissionName}
       apiVersion={apiVersion}
     />

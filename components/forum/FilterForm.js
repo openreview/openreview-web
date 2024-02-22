@@ -35,7 +35,7 @@ export default function FilterForm({
   }))
   const readersToggleOptions = filterOptions.readers.map((groupId) => ({
     value: groupId,
-    label: prettyId(groupId, true),
+    label: prettyId(groupId, true, true),
   }))
 
   // Selected options

@@ -54,17 +54,25 @@ function InvitationLink({ invitation, referrer }) {
   const { web, id, groupId, noteId, completed, apiVersion } = invitation
   const prettifiedInvitationId = prettyTasksInvitationId(id)
   const replyTo = apiVersion === 2 ? invitation.edit?.note?.replyto : invitation.reply?.replyto
+  const hasId = apiVersion === 2 && typeof invitation.edit?.note?.id === 'string'
 
-  if (invitation.noteInvitation) {
+  const getNoteInvitationLink = () => {
     const noteParam = replyTo ? `&noteId=${noteId}` : ''
     const invitationParam = completed ? '' : `&invitationId=${id}`
-    return (
-      <Link
-        href={`/forum?id=${invitation.details.replytoNote.forum}${noteParam}${invitationParam}&referrer=${referrer}`}
-      >
-        {prettifiedInvitationId}
-      </Link>
-    )
+
+    if (web) {
+      return `/invitation?id=${id}&referrer=${referrer}`
+    }
+    if (noteParam || hasId) {
+      return `/forum?id=${invitation.details.replytoNote.forum}${noteParam}${invitationParam}&referrer=${referrer}`
+    }
+    return null
+  }
+
+  if (invitation.noteInvitation) {
+    const link = getNoteInvitationLink()
+
+    return link ? <Link href={link}>{prettifiedInvitationId}</Link> : null
   }
   if (invitation.tagInvitation) {
     return web ? (
