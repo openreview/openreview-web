@@ -14,7 +14,7 @@ export default function ToggleButtonGroup({
 }) {
   const [optionStates, setOptionStates] = useState(new Array(options?.length || 0).fill(0))
   const numStates = 3
-  const maxLabelLength = 20
+  const maxLabelLength = 22
 
   const onButtonClick = (e) => {
     const { value } = e.target
