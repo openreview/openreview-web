@@ -169,7 +169,11 @@ const BasicProfileView = ({
               .filter((email) => !email.hidden)
               .flatMap((email, i) => [
                 i > 0 ? <span key={i}>, </span> : null,
-                <ProfileEmail key={email.email} email={email} publicProfile={publicProfile} />,
+                <ProfileEmail
+                  key={`${email.email}-${i}`}
+                  email={email}
+                  publicProfile={publicProfile}
+                />,
               ])}
           </div>
         </ProfileViewSection>

@@ -64,7 +64,7 @@ const AssignmentRow = ({
   handleRunMatcher,
   handleDeployMatcher,
   referrer,
-  shouldRemoveDeployLink,
+  shouldShowDeployLink,
 }) => {
   const [loading, setLoading] = useState(false)
   const noteContent = apiVersion === 2 ? getNoteContentValues(note.content) : note.content
@@ -176,7 +176,7 @@ const AssignmentRow = ({
             />
           </>
         )}
-        {['Complete', 'Deployment Error'].includes(status) && !shouldRemoveDeployLink && (
+        {['Complete', 'Deployment Error'].includes(status) && shouldShowDeployLink && (
           <ActionLink
             label="Deploy Assignment"
             iconName="share"
@@ -280,7 +280,7 @@ const Assignments = ({ appContext }) => {
   const newNoteEditor = configInvitation?.domain
   const pageSize = 25
 
-  const shouldRemoveDeployLink = assignmentNotes?.some((p) =>
+  const shouldShowDeployLink = configInvitation?.content?.multiple_deployments?.value || !assignmentNotes?.some((p) =>
     apiVersion === 2
       ? p?.content?.status?.value === 'Deployed'
       : p?.content?.status === 'Deployed'
@@ -603,7 +603,7 @@ const Assignments = ({ appContext }) => {
                       query?.group
                     })`
                   )}
-                  shouldRemoveDeployLink={shouldRemoveDeployLink}
+                  shouldShowDeployLink={shouldShowDeployLink}
                 />
               ))}
             </Table>

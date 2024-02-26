@@ -566,7 +566,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
         data-toggle="modal"
         data-target="#feedback-modal"
         data-from={email}
-        data-subject="My institution email is not recognized"
+        data-subject="Please add my domain to your list of publishing institutions"
       >
         contact us
       </a>{' '}
