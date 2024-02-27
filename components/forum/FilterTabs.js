@@ -22,6 +22,7 @@ export default function FilterTabs({ forumId, forumViews, replyInvitations = [] 
         return (
           <li
             key={view.id}
+            data-id={view.id}
             role="presentation"
             className={view.id === currentHash ? 'active' : null}
           >

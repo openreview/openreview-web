@@ -491,6 +491,14 @@ export default function Forum({
 
     if (window.location.hash) {
       handleRouteChange(window.location.hash)
+    } else if (replyForumViews?.length > 0 && !selectedNoteId) {
+      setTimeout(() => {
+        const tab = replyForumViews[0]
+        const newActiveTab = document.querySelector(`.filter-tabs li[data-id="${tab.id}"] a`)
+        if (newActiveTab) {
+          newActiveTab.click()
+        }
+      }, 200)
     }
 
     router.events.on('hashChangeComplete', handleRouteChange)
