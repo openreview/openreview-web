@@ -11,6 +11,8 @@ import api from '../../lib/api-client'
 import { prettyId, prettyInvitationId } from '../../lib/utils'
 import { readersList, getSignatureColors } from '../../lib/forum-utils'
 
+import styles from '../../styles/components/ChatEditorForm.module.scss'
+
 export default function ChatEditorForm({
   invitation,
   forumId,
@@ -176,7 +178,11 @@ export default function ChatEditorForm({
   }, [showMessagePreview, message])
 
   return (
-    <form onSubmit={postNoteEdit} style={{ backgroundColor: `${colorHash}1E` }}>
+    <form
+      onSubmit={postNoteEdit}
+      style={{ backgroundColor: `${colorHash}1E` }}
+      className={styles.container}
+    >
       {replyToNote && (
         <div className="parent-info">
           <h5 onClick={() => {}}>
@@ -268,19 +274,19 @@ export default function ChatEditorForm({
         )}
       </div>
 
-      <div className="clearfix">
-        <div className="readers-container pull-left">
+      <div className="d-flex">
+        <div className="readers-container">
           {hasFixedReaders && (
             <p className="mb-0 text-muted">
               <Icon name="eye-open" extraClasses="pr-1" />{' '}
               <em>
-                {invitationShortName} replies are visible only to{' '}
+                {invitationShortName} replies are only visible to{' '}
                 {readersList(invitation.edit.note.readers)}
               </em>
             </p>
           )}
         </div>
-        <div className="pull-right">
+        <div className="buttons-container">
           {'Notification' in window && (
             <div className="custom-switch custom-control">
               <input
