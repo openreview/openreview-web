@@ -36,7 +36,15 @@ export default function ChatEditorForm({
 
   const loadSignatureOptions = async () => {
     try {
-      const options = invitation.edit.signatures.param.enum
+      const fieldDescription = invitation.edit.signatures
+      let options = []
+      if (fieldDescription.param.enum) {
+        options = fieldDescription.param.enum
+      } else if (fieldDescription.param.items) {
+        options = fieldDescription.param.items
+          .map((item) => item.value ?? item.prefix)
+          .filter(Boolean)
+      }
       const optionsP = options.map((p) => {
         const params = p.includes('.*')
           ? { prefix: p, signatory: user?.id }
@@ -46,6 +54,7 @@ export default function ChatEditorForm({
           .then((result) => result.groups ?? [])
       })
       const groupResults = await Promise.all(optionsP)
+
       const uniqueGroupResults = uniqBy(flatten(groupResults), 'id')
       const sigOptions = uniqueGroupResults.map((p) => {
         let label = prettyId(p.id, true)
