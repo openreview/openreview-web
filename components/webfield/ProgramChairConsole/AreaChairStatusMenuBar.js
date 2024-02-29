@@ -32,6 +32,7 @@ const MessageAreaChairsModal = ({
       await api.post(
         '/messages',
         {
+          invitation: `${messageParentGroup}/-/Message`,
           groups: recipientsInfo.map((p) => p.id),
           subject,
           message,
@@ -162,6 +163,7 @@ const AreaChairStatusMenuBar = ({
   setAreaChairStatusTabData,
   bidEnabled,
   recommendationEnabled,
+  messageParentGroup,
 }) => {
   const {
     shortPhrase,
@@ -170,7 +172,6 @@ const AreaChairStatusMenuBar = ({
     areaChairStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
-    areaChairsId: messageParentGroup,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {

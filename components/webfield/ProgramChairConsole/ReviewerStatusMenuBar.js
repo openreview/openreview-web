@@ -31,6 +31,7 @@ const MessageReviewersModal = ({
       await api.post(
         '/messages',
         {
+          invitation: `${messageParentGroup}/-/Message`,
           groups: recipientsInfo.map((p) => p.id),
           subject,
           message,
