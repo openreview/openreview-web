@@ -7,6 +7,7 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { inflect, prettyField } from '../../lib/utils'
 import { getNoteContentValues } from '../../lib/forum-utils'
+import { getProfileLink } from '../../lib/webfield-utils'
 
 const IEEECopyrightForm = ({ note, isV2Note }) => {
   const { showIEEECopyright, IEEEPublicationTitle, IEEEArtSourceCode } =
@@ -221,7 +222,13 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
               <div key={areaChair.anonymousId} className="meta-review-info">
                 <div className="areachair-contact">
                   <span>
-                    {areaChair.preferredName}{' '}
+                    <a
+                      href={getProfileLink(null, areaChair.areaChairProfileId)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {areaChair.preferredName}
+                    </a>{' '}
                     <span className="text-muted">&lt;{areaChair.preferredEmail}&gt;</span>
                   </span>
                 </div>
@@ -284,7 +291,13 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
               <div key={areaChair.anonymousId} className="meta-review-info">
                 <div className="areachair-contact">
                   <span>
-                    {areaChair.preferredName}{' '}
+                    <a
+                      href={getProfileLink(null, areaChair.areaChairProfileId)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {areaChair.preferredName}
+                    </a>{' '}
                     <span className="text-muted">&lt;{areaChair.preferredEmail}&gt;</span>
                   </span>
                 </div>
@@ -301,7 +314,13 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
             <div key={index} className="meta-review-info">
               <div className="seniorareachair-contact">
                 <span>
-                  {seniorAreaChair.preferredName}{' '}
+                  <a
+                    href={getProfileLink(null, seniorAreaChair.preferredId)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {seniorAreaChair.preferredName}
+                  </a>{' '}
                   <span className="text-muted">&lt;{seniorAreaChair.preferredEmail}&gt;</span>
                 </span>
               </div>
