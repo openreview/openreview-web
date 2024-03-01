@@ -308,6 +308,15 @@ main.forum {
       padding: .5rem;
       padding-bottom: 0;
     }
+    .empty-container {
+      height: 625px;
+    }
+    .empty-message {
+      padding-top: 2.5rem;
+      text-align: center;
+      color: constants.$subtleGray;
+      font-style: italic;
+    }
   }
 
   .note-editor-reply {

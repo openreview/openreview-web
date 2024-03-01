@@ -894,6 +894,7 @@ export default function Forum({
                   setChatReplyNote={setChatReplyNote}
                   updateNote={updateNote}
                   deleteOrRestoreNote={deleteOrRestoreNote}
+                  numHidden={numRepliesHidden}
                 />
               ) : (
                 <LoadingSpinner inline />
@@ -988,6 +989,7 @@ function ForumReplies({
   replyNoteMap,
   displayOptionsMap,
   chatReplyNote,
+  numHidden,
   layout,
   updateNote,
   deleteOrRestoreNote,
@@ -996,6 +998,15 @@ function ForumReplies({
   if (!replies) return null
 
   if (layout === 'chat') {
+    if (replies.length === numHidden || replies.length === 0) {
+      return (
+        <div className="empty-container">
+          <p className="empty-message">
+            No messages to display. Be the first by posting a message below.
+          </p>
+        </div>
+      )
+    }
     return (
       <List data={replies} height={625} itemHeight={1} itemKey="id">
         {(reply) => (
