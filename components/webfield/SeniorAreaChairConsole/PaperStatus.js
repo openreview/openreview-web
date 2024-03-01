@@ -37,6 +37,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
     seniorAreaChairName,
     submissionName,
     metaReviewRecommendationName = 'recommendation',
+    additionalMetaReviewFields = [],
   } = useContext(WebFieldContext)
   const { note } = rowData
   const referrerUrl = encodeURIComponent(
@@ -84,6 +85,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
           rowData={rowData}
           referrerUrl={referrerUrl}
           metaReviewRecommendationName={metaReviewRecommendationName}
+          additionalMetaReviewFields={additionalMetaReviewFields}
         />
       </td>
       <td className="console-decision">

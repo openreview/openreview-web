@@ -54,6 +54,7 @@ const nameMakePreferredButton = Selector('div.container.names')
 const dblpUrlInput = Selector('#dblp_url')
 const homepageUrlInput = Selector('#homepage_url')
 const yearOfBirthInput = Selector('section').nth(2).find('input')
+const firstHistoryEndInput = Selector('div.history').find('input').withAttribute('placeholder', 'end year').nth(0)
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
@@ -284,6 +285,31 @@ test('add relation', async (t) => {
     .click(saveProfileButton)
 })
 
+test('add expertise', async (t) => {
+  const firstExpertiseRow = Selector('div.expertise').find('div.row').nth(1)
+  const secondExpertiseRow = Selector('div.expertise').find('div.row').nth(2)
+  const thirdExpertiseRow = Selector('div.expertise').find('div.row').nth(3)
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    // add expertise correctly
+    .typeText(firstExpertiseRow.find('div.expertise__value').nth(0).find('input'), 'some,correct,expertise')
+    .typeText(firstExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
+    .typeText(firstExpertiseRow.find('div.expertise__value').nth(2).find('input'), '2000')
+    // add empty expertise
+    .typeText(secondExpertiseRow.find('div.expertise__value').nth(0).find('input'), '   ,   ,   ,   ')
+    .typeText(secondExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
+    // add expertise with empty value
+    .typeText(thirdExpertiseRow.find('div.expertise__value').nth(0).find('input'), 'other expertise,   ')
+    .typeText(thirdExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
+    .click(saveProfileButton)
+    // verify relation is added
+    .expect(Selector('span').withText('other expertise').exists).ok()
+    .expect(Selector('span').withText('some, correct, expertise').exists).ok()
+    .expect(Selector('div.start-end-year').withText('1999 – Present').exists).ok()
+    .expect(Selector('div.start-end-year').withText('1999 – 2000').exists).ok()
+})
+
 test('import paper from dblp', async (t) => {
   const testPersistentUrl = 'https://dblp.org/pid/95/7448-1'
   await t
@@ -417,7 +443,7 @@ test('check import history', async (t) => {
   // shoud have 2 references: add paper and update authorid
   const importedPaperId = notes[0].id
   const references = await getReferences(
-    { referent: importedPaperId, sort: 'mdate' },
+    { referent: importedPaperId, sort: 'tmdate' },
     superUserToken
   )
   await t
@@ -475,6 +501,36 @@ test('reimport unlinked paper and import all', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
     .expect(Selector('section.coauthors').find('li').count)
     .gt(0)
+})
+
+test('validate current history', async (t) => {
+  // add past end date
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .typeText(firstHistoryEndInput, (new Date().getFullYear() - 1).toString(), {
+      replace: true,
+      paste: true,
+    })
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText)
+    .eql('Your Education & Career History must include at least one current position.')
+    // add current end date
+    .typeText(firstHistoryEndInput, (new Date().getFullYear()).toString(), {
+      replace: true,
+      paste: true,
+    })
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).notOk()
+
+  // add empty end date
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .selectText(firstHistoryEndInput)
+    .pressKey('delete')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).notOk()
 })
 
 // eslint-disable-next-line no-unused-expressions
@@ -576,19 +632,6 @@ test('#85 confirm profile email message', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
     .contains('A confirmation email has been sent to x@x.com')
-})
-test.skip('#2143 date validation', async (t) => {
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    // modify history start date with invalid value
-    .typeText(Selector('div.history').find('input.start').nth(0), '-2e-5', {
-      replace: true,
-      paste: true,
-    })
-    .click(saveProfileButton)
-    .expect(errorMessageSelector.innerText)
-    .notEql('Your profile information has been successfully updated') // should not save successfully
 })
 test('#98 trailing slash error page', async (t) => {
   await t
