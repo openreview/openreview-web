@@ -18,8 +18,9 @@ import { prettyField } from '../../lib/utils'
 export const ReviewerConsoleNoteReviewStatus = ({
   editUrl,
   paperRatings,
-  review,
+  officialReview,
   invitationUrl,
+  reviewDisplayFields,
 }) => (
   <div>
     {editUrl ? (
@@ -34,8 +35,16 @@ export const ReviewerConsoleNoteReviewStatus = ({
             </div>
           )
         })}
-        <h4>Your Review:</h4>
-        <p>{review}</p>
+        {reviewDisplayFields.map((reviewDisplayField, index) => {
+          const displayFieldValue = officialReview?.content?.[reviewDisplayField]?.value
+          if (!displayFieldValue) return null
+          return (
+            <div key={index}>
+              <h4>Your {prettyField(reviewDisplayField)}:</h4>
+              <p>{displayFieldValue}</p>
+            </div>
+          )
+        })}
         <p>
           <Link href={editUrl}>Edit Official Review</Link>
         </p>

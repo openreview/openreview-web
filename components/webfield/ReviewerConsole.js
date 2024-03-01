@@ -126,6 +126,7 @@ const AssignedPaperRow = ({
   setReviewerConsoleData,
   enablePaperRanking,
   setEnablePaperRanking,
+  reviewDisplayFields,
 }) => {
   const {
     officialReviewInvitations,
@@ -174,7 +175,6 @@ const AssignedPaperRow = ({
     }
     return { [ratingDisplayName]: ratingValue }
   })
-  const review = officialReview?.content?.review?.value
 
   return (
     <tr>
@@ -195,12 +195,13 @@ const AssignedPaperRow = ({
               : null
           }
           paperRatings={paperRatingValues}
-          review={review}
+          officialReview={officialReview}
           invitationUrl={
             officialReviewInvitation
               ? `/forum?id=${note.forum}&noteId=${note.id}&invitationId=${officialReviewInvitation.id}&referrer=${referrerUrl}`
               : null
           }
+          reviewDisplayFields={reviewDisplayFields}
         />
         {paperRankingTags && (
           <PaperRankingDropdown
@@ -261,6 +262,7 @@ const ReviewerConsole = ({ appContext }) => {
     customMaxPapersInvitationId, // to query custom load edges
     reviewLoad,
     hasPaperRanking,
+    reviewDisplayFields = ['review'],
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
@@ -596,6 +598,7 @@ const ReviewerConsole = ({ appContext }) => {
                       setReviewerConsoleData={setReviewerConsoleData}
                       enablePaperRanking={enablePaperRanking}
                       setEnablePaperRanking={setEnablePaperRanking}
+                      reviewDisplayFields={reviewDisplayFields}
                     />
                   ))}
                 </Table>
