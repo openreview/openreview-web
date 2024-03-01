@@ -23,9 +23,9 @@ import { getProfileLink } from '../../lib/webfield-utils'
 
 const AreaChairInfo = ({ areaChairName, areaChairIds }) => (
   <div className="note-area-chairs">
-    <strong>{prettyField(areaChairName)}:</strong> {/* <div> */}
+    <strong>{prettyField(areaChairName)}:</strong>
     {areaChairIds.map((areaChairId) => (
-      <Link key={areaChairId} href={getProfileLink(null, areaChairId)}>
+      <Link key={areaChairId} href={getProfileLink(areaChairId)}>
         <div>{prettyId(areaChairId)}</div>
       </Link>
     ))}

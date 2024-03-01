@@ -223,7 +223,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                 <div className="areachair-contact">
                   <span>
                     <a
-                      href={getProfileLink(null, areaChair.areaChairProfileId)}
+                      href={getProfileLink(areaChair.areaChairProfileId)}
                       target="_blank"
                       rel="noreferrer"
                     >
@@ -292,7 +292,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                 <div className="areachair-contact">
                   <span>
                     <a
-                      href={getProfileLink(null, areaChair.areaChairProfileId)}
+                      href={getProfileLink(areaChair.areaChairProfileId)}
                       target="_blank"
                       rel="noreferrer"
                     >
@@ -315,7 +315,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
               <div className="seniorareachair-contact">
                 <span>
                   <a
-                    href={getProfileLink(null, seniorAreaChair.preferredId)}
+                    href={getProfileLink(seniorAreaChair.preferredId)}
                     target="_blank"
                     rel="noreferrer"
                   >

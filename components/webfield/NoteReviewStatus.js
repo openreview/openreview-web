@@ -233,7 +233,7 @@ export const AcPcConsoleReviewerStatusRow = ({
       <div className="assigned-reviewer-action">
         <span>
           <a
-            href={getProfileLink(null, reviewer.reviewerProfileId)}
+            href={getProfileLink(reviewer.reviewerProfileId)}
             target="_blank"
             rel="noreferrer"
           >
