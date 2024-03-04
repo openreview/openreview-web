@@ -83,7 +83,7 @@ const PersonalLinksSection = ({
   }
 
   useEffect(() => {
-    if (Object.values(profileLinks ?? {}).find((p) => p.valid === false))
+    if (profileLinks?.homepage?.valid === false)
       setLinks({ type: 'overwrite', data: profileLinks })
   }, [profileLinks?.homepage])
 
