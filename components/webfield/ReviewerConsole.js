@@ -25,9 +25,9 @@ const AreaChairInfo = ({ areaChairName, areaChairIds }) => (
   <div className="note-area-chairs">
     <strong>{prettyField(areaChairName)}:</strong>
     {areaChairIds.map((areaChairId) => (
-      <Link key={areaChairId} href={getProfileLink(areaChairId)}>
-        <div>{prettyId(areaChairId)}</div>
-      </Link>
+      <div key={areaChairId}>
+        <Link href={getProfileLink(areaChairId)}>{prettyId(areaChairId)}</Link>
+      </div>
     ))}
   </div>
 )
