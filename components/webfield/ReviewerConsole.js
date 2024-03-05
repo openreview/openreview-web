@@ -19,17 +19,16 @@ import ErrorDisplay from '../ErrorDisplay'
 import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
+import { getProfileLink } from '../../lib/webfield-utils'
 
 const AreaChairInfo = ({ areaChairName, areaChairIds }) => (
   <div className="note-area-chairs">
-    <p>
-      <strong>{prettyField(areaChairName)}:</strong>{' '}
-      {areaChairIds.map((areaChairId) => (
-        <Link key={areaChairId} href={`/profile?id=${areaChairId}`}>
-          {prettyId(areaChairId)}{' '}
-        </Link>
-      ))}
-    </p>
+    <strong>{prettyField(areaChairName)}:</strong>
+    {areaChairIds.map((areaChairId) => (
+      <div key={areaChairId}>
+        <Link href={getProfileLink(areaChairId)}>{prettyId(areaChairId)}</Link>
+      </div>
+    ))}
   </div>
 )
 
