@@ -27,7 +27,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
       {preferredName ? (
         <>
           <h4>
-            <a href={getProfileLink(id, reviewerProfileId)} target="_blank" rel="noreferrer">
+            <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">
               {preferredName}
             </a>
           </h4>
@@ -35,7 +35,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
         </>
       ) : (
         <h4>
-          <a href={getProfileLink(id, reviewerProfileId)} target="_blank" rel="noreferrer">
+          <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">
             {reviewerProfileId}
           </a>
         </h4>
