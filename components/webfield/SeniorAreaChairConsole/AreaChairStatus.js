@@ -21,7 +21,7 @@ const CommitteeSummary = ({ rowData }) => {
           <>
             <h4>
               <a
-                href={getProfileLink(id, rowData.areaChairProfileId)}
+                href={getProfileLink(id ?? rowData.areaChairProfileId)}
                 target="_blank"
                 rel="noreferrer"
               >
