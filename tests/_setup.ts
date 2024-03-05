@@ -155,7 +155,7 @@ test('Set up TestVenue', async (t) => {
     readers: ['TestVenue/2020/Conference/Program_Chairs', 'openreview.net/Support'],
     referent: requestForumId,
     replyto: requestForumId,
-    signatures: ['openreview.net/Support'],
+    signatures: ['~Super_User1'],
     writers: [],
   }
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
@@ -181,7 +181,7 @@ test('Set up TestVenue', async (t) => {
     readers: ['TestVenue/2020/Conference/Program_Chairs', 'openreview.net/Support'],
     referent: requestForumId,
     replyto: requestForumId,
-    signatures: ['openreview.net/Support'],
+    signatures: ['~Super_User1'],
     writers: [],
   }
   const { id: reviewStageId } = await createNote(reviewStageJson, superUserToken)
@@ -287,7 +287,7 @@ test('Set up AnotherTestVenue', async (t) => {
     readers: ['AnotherTestVenue/2020/Conference/Program_Chairs', 'openreview.net/Support'],
     referent: requestForumId,
     replyto: requestForumId,
-    signatures: ['openreview.net/Support'],
+    signatures: ['~Super_User1'],
     writers: [],
   }
   const { id: postSubmissionId } = await createNote(postSubmissionJson, superUserToken)
@@ -387,7 +387,7 @@ test('Set up ICLR', async (t) => {
     readers: ['ICLR.cc/2021/Conference/Program_Chairs', 'openreview.net/Support'],
     referent: requestForumId,
     replyto: requestForumId,
-    signatures: ['openreview.net/Support'],
+    signatures: ['~Super_User1'],
     writers: [],
   }
 
@@ -550,7 +550,7 @@ test('Set up TestVenue using API 2', async (t) => {
     readers: ['TestVenue/2023/Conference/Program_Chairs', 'openreview.net/Support'],
     referent: requestForumId,
     replyto: requestForumId,
-    signatures: ['openreview.net/Support'],
+    signatures: ['~Super_User1'],
     writers: [],
   }
 
