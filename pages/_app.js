@@ -66,7 +66,7 @@ export default class OpenReviewApp extends App {
     window.Webfield2.setToken(userAccessToken)
 
     if (authenticatedUser.id !== process.env.SUPER_USER) {
-      this.loadUnreadNotificationCount(authenticatedUser.profile.emails[0], userAccessToken)
+      this.loadUnreadNotificationCount(authenticatedUser.profile.emails?.[0], userAccessToken)
     }
 
     // Automatically refresh the accessToken 1m before it's set to expire.

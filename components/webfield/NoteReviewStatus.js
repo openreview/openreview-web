@@ -13,6 +13,7 @@ import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
 import WebFieldContext from '../WebFieldContext'
 import { prettyField } from '../../lib/utils'
+import { getProfileLink } from '../../lib/webfield-utils'
 
 // modified from noteReviewStatus.hbs handlebar template
 export const ReviewerConsoleNoteReviewStatus = ({
@@ -231,7 +232,13 @@ export const AcPcConsoleReviewerStatusRow = ({
       <strong className="assigned-reviewer-id">{reviewer.anonymousId}</strong>
       <div className="assigned-reviewer-action">
         <span>
-          {reviewer.preferredName}{' '}
+          <a
+            href={getProfileLink(reviewer.reviewerProfileId)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {reviewer.preferredName}
+          </a>{' '}
           <span className="text-muted">&lt;{reviewer.preferredEmail}&gt;</span>
         </span>
         {completedReview ? (
