@@ -13,7 +13,7 @@ const MessageAreaChairsModal = ({
   messageParentGroup,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, emailReplyTo, submissionVenueId } = useContext(WebFieldContext)
+  const { shortPhrase, emailReplyTo, submissionVenueId, areaChairsMessageInvitationId } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -32,7 +32,7 @@ const MessageAreaChairsModal = ({
       await api.post(
         '/messages',
         {
-          invitation: `${messageParentGroup}/-/Message`,
+          invitation: areaChairsMessageInvitationId,
           groups: recipientsInfo.map((p) => p.id),
           subject,
           message,

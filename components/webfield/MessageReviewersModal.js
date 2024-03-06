@@ -14,7 +14,7 @@ const MessageReviewersModal = ({
   selectedIds,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, venueId, officialReviewName, submissionName, emailReplyTo } =
+  const { shortPhrase, venueId, officialReviewName, submissionName, emailReplyTo, reviewersMessageSubmissionInvitationId } =
     useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
@@ -52,7 +52,7 @@ const MessageReviewersModal = ({
         return api.post(
           '/messages',
           {
-            invitation: `${venueId}/${submissionName}${rowData.number}/-/Message`,
+            invitation: reviewersMessageSubmissionInvitationId.replace('{number}', rowData.number),
             groups: reviewerIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),

@@ -124,7 +124,7 @@ const AcPcConsoleReviewerReminderModal = ({
   setUpdateLastSent,
   submissionName,
 }) => {
-  const { emailReplyTo } = useContext(WebFieldContext)
+  const { emailReplyTo, reviewersMessageSubmissionInvitationId } = useContext(WebFieldContext)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
   const [message, setMessage] =
     useState(`This is a reminder to please submit your review for ${shortPhrase}.\n\n
@@ -139,7 +139,7 @@ Click on the link below to go to the review page:\n\n{{submit_review_link}}
       await api.post(
         '/messages',
         {
-          invitation: `${venueId}/${submissionName}${note.number}/-/Message`,
+          invitation: reviewersMessageSubmissionInvitationId.replace('{number}', rowData.number),
           groups: [reviewer.anonymizedGroup],
           subject,
           message: message.replaceAll('{{submit_review_link}}', forumUrl),

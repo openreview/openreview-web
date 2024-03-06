@@ -12,7 +12,7 @@ const MessageReviewersModal = ({
   messageParentGroup,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, emailReplyTo } = useContext(WebFieldContext)
+  const { shortPhrase, emailReplyTo, reviewersMessageInvitationId } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -31,7 +31,7 @@ const MessageReviewersModal = ({
       await api.post(
         '/messages',
         {
-          invitation: `${messageParentGroup}/-/Message`,
+          invitation: reviewersMessageInvitationId,
           groups: recipientsInfo.map((p) => p.id),
           subject,
           message,
