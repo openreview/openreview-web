@@ -681,7 +681,7 @@ module.exports = (function () {
       var postReviewerEmails = function (postData) {
         postData.message = postData.message.replace('{{forumUrl}}', postData.forumUrl)
 
-        return Webfield.post(
+        return post(
           '/messages',
           _.pick(postData, ['groups', 'subject', 'message', 'replyTo'])
         ).then(function (response) {
