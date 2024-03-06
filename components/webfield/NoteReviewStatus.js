@@ -13,13 +13,15 @@ import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
 import WebFieldContext from '../WebFieldContext'
 import { prettyField } from '../../lib/utils'
+import { getProfileLink } from '../../lib/webfield-utils'
 
 // modified from noteReviewStatus.hbs handlebar template
 export const ReviewerConsoleNoteReviewStatus = ({
   editUrl,
   paperRatings,
-  review,
+  officialReview,
   invitationUrl,
+  reviewDisplayFields,
 }) => (
   <div>
     {editUrl ? (
@@ -34,8 +36,16 @@ export const ReviewerConsoleNoteReviewStatus = ({
             </div>
           )
         })}
-        <h4>Your Review:</h4>
-        <p>{review}</p>
+        {reviewDisplayFields.map((reviewDisplayField, index) => {
+          const displayFieldValue = officialReview?.content?.[reviewDisplayField]?.value
+          if (!displayFieldValue) return null
+          return (
+            <div key={index}>
+              <h4>Your {prettyField(reviewDisplayField)}:</h4>
+              <p>{displayFieldValue}</p>
+            </div>
+          )
+        })}
         <p>
           <Link href={editUrl}>Edit Official Review</Link>
         </p>
@@ -222,7 +232,13 @@ export const AcPcConsoleReviewerStatusRow = ({
       <strong className="assigned-reviewer-id">{reviewer.anonymousId}</strong>
       <div className="assigned-reviewer-action">
         <span>
-          {reviewer.preferredName}{' '}
+          <a
+            href={getProfileLink(reviewer.reviewerProfileId)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {reviewer.preferredName}
+          </a>{' '}
           <span className="text-muted">&lt;{reviewer.preferredEmail}&gt;</span>
         </span>
         {completedReview ? (

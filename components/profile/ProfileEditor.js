@@ -182,8 +182,8 @@ export default function ProfileEditor({
     if (!profileContent.history.length) {
       return promptInvalidValue(
         'history',
-        profile.history?.[0]?.key,
-        'You must enter at least one position for your education and career history'
+        profileContent.history?.[0]?.key,
+        'Education and career history cannot be empty'
       )
     }
     if (
@@ -195,6 +195,13 @@ export default function ProfileEditor({
         'history',
         invalidRecord.key,
         'You must enter position, institution, and domain information for each entry in your education and career history'
+      )
+    }
+    if (!profileContent.history.some((p) => !p.end || p.end >= new Date().getFullYear())) {
+      return promptInvalidValue(
+        'history',
+        profile.history?.[0]?.key,
+        'Your Education & Career History must include at least one current position.'
       )
     }
     // #endregion

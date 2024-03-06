@@ -38,6 +38,7 @@ const ProgramChairConsole = ({ appContext }) => {
     bidName,
     recommendationName, // to get ac recommendation edges
     metaReviewRecommendationName = 'recommendation', // recommendation field in meta review
+    additionalMetaReviewFields = [],
     requestFormId,
     submissionId,
     submissionVenueId,
@@ -709,6 +710,16 @@ const ProgramChairConsole = ({ appContext }) => {
         return {
           [metaReviewRecommendationName]:
             metaReview?.content[metaReviewRecommendationName]?.value,
+          ...additionalMetaReviewFields?.reduce((prev, curr) => {
+            const additionalMetaReviewFieldValue = metaReview?.content[curr]?.value
+            return {
+              ...prev,
+              [curr]: {
+                value: additionalMetaReviewFieldValue,
+                searchValue: additionalMetaReviewFieldValue ?? 'N/A',
+              },
+            }
+          }, {}),
           ...metaReview,
           metaReviewAgreement: metaReviewAgreement
             ? {
@@ -734,10 +745,11 @@ const ProgramChairConsole = ({ appContext }) => {
           )?.profile
           return {
             ...reviewer,
-            type: 'reviewer',
+            type: 'profile',
             profile,
             hasReview: officialReviews.some((p) => p.anonymousId === reviewer.anonymousId),
             noteNumber: note.number,
+            preferredId: reviewer.reviewerProfileId,
             preferredName: profile ? getProfileName(profile) : reviewer.reviewerProfileId,
             preferredEmail: profile
               ? profile.content.preferredEmail ?? profile.content.emails[0]
@@ -787,6 +799,8 @@ const ProgramChairConsole = ({ appContext }) => {
               (p) => p.id === seniorAreaChairProfileId
             )?.profile
             return {
+              type: 'profile',
+              preferredId: seniorAreaChairProfileId,
               preferredName: profile ? getProfileName(profile) : seniorAreaChairProfileId,
               preferredEmail: profile
                 ? profile.content.preferredEmail ?? profile.content.emails[0]
@@ -801,6 +815,13 @@ const ProgramChairConsole = ({ appContext }) => {
           metaReviewAgreementSearchValue: metaReviews
             .map((p) => p.metaReviewAgreement.searchValue)
             .join(' '),
+          ...additionalMetaReviewFields?.reduce((prev, curr) => {
+            const additionalMetaReviewValues = metaReviews.map((p) => p[curr]?.searchValue)
+            return {
+              ...prev,
+              [`${curr}SearchValue`]: additionalMetaReviewValues.join(' '),
+            }
+          }, {}),
         },
 
         decision,

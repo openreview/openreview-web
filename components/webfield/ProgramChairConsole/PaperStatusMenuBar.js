@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { camelCase } from 'lodash'
+import { camelCase, startCase, upperFirst } from 'lodash'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import MessageReviewersModal from '../MessageReviewersModal'
@@ -23,6 +23,7 @@ const PaperStatusMenuBar = ({
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: extraPropertiesAllowed,
     customStageInvitations = [],
+    additionalMetaReviewFields = [],
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = {
@@ -32,6 +33,7 @@ const PaperStatusMenuBar = ({
     author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords.value'],
     reviewer: ['reviewers'],
+    sac: ['metaReviewData.seniorAreaChairs'],
     numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
     numReviewsDone: ['reviewProgressData.numReviewsDone'],
     ...Object.fromEntries(
@@ -53,6 +55,14 @@ const PaperStatusMenuBar = ({
     ...(metaReviewRecommendationName && {
       [metaReviewRecommendationName]: ['metaReviewData.metaReviewsSearchValue'],
     }),
+    ...(additionalMetaReviewFields?.length > 0 &&
+      additionalMetaReviewFields.reduce(
+        (prev, curr) => ({
+          ...prev,
+          [`MetaReview${upperFirst(camelCase(curr))}`]: [`metaReviewData.${curr}SearchValue`],
+        }),
+        {}
+      )),
     ...(customStageInvitations?.length > 0 &&
       customStageInvitations.reduce(
         (prev, curr) => ({
