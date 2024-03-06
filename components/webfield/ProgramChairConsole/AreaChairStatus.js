@@ -38,7 +38,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
           <>
             <h4>
               <a
-                href={getProfileLink(id, rowData.areaChairProfileId)}
+                href={getProfileLink(id ?? rowData.areaChairProfileId)}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -91,7 +91,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
               <>
                 <h4>
                   <a
-                    href={getProfileLink(sacProfile?.id, seniorAreaChairId)}
+                    href={getProfileLink(sacProfile?.id ?? seniorAreaChairId)}
                     target="_blank"
                     rel="noreferrer"
                   >
