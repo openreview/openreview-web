@@ -19,17 +19,16 @@ import ErrorDisplay from '../ErrorDisplay'
 import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
+import { getProfileLink } from '../../lib/webfield-utils'
 
 const AreaChairInfo = ({ areaChairName, areaChairIds }) => (
   <div className="note-area-chairs">
-    <p>
-      <strong>{prettyField(areaChairName)}:</strong>{' '}
-      {areaChairIds.map((areaChairId) => (
-        <Link key={areaChairId} href={`/profile?id=${areaChairId}`}>
-          {prettyId(areaChairId)}{' '}
-        </Link>
-      ))}
-    </p>
+    <strong>{prettyField(areaChairName)}:</strong>
+    {areaChairIds.map((areaChairId) => (
+      <div key={areaChairId}>
+        <Link href={getProfileLink(areaChairId)}>{prettyId(areaChairId)}</Link>
+      </div>
+    ))}
   </div>
 )
 
@@ -126,6 +125,7 @@ const AssignedPaperRow = ({
   setReviewerConsoleData,
   enablePaperRanking,
   setEnablePaperRanking,
+  reviewDisplayFields,
 }) => {
   const {
     officialReviewInvitations,
@@ -174,7 +174,6 @@ const AssignedPaperRow = ({
     }
     return { [ratingDisplayName]: ratingValue }
   })
-  const review = officialReview?.content?.review?.value
 
   return (
     <tr>
@@ -195,12 +194,13 @@ const AssignedPaperRow = ({
               : null
           }
           paperRatings={paperRatingValues}
-          review={review}
+          officialReview={officialReview}
           invitationUrl={
             officialReviewInvitation
               ? `/forum?id=${note.forum}&noteId=${note.id}&invitationId=${officialReviewInvitation.id}&referrer=${referrerUrl}`
               : null
           }
+          reviewDisplayFields={reviewDisplayFields}
         />
         {paperRankingTags && (
           <PaperRankingDropdown
@@ -261,6 +261,7 @@ const ReviewerConsole = ({ appContext }) => {
     customMaxPapersInvitationId, // to query custom load edges
     reviewLoad,
     hasPaperRanking,
+    reviewDisplayFields = ['review'],
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
@@ -596,6 +597,7 @@ const ReviewerConsole = ({ appContext }) => {
                       setReviewerConsoleData={setReviewerConsoleData}
                       enablePaperRanking={enablePaperRanking}
                       setEnablePaperRanking={setEnablePaperRanking}
+                      reviewDisplayFields={reviewDisplayFields}
                     />
                   ))}
                 </Table>

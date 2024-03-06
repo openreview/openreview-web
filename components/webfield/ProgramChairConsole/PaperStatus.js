@@ -44,6 +44,7 @@ const PaperRow = ({
     shortPhrase,
     submissionName,
     metaReviewRecommendationName = 'recommendation',
+    additionalMetaReviewFields = [],
   } = useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
@@ -94,6 +95,7 @@ const PaperRow = ({
             referrerUrl={referrerUrl}
             areaChairAssignmentUrl={getManualAssignmentUrl('Area_Chairs')}
             metaReviewRecommendationName={metaReviewRecommendationName}
+            additionalMetaReviewFields={additionalMetaReviewFields}
           />
         </td>
       )}

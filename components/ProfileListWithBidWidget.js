@@ -25,7 +25,7 @@ const BasicProfileSummary = ({ profile, setSearchTerm }) => {
   return (
     <div className="profile-summary">
       <h4 className="profile-name">
-        <a href={getProfileLink(profile.id, profile.id)} target="_blank" rel="noreferrer">
+        <a href={getProfileLink(profile.id)} target="_blank" rel="noreferrer">
           {profileName}
         </a>
       </h4>
