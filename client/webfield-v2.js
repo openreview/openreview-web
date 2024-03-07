@@ -571,11 +571,11 @@ module.exports = (function () {
           if (user.groups?.length > 0) {
             var groupIds = []
             user.groups.forEach(function (group) {
-              groupIds.push(group.id)
-              if (group.id in userCounts) {
-                userCounts[group.id].count++
+              groupIds.push(group.anonymousGroupId)
+              if (group.anonymousGroupId in userCounts) {
+                userCounts[group.anonymousGroupId].count++
               } else {
-                userCounts[group.id] = {
+                userCounts[group.anonymousGroupId] = {
                   name: group.name,
                   email: group.email,
                   count: 1,
@@ -588,6 +588,7 @@ module.exports = (function () {
               subject: subject,
               forumUrl: user.forumUrl,
               replyTo: options.reminderOptions.replyTo,
+              invitation: options.reminderOptions.messageInvitationId.replace('{number}', user.number),
             })
             count += groupIds.length
           }
@@ -649,6 +650,7 @@ module.exports = (function () {
             subject: $('#message-reviewers-modal input[name="subject"]').val().trim(),
             message: $('#message-reviewers-modal textarea[name="message"]').val().trim(),
             replyTo: options.reminderOptions.replyTo,
+            invitation: options.reminderOptions.messageInvitationId,
           }
 
           $('#message-reviewers-modal').modal('hide')
@@ -683,7 +685,7 @@ module.exports = (function () {
 
         return post(
           '/messages',
-          _.pick(postData, ['groups', 'subject', 'message', 'replyTo'])
+          _.pick(postData, ['groups', 'subject', 'message', 'replyTo', 'invitation'])
         ).then(function (response) {
           // Save the timestamp in the local storage
           for (var i = 0; i < postData.groups.length; i++) {
@@ -1339,6 +1341,7 @@ module.exports = (function () {
               anonId: anonGroup && getNumberfromGroup(anonGroup.id, anonRoleName),
               name: profileInfo.name,
               email: profileInfo.email,
+              anonymousGroupId: anonGroup && anonGroup.id,
             })
           })
           groupsByNumber[number] = memberGroups
