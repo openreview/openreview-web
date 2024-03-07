@@ -106,11 +106,9 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
         )
 
       if (
-        !allDblpPublications.some((pub) =>
-          profileNames.some((name) =>
-            deburrString(pub.note.content.dblp, false).includes(
-              deburrString(getNameString(name), false)
-            )
+        !possibleNames.some((name) =>
+          profileNames.some((pName) =>
+            deburrString(name, false).includes(deburrString(getNameString(pName), false))
           )
         )
       ) {
@@ -162,7 +160,8 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
       setShowPersistentUrlInput(false)
     } catch (error) {
       if (error instanceof URIError || error instanceof TypeError) {
-        // failed at getDblpPublicationsFromXmlUrl
+        // failed at
+        console.error(error)
         setMessage('')
         setShowPersistentUrlInput(true)
       } else {
@@ -258,6 +257,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
           </div>
 
           <div className={`modal-body ${isSavingPublications ? 'disable-scroll' : ''}`}>
+            {console.log('message', message)}
             {message && (
               <ErrorMessage
                 message={message}
