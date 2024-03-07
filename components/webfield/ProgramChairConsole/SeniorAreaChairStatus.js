@@ -12,7 +12,7 @@ const BasicProfileSummary = ({ profile, profileId }) => {
       {preferredName ? (
         <>
           <h4>
-            <a href={getProfileLink(id, profileId)} target="_blank" rel="noreferrer">
+            <a href={getProfileLink(id ?? profileId)} target="_blank" rel="noreferrer">
               {preferredName}
             </a>
           </h4>
