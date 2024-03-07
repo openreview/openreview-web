@@ -139,7 +139,7 @@ Click on the link below to go to the review page:\n\n{{submit_review_link}}
       await api.post(
         '/messages',
         {
-          invitation: reviewersMessageSubmissionInvitationId.replace('{number}', rowData.number),
+          invitation: reviewersMessageSubmissionInvitationId.replace('{number}', note.number),
           groups: [reviewer.anonymizedGroup],
           subject,
           message: message.replaceAll('{{submit_review_link}}', forumUrl),

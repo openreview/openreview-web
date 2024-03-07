@@ -14,8 +14,8 @@ const MessageReviewersModal = ({
   selectedIds,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, venueId, officialReviewName, submissionName, emailReplyTo, reviewersMessageSubmissionInvitationId } =
-    useContext(WebFieldContext)
+  const { shortPhrase, venueId, officialReviewName, submissionName, emailReplyTo,
+    reviewersMessageSubmissionInvitationId } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
