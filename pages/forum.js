@@ -38,13 +38,12 @@ const ForumPage = ({ forumNote, query, appContext }) => {
     Array.isArray(content.authors) || typeof content.authors === 'string'
       ? [content.authors].flat()
       : []
-  const onlineDate = new Date(
-    forumNote.odate || forumNote.cdate || forumNote.tcdate || Date.now()
+  const onlineDate = forumNote.odate
+    ? new Date(forumNote.odate).toISOString().slice(0, 10).replace(/-/g, '/')
+    : null
+  const publicationDate = new Date(
+    forumNote.pdate || forumNote.cdate || forumNote.tcdate || Date.now()
   )
-    .toISOString()
-    .slice(0, 10)
-    .replace(/-/g, '/')
-  const modificationDate = new Date(forumNote.tmdate || Date.now())
     .toISOString()
     .slice(0, 10)
     .replace(/-/g, '/')
@@ -100,8 +99,11 @@ const ForumPage = ({ forumNote, query, appContext }) => {
             {authors.map((author) => (
               <meta key={author} name="citation_author" content={author} />
             ))}
-            <meta name="citation_publication_date" content={onlineDate} />
-            <meta name="citation_online_date" content={modificationDate} />
+            {onlineDate ? (
+              <meta name="citation_online_date" content={onlineDate} />
+            ) : (
+              <meta name="citation_publication_date" content={publicationDate} />
+            )}
             {content.pdf && (
               <meta
                 name="citation_pdf_url"
@@ -224,7 +226,7 @@ ForumPage.getInitialProps = async (ctx) => {
         return redirectForum(redirect.id)
       }
 
-      // Redirect to login, unless user is a Google crawler
+      // Redirect to login, unless request is from a Google crawler
       const userAgent = ctx.req.headers['user-agent']
       if (!token && !userAgent.includes('Googlebot')) {
         if (ctx.req) {
