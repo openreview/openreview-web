@@ -174,7 +174,7 @@ ForumPage.getInitialProps = async (ctx) => {
       forumId
     )}${noteIdParam}${invIdParam}${referrerParam}`
     if (ctx.req) {
-      ctx.res.writeHead(302, { Location: redirectUrl }).end()
+      ctx.res.writeHead(301, { Location: redirectUrl }).end()
     } else {
       Router.replace(redirectUrl)
     }
@@ -224,7 +224,9 @@ ForumPage.getInitialProps = async (ctx) => {
         return redirectForum(redirect.id)
       }
 
-      if (!token) {
+      // Redirect to login, unless user is a Google crawler
+      const userAgent = ctx.req.headers['user-agent']
+      if (!token && !userAgent.includes('Googlebot')) {
         if (ctx.req) {
           ctx.res
             .writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` })
