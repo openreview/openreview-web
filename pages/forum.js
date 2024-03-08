@@ -227,7 +227,7 @@ ForumPage.getInitialProps = async (ctx) => {
       }
 
       // Redirect to login, unless request is from a Google crawler
-      const userAgent = ctx.req.headers['user-agent']
+      const userAgent = ctx.req?.headers['user-agent']
       if (!token && !userAgent.includes('Googlebot')) {
         if (ctx.req) {
           ctx.res
