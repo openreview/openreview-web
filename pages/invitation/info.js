@@ -23,6 +23,14 @@ const InvitationInfo = ({ appContext }) => {
   const router = useRouter()
   const { setBannerHidden, setEditBanner } = appContext
 
+  // eslint-disable-next-line no-shadow
+  const getReplyFieldByInvitationType = (invitation) => {
+    if (!invitation) return 'edit'
+    if (invitation.edge) return 'edge'
+    if (invitation.message) return 'message'
+    return 'edit'
+  }
+
   // Try loading invitation from v1 API first and if not found load from v2
   const loadInvitation = async (invitationId) => {
     try {
@@ -73,7 +81,7 @@ const InvitationInfo = ({ appContext }) => {
       <>
         <InvitationReplyV2
           invitation={invitation}
-          replyField={invitation.edge ? 'edge' : 'edit'}
+          replyField={getReplyFieldByInvitationType(invitation)}
           readOnly={true}
         />
 
@@ -119,7 +127,9 @@ const InvitationInfo = ({ appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">{`${prettyId(router.query.id)} Invitation Info | OpenReview`}</title>
+        <title key="title">{`${prettyId(
+          router.query.id
+        )} Invitation Info | OpenReview`}</title>
       </Head>
 
       <div id="header">
