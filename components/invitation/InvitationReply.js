@@ -107,6 +107,7 @@ export function InvitationReplyV2({
   const titleMap = {
     edge: 'Edge',
     edit: 'Edit',
+    message: 'Message',
     replyForumViews: 'Reply Forum Views',
     content: 'Content',
   }
@@ -121,6 +122,7 @@ export function InvitationReplyV2({
     switch (replyField) {
       case 'edit':
       case 'edge':
+      case 'message':
       case 'replyForumViews':
         return {
           invitation: {
