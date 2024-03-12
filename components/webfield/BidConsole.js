@@ -143,7 +143,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           const noteIds = edgesResult.edges.map((p) => p.head)
           const notesResult = await api.post(
             '/notes/search',
-            { ids: noteIds, domain: invitation.domain },
+            { ids: noteIds },
             { accessToken }
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
@@ -450,7 +450,7 @@ const NoBidTab = ({
           const noteIds = edgesResult.edges.map((p) => p.head)
           const notesResult = await api.post(
             '/notes/search',
-            { ids: noteIds, domain: invitation.domain },
+            { ids: noteIds },
             { accessToken }
           )
           const filteredNotes = noteIds.flatMap((noteId) => {
@@ -555,7 +555,6 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
         '/notes/search',
         {
           ids: noteIds,
-          domain: invitation.domain,
         },
         { accessToken }
       )
