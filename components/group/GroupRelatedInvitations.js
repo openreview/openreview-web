@@ -9,7 +9,10 @@ const RelatedInvitationRow = ({ item }) => (
   <Link href={`/invitation/edit?id=${item.id}`}>{prettyId(item.id)}</Link>
 )
 
-const GroupRelatedInvitations = ({ groupId, accessToken }) => {
+const GroupRelatedInvitations = ({ group, accessToken }) => {
+  const groupId = group.id
+  const submissionName = group.details?.domain?.content?.submission_name?.value
+
   const [totalCount, setTotalCount] = useState(null)
 
   const loadRelatedInvitations = async (limit, offset) => {
@@ -23,7 +26,7 @@ const GroupRelatedInvitations = ({ groupId, accessToken }) => {
         offset,
       },
       {
-        prefix: `${groupId}/-/.*`,
+        prefix: groupId.includes(submissionName) ? `${groupId}/.*` : `${groupId}/-/.*`,
         expired: true,
         type: 'all',
         limit,

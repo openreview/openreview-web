@@ -39,7 +39,7 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
       )}
       <GroupSignedNotes groupId={group.id} accessToken={accessToken} />
       <GroupChildGroups groupId={group.id} accessToken={accessToken} />
-      <GroupRelatedInvitations groupId={group.id} accessToken={accessToken} />
+      <GroupRelatedInvitations group={group} accessToken={accessToken} />
       <GroupUICode
         group={group}
         profileId={profileId}
