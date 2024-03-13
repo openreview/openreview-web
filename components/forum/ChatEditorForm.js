@@ -18,6 +18,8 @@ export default function ChatEditorForm({
   forumId,
   replyToNote,
   setReplyToNote,
+  showNotifications,
+  setShowNotifications,
   onSubmit,
 }) {
   const [message, setMessage] = useState('')
@@ -26,7 +28,6 @@ export default function ChatEditorForm({
   const [showSignatureDropdown, setShowSignatureDropdown] = useState(false)
   const [showMessagePreview, setShowMessagePreview] = useState(false)
   const [notificationPermissions, setNotificationPermissions] = useState('loading')
-  const [pushSubscribed, setPushSubscribed] = useState(false)
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const [loading, setLoading] = useState(false)
   const { user, accessToken } = useUser()
@@ -145,14 +146,6 @@ export default function ChatEditorForm({
         .then((result) => result.state)
     }
     return Promise.resolve(Notification.permission)
-  }
-
-  const subscribeToPushNotifications = async () => {
-    setPushSubscribed(true)
-  }
-
-  const unsubscribeFromPushNotifications = async () => {
-    setPushSubscribed(false)
   }
 
   useEffect(() => {
@@ -294,7 +287,7 @@ export default function ChatEditorForm({
                 type="checkbox"
                 className="custom-control-input"
                 value="notify"
-                checked={pushSubscribed}
+                checked={showNotifications && notificationPermissions === 'granted'}
                 onChange={(e) => {
                   if (
                     notificationPermissions === 'denied' ||
@@ -303,18 +296,18 @@ export default function ChatEditorForm({
                     return
                   }
 
-                  if (!pushSubscribed) {
+                  if (!showNotifications) {
                     if (notificationPermissions === 'prompt') {
                       Notification.requestPermission().then((permission) => {
                         setNotificationPermissions(permission)
-                        subscribeToPushNotifications()
+                        setShowNotifications(true)
                       })
                     } else {
                       // Notification permission is already granted
-                      subscribeToPushNotifications()
+                      setShowNotifications(true)
                     }
                   } else {
-                    unsubscribeFromPushNotifications()
+                    setShowNotifications(false)
                   }
                 }}
               />

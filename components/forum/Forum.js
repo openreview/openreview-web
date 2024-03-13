@@ -33,6 +33,7 @@ import {
   parseFilterQuery,
   replaceFilterWildcards,
 } from '../../lib/forum-utils'
+import useLocalStorage from '../../hooks/useLocalStorage'
 
 export default function Forum({
   forumNote,
@@ -70,6 +71,10 @@ export default function Forum({
   const [latestMdate, setLatestMdate] = useState(null)
   const [chatReplyNote, setChatReplyNote] = useState(null)
   const [notificationPermissions, setNotificationPermissions] = useState('loading')
+  const [showNotifications, setShowNotifications] = useLocalStorage(
+    `forum-notifications-${forumNote.id}`,
+    false
+  )
   const invitationMapRef = useRef(null)
   const signaturesMapRef = useRef(null)
   const router = useRouter()
@@ -766,11 +771,12 @@ export default function Forum({
         setLatestMdate(newReplies[newReplies.length - 1].tmdate)
       }
 
-      if (notificationPermissions === 'granted' && newMessageAuthor) {
+      if (notificationPermissions === 'granted' && showNotifications && newMessageAuthor) {
         const notif = new Notification('New Forum Post', {
-          body: additionalReplyCount > 0
-            ? `${newMessageAuthor} and ${additionalReplyCount} others posted new messages.`
-            : `${newMessageAuthor} posted a new message: ${newMessage}`,
+          body:
+            additionalReplyCount > 0
+              ? `${newMessageAuthor} and ${additionalReplyCount} others posted new messages.`
+              : `${newMessageAuthor} posted a new message: ${newMessage}`,
           icon: '/images/openreview_logo_256.png',
         })
       }
@@ -926,6 +932,8 @@ export default function Forum({
                   invitation={invitation}
                   replyToNote={chatReplyNote}
                   setReplyToNote={setChatReplyNote}
+                  showNotifications={showNotifications}
+                  setShowNotifications={setShowNotifications}
                   onSubmit={updateNote}
                 />
               )
