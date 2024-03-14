@@ -17,25 +17,26 @@ const GroupRelatedInvitations = ({ group, accessToken }) => {
   const [totalCount, setTotalCount] = useState(null)
 
   const loadRelatedInvitations = async (limit, offset) => {
-    const result = await api.get(
-      '/invitations',
-      isV1Group
-        ? {
-            regex: `${groupId}/-/.*`,
-            expired: true,
-            type: 'all',
-            limit,
-            offset,
-          }
-        : {
-            prefix: groupId.includes(submissionName) ? `${groupId}/.*` : `${groupId}/-/.*`,
-            expired: true,
-            type: 'all',
-            limit,
-            offset,
-          },
-      { accessToken, ...(isV1Group && { version: 1 }) }
-    )
+    const queryParam = isV1Group
+      ? {
+          regex: `${groupId}/-/.*`,
+          expired: true,
+          type: 'all',
+          limit,
+          offset,
+        }
+      : {
+          prefix: groupId.includes(submissionName) ? `${groupId}/.*` : `${groupId}/-/.*`,
+          expired: true,
+          type: 'all',
+          limit,
+          offset,
+        }
+
+    const result = await api.get('/invitations', queryParam, {
+      accessToken,
+      ...(isV1Group && { version: 1 }),
+    })
 
     if (result.count !== totalCount) {
       setTotalCount(result.count ?? 0)
