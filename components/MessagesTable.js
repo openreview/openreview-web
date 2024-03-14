@@ -86,7 +86,7 @@ const MessageRow = ({ message }) => (
 
       <div>
         <a
-          href={`${process.env.API_URL}/messages?id=${message.id}`}
+          href={`${process.env.API_V2_URL}/messages?id=${message.id}`}
           className="log-link"
           target="_blank"
           rel="noreferrer"
