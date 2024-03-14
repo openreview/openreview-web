@@ -398,8 +398,8 @@ const DateProcessesEditor = ({
           }),
           ...(p.type === 'cron' && {
             cron: p.cron,
-            startDate: p.startDate.trim().length > 0 ? p.startDate.trim() : null,
-            endDate: p.endDate.trim().length > 0 ? p.endDate.trim() : null,
+            startDate: p.startDate.trim().length > 0 ? p.startDate.trim() : { delete: true },
+            endDate: p.endDate.trim().length > 0 ? p.endDate.trim() : { delete: true },
           }),
         }
       })
