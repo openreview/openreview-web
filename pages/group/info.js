@@ -94,7 +94,7 @@ const GroupInfo = ({ appContext }) => {
 
           <GroupChildGroups groupId={group.id} accessToken={accessToken} />
 
-          <GroupRelatedInvitations groupId={group.id} accessToken={accessToken} />
+          <GroupRelatedInvitations group={group} accessToken={accessToken} />
         </div>
       ) : (
         <LoadingSpinner />
