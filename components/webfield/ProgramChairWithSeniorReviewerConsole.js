@@ -1,7 +1,8 @@
-/* globals $,promptError: false */
+/* globals $,promptError,promptMessage: false */
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { camelCase, upperFirst } from 'lodash'
+import { camelCase, uniqBy, upperFirst } from 'lodash'
+import List from 'rc-virtual-list'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -34,7 +35,6 @@ import SeniorAreaChairStatus from './ProgramChairConsole/SeniorAreaChairStatus'
 import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
-import MessageReviewersModal from './MessageReviewersModal'
 import LoadingSpinner from '../LoadingSpinner'
 import Table from '../Table'
 import NoteSummary from './NoteSummary'
@@ -44,6 +44,7 @@ import PaginationLinks from '../PaginationLinks'
 import Collapse from '../Collapse'
 import BaseMenuBar from './BaseMenuBar'
 import QuerySearchInfoModal from './QuerySearchInfoModal'
+import BasicModal from '../BasicModal'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -455,6 +456,279 @@ const Overview = ({ pcConsoleData }) => {
   )
 }
 
+const MessageReviewersModal = ({
+  tableRowsDisplayed,
+  messageOption,
+  messageModalId,
+  selectedIds,
+}) => {
+  const { accessToken } = useUser()
+  const {
+    shortPhrase,
+    venueId,
+    officialReviewName,
+    seniorOfficialReviewName,
+    submissionName,
+    emailReplyTo,
+  } = useContext(WebFieldContext)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [error, setError] = useState(null)
+  const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
+  const [message, setMessage] = useState(null)
+  const [isSending, setIsSending] = useState(false)
+  const [allRecipients, setAllRecipients] = useState([])
+  const [recipientsInfo, setRecipientsInfo] = useState([])
+  const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.reviewerProfileId).reduce(
+    (prev, curr) => prev + curr.count,
+    0
+  )
+  const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
+  const uniqueRecipientsInfo = uniqBy(recipientsInfo, (p) => p.preferredEmail)
+
+  const handlePrimaryButtonClick = async () => {
+    if (currentStep === 1) {
+      setCurrentStep(2)
+      return
+    }
+    // send emails
+    setIsSending(true)
+    try {
+      const simplifiedTableRowsDisplayed = tableRowsDisplayed.map((p) => ({
+        id: p.note.id,
+        number: p.note.number,
+        forum: p.note.forum,
+      }))
+
+      const sendEmailPs = selectedIds.map((noteId) => {
+        const rowData = simplifiedTableRowsDisplayed.find((row) => row.id === noteId)
+        const allReviewerIds = allRecipients.get(rowData.number)
+        if (!allReviewerIds?.length) return Promise.resolve()
+        const reviewerIds = allReviewerIds.flatMap((p) =>
+          p.isSeniorReviewer ? [] : p.reviewerProfileId
+        )
+        const seniorReviewerIds = allReviewerIds.flatMap((p) =>
+          p.isSeniorReviewer ? p.reviewerProfileId : []
+        )
+        const forumReviewUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialReviewName}`
+        const forumSeniorReviewUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${seniorOfficialReviewName}`
+        return [
+          reviewerIds?.length
+            ? api.post(
+                '/messages',
+                {
+                  groups: reviewerIds,
+                  subject,
+                  message: message.replaceAll('{{submit_review_link}}', forumReviewUrl),
+                  parentGroup: `${venueId}/${submissionName}${rowData.number}/Reviewers`,
+                  replyTo: emailReplyTo,
+                },
+                { accessToken }
+              )
+            : null,
+          seniorReviewerIds?.length
+            ? api.post(
+                '/messages',
+                {
+                  groups: seniorReviewerIds,
+                  subject,
+                  message: message.replaceAll('{{submit_review_link}}', forumSeniorReviewUrl),
+                  parentGroup: `${venueId}/${submissionName}${rowData.number}/Senior_Reviewers`,
+                  replyTo: emailReplyTo,
+                },
+                { accessToken }
+              )
+            : null,
+        ]
+      })
+      await Promise.all(sendEmailPs.flat())
+
+      $(`#${messageModalId}`).modal('hide')
+      promptMessage(`Successfully sent ${totalMessagesCount} emails`)
+    } catch (apiError) {
+      setError(apiError.message)
+    }
+    setIsSending(false)
+  }
+
+  const getRecipients = (selecteNoteIds) => {
+    if (!selecteNoteIds.length) return []
+    const selectedRows = tableRowsDisplayed.filter((row) =>
+      selecteNoteIds.includes(row.note.id)
+    )
+
+    switch (messageOption.value) {
+      case 'allReviewers':
+        return selectedRows.flatMap((row) =>
+          row.reviewers.map((reviewer) => ({ ...reviewer, isSeniorReviewer: false }))
+        )
+      case 'allSeniorReviewers':
+        return selectedRows.flatMap((row) =>
+          row.seniorReviewers.map((reviewer) => ({ ...reviewer, isSeniorReviewer: true }))
+        )
+      case 'allReviewersAndSeniorReviewers':
+        return selectedRows.flatMap((row) => [
+          ...row.reviewers.map((reviewer) => ({ ...reviewer, isSeniorReviewer: false })),
+          ...row.seniorReviewers.map((reviewer) => ({ ...reviewer, isSeniorReviewer: true })),
+        ])
+      case 'withReviews':
+        return selectedRows
+          .flatMap((row) => row.reviewers)
+          .flatMap((reviewer) =>
+            reviewer.hasReview ? { ...reviewer, isSeniorReviewer: false } : []
+          )
+      case 'withSeniorReviews':
+        return selectedRows
+          .flatMap((row) => row.seniorReviewers)
+          .flatMap((reviewer) =>
+            reviewer.hasReview ? { ...reviewer, isSeniorReviewer: true } : []
+          )
+      case 'withReviewsOrSeniorReviews':
+        return selectedRows.flatMap((row) => [
+          ...row.reviewers.flatMap((reviewer) =>
+            reviewer.hasReview ? { ...reviewer, isSeniorReviewer: false } : []
+          ),
+          ...row.seniorReviewers.flatMap((reviewer) =>
+            reviewer.hasReview ? { ...reviewer, isSeniorReviewer: true } : []
+          ),
+        ])
+      case 'missingReviews':
+        return selectedRows
+          .flatMap((row) => row.reviewers)
+          .flatMap((reviewer) =>
+            reviewer.hasReview ? [] : { ...reviewer, isSeniorReviewer: false }
+          )
+      case 'missingSeniorReviews':
+        return selectedRows
+          .flatMap((row) => row.seniorReviewers)
+          .flatMap((reviewer) =>
+            reviewer.hasReview ? [] : { ...reviewer, isSeniorReviewer: true }
+          )
+      case 'missingReviewsOrSeniorReviews':
+        return selectedRows.flatMap((row) => [
+          ...row.reviewers.flatMap((reviewer) =>
+            reviewer.hasReview ? [] : { ...reviewer, isSeniorReviewer: false }
+          ),
+          ...row.seniorReviewers.flatMap((reviewer) =>
+            reviewer.hasReview ? [] : { ...reviewer, isSeniorReviewer: true }
+          ),
+        ])
+      default:
+        return []
+    }
+  }
+
+  useEffect(() => {
+    if (!messageOption) return
+    setMessage(`${
+      messageOption.value === 'missingReviews'
+        ? `This is a reminder to please submit your review for ${shortPhrase}.\n\n`
+        : ''
+    }Click on the link below to go to the review page:\n\n{{submit_review_link}}
+    \n\nThank you,\n${shortPhrase} Area Chair`)
+
+    const recipients = getRecipients(selectedIds)
+
+    const recipientsWithCount = {}
+    const noteNumberReviewerIdsMap = new Map()
+
+    recipients.forEach((recipient) => {
+      const { noteNumber } = recipient
+      if (noteNumberReviewerIdsMap.has(noteNumber)) {
+        noteNumberReviewerIdsMap.get(noteNumber).push({
+          reviewerProfileId: recipient.reviewerProfileId,
+          isSeniorReviewer: recipient.isSeniorReviewer,
+        })
+      } else {
+        noteNumberReviewerIdsMap.set(noteNumber, [
+          {
+            reviewerProfileId: recipient.reviewerProfileId,
+            isSeniorReviewer: recipient.isSeniorReviewer,
+          },
+        ])
+      }
+      if (recipient.preferredEmail in recipientsWithCount) {
+        recipientsWithCount[recipient.preferredEmail].count += 1
+      } else {
+        recipientsWithCount[recipient.preferredEmail] = { ...recipient, count: 1 }
+      }
+    })
+    setAllRecipients(noteNumberReviewerIdsMap)
+    setRecipientsInfo(Object.values(recipientsWithCount))
+  }, [messageOption])
+
+  return (
+    <BasicModal
+      id={messageModalId}
+      title={messageOption?.label}
+      primaryButtonText={primaryButtonText}
+      onPrimaryButtonClick={handlePrimaryButtonClick}
+      primaryButtonDisabled={!totalMessagesCount || isSending}
+      onClose={() => {
+        setIsSending(false)
+        setCurrentStep(1)
+        setError(null)
+      }}
+      options={{ extraClasses: 'message-reviewers-modal' }}
+    >
+      {error && <div className="alert alert-danger">{error}</div>}
+      {currentStep === 1 ? (
+        <>
+          <p>
+            {messageOption?.info ??
+              `You may customize the message that will be sent to the reviewers. In the email
+  body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
+  form where the reviewer can fill out his or her review.`}
+          </p>
+          <div className="form-group">
+            <label htmlFor="subject">Email Subject</label>
+            <input
+              type="text"
+              name="subject"
+              className="form-control"
+              value={subject}
+              required
+              onChange={(e) => setSubject(e.target.value)}
+            />
+            <label htmlFor="message">Email Body</label>
+            <textarea
+              name="message"
+              className="form-control message-body"
+              rows="6"
+              value={message ?? ''}
+              required
+              onChange={(e) => setMessage(e.target.value)}
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <p>
+            A total of <span className="num-reviewers">{totalMessagesCount}</span> reminder
+            emails will be sent to the following reviewers:
+          </p>
+          <div className="well reviewer-list">
+            <List
+              data={uniqueRecipientsInfo}
+              itemHeight={18}
+              height={Math.min(uniqueRecipientsInfo.length * 18, 580)}
+              itemKey="preferredEmail"
+            >
+              {(recipientInfo) => (
+                <li>
+                  {' '}
+                  {`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>${
+                    recipientInfo.count > 1 ? ` --- (×${recipientInfo.count})` : ''
+                  }`}
+                </li>
+              )}
+            </List>
+          </div>
+        </>
+      )}
+    </BasicModal>
+  )
+}
+
 const PaperStatusMenuBar = ({
   tableRowsAll,
   tableRows,
@@ -554,11 +828,110 @@ const PaperStatusMenuBar = ({
   })
 
   const messageReviewerOptions = [
-    { label: 'All Reviewers of selected papers', value: 'allReviewers' },
-    { label: 'Reviewers of selected papers with submitted reviews', value: 'withReviews' },
+    { label: `${prettyId(reviewerName)} of selected papers`, value: 'allReviewers' },
     {
-      label: 'Reviewers of selected papers with unsubmitted reviews',
+      label: `${prettyId(seniorReviewerName)} of selected papers`,
+      value: 'allSeniorReviewers',
+      info: `You may customize the message that will be sent to ${prettyId(
+        seniorReviewerName
+      ).toLowerCase()}. In the email
+      body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
+      form where the ${prettyId(
+        seniorReviewerName
+      ).toLowerCase()} can fill out his or her ${prettyId(
+        seniorOfficialReviewName
+      ).toLowerCase()}.`,
+    },
+    {
+      label: `${prettyId(reviewerName)} and ${prettyId(
+        seniorReviewerName
+      )} of selected papers`,
+      value: 'allReviewersAndSeniorReviewers',
+      info: `You may customize the message that will be sent to ${prettyId(
+        reviewerName
+      ).toLowerCase()} and ${prettyId(seniorReviewerName).toLowerCase()}. In the email
+      body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
+      form where the ${prettyId(reviewerName).toLowerCase()} or ${prettyId(
+        seniorReviewerName
+      ).toLowerCase()} can fill out his or her ${prettyId(
+        officialReviewName
+      ).toLowerCase()} or ${prettyId(seniorOfficialReviewName).toLowerCase()} respectively.`,
+    },
+    {
+      label: `${prettyId(reviewerName)} of selected papers with submitted ${prettyId(
+        officialReviewName
+      ).toLowerCase()}`,
+      value: 'withReviews',
+    },
+    {
+      label: `${prettyId(seniorReviewerName)} of selected papers with submitted ${prettyId(
+        seniorOfficialReviewName
+      ).toLowerCase()}`,
+      value: 'withSeniorReviews',
+      info: `You may customize the message that will be sent to ${prettyId(
+        seniorReviewerName
+      ).toLowerCase()}. In the email
+      body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
+      form where the ${prettyId(
+        seniorReviewerName
+      ).toLowerCase()} can fill out his or her ${prettyId(
+        seniorOfficialReviewName
+      ).toLowerCase()}.`,
+    },
+    {
+      label: `${prettyId(reviewerName)} and ${prettyId(
+        seniorReviewerName
+      )} of selected papers with submitted ${prettyId(
+        officialReviewName
+      ).toLowerCase()} or ${prettyId(seniorOfficialReviewName).toLowerCase()}`,
+      value: 'withReviewsOrSeniorReviews',
+      info: `You may customize the message that will be sent to ${prettyId(
+        reviewerName
+      ).toLowerCase()} and ${prettyId(seniorReviewerName).toLowerCase()}. In the email
+      body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
+      form where the ${prettyId(reviewerName).toLowerCase()} or ${prettyId(
+        seniorReviewerName
+      ).toLowerCase()} can fill out his or her ${prettyId(
+        officialReviewName
+      ).toLowerCase()} or ${prettyId(seniorOfficialReviewName).toLowerCase()} respectively.`,
+    },
+    {
+      label: `${prettyId(reviewerName)} of selected papers with unsubmitted ${prettyId(
+        officialReviewName
+      ).toLowerCase()}`,
       value: 'missingReviews',
+    },
+    {
+      label: `${prettyId(seniorReviewerName)} of selected papers with unsubmitted ${prettyId(
+        seniorOfficialReviewName
+      ).toLowerCase()}`,
+      value: 'missingSeniorReviews',
+      info: `You may customize the message that will be sent to ${prettyId(
+        seniorReviewerName
+      ).toLowerCase()}. In the email
+      body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
+      form where the ${prettyId(
+        seniorReviewerName
+      ).toLowerCase()} can fill out his or her ${prettyId(
+        seniorOfficialReviewName
+      ).toLowerCase()}.`,
+    },
+    {
+      label: `${prettyId(reviewerName)} and ${prettyId(
+        seniorReviewerName
+      )} of selected papers with unsubmitted ${prettyId(
+        officialReviewName
+      ).toLowerCase()} or ${prettyId(seniorOfficialReviewName).toLowerCase()}`,
+      value: 'missingReviewsOrSeniorReviews',
+      info: `You may customize the message that will be sent to ${prettyId(
+        reviewerName
+      ).toLowerCase()} and ${prettyId(seniorReviewerName).toLowerCase()}. In the email
+      body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
+      form where the ${prettyId(reviewerName).toLowerCase()} or ${prettyId(
+        seniorReviewerName
+      ).toLowerCase()} can fill out his or her ${prettyId(
+        officialReviewName
+      ).toLowerCase()} or ${prettyId(seniorOfficialReviewName).toLowerCase()} respectively.`,
     },
   ]
   const exportColumns = [
