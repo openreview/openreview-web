@@ -53,6 +53,7 @@ export default function Forum({
   const [nesting, setNesting] = useState(2)
   const [layout, setLayout] = useState('default')
   const [sort, setSort] = useState('date-desc')
+  const [viewName, setViewName] = useState('')
   const [defaultCollapseLevel, setDefaultCollapseLevel] = useState(2)
   const [filterOptions, setFilterOptions] = useState(null)
   const [selectedFilters, setSelectedFilters] = useState({
@@ -345,7 +346,7 @@ export default function Forum({
 
   // Add new reply note or update and existing reply note
   const updateNote = (note) => {
-    if (!note) return
+    if (!note) return false
 
     // For chat layout, check if the user is scrolled before updating state
     const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
@@ -362,6 +363,7 @@ export default function Forum({
     const noteId = note.id
     const parentId = note.replyto
     const existingNote = replyNoteMap[noteId]
+    const isNewNote = isEmpty(existingNote)
     const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
       allInvitations,
       note
@@ -384,7 +386,7 @@ export default function Forum({
       [noteId]: formattedNote,
     }))
 
-    if (isEmpty(existingNote)) {
+    if (isNewNote) {
       setDisplayOptionsMap((prevOptionsMap) => ({
         ...prevOptionsMap,
         [noteId]: { collapsed: false, contentExpanded: true, hidden: false },
@@ -397,10 +399,10 @@ export default function Forum({
 
     // If updated note is a reply to an invitation with a maxReplies property,
     // update the invitation and the parent note
-    if (isEmpty(existingNote) || existingNote.ddate !== note.ddate) {
+    if (isNewNote || existingNote.ddate !== note.ddate) {
       const invObj = allInvitations.find((i) => i.id === note.invitations[0])
       if (invObj.maxReplies) {
-        const increment = isEmpty(existingNote) || !note.ddate ? 1 : -1
+        const increment = isNewNote || !note.ddate ? 1 : -1
         const prevRepliesAvailable = invObj.details.repliesAvailable ?? 1
         const remainingReplies = prevRepliesAvailable - increment
 
@@ -451,6 +453,8 @@ export default function Forum({
         }
       }
     }
+
+    return isNewNote
   }
 
   const getNotificationState = () => {
@@ -492,6 +496,7 @@ export default function Forum({
       setSort(tab.sort || 'date-desc')
       setEnableLiveUpdate(Boolean(tab.live))
       setExpandedInvitations(tab.expandedInvitations)
+      setViewName(tab.label)
     }
 
     if (window.location.hash) {
@@ -756,7 +761,8 @@ export default function Forum({
         note.details.signatures = note.signatures.flatMap(
           (sigId) => signaturesMapRef.current[sigId] ?? []
         )
-        if (!note.details.writable && !note.ddate) {
+        const isNewNote = updateNote(note)
+        if (isNewNote && !note.ddate) {
           if (!newMessageAuthor) {
             newMessageAuthor = prettyId(note.signatures[0], true)
             newMessage = truncate(note.content.message.value, { length: 60 })
@@ -764,7 +770,6 @@ export default function Forum({
             additionalReplyCount += 1
           }
         }
-        updateNote(note)
       })
 
       if (newReplies.length > 0) {
@@ -772,7 +777,7 @@ export default function Forum({
       }
 
       if (notificationPermissions === 'granted' && showNotifications && newMessageAuthor) {
-        const notif = new Notification('New Forum Post', {
+        const notif = new Notification(viewName, {
           body:
             additionalReplyCount > 0
               ? `${newMessageAuthor} and ${additionalReplyCount} others posted new messages.`
