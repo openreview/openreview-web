@@ -28,6 +28,15 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
         setLinks({ type, data: { value, valid: isValid } })
         break
       }
+      case 'aclanthology': {
+        const isValid =
+          isValidURL(value) && value.startsWith('https://aclanthology.org/people/')
+        if (!isValid) {
+          promptError(`${value} is not a valid ACL Anthology URL`, { scrollToTop: false })
+        }
+        setLinks({ type, data: { value, valid: isValid } })
+        break
+      }
       default: {
         const isValid = isValidURL(value)
         if (!isValid) {
@@ -168,6 +177,13 @@ const PersonalLinksSection = ({
             </a>
           </div>
           <PersonalLinkInput type="semanticScholar" links={links} setLinks={setLinks} />
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col-md-4 personal-links__column">
+          <div className="small-heading">ACL Anthology URL</div>
+          <PersonalLinkInput type="aclanthology" links={links} setLinks={setLinks} />
         </div>
       </div>
 
