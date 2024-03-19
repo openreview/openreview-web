@@ -2305,44 +2305,46 @@ module.exports = (function () {
     })
 
     // content fields
-    Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
-      if (
-        (formData?.[contentFieldName] === undefined ||
-          formData?.[contentFieldName]?.delete === true) &&
-        noteObj?.content?.[contentFieldName]?.value === undefined
-      ) {
-        // do not return field
-        return
-      }
-
-      var valueObj = contentFieldValue.value
-      if (valueObj) {
+    if (contentFields) {
+      Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
         if (
-          !fieldsToIgnoreConst.includes(contentFieldName) &&
-          (!_.has(valueObj, 'param') || valueObj.param.const)
+          (formData?.[contentFieldName] === undefined ||
+            formData?.[contentFieldName]?.delete === true) &&
+          noteObj?.content?.[contentFieldName]?.value === undefined
         ) {
+          // do not return field
           return
-        } else {
-          var newVal = formData?.[contentFieldName]
+        }
+
+        var valueObj = contentFieldValue.value
+        if (valueObj) {
           if (
-            typeof newVal === 'string' &&
-            (valueObj.param?.input === 'text' ||
-              valueObj.param?.input === 'textarea' ||
-              (valueObj.param?.type === 'string' && !valueObj.param?.enum))
+            !fieldsToIgnoreConst.includes(contentFieldName) &&
+            (!_.has(valueObj, 'param') || valueObj.param.const)
           ) {
-            newVal = newVal?.trim()
-          }
-          content[contentFieldName] = {
-            value: newVal ?? noteObj?.content?.[contentFieldName]?.value,
+            return
+          } else {
+            var newVal = formData?.[contentFieldName]
+            if (
+              typeof newVal === 'string' &&
+              (valueObj.param?.input === 'text' ||
+                valueObj.param?.input === 'textarea' ||
+                (valueObj.param?.type === 'string' && !valueObj.param?.enum))
+            ) {
+              newVal = newVal?.trim()
+            }
+            content[contentFieldName] = {
+              value: newVal ?? noteObj?.content?.[contentFieldName]?.value,
+            }
           }
         }
-      }
 
-      var fieldReader = contentFieldValue.readers
-      if (fieldReader?.param && !fieldReader.param.const) {
-        content[contentFieldName].readers = noteObj?.content?.[contentFieldName]?.readers
-      }
-    })
+        var fieldReader = contentFieldValue.readers
+        if (fieldReader?.param && !fieldReader.param.const) {
+          content[contentFieldName].readers = noteObj?.content?.[contentFieldName]?.readers
+        }
+      })
+    }
 
     result.invitation = invitationObj.id
     if (Object.keys(content).length) note.content = content
