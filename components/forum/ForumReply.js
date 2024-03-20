@@ -68,7 +68,7 @@ export default function ForumReply({
   const isInvitationVisibleToEveryone = (invitation) => {
     const invitationReaders = Array.isArray(invitation.edit?.note?.readers)
       ? invitation.edit?.note?.readers
-      : invitation.edit?.note?.readers?.const
+      : invitation.edit?.note?.readers?.param?.const
     return invitationReaders?.includes('everyone')
   }
 
