@@ -217,6 +217,7 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
     shortPhrase,
     reviewerStatusExportColumns,
     reviewRatingName,
+    reviewerFilterFuncs
   } = useContext(WebFieldContext)
   const { accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
@@ -332,6 +333,7 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
         })
         // #endregion
 
+        // TODO: Use pcConsoleData to add registration forms to tableRow
         const tableRows = pcConsoleData.reviewers.map((reviewerProfileId, index) => {
           const notesInfo = sortBy(reviewerNotesMap.get(reviewerProfileId) ?? [], 'noteNumber')
           return {
@@ -410,6 +412,7 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
         exportColumns={reviewerStatusExportColumns}
         bidEnabled={bidEnabled}
         messageParentGroup={reviewersId}
+        reviewerFilterFuncs={reviewerFilterFuncs}
       />
       <Table
         className="console-table table-striped pc-console-reviewer-status"

@@ -56,10 +56,23 @@ const MessageReviewersModal = ({
         return tableRows.filter((row) => row.numCompletedReviews > 0)
       case 'noAssignments':
         return tableRows.filter((row) => !row.notesInfo?.length)
+      case 'custom':
+        const customFunc = Function('row', messageOption.filterFunc) // eslint-disable-line no-new-func
+        return tableRows.filter(row => customFunc(row));
       default:
         return []
     }
   }
+  /*
+  example:
+  reviewerFilterFuncs: [
+    {
+    label: 'Reviewer Two', value: 'custom', filterFunc: `
+    return row.reviewerProfileId === '~Reviewer_ARRTwo1'
+    `
+    },
+  ]
+  */
 
   useEffect(() => {
     if (!messageOption) return
@@ -151,6 +164,7 @@ const ReviewerStatusMenuBar = ({
   exportColumns: exportColumnsConfig,
   bidEnabled,
   messageParentGroup,
+  reviewerFilterFuncs
 }) => {
   const messageAreaChairOptions = [
     ...(bidEnabled
@@ -164,6 +178,7 @@ const ReviewerStatusMenuBar = ({
     { label: 'Reviewers with unsubmitted reviews', value: 'missingReviews' },
     { label: 'Reviewers with submitted reviews', value: 'submittedReviews' },
     { label: 'Reviewers with 0 assignments', value: 'noAssignments' },
+    ...(reviewerFilterFuncs ?? [])
   ]
 
   const exportColumns = exportColumnsConfig ?? [
