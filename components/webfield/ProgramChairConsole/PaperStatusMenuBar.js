@@ -12,6 +12,7 @@ const PaperStatusMenuBar = ({
   selectedNoteIds,
   setPaperStatusTabData,
   reviewRatingName,
+  noteContentField
 }) => {
   const {
     apiVersion,
@@ -180,6 +181,10 @@ const PaperStatusMenuBar = ({
         }))
       : []),
     ...(exportColumnsConfig ?? []),
+    noteContentField && {
+      header: noteContentField.field,
+      getValue: (p) => p.note?.content[noteContentField.field].value.toString() ?? 'N/A',
+    }
   ]
 
   const getValueWithDefault = (value) => {
@@ -194,6 +199,11 @@ const PaperStatusMenuBar = ({
       value: 'Paper Title',
       getValue: (p) =>
         p.note?.version === 2 ? p.note?.content?.title?.value : p.note?.content?.title,
+    },
+    noteContentField && {
+      label: prettyField(noteContentField.field),
+      value: prettyField(noteContentField.field),
+      getValue: (p) => p.note?.content[noteContentField.field].value.toString() ?? 'N/A',
     },
     {
       label: 'Number of Forum Replies',
@@ -294,7 +304,7 @@ const PaperStatusMenuBar = ({
             getValue: (p) => p.venue,
           },
         ]
-      : []),
+      : [])
   ]
 
   const basicSearchFunction = (row, term) =>

@@ -8,6 +8,7 @@ import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStat
 import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from './PaperStatusMenuBar'
+import { prettyField } from '../../../lib/utils'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -36,6 +37,7 @@ const PaperRow = ({
   decision,
   venue,
   getManualAssignmentUrl,
+  noteContentField
 }) => {
   const {
     areaChairsId,
@@ -88,7 +90,7 @@ const PaperRow = ({
           reviewerAssignmentUrl={getManualAssignmentUrl('Reviewers')}
         />
       </td>
-      {areaChairsId && (
+      {!noteContentField && areaChairsId && (
         <td>
           <ProgramChairConsolePaperAreaChairProgress
             rowData={rowData}
@@ -99,15 +101,34 @@ const PaperRow = ({
           />
         </td>
       )}
-      <td className="console-decision">
-        <h4 className="title">{decision}</h4>
-        {venue && <span>{venue}</span>}
-      </td>
+      {noteContentField && (
+        <td>
+          <ProgramChairConsolePaperAreaChairProgress
+            rowData={rowData}
+            referrerUrl={referrerUrl}
+            areaChairAssignmentUrl={getManualAssignmentUrl('Area_Chairs')}
+            metaReviewRecommendationName={metaReviewRecommendationName}
+            additionalMetaReviewFields={additionalMetaReviewFields}
+          />
+        </td>
+      )}
+      {noteContentField && (
+        <td className="console-decision">
+          <h4 className="title">{prettyField(rowData.note?.content[noteContentField.field].value.toString()) ?? 'N/A'}</h4>
+          {venue && <span>{venue}</span>}
+        </td>
+      )}
+      {!noteContentField && (
+        <td className="console-decision">
+          <h4 className="title">{decision}</h4>
+          {venue && <span>{venue}</span>}
+        </td>
+      )}
     </tr>
   )
 }
 
-const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
+const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField }) => {
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const { venueId, areaChairsId, assignmentUrls, reviewRatingName } =
@@ -143,13 +164,23 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
     } else {
       const { notes, noteNumberReviewMetaReviewMap } = pcConsoleData
       if (!notes) return
-      const tableRows = [...(noteNumberReviewMetaReviewMap.values() ?? [])]
+      const actualNotes = noteContentField ?
+        notes.filter(note => Object.keys(note.content).includes(noteContentField.field)) :
+        notes
+      const actualNoteNumbers = actualNotes.map(note => note.number)
+      const actualNoteNumberReviewMetaReviewMap = noteContentField ?
+        new Map([...noteNumberReviewMetaReviewMap].filter(
+          ([noteNumber, dataMap]) => actualNoteNumbers.includes(noteNumber)
+        )) :
+        noteNumberReviewMetaReviewMap
+
+      const tableRows = [...(actualNoteNumberReviewMetaReviewMap.values() ?? [])]
       setPaperStatusTabData({
         tableRowsAll: tableRows,
         tableRows: [...tableRows], // could be filtered
       })
 
-      setTotalCount(pcConsoleData.notes?.length ?? 0)
+      setTotalCount(actualNotes?.length ?? 0)
     }
   }, [pcConsoleData.notes, pcConsoleData.noteNumberReviewMetaReviewMap])
 
@@ -201,6 +232,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
         selectedNoteIds={selectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
         reviewRatingName={reviewRatingName}
+        noteContentField={noteContentField}
       />
       <Table
         className="console-table table-striped pc-console-paper-status"
@@ -220,7 +252,11 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
           { id: 'summary', content: 'Paper Summary', width: '30%' },
           { id: 'reviewProgress', content: 'Review Progress', width: '30%' },
           ...(areaChairsId ? [{ id: 'status', content: 'Status' }] : []),
-          { id: 'decision', content: 'Decision' },
+          {
+            id: noteContentField?.field ?? 'decision',
+            content: noteContentField ? prettyField(noteContentField.field) : 'Decision',
+            width: noteContentField ? '30%' : undefined
+          }
         ]}
       >
         {paperStatusTabData.tableRowsDisplayed?.map((row) => (
@@ -232,6 +268,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
             decision={row.decision}
             venue={row.venue}
             getManualAssignmentUrl={getManualAssignmentUrl}
+            noteContentField={noteContentField}
           />
         ))}
       </Table>
