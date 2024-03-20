@@ -11,12 +11,7 @@ import NoteEditor from '../NoteEditor'
 import ForumReplyContext from './ForumReplyContext'
 import Icon from '../Icon'
 import { getInvitationColors } from '../../lib/forum-utils'
-import {
-  prettyId,
-  prettyInvitationId,
-  forumDate,
-  buildNoteTitle,
-} from '../../lib/utils'
+import { prettyId, prettyInvitationId, forumDate, buildNoteTitle } from '../../lib/utils'
 
 export default function ForumReply({
   note,
@@ -68,6 +63,13 @@ export default function ForumReply({
       setActiveInvitation(null)
       setActiveEditInvitation(activeInvitation ? null : invitation)
     }
+  }
+
+  const isInvitationVisibleToEveryone = (invitation) => {
+    const invitationReaders = Array.isArray(invitation.edit?.note?.readers)
+      ? invitation.edit?.note?.readers
+      : invitation.edit?.note?.readers?.const
+    return invitationReaders?.includes('everyone')
   }
 
   if (collapsed) {
@@ -340,7 +342,11 @@ export default function ForumReply({
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
             {note.replyInvitations.map((inv) => {
-              if (excludedInvitations?.includes(inv.id)) return null
+              if (
+                excludedInvitations?.includes(inv.id) ||
+                (isInvitationVisibleToEveryone(inv) && !note.readers.includes('everyone'))
+              )
+                return null
 
               return (
                 <button
