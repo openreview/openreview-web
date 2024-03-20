@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
+import truncate from 'lodash/truncate'
 import escapeRegExp from 'lodash/escapeRegExp'
 import List from 'rc-virtual-list'
 
@@ -25,13 +26,14 @@ import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
-import { prettyInvitationId, stringToObject } from '../../lib/utils'
+import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import {
   formatNote,
   getNoteInvitations,
   parseFilterQuery,
   replaceFilterWildcards,
 } from '../../lib/forum-utils'
+import useLocalStorage from '../../hooks/useLocalStorage'
 
 export default function Forum({
   forumNote,
@@ -51,6 +53,7 @@ export default function Forum({
   const [nesting, setNesting] = useState(2)
   const [layout, setLayout] = useState('default')
   const [sort, setSort] = useState('date-desc')
+  const [viewName, setViewName] = useState('')
   const [defaultCollapseLevel, setDefaultCollapseLevel] = useState(2)
   const [filterOptions, setFilterOptions] = useState(null)
   const [selectedFilters, setSelectedFilters] = useState({
@@ -68,6 +71,11 @@ export default function Forum({
   const [enableLiveUpdate, setEnableLiveUpdate] = useState(false)
   const [latestMdate, setLatestMdate] = useState(null)
   const [chatReplyNote, setChatReplyNote] = useState(null)
+  const [notificationPermissions, setNotificationPermissions] = useState('loading')
+  const [showNotifications, setShowNotifications] = useLocalStorage(
+    `forum-notifications-${forumNote.id}`,
+    false
+  )
   const invitationMapRef = useRef(null)
   const signaturesMapRef = useRef(null)
   const router = useRouter()
@@ -338,7 +346,7 @@ export default function Forum({
 
   // Add new reply note or update and existing reply note
   const updateNote = (note) => {
-    if (!note) return
+    if (!note) return false
 
     // For chat layout, check if the user is scrolled before updating state
     const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
@@ -355,6 +363,7 @@ export default function Forum({
     const noteId = note.id
     const parentId = note.replyto
     const existingNote = replyNoteMap[noteId]
+    const isNewNote = isEmpty(existingNote)
     const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
       allInvitations,
       note
@@ -377,7 +386,7 @@ export default function Forum({
       [noteId]: formattedNote,
     }))
 
-    if (isEmpty(existingNote)) {
+    if (isNewNote) {
       setDisplayOptionsMap((prevOptionsMap) => ({
         ...prevOptionsMap,
         [noteId]: { collapsed: false, contentExpanded: true, hidden: false },
@@ -390,10 +399,10 @@ export default function Forum({
 
     // If updated note is a reply to an invitation with a maxReplies property,
     // update the invitation and the parent note
-    if (isEmpty(existingNote) || existingNote.ddate !== note.ddate) {
+    if (isNewNote || existingNote.ddate !== note.ddate) {
       const invObj = allInvitations.find((i) => i.id === note.invitations[0])
       if (invObj.maxReplies) {
-        const increment = isEmpty(existingNote) || !note.ddate ? 1 : -1
+        const increment = isNewNote || !note.ddate ? 1 : -1
         const prevRepliesAvailable = invObj.details.repliesAvailable ?? 1
         const remainingReplies = prevRepliesAvailable - increment
 
@@ -444,10 +453,26 @@ export default function Forum({
         }
       }
     }
+
+    return isNewNote
+  }
+
+  const getNotificationState = () => {
+    if (!('Notification' in window)) {
+      return Promise.resolve('denied')
+    }
+    if (navigator.permissions) {
+      return navigator.permissions
+        .query({ name: 'notifications' })
+        .then((result) => result.state)
+    }
+    return Promise.resolve(Notification.permission)
   }
 
   // Handle url hash changes
   useEffect(() => {
+    if (!parentNote) return
+
     const handleRouteChange = (url) => {
       const [_, tabId] = url.split('#')
       if (!tabId || !replyForumViews) return
@@ -471,19 +496,29 @@ export default function Forum({
       setSort(tab.sort || 'date-desc')
       setEnableLiveUpdate(Boolean(tab.live))
       setExpandedInvitations(tab.expandedInvitations)
+      setViewName(tab.label)
     }
 
     if (window.location.hash) {
       handleRouteChange(window.location.hash)
+    } else if (replyForumViews?.length > 0 && !selectedNoteId && !selectedInvitationId) {
+      setTimeout(() => {
+        const tab = replyForumViews[0]
+        const newActiveTab = document.querySelector(`.filter-tabs li[data-id="${tab.id}"] a`)
+        if (newActiveTab) {
+          newActiveTab.click()
+        }
+      }, 200)
     }
 
     router.events.on('hashChangeComplete', handleRouteChange)
     router.events.on('routeChangeComplete', handleRouteChange)
+    // eslint-disable-next-line consistent-return
     return () => {
       router.events.off('hashChangeComplete', handleRouteChange)
       router.events.on('routeChangeComplete', handleRouteChange)
     }
-  }, [])
+  }, [parentNote])
 
   // Load forum replies
   useEffect(() => {
@@ -493,6 +528,10 @@ export default function Forum({
     setLatestMdate(Date.now() - 1000)
 
     loadNotesAndInvitations()
+    getNotificationState().then((state) => {
+      // Can be 'granted', 'denied', or 'prompt'
+      setNotificationPermissions(state)
+    })
   }, [userLoading])
 
   // Update forum nesting level
@@ -709,6 +748,9 @@ export default function Forum({
     if (!repliesLoaded || !enableLiveUpdate) return
 
     loadNewReplies().then((newReplies) => {
+      let newMessageAuthor = ''
+      let newMessage = ''
+      let additionalReplyCount = 0
       newReplies.forEach((note) => {
         const invId = note.invitations[0]
         // eslint-disable-next-line no-param-reassign
@@ -719,11 +761,29 @@ export default function Forum({
         note.details.signatures = note.signatures.flatMap(
           (sigId) => signaturesMapRef.current[sigId] ?? []
         )
-        updateNote(note)
+        const isNewNote = updateNote(note)
+        if (isNewNote && !note.ddate) {
+          if (!newMessageAuthor) {
+            newMessageAuthor = prettyId(note.signatures[0], true)
+            newMessage = truncate(note.content.message.value, { length: 60 })
+          } else {
+            additionalReplyCount += 1
+          }
+        }
       })
 
       if (newReplies.length > 0) {
         setLatestMdate(newReplies[newReplies.length - 1].tmdate)
+      }
+
+      if (notificationPermissions === 'granted' && showNotifications && newMessageAuthor) {
+        const notif = new Notification(viewName, {
+          body:
+            additionalReplyCount > 0
+              ? `${newMessageAuthor} and ${additionalReplyCount} others posted new messages.`
+              : `${newMessageAuthor} posted a new message: ${newMessage}`,
+          icon: '/images/openreview_logo_256.png',
+        })
       }
     })
   }, 2000)
@@ -801,9 +861,7 @@ export default function Forum({
               })}
             </div>
             <NoteEditor
-              note={
-                selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)
-              }
+              note={selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)}
               replyToNote={parentNote}
               invitation={activeInvitation}
               className="note-editor-reply depth-even"
@@ -847,6 +905,7 @@ export default function Forum({
                   setChatReplyNote={setChatReplyNote}
                   updateNote={updateNote}
                   deleteOrRestoreNote={deleteOrRestoreNote}
+                  numHidden={numRepliesHidden}
                 />
               ) : (
                 <LoadingSpinner inline />
@@ -878,6 +937,8 @@ export default function Forum({
                   invitation={invitation}
                   replyToNote={chatReplyNote}
                   setReplyToNote={setChatReplyNote}
+                  showNotifications={showNotifications}
+                  setShowNotifications={setShowNotifications}
                   onSubmit={updateNote}
                 />
               )
@@ -941,6 +1002,7 @@ function ForumReplies({
   replyNoteMap,
   displayOptionsMap,
   chatReplyNote,
+  numHidden,
   layout,
   updateNote,
   deleteOrRestoreNote,
@@ -949,6 +1011,15 @@ function ForumReplies({
   if (!replies) return null
 
   if (layout === 'chat') {
+    if (replies.length === numHidden || replies.length === 0) {
+      return (
+        <div className="empty-container">
+          <p className="empty-message">
+            No messages to display. Be the first by posting a message below.
+          </p>
+        </div>
+      )
+    }
     return (
       <List data={replies} height={625} itemHeight={1} itemKey="id">
         {(reply) => (

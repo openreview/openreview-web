@@ -145,9 +145,10 @@ export default function FilterForm({
             id="keyword-input"
             placeholder="Search keywords..."
             defaultValue={selectedFilters.keywords ? selectedFilters.keywords[0] : ''}
+            maxLength={100}
             onChange={(e) => {
               updateFilters({
-                keywords: e.target.value ? [e.target.value.toLowerCase()] : null,
+                keywords: e.target.value ? [e.target.value.toLowerCase().trim()] : null,
               })
             }}
           />

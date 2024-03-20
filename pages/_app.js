@@ -309,6 +309,14 @@ export default class OpenReviewApp extends App {
     // Setup marked options and renderer overwrite
     window.view.setupMarked()
 
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch((error) => {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to register service worker: ', error)
+      })
+    }
+
     const setUserState = ({ user, token, expiration }) => {
       if (!user) {
         this.setState({ userLoading: false })
