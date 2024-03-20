@@ -95,7 +95,7 @@ test('send feedback selecting subject', async (t) => {
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
-    { subject: 'OpenReview Feedback: My OpenReview profile - ~Melisa_Test1' },
+    { subject: 'OpenReview Feedback: My OpenReview profile' },
     superUserToken
   )
   await t
