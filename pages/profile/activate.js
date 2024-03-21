@@ -34,13 +34,10 @@ const ActivateProfile = ({ appContext }) => {
   }
 
   const saveProfile = async (newProfileData) => {
-    const dataToSubmit = {
-      id: profile.id,
-      content: newProfileData,
-      signatures: [profile.id],
-    }
     try {
-      const { user, token } = await api.put(`/activate/${activateToken}`, dataToSubmit)
+      const { user, token } = await api.put(`/activate/${activateToken}`, {
+        content: newProfileData,
+      })
       if (token) {
         promptMessage('Your OpenReview profile has been successfully created', {
           scrollToTop: false,
