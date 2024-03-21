@@ -58,10 +58,11 @@ const AssignedPaperRow = ({
   shortPhrase,
   showCheckbox = true,
   additionalMetaReviewFields,
+  activeTabId,
 }) => {
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
-    `[Area Chair Console](/group?id=${venueId}/${areaChairName}#assigned-papers)`
+    `[Area Chair Console](/group?id=${venueId}/${areaChairName}${activeTabId})`
   )
   return (
     <tr>
@@ -585,6 +586,7 @@ const AreaChairConsole = ({ appContext }) => {
               setSelectedNoteIds={setSelectedNoteIds}
               shortPhrase={shortPhrase}
               additionalMetaReviewFields={additionalMetaReviewFields}
+              activeTabId={activeTabId}
             />
           ))}
         </Table>
@@ -625,6 +627,7 @@ const AreaChairConsole = ({ appContext }) => {
               shortPhrase={shortPhrase}
               showCheckbox={false}
               additionalMetaReviewFields={additionalMetaReviewFields}
+              activeTabId={activeTabId}
             />
           ))}
         </Table>

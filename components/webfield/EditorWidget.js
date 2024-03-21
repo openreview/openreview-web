@@ -76,8 +76,10 @@ const EditorWidget = () => {
       case 'string[]':
         return value.param?.enum ? <DropdownWidget /> : <TextboxWidget />
       case 'group':
+      case 'profile':
         return <ProfileSearchWidget />
       case 'group[]':
+      case 'profile[]':
         return <ProfileSearchWidget multiple={true} />
       case 'note':
       case 'note[]':

@@ -106,11 +106,9 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
         )
 
       if (
-        !allDblpPublications.some((pub) =>
-          profileNames.some((name) =>
-            deburrString(pub.note.content.dblp, false).includes(
-              deburrString(getNameString(name), false)
-            )
+        !possibleNames.some((name) =>
+          profileNames.some((pName) =>
+            deburrString(name, false).includes(deburrString(getNameString(pName), false))
           )
         )
       ) {
