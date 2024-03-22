@@ -172,7 +172,7 @@ const AreaChairStatusMenuBar = ({
     shortPhrase,
     seniorAreaChairsId,
     enableQuerySearch,
-    acFilterFuncs,
+    acEmailFuncs,
     areaChairStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
@@ -212,7 +212,7 @@ const AreaChairStatusMenuBar = ({
       label: 'Area Chairs with 0 assignments',
       value: 'missingAssignments',
     },
-    ...(acFilterFuncs ?? []),
+    ...(acEmailFuncs ?? []),
   ]
   const exportColumns = [
     { header: 'id', getValue: (p) => p.areaChairProfileId },

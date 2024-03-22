@@ -158,7 +158,7 @@ const ReviewerStatusMenuBar = ({
   messageParentGroup,
 }) => {
   const {
-    reviewerFilterFuncs
+    reviewerEmailFuncs
   } = useContext(WebFieldContext)
   const messageAreaChairOptions = [
     ...(bidEnabled
@@ -172,7 +172,7 @@ const ReviewerStatusMenuBar = ({
     { label: 'Reviewers with unsubmitted reviews', value: 'missingReviews' },
     { label: 'Reviewers with submitted reviews', value: 'submittedReviews' },
     { label: 'Reviewers with 0 assignments', value: 'noAssignments' },
-    ...(reviewerFilterFuncs ?? [])
+    ...(reviewerEmailFuncs ?? [])
   ]
 
   const exportColumns = exportColumnsConfig ?? [
