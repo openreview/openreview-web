@@ -67,6 +67,8 @@ const ProgramChairConsole = ({ appContext }) => {
     customStageInvitations,
     assignmentUrls,
     emailReplyTo,
+    reviewerFilterFuncs,
+    acFilterFuncs,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()

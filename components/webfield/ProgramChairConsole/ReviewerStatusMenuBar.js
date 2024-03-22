@@ -47,6 +47,11 @@ const MessageReviewersModal = ({
   }
 
   const getRecipientRows = () => {
+    if (Object.keys(messageOption).includes('filterFunc')) {
+      const customFunc = Function('row', messageOption.filterFunc) // eslint-disable-line no-new-func
+      return tableRows.filter(row => customFunc(row));
+    }
+
     switch (messageOption.value) {
       case 'noBids':
         return tableRows.filter((row) => row.completedBids === 0)
@@ -56,23 +61,10 @@ const MessageReviewersModal = ({
         return tableRows.filter((row) => row.numCompletedReviews > 0)
       case 'noAssignments':
         return tableRows.filter((row) => !row.notesInfo?.length)
-      case 'custom':
-        const customFunc = Function('row', messageOption.filterFunc) // eslint-disable-line no-new-func
-        return tableRows.filter(row => customFunc(row));
       default:
         return []
     }
   }
-  /*
-  example:
-  reviewerFilterFuncs: [
-    {
-    label: 'Reviewer Two', value: 'custom', filterFunc: `
-    return row.reviewerProfileId === '~Reviewer_ARRTwo1'
-    `
-    },
-  ]
-  */
 
   useEffect(() => {
     if (!messageOption) return
@@ -164,8 +156,10 @@ const ReviewerStatusMenuBar = ({
   exportColumns: exportColumnsConfig,
   bidEnabled,
   messageParentGroup,
-  reviewerFilterFuncs
 }) => {
+  const {
+    reviewerFilterFuncs
+  } = useContext(WebFieldContext)
   const messageAreaChairOptions = [
     ...(bidEnabled
       ? [
