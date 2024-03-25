@@ -6,7 +6,9 @@ import PaginatedList from '../PaginatedList'
 import api from '../../lib/api-client'
 import { prettyInvitationId } from '../../lib/utils'
 
-const GroupSignedNotes = ({ groupId, accessToken }) => {
+const GroupSignedNotes = ({ group, accessToken }) => {
+  const groupId = group.id
+  const isV1Group = !group.domain
   const [totalCount, setTotalCount] = useState(null)
 
   const processNote = (note) => {
@@ -23,15 +25,14 @@ const GroupSignedNotes = ({ groupId, accessToken }) => {
   }
 
   const loadNotes = async (limit, offset) => {
-    const { notes, count } = await api.getCombined(
+    const { notes, count } = await api.get(
       '/notes',
       {
         'signatures[]': [groupId],
         limit,
         offset,
       },
-      null,
-      { accessToken }
+      { accessToken, ...(isV1Group && { version: 1 }) }
     )
 
     let translatedNotes = []

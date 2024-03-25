@@ -272,8 +272,8 @@ export default function ProfileEntity(props) {
     // reviewer assignmet stage (1st stage) don't show invite assignment except for invited (has editEdge)
     if (isReviewerAssignmentStage && isInviteInvitation && !edge) return null
 
-    // can't be invited/uninvited when assigned already(except invited profile to enable delete)
-    if (isAssigned && isInviteInvitation && !content?.isInvitedProfile) return null
+    // can't be invited when assigned already(except to enable delete)
+    if (isAssigned && isInviteInvitation && !content?.isInvitedProfile && !edge) return null
 
     // invited reviewer with assigned edge,don't show custom load edge
     if (isAssigned && content?.isInvitedProfile && isCustomLoadInvitation) return null
