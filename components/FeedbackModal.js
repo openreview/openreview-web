@@ -132,9 +132,11 @@ export default function FeedbackModal() {
           break
         case submissionSubject:
           feedbackData.message = `Venue ID: ${formData.venueId}\nSubmission ID: ${formData.submissionId}\n\n${formData.message}`
+          feedbackData.subject = `${formData.subject} - ${formData.venueId} - ${formData.submissionId}`
           break
         case organizationSubject:
           feedbackData.message = `Venue ID: ${formData.venueId}\n\n${formData.message}`
+          feedbackData.subject = `${formData.subject} - ${formData.venueId}`
           break
         case institutionSubject:
           feedbackData.message = `Institution Domain: ${formData.institutionDomain}\nInstitution Fullname: ${formData.institutionName}\nInstitution URL: ${formData.institutionUrl}\n\n${formData.message}`
