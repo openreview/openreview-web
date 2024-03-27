@@ -128,6 +128,7 @@ export default function FeedbackModal() {
       switch (formData.subject) {
         case profileSubject:
           feedbackData.message = `Profile ID: ${formData.profileId}\n\n${formData.message}`
+          feedbackData.subject = `${formData.subject} - ${formData.profileId}`
           break
         case submissionSubject:
           feedbackData.message = `Venue ID: ${formData.venueId}\nSubmission ID: ${formData.submissionId}\n\n${formData.message}`
