@@ -121,29 +121,35 @@ export default function FeedbackModal() {
       }
       const feedbackData = {
         from: formData.from.trim(),
-        subject: formData.subject.trim(),
         token: turnstileToken,
       }
+
+      const cleanSubject = formData.subject.trim()
 
       switch (formData.subject) {
         case profileSubject:
           feedbackData.message = `Profile ID: ${formData.profileId}\n\n${formData.message}`
-          feedbackData.subject = `${formData.subject} - ${formData.profileId}`
+          feedbackData.subject = `${cleanSubject} - ${formData.profileId}`
           break
         case submissionSubject:
           feedbackData.message = `Venue ID: ${formData.venueId}\nSubmission ID: ${formData.submissionId}\n\n${formData.message}`
-          feedbackData.subject = `${formData.subject} - ${formData.venueId} - ${formData.submissionId}`
+          feedbackData.subject = `${cleanSubject}${
+            formData.submissionId ? ` - ${formData.submissionId}` : ''
+          }`
           break
         case organizationSubject:
           feedbackData.message = `Venue ID: ${formData.venueId}\n\n${formData.message}`
-          feedbackData.subject = `${formData.subject} - ${formData.venueId}`
+          feedbackData.subject = `${cleanSubject}${
+            formData.venueId ? ` - ${formData.venueId}` : ''
+          }`
           break
         case institutionSubject:
           feedbackData.message = `Institution Domain: ${formData.institutionDomain}\nInstitution Fullname: ${formData.institutionName}\nInstitution URL: ${formData.institutionUrl}\n\n${formData.message}`
-          feedbackData.subject = `${formData.subject} - ${formData.institutionDomain}`
+          feedbackData.subject = `${cleanSubject} - ${formData.institutionDomain}`
           break
         default:
           feedbackData.message = formData.message
+          feedbackData.subject = cleanSubject
       }
 
       await api.put('/feedback', feedbackData, { accessToken })
