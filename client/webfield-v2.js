@@ -589,6 +589,7 @@ module.exports = (function () {
               forumUrl: user.forumUrl,
               replyTo: options.reminderOptions.replyTo,
               invitation: options.reminderOptions.messageInvitationId.replace('{number}', user.number),
+              signature: options.reminderOptions.messageSignature,
             })
             count += groupIds.length
           }
@@ -651,6 +652,7 @@ module.exports = (function () {
             message: $('#message-reviewers-modal textarea[name="message"]').val().trim(),
             replyTo: options.reminderOptions.replyTo,
             invitation: options.reminderOptions.messageInvitationId,
+            signature: options.reminderOptions.messageSignature,
           }
 
           $('#message-reviewers-modal').modal('hide')
@@ -685,7 +687,7 @@ module.exports = (function () {
 
         return post(
           '/messages',
-          _.pick(postData, ['groups', 'subject', 'message', 'replyTo', 'invitation'])
+          _.pick(postData, ['groups', 'subject', 'message', 'replyTo', 'invitation', 'signature'])
         ).then(function (response) {
           // Save the timestamp in the local storage
           for (var i = 0; i < postData.groups.length; i++) {

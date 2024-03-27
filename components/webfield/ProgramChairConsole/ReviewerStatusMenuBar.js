@@ -10,6 +10,7 @@ const MessageReviewersModal = ({
   tableRowsDisplayed: tableRows,
   messageOption,
   messageParentGroup,
+  messageSignature,
 }) => {
   const { accessToken } = useUser()
   const { shortPhrase, emailReplyTo, reviewersMessageInvitationId } = useContext(WebFieldContext)
@@ -32,6 +33,7 @@ const MessageReviewersModal = ({
         '/messages',
         {
           invitation: reviewersMessageInvitationId,
+          signature: messageSignature,
           groups: recipientsInfo.map((p) => p.id),
           subject,
           message,
@@ -152,6 +154,7 @@ const ReviewerStatusMenuBar = ({
   exportColumns: exportColumnsConfig,
   bidEnabled,
   messageParentGroup,
+  messageSignature,
 }) => {
   const messageAreaChairOptions = [
     ...(bidEnabled
@@ -252,6 +255,7 @@ const ReviewerStatusMenuBar = ({
       messageOptions={messageAreaChairOptions}
       messageModalId="message-reviewers"
       messageParentGroup={messageParentGroup}
+      messageSignature={messageSignature}
       exportColumns={exportColumns}
       exportFileName="Reviewer Status"
       sortOptions={sortOptions}

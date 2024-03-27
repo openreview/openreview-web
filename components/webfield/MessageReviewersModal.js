@@ -42,6 +42,7 @@ const MessageReviewersModal = ({
         id: p.note.id,
         number: p.note.number,
         forum: p.note.forum,
+        messageSignature: p.messageSignature,
       }))
 
       const sendEmailPs = selectedIds.map((noteId) => {
@@ -53,6 +54,7 @@ const MessageReviewersModal = ({
           '/messages',
           {
             invitation: reviewersMessageSubmissionInvitationId.replace('{number}', rowData.number),
+            signature: rowData.messageSignature,
             groups: reviewerIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),

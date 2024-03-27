@@ -396,6 +396,7 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
           exportColumns={reviewerStatusExportColumns}
           bidEnabled={bidEnabled}
           messageParentGroup={reviewersId}
+          messageSignature={venueId}
         />
         <p className="empty-message">No reviewer matching search criteria.</p>
       </div>
@@ -410,6 +411,7 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
         exportColumns={reviewerStatusExportColumns}
         bidEnabled={bidEnabled}
         messageParentGroup={reviewersId}
+        messageSignature={venueId}
       />
       <Table
         className="console-table table-striped pc-console-reviewer-status"

@@ -11,6 +11,7 @@ const MessageAreaChairsModal = ({
   tableRowsDisplayed: tableRows,
   messageOption,
   messageParentGroup,
+  messageSignature,
 }) => {
   const { accessToken } = useUser()
   const { shortPhrase, emailReplyTo, submissionVenueId, areaChairsMessageInvitationId } = useContext(WebFieldContext)
@@ -33,6 +34,7 @@ const MessageAreaChairsModal = ({
         '/messages',
         {
           invitation: areaChairsMessageInvitationId,
+          signature: messageSignature,
           groups: recipientsInfo.map((p) => p.id),
           subject,
           message,
@@ -164,6 +166,7 @@ const AreaChairStatusMenuBar = ({
   bidEnabled,
   recommendationEnabled,
   messageParentGroup,
+  messageSignature,
 }) => {
   const {
     shortPhrase,
@@ -310,6 +313,7 @@ const AreaChairStatusMenuBar = ({
       messageOptions={messageAreaChairOptions}
       messageModalId="message-areachairs"
       messageParentGroup={messageParentGroup}
+      messageSignature={messageSignature}
       exportColumns={exportColumns}
       exportFileName="Area Chair Status"
       sortOptions={sortOptions}
