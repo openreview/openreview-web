@@ -34,7 +34,7 @@ const MessageAreaChairsModal = ({
         '/messages',
         {
           invitation: areaChairsMessageInvitationId,
-          signature: messageSignature,
+          signature: areaChairsMessageInvitationId && messageSignature,
           groups: recipientsInfo.map((p) => p.id),
           subject,
           message,

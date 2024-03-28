@@ -33,7 +33,7 @@ const MessageReviewersModal = ({
         '/messages',
         {
           invitation: reviewersMessageInvitationId,
-          signature: messageSignature,
+          signature: reviewersMessageInvitationId && messageSignature,
           groups: recipientsInfo.map((p) => p.id),
           subject,
           message,

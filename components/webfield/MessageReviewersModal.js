@@ -53,8 +53,8 @@ const MessageReviewersModal = ({
         return api.post(
           '/messages',
           {
-            invitation: reviewersMessageSubmissionInvitationId.replace('{number}', rowData.number),
-            signature: rowData.messageSignature,
+            invitation: reviewersMessageSubmissionInvitationId && reviewersMessageSubmissionInvitationId.replace('{number}', rowData.number),
+            signature: reviewersMessageSubmissionInvitationId && rowData.messageSignature,
             groups: reviewerIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),

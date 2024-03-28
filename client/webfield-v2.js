@@ -571,11 +571,12 @@ module.exports = (function () {
           if (user.groups?.length > 0) {
             var groupIds = []
             user.groups.forEach(function (group) {
-              groupIds.push(group.anonymousGroupId)
-              if (group.anonymousGroupId in userCounts) {
-                userCounts[group.anonymousGroupId].count++
+              var groupId = group.anonymousGroupId || group.id
+              groupIds.push(groupId)
+              if (groupId in userCounts) {
+                userCounts[groupId].count++
               } else {
-                userCounts[group.anonymousGroupId] = {
+                userCounts[groupId] = {
                   name: group.name,
                   email: group.email,
                   count: 1,
@@ -588,8 +589,8 @@ module.exports = (function () {
               subject: subject,
               forumUrl: user.forumUrl,
               replyTo: options.reminderOptions.replyTo,
-              invitation: options.reminderOptions.messageInvitationId.replace('{number}', user.number),
-              signature: options.reminderOptions.messageSignature,
+              invitation: options.reminderOptions.messageInvitationId && options.reminderOptions.messageInvitationId.replace('{number}', user.number),
+              signature: options.reminderOptions.messageInvitationId && options.reminderOptions.messageSignature,
             })
             count += groupIds.length
           }
@@ -652,7 +653,7 @@ module.exports = (function () {
             message: $('#message-reviewers-modal textarea[name="message"]').val().trim(),
             replyTo: options.reminderOptions.replyTo,
             invitation: options.reminderOptions.messageInvitationId,
-            signature: options.reminderOptions.messageSignature,
+            signature: options.reminderOptions.messageInvitationId && options.reminderOptions.messageSignature,
           }
 
           $('#message-reviewers-modal').modal('hide')
