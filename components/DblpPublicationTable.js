@@ -282,7 +282,11 @@ const DblpPublicationRow = ({
           <div className="publication-title">
             {category === 'existing-publication' ||
             category === 'existing-different-profile' ? (
-              <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">
+              <a
+                href={`/forum?id=${openReviewId}&referrer=[profile](/profile/edit)`}
+                target="_blank"
+                rel="noreferrer"
+              >
                 {title}
               </a>
             ) : (
