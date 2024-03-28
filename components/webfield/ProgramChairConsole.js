@@ -826,6 +826,7 @@ const ProgramChairConsole = ({ appContext }) => {
 
         decision,
         venue: note?.content?.venue?.value,
+        messageSignature: programChairsId
       })
     })
     setPcConsoleData((data) => ({ ...data, noteNumberReviewMetaReviewMap }))

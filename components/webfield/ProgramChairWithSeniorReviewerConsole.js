@@ -461,6 +461,7 @@ const MessageReviewersModal = ({
   messageOption,
   messageModalId,
   selectedIds,
+  messageSignature,
 }) => {
   const { accessToken } = useUser()
   const {
@@ -2376,6 +2377,7 @@ const ProgramChairWithSeniorReviewerConsole = ({ appContext }) => {
 
         decision,
         venue: note?.content?.venue?.value,
+        messsageSignature: programChairsId
       })
     })
     setPcConsoleData((data) => ({ ...data, noteNumberReviewMetaReviewMap }))

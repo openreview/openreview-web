@@ -11,9 +11,10 @@ const MessageAreaChairsModal = ({
   tableRowsDisplayed: tableRows,
   messageOption,
   messageParentGroup,
+  messageSignature,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, emailReplyTo, submissionVenueId } = useContext(WebFieldContext)
+  const { shortPhrase, emailReplyTo, submissionVenueId, areaChairsMessageInvitationId } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -32,6 +33,8 @@ const MessageAreaChairsModal = ({
       await api.post(
         '/messages',
         {
+          invitation: areaChairsMessageInvitationId,
+          signature: areaChairsMessageInvitationId && messageSignature,
           groups: recipientsInfo.map((p) => p.id),
           subject,
           message,
@@ -162,6 +165,8 @@ const AreaChairStatusMenuBar = ({
   setAreaChairStatusTabData,
   bidEnabled,
   recommendationEnabled,
+  messageParentGroup,
+  messageSignature,
 }) => {
   const {
     shortPhrase,
@@ -170,7 +175,6 @@ const AreaChairStatusMenuBar = ({
     areaChairStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
-    areaChairsId: messageParentGroup,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
@@ -309,6 +313,7 @@ const AreaChairStatusMenuBar = ({
       messageOptions={messageAreaChairOptions}
       messageModalId="message-areachairs"
       messageParentGroup={messageParentGroup}
+      messageSignature={messageSignature}
       exportColumns={exportColumns}
       exportFileName="Area Chair Status"
       sortOptions={sortOptions}

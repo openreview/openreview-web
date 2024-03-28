@@ -10,9 +10,10 @@ const MessageReviewersModal = ({
   tableRowsDisplayed: tableRows,
   messageOption,
   messageParentGroup,
+  messageSignature,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, emailReplyTo } = useContext(WebFieldContext)
+  const { shortPhrase, emailReplyTo, reviewersMessageInvitationId } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -31,6 +32,8 @@ const MessageReviewersModal = ({
       await api.post(
         '/messages',
         {
+          invitation: reviewersMessageInvitationId,
+          signature: reviewersMessageInvitationId && messageSignature,
           groups: recipientsInfo.map((p) => p.id),
           subject,
           message,
@@ -151,6 +154,7 @@ const ReviewerStatusMenuBar = ({
   exportColumns: exportColumnsConfig,
   bidEnabled,
   messageParentGroup,
+  messageSignature,
 }) => {
   const messageAreaChairOptions = [
     ...(bidEnabled
@@ -251,6 +255,7 @@ const ReviewerStatusMenuBar = ({
       messageOptions={messageAreaChairOptions}
       messageModalId="message-reviewers"
       messageParentGroup={messageParentGroup}
+      messageSignature={messageSignature}
       exportColumns={exportColumns}
       exportFileName="Reviewer Status"
       sortOptions={sortOptions}

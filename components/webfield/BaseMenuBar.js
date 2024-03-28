@@ -20,6 +20,7 @@ const BaseMenuBar = ({
   messageOptions,
   messageModalId,
   messageParentGroup,
+  messageSignature,
   exportColumns,
   exportFileName = 'Paper Status',
   sortOptions,
@@ -202,6 +203,7 @@ const BaseMenuBar = ({
           messageModalId,
           selectedIds,
           messageParentGroup,
+          messageSignature,
         })}
       {isQuerySearch &&
         shouldEnableQuerySearch &&
