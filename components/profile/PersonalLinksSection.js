@@ -12,7 +12,7 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
 
     switch (type) {
       case 'gscholar': {
-        const isValid = isValidURL(value) && value.startsWith('https://scholar.google')
+        const isValid = value.startsWith('https://scholar.google')
         if (!isValid) {
           promptError(`${value} is not a valid Google Scholar URL`, { scrollToTop: false })
         }
@@ -20,10 +20,17 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
         break
       }
       case 'semanticScholar': {
-        const isValid =
-          isValidURL(value) && value.startsWith('https://www.semanticscholar.org')
+        const isValid = /^https:\/\/www\.semanticscholar\.org/.test(value)
         if (!isValid) {
           promptError(`${value} is not a valid Semantic Scholar URL`, { scrollToTop: false })
+        }
+        setLinks({ type, data: { value, valid: isValid } })
+        break
+      }
+      case 'aclanthology': {
+        const isValid = /^https:\/\/aclanthology\.org\/people\/.+$/.test(value)
+        if (!isValid) {
+          promptError(`${value} is not a valid ACL Anthology URL`, { scrollToTop: false })
         }
         setLinks({ type, data: { value, valid: isValid } })
         break
@@ -168,6 +175,23 @@ const PersonalLinksSection = ({
             </a>
           </div>
           <PersonalLinkInput type="semanticScholar" links={links} setLinks={setLinks} />
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col-md-4 personal-links__column">
+          <div className="small-heading">
+            ACL Anthology URL
+            <a
+              className="personal-links__faqlink"
+              href="https://docs.openreview.net/getting-started/creating-an-openreview-profile/finding-and-adding-your-acl-anthology-url-to-your-profile"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Icon name="info-sign" />
+            </a>
+          </div>
+          <PersonalLinkInput type="aclanthology" links={links} setLinks={setLinks} />
         </div>
       </div>
 
