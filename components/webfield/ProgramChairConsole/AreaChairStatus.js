@@ -292,6 +292,7 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
           })
         })
         // #endregion
+        // TODO: Use pcConsoleData to add registration forms to tableRow
         const tableRows = pcConsoleData.areaChairs.map((areaChairProfileId, index) => {
           let sacId = null
           let sacProfile = null
