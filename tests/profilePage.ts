@@ -412,6 +412,16 @@ test('import paper from dblp', async (t) => {
     .eql(2) // imported 2 papers are removable/unlinkable
 })
 
+test('imported paper has banner back to profile edit', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(addDBLPPaperToProfileButton)
+    .expect(Selector('div.publication-title').nth(0).find(
+      'a'
+    ).getAttribute('href')).contains('referrer=[profile](/profile/edit)')
+})
+
 test('unlink paper', async (t) => {
   await t
     .useRole(userBRole)
