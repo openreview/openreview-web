@@ -12,7 +12,6 @@ import {
   conferenceGroupId,
   conferenceSubmissionInvitationId,
   sendFile,
-  setupProfileViewEdit,
   setupRegister,
   superUserName,
   strongPassword,
@@ -42,7 +41,6 @@ const waitForJobs = (noteId, superUserToken, count = 1) =>
 
 fixture`Set up test data`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
-  await setupProfileViewEdit(ctx.superUserToken)
   await setupRegister(ctx.superUserToken)
   await createUser({
     fullname: 'SomeFirstName User',

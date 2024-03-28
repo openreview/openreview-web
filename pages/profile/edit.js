@@ -56,6 +56,7 @@ export default function ProfileEdit({ appContext }) {
         'OpenReview.net/Archive/-/Imported_Record_Revision',
       'OpenReview.net/Archive/-/Direct_Upload':
         'OpenReview.net/Archive/-/Direct_Upload_Revision',
+      'DBLP.org/-/Record': 'DBLP.org/-/Author_Coreference',
     }
     if (!authorIds) {
       throw new Error(`Note ${noteId} is missing author ids`)
@@ -77,20 +78,36 @@ export default function ProfileEdit({ appContext }) {
       // no match or multiple match
       throw new Error(`Multiple matches found in authors of paper ${noteId}.`)
     }
-    authorIds[matchedIdx[0]] = null // the only match
 
-    const updateAuthorIdsObject = {
-      id: null,
-      referent: noteId,
-      invitation: invitationMap[invitation],
-      signatures: [profileId],
-      readers: ['everyone'],
-      writers: [],
-      content: {
-        authorids: authorIds,
-      },
-    }
-    return api.post('/notes', updateAuthorIdsObject, { accessToken, version: 1 })
+    const isV2Note = note.apiVersion === 2
+    if (!isV2Note) authorIds[matchedIdx[0]] = null // the only match
+
+    const updateAuthorIdsObject = isV2Note
+      ? {
+          invitation: invitationMap[invitation],
+          signatures: [profileId],
+          note: {
+            id: note.id,
+          },
+          content: {
+            author_index: { value: matchedIdx[0] },
+            author_id: { value: '' },
+          },
+        }
+      : {
+          id: null,
+          referent: noteId,
+          invitation: invitationMap[invitation],
+          signatures: [profileId],
+          readers: ['everyone'],
+          writers: [],
+          content: {
+            authorids: authorIds,
+          },
+        }
+    return isV2Note
+      ? api.post('/notes/edits', updateAuthorIdsObject, { accessToken })
+      : api.post('/notes', updateAuthorIdsObject, { accessToken, version: 1 })
   }
 
   const saveProfile = async (profileContent, profileReaders, publicationIdsToUnlink) => {
