@@ -2255,6 +2255,7 @@ module.exports = (function () {
     const result = {}
     const note = {}
     const content = {}
+    const editContent = {}
     const { note: noteFields, ...otherFields } = invitationObj.edit
 
     // editToPost.readers/writers etc.
@@ -2278,6 +2279,26 @@ module.exports = (function () {
           break
       }
     })
+
+    // editToPost.edit.content fields
+    Object.entries(otherFields.content ?? {}).forEach(
+      ([editContentFieldName, editContentFieldValue]) => {
+        if (!editContentFieldValue.value.param) return
+        var newVal = formData?.editContent?.[editContentFieldName]
+        if (
+          typeof newVal === 'string' &&
+          (editContentFieldValue.value.param.input === 'text' ||
+            editContentFieldValue.value.param.input === 'textarea' ||
+            (editContentFieldValue.value.param.type === 'string' &&
+              !editContentFieldValue.value.param.enum))
+        ) {
+          newVal = newVal?.trim()
+        }
+        editContent[editContentFieldName] = {
+          value: newVal,
+        }
+      }
+    )
 
     const { content: contentFields, ...otherNoteFields } = noteFields
 
@@ -2317,9 +2338,10 @@ module.exports = (function () {
 
       var valueObj = contentFieldValue.value
       if (valueObj) {
+        const shouldKeepConstValue = fieldsToIgnoreConst.includes(contentFieldName)
         if (
-          !fieldsToIgnoreConst.includes(contentFieldName) &&
-          (!_.has(valueObj, 'param') || valueObj.param.const)
+          (!shouldKeepConstValue && (!_.has(valueObj, 'param') || valueObj.param.const)) ||
+          (shouldKeepConstValue && valueObj.param?.const?.replace)
         ) {
           return
         } else {
@@ -2347,6 +2369,7 @@ module.exports = (function () {
     result.invitation = invitationObj.id
     if (Object.keys(content).length) note.content = content
     if (Object.keys(note).length) result.note = note
+    if (Object.keys(editContent).length) result.content = editContent
     return result
   }
 
@@ -2370,6 +2393,17 @@ module.exports = (function () {
     if (shouldSetValue('edit.signatures')) {
       editToPost.signatures = formContent.editSignatureInputValues ?? edit.signatures
     }
+
+    const editContent = {}
+    Object.keys(invitation.edit.content).forEach((editContentFieldName) => {
+      if (shouldSetValue(`edit.content.${editContentFieldName}.value`)) {
+        editContent[editContentFieldName] = {
+          value: formContent.editContent?.[editContentFieldName],
+        }
+      }
+    })
+
+    if (Object.keys(editContent).length) editToPost.content = editContent
 
     const editNote = {}
     Object.keys(invitation.edit.note).forEach((p) => {
