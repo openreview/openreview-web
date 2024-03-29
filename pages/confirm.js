@@ -62,7 +62,10 @@ const Confirm = () => {
 
   return (
     <>
-      <p>{`Click submit button below to add ${emailToConfirm} to your account.`}</p>
+      <p>
+        Click submit button below to confirm adding <strong>{emailToConfirm}</strong> to your
+        account.
+      </p>
       <p>Please contact info@openreview.net if you didn&apos;t add this email.</p>
 
       <div className="response-buttons">
