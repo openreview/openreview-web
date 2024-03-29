@@ -47,8 +47,9 @@ export default function ProfileEditor({
     promptError(message)
     setProfile({
       type,
-      data: profile[type].map((p) => {
-        if (p.key === invalidKey) return { ...p, valid: false }
+      data: profile[type].map((p, index) => {
+        if ((!invalidKey && index === 0) || (invalidKey && p.key === invalidKey))
+          return { ...p, valid: false }
         return p
       }),
     })
@@ -182,7 +183,7 @@ export default function ProfileEditor({
     if (!profileContent.history.length) {
       return promptInvalidValue(
         'history',
-        profileContent.history?.[0]?.key,
+        null,
         'Education and career history cannot be empty'
       )
     }
