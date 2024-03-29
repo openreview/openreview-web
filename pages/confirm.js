@@ -13,9 +13,7 @@ const Confirm = () => {
   const router = useRouter()
   const { user, accessToken } = useLoginRedirect()
   const [isLoading, setIsLoading] = useState(true)
-  const [turnstileToken, setTurnstileToken] = useState(null)
   const [emailToConfirm, setEmailToConfirm] = useState(null)
-  const invalidTurnstileToken = process.env.TURNSTILE_SITEKEY && !turnstileToken
 
   const confirmEmail = async () => {
     await api
@@ -59,23 +57,6 @@ const Confirm = () => {
     getActivatable()
   }, [router.isReady, router.query])
 
-  useEffect(() => {
-    if (!emailToConfirm || !process.env.TURNSTILE_SITEKEY) return
-    if (window.turnstile) {
-      window.turnstile.render('#turnstile-confirm', {
-        sitekey: process.env.TURNSTILE_SITEKEY,
-        action: 'confirm',
-        callback: (token) => {
-          setTurnstileToken(token)
-        },
-      })
-    } else {
-      promptError(
-        'Could not verify browser. Please make sure third-party scripts are not being blocked and try again.'
-      )
-    }
-  }, [emailToConfirm])
-
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
   if (isLoading) return <LoadingSpinner />
 
@@ -85,17 +66,10 @@ const Confirm = () => {
       <p>Please contact info@openreview.net if you didn&apos;t add this email.</p>
 
       <div className="response-buttons">
-        <button
-          type="button"
-          className="btn btn-lg mt-4"
-          onClick={() => confirmEmail()}
-          disabled={invalidTurnstileToken}
-        >
+        <button type="button" className="btn btn-lg mt-4" onClick={() => confirmEmail()}>
           Submit
         </button>
       </div>
-
-      {process.env.TURNSTILE_SITEKEY && <div id="turnstile-confirm" className="mt-4"></div>}
     </>
   )
 }
