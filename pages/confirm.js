@@ -7,15 +7,17 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorDisplay from '../components/ErrorDisplay'
 import api from '../lib/api-client'
 import useLoginRedirect from '../hooks/useLoginRedirect'
+import SpinnerButton from '../components/SpinnerButton'
 
 const Confirm = () => {
-  const [error, setError] = useState(null)
-  const router = useRouter()
   const { user, accessToken } = useLoginRedirect()
-  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+  const [error, setError] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
   const [emailToConfirm, setEmailToConfirm] = useState(null)
 
   const confirmEmail = async () => {
+    setIsLoading(true)
     await api
       .put(`/activatelink/${router.query.token}`)
       .then(({ confirmedEmail }) => {
@@ -24,11 +26,11 @@ const Confirm = () => {
       })
       .catch((apiError) => {
         setError({ statusCode: apiError.status, message: apiError.message })
+        setIsLoading(false)
       })
   }
 
   const getActivatable = async () => {
-    setIsLoading(true)
     try {
       const {
         activatable: { groupId, username },
@@ -44,7 +46,6 @@ const Confirm = () => {
     } catch (apiError) {
       setError({ statusCode: apiError.status, message: apiError.message })
     }
-    setIsLoading(false)
   }
 
   useEffect(() => {
@@ -58,7 +59,7 @@ const Confirm = () => {
   }, [router.isReady, router.query])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
-  if (isLoading) return <LoadingSpinner />
+  if (!emailToConfirm && !error) return <LoadingSpinner />
 
   return (
     <>
@@ -69,9 +70,9 @@ const Confirm = () => {
       <p>Please contact info@openreview.net if you didn&apos;t add this email.</p>
 
       <div className="response-buttons">
-        <button type="button" className="btn btn-lg mt-4" onClick={() => confirmEmail()}>
+        <SpinnerButton loading={isLoading} disabled={isLoading} onClick={confirmEmail}>
           Submit
-        </button>
+        </SpinnerButton>
       </div>
     </>
   )
