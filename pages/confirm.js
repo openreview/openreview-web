@@ -26,7 +26,6 @@ const Confirm = () => {
       })
       .catch((apiError) => {
         setError({ statusCode: apiError.status, message: apiError.message })
-        setIsLoading(false)
       })
   }
 
