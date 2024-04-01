@@ -643,7 +643,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             id="areachair-status"
             active={activeTabId === '#areachair-status' ? true : undefined}
             onClick={() => setActiveTabId('#areachair-status')}
-            hidden={assignmentInvitation ? false : true}
+            hidden={!assignmentInvitation}
           >
             Area Chair Status
           </Tab>
