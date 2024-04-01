@@ -116,6 +116,7 @@ export default function ProfileEditor({
       'wikipedia',
       'linkedin',
       'semanticScholar',
+      'aclanthology',
     ]
     if (!personalLinkNames.some((p) => profileContent[p]?.value?.trim())) {
       return promptInvalidLink('homepage', 'You must enter at least one personal link')
@@ -318,6 +319,7 @@ export default function ProfileEditor({
       wikipedia: profileContent.wikipedia?.value?.trim(),
       linkedin: profileContent.linkedin?.value?.trim(),
       semanticScholar: profileContent.semanticScholar?.value?.trim(),
+      aclanthology: profileContent.aclanthology?.value?.trim(),
     }
     return { isValid: true, profileContent, profileReaders: profile.readers }
   }
