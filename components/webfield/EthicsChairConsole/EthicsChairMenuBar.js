@@ -19,7 +19,7 @@ const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) 
     title: ['note.content.title.value'],
     author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords.value'],
-    reviewer: ['reviewers'],
+    reviewer: ['ethicsReviewers'],
     numReviewersAssigned: ['numReviewersAssigned'],
     numReviewsDone: ['numReviewsDone'],
     replyCount: ['replyCount'],
