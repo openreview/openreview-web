@@ -49,7 +49,7 @@ const MessageReviewersModal = ({
   const getRecipientRows = () => {
     if (Object.keys(messageOption).includes('filterFunc')) {
       const customFunc = Function('row', messageOption.filterFunc) // eslint-disable-line no-new-func
-      return tableRows.filter(row => customFunc(row));
+      return tableRows.filter((row) => customFunc(row))
     }
 
     switch (messageOption.value) {
@@ -157,9 +157,7 @@ const ReviewerStatusMenuBar = ({
   bidEnabled,
   messageParentGroup,
 }) => {
-  const {
-    reviewerEmailFuncs
-  } = useContext(WebFieldContext)
+  const { reviewerEmailFuncs } = useContext(WebFieldContext)
   const messageAreaChairOptions = [
     ...(bidEnabled
       ? [
@@ -172,7 +170,7 @@ const ReviewerStatusMenuBar = ({
     { label: 'Reviewers with unsubmitted reviews', value: 'missingReviews' },
     { label: 'Reviewers with submitted reviews', value: 'submittedReviews' },
     { label: 'Reviewers with 0 assignments', value: 'noAssignments' },
-    ...(reviewerEmailFuncs ?? [])
+    ...(reviewerEmailFuncs ?? []),
   ]
 
   const exportColumns = exportColumnsConfig ?? [

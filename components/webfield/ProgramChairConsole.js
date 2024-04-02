@@ -176,20 +176,16 @@ const ProgramChairConsole = ({ appContext }) => {
       const prefixes = [reviewersId, areaChairsId, seniorAreaChairsId]
       const getRegistrationFormPs = prefixes.map((prefix) =>
         prefix
-          ? api
-              .getAll(
-                '/notes',
-                {
-                  invitation: `${prefix}/-/.*`,
-                  signature: venueId,
-                  select: 'id,invitation,invitations,content.title',
-                  domain: venueId,
-                },
-                { accessToken }
-              )
-              .then((notes) =>
-                notes.filter((note) => note.invitations.some((p) => p.includes('Form')))
-              )
+          ? api.getAll(
+              '/notes',
+              {
+                invitation: `${prefix}/-/.*`,
+                signature: venueId,
+                select: 'id,invitation,invitations,content.title',
+                domain: venueId,
+              },
+              { accessToken }
+            )
           : Promise.resolve(null)
       )
       const getRegistrationFormResultsP = Promise.all(getRegistrationFormPs)
@@ -287,6 +283,7 @@ const ProgramChairConsole = ({ appContext }) => {
       ])
       const invitationResults = results[0]
       const requestForm = results[1]
+      // includes forum notes and replies
       const registrationForms = results[2].flatMap((p) => p ?? [])
       const committeeMemberResults = results[3]
       const notes = results[4].flatMap((note) => {
