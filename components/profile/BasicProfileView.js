@@ -222,8 +222,7 @@ const BasicProfileView = ({
               <ProfileRelation
                 key={
                   relation.relation +
-                  relation.name +
-                  relation.email +
+                  relation.username +
                   relation.start +
                   relation.end
                 }
