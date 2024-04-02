@@ -51,6 +51,7 @@ export default function ProfileEditor({
     'wikipedia',
     'linkedin',
     'semanticScholar',
+    'aclanthology'
   ]
 
   const promptInvalidValue = (type, invalidKey, message) => {
@@ -331,6 +332,7 @@ export default function ProfileEditor({
       wikipedia: profileContent.wikipedia?.value?.trim(),
       linkedin: profileContent.linkedin?.value?.trim(),
       semanticScholar: profileContent.semanticScholar?.value?.trim(),
+      aclanthology: profileContent.aclanthology?.value?.trim(),
     }
     return { isValid: true, profileContent, profileReaders: profile.readers }
   }
