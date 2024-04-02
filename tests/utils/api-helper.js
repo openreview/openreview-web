@@ -149,6 +149,7 @@ export async function createUser({
       dblp: '',
       orcid: '',
       linkedin: '',
+      aclanthology: '',
       wikipedia: '',
       emails: [email],
       preferredEmail: email,
