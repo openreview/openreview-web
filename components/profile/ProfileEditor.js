@@ -92,6 +92,7 @@ export default function ProfileEditor({
       preferredId: undefined,
       state: undefined,
       readers: undefined,
+      joined: undefined,
     }
 
     let invalidRecord = null
