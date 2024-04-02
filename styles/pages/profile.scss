@@ -19,6 +19,12 @@ main.profile {
     h5 {
       font-size: 1rem;
     }
+    ul.list-inline {
+      margin-top: 0.5rem;
+      margin-bottom: 0;
+      color: constants.$subtleGray;
+      font-size: 1rem;
+    }
     .img-container {
       float: left;
       margin-right: 1.25rem;
