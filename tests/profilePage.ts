@@ -130,6 +130,7 @@ test('user open own profile', async (t) => {
     .expect(Selector('#wikipedia_url').hasClass('invalid-value')).ok()
     .expect(Selector('#linkedin_url').hasClass('invalid-value')).ok()
     .expect(Selector('#semanticScholar_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#aclanthology_url').hasClass('invalid-value')).ok()
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
