@@ -43,6 +43,16 @@ export default function ProfileEditor({
   const institutionDomains = dropdownOptions?.institutionDomains
   const countries = dropdownOptions?.countries
 
+  const personalLinkNames = [
+    'homepage',
+    'gscholar',
+    'dblp',
+    'orcid',
+    'wikipedia',
+    'linkedin',
+    'semanticScholar',
+  ]
+
   const promptInvalidValue = (type, invalidKey, message) => {
     promptError(message)
     setProfile({
@@ -67,6 +77,17 @@ export default function ProfileEditor({
           valid: false,
         },
       },
+    })
+    return { isValid: false, profileContent: null }
+  }
+
+  const promptInvalidSection = (message) => {
+    promptError(message)
+    setProfile({
+      type: 'links',
+      data: Object.fromEntries(
+        personalLinkNames.map((p) => [p, { ...profile.links[p], valid: false }])
+      ),
     })
     return { isValid: false, profileContent: null }
   }
@@ -109,17 +130,8 @@ export default function ProfileEditor({
 
     // #region validate personal links
     // must have at least 1 link
-    const personalLinkNames = [
-      'homepage',
-      'gscholar',
-      'dblp',
-      'orcid',
-      'wikipedia',
-      'linkedin',
-      'semanticScholar',
-    ]
     if (!personalLinkNames.some((p) => profileContent[p]?.value?.trim())) {
-      return promptInvalidLink('homepage', 'You must enter at least one personal link')
+      return promptInvalidSection('You must enter at least one personal link')
     }
     // must not have any invalid links
     const invalidLinkName = personalLinkNames.find(
