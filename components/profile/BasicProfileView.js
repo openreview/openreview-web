@@ -37,7 +37,7 @@ const ProfileName = ({ name }) => (
 const ProfileEmail = ({ email, publicProfile }) => (
   <ProfileItem itemMeta={email.meta}>
     <span>{email.email}</span>{' '}
-    {!publicProfile && email.confirmed && <small>(Confirmed)</small>}{' '}
+    {email.confirmed && <small>(Confirmed)</small>}{' '}
     {!publicProfile && email.preferred && <small>(Preferred)</small>}
   </ProfileItem>
 )
