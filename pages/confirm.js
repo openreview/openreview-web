@@ -16,15 +16,17 @@ const Confirm = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [emailToConfirm, setEmailToConfirm] = useState(null)
 
-  const confirmEmail = async () => {
+  const confirmEmail = () => {
     setIsLoading(true)
-    await api
+    api
       .put(`/activatelink/${router.query.token}`)
       .then(({ confirmedEmail }) => {
         promptMessage(`Thank you for confirming your email ${confirmedEmail ?? ''}`)
+        setIsLoading(false)
         router.replace('/')
       })
       .catch((apiError) => {
+        setIsLoading(false)
         setError({ statusCode: apiError.status, message: apiError.message })
       })
   }
