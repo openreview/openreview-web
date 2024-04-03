@@ -1,4 +1,5 @@
 import random from 'lodash/random'
+import { nanoid } from 'nanoid'
 import Link from 'next/link'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
@@ -36,8 +37,7 @@ const ProfileName = ({ name }) => (
 
 const ProfileEmail = ({ email, publicProfile }) => (
   <ProfileItem itemMeta={email.meta}>
-    <span>{email.email}</span>{' '}
-    {email.confirmed && <small>(Confirmed)</small>}{' '}
+    <span>{email.email}</span> {email.confirmed && <small>(Confirmed)</small>}{' '}
     {!publicProfile && email.preferred && <small>(Preferred)</small>}
   </ProfileItem>
 )
@@ -222,9 +222,9 @@ const BasicProfileView = ({
               <ProfileRelation
                 key={
                   relation.relation +
-                  relation.username +
+                  (relation.username ?? relation.name) +
                   relation.start +
-                  relation.end
+                  (relation.end ?? '')
                 }
                 relation={relation}
               />
