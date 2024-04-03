@@ -122,6 +122,15 @@ test('user open own profile', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql('You must enter at least one personal link')
+    // show error for all personal links
+    .expect(homepageUrlInput.hasClass('invalid-value')).ok()
+    .expect(Selector('#gscholar_url').hasClass('invalid-value')).ok()
+    .expect(dblpUrlInput.hasClass('invalid-value')).ok()
+    .expect(Selector('#orcid_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#wikipedia_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#linkedin_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#semanticScholar_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#aclanthology_url').hasClass('invalid-value')).ok()
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
