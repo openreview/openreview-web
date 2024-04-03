@@ -1,5 +1,4 @@
 import random from 'lodash/random'
-import { nanoid } from 'nanoid'
 import Link from 'next/link'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
