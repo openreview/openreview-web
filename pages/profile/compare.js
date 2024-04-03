@@ -425,6 +425,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       wikipedia: addMetadata(profile, 'wikipedia'),
       semanticScholar: addMetadata(profile, 'semanticScholar'),
       orcid: addMetadata(profile, 'orcid'),
+      aclanthology: addMetadata(profile, 'aclanthology'),
       history: addMetadata(profile, 'history'),
       expertise: addMetadata(profile, 'expertise'),
       relations: addMetadata(profile, 'relations'),
