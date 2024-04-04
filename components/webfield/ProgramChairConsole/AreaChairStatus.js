@@ -6,11 +6,13 @@ import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
+import { NoteContentV2 } from '../../NoteContent'
 import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
 
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
-  const { id, preferredName, preferredEmail } = rowData.areaChairProfile ?? {}
+  const { id, preferredName, preferredEmail, registrationNotes } =
+    rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
   const { areaChairsId, reviewersId, bidName, scoresName, recommendationName } =
     useContext(WebFieldContext)
@@ -102,6 +104,19 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
               </>
             )}
           </div>
+        </>
+      )}
+      {registrationNotes?.length > 0 && (
+        <>
+          <strong className="paper-label">Registration Notes:</strong>
+          {registrationNotes.map((note) => (
+            <NoteContentV2
+              key={note.id}
+              id={note.id}
+              content={note.content}
+              noteReaders={note.readers}
+            />
+          ))}
         </>
       )}
     </>

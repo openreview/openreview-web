@@ -10,6 +10,7 @@ import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
+import { NoteContentV2 } from '../../NoteContent'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, preferredEmail } = rowData.reviewerProfile ?? {}
@@ -147,8 +148,10 @@ const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName }) => {
 
 // modified from notesReviewerStatus.hbs
 const ReviewerStatus = ({ rowData }) => {
-  const numPapers = rowData.notesInfo.length
-  const { numOfPapersWhichCompletedReviews, notesInfo } = rowData
+  const { numOfPapersWhichCompletedReviews, notesInfo, reviewerProfile } = rowData
+  const numPapers = notesInfo.length
+  const { registrationNotes } = reviewerProfile
+
   return (
     <div className="status-column">
       <h4>
@@ -177,6 +180,21 @@ const ReviewerStatus = ({ rowData }) => {
           )
         })}
       </div>
+
+      {registrationNotes?.length > 0 && (
+        <>
+          <br />
+          <strong className="paper-label">Registration Notes:</strong>
+          {registrationNotes.map((note) => (
+            <NoteContentV2
+              key={note.id}
+              id={note.id}
+              content={note.content}
+              noteReaders={note.readers}
+            />
+          ))}
+        </>
+      )}
     </div>
   )
 }
