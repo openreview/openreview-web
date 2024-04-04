@@ -98,19 +98,14 @@ const EducationHistoryRow = ({
               if (e) setIsPositionClicked(false)
             }}
             options={positionOptions}
-            styles={{
-              control: (provided, state) => ({
-                ...provided,
-                borderColor: state.selectProps.isInvalid
-                  ? '#8c1b13!important'
-                  : provided.borderColor,
-              }),
-            }}
-            isInvalid={profileHistory?.find((q) => q.key === p.key)?.valid === false}
           />
         ) : (
           <input
-            className="form-control position-dropdown__placeholder"
+            className={`form-control position-dropdown__placeholder ${
+              profileHistory?.find((q) => q.key === p.key)?.valid === false
+                ? 'invalid_value'
+                : ''
+            }`}
             placeholder={positionPlaceholder}
             value={p.position}
             onClick={() => setIsPositionClicked(true)}
@@ -177,19 +172,14 @@ const EducationHistoryRow = ({
               }
             }}
             options={institutionDomainOptions}
-            styles={{
-              control: (provided, state) => ({
-                ...provided,
-                borderColor: state.selectProps.isInvalid
-                  ? '#8c1b13!important'
-                  : provided.borderColor,
-              }),
-            }}
-            isInvalid={profileHistory?.find((q) => q.key === p.key)?.valid === false}
           />
         ) : (
           <input
-            className="form-control institution-dropdown__placeholder"
+            className={`form-control institution-dropdown__placeholder ${
+              profileHistory?.find((q) => q.key === p.key)?.valid === false
+                ? 'invalid-value'
+                : ''
+            }`}
             placeholder={institutionPlaceholder}
             value={p.institution?.domain}
             onClick={() => setIsDomainClicked(true)}
@@ -201,7 +191,11 @@ const EducationHistoryRow = ({
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution Name</div>}
         <input
-          className="form-control institution-name"
+          className={`form-control institution-dropdown__name ${
+            profileHistory?.find((q) => q.key === p.key)?.valid === false
+              ? 'invalid-value'
+              : ''
+          }`}
           placeholder="Institution Name"
           value={p.institution?.name ?? ''}
           onChange={(e) =>

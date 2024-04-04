@@ -43,12 +43,24 @@ export default function ProfileEditor({
   const institutionDomains = dropdownOptions?.institutionDomains
   const countries = dropdownOptions?.countries
 
+  const personalLinkNames = [
+    'homepage',
+    'gscholar',
+    'dblp',
+    'orcid',
+    'wikipedia',
+    'linkedin',
+    'semanticScholar',
+    'aclanthology'
+  ]
+
   const promptInvalidValue = (type, invalidKey, message) => {
     promptError(message)
     setProfile({
       type,
-      data: profile[type].map((p) => {
-        if (p.key === invalidKey) return { ...p, valid: false }
+      data: profile[type].map((p, index) => {
+        if ((!invalidKey && index === 0) || (invalidKey && p.key === invalidKey))
+          return { ...p, valid: false }
         return p
       }),
     })
@@ -66,6 +78,17 @@ export default function ProfileEditor({
           valid: false,
         },
       },
+    })
+    return { isValid: false, profileContent: null }
+  }
+
+  const promptInvalidSection = (message) => {
+    promptError(message)
+    setProfile({
+      type: 'links',
+      data: Object.fromEntries(
+        personalLinkNames.map((p) => [p, { ...profile.links[p], valid: false }])
+      ),
     })
     return { isValid: false, profileContent: null }
   }
@@ -92,6 +115,7 @@ export default function ProfileEditor({
       preferredId: undefined,
       state: undefined,
       readers: undefined,
+      joined: undefined,
     }
 
     let invalidRecord = null
@@ -108,17 +132,8 @@ export default function ProfileEditor({
 
     // #region validate personal links
     // must have at least 1 link
-    const personalLinkNames = [
-      'homepage',
-      'gscholar',
-      'dblp',
-      'orcid',
-      'wikipedia',
-      'linkedin',
-      'semanticScholar',
-    ]
     if (!personalLinkNames.some((p) => profileContent[p]?.value?.trim())) {
-      return promptInvalidLink('homepage', 'You must enter at least one personal link')
+      return promptInvalidSection('You must enter at least one personal link')
     }
     // must not have any invalid links
     const invalidLinkName = personalLinkNames.find(
@@ -182,7 +197,7 @@ export default function ProfileEditor({
     if (!profileContent.history.length) {
       return promptInvalidValue(
         'history',
-        profileContent.history?.[0]?.key,
+        null,
         'Education and career history cannot be empty'
       )
     }
@@ -318,6 +333,7 @@ export default function ProfileEditor({
       wikipedia: profileContent.wikipedia?.value?.trim(),
       linkedin: profileContent.linkedin?.value?.trim(),
       semanticScholar: profileContent.semanticScholar?.value?.trim(),
+      aclanthology: profileContent.aclanthology?.value?.trim(),
     }
     return { isValid: true, profileContent, profileReaders: profile.readers }
   }
