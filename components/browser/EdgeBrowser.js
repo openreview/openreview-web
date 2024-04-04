@@ -220,7 +220,7 @@ export default class EdgeBrowser extends React.Component {
                 isDummyProfile: true,
                 isInvitedProfile: true,
               },
-              searchText: key,
+              searchText: `${key}\n${prettyId(key)}`,
               traverseEdgesCount: groupedEdges[key].count,
             }
           })

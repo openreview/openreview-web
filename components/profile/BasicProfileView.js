@@ -36,8 +36,7 @@ const ProfileName = ({ name }) => (
 
 const ProfileEmail = ({ email, publicProfile }) => (
   <ProfileItem itemMeta={email.meta}>
-    <span>{email.email}</span>{' '}
-    {!publicProfile && email.confirmed && <small>(Confirmed)</small>}{' '}
+    <span>{email.email}</span> {email.confirmed && <small>(Confirmed)</small>}{' '}
     {!publicProfile && email.preferred && <small>(Preferred)</small>}
   </ProfileItem>
 )
@@ -222,10 +221,9 @@ const BasicProfileView = ({
               <ProfileRelation
                 key={
                   relation.relation +
-                  relation.name +
-                  relation.email +
+                  (relation.username ?? relation.name) +
                   relation.start +
-                  relation.end
+                  (relation.end ?? '')
                 }
                 relation={relation}
               />

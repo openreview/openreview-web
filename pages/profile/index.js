@@ -8,13 +8,14 @@ import pick from 'lodash/pick'
 import ProfileViewSection from '../../components/profile/ProfileViewSection'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import LimitedStatusAlert from '../../components/profile/LimitedStateAlert'
+import RecentPublications from '../../components/profile/RecentPublications'
+import Icon from '../../components/Icon'
 import withError from '../../components/withError'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
 import { auth, isSuperUser } from '../../lib/auth'
 import { profileModeToggle } from '../../lib/banner-links'
-import RecentPublications from '../../components/profile/RecentPublications'
 
 const CoAuthorsList = ({ coAuthors, loading }) => {
   const [visibleCoAuthors, setVisibleCoAuthors] = useState([])
@@ -138,6 +139,9 @@ const Profile = ({ profile, publicProfile, appContext }) => {
         <div className="title-container">
           <h1>{profile.preferredName}</h1>
           <h3>{profile.currentInstitution}</h3>
+          <ul className="list-inline">
+            <li><Icon name="calendar" extraClasses="pr-1" /> Joined {profile.joined}</li>
+          </ul>
         </div>
       </header>
 
