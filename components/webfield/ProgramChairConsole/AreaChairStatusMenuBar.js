@@ -50,7 +50,7 @@ const MessageAreaChairsModal = ({
   const getRecipientRows = () => {
     if (Object.keys(messageOption).includes('filterFunc')) {
       const customFunc = Function('row', messageOption.filterFunc) // eslint-disable-line no-new-func
-      return tableRows.filter(row => customFunc(row));
+      return tableRows.filter((row) => customFunc(row))
     }
 
     switch (messageOption.value) {
