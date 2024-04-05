@@ -6,7 +6,7 @@ import api from '../lib/api-client'
 import { buildArray, isValidEmail } from '../lib/utils'
 import useUser from '../hooks/useUser'
 
-const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
+const ProfileMergeModal = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const { accessToken, user } = useUser()
@@ -18,12 +18,8 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
   }
   const [profileMergeInfo, setProfileMergeInfo] = useReducer(
     profileMergeInfoReducer, // eslint-disable-line no-use-before-define
-    preFillProfileMergeInfo ?? defaultProfileMergeInfo
+    defaultProfileMergeInfo
   )
-
-  useEffect(() => {
-    if (preFillProfileMergeInfo) setProfileMergeInfo({ type: 'PREFILL' })
-  }, [preFillProfileMergeInfo])
 
   function getProfilePairsToMerge(profileIds) {
     const ids = [
@@ -50,12 +46,7 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
   }
 
   function profileMergeInfoReducer(state, action) {
-    if (action.type === 'INIT') return preFillProfileMergeInfo ?? defaultProfileMergeInfo
-    if (action.type === 'PREFILL')
-      return {
-        ...preFillProfileMergeInfo,
-        idPairsToMerge: getProfilePairsToMerge(preFillProfileMergeInfo.idsToMerge),
-      }
+    if (action.type === 'INIT') return defaultProfileMergeInfo
     if (action.type === 'idsToMerge') {
       const idPairsToMerge = getProfilePairsToMerge(action.payload)
       return { ...state, idsToMerge: action.payload, idPairsToMerge }
@@ -114,26 +105,22 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
     >
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={(e) => e.preventDefault()}>
-        {!preFillProfileMergeInfo && (
-          <div className="form-group">
-            <p>Please fill in the following information to request a profile merge.</p>
-            <label htmlFor="email">Your email</label>
-            <input
-              id="email"
-              type="email"
-              className="form-control"
-              value={profileMergeInfo.email}
-              required
-              onChange={(e) => setProfileMergeInfo({ type: 'email', payload: e.target.value })}
-            />
-          </div>
-        )}
+        <div className="form-group">
+          <p>Please fill in the following information to request a profile merge.</p>
+          <label htmlFor="email">Your email</label>
+          <input
+            id="email"
+            type="email"
+            className="form-control"
+            value={profileMergeInfo.email}
+            required
+            onChange={(e) => setProfileMergeInfo({ type: 'email', payload: e.target.value })}
+          />
+        </div>
 
         <div className="form-group">
           <label htmlFor="idsToMerge">
-            {preFillProfileMergeInfo
-              ? 'Profile IDs to merge'
-              : 'Profile IDs or emails to merge, separated by commas'}
+            Profile IDs or emails to merge, separated by commas
           </label>
           <input
             id="idsToMerge"
@@ -141,7 +128,6 @@ const ProfileMergeModal = ({ preFillProfileMergeInfo }) => {
             className="form-control"
             value={profileMergeInfo.idsToMerge}
             required
-            readOnly={preFillProfileMergeInfo}
             onChange={(e) =>
               setProfileMergeInfo({ type: 'idsToMerge', payload: e.target.value })
             }
