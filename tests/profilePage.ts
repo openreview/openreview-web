@@ -573,6 +573,18 @@ test('validate current history', async (t) => {
     .expect(Selector('.glyphicon-map-marker').exists).notOk()
 })
 
+test('merge profile modal should not be displayed when user confirm email of another user', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(emailSectionPlusIconSelector)
+    .typeText(editEmailInputSelector, 'a@a.com')
+    .click(Selector('button').withText('Confirm').filterVisible())
+    .expect(Selector('a').withText('Merge Profiles').exists).notOk()
+    .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
+    .contains('A confirmation email has been sent to x@x.com')
+})
+
 // eslint-disable-next-line no-unused-expressions
 fixture`Profile page different user`
 
@@ -616,50 +628,6 @@ test('#83 email status is missing', async (t) => {
     .contains('Confirmed') // not sure how the status will be added so selector may need to be updated
     .expect(Selector('section.emails').find('div.list-compact').innerText)
     .contains('Preferred')
-})
-test('#84 merge profile modal should fill in id', async (t) => {
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(emailSectionPlusIconSelector)
-    .typeText(editEmailInputSelector, 'a@a.com')
-    .click(Selector('button').withText('Confirm').filterVisible())
-    .click(Selector('a').withText('Merge Profiles').filterVisible())
-    .expect(
-      Selector('#profile-merge-modal').find('input').withAttribute('type', 'email').exists
-    )
-    .notOk()
-    .expect(
-      Selector('#profile-merge-modal')
-        .find('input')
-        .withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').exists
-    )
-    .ok()
-    .expect(
-      Selector('#profile-merge-modal')
-        .find('input')
-        .withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1')
-        .hasAttribute('readonly')
-    )
-    .ok()
-    .expect(
-      Selector('#profile-merge-modal')
-        .find('button')
-        .withText('Submit')
-        .hasAttribute('disabled')
-    )
-    .ok()
-    .typeText(
-      Selector('#profile-merge-modal').find('textarea').withAttribute('id', 'comment'),
-      'some comment'
-    )
-    .expect(
-      Selector('#profile-merge-modal')
-        .find('button')
-        .withText('Submit')
-        .hasAttribute('disabled')
-    )
-    .notOk()
 })
 test('#85 confirm profile email message', async (t) => {
   await t
