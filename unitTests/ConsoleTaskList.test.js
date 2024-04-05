@@ -658,7 +658,11 @@ describe('ConsoleTaskList', () => {
         duedate: now + oneDay,
         edit: {
           note: {
-            id: { param: { withInvitation: `${venueId}/${submissionName}5/Official_Review1/-/Rating` } },
+            id: {
+              param: {
+                withInvitation: `${venueId}/${submissionName}5/Official_Review1/-/Rating`,
+              },
+            },
             forum: 'paper5Id',
             replyto: 'review1Id',
           },
@@ -927,7 +931,9 @@ describe('ConsoleTaskList', () => {
       expect(metaReviewRevisionLink.nextElementSibling).toHaveClass('warning')
       expect(metaReviewRevisionLink).toHaveAttribute(
         'href',
-        expect.stringContaining('id=paper5Id&noteId=paper5Id&invitationId=ICML.cc/2023/Conference/Submission5/Meta_Review1/-/Revision')
+        expect.stringContaining(
+          'id=paper5Id&noteId=paper5Id&invitationId=ICML.cc/2023/Conference/Submission5/Meta_Review1/-/Revision'
+        )
       )
       // #endregion
 
@@ -1719,6 +1725,8 @@ describe('ConsoleTaskList', () => {
           repliedEdits: [
             {
               id: 'metaReviewSACEditId',
+              tcdate: 122334445555,
+              note: { id: '1' },
             },
           ],
         },
@@ -1750,16 +1758,18 @@ describe('ConsoleTaskList', () => {
           repliedEdits: [
             {
               id: 'metaReviewSACEditId',
+              tcdate: 122334445555,
               note: {
                 id: 'revision1',
-              }
+              },
             },
             {
               id: 'metaReviewSACEditId2',
+              tcdate: 122334445556,
               note: {
                 id: 'revision1',
-                ddate: 122334445555
-              }
+                ddate: 122334445555,
+              },
             },
           ],
         },
