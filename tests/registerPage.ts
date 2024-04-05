@@ -289,6 +289,7 @@ fixture`Reset password`.page`http://localhost:${process.env.NEXT_PORT}/reset`.be
 test('reset password of active profile', async (t) => {
   await t
     .typeText(Selector('#email-input'), 'melisa@test.com')
+    .expect(Selector('button').withText('Reset Password').hasAttribute('disabled')).notOk({ timeout: 5000 })
     .click(Selector('button').withText('Reset Password'))
     .expect(Selector('div').withAttribute('role', 'alert').exists)
     .ok()
