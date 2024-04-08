@@ -150,6 +150,7 @@ const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName }) => {
 const ReviewerStatus = ({ rowData }) => {
   const { numOfPapersWhichCompletedReviews, notesInfo, reviewerProfile } = rowData
   const numPapers = notesInfo.length
+  const { registrationNotes } = reviewerProfile ?? {}
 
   return (
     <div className="status-column">
@@ -180,11 +181,11 @@ const ReviewerStatus = ({ rowData }) => {
         })}
       </div>
 
-      {reviewerProfile?.registrationNotes?.length > 0 && (
+      {registrationNotes?.length > 0 && (
         <>
           <br />
           <strong className="paper-label">Registration Notes:</strong>
-          {reviewerProfile.registrationNotes.map((note) => (
+          {registrationNotes.map((note) => (
             <NoteContentV2
               key={note.id}
               id={note.id}
