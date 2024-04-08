@@ -150,7 +150,7 @@ const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName }) => {
 const ReviewerStatus = ({ rowData }) => {
   const { numOfPapersWhichCompletedReviews, notesInfo, reviewerProfile } = rowData
   const numPapers = notesInfo.length
-  const { registrationNotes } = reviewerProfile
+  const { registrationNotes } = reviewerProfile ?? {}
 
   return (
     <div className="status-column">
