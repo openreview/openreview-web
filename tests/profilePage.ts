@@ -52,6 +52,7 @@ const nameMakePreferredButton = Selector('div.container.names')
   .filterVisible()
   .nth(0)
 const dblpUrlInput = Selector('#dblp_url')
+const aclanthologyUrlInput = Selector('#aclanthology_url')
 const homepageUrlInput = Selector('#homepage_url')
 const yearOfBirthInput = Selector('section').nth(2).find('input')
 const firstHistoryEndInput = Selector('div.history').find('input').withAttribute('placeholder', 'end year').nth(0)
@@ -121,6 +122,15 @@ test('user open own profile', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql('You must enter at least one personal link')
+    // show error for all personal links
+    .expect(homepageUrlInput.hasClass('invalid-value')).ok()
+    .expect(Selector('#gscholar_url').hasClass('invalid-value')).ok()
+    .expect(dblpUrlInput.hasClass('invalid-value')).ok()
+    .expect(Selector('#orcid_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#wikipedia_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#linkedin_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#semanticScholar_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#aclanthology_url').hasClass('invalid-value')).ok()
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
@@ -235,6 +245,26 @@ test('add and delete geolocation of history', async (t) => {
     .selectText(Selector('input.institution-department')).pressKey('delete')
     .click(saveProfileButton)
     .expect(Selector('.glyphicon-map-marker').exists).notOk()
+})
+
+test('add links', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    // add invalid acl url
+    .typeText(aclanthologyUrlInput, 'https://aclanthology.org/invalid_url')
+    .pressKey('tab')
+    .expect(aclanthologyUrlInput.hasClass('invalid-value')).ok()
+    .expect(errorMessageSelector.innerText).eql('https://aclanthology.org/invalid_url is not a valid ACL Anthology URL')
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText).eql('One of your personal links is invalid. Please make sure all URLs start with http:// or https://')
+    .expect(aclanthologyUrlInput.hasClass('invalid-value')).ok()
+    // add valid acl url
+    .typeText(aclanthologyUrlInput, 'https://aclanthology.org/people/userB', { replace: true })
+    .pressKey('tab')
+    .expect(aclanthologyUrlInput.hasClass('invalid-value')).notOk()
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText).eql('Your profile information has been successfully updated')
 })
 
 test('add relation', async (t) => {

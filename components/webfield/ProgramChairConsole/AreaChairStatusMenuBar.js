@@ -51,6 +51,11 @@ const MessageAreaChairsModal = ({
   }
 
   const getRecipientRows = () => {
+    if (Object.keys(messageOption).includes('filterFunc')) {
+      const customFunc = Function('row', messageOption.filterFunc) // eslint-disable-line no-new-func
+      return tableRows.filter((row) => customFunc(row))
+    }
+
     switch (messageOption.value) {
       case 'noBids':
         return tableRows.filter((row) => row.completedBids === 0)
@@ -172,6 +177,7 @@ const AreaChairStatusMenuBar = ({
     shortPhrase,
     seniorAreaChairsId,
     enableQuerySearch,
+    acEmailFuncs,
     areaChairStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
@@ -210,6 +216,7 @@ const AreaChairStatusMenuBar = ({
       label: 'Area Chairs with 0 assignments',
       value: 'missingAssignments',
     },
+    ...(acEmailFuncs ?? []),
   ]
   const exportColumns = [
     { header: 'id', getValue: (p) => p.areaChairProfileId },
