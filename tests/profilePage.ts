@@ -582,7 +582,18 @@ test('merge profile modal should not be displayed when user confirm email of ano
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(Selector('a').withText('Merge Profiles').exists).notOk()
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
-    .contains('A confirmation email has been sent to x@x.com')
+    .contains('A confirmation email has been sent to a@a.com')
+
+  const { superUserToken } = t.fixtureCtx
+  const messages = await getMessages(
+    { to: 'a@a.com', subject: 'OpenReview Account Merge' },
+    superUserToken
+  )
+  await t
+    .expect(messages[0].content.text)
+    .contains(
+      'Click on the link below to confirm that ~FirstB_LastB1 and ~FirstA_LastA1 both belong to the same person'
+    )
 })
 
 // eslint-disable-next-line no-unused-expressions
