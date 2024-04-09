@@ -2074,6 +2074,15 @@ const UserModerationQueue = ({
                     </>
                   ) : (
                     <>
+                      {profile.state === 'Needs Moderation' && (
+                        <button
+                          type="button"
+                          className="btn btn-xs"
+                          onClick={() => acceptUser(profile.id)}
+                        >
+                          <Icon name="ok-circle" /> Accept
+                        </button>
+                      )}{' '}
                       {!(
                         profile.state === 'Blocked' ||
                         profile.state === 'Limited' ||
@@ -2108,7 +2117,7 @@ const UserModerationQueue = ({
                           {`${profile.state === 'Blocked' ? 'Unblock' : 'Block'}`}
                         </button>
                       )}{' '}
-                      {state !== 'Merged' && (
+                      {state !== 'Merged' && profile.state !== 'Needs Moderation' && (
                         <button
                           type="button"
                           className="btn btn-xs"
