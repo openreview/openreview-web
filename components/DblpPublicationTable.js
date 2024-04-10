@@ -1,6 +1,6 @@
-/* globals view2: false */
-import { groupBy } from 'lodash'
-import { useContext, useState } from 'react'
+/* globals view2,promptError: false */
+import { groupBy, uniq } from 'lodash'
+import { useContext, useEffect, useState } from 'react'
 import Accordion from './Accordion'
 import Table from './Table'
 import { inflect } from '../lib/utils'
@@ -16,6 +16,8 @@ export default function DblpPublicationTable({
   setSelectedPublications,
   orPublicationsImportedByOtherProfile,
 }) {
+  const { accessToken } = useContext(UserContext)
+  const [profileIdsRequested, setProfileIdsRequested] = useState([])
   const pubsCouldNotImport = [] // either existing or associated with other profile
   const pubsCouldImport = []
   dblpPublications.forEach((dblpPub) => {
@@ -66,6 +68,26 @@ export default function DblpPublicationTable({
       setSelectedPublications(selectedPublications.filter((p) => p !== publicationKey))
     }
   }
+
+  const getMergeRequests = async () => {
+    if (!dblpPublications.length) return
+    try {
+      const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
+      const result = await api.get(
+        '/notes',
+        { invitation: profileMergeInvitationId },
+        { accessToken }
+      )
+
+      setProfileIdsRequested(uniq(result.notes.map((note) => note.content.right?.value)))
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  useEffect(() => {
+    getMergeRequests()
+  }, [])
 
   if (!dblpPublications.length) {
     return null
@@ -136,8 +158,8 @@ export default function DblpPublicationTable({
                   const category = existingPublication
                     ? 'existing-publication'
                     : existingPublicationOfOtherProfile
-                    ? 'existing-different-profile'
-                    : 'nonExisting'
+                      ? 'existing-different-profile'
+                      : 'nonExisting'
 
                   return (
                     <DblpPublicationRow
@@ -154,6 +176,8 @@ export default function DblpPublicationTable({
                       otherProfileId={existingPublicationOfOtherProfile?.existingProfileId}
                       category={category}
                       venue={publication.venue}
+                      profileIdsRequested={profileIdsRequested}
+                      setProfileIdsRequested={setProfileIdsRequested}
                     />
                   )
                 }),
@@ -176,6 +200,8 @@ const DblpPublicationRow = ({
   otherProfileId,
   category,
   venue,
+  profileIdsRequested,
+  setProfileIdsRequested,
 }) => {
   const { accessToken, user } = useContext(UserContext)
   const [error, setError] = useState(null)
@@ -202,7 +228,7 @@ const DblpPublicationRow = ({
         invitationObj: profileMergeInvitation,
       })
       await api.post('/notes/edits', editToPost, { accessToken })
-      setProfileMergeStatus('posted')
+      setProfileIdsRequested([...profileIdsRequested, otherProfileId])
     } catch (apiError) {
       setError(apiError)
       setProfileMergeStatus('error')
@@ -229,6 +255,12 @@ const DblpPublicationRow = ({
     }
   }
 
+  useEffect(() => {
+    if (profileIdsRequested.includes(otherProfileId)) {
+      setProfileMergeStatus('posted')
+    }
+  }, [profileIdsRequested])
+
   return (
     <>
       <div
@@ -250,7 +282,11 @@ const DblpPublicationRow = ({
           <div className="publication-title">
             {category === 'existing-publication' ||
             category === 'existing-different-profile' ? (
-              <a href={`/forum?id=${openReviewId}`} target="_blank" rel="noreferrer">
+              <a
+                href={`/forum?id=${openReviewId}&referrer=[profile](/profile/edit)`}
+                target="_blank"
+                rel="noreferrer"
+              >
                 {title}
               </a>
             ) : (

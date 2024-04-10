@@ -19,17 +19,16 @@ import ErrorDisplay from '../ErrorDisplay'
 import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
+import { getProfileLink } from '../../lib/webfield-utils'
 
 const AreaChairInfo = ({ areaChairName, areaChairIds }) => (
   <div className="note-area-chairs">
-    <p>
-      <strong>{prettyField(areaChairName)}:</strong>{' '}
-      {areaChairIds.map((areaChairId) => (
-        <Link key={areaChairId} href={`/profile?id=${areaChairId}`}>
-          {prettyId(areaChairId)}{' '}
-        </Link>
-      ))}
-    </p>
+    <strong>{prettyField(areaChairName)}:</strong>
+    {areaChairIds.map((areaChairId) => (
+      <div key={areaChairId}>
+        <Link href={getProfileLink(areaChairId)}>{prettyId(areaChairId)}</Link>
+      </div>
+    ))}
   </div>
 )
 
@@ -126,6 +125,7 @@ const AssignedPaperRow = ({
   setReviewerConsoleData,
   enablePaperRanking,
   setEnablePaperRanking,
+  reviewDisplayFields,
 }) => {
   const {
     officialReviewInvitations,
@@ -160,8 +160,20 @@ const AssignedPaperRow = ({
   const areaChairIds = areaChairMap[note.number]
   const paperRatingValues = (
     Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]
-  ).map((ratingName) => ({ [ratingName]: officialReview?.content?.[ratingName]?.value }))
-  const review = officialReview?.content?.review?.value
+  ).map((ratingName) => {
+    let ratingDisplayName
+    let ratingValue
+    if (typeof ratingName === 'object') {
+      ratingDisplayName = Object.keys(ratingName)[0]
+      ratingValue = Object.values(ratingName)[0]
+        .map((p) => officialReview?.content?.[p]?.value)
+        .find((q) => q !== undefined)
+    } else {
+      ratingDisplayName = ratingName
+      ratingValue = officialReview?.content?.[ratingName]?.value
+    }
+    return { [ratingDisplayName]: ratingValue }
+  })
 
   return (
     <tr>
@@ -182,12 +194,13 @@ const AssignedPaperRow = ({
               : null
           }
           paperRatings={paperRatingValues}
-          review={review}
+          officialReview={officialReview}
           invitationUrl={
             officialReviewInvitation
               ? `/forum?id=${note.forum}&noteId=${note.id}&invitationId=${officialReviewInvitation.id}&referrer=${referrerUrl}`
               : null
           }
+          reviewDisplayFields={reviewDisplayFields}
         />
         {paperRankingTags && (
           <PaperRankingDropdown
@@ -226,7 +239,7 @@ const ReviewerConsoleTasks = ({ venueId, reviewerName, submissionName, noteNumbe
       venueId={venueId}
       roleName={reviewerName}
       referrer={referrer}
-      filterAssignedInvitaiton={true}
+      filterAssignedInvitation={true}
       submissionName={submissionName}
       submissionNumbers={noteNumbers}
     />
@@ -248,6 +261,7 @@ const ReviewerConsole = ({ appContext }) => {
     customMaxPapersInvitationId, // to query custom load edges
     reviewLoad,
     hasPaperRanking,
+    reviewDisplayFields = ['review'],
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
@@ -583,6 +597,7 @@ const ReviewerConsole = ({ appContext }) => {
                       setReviewerConsoleData={setReviewerConsoleData}
                       enablePaperRanking={enablePaperRanking}
                       setEnablePaperRanking={setEnablePaperRanking}
+                      reviewDisplayFields={reviewDisplayFields}
                     />
                   ))}
                 </Table>

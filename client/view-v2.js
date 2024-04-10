@@ -2326,7 +2326,7 @@ module.exports = (function () {
     })
 
     // content fields
-    Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
+    Object.entries(contentFields || []).forEach(([contentFieldName, contentFieldValue]) => {
       if (
         (formData?.[contentFieldName] === undefined ||
           formData?.[contentFieldName]?.delete === true) &&
@@ -2361,10 +2361,8 @@ module.exports = (function () {
       }
 
       var fieldReader = contentFieldValue.readers
-      if (fieldReader) {
-        if (!fieldReader.const) {
-          content[contentFieldName].readers = noteObj?.content?.[contentFieldName]?.readers
-        }
+      if (fieldReader?.param && !fieldReader.param.const) {
+        content[contentFieldName].readers = noteObj?.content?.[contentFieldName]?.readers
       }
     })
 

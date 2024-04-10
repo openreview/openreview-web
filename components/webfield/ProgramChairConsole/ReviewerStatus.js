@@ -10,6 +10,7 @@ import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
+import { NoteContentV2 } from '../../NoteContent'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, preferredEmail } = rowData.reviewerProfile ?? {}
@@ -27,7 +28,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
       {preferredName ? (
         <>
           <h4>
-            <a href={getProfileLink(id, reviewerProfileId)} target="_blank" rel="noreferrer">
+            <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">
               {preferredName}
             </a>
           </h4>
@@ -35,7 +36,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
         </>
       ) : (
         <h4>
-          <a href={getProfileLink(id, reviewerProfileId)} target="_blank" rel="noreferrer">
+          <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">
             {reviewerProfileId}
           </a>
         </h4>
@@ -104,11 +105,21 @@ const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName }) => {
                           ? reviewRatingName
                           : [reviewRatingName]
                         ).map((ratingName, index) => {
-                          const ratingValue = officialReview[ratingName]
+                          let ratingValue
+                          let ratingDisplayName
+                          if (typeof ratingName === 'object') {
+                            ratingDisplayName = Object.keys(ratingName)[0]
+                            ratingValue = Object.values(ratingName)[0]
+                              .map((p) => officialReview[p])
+                              .find((q) => q !== undefined)
+                          } else {
+                            ratingDisplayName = ratingName
+                            ratingValue = officialReview[ratingName]
+                          }
                           if (!ratingValue) return null
                           return (
                             <span key={ratingName}>
-                              {prettyField(ratingName)}: {ratingValue}{' '}
+                              {prettyField(ratingDisplayName)}: {ratingValue}{' '}
                               {index < reviewRatingName.length - 1 && '/'}{' '}
                             </span>
                           )
@@ -137,8 +148,10 @@ const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName }) => {
 
 // modified from notesReviewerStatus.hbs
 const ReviewerStatus = ({ rowData }) => {
-  const numPapers = rowData.notesInfo.length
-  const { numOfPapersWhichCompletedReviews, notesInfo } = rowData
+  const { numOfPapersWhichCompletedReviews, notesInfo, reviewerProfile } = rowData
+  const numPapers = notesInfo.length
+  const { registrationNotes } = reviewerProfile ?? {}
+
   return (
     <div className="status-column">
       <h4>
@@ -167,6 +180,21 @@ const ReviewerStatus = ({ rowData }) => {
           )
         })}
       </div>
+
+      {registrationNotes?.length > 0 && (
+        <>
+          <br />
+          <strong className="paper-label">Registration Notes:</strong>
+          {registrationNotes.map((note) => (
+            <NoteContentV2
+              key={note.id}
+              id={note.id}
+              content={note.content}
+              noteReaders={note.readers}
+            />
+          ))}
+        </>
+      )}
     </div>
   )
 }
@@ -322,6 +350,7 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
         })
         // #endregion
 
+        // TODO: Use pcConsoleData to add registration forms to tableRow
         const tableRows = pcConsoleData.reviewers.map((reviewerProfileId, index) => {
           const notesInfo = sortBy(reviewerNotesMap.get(reviewerProfileId) ?? [], 'noteNumber')
           return {

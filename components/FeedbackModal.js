@@ -6,6 +6,7 @@ import UserContext from './UserContext'
 import ErrorAlert from './ErrorAlert'
 import api from '../lib/api-client'
 import { CreatableDropdown } from './Dropdown'
+import { ClearButton } from './IconButton'
 
 export default function FeedbackModal() {
   const [text, setText] = useState(null)
@@ -23,7 +24,7 @@ export default function FeedbackModal() {
   const profileSubject = 'My OpenReview profile'
   const submissionSubject = 'A conference I submitted to'
   const organizationSubject = 'A conference I organized'
-  const institutionSubject = 'My institution email is not recognized'
+  const institutionSubject = 'Please add my domain to your list of publishing institutions'
   const subjectOptions = [
     profileSubject,
     submissionSubject,
@@ -120,26 +121,36 @@ export default function FeedbackModal() {
       }
       const feedbackData = {
         from: formData.from.trim(),
-        subject: formData.subject.trim(),
         token: turnstileToken,
       }
+
+      const cleanSubject = formData.subject.trim()
 
       switch (formData.subject) {
         case profileSubject:
           feedbackData.message = `Profile ID: ${formData.profileId}\n\n${formData.message}`
+          feedbackData.subject = `${cleanSubject} - ${formData.profileId}`
           break
         case submissionSubject:
           feedbackData.message = `Venue ID: ${formData.venueId}\nSubmission ID: ${formData.submissionId}\n\n${formData.message}`
+          feedbackData.subject = formData.submissionId
+            ? `Submission - ${formData.submissionId}`
+            : cleanSubject
+
           break
         case organizationSubject:
           feedbackData.message = `Venue ID: ${formData.venueId}\n\n${formData.message}`
+          feedbackData.subject = formData.venueId
+            ? `Venue - ${formData.venueId}`
+            : cleanSubject
           break
         case institutionSubject:
           feedbackData.message = `Institution Domain: ${formData.institutionDomain}\nInstitution Fullname: ${formData.institutionName}\nInstitution URL: ${formData.institutionUrl}\n\n${formData.message}`
-          feedbackData.subject = `${formData.subject} - ${formData.institutionDomain}`
+          feedbackData.subject = `${cleanSubject} - ${formData.institutionDomain}`
           break
         default:
           feedbackData.message = formData.message
+          feedbackData.subject = cleanSubject
       }
 
       await api.put('/feedback', feedbackData, { accessToken })
@@ -184,14 +195,21 @@ export default function FeedbackModal() {
         )
       case 'select':
         return formData[field.name]?.length > 0 ? (
-          <input
-            type="text"
-            className="form-control"
-            value={formData[field.name] ?? ''}
-            onChange={(e) => {
-              setFormData({ type: field.name, payload: e.target.value })
-            }}
-          />
+          <div className="clearable-input">
+            <input
+              type="text"
+              className="form-control"
+              value={formData[field.name] ?? ''}
+              onChange={(e) => {
+                setFormData({ type: field.name, payload: e.target.value })
+              }}
+            />
+            <ClearButton
+              onClick={(e) => {
+                setFormData({ type: field.name, payload: '' })
+              }}
+            />
+          </div>
         ) : (
           <CreatableDropdown
             instanceId={`feedback-${field.name}`}

@@ -7,7 +7,7 @@ import {
   getToken,
   getMessages,
   getNotes,
-  getReferences,
+  getNoteEdits,
   superUserName,
   strongPassword,
 } from './utils/api-helper'
@@ -52,8 +52,10 @@ const nameMakePreferredButton = Selector('div.container.names')
   .filterVisible()
   .nth(0)
 const dblpUrlInput = Selector('#dblp_url')
+const aclanthologyUrlInput = Selector('#aclanthology_url')
 const homepageUrlInput = Selector('#homepage_url')
 const yearOfBirthInput = Selector('section').nth(2).find('input')
+const firstHistoryEndInput = Selector('div.history').find('input').withAttribute('placeholder', 'end year').nth(0)
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
@@ -120,6 +122,15 @@ test('user open own profile', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql('You must enter at least one personal link')
+    // show error for all personal links
+    .expect(homepageUrlInput.hasClass('invalid-value')).ok()
+    .expect(Selector('#gscholar_url').hasClass('invalid-value')).ok()
+    .expect(dblpUrlInput.hasClass('invalid-value')).ok()
+    .expect(Selector('#orcid_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#wikipedia_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#linkedin_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#semanticScholar_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#aclanthology_url').hasClass('invalid-value')).ok()
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
@@ -146,6 +157,8 @@ test('user open own profile', async (t) => {
     )
     .selectText(dblpUrlInput)
     .pressKey('delete')
+    // add empty expertise
+    .typeText(Selector('div.expertise').find('input').nth(0), '        ')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
@@ -234,6 +247,26 @@ test('add and delete geolocation of history', async (t) => {
     .expect(Selector('.glyphicon-map-marker').exists).notOk()
 })
 
+test('add links', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    // add invalid acl url
+    .typeText(aclanthologyUrlInput, 'https://aclanthology.org/invalid_url')
+    .pressKey('tab')
+    .expect(aclanthologyUrlInput.hasClass('invalid-value')).ok()
+    .expect(errorMessageSelector.innerText).eql('https://aclanthology.org/invalid_url is not a valid ACL Anthology URL')
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText).eql('One of your personal links is invalid. Please make sure all URLs start with http:// or https://')
+    .expect(aclanthologyUrlInput.hasClass('invalid-value')).ok()
+    // add valid acl url
+    .typeText(aclanthologyUrlInput, 'https://aclanthology.org/people/userB', { replace: true })
+    .pressKey('tab')
+    .expect(aclanthologyUrlInput.hasClass('invalid-value')).notOk()
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText).eql('Your profile information has been successfully updated')
+})
+
 test('add relation', async (t) => {
   const firstRelationRow = Selector('div.relation').find('div.row').nth(1)
   const secondRelationRow = Selector('div.relation').find('div.row').nth(2)
@@ -282,6 +315,31 @@ test('add relation', async (t) => {
     .click(saveProfileButton)
 })
 
+test('add expertise', async (t) => {
+  const firstExpertiseRow = Selector('div.expertise').find('div.row').nth(1)
+  const secondExpertiseRow = Selector('div.expertise').find('div.row').nth(2)
+  const thirdExpertiseRow = Selector('div.expertise').find('div.row').nth(3)
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    // add expertise correctly
+    .typeText(firstExpertiseRow.find('div.expertise__value').nth(0).find('input'), 'some,correct,expertise')
+    .typeText(firstExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
+    .typeText(firstExpertiseRow.find('div.expertise__value').nth(2).find('input'), '2000')
+    // add empty expertise
+    .typeText(secondExpertiseRow.find('div.expertise__value').nth(0).find('input'), '   ,   ,   ,   ')
+    .typeText(secondExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
+    // add expertise with empty value
+    .typeText(thirdExpertiseRow.find('div.expertise__value').nth(0).find('input'), 'other expertise,   ')
+    .typeText(thirdExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
+    .click(saveProfileButton)
+    // verify relation is added
+    .expect(Selector('span').withText('other expertise').exists).ok()
+    .expect(Selector('span').withText('some, correct, expertise').exists).ok()
+    .expect(Selector('div.start-end-year').withText('1999 – Present').exists).ok()
+    .expect(Selector('div.start-end-year').withText('1999 – 2000').exists).ok()
+})
+
 test('import paper from dblp', async (t) => {
   const testPersistentUrl = 'https://dblp.org/pid/95/7448-1'
   await t
@@ -301,6 +359,7 @@ test('import paper from dblp', async (t) => {
     .expect(Selector('#dblp-import-modal').find('div.body-message').innerText)
     .contains('Visit your DBLP home page: xxx')
     // put persistent url of other people in modal
+    .wait(500)
     .typeText(persistentUrlInput, testPersistentUrl, { replace: true, paste: true })
     .click(showPapersButton)
     .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText)
@@ -383,6 +442,16 @@ test('import paper from dblp', async (t) => {
     .eql(2) // imported 2 papers are removable/unlinkable
 })
 
+test('imported paper has banner back to profile edit', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(addDBLPPaperToProfileButton)
+    .expect(Selector('div.publication-title').nth(0).find(
+      'a'
+    ).getAttribute('href')).contains('referrer=[profile](/profile/edit)')
+})
+
 test('unlink paper', async (t) => {
   await t
     .useRole(userBRole)
@@ -408,21 +477,21 @@ test('unlink paper', async (t) => {
 test('check import history', async (t) => {
   const { superUserToken } = t.fixtureCtx
   // should have only 1 note
-  const notes = await getNotes({ 'content.authorids': userB.tildeId }, superUserToken)
+  const notes = await getNotes({ 'content.authorids': userB.tildeId }, superUserToken, 2)
   await t.expect(notes.length).eql(1)
 
   // shoud have 2 references: add paper and update authorid
   const importedPaperId = notes[0].id
-  const references = await getReferences(
-    { referent: importedPaperId, sort: 'mdate' },
+  const edits = await getNoteEdits(
+    { 'note.id': importedPaperId, sort: 'tcdate' },
     superUserToken
   )
   await t
-    .expect(references.length)
+    .expect(edits.length)
     .eql(2)
-    .expect(references[1].content.authorids.includes(userBAlternateId))
-    .notOk() // 1st post of paper has all dblp authorid
-    .expect(references[0].content.authorids.includes(userBAlternateId))
+    .expect(edits[1].note.content.authorids.value.includes(userBAlternateId))
+    .ok() // 1st post of paper has all dblp authorid
+    .expect(edits[0].note.content.authorids.value.includes(userBAlternateId))
     .ok() // authorid is updated
 })
 
@@ -472,6 +541,36 @@ test('reimport unlinked paper and import all', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
     .expect(Selector('section.coauthors').find('li').count)
     .gt(0)
+})
+
+test('validate current history', async (t) => {
+  // add past end date
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .typeText(firstHistoryEndInput, (new Date().getFullYear() - 1).toString(), {
+      replace: true,
+      paste: true,
+    })
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText)
+    .eql('Your Education & Career History must include at least one current position.')
+    // add current end date
+    .typeText(firstHistoryEndInput, (new Date().getFullYear()).toString(), {
+      replace: true,
+      paste: true,
+    })
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).notOk()
+
+  // add empty end date
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .selectText(firstHistoryEndInput)
+    .pressKey('delete')
+    .click(saveProfileButton)
+    .expect(Selector('.glyphicon-map-marker').exists).notOk()
 })
 
 // eslint-disable-next-line no-unused-expressions
@@ -573,19 +672,6 @@ test('#85 confirm profile email message', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
     .contains('A confirmation email has been sent to x@x.com')
-})
-test.skip('#2143 date validation', async (t) => {
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    // modify history start date with invalid value
-    .typeText(Selector('div.history').find('input.start').nth(0), '-2e-5', {
-      replace: true,
-      paste: true,
-    })
-    .click(saveProfileButton)
-    .expect(errorMessageSelector.innerText)
-    .notEql('Your profile information has been successfully updated') // should not save successfully
 })
 test('#98 trailing slash error page', async (t) => {
   await t

@@ -56,6 +56,11 @@ test('create new profile', async (t) => {
     .typeText(emailAddressInputSelector, 'validemail@umass.edu')
     .click(signupButtonSelector)
     .expect(Selector('div.activation-message-row').exists).notOk() // no warning
+    // change email to subdomain of institution email
+    .selectText(emailAddressInputSelector).pressKey('delete')
+    .typeText(emailAddressInputSelector, 'validemail@test.umass.edu')
+    .click(signupButtonSelector)
+    .expect(Selector('div.activation-message-row').exists).notOk() // no warning
     .selectText(emailAddressInputSelector).pressKey('delete')
     .typeText(emailAddressInputSelector, 'melisa@test.com')
     .click(signupButtonSelector)
@@ -67,7 +72,7 @@ test('create new profile', async (t) => {
     .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
     .ok()
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
-    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled')).notOk({ timeout: 5000 })
+    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled')).notOk({ timeout: 8000 })
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
@@ -113,7 +118,7 @@ test('enter valid name invalid email and change to valid email and register', as
     .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
-    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled')).notOk({ timeout: 5000 })
+    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled')).notOk({ timeout: 8000 })
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()

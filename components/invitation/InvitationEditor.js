@@ -78,6 +78,12 @@ export const InvitationEditorV2 = ({
 }) => {
   const profileId = user?.profile?.id
 
+  const getReplyFieldByInvitationType = () => {
+    if (invitation.edge) return 'edge'
+    if (invitation.message) return 'message'
+    return 'edit'
+  }
+
   if (!invitation) return null
 
   return (
@@ -98,7 +104,7 @@ export const InvitationEditorV2 = ({
             profileId={profileId}
             accessToken={accessToken}
             loadInvitation={loadInvitation}
-            replyField={invitation.edge ? 'edge' : 'edit'}
+            replyField={getReplyFieldByInvitationType()}
           />
           <InvitationReplyV2
             key={`${invitation.id}-replyForumViews`}

@@ -9,28 +9,34 @@ const RelatedInvitationRow = ({ item }) => (
   <Link href={`/invitation/edit?id=${item.id}`}>{prettyId(item.id)}</Link>
 )
 
-const GroupRelatedInvitations = ({ groupId, accessToken }) => {
+const GroupRelatedInvitations = ({ group, accessToken }) => {
+  const groupId = group.id
+  const isV1Group = !group.domain
+  const submissionName = group.details?.domain?.content?.submission_name?.value
+
   const [totalCount, setTotalCount] = useState(null)
 
   const loadRelatedInvitations = async (limit, offset) => {
-    const result = await api.getCombined(
-      '/invitations',
-      {
-        regex: `${groupId}/-/.*`,
-        expired: true,
-        type: 'all',
-        limit,
-        offset,
-      },
-      {
-        prefix: `${groupId}/-/.*`,
-        expired: true,
-        type: 'all',
-        limit,
-        offset,
-      },
-      { accessToken }
-    )
+    const queryParam = isV1Group
+      ? {
+          regex: `${groupId}/-/.*`,
+          expired: true,
+          type: 'all',
+          limit,
+          offset,
+        }
+      : {
+          prefix: groupId.includes(submissionName) ? `${groupId}/.*` : `${groupId}/-/.*`,
+          expired: true,
+          type: 'all',
+          limit,
+          offset,
+        }
+
+    const result = await api.get('/invitations', queryParam, {
+      accessToken,
+      ...(isV1Group && { version: 1 }),
+    })
 
     if (result.count !== totalCount) {
       setTotalCount(result.count ?? 0)
