@@ -14,7 +14,7 @@ const MessageAreaChairsModal = ({
   messageSignature,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, emailReplyTo, submissionVenueId, areaChairsMessageInvitationId } = useContext(WebFieldContext)
+  const { shortPhrase, emailReplyTo, submissionVenueId, messageAreaChairsInvitationId } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -33,8 +33,8 @@ const MessageAreaChairsModal = ({
       await api.post(
         '/messages',
         {
-          invitation: areaChairsMessageInvitationId,
-          signature: areaChairsMessageInvitationId && messageSignature,
+          invitation: messageAreaChairsInvitationId,
+          signature: messageAreaChairsInvitationId && messageSignature,
           groups: recipientsInfo.map((p) => p.id),
           subject,
           message,

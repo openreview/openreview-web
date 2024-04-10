@@ -15,7 +15,7 @@ const MessageReviewersModal = ({
 }) => {
   const { accessToken } = useUser()
   const { shortPhrase, venueId, officialReviewName, submissionName, emailReplyTo,
-    reviewersMessageSubmissionInvitationId } = useContext(WebFieldContext)
+    messageSubmissionReviewersInvitationId } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -53,8 +53,8 @@ const MessageReviewersModal = ({
         return api.post(
           '/messages',
           {
-            invitation: reviewersMessageSubmissionInvitationId && reviewersMessageSubmissionInvitationId.replace('{number}', rowData.number),
-            signature: reviewersMessageSubmissionInvitationId && rowData.messageSignature,
+            invitation: messageSubmissionReviewersInvitationId && messageSubmissionReviewersInvitationId.replace('{number}', rowData.number),
+            signature: messageSubmissionReviewersInvitationId && rowData.messageSignature,
             groups: reviewerIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),
