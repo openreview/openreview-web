@@ -76,17 +76,19 @@ const EthicsChairPaperStatus = () => {
 
   const loadSubmissions = async () => {
     try {
-      const notesP = api.getAll(
-        '/notes',
-        {
-          invitation: submissionId,
-          details: 'replies',
-          select: 'id,number,forum,content,details,invitations,readers',
-          sort: 'number:asc',
-          domain: venueId,
-        },
-        { accessToken }
-      )
+      const notesP = api
+        .getAll(
+          '/notes',
+          {
+            invitation: submissionId,
+            details: 'replies,writable',
+            select: 'id,number,forum,content,details,invitations,readers',
+            sort: 'number:asc',
+            domain: venueId,
+          },
+          { accessToken }
+        )
+        .then((notes) => notes.filter((note) => !note.details.writable))
 
       const perPaperGroupResultsP = api
         .get(
@@ -108,16 +110,25 @@ const EthicsChairPaperStatus = () => {
       let allGroupMembers = []
 
       perPaperGroupResults.forEach((p) => {
+        const number = getNumberFromGroup(p.id, submissionName)
         if (p.id.endsWith(`/${ethicsReviewersName}`)) {
           ethicsReviewerGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
             ...p,
           })
-          allGroupMembers = allGroupMembers.concat(p.members)
+          p.members.forEach((member) => {
+            if (!(number in anonEthicsReviewerGroups)) anonEthicsReviewerGroups[number] = {}
+            if (
+              !(member in anonEthicsReviewerGroups[number]) &&
+              member.includes(anonEthicsReviewerName)
+            ) {
+              anonEthicsReviewerGroups[number][member] = member
+            }
+          })
         } else if (p.id.includes(anonEthicsReviewerName)) {
-          const number = getNumberFromGroup(p.id, submissionName)
           if (!(number in anonEthicsReviewerGroups)) anonEthicsReviewerGroups[number] = {}
-          if (p.members.length) anonEthicsReviewerGroups[number][p.members[0]] = p.id
+          if (p.members.length) anonEthicsReviewerGroups[number][p.id] = p.members[0]
+          allGroupMembers = allGroupMembers.concat(p.members)
         }
       })
 
@@ -127,12 +138,18 @@ const EthicsChairPaperStatus = () => {
         return {
           ...ethicsReviewerGroup,
           members: ethicsReviewerGroup.members.flatMap((member) => {
-            const reviewerAnonGroup = paperAnonEthicsReviewerGroups[member]
-            if (!reviewerAnonGroup) return []
+            let deanonymizedGroup = paperAnonEthicsReviewerGroups[member]
+            let anonymizedGroup = member
+            if (!deanonymizedGroup) {
+              deanonymizedGroup = member
+              anonymizedGroup = Object.keys(paperAnonEthicsReviewerGroups).find(
+                (key) => paperAnonEthicsReviewerGroups[key] === member
+              )
+            }
             return {
-              reviewerProfileId: member,
-              reviewerAnonGroup,
-              anonymousId: getIndentifierFromGroup(reviewerAnonGroup, anonEthicsReviewerName),
+              reviewerProfileId: deanonymizedGroup,
+              anonymizedGroup,
+              anonymousId: getIndentifierFromGroup(anonymizedGroup, anonEthicsReviewerName),
             }
           }),
         }
@@ -216,6 +233,7 @@ const EthicsChairPaperStatus = () => {
               preferredEmail: profile
                 ? profile.content.preferredEmail ?? profile.content.emails[0]
                 : reviewer.reviewerProfileId,
+              type: 'profile',
             }
           }),
           numReviewsDone: ethicsReviews.length,

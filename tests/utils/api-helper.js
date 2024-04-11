@@ -207,21 +207,6 @@ export async function createUser({
     institution: { domain: 'umass.edu', name: 'University of Massachusetts, Amherst' },
   }
   const activateJson = {
-    names: [
-      {
-        fullname,
-        preferred: true,
-        username: tildeId,
-        altUsernames: [],
-      },
-    ],
-    emails: [email],
-    links: [],
-    id: tildeId,
-    gender: '',
-    preferredName: fullname,
-    preferredEmail: email,
-    currentInstitution: null,
     content: {
       names: [
         {
@@ -236,6 +221,7 @@ export async function createUser({
       dblp: '',
       orcid: '',
       linkedin: '',
+      aclanthology: '',
       wikipedia: '',
       emails: [email],
       preferredEmail: email,

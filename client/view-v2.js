@@ -2305,7 +2305,7 @@ module.exports = (function () {
     })
 
     // content fields
-    Object.entries(contentFields).forEach(([contentFieldName, contentFieldValue]) => {
+    Object.entries(contentFields || []).forEach(([contentFieldName, contentFieldValue]) => {
       if (
         (formData?.[contentFieldName] === undefined ||
           formData?.[contentFieldName]?.delete === true) &&
