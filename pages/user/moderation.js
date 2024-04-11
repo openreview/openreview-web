@@ -1756,11 +1756,13 @@ const UserModerationQueue = ({
     'Inactive',
     'Merged',
   ].map((p) => ({ label: p, value: p }))
+  const twoWeeksAgo = dayjs().subtract(2, 'week').valueOf()
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
     const cleanSearchTerm = filters.term?.trim()
     const shouldSearchProfile = profileStateOption === 'All' && cleanSearchTerm
+    const sortKey = onlyModeration ? 'tmdate' : 'tcdate'
     let searchQuery = { fullname: cleanSearchTerm?.toLowerCase() }
     if (cleanSearchTerm?.startsWith('~')) searchQuery = { id: cleanSearchTerm }
     if (cleanSearchTerm?.includes('@')) searchQuery = { email: cleanSearchTerm.toLowerCase() }
@@ -1771,7 +1773,7 @@ const UserModerationQueue = ({
         {
           ...queryOptions,
 
-          ...(!shouldSearchProfile && { sort: `tcdate:${descOrder ? 'desc' : 'asc'}` }),
+          ...(!shouldSearchProfile && { sort: `${sortKey}:${descOrder ? 'desc' : 'asc'}` }),
           limit: pageSize,
           offset: (pageNumber - 1) * pageSize,
           withBlocked: onlyModeration ? undefined : true,
@@ -1981,7 +1983,7 @@ const UserModerationQueue = ({
       </h4>
       {showSortButton && profiles && profiles.length !== 0 && (
         <button className="btn btn-xs sort-button" onClick={() => setDescOrder((p) => !p)}>{`${
-          descOrder ? 'Sort: Newest First' : 'Sort: Oldest First'
+          descOrder ? 'Sort: Most Recently Modified' : 'Sort: Least Recently Modified'
         }`}</button>
       )}
 
@@ -2028,7 +2030,35 @@ const UserModerationQueue = ({
                   </a>
                 </span>
                 <span className="col-email text-muted">{profile.content.preferredEmail}</span>
-                <span className="col-created">{formatDateTime(profile.tcdate)}</span>
+                <span className="col-created">
+                  <span
+                    className={`${profile.tmdate < twoWeeksAgo ? 'passed-moderation' : ''}`}
+                  >
+                    {formatDateTime(profile.tmdate, {
+                      day: '2-digit',
+                      month: 'short',
+                      year: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: undefined,
+                      timeZoneName: undefined,
+                      hour12: false,
+                    })}
+                  </span>
+                  /
+                  <span>
+                    {formatDateTime(profile.tcdate, {
+                      day: '2-digit',
+                      month: 'short',
+                      year: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: undefined,
+                      timeZoneName: undefined,
+                      hour12: false,
+                    })}
+                  </span>
+                </span>
                 <span className="col-status">
                   <span className={`label label-${profile.password ? 'success' : 'danger'}`}>
                     password
