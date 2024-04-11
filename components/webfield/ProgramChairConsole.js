@@ -1,6 +1,7 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import groupBy from 'lodash/groupBy'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -68,6 +69,8 @@ const ProgramChairConsole = ({ appContext }) => {
     customStageInvitations,
     assignmentUrls,
     emailReplyTo,
+    reviewerEmailFuncs,
+    acEmailFuncs,
     submissionContentFields = []
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
@@ -173,26 +176,25 @@ const ProgramChairConsole = ({ appContext }) => {
       // #endregion
 
       // #region getRegistrationForms
-      const prefixes = [reviewersId, areaChairsId, seniorAreaChairsId]
-      const getRegistrationFormPs = prefixes.map((prefix) =>
-        prefix
-          ? api
-              .getAll(
-                '/notes',
-                {
-                  invitation: `${prefix}/-/.*`,
-                  signature: venueId,
-                  select: 'id,invitation,invitations,content.title',
-                  domain: venueId,
-                },
-                { accessToken }
-              )
-              .then((notes) =>
-                notes.filter((note) => note.invitations.some((p) => p.includes('Form')))
-              )
-          : Promise.resolve(null)
+      const prefixes = [reviewersId, areaChairsId, seniorAreaChairsId].filter(Boolean)
+      const getRegistrationFormResultsP = Promise.all(
+        prefixes.map((prefix) =>
+          api
+            .getAll(
+              '/notes',
+              {
+                invitation: `${prefix}/-/.*`,
+                signature: venueId,
+                select: 'id,invitation,invitations,content.title',
+                domain: venueId,
+              },
+              { accessToken }
+            )
+            .then((notes) =>
+              notes.filter((note) => note.invitations.some((p) => p.endsWith('_Form')))
+            )
+        )
       )
-      const getRegistrationFormResultsP = Promise.all(getRegistrationFormPs)
       // #endregion
 
       // #region get Reviewer, AC, SAC members
@@ -297,6 +299,22 @@ const ProgramChairConsole = ({ appContext }) => {
       const acRecommendationsCount = results[5]
       const bidCountResults = results[6]
       const perPaperGroupResults = results[7]
+
+      // Get registration notes from all registration forms
+      const registrationNotes = await Promise.all(
+        registrationForms.map((regForm) =>
+          api.getAll(
+            '/notes',
+            {
+              forum: regForm.id,
+              select: 'id,signatures,invitations,content',
+              domain: venueId,
+            },
+            { accessToken }
+          )
+        )
+      )
+      const registrationNoteMap = groupBy(registrationNotes.flat(), 'signatures[0]')
 
       // #region categorize result of per paper groups
       const reviewerGroups = []
@@ -415,6 +433,16 @@ const ProgramChairConsole = ({ appContext }) => {
       allProfiles.forEach((profile) => {
         const usernames = profile.content.names.flatMap((p) => p.username ?? [])
         const profileEmails = profile.content.emails.filter((p) => p)
+
+        let userRegNotes = []
+        usernames.forEach((username) => {
+          if (registrationNoteMap[username]) {
+            userRegNotes = userRegNotes.concat(registrationNoteMap[username])
+          }
+        })
+        // eslint-disable-next-line no-param-reassign
+        profile.registrationNotes = userRegNotes
+
         usernames.concat(profileEmails).forEach((key) => {
           allProfilesMap.set(key, profile)
         })
