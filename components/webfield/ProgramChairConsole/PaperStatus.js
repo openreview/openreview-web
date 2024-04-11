@@ -53,6 +53,10 @@ const PaperRow = ({
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#paper-status)`
   )
 
+  const responseNote = noteContentField && rowData?.note?.details?.replies?.find(reply =>
+    reply.invitations.some(invitation => invitation.endsWith(noteContentField?.responseInvitation))
+  )
+
   return (
     <tr>
       <td>
@@ -115,7 +119,17 @@ const PaperRow = ({
       {noteContentField && (
         <td className="console-decision">
           <h4 className="title">{prettyField(rowData.note?.content[noteContentField.field].value.toString()) ?? 'N/A'}</h4>
-          {venue && <span>{venue}</span>}
+          {
+            responseNote &&
+            <div>
+              <strong>
+                {prettyField(noteContentField.responseField)}
+              </strong>
+              : {prettyField(responseNote?.content[noteContentField.responseField].value.toString()) ?? 'N/A'}
+              <hr></hr>
+            </div>
+          }
+          {venue && <div>{venue}</div>}
         </td>
       )}
       {!noteContentField && (
