@@ -1058,6 +1058,18 @@ const ProgramChairConsole = ({ appContext }) => {
               Desk Rejected/Withdrawn Papers
             </Tab>
           )}
+          {(submissionContentFields.length > 0) && (
+            submissionContentFields.map(fieldAttrs => (
+              <Tab
+                id={fieldAttrs.field}
+                key={fieldAttrs.field}
+                active={activeTabId === fieldAttrs.field ? true : undefined}
+                onClick={() => setActiveTabId(`#${fieldAttrs.field}`)}
+              >
+                {prettyField(fieldAttrs.field)}
+              </Tab>
+            ))
+          )}
         </TabList>
 
         <TabPanels>
@@ -1101,6 +1113,19 @@ const ProgramChairConsole = ({ appContext }) => {
               <RejectedWithdrawnPapers pcConsoleData={pcConsoleData} />
             )}
           </TabPanel>
+          {(submissionContentFields.length > 0) && (
+            submissionContentFields.map(fieldAttrs => (
+              <TabPanel id={fieldAttrs.field} key={fieldAttrs.field}>
+                {activeTabId === `#${fieldAttrs.field}` &&
+                  <PaperStatus
+                    pcConsoleData={pcConsoleData}
+                    loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
+                    noteContentField={fieldAttrs}
+                  />
+                }
+              </TabPanel>
+            ))
+          )}
         </TabPanels>
       </Tabs>
     </>
