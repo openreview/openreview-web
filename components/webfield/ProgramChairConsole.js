@@ -1113,6 +1113,19 @@ const ProgramChairConsole = ({ appContext }) => {
               <RejectedWithdrawnPapers pcConsoleData={pcConsoleData} />
             )}
           </TabPanel>
+          {(submissionContentFields.length > 0) && (
+            submissionContentFields.map(fieldAttrs => (
+              <TabPanel id={fieldAttrs.field} key={fieldAttrs.field}>
+                {activeTabId === `#${fieldAttrs.field}` &&
+                  <PaperStatus
+                    pcConsoleData={pcConsoleData}
+                    loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
+                    noteContentField={fieldAttrs}
+                  />
+                }
+              </TabPanel>
+            ))
+          )}
         </TabPanels>
       </Tabs>
     </>
