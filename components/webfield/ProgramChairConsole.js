@@ -14,6 +14,7 @@ import {
   getNumberFromGroup,
   getProfileName,
   prettyId,
+  prettyField,
   parseNumberField,
   isValidEmail,
 } from '../../lib/utils'
@@ -70,6 +71,7 @@ const ProgramChairConsole = ({ appContext }) => {
     emailReplyTo,
     reviewerEmailFuncs,
     acEmailFuncs,
+    submissionContentFields=[],
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
