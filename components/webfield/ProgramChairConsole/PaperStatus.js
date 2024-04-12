@@ -53,9 +53,23 @@ const PaperRow = ({
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#paper-status)`
   )
 
-  const responseNote = noteContentField && rowData?.note?.details?.replies?.find(reply =>
-    reply.invitations.some(invitation => invitation.endsWith(noteContentField?.responseInvitation))
+  // Find note(s) that responds to the flag
+  const responseNotes = noteContentField && rowData?.note?.details?.replies?.filter(reply =>
+    reply?.invitations.some(replyInvitation =>
+      noteContentField?.responseInvitations.some(reasonInvitation => replyInvitation.endsWith(reasonInvitation))
+    )
   )
+
+  // Find note(s) that justify the flag, display using non meta-invitation invitation
+  const reasonNotes = noteContentField && rowData?.note?.details?.replies?.filter(reply => {
+    return reply?.invitations.some(replyInvitation =>
+      noteContentField?.reasonInvitations.some(reasonInvitation => replyInvitation.endsWith(reasonInvitation))
+    ) &&
+    Object.keys(reply?.content).some(replyField =>
+      Object.keys(noteContentField?.reasonFields).includes(replyField) &&
+      noteContentField?.reasonFields[replyField].includes(reply?.content[replyField]?.value)
+    )
+  })
 
   return (
     <tr>
@@ -120,16 +134,75 @@ const PaperRow = ({
         <td className="console-decision">
           <h4 className="title">{prettyField(rowData.note?.content[noteContentField.field].value.toString()) ?? 'N/A'}</h4>
           {
-            responseNote &&
+            reasonNotes &&
             <div>
-              <strong>
-                {prettyField(noteContentField.responseField)}
-              </strong>
-              : {prettyField(responseNote?.content[noteContentField.responseField].value.toString()) ?? 'N/A'}
+              <Table
+              className="console-table table-striped"
+              headings={[
+                { id: 'invitation', content: 'Type', width: '30%' },
+                { id: 'summary', content: 'Summary', width: '70%' }]}>
+              {reasonNotes?.map((reasonNote) => (
+                <tr key={reasonNote.id}>
+                  <td>
+                    <a
+                    href={`/forum?id=${rowData.note?.forum}&noteId=${reasonNote.id}referrer=${referrerUrl}`}
+                    target="_blank"
+                    >
+                      <strong>{prettyField(
+                        reasonNote.invitations.find(invitation => !invitation.endsWith('/Edit')).split('/').pop()
+                      )}
+                      </strong>
+                    </a>
+                  </td>
+                  <td>
+                    <NoteSummary
+                      note={reasonNote}
+                      referrerUrl={referrerUrl}
+                      showReaders={false}
+                      isV2Note={true}
+                    />
+                  </td>
+                </tr>
+              ))}
+              </Table>
               <hr></hr>
             </div>
           }
-          {venue && <div>{venue}</div>}
+          {
+            responseNotes &&
+            <div>
+              <Table
+              className="console-table table-striped"
+              headings={[
+                { id: 'invitation', content: 'Type', width: '30%' },
+                { id: 'summary', content: 'Summary', width: '70%' }]}>
+              {responseNotes?.map((responseNote) => (
+                <tr key={responseNote.id}>
+                  <td>
+                    <a
+                    href={`/forum?id=${rowData.note?.forum}&noteId=${responseNote.id}referrer=${referrerUrl}`}
+                    target="_blank"
+                    >
+                      <strong>{prettyField(
+                        responseNote.invitations.find(invitation => !invitation.endsWith('/Edit')).split('/').pop()
+                      )}
+                      </strong>
+                    </a>
+                  </td>
+                  <td>
+                    <NoteSummary
+                      note={responseNote}
+                      referrerUrl={referrerUrl}
+                      showReaders={false}
+                      isV2Note={true}
+                    />
+                  </td>
+                </tr>
+              ))}
+              </Table>
+              <hr></hr>
+            </div>
+          }
         </td>
       )}
       {!noteContentField && (
