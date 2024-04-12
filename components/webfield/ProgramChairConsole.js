@@ -1058,6 +1058,18 @@ const ProgramChairConsole = ({ appContext }) => {
               Desk Rejected/Withdrawn Papers
             </Tab>
           )}
+          {(submissionContentFields.length > 0) && (
+            submissionContentFields.map(fieldAttrs => (
+              <Tab
+                id={fieldAttrs.field}
+                key={fieldAttrs.field}
+                active={activeTabId === fieldAttrs.field ? true : undefined}
+                onClick={() => setActiveTabId(`#${fieldAttrs.field}`)}
+              >
+                {prettyField(fieldAttrs.field)}
+              </Tab>
+            ))
+          )}
         </TabList>
 
         <TabPanels>
