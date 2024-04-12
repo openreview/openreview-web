@@ -145,7 +145,7 @@ const PaperRow = ({
                 <tr key={reasonNote.id}>
                   <td>
                     <a
-                    href={`/forum?id=${rowData.note?.forum}&noteId=${reasonNote.id}referrer=${referrerUrl}`}
+                    href={`/forum?id=${rowData.note?.forum}&noteId=${reasonNote.id}&referrer=${referrerUrl}`}
                     target="_blank"
                     >
                       <strong>{prettyField(
@@ -180,7 +180,7 @@ const PaperRow = ({
                 <tr key={responseNote.id}>
                   <td>
                     <a
-                    href={`/forum?id=${rowData.note?.forum}&noteId=${responseNote.id}referrer=${referrerUrl}`}
+                    href={`/forum?id=${rowData.note?.forum}&noteId=${responseNote.id}&referrer=${referrerUrl}`}
                     target="_blank"
                     >
                       <strong>{prettyField(
