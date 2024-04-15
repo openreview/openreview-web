@@ -658,7 +658,11 @@ describe('ConsoleTaskList', () => {
         duedate: now + oneDay,
         edit: {
           note: {
-            id: { param: { withInvitation: `${venueId}/${submissionName}5/Official_Review1/-/Rating` } },
+            id: {
+              param: {
+                withInvitation: `${venueId}/${submissionName}5/Official_Review1/-/Rating`,
+              },
+            },
             forum: 'paper5Id',
             replyto: 'review1Id',
           },
@@ -927,7 +931,9 @@ describe('ConsoleTaskList', () => {
       expect(metaReviewRevisionLink.nextElementSibling).toHaveClass('warning')
       expect(metaReviewRevisionLink).toHaveAttribute(
         'href',
-        expect.stringContaining('id=paper5Id&noteId=paper5Id&invitationId=ICML.cc/2023/Conference/Submission5/Meta_Review1/-/Revision')
+        expect.stringContaining(
+          'id=paper5Id&noteId=paper5Id&invitationId=ICML.cc/2023/Conference/Submission5/Meta_Review1/-/Revision'
+        )
       )
       // #endregion
 
@@ -1719,6 +1725,51 @@ describe('ConsoleTaskList', () => {
           repliedEdits: [
             {
               id: 'metaReviewSACEditId',
+              tcdate: 122334445555,
+              note: { id: '1' },
+            },
+          ],
+        },
+      },
+      {
+        id: `${venueId}/${submissionName}6/-/Meta_Review_SAC_Revision`,
+        duedate: now - fourDays,
+        invitees: [`${venueId}/${submissionName}5/${seniorAreaChairName}`],
+        edit: {
+          note: {
+            id: {
+              param: {
+                withInvitation: `${venueId}/${submissionName}6/-/Meta_Review`,
+              },
+            },
+            forum: 'paper6Id',
+            replyto: 'paper6Id',
+          },
+        },
+        details: {
+          replytoNote: {
+            id: 'paper6Id',
+            forum: 'paper6Id',
+            content: {
+              title: { value: 'Paper 6 Title' },
+            },
+          },
+          repliedNotes: [], // signature is still ac so repliedNotes is empty
+          repliedEdits: [
+            {
+              id: 'metaReviewSACEditId',
+              tcdate: 122334445555,
+              note: {
+                id: 'revision1',
+              },
+            },
+            {
+              id: 'metaReviewSACEditId2',
+              tcdate: 122334445556,
+              note: {
+                id: 'revision1',
+                ddate: 122334445555,
+              },
             },
           ],
         },
@@ -1740,7 +1791,8 @@ describe('ConsoleTaskList', () => {
     await waitFor(() => {
       const registrationLink = screen.getByText('Senior Area Chair Registration')
       const metaReviewAgreementLink = screen.getByText('Submission5 Meta Review Agreement')
-      const metaReviewRevisionLink = screen.getByText('Submission5 Meta Review SAC Revision')
+      const metaReview5RevisionLink = screen.getByText('Submission5 Meta Review SAC Revision')
+      const metaReview6RevisionLink = screen.getByText('Submission6 Meta Review SAC Revision')
 
       expect(registrationLink).toBeInTheDocument()
       expect(registrationLink.parentElement.parentElement).not.toHaveClass('completed')
@@ -1765,16 +1817,28 @@ describe('ConsoleTaskList', () => {
         expect.stringContaining('id=paper5Id&noteId=metaReviewId&invitationId=')
       )
 
-      expect(metaReviewRevisionLink).toBeInTheDocument()
-      expect(metaReviewRevisionLink.parentElement.parentElement).toHaveClass('completed')
-      expect(metaReviewRevisionLink.nextElementSibling).toHaveClass('expired')
-      expect(metaReviewRevisionLink).toHaveAttribute(
+      expect(metaReview5RevisionLink).toBeInTheDocument()
+      expect(metaReview5RevisionLink.parentElement.parentElement).toHaveClass('completed')
+      expect(metaReview5RevisionLink.nextElementSibling).toHaveClass('expired')
+      expect(metaReview5RevisionLink).toHaveAttribute(
         'href',
         expect.stringContaining('id=paper5Id&noteId=paper5Id')
       )
       expect(screen.getByText('Paper 5 Title')).toHaveAttribute(
         'href',
         expect.stringContaining('id=paper5Id')
+      )
+
+      expect(metaReview6RevisionLink).toBeInTheDocument()
+      expect(metaReview6RevisionLink.parentElement.parentElement).not.toHaveClass('completed')
+      expect(metaReview6RevisionLink.nextElementSibling).toHaveClass('expired')
+      expect(metaReview6RevisionLink).toHaveAttribute(
+        'href',
+        expect.stringContaining('id=paper6Id&noteId=paper6Id')
+      )
+      expect(screen.getByText('Paper 6 Title')).toHaveAttribute(
+        'href',
+        expect.stringContaining('id=paper6Id')
       )
     })
   })
