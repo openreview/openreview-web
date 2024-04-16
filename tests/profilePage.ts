@@ -582,7 +582,7 @@ test('merge profile modal should not be displayed when user confirm email of ano
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(Selector('a').withText('Merge Profiles').exists).notOk()
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
-    .contains('A confirmation email has been sent to a@a.com')
+    .contains('A confirmation email has been sent to a@a.com, this email is already associated with ~FirstA_LastA1 and both profiles could be merged')
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
