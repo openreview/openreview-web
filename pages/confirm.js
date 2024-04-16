@@ -72,7 +72,11 @@ const Confirm = () => {
         account.
       </p>
       <p className="mb-4">
-        Please contact info@openreview.net if you didn&apos;t add this email.
+        Please contact{' '}
+        <a href="mailto:info@openreview.net" target="_blank" rel="noreferrer">
+          info@openreview.net
+        </a>{' '}
+        if you didn&apos;t add this email.
       </p>
 
       <div className="response-buttons">
