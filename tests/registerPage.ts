@@ -392,8 +392,8 @@ test('confirm email as another user', async (t) => {
 test('update profile', async (t) => {
   await t.useRole(EmailOwnerRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
-    .expect(Selector('p').withText('Click submit button below to confirm adding melisa@alternate.com to your account.').exists).ok()
-    .click(Selector('button').withText('Submit'))
+    .expect(Selector('p').withText('Click Confirm Email button below to confirm adding melisa@alternate.com to your account.').exists).ok()
+    .click(Selector('button').withText('Confirm Email'))
     .expect(messagePanelSelector.exists)
     .ok()
     .expect(messageSelector.innerText)
