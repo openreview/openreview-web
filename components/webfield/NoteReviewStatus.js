@@ -124,7 +124,9 @@ const AcPcConsoleReviewerReminderModal = ({
   officialReviewName,
   setUpdateLastSent,
   submissionName,
+  messageSignature,
 }) => {
+  const { emailReplyTo, messageSubmissionReviewersInvitationId } = useContext(WebFieldContext)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
   const [message, setMessage] =
     useState(`This is a reminder to please submit your review for ${shortPhrase}.\n\n
@@ -139,9 +141,13 @@ Click on the link below to go to the review page:\n\n{{submit_review_link}}
       await api.post(
         '/messages',
         {
-          groups: [reviewer.reviewerProfileId],
+          invitation: messageSubmissionReviewersInvitationId && messageSubmissionReviewersInvitationId.replace('{number}', note.number),
+          signature: messageSubmissionReviewersInvitationId && messageSignature,
+          groups: [reviewer.anonymizedGroup],
           subject,
           message: message.replaceAll('{{submit_review_link}}', forumUrl),
+          parentGroup: `${venueId}/${submissionName}${note.number}/Reviewers`,
+          replyTo: emailReplyTo,
         },
         { accessToken }
       )
@@ -214,6 +220,7 @@ export const AcPcConsoleReviewerStatusRow = ({
   reviewRatingName,
   showRatingConfidence = true,
   showActivity = true,
+  messageSignature,
 }) => {
   const [updateLastSent, setUpdateLastSent] = useState(true)
   const completedReview = officialReviews.find((p) => p.anonymousId === reviewer.anonymousId)
@@ -285,6 +292,7 @@ export const AcPcConsoleReviewerStatusRow = ({
               officialReviewName={officialReviewName}
               setUpdateLastSent={setUpdateLastSent}
               submissionName={submissionName}
+              messageSignature={messageSignature}
             />
             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a
@@ -480,6 +488,7 @@ export const AcPcConsoleNoteReviewStatus = ({
               shortPhrase={shortPhrase}
               submissionName={submissionName}
               reviewRatingName={reviewRatingName}
+              messageSignature={rowData.messageSignature}
             />
           ))}
         </div>

@@ -219,12 +219,16 @@ const AreaChairConsole = ({ appContext }) => {
         : []
 
       const anonymousAreaChairGroups = allGroups.filter((p) => p.id.includes('/Area_Chair_'))
+      const anonymousAreaChairIdByNumber = {}
       const areaChairPaperNums = areaChairGroups.flatMap((p) => {
         const num = getNumberFromGroup(p.id, submissionName)
         const anonymousAreaChairGroup = anonymousAreaChairGroups.find((q) =>
           q.id.startsWith(`${venueId}/${submissionName}${num}/Area_Chair_`)
         )
-        if (anonymousAreaChairGroup) return num
+        if (anonymousAreaChairGroup) {
+          anonymousAreaChairIdByNumber[num] = anonymousAreaChairGroup.id
+          return num
+        }
         return []
       })
       const secondaryAreaChairPaperNums = secondaryAreaChairGroups.map((p) =>
@@ -279,6 +283,7 @@ const AreaChairConsole = ({ appContext }) => {
                     (t.id === r || t.members[0] === r)
                 )
                 return {
+                  anonymizedGroup: anonymousReviewerGroup?.id,
                   anonymousId: getIndentifierFromGroup(
                     anonymousReviewerGroup?.id || r,
                     anonReviewerName
@@ -474,6 +479,7 @@ const AreaChairConsole = ({ appContext }) => {
             metaReviewInvitationId: `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`,
             metaReview,
           },
+          messageSignature: anonymousAreaChairIdByNumber[note.number],
         }
       })
 
