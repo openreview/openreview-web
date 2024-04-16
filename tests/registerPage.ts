@@ -1,4 +1,4 @@
-import { Selector, ClientFunction } from 'testcafe'
+import { Selector, ClientFunction, Role } from 'testcafe'
 import {
   inactiveUser,
   inActiveUserNoPassword,
@@ -8,6 +8,22 @@ import {
   superUserName,
   strongPassword,
 } from './utils/api-helper'
+
+const SURole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
+  await t
+    .click(Selector('a').withText('Login'))
+    .typeText(Selector('#email-input'), superUserName)
+    .typeText(Selector('#password-input'), strongPassword)
+    .click(Selector('button').withText('Login to OpenReview'))
+})
+
+const EmailOwnerRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
+  await t
+    .click(Selector('a').withText('Login'))
+    .typeText(Selector('#email-input'), 'melisa@test.com')
+    .typeText(Selector('#password-input'), strongPassword)
+    .click(Selector('button').withText('Login to OpenReview'))
+})
 
 const fullNameInputSelector = Selector('#first-input')
 const emailAddressInputSelector = Selector('input').withAttribute(
@@ -354,10 +370,30 @@ test('add alternate email', async (t) => {
 
 // eslint-disable-next-line no-unused-expressions
 fixture`Confirm altenate email`
-  .page`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`
+
+// guest redirect to login
+test('confirm email as guest', async (t) => {
+  const getPageUrl = ClientFunction(() => window.location.href.toString())
+  await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
+    .expect(getPageUrl())
+    .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
+})
+
+// another user show error
+test('confirm email as another user', async (t) => {
+  await t.useRole(SURole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
+    .expect(Selector('#content h1').innerText)
+    .eql('Error 403')
+    .expect(Selector('.error-message').innerText)
+    .eql("You are not authorized to activate this email.")
+})
 
 test('update profile', async (t) => {
-  await t
+  await t.useRole(EmailOwnerRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
+    .expect(Selector('p').withText('Click Confirm Email button below to confirm adding melisa@alternate.com to your account.').exists).ok()
+    .click(Selector('button').withText('Confirm Email'))
     .expect(messagePanelSelector.exists)
     .ok()
     .expect(messageSelector.innerText)
