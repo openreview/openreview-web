@@ -7,7 +7,7 @@ import {
   getToken,
   getMessages,
   getNotes,
-  getReferences,
+  getNoteEdits,
   superUserName,
   strongPassword,
 } from './utils/api-helper'
@@ -52,6 +52,7 @@ const nameMakePreferredButton = Selector('div.container.names')
   .filterVisible()
   .nth(0)
 const dblpUrlInput = Selector('#dblp_url')
+const aclanthologyUrlInput = Selector('#aclanthology_url')
 const homepageUrlInput = Selector('#homepage_url')
 const yearOfBirthInput = Selector('section').nth(2).find('input')
 const firstHistoryEndInput = Selector('div.history').find('input').withAttribute('placeholder', 'end year').nth(0)
@@ -121,6 +122,15 @@ test('user open own profile', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql('You must enter at least one personal link')
+    // show error for all personal links
+    .expect(homepageUrlInput.hasClass('invalid-value')).ok()
+    .expect(Selector('#gscholar_url').hasClass('invalid-value')).ok()
+    .expect(dblpUrlInput.hasClass('invalid-value')).ok()
+    .expect(Selector('#orcid_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#wikipedia_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#linkedin_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#semanticScholar_url').hasClass('invalid-value')).ok()
+    .expect(Selector('#aclanthology_url').hasClass('invalid-value')).ok()
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
@@ -235,6 +245,26 @@ test('add and delete geolocation of history', async (t) => {
     .selectText(Selector('input.institution-department')).pressKey('delete')
     .click(saveProfileButton)
     .expect(Selector('.glyphicon-map-marker').exists).notOk()
+})
+
+test('add links', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    // add invalid acl url
+    .typeText(aclanthologyUrlInput, 'https://aclanthology.org/invalid_url')
+    .pressKey('tab')
+    .expect(aclanthologyUrlInput.hasClass('invalid-value')).ok()
+    .expect(errorMessageSelector.innerText).eql('https://aclanthology.org/invalid_url is not a valid ACL Anthology URL')
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText).eql('One of your personal links is invalid. Please make sure all URLs start with http:// or https://')
+    .expect(aclanthologyUrlInput.hasClass('invalid-value')).ok()
+    // add valid acl url
+    .typeText(aclanthologyUrlInput, 'https://aclanthology.org/people/userB', { replace: true })
+    .pressKey('tab')
+    .expect(aclanthologyUrlInput.hasClass('invalid-value')).notOk()
+    .click(saveProfileButton)
+    .expect(errorMessageSelector.innerText).eql('Your profile information has been successfully updated')
 })
 
 test('add relation', async (t) => {
@@ -447,21 +477,21 @@ test('unlink paper', async (t) => {
 test('check import history', async (t) => {
   const { superUserToken } = t.fixtureCtx
   // should have only 1 note
-  const notes = await getNotes({ 'content.authorids': userB.tildeId }, superUserToken)
+  const notes = await getNotes({ 'content.authorids': userB.tildeId }, superUserToken, 2)
   await t.expect(notes.length).eql(1)
 
   // shoud have 2 references: add paper and update authorid
   const importedPaperId = notes[0].id
-  const references = await getReferences(
-    { referent: importedPaperId, sort: 'tmdate' },
+  const edits = await getNoteEdits(
+    { 'note.id': importedPaperId, sort: 'tcdate' },
     superUserToken
   )
   await t
-    .expect(references.length)
+    .expect(edits.length)
     .eql(2)
-    .expect(references[1].content.authorids.includes(userBAlternateId))
-    .notOk() // 1st post of paper has all dblp authorid
-    .expect(references[0].content.authorids.includes(userBAlternateId))
+    .expect(edits[1].note.content.authorids.value.includes(userBAlternateId))
+    .ok() // 1st post of paper has all dblp authorid
+    .expect(edits[0].note.content.authorids.value.includes(userBAlternateId))
     .ok() // authorid is updated
 })
 

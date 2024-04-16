@@ -141,7 +141,11 @@ export const NoteV2 = ({ note, options }) => {
   }
 
   return (
-    <div className={`note ${privatelyRevealed ? 'note-private' : ''} ${options.extraClasses}`}>
+    <div
+      className={`note ${privatelyRevealed ? 'note-private' : ''} ${
+        options.unlinkedPublications?.includes(note.id) ? 'unlinked-publication' : ''
+      } ${options.extraClasses}`}
+    >
       <NoteTitleV2
         id={note.id}
         forum={note.forum}

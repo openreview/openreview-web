@@ -209,9 +209,11 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
         }, 2000)
       }
     } catch (error) {
-      setMessage(
-        'An error occurred while importing your publications. Please try again later.'
-      )
+      const errorMessage =
+        error.name === 'TooManyError'
+          ? 'DBLP import quota has reached'
+          : 'An error occurred while importing your publications. Please try again later.'
+      setMessage(errorMessage)
     }
 
     $(modalEl.current).find('.modal-body')[0].scrollTop = 0
