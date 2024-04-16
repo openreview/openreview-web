@@ -64,11 +64,16 @@ const Confirm = () => {
 
   return (
     <>
-      <p>
+      <header>
+        <h1>Account Linking</h1>
+      </header>
+      <p className="mt-4">
         Click submit button below to confirm adding <strong>{emailToConfirm}</strong> to your
         account.
       </p>
-      <p>Please contact info@openreview.net if you didn&apos;t add this email.</p>
+      <p className="mb-4">
+        Please contact info@openreview.net if you didn&apos;t add this email.
+      </p>
 
       <div className="response-buttons">
         <SpinnerButton loading={isLoading} disabled={isLoading} onClick={confirmEmail}>
