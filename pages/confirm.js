@@ -68,8 +68,8 @@ const Confirm = () => {
         <h1>Account Linking</h1>
       </header>
       <p className="mt-4">
-        Click submit button below to confirm adding <strong>{emailToConfirm}</strong> to your
-        account.
+        Click Confirm Email button below to confirm adding <strong>{emailToConfirm}</strong> to
+        your account.
       </p>
       <p className="mb-4">
         Please contact{' '}
@@ -81,7 +81,7 @@ const Confirm = () => {
 
       <div className="response-buttons">
         <SpinnerButton loading={isLoading} disabled={isLoading} onClick={confirmEmail}>
-          Submit
+          Confirm Email
         </SpinnerButton>
       </div>
     </>
