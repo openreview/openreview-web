@@ -2031,23 +2031,29 @@ const UserModerationQueue = ({
                 </span>
                 <span className="col-email text-muted">{profile.content.preferredEmail}</span>
                 <span className="col-created">
+                  {profile.tcdate !== profile.tmdate && (
+                    <>
+                      <span>
+                        {formatDateTime(profile.tcdate, {
+                          day: '2-digit',
+                          month: 'short',
+                          year: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: undefined,
+                          timeZoneName: undefined,
+                          hour12: false,
+                        })}
+                      </span>
+                      {' / '}
+                    </>
+                  )}
                   <span
-                    className={`${profile.tmdate < twoWeeksAgo ? 'passed-moderation' : ''}`}
+                    className={`${
+                      onlyModeration && profile.tmdate < twoWeeksAgo ? 'passed-moderation' : ''
+                    }`}
                   >
                     {formatDateTime(profile.tmdate, {
-                      day: '2-digit',
-                      month: 'short',
-                      year: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: undefined,
-                      timeZoneName: undefined,
-                      hour12: false,
-                    })}
-                  </span>
-                  /
-                  <span>
-                    {formatDateTime(profile.tcdate, {
                       day: '2-digit',
                       month: 'short',
                       year: '2-digit',
