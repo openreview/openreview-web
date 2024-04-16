@@ -420,6 +420,8 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
           shortPhrase={shortPhrase}
           bidEnabled={bidEnabled}
           recommendationEnabled={recommendationEnabled}
+          messageParentGroup={areaChairsId}
+          messageSignature={venueId}
         />
         <p className="empty-message">No area chair matching search criteria.</p>
       </div>
@@ -432,6 +434,8 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
         setAreaChairStatusTabData={setAreaChairStatusTabData}
         bidEnabled={bidEnabled}
         recommendationEnabled={recommendationEnabled}
+        messageParentGroup={areaChairsId}
+        messageSignature={venueId}
       />
       <Table
         className="console-table table-striped pc-console-ac-status"

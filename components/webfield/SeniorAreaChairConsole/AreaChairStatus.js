@@ -162,9 +162,9 @@ const AreaChairStatusRow = ({ rowData, metaReviewRecommendationName, referrerUrl
   </tr>
 )
 
-const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
+const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
   const [areaChairStatusTabData, setAreaChairStatusTabData] = useState({})
-  const { seniorAreaChairName, venueId, metaReviewRecommendationName } =
+  const { seniorAreaChairName, areaChairName, venueId, metaReviewRecommendationName } =
     useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(
@@ -266,6 +266,8 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
           setAreaChairStatusTabData={setAreaChairStatusTabData}
           bidEnabled={false}
           recommendationEnabled={false}
+          messageParentGroup={`${venueId}/${areaChairName}`}
+          messageSignature={user?.profile?.id}
         />
         <p className="empty-message">No area chair matching search criteria.</p>
       </div>
@@ -278,6 +280,8 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData }) => {
         setAreaChairStatusTabData={setAreaChairStatusTabData}
         bidEnabled={false}
         recommendationEnabled={false}
+        messageParentGroup={`${venueId}/${areaChairName}`}
+        messageSignature={user?.profile?.id}
       />
       <Table
         className="console-table table-striped pc-console-ac-status"
