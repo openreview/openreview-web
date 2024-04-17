@@ -40,8 +40,8 @@ export default function GroupDirectory({ appContext }) {
                 // Sort by year in descending order, or if year is not present sort alphabetically
                 const yearA = a.match(/.*(\d{4})/)?.[1] ?? 0
                 const yearB = b.match(/.*(\d{4})/)?.[1] ?? 0
-                if (!yearA && !yearB) {
-                  return prettyId(a.groupId).localeCompare(prettyId(b.groupId))
+                if ((!yearA && !yearB) || (yearA === yearB)) {
+                  return prettyId(a).localeCompare(prettyId(b))
                 }
                 return yearA > yearB ? -1 : 1
               })

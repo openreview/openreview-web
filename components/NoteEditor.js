@@ -113,6 +113,40 @@ const EditSignatures = ({
   )
 }
 
+const EditContent = ({
+  invitation,
+  editContentData,
+  setEditContentData,
+  errors,
+  setErrors,
+}) => {
+  if (!invitation.edit?.content) return null
+  return Object.entries(invitation.edit.content).map(([fieldName, fieldDescription]) => (
+    <div
+      key={fieldName}
+      className={fieldDescription?.value?.param?.hidden ? null : styles.fieldContainer}
+    >
+      <EditorComponentContext.Provider
+        value={{
+          invitation,
+          field: { [fieldName]: fieldDescription },
+          value: editContentData[fieldName],
+          onChange: setEditContentData,
+          error: errors.find((e) => e.fieldName === `content.${fieldName}`),
+          setErrors,
+          clearError: () => {
+            setErrors([])
+          },
+        }}
+      >
+        <EditorComponentHeader>
+          <EditorWidget />
+        </EditorComponentHeader>
+      </EditorComponentContext.Provider>
+    </div>
+  ))
+}
+
 // For v2 invitations only
 const NoteEditor = ({
   invitation,
@@ -185,6 +219,10 @@ const NoteEditor = ({
     defaultNoteEditorData
   )
 
+  const [editContentData, setEditContentData] = useReducer(noteEditorDataReducer, {
+    ...getNoteContentValues(edit?.content ?? {}),
+  })
+
   const renderField = (fieldName, fieldDescription) => {
     let fieldNameOverwrite = fieldDescription?.value?.param?.fieldName
     if (!fieldNameOverwrite) {
@@ -196,6 +234,7 @@ const NoteEditor = ({
 
     let fieldValue = noteEditorData[fieldName]
     if (fieldName === 'authorids' && note?.id) {
+      if (fieldDescription?.value?.param?.const?.replace) return null
       fieldValue = noteEditorData.authorids?.map((p, index) => ({
         authorId: p,
         authorName: noteEditorData.authors?.[index],
@@ -488,16 +527,21 @@ const NoteEditor = ({
           Object.entries(noteEditorData)
             .filter(([key, value]) => value === undefined)
             .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {})),
-        ...(noteEditorData.authorids
-          ? {
-              authors: noteEditorData.authorids?.map((p) => p.authorName),
-              authorids: noteEditorData.authorids?.map((p) => p.authorId),
-            }
-          : { authors: { delete: true }, authorids: { delete: true } }),
         noteReaderValues: getNoteReaderValues(),
         editReaderValues: getEditReaderValues(),
         editWriterValues: getEditWriterValues(),
         ...(replyToNote && { replyto: replyToNote.id }),
+        editContent: editContentData,
+      }
+
+      if (noteEditorData.authorids) {
+        if (!noteEditorData.authorids.replace) {
+          formData.authors = noteEditorData.authorids.map((p) => p.authorName)
+          formData.authorids = noteEditorData.authorids.map((p) => p.authorId)
+        }
+      } else {
+        formData.authors = { delete: true }
+        formData.authorids = { delete: true }
       }
 
       const { isValid, errorMessage } =
@@ -517,6 +561,7 @@ const NoteEditor = ({
       const createdNote = await getCreatedNote(result.note)
       autoStorageKeys.forEach((key) => localStorage.removeItem(key))
       setNoteEditorData({ type: 'reset' })
+      setEditContentData({ type: 'reset' })
       closeNoteEditor()
       onNoteCreated(createdNote)
     } catch (error) {
@@ -644,6 +689,14 @@ const NoteEditor = ({
       <div className={styles.editReaderSignature}>
         <h2>Edit History</h2>
         <hr />
+
+        <EditContent
+          invitation={invitation}
+          editContentData={editContentData}
+          setEditContentData={setEditContentData}
+          errors={errors}
+          setErrors={setErrors}
+        />
 
         <EditReaders
           fieldDescription={invitation.edit.readers}
