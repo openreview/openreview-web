@@ -3,7 +3,7 @@
 import { Selector, Role } from 'testcafe'
 import {
   hasTaskUser,
-  mergeUser as userA,
+  mergeUser as userF,
   hasNoTaskUser as userB,
   getToken,
   getMessages,
@@ -617,7 +617,7 @@ test('profile should be auto merged', async (t) => {
   await t
     .expect(messages[0].content.text)
     .contains(
-      'This alternate email address is already associated with the user ~FirstA_LastA2'
+      'This alternate email address is already associated with the user ~FirstF_LastF1'
     )
 
   const mergeLink = messageContent.split(`http://localhost:${process.env.NEXT_PORT}/`).pop().split('\n')[0]
@@ -629,7 +629,7 @@ test('profile should be auto merged', async (t) => {
 
   // access merge link as user which initiated the merge
   await t.useRole(hasTaskUser).navigateTo(`http://localhost:${process.env.NEXT_PORT}/${mergeLink}`)
-    .expect(Selector('p').withText('Click Confirm Profile Merge button below to confirm merging ~FirstA_LastA2 to your profile.').exists).ok()
+    .expect(Selector('p').withText('Click Confirm Profile Merge button below to confirm merging ~FirstF_LastF1 to your profile.').exists).ok()
     .expect(Selector('button').withText('Confirm Profile Merge').exists).ok()
     .click(Selector('button').withText('Confirm Profile Merge'))
     .expect(Selector('div.alert-content').innerText).contains('Thank you for confirming the profile merge.')
@@ -638,8 +638,8 @@ test('profile should be auto merged', async (t) => {
   await t
     .useRole(hasTaskUser)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
-    .expect(Selector('span').withText(userA.email).exists).ok()
-    .expect(Selector('span').withText(userA.email).parent().find('small').withText('Confirmed').exists).ok()
+    .expect(Selector('span').withText(userF.email).exists).ok()
+    .expect(Selector('span').withText(userF.email).parent().find('small').withText('Confirmed').exists).ok()
 })
 
 // eslint-disable-next-line no-unused-expressions

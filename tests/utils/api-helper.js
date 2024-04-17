@@ -44,10 +44,10 @@ export const inActiveUserNoPasswordNoEmail = {
   tildeId: '~FirstE_LastE1',
 }
 export const mergeUser = {
-  fullname: 'FirstA LastA',
+  fullname: 'FirstF LastF',
   email: 'alternate@a.com',
   password: strongPassword,
-  tildeId: '~FirstA_LastA2',
+  tildeId: '~FirstF_LastF1',
 }
 // #endregion
 
