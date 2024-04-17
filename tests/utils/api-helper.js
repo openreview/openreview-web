@@ -43,6 +43,12 @@ export const inActiveUserNoPasswordNoEmail = {
   fullname: 'FirstE LastE',
   tildeId: '~FirstE_LastE1',
 }
+export const mergeUser = {
+  fullname: 'FirstA LastA',
+  email: 'alternate@a.com',
+  password: strongPassword,
+  tildeId: '~FirstA_LastA2',
+}
 // #endregion
 
 export async function setupRegister(superUserToken) {

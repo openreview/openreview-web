@@ -9,6 +9,7 @@ import {
   getProcessLogs,
   hasTaskUser,
   hasNoTaskUser,
+  mergeUser,
   conferenceGroupId,
   conferenceSubmissionInvitationId,
   sendFile,
@@ -130,6 +131,7 @@ test('Set up TestVenue', async (t) => {
   const hasTaskUserTildeId = userRes.user.profile.id
   const hasTaskUserToken = userRes.token
   await createUser(hasNoTaskUser)
+  await createUser(mergeUser)
 
   // add a note
   const noteJson = {

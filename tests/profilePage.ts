@@ -3,6 +3,7 @@
 import { Selector, Role } from 'testcafe'
 import {
   hasTaskUser,
+  mergeUser as userA,
   hasNoTaskUser as userB,
   getToken,
   getMessages,
@@ -575,7 +576,7 @@ test('validate current history', async (t) => {
 
 test('merge profile modal should not be displayed when user confirm email of another user', async (t) => {
   await t
-    .useRole(userBRole)
+    .useRole(hasTaskUser)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .click(emailSectionPlusIconSelector)
     .typeText(editEmailInputSelector, 'a@a.com')
@@ -586,7 +587,7 @@ test('merge profile modal should not be displayed when user confirm email of ano
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
-    { to: 'a@a.com', subject: 'OpenReview Account Merge' },
+    { to: 'a@a.com', subject: 'OpenReview Account Linking' },
     superUserToken
   )
   await t
@@ -594,6 +595,51 @@ test('merge profile modal should not be displayed when user confirm email of ano
     .contains(
       'Click on the link below to confirm that ~FirstB_LastB1 and ~FirstA_LastA1 both belong to the same person'
     )
+})
+
+test('profile should be auto merged', async (t) => {
+  await t
+    .useRole(hasTaskUser)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(emailSectionPlusIconSelector)
+    .typeText(editEmailInputSelector, 'a@a.com')
+    .click(Selector('button').withText('Confirm').filterVisible())
+    .expect(Selector('a').withText('Merge Profiles').exists).notOk()
+    .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
+    .contains('A confirmation email has been sent to a@a.com')
+
+  const { superUserToken } = t.fixtureCtx
+  const messages = await getMessages(
+    { to: 'a@a.com', subject: 'OpenReview Account Linking - Duplicate Profile Found' },
+    superUserToken
+  )
+  const messageContent = messages[0].content.text
+  await t
+    .expect(messages[0].content.text)
+    .contains(
+      'This alternate email address is already associated with the user ~FirstA_LastA2'
+    )
+
+  const mergeLink = messageContent.split(`http://localhost:${process.env.NEXT_PORT}/`).pop().split('\n')[0]
+
+  // access merge link as non-related user
+  await t.useRole(userBRole).navigateTo(`http://localhost:${process.env.NEXT_PORT}/${mergeLink}`)
+    .expect(Selector('h1').withText('Error 403').exists).ok()
+    .expect(Selector('pre.error-message').textContent).eql('You are not authorized to perform this merge')
+
+  // access merge link as user which initiated the merge
+  await t.useRole(hasTaskUser).navigateTo(`http://localhost:${process.env.NEXT_PORT}/${mergeLink}`)
+    .expect(Selector('p').withText('Click Confirm Profile Merge button below to confirm merging ~FirstA_LastA2 to your profile.').exists).ok()
+    .expect(Selector('button').withText('Confirm Profile Merge').exists).ok()
+    .click(Selector('button').withText('Confirm Profile Merge'))
+    .expect(Selector('div.alert-content').innerText).contains('Thank you for confirming the profile merge.')
+
+  // email should have been added to hasTaskUser's profile
+  await t
+    .useRole(hasTaskUser)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
+    .expect(Selector('span').withText(userA.email).exists).ok()
+    .expect(Selector('span').withText(userA.email).parent().find('small').withText('Confirmed').exists).ok()
 })
 
 // eslint-disable-next-line no-unused-expressions
