@@ -124,14 +124,8 @@ const EmailsSection = ({
     if (profileId) {
       const linkData = { alternate: newEmail, username: profileId }
       try {
-        const result = await api.post('/user/confirm', linkData, { accessToken })
-        return promptMessage(
-          `A confirmation email has been sent to ${newEmail}${
-            result.duplicateProfile
-              ? `, this email is already associated with ${result.duplicateProfile} and both profiles could be merged`
-              : ''
-          }`
-        )
+        await api.post('/user/confirm', linkData, { accessToken })
+        return promptMessage(`A confirmation email has been sent to ${newEmail}`)
       } catch (error) {
         return promptError(error.message)
       }
