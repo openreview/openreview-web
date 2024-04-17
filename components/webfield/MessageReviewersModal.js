@@ -14,8 +14,8 @@ const MessageReviewersModal = ({
   selectedIds,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, venueId, officialReviewName, submissionName, emailReplyTo } =
-    useContext(WebFieldContext)
+  const { shortPhrase, venueId, officialReviewName, submissionName, emailReplyTo,
+    messageSubmissionReviewersInvitationId } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -42,6 +42,7 @@ const MessageReviewersModal = ({
         id: p.note.id,
         number: p.note.number,
         forum: p.note.forum,
+        messageSignature: p.messageSignature,
       }))
 
       const sendEmailPs = selectedIds.map((noteId) => {
@@ -52,6 +53,8 @@ const MessageReviewersModal = ({
         return api.post(
           '/messages',
           {
+            invitation: messageSubmissionReviewersInvitationId && messageSubmissionReviewersInvitationId.replace('{number}', rowData.number),
+            signature: messageSubmissionReviewersInvitationId && rowData.messageSignature,
             groups: reviewerIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),
@@ -111,9 +114,9 @@ const MessageReviewersModal = ({
     recipients.forEach((recipient) => {
       const { noteNumber } = recipient
       if (noteNumberReviewerIdsMap.has(noteNumber)) {
-        noteNumberReviewerIdsMap.get(noteNumber).push(recipient.reviewerProfileId)
+        noteNumberReviewerIdsMap.get(noteNumber).push(recipient.anonymizedGroup)
       } else {
-        noteNumberReviewerIdsMap.set(noteNumber, [recipient.reviewerProfileId])
+        noteNumberReviewerIdsMap.set(noteNumber, [recipient.anonymizedGroup])
       }
       if (recipient.preferredEmail in recipientsWithCount) {
         recipientsWithCount[recipient.preferredEmail].count += 1
