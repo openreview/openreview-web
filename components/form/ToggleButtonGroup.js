@@ -67,6 +67,8 @@ export default function ToggleButtonGroup({
     })
 
     setOptionStates(newOptionStates)
+
+    $('[data-toggle="tooltip"]').tooltip()
   }, [options, values])
 
   if (!options) return null
@@ -84,6 +86,8 @@ export default function ToggleButtonGroup({
           <label
             key={option.value}
             className={`btn btn-default ${selected ? 'active' : ''} state-${optionStates[i]}`}
+            data-toggle="tooltip"
+            title={option.label}
           >
             <input
               type="checkbox"
