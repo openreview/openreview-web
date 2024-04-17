@@ -24,6 +24,10 @@ const ActivateProfile = ({ appContext }) => {
   const loadActivatableProfile = async (token) => {
     try {
       const apiRes = await api.get(`/activatable/${token}`)
+      if (apiRes.activatable?.action !== 'new') {
+        promptError('Invalid profile activation link. Please check your email and try again.')
+        router.replace('/')
+      }
 
       setProfile(formatProfileData(apiRes.profile, true))
       setActivateToken(token)
