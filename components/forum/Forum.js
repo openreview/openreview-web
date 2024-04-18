@@ -848,6 +848,7 @@ export default function Forum({
                   replies={orderedReplies}
                   replyNoteMap={replyNoteMap}
                   displayOptionsMap={displayOptionsMap}
+                  numReplies={details.replyCount}
                   maxLength={maxLength}
                   layout={layout}
                   chatReplyNote={chatReplyNote}
@@ -959,6 +960,7 @@ function ForumReplies({
   replies,
   replyNoteMap,
   displayOptionsMap,
+  numReplies,
   maxLength,
   chatReplyNote,
   layout,
@@ -989,19 +991,32 @@ function ForumReplies({
     )
   }
 
-  // For other views, only show the first `maxLength` visible replies
-  const numReplies = Object.keys(replyNoteMap).length
-  let numVisible = 0
-  let i = 0
+  // For other views, only show the first `maxLength` visible replies, counting nested replies
+  let cutoffIndex = 0
   if (numReplies >= maxLength) {
-    while (numVisible < maxLength && i < replies.length) {
-      if (!displayOptionsMap[replies[i].id]?.hidden) {
+    let numVisible = 0
+    while (numVisible < maxLength && cutoffIndex < replies.length) {
+      const reply = replies[cutoffIndex]
+      if (!displayOptionsMap[reply.id]?.hidden) {
         numVisible += 1
+
+        for (let i = 0; i < reply.replies.length; i += 1) {
+          const nestedReply = reply.replies[i]
+          if (!displayOptionsMap[nestedReply.id]?.hidden) {
+            numVisible += 1
+            for (let j = 0; j < nestedReply.replies.length; j += 1) {
+              if (!displayOptionsMap[nestedReply.replies[j].id]?.hidden) {
+                numVisible += 1
+              }
+            }
+          }
+        }
       }
-      i += 1
+      cutoffIndex += 1
     }
   }
-  const slicedReplies = numVisible > 0 ? replies.slice(0, i) : replies
+
+  const slicedReplies = cutoffIndex > 0 ? replies.slice(0, cutoffIndex) : replies
   return slicedReplies.map((reply) => (
     <ForumReply
       key={reply.id}
