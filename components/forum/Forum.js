@@ -848,7 +848,7 @@ export default function Forum({
                   replies={orderedReplies}
                   replyNoteMap={replyNoteMap}
                   displayOptionsMap={displayOptionsMap}
-                  numReplies={details.replyCount}
+                  numTopLevelRepliesVisible={numTopLevelRepliesVisible}
                   maxLength={maxLength}
                   layout={layout}
                   chatReplyNote={chatReplyNote}
@@ -960,7 +960,7 @@ function ForumReplies({
   replies,
   replyNoteMap,
   displayOptionsMap,
-  numReplies,
+  numTopLevelRepliesVisible,
   maxLength,
   chatReplyNote,
   layout,
@@ -991,26 +991,14 @@ function ForumReplies({
     )
   }
 
-  // For other views, only show the first `maxLength` visible replies, counting nested replies
+  // For other views, only show the first `maxLength` visible replies
   let cutoffIndex = 0
-  if (numReplies >= maxLength) {
+  if (numTopLevelRepliesVisible > maxLength) {
     let numVisible = 0
     while (numVisible < maxLength && cutoffIndex < replies.length) {
       const reply = replies[cutoffIndex]
       if (!displayOptionsMap[reply.id]?.hidden) {
         numVisible += 1
-
-        for (let i = 0; i < reply.replies.length; i += 1) {
-          const nestedReply = reply.replies[i]
-          if (!displayOptionsMap[nestedReply.id]?.hidden) {
-            numVisible += 1
-            for (let j = 0; j < nestedReply.replies.length; j += 1) {
-              if (!displayOptionsMap[nestedReply.replies[j].id]?.hidden) {
-                numVisible += 1
-              }
-            }
-          }
-        }
       }
       cutoffIndex += 1
     }
