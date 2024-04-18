@@ -62,6 +62,7 @@ export default function Forum({
   })
   const [defaultFilters, setDefaultFilters] = useState(null)
   const [activeInvitation, setActiveInvitation] = useState(null)
+  const [maxLength, setMaxLength] = useState(250)
   const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [attachedToBottom, setAttachedToBottom] = useState(true)
@@ -91,6 +92,9 @@ export default function Forum({
     }))
   }
 
+  const numTopLevelRepliesVisible = repliesLoaded
+    ? orderedReplies.filter((note) => !displayOptionsMap[note.id]?.hidden).length
+    : 0
   const numRepliesHidden = useMemo(() => {
     if (!displayOptionsMap) return 0
     return Object.values(displayOptionsMap).reduce(
@@ -842,6 +846,7 @@ export default function Forum({
                   replies={orderedReplies}
                   replyNoteMap={replyNoteMap}
                   displayOptionsMap={displayOptionsMap}
+                  maxLength={maxLength}
                   layout={layout}
                   chatReplyNote={chatReplyNote}
                   setChatReplyNote={setChatReplyNote}
@@ -852,6 +857,18 @@ export default function Forum({
                 <LoadingSpinner inline />
               )}
             </ForumReplyContext.Provider>
+
+            {repliesLoaded && maxLength < numTopLevelRepliesVisible && layout !== 'chat' && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  className="btn btn-xs btn-default"
+                  onClick={() => setMaxLength(maxLength + 100)}
+                >
+                  View More Replies &rarr;
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -940,6 +957,7 @@ function ForumReplies({
   replies,
   replyNoteMap,
   displayOptionsMap,
+  maxLength,
   chatReplyNote,
   layout,
   updateNote,
@@ -969,7 +987,7 @@ function ForumReplies({
     )
   }
 
-  return replies.map((reply) => (
+  return replies.slice(0, maxLength).map((reply) => (
     <ForumReply
       key={reply.id}
       note={replyNoteMap[reply.id]}
