@@ -706,6 +706,8 @@ export default function Forum({
     if (nestingLevel) {
       setNesting(nestingLevel)
     }
+
+    setMaxLength(250)
   }, [query])
 
   // Toggle real-time updates
@@ -863,7 +865,7 @@ export default function Forum({
                 <button
                   type="button"
                   className="btn btn-xs btn-default"
-                  onClick={() => setMaxLength(maxLength + 100)}
+                  onClick={() => setMaxLength(maxLength + 50)}
                 >
                   View More Replies &rarr;
                 </button>
@@ -987,7 +989,20 @@ function ForumReplies({
     )
   }
 
-  return replies.slice(0, maxLength).map((reply) => (
+  // For other views, only show the first `maxLength` visible replies
+  const numReplies = Object.keys(replyNoteMap).length
+  let numVisible = 0
+  let i = 0
+  if (numReplies >= maxLength) {
+    while (numVisible < maxLength && i < replies.length) {
+      if (!displayOptionsMap[replies[i].id]?.hidden) {
+        numVisible += 1
+      }
+      i += 1
+    }
+  }
+  const slicedReplies = numVisible > 0 ? replies.slice(0, i) : replies
+  return slicedReplies.map((reply) => (
     <ForumReply
       key={reply.id}
       note={replyNoteMap[reply.id]}
