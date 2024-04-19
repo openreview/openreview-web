@@ -613,7 +613,7 @@ test('profile should be auto merged', async (t) => {
 
   // access merge link as user which initiated the merge
   await t.useRole(userARole).navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/merge?token=${userF.email}`)
-    .expect(Selector('p').withText('Click Confirm Profile Merge button below to confirm merging ~FirstF_LastF1 to your profile.').exists).ok()
+    .expect(Selector('p').withText('Click Confirm Profile Merge button below to confirm merging ~FirstF_LastF1<alternate@a.com> to your profile.').exists).ok()
     .expect(Selector('button').withText('Confirm Profile Merge').exists).ok()
     .click(Selector('button').withText('Confirm Profile Merge'))
     .expect(Selector('div.alert-content').innerText).contains('Thank you for confirming the profile merge.')

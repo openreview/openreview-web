@@ -14,7 +14,7 @@ const Merge = () => {
   const router = useRouter()
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [profileIdToMergeFrom, setProfileIdToMergeFrom] = useState(null)
+  const [profileToMergeFrom, setProfileToMergeFrom] = useState(null)
 
   const confirmProfileMerge = () => {
     setIsLoading(true)
@@ -34,7 +34,7 @@ const Merge = () => {
   const getActivatable = async () => {
     try {
       const {
-        activatable: { action, duplicateProfile, username },
+        activatable: { action, duplicateProfile, username, groupId },
       } = await api.get(`/activatable/${router.query.token}`)
       if (action !== 'merge') {
         setError({ statusCode: 403, message: 'Token is invalid.' })
@@ -47,7 +47,7 @@ const Merge = () => {
         })
         return
       }
-      setProfileIdToMergeFrom(duplicateProfile)
+      setProfileToMergeFrom({ profileId: duplicateProfile, email: groupId })
     } catch (apiError) {
       setError({ statusCode: apiError.status, message: apiError.message })
     }
@@ -63,7 +63,7 @@ const Merge = () => {
   }, [router.isReady, router.query])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
-  if (!user || !profileIdToMergeFrom) return <LoadingSpinner />
+  if (!user || !profileToMergeFrom) return <LoadingSpinner />
 
   return (
     <>
@@ -72,9 +72,14 @@ const Merge = () => {
       </header>
       <p className="mt-4">
         Click Confirm Profile Merge button below to confirm merging{' '}
-        <a href={`/profile?id=${profileIdToMergeFrom}`} target="_blank" rel="noreferrer">
-          <strong>{profileIdToMergeFrom}</strong>
-        </a>{' '}
+        <a
+          href={`/profile?id=${profileToMergeFrom.profileId}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <strong>{profileToMergeFrom.profileId}</strong>
+        </a>
+        <strong>{`<${profileToMergeFrom.email}> `}</strong>
         to your profile.
       </p>
       <p className="mb-4">
