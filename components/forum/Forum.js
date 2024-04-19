@@ -93,9 +93,6 @@ export default function Forum({
     }))
   }
 
-  const numTopLevelRepliesVisible = repliesLoaded
-    ? orderedReplies.filter((note) => !displayOptionsMap[note.id]?.hidden).length
-    : 0
   const numRepliesHidden = useMemo(() => {
     if (!displayOptionsMap) return 0
     return Object.values(displayOptionsMap).reduce(
@@ -867,7 +864,7 @@ export default function Forum({
               )}
             </ForumReplyContext.Provider>
 
-            {repliesLoaded && maxLength < numTopLevelRepliesVisible && layout !== 'chat' && (
+            {repliesLoaded && cutoffIndex.current < orderedReplies.length && layout !== 'chat' && (
               <div className="text-center">
                 <button
                   type="button"
