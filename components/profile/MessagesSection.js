@@ -1,4 +1,4 @@
-/* globals $,promptError: false */
+/* globals promptError: false */
 import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import Table from '../Table'
@@ -13,11 +13,12 @@ const MessagesSection = ({ email, accessToken }) => {
         '/messages',
         {
           to: email,
+          limit: 5,
         },
         { accessToken }
       )
 
-      setMessages(apiRes.messages.slice(0, 5) || [])
+      setMessages(apiRes.messages || [])
     } catch (apiError) {
       promptError(apiError.message)
     }
