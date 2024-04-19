@@ -71,6 +71,7 @@ export default function Forum({
   const [chatReplyNote, setChatReplyNote] = useState(null)
   const invitationMapRef = useRef(null)
   const signaturesMapRef = useRef(null)
+  const replyNoteCount = useRef(0)
   const cutoffIndex = useRef(0)
   const router = useRouter()
   const query = useQuery()
@@ -140,7 +141,7 @@ export default function Forum({
       {
         forum: forumId,
         trash: true,
-        details: 'replyCount,writable,signatures,invitation,presentation',
+        details: 'writable,signatures,invitation,presentation',
         domain,
       },
       { accessToken }
@@ -239,6 +240,7 @@ export default function Forum({
       signatures: Array.from(signatureGroupIds),
       readers: Array.from(readerGroupIds),
     })
+    replyNoteCount.current = notes.length - 1
   }
 
   const loadNewReplies = useCallback(async () => {
@@ -388,6 +390,7 @@ export default function Forum({
         ...preParentMap,
         [parentId]: parentMap[parentId] ? [...parentMap[parentId], noteId] : [noteId],
       }))
+      replyNoteCount.current += 1
     }
 
     // If updated note is a reply to an invitation with a maxReplies property,
@@ -770,7 +773,7 @@ export default function Forum({
               setNesting={setNesting}
               defaultCollapseLevel={defaultCollapseLevel}
               setDefaultCollapseLevel={setDefaultCollapseLevel}
-              numReplies={details.replyCount}
+              numReplies={replyNoteCount.current}
               numRepliesHidden={numRepliesHidden}
             />
           )}
@@ -781,7 +784,7 @@ export default function Forum({
               selectedFilters={selectedFilters}
               setSelectedFilters={setSelectedFilters}
               filterOptions={filterOptions}
-              numReplies={details.replyCount}
+              numReplies={replyNoteCount.current}
               numRepliesHidden={numRepliesHidden}
             />
           )}
@@ -994,17 +997,23 @@ function ForumReplies({
   }
 
   // For other views, only show the first `maxLength` visible replies
-  const slicedReplies = cutoffIndex < replies.length ? replies.slice(0, cutoffIndex) : replies
-  return slicedReplies.map((reply) => (
-    <ForumReply
-      key={reply.id}
-      note={replyNoteMap[reply.id]}
-      replies={reply.replies}
-      replyDepth={1}
-      parentNote={forumNote}
-      deleteOrRestoreNote={deleteOrRestoreNote}
-      updateNote={updateNote}
-      isDirectReplyToForum={true}
-    />
-  ))
+  // const slicedReplies = cutoffIndex < replies.length ? replies.slice(0, cutoffIndex) : replies
+  if (cutoffIndex === 0) return null
+
+  return replies.map((reply, i) => {
+    if (i > cutoffIndex) return null
+
+    return (
+      <ForumReply
+        key={reply.id}
+        note={replyNoteMap[reply.id]}
+        replies={reply.replies}
+        replyDepth={1}
+        parentNote={forumNote}
+        deleteOrRestoreNote={deleteOrRestoreNote}
+        updateNote={updateNote}
+        isDirectReplyToForum={true}
+      />
+    )
+  })
 }
