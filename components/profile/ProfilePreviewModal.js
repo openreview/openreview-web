@@ -7,6 +7,7 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import RecentPublications from './RecentPublications'
 import ProfileViewSection from './ProfileViewSection'
+import MessagesSection from './MessagesSection'
 
 const ProfilePreviewModal = ({
   profileToPreview,
@@ -71,6 +72,22 @@ const ProfilePreviewModal = ({
       {contentToShow?.includes('publications') && (
         <ProfileViewSection name="publications" title="Publications">
           <RecentPublications publications={publications} numPublicationsToShow={3} />
+        </ProfileViewSection>
+      )}
+      {contentToShow?.includes('messages') && (
+        <ProfileViewSection
+          name="messages"
+          title={
+            <a
+              href={`/messages?to=${profileToPreview.preferredEmail}&page=1`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Messages
+            </a>
+          }
+        >
+          <MessagesSection email={profileToPreview.preferredEmail} accessToken={accessToken} />
         </ProfileViewSection>
       )}
     </BasicModal>
