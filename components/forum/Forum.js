@@ -71,6 +71,7 @@ export default function Forum({
   const [chatReplyNote, setChatReplyNote] = useState(null)
   const invitationMapRef = useRef(null)
   const signaturesMapRef = useRef(null)
+  const cutoffIndex = useRef(0)
   const router = useRouter()
   const query = useQuery()
 
@@ -649,31 +650,37 @@ export default function Forum({
       }
     })
 
+    let numVisible = 0
+    let cutoff = 0
     orderedReplies.forEach((note) => {
       const { hidden } = newDisplayOptions[note.id]
       const allChildIds = note.replies.reduce(
-        (acc, reply) =>
-          acc.concat(
-            reply.id,
-            reply.replies.map((r) => r.id)
-          ),
+        (acc, reply) => acc.concat(reply.id, reply.replies.map((r) => r.id)),
         []
       )
-      const someChildrenVisible = allChildIds.some(
-        (childId) => !newDisplayOptions[childId].hidden
+      const numChildrenVisible = allChildIds.reduce(
+        (sum, childId) => (newDisplayOptions[childId].hidden ? sum : sum + 1),
+        0
       )
-      if (hidden && someChildrenVisible) {
+      if (hidden && numChildrenVisible > 0) {
         newDisplayOptions[note.id].hidden = false
         newDisplayOptions[note.id].collapsed = true
       }
+      if (!newDisplayOptions[note.id].hidden) {
+        numVisible += 1 + numChildrenVisible
+      }
+      if (numVisible <= maxLength) {
+        cutoff += 1
+      }
     })
     setDisplayOptionsMap(newDisplayOptions)
+    cutoffIndex.current = cutoff
 
     setTimeout(() => {
       typesetMathJax()
       $('[data-toggle="tooltip"]').tooltip({ html: true })
     }, 200)
-  }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations])
+  }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations, maxLength])
 
   useEffect(() => {
     if (!displayOptionsMap) return
@@ -696,6 +703,7 @@ export default function Forum({
     if (query.filter || query.search) {
       const startFilters = parseFilterQuery(query.filter, query.search)
       setSelectedFilters({ ...selectedFilters, ...startFilters })
+      setMaxLength(250)
     }
 
     if (query.sort) {
@@ -706,8 +714,6 @@ export default function Forum({
     if (nestingLevel) {
       setNesting(nestingLevel)
     }
-
-    setMaxLength(250)
   }, [query])
 
   // Toggle real-time updates
@@ -756,7 +762,10 @@ export default function Forum({
             <FilterForm
               forumId={id}
               selectedFilters={selectedFilters}
-              setSelectedFilters={setSelectedFilters}
+              setSelectedFilters={(newFilters) => {
+                setSelectedFilters(newFilters)
+                setMaxLength(250)
+              }}
               filterOptions={filterOptions}
               sort={sort}
               setSort={setSort}
@@ -807,9 +816,7 @@ export default function Forum({
               })}
             </div>
             <NoteEditor
-              note={
-                selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)
-              }
+              note={selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)}
               replyToNote={parentNote}
               invitation={activeInvitation}
               className="note-editor-reply depth-even"
@@ -848,8 +855,7 @@ export default function Forum({
                   replies={orderedReplies}
                   replyNoteMap={replyNoteMap}
                   displayOptionsMap={displayOptionsMap}
-                  numTopLevelRepliesVisible={numTopLevelRepliesVisible}
-                  maxLength={maxLength}
+                  cutoffIndex={cutoffIndex.current}
                   layout={layout}
                   chatReplyNote={chatReplyNote}
                   setChatReplyNote={setChatReplyNote}
@@ -960,8 +966,7 @@ function ForumReplies({
   replies,
   replyNoteMap,
   displayOptionsMap,
-  numTopLevelRepliesVisible,
-  maxLength,
+  cutoffIndex,
   chatReplyNote,
   layout,
   updateNote,
@@ -992,19 +997,7 @@ function ForumReplies({
   }
 
   // For other views, only show the first `maxLength` visible replies
-  let cutoffIndex = 0
-  if (numTopLevelRepliesVisible > maxLength) {
-    let numVisible = 0
-    while (numVisible < maxLength && cutoffIndex < replies.length) {
-      const reply = replies[cutoffIndex]
-      if (!displayOptionsMap[reply.id]?.hidden) {
-        numVisible += 1
-      }
-      cutoffIndex += 1
-    }
-  }
-
-  const slicedReplies = cutoffIndex > 0 ? replies.slice(0, cutoffIndex) : replies
+  const slicedReplies = cutoffIndex < replies.length ? replies.slice(0, cutoffIndex) : replies
   return slicedReplies.map((reply) => (
     <ForumReply
       key={reply.id}
