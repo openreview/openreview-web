@@ -71,7 +71,7 @@ const Merge = () => {
         <h1>Profile Merge</h1>
       </header>
       <p className="mt-4">
-        Click Confirm Profile Merge button below to confirm merging{' '}
+        Click the confirm button below to merge{' '}
         <a
           href={`/profile?id=${profileToMergeFrom.profileId}`}
           target="_blank"
@@ -80,14 +80,14 @@ const Merge = () => {
           <strong>{profileToMergeFrom.profileId}</strong>
         </a>
         <strong>{`<${profileToMergeFrom.email}> `}</strong>
-        to your profile.
+        into your user profile.
       </p>
       <p className="mb-4">
         Please contact{' '}
         <a href="mailto:info@openreview.net" target="_blank" rel="noreferrer">
           info@openreview.net
         </a>{' '}
-        if you didn&apos;t request for this profile merge.
+        if you didn&apos;t request for this profile to be merged with your account.
       </p>
 
       <div className="response-buttons">
