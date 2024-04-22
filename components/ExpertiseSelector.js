@@ -138,6 +138,27 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
     )
   }
 
+  const markTaskAsComplete = async () => {
+    try {
+      await api.post(
+        '/edges',
+        {
+          invitation: invitation.id,
+          readers: [venueId, user.profile.id],
+          writers: [venueId, user.profile.id],
+          signatures: [user.profile.id],
+          head: 'xf0zSBd2iufMg', // OpenReview paper
+          tail: user.profile.id,
+          label: invitationOption,
+        },
+        { accessToken, version: apiVersion }
+      )
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn(`Error marking invitation as completed: ${error.message}`)
+    }
+  }
+
   useEffect(() => {
     if (userLoading || !user) return
 
@@ -196,24 +217,7 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
       edgesMap &&
       Object.keys(edgesMap).length === 0
     ) {
-      try {
-        api.post(
-          '/edges',
-          {
-            invitation: invitation.id,
-            readers: [venueId, user.profile.id],
-            writers: [venueId, user.profile.id],
-            signatures: [user.profile.id],
-            head: 'xf0zSBd2iufMg', // OpenReview paper
-            tail: user.profile.id,
-            label: invitationOption,
-          },
-          { accessToken, version: apiVersion }
-        )
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.warn(`Error marking invitation as completed: ${error.message}`)
-      }
+      markTaskAsComplete()
     }
   }, [invitation.id, userNotes, edgesMap])
 
