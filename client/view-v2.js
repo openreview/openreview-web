@@ -2395,7 +2395,7 @@ module.exports = (function () {
     }
 
     const editContent = {}
-    Object.keys(invitation.edit.content).forEach((editContentFieldName) => {
+    Object.keys(invitation.edit.content ?? {}).forEach((editContentFieldName) => {
       if (shouldSetValue(`edit.content.${editContentFieldName}.value`)) {
         editContent[editContentFieldName] = {
           value: formContent.editContent?.[editContentFieldName],

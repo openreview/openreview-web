@@ -64,6 +64,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
   const modalEl = useRef(null)
   const dblpNames = useRef(null)
   const { accessToken } = useContext(UserContext)
+  const maxNumberofPublicationsToImport = 500
 
   const getExistingFromDblpPubs = (allDblpPubs) => {
     const existingPubsInAllDblpPubs = allDblpPubs.filter(
@@ -329,6 +330,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
                 }
                 selectedPublications={selectedPublications}
                 setSelectedPublications={setSelectedPublications}
+                maxNumberofPublicationsToImport={maxNumberofPublicationsToImport}
               />
             )}
 
@@ -344,7 +346,9 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
               {selectedPublications.length !== 0 && (
                 <strong>
                   {inflect(selectedPublications.length, 'publication', 'publications', true)}{' '}
-                  selected
+                  selected{' '}
+                  {selectedPublications.length === maxNumberofPublicationsToImport &&
+                    '(max allowed)'}
                 </strong>
               )}
             </div>

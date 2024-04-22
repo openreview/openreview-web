@@ -15,6 +15,7 @@ import useUser from '../../hooks/useUser'
 
 const MessageMemberModal = ({
   groupId,
+  domainId,
   groupDomainContent,
   membersToMessage,
   accessToken,
@@ -61,6 +62,8 @@ const MessageMemberModal = ({
       const result = await api.post(
         '/messages',
         {
+          invitation: `${domainId}/-/Edit`,
+          signature: domainId,
           groups: membersToMessage,
           subject,
           message: sanitizedMessage,
@@ -760,6 +763,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
 
       <MessageMemberModal
         groupId={group.id}
+        domainId={group.domain}
         groupDomainContent={group.details.domain?.content}
         membersToMessage={memberToMessage}
         accessToken={accessToken}

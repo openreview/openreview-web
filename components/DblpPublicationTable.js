@@ -15,6 +15,7 @@ export default function DblpPublicationTable({
   selectedPublications,
   setSelectedPublications,
   orPublicationsImportedByOtherProfile,
+  maxNumberofPublicationsToImport,
 }) {
   const { accessToken } = useContext(UserContext)
   const [profileIdsRequested, setProfileIdsRequested] = useState([])
@@ -52,7 +53,12 @@ export default function DblpPublicationTable({
       ?.map((p) => p.key)
       .filter((q) => pubsCouldImport.includes(q))
     if (e.target.checked) {
-      setSelectedPublications([...selectedPublications, ...publicationKeysOfYear])
+      setSelectedPublications(
+        [...selectedPublications, ...publicationKeysOfYear].slice(
+          0,
+          maxNumberofPublicationsToImport
+        )
+      )
     } else {
       setSelectedPublications(
         selectedPublications.filter((p) => !publicationKeysOfYear.includes(p))
@@ -63,7 +69,9 @@ export default function DblpPublicationTable({
 
   const selectPublication = (publicationKey) => (checked) => {
     if (checked) {
-      setSelectedPublications([...selectedPublications, publicationKey])
+      setSelectedPublications(
+        [...selectedPublications, publicationKey].slice(0, maxNumberofPublicationsToImport)
+      )
     } else {
       setSelectedPublications(selectedPublications.filter((p) => p !== publicationKey))
     }
@@ -112,7 +120,9 @@ export default function DblpPublicationTable({
 
   return (
     <>
-      <Table headings={headings} />
+      <Table
+        headings={pubsCouldImport.length <= maxNumberofPublicationsToImport ? headings : []}
+      />
       <div>
         <Accordion
           sections={Object.keys(dblpPublicationsGroupedByYear)
