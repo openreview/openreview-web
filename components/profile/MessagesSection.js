@@ -8,6 +8,7 @@ const MessagesSection = ({ email, accessToken }) => {
   const [isLoading, setIsLoading] = useState(true)
 
   const loadMessages = async () => {
+    setIsLoading(true)
     try {
       const apiRes = await api.get(
         '/messages',
