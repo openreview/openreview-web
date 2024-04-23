@@ -3,6 +3,7 @@
 import { Selector, Role } from 'testcafe'
 import {
   hasTaskUser,
+  mergeUser as userF,
   hasNoTaskUser as userB,
   getToken,
   getMessages,
@@ -17,6 +18,14 @@ const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =>
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), userB.email)
     .typeText(Selector('#password-input'), userB.password)
+    .click(Selector('button').withText('Login to OpenReview'))
+})
+
+const userARole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
+  await t
+    .click(Selector('a').withText('Login'))
+    .typeText(Selector('#email-input'), hasTaskUser.email)
+    .typeText(Selector('#password-input'), hasTaskUser.password)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
@@ -573,6 +582,50 @@ test('validate current history', async (t) => {
     .expect(Selector('.glyphicon-map-marker').exists).notOk()
 })
 
+test('profile should be auto merged', async (t) => {
+  await t
+    .useRole(userARole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(emailSectionPlusIconSelector)
+    .typeText(editEmailInputSelector, userF.email)
+    .click(Selector('button').withText('Confirm').filterVisible())
+    .expect(Selector('a').withText('Merge Profiles').exists).notOk()
+    .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
+    .contains(`A confirmation email has been sent to ${userF.email}`)
+
+  const { superUserToken } = t.fixtureCtx
+  const messages = await getMessages(
+    { to: userF.email, subject: 'OpenReview Account Linking - Duplicate Profile Found' },
+    superUserToken
+  )
+  const messageContent = messages[0].content.text
+  await t
+    .expect(messages[0].content.text)
+    .contains(
+      'This alternate email address is already associated with the user ~FirstF_LastF1'
+    )
+
+
+  // access merge link as non-related user
+  await t.useRole(userBRole).navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/merge?token=${userF.email}`)
+    .expect(Selector('h1').withText('Error 403').exists).ok()
+    .expect(Selector('pre.error-message').textContent).eql('You are not authorized to perform this merge.')
+
+  // access merge link as user which initiated the merge
+  await t.useRole(userARole).navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/merge?token=${userF.email}`)
+    .expect(Selector('p').withText('Click the confirm button below to merge ~FirstF_LastF1<alternate@a.com> into your user profile.').exists).ok()
+    .expect(Selector('button').withText('Confirm Profile Merge').exists).ok()
+    .click(Selector('button').withText('Confirm Profile Merge'))
+    .expect(Selector('div.alert-content').innerText).contains('Thank you for confirming the profile merge.')
+
+  // email should have been added to hasTaskUser's profile
+  await t
+    .useRole(userARole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
+    .expect(Selector('span').withText(userF.email).exists).ok()
+    .expect(Selector('span').withText(userF.email).parent().find('small').withText('Confirmed').exists).ok()
+})
+
 // eslint-disable-next-line no-unused-expressions
 fixture`Profile page different user`
 
@@ -616,50 +669,6 @@ test('#83 email status is missing', async (t) => {
     .contains('Confirmed') // not sure how the status will be added so selector may need to be updated
     .expect(Selector('section.emails').find('div.list-compact').innerText)
     .contains('Preferred')
-})
-test('#84 merge profile modal should fill in id', async (t) => {
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(emailSectionPlusIconSelector)
-    .typeText(editEmailInputSelector, 'a@a.com')
-    .click(Selector('button').withText('Confirm').filterVisible())
-    .click(Selector('a').withText('Merge Profiles').filterVisible())
-    .expect(
-      Selector('#profile-merge-modal').find('input').withAttribute('type', 'email').exists
-    )
-    .notOk()
-    .expect(
-      Selector('#profile-merge-modal')
-        .find('input')
-        .withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1').exists
-    )
-    .ok()
-    .expect(
-      Selector('#profile-merge-modal')
-        .find('input')
-        .withAttribute('value', '~FirstB_LastB1,~FirstA_LastA1')
-        .hasAttribute('readonly')
-    )
-    .ok()
-    .expect(
-      Selector('#profile-merge-modal')
-        .find('button')
-        .withText('Submit')
-        .hasAttribute('disabled')
-    )
-    .ok()
-    .typeText(
-      Selector('#profile-merge-modal').find('textarea').withAttribute('id', 'comment'),
-      'some comment'
-    )
-    .expect(
-      Selector('#profile-merge-modal')
-        .find('button')
-        .withText('Submit')
-        .hasAttribute('disabled')
-    )
-    .notOk()
 })
 test('#85 confirm profile email message', async (t) => {
   await t
