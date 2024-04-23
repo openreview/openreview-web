@@ -2222,6 +2222,7 @@ const UserModerationQueue = ({
           'relations',
           'expertise',
           'publications',
+          'messages',
         ]}
       />
     </div>
@@ -2236,19 +2237,14 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
     'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and complete the missing data.'
   const rejectionReasons = [
     {
-      value: 'inaccessibleHomepage',
-      label: 'Inaccessible Homepage',
-      rejectionText: `A valid Homepage is required. The homepage url provided in your profile is not accessible.\n\n${instructionText}`,
+      value: 'invalidEmail',
+      label: 'Missing Institution Email',
+      rejectionText: `An Institution email matching your latest career/education history is required.\n\n${instructionText}`,
     },
     {
       value: 'imPersonalHomepage',
       label: 'Impersonal Homepage',
-      rejectionText: `The homepage url provided in your profile doesn't display your name so your identity can't be determined.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidHomepageAndEmail',
-      label: 'Invalid Homepage + Missing Institution Email',
-      rejectionText: `A valid Homepage and institutional email matching your latest career/education history are required.\n\n${instructionText}`,
+      rejectionText: `The homepage url provided in your profile is invalid or does not display your name so your identity can't be determined.\n\n${instructionText}`,
     },
     {
       value: 'imPersonalHomepageAndEmail',
@@ -2256,14 +2252,19 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
       rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required.\n\n${instructionText}`,
     },
     {
+      value: 'repeatedInvalidInfo',
+      label: 'Repeated Invalid Info',
+      rejectionText: `Keep submiting invalid info is a violation of OpenReview's terms and conditions which may lead to termination of your access to the system.\n\n${instructionText}`,
+    },
+    {
+      value: 'requestEmailVerification',
+      label: 'Request Email Verification',
+      rejectionText: `Please send us an email from the institution email you have in profile so that we can verify your identity.\n\n${instructionText}`,
+    },
+    {
       value: 'invalidName',
       label: 'Invalid Name',
       rejectionText: `A valid name is required, and must match the one listed on your provided personal homepages.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidEmail',
-      label: 'Missing Institution Email',
-      rejectionText: `An Institution email is required.\n\n${instructionText}`,
     },
   ]
 
