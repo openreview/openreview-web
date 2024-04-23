@@ -11,7 +11,13 @@ import BasicHeader from './BasicHeader'
 import { ReviewerConsoleNoteReviewStatus } from './NoteReviewStatus'
 import NoteSummary from './NoteSummary'
 import useUser from '../../hooks/useUser'
-import { getNumberFromGroup, prettyField, prettyId, prettyInvitationId } from '../../lib/utils'
+import {
+  getNumberFromGroup,
+  pluralizeString,
+  prettyField,
+  prettyId,
+  prettyInvitationId,
+} from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import useQuery from '../../hooks/useQuery'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
@@ -146,7 +152,9 @@ const AssignedPaperRow = ({
   } = useContext(WebFieldContext)
   const notesCount = notes.length
   const referrerUrl = encodeURIComponent(
-    `[Reviewer Console](/group?id=${venueId}/${reviewerName}#assigned-papers)`
+    `[${prettyField(
+      reviewerName
+    )} Console](/group?id=${venueId}/${reviewerName}#assigned-${submissionName})`
   )
   const officialReviewInvitaitonId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
   const officialReviewInvitation = officialReviewInvitations?.find(
@@ -182,7 +190,7 @@ const AssignedPaperRow = ({
       </td>
       <td>
         <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={true} />
-        {areaChairIds?.length && (
+        {areaChairIds?.length > 0 && (
           <AreaChairInfo areaChairName={areaChairName} areaChairIds={areaChairIds} />
         )}
       </td>
@@ -231,7 +239,9 @@ const AssignedPaperRow = ({
 
 const ReviewerConsoleTasks = ({ venueId, reviewerName, submissionName, noteNumbers }) => {
   const referrer = `${encodeURIComponent(
-    `[Reviewer Console](/group?id=${venueId}/${reviewerName}#reviewer-tasks)`
+    `[${prettyField(
+      reviewerName
+    )} Console](/group?id=${venueId}/${reviewerName}#${reviewerName}-tasks)`
   )}`
 
   return (
@@ -392,7 +402,7 @@ const ReviewerConsole = ({ appContext }) => {
               }
             })
             result.groups.forEach((anonGroup) => {
-              if (anonGroup.id.includes(`/Area_Chair_`)) {
+              if (anonGroup.id.includes(`/${areaChairName}_`)) {
                 // TODO: parametrize anon group name
                 const num = getNumberFromGroup(anonGroup.id, submissionName)
                 if (areaChairMap[num]) {
@@ -514,7 +524,8 @@ const ReviewerConsole = ({ appContext }) => {
       !group ||
       !submissionInvitationId ||
       !submissionName ||
-      !venueId
+      !venueId ||
+      !reviewerName
     )
       return
     loadData()
@@ -540,7 +551,9 @@ const ReviewerConsole = ({ appContext }) => {
     hasPaperRanking,
   }).filter(([key, value]) => value === undefined)
   if (missingConfig?.length || recruitmentInvitationId === undefined) {
-    const errorMessage = `Reviewer Console is missing required properties: ${
+    const errorMessage = `${
+      reviewerName ? `${prettyId(reviewerName)} ` : ''
+    }Console is missing required properties: ${
       missingConfig.length
         ? missingConfig.map((p) => p[0]).join(', ')
         : 'recruitmentInvitationId'
@@ -559,16 +572,16 @@ const ReviewerConsole = ({ appContext }) => {
       />
       <Tabs>
         <TabList>
-          <Tab id="assigned-papers" active>
-            Assigned Papers
+          <Tab id={`assigned-${submissionName}`} active>
+            {`Assigned ${pluralizeString(submissionName)}`}
           </Tab>
-          <Tab id="reviewer-tasks" onClick={() => setShowTasks(true)}>
-            Reviewer Tasks
+          <Tab id={`${reviewerName}-tasks`} onClick={() => setShowTasks(true)}>
+            {`${prettyField(reviewerName)} Tasks`}
           </Tab>
         </TabList>
 
         <TabPanels>
-          <TabPanel id="assigned-papers">
+          <TabPanel id={`assigned-${submissionName}`}>
             {reviewerConsoleData.notes?.length === 0 ? (
               <p className="empty-message">
                 You have no assigned papers. Please check again after the paper assignment
@@ -605,7 +618,7 @@ const ReviewerConsole = ({ appContext }) => {
             )}
           </TabPanel>
 
-          <TabPanel id="reviewer-tasks">
+          <TabPanel id={`${reviewerName}-tasks`}>
             {showTasks && (
               <ReviewerConsoleTasks
                 venueId={venueId}
