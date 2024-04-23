@@ -658,6 +658,10 @@ export default function Forum({
     let numVisible = 0
     let cutoff = 0
     orderedReplies.forEach((note) => {
+      if (numVisible < maxLength) {
+        cutoff += 1
+      }
+
       let numChildrenVisible = 0
       for (let i = 0; i < note.replies.length; i += 1) {
         const childNote = note.replies[i]
@@ -677,9 +681,6 @@ export default function Forum({
       }
       if (!newDisplayOptions[note.id].hidden) {
         numVisible += 1 + numChildrenVisible
-      }
-      if (numVisible <= maxLength) {
-        cutoff += 1
       }
     })
     setDisplayOptionsMap(newDisplayOptions)
