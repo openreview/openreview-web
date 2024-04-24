@@ -93,6 +93,7 @@ export default function Forum({
   const invitationMapRef = useRef(null)
   const signaturesMapRef = useRef(null)
   const replyNoteCount = useRef(0)
+  const numRepliesVisible = useRef(0)
   const cutoffIndex = useRef(0)
   const router = useRouter()
   const query = useQuery()
@@ -655,13 +656,12 @@ export default function Forum({
       }
     })
 
-    let numVisible = 0
+    // Adjust visibilty of parent notes based on visibility of children and calculate where to cut
+    // of the list of replies, based on how many total notes are visible.
     let cutoff = 0
-    orderedReplies.forEach((note) => {
-      if (numVisible < maxLength) {
-        cutoff += 1
-      }
-
+    let numVisible = 0
+    while (numVisible < maxLength && cutoff < orderedReplies.length) {
+      const note = orderedReplies[cutoff]
       let numChildrenVisible = 0
       for (let i = 0; i < note.replies.length; i += 1) {
         const childNote = note.replies[i]
@@ -682,9 +682,11 @@ export default function Forum({
       if (!newDisplayOptions[note.id].hidden) {
         numVisible += 1 + numChildrenVisible
       }
-    })
+      cutoff += 1
+    }
     setDisplayOptionsMap(newDisplayOptions)
     cutoffIndex.current = cutoff
+    numRepliesVisible.current = numVisible
 
     setTimeout(() => {
       typesetMathJax()
@@ -888,7 +890,14 @@ export default function Forum({
                   <button
                     type="button"
                     className="btn btn-xs btn-default"
-                    onClick={() => setMaxLength(maxLength + 50)}
+                    onClick={() => {
+                      const newMaxLength = maxLength + 50
+                      if (newMaxLength < numRepliesVisible.current) {
+                        setMaxLength(numRepliesVisible.current + 50)
+                      } else {
+                        setMaxLength(newMaxLength)
+                      }
+                    }}
                   >
                     View More Replies &rarr;
                   </button>
