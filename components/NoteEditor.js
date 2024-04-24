@@ -607,14 +607,12 @@ const NoteEditor = ({
   }
 
   useEffect(() => {
-    if (userLoading) return
+    if (userLoading || !invitation?.edit?.note?.content) return
 
     if (!user) {
       promptLogin()
       return
     }
-
-    if (!invitation?.edit?.note?.content) return
 
     setFields(
       Object.entries(invitation.edit.note.content).sort(

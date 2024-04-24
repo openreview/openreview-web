@@ -598,11 +598,10 @@ test('profile should be auto merged', async (t) => {
     { to: userF.email, subject: 'OpenReview Account Linking - Duplicate Profile Found' },
     superUserToken
   )
-  const messageContent = messages[0].content.text
   await t
     .expect(messages[0].content.text)
     .contains(
-      'This alternate email address is already associated with the user ~FirstF_LastF1'
+      'This alternate email address is already associated with the user [~FirstF_LastF1]'
     )
 
 

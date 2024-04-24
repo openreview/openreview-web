@@ -1,3 +1,4 @@
+/* globals $: false */
 import { useEffect, useState } from 'react'
 import truncate from 'lodash/truncate'
 import findIndex from 'lodash/findIndex'
@@ -84,6 +85,14 @@ export default function ToggleButtonGroup({
           <label
             key={option.value}
             className={`btn btn-default ${selected ? 'active' : ''} state-${optionStates[i]}`}
+            data-toggle="tooltip"
+            title={option.label}
+            onMouseEnter={(e) => {
+              $(e.target).tooltip({ container: 'body' })
+            }}
+            onMouseLeave={(e) => {
+              $(e.target).tooltip('hide')
+            }}
           >
             <input
               type="checkbox"

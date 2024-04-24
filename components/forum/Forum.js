@@ -33,6 +33,27 @@ import {
   replaceFilterWildcards,
 } from '../../lib/forum-utils'
 
+const checkGroupMatch = (groupId, replyGroup) => {
+  if (groupId.includes('.*')) {
+    return new RegExp(groupId).test(replyGroup)
+  }
+  return groupId === replyGroup
+}
+
+const checkSignaturesMatch = (selectedSignatures, replySignature) =>
+  selectedSignatures.some((sig) => checkGroupMatch(sig, replySignature))
+
+const checkReadersMatch = (selectedReaders, replyReaders) =>
+  selectedReaders.every((reader) =>
+    replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
+  )
+
+// This function is also used for matching invitations
+const checkExReadersMatch = (selectedReaders, replyReaders) =>
+  selectedReaders.some((reader) =>
+    replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
+  )
+
 export default function Forum({
   forumNote,
   selectedNoteId,
@@ -62,6 +83,7 @@ export default function Forum({
   })
   const [defaultFilters, setDefaultFilters] = useState(null)
   const [activeInvitation, setActiveInvitation] = useState(null)
+  const [maxLength, setMaxLength] = useState(200)
   const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [attachedToBottom, setAttachedToBottom] = useState(true)
@@ -70,6 +92,9 @@ export default function Forum({
   const [chatReplyNote, setChatReplyNote] = useState(null)
   const invitationMapRef = useRef(null)
   const signaturesMapRef = useRef(null)
+  const replyNoteCount = useRef(0)
+  const numRepliesVisible = useRef(0)
+  const cutoffIndex = useRef(0)
   const router = useRouter()
   const query = useQuery()
 
@@ -138,7 +163,7 @@ export default function Forum({
       {
         forum: forumId,
         trash: true,
-        details: 'replyCount,writable,signatures,invitation,presentation',
+        details: 'writable,signatures,invitation,presentation',
         domain,
       },
       { accessToken }
@@ -237,6 +262,7 @@ export default function Forum({
       signatures: Array.from(signatureGroupIds),
       readers: Array.from(readerGroupIds),
     })
+    replyNoteCount.current = notes.length - 1
   }
 
   const loadNewReplies = useCallback(async () => {
@@ -386,6 +412,7 @@ export default function Forum({
         ...preParentMap,
         [parentId]: parentMap[parentId] ? [...parentMap[parentId], noteId] : [noteId],
       }))
+      replyNoteCount.current += 1
     }
 
     // If updated note is a reply to an invitation with a maxReplies property,
@@ -590,23 +617,7 @@ export default function Forum({
     if (!replyNoteMap || !orderedReplies || !displayOptionsMap) return
 
     const newDisplayOptions = {}
-    const checkGroupMatch = (groupId, replyGroup) => {
-      if (groupId.includes('.*')) {
-        return new RegExp(groupId).test(replyGroup)
-      }
-      return groupId === replyGroup
-    }
-    const checkSignaturesMatch = (selectedSignatures, replySignature) =>
-      selectedSignatures.some((sig) => checkGroupMatch(sig, replySignature))
-    const checkReadersMatch = (selectedReaders, replyReaders) =>
-      selectedReaders.every((reader) =>
-        replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
-      )
-    // This function is also used for matching invitations
-    const checkExReadersMatch = (selectedReaders, replyReaders) =>
-      selectedReaders.some((reader) =>
-        replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
-      )
+
     // Special case for chat layout: make sure all participants in the chat can read all the notes
     let chatReaders = null
     if (expandedInvitations?.length > 0) {
@@ -645,31 +656,43 @@ export default function Forum({
       }
     })
 
-    orderedReplies.forEach((note) => {
-      const { hidden } = newDisplayOptions[note.id]
-      const allChildIds = note.replies.reduce(
-        (acc, reply) =>
-          acc.concat(
-            reply.id,
-            reply.replies.map((r) => r.id)
-          ),
-        []
-      )
-      const someChildrenVisible = allChildIds.some(
-        (childId) => !newDisplayOptions[childId].hidden
-      )
-      if (hidden && someChildrenVisible) {
+    // Adjust visibilty of parent notes based on visibility of children and calculate where to cut
+    // of the list of replies, based on how many total notes are visible.
+    let cutoff = 0
+    let numVisible = 0
+    while (numVisible < maxLength && cutoff < orderedReplies.length) {
+      const note = orderedReplies[cutoff]
+      let numChildrenVisible = 0
+      for (let i = 0; i < note.replies.length; i += 1) {
+        const childNote = note.replies[i]
+        if (!newDisplayOptions[childNote.id].hidden) {
+          numChildrenVisible += 1
+        }
+        for (let j = 0; j < childNote.replies.length; j += 1) {
+          const grandchildNote = childNote.replies[j]
+          if (!newDisplayOptions[grandchildNote.id].hidden) {
+            numChildrenVisible += 1
+          }
+        }
+      }
+      if (newDisplayOptions[note.id].hidden && numChildrenVisible > 0) {
         newDisplayOptions[note.id].hidden = false
         newDisplayOptions[note.id].collapsed = true
       }
-    })
+      if (!newDisplayOptions[note.id].hidden) {
+        numVisible += 1 + numChildrenVisible
+      }
+      cutoff += 1
+    }
     setDisplayOptionsMap(newDisplayOptions)
+    cutoffIndex.current = cutoff
+    numRepliesVisible.current = numVisible
 
     setTimeout(() => {
       typesetMathJax()
       $('[data-toggle="tooltip"]').tooltip({ html: true })
     }, 200)
-  }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations])
+  }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations, maxLength])
 
   useEffect(() => {
     if (!displayOptionsMap) return
@@ -692,6 +715,7 @@ export default function Forum({
     if (query.filter || query.search) {
       const startFilters = parseFilterQuery(query.filter, query.search)
       setSelectedFilters({ ...selectedFilters, ...startFilters })
+      setMaxLength(250)
     }
 
     if (query.sort) {
@@ -750,7 +774,10 @@ export default function Forum({
             <FilterForm
               forumId={id}
               selectedFilters={selectedFilters}
-              setSelectedFilters={setSelectedFilters}
+              setSelectedFilters={(newFilters) => {
+                setSelectedFilters(newFilters)
+                setMaxLength(250)
+              }}
               filterOptions={filterOptions}
               sort={sort}
               setSort={setSort}
@@ -758,7 +785,7 @@ export default function Forum({
               setNesting={setNesting}
               defaultCollapseLevel={defaultCollapseLevel}
               setDefaultCollapseLevel={setDefaultCollapseLevel}
-              numReplies={details.replyCount}
+              numReplies={replyNoteCount.current}
               numRepliesHidden={numRepliesHidden}
             />
           )}
@@ -769,7 +796,7 @@ export default function Forum({
               selectedFilters={selectedFilters}
               setSelectedFilters={setSelectedFilters}
               filterOptions={filterOptions}
-              numReplies={details.replyCount}
+              numReplies={replyNoteCount.current}
               numRepliesHidden={numRepliesHidden}
             />
           )}
@@ -801,9 +828,7 @@ export default function Forum({
               })}
             </div>
             <NoteEditor
-              note={
-                selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)
-              }
+              note={selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)}
               replyToNote={parentNote}
               invitation={activeInvitation}
               className="note-editor-reply depth-even"
@@ -839,9 +864,14 @@ export default function Forum({
               {repliesLoaded ? (
                 <ForumReplies
                   forumNote={forumNote}
-                  replies={orderedReplies}
+                  replies={
+                    layout === 'chat' || cutoffIndex.current >= orderedReplies.length
+                      ? orderedReplies
+                      : orderedReplies.slice(0, cutoffIndex.current)
+                  }
                   replyNoteMap={replyNoteMap}
                   displayOptionsMap={displayOptionsMap}
+                  cutoffIndex={cutoffIndex.current}
                   layout={layout}
                   chatReplyNote={chatReplyNote}
                   setChatReplyNote={setChatReplyNote}
@@ -852,6 +882,27 @@ export default function Forum({
                 <LoadingSpinner inline />
               )}
             </ForumReplyContext.Provider>
+
+            {repliesLoaded &&
+              cutoffIndex.current < orderedReplies.length &&
+              layout !== 'chat' && (
+                <div className="text-center">
+                  <button
+                    type="button"
+                    className="btn btn-xs btn-default"
+                    onClick={() => {
+                      const newMaxLength = maxLength + 50
+                      if (newMaxLength < numRepliesVisible.current) {
+                        setMaxLength(numRepliesVisible.current + 50)
+                      } else {
+                        setMaxLength(newMaxLength)
+                      }
+                    }}
+                  >
+                    View More Replies &rarr;
+                  </button>
+                </div>
+              )}
           </div>
         </div>
       </div>
