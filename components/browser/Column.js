@@ -589,7 +589,7 @@ export default function Column(props) {
       const { filteredRows, queryIsInvalid } = filterCollections(
         colItems.map((p) => {
           const customLoad = getQuota(p)
-          const quotaNotReached = !customLoad || p.traverseEdgesCount < customLoad
+          const quotaNotReached = customLoad === undefined || p.traverseEdgesCount < customLoad
 
           return {
             ...p,
