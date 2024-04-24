@@ -70,6 +70,8 @@ const MessageMemberModal = ({
           parentGroup: groupId,
           ...(cleanReplytoEmail && { replyTo: cleanReplytoEmail }),
           useJob: true,
+          fromName: groupDomainContent?.subtitle?.value,
+          fromEmail: `${groupDomainContent?.subtitle?.value.replace(' ', '').toLowerCase()}-notifications@openreview.net`,
         },
         { accessToken }
       )
