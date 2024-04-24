@@ -4,20 +4,53 @@ import api from '../lib/api-client'
 import { reRenderWithWebFieldContext, renderWithWebFieldContext } from './util'
 import ReviewerConsole from '../components/webfield/ReviewerConsole'
 
-jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
-jest.mock('../hooks/useQuery', () => () => ({}))
-jest.mock('../components/webfield/NoteSummary', () => (props) => <span>note summary</span>)
-jest.mock('../components/webfield/NoteReviewStatus', () => ({
-  ReviewerConsoleNoteReviewStatus: (props) => <span>note review status</span>,
-}))
+let useUserReturnValue
+let routerParams
+let noteSummaryProps
+let noteReviewStatusProps
+
 jest.mock('next/router', () => ({
-  useRouter: jest.fn(),
+  useRouter: () => ({
+    replace: (params) => {
+      routerParams = params
+      return jest.fn()
+    },
+  }),
+}))
+jest.mock('../hooks/useUser', () => () => useUserReturnValue)
+jest.mock('../hooks/useQuery', () => () => ({}))
+jest.mock('../components/webfield/NoteSummary', () => (props) => {
+  noteSummaryProps(props)
+  return <span>note summary</span>
+})
+jest.mock('../components/webfield/NoteReviewStatus', () => ({
+  ReviewerConsoleNoteReviewStatus: (props) => {
+    noteReviewStatusProps(props)
+    return <span>note review status</span>
+  },
 }))
 
 global.promptError = jest.fn()
 global.typesetMathJax = jest.fn()
 
+beforeEach(() => {
+  useUserReturnValue = { user: {}, accessToken: 'some token' }
+  routerParams = null
+  noteSummaryProps = jest.fn()
+  noteReviewStatusProps = jest.fn()
+})
+
 describe('ReviewerConsole', () => {
+  test('redirect to login page when user has not logged in', () => {
+    useUserReturnValue = { user: null, accessToken: null }
+    const providerProps = { value: { reviewerName: undefined } }
+    renderWithWebFieldContext(
+      <ReviewerConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+    expect(routerParams).toContain('/login')
+  })
+
   test('show missing config error when config does not have reviewerName', () => {
     const providerProps = { value: { reviewerName: undefined } }
     renderWithWebFieldContext(
@@ -138,7 +171,7 @@ describe('ReviewerConsole', () => {
     ).toBeInTheDocument()
   })
 
-  test('show assigned papers tab and tasks tab with correct name', async () => {
+  test('show assigned papers tab and tasks tab with correct name (basedo n submission name and reviewer name)', async () => {
     api.getAll = jest.fn(() => Promise.resolve([]))
     api.get = jest.fn((path) => {
       switch (path) {
@@ -185,11 +218,127 @@ describe('ReviewerConsole', () => {
 
     expect(api.getAll).toHaveBeenCalledTimes(1) // get member groups
     await waitFor(() => {
+      expect(screen.getByRole('tab', { name: 'Assigned Submissions' })).toBeInTheDocument()
+      expect(screen.getByRole('tab', { name: 'Program Committee Tasks' })).toBeInTheDocument()
+      // default to assigned papers tab
       expect(
         screen.getByText(
           'You have no assigned papers. Please check again after the paper assignment process is complete.'
         )
       ).toBeInTheDocument()
+    })
+  })
+
+  test('show note info and note review info (no review))', async () => {
+    api.getAll = jest.fn(() =>
+      Promise.resolve([
+        // anon groups
+        ...[...Array(1).keys()].map((i) => ({
+          id: `AAAI.org/2025/Conference/Submission${i + 1}/Program_Committee_${Math.random()
+            .toString(36)
+            .substring(2, 6)}`,
+        })),
+        // per paper reviewers group
+        ...[...Array(1).keys()].map((i) => ({
+          id: `AAAI.org/2025/Conference/Submission${i + 1}/Program_Committee`,
+        })),
+      ])
+    )
+    api.get = jest.fn((path) => {
+      switch (path) {
+        case '/edges':
+          return Promise.resolve({ edges: [] })
+        case '/notes': // assigned notes
+          return Promise.resolve({
+            notes: [
+              { id: 'paper1Id', forum: 'paper1Id', number: 1, details: { directReplies: [] } },
+            ],
+          })
+        case '/groups': // anon AC and per paper ACs group
+          return Promise.resolve({
+            groups: [
+              // anon AC group
+              ...[...Array(1).keys()].map((i) => ({
+                id: `AAAI.org/2025/Conference/Submission${
+                  i + 1
+                }/Senior_Program_Committee_${Math.random().toString(36).substring(2, 6)}`,
+                members: ['~Test_Senior_Program_Committee1'],
+              })),
+              // per paper ACs group
+              ...[...Array(1).keys()].map((i) => ({
+                id: `AAAI.org/2025/Conference/Submission${i + 1}/Senior_Program_Committee`,
+                members: ['~Test_Senior_Program_Committee1'],
+              })),
+            ],
+          })
+        case '/invitations':
+          return Promise.resolve({
+            invitations: [
+              {
+                id: `AAAI.org/2025/Conference/Submission1/-/Official_Review`,
+              },
+            ],
+          })
+        default:
+          return null
+      }
+    })
+
+    const providerProps = {
+      value: {
+        header: {
+          title: 'Program Committee Console',
+          instruction: 'some instructions',
+        },
+        entity: { id: 'AAAI.org/2025/Conference/Program_Committee' },
+        venueId: 'AAAI.org/2025/Conference',
+        reviewerName: 'Program_Committee',
+        officialReviewName: 'Official_Review',
+        reviewRatingName: 'rating',
+        areaChairName: 'Senior_Program_Committee',
+        submissionName: 'Submission',
+        submissionInvitationId: 'AAAI.org/2025/Conference/-/Submission',
+        recruitmentInvitationId: 'AAAI.org/2025/Conference/Program_Committee/-/Recruitment',
+        customMaxPapersInvitationId:
+          'AAAI.org/2025/Conference/Program_Committee/-/Custom_Max_Papers',
+        reviewLoad: '',
+        hasPaperRanking: false,
+        reviewDisplayFields: undefined,
+      },
+    }
+
+    renderWithWebFieldContext(
+      <ReviewerConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('row')).toHaveLength(2) // header + 1 note
+      expect(screen.getByText('note summary')).toBeInTheDocument()
+      expect(screen.getByText('note review status')).toBeInTheDocument()
+      expect(
+        screen.getByRole('link', { value: 'Test Senior Program Committee' })
+      ).toHaveAttribute('href', '/profile?id=~Test_Senior_Program_Committee1')
+
+      expect(noteSummaryProps).toHaveBeenCalledWith(
+        expect.objectContaining({ note: expect.objectContaining({ id: 'paper1Id' }) })
+      )
+      expect(noteReviewStatusProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          invitationUrl: expect.stringContaining(
+            '&invitationId=AAAI.org/2025/Conference/Submission1/-/Official_Review'
+          ),
+        })
+      )
+      expect(noteReviewStatusProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          invitationUrl: expect.stringContaining(
+            encodeURIComponent(
+              '[Program Committee Console](/group?id=AAAI.org/2025/Conference/Program_Committee#assigned-Submission)'
+            )
+          ),
+        })
+      )
     })
   })
 })
