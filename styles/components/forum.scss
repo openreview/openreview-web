@@ -266,6 +266,9 @@ main.forum {
     .btn-group .btn + .btn {
       margin-left: -2px;
     }
+    .btn-group div.tooltip + .btn {
+      margin-left: -2px;
+    }
     .btn {
       background-color: #fff;
       border-color: lighten(constants.$mediumBlue, 10%);
