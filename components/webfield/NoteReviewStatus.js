@@ -22,6 +22,7 @@ export const ReviewerConsoleNoteReviewStatus = ({
   officialReview,
   invitationUrl,
   reviewDisplayFields,
+  officialReviewName = 'Official_Review',
 }) => (
   <div>
     {editUrl ? (
@@ -47,13 +48,13 @@ export const ReviewerConsoleNoteReviewStatus = ({
           )
         })}
         <p>
-          <Link href={editUrl}>Edit Official Review</Link>
+          <Link href={editUrl}>{`Edit ${prettyField(officialReviewName)}`}</Link>
         </p>
       </>
     ) : (
       invitationUrl && (
         <h4>
-          <Link href={invitationUrl}>Submit Official Review</Link>
+          <Link href={invitationUrl}>{`Submit ${officialReviewName}`}</Link>
         </h4>
       )
     )}
@@ -141,7 +142,9 @@ Click on the link below to go to the review page:\n\n{{submit_review_link}}
       await api.post(
         '/messages',
         {
-          invitation: messageSubmissionReviewersInvitationId && messageSubmissionReviewersInvitationId.replace('{number}', note.number),
+          invitation:
+            messageSubmissionReviewersInvitationId &&
+            messageSubmissionReviewersInvitationId.replace('{number}', note.number),
           signature: messageSubmissionReviewersInvitationId && messageSignature,
           groups: [reviewer.anonymizedGroup],
           subject,

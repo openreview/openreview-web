@@ -209,6 +209,7 @@ const AssignedPaperRow = ({
               : null
           }
           reviewDisplayFields={reviewDisplayFields}
+          officialReviewName={officialReviewName}
         />
         {paperRankingTags && (
           <PaperRankingDropdown
@@ -381,6 +382,9 @@ const ReviewerConsole = ({ appContext }) => {
     // #endregion
 
     // #region get area chair groups
+    const singularAreaChairName = areaChairName.endsWith('s')
+      ? areaChairName.slice(0, -1)
+      : areaChairName
     const getAreaChairGroupsP = areaChairName
       ? api
           .get(
@@ -402,7 +406,7 @@ const ReviewerConsole = ({ appContext }) => {
               }
             })
             result.groups.forEach((anonGroup) => {
-              if (anonGroup.id.includes(`/${areaChairName}_`)) {
+              if (anonGroup.id.includes(`/${singularAreaChairName}_`)) {
                 // TODO: parametrize anon group name
                 const num = getNumberFromGroup(anonGroup.id, submissionName)
                 if (areaChairMap[num]) {
