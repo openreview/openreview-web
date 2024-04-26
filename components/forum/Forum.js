@@ -89,7 +89,6 @@ export default function Forum({
   const [maxLength, setMaxLength] = useState(200)
   const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
   const [scrolled, setScrolled] = useState(false)
-  const [attachedToBottom, setAttachedToBottom] = useState(true)
   const [enableLiveUpdate, setEnableLiveUpdate] = useState(false)
   const [latestMdate, setLatestMdate] = useState(null)
   const [chatReplyNote, setChatReplyNote] = useState(null)
@@ -103,6 +102,7 @@ export default function Forum({
   const replyNoteCount = useRef(0)
   const numRepliesVisible = useRef(0)
   const cutoffIndex = useRef(0)
+  const attachedToBottom = useRef(true)
   const router = useRouter()
   const query = useQuery()
 
@@ -377,13 +377,9 @@ export default function Forum({
     // For chat layout, check if the user is scrolled before updating state
     const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
     if (containerElem) {
-      const atBottom =
-        Math.abs(
-          containerElem.scrollHeight - containerElem.scrollTop - containerElem.clientHeight
-        ) < 3
-      if (attachedToBottom !== atBottom) {
-        setAttachedToBottom(atBottom)
-      }
+      const scrollDifference =
+        containerElem.scrollHeight - containerElem.scrollTop - containerElem.clientHeight
+      attachedToBottom.current = Math.abs(scrollDifference) < 5
     }
 
     const noteId = note.id
@@ -644,7 +640,7 @@ export default function Forum({
 
       if (layout === 'chat') {
         const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
-        if (containerElem && attachedToBottom) {
+        if (containerElem && attachedToBottom.current) {
           containerElem.scrollTop = containerElem.scrollHeight
         }
       }

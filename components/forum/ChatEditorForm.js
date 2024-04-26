@@ -107,6 +107,12 @@ export default function ChatEditorForm({
 
         if (!onSubmit) return
 
+        // Scroll chat to the bottom so new message is visible
+        const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
+        if (containerElem) {
+          containerElem.scrollTop = containerElem.scrollHeight
+        }
+
         const constructedNote = {
           ...result.note,
           invitations: [invitation.id],
