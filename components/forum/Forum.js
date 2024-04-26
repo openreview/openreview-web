@@ -103,6 +103,7 @@ export default function Forum({
   const numRepliesVisible = useRef(0)
   const cutoffIndex = useRef(0)
   const attachedToBottom = useRef(true)
+  const chatMessagesListRef = useRef(null)
   const router = useRouter()
   const query = useQuery()
 
@@ -343,8 +344,7 @@ export default function Forum({
     if (!el) return
 
     const navBarHeight = 63
-    const y = el.getBoundingClientRect().top + window.pageYOffset - navBarHeight
-
+    const y = el.getBoundingClientRect().top + window.scrollY - navBarHeight
     window.scrollTo({ top: y, behavior: 'smooth' })
   }
 
@@ -375,10 +375,9 @@ export default function Forum({
     if (!note) return false
 
     // For chat layout, check if the user is scrolled before updating state
-    const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
-    if (containerElem) {
-      const scrollDifference =
-        containerElem.scrollHeight - containerElem.scrollTop - containerElem.clientHeight
+    if (chatMessagesListRef.current) {
+      const listElem = chatMessagesListRef.current
+      const scrollDifference = listElem.scrollHeight - listElem.scrollTop - listElem.clientHeight
       attachedToBottom.current = Math.abs(scrollDifference) < 5
     }
 
@@ -610,41 +609,6 @@ export default function Forum({
       }))
     }
     setOrderedReplies(orderedNotes)
-
-    // Do stuff that should happen after all replies are rendered
-    setTimeout(() => {
-      typesetMathJax()
-
-      $('[data-toggle="tooltip"]').tooltip({ html: true })
-
-      // Scroll note and invitation specified in url
-      if (selectedNoteId && !scrolled) {
-        if (selectedNoteId === id) {
-          scrollToElement('.forum-note')
-        } else {
-          scrollToElement(`.note[data-id="${selectedNoteId}"]`)
-        }
-
-        if (selectedInvitationId) {
-          const buttonSelector = `[data-id="${selectedInvitationId}"]`
-          const selector =
-            selectedNoteId === id
-              ? `.forum-note a${buttonSelector}, .invitations-container button${buttonSelector}`
-              : `.note[data-id="${selectedNoteId}"] button${buttonSelector}`
-          const button = document.querySelector(selector)
-          if (button) button.click()
-        }
-
-        setScrolled(true)
-      }
-
-      if (layout === 'chat') {
-        const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
-        if (containerElem && attachedToBottom.current) {
-          containerElem.scrollTop = containerElem.scrollHeight
-        }
-      }
-    }, 200)
   }, [replyNoteMap, parentMap, nesting, sort])
 
   // Update reply visibility
@@ -725,7 +689,43 @@ export default function Forum({
 
     setTimeout(() => {
       typesetMathJax()
+
       $('[data-toggle="tooltip"]').tooltip({ html: true })
+
+      // Scroll note and invitation specified in url
+      if (selectedNoteId && !scrolled) {
+        if (selectedNoteId === id) {
+          scrollToElement('.forum-note')
+        } else if (chatMessagesListRef.current) {
+          scrollToElement('.filters-container')
+          chatMessagesListRef.current.scrollTo({
+            index: orderedReplies.findIndex((note) => note.id === selectedNoteId),
+            align: 'top',
+          })
+          attachedToBottom.current = false
+        } else {
+          scrollToElement(`.note[data-id="${selectedNoteId}"]`)
+        }
+
+        if (selectedInvitationId) {
+          const buttonSelector = `[data-id="${selectedInvitationId}"]`
+          const selector =
+            selectedNoteId === id
+              ? `.forum-note a${buttonSelector}, .invitations-container button${buttonSelector}`
+              : `.note[data-id="${selectedNoteId}"] button${buttonSelector}`
+          const button = document.querySelector(selector)
+          if (button) button.click()
+        }
+
+        setScrolled(true)
+      }
+
+      if (chatMessagesListRef.current && attachedToBottom.current) {
+        chatMessagesListRef.current.scrollTo({
+          index: orderedReplies.length - 1,
+          align: 'bottom',
+        })
+      }
     }, 200)
   }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations, maxLength])
 
@@ -850,7 +850,10 @@ export default function Forum({
               forumId={id}
               defaultFilters={defaultFilters}
               selectedFilters={selectedFilters}
-              setSelectedFilters={setSelectedFilters}
+              setSelectedFilters={(newFilters) => {
+                setSelectedFilters(newFilters)
+                attachedToBottom.current = true
+              }}
               filterOptions={filterOptions}
               numReplies={replyNoteCount.current}
               numRepliesHidden={numRepliesHidden}
@@ -934,6 +937,7 @@ export default function Forum({
                   updateNote={updateNote}
                   deleteOrRestoreNote={deleteOrRestoreNote}
                   numHidden={numRepliesHidden}
+                  chatMessagesListRef={chatMessagesListRef}
                 />
               ) : (
                 <LoadingSpinner inline />
@@ -1056,6 +1060,7 @@ function ForumReplies({
   updateNote,
   deleteOrRestoreNote,
   setChatReplyNote,
+  chatMessagesListRef,
 }) {
   if (!replies) return null
 
@@ -1070,7 +1075,13 @@ function ForumReplies({
       )
     }
     return (
-      <List data={replies} height={625} itemHeight={1} itemKey="id">
+      <List
+        ref={chatMessagesListRef}
+        data={replies}
+        height={625}
+        itemHeight={1}
+        itemKey="id"
+      >
         {(reply) => (
           <ChatReply
             note={replyNoteMap[reply.id]}
