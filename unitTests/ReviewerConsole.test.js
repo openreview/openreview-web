@@ -230,18 +230,20 @@ describe('ReviewerConsole', () => {
   })
 
   test('show note info and note review info (no review))', async () => {
+    const reviewerAnonId = Math.random().toString(36).substring(2, 6)
+    const acAnonId = Math.random().toString(36).substring(2, 6)
     api.getAll = jest.fn(() =>
       Promise.resolve([
         // anon groups
-        ...[...Array(1).keys()].map((i) => ({
-          id: `AAAI.org/2025/Conference/Submission${i + 1}/Program_Committee_${Math.random()
-            .toString(36)
-            .substring(2, 6)}`,
-        })),
+        {
+          id: `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewerAnonId}`,
+          members: ['~Test_Program_Committee1'],
+        },
         // per paper reviewers group
-        ...[...Array(1).keys()].map((i) => ({
-          id: `AAAI.org/2025/Conference/Submission${i + 1}/Program_Committee`,
-        })),
+        {
+          id: `AAAI.org/2025/Conference/Submission1/Program_Committee`,
+          members: ['~Test_Program_Committee1'],
+        },
       ])
     )
     api.get = jest.fn((path) => {
@@ -258,17 +260,15 @@ describe('ReviewerConsole', () => {
           return Promise.resolve({
             groups: [
               // anon AC group
-              ...[...Array(1).keys()].map((i) => ({
-                id: `AAAI.org/2025/Conference/Submission${
-                  i + 1
-                }/Senior_Program_Committee_${Math.random().toString(36).substring(2, 6)}`,
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
                 members: ['~Test_Senior_Program_Committee1'],
-              })),
+              },
               // per paper ACs group
-              ...[...Array(1).keys()].map((i) => ({
-                id: `AAAI.org/2025/Conference/Submission${i + 1}/Senior_Program_Committee`,
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee`,
                 members: ['~Test_Senior_Program_Committee1'],
-              })),
+              },
             ],
           })
         case '/invitations':
@@ -337,6 +337,537 @@ describe('ReviewerConsole', () => {
               '[Program Committee Console](/group?id=AAAI.org/2025/Conference/Program_Committee#assigned-Submission)'
             )
           ),
+        })
+      )
+    })
+  })
+
+  test('show note info and note review info (with reviews))', async () => {
+    const reviewer1AnonId = Math.random().toString(36).substring(2, 6)
+    const reviewer2AnonId = Math.random().toString(36).substring(2, 6)
+    const acAnonId = Math.random().toString(36).substring(2, 6)
+    api.getAll = jest.fn(() =>
+      Promise.resolve([
+        // anon groups
+        {
+          id: `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer1AnonId}`,
+          members: ['~Test_Program_Committee1'],
+        },
+        // per paper reviewers group
+        {
+          id: `AAAI.org/2025/Conference/Submission1/Program_Committee`,
+          members: ['~Test_Program_Committee1', '~Test_Program_Committee1'],
+        },
+      ])
+    )
+    api.get = jest.fn((path) => {
+      switch (path) {
+        case '/edges':
+          return Promise.resolve({ edges: [] })
+        case '/notes': // assigned notes
+          return Promise.resolve({
+            notes: [
+              {
+                id: 'paper1Id',
+                forum: 'paper1Id',
+                number: 1,
+                details: {
+                  directReplies: [
+                    {
+                      id: 'review1Id',
+                      invitations: ['AAAI.org/2025/Conference/Submission1/-/Official_Review'],
+                      content: { rating: { value: 1 } },
+                      signatures: [
+                        `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer1AnonId}`,
+                      ],
+                    },
+                    {
+                      id: 'review2Id',
+                      invitations: ['AAAI.org/2025/Conference/Submission1/-/Official_Review'],
+                      content: { rating: { value: 5 } },
+                      signatures: [
+                        `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer2AnonId}`,
+                      ],
+                    },
+                  ],
+                },
+              },
+            ],
+          })
+        case '/groups': // anon AC and per paper ACs group
+          return Promise.resolve({
+            groups: [
+              // anon AC group
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
+                members: ['~Test_Senior_Program_Committee1'],
+              },
+              // per paper ACs group
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee`,
+                members: ['~Test_Senior_Program_Committee1'],
+              },
+            ],
+          })
+        case '/invitations':
+          return Promise.resolve({
+            invitations: [
+              {
+                id: `AAAI.org/2025/Conference/Submission1/-/Official_Review`,
+              },
+            ],
+          })
+        default:
+          return null
+      }
+    })
+
+    const providerProps = {
+      value: {
+        header: {
+          title: 'Program Committee Console',
+          instruction: 'some instructions',
+        },
+        entity: { id: 'AAAI.org/2025/Conference/Program_Committee' },
+        venueId: 'AAAI.org/2025/Conference',
+        reviewerName: 'Program_Committee',
+        officialReviewName: 'Official_Review',
+        reviewRatingName: 'rating',
+        areaChairName: 'Senior_Program_Committee',
+        submissionName: 'Submission',
+        submissionInvitationId: 'AAAI.org/2025/Conference/-/Submission',
+        recruitmentInvitationId: 'AAAI.org/2025/Conference/Program_Committee/-/Recruitment',
+        customMaxPapersInvitationId:
+          'AAAI.org/2025/Conference/Program_Committee/-/Custom_Max_Papers',
+        reviewLoad: '',
+        hasPaperRanking: false,
+        reviewDisplayFields: undefined,
+      },
+    }
+
+    renderWithWebFieldContext(
+      <ReviewerConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('note summary')).toBeInTheDocument()
+      expect(screen.getByText('note review status')).toBeInTheDocument()
+
+      expect(noteReviewStatusProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          editUrl: expect.stringContaining('id=paper1Id&noteId=review1Id'),
+          officialReview: expect.objectContaining({ id: 'review1Id' }),
+          paperRatings: [{ rating: 1 }],
+        })
+      )
+    })
+  })
+
+  test('show note info and note review info (anon id in group)', async () => {
+    const reviewer1AnonId = Math.random().toString(36).substring(2, 6)
+    const reviewer2AnonId = Math.random().toString(36).substring(2, 6)
+    const acAnonId = Math.random().toString(36).substring(2, 6)
+    api.getAll = jest.fn(() =>
+      Promise.resolve([
+        // anon groups
+        {
+          id: `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer1AnonId}`,
+          members: ['~Test_Program_Committee1'],
+        },
+        // per paper reviewers group
+        {
+          id: `AAAI.org/2025/Conference/Submission1/Program_Committee`,
+          members: [
+            `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer1AnonId}`,
+            `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer2AnonId}`,
+          ],
+        },
+      ])
+    )
+    api.get = jest.fn((path) => {
+      switch (path) {
+        case '/edges':
+          return Promise.resolve({ edges: [] })
+        case '/notes': // assigned notes
+          return Promise.resolve({
+            notes: [
+              {
+                id: 'paper1Id',
+                forum: 'paper1Id',
+                number: 1,
+                details: {
+                  directReplies: [
+                    {
+                      id: 'review1Id',
+                      invitations: ['AAAI.org/2025/Conference/Submission1/-/Official_Review'],
+                      content: { rating: { value: 1 } },
+                      signatures: [
+                        `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer1AnonId}`,
+                      ],
+                    },
+                    {
+                      id: 'review2Id',
+                      invitations: ['AAAI.org/2025/Conference/Submission1/-/Official_Review'],
+                      content: { rating: { value: 5 } },
+                      signatures: [
+                        `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer2AnonId}`,
+                      ],
+                    },
+                  ],
+                },
+              },
+            ],
+          })
+        case '/groups': // anon AC and per paper ACs group
+          return Promise.resolve({
+            groups: [
+              // anon AC group
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
+                members: ['~Test_Senior_Program_Committee1'],
+              },
+              // per paper ACs group
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee`,
+                members: [
+                  `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
+                ],
+              },
+            ],
+          })
+        case '/invitations':
+          return Promise.resolve({
+            invitations: [
+              {
+                id: `AAAI.org/2025/Conference/Submission1/-/Official_Review`,
+              },
+            ],
+          })
+        default:
+          return null
+      }
+    })
+
+    const providerProps = {
+      value: {
+        header: {
+          title: 'Program Committee Console',
+          instruction: 'some instructions',
+        },
+        entity: { id: 'AAAI.org/2025/Conference/Program_Committee' },
+        venueId: 'AAAI.org/2025/Conference',
+        reviewerName: 'Program_Committee',
+        officialReviewName: 'Official_Review',
+        reviewRatingName: 'rating',
+        areaChairName: 'Senior_Program_Committee',
+        submissionName: 'Submission',
+        submissionInvitationId: 'AAAI.org/2025/Conference/-/Submission',
+        recruitmentInvitationId: 'AAAI.org/2025/Conference/Program_Committee/-/Recruitment',
+        customMaxPapersInvitationId:
+          'AAAI.org/2025/Conference/Program_Committee/-/Custom_Max_Papers',
+        reviewLoad: '',
+        hasPaperRanking: false,
+        reviewDisplayFields: undefined,
+      },
+    }
+
+    renderWithWebFieldContext(
+      <ReviewerConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('note summary')).toBeInTheDocument()
+      expect(screen.getByText('note review status')).toBeInTheDocument()
+
+      expect(noteReviewStatusProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          editUrl: expect.stringContaining('id=paper1Id&noteId=review1Id'),
+          officialReview: expect.objectContaining({ id: 'review1Id' }),
+          paperRatings: [{ rating: 1 }],
+        })
+      )
+    })
+  })
+
+  test('show note info and note review info (array rating names)', async () => {
+    const reviewer1AnonId = Math.random().toString(36).substring(2, 6)
+    const reviewer2AnonId = Math.random().toString(36).substring(2, 6)
+    const acAnonId = Math.random().toString(36).substring(2, 6)
+    api.getAll = jest.fn(() =>
+      Promise.resolve([
+        // anon groups
+        {
+          id: `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer1AnonId}`,
+          members: ['~Test_Program_Committee1'],
+        },
+        // per paper reviewers group
+        {
+          id: `AAAI.org/2025/Conference/Submission1/Program_Committee`,
+          members: [
+            `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer1AnonId}`,
+            `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer2AnonId}`,
+          ],
+        },
+      ])
+    )
+    api.get = jest.fn((path) => {
+      switch (path) {
+        case '/edges':
+          return Promise.resolve({ edges: [] })
+        case '/notes': // assigned notes
+          return Promise.resolve({
+            notes: [
+              {
+                id: 'paper1Id',
+                forum: 'paper1Id',
+                number: 1,
+                details: {
+                  directReplies: [
+                    {
+                      id: 'review1Id',
+                      invitations: ['AAAI.org/2025/Conference/Submission1/-/Official_Review'],
+                      content: {
+                        first_rating: { value: 1 },
+                        second_rating: { value: 2 },
+                        third_rating: { value: 3 },
+                      },
+                      signatures: [
+                        `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer1AnonId}`,
+                      ],
+                    },
+                    {
+                      id: 'review2Id',
+                      invitations: ['AAAI.org/2025/Conference/Submission1/-/Official_Review'],
+                      content: {
+                        first_rating: { value: 5 },
+                        second_rating: { value: 6 },
+                        third_rating: { value: 7 },
+                      },
+                      signatures: [
+                        `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer2AnonId}`,
+                      ],
+                    },
+                  ],
+                },
+              },
+            ],
+          })
+        case '/groups': // anon AC and per paper ACs group
+          return Promise.resolve({
+            groups: [
+              // anon AC group
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
+                members: ['~Test_Senior_Program_Committee1'],
+              },
+              // per paper ACs group
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee`,
+                members: [
+                  `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
+                ],
+              },
+            ],
+          })
+        case '/invitations':
+          return Promise.resolve({
+            invitations: [
+              {
+                id: `AAAI.org/2025/Conference/Submission1/-/Official_Review`,
+              },
+            ],
+          })
+        default:
+          return null
+      }
+    })
+
+    const providerProps = {
+      value: {
+        header: {
+          title: 'Program Committee Console',
+          instruction: 'some instructions',
+        },
+        entity: { id: 'AAAI.org/2025/Conference/Program_Committee' },
+        venueId: 'AAAI.org/2025/Conference',
+        reviewerName: 'Program_Committee',
+        officialReviewName: 'Official_Review',
+        reviewRatingName: 'rating',
+        areaChairName: 'Senior_Program_Committee',
+        submissionName: 'Submission',
+        submissionInvitationId: 'AAAI.org/2025/Conference/-/Submission',
+        recruitmentInvitationId: 'AAAI.org/2025/Conference/Program_Committee/-/Recruitment',
+        customMaxPapersInvitationId:
+          'AAAI.org/2025/Conference/Program_Committee/-/Custom_Max_Papers',
+        reviewLoad: '',
+        hasPaperRanking: false,
+        reviewDisplayFields: undefined,
+      },
+    }
+
+    // array rating
+    providerProps.value.reviewRatingName = ['second_rating', 'third_rating']
+    renderWithWebFieldContext(
+      <ReviewerConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+    await waitFor(() => {
+      expect(screen.getByText('note summary')).toBeInTheDocument()
+      expect(screen.getByText('note review status')).toBeInTheDocument()
+
+      expect(noteReviewStatusProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paperRatings: [{ second_rating: 2 }, { third_rating: 3 }],
+        })
+      )
+    })
+  })
+
+  test('show note info and note review info (array object rating names with fallback', async () => {
+    const reviewer1AnonId = Math.random().toString(36).substring(2, 6)
+    const reviewer2AnonId = Math.random().toString(36).substring(2, 6)
+    const acAnonId = Math.random().toString(36).substring(2, 6)
+    api.getAll = jest.fn(() =>
+      Promise.resolve([
+        // anon groups
+        {
+          id: `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer1AnonId}`,
+          members: ['~Test_Program_Committee1'],
+        },
+        // per paper reviewers group
+        {
+          id: `AAAI.org/2025/Conference/Submission1/Program_Committee`,
+          members: [
+            `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer1AnonId}`,
+            `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer2AnonId}`,
+          ],
+        },
+      ])
+    )
+    api.get = jest.fn((path) => {
+      switch (path) {
+        case '/edges':
+          return Promise.resolve({ edges: [] })
+        case '/notes': // assigned notes
+          return Promise.resolve({
+            notes: [
+              {
+                id: 'paper1Id',
+                forum: 'paper1Id',
+                number: 1,
+                details: {
+                  directReplies: [
+                    {
+                      id: 'review1Id',
+                      invitations: ['AAAI.org/2025/Conference/Submission1/-/Official_Review'],
+                      content: {
+                        first_rating: { value: 1 },
+                        second_rating: { value: 2 },
+                        third_rating: { value: 3 },
+                      },
+                      signatures: [
+                        `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer1AnonId}`,
+                      ],
+                    },
+                    {
+                      id: 'review2Id',
+                      invitations: ['AAAI.org/2025/Conference/Submission1/-/Official_Review'],
+                      content: {
+                        first_rating: { value: 5 },
+                        second_rating: { value: 6 },
+                        third_rating: { value: 7 },
+                      },
+                      signatures: [
+                        `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewer2AnonId}`,
+                      ],
+                    },
+                  ],
+                },
+              },
+            ],
+          })
+        case '/groups': // anon AC and per paper ACs group
+          return Promise.resolve({
+            groups: [
+              // anon AC group
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
+                members: ['~Test_Senior_Program_Committee1'],
+              },
+              // per paper ACs group
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee`,
+                members: [
+                  `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
+                ],
+              },
+            ],
+          })
+        case '/invitations':
+          return Promise.resolve({
+            invitations: [
+              {
+                id: `AAAI.org/2025/Conference/Submission1/-/Official_Review`,
+              },
+            ],
+          })
+        default:
+          return null
+      }
+    })
+
+    const providerProps = {
+      value: {
+        header: {
+          title: 'Program Committee Console',
+          instruction: 'some instructions',
+        },
+        entity: { id: 'AAAI.org/2025/Conference/Program_Committee' },
+        venueId: 'AAAI.org/2025/Conference',
+        reviewerName: 'Program_Committee',
+        officialReviewName: 'Official_Review',
+        reviewRatingName: 'rating',
+        areaChairName: 'Senior_Program_Committee',
+        submissionName: 'Submission',
+        submissionInvitationId: 'AAAI.org/2025/Conference/-/Submission',
+        recruitmentInvitationId: 'AAAI.org/2025/Conference/Program_Committee/-/Recruitment',
+        customMaxPapersInvitationId:
+          'AAAI.org/2025/Conference/Program_Committee/-/Custom_Max_Papers',
+        reviewLoad: '',
+        hasPaperRanking: false,
+        reviewDisplayFields: undefined,
+      },
+    }
+
+    // array object rating with fallback
+    providerProps.value.reviewRatingName = [
+      {
+        user_defined_rating_name: ['non_existing_rating', 'first_rating'],
+      },
+      {
+        fancy_rating_name: ['second_rating', 'third_rating'],
+      },
+      'third_rating',
+      'another_non_existing_rating',
+    ]
+    renderWithWebFieldContext(
+      <ReviewerConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+    await waitFor(() => {
+      expect(screen.getByText('note summary')).toBeInTheDocument()
+      expect(screen.getByText('note review status')).toBeInTheDocument()
+
+      expect(noteReviewStatusProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paperRatings: [
+            { user_defined_rating_name: 1 }, // fall back to first_rating
+            { fancy_rating_name: 2 }, // second_rating exist so take second rating
+            { third_rating: 3 }, // third_rating
+            { another_non_existing_rating: undefined }, // non existing rating so undefined
+          ],
         })
       )
     })

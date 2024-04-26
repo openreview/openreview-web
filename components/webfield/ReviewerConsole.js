@@ -156,12 +156,12 @@ const AssignedPaperRow = ({
       reviewerName
     )} Console](/group?id=${venueId}/${reviewerName}#assigned-${submissionName})`
   )
-  const officialReviewInvitaitonId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
+  const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
   const officialReviewInvitation = officialReviewInvitations?.find(
-    (p) => p.id === officialReviewInvitaitonId
+    (p) => p.id === officialReviewInvitationId
   )
   const officialReview = officialReviews.find((p) =>
-    p.invitations.includes(officialReviewInvitaitonId)
+    p.invitations.includes(officialReviewInvitationId)
   )
   const currentTagObj = paperRankingTags?.find((p) => p.forum === note.forum)
   const anonGroupId = paperNumberAnonGroupIdMap[note.number]
