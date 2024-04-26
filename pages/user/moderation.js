@@ -2254,17 +2254,17 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
     {
       value: 'repeatedInvalidInfo',
       label: 'Repeated Invalid Info',
-      rejectionText: `Keep submiting invalid info is a violation of OpenReview's terms and conditions which may lead to termination of your access to the system.\n\n${instructionText}`,
+      rejectionText: `Submitting invalid info is a violation of OpenReview's Terms and Conditions which may result in terminating your access to the system.\n\n${instructionText}`,
     },
     {
       value: 'requestEmailVerification',
       label: 'Request Email Verification',
-      rejectionText: `Please send us an email from the institution email you have in profile so that we can verify your identity.\n\n${instructionText}`,
+      rejectionText: `Please send us an email from the institution email you have in your profile so that we can verify your identity.\n\n${instructionText}`,
     },
     {
       value: 'invalidName',
       label: 'Invalid Name',
-      rejectionText: `A valid name is required, and must match the one listed on your provided personal homepages.\n\n${instructionText}`,
+      rejectionText: `A valid name is required and must match the one listed on your provided personal homepages.\n\n${instructionText}`,
     },
   ]
 
