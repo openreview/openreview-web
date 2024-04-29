@@ -576,16 +576,16 @@ const ReviewerConsole = ({ appContext }) => {
       />
       <Tabs>
         <TabList>
-          <Tab id={`assigned-${submissionName}`} active>
+          <Tab id="assigned-papers" active>
             {`Assigned ${pluralizeString(submissionName)}`}
           </Tab>
-          <Tab id={`${reviewerName}-tasks`} onClick={() => setShowTasks(true)}>
+          <Tab id="reviewer-tasks" onClick={() => setShowTasks(true)}>
             {`${prettyField(reviewerName)} Tasks`}
           </Tab>
         </TabList>
 
         <TabPanels>
-          <TabPanel id={`assigned-${submissionName}`}>
+          <TabPanel id="assigned-papers">
             {reviewerConsoleData.notes?.length === 0 ? (
               <p className="empty-message">
                 You have no assigned papers. Please check again after the paper assignment
@@ -622,7 +622,7 @@ const ReviewerConsole = ({ appContext }) => {
             )}
           </TabPanel>
 
-          <TabPanel id={`${reviewerName}-tasks`}>
+          <TabPanel id="reviewer-tasks">
             {showTasks && (
               <ReviewerConsoleTasks
                 venueId={venueId}
