@@ -196,7 +196,9 @@ export function InvitationReplyV2({
 
   return (
     <EditorSection title={sectionTitle}>
-      <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
+      {replyString && (
+        <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
+      )}
 
       {!readOnly && (
         <div className="mt-2">
