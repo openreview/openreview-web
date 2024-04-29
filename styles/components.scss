@@ -1270,6 +1270,14 @@ table.table-minimal {
         }
       }
     }
+
+    section.messages {
+      .message-row > td > div {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        height: 40px;
+      }
+    }
   }
 }
 
