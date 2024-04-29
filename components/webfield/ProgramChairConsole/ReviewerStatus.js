@@ -44,7 +44,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
       <div>
         {bidEnabled && (
           <>
-            <span>{`Completed Bids: ${completedBids}`}</span>
+            <span>{`Completed Bids: ${completedBids}`}</span>{' '}
             {completedBids > 0 && (
               <div>
                 <a
