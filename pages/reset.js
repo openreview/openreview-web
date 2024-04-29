@@ -13,7 +13,7 @@ const ResetForm = ({ setEmailSent }) => {
   const [email, setEmail] = useState('')
   const [error, setError] = useState(null)
   const { user } = useContext(UserContext)
-  const turnstileToken = useTurnstileToken('reset', true)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken('reset')
 
   useEffect(() => {
     if (!user) return
@@ -52,7 +52,7 @@ const ResetForm = ({ setEmailSent }) => {
           onChange={(e) => setEmail(e.target.value.trim())}
         />
       </div>
-      <div id="turnstile-reset" />
+      <div ref={turnstileContainerRef} />
       <button
         type="submit"
         className="btn btn-primary"

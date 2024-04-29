@@ -718,7 +718,7 @@ const SubmitButton = ({ disabled, children }) => {
 const ConfirmNameModal = ({ fullName, newUsername, onConfirm, setTurnstileToken }) => {
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
-  const turnstileToken = useTurnstileToken('registration', isOpen)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken('registration', isOpen)
 
   useEffect(() => {
     setTurnstileToken(turnstileToken)
@@ -754,7 +754,7 @@ const ConfirmNameModal = ({ fullName, newUsername, onConfirm, setTurnstileToken 
           I confirm my name is correct
         </label>
       </div>
-      <div id="turnstile-registration" className="mt-3 mb-2 text-center"></div>
+      <div className="mt-3 mb-2 text-center" ref={turnstileContainerRef}></div>
     </BasicModal>
   )
 }

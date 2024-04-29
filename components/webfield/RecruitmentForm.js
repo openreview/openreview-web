@@ -269,7 +269,7 @@ const RecruitmentForm = () => {
   const [decision, setDecision] = useState(null)
   const [responseNote, setResponseNote] = useState(null)
   const [reducedLoad, setReducedLoad] = useState(null)
-  const turnstileToken = useTurnstileToken('recruitment', true)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken('recruitment')
   const {
     acceptMessage,
     header,
@@ -421,7 +421,7 @@ const RecruitmentForm = () => {
                 Decline
               </SpinnerButton>
             </div>
-            <div id="turnstile-recruitment" className="mt-4 text-center"></div>
+            <div className="mt-4 text-center" ref={turnstileContainerRef}></div>
           </div>
         )
     }

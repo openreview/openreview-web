@@ -1,12 +1,13 @@
 /* globals promptError: false */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export default function useTurnstileToken(key, renderWidget) {
   const [turnstileToken, setTurnstileToken] = useState(null)
   const [widgetId, setWidgetId] = useState(null)
+  const turnstileContainerRef = useRef()
 
   useEffect(() => {
-    if (!renderWidget) {
+    if (!turnstileContainerRef.current || renderWidget === false) {
       setTurnstileToken(null)
       if (widgetId) {
         window.turnstile.remove(widgetId)
@@ -14,7 +15,7 @@ export default function useTurnstileToken(key, renderWidget) {
       return
     }
     if (window.turnstile) {
-      const id = window.turnstile.render(`#turnstile-${key}`, {
+      const id = window.turnstile.render(turnstileContainerRef.current, {
         sitekey: process.env.TURNSTILE_SITEKEY,
         action: key,
         callback: (token) => {
@@ -29,5 +30,5 @@ export default function useTurnstileToken(key, renderWidget) {
     }
   }, [key, renderWidget])
 
-  return turnstileToken
+  return { turnstileToken, turnstileContainerRef }
 }

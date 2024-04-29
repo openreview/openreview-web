@@ -20,7 +20,7 @@ export default function FeedbackModal() {
     if (action.type === 'prefill') return action.payload
     return { ...state, [action.type]: action.payload }
   }, {})
-  const turnstileToken = useTurnstileToken('feedback', isOpen)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken('feedback')
 
   const profileSubject = 'My OpenReview profile'
   const submissionSubject = 'A conference I submitted to'
@@ -280,7 +280,7 @@ export default function FeedbackModal() {
           </div>
         ))}
       </form>
-      <div id="turnstile-feedback" />
+      <div ref={turnstileContainerRef} />
     </BasicModal>
   )
 }
