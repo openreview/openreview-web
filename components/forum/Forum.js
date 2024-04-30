@@ -71,7 +71,7 @@ const scrollToChatNote = (selectedNoteId) => {
   const messageElem = document.querySelector(`[data-id="${selectedNoteId}"]`)
   if (!listElem || !messageElem) return false
 
-  listElem.scrollTop = messageElem.offsetTop - 8
+  listElem.scrollTop = messageElem.offsetTop - 6
   return true
 }
 
@@ -316,8 +316,6 @@ export default function Forum({
 
   const delayedScroll = useCallback(
     debounce((layoutMode, isScrolled) => {
-      typesetMathJax()
-
       $('[data-toggle="tooltip"]').tooltip({ html: true })
 
       // Scroll note and invitation specified in url
@@ -742,6 +740,7 @@ export default function Forum({
     cutoffIndex.current = cutoff
     numRepliesVisible.current = numVisible
 
+    typesetMathJax()
     delayedScroll(layout, scrolled)
   }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations, maxLength])
 
