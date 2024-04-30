@@ -37,7 +37,7 @@ const PaperRow = ({
   decision,
   venue,
   getManualAssignmentUrl,
-  noteContentField
+  noteContentField,
 }) => {
   const {
     areaChairsId,
@@ -54,22 +54,34 @@ const PaperRow = ({
   )
 
   // Find note(s) that responds to the flag
-  const responseNotes = noteContentField && rowData?.note?.details?.replies?.filter(reply =>
-    reply?.invitations.some(replyInvitation =>
-      noteContentField?.responseInvitations.some(reasonInvitation => replyInvitation.endsWith(reasonInvitation))
+  const responseNotes =
+    noteContentField &&
+    note.details?.replies?.filter((reply) =>
+      reply.invitations.some((replyInvitation) =>
+        noteContentField.responseInvitations?.some((reasonInvitation) =>
+          replyInvitation.endsWith(reasonInvitation)
+        )
+      )
     )
-  )
 
   // Find note(s) that justify the flag, display using non meta-invitation invitation
-  const reasonNotes = noteContentField && rowData?.note?.details?.replies?.filter(reply => {
-    return reply?.invitations.some(replyInvitation =>
-      noteContentField?.reasonInvitations.some(reasonInvitation => replyInvitation.endsWith(reasonInvitation))
-    ) &&
-    Object.keys(reply?.content).some(replyField =>
-      Object.keys(noteContentField?.reasonFields).includes(replyField) &&
-      noteContentField?.reasonFields[replyField].includes(reply?.content[replyField]?.value)
-    )
-  })
+  const reasonNotes =
+    noteContentField &&
+    note.details?.replies?.filter((reply) => {
+      if (!reply?.invitations || !reply?.content) return false
+      return (
+        reply.invitations.some((replyInvitation) =>
+          noteContentField.reasonInvitations?.some((reasonInvitation) =>
+            replyInvitation.endsWith(reasonInvitation)
+          )
+        ) &&
+        Object.keys(reply.content).some((replyField) =>
+          noteContentField.reasonFields?.[replyField]?.includes(
+            reply.content[replyField].value
+          )
+        )
+      )
+    })
 
   return (
     <tr>
@@ -132,77 +144,90 @@ const PaperRow = ({
       )}
       {noteContentField && (
         <td className="console-decision">
-          <h4 className="title">{prettyField(rowData.note?.content[noteContentField.field].value.toString()) ?? 'N/A'}</h4>
-          {
-            reasonNotes &&
+          <h4 className="title">
+            {prettyField(rowData.note?.content[noteContentField.field].value.toString()) ??
+              'N/A'}
+          </h4>
+          {reasonNotes && (
             <div>
               <Table
-              className="console-table table-striped"
-              headings={[
-                { id: 'invitation', content: 'Type', width: '30%' },
-                { id: 'summary', content: 'Summary', width: '70%' }]}>
-              {reasonNotes?.map((reasonNote) => (
-                <tr key={reasonNote.id}>
-                  <td>
-                    <a
-                    href={`/forum?id=${rowData.note?.forum}&noteId=${reasonNote.id}&referrer=${referrerUrl}`}
-                    target="_blank"
-                    >
-                      <strong>{prettyField(
-                        reasonNote.invitations.find(invitation => !invitation.endsWith('/Edit')).split('/').pop()
-                      )}
-                      </strong>
-                    </a>
-                  </td>
-                  <td>
-                    <NoteSummary
-                      note={reasonNote}
-                      referrerUrl={referrerUrl}
-                      showReaders={false}
-                      isV2Note={true}
-                    />
-                  </td>
-                </tr>
-              ))}
+                className="console-table table-striped"
+                headings={[
+                  { id: 'invitation', content: 'Type', width: '30%' },
+                  { id: 'summary', content: 'Summary', width: '70%' },
+                ]}
+              >
+                {reasonNotes?.map((reasonNote) => (
+                  <tr key={reasonNote.id}>
+                    <td>
+                      <a
+                        href={`/forum?id=${rowData.note?.forum}&noteId=${reasonNote.id}&referrer=${referrerUrl}`}
+                        target="_blank"
+                      >
+                        <strong>
+                          {prettyField(
+                            reasonNote.invitations
+                              .find((invitation) => !invitation.endsWith('/Edit'))
+                              .split('/')
+                              .pop()
+                          )}
+                        </strong>
+                      </a>
+                    </td>
+                    <td>
+                      <NoteSummary
+                        note={reasonNote}
+                        referrerUrl={referrerUrl}
+                        showReaders={false}
+                        isV2Note={true}
+                      />
+                    </td>
+                  </tr>
+                ))}
               </Table>
               <hr></hr>
             </div>
-          }
-          {
-            responseNotes &&
+          )}
+          {responseNotes && (
             <div>
               <Table
-              className="console-table table-striped"
-              headings={[
-                { id: 'invitation', content: 'Type', width: '30%' },
-                { id: 'summary', content: 'Summary', width: '70%' }]}>
-              {responseNotes?.map((responseNote) => (
-                <tr key={responseNote.id}>
-                  <td>
-                    <a
-                    href={`/forum?id=${rowData.note?.forum}&noteId=${responseNote.id}&referrer=${referrerUrl}`}
-                    target="_blank"
-                    >
-                      <strong>{prettyField(
-                        responseNote.invitations.find(invitation => !invitation.endsWith('/Edit')).split('/').pop()
-                      )}
-                      </strong>
-                    </a>
-                  </td>
-                  <td>
-                    <NoteSummary
-                      note={responseNote}
-                      referrerUrl={referrerUrl}
-                      showReaders={false}
-                      isV2Note={true}
-                    />
-                  </td>
-                </tr>
-              ))}
+                className="console-table table-striped"
+                headings={[
+                  { id: 'invitation', content: 'Type', width: '30%' },
+                  { id: 'summary', content: 'Summary', width: '70%' },
+                ]}
+              >
+                {responseNotes?.map((responseNote) => (
+                  <tr key={responseNote.id}>
+                    <td>
+                      <a
+                        href={`/forum?id=${rowData.note?.forum}&noteId=${responseNote.id}&referrer=${referrerUrl}`}
+                        target="_blank"
+                      >
+                        <strong>
+                          {prettyField(
+                            responseNote.invitations
+                              .find((invitation) => !invitation.endsWith('/Edit'))
+                              .split('/')
+                              .pop()
+                          )}
+                        </strong>
+                      </a>
+                    </td>
+                    <td>
+                      <NoteSummary
+                        note={responseNote}
+                        referrerUrl={referrerUrl}
+                        showReaders={false}
+                        isV2Note={true}
+                      />
+                    </td>
+                  </tr>
+                ))}
               </Table>
               <hr></hr>
             </div>
-          }
+          )}
         </td>
       )}
       {!noteContentField && (
@@ -251,15 +276,17 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
     } else {
       const { notes, noteNumberReviewMetaReviewMap } = pcConsoleData
       if (!notes) return
-      const actualNotes = noteContentField ?
-        notes.filter(note => Object.keys(note.content).includes(noteContentField.field)) :
-        notes
-      const actualNoteNumbers = actualNotes.map(note => note.number)
-      const actualNoteNumberReviewMetaReviewMap = noteContentField ?
-        new Map([...noteNumberReviewMetaReviewMap].filter(
-          ([noteNumber, dataMap]) => actualNoteNumbers.includes(noteNumber)
-        )) :
-        noteNumberReviewMetaReviewMap
+      const actualNotes = noteContentField
+        ? notes.filter((note) => Object.keys(note.content).includes(noteContentField.field))
+        : notes
+      const actualNoteNumbers = actualNotes.map((note) => note.number)
+      const actualNoteNumberReviewMetaReviewMap = noteContentField
+        ? new Map(
+            [...noteNumberReviewMetaReviewMap].filter(([noteNumber, dataMap]) =>
+              actualNoteNumbers.includes(noteNumber)
+            )
+          )
+        : noteNumberReviewMetaReviewMap
 
       const tableRows = [...(actualNoteNumberReviewMetaReviewMap.values() ?? [])]
       setPaperStatusTabData({
@@ -342,8 +369,8 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
           {
             id: noteContentField?.field ?? 'decision',
             content: noteContentField ? prettyField(noteContentField.field) : 'Decision',
-            width: noteContentField ? '30%' : undefined
-          }
+            width: noteContentField ? '30%' : undefined,
+          },
         ]}
       >
         {paperStatusTabData.tableRowsDisplayed?.map((row) => (
