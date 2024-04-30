@@ -81,7 +81,7 @@ export default function Column(props) {
     editAndBrowserInvitations.some((p) => p.id.includes('Custom_Max_Papers'))
 
   // Helpers
-  const formatEdge = (edge) => ({
+  const formatEdge = (edge, invitation) => ({
     id: edge.id,
     invitation: edge.invitation,
     name: transformName(edge.invitation.split('/').pop().replace(/_/g, ' ')),
@@ -93,7 +93,7 @@ export default function Column(props) {
     writers: edge.writers || [],
     readers: edge.readers || [],
     signatures: edge.signatures || [],
-    nonreaders: edge.nonreaders || [],
+    ...(invitation?.nonreaders && { nonreaders: edge.nonreaders || [] }),
     creationDate: edge.tcdate,
     modificationDate: edge.tmdate,
     writable: edge.details?.writable ?? false,
@@ -589,7 +589,7 @@ export default function Column(props) {
       const { filteredRows, queryIsInvalid } = filterCollections(
         colItems.map((p) => {
           const customLoad = getQuota(p)
-          const quotaNotReached = !customLoad || p.traverseEdgesCount < customLoad
+          const quotaNotReached = p.traverseEdgesCount < customLoad
 
           return {
             ...p,
@@ -629,7 +629,7 @@ export default function Column(props) {
 
     return colItems.filter((p) => {
       const customLoad = getQuota(p)
-      if (customLoad === undefined) return true
+      if (customLoad === undefined) return false
       return p.traverseEdgesCount < customLoad
     })
   }
@@ -784,8 +784,8 @@ export default function Column(props) {
         )
         // eslint-disable-next-line no-param-reassign
         traverseEdges = _.orderBy(
-          traverseEdges.map((e) => ({ ...e, weight: traverseLabelMap[e.label] || 0 })),
-          ['weight'],
+          traverseEdges,
+          [(edge) => traverseLabelMap[edge.label] || 0],
           ['desc']
         )
       }
@@ -829,7 +829,7 @@ export default function Column(props) {
           ...itemToAdd,
           browseEdges: [],
           editEdges: [],
-          traverseEdge: formatEdge(tEdge),
+          traverseEdge: formatEdge(tEdge, traverseInvitation),
           metadata: {
             ...columnMetadata,
             isAssigned: true,
