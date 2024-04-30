@@ -48,13 +48,13 @@ export const ReviewerConsoleNoteReviewStatus = ({
           )
         })}
         <p>
-          <Link href={editUrl}>{`Edit ${prettyField(officialReviewName)}`}</Link>
+          <Link href={editUrl}>Edit {prettyField(officialReviewName)}</Link>
         </p>
       </>
     ) : (
       invitationUrl && (
         <h4>
-          <Link href={invitationUrl}>{`Submit ${officialReviewName}`}</Link>
+          <Link href={invitationUrl}>Submit {officialReviewName}</Link>
         </h4>
       )
     )}

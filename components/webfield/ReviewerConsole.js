@@ -577,10 +577,10 @@ const ReviewerConsole = ({ appContext }) => {
       <Tabs>
         <TabList>
           <Tab id="assigned-papers" active>
-            {`Assigned ${pluralizeString(submissionName)}`}
+            Assigned {pluralizeString(submissionName)}
           </Tab>
           <Tab id="reviewer-tasks" onClick={() => setShowTasks(true)}>
-            {`${prettyField(reviewerName)} Tasks`}
+            {prettyField(reviewerName)} Tasks
           </Tab>
         </TabList>
 
