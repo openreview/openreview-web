@@ -7,6 +7,7 @@ import { flushSync } from 'react-dom'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
 import truncate from 'lodash/truncate'
+import debounce from 'lodash/debounce'
 import escapeRegExp from 'lodash/escapeRegExp'
 import List from 'rc-virtual-list'
 
@@ -56,6 +57,24 @@ const checkExReadersMatch = (selectedReaders, replyReaders) =>
     replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
   )
 
+const scrollToElement = (selector) => {
+  const el = document.querySelector(selector)
+  if (!el) return
+
+  const navBarHeight = 63
+  const y = el.getBoundingClientRect().top + window.scrollY - navBarHeight
+  window.scrollTo({ top: y, behavior: 'smooth' })
+}
+
+const scrollToChatNote = (selectedNoteId) => {
+  const listElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
+  const messageElem = document.querySelector(`[data-id="${selectedNoteId}"]`)
+  if (!listElem || !messageElem) return false
+
+  listElem.scrollTop = messageElem.offsetTop - 8
+  return true
+}
+
 export default function Forum({
   forumNote,
   selectedNoteId,
@@ -102,8 +121,7 @@ export default function Forum({
   const replyNoteCount = useRef(0)
   const numRepliesVisible = useRef(0)
   const cutoffIndex = useRef(0)
-  const attachedToBottom = useRef(true)
-  const chatMessagesListRef = useRef(null)
+  const attachedToBottom = useRef(false)
   const router = useRouter()
   const query = useQuery()
 
@@ -296,6 +314,47 @@ export default function Forum({
     }
   }, [latestMdate, id, accessToken])
 
+  const delayedScroll = useCallback(
+    debounce((layoutMode, isScrolled) => {
+      typesetMathJax()
+
+      $('[data-toggle="tooltip"]').tooltip({ html: true })
+
+      // Scroll note and invitation specified in url
+      if (selectedNoteId && !isScrolled) {
+        if (selectedNoteId === id) {
+          scrollToElement('.forum-note')
+        } else if (layoutMode === 'chat') {
+          scrollToElement('.filters-container')
+          const didScroll = scrollToChatNote(selectedNoteId)
+          if (didScroll) attachedToBottom.current = false
+        } else {
+          scrollToElement(`.note[data-id="${selectedNoteId}"]`)
+        }
+
+        if (selectedInvitationId) {
+          const buttonSelector = `[data-id="${selectedInvitationId}"]`
+          const selector =
+            selectedNoteId === id
+              ? `.forum-note a${buttonSelector}, .invitations-container button${buttonSelector}`
+              : `.note[data-id="${selectedNoteId}"] button${buttonSelector}`
+          const button = document.querySelector(selector)
+          if (button) button.click()
+        }
+
+        setScrolled(true)
+      }
+
+      if (attachedToBottom.current) {
+        const listElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
+        if (listElem) {
+          listElem.scrollTop = listElem.scrollHeight
+        }
+      }
+    }, 200),
+    [selectedNoteId, selectedInvitationId]
+  )
+
   // Display helper functions
   const setCollapseLevel = (level) => {
     const newDisplayOptions = {}
@@ -339,15 +398,6 @@ export default function Forum({
     }))
   }
 
-  const scrollToElement = (selector) => {
-    const el = document.querySelector(selector)
-    if (!el) return
-
-    const navBarHeight = 63
-    const y = el.getBoundingClientRect().top + window.scrollY - navBarHeight
-    window.scrollTo({ top: y, behavior: 'smooth' })
-  }
-
   const deleteOrRestoreNote = (note, invitation, updateNote) => {
     flushSync(() => {
       setConfirmDeleteModalData({ note, invitation, updateNote })
@@ -371,14 +421,16 @@ export default function Forum({
   }
 
   // Add new reply note or update and existing reply note
-  const updateNote = (note) => {
+  const updateNote = (note, scrollToNote) => {
     if (!note) return false
 
-    // For chat layout, check if the user is scrolled before updating state
-    if (chatMessagesListRef.current) {
-      const listElem = chatMessagesListRef.current
-      const scrollDifference = listElem.scrollHeight - listElem.scrollTop - listElem.clientHeight
-      attachedToBottom.current = Math.abs(scrollDifference) < 5
+    // For chat layout, check if the user is scrolled and update state
+    if (layout === 'chat') {
+      const listElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
+      const scrollDifference = listElem
+        ? listElem.scrollHeight - listElem.scrollTop - listElem.clientHeight
+        : 0
+      attachedToBottom.current = scrollToNote || Math.abs(scrollDifference) < 8
     }
 
     const noteId = note.id
@@ -514,6 +566,9 @@ export default function Forum({
       setDefaultFilters(tabFilters)
       setSelectedFilters(tabFilters)
       setLayout(tab.layout || 'default')
+      if (tab.layout === 'chat') {
+        attachedToBottom.current = true
+      }
       setNesting(tab.nesting || 2)
       setSort(tab.sort || 'date-desc')
       setEnableLiveUpdate(Boolean(tab.live))
@@ -613,7 +668,7 @@ export default function Forum({
 
   // Update reply visibility
   useEffect(() => {
-    if (!replyNoteMap || !orderedReplies || !displayOptionsMap) return
+    if (!replyNoteMap || !displayOptionsMap || !orderedReplies?.length) return
 
     const newDisplayOptions = {}
 
@@ -687,46 +742,7 @@ export default function Forum({
     cutoffIndex.current = cutoff
     numRepliesVisible.current = numVisible
 
-    setTimeout(() => {
-      typesetMathJax()
-
-      $('[data-toggle="tooltip"]').tooltip({ html: true })
-
-      // Scroll note and invitation specified in url
-      if (selectedNoteId && !scrolled) {
-        if (selectedNoteId === id) {
-          scrollToElement('.forum-note')
-        } else if (chatMessagesListRef.current) {
-          scrollToElement('.filters-container')
-          chatMessagesListRef.current.scrollTo({
-            index: orderedReplies.findIndex((note) => note.id === selectedNoteId),
-            align: 'top',
-          })
-          attachedToBottom.current = false
-        } else {
-          scrollToElement(`.note[data-id="${selectedNoteId}"]`)
-        }
-
-        if (selectedInvitationId) {
-          const buttonSelector = `[data-id="${selectedInvitationId}"]`
-          const selector =
-            selectedNoteId === id
-              ? `.forum-note a${buttonSelector}, .invitations-container button${buttonSelector}`
-              : `.note[data-id="${selectedNoteId}"] button${buttonSelector}`
-          const button = document.querySelector(selector)
-          if (button) button.click()
-        }
-
-        setScrolled(true)
-      }
-
-      if (chatMessagesListRef.current && attachedToBottom.current) {
-        chatMessagesListRef.current.scrollTo({
-          index: orderedReplies.length - 1,
-          align: 'bottom',
-        })
-      }
-    }, 200)
+    delayedScroll(layout, scrolled)
   }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations, maxLength])
 
   useEffect(() => {
@@ -937,7 +953,6 @@ export default function Forum({
                   updateNote={updateNote}
                   deleteOrRestoreNote={deleteOrRestoreNote}
                   numHidden={numRepliesHidden}
-                  chatMessagesListRef={chatMessagesListRef}
                 />
               ) : (
                 <LoadingSpinner inline />
@@ -992,6 +1007,7 @@ export default function Forum({
                   setReplyToNote={setChatReplyNote}
                   showNotifications={showNotifications}
                   setShowNotifications={setShowNotifications}
+                  scrollToNote={scrollToChatNote}
                   onSubmit={updateNote}
                 />
               )
@@ -1060,7 +1076,6 @@ function ForumReplies({
   updateNote,
   deleteOrRestoreNote,
   setChatReplyNote,
-  chatMessagesListRef,
 }) {
   if (!replies) return null
 
@@ -1075,13 +1090,7 @@ function ForumReplies({
       )
     }
     return (
-      <List
-        ref={chatMessagesListRef}
-        data={replies}
-        height={625}
-        itemHeight={1}
-        itemKey="id"
-      >
+      <List data={replies} height={625} itemHeight={1} itemKey="id">
         {(reply) => (
           <ChatReply
             note={replyNoteMap[reply.id]}

@@ -20,6 +20,7 @@ export default function ChatEditorForm({
   setReplyToNote,
   showNotifications,
   setShowNotifications,
+  scrollToNote,
   onSubmit,
 }) {
   const [message, setMessage] = useState('')
@@ -107,12 +108,6 @@ export default function ChatEditorForm({
 
         if (!onSubmit) return
 
-        // Scroll chat to the bottom so new message is visible
-        const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
-        if (containerElem) {
-          containerElem.scrollTop = containerElem.scrollHeight
-        }
-
         const constructedNote = {
           ...result.note,
           invitations: [invitation.id],
@@ -128,11 +123,11 @@ export default function ChatEditorForm({
             { accessToken }
           )
           .then((noteRes) => {
-            onSubmit(noteRes.notes?.length > 0 ? noteRes.notes[0] : constructedNote)
+            onSubmit(noteRes.notes?.length > 0 ? noteRes.notes[0] : constructedNote, true)
             setLoading(false)
           })
           .catch(() => {
-            onSubmit(constructedNote)
+            onSubmit(constructedNote, true)
             setLoading(false)
           })
       })
@@ -184,7 +179,9 @@ export default function ChatEditorForm({
     >
       {replyToNote && (
         <div className="parent-info">
-          <h5 onClick={() => {}}>
+          <h5 onClick={() => {
+            scrollToNote(replyToNote.id)
+          }}>
             {/* <Icon name="share-alt" />{' '} */}
             <span>Replying to {prettyId(replyToNote.signatures[0], true)}</span>
             {' – '}
