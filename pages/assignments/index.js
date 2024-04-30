@@ -63,6 +63,7 @@ const AssignmentRow = ({
   handleCloneConfiguration,
   handleRunMatcher,
   handleDeployMatcher,
+  handleUndeployMatcher,
   referrer,
   shouldShowDeployLink,
 }) => {
@@ -121,7 +122,7 @@ const AssignmentRow = ({
           iconName="pencil"
           onClick={() => handleEditConfiguration(note, apiVersion)}
           disabled={
-            ['Running', 'Complete', 'Deploying', 'Deployed', 'Deployment Error'].includes(
+            ['Running', 'Complete', 'Deploying', 'Deployed', 'Deployment Error', 'Undeploying', 'Undeployment Error'].includes(
               status
             ) || !configInvitation
           }
@@ -161,7 +162,7 @@ const AssignmentRow = ({
             />
           </>
         )}
-        {['Deployed'].includes(status) && (
+        {['Deployed', 'Undeployment Error'].includes(status) && (
           <>
             <ActionLink
               label="Edit Assignments "
@@ -173,6 +174,11 @@ const AssignmentRow = ({
               label="View Statistics"
               iconName="stats"
               href={`/assignments/stats?id=${note.id}&referrer=${referrer}`}
+            />
+            <ActionLink
+              label="Undeploy Assignment"
+              iconName="share"
+              onClick={() => handleUndeployMatcher(note.id)}
             />
           </>
         )}
@@ -512,6 +518,15 @@ const Assignments = ({ appContext }) => {
     }
   }
 
+  const handleUndeployMatcher = async (id) => {
+    try {
+      await api.post('/undeploy', { configNoteId: id }, { accessToken })
+      promptMessage('Undeployment started.')
+    } catch (apiError) {
+      promptError(apiError.message)
+    }
+  }
+
   // Effects
   useEffect(() => {
     if (!accessToken || !query) return
@@ -598,6 +613,7 @@ const Assignments = ({ appContext }) => {
                   handleCloneConfiguration={handleCloneConfiguration}
                   handleRunMatcher={handleRunMatcher}
                   handleDeployMatcher={handleDeployMatcher}
+                  handleUndeployMatcher={handleUndeployMatcher}
                   referrer={encodeURIComponent(
                     `[all assignments for ${prettyId(query?.group)}](/assignments?group=${
                       query?.group
