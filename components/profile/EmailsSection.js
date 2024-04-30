@@ -6,7 +6,6 @@ import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { isInstitutionEmail, isValidEmail } from '../../lib/utils'
-import ProfileMergeModal from '../ProfileMergeModal'
 
 const EmailsButton = ({
   type,
@@ -91,7 +90,6 @@ const EmailsSection = ({
     profileEmails?.map((p) => ({ ...p, key: nanoid(), isValid: true })) ?? []
   )
   const { accessToken } = useUser()
-  const [alreadyConfirmedError, setAlreadyConfirmedError] = useState(null)
   const hasInstitutionEmail = emails.some(
     (p) => p.confirmed && isInstitutionEmail(p.email, institutionDomains)
   )
@@ -129,17 +127,6 @@ const EmailsSection = ({
         await api.post('/user/confirm', linkData, { accessToken })
         return promptMessage(`A confirmation email has been sent to ${newEmail}`)
       } catch (error) {
-        if (error.message.includes('confirmed')) {
-          setAlreadyConfirmedError(error.details)
-          return promptError(
-            `Error: ${error.details.alternate} is already associated with another OpenReview profile,
-          <a href="/profile?id=${error.details.otherProfile}" title="View profile" target="_blank" class="action-link">${error.details.otherProfile}</a>.
-          To merge this profile with your account, please click here to submit a profile merge request:
-          <a href="#" title="View profile" target="_blank" class="action-link" data-toggle="modal" data-target="#profile-merge-modal">Merge Profiles</a>.
-          `,
-            { html: true }
-          )
-        }
         return promptError(error.message)
       }
     } else {
@@ -205,14 +192,6 @@ const EmailsSection = ({
       <div role="button" aria-label="add another email" tabIndex={0} onClick={handleAddEmail}>
         <Icon name="plus-sign" tooltip="add another email" />
       </div>
-
-      <ProfileMergeModal
-        preFillProfileMergeInfo={{
-          email: alreadyConfirmedError?.user,
-          idsToMerge: `${alreadyConfirmedError?.thisProfile},${alreadyConfirmedError?.otherProfile}`,
-          comment: '',
-        }}
-      />
     </div>
   )
 }

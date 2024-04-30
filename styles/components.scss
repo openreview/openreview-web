@@ -1098,7 +1098,7 @@ table.table-minimal {
 
 // User Moderation
 .moderation-status {
-  width: 1100px;
+  width: 1150px;
   margin: 1.75rem auto 0 -1rem;
   display: flex;
   align-items: center;
@@ -1137,7 +1137,7 @@ table.table-minimal {
   }
 
   .profiles-list {
-    width: 1100px;
+    width: 1150px;
     margin: 1.75rem 0;
     min-height: 100px;
 
@@ -1171,7 +1171,11 @@ table.table-minimal {
         width: 250px;
       }
       &.col-created {
-        width: 200px;
+        width: 240px;
+
+        .passed-moderation {
+          color: constants.$orRed;
+        }
       }
       &.col-status {
         width: 200px;
@@ -1264,6 +1268,14 @@ table.table-minimal {
           vertical-align: bottom;
           margin-left: 0.25rem;
         }
+      }
+    }
+
+    section.messages {
+      .message-row > td > div {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        height: 40px;
       }
     }
   }

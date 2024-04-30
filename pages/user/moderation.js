@@ -1756,11 +1756,13 @@ const UserModerationQueue = ({
     'Inactive',
     'Merged',
   ].map((p) => ({ label: p, value: p }))
+  const twoWeeksAgo = dayjs().subtract(2, 'week').valueOf()
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
     const cleanSearchTerm = filters.term?.trim()
     const shouldSearchProfile = profileStateOption === 'All' && cleanSearchTerm
+    const sortKey = onlyModeration ? 'tmdate' : 'tcdate'
     let searchQuery = { fullname: cleanSearchTerm?.toLowerCase() }
     if (cleanSearchTerm?.startsWith('~')) searchQuery = { id: cleanSearchTerm }
     if (cleanSearchTerm?.includes('@')) searchQuery = { email: cleanSearchTerm.toLowerCase() }
@@ -1771,7 +1773,7 @@ const UserModerationQueue = ({
         {
           ...queryOptions,
 
-          ...(!shouldSearchProfile && { sort: `tcdate:${descOrder ? 'desc' : 'asc'}` }),
+          ...(!shouldSearchProfile && { sort: `${sortKey}:${descOrder ? 'desc' : 'asc'}` }),
           limit: pageSize,
           offset: (pageNumber - 1) * pageSize,
           withBlocked: onlyModeration ? undefined : true,
@@ -1981,7 +1983,7 @@ const UserModerationQueue = ({
       </h4>
       {showSortButton && profiles && profiles.length !== 0 && (
         <button className="btn btn-xs sort-button" onClick={() => setDescOrder((p) => !p)}>{`${
-          descOrder ? 'Sort: Newest First' : 'Sort: Oldest First'
+          descOrder ? 'Sort: Most Recently Modified' : 'Sort: Least Recently Modified'
         }`}</button>
       )}
 
@@ -2028,7 +2030,41 @@ const UserModerationQueue = ({
                   </a>
                 </span>
                 <span className="col-email text-muted">{profile.content.preferredEmail}</span>
-                <span className="col-created">{formatDateTime(profile.tcdate)}</span>
+                <span className="col-created">
+                  {profile.tcdate !== profile.tmdate && (
+                    <>
+                      <span>
+                        {formatDateTime(profile.tcdate, {
+                          day: '2-digit',
+                          month: 'short',
+                          year: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: undefined,
+                          timeZoneName: undefined,
+                          hour12: false,
+                        })}
+                      </span>
+                      {' / '}
+                    </>
+                  )}
+                  <span
+                    className={`${
+                      onlyModeration && profile.tmdate < twoWeeksAgo ? 'passed-moderation' : ''
+                    }`}
+                  >
+                    {formatDateTime(profile.tmdate, {
+                      day: '2-digit',
+                      month: 'short',
+                      year: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: undefined,
+                      timeZoneName: undefined,
+                      hour12: false,
+                    })}
+                  </span>
+                </span>
                 <span className="col-status">
                   <span className={`label label-${profile.password ? 'success' : 'danger'}`}>
                     password
@@ -2074,6 +2110,15 @@ const UserModerationQueue = ({
                     </>
                   ) : (
                     <>
+                      {profile.state === 'Needs Moderation' && (
+                        <button
+                          type="button"
+                          className="btn btn-xs"
+                          onClick={() => acceptUser(profile.id)}
+                        >
+                          <Icon name="ok-circle" /> Accept
+                        </button>
+                      )}{' '}
                       {!(
                         profile.state === 'Blocked' ||
                         profile.state === 'Limited' ||
@@ -2108,7 +2153,7 @@ const UserModerationQueue = ({
                           {`${profile.state === 'Blocked' ? 'Unblock' : 'Block'}`}
                         </button>
                       )}{' '}
-                      {state !== 'Merged' && (
+                      {state !== 'Merged' && profile.state !== 'Needs Moderation' && (
                         <button
                           type="button"
                           className="btn btn-xs"
@@ -2177,6 +2222,7 @@ const UserModerationQueue = ({
           'relations',
           'expertise',
           'publications',
+          'messages',
         ]}
       />
     </div>
@@ -2191,19 +2237,14 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
     'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and complete the missing data.'
   const rejectionReasons = [
     {
-      value: 'inaccessibleHomepage',
-      label: 'Inaccessible Homepage',
-      rejectionText: `A valid Homepage is required. The homepage url provided in your profile is not accessible.\n\n${instructionText}`,
+      value: 'invalidEmail',
+      label: 'Missing Institution Email',
+      rejectionText: `An Institution email matching your latest career/education history is required.\n\n${instructionText}`,
     },
     {
       value: 'imPersonalHomepage',
       label: 'Impersonal Homepage',
-      rejectionText: `The homepage url provided in your profile doesn't display your name so your identity can't be determined.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidHomepageAndEmail',
-      label: 'Invalid Homepage + Missing Institution Email',
-      rejectionText: `A valid Homepage and institutional email matching your latest career/education history are required.\n\n${instructionText}`,
+      rejectionText: `The homepage url provided in your profile is invalid or does not display your name so your identity can't be determined.\n\n${instructionText}`,
     },
     {
       value: 'imPersonalHomepageAndEmail',
@@ -2211,14 +2252,19 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
       rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required.\n\n${instructionText}`,
     },
     {
-      value: 'invalidName',
-      label: 'Invalid Name',
-      rejectionText: `A valid name is required, and must match the one listed on your provided personal homepages.\n\n${instructionText}`,
+      value: 'repeatedInvalidInfo',
+      label: 'Repeated Invalid Info',
+      rejectionText: `Submitting invalid info is a violation of OpenReview's Terms and Conditions which may result in terminating your access to the system.\n\n${instructionText}`,
     },
     {
-      value: 'invalidEmail',
-      label: 'Missing Institution Email',
-      rejectionText: `An Institution email is required.\n\n${instructionText}`,
+      value: 'requestEmailVerification',
+      label: 'Request Email Verification',
+      rejectionText: `Please send us an email from the institution email you have in your profile so that we can verify your identity.\n\n${instructionText}`,
+    },
+    {
+      value: 'invalidName',
+      label: 'Invalid Name',
+      rejectionText: `A valid name is required and must match the one listed on your provided personal homepages.\n\n${instructionText}`,
     },
   ]
 

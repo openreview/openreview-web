@@ -328,9 +328,13 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       })
       // #endregion
 
-      const assignedNoteNumbers = seniorAreaChairGroups.map((p) =>
-        getNumberFromGroup(p.id, submissionName)
-      )
+      const seniorAreaChairGroupByNumber = {}
+      const assignedNoteNumbers = []
+      seniorAreaChairGroups.forEach((p) => {
+        const number = getNumberFromGroup(p.id, submissionName)
+        assignedNoteNumbers.push(number)
+        seniorAreaChairGroupByNumber[number] = p.id
+      })
 
       const assignedNotes = notes.flatMap((p) =>
         assignedNoteNumbers.includes(p.number) ? p : []
@@ -573,6 +577,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             },
             decision,
             preliminaryDecision,
+            messageSignature: seniorAreaChairGroupByNumber[note.number],
           }
         }),
       })
@@ -664,7 +669,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           </TabPanel>
           {activeTabId === '#areachair-status' && (
             <TabPanel id="areachair-status">
-              <AreaChairStatus sacConsoleData={sacConsoleData} loadSacConsoleData={loadData} />
+              <AreaChairStatus sacConsoleData={sacConsoleData} loadSacConsoleData={loadData} user={user} />
             </TabPanel>
           )}
           {activeTabId === '#seniorareachair-tasks' && (

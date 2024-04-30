@@ -394,9 +394,9 @@ export default class EdgeBrowser extends React.Component {
       traverseInvitation: this.traverseInvitation,
       editInvitations: this.editInvitations,
       browseInvitations: this.browseInvitations,
-      ignoreHeadBrowseInvitations: this.browseInvitations?.filter(
-        (p) => p?.query?.head === 'ignore'
-      ),
+      ignoreHeadBrowseInvitations: this.startInvitation?.query?.storageKey
+        ? []
+        : this.browseInvitations?.filter((p) => p?.query?.head === 'ignore'),
       hideInvitation: this.hideInvitation,
       availableSignaturesInvitationMap: this.availableSignaturesInvitationMap,
       version: this.version,

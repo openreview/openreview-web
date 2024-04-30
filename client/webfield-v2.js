@@ -571,11 +571,12 @@ module.exports = (function () {
           if (user.groups?.length > 0) {
             var groupIds = []
             user.groups.forEach(function (group) {
-              groupIds.push(group.id)
-              if (group.id in userCounts) {
-                userCounts[group.id].count++
+              var groupId = group.anonymousGroupId || group.id
+              groupIds.push(groupId)
+              if (groupId in userCounts) {
+                userCounts[groupId].count++
               } else {
-                userCounts[group.id] = {
+                userCounts[groupId] = {
                   name: group.name,
                   email: group.email,
                   count: 1,
@@ -588,6 +589,8 @@ module.exports = (function () {
               subject: subject,
               forumUrl: user.forumUrl,
               replyTo: options.reminderOptions.replyTo,
+              invitation: options.reminderOptions.messageInvitationId && options.reminderOptions.messageInvitationId.replace('{number}', user.number),
+              signature: options.reminderOptions.messageInvitationId && options.reminderOptions.messageSignature,
             })
             count += groupIds.length
           }
@@ -649,6 +652,8 @@ module.exports = (function () {
             subject: $('#message-reviewers-modal input[name="subject"]').val().trim(),
             message: $('#message-reviewers-modal textarea[name="message"]').val().trim(),
             replyTo: options.reminderOptions.replyTo,
+            invitation: options.reminderOptions.messageInvitationId,
+            signature: options.reminderOptions.messageInvitationId && options.reminderOptions.messageSignature,
           }
 
           $('#message-reviewers-modal').modal('hide')
@@ -681,9 +686,9 @@ module.exports = (function () {
       var postReviewerEmails = function (postData) {
         postData.message = postData.message.replace('{{forumUrl}}', postData.forumUrl)
 
-        return Webfield.post(
+        return post(
           '/messages',
-          _.pick(postData, ['groups', 'subject', 'message', 'replyTo'])
+          _.pick(postData, ['groups', 'subject', 'message', 'replyTo', 'invitation', 'signature'])
         ).then(function (response) {
           // Save the timestamp in the local storage
           for (var i = 0; i < postData.groups.length; i++) {
@@ -1339,6 +1344,7 @@ module.exports = (function () {
               anonId: anonGroup && getNumberfromGroup(anonGroup.id, anonRoleName),
               name: profileInfo.name,
               email: profileInfo.email,
+              anonymousGroupId: anonGroup && anonGroup.id,
             })
           })
           groupsByNumber[number] = memberGroups
