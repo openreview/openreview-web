@@ -787,16 +787,27 @@ export default function Forum({
       let newMessageAuthor = ''
       let newMessage = ''
       let additionalReplyCount = 0
+      const newSigIds = new Set()
       newReplies.forEach((note) => {
         const invId = note.invitations[0]
         // eslint-disable-next-line no-param-reassign
         note.details.invitation = invitationMapRef.current[invId]?.[0]
         // eslint-disable-next-line no-param-reassign
         note.details.presentation = invitationMapRef.current[invId]?.[1]
+
+        const sigGroups = []
+        for (let i = 0; i < note.signatures.length; i += 1) {
+          const sigId = note.signatures[i]
+          const existingGroup = signaturesMapRef.current[sigId] ?? null
+          if (existingGroup) {
+            sigGroups.push(existingGroup)
+          } else {
+            newSigIds.add(sigId)
+          }
+        }
         // eslint-disable-next-line no-param-reassign
-        note.details.signatures = note.signatures.flatMap(
-          (sigId) => signaturesMapRef.current[sigId] ?? []
-        )
+        note.details.signatures = sigGroups
+
         const isNewNote = updateNote(note)
         if (isNewNote && !note.ddate) {
           if (!newMessageAuthor) {
@@ -812,6 +823,23 @@ export default function Forum({
         setLatestMdate(newReplies[newReplies.length - 1].tmdate)
       }
 
+      if (newSigIds.size > 0) {
+        Promise.all(
+          Array.from(newSigIds, (sigId) => {
+            if (!sigId || Object.hasOwn(signaturesMapRef.current, sigId)) {
+              return Promise.resolve(null)
+            }
+            return api
+              .get(`/groups`, { id: sigId, select: 'id,members,readers' }, { accessToken })
+              .then((sigGroups) => {
+                const sigGroup = sigGroups.groups?.length > 0 ? sigGroups.groups[0] : null
+                signaturesMapRef.current[sigId] = sigGroup
+                return sigGroup
+              })
+          })
+        )
+      }
+
       if (notificationPermissions === 'granted' && showNotifications && newMessageAuthor) {
         const notif = new Notification(viewName, {
           body:
@@ -822,7 +850,7 @@ export default function Forum({
         })
       }
     })
-  }, 2000)
+  }, 1500)
 
   return (
     <div className="forum-container">
