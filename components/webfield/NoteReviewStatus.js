@@ -141,7 +141,9 @@ Click on the link below to go to the review page:\n\n{{submit_review_link}}
       await api.post(
         '/messages',
         {
-          invitation: messageSubmissionReviewersInvitationId && messageSubmissionReviewersInvitationId.replace('{number}', note.number),
+          invitation:
+            messageSubmissionReviewersInvitationId &&
+            messageSubmissionReviewersInvitationId.replace('{number}', note.number),
           signature: messageSubmissionReviewersInvitationId && messageSignature,
           groups: [reviewer.anonymizedGroup],
           subject,
@@ -397,7 +399,7 @@ export const AcPcConsoleNoteReviewStatus = ({
   submissionName,
   reviewerAssignmentUrl,
 }) => {
-  const { officialReviews, reviewers, note } = rowData
+  const { officialReviews, reviewers = [], note } = rowData
   const { reviewRatingName } = useContext(WebFieldContext)
   const {
     numReviewsDone,

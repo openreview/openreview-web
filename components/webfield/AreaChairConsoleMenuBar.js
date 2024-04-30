@@ -1,5 +1,5 @@
 import { camelCase, upperFirst } from 'lodash'
-import { prettyField } from '../../lib/utils'
+import { pluralizeString, prettyField } from '../../lib/utils'
 import BaseMenuBar from './BaseMenuBar'
 import MessageReviewersModal from './MessageReviewersModal'
 import QuerySearchInfoModal from './QuerySearchInfoModal'
@@ -17,17 +17,24 @@ const AreaChairConsoleMenuBar = ({
   reviewRatingName,
   metaReviewRecommendationName,
   additionalMetaReviewFields,
+  reviewerName,
+  officialReviewName,
+  submissionName,
+  officialMetaReviewName,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
+  const formattedReviewerName = upperFirst(camelCase(reviewerName))
+  const formattedOfficialReviewName = upperFirst(camelCase(officialReviewName))
+
   const propertiesAllowed = {
     number: ['note.number'],
     id: ['note.id'],
     title: ['note.content.title.value'],
     author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords.value'],
-    reviewer: ['reviewers'],
-    numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
-    numReviewsDone: ['reviewProgressData.numReviewsDone'],
+    [formattedReviewerName]: ['reviewers'],
+    [`num${formattedReviewerName}Assigned`]: ['reviewProgressData.numReviewersAssigned'],
+    [`num${formattedOfficialReviewName}Done`]: ['reviewProgressData.numReviewsDone'],
     ...Object.fromEntries(
       (Array.isArray(reviewRatingName)
         ? reviewRatingName.map((p) => (typeof p === 'object' ? Object.keys(p)[0] : p))
@@ -54,10 +61,26 @@ const AreaChairConsoleMenuBar = ({
     ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
   }
   const messageReviewerOptions = [
-    { label: 'All Reviewers of selected papers', value: 'allReviewers' },
-    { label: 'Reviewers of selected papers with submitted reviews', value: 'withReviews' },
     {
-      label: 'Reviewers of selected papers with unsubmitted reviews',
+      label: `All ${pluralizeString(prettyField(reviewerName))} of selected ${pluralizeString(
+        submissionName
+      )}`,
+      value: 'allReviewers',
+    },
+    {
+      label: `${pluralizeString(prettyField(reviewerName))} of selected ${pluralizeString(
+        submissionName
+      ).toLowerCase()} with submitted ${pluralizeString(
+        prettyField(officialReviewName).toLowerCase()
+      )}`,
+      value: 'withReviews',
+    },
+    {
+      label: `${pluralizeString(prettyField(reviewerName))} of selected ${pluralizeString(
+        submissionName
+      ).toLowerCase()} with unsubmitted ${pluralizeString(
+        prettyField(officialReviewName).toLowerCase()
+      )}`,
       value: 'missingReviews',
     },
   ]
@@ -72,13 +95,16 @@ const AreaChairConsoleMenuBar = ({
       header: 'abstract',
       getValue: (p) => p.note?.content?.abstract?.value,
     },
-    { header: 'num reviewers', getValue: (p) => p.reviewProgressData?.numReviewersAssigned },
     {
-      header: 'num submitted reviewers',
+      header: `num ${prettyField(reviewerName)}`,
+      getValue: (p) => p.reviewProgressData?.numReviewersAssigned,
+    },
+    {
+      header: `num submitted ${prettyField(reviewerName)}`,
       getValue: (p) => p.reviewProgressData?.numReviewsDone,
     },
     {
-      header: 'missing reviewers',
+      header: `missing ${prettyField(reviewerName)}`,
       getValue: (p) =>
         p.reviewers
           ?.filter((q) => !q.hasReview)
@@ -86,7 +112,7 @@ const AreaChairConsoleMenuBar = ({
           ?.join('|'),
     },
     {
-      header: 'reviewer contact info',
+      header: `${prettyField(reviewerName)} contact info`,
       getValue: (p) =>
         p.reviewers.map((q) => `${q.preferredName}<${q.preferredEmail}>`).join(','),
     },
@@ -117,9 +143,13 @@ const AreaChairConsoleMenuBar = ({
     ...(extraExportColumns ?? []),
   ]
   const sortOptions = [
-    { label: 'Paper Number', value: 'Paper Number', getValue: (p) => p.note?.number },
     {
-      label: 'Paper Title',
+      label: `${submissionName} Number`,
+      value: 'Paper Number',
+      getValue: (p) => p.note?.number,
+    },
+    {
+      label: `${submissionName} Title`,
       value: 'Paper Title',
       getValue: (p) => p.note?.content?.title?.value,
     },
@@ -129,12 +159,12 @@ const AreaChairConsoleMenuBar = ({
       getValue: (p) => p.reviewProgressData?.replyCount,
     },
     {
-      label: 'Number of Reviews Submitted',
+      label: `Number of ${pluralizeString(prettyField(officialReviewName))} Submitted`,
       value: 'Number of Reviews Submitted',
       getValue: (p) => p.reviewProgressData?.numReviewsDone,
     },
     {
-      label: 'Number of Reviews Missing',
+      label: `Number of ${pluralizeString(prettyField(officialReviewName))} Missing`,
       value: 'Number of Reviews Missing',
       getValue: (p) =>
         (p.reviewProgressData?.numReviewersAssigned ?? 0) -
@@ -194,7 +224,9 @@ const AreaChairConsoleMenuBar = ({
           : p.reviewProgressData?.confidenceMin,
     },
     {
-      label: `Meta Review ${prettyField(metaReviewRecommendationName)}`,
+      label: `${prettyField(officialMetaReviewName)} ${prettyField(
+        metaReviewRecommendationName
+      )}`,
       value: `Meta Review ${metaReviewRecommendationName}`,
       getValue: (p) =>
         p.metaReviewData?.[metaReviewRecommendationName] === 'N/A'
