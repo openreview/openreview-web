@@ -6,6 +6,7 @@
   border-radius: 2px;
   background-color: constants.$backgroundWhite;
   position: relative;
+  overflow: hidden;
 
   :global {
     .chat-body {
@@ -27,6 +28,7 @@
         margin-bottom: .375rem;
         font-size: .75rem;
         color: constants.$subtleGray;
+        cursor: pointer;
         span {
           color: constants.$orRed;
           font-weight: bold;

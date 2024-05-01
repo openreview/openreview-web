@@ -1,15 +1,14 @@
 /* globals promptError,DOMPurify,marked,MathJax: false */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import uniqBy from 'lodash/uniqBy'
-import truncate from 'lodash/truncate'
 import flatten from 'lodash/flatten'
 import Dropdown from '../Dropdown'
 import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId, prettyInvitationId } from '../../lib/utils'
-import { readersList, getSignatureColors } from '../../lib/forum-utils'
+import { readersList, getSignatureColors, getReplySnippet } from '../../lib/forum-utils'
 
 import styles from '../../styles/components/ChatEditorForm.module.scss'
 
@@ -32,6 +31,7 @@ export default function ChatEditorForm({
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const [loading, setLoading] = useState(false)
   const { user, accessToken } = useUser()
+  const inputRef = useRef(null)
 
   const tabName = document.querySelector('.filter-tabs > li.active > a')?.text
   const invitationShortName = prettyInvitationId(invitation.id)
@@ -79,7 +79,7 @@ export default function ChatEditorForm({
     e.preventDefault()
     if (!message || loading) return
 
-    const trimmedMessage = message.trim()
+    const trimmedMessage = message.replaceAll('&nbsp;', ' ').trim()
     if (!trimmedMessage) return
 
     setLoading(true)
@@ -171,6 +171,12 @@ export default function ChatEditorForm({
     }
   }, [showMessagePreview, message])
 
+  useEffect(() => {
+    if (replyToNote && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [replyToNote])
+
   return (
     <form
       onSubmit={postNoteEdit}
@@ -178,23 +184,14 @@ export default function ChatEditorForm({
       className={styles.container}
     >
       {replyToNote && (
-        <div className="parent-info">
+        <div className="parent-info disable-tex-rendering">
           <h5 onClick={() => {
             scrollToNote(replyToNote.id)
           }}>
             {/* <Icon name="share-alt" />{' '} */}
             <span>Replying to {prettyId(replyToNote.signatures[0], true)}</span>
             {' – '}
-            {truncate(
-              replyToNote.content.message?.value ||
-                replyToNote.content.title?.value ||
-                replyToNote.generatedTitle,
-              {
-                length: 100,
-                omission: '...',
-                separator: ' ',
-              }
-            )}
+            {getReplySnippet(replyToNote.content.message?.value || replyToNote.generatedTitle)}
             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a
               href="#"
@@ -255,6 +252,7 @@ export default function ChatEditorForm({
           />
         ) : (
           <textarea
+            ref={inputRef}
             name="message"
             className="form-control"
             placeholder={`Type a new message ${tabName ? `to ${tabName}` : ''}...`}
@@ -339,8 +337,8 @@ export default function ChatEditorForm({
             className="btn btn-sm btn-primary"
             disabled={!message || !message.trim() || loading}
           >
-            Post {invitationShortName}
-            {/* <Icon name="send" /> */}
+            Send{' '}
+            <Icon name="send" />
           </button>
         </div>
       </div>

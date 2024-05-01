@@ -977,6 +977,7 @@ export default function Forum({
                   layout={layout}
                   chatReplyNote={chatReplyNote}
                   setChatReplyNote={setChatReplyNote}
+                  scrollToNote={scrollToChatNote}
                   updateNote={updateNote}
                   deleteOrRestoreNote={deleteOrRestoreNote}
                   numHidden={numRepliesHidden}
@@ -1103,6 +1104,7 @@ function ForumReplies({
   updateNote,
   deleteOrRestoreNote,
   setChatReplyNote,
+  scrollToNote,
 }) {
   if (!replies) return null
 
@@ -1130,6 +1132,7 @@ function ForumReplies({
             setChatReplyNote={setChatReplyNote}
             isSelected={reply.id === chatReplyNote?.id}
             updateNote={updateNote}
+            scrollToNote={scrollToNote}
           />
         )}
       </List>

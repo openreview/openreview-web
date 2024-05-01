@@ -78,9 +78,13 @@
       flex-grow: 3;
     }
     .buttons-container {
-      flex-grow: 1;
+      flex-shrink: 0;
       text-align: right;
-      flex-basis: 450px;
+      flex-basis: 300px;
+
+      span.glyphicon {
+        padding-left: .25rem;
+      }
     }
   }
 }
