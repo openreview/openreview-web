@@ -32,6 +32,10 @@ jest.mock('../components/webfield/NoteReviewStatus', () => ({
 
 global.promptError = jest.fn()
 global.typesetMathJax = jest.fn()
+global.DOMPurify = {
+  sanitize: jest.fn(),
+}
+global.marked = jest.fn()
 
 beforeEach(() => {
   useUserReturnValue = { user: {}, accessToken: 'some token' }
@@ -89,7 +93,7 @@ describe('ReviewerConsole', () => {
       value: {
         header: {
           title: 'Program Committee Console',
-          instruction: 'some instructions',
+          instructions: 'some instructions',
         },
         entity: { id: 'AAAI.org/2025/Conference/Program_Committee' },
         venueId,
@@ -192,7 +196,7 @@ describe('ReviewerConsole', () => {
       value: {
         header: {
           title: 'Program Committee Console',
-          instruction: 'some instructions',
+          instructions: 'some instructions',
         },
         entity: { id: 'AAAI.org/2025/Conference/Program_Committee' },
         venueId: 'AAAI.org/2025/Conference',
@@ -288,7 +292,7 @@ describe('ReviewerConsole', () => {
       value: {
         header: {
           title: 'Program Committee Console',
-          instruction: 'some instructions',
+          instructions: 'some instructions',
         },
         entity: { id: 'AAAI.org/2025/Conference/Program_Committee' },
         venueId: 'AAAI.org/2025/Conference',
@@ -426,7 +430,7 @@ describe('ReviewerConsole', () => {
       value: {
         header: {
           title: 'Program Committee Console',
-          instruction: 'some instructions',
+          instructions: 'some instructions',
         },
         entity: { id: 'AAAI.org/2025/Conference/Program_Committee' },
         venueId: 'AAAI.org/2025/Conference',
@@ -553,7 +557,7 @@ describe('ReviewerConsole', () => {
       value: {
         header: {
           title: 'Program Committee Console',
-          instruction: 'some instructions',
+          instructions: 'some instructions',
         },
         entity: { id: 'AAAI.org/2025/Conference/Program_Committee' },
         venueId: 'AAAI.org/2025/Conference',
@@ -688,7 +692,7 @@ describe('ReviewerConsole', () => {
       value: {
         header: {
           title: 'Program Committee Console',
-          instruction: 'some instructions',
+          instructions: 'some instructions',
         },
         entity: { id: 'AAAI.org/2025/Conference/Program_Committee' },
         venueId: 'AAAI.org/2025/Conference',
@@ -822,7 +826,7 @@ describe('ReviewerConsole', () => {
       value: {
         header: {
           title: 'Program Committee Console',
-          instruction: 'some instructions',
+          instructions: 'some instructions',
         },
         entity: { id: 'AAAI.org/2025/Conference/Program_Committee' },
         venueId: 'AAAI.org/2025/Conference',
