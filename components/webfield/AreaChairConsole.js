@@ -793,7 +793,8 @@ const AreaChairConsole = ({ appContext }) => {
           </TabPanel>
           {secondaryAreaChairName && (
             <TabPanel id={`${secondaryAreaChairName}-assignments`}>
-              {renderTripletACTable()}
+              {activeTabId === `${secondaryAreaChairName}-assignments` &&
+                renderTripletACTable()}
             </TabPanel>
           )}
           <TabPanel id={`${areaChairName}-tasks`}>
