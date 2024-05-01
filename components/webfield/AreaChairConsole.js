@@ -178,8 +178,8 @@ const AreaChairConsole = ({ appContext }) => {
     ? edgeBrowserProposedUrl
     : edgeBrowserDeployedUrl
   const headerInstructions = showEdgeBrowserUrl
-    ? `${header.instructions}<p><strong>Reviewer Assignment Browser: </strong><a id="edge_browser_url" href="${edgeBrowserUrl}"" target="_blank" rel="nofollow">Modify Reviewer Assignments</a></p>`
-    : header.instructions
+    ? `${header?.instructions}<p><strong>Reviewer Assignment Browser: </strong><a id="edge_browser_url" href="${edgeBrowserUrl}"" target="_blank" rel="nofollow">Modify Reviewer Assignments</a></p>`
+    : header?.instructions
 
   const getReviewerName = (reviewerProfile) => {
     const name =
@@ -190,7 +190,7 @@ const AreaChairConsole = ({ appContext }) => {
 
   const getSACLinkText = () => {
     if (!acConsoleData.sacProfiles?.length) return ''
-    const sacName = prettyField(seniorAreaChairsId.split('/').pop())
+    const sacName = prettyField(seniorAreaChairsId?.split('/')?.pop())
     const singluarSACName = sacName.endsWith('s') ? sacName.slice(0, -1) : sacName
     const sacText = `Your assigned ${inflect(
       acConsoleData.sacProfiles.length,
@@ -743,9 +743,9 @@ const AreaChairConsole = ({ appContext }) => {
     .filter(([key, value]) => value === undefined)
     .map((p) => p[0])
   if (missingConfig.length > 0) {
-    const errorMessage = `${prettyField(
-      areaChairName
-    )} Console is missing required properties: ${missingConfig.join(', ')}`
+    const errorMessage = `${
+      areaChairName ? `${prettyField(areaChairName)} ` : ''
+    }Console is missing required properties: ${missingConfig.join(', ')}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
 
