@@ -148,7 +148,7 @@ const PaperRow = ({
             {prettyField(rowData.note?.content[noteContentField.field].value.toString()) ??
               'N/A'}
           </h4>
-          {reasonNotes && (
+          {reasonNotes.length > 0 && (
             <div>
               <Table
                 className="console-table table-striped"
@@ -188,7 +188,7 @@ const PaperRow = ({
               <hr></hr>
             </div>
           )}
-          {responseNotes && (
+          {responseNotes.length > 0 && (
             <div>
               <Table
                 className="console-table table-striped"
