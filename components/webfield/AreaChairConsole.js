@@ -635,8 +635,8 @@ const AreaChairConsole = ({ appContext }) => {
   }
 
   const renderTripletACTable = () => {
-    if (!acConsoleData.tableRows) return <LoadingSpinner />
-    if (acConsoleData.tableRows?.length === 0)
+    if (!acConsoleData.tripletACtableRows) return <LoadingSpinner />
+    if (acConsoleData.tripletACtableRows?.length === 0)
       return (
         <p className="empty-message">
           No assigned {submissionName.toLowerCase()}.Check back later or contact
@@ -789,11 +789,11 @@ const AreaChairConsole = ({ appContext }) => {
 
         <TabPanels>
           <TabPanel id={`assigned-${pluralizeString(submissionName)}`}>
-            {renderTable()}
+            {activeTabId === `#assigned-${pluralizeString(submissionName)}` && renderTable()}
           </TabPanel>
           {secondaryAreaChairName && (
             <TabPanel id={`${secondaryAreaChairName}-assignments`}>
-              {activeTabId === `${secondaryAreaChairName}-assignments` &&
+              {activeTabId === `#${secondaryAreaChairName}-assignments` &&
                 renderTripletACTable()}
             </TabPanel>
           )}
