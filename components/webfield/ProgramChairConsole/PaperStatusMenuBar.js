@@ -200,11 +200,12 @@ const PaperStatusMenuBar = ({
       getValue: (p) =>
         p.note?.version === 2 ? p.note?.content?.title?.value : p.note?.content?.title,
     },
-    noteContentField && {
+    ...(noteContentField !== undefined && typeof noteContentField === 'object' && 'field' in noteContentField ?
+    [{
       label: prettyField(noteContentField.field),
       value: prettyField(noteContentField.field),
       getValue: (p) => p.note?.content[noteContentField.field].value.toString() ?? 'N/A',
-    },
+    }] : []),
     {
       label: 'Number of Forum Replies',
       value: 'Number of Forum Replies',
