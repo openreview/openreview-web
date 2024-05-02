@@ -181,10 +181,11 @@ const PaperStatusMenuBar = ({
         }))
       : []),
     ...(exportColumnsConfig ?? []),
-    noteContentField && {
+    ...(noteContentField !== undefined && typeof noteContentField === 'object' && 'field' in noteContentField ?
+    [{
       header: noteContentField.field,
       getValue: (p) => p.note?.content[noteContentField.field].value.toString() ?? 'N/A',
-    }
+    }] : [])
   ]
 
   const getValueWithDefault = (value) => {
