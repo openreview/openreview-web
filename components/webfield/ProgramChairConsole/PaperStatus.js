@@ -185,7 +185,7 @@ const PaperRow = ({
                   </tr>
                 ))}
               </Table>
-              <hr></hr>
+              <hr />
             </div>
           )}
           {responseNotes.length > 0 && (
@@ -225,7 +225,7 @@ const PaperRow = ({
                   </tr>
                 ))}
               </Table>
-              <hr></hr>
+              <hr />
             </div>
           )}
         </td>
@@ -277,7 +277,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
       const { notes, noteNumberReviewMetaReviewMap } = pcConsoleData
       if (!notes) return
       const actualNotes = noteContentField
-        ? notes.filter((note) => Object.keys(note.content).includes(noteContentField.field))
+        ? notes.filter((note) => note.content[noteContentField.field])
         : notes
       const actualNoteNumbers = actualNotes.map((note) => note.number)
       const actualNoteNumberReviewMetaReviewMap = noteContentField
@@ -288,7 +288,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
           )
         : noteNumberReviewMetaReviewMap
 
-      const tableRows = [...(actualNoteNumberReviewMetaReviewMap.values() ?? [])]
+      const tableRows = Array.from(actualNoteNumberReviewMetaReviewMap.values())
       setPaperStatusTabData({
         tableRowsAll: tableRows,
         tableRows: [...tableRows], // could be filtered
