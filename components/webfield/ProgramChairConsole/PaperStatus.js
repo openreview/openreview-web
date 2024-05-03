@@ -8,6 +8,7 @@ import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStat
 import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from './PaperStatusMenuBar'
+import { prettyField } from '../../../lib/utils'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -36,6 +37,7 @@ const PaperRow = ({
   decision,
   venue,
   getManualAssignmentUrl,
+  noteContentField,
 }) => {
   const {
     areaChairsId,
@@ -50,6 +52,36 @@ const PaperRow = ({
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#paper-status)`
   )
+
+  // Find note(s) that responds to the flag
+  const responseNotes =
+    noteContentField &&
+    note.details?.replies?.filter((reply) =>
+      reply.invitations.some((replyInvitation) =>
+        noteContentField.responseInvitations?.some((reasonInvitation) =>
+          replyInvitation.endsWith(reasonInvitation)
+        )
+      )
+    )
+
+  // Find note(s) that justify the flag, display using non meta-invitation invitation
+  const reasonNotes =
+    noteContentField &&
+    note.details?.replies?.filter((reply) => {
+      if (!reply?.invitations || !reply?.content) return false
+      return (
+        reply.invitations.some((replyInvitation) =>
+          noteContentField.reasonInvitations?.some((reasonInvitation) =>
+            replyInvitation.endsWith(reasonInvitation)
+          )
+        ) &&
+        Object.keys(reply.content).some((replyField) =>
+          noteContentField.reasonFields?.[replyField]?.includes(
+            reply.content[replyField].value
+          )
+        )
+      )
+    })
 
   return (
     <tr>
@@ -88,7 +120,7 @@ const PaperRow = ({
           reviewerAssignmentUrl={getManualAssignmentUrl('Reviewers')}
         />
       </td>
-      {areaChairsId && (
+      {!noteContentField && areaChairsId && (
         <td>
           <ProgramChairConsolePaperAreaChairProgress
             rowData={rowData}
@@ -99,15 +131,116 @@ const PaperRow = ({
           />
         </td>
       )}
-      <td className="console-decision">
-        <h4 className="title">{decision}</h4>
-        {venue && <span>{venue}</span>}
-      </td>
+      {noteContentField && (
+        <td>
+          <ProgramChairConsolePaperAreaChairProgress
+            rowData={rowData}
+            referrerUrl={referrerUrl}
+            areaChairAssignmentUrl={getManualAssignmentUrl('Area_Chairs')}
+            metaReviewRecommendationName={metaReviewRecommendationName}
+            additionalMetaReviewFields={additionalMetaReviewFields}
+          />
+        </td>
+      )}
+      {noteContentField && (
+        <td className="console-decision">
+          <h4 className="title">
+            {prettyField(rowData.note?.content[noteContentField.field].value.toString()) ??
+              'N/A'}
+          </h4>
+          {reasonNotes.length > 0 && (
+            <div>
+              <Table
+                className="console-table table-striped"
+                headings={[
+                  { id: 'invitation', content: 'Type', width: '30%' },
+                  { id: 'summary', content: 'Summary', width: '70%' },
+                ]}
+              >
+                {reasonNotes?.map((reasonNote) => (
+                  <tr key={reasonNote.id}>
+                    <td>
+                      <a
+                        href={`/forum?id=${rowData.note?.forum}&noteId=${reasonNote.id}&referrer=${referrerUrl}`}
+                        target="_blank"
+                      >
+                        <strong>
+                          {prettyField(
+                            reasonNote.invitations
+                              .find((invitation) => !invitation.endsWith('/Edit'))
+                              .split('/')
+                              .pop()
+                          )}
+                        </strong>
+                      </a>
+                    </td>
+                    <td>
+                      <NoteSummary
+                        note={reasonNote}
+                        referrerUrl={referrerUrl}
+                        showReaders={false}
+                        isV2Note={true}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </Table>
+              <hr />
+            </div>
+          )}
+          {responseNotes.length > 0 && (
+            <div>
+              <Table
+                className="console-table table-striped"
+                headings={[
+                  { id: 'invitation', content: 'Type', width: '30%' },
+                  { id: 'summary', content: 'Summary', width: '70%' },
+                ]}
+              >
+                {responseNotes?.map((responseNote) => (
+                  <tr key={responseNote.id}>
+                    <td>
+                      <a
+                        href={`/forum?id=${rowData.note?.forum}&noteId=${responseNote.id}&referrer=${referrerUrl}`}
+                        target="_blank"
+                      >
+                        <strong>
+                          {prettyField(
+                            responseNote.invitations
+                              .find((invitation) => !invitation.endsWith('/Edit'))
+                              .split('/')
+                              .pop()
+                          )}
+                        </strong>
+                      </a>
+                    </td>
+                    <td>
+                      <NoteSummary
+                        note={responseNote}
+                        referrerUrl={referrerUrl}
+                        showReaders={false}
+                        isV2Note={true}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </Table>
+              <hr />
+            </div>
+          )}
+        </td>
+      )}
+      {!noteContentField && (
+        <td className="console-decision">
+          <h4 className="title">{decision}</h4>
+          {venue && <span>{venue}</span>}
+        </td>
+      )}
     </tr>
   )
 }
 
-const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
+const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField }) => {
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const { venueId, areaChairsId, assignmentUrls, reviewRatingName } =
@@ -143,13 +276,25 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
     } else {
       const { notes, noteNumberReviewMetaReviewMap } = pcConsoleData
       if (!notes) return
-      const tableRows = [...(noteNumberReviewMetaReviewMap.values() ?? [])]
+      const actualNotes = noteContentField
+        ? notes.filter((note) => note.content[noteContentField.field])
+        : notes
+      const actualNoteNumbers = actualNotes.map((note) => note.number)
+      const actualNoteNumberReviewMetaReviewMap = noteContentField
+        ? new Map(
+            [...noteNumberReviewMetaReviewMap].filter(([noteNumber, dataMap]) =>
+              actualNoteNumbers.includes(noteNumber)
+            )
+          )
+        : noteNumberReviewMetaReviewMap
+
+      const tableRows = Array.from(actualNoteNumberReviewMetaReviewMap.values())
       setPaperStatusTabData({
         tableRowsAll: tableRows,
         tableRows: [...tableRows], // could be filtered
       })
 
-      setTotalCount(pcConsoleData.notes?.length ?? 0)
+      setTotalCount(actualNotes?.length ?? 0)
     }
   }, [pcConsoleData.notes, pcConsoleData.noteNumberReviewMetaReviewMap])
 
@@ -201,6 +346,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
         selectedNoteIds={selectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
         reviewRatingName={reviewRatingName}
+        noteContentField={noteContentField}
       />
       <Table
         className="console-table table-striped pc-console-paper-status"
@@ -220,7 +366,11 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
           { id: 'summary', content: 'Paper Summary', width: '30%' },
           { id: 'reviewProgress', content: 'Review Progress', width: '30%' },
           ...(areaChairsId ? [{ id: 'status', content: 'Status' }] : []),
-          { id: 'decision', content: 'Decision' },
+          {
+            id: noteContentField?.field ?? 'decision',
+            content: noteContentField ? prettyField(noteContentField.field) : 'Decision',
+            width: noteContentField ? '30%' : undefined,
+          },
         ]}
       >
         {paperStatusTabData.tableRowsDisplayed?.map((row) => (
@@ -232,6 +382,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
             decision={row.decision}
             venue={row.venue}
             getManualAssignmentUrl={getManualAssignmentUrl}
+            noteContentField={noteContentField}
           />
         ))}
       </Table>
