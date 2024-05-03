@@ -21,6 +21,7 @@ const AreaChairConsoleMenuBar = ({
   officialReviewName,
   submissionName,
   officialMetaReviewName,
+  areaChairName,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
   const formattedReviewerName = upperFirst(camelCase(reviewerName))
@@ -137,7 +138,7 @@ const AreaChairConsoleMenuBar = ({
     { header: 'max confidence', getValue: (p) => p.reviewProgressData?.confidenceMax },
     { header: 'average confidence', getValue: (p) => p.reviewProgressData?.confidenceAvg },
     {
-      header: `ac ${metaReviewRecommendationName}`,
+      header: `${camelCase(areaChairName)} ${metaReviewRecommendationName}`,
       getValue: (p) => p.metaReviewData?.[metaReviewRecommendationName],
     },
     ...(extraExportColumns ?? []),

@@ -558,6 +558,7 @@ const AreaChairConsole = ({ appContext }) => {
             officialReviewName={officialReviewName}
             submissionName={submissionName}
             officialMetaReviewName={officialMetaReviewName}
+            areaChairName={areaChairName}
           />
           <p className="empty-message">
             No assigned {submissionName.toLowerCase()} matching search criteria.
@@ -583,6 +584,7 @@ const AreaChairConsole = ({ appContext }) => {
           officialReviewName={officialReviewName}
           submissionName={submissionName}
           officialMetaReviewName={officialMetaReviewName}
+          areaChairName={areaChairName}
         />
         <Table
           className="console-table table-striped areachair-console-table"
