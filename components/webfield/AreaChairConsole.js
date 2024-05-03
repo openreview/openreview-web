@@ -723,6 +723,19 @@ const AreaChairConsole = ({ appContext }) => {
     }
   }, [acConsoleData.notes])
 
+  useEffect(() => {
+    const validTabIds = [
+      `#assigned-${pluralizeString(submissionName)}`,
+      ...(secondaryAreaChairName ? [`#${secondaryAreaChairName}-assignments`] : []),
+      `#${areaChairName}-tasks`,
+    ]
+    if (!validTabIds.includes(activeTabId)) {
+      setActiveTabId(`#assigned-${pluralizeString(submissionName)}`)
+      return
+    }
+    router.replace(activeTabId)
+  }, [activeTabId])
+
   const missingConfig = Object.entries({
     header,
     group,

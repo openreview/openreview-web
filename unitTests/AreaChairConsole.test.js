@@ -45,14 +45,23 @@ beforeEach(() => {
 })
 
 describe('AreaChairConsole', () => {
-  test('redirects to login page if user has not signed in', async () => {
-    useUserReturnValue = { user: null, accessToken: null }
-    const providerProps = { value: {} }
+  test('default to assigned papers tab when window.location does not contain any hash', async () => {
+    const providerProps = { value: { submissionName: 'Submissions' } }
     renderWithWebFieldContext(
       <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
       providerProps
     )
-    expect(routerParams).toContain('/login')
+    expect(routerParams).toEqual('#assigned-Submissions')
+  })
+
+  test('default to assigned papers tab when window.location.hash does not match any tab', async () => {
+    window.location.hash = '#some-unknown-tab'
+    const providerProps = { value: { submissionName: 'Submissions' } }
+    renderWithWebFieldContext(
+      <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+    expect(routerParams).toEqual('#assigned-Submissions')
   })
 
   test('show error when config is not complete', async () => {
