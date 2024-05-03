@@ -322,6 +322,10 @@ describe('AreaChairConsole', () => {
     )
 
     await waitFor(() => {
+      expect(global.marked).toHaveBeenCalledWith(expect.stringContaining('some instructions'))
+      expect(global.marked).toHaveBeenCalledWith(
+        expect.stringContaining('deployed edge browser url')
+      )
       expect(screen.getAllByRole('row')).toHaveLength(2) // header + 1 note
       expect(screen.getByText('note summary')).toBeInTheDocument()
       expect(screen.getByText('note review status')).toBeInTheDocument()
@@ -601,7 +605,7 @@ describe('AreaChairConsole', () => {
         venueId: 'AAAI.org/2025/Conference',
         reviewerAssignment: {
           showEdgeBrowserUrl: true,
-          proposedAssignmentTitle: '',
+          proposedAssignmentTitle: 'Proposed Assignment',
           edgeBrowserProposedUrl: 'proposed edge browser url',
           edgeBrowserDeployedUrl: 'deployed edge browser url',
         },
@@ -633,6 +637,9 @@ describe('AreaChairConsole', () => {
     )
 
     await waitFor(() => {
+      expect(global.marked).toHaveBeenCalledWith(
+        expect.stringContaining('proposed edge browser url')
+      )
       expect(screen.getByText('note summary')).toBeInTheDocument()
       expect(screen.getByText('note review status')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Export' })).toBeInTheDocument()
@@ -913,12 +920,14 @@ describe('AreaChairConsole', () => {
             },
           },
           {
+            id: '~Senior_AC1',
             content: {
               names: [{ username: '~Senior_AC1' }],
               preferredEmail: 'senior@ac.1',
             },
           },
           {
+            id: '~Senior_AC2',
             content: {
               names: [{ username: '~Senior_AC2' }],
               emails: ['senior@ac.2'],
@@ -934,7 +943,7 @@ describe('AreaChairConsole', () => {
         entity: { id: 'AAAI.org/2025/Conference/Senior_Program_Committee' },
         venueId: 'AAAI.org/2025/Conference',
         reviewerAssignment: {
-          showEdgeBrowserUrl: true,
+          showEdgeBrowserUrl: false,
           proposedAssignmentTitle: '',
           edgeBrowserProposedUrl: 'proposed edge browser url',
           edgeBrowserDeployedUrl: 'deployed edge browser url',
@@ -967,6 +976,11 @@ describe('AreaChairConsole', () => {
     )
 
     await waitFor(() => {
+      expect(global.marked).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" >Senior AC</a> (senior@ac.1) and <a href="/profile?id=~Senior_AC2" >Senior AC</a> (senior@ac.2)'
+        )
+      )
       expect(screen.getByRole('button', { name: 'Export' })).toBeVisible()
       expect(screen.getByRole('button', { name: 'Download PDFs' })).toBeVisible()
       expect(noteSummaryProps).not.toHaveBeenCalledWith(
