@@ -67,21 +67,34 @@
     }
     .custom-switch {
       display: inline-block;
-      padding-right: 1.125rem;
+      padding-right: 1rem;
     }
     .d-flex {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-end;
       justify-content: space-between;
+
+      @media #{constants.$desktop} {
+        flex-direction: row;
+        align-items: center;
+      }
     }
     .readers-container {
       flex-grow: 3;
+      padding-bottom: 6px;
+
+      @media #{constants.$desktop} {
+        padding-bottom: 0;
+      }
     }
     .buttons-container {
       flex-shrink: 0;
       text-align: right;
-      flex-basis: 300px;
 
+      @media #{constants.$desktop} {
+        flex-basis: 300px;
+      }
       span.glyphicon {
         padding-left: .25rem;
       }
