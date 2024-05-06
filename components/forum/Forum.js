@@ -315,6 +315,35 @@ export default function Forum({
     }
   }, [latestMdate, id, accessToken])
 
+  const loadNewSignatureGroups = (newSigIds) => Promise.all(
+    Array.from(newSigIds, (sigId) => {
+      if (!sigId || Object.hasOwn(signaturesMapRef.current, sigId)) {
+        return Promise.resolve(null)
+      }
+      return api
+        .get(`/groups`, { id: sigId, select: 'id,members,readers' }, { accessToken })
+        .then((sigGroups) => sigGroups.groups?.length > 0 ? sigGroups.groups[0] : null)
+    })
+  )
+
+  const updateNoteSignatures = (notesToUpdate) => {
+    const updatedNotes = {}
+    notesToUpdate.forEach((noteId) => {
+      const currNote = replyNoteMap[noteId]
+      updatedNotes[noteId] = {
+        ...currNote,
+        details: {
+          ...currNote.details,
+          signatures: currNote.signatures.map((sigId) => signaturesMapRef.current[sigId]),
+        },
+      }
+    })
+    setReplyNoteMap((prevMap) => ({
+      ...prevMap,
+      ...updatedNotes,
+    }))
+  }
+
   const delayedScroll = useCallback(
     debounce((layoutMode, isScrolled) => {
       $('[data-toggle="tooltip"]').tooltip({ html: true })
@@ -357,7 +386,8 @@ export default function Forum({
   const chatListScrollHandler = useCallback(
     debounce((e) => {
       const listElem = e.target
-      const scrollDifference = listElem.scrollHeight - listElem.scrollTop - listElem.clientHeight
+      const scrollDifference =
+        listElem.scrollHeight - listElem.scrollTop - listElem.clientHeight
       attachedToBottom.current = Math.abs(scrollDifference) < 8
 
       // Reset new message count if user scrolls to the bottom
@@ -802,6 +832,7 @@ export default function Forum({
       let newMessage = ''
       let additionalReplyCount = 0
       const newSigIds = new Set()
+      const notesToUpdate = []
       newReplies.forEach((note) => {
         const invId = note.invitations[0]
         // eslint-disable-next-line no-param-reassign
@@ -817,16 +848,21 @@ export default function Forum({
             sigGroups.push(existingGroup)
           } else {
             newSigIds.add(sigId)
+            notesToUpdate.push(note.id)
           }
         }
         // eslint-disable-next-line no-param-reassign
         note.details.signatures = sigGroups
 
         const isNewNote = updateNote(note)
-        if (isNewNote && !note.ddate) {
+
+        // Track details of new notes for chat notifications
+        if (isNewNote && selectedFilters.invitations?.includes(invId) && !note.ddate) {
           if (!newMessageAuthor) {
             newMessageAuthor = prettyId(note.signatures[0], true)
-            newMessage = truncate(note.content.message.value, { length: 60 })
+            newMessage = truncate(note.content.message?.value || note.content.title?.value, {
+              length: 60,
+            })
           } else {
             additionalReplyCount += 1
           }
@@ -843,23 +879,20 @@ export default function Forum({
         setLatestMdate(newReplies[newReplies.length - 1].tmdate)
       }
 
+      // If any of the new notes include signatures that are not in the signaturesMap, load them
+      // and update the replyNoteMap with the new signature details
       if (newSigIds.size > 0) {
-        Promise.all(
-          Array.from(newSigIds, (sigId) => {
-            if (!sigId || Object.hasOwn(signaturesMapRef.current, sigId)) {
-              return Promise.resolve(null)
-            }
-            return api
-              .get(`/groups`, { id: sigId, select: 'id,members,readers' }, { accessToken })
-              .then((sigGroups) => {
-                const sigGroup = sigGroups.groups?.length > 0 ? sigGroups.groups[0] : null
-                signaturesMapRef.current[sigId] = sigGroup
-                return sigGroup
-              })
+        loadNewSignatureGroups(newSigIds).then((newGroups) => {
+          newGroups.forEach((group) => {
+            if (!group) return
+            signaturesMapRef.current[group.id] = group
           })
-        )
+
+          updateNoteSignatures(notesToUpdate)
+        })
       }
 
+      // Show browser notification
       if (notificationPermissions === 'granted' && showNotifications && newMessageAuthor) {
         const notif = new Notification(viewName, {
           body:
