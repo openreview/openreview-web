@@ -398,7 +398,10 @@ const ProgramChairConsole = ({ appContext }) => {
       // #endregion
 
       // #region get all profiles(with assignments)
-      const allIds = [...new Set(allGroupMembers)]
+      const reviewers = committeeMemberResults[0]?.members ?? []
+      const areaChairs = committeeMemberResults[1]?.members ?? []
+      const seniorAreaChairs = committeeMemberResults[2]?.members ?? []
+      const allIds = reviewers.concat(areaChairs, seniorAreaChairs)
       const ids = allIds.filter((p) => p.startsWith('~'))
       const emails = allIds.filter((p) => p.match(/.+@.+/))
       const getProfilesByIdsP = ids.length
@@ -518,9 +521,9 @@ const ProgramChairConsole = ({ appContext }) => {
         allProfilesMap,
         requestForm,
         registrationForms,
-        reviewers: committeeMemberResults[0]?.members ?? [],
-        areaChairs: committeeMemberResults[1]?.members ?? [],
-        seniorAreaChairs: committeeMemberResults[2]?.members ?? [],
+        reviewers: reviewers,
+        areaChairs: areaChairs,
+        seniorAreaChairs: seniorAreaChairs,
         notes,
         officialReviewsByPaperNumberMap,
         metaReviewsByPaperNumberMap,
