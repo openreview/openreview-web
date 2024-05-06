@@ -579,6 +579,14 @@ export default function Forum({
       const tab = replyForumViews.find((view) => view.id === tabId)
       if (!tab) return
 
+      const primaryInvitationId = tab.expandedInvitations?.[0]
+      if (primaryInvitationId) {
+        const primaryInvitation = parentNote.replyInvitations.find((inv) => inv.id === primaryInvitationId)
+        if (!primaryInvitation || (primaryInvitation.expdate && primaryInvitation.expdate < Date.now())) {
+          return
+        }
+      }
+
       const tabFilters = {
         invitations: null,
         excludedInvitations: null,
