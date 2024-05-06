@@ -435,7 +435,7 @@ const ProgramChairConsole = ({ appContext }) => {
       // #endregion
 
       const allProfilesMap = new Map()
-      allProfiles.forEach((profile) => {
+      committeeProfiles.forEach((profile) => {
         const usernames = profile.content.names.flatMap((p) => p.username ?? [])
         const profileEmails = profile.content.emails.filter((p) => p)
 
@@ -448,9 +448,11 @@ const ProgramChairConsole = ({ appContext }) => {
         // eslint-disable-next-line no-param-reassign
         profile.registrationNotes = userRegNotes
 
-        usernames.concat(profileEmails).forEach((key) => {
-          allProfilesMap.set(key, profile)
-        })
+        if (allGroupMembers.includes(profile.id)) {
+          usernames.concat(profileEmails).forEach((key) => {
+            allProfilesMap.set(key, profile)
+          })
+        }
       })
 
       const officialReviewsByPaperNumberMap = new Map()
