@@ -14,14 +14,13 @@ export default function FilterTabs({
     <ul className="nav nav-tabs filter-tabs">
       {forumViews.map((view) => {
         // Tab should only be visible if the user has permission to post to the primary invitation,
-        // (which by convention is the first item in the expandedInvitations array) or there is no
-        // primary invitation.
+        // (which by convention is the first item in the expandedInvitations array)
         const primaryInvitationId = view.expandedInvitations?.[0]
         const primaryInvitation =
           primaryInvitationId && replyInvitations.find((inv) => inv.id === primaryInvitationId)
         if (
-          primaryInvitation &&
-          (!primaryInvitation.expdate || primaryInvitation.expdate < Date.now())
+          !primaryInvitation ||
+          (primaryInvitation.expdate && primaryInvitation.expdate < Date.now())
         ) {
           return null
         }
