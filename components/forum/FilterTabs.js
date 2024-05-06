@@ -16,13 +16,11 @@ export default function FilterTabs({
         // Tab should only be visible if the user has permission to post to the primary invitation,
         // (which by convention is the first item in the expandedInvitations array)
         const primaryInvitationId = view.expandedInvitations?.[0]
-        const primaryInvitation =
-          primaryInvitationId && replyInvitations.find((inv) => inv.id === primaryInvitationId)
-        if (
-          !primaryInvitation ||
-          (primaryInvitation.expdate && primaryInvitation.expdate < Date.now())
-        ) {
-          return null
+        if (primaryInvitationId) {
+          const primaryInvitation = replyInvitations.find((inv) => inv.id === primaryInvitationId)
+          if (!primaryInvitation || (primaryInvitation.expdate && primaryInvitation.expdate < Date.now())) {
+            return null
+          }
         }
 
         const newMessageCount = newMessageCounts[primaryInvitationId] ?? 0
