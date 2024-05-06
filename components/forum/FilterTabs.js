@@ -1,6 +1,11 @@
 import Link from 'next/link'
 
-export default function FilterTabs({ forumId, forumViews, replyInvitations = [] }) {
+export default function FilterTabs({
+  forumId,
+  forumViews,
+  newMessageCounts,
+  replyInvitations = [],
+}) {
   if (!forumViews || !window) return null
 
   const currentHash = window.location.hash.slice(1)
@@ -19,14 +24,20 @@ export default function FilterTabs({ forumId, forumViews, replyInvitations = [] 
           return null
         }
 
+        const newMessageCount = newMessageCounts[primaryInvitation] ?? 0
+
         return (
           <li
             key={view.id}
+            data-id={view.id}
             role="presentation"
             className={view.id === currentHash ? 'active' : null}
           >
             <Link href={`?id=${forumId}#${view.id}`} shallow>
               {view.label}
+              {newMessageCount > 0 && (
+                <span className="badge">{newMessageCount}</span>
+              )}
             </Link>
           </li>
         )
