@@ -1,0 +1,50 @@
+{
+  "name": "OpenReview",
+  "short_name": "OpenReview",
+  "theme_color": "#8c1b13",
+  "background_color": "#8c1b13",
+  "display": "minimal-ui",
+  "scope": "/",
+  "start_url": "/",
+  "description": "Open Peer Review. Open Publishing. Open Access. Open Discussion.",
+  "icons": [
+    {
+      "src": "/images/openreview_logo_192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/openreview_logo_256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/openreview_logo_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots" : [
+    {
+      "src": "/images/screenshot1.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "OpenReview homepage"
+    },
+    {
+      "src": "/images/screenshot2.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "OpenReview forum page"
+    },
+    {
+      "src": "/images/screenshot3.jpg",
+      "sizes": "430x932",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "OpenReview forum page"
+    }
+  ]
+}

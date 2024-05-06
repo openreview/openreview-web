@@ -30,6 +30,7 @@ export default function Layout({
         />
 
         <link rel="icon" href="/favicon.ico" />
+        <link rel="manifest" href="/manifest.json" />
 
         <meta property="og:title" key="og:title" content="OpenReview" />
         <meta property="og:description" key="og:description" content="" />
