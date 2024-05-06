@@ -1,7 +1,6 @@
 /* globals $,promptMessage,promptError,MathJax: false */
 
 import { forwardRef, useEffect, useState } from 'react'
-import truncate from 'lodash/truncate'
 import copy from 'copy-to-clipboard'
 import dayjs from 'dayjs'
 import localizedFormat from 'dayjs/plugin/localizedFormat'
@@ -13,8 +12,12 @@ import Signatures from '../Signatures'
 import { NoteContentV2, NoteContentValue } from '../NoteContent'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId, prettyInvitationId, prettyContentValue, forumDate } from '../../lib/utils'
-import { getInvitationColors, getSignatureColors } from '../../lib/forum-utils'
+import { prettyId, prettyInvitationId, prettyContentValue } from '../../lib/utils'
+import {
+  getInvitationColors,
+  getSignatureColors,
+  getReplySnippet,
+} from '../../lib/forum-utils'
 
 import styles from '../../styles/components/ChatReply.module.scss'
 
@@ -24,7 +27,7 @@ dayjs.extend(isYesterday)
 
 // eslint-disable-next-line prefer-arrow-callback
 export default forwardRef(function ChatReply(
-  { note, parentNote, displayOptions, isSelected, setChatReplyNote, updateNote },
+  { note, parentNote, displayOptions, isSelected, setChatReplyNote, updateNote, scrollToNote },
   ref
 ) {
   const [loading, setLoading] = useState(false)
@@ -111,20 +114,24 @@ export default forwardRef(function ChatReply(
     promptMessage('Reply URL copied to clipboard', { scrollToTop: false })
   }
 
+  // Deleted Reply
   if (note.ddate) {
+    const signature = note.signatures[0]
     return (
       <div className={`${styles.container}`} data-id={note.id} ref={ref}>
         <div className="chat-body deleted clearfix">
-          <ReplyInfo parentNote={parentNote} parentTitle={note.parentTitle} />
-
+          <ReplyInfo parentNote={parentNote} parentTitle={note.parentTitle} scrollToNote={scrollToNote} />
+          {/* TODO: uncomment when signatures are sent with deleted notes */}
+          {/*
           <div className="header">
             <span className="indicator" style={{ backgroundColor: '#ddd' }} />
-            <strong>{prettyId(note.signatures[0], true)}</strong>
+            <ChatSignature groupId={signature} />
           </div>
+          */}
           <div className="note-content">
             <div className="note-content-value markdown-rendered">
               <p className="text-muted">
-                <em>Message Deleted</em>
+                <em>This message has been deleted</em>
               </p>
             </div>
           </div>
@@ -140,7 +147,7 @@ export default forwardRef(function ChatReply(
       ref={ref}
     >
       <div className="chat-body" style={{ backgroundColor: `${colorHash}1E` }}>
-        <ReplyInfo parentNote={parentNote} parentTitle={note.parentTitle} />
+        <ReplyInfo parentNote={parentNote} parentTitle={note.parentTitle} scrollToNote={scrollToNote} />
 
         <div className="header">
           <span className="indicator" style={{ backgroundColor: colorHash }} />
@@ -180,6 +187,7 @@ export default forwardRef(function ChatReply(
           <div className="note-content">
             <NoteContentValue
               content={prettyContentValue(note.content.message.value)}
+              className={useMarkdown ? '' : 'disable-tex-rendering'}
               enableMarkdown={enableMarkdown && useMarkdown}
             />
           </div>
@@ -243,20 +251,18 @@ export default forwardRef(function ChatReply(
   )
 })
 
-function ReplyInfo({ parentNote, parentTitle }) {
+function ReplyInfo({ parentNote, parentTitle, scrollToNote }) {
   if (!parentNote) return null
 
   return (
-    <div className="parent-info">
-      <h5 onClick={() => {}}>
+    <div className="parent-info disable-tex-rendering">
+      <h5 onClick={() => {
+        scrollToNote(parentNote.id)
+      }}>
         {/* <Icon name="share-alt" />{' '} */}
         <span>Replying to {prettyId(parentNote.signatures[0], true)}</span>
         {' – '}
-        {truncate(parentNote.content.message?.value || parentTitle, {
-          length: 100,
-          omission: '...',
-          separator: ' ',
-        })}
+        {getReplySnippet(parentNote.content.message?.value || parentTitle)}
       </h5>
     </div>
   )
@@ -278,7 +284,7 @@ function ChatSignature({ groupId, signatureGroup }) {
 
   return (
     <strong>
-      {groupId.startsWith('~') ? (
+      {groupId?.startsWith('~') ? (
         <a href={`/profile?id=${groupId}`} target="_blank" rel="noreferrer">
           {prettyId(groupId, true)}
         </a>
