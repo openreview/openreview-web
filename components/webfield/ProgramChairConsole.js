@@ -430,6 +430,8 @@ const ProgramChairConsole = ({ appContext }) => {
           preferredName: getProfileName(profile),
           preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
         }))
+      const allProfiles = committeeProfiles
+        .filter((p) => allGroupMembers.includes(p.id))
       // #endregion
 
       const allProfilesMap = new Map()
