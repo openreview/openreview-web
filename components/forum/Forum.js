@@ -6,6 +6,8 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
+import truncate from 'lodash/truncate'
+import debounce from 'lodash/debounce'
 import escapeRegExp from 'lodash/escapeRegExp'
 import List from 'rc-virtual-list'
 
@@ -25,13 +27,14 @@ import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
-import { prettyInvitationId, stringToObject } from '../../lib/utils'
+import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import {
   formatNote,
   getNoteInvitations,
   parseFilterQuery,
   replaceFilterWildcards,
 } from '../../lib/forum-utils'
+import useLocalStorage from '../../hooks/useLocalStorage'
 
 const checkGroupMatch = (groupId, replyGroup) => {
   if (groupId.includes('.*')) {
@@ -54,6 +57,24 @@ const checkExReadersMatch = (selectedReaders, replyReaders) =>
     replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
   )
 
+const scrollToElement = (selector) => {
+  const el = document.querySelector(selector)
+  if (!el) return
+
+  const navBarHeight = 63
+  const y = el.getBoundingClientRect().top + window.scrollY - navBarHeight
+  window.scrollTo({ top: y, behavior: 'smooth' })
+}
+
+const scrollToChatNote = (selectedNoteId) => {
+  const listElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
+  const messageElem = document.querySelector(`[data-id="${selectedNoteId}"]`)
+  if (!listElem || !messageElem) return false
+
+  listElem.scrollTop = messageElem.offsetTop - 6
+  return true
+}
+
 export default function Forum({
   forumNote,
   selectedNoteId,
@@ -72,6 +93,7 @@ export default function Forum({
   const [nesting, setNesting] = useState(2)
   const [layout, setLayout] = useState('default')
   const [sort, setSort] = useState('date-desc')
+  const [viewName, setViewName] = useState('')
   const [defaultCollapseLevel, setDefaultCollapseLevel] = useState(2)
   const [filterOptions, setFilterOptions] = useState(null)
   const [selectedFilters, setSelectedFilters] = useState({
@@ -83,18 +105,24 @@ export default function Forum({
   })
   const [defaultFilters, setDefaultFilters] = useState(null)
   const [activeInvitation, setActiveInvitation] = useState(null)
+  const [newMessageCounts, setNewMessageCounts] = useState({})
   const [maxLength, setMaxLength] = useState(200)
   const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
   const [scrolled, setScrolled] = useState(false)
-  const [attachedToBottom, setAttachedToBottom] = useState(true)
   const [enableLiveUpdate, setEnableLiveUpdate] = useState(false)
   const [latestMdate, setLatestMdate] = useState(null)
   const [chatReplyNote, setChatReplyNote] = useState(null)
+  const [notificationPermissions, setNotificationPermissions] = useState('loading')
+  const [showNotifications, setShowNotifications] = useLocalStorage(
+    `forum-notifications-${forumNote.id}`,
+    false
+  )
   const invitationMapRef = useRef(null)
   const signaturesMapRef = useRef(null)
   const replyNoteCount = useRef(0)
   const numRepliesVisible = useRef(0)
   const cutoffIndex = useRef(0)
+  const attachedToBottom = useRef(false)
   const router = useRouter()
   const query = useQuery()
 
@@ -287,6 +315,63 @@ export default function Forum({
     }
   }, [latestMdate, id, accessToken])
 
+  const delayedScroll = useCallback(
+    debounce((layoutMode, isScrolled) => {
+      $('[data-toggle="tooltip"]').tooltip({ html: true })
+
+      // Scroll note and invitation specified in url
+      if (selectedNoteId && !isScrolled) {
+        if (selectedNoteId === id) {
+          scrollToElement('.forum-note')
+        } else if (layoutMode === 'chat') {
+          scrollToElement('.filters-container')
+          const didScroll = scrollToChatNote(selectedNoteId)
+          if (didScroll) attachedToBottom.current = false
+        } else {
+          scrollToElement(`.note[data-id="${selectedNoteId}"]`)
+        }
+
+        if (selectedInvitationId) {
+          const buttonSelector = `[data-id="${selectedInvitationId}"]`
+          const selector =
+            selectedNoteId === id
+              ? `.forum-note a${buttonSelector}, .invitations-container button${buttonSelector}`
+              : `.note[data-id="${selectedNoteId}"] button${buttonSelector}`
+          const button = document.querySelector(selector)
+          if (button) button.click()
+        }
+
+        setScrolled(true)
+      }
+
+      if (attachedToBottom.current) {
+        const listElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
+        if (listElem) {
+          listElem.scrollTop = listElem.scrollHeight
+        }
+      }
+    }, 200),
+    [selectedNoteId, selectedInvitationId]
+  )
+
+  const chatListScrollHandler = useCallback(
+    debounce((e) => {
+      const listElem = e.target
+      const scrollDifference = listElem.scrollHeight - listElem.scrollTop - listElem.clientHeight
+      attachedToBottom.current = Math.abs(scrollDifference) < 8
+
+      // Reset new message count if user scrolls to the bottom
+      if (attachedToBottom.current && expandedInvitations?.length > 0) {
+        const key = expandedInvitations[0]
+        setNewMessageCounts((prevCounts) => ({
+          ...prevCounts,
+          [key]: 0,
+        }))
+      }
+    }, 50),
+    [expandedInvitations]
+  )
+
   // Display helper functions
   const setCollapseLevel = (level) => {
     const newDisplayOptions = {}
@@ -330,16 +415,6 @@ export default function Forum({
     }))
   }
 
-  const scrollToElement = (selector) => {
-    const el = document.querySelector(selector)
-    if (!el) return
-
-    const navBarHeight = 63
-    const y = el.getBoundingClientRect().top + window.pageYOffset - navBarHeight
-
-    window.scrollTo({ top: y, behavior: 'smooth' })
-  }
-
   const deleteOrRestoreNote = (note, invitation, updateNote) => {
     flushSync(() => {
       setConfirmDeleteModalData({ note, invitation, updateNote })
@@ -363,24 +438,13 @@ export default function Forum({
   }
 
   // Add new reply note or update and existing reply note
-  const updateNote = (note) => {
-    if (!note) return
-
-    // For chat layout, check if the user is scrolled before updating state
-    const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
-    if (containerElem) {
-      const atBottom =
-        Math.abs(
-          containerElem.scrollHeight - containerElem.scrollTop - containerElem.clientHeight
-        ) < 3
-      if (attachedToBottom !== atBottom) {
-        setAttachedToBottom(atBottom)
-      }
-    }
+  const updateNote = (note, scrollToNote) => {
+    if (!note) return false
 
     const noteId = note.id
     const parentId = note.replyto
     const existingNote = replyNoteMap[noteId]
+    const isNewNote = isEmpty(existingNote)
     const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
       allInvitations,
       note
@@ -403,7 +467,7 @@ export default function Forum({
       [noteId]: formattedNote,
     }))
 
-    if (isEmpty(existingNote)) {
+    if (isNewNote) {
       setDisplayOptionsMap((prevOptionsMap) => ({
         ...prevOptionsMap,
         [noteId]: { collapsed: false, contentExpanded: true, hidden: false },
@@ -417,10 +481,10 @@ export default function Forum({
 
     // If updated note is a reply to an invitation with a maxReplies property,
     // update the invitation and the parent note
-    if (isEmpty(existingNote) || existingNote.ddate !== note.ddate) {
+    if (isNewNote || existingNote.ddate !== note.ddate) {
       const invObj = allInvitations.find((i) => i.id === note.invitations[0])
       if (invObj.maxReplies) {
-        const increment = isEmpty(existingNote) || !note.ddate ? 1 : -1
+        const increment = isNewNote || !note.ddate ? 1 : -1
         const prevRepliesAvailable = invObj.details.repliesAvailable ?? 1
         const remainingReplies = prevRepliesAvailable - increment
 
@@ -471,10 +535,31 @@ export default function Forum({
         }
       }
     }
+
+    // Scroll to the bottom if it's a note the user just posted
+    if (layout === 'chat' && scrollToNote) {
+      attachedToBottom.current = true
+    }
+
+    return isNewNote
+  }
+
+  const getNotificationState = () => {
+    if (!('Notification' in window)) {
+      return Promise.resolve('denied')
+    }
+    if (navigator.permissions) {
+      return navigator.permissions
+        .query({ name: 'notifications' })
+        .then((result) => result.state)
+    }
+    return Promise.resolve(Notification.permission)
   }
 
   // Handle url hash changes
   useEffect(() => {
+    if (!parentNote) return
+
     const handleRouteChange = (url) => {
       const [_, tabId] = url.split('#')
       if (!tabId || !replyForumViews) return
@@ -494,23 +579,36 @@ export default function Forum({
       setDefaultFilters(tabFilters)
       setSelectedFilters(tabFilters)
       setLayout(tab.layout || 'default')
+      if (tab.layout === 'chat') {
+        attachedToBottom.current = true
+      }
       setNesting(tab.nesting || 2)
       setSort(tab.sort || 'date-desc')
       setEnableLiveUpdate(Boolean(tab.live))
       setExpandedInvitations(tab.expandedInvitations)
+      setViewName(tab.label)
     }
 
     if (window.location.hash) {
       handleRouteChange(window.location.hash)
+    } else if (replyForumViews?.length > 0 && !selectedNoteId && !selectedInvitationId) {
+      setTimeout(() => {
+        const tab = replyForumViews[0]
+        const newActiveTab = document.querySelector(`.filter-tabs li[data-id="${tab.id}"] a`)
+        if (newActiveTab) {
+          newActiveTab.click()
+        }
+      }, 200)
     }
 
     router.events.on('hashChangeComplete', handleRouteChange)
     router.events.on('routeChangeComplete', handleRouteChange)
+    // eslint-disable-next-line consistent-return
     return () => {
       router.events.off('hashChangeComplete', handleRouteChange)
       router.events.on('routeChangeComplete', handleRouteChange)
     }
-  }, [])
+  }, [parentNote])
 
   // Load forum replies
   useEffect(() => {
@@ -520,6 +618,10 @@ export default function Forum({
     setLatestMdate(Date.now() - 1000)
 
     loadNotesAndInvitations()
+    getNotificationState().then((state) => {
+      // Can be 'granted', 'denied', or 'prompt'
+      setNotificationPermissions(state)
+    })
   }, [userLoading])
 
   // Update forum nesting level
@@ -575,46 +677,11 @@ export default function Forum({
       }))
     }
     setOrderedReplies(orderedNotes)
-
-    // Do stuff that should happen after all replies are rendered
-    setTimeout(() => {
-      typesetMathJax()
-
-      $('[data-toggle="tooltip"]').tooltip({ html: true })
-
-      // Scroll note and invitation specified in url
-      if (selectedNoteId && !scrolled) {
-        if (selectedNoteId === id) {
-          scrollToElement('.forum-note')
-        } else {
-          scrollToElement(`.note[data-id="${selectedNoteId}"]`)
-        }
-
-        if (selectedInvitationId) {
-          const buttonSelector = `[data-id="${selectedInvitationId}"]`
-          const selector =
-            selectedNoteId === id
-              ? `.forum-note a${buttonSelector}, .invitations-container button${buttonSelector}`
-              : `.note[data-id="${selectedNoteId}"] button${buttonSelector}`
-          const button = document.querySelector(selector)
-          if (button) button.click()
-        }
-
-        setScrolled(true)
-      }
-
-      if (layout === 'chat') {
-        const containerElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
-        if (containerElem && attachedToBottom) {
-          containerElem.scrollTop = containerElem.scrollHeight
-        }
-      }
-    }, 200)
   }, [replyNoteMap, parentMap, nesting, sort])
 
   // Update reply visibility
   useEffect(() => {
-    if (!replyNoteMap || !orderedReplies || !displayOptionsMap) return
+    if (!replyNoteMap || !displayOptionsMap || !orderedReplies?.length) return
 
     const newDisplayOptions = {}
 
@@ -688,10 +755,8 @@ export default function Forum({
     cutoffIndex.current = cutoff
     numRepliesVisible.current = numVisible
 
-    setTimeout(() => {
-      typesetMathJax()
-      $('[data-toggle="tooltip"]').tooltip({ html: true })
-    }, 200)
+    typesetMathJax()
+    delayedScroll(layout, scrolled)
   }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations, maxLength])
 
   useEffect(() => {
@@ -733,24 +798,79 @@ export default function Forum({
     if (!repliesLoaded || !enableLiveUpdate) return
 
     loadNewReplies().then((newReplies) => {
+      let newMessageAuthor = ''
+      let newMessage = ''
+      let additionalReplyCount = 0
+      const newSigIds = new Set()
       newReplies.forEach((note) => {
         const invId = note.invitations[0]
         // eslint-disable-next-line no-param-reassign
         note.details.invitation = invitationMapRef.current[invId]?.[0]
         // eslint-disable-next-line no-param-reassign
         note.details.presentation = invitationMapRef.current[invId]?.[1]
+
+        const sigGroups = []
+        for (let i = 0; i < note.signatures.length; i += 1) {
+          const sigId = note.signatures[i]
+          const existingGroup = signaturesMapRef.current[sigId] ?? null
+          if (existingGroup) {
+            sigGroups.push(existingGroup)
+          } else {
+            newSigIds.add(sigId)
+          }
+        }
         // eslint-disable-next-line no-param-reassign
-        note.details.signatures = note.signatures.flatMap(
-          (sigId) => signaturesMapRef.current[sigId] ?? []
-        )
-        updateNote(note)
+        note.details.signatures = sigGroups
+
+        const isNewNote = updateNote(note)
+        if (isNewNote && !note.ddate) {
+          if (!newMessageAuthor) {
+            newMessageAuthor = prettyId(note.signatures[0], true)
+            newMessage = truncate(note.content.message.value, { length: 60 })
+          } else {
+            additionalReplyCount += 1
+          }
+          if (!attachedToBottom.current) {
+            setNewMessageCounts((prevCounts) => ({
+              ...prevCounts,
+              [invId]: (prevCounts[invId] ?? 0) + 1,
+            }))
+          }
+        }
       })
 
       if (newReplies.length > 0) {
         setLatestMdate(newReplies[newReplies.length - 1].tmdate)
       }
+
+      if (newSigIds.size > 0) {
+        Promise.all(
+          Array.from(newSigIds, (sigId) => {
+            if (!sigId || Object.hasOwn(signaturesMapRef.current, sigId)) {
+              return Promise.resolve(null)
+            }
+            return api
+              .get(`/groups`, { id: sigId, select: 'id,members,readers' }, { accessToken })
+              .then((sigGroups) => {
+                const sigGroup = sigGroups.groups?.length > 0 ? sigGroups.groups[0] : null
+                signaturesMapRef.current[sigId] = sigGroup
+                return sigGroup
+              })
+          })
+        )
+      }
+
+      if (notificationPermissions === 'granted' && showNotifications && newMessageAuthor) {
+        const notif = new Notification(viewName, {
+          body:
+            additionalReplyCount > 0
+              ? `${newMessageAuthor} and ${additionalReplyCount} others posted new messages.`
+              : `${newMessageAuthor} posted a new message: ${newMessage}`,
+          icon: '/images/openreview_logo_256.png',
+        })
+      }
     })
-  }, 2000)
+  }, 1500)
 
   return (
     <div className="forum-container">
@@ -767,6 +887,7 @@ export default function Forum({
               forumId={id}
               forumViews={replyForumViews}
               replyInvitations={parentNote.replyInvitations}
+              newMessageCounts={newMessageCounts}
             />
           )}
 
@@ -794,7 +915,10 @@ export default function Forum({
               forumId={id}
               defaultFilters={defaultFilters}
               selectedFilters={selectedFilters}
-              setSelectedFilters={setSelectedFilters}
+              setSelectedFilters={(newFilters) => {
+                setSelectedFilters(newFilters)
+                attachedToBottom.current = true
+              }}
               filterOptions={filterOptions}
               numReplies={replyNoteCount.current}
               numRepliesHidden={numRepliesHidden}
@@ -875,8 +999,11 @@ export default function Forum({
                   layout={layout}
                   chatReplyNote={chatReplyNote}
                   setChatReplyNote={setChatReplyNote}
+                  chatListScrollHandler={chatListScrollHandler}
+                  scrollToNote={scrollToChatNote}
                   updateNote={updateNote}
                   deleteOrRestoreNote={deleteOrRestoreNote}
+                  numHidden={numRepliesHidden}
                 />
               ) : (
                 <LoadingSpinner inline />
@@ -929,6 +1056,9 @@ export default function Forum({
                   invitation={invitation}
                   replyToNote={chatReplyNote}
                   setReplyToNote={setChatReplyNote}
+                  showNotifications={showNotifications}
+                  setShowNotifications={setShowNotifications}
+                  scrollToNote={scrollToChatNote}
                   onSubmit={updateNote}
                 />
               )
@@ -992,16 +1122,34 @@ function ForumReplies({
   replyNoteMap,
   displayOptionsMap,
   chatReplyNote,
+  numHidden,
   layout,
   updateNote,
   deleteOrRestoreNote,
   setChatReplyNote,
+  scrollToNote,
+  chatListScrollHandler,
 }) {
   if (!replies) return null
 
   if (layout === 'chat') {
+    if (replies.length === numHidden || replies.length === 0) {
+      return (
+        <div className="empty-container">
+          <p className="empty-message">
+            No messages to display. Be the first by posting a message below.
+          </p>
+        </div>
+      )
+    }
     return (
-      <List data={replies} height={625} itemHeight={1} itemKey="id">
+      <List
+        data={replies}
+        height={625}
+        itemHeight={1}
+        itemKey="id"
+        onScroll={chatListScrollHandler}
+      >
         {(reply) => (
           <ChatReply
             note={replyNoteMap[reply.id]}
@@ -1014,6 +1162,7 @@ function ForumReplies({
             setChatReplyNote={setChatReplyNote}
             isSelected={reply.id === chatReplyNote?.id}
             updateNote={updateNote}
+            scrollToNote={scrollToNote}
           />
         )}
       </List>

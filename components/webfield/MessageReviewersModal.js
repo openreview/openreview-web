@@ -76,6 +76,7 @@ const MessageReviewersModal = ({
 
   const getRecipients = (selecteNoteIds) => {
     if (!selecteNoteIds.length) return []
+
     const selectedRows = tableRowsDisplayed.filter((row) =>
       selecteNoteIds.includes(row.note.id)
     )
