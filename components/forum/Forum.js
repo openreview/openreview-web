@@ -105,6 +105,7 @@ export default function Forum({
   })
   const [defaultFilters, setDefaultFilters] = useState(null)
   const [activeInvitation, setActiveInvitation] = useState(null)
+  const [newMessageCounts, setNewMessageCounts] = useState({})
   const [maxLength, setMaxLength] = useState(200)
   const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
   const [scrolled, setScrolled] = useState(false)
@@ -353,6 +354,24 @@ export default function Forum({
     [selectedNoteId, selectedInvitationId]
   )
 
+  const chatListScrollHandler = useCallback(
+    debounce((e) => {
+      const listElem = e.target
+      const scrollDifference = listElem.scrollHeight - listElem.scrollTop - listElem.clientHeight
+      attachedToBottom.current = Math.abs(scrollDifference) < 8
+
+      // Reset new message count if user scrolls to the bottom
+      if (attachedToBottom.current && expandedInvitations?.length > 0) {
+        const key = expandedInvitations[0]
+        setNewMessageCounts((prevCounts) => ({
+          ...prevCounts,
+          [key]: 0,
+        }))
+      }
+    }, 50),
+    [expandedInvitations]
+  )
+
   // Display helper functions
   const setCollapseLevel = (level) => {
     const newDisplayOptions = {}
@@ -421,15 +440,6 @@ export default function Forum({
   // Add new reply note or update and existing reply note
   const updateNote = (note, scrollToNote) => {
     if (!note) return false
-
-    // For chat layout, check if the user is scrolled and update state
-    if (layout === 'chat') {
-      const listElem = document.querySelector('#forum-replies .rc-virtual-list-holder')
-      const scrollDifference = listElem
-        ? listElem.scrollHeight - listElem.scrollTop - listElem.clientHeight
-        : 0
-      attachedToBottom.current = scrollToNote || Math.abs(scrollDifference) < 8
-    }
 
     const noteId = note.id
     const parentId = note.replyto
@@ -524,6 +534,11 @@ export default function Forum({
           }
         }
       }
+    }
+
+    // Scroll to the bottom if it's a note the user just posted
+    if (layout === 'chat' && scrollToNote) {
+      attachedToBottom.current = true
     }
 
     return isNewNote
@@ -815,6 +830,12 @@ export default function Forum({
           } else {
             additionalReplyCount += 1
           }
+          if (!attachedToBottom.current) {
+            setNewMessageCounts((prevCounts) => ({
+              ...prevCounts,
+              [invId]: (prevCounts[invId] ?? 0) + 1,
+            }))
+          }
         }
       })
 
@@ -866,6 +887,7 @@ export default function Forum({
               forumId={id}
               forumViews={replyForumViews}
               replyInvitations={parentNote.replyInvitations}
+              newMessageCounts={newMessageCounts}
             />
           )}
 
@@ -977,6 +999,7 @@ export default function Forum({
                   layout={layout}
                   chatReplyNote={chatReplyNote}
                   setChatReplyNote={setChatReplyNote}
+                  chatListScrollHandler={chatListScrollHandler}
                   scrollToNote={scrollToChatNote}
                   updateNote={updateNote}
                   deleteOrRestoreNote={deleteOrRestoreNote}
@@ -1105,6 +1128,7 @@ function ForumReplies({
   deleteOrRestoreNote,
   setChatReplyNote,
   scrollToNote,
+  chatListScrollHandler,
 }) {
   if (!replies) return null
 
@@ -1119,7 +1143,13 @@ function ForumReplies({
       )
     }
     return (
-      <List data={replies} height={625} itemHeight={1} itemKey="id">
+      <List
+        data={replies}
+        height={625}
+        itemHeight={1}
+        itemKey="id"
+        onScroll={chatListScrollHandler}
+      >
         {(reply) => (
           <ChatReply
             note={replyNoteMap[reply.id]}
