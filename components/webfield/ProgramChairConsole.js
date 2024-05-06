@@ -423,7 +423,7 @@ const ProgramChairConsole = ({ appContext }) => {
           )
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
-      const allProfiles = (profileResults[0].profiles ?? [])
+      const committeeProfiles = (profileResults[0].profiles ?? [])
         .concat(profileResults[1].profiles ?? [])
         .map((profile) => ({
           ...profile,
