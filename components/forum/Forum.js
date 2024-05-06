@@ -326,24 +326,6 @@ export default function Forum({
     })
   )
 
-  const updateNoteSignatures = (notesToUpdate) => {
-    const updatedNotes = {}
-    notesToUpdate.forEach((noteId) => {
-      const currNote = replyNoteMap[noteId]
-      updatedNotes[noteId] = {
-        ...currNote,
-        details: {
-          ...currNote.details,
-          signatures: currNote.signatures.map((sigId) => signaturesMapRef.current[sigId]),
-        },
-      }
-    })
-    setReplyNoteMap((prevMap) => ({
-      ...prevMap,
-      ...updatedNotes,
-    }))
-  }
-
   const delayedScroll = useCallback(
     debounce((layoutMode, isScrolled) => {
       $('[data-toggle="tooltip"]').tooltip({ html: true })
@@ -841,6 +823,7 @@ export default function Forum({
         note.details.presentation = invitationMapRef.current[invId]?.[1]
 
         const sigGroups = []
+        let newSigs = false
         for (let i = 0; i < note.signatures.length; i += 1) {
           const sigId = note.signatures[i]
           const existingGroup = signaturesMapRef.current[sigId] ?? null
@@ -848,11 +831,12 @@ export default function Forum({
             sigGroups.push(existingGroup)
           } else {
             newSigIds.add(sigId)
-            notesToUpdate.push(note.id)
+            newSigs = true
           }
         }
         // eslint-disable-next-line no-param-reassign
         note.details.signatures = sigGroups
+        if (newSigs) notesToUpdate.push(note.id)
 
         const isNewNote = updateNote(note)
 
@@ -888,7 +872,23 @@ export default function Forum({
             signaturesMapRef.current[group.id] = group
           })
 
-          updateNoteSignatures(notesToUpdate)
+          const updatedNotes = {}
+          notesToUpdate.forEach((noteId) => {
+            const currNote = replyNoteMap[noteId]
+            if (!currNote) return
+
+            updatedNotes[noteId] = {
+              ...currNote,
+              details: {
+                ...currNote.details,
+                signatures: currNote.signatures.map((sigId) => signaturesMapRef.current[sigId]),
+              },
+            }
+          })
+          setReplyNoteMap((prevMap) => ({
+            ...prevMap,
+            ...updatedNotes,
+          }))
         })
       }
 
