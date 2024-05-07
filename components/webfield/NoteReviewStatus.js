@@ -54,7 +54,7 @@ export const ReviewerConsoleNoteReviewStatus = ({
     ) : (
       invitationUrl && (
         <h4>
-          <Link href={invitationUrl}>Submit {officialReviewName}</Link>
+          <Link href={invitationUrl}>Submit {prettyField(officialReviewName)}</Link>
         </h4>
       )
     )}
