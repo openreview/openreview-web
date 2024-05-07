@@ -80,6 +80,7 @@ export const InvitationEditorV2 = ({
 
   const getReplyFieldByInvitationType = () => {
     if (invitation.edge) return 'edge'
+    if (invitation.tag) return 'tag'
     if (invitation.message) return 'message'
     return 'edit'
   }
