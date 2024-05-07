@@ -315,6 +315,13 @@ export default function Forum({
     }
   }, [latestMdate, id, accessToken])
 
+  const loadNewSignatureGroups = (newSigIds) => Promise.all(
+    Array.from(newSigIds, (sigId) => api
+      .get(`/groups`, { id: sigId, select: 'id,members,readers' }, { accessToken })
+      .then((sigGroups) => sigGroups.groups?.length > 0 ? sigGroups.groups[0] : null)
+    )
+  )
+
   const delayedScroll = useCallback(
     debounce((layoutMode, isScrolled) => {
       $('[data-toggle="tooltip"]').tooltip({ html: true })
@@ -357,7 +364,8 @@ export default function Forum({
   const chatListScrollHandler = useCallback(
     debounce((e) => {
       const listElem = e.target
-      const scrollDifference = listElem.scrollHeight - listElem.scrollTop - listElem.clientHeight
+      const scrollDifference =
+        listElem.scrollHeight - listElem.scrollTop - listElem.clientHeight
       attachedToBottom.current = Math.abs(scrollDifference) < 8
 
       // Reset new message count if user scrolls to the bottom
@@ -566,6 +574,14 @@ export default function Forum({
 
       const tab = replyForumViews.find((view) => view.id === tabId)
       if (!tab) return
+
+      const primaryInvitationId = tab.expandedInvitations?.[0]
+      if (primaryInvitationId) {
+        const primaryInvitation = parentNote.replyInvitations.find((inv) => inv.id === primaryInvitationId)
+        if (!primaryInvitation || (primaryInvitation.expdate && primaryInvitation.expdate < Date.now())) {
+          return
+        }
+      }
 
       const tabFilters = {
         invitations: null,
@@ -798,35 +814,44 @@ export default function Forum({
     if (!repliesLoaded || !enableLiveUpdate) return
 
     loadNewReplies().then((newReplies) => {
+      // If any of the new notes include signatures that are not in the signaturesMap, load them
+      // and update the signaturesMap. Assumes only 1 signature per note
+      const newSigIds = new Set()
+      newReplies.forEach((note) => {
+        const sigId = note.signatures[0]
+        if (!signaturesMapRef.current[sigId]) {
+          newSigIds.add(sigId)
+        }
+      })
+      return loadNewSignatureGroups(newSigIds).then((newGroups) => {
+        newGroups.forEach((group) => {
+          if (!group) return
+          signaturesMapRef.current[group.id] = group
+        })
+        return newReplies
+      })
+    }).then((newReplies) => {
       let newMessageAuthor = ''
       let newMessage = ''
       let additionalReplyCount = 0
-      const newSigIds = new Set()
       newReplies.forEach((note) => {
         const invId = note.invitations[0]
         // eslint-disable-next-line no-param-reassign
         note.details.invitation = invitationMapRef.current[invId]?.[0]
         // eslint-disable-next-line no-param-reassign
         note.details.presentation = invitationMapRef.current[invId]?.[1]
-
-        const sigGroups = []
-        for (let i = 0; i < note.signatures.length; i += 1) {
-          const sigId = note.signatures[i]
-          const existingGroup = signaturesMapRef.current[sigId] ?? null
-          if (existingGroup) {
-            sigGroups.push(existingGroup)
-          } else {
-            newSigIds.add(sigId)
-          }
-        }
         // eslint-disable-next-line no-param-reassign
-        note.details.signatures = sigGroups
+        note.details.signatures = [signaturesMapRef.current[note.signatures[0]]]
 
         const isNewNote = updateNote(note)
-        if (isNewNote && !note.ddate) {
+
+        // Track details of new notes for chat notifications
+        if (isNewNote && expandedInvitations?.includes(invId) && !note.ddate) {
           if (!newMessageAuthor) {
             newMessageAuthor = prettyId(note.signatures[0], true)
-            newMessage = truncate(note.content.message.value, { length: 60 })
+            newMessage = truncate(note.content.message?.value || note.content.title?.value, {
+              length: 60,
+            })
           } else {
             additionalReplyCount += 1
           }
@@ -843,23 +868,7 @@ export default function Forum({
         setLatestMdate(newReplies[newReplies.length - 1].tmdate)
       }
 
-      if (newSigIds.size > 0) {
-        Promise.all(
-          Array.from(newSigIds, (sigId) => {
-            if (!sigId || Object.hasOwn(signaturesMapRef.current, sigId)) {
-              return Promise.resolve(null)
-            }
-            return api
-              .get(`/groups`, { id: sigId, select: 'id,members,readers' }, { accessToken })
-              .then((sigGroups) => {
-                const sigGroup = sigGroups.groups?.length > 0 ? sigGroups.groups[0] : null
-                signaturesMapRef.current[sigId] = sigGroup
-                return sigGroup
-              })
-          })
-        )
-      }
-
+      // Show browser notification
       if (notificationPermissions === 'granted' && showNotifications && newMessageAuthor) {
         const notif = new Notification(viewName, {
           body:
