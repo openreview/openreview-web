@@ -75,7 +75,7 @@ const MessageMemberModal = ({
           parentGroup: groupId,
           ...(cleanReplytoEmail && { replyTo: cleanReplytoEmail }),
           useJob: true,
-          ...(venueTitle && {
+          ...(cleanTitle && {
             fromName: venueTitle,
             fromEmail: `${cleanTitle}-notifications@openreview.net`,
           }),
