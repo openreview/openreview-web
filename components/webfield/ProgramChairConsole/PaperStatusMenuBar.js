@@ -89,7 +89,7 @@ const PaperStatusMenuBar = ({
           Object.entries(extraPropertiesAllowed ?? {}).flatMap(([key, value]) => {
             if (Array.isArray(value)) return []
             try {
-              return [key, Function('row', value)] // eslint-disable-line no-new-func
+              return [[key, Function('row', value)]] // eslint-disable-line no-new-func
             } catch (error) {
               // eslint-disable-next-line no-console
               console.error(`Error parsing function for extra property ${key}: ${error}`)
