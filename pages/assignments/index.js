@@ -88,7 +88,7 @@ const AssignmentRow = ({
       <td>{note.tmdate === note.tcdate ? null : formatDateTime(note.tmdate)}</td>
 
       <td>
-        {['Error', 'No Solution', 'Deployment Error'].includes(status) ? (
+        {['Error', 'No Solution', 'Deployment Error', 'Undeployment Error'].includes(status) ? (
           <>
             <strong>{status}</strong>
             <br />
