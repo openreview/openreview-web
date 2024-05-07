@@ -916,15 +916,17 @@ module.exports = function (forumId, noteId, invitationId, user) {
     if (
       (type === 'signatures' || type === 'readers' || type === 'excluded-readers') &&
       checked.length === 0
-    )
+    ) {
       return 'nobody'
+    }
     if (type === 'invitations' && checkboxes.unchecked.length === 0) return 'all'
     if (type === 'signatures' && checkboxes.unchecked.length === 0) return 'everybody'
     if (
       (type === 'readers' || type === 'excluded-readers') &&
       checkboxes.unchecked.length === 0
-    )
+    ) {
       return 'all readers'
+    }
     if (checked.length === 1) return checked[0]
     if (checked.length === 2) return checked[0] + ' and ' + checked[1]
     var buttonText = ''

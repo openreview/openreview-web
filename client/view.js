@@ -2566,7 +2566,8 @@ module.exports = (function () {
       note.mdate,
       note.tmdate,
       note.content.year,
-      note.pdate
+      note.pdate,
+      note.id !== note.forum, // include time if this a reply
     )
     var $replyCountLabel =
       params.withReplyCount && details.replyCount
@@ -3166,17 +3167,23 @@ module.exports = (function () {
     modifiedDate,
     trueModifiedDate,
     createdYear,
-    pdate
+    pdate,
+    withTime = false,
+    withTimezone = false
   ) {
     var mdateSettings = {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
+      ...(withTime && { hour: 'numeric', minute: 'numeric' }),
+      ...(withTimezone && { timeZoneName: 'long' }),
     }
     var cdateSettings = {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
+      ...(withTime && { hour: 'numeric', minute: 'numeric' }),
+      ...(withTimezone && { timeZoneName: 'long' }),
     }
 
     var cdate = createdDate || trueCreatedDate || Date.now()
