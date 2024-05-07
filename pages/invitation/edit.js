@@ -30,6 +30,10 @@ const InvitationEdit = ({ appContext }) => {
       type = '(Invitation of Invitation)'
     } else if (invitation.edit?.note) {
       type = '(Invitation of Note)'
+    } else if (invitation.edit?.edge) {
+      type = '(Invitation of Edge)'
+    } else if (invitation.edit?.tag) {
+      type = '(Invitation of Tag)'
     }
 
     return `${prettyId(invitation?.id)} ${type}`
