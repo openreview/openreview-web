@@ -869,7 +869,6 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
         id: p.id,
         forum: p.forum,
         tcdate: p.tcdate,
-        isCreatedInPastMonth: dayjs().diff(dayjs(p.tcdate), 'M') < 1,
         abbreviatedName: p.content?.['Abbreviated Venue Name'],
         hasOfficialReply: p.details?.replies?.find((q) =>
           q.signatures.includes(`${process.env.SUPER_USER}/Support`)
@@ -888,26 +887,17 @@ const VenueRequestsTab = ({ accessToken, setPendingVenueRequestCount }) => {
         tauthor: p.tauthor,
       }))
 
-      const venueNotDeployedInPastWeekCount = allVenueRequests.filter(
-        (p) => !p.deployed && p.isCreatedInPastMonth
-      ).length
+      const undeployedVenueCount = allVenueRequests.filter((p) => !p.deployed).length
       const venueWithUnrepliedCommentCount = allVenueRequests.filter(
         (p) => p.unrepliedPcComments.length > 0
       ).length
       setPendingVenueRequestCount(
-        getVenueTabCountMessage(
-          venueWithUnrepliedCommentCount,
-          venueNotDeployedInPastWeekCount
-        )
+        getVenueTabCountMessage(venueWithUnrepliedCommentCount, undeployedVenueCount)
       )
       setVenueRequestNotes(
         orderBy(
           allVenueRequests,
-          [
-            (p) => !p.deployed && p.isCreatedInPastMonth,
-            (p) => p.unrepliedPcComments.length,
-            'tcdate',
-          ],
+          [(p) => !p.deployed, (p) => p.unrepliedPcComments.length, 'tcdate'],
           ['desc', 'desc', 'desc']
         )
       )
