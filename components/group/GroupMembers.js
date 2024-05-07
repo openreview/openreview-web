@@ -2,6 +2,7 @@
 import React, { useEffect, useReducer, useRef, useState } from 'react'
 import Link from 'next/link'
 import get from 'lodash/get'
+import deburr from 'lodash/deburr'
 import copy from 'copy-to-clipboard'
 import BasicModal from '../BasicModal'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
@@ -59,6 +60,10 @@ const MessageMemberModal = ({
     }
 
     try {
+      const venueTitle = groupDomainContent?.subtitle?.value
+      const cleanTitle = venueTitle
+        ? deburr(venueTitle).replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+        : ''
       const result = await api.post(
         '/messages',
         {
@@ -70,6 +75,10 @@ const MessageMemberModal = ({
           parentGroup: groupId,
           ...(cleanReplytoEmail && { replyTo: cleanReplytoEmail }),
           useJob: true,
+          ...(cleanTitle && {
+            fromName: venueTitle,
+            fromEmail: `${cleanTitle}-notifications@openreview.net`,
+          }),
         },
         { accessToken }
       )
