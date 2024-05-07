@@ -316,14 +316,10 @@ export default function Forum({
   }, [latestMdate, id, accessToken])
 
   const loadNewSignatureGroups = (newSigIds) => Promise.all(
-    Array.from(newSigIds, (sigId) => {
-      if (!sigId || Object.hasOwn(signaturesMapRef.current, sigId)) {
-        return Promise.resolve(null)
-      }
-      return api
-        .get(`/groups`, { id: sigId, select: 'id,members,readers' }, { accessToken })
-        .then((sigGroups) => sigGroups.groups?.length > 0 ? sigGroups.groups[0] : null)
-    })
+    Array.from(newSigIds, (sigId) => api
+      .get(`/groups`, { id: sigId, select: 'id,members,readers' }, { accessToken })
+      .then((sigGroups) => sigGroups.groups?.length > 0 ? sigGroups.groups[0] : null)
+    )
   )
 
   const delayedScroll = useCallback(
@@ -818,38 +814,39 @@ export default function Forum({
     if (!repliesLoaded || !enableLiveUpdate) return
 
     loadNewReplies().then((newReplies) => {
+      // If any of the new notes include signatures that are not in the signaturesMap, load them
+      // and update the signaturesMap. Assumes only 1 signature per note
+      const newSigIds = new Set()
+      newReplies.forEach((note) => {
+        const sigId = note.signatures[0]
+        if (!signaturesMapRef.current[sigId]) {
+          newSigIds.add(sigId)
+        }
+      })
+      return loadNewSignatureGroups(newSigIds).then((newGroups) => {
+        newGroups.forEach((group) => {
+          if (!group) return
+          signaturesMapRef.current[group.id] = group
+        })
+        return newReplies
+      })
+    }).then((newReplies) => {
       let newMessageAuthor = ''
       let newMessage = ''
       let additionalReplyCount = 0
-      const newSigIds = new Set()
-      const notesToUpdate = []
       newReplies.forEach((note) => {
         const invId = note.invitations[0]
         // eslint-disable-next-line no-param-reassign
         note.details.invitation = invitationMapRef.current[invId]?.[0]
         // eslint-disable-next-line no-param-reassign
         note.details.presentation = invitationMapRef.current[invId]?.[1]
-
-        const sigGroups = []
-        let newSigs = false
-        for (let i = 0; i < note.signatures.length; i += 1) {
-          const sigId = note.signatures[i]
-          const existingGroup = signaturesMapRef.current[sigId] ?? null
-          if (existingGroup) {
-            sigGroups.push(existingGroup)
-          } else {
-            newSigIds.add(sigId)
-            newSigs = true
-          }
-        }
         // eslint-disable-next-line no-param-reassign
-        note.details.signatures = sigGroups
-        if (newSigs) notesToUpdate.push(note.id)
+        note.details.signatures = [signaturesMapRef.current[note.signatures[0]]]
 
         const isNewNote = updateNote(note)
 
         // Track details of new notes for chat notifications
-        if (isNewNote && selectedFilters.invitations?.includes(invId) && !note.ddate) {
+        if (isNewNote && expandedInvitations?.includes(invId) && !note.ddate) {
           if (!newMessageAuthor) {
             newMessageAuthor = prettyId(note.signatures[0], true)
             newMessage = truncate(note.content.message?.value || note.content.title?.value, {
@@ -869,35 +866,6 @@ export default function Forum({
 
       if (newReplies.length > 0) {
         setLatestMdate(newReplies[newReplies.length - 1].tmdate)
-      }
-
-      // If any of the new notes include signatures that are not in the signaturesMap, load them
-      // and update the replyNoteMap with the new signature details
-      if (newSigIds.size > 0) {
-        loadNewSignatureGroups(newSigIds).then((newGroups) => {
-          newGroups.forEach((group) => {
-            if (!group) return
-            signaturesMapRef.current[group.id] = group
-          })
-
-          const updatedNotes = {}
-          notesToUpdate.forEach((noteId) => {
-            const currNote = replyNoteMap[noteId]
-            if (!currNote) return
-
-            updatedNotes[noteId] = {
-              ...currNote,
-              details: {
-                ...currNote.details,
-                signatures: currNote.signatures.map((sigId) => signaturesMapRef.current[sigId]),
-              },
-            }
-          })
-          setReplyNoteMap((prevMap) => ({
-            ...prevMap,
-            ...updatedNotes,
-          }))
-        })
       }
 
       // Show browser notification
