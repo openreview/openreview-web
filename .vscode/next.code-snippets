@@ -39,5 +39,13 @@
       "}\n"
     ],
     "description": "Creates a stateless page component as a named function without PropTypes"
-  }
+  },
+  "consoleLog": {
+    "scope": "javascript,typescript",
+    "prefix": "cl",
+    "body": [
+      "console.log({ $1 })"
+    ],
+    "description": "Logs a message to the console"
+  },
 }

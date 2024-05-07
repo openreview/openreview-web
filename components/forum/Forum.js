@@ -93,7 +93,6 @@ export default function Forum({
   const [nesting, setNesting] = useState(2)
   const [layout, setLayout] = useState('default')
   const [sort, setSort] = useState('date-desc')
-  const [viewName, setViewName] = useState('')
   const [defaultCollapseLevel, setDefaultCollapseLevel] = useState(2)
   const [filterOptions, setFilterOptions] = useState(null)
   const [selectedFilters, setSelectedFilters] = useState({
@@ -602,7 +601,6 @@ export default function Forum({
       setSort(tab.sort || 'date-desc')
       setEnableLiveUpdate(Boolean(tab.live))
       setExpandedInvitations(tab.expandedInvitations)
-      setViewName(tab.label)
     }
 
     if (window.location.hash) {
@@ -870,11 +868,12 @@ export default function Forum({
 
       // Show browser notification
       if (notificationPermissions === 'granted' && showNotifications && newMessageAuthor) {
-        const notif = new Notification(viewName, {
+        const notificationTitle = `New Message in ${parentNote.content.title?.value || parentNote.generatedTitle}`
+        const notif = new Notification(notificationTitle, {
           body:
             additionalReplyCount > 0
               ? `${newMessageAuthor} and ${additionalReplyCount} others posted new messages.`
-              : `${newMessageAuthor} posted a new message: ${newMessage}`,
+              : `${newMessageAuthor} posted: ${newMessage}`,
           icon: '/images/openreview_logo_256.png',
         })
       }
