@@ -831,6 +831,7 @@ export default function Forum({
     }).then((newReplies) => {
       let newMessageAuthor = ''
       let newMessage = ''
+      let newMessageId = ''
       let additionalReplyCount = 0
       newReplies.forEach((note) => {
         const invId = note.invitations[0]
@@ -850,6 +851,7 @@ export default function Forum({
             newMessage = truncate(note.content.message?.value || note.content.title?.value, {
               length: 60,
             })
+            newMessageId = note.id
           } else {
             additionalReplyCount += 1
           }
@@ -875,7 +877,18 @@ export default function Forum({
               ? `${newMessageAuthor} and ${additionalReplyCount} others posted new messages.`
               : `${newMessageAuthor} posted: ${newMessage}`,
           icon: '/images/openreview_logo_256.png',
+          data: {
+            noteId: newMessageId,
+          }
         })
+        notif.onclick = (event) => {
+          event.preventDefault()
+          window.focus() // Show the browser tab if it's hidden
+          setTimeout(() => {
+            scrollToElement('.filters-container')
+            scrollToChatNote(event.target.data.noteId)
+          }, 200)
+        }
       }
     })
   }, 1500)
