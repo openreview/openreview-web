@@ -44,7 +44,7 @@
     "scope": "javascript,typescript",
     "prefix": "cl",
     "body": [
-      "console.log({ $1 })"
+      "console.log($1)"
     ],
     "description": "Logs a message to the console"
   },

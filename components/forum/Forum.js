@@ -190,7 +190,7 @@ export default function Forum({
       {
         forum: forumId,
         trash: true,
-        details: 'writable,signatures,invitation,presentation',
+        details: 'writable,signatures,invitation,presentation,tags',
         domain,
       },
       { accessToken }
@@ -313,6 +313,24 @@ export default function Forum({
       return []
     }
   }, [latestMdate, id, accessToken])
+
+  const loadNewTags = useCallback(async () => {
+    if (!expandedInvitations) return []
+
+    try {
+      const { tags } = await api.get(
+        '/tags',
+        {
+          invitation: expandedInvitations[0],
+          mintmdate: latestMdate,
+        },
+        { accessToken }
+      )
+      return tags?.length > 0 ? tags : []
+    } catch (error) {
+      return []
+    }
+  }, [latestMdate, expandedInvitations, accessToken])
 
   const loadNewSignatureGroups = (newSigIds) => Promise.all(
     Array.from(newSigIds, (sigId) => api
@@ -811,7 +829,7 @@ export default function Forum({
   useInterval(() => {
     if (!repliesLoaded || !enableLiveUpdate) return
 
-    loadNewReplies().then((newReplies) => {
+    Promise.all([loadNewReplies(), loadNewTags()]).then(([newReplies, newTags]) => {
       // If any of the new notes include signatures that are not in the signaturesMap, load them
       // and update the signaturesMap. Assumes only 1 signature per note
       const newSigIds = new Set()
@@ -826,9 +844,9 @@ export default function Forum({
           if (!group) return
           signaturesMapRef.current[group.id] = group
         })
-        return newReplies
+        return [newReplies, newTags]
       })
-    }).then((newReplies) => {
+    }).then(([newReplies, newTags]) => {
       let newMessageAuthor = ''
       let newMessage = ''
       let newMessageId = ''
