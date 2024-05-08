@@ -12,7 +12,13 @@ import Signatures from '../Signatures'
 import { NoteContentV2, NoteContentValue } from '../NoteContent'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId, prettyInvitationId, prettyContentValue } from '../../lib/utils'
+import {
+  prettyId,
+  prettyInvitationId,
+  prettyContentValue,
+  prettyList,
+  inflect,
+} from '../../lib/utils'
 import {
   getInvitationColors,
   getSignatureColors,
@@ -120,7 +126,11 @@ export default forwardRef(function ChatReply(
     return (
       <div className={`${styles.container}`} data-id={note.id} ref={ref}>
         <div className="chat-body deleted clearfix">
-          <ReplyInfo parentNote={parentNote} parentTitle={note.parentTitle} scrollToNote={scrollToNote} />
+          <ReplyInfo
+            parentNote={parentNote}
+            parentTitle={note.parentTitle}
+            scrollToNote={scrollToNote}
+          />
           {/* TODO: uncomment when signatures are sent with deleted notes */}
           {/*
           <div className="header">
@@ -147,7 +157,11 @@ export default forwardRef(function ChatReply(
       ref={ref}
     >
       <div className="chat-body" style={{ backgroundColor: `${colorHash}1E` }}>
-        <ReplyInfo parentNote={parentNote} parentTitle={note.parentTitle} scrollToNote={scrollToNote} />
+        <ReplyInfo
+          parentNote={parentNote}
+          parentTitle={note.parentTitle}
+          scrollToNote={scrollToNote}
+        />
 
         <div className="header">
           <span className="indicator" style={{ backgroundColor: colorHash }} />
@@ -200,19 +214,43 @@ export default forwardRef(function ChatReply(
             include={['title']}
           />
         )}
-      </div>
 
-      {/*
-      {note.details.tags?.length > 0 && (
-        <ul className="list-inline">
-          {note.details.tags.map((tag) => (
-            <li key={tag.id}>
-              <button className="btn btn-xs">{tag.tag.value}</button>
+        {note.details.tags?.length > 0 && (
+          <ul className="chat-reactions list-inline">
+            {note.details.tags.map(([reaction, tags]) => (
+              <li key={reaction}>
+                <button
+                  className="btn btn-xs btn-default"
+                  data-toggle="tooltip"
+                  data-placement="top"
+                  title={`${inflect(
+                    tags.length,
+                    'reaction',
+                    'reactions',
+                    true
+                  )} from ${prettyList(
+                    tags.map((t) => t.signature),
+                    'short',
+                    'conjunction'
+                  )}`}
+                >
+                  <span>{reaction}</span> {tags.length}
+                </button>
+              </li>
+            ))}
+            <li key={'add-reaction'}>
+              <button
+                className="btn btn-xs btn-default add-reaction"
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Add Reaction"
+              >
+                <Icon name="thumbs-up" /> +
+              </button>
             </li>
-          ))}
-        </ul>
-      )}
-      */}
+          </ul>
+        )}
+      </div>
 
       <div className={styles['chat-actions']}>
         <div className="btn-group" role="group" aria-label="Actions">
@@ -224,6 +262,10 @@ export default forwardRef(function ChatReply(
             }}
           >
             <Icon name="share-alt" /> Reply
+          </button>
+
+          <button type="button" className="btn btn-default" onClick={copyNoteUrl}>
+            <Icon name="thumbs-up" /> Add Reaction
           </button>
 
           <button type="button" className="btn btn-default" onClick={copyNoteUrl}>
@@ -268,9 +310,11 @@ function ReplyInfo({ parentNote, parentTitle, scrollToNote }) {
 
   return (
     <div className="parent-info disable-tex-rendering">
-      <h5 onClick={() => {
-        scrollToNote(parentNote.id)
-      }}>
+      <h5
+        onClick={() => {
+          scrollToNote(parentNote.id)
+        }}
+      >
         {/* <Icon name="share-alt" />{' '} */}
         <span>Replying to {prettyId(parentNote.signatures[0], true)}</span>
         {' – '}

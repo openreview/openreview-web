@@ -1,6 +1,9 @@
 @use '../utils/constants';
 @use '../utils/mixins';
 
+$gray1: #f7f6f4;
+$gray2: #f0f0f0;
+
 .container {
   margin-bottom: 0.5rem;
   border-radius: 2px;
@@ -116,6 +119,39 @@
       line-height: normal;
       p:last-child, ul:last-child, ol:last-child {
         margin-bottom: 0;
+      }
+    }
+
+    .chat-reactions {
+      margin-top: .5rem;
+      margin-left: 0;
+      margin-bottom: 0;
+
+      li {
+        padding-left: 0;
+      }
+      button {
+        border-width: 1px;
+        padding: 1px .5rem;
+        border-color: constants.$mediumBlue;
+        background-color: $gray1;
+        &:hover {
+          color: constants.$mediumDarkBlue;
+          border-color: constants.$mediumDarkBlue;
+          background-color: $gray2;
+          opacity: 1;
+        }
+        span {
+          padding-right: .125rem;
+        }
+      }
+      .add-reaction {
+        border-color: constants.$subtleGray;
+        color: constants.$subtleGray;
+        opacity: .75;
+        span {
+          font-size: 11px;
+        }
       }
     }
   }

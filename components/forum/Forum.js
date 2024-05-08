@@ -33,6 +33,7 @@ import {
   getNoteInvitations,
   parseFilterQuery,
   replaceFilterWildcards,
+  groupTagsByValue,
 } from '../../lib/forum-utils'
 import useLocalStorage from '../../hooks/useLocalStorage'
 
@@ -320,7 +321,7 @@ export default function Forum({
     try {
       const { tags } = await api.get(
         '/tags',
-        { invitation: expandedInvitations[0], mintmdate: latestMdate },
+        { invitation: expandedInvitations[0], mintmdate: latestMdate, trash: true },
         { accessToken }
       )
       return tags?.length > 0 ? tags : []
@@ -875,6 +876,9 @@ export default function Forum({
           note.details.signatures = signaturesMapRef.current[sigId]
             ? [signaturesMapRef.current[sigId]]
             : []
+          // eslint-disable-next-line no-param-reassign
+          // note.details.tags = groupTagsByValue(note.details.tags)
+
           const isNewNote = updateNote(note)
 
           // Track details of new notes for chat notifications
