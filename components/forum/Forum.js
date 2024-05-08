@@ -320,10 +320,7 @@ export default function Forum({
     try {
       const { tags } = await api.get(
         '/tags',
-        {
-          invitation: expandedInvitations[0],
-          mintmdate: latestMdate,
-        },
+        { invitation: expandedInvitations[0], mintmdate: latestMdate },
         { accessToken }
       )
       return tags?.length > 0 ? tags : []
@@ -332,12 +329,20 @@ export default function Forum({
     }
   }, [latestMdate, expandedInvitations, accessToken])
 
-  const loadNewSignatureGroups = (newSigIds) => Promise.all(
-    Array.from(newSigIds, (sigId) => api
-      .get(`/groups`, { id: sigId, select: 'id,members,readers' }, { accessToken })
-      .then((sigGroups) => sigGroups.groups?.length > 0 ? sigGroups.groups[0] : null)
-    )
-  )
+  const loadNewSignatureGroups = async (newSigIds) => {
+    if (newSigIds.size === 0) return []
+
+    try {
+      const { groups } = await api.get(
+        `/groups`,
+        { ids: Array.from(newSigIds), select: 'id,members,readers' },
+        { accessToken }
+      )
+      return groups?.length > 0 ? groups : []
+    } catch (error) {
+      return []
+    }
+  }
 
   const delayedScroll = useCallback(
     debounce((layoutMode, isScrolled) => {
@@ -594,8 +599,13 @@ export default function Forum({
 
       const primaryInvitationId = tab.expandedInvitations?.[0]
       if (primaryInvitationId) {
-        const primaryInvitation = parentNote.replyInvitations.find((inv) => inv.id === primaryInvitationId)
-        if (!primaryInvitation || (primaryInvitation.expdate && primaryInvitation.expdate < Date.now())) {
+        const primaryInvitation = parentNote.replyInvitations.find(
+          (inv) => inv.id === primaryInvitationId
+        )
+        if (
+          !primaryInvitation ||
+          (primaryInvitation.expdate && primaryInvitation.expdate < Date.now())
+        ) {
           return
         }
       }
@@ -829,86 +839,93 @@ export default function Forum({
   useInterval(() => {
     if (!repliesLoaded || !enableLiveUpdate) return
 
-    Promise.all([loadNewReplies(), loadNewTags()]).then(([newReplies, newTags]) => {
-      // If any of the new notes include signatures that are not in the signaturesMap, load them
-      // and update the signaturesMap. Assumes only 1 signature per note
-      const newSigIds = new Set()
-      newReplies.forEach((note) => {
-        const sigId = note.signatures[0]
-        if (!signaturesMapRef.current[sigId]) {
-          newSigIds.add(sigId)
-        }
-      })
-      return loadNewSignatureGroups(newSigIds).then((newGroups) => {
-        newGroups.forEach((group) => {
-          if (!group) return
-          signaturesMapRef.current[group.id] = group
-        })
-        return [newReplies, newTags]
-      })
-    }).then(([newReplies, newTags]) => {
-      let newMessageAuthor = ''
-      let newMessage = ''
-      let newMessageId = ''
-      let additionalReplyCount = 0
-      newReplies.forEach((note) => {
-        const invId = note.invitations[0]
-        // eslint-disable-next-line no-param-reassign
-        note.details.invitation = invitationMapRef.current[invId]?.[0]
-        // eslint-disable-next-line no-param-reassign
-        note.details.presentation = invitationMapRef.current[invId]?.[1]
-        // eslint-disable-next-line no-param-reassign
-        note.details.signatures = [signaturesMapRef.current[note.signatures[0]]]
-
-        const isNewNote = updateNote(note)
-
-        // Track details of new notes for chat notifications
-        if (isNewNote && expandedInvitations?.includes(invId) && !note.ddate) {
-          if (!newMessageAuthor) {
-            newMessageAuthor = prettyId(note.signatures[0], true)
-            newMessage = truncate(note.content.message?.value || note.content.title?.value, {
-              length: 60,
-            })
-            newMessageId = note.id
-          } else {
-            additionalReplyCount += 1
-          }
-          if (!attachedToBottom.current) {
-            setNewMessageCounts((prevCounts) => ({
-              ...prevCounts,
-              [invId]: (prevCounts[invId] ?? 0) + 1,
-            }))
-          }
-        }
-      })
-
-      if (newReplies.length > 0) {
-        setLatestMdate(newReplies[newReplies.length - 1].tmdate)
-      }
-
-      // Show browser notification
-      if (notificationPermissions === 'granted' && showNotifications && newMessageAuthor) {
-        const notificationTitle = `New Message in ${parentNote.content.title?.value || parentNote.generatedTitle}`
-        const notif = new Notification(notificationTitle, {
-          body:
-            additionalReplyCount > 0
-              ? `${newMessageAuthor} and ${additionalReplyCount} others posted new messages.`
-              : `${newMessageAuthor} posted: ${newMessage}`,
-          icon: '/images/openreview_logo_256.png',
-          data: {
-            noteId: newMessageId,
+    Promise.all([loadNewReplies(), loadNewTags()])
+      .then(([newReplies, newTags]) => {
+        // If any of the new notes include signatures that are not in the signaturesMap, load them
+        // and update the signaturesMap. Assumes only 1 signature per note
+        const newSigIds = new Set()
+        newReplies.forEach((note) => {
+          const sigId = note.signatures[0]
+          if (!signaturesMapRef.current[sigId]) {
+            newSigIds.add(sigId)
           }
         })
-        notif.onclick = (event) => {
-          event.preventDefault()
-          window.focus() // Show the browser tab if it's hidden
-          setTimeout(() => {
-            scrollToElement('.filters-container')
-            scrollToChatNote(event.target.data.noteId)
-          }, 200)
+        return loadNewSignatureGroups(newSigIds).then((newGroups) => {
+          newGroups.forEach((group) => {
+            if (!group) return
+            signaturesMapRef.current[group.id] = group
+          })
+          return [newReplies, newTags]
+        })
+      })
+      .then(([newReplies, newTags]) => {
+        let newMessageAuthor = ''
+        let newMessage = ''
+        let newMessageId = ''
+        let additionalReplyCount = 0
+        newReplies.forEach((note) => {
+          const invId = note.invitations[0]
+          const sigId = note.signatures[0]
+
+          // eslint-disable-next-line no-param-reassign
+          note.details.invitation = invitationMapRef.current[invId]?.[0]
+          // eslint-disable-next-line no-param-reassign
+          note.details.presentation = invitationMapRef.current[invId]?.[1]
+          // eslint-disable-next-line no-param-reassign
+          note.details.signatures = signaturesMapRef.current[sigId]
+            ? [signaturesMapRef.current[sigId]]
+            : []
+          const isNewNote = updateNote(note)
+
+          // Track details of new notes for chat notifications
+          if (isNewNote && expandedInvitations?.includes(invId) && !note.ddate) {
+            if (!newMessageAuthor) {
+              newMessageAuthor = prettyId(sigId, true)
+              newMessage = truncate(note.content.message?.value || note.content.title?.value, {
+                length: 60,
+              })
+              newMessageId = note.id
+            } else {
+              additionalReplyCount += 1
+            }
+            if (!attachedToBottom.current) {
+              setNewMessageCounts((prevCounts) => ({
+                ...prevCounts,
+                [invId]: (prevCounts[invId] ?? 0) + 1,
+              }))
+            }
+          }
+        })
+
+        if (newReplies.length > 0) {
+          setLatestMdate(newReplies[newReplies.length - 1].tmdate)
         }
-      }
-    })
+
+        // Show browser notification
+        if (notificationPermissions === 'granted' && showNotifications && newMessageAuthor) {
+          const notificationTitle = `New Message in ${
+            parentNote.content.title?.value || parentNote.generatedTitle
+          }`
+          const notif = new Notification(notificationTitle, {
+            body:
+              additionalReplyCount > 0
+                ? `${newMessageAuthor} and ${additionalReplyCount} others posted new messages.`
+                : `${newMessageAuthor} posted: ${newMessage}`,
+            icon: '/images/openreview_logo_256.png',
+            data: {
+              noteId: newMessageId,
+            },
+          })
+          notif.onclick = (event) => {
+            event.preventDefault()
+            window.focus() // Show the browser tab if it's hidden
+            setTimeout(() => {
+              scrollToElement('.filters-container')
+              scrollToChatNote(event.target.data.noteId)
+            }, 200)
+          }
+        }
+      })
   }, 1500)
 
   return (

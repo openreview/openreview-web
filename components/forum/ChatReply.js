@@ -202,6 +202,7 @@ export default forwardRef(function ChatReply(
         )}
       </div>
 
+      {/*
       {note.details.tags?.length > 0 && (
         <ul className="list-inline">
           {note.details.tags.map((tag) => (
@@ -211,6 +212,7 @@ export default forwardRef(function ChatReply(
           ))}
         </ul>
       )}
+      */}
 
       <div className={styles['chat-actions']}>
         <div className="btn-group" role="group" aria-label="Actions">
