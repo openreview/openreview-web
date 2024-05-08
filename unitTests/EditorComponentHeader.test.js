@@ -115,7 +115,7 @@ describe('EditorComponentHeader', () => {
   test('display pdf field name as all capital', () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           pdf: {
             value: {

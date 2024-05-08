@@ -13,7 +13,7 @@ describe('FileUploadWidget', () => {
   test('display choose file button', () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           supplementary_material: {
             value: {
@@ -32,7 +32,7 @@ describe('FileUploadWidget', () => {
   test('display link of existing file', () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           supplementary_material: {
             value: {
@@ -62,7 +62,7 @@ describe('FileUploadWidget', () => {
 
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           supplementary_material: {
             value: {
@@ -97,7 +97,7 @@ describe('FileUploadWidget', () => {
 
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           supplementary_material: {
             value: {
@@ -131,7 +131,7 @@ describe('FileUploadWidget', () => {
     const clearError = jest.fn()
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           supplementary_material: {
             value: {
@@ -150,6 +150,9 @@ describe('FileUploadWidget', () => {
     const trashButton = screen.getByRole('button', { name: 'trash' })
     await userEvent.click(trashButton)
 
-    expect(onChange).toHaveBeenCalledWith({ fieldName: 'supplementary_material', value: undefined })
+    expect(onChange).toHaveBeenCalledWith({
+      fieldName: 'supplementary_material',
+      value: undefined,
+    })
   })
 })
