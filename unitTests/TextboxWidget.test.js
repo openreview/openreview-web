@@ -524,7 +524,7 @@ describe('TextboxWidget', () => {
     const clearError = jest.fn()
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           paper_title: {
             value: {

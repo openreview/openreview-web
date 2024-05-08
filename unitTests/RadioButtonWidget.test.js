@@ -8,7 +8,7 @@ describe('RadioButtonWidget', () => {
   test('render nothing if field description does not have options', () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
@@ -28,7 +28,7 @@ describe('RadioButtonWidget', () => {
   test('render nothing if field description enum is not array', () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
@@ -48,7 +48,7 @@ describe('RadioButtonWidget', () => {
   test('display enum options (string)', () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
@@ -76,7 +76,7 @@ describe('RadioButtonWidget', () => {
   test('display description of enum options (object)', () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
@@ -114,7 +114,7 @@ describe('RadioButtonWidget', () => {
   test('display option as selected when match with existing value (enum string)', () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
@@ -143,7 +143,7 @@ describe('RadioButtonWidget', () => {
   test('display option as selected when match with existing value (enum object)', () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
@@ -176,7 +176,7 @@ describe('RadioButtonWidget', () => {
     const clearError = jest.fn()
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
@@ -227,7 +227,7 @@ describe('RadioButtonWidget', () => {
     const clearError = jest.fn()
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
@@ -265,7 +265,7 @@ describe('RadioButtonWidget', () => {
     const clearError = jest.fn()
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
@@ -319,7 +319,7 @@ describe('RadioButtonWidget', () => {
     const clearError = jest.fn()
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
@@ -361,7 +361,7 @@ describe('RadioButtonWidget', () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
@@ -394,7 +394,7 @@ describe('RadioButtonWidget', () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
@@ -431,7 +431,7 @@ describe('RadioButtonWidget', () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
@@ -466,7 +466,7 @@ describe('RadioButtonWidget', () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           submission_length: {
             value: {
