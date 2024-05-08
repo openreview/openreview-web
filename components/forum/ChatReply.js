@@ -36,21 +36,6 @@ export default forwardRef(function ChatReply(
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
   const { accessToken } = useUser()
 
-  useEffect(() => {
-    if (needsRerender && useMarkdown) {
-      setTimeout(() => {
-        try {
-          MathJax.typesetPromise()
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.warn('Could not format math notation')
-        }
-      }, 100)
-    }
-  }, [useMarkdown, needsRerender])
-
-  if (!note || displayOptions.hidden) return null
-
   const isChatNote = Object.keys(note.content).length === 1 && note.content.message
   const presentation = note.details?.presentation
   const enableMarkdown = presentation?.[0]?.markdown
@@ -113,6 +98,21 @@ export default forwardRef(function ChatReply(
     )
     promptMessage('Reply URL copied to clipboard', { scrollToTop: false })
   }
+
+  useEffect(() => {
+    if (needsRerender && useMarkdown) {
+      setTimeout(() => {
+        try {
+          MathJax.typesetPromise()
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.warn('Could not format math notation')
+        }
+      }, 100)
+    }
+  }, [useMarkdown, needsRerender])
+
+  if (!note || displayOptions.hidden) return null
 
   // Deleted Reply
   if (note.ddate) {
@@ -201,6 +201,18 @@ export default forwardRef(function ChatReply(
           />
         )}
       </div>
+
+      {/*
+      {note.details.tags?.length > 0 && (
+        <ul className="list-inline">
+          {note.details.tags.map((tag) => (
+            <li key={tag.id}>
+              <button className="btn btn-xs">{tag.tag.value}</button>
+            </li>
+          ))}
+        </ul>
+      )}
+      */}
 
       <div className={styles['chat-actions']}>
         <div className="btn-group" role="group" aria-label="Actions">
