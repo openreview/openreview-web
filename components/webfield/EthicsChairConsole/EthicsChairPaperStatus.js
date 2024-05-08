@@ -49,6 +49,7 @@ const EthicsSubmissionRow = ({ rowData }) => {
           venueId={venueId}
           ethicsReviewersName={ethicsReviewersName}
           ethicsReviewName={ethicsReviewName}
+          ethicsChairsName={ethicsChairsName}
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}

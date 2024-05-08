@@ -166,7 +166,9 @@ const MessageReviewersModal = ({
   body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
   form where the ${prettyField(
     reviewerName
-  ).toLowerCase()} can fill out his or her review.`}</p>
+  ).toLowerCase()} can fill out his or her ${prettyField(
+    officialReviewName
+  ).toLowerCase()}.`}</p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
             <input

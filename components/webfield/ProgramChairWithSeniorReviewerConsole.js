@@ -2377,7 +2377,7 @@ const ProgramChairWithSeniorReviewerConsole = ({ appContext }) => {
 
         decision,
         venue: note?.content?.venue?.value,
-        messsageSignature: programChairsId
+        messsageSignature: programChairsId,
       })
     })
     setPcConsoleData((data) => ({ ...data, noteNumberReviewMetaReviewMap }))
