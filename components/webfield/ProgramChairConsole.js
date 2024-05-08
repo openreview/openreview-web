@@ -448,11 +448,9 @@ const ProgramChairConsole = ({ appContext }) => {
         // eslint-disable-next-line no-param-reassign
         profile.registrationNotes = userRegNotes
 
-        if (allGroupMembers.includes(profile.id)) {
-          usernames.concat(profileEmails).forEach((key) => {
-            allProfilesMap.set(key, profile)
-          })
-        }
+        usernames.concat(profileEmails).forEach((key) => {
+          allProfilesMap.set(key, profile)
+        })
       })
 
       const officialReviewsByPaperNumberMap = new Map()
