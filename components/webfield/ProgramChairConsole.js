@@ -69,6 +69,7 @@ const ProgramChairConsole = ({ appContext }) => {
     customStageInvitations,
     assignmentUrls,
     emailReplyTo,
+    enableSacPaperAssignments,
     reviewerEmailFuncs,
     acEmailFuncs,
     submissionContentFields = [],
@@ -879,14 +880,50 @@ const ProgramChairConsole = ({ appContext }) => {
           .then((result) => result.groupedEdges)
       : []
 
+    const acEdgeResult = enableSacPaperAssignments
+      ? await api
+          .get(
+            '/edges',
+            {
+              invitation: `${areaChairsId}/-/Assignment`,
+              groupBy: 'head,tail',
+              select: 'head,tail',
+              domain: venueId,
+            },
+            { accessToken }
+          )
+          .then((result) => result.groupedEdges)
+      : []
+
     const sacByAcMap = new Map()
     const acBySacMap = new Map()
+    const acsByPaperMap = new Map()
+
+    if (enableSacPaperAssignments) {
+      acEdgeResult.forEach(edge => {
+        const ac = edge.values[0].tail
+        const paper = edge.values[0].head
+        if (!acsByPaperMap.get(paper)) acsByPaperMap.set(paper, [])
+        acsByPaperMap.get(paper).push(ac)
+      })
+    }
+
     sacEdgeResult.forEach((edge) => {
-      const ac = edge.values[0].head
       const sac = edge.values[0].tail
-      sacByAcMap.set(ac, sac)
-      if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
-      acBySacMap.get(sac).push(ac)
+
+      if (enableSacPaperAssignments) {
+        const paper = edge.values[0].head
+        const acs = acsByPaperMap.get(paper) ?? []
+        acs.forEach(ac => sacByAcMap.set(ac, sac))
+        if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
+        acBySacMap.get(sac).push(...acs)
+      }
+      else {
+        const ac = edge.values[0].head
+        sacByAcMap.set(ac, sac)
+        if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
+        acBySacMap.get(sac).push(ac)
+      }
     })
     // #endregion
 
