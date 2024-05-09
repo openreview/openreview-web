@@ -147,7 +147,20 @@ const SeniorAreaChairStatusMenuBar = ({
   tableRowsAll,
   tableRows,
   setSeniorAreaChairStatusTabData,
+  messageParentGroup,
+  messageSignature,
 }) => {
+  const {
+    shortPhrase,
+    sacEmailFuncs
+  } = useContext(WebFieldContext)
+  const messageSeniorAreaChairOptions = [
+    {
+      label: 'Senior Area Chairs with 0 assignments',
+      value: 'missingAssignments',
+    },
+    ...(sacEmailFuncs ?? []),
+  ]
   const sortOptions = [
     {
       label: 'Senior Area Chair',
@@ -170,7 +183,13 @@ const SeniorAreaChairStatusMenuBar = ({
       tableRowsAll={tableRowsAll}
       tableRows={tableRows}
       setData={setSeniorAreaChairStatusTabData}
+      shortPhrase={shortPhrase}
       enableQuerySearch={false}
+      messageDropdownLabel="Message Senior Area Chairs"
+      messageOptions={messageSeniorAreaChairOptions}
+      messageModalId="message-seniorareachairs"
+      messageParentGroup={messageParentGroup}
+      messageSignature={messageSignature}
       sortOptions={sortOptions}
       exportFileName="Senior Area Chair Status"
       basicSearchFunction={basicSearchFunction}
