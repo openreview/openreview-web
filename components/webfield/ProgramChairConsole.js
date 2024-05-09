@@ -897,6 +897,17 @@ const ProgramChairConsole = ({ appContext }) => {
 
     const sacByAcMap = new Map()
     const acBySacMap = new Map()
+    const acsByPaperMap = new Map()
+
+    if (enableSacPaperAssignments) {
+      acEdgeResult.forEach(edge => {
+        const ac = edge.values[0].tail
+        const paper = edge.values[0].head
+        if (!acsByPaperMap.get(paper)) acsByPaperMap.set(paper, [])
+        acsByPaperMap.get(paper).push(ac)
+      })
+    }
+
     sacEdgeResult.forEach((edge) => {
       const ac = edge.values[0].head
       const sac = edge.values[0].tail
