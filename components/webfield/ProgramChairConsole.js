@@ -69,6 +69,7 @@ const ProgramChairConsole = ({ appContext }) => {
     customStageInvitations,
     assignmentUrls,
     emailReplyTo,
+    enableSacPaperAssignments,
     reviewerEmailFuncs,
     acEmailFuncs,
     submissionContentFields=[],
@@ -870,6 +871,21 @@ const ProgramChairConsole = ({ appContext }) => {
             '/edges',
             {
               invitation: `${seniorAreaChairsId}/-/Assignment`,
+              groupBy: 'head,tail',
+              select: 'head,tail',
+              domain: venueId,
+            },
+            { accessToken }
+          )
+          .then((result) => result.groupedEdges)
+      : []
+
+    const acEdgeResult = enableSacPaperAssignments
+      ? await api
+          .get(
+            '/edges',
+            {
+              invitation: `${areaChairsId}/-/Assignment`,
               groupBy: 'head,tail',
               select: 'head,tail',
               domain: venueId,
