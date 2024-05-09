@@ -376,7 +376,7 @@ const ReviewerConsole = ({ appContext }) => {
           )
           .then((noteResult) => {
             if (!noteResult.notes?.length) return reviewLoad
-            return parseInt(noteResult.notes[0].content?.reduced_load?.value)
+            return parseInt(noteResult.notes[0].content?.reduced_load?.value, 10)
           })
       })
     // #endregion
