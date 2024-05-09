@@ -573,6 +573,7 @@ const ReviewerConsole = ({ appContext }) => {
         title={header?.title}
         instructions={header.instructions}
         customLoad={reviewerConsoleData.customLoad}
+        submissionName={submissionName}
       />
       <Tabs>
         <TabList>
