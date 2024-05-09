@@ -382,7 +382,6 @@ const ReviewerConsole = ({ appContext }) => {
     // #endregion
 
     // #region get area chair groups
-
     const getAreaChairGroupsP = areaChairName
       ? api
           .get(
