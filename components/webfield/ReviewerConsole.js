@@ -382,9 +382,7 @@ const ReviewerConsole = ({ appContext }) => {
     // #endregion
 
     // #region get area chair groups
-    const singularAreaChairName = areaChairName.endsWith('s')
-      ? areaChairName.slice(0, -1)
-      : areaChairName
+
     const getAreaChairGroupsP = areaChairName
       ? api
           .get(
@@ -398,6 +396,9 @@ const ReviewerConsole = ({ appContext }) => {
             { accessToken }
           )
           .then((result) => {
+            const singularAreaChairName = areaChairName.endsWith('s')
+              ? areaChairName.slice(0, -1)
+              : areaChairName
             const areaChairMap = {}
             result.groups.forEach((areaChairgroup) => {
               if (areaChairgroup.id.endsWith(`/${areaChairName}`)) {
