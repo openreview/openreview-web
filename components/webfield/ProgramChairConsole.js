@@ -70,6 +70,7 @@ const ProgramChairConsole = ({ appContext }) => {
     assignmentUrls,
     emailReplyTo,
     enableSacPaperAssignments,
+    enableSacPaperTable,
     reviewerEmailFuncs,
     acEmailFuncs,
     submissionContentFields = [],

@@ -25,30 +25,50 @@ const BasicProfileSummary = ({ profile, profileId }) => {
   )
 }
 
-const SeniorAreaChairStatusRow = ({ rowData }) => (
-  <tr>
-    <td>
-      <strong className="note-number">{rowData.number}</strong>
-    </td>
-    <td>
-      <BasicProfileSummary
-        profile={rowData.sacProfile ?? {}}
-        profileId={rowData.sacProfileId}
-      />
-    </td>
-    <td>
-      {rowData.acs.map((ac) => (
-        <BasicProfileSummary key={ac.id} profile={ac.profile ?? {}} profileId={ac.id} />
-      ))}
-    </td>
-  </tr>
-)
+const SeniorAreaChairStatusRow = ({ rowData, pcConsoleData, tabular }) => {
+  if (!tabular){
+      return <tr>
+      <td>
+        <strong className="note-number">{rowData.number}</strong>
+      </td>
+      <td>
+        <BasicProfileSummary
+          profile={rowData.sacProfile ?? {}}
+          profileId={rowData.sacProfileId}
+        />
+      </td>
+      <td>
+        {rowData.acs.map((ac) => (
+          <BasicProfileSummary key={ac.id} profile={ac.profile ?? {}} profileId={ac.id} />
+        ))}
+      </td>
+    </tr>
+  }
+
+  return <tr>
+      <td>
+        <strong className="note-number">{rowData.number}</strong>
+      </td>
+      <td>
+        <BasicProfileSummary
+          profile={rowData.sacProfile ?? {}}
+          profileId={rowData.sacProfileId}
+        />
+      </td>
+      <td>
+        {rowData.acs.map((ac) => (
+          <BasicProfileSummary key={ac.id} profile={ac.profile ?? {}} profileId={ac.id} />
+        ))}
+      </td>
+    </tr>
+}
 
 const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo }) => {
   const [seniorAreaChairStatusTabData, setSeniorAreaChairStatusTabData] = useState({})
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.areaChairs?.length ?? 0)
   const pageSize = 25
+  const { enableSacPaperTable } = useContext(WebFieldContext)
 
   const loadSacStatusTabData = async () => {
     if (!pcConsoleData.sacAcInfo) {
@@ -142,7 +162,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo }) => {
         ]}
       >
         {seniorAreaChairStatusTabData.tableRowsDisplayed?.map((row) => (
-          <SeniorAreaChairStatusRow key={row.sacProfileId} rowData={row} />
+          <SeniorAreaChairStatusRow key={row.sacProfileId} rowData={row} pcConsoleData={pcConsoleData} tabular={enableSacPaperTable}/>
         ))}
       </Table>
       <PaginationLinks
