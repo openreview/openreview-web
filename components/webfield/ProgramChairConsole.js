@@ -401,7 +401,9 @@ const ProgramChairConsole = ({ appContext }) => {
       const reviewers = committeeMemberResults[0]?.members ?? []
       const areaChairs = committeeMemberResults[1]?.members ?? []
       const seniorAreaChairs = committeeMemberResults[2]?.members ?? []
-      const allIds = reviewers.concat(areaChairs, seniorAreaChairs)
+      const allIds = [...new Set(allGroupMembers.concat(
+        Object.keys(registrationNoteMap).filter(name => name.startsWith('~'))
+      ))]
       const ids = allIds.filter((p) => p.startsWith('~'))
       const emails = allIds.filter((p) => p.match(/.+@.+/))
       const getProfilesByIdsP = ids.length
