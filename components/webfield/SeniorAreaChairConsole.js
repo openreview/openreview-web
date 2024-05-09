@@ -167,7 +167,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               anonReviewerGroups[number][member] = member
             }
           })
-        } else if (p.id.includes(anonReviewerName)) {
+        } else if (p.id.includes(`/${anonReviewerName}`)) {
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
           if (p.members.length) anonReviewerGroups[number][p.id] = p.members[0]
           allGroupMembers = allGroupMembers.concat(p.members)
@@ -669,7 +669,11 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           </TabPanel>
           {activeTabId === '#areachair-status' && (
             <TabPanel id="areachair-status">
-              <AreaChairStatus sacConsoleData={sacConsoleData} loadSacConsoleData={loadData} user={user} />
+              <AreaChairStatus
+                sacConsoleData={sacConsoleData}
+                loadSacConsoleData={loadData}
+                user={user}
+              />
             </TabPanel>
           )}
           {activeTabId === '#seniorareachair-tasks' && (
