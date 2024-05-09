@@ -71,7 +71,7 @@ const ProgramChairConsole = ({ appContext }) => {
     emailReplyTo,
     reviewerEmailFuncs,
     acEmailFuncs,
-    submissionContentFields=[],
+    submissionContentFields = [],
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -345,7 +345,7 @@ const ProgramChairConsole = ({ appContext }) => {
               anonReviewerGroups[number][member] = member
             }
           })
-        } else if (p.id.includes(anonReviewerName)) {
+        } else if (p.id.includes(`/${anonReviewerName}`)) {
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
           if (p.members.length) anonReviewerGroups[number][p.id] = p.members[0]
           allGroupMembers = allGroupMembers.concat(p.members)
@@ -856,7 +856,7 @@ const ProgramChairConsole = ({ appContext }) => {
 
         decision,
         venue: note?.content?.venue?.value,
-        messageSignature: programChairsId
+        messageSignature: programChairsId,
       })
     })
     setPcConsoleData((data) => ({ ...data, noteNumberReviewMetaReviewMap }))
@@ -1059,8 +1059,8 @@ const ProgramChairConsole = ({ appContext }) => {
               Desk Rejected/Withdrawn Papers
             </Tab>
           )}
-          {(submissionContentFields.length > 0) && (
-            submissionContentFields.map(fieldAttrs => (
+          {submissionContentFields.length > 0 &&
+            submissionContentFields.map((fieldAttrs) => (
               <Tab
                 id={fieldAttrs.field}
                 key={fieldAttrs.field}
@@ -1069,8 +1069,7 @@ const ProgramChairConsole = ({ appContext }) => {
               >
                 {prettyField(fieldAttrs.field)}
               </Tab>
-            ))
-          )}
+            ))}
         </TabList>
 
         <TabPanels>
@@ -1114,19 +1113,18 @@ const ProgramChairConsole = ({ appContext }) => {
               <RejectedWithdrawnPapers pcConsoleData={pcConsoleData} />
             )}
           </TabPanel>
-          {(submissionContentFields.length > 0) && (
-            submissionContentFields.map(fieldAttrs => (
+          {submissionContentFields.length > 0 &&
+            submissionContentFields.map((fieldAttrs) => (
               <TabPanel id={fieldAttrs.field} key={fieldAttrs.field}>
-                {activeTabId === `#${fieldAttrs.field}` &&
+                {activeTabId === `#${fieldAttrs.field}` && (
                   <PaperStatus
                     pcConsoleData={pcConsoleData}
                     loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
                     noteContentField={fieldAttrs}
                   />
-                }
+                )}
               </TabPanel>
-            ))
-          )}
+            ))}
         </TabPanels>
       </Tabs>
     </>
