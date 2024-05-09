@@ -422,7 +422,6 @@ const ReviewerConsole = ({ appContext }) => {
 
     Promise.all([getNotesP, paperRankingInvitationP, getCustomLoadP, getAreaChairGroupsP])
       .then(([notes, paperRankingInvitation, customLoad, areaChairMap]) => {
-        console.log('customLoad', customLoad)
         const noteChunks = chunk(notes, 50)
         // get offical review invitations to show submit official review link
         const officalReviewInvitationPs = noteChunks.map((noteChunk) => {
@@ -567,7 +566,6 @@ const ReviewerConsole = ({ appContext }) => {
   }
 
   if (!reviewerConsoleData.notes) return <LoadingSpinner />
-  console.log('reviewerConsoleData', reviewerConsoleData)
 
   return (
     <>
