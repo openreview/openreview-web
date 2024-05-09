@@ -193,6 +193,7 @@ const SeniorAreaChairStatusMenuBar = ({
       sortOptions={sortOptions}
       exportFileName="Senior Area Chair Status"
       basicSearchFunction={basicSearchFunction}
+      messageModal={(props) => <MessageSeniorAreaChairsModal {...props} />}
       searchPlaceHolder="Search all senior area chairs"
       extraClasses="sac-status-menu"
     />

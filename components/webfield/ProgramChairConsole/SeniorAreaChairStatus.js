@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
 import { getProfileLink } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import SeniorAreaChairStatusMenuBar from './SeniorAreaChairStatusMenuBar'
+import WebFieldContext from '../../WebFieldContext'
 
 const BasicProfileSummary = ({ profile, profileId }) => {
   const { id, preferredName, preferredEmail } = profile ?? {}
@@ -49,6 +50,11 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo }) => {
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.areaChairs?.length ?? 0)
   const pageSize = 25
+  const {
+    shortPhrase,
+    seniorAreaChairsId,
+    venueId,
+  } = useContext(WebFieldContext)
 
   const loadSacStatusTabData = async () => {
     if (!pcConsoleData.sacAcInfo) {
@@ -122,6 +128,9 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo }) => {
           tableRowsAll={seniorAreaChairStatusTabData.tableRowsAll}
           tableRows={seniorAreaChairStatusTabData.tableRows}
           setSeniorAreaChairStatusTabData={setSeniorAreaChairStatusTabData}
+          shortPhrase={shortPhrase}
+          messageParentGroup={seniorAreaChairsId}
+          messageSignature={venueId}
         />
         <p className="empty-message">No senior area chair matching search criteria.</p>
       </div>
@@ -132,6 +141,9 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo }) => {
         tableRowsAll={seniorAreaChairStatusTabData.tableRowsAll}
         tableRows={seniorAreaChairStatusTabData.tableRows}
         setSeniorAreaChairStatusTabData={setSeniorAreaChairStatusTabData}
+        shortPhrase={shortPhrase}
+        messageParentGroup={seniorAreaChairsId}
+        messageSignature={venueId}
       />
       <Table
         className="console-table table-striped pc-console-ac-status"
