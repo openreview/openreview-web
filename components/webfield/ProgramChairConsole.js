@@ -909,11 +909,21 @@ const ProgramChairConsole = ({ appContext }) => {
     }
 
     sacEdgeResult.forEach((edge) => {
-      const ac = edge.values[0].head
       const sac = edge.values[0].tail
-      sacByAcMap.set(ac, sac)
-      if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
-      acBySacMap.get(sac).push(ac)
+
+      if (enableSacPaperAssignments) {
+        const paper = edge.values[0].head
+        const acs = acsByPaperMap.get(paper) ?? []
+        acs.forEach(ac => sacByAcMap.set(ac, sac))
+        if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
+        acBySacMap.get(sac).push(...acs)
+      }
+      else {
+        const ac = edge.values[0].head
+        sacByAcMap.set(ac, sac)
+        if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
+        acBySacMap.get(sac).push(ac)
+      }
     })
     // #endregion
 
