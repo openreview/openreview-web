@@ -1,4 +1,11 @@
+/* globals $,promptMessage: false */
+import { useContext, useEffect, useState } from 'react'
+import useUser from '../../../hooks/useUser'
+import api from '../../../lib/api-client'
+import BasicModal from '../../BasicModal'
+import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
+import QuerySearchInfoModal from '../QuerySearchInfoModal'
 
 const SeniorAreaChairStatusMenuBar = ({
   tableRowsAll,
