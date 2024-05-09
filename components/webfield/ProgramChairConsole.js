@@ -69,10 +69,9 @@ const ProgramChairConsole = ({ appContext }) => {
     customStageInvitations,
     assignmentUrls,
     emailReplyTo,
-    enableSacPaperAssignments,
     reviewerEmailFuncs,
     acEmailFuncs,
-    submissionContentFields=[],
+    submissionContentFields = [],
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -346,7 +345,7 @@ const ProgramChairConsole = ({ appContext }) => {
               anonReviewerGroups[number][member] = member
             }
           })
-        } else if (p.id.includes(anonReviewerName)) {
+        } else if (p.id.includes(`/${anonReviewerName}`)) {
           if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
           if (p.members.length) anonReviewerGroups[number][p.id] = p.members[0]
           allGroupMembers = allGroupMembers.concat(p.members)
@@ -857,7 +856,7 @@ const ProgramChairConsole = ({ appContext }) => {
 
         decision,
         venue: note?.content?.venue?.value,
-        messageSignature: programChairsId
+        messageSignature: programChairsId,
       })
     })
     setPcConsoleData((data) => ({ ...data, noteNumberReviewMetaReviewMap }))
@@ -880,50 +879,14 @@ const ProgramChairConsole = ({ appContext }) => {
           .then((result) => result.groupedEdges)
       : []
 
-    const acEdgeResult = enableSacPaperAssignments
-      ? await api
-          .get(
-            '/edges',
-            {
-              invitation: `${areaChairsId}/-/Assignment`,
-              groupBy: 'head,tail',
-              select: 'head,tail',
-              domain: venueId,
-            },
-            { accessToken }
-          )
-          .then((result) => result.groupedEdges)
-      : []
-
     const sacByAcMap = new Map()
     const acBySacMap = new Map()
-    const acsByPaperMap = new Map()
-
-    if (enableSacPaperAssignments) {
-      acEdgeResult.forEach(edge => {
-        const ac = edge.values[0].tail
-        const paper = edge.values[0].head
-        if (!acsByPaperMap.get(paper)) acsByPaperMap.set(paper, [])
-        acsByPaperMap.get(paper).push(ac)
-      })
-    }
-
     sacEdgeResult.forEach((edge) => {
+      const ac = edge.values[0].head
       const sac = edge.values[0].tail
-
-      if (enableSacPaperAssignments) {
-        const paper = edge.values[0].head
-        const acs = acsByPaperMap.get(paper) ?? []
-        acs.forEach(ac => sacByAcMap.set(ac, sac))
-        if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
-        acBySacMap.get(sac).push(...acs)
-      }
-      else {
-        const ac = edge.values[0].head
-        sacByAcMap.set(ac, sac)
-        if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
-        acBySacMap.get(sac).push(ac)
-      }
+      sacByAcMap.set(ac, sac)
+      if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
+      acBySacMap.get(sac).push(ac)
     })
     // #endregion
 
@@ -1096,8 +1059,8 @@ const ProgramChairConsole = ({ appContext }) => {
               Desk Rejected/Withdrawn Papers
             </Tab>
           )}
-          {(submissionContentFields.length > 0) && (
-            submissionContentFields.map(fieldAttrs => (
+          {submissionContentFields.length > 0 &&
+            submissionContentFields.map((fieldAttrs) => (
               <Tab
                 id={fieldAttrs.field}
                 key={fieldAttrs.field}
@@ -1106,8 +1069,7 @@ const ProgramChairConsole = ({ appContext }) => {
               >
                 {prettyField(fieldAttrs.field)}
               </Tab>
-            ))
-          )}
+            ))}
         </TabList>
 
         <TabPanels>
@@ -1151,19 +1113,18 @@ const ProgramChairConsole = ({ appContext }) => {
               <RejectedWithdrawnPapers pcConsoleData={pcConsoleData} />
             )}
           </TabPanel>
-          {(submissionContentFields.length > 0) && (
-            submissionContentFields.map(fieldAttrs => (
+          {submissionContentFields.length > 0 &&
+            submissionContentFields.map((fieldAttrs) => (
               <TabPanel id={fieldAttrs.field} key={fieldAttrs.field}>
-                {activeTabId === `#${fieldAttrs.field}` &&
+                {activeTabId === `#${fieldAttrs.field}` && (
                   <PaperStatus
                     pcConsoleData={pcConsoleData}
                     loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
                     noteContentField={fieldAttrs}
                   />
-                }
+                )}
               </TabPanel>
-            ))
-          )}
+            ))}
         </TabPanels>
       </Tabs>
     </>
