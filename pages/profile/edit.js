@@ -132,7 +132,7 @@ export default function ProfileEdit({ appContext }) {
       promptMessage('Your profile information has been successfully updated')
       router.push('/profile')
     } catch (apiError) {
-      promptError(marked(apiError.message), { html: true })
+      promptError(marked(`**Error:** ${apiError.message}`), { html: true })
     }
     setLoading(false)
   }

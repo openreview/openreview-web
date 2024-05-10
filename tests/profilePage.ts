@@ -34,7 +34,7 @@ const userBAlternateId = '~Di_Xu1'
 // #region long repeated selectors
 const errorMessageSelector = Selector('#flash-message-container', {
   visibilityCheck: true,
-}).find('span.important_message')
+})
 const editFullNameInputSelector = Selector('input:not([readonly]).full-name')
 const nameSectionPlusIconSelector = Selector('section').nth(0).find('.glyphicon-plus-sign')
 const emailSectionPlusIconSelector = Selector('section').nth(3).find('.glyphicon-plus-sign')
@@ -154,7 +154,7 @@ test('user open own profile', async (t) => {
     // personal links
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
-    .typeText(dblpUrlInput, 'https://dblp.org/test', { replace: true, paste: true })
+    .typeText(dblpUrlInput, 'http://test.com', { replace: true, paste: true })
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .notOk() // button is enabled
     // save
