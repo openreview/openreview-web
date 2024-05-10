@@ -8,6 +8,7 @@ import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
 import truncate from 'lodash/truncate'
 import debounce from 'lodash/debounce'
+import groupBy from 'lodash/groupBy'
 import escapeRegExp from 'lodash/escapeRegExp'
 import List from 'rc-virtual-list'
 
@@ -28,7 +29,7 @@ import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
-import { formatNote, parseFilterQuery, replaceFilterWildcards } from '../../lib/forum-utils'
+import { formatNote, addTagToReactionsList, parseFilterQuery, replaceFilterWildcards } from '../../lib/forum-utils'
 import useLocalStorage from '../../hooks/useLocalStorage'
 
 const checkGroupMatch = (groupId, replyGroup) => {
@@ -293,19 +294,20 @@ export default function Forum({
   }, [latestMdate, id, accessToken])
 
   const loadNewTags = useCallback(async () => {
-    if (!expandedInvitations) return []
+    const invitation = parentNote.tagInvitations?.find((inv) => inv.id.endsWith('/Chat_Reaction'))
+    if (!invitation) return []
 
     try {
       const { tags } = await api.get(
         '/tags',
-        { invitation: expandedInvitations[0], mintmdate: latestMdate, trash: true },
+        { invitation: invitation.id, mintmdate: latestMdate, trash: true },
         { accessToken }
       )
-      return tags?.length > 0 ? tags : []
+      return tags?.length > 0 ? tags.sort((a, b) => a.tmdate - b.tmdate) : []
     } catch (error) {
       return []
     }
-  }, [latestMdate, expandedInvitations, accessToken])
+  }, [latestMdate, parentNote, accessToken])
 
   const loadNewSignatureGroups = async (newSigIds) => {
     if (newSigIds.size === 0) return []
@@ -449,6 +451,7 @@ export default function Forum({
     const existingNote = replyNoteMap[noteId]
     const isNewNote = isEmpty(existingNote)
     const formattedNote = formatNote(note, allInvitations)
+
     const replyToNote = replyNoteMap[parentId]
     if (replyToNote) {
       formattedNote.parentTitle =
@@ -821,6 +824,8 @@ export default function Forum({
         })
       })
       .then(([newReplies, newTags]) => {
+        const groupedTags = groupBy(newTags, 'replyto')
+
         let newMessageAuthor = ''
         let newMessage = ''
         let newMessageId = ''
@@ -828,7 +833,6 @@ export default function Forum({
         newReplies.forEach((note) => {
           const invId = note.invitations[0]
           const sigId = note.signatures[0]
-
           // eslint-disable-next-line no-param-reassign
           note.details.invitation = invitationMapRef.current[invId]?.[0]
           // eslint-disable-next-line no-param-reassign
@@ -838,9 +842,14 @@ export default function Forum({
             ? [signaturesMapRef.current[sigId]]
             : []
           // eslint-disable-next-line no-param-reassign
-          note.reactions = []
+          note.details.tags = groupedTags[note.id]
 
           const isNewNote = updateNote(note)
+
+          // Mark new tags that have already been added to notes
+          if (groupedTags[note.id]) {
+            groupedTags[note.id] = null
+          }
 
           // Track details of new notes for chat notifications
           if (isNewNote && expandedInvitations?.includes(invId) && !note.ddate) {
@@ -862,8 +871,32 @@ export default function Forum({
           }
         })
 
-        if (newReplies.length > 0) {
-          setLatestMdate(newReplies[newReplies.length - 1].tmdate)
+        // Update notes that have new reactions
+        const notesToUpdate = {}
+        Object.keys(groupedTags).forEach((noteId) => {
+          if (!groupedTags[noteId]) return
+
+          let newReactions = replyNoteMap[noteId].reactions
+          groupedTags[noteId].forEach((tag) => {
+            newReactions = addTagToReactionsList(newReactions, tag)
+          })
+          notesToUpdate[noteId] = {
+            ...replyNoteMap[noteId],
+            reactions: newReactions
+          }
+        })
+        if (!isEmpty(notesToUpdate)) {
+          setReplyNoteMap((prevNoteMap) => ({
+            ...prevNoteMap,
+            ...notesToUpdate,
+          }))
+        }
+
+        // Set latestMdate to the tmdate of the latest note or tag
+        if (newReplies.length > 0 || newTags.length > 0) {
+          const latestNote = newReplies[newReplies.length - 1]
+          const latestTag = newTags[newTags.length - 1]
+          setLatestMdate(Math.max(latestNote?.tmdate || 0, latestTag?.tmdate || 0))
         }
 
         // Show browser notification

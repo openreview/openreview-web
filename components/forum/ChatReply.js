@@ -23,6 +23,7 @@ import {
   getInvitationColors,
   getSignatureColors,
   getReplySnippet,
+  addTagToReactionsList,
 } from '../../lib/forum-utils'
 
 import styles from '../../styles/components/ChatReply.module.scss'
@@ -141,6 +142,7 @@ export default forwardRef(function ChatReply(
     if (loading || !accessToken || !reactionInvitation) return
 
     setLoading(true)
+    setShowReactionPicker(false)
 
     let signature = ''
     if (tagSignature) {
@@ -165,29 +167,7 @@ export default forwardRef(function ChatReply(
     api
       .post('/tags', tagData, { accessToken })
       .then((tagRes) => {
-        const newTagInfo = tagRes.ddate
-          ? null
-          : { id: tagRes.id, signature: tagRes.signatures[0], cdate: tagRes.cdate }
-        let reactionExists = false
-        const newTags = []
-        note.reactions.forEach((tuple) => {
-          if (tuple[0] !== tagRes.tag) {
-            newTags.push(tuple)
-          } else {
-            if (tagRes.ddate) {
-              const filteredList = tuple[1].filter((t) => t.id !== tagRes.id)
-              if (filteredList.length > 0) {
-                newTags.push([tuple[0], filteredList])
-              }
-            } else {
-              newTags.push([tuple[0], tuple[1].concat(newTagInfo)])
-            }
-            reactionExists = true
-          }
-        })
-        if (!reactionExists && !tagRes.ddate) {
-          newTags.push([tagRes.tag, [newTagInfo]])
-        }
+        const newTags = addTagToReactionsList(note.reactions ?? [], tagRes)
         updateNote({ ...note, reactions: newTags })
         setLoading(false)
       })
