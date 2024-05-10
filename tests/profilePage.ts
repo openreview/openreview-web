@@ -101,12 +101,12 @@ test('user open own profile', async (t) => {
     .typeText(editFullNameInputSelector, '111', { paste: true })
     .expect(errorMessageSelector.innerText)
     .eql(
-      'The name 111 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
+      'Error: The name 111 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
     .typeText(editFullNameInputSelector, '`', { replace: true })
     .expect(errorMessageSelector.innerText)
     .eql(
-      'The name ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
+      'Error: The name ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
     .click(Selector('button.remove_button').filterVisible())
     // add a email
@@ -130,7 +130,7 @@ test('user open own profile', async (t) => {
     .typeText(homepageUrlInput, ' ', { replace: true })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('You must enter at least one personal link')
+    .eql('Error: You must enter at least one personal link')
     // show error for all personal links
     .expect(homepageUrlInput.hasClass('invalid-value')).ok()
     .expect(Selector('#gscholar_url').hasClass('invalid-value')).ok()
@@ -162,7 +162,7 @@ test('user open own profile', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql(
-      'dblp link is invalid. A valid link should include https://dblp.org, https://dblp.uni-trier.de, https://dblp2.uni-trier.de, https://dblp.dagstuhl.de, uni-trier.de'
+      'Error: dblp link is invalid. A valid link should include https://dblp.org, https://dblp.uni-trier.de, https://dblp2.uni-trier.de, https://dblp.dagstuhl.de, uni-trier.de'
     )
     .selectText(dblpUrlInput)
     .pressKey('delete')
@@ -264,9 +264,9 @@ test('add links', async (t) => {
     .typeText(aclanthologyUrlInput, 'https://aclanthology.org/invalid_url')
     .pressKey('tab')
     .expect(aclanthologyUrlInput.hasClass('invalid-value')).ok()
-    .expect(errorMessageSelector.innerText).eql('https://aclanthology.org/invalid_url is not a valid ACL Anthology URL')
+    .expect(errorMessageSelector.innerText).eql('Error: https://aclanthology.org/invalid_url is not a valid ACL Anthology URL')
     .click(saveProfileButton)
-    .expect(errorMessageSelector.innerText).eql('One of your personal links is invalid. Please make sure all URLs start with http:// or https://')
+    .expect(errorMessageSelector.innerText).eql('Error: One of your personal links is invalid. Please make sure all URLs start with http:// or https://')
     .expect(aclanthologyUrlInput.hasClass('invalid-value')).ok()
     // add valid acl url
     .typeText(aclanthologyUrlInput, 'https://aclanthology.org/people/userB', { replace: true })
@@ -563,7 +563,7 @@ test('validate current history', async (t) => {
     })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('Your Education & Career History must include at least one current position.')
+    .eql('Error: Your Education & Career History must include at least one current position.')
     // add current end date
     .typeText(firstHistoryEndInput, (new Date().getFullYear()).toString(), {
       replace: true,
