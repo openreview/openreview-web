@@ -154,7 +154,7 @@ test('user open own profile', async (t) => {
     // personal links
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
-    .typeText(dblpUrlInput, 'http://test.com', { replace: true, paste: true })
+    .typeText(dblpUrlInput, 'https://dblp.org/test', { replace: true, paste: true })
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .notOk() // button is enabled
     // save
