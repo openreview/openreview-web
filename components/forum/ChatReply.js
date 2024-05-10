@@ -38,8 +38,8 @@ export default forwardRef(function ChatReply(
   ref
 ) {
   const [loading, setLoading] = useState(false)
-  const [useMarkdown, setUseMarkdown] = useState(true)
   const [tagSignature, setTagSignature] = useState(null)
+  const [useMarkdown, setUseMarkdown] = useState(true)
   const [needsRerender, setNeedsRerender] = useState(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
   const [showReactionPicker, setShowReactionPicker] = useState(false)
@@ -236,6 +236,9 @@ export default forwardRef(function ChatReply(
       className={`left clearfix ${styles.container} ${isSelected ? styles.active : ''}`}
       data-id={note.id}
       ref={ref}
+      onMouseLeave={() => {
+        setShowReactionPicker(false)
+      }}
     >
       <div className="chat-body" style={{ backgroundColor: `${colorHash}1E` }}>
         <ReplyInfo
@@ -337,14 +340,6 @@ export default forwardRef(function ChatReply(
             </li>
           </ul>
         )}
-
-        {showReactionPicker && (
-          <ReactionPicker
-            options={reactionInvitation.tag.tag.param.enum}
-            noteReactions={note.reactions}
-            addOrRemoveTag={addOrRemoveTag}
-          />
-        )}
       </div>
 
       <div className={styles['chat-actions']}>
@@ -393,6 +388,15 @@ export default forwardRef(function ChatReply(
           )}
         </div>
       </div>
+
+      {showReactionPicker && (
+        <ReactionPicker
+          options={reactionInvitation.tag.tag.param.enum}
+          noteReactions={note.reactions}
+          addOrRemoveTag={addOrRemoveTag}
+          toggleReactionPicker={toggleReactionPicker}
+        />
+      )}
 
       {note.details.writable && note.deleteInvitation && (
         <DeleteChatModal
@@ -481,26 +485,31 @@ function ChatSignature({ groupId, signatureGroup }) {
   )
 }
 
-function ReactionPicker({ options, noteReactions, addOrRemoveTag }) {
+function ReactionPicker({ options, noteReactions, addOrRemoveTag, toggleReactionPicker }) {
   return (
-    <ul className="chat-reactions list-inline">
-    {options.map((tag) => (
-      <li key={tag}>
-        <button
-          className="btn btn-xs btn-default"
-          data-toggle="tooltip"
-          data-placement="top"
-          title="Add reaction"
-          onClick={() => {
-            const existingTags = noteReactions.find((tuple) => tuple[0] === tag)?.[1]
-            addOrRemoveTag(tag, existingTags)
-          }}
-        >
-          {tag}
-        </button>
-      </li>
-    ))}
-    </ul>
+    <div className={styles['reaction-picker-overlay']} onClick={toggleReactionPicker}>
+      <div className={styles['reaction-picker']}>
+        {options.map((tag) => (
+          <div key={tag} className="grid-item">
+            <button
+              className="btn btn-xs btn-default"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Add reaction"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+
+                const existingTags = noteReactions.find((tuple) => tuple[0] === tag)?.[1]
+                addOrRemoveTag(tag, existingTags)
+              }}
+            >
+              {tag}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
