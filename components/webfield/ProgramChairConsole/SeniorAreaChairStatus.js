@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
 import { getProfileLink } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import SeniorAreaChairStatusMenuBar from './SeniorAreaChairStatusMenuBar'
+import WebFieldContext from '../../WebFieldContext'
 
 const BasicProfileSummary = ({ profile, profileId }) => {
   const { id, preferredName, preferredEmail } = profile ?? {}
@@ -56,9 +57,21 @@ const SeniorAreaChairStatusRow = ({ rowData, pcConsoleData, tabular }) => {
         />
       </td>
       <td>
-        {rowData.acs.map((ac) => (
-          <BasicProfileSummary key={ac.id} profile={ac.profile ?? {}} profileId={ac.id} />
-        ))}
+        <div>
+          <table className="table table-condensed">
+            <tbody>
+              <tr>
+                <th>AE Checklist Count/Paper Count</th>
+                <th>Reviewer Checklist Count/Reviewer Count</th>
+                <th>Review Count/Reviewer Count</th>
+                <th>Meta-Review Count/Paper Count</th>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        {rowData.acs.map((ac) => {
+          return <BasicProfileSummary key={ac.id} profile={ac.profile ?? {}} profileId={ac.id} />
+        })}
       </td>
     </tr>
 }
