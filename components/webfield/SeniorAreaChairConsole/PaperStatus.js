@@ -8,6 +8,7 @@ import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStat
 import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from '../ProgramChairConsole/PaperStatusMenuBar'
+import { pluralizeString, prettyField } from '../../../lib/utils'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -41,7 +42,9 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
   } = useContext(WebFieldContext)
   const { note } = rowData
   const referrerUrl = encodeURIComponent(
-    `[Senior Area Chair Console](/group?id=${venueId}/${seniorAreaChairName}#paper-status)`
+    `[${prettyField(
+      seniorAreaChairName
+    )} Console](/group?id=${venueId}/${seniorAreaChairName}#${submissionName}-status)`
   )
 
   return (
@@ -101,7 +104,7 @@ const PaperStatus = ({ sacConsoleData }) => {
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(sacConsoleData.notes?.length ?? 0)
-  const { reviewRatingName } = useContext(WebFieldContext)
+  const { reviewRatingName, submissionName, officialReviewName } = useContext(WebFieldContext)
   const pageSize = 25
 
   useEffect(() => {
@@ -137,8 +140,8 @@ const PaperStatus = ({ sacConsoleData }) => {
   if (paperStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        No papers have been submitted.Check back later or contact info@openreview.net if you
-        believe this to be an error.
+        No {submissionName.toLowerCase()} have been submitted.Check back later or contact
+        info@openreview.net if you believe this to be an error.
       </p>
     )
   if (paperStatusTabData.tableRows?.length === 0)
@@ -151,7 +154,9 @@ const PaperStatus = ({ sacConsoleData }) => {
           setPaperStatusTabData={setPaperStatusTabData}
           reviewRatingName={reviewRatingName}
         />
-        <p className="empty-message">No papers matching search criteria.</p>
+        <p className="empty-message">
+          No {pluralizeString(submissionName.toLowerCase())} matching search criteria.
+        </p>
       </div>
     )
   return (
@@ -179,8 +184,12 @@ const PaperStatus = ({ sacConsoleData }) => {
             width: '35px',
           },
           { id: 'number', content: '#', width: '55px' },
-          { id: 'summary', content: 'Paper Summary' },
-          { id: 'reviewProgress', content: 'Review Progress', width: '30%' },
+          { id: 'summary', content: `${submissionName} Summary` },
+          {
+            id: 'reviewProgress',
+            content: `${prettyField(officialReviewName)} Progress`,
+            width: '30%',
+          },
           { id: 'status', content: 'Status' },
           { id: 'decision', content: 'Decision' },
         ]}

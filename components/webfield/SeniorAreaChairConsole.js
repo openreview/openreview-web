@@ -18,6 +18,7 @@ import {
   getProfileName,
   prettyId,
   parseNumberField,
+  prettyField,
 } from '../../lib/utils'
 
 const SeniorAreaChairConsole = ({ appContext }) => {
@@ -56,7 +57,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   const [isLoadingData, setIsLoadingData] = useState(false)
   const router = useRouter()
   const query = useQuery()
-  const [activeTabId, setActiveTabId] = useState(window.location.hash || '#paper-status')
+  const [activeTabId, setActiveTabId] = useState(
+    window.location.hash || `#${submissionName}-status`
+  )
 
   const loadData = async () => {
     if (isLoadingData) return
@@ -613,7 +616,16 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   }, [user, userLoading, group])
 
   useEffect(() => {
-    if (!activeTabId) return
+    // if (!activeTabId) return
+    const validTabIds = [
+      `#${submissionName}-status`,
+      `#${areaChairName}-status`,
+      `#${seniorAreaChairName}-tasks`,
+    ]
+    if (!validTabIds.includes(activeTabId)) {
+      setActiveTabId(`#${submissionName}-status`)
+      return
+    }
     router.replace(activeTabId)
   }, [activeTabId])
 
@@ -621,13 +633,17 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     header,
     entity: group,
     venueId,
+    submissionName,
+    reviewerName,
+    anonReviewerName,
+    officialReviewName,
   })
     .filter(([key, value]) => value === undefined)
     .map((p) => p[0])
   if (missingConfig.length > 0) {
-    const errorMessage = `SAC Console is missing required properties: ${missingConfig.join(
-      ', '
-    )}`
+    const errorMessage = `${prettyField(
+      seniorAreaChairName
+    )} Console is missing required properties: ${missingConfig.join(', ')}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
 
@@ -638,37 +654,37 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       <Tabs>
         <TabList>
           <Tab
-            id="paper-status"
-            active={activeTabId === '#paper-status' ? true : undefined}
-            onClick={() => setActiveTabId('#paper-status')}
+            id={`${submissionName}-status`}
+            active={activeTabId === `#${submissionName}-status` ? true : undefined}
+            onClick={() => setActiveTabId(`#${submissionName}-status`)}
           >
-            Paper Status
+            {submissionName} Status
           </Tab>
           <Tab
-            id="areachair-status"
-            active={activeTabId === '#areachair-status' ? true : undefined}
-            onClick={() => setActiveTabId('#areachair-status')}
+            id={`${areaChairName}-status`}
+            active={activeTabId === `#${areaChairName}-status` ? true : undefined}
+            onClick={() => setActiveTabId(`#${areaChairName}-status`)}
             hidden={!assignmentInvitation}
           >
-            Area Chair Status
+            {prettyField(areaChairName)} Status
           </Tab>
           <Tab
-            id="seniorareachair-tasks"
-            active={activeTabId === '#seniorareachair-tasks' ? true : undefined}
-            onClick={() => setActiveTabId('#seniorareachair-tasks')}
+            id={`${seniorAreaChairName}-tasks`}
+            active={activeTabId === `#${seniorAreaChairName}-tasks` ? true : undefined}
+            onClick={() => setActiveTabId(`#${seniorAreaChairName}-tasks`)}
           >
-            Senior Area Chair Tasks
+            {prettyField(seniorAreaChairName)} Tasks
           </Tab>
         </TabList>
 
         <TabPanels>
-          <TabPanel id="paper-status">
-            {activeTabId === '#paper-status' && (
+          <TabPanel id={`${submissionName}-status`}>
+            {activeTabId === `#${submissionName}-status` && (
               <PaperStatus sacConsoleData={sacConsoleData} />
             )}
           </TabPanel>
-          {activeTabId === '#areachair-status' && (
-            <TabPanel id="areachair-status">
+          {activeTabId === `#${areaChairName}-status` && (
+            <TabPanel id={`${areaChairName}-status`}>
               <AreaChairStatus
                 sacConsoleData={sacConsoleData}
                 loadSacConsoleData={loadData}
@@ -676,8 +692,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               />
             </TabPanel>
           )}
-          {activeTabId === '#seniorareachair-tasks' && (
-            <TabPanel id="seniorareachair-tasks">
+          {activeTabId === `#${seniorAreaChairName}-tasks` && (
+            <TabPanel id={`${seniorAreaChairName}-tasks`}>
               <SeniorAreaChairTasks />
             </TabPanel>
           )}
