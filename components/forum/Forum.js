@@ -28,13 +28,7 @@ import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
-import {
-  formatNote,
-  getNoteInvitations,
-  parseFilterQuery,
-  replaceFilterWildcards,
-  groupTagsByValue,
-} from '../../lib/forum-utils'
+import { formatNote, parseFilterQuery, replaceFilterWildcards } from '../../lib/forum-utils'
 import useLocalStorage from '../../hooks/useLocalStorage'
 
 const checkGroupMatch = (groupId, replyGroup) => {
@@ -199,12 +193,13 @@ export default function Forum({
   }
 
   const loadNotesAndInvitations = async () => {
-    const [notes, invitations, tagInvitations] = await Promise.all([
+    const [notes, invitations, allTagInvitations] = await Promise.all([
       getNotesByForumId(id),
       getInvitationsByReplyForum(id),
       getInvitationsByReplyForum(id, true),
     ])
-    setAllInvitations(invitations)
+    const combinedInvitations = invitations.concat(allTagInvitations)
+    setAllInvitations(combinedInvitations)
 
     // Process notes
     const replyMap = {}
@@ -218,33 +213,15 @@ export default function Forum({
     invitationMapRef.current = {}
     signaturesMapRef.current = {}
     notes.forEach((note) => {
-      const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
-        invitations,
-        note
-      )
+      const formattedNote = formatNote(note, combinedInvitations)
 
       // Don't include forum note in replyMap
       if (note.id === note.forum) {
-        setParentNote(
-          formatNote(
-            note,
-            null,
-            editInvitations,
-            deleteInvitation,
-            replyInvitations,
-            tagInvitations
-          )
-        )
+        setParentNote(formattedNote)
         return
       }
 
-      replyMap[note.id] = formatNote(
-        note,
-        null,
-        editInvitations,
-        deleteInvitation,
-        replyInvitations
-      )
+      replyMap[note.id] = formattedNote
       displayOptions[note.id] = { collapsed: false, contentExpanded: true, hidden: false }
       invitationMapRef.current[note.invitations[0]] = [
         note.details.invitation,
@@ -455,12 +432,7 @@ export default function Forum({
 
   // Update forum note after new edit
   const updateParentNote = (note) => {
-    const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
-      allInvitations,
-      note
-    )
-
-    setParentNote(formatNote(note, null, editInvitations, deleteInvitation, replyInvitations))
+    setParentNote(formatNote(note, allInvitations))
 
     setTimeout(() => {
       typesetMathJax()
@@ -476,18 +448,7 @@ export default function Forum({
     const parentId = note.replyto
     const existingNote = replyNoteMap[noteId]
     const isNewNote = isEmpty(existingNote)
-    const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
-      allInvitations,
-      note
-    )
-
-    const formattedNote = formatNote(
-      note,
-      null,
-      editInvitations,
-      deleteInvitation,
-      replyInvitations
-    )
+    const formattedNote = formatNote(note, allInvitations)
     const replyToNote = replyNoteMap[parentId]
     if (replyToNote) {
       formattedNote.parentTitle =
@@ -877,7 +838,7 @@ export default function Forum({
             ? [signaturesMapRef.current[sigId]]
             : []
           // eslint-disable-next-line no-param-reassign
-          // note.details.tags = groupTagsByValue(note.details.tags)
+          note.reactions = []
 
           const isNewNote = updateNote(note)
 

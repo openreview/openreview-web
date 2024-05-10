@@ -38,9 +38,11 @@ export default forwardRef(function ChatReply(
 ) {
   const [loading, setLoading] = useState(false)
   const [useMarkdown, setUseMarkdown] = useState(true)
+  const [tagSignature, setTagSignature] = useState(null)
   const [needsRerender, setNeedsRerender] = useState(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
-  const { accessToken } = useUser()
+  const [showReactionPicker, setShowReactionPicker] = useState(false)
+  const { user, accessToken } = useUser()
 
   const isChatNote = Object.keys(note.content).length === 1 && note.content.message
   const presentation = note.details?.presentation
@@ -56,15 +58,21 @@ export default forwardRef(function ChatReply(
   } else {
     datePrefix = cdate.format('l')
   }
+  const reactionInvitation = note.tagInvitations?.find((i) => i.id.endsWith('/Chat_Reaction'))
 
   const showDeleteModal = (e) => {
     setDeleteModalVisible(true)
     $(`#delete-modal-${note.id}`).modal('show')
   }
+
   const hideDeleteModal = () => {
     setDeleteModalVisible(false)
     $('body').removeClass('modal-open')
     $('.modal-backdrop').remove()
+  }
+
+  const toggleReactionPicker = () => {
+    setShowReactionPicker((oldVal) => !oldVal)
   }
 
   const deleteNote = (deleteSignatures) => {
@@ -94,6 +102,99 @@ export default forwardRef(function ChatReply(
       })
 
     hideDeleteModal()
+  }
+
+  const loadSignatureGroup = async (invitation) => {
+    try {
+      const fieldDescription = invitation.tag.signatures
+      let options = []
+      if (fieldDescription.param.enum) {
+        options = fieldDescription.param.enum
+      } else if (fieldDescription.param.items) {
+        options = fieldDescription.param.items
+          .map((item) => item.value ?? item.prefix)
+          .filter(Boolean)
+      }
+      const optionsP = options.map((p) => {
+        const params = p.includes('.*')
+          ? { prefix: p, signatory: user?.id }
+          : { id: p, signatory: user?.id }
+        return api
+          .get('/groups', params, { accessToken })
+          .then((result) => result.groups ?? [])
+      })
+      const groupResults = (await Promise.all(optionsP)).flat()
+      if (groupResults.length > 0) {
+        setTagSignature(groupResults[0])
+        return groupResults[0].id
+      }
+      promptError(`No valid signature found for ${prettyId(invitation.id, true)}`, {
+        scrollToTop: false,
+      })
+    } catch (err) {
+      promptError(err.message, { scrollToTop: false })
+    }
+    return ''
+  }
+
+  const addOrRemoveTag = async (tagValue, existingTags) => {
+    if (loading || !accessToken || !reactionInvitation) return
+
+    setLoading(true)
+
+    let signature = ''
+    if (tagSignature) {
+      signature = tagSignature.id
+    } else {
+      signature = await loadSignatureGroup(reactionInvitation)
+    }
+    if (!signature) return
+
+    let existingTagId
+    if (existingTags?.length > 0) {
+      existingTagId = existingTags.find((t) => t.signature === signature)?.id
+    }
+    const tagData = {
+      tag: tagValue,
+      invitation: reactionInvitation.id,
+      replyto: note.id,
+      forum: note.forum,
+      signatures: [signature],
+      ...(existingTagId && { id: existingTagId, ddate: Date.now() }),
+    }
+    api
+      .post('/tags', tagData, { accessToken })
+      .then((tagRes) => {
+        const newTagInfo = tagRes.ddate
+          ? null
+          : { id: tagRes.id, signature: tagRes.signatures[0], cdate: tagRes.cdate }
+        let reactionExists = false
+        const newTags = []
+        note.reactions.forEach((tuple) => {
+          if (tuple[0] !== tagRes.tag) {
+            newTags.push(tuple)
+          } else {
+            if (tagRes.ddate) {
+              const filteredList = tuple[1].filter((t) => t.id !== tagRes.id)
+              if (filteredList.length > 0) {
+                newTags.push([tuple[0], filteredList])
+              }
+            } else {
+              newTags.push([tuple[0], tuple[1].concat(newTagInfo)])
+            }
+            reactionExists = true
+          }
+        })
+        if (!reactionExists && !tagRes.ddate) {
+          newTags.push([tagRes.tag, [newTagInfo]])
+        }
+        updateNote({ ...note, reactions: newTags })
+        setLoading(false)
+      })
+      .catch((err) => {
+        promptError(err.message, { scrollToTop: false })
+        setLoading(false)
+      })
   }
 
   const copyNoteUrl = (e) => {
@@ -215,9 +316,9 @@ export default forwardRef(function ChatReply(
           />
         )}
 
-        {note.details.tags?.length > 0 && (
+        {note.reactions.length > 0 && (
           <ul className="chat-reactions list-inline">
-            {note.details.tags.map(([reaction, tags]) => (
+            {note.reactions.map(([reaction, tags]) => (
               <li key={reaction}>
                 <button
                   className="btn btn-xs btn-default"
@@ -233,6 +334,9 @@ export default forwardRef(function ChatReply(
                     'short',
                     'conjunction'
                   )}`}
+                  onClick={() => {
+                    addOrRemoveTag(reaction, tags)
+                  }}
                 >
                   <span>{reaction}</span> {tags.length}
                 </button>
@@ -244,11 +348,22 @@ export default forwardRef(function ChatReply(
                 data-toggle="tooltip"
                 data-placement="top"
                 title="Add Reaction"
+                onClick={() => {
+                  toggleReactionPicker()
+                }}
               >
                 <Icon name="thumbs-up" /> +
               </button>
             </li>
           </ul>
+        )}
+
+        {showReactionPicker && (
+          <ReactionPicker
+            options={reactionInvitation.tag.tag.param.enum}
+            noteReactions={note.reactions}
+            addOrRemoveTag={addOrRemoveTag}
+          />
         )}
       </div>
 
@@ -264,7 +379,13 @@ export default forwardRef(function ChatReply(
             <Icon name="share-alt" /> Reply
           </button>
 
-          <button type="button" className="btn btn-default" onClick={copyNoteUrl}>
+          <button
+            type="button"
+            className="btn btn-default"
+            onClick={() => {
+              toggleReactionPicker()
+            }}
+          >
             <Icon name="thumbs-up" /> Add Reaction
           </button>
 
@@ -377,6 +498,29 @@ function ChatSignature({ groupId, signatureGroup }) {
         </span>
       )}
     </strong>
+  )
+}
+
+function ReactionPicker({ options, noteReactions, addOrRemoveTag }) {
+  return (
+    <ul className="chat-reactions list-inline">
+    {options.map((tag) => (
+      <li key={tag}>
+        <button
+          className="btn btn-xs btn-default"
+          data-toggle="tooltip"
+          data-placement="top"
+          title="Add reaction"
+          onClick={() => {
+            const existingTags = noteReactions.find((tuple) => tuple[0] === tag)?.[1]
+            addOrRemoveTag(tag, existingTags)
+          }}
+        >
+          {tag}
+        </button>
+      </li>
+    ))}
+    </ul>
   )
 }
 
