@@ -52,16 +52,16 @@ export default function ForumReply({
 
   let replyInvitations = []
   if (!note.ddate) {
+    const noteReadableByEveryone = note.readers.includes('everyone')
     replyInvitations = note.replyInvitations?.filter((inv) => {
       const invitationReaders = Array.isArray(inv.edit?.note?.readers)
         ? inv.edit?.note?.readers
         : inv.edit?.note?.readers?.param?.const
-      if (!invitationReaders) return true
 
       return (
         !excludedInvitations?.includes(inv.id) &&
-        (!invitationReaders.includes('everyone') || note.readers.includes('everyone')) &&
-        invitationReaders.every((reader) => note.readers.includes(reader))
+        invitationReaders &&
+        (noteReadableByEveryone || invitationReaders.every((reader) => note.readers.includes(reader)))
       )
     })
   }
