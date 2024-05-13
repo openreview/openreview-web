@@ -60,8 +60,8 @@ export default function ForumReply({
 
       return (
         !excludedInvitations?.includes(inv.id) &&
-        invitationReaders &&
         (noteReadableByEveryone ||
+          !invitationReaders ||
           invitationReaders.every((reader) => note.readers.includes(reader)))
       )
     })
