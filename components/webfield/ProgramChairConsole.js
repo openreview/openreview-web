@@ -897,6 +897,7 @@ const ProgramChairConsole = ({ appContext }) => {
       : []
 
     const sacByAcMap = new Map()
+    const papersBySacMap = new Map()
     const acBySacMap = new Map()
     const acsByPaperMap = new Map()
 
@@ -918,6 +919,8 @@ const ProgramChairConsole = ({ appContext }) => {
         acs.forEach(ac => sacByAcMap.set(ac, sac))
         if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
         acBySacMap.get(sac).push(...acs)
+        if (!papersBySacMap.get(sac)) papersBySacMap.set(sac, [])
+        papersBySacMap.get(sac).push(paper)
       }
       else {
         const ac = edge.values[0].head
@@ -984,6 +987,8 @@ const ProgramChairConsole = ({ appContext }) => {
         acSacProfileWithoutAssignmentMap,
         areaChairWithoutAssignmentIds,
         seniorAreaChairWithoutAssignmentIds,
+        papersBySacMap,
+        acsByPaperMap
       },
     }))
   }

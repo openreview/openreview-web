@@ -46,6 +46,99 @@ const SeniorAreaChairStatusRow = ({ rowData, pcConsoleData, tabular }) => {
     </tr>
   }
 
+  const notes = pcConsoleData.notes.filter(note =>
+    (pcConsoleData.sacAcInfo.papersBySacMap.get(rowData.sacProfileId) ?? [])
+    .includes(note.id)
+  )
+  const papersByAcMap = new Map()
+
+  notes.forEach(note => {
+    const acs = pcConsoleData.paperGroups.areaChairGroups
+    .filter(group => group.id.includes(`Submission${note.number}`))
+    .flatMap(group => group.members)
+    .map(member => member.areaChairProfileId)
+    acs.forEach(ac => {
+      if (!papersByAcMap.get(ac)) papersByAcMap.set(ac, [])
+      papersByAcMap.get(ac).push(note)
+    })
+  })
+
+  const acRows = Array.from(papersByAcMap).map(e => {
+    const rowData = {
+      ac: e[0],
+      papers: e[1],
+    }
+    rowData.officialReviews = new Map()
+    rowData.metaReviews = new Map()
+    rowData.reviewers = new Map()
+    rowData.areaChairs = new Map()
+
+    rowData.papers.forEach(note => {
+      rowData.officialReviews.set(
+        note.number,
+        pcConsoleData.officialReviewsByPaperNumberMap.get(note.number)
+      )
+      rowData.metaReviews.set(
+        note.number,
+        pcConsoleData.metaReviewsByPaperNumberMap.get(note.number)
+      )
+      rowData.reviewers.set(
+        note.number,
+        pcConsoleData.paperGroups.reviewerGroups.filter(group => group.noteNumber === note.number)
+      )
+      rowData.areaChairs.set(
+        note.number,
+        pcConsoleData.paperGroups.areaChairGroups.filter(group => group.noteNumber === note.number)
+      )
+    })
+    return rowData
+  })
+
+  const reviewCount = acRows.map(row =>
+    Array.from(row.officialReviews.values()).map(reviews => reviews.length)
+      .reduce((curr, prev) => curr + prev, 0)
+  ).reduce((curr, prev) => curr + prev, 0)
+  const reviewerCount = acRows.map(row =>
+    Array.from(row.reviewers.values()).flat().map(group => group.members.length)
+      .reduce((curr, prev) => curr + prev, 0)
+  ).reduce((curr, prev) => curr + prev, 0)
+  const metaReviewCount = acRows.map(row =>
+    Array.from(row.metaReviews.values()).map(metaReviews => metaReviews.length)
+      .reduce((curr, prev) => curr + prev, 0)
+  ).reduce((curr, prev) => curr + prev, 0)
+
+  console.log(acRows)
+
+  const PaperRow = ({ row, index, note, reviews, metaReviews }) => {
+    const profileLink = `/profile?id=${row.ac}`;
+    const noteLink = `/forum?id=${note.id}`;
+    console.log(row)
+    return (
+      <tr key={note.id}>
+        {index === 0 && (
+          <td rowSpan={row.papers.length}>
+            <a href={profileLink}>{row.ac}</a>
+          </td>
+        )}
+        <td><strong><a href={noteLink}>{note.number}</a></strong></td>
+        <td>{reviews.get(note.number).length}/{(row.reviewers.get(note.number) ?? []).length}</td>
+        <td>{metaReviews.get(note.number).length}/{(row.areaChairs.get(note.number) ?? []).length}</td>
+      </tr>
+    );
+  }
+
+  const PapersTable = ({ acRows }) => {
+    return (
+      <>
+        {acRows.map((row, index) =>
+          row.papers.map((note, noteIndex) => (
+              <PaperRow row={row} index={noteIndex} note={note} reviews={row.officialReviews} metaReviews={row.metaReviews} />
+          ))
+        )}
+      </>
+    );
+  }
+
   return <tr>
       <td>
         <strong className="note-number">{rowData.number}</strong>
@@ -61,17 +154,29 @@ const SeniorAreaChairStatusRow = ({ rowData, pcConsoleData, tabular }) => {
           <table className="table table-condensed">
             <tbody>
               <tr>
-                <th>AE Checklist Count/Paper Count</th>
-                <th>Reviewer Checklist Count/Reviewer Count</th>
                 <th>Review Count/Reviewer Count</th>
                 <th>Meta-Review Count/Paper Count</th>
+              </tr>
+              <tr>
+                <td>{reviewCount}/{reviewerCount}</td>
+                <td>{metaReviewCount}/{notes.length}</td>
               </tr>
             </tbody>
           </table>
         </div>
-        {rowData.acs.map((ac) => {
-          return <BasicProfileSummary key={ac.id} profile={ac.profile ?? {}} profileId={ac.id} />
-        })}
+        <div className="reviewer-progress">
+          <table className="table table-condensed">
+            <tbody>
+              <tr>
+                <th>Area Chair</th>
+                <th>Paper Number</th>
+                <th>Review Count</th>
+                <th>Meta-Review Count</th>
+              </tr>
+              <PapersTable acRows={acRows}/>
+            </tbody>
+          </table>
+        </div>
       </td>
     </tr>
 }
