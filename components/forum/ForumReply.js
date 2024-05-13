@@ -65,7 +65,6 @@ export default function ForumReply({
       )
     })
   }
-  console.log('replyInvitations', replyInvitations)
 
   const openNoteEditor = (invitation, type) => {
     if (type === 'reply') {
