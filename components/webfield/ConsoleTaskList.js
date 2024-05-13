@@ -68,7 +68,7 @@ const ConsoleTaskList = ({
       allInvitations = allInvitations.filter((p) =>
         filterAssignedInvitation
           ? filterAssignedInvitations(p, roleName, submissionName, submissionNumbers)
-          : p.invitees.some((q) => q.includes(roleName))
+          : p.invitees.some((q) => q.includes(`/${roleName}`))
       )
 
       setInvitations(formatTasksData([allInvitations, [], []], true))

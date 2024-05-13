@@ -1842,4 +1842,279 @@ describe('ConsoleTaskList', () => {
       )
     })
   })
+
+  test('show tasks of area chairs (in AC Console) when user is also senior area chair', async () => {
+    const now = Date.now()
+    noteInvitations = [
+      {
+        id: `${venueId}/${areaChairName}/-/Registration`,
+        duedate: now + oneDay,
+        invitees: [`${venueId}/${areaChairName}`],
+        edit: {
+          note: {
+            forum: 'registrationForumId',
+            replyto: 'registrationForumId',
+          },
+        },
+        details: {
+          replytoNote: {
+            forum: 'registrationForumId',
+            content: {
+              title: {
+                value: 'ICML 2023 Conference - Area Chair registration',
+              },
+            },
+          },
+          repliedNotes: [],
+        },
+      },
+      {
+        id: `${venueId}/${areaChairName}/-/Registration_Two`,
+        duedate: now - oneDay,
+        invitees: [`${venueId}/${areaChairName}`],
+        edit: {
+          note: {
+            forum: 'registrationForumId2',
+            replyto: 'registrationForumId2',
+          },
+        },
+        details: {
+          replytoNote: {
+            forum: 'registrationForumId2',
+            content: {
+              title: {
+                value: 'ICML 2023 Conference - Area Chair registration Two',
+              },
+            },
+          },
+          repliedNotes: [
+            {
+              id: 'registrationReplyId',
+              forum: 'registrationForumId2',
+            },
+          ],
+        },
+      },
+      {
+        id: `${venueId}/${submissionName}5/-/Meta_Review`,
+        duedate: now + fourDays,
+        invitees: [`${venueId}/${areaChairName}`],
+        edit: {
+          note: {
+            forum: 'paper5Id',
+            replyto: 'paper5Id',
+          },
+        },
+        details: {
+          replytoNote: {
+            forum: 'paper5Id',
+            content: {
+              title: {
+                value: 'Paper 5 Title',
+              },
+            },
+          },
+          repliedNotes: [],
+        },
+      },
+      {
+        id: `${venueId}/${submissionName}123/-/Meta_Review`,
+        duedate: now - fourDays,
+        invitees: [`${venueId}/${areaChairName}`],
+        edit: {
+          note: {
+            forum: 'paper123Id',
+            replyto: 'paper123Id',
+          },
+        },
+        details: {
+          replytoNote: {
+            forum: 'paper123Id',
+            content: {
+              title: {
+                value: 'Paper 123 Title',
+              },
+            },
+          },
+          repliedNotes: [
+            {
+              id: 'paper123ReplyId',
+              forum: 'paper123Id',
+              replyto: 'paper123Id',
+            },
+          ],
+        },
+      },
+      // invitations for SAC
+      {
+        id: `${venueId}/${seniorAreaChairName}/-/Registration`,
+        duedate: now + oneDay,
+        invitees: [`${venueId}/${seniorAreaChairName}`],
+        edit: {
+          note: {
+            forum: 'registrationForumId',
+            replyto: 'registrationForumId',
+          },
+        },
+        details: {
+          replytoNote: {
+            forum: 'registrationForumId',
+            content: {
+              title: {
+                value: 'ICML 2023 Conference - Senior Area Chair registration',
+              },
+            },
+          },
+          repliedNotes: [],
+        },
+      },
+      {
+        id: `${venueId}/${submissionName}5/Area_Chair_AnonId/-/Meta_Review_Agreement`,
+        duedate: now + fourDays,
+        invitees: [`${venueId}/${submissionName}5/${seniorAreaChairName}`],
+        edit: {
+          note: {
+            forum: 'paper5Id',
+            replyto: 'metaReviewId',
+          },
+          details: {
+            replytoNote: {
+              id: 'metaReviewId',
+              forum: 'paper5Id',
+              replyto: 'paper5Id',
+              content: {
+                title: undefined, // meta review may not have title
+                metareview: { value: 'meta review content' },
+                recommendation: { value: 'meta review recommendation' },
+              },
+            },
+            repliedNotes: [
+              {
+                id: 'metaReviewAgreementId',
+                forum: 'paper5Id',
+                replyto: 'metaReviewId',
+              },
+            ],
+          },
+        },
+      },
+      {
+        id: `${venueId}/${submissionName}5/-/Meta_Review_SAC_Revision`,
+        duedate: now - fourDays,
+        invitees: [`${venueId}/${submissionName}5/${seniorAreaChairName}`],
+        edit: {
+          note: {
+            id: {
+              param: {
+                withInvitation: `${venueId}/${submissionName}5/-/Meta_Review`,
+              },
+            },
+            forum: 'paper5Id',
+            replyto: 'paper5Id',
+          },
+        },
+        details: {
+          replytoNote: {
+            id: 'paper5Id',
+            forum: 'paper5Id',
+            content: {
+              title: { value: 'Paper 5 Title' },
+            },
+          },
+          repliedNotes: [], // signature is still ac so repliedNotes is empty
+          repliedEdits: [
+            {
+              id: 'metaReviewSACEditId',
+              tcdate: 122334445555,
+              note: { id: '1' },
+            },
+          ],
+        },
+      },
+      {
+        id: `${venueId}/${submissionName}6/-/Meta_Review_SAC_Revision`,
+        duedate: now - fourDays,
+        invitees: [`${venueId}/${submissionName}5/${seniorAreaChairName}`],
+        edit: {
+          note: {
+            id: {
+              param: {
+                withInvitation: `${venueId}/${submissionName}6/-/Meta_Review`,
+              },
+            },
+            forum: 'paper6Id',
+            replyto: 'paper6Id',
+          },
+        },
+        details: {
+          replytoNote: {
+            id: 'paper6Id',
+            forum: 'paper6Id',
+            content: {
+              title: { value: 'Paper 6 Title' },
+            },
+          },
+          repliedNotes: [], // signature is still ac so repliedNotes is empty
+          repliedEdits: [
+            {
+              id: 'metaReviewSACEditId',
+              tcdate: 122334445555,
+              note: {
+                id: 'revision1',
+              },
+            },
+            {
+              id: 'metaReviewSACEditId2',
+              tcdate: 122334445556,
+              note: {
+                id: 'revision1',
+                ddate: 122334445555,
+              },
+            },
+          ],
+        },
+      },
+    ]
+    edgeInvitations = []
+    tagInvitations = []
+
+    render(
+      <ConsoleTaskList
+        venueId={venueId}
+        roleName={areaChairName}
+        referrer={areaChairConsoleReferrer}
+        filterAssignedInvitation={true} // value in AC console is true
+        submissionName={undefined}
+        submissionNumbers={undefined}
+      />
+    )
+
+    await waitFor(() => {
+      const acRegistrationLink = screen.getByText('Area Chair Registration')
+      const ac2RegistrationTwoLink = screen.getByText('Area Chair Registration Two')
+      const Paper5metaReviewLink = screen.getByText('Submission5 Meta Review')
+      const Paper123metaReviewLink = screen.getByText('Submission123 Meta Review')
+
+      const sacRegistrationLink = screen.queryByText('Senior Area Chair Registration')
+      const metaReviewAgreementLink = screen.getByText('Submission5 Meta Review Agreement')
+      const metaReview5RevisionLink = screen.queryByText(
+        'Submission5 Meta Review SAC Revision'
+      )
+      const metaReview6RevisionLink = screen.queryByText(
+        'Submission6 Meta Review SAC Revision'
+      )
+
+      expect(acRegistrationLink).toBeInTheDocument()
+      expect(ac2RegistrationTwoLink).toBeInTheDocument()
+      expect(Paper5metaReviewLink).toBeInTheDocument()
+      expect(Paper123metaReviewLink).toBeInTheDocument()
+
+      // should not have sac tasks
+      expect(sacRegistrationLink).not.toBeInTheDocument()
+      // user as SAC is asked to submit meta review agreement for the meta review that the user made as AC
+      expect(metaReviewAgreementLink).toBeInTheDocument()
+      expect(metaReview5RevisionLink).not.toBeInTheDocument()
+      expect(metaReview6RevisionLink).not.toBeInTheDocument()
+    })
+  })
 })
