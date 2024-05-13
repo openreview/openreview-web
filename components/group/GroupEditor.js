@@ -6,6 +6,7 @@ import GroupRelatedInvitations from './GroupRelatedInvitations'
 import GroupUICode from './GroupUICode'
 import GroupContent from './GroupContent'
 import GroupContentScripts from './GroupContentScripts'
+import WorkFlowInvitations from './WorkflowInvitations'
 
 const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }) => {
   if (!group) return null
@@ -40,6 +41,7 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
       <GroupSignedNotes group={group} accessToken={accessToken} />
       <GroupChildGroups groupId={group.id} accessToken={accessToken} />
       <GroupRelatedInvitations group={group} accessToken={accessToken} />
+      <WorkFlowInvitations group={group} accessToken={accessToken} />
       <GroupUICode
         group={group}
         profileId={profileId}
