@@ -143,14 +143,27 @@ $gray2: #f0f0f0;
         }
         span {
           padding-right: .125rem;
+          font-size: 12px;
         }
       }
       .add-reaction {
         border-color: constants.$subtleGray;
         color: constants.$subtleGray;
         opacity: .75;
-        span {
-          font-size: 11px;
+        svg {
+          position: relative;
+          display: inline-block;
+          line-height: 1;
+          top: 2.5px;
+          width: 14px;
+          height: 14px;
+          margin-top: -2px;
+          padding: 0;
+          fill: constants.$subtleGray;
+        }
+        &:hover svg,
+        &:active svg {
+          fill: constants.$mediumBlue;
         }
       }
     }
@@ -182,6 +195,7 @@ $gray2: #f0f0f0;
       border: 1px solid constants.$borderGray;
       border-radius: 0;
       font-weight: normal;
+      line-height: 1.125rem;
       &:focus {
         border-color: constants.$borderGray;
         background-color: constants.$backgroundWhite;
@@ -195,6 +209,23 @@ $gray2: #f0f0f0;
       }
       span {
         padding-right: .125rem;
+      }
+    }
+    .btn-add-reaction {
+      svg {
+        position: relative;
+        display: inline-block;
+        line-height: 1;
+        top: 2.5px;
+        width: 1rem;
+        height: 1rem;
+        margin-top: -2px;
+        padding: 0 .125rem 0 0;
+        fill: constants.$mediumBlue;
+      }
+      &:hover svg,
+      &:active svg {
+        fill: #fff;
       }
     }
     .btn-group > .btn:first-child {
