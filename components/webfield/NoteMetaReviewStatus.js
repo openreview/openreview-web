@@ -197,14 +197,17 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
     metaReviews,
     seniorAreaChairs,
     secondaryAreaChairs,
-    secondaryAreaChairName,
-    seniorAreaChairName,
   } = metaReviewData
   const paperManualAreaChairAssignmentUrl = areaChairAssignmentUrl?.replace(
     'edges/browse?',
     `edges/browse?start=staticList,type:head,ids:${note.id}&`
   )
-  const { officialMetaReviewName, areaChairName } = useContext(WebFieldContext)
+  const {
+    officialMetaReviewName,
+    areaChairName,
+    secondaryAreaChairName,
+    seniorAreaChairName,
+  } = useContext(WebFieldContext)
 
   return (
     <div className="areachair-progress">
