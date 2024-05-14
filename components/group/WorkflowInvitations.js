@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { get } from 'lodash'
 import EditorSection from '../EditorSection'
-import PaginatedList from '../PaginatedList'
 import api from '../../lib/api-client'
 import { prettyField, prettyId } from '../../lib/utils'
 import InvitationContentEditor from './InvitationContentEditor'
@@ -61,32 +60,42 @@ const WorflowInvitationRow = ({
   )
 
   return (
-    <>
-      <div>
-        <span>{invitationName}</span>
-        <button onClick={() => setShowInvitationEditor((isOpen) => !isOpen)}>
-          {showInvitationEditor ? 'Close' : 'Edit'}
-        </button>
-        <ul>
-          {Object.keys(subInvitation.edit?.content ?? {}).map((key) => (
-            <li key={key}>
-              {prettyField(key)}:{' '}
-              <i>{getFieldDisplayValue(workflowInvitation, getPath(subInvitation, key))}</i>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div>
-        {showInvitationEditor && (
-          <InvitationContentEditor
-            invitation={subInvitation}
-            existingValue={existingValue}
-            closeInvitationEditor={() => setShowInvitationEditor(false)}
-            onInvitationEditPosted={() => loadWorkflowInvitations()}
-          />
-        )}
-      </div>
-    </>
+    <ul>
+      <li>
+        <div>
+          <span>{invitationName}</span>
+          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+          <a
+            href="#"
+            className="ml-2"
+            onClick={(e) => {
+              e.preventDefault()
+              setShowInvitationEditor((isOpen) => !isOpen)
+            }}
+          >
+            {showInvitationEditor ? 'Close' : 'Edit'}
+          </a>
+          <ul>
+            {Object.keys(subInvitation.edit?.content ?? {}).map((key) => (
+              <li key={key}>
+                {prettyField(key)}:{' '}
+                <i>{getFieldDisplayValue(workflowInvitation, getPath(subInvitation, key))}</i>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          {showInvitationEditor && (
+            <InvitationContentEditor
+              invitation={subInvitation}
+              existingValue={existingValue}
+              closeInvitationEditor={() => setShowInvitationEditor(false)}
+              onInvitationEditPosted={() => loadWorkflowInvitations()}
+            />
+          )}
+        </div>
+      </li>
+    </ul>
   )
 }
 
