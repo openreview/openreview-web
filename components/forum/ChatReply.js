@@ -134,6 +134,9 @@ export default forwardRef(function ChatReply(
     api
       .post('/tags', tagData, { accessToken })
       .then((tagRes) => {
+        const tooltipEl = document.querySelector(`#__next div.tooltip.in`)
+        if (tooltipEl) tooltipEl.remove()
+
         const newTags = addTagToReactionsList(note.reactions ?? [], tagRes)
         updateNote({ ...note, reactions: newTags })
         setLoading(false)
@@ -447,13 +450,16 @@ function ReactionButtons({
           <li key={reaction}>
             <button
               className={`btn btn-xs btn-default ${isActive ? 'selected' : ''}`}
-              data-toggle="tooltip"
               data-placement="top"
-              data-container="body"
+              data-container="#__next"
+              data-animation=""
               title={tooltipText}
               onClick={(e) => {
                 $(e.target).tooltip('destroy')
                 addOrRemoveTag(reaction, tags)
+              }}
+              onMouseEnter={(e) => {
+                $(e.target).tooltip('show')
               }}
               onMouseLeave={(e) => {
                 $(e.target).tooltip('destroy')
@@ -468,13 +474,15 @@ function ReactionButtons({
         <li key={'add-reaction'}>
           <button
             className="btn btn-xs btn-default add-reaction"
-            data-toggle="tooltip"
-            data-container="body"
             data-placement="top"
+            data-animation=""
             title="Add Reaction"
             onClick={(e) => {
               $(e.target).tooltip('hide')
               toggleReactionPicker()
+            }}
+            onMouseEnter={(e) => {
+              $(e.target).tooltip('show')
             }}
             onMouseLeave={(e) => {
               $(e.target).tooltip('hide')

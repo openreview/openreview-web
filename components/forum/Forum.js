@@ -334,7 +334,7 @@ export default function Forum({
 
   const delayedScroll = useCallback(
     debounce((layoutMode, isScrolled) => {
-      $('[data-toggle="tooltip"]').tooltip({ html: true })
+      $('#forum-replies [data-toggle="tooltip"]').tooltip({ html: true })
 
       // Scroll note and invitation specified in url
       if (selectedNoteId && !isScrolled) {
@@ -446,7 +446,7 @@ export default function Forum({
 
     setTimeout(() => {
       typesetMathJax()
-      $('[data-toggle="tooltip"]').tooltip({ html: true })
+      $('.forum-note [data-toggle="tooltip"]').tooltip({ html: true })
     }, 200)
   }
 
@@ -662,6 +662,8 @@ export default function Forum({
       setSort(tab.sort || 'date-desc')
       setEnableLiveUpdate(Boolean(tab.live))
       setExpandedInvitations(tab.expandedInvitations)
+
+      $('.forum-note [data-toggle="tooltip"]').tooltip({ html: true })
     }
 
     if (window.location.hash) {
