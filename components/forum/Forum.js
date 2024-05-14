@@ -8,6 +8,7 @@ import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
 import truncate from 'lodash/truncate'
 import debounce from 'lodash/debounce'
+import groupBy from 'lodash/groupBy'
 import escapeRegExp from 'lodash/escapeRegExp'
 import List from 'rc-virtual-list'
 
@@ -30,7 +31,7 @@ import api from '../../lib/api-client'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import {
   formatNote,
-  getNoteInvitations,
+  addTagToReactionsList,
   parseFilterQuery,
   replaceFilterWildcards,
 } from '../../lib/forum-utils'
@@ -89,6 +90,7 @@ export default function Forum({
   const [displayOptionsMap, setDisplayOptionsMap] = useState(null)
   const [orderedReplies, setOrderedReplies] = useState(null)
   const [allInvitations, setAllInvitations] = useState(null)
+  const [signature, setSignature] = useState(null)
   const [expandedInvitations, setExpandedInvitations] = useState(null)
   const [nesting, setNesting] = useState(2)
   const [layout, setLayout] = useState('default')
@@ -198,12 +200,13 @@ export default function Forum({
   }
 
   const loadNotesAndInvitations = async () => {
-    const [notes, invitations, tagInvitations] = await Promise.all([
+    const [notes, invitations, allTagInvitations] = await Promise.all([
       getNotesByForumId(id),
       getInvitationsByReplyForum(id),
       getInvitationsByReplyForum(id, true),
     ])
-    setAllInvitations(invitations)
+    const combinedInvitations = invitations.concat(allTagInvitations)
+    setAllInvitations(combinedInvitations)
 
     // Process notes
     const replyMap = {}
@@ -217,33 +220,15 @@ export default function Forum({
     invitationMapRef.current = {}
     signaturesMapRef.current = {}
     notes.forEach((note) => {
-      const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
-        invitations,
-        note
-      )
+      const formattedNote = formatNote(note, combinedInvitations)
 
       // Don't include forum note in replyMap
       if (note.id === note.forum) {
-        setParentNote(
-          formatNote(
-            note,
-            null,
-            editInvitations,
-            deleteInvitation,
-            replyInvitations,
-            tagInvitations
-          )
-        )
+        setParentNote(formattedNote)
         return
       }
 
-      replyMap[note.id] = formatNote(
-        note,
-        null,
-        editInvitations,
-        deleteInvitation,
-        replyInvitations
-      )
+      replyMap[note.id] = formattedNote
       displayOptions[note.id] = { collapsed: false, contentExpanded: true, hidden: false }
       invitationMapRef.current[note.invitations[0]] = [
         note.details.invitation,
@@ -315,19 +300,22 @@ export default function Forum({
   }, [latestMdate, id, accessToken])
 
   const loadNewTags = useCallback(async () => {
-    if (!expandedInvitations) return []
+    const invitation = parentNote.tagInvitations?.find((inv) =>
+      inv.id.endsWith('/Chat_Reaction')
+    )
+    if (!invitation) return []
 
     try {
       const { tags } = await api.get(
         '/tags',
-        { invitation: expandedInvitations[0], mintmdate: latestMdate },
+        { invitation: invitation.id, mintmdate: latestMdate, trash: true },
         { accessToken }
       )
-      return tags?.length > 0 ? tags : []
+      return tags?.length > 0 ? tags.sort((a, b) => a.tmdate - b.tmdate) : []
     } catch (error) {
       return []
     }
-  }, [latestMdate, expandedInvitations, accessToken])
+  }, [latestMdate, parentNote, accessToken])
 
   const loadNewSignatureGroups = async (newSigIds) => {
     if (newSigIds.size === 0) return []
@@ -454,12 +442,7 @@ export default function Forum({
 
   // Update forum note after new edit
   const updateParentNote = (note) => {
-    const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
-      allInvitations,
-      note
-    )
-
-    setParentNote(formatNote(note, null, editInvitations, deleteInvitation, replyInvitations))
+    setParentNote(formatNote(note, allInvitations))
 
     setTimeout(() => {
       typesetMathJax()
@@ -475,18 +458,8 @@ export default function Forum({
     const parentId = note.replyto
     const existingNote = replyNoteMap[noteId]
     const isNewNote = isEmpty(existingNote)
-    const [editInvitations, replyInvitations, deleteInvitation] = getNoteInvitations(
-      allInvitations,
-      note
-    )
+    const formattedNote = formatNote(note, allInvitations)
 
-    const formattedNote = formatNote(
-      note,
-      null,
-      editInvitations,
-      deleteInvitation,
-      replyInvitations
-    )
     const replyToNote = replyNoteMap[parentId]
     if (replyToNote) {
       formattedNote.parentTitle =
@@ -584,6 +557,66 @@ export default function Forum({
         .then((result) => result.state)
     }
     return Promise.resolve(Notification.permission)
+  }
+
+  const renderReplies = () => {
+    if (!orderedReplies) return null
+
+    const replies =
+      layout === 'chat' || cutoffIndex.current >= orderedReplies.length
+        ? orderedReplies
+        : orderedReplies.slice(0, cutoffIndex.current)
+
+    if (layout === 'chat') {
+      if (replies.length === numRepliesHidden || replies.length === 0) {
+        return (
+          <div className="empty-container">
+            <p className="empty-message">
+              No messages to display. Be the first by posting a message below.
+            </p>
+          </div>
+        )
+      }
+      return (
+        <List
+          data={replies}
+          height={625}
+          itemHeight={1}
+          itemKey="id"
+          onScroll={chatListScrollHandler}
+        >
+          {(reply) => (
+            <ChatReply
+              note={replyNoteMap[reply.id]}
+              parentNote={
+                reply.replyto === forumNote?.id
+                  ? null
+                  : replyNoteMap[replyNoteMap[reply.id].replyto]
+              }
+              signature={signature}
+              displayOptions={displayOptionsMap[reply.id]}
+              setChatReplyNote={setChatReplyNote}
+              isSelected={reply.id === chatReplyNote?.id}
+              updateNote={updateNote}
+              scrollToNote={scrollToChatNote}
+            />
+          )}
+        </List>
+      )
+    }
+
+    return replies.map((reply) => (
+      <ForumReply
+        key={reply.id}
+        note={replyNoteMap[reply.id]}
+        replies={reply.replies}
+        replyDepth={1}
+        parentNote={forumNote}
+        deleteOrRestoreNote={deleteOrRestoreNote}
+        updateNote={updateNote}
+        isDirectReplyToForum={true}
+      />
+    ))
   }
 
   // Handle url hash changes
@@ -859,6 +892,8 @@ export default function Forum({
         })
       })
       .then(([newReplies, newTags]) => {
+        const groupedTags = groupBy(newTags, 'replyto')
+
         let newMessageAuthor = ''
         let newMessage = ''
         let newMessageId = ''
@@ -866,7 +901,6 @@ export default function Forum({
         newReplies.forEach((note) => {
           const invId = note.invitations[0]
           const sigId = note.signatures[0]
-
           // eslint-disable-next-line no-param-reassign
           note.details.invitation = invitationMapRef.current[invId]?.[0]
           // eslint-disable-next-line no-param-reassign
@@ -875,7 +909,15 @@ export default function Forum({
           note.details.signatures = signaturesMapRef.current[sigId]
             ? [signaturesMapRef.current[sigId]]
             : []
+          // eslint-disable-next-line no-param-reassign
+          note.details.tags = groupedTags[note.id]
+
           const isNewNote = updateNote(note)
+
+          // Mark new tags that have already been added to notes
+          if (groupedTags[note.id]) {
+            groupedTags[note.id] = null
+          }
 
           // Track details of new notes for chat notifications
           if (isNewNote && expandedInvitations?.includes(invId) && !note.ddate) {
@@ -897,8 +939,32 @@ export default function Forum({
           }
         })
 
-        if (newReplies.length > 0) {
-          setLatestMdate(newReplies[newReplies.length - 1].tmdate)
+        // Update notes that have new reactions
+        const notesToUpdate = {}
+        Object.keys(groupedTags).forEach((noteId) => {
+          if (!groupedTags[noteId]) return
+
+          let newReactions = replyNoteMap[noteId].reactions
+          groupedTags[noteId].forEach((tag) => {
+            newReactions = addTagToReactionsList(newReactions, tag)
+          })
+          notesToUpdate[noteId] = {
+            ...replyNoteMap[noteId],
+            reactions: newReactions,
+          }
+        })
+        if (!isEmpty(notesToUpdate)) {
+          setReplyNoteMap((prevNoteMap) => ({
+            ...prevNoteMap,
+            ...notesToUpdate,
+          }))
+        }
+
+        // Set latestMdate to the tmdate of the latest note or tag
+        if (newReplies.length > 0 || newTags.length > 0) {
+          const latestNote = newReplies[newReplies.length - 1]
+          const latestTag = newTags[newTags.length - 1]
+          setLatestMdate(Math.max(latestNote?.tmdate || 0, latestTag?.tmdate || 0))
         }
 
         // Show browser notification
@@ -1041,29 +1107,7 @@ export default function Forum({
                 setHidden,
               }}
             >
-              {repliesLoaded ? (
-                <ForumReplies
-                  forumNote={forumNote}
-                  replies={
-                    layout === 'chat' || cutoffIndex.current >= orderedReplies.length
-                      ? orderedReplies
-                      : orderedReplies.slice(0, cutoffIndex.current)
-                  }
-                  replyNoteMap={replyNoteMap}
-                  displayOptionsMap={displayOptionsMap}
-                  cutoffIndex={cutoffIndex.current}
-                  layout={layout}
-                  chatReplyNote={chatReplyNote}
-                  setChatReplyNote={setChatReplyNote}
-                  chatListScrollHandler={chatListScrollHandler}
-                  scrollToNote={scrollToChatNote}
-                  updateNote={updateNote}
-                  deleteOrRestoreNote={deleteOrRestoreNote}
-                  numHidden={numRepliesHidden}
-                />
-              ) : (
-                <LoadingSpinner inline />
-              )}
+              {repliesLoaded ? renderReplies() : <LoadingSpinner inline />}
             </ForumReplyContext.Provider>
 
             {repliesLoaded &&
@@ -1114,6 +1158,8 @@ export default function Forum({
                   setReplyToNote={setChatReplyNote}
                   showNotifications={showNotifications}
                   setShowNotifications={setShowNotifications}
+                  signature={signature}
+                  setSignature={setSignature}
                   scrollToNote={scrollToChatNote}
                   onSubmit={updateNote}
                 />
@@ -1170,71 +1216,4 @@ export default function Forum({
       )}
     </div>
   )
-}
-
-function ForumReplies({
-  forumNote,
-  replies,
-  replyNoteMap,
-  displayOptionsMap,
-  chatReplyNote,
-  numHidden,
-  layout,
-  updateNote,
-  deleteOrRestoreNote,
-  setChatReplyNote,
-  scrollToNote,
-  chatListScrollHandler,
-}) {
-  if (!replies) return null
-
-  if (layout === 'chat') {
-    if (replies.length === numHidden || replies.length === 0) {
-      return (
-        <div className="empty-container">
-          <p className="empty-message">
-            No messages to display. Be the first by posting a message below.
-          </p>
-        </div>
-      )
-    }
-    return (
-      <List
-        data={replies}
-        height={625}
-        itemHeight={1}
-        itemKey="id"
-        onScroll={chatListScrollHandler}
-      >
-        {(reply) => (
-          <ChatReply
-            note={replyNoteMap[reply.id]}
-            parentNote={
-              reply.replyto === forumNote?.id
-                ? null
-                : replyNoteMap[replyNoteMap[reply.id].replyto]
-            }
-            displayOptions={displayOptionsMap[reply.id]}
-            setChatReplyNote={setChatReplyNote}
-            isSelected={reply.id === chatReplyNote?.id}
-            updateNote={updateNote}
-            scrollToNote={scrollToNote}
-          />
-        )}
-      </List>
-    )
-  }
-
-  return replies.map((reply) => (
-    <ForumReply
-      key={reply.id}
-      note={replyNoteMap[reply.id]}
-      replies={reply.replies}
-      replyDepth={1}
-      parentNote={forumNote}
-      deleteOrRestoreNote={deleteOrRestoreNote}
-      updateNote={updateNote}
-      isDirectReplyToForum={true}
-    />
-  ))
 }
