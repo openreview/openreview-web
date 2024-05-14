@@ -141,6 +141,10 @@ $gray2: #f0f0f0;
           background-color: $gray2;
           opacity: 1;
         }
+        &.selected {
+          background-color: lighten(constants.$mediumDarkBlue, 56%);
+          border-color: constants.$mediumDarkBlue;
+        }
         span {
           padding-right: .125rem;
           font-size: 12px;

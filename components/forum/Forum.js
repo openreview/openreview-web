@@ -29,7 +29,12 @@ import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
-import { formatNote, addTagToReactionsList, parseFilterQuery, replaceFilterWildcards } from '../../lib/forum-utils'
+import {
+  formatNote,
+  addTagToReactionsList,
+  parseFilterQuery,
+  replaceFilterWildcards,
+} from '../../lib/forum-utils'
 import useLocalStorage from '../../hooks/useLocalStorage'
 
 const checkGroupMatch = (groupId, replyGroup) => {
@@ -85,6 +90,7 @@ export default function Forum({
   const [displayOptionsMap, setDisplayOptionsMap] = useState(null)
   const [orderedReplies, setOrderedReplies] = useState(null)
   const [allInvitations, setAllInvitations] = useState(null)
+  const [signature, setSignature] = useState(null)
   const [expandedInvitations, setExpandedInvitations] = useState(null)
   const [nesting, setNesting] = useState(2)
   const [layout, setLayout] = useState('default')
@@ -294,7 +300,9 @@ export default function Forum({
   }, [latestMdate, id, accessToken])
 
   const loadNewTags = useCallback(async () => {
-    const invitation = parentNote.tagInvitations?.find((inv) => inv.id.endsWith('/Chat_Reaction'))
+    const invitation = parentNote.tagInvitations?.find((inv) =>
+      inv.id.endsWith('/Chat_Reaction')
+    )
     if (!invitation) return []
 
     try {
@@ -549,6 +557,66 @@ export default function Forum({
         .then((result) => result.state)
     }
     return Promise.resolve(Notification.permission)
+  }
+
+  const renderReplies = () => {
+    if (!orderedReplies) return null
+
+    const replies =
+      layout === 'chat' || cutoffIndex.current >= orderedReplies.length
+        ? orderedReplies
+        : orderedReplies.slice(0, cutoffIndex.current)
+
+    if (layout === 'chat') {
+      if (replies.length === numRepliesHidden || replies.length === 0) {
+        return (
+          <div className="empty-container">
+            <p className="empty-message">
+              No messages to display. Be the first by posting a message below.
+            </p>
+          </div>
+        )
+      }
+      return (
+        <List
+          data={replies}
+          height={625}
+          itemHeight={1}
+          itemKey="id"
+          onScroll={chatListScrollHandler}
+        >
+          {(reply) => (
+            <ChatReply
+              note={replyNoteMap[reply.id]}
+              parentNote={
+                reply.replyto === forumNote?.id
+                  ? null
+                  : replyNoteMap[replyNoteMap[reply.id].replyto]
+              }
+              signature={signature}
+              displayOptions={displayOptionsMap[reply.id]}
+              setChatReplyNote={setChatReplyNote}
+              isSelected={reply.id === chatReplyNote?.id}
+              updateNote={updateNote}
+              scrollToNote={scrollToChatNote}
+            />
+          )}
+        </List>
+      )
+    }
+
+    return replies.map((reply) => (
+      <ForumReply
+        key={reply.id}
+        note={replyNoteMap[reply.id]}
+        replies={reply.replies}
+        replyDepth={1}
+        parentNote={forumNote}
+        deleteOrRestoreNote={deleteOrRestoreNote}
+        updateNote={updateNote}
+        isDirectReplyToForum={true}
+      />
+    ))
   }
 
   // Handle url hash changes
@@ -882,7 +950,7 @@ export default function Forum({
           })
           notesToUpdate[noteId] = {
             ...replyNoteMap[noteId],
-            reactions: newReactions
+            reactions: newReactions,
           }
         })
         if (!isEmpty(notesToUpdate)) {
@@ -1039,29 +1107,7 @@ export default function Forum({
                 setHidden,
               }}
             >
-              {repliesLoaded ? (
-                <ForumReplies
-                  forumNote={forumNote}
-                  replies={
-                    layout === 'chat' || cutoffIndex.current >= orderedReplies.length
-                      ? orderedReplies
-                      : orderedReplies.slice(0, cutoffIndex.current)
-                  }
-                  replyNoteMap={replyNoteMap}
-                  displayOptionsMap={displayOptionsMap}
-                  cutoffIndex={cutoffIndex.current}
-                  layout={layout}
-                  chatReplyNote={chatReplyNote}
-                  setChatReplyNote={setChatReplyNote}
-                  chatListScrollHandler={chatListScrollHandler}
-                  scrollToNote={scrollToChatNote}
-                  updateNote={updateNote}
-                  deleteOrRestoreNote={deleteOrRestoreNote}
-                  numHidden={numRepliesHidden}
-                />
-              ) : (
-                <LoadingSpinner inline />
-              )}
+              {repliesLoaded ? renderReplies() : <LoadingSpinner inline />}
             </ForumReplyContext.Provider>
 
             {repliesLoaded &&
@@ -1112,6 +1158,8 @@ export default function Forum({
                   setReplyToNote={setChatReplyNote}
                   showNotifications={showNotifications}
                   setShowNotifications={setShowNotifications}
+                  signature={signature}
+                  setSignature={setSignature}
                   scrollToNote={scrollToChatNote}
                   onSubmit={updateNote}
                 />
@@ -1168,71 +1216,4 @@ export default function Forum({
       )}
     </div>
   )
-}
-
-function ForumReplies({
-  forumNote,
-  replies,
-  replyNoteMap,
-  displayOptionsMap,
-  chatReplyNote,
-  numHidden,
-  layout,
-  updateNote,
-  deleteOrRestoreNote,
-  setChatReplyNote,
-  scrollToNote,
-  chatListScrollHandler,
-}) {
-  if (!replies) return null
-
-  if (layout === 'chat') {
-    if (replies.length === numHidden || replies.length === 0) {
-      return (
-        <div className="empty-container">
-          <p className="empty-message">
-            No messages to display. Be the first by posting a message below.
-          </p>
-        </div>
-      )
-    }
-    return (
-      <List
-        data={replies}
-        height={625}
-        itemHeight={1}
-        itemKey="id"
-        onScroll={chatListScrollHandler}
-      >
-        {(reply) => (
-          <ChatReply
-            note={replyNoteMap[reply.id]}
-            parentNote={
-              reply.replyto === forumNote?.id
-                ? null
-                : replyNoteMap[replyNoteMap[reply.id].replyto]
-            }
-            displayOptions={displayOptionsMap[reply.id]}
-            setChatReplyNote={setChatReplyNote}
-            isSelected={reply.id === chatReplyNote?.id}
-            updateNote={updateNote}
-            scrollToNote={scrollToNote}
-          />
-        )}
-      </List>
-    )
-  }
-
-  return replies.map((reply) => (
-    <ForumReply
-      key={reply.id}
-      note={replyNoteMap[reply.id]}
-      replies={reply.replies}
-      replyDepth={1}
-      parentNote={forumNote}
-      deleteOrRestoreNote={deleteOrRestoreNote}
-      updateNote={updateNote}
-      isDirectReplyToForum={true}
-    />
-  ))
 }

@@ -19,11 +19,12 @@ export default function ChatEditorForm({
   setReplyToNote,
   showNotifications,
   setShowNotifications,
+  signature,
+  setSignature,
   scrollToNote,
   onSubmit,
 }) {
   const [message, setMessage] = useState('')
-  const [signature, setSignature] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState([])
   const [showSignatureDropdown, setShowSignatureDropdown] = useState(false)
   const [showMessagePreview, setShowMessagePreview] = useState(false)

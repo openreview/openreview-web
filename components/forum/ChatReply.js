@@ -34,16 +34,24 @@ dayjs.extend(isYesterday)
 
 // eslint-disable-next-line prefer-arrow-callback
 export default forwardRef(function ChatReply(
-  { note, parentNote, displayOptions, isSelected, setChatReplyNote, updateNote, scrollToNote },
+  {
+    note,
+    parentNote,
+    displayOptions,
+    isSelected,
+    setChatReplyNote,
+    signature,
+    updateNote,
+    scrollToNote,
+  },
   ref
 ) {
   const [loading, setLoading] = useState(false)
-  const [tagSignature, setTagSignature] = useState(null)
   const [useMarkdown, setUseMarkdown] = useState(true)
   const [needsRerender, setNeedsRerender] = useState(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
   const [showReactionPicker, setShowReactionPicker] = useState(false)
-  const { user, accessToken } = useUser()
+  const { accessToken } = useUser()
 
   const isChatNote = Object.keys(note.content).length === 1 && note.content.message
   const presentation = note.details?.presentation
@@ -105,52 +113,11 @@ export default forwardRef(function ChatReply(
     hideDeleteModal()
   }
 
-  const loadSignatureGroup = async (invitation) => {
-    try {
-      const fieldDescription = invitation.tag.signatures
-      let options = []
-      if (fieldDescription.param.enum) {
-        options = fieldDescription.param.enum
-      } else if (fieldDescription.param.items) {
-        options = fieldDescription.param.items
-          .map((item) => item.value ?? item.prefix)
-          .filter(Boolean)
-      }
-      const optionsP = options.map((p) => {
-        const params = p.includes('.*')
-          ? { prefix: p, signatory: user?.id }
-          : { id: p, signatory: user?.id }
-        return api
-          .get('/groups', params, { accessToken })
-          .then((result) => result.groups ?? [])
-      })
-      const groupResults = (await Promise.all(optionsP)).flat()
-      if (groupResults.length > 0) {
-        setTagSignature(groupResults[0])
-        return groupResults[0].id
-      }
-      promptError(`No valid signature found for ${prettyId(invitation.id, true)}`, {
-        scrollToTop: false,
-      })
-    } catch (err) {
-      promptError(err.message, { scrollToTop: false })
-    }
-    return ''
-  }
-
   const addOrRemoveTag = async (tagValue, existingTags) => {
-    if (loading || !accessToken || !reactionInvitation) return
+    if (loading || !accessToken || !reactionInvitation || !signature) return
 
     setLoading(true)
     setShowReactionPicker(false)
-
-    let signature = ''
-    if (tagSignature) {
-      signature = tagSignature.id
-    } else {
-      signature = await loadSignatureGroup(reactionInvitation)
-    }
-    if (!signature) return
 
     let existingTagId
     if (existingTags?.length > 0) {
@@ -203,7 +170,6 @@ export default forwardRef(function ChatReply(
 
   // Deleted Reply
   if (note.ddate) {
-    const signature = note.signatures[0]
     return (
       <div className={`${styles.container}`} data-id={note.id} ref={ref}>
         <div className="chat-body deleted clearfix">
@@ -251,11 +217,11 @@ export default forwardRef(function ChatReply(
           <span className="indicator" style={{ backgroundColor: colorHash }} />
 
           {note.signatures
-            .map((signature) => (
+            .map((sigId) => (
               <ChatSignature
-                key={signature}
-                groupId={signature}
-                signatureGroup={note.details.signatures?.find((p) => p.id === signature)}
+                key={sigId}
+                groupId={sigId}
+                signatureGroup={note.details.signatures?.find((p) => p.id === sigId)}
               />
             ))
             .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
@@ -301,34 +267,41 @@ export default forwardRef(function ChatReply(
 
         {note.reactions.length > 0 && (
           <ul className="chat-reactions list-inline">
-            {note.reactions.map(([reaction, tags]) => (
-              <li key={reaction}>
-                <button
-                  className="btn btn-xs btn-default"
-                  data-toggle="tooltip"
-                  data-placement="top"
-                  title={`${inflect(
-                    tags.length,
-                    'reaction',
-                    'reactions',
-                    true
-                  )} from ${prettyList(
-                    tags.map((t) => t.signature),
-                    'short',
-                    'conjunction'
-                  )}`}
-                  onClick={() => {
-                    addOrRemoveTag(reaction, tags)
-                  }}
-                >
-                  <span>{reaction}</span> {tags.length}
-                </button>
-              </li>
-            ))}
+            {note.reactions.map(([reaction, tags]) => {
+              const sigs = tags.map((t) => t.signature)
+              const isActive = sigs.includes(signature)
+              const tooltipText = `${inflect(
+                tags.length,
+                'reaction',
+                'reactions',
+                true
+              )} from ${prettyList(sigs, 'short', 'conjunction')}`
+              return (
+                <li key={reaction}>
+                  <button
+                    className={`btn btn-xs btn-default ${isActive ? 'selected' : ''}`}
+                    data-toggle="tooltip"
+                    data-placement="top"
+                    data-container="body"
+                    title={tooltipText}
+                    onClick={(e) => {
+                      addOrRemoveTag(reaction, tags)
+                      $(e.target).tooltip('hide')
+                    }}
+                    onMouseLeave={(e) => {
+                      $(e.target).tooltip('hide')
+                    }}
+                  >
+                    <span>{reaction}</span> {tags.length}
+                  </button>
+                </li>
+              )
+            })}
             <li key={'add-reaction'}>
               <button
                 className="btn btn-xs btn-default add-reaction"
                 data-toggle="tooltip"
+                data-container="body"
                 data-placement="top"
                 title="Add Reaction"
                 onClick={() => {
@@ -337,7 +310,8 @@ export default forwardRef(function ChatReply(
               >
                 <svg viewBox="0 0 16 16" version="1.1" aria-hidden="true">
                   <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm3.82 1.636a.75.75 0 0 1 1.038.175l.007.009c.103.118.22.222.35.31.264.178.683.37 1.285.37.602 0 1.02-.192 1.285-.371.13-.088.247-.192.35-.31l.007-.008a.75.75 0 0 1 1.222.87l-.022-.015c.02.013.021.015.021.015v.001l-.001.002-.002.003-.005.007-.014.019a2.066 2.066 0 0 1-.184.213c-.16.166-.338.316-.53.445-.63.418-1.37.638-2.127.629-.946 0-1.652-.308-2.126-.63a3.331 3.331 0 0 1-.715-.657l-.014-.02-.005-.006-.002-.003v-.002h-.001l.613-.432-.614.43a.75.75 0 0 1 .183-1.044ZM12 7a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM5 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5.25 2.25.592.416a97.71 97.71 0 0 0-.592-.416Z"></path>
-                </svg>{' '} +
+                </svg>{' '}
+                +
               </button>
             </li>
           </ul>
