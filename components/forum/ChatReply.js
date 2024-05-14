@@ -285,11 +285,11 @@ export default forwardRef(function ChatReply(
                     data-container="body"
                     title={tooltipText}
                     onClick={(e) => {
+                      $(e.target).tooltip('destroy')
                       addOrRemoveTag(reaction, tags)
-                      $(e.target).tooltip('hide')
                     }}
                     onMouseLeave={(e) => {
-                      $(e.target).tooltip('hide')
+                      $(e.target).tooltip('destroy')
                     }}
                   >
                     <span>{reaction}</span> {tags.length}
@@ -304,8 +304,12 @@ export default forwardRef(function ChatReply(
                 data-container="body"
                 data-placement="top"
                 title="Add Reaction"
-                onClick={() => {
+                onClick={(e) => {
+                  $(e.target).tooltip('hide')
                   toggleReactionPicker()
+                }}
+                onMouseLeave={(e) => {
+                  $(e.target).tooltip('hide')
                 }}
               >
                 <svg viewBox="0 0 16 16" version="1.1" aria-hidden="true">
