@@ -162,7 +162,7 @@ export default forwardRef(function ChatReply(
           // eslint-disable-next-line no-console
           console.warn('Could not format math notation')
         }
-      }, 100)
+      }, 0)
     }
   }, [useMarkdown, needsRerender])
 
