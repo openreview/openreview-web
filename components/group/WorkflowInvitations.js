@@ -49,9 +49,24 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
     >
       <Link href={`/invitation/edit?id=${groupId}/-/${submissionName}`}>{prettyId(`${groupId}/-/${submissionName}`)}</Link>
       <ul>
-        <li>{prettyId(`Deadlines`)} <Link href={`/invitation/edit?id=${groupId}/-/${submissionName}/Deadlines`}><u>{`Edit`}</u></Link></li>
+        <li>
+          {prettyId(`Deadlines`)} <Link href={`/invitation/edit?id=${groupId}/-/${submissionName}/Deadlines`}><u>{`Edit`}</u></Link>
+          <ul>
+            <li>Activation Date: <i>2 April 2024 at 8:00 AM EST</i></li>
+            <li>Due Date: <i>14 April 2024 at 11:59 PM EST</i></li>
+            <li>Expiration Date: <i>14 April 2024 at 11:59 PM EST</i></li>
+          </ul>
+        </li>
         <li>{prettyId(`Submission_Form`)} <Link href={`/invitation/edit?id=${groupId}/-/${submissionName}/Submission_Form`}><u>{`Edit`}</u></Link></li>
+        <ul>
+          <li>Content: <i>Title, Authors, Abstract, TL;DR, Nominate reviewer, Subject areas</i></li>
+          <li>License: <i>CC-BY 4.0</i></li>
+          </ul>
         <li>{prettyId(`Notifications`)} <Link href={`/invitation/edit?id=${groupId}/-/${submissionName}/Notifications`}><u>{`Edit`}</u></Link></li>
+        <ul>
+          <li>Email Authors: <i>True</i></li>
+          <li>Email PCs: <i>False</i></li>
+          </ul>
       </ul>
       <Link href={`/invitation/edit?id=${groupId}/-/Post_${submissionName}`}>{prettyId(`${groupId}/-/Post_${submissionName}`)}</Link>
 
