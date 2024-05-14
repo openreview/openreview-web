@@ -303,7 +303,7 @@ export default function ChatEditorForm({
                 }}
               />
               <label className="custom-control-label" htmlFor="notifications-toggle">
-                Notifications
+                Receive Notifications
               </label>
             </div>
           )}
