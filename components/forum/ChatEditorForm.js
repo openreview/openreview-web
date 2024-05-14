@@ -250,7 +250,7 @@ export default function ChatEditorForm({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && e.metaKey === true) {
+              if (e.key === 'Enter' && e.shiftKey !== true) {
                 postNoteEdit(e)
               }
             }}
