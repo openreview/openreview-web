@@ -72,20 +72,19 @@ const MessageSeniorAreaChairsModal = ({
     if (!messageOption) return
     const recipientRows = getRecipientRows()
     setRecipientsInfo(
-      recipientRows.map((row) => {
-        const sacProfile = row.sacProfile
-        return sacProfile
+      recipientRows.map((row) =>
+        row.sacProfile
           ? {
               id: row.sacProfileId,
-              preferredName: sacProfile.preferredName,
-              preferredEmail: sacProfile.preferredEmail,
+              preferredName: row.sacProfile.preferredName,
+              preferredEmail: row.sacProfile.preferredEmail,
             }
           : {
               id: row.sacProfileId,
               preferredName: row.sacProfileId,
               preferredEmail: row.sacProfileId,
             }
-      })
+      )
     )
   }, [messageOption])
 
