@@ -54,7 +54,7 @@ export default function ForumReply({
   if (!note.ddate) {
     const noteReadableByEveryone = note.readers.includes('everyone')
     replyInvitations = note.replyInvitations?.filter((inv) => {
-      if (!excludedInvitations || excludedInvitations.includes(inv.id)) return false
+      if (excludedInvitations && excludedInvitations.includes(inv.id)) return false
 
       const invitationReaders = Array.isArray(inv.edit?.note?.readers)
         ? inv.edit?.note?.readers
