@@ -13,7 +13,12 @@ const MessageSeniorAreaChairsModal = ({
   messageSignature,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, emailReplyTo, submissionVenueId, messageSeniorAreaChairsInvitationId } = useContext(WebFieldContext)
+  const {
+    shortPhrase,
+    emailReplyTo,
+    submissionVenueId,
+    messageSeniorAreaChairsInvitationId
+  } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
