@@ -382,6 +382,10 @@ describe('CheckboxWidget in context of note editor', () => {
     }
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(screen.getByText('I certify')).toBeInTheDocument()
+    expect(screen.getByText('I do not certify')).toBeInTheDocument()
+    expect(screen.getByText('I am not sure')).toBeInTheDocument()
+
     expect(screen.getByDisplayValue('1')).toHaveAttribute('checked')
     expect(screen.getByDisplayValue('2')).not.toHaveAttribute('checked')
     expect(screen.getByDisplayValue('3')).toHaveAttribute('checked')
