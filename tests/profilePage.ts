@@ -592,7 +592,6 @@ test('profile should be auto merged', async (t) => {
     .expect(Selector('a').withText('Merge Profiles').exists).notOk()
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
     .contains(`A confirmation email has been sent to ${userF.email}`)
-    .click(saveProfileButton)
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
