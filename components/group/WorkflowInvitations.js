@@ -101,6 +101,32 @@ const WorflowInvitationRow = ({
   )
 }
 
+const StageInvitationRow = ({ stageInvitation }) => {
+  const [showInvitationEditor, setShowInvitationEditor] = useState(false)
+
+  return showInvitationEditor ? (
+    <div>
+      {showInvitationEditor && (
+        <InvitationContentEditor
+          invitation={stageInvitation}
+          existingValue={{}}
+          closeInvitationEditor={() => setShowInvitationEditor(false)}
+          onInvitationEditPosted={() => {}}
+        />
+      )}
+    </div>
+  ) : (
+    <div id="invitation">
+      <div className="panel">
+        <strong className="item hint">Add:</strong>
+        <button className="btn" onClick={() => setShowInvitationEditor(true)}>
+          {prettyId(stageInvitation.id)}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 const WorkFlowInvitations = ({ group, accessToken }) => {
   const groupId = group.id
   const submissionName = group.content?.submission_name?.value
@@ -110,6 +136,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
     `${groupId}/-/Post_${submissionName}`,
     `${groupId}/-/Official_Review`,
   ]
+  const stageInvitationIds = [`${groupId}/-/Stage`]
 
   const loadWorkflowInvitations = async (limit, offset) => {
     const queryParam = {
@@ -130,7 +157,10 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   }, [groupId])
 
   return (
-    <EditorSection title={`Workflow Invitations (2)`} className="workflow">
+    <EditorSection
+      title={`Workflow Invitations (${workflowInvitationIds.length})`}
+      className="workflow"
+    >
       {/* <Link href={`/invitation/edit?id=${groupId}/-/${submissionName}`}>
         {prettyId(`${groupId}/-/${submissionName}`)}
       </Link>
@@ -190,6 +220,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         const subInvitations = allInvitations.filter(
           (i) => i.id.startsWith(invitationId) && i.id !== invitationId
         )
+        if (!workflowInvitationObj) return null
         return (
           <>
             <Link href={`/invitation/edit?id=${invitationId}`}>{prettyId(invitationId)}</Link>
@@ -204,6 +235,14 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                 />
               ))}
           </>
+        )
+      })}
+
+      {stageInvitationIds.map((stageInvitationId) => {
+        const stageInvitation = allInvitations.find((i) => i.id === stageInvitationId)
+        if (!stageInvitation) return null
+        return (
+          <StageInvitationRow key={stageInvitation.id} stageInvitation={stageInvitation} />
         )
       })}
     </EditorSection>
