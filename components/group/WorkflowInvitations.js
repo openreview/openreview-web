@@ -17,9 +17,20 @@ const WorflowInvitationRow = ({
     if (!path) return null
     const fieldValue = get(invitation, path)
     if (typeof fieldValue === 'object') {
-      return Array.isArray(fieldValue)
-        ? fieldValue.join(', ')
-        : Object.keys(fieldValue).join(', ')
+      if (Array.isArray(fieldValue)) {
+        const valueSegments = fieldValue.map((value) =>
+          prettyId(value).split(/\{(\S+\s*\S*)\}/g)
+        )
+        return valueSegments.map((segments) => (
+          <>
+            {segments.map((segment, index) =>
+              index % 2 !== 0 ? <em key={index}>{segment}</em> : segment
+            )}
+            {', '}
+          </>
+        ))
+      }
+      return Object.keys(fieldValue).join(', ')
     }
     return fieldValue?.toString()
   }
@@ -161,7 +172,8 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       title={`Workflow Invitations (${workflowInvitationIds.length})`}
       className="workflow"
     >
-      {/* <Link href={`/invitation/edit?id=${groupId}/-/${submissionName}`}>
+      <div className="container workflow-container">
+        {/* <Link href={`/invitation/edit?id=${groupId}/-/${submissionName}`}>
         {prettyId(`${groupId}/-/${submissionName}`)}
       </Link>
       <ul>
@@ -215,36 +227,39 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         {prettyId(`${groupId}/-/Post_${submissionName}`)}
       </Link> */}
 
-      {workflowInvitationIds.map((invitationId) => {
-        const workflowInvitationObj = allInvitations.find((i) => i.id === invitationId)
-        const subInvitations = allInvitations.filter(
-          (i) => i.id.startsWith(invitationId) && i.id !== invitationId
-        )
-        if (!workflowInvitationObj) return null
-        return (
-          <>
-            <Link href={`/invitation/edit?id=${invitationId}`}>{prettyId(invitationId)}</Link>
+        {workflowInvitationIds.map((invitationId) => {
+          const workflowInvitationObj = allInvitations.find((i) => i.id === invitationId)
+          const subInvitations = allInvitations.filter(
+            (i) => i.id.startsWith(invitationId) && i.id !== invitationId
+          )
+          if (!workflowInvitationObj) return null
+          return (
+            <>
+              <Link href={`/invitation/edit?id=${invitationId}`}>
+                {prettyId(invitationId)}
+              </Link>
 
-            {subInvitations.length > 0 &&
-              subInvitations.map((subInvitation) => (
-                <WorflowInvitationRow
-                  key={subInvitation.id}
-                  subInvitation={subInvitation}
-                  workflowInvitation={workflowInvitationObj}
-                  loadWorkflowInvitations={loadWorkflowInvitations}
-                />
-              ))}
-          </>
-        )
-      })}
+              {subInvitations.length > 0 &&
+                subInvitations.map((subInvitation) => (
+                  <WorflowInvitationRow
+                    key={subInvitation.id}
+                    subInvitation={subInvitation}
+                    workflowInvitation={workflowInvitationObj}
+                    loadWorkflowInvitations={loadWorkflowInvitations}
+                  />
+                ))}
+            </>
+          )
+        })}
 
-      {stageInvitationIds.map((stageInvitationId) => {
-        const stageInvitation = allInvitations.find((i) => i.id === stageInvitationId)
-        if (!stageInvitation) return null
-        return (
-          <StageInvitationRow key={stageInvitation.id} stageInvitation={stageInvitation} />
-        )
-      })}
+        {stageInvitationIds.map((stageInvitationId) => {
+          const stageInvitation = allInvitations.find((i) => i.id === stageInvitationId)
+          if (!stageInvitation) return null
+          return (
+            <StageInvitationRow key={stageInvitation.id} stageInvitation={stageInvitation} />
+          )
+        })}
+      </div>
     </EditorSection>
   )
 }

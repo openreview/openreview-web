@@ -1198,6 +1198,12 @@ main.invitation {
     }
   }
 
+  .workflow {
+    em {
+      color: constants.$orRed;
+    }
+  }
+
   .spinner-small {
     width: 40px;
   }
