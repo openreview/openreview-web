@@ -15,10 +15,7 @@ const WorflowInvitationRow = ({
   const invitationName = prettyField(subInvitation.id.split('/').pop())
   const getFieldDisplayValue = (invitation, path) => {
     if (!path) return null
-    const actualpath = path.startsWith('edit.invitation')
-      ? path.replace('edit.invitation.', '')
-      : path
-    const fieldValue = get(invitation, actualpath)
+    const fieldValue = get(invitation, path)
     if (typeof fieldValue === 'object') {
       return Array.isArray(fieldValue)
         ? fieldValue.join(', ')
@@ -35,7 +32,8 @@ const WorflowInvitationRow = ({
     for (let i = 0; i < keys.length; i += 1) {
       const key = keys[i]
       if (typeof object[key] === 'string' && object[key].includes(value)) {
-        return path ? `${path}.${key}` : key
+        if (Number.isNaN(Number(key))) return path ? `${path}.${key}` : key
+        return path
       }
       if (Array.isArray(object[key]) && object[key].includes(value)) {
         return path ? `${path}.${key}` : key
@@ -52,8 +50,7 @@ const WorflowInvitationRow = ({
 
   const existingValue = Object.fromEntries(
     Object.keys(subInvitation.edit?.content ?? {}).map((key) => {
-      let path = getPath(subInvitation, key)
-      if (path.startsWith('edit.invitation.')) path = path.replace('edit.invitation.', '')
+      const path = getPath(subInvitation.edit.invitation, key)
       const existingFieldValue = get(workflowInvitation, path)
       return [key, existingFieldValue]
     })
@@ -79,7 +76,12 @@ const WorflowInvitationRow = ({
             {Object.keys(subInvitation.edit?.content ?? {}).map((key) => (
               <li key={key}>
                 {prettyField(key)}:{' '}
-                <i>{getFieldDisplayValue(workflowInvitation, getPath(subInvitation, key))}</i>
+                <i>
+                  {getFieldDisplayValue(
+                    workflowInvitation,
+                    getPath(subInvitation.edit.invitation, key)
+                  )}
+                </i>
               </li>
             ))}
           </ul>
@@ -88,7 +90,7 @@ const WorflowInvitationRow = ({
           {showInvitationEditor && (
             <InvitationContentEditor
               invitation={subInvitation}
-              existingValue={{}}
+              existingValue={existingValue}
               closeInvitationEditor={() => setShowInvitationEditor(false)}
               onInvitationEditPosted={() => loadWorkflowInvitations()}
             />
