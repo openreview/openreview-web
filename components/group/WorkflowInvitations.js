@@ -24,7 +24,7 @@ const WorflowInvitationRow = ({
         ? fieldValue.join(', ')
         : Object.keys(fieldValue).join(', ')
     }
-    return fieldValue.toString()
+    return fieldValue?.toString()
   }
 
   const getPath = (object, value, path) => {
@@ -88,7 +88,7 @@ const WorflowInvitationRow = ({
           {showInvitationEditor && (
             <InvitationContentEditor
               invitation={subInvitation}
-              existingValue={existingValue}
+              existingValue={{}}
               closeInvitationEditor={() => setShowInvitationEditor(false)}
               onInvitationEditPosted={() => loadWorkflowInvitations()}
             />
@@ -106,6 +106,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const workflowInvitationIds = [
     `${groupId}/-/${submissionName}`,
     `${groupId}/-/Post_${submissionName}`,
+    `${groupId}/-/Official_Review`,
   ]
 
   const loadWorkflowInvitations = async (limit, offset) => {
