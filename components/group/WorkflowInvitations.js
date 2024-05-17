@@ -234,7 +234,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           )
           if (!workflowInvitationObj) return null
           return (
-            <>
+            <div key={invitationId}>
               <Link href={`/invitation/edit?id=${invitationId}`}>
                 {prettyId(invitationId)}
               </Link>
@@ -248,7 +248,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                     loadWorkflowInvitations={loadWorkflowInvitations}
                   />
                 ))}
-            </>
+            </div>
           )
         })}
 
