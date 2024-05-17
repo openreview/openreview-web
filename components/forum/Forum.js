@@ -668,7 +668,12 @@ export default function Forum({
 
     if (window.location.hash) {
       handleRouteChange(window.location.hash)
-    } else if (replyForumViews?.length > 0 && !selectedNoteId && !selectedInvitationId) {
+    } else if (
+      replyForumViews?.length > 0 &&
+      !selectedNoteId &&
+      !selectedInvitationId &&
+      !(query.filter || query.search || query.sort || query.nesting)
+    ) {
       setTimeout(() => {
         const tab = replyForumViews[0]
         const newActiveTab = document.querySelector(`.filter-tabs li[data-id="${tab.id}"] a`)
