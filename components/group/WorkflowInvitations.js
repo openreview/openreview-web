@@ -145,7 +145,16 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const workflowInvitationIds = [
     `${groupId}/-/${submissionName}`,
     `${groupId}/-/Post_${submissionName}`,
+    `${groupId}/-/Supplementary_Material_Revision`,
     `${groupId}/-/Official_Review`,
+    `${groupId}/-/Confidential_Comment`,
+    `${groupId}/-/Official_Comment`,
+    `${groupId}/-/Rebuttal`,
+    `${groupId}/-/Meta_Review`,
+    `${groupId}/-/Rating`,
+    `${groupId}/-/Meta_Review_SAC_Revision`,
+    `${groupId}/-/Decision`,
+    `${groupId}/-/Camera_Ready_Revision`,
   ]
   const stageInvitationIds = [`${groupId}/-/Stage`]
 
