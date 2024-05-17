@@ -229,8 +229,8 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
         {workflowInvitationIds.map((invitationId) => {
           const workflowInvitationObj = allInvitations.find((i) => i.id === invitationId)
-          const subInvitations = allInvitations.filter(
-            (i) => i.id.startsWith(invitationId) && i.id !== invitationId
+          const subInvitations = allInvitations.filter((i) =>
+            i.id.startsWith(`${invitationId}/`)
           )
           if (!workflowInvitationObj) return null
           return (
