@@ -83,33 +83,31 @@ const PaperStatusMenuBar = ({
       )),
   }
 
-  const functionExtraProperties =
-    typeof extraPropertiesAllowed === 'object'
-      ? Object.fromEntries(
-          Object.entries(extraPropertiesAllowed ?? {}).flatMap(([key, value]) => {
-            if (Array.isArray(value)) return []
-            try {
-              return [[key, Function('row', value)]] // eslint-disable-line no-new-func
-            } catch (error) {
-              // eslint-disable-next-line no-console
-              console.error(`Error parsing function for extra property ${key}: ${error}`)
-              return []
-            }
-          })
-        )
-      : {}
+  const functionExtraProperties = (() => {
+    if (typeof extraPropertiesAllowed !== 'object') return {}
+    const result = {}
+    Object.entries(extraPropertiesAllowed).forEach(([key, value]) => {
+      if (Array.isArray(value)) return
+      try {
+        result[key] = Function('row', value) // eslint-disable-line no-new-func
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(`Error parsing function for extra property ${key}: ${error}`)
+      }
+    })
+    return result
+  })()
 
   const tableRowsAllWithFilterProperties =
     Object.keys(functionExtraProperties).length > 0
-      ? tableRowsAll.map((row) => ({
-          ...row,
-          ...Object.fromEntries(
-            Object.entries(functionExtraProperties).map(([key, value]) => [
-              key,
-              value(row), // eslint-disable-line no-new-func
-            ])
-          ),
-        }))
+      ? tableRowsAll.map((row) => {
+          const extraProperties = {}
+          // eslint-disable-next-line no-restricted-syntax
+          for (const [key, value] of Object.entries(functionExtraProperties)) {
+            extraProperties[key] = value(row)
+          }
+          return { ...row, ...extraProperties }
+        })
       : tableRowsAll
 
   Object.keys(propertiesAllowed).forEach((key) => {
