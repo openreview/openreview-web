@@ -5,13 +5,10 @@ import { prettyId, prettyInvitationId } from '../../lib/utils'
 import styles from '../../styles/components/ChatFilterForm.module.scss'
 
 export default function ChatFilterForm({
-  forumId,
   defaultFilters,
   selectedFilters,
   setSelectedFilters,
   filterOptions,
-  numReplies,
-  numRepliesHidden,
 }) {
   // Options for dropdowns
   const invDropdownFilterOptions = [
