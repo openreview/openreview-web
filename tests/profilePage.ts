@@ -37,10 +37,10 @@ const errorMessageSelector = Selector('#flash-message-container', {
 })
 const editFullNameInputSelector = Selector('input:not([readonly]).full-name')
 const nameSectionPlusIconSelector = Selector('section').nth(0).find('.glyphicon-plus-sign')
-const emailSectionPlusIconSelector = Selector('section').nth(3).find('.glyphicon-plus-sign')
+const emailSectionPlusIconSelector = Selector('section').nth(4).find('.glyphicon-plus-sign')
 const editEmailInputSelector = Selector('input:not([readonly]).email')
-const emailConfirmButtons = Selector('section').nth(3).find('button').withText('Confirm')
-const emailRemoveButtons = Selector('section').nth(3).find('button').withText('Remove')
+const emailConfirmButtons = Selector('section').nth(4).find('button').withText('Confirm')
+const emailRemoveButtons = Selector('section').nth(4).find('button').withText('Remove')
 const pageHeader = Selector('div.title-container').find('h1')
 const profileViewEmail = Selector('section.emails').find('span')
 const addDBLPPaperToProfileButton = Selector('button.personal-links__adddblpbtn')
@@ -63,7 +63,7 @@ const nameMakePreferredButton = Selector('div.container.names')
 const dblpUrlInput = Selector('#dblp_url')
 const aclanthologyUrlInput = Selector('#aclanthology_url')
 const homepageUrlInput = Selector('#homepage_url')
-const yearOfBirthInput = Selector('section').nth(2).find('input')
+const yearOfBirthInput = Selector('section').nth(3).find('input')
 const firstHistoryEndInput = Selector('div.history').find('input').withAttribute('placeholder', 'end year').nth(0)
 // #endregion
 
@@ -206,6 +206,53 @@ test('add and delete year of birth', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .expect(yearOfBirthInput.value)
     .eql('')
+})
+
+test('add and delete pronouns', async (t) => {
+
+  const customPronouns = 'Ze/Zir/Hir'
+
+  // use he/him pronouns & check if pronouns updated on profile
+  await t
+  .useRole(userBRole)
+  .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+  .click(Selector('div.pronouns-dropdown__control'))
+  .wait(500)
+  .click(Selector('div.pronouns-dropdown__option').nth(3))
+  .click(saveProfileButton)
+  .expect(
+    Selector('h3').nth(0)
+      .withText('he/him').exists
+  ).ok()
+
+  // Type custom pronouns & check if pronouns updated on profile
+
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .typeText(Selector('div.pronouns'), customPronouns)
+    .wait(500)
+    .click(Selector('div.pronouns-dropdown__option').nth(0))
+    .click(saveProfileButton)
+    .expect(
+      Selector('h3').nth(0)
+        .withText(customPronouns).exists
+    ).ok()
+
+    // Don't Specify pronouns & check if pronouns not shown on profile
+
+    await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(Selector('div.pronouns-dropdown__control'))
+    .wait(500)
+    .click(Selector('div.pronouns-dropdown__option').nth(0))
+    .click(saveProfileButton)
+    .expect(
+      Selector('h3').nth(0)
+        .withText('he/him').exists
+    ).notOk()
+
 })
 
 test('add and delete geolocation of history', async (t) => {
