@@ -376,15 +376,12 @@ const ReviewerConsole = ({ appContext }) => {
           )
           .then((noteResult) => {
             if (!noteResult.notes?.length) return reviewLoad
-            return noteResult.notes[0].content?.reduced_load?.value
+            return parseInt(noteResult.notes[0].content?.reduced_load?.value, 10)
           })
       })
     // #endregion
 
     // #region get area chair groups
-    const singularAreaChairName = areaChairName.endsWith('s')
-      ? areaChairName.slice(0, -1)
-      : areaChairName
     const getAreaChairGroupsP = areaChairName
       ? api
           .get(
@@ -398,6 +395,9 @@ const ReviewerConsole = ({ appContext }) => {
             { accessToken }
           )
           .then((result) => {
+            const singularAreaChairName = areaChairName.endsWith('s')
+              ? areaChairName.slice(0, -1)
+              : areaChairName
             const areaChairMap = {}
             result.groups.forEach((areaChairgroup) => {
               if (areaChairgroup.id.endsWith(`/${areaChairName}`)) {
@@ -573,6 +573,7 @@ const ReviewerConsole = ({ appContext }) => {
         title={header?.title}
         instructions={header.instructions}
         customLoad={reviewerConsoleData.customLoad}
+        submissionName={submissionName}
       />
       <Tabs>
         <TabList>

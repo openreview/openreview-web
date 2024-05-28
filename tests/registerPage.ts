@@ -310,7 +310,7 @@ test('reset password of active profile', async (t) => {
     .ok()
 
   const messages = await getMessages(
-    { to: 'melisa@test.com', subject: 'OpenReview password reset' },
+    { to: 'melisa@test.com', subject: 'OpenReview Password Reset' },
     t.fixtureCtx.superUserToken
   )
   await t
