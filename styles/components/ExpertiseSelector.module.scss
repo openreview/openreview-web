@@ -1,72 +1,8 @@
 .container {
-  :global {
-    .expertise-selector {
-      border: 1px solid black;
-    }
-    .column-header {
-      display: flex;
-      margin: 20px !important;
-      text-align: center;
-      align-items: center;
-      justify-content: center;
-
-      h4 {
-        margin: 0;
+    :global {
+      .submissions-list .note {
+        padding-bottom: 0.125rem;
       }
-    }
-    ol {
-      padding: 10px;
-    }
-    li {
-      margin-bottom: 10px;
-    }
-    .keyphrase-container {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px;
-
-      .active-keyphrase {
-        margin: 4px 0px 0px 7px;
-        cursor: pointer;
-      }
-
-      .inactive-keyphrase {
-        margin: 4px 0px 0px 7px;
-        cursor: pointer;
-        color: grey;
-      }
-
-      #addkeyphrase {
-        width: 60%;
-        margin: 0 5px;
-      }
-    }
-
-    .paper-container {
-      border-left: 1px solid black;
-
-      .authored-papers-container {
-        position: absolute;
-        z-index: 999;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        padding: 0px 15px;
-      }
-
-      .heatmap-bar {
-        height: 5px;
-      }
-
-      h6 {
-        color: #777777;
-        margin: 0px 0px 0px 1.5rem;
-      }
-    }
-    a {
-      font-size: 1.2em;
     }
   }
-}
+  
