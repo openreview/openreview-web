@@ -1,6 +1,7 @@
 /* globals promptError,DOMPurify,marked,MathJax: false */
 
 import { useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import uniqBy from 'lodash/uniqBy'
 import flatten from 'lodash/flatten'
 import Dropdown from '../Dropdown'
@@ -19,11 +20,12 @@ export default function ChatEditorForm({
   setReplyToNote,
   showNotifications,
   setShowNotifications,
+  signature,
+  setSignature,
   scrollToNote,
   onSubmit,
 }) {
   const [message, setMessage] = useState('')
-  const [signature, setSignature] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState([])
   const [showSignatureDropdown, setShowSignatureDropdown] = useState(false)
   const [showMessagePreview, setShowMessagePreview] = useState(false)
@@ -160,18 +162,6 @@ export default function ChatEditorForm({
   }, [invitation])
 
   useEffect(() => {
-    if (!showMessagePreview) return
-
-    setSanitizedHtml(DOMPurify.sanitize(marked(message)))
-    try {
-      MathJax.typesetPromise()
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn('Could not format math notation')
-    }
-  }, [showMessagePreview, message])
-
-  useEffect(() => {
     if (replyToNote && inputRef.current) {
       inputRef.current.focus()
     }
@@ -260,7 +250,7 @@ export default function ChatEditorForm({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && e.metaKey === true) {
+              if (e.key === 'Enter' && e.shiftKey !== true) {
                 postNoteEdit(e)
               }
             }}
@@ -313,7 +303,7 @@ export default function ChatEditorForm({
                 }}
               />
               <label className="custom-control-label" htmlFor="notifications-toggle">
-                Notifications
+                Receive Notifications
               </label>
             </div>
           )}
@@ -323,8 +313,22 @@ export default function ChatEditorForm({
             className="btn btn-sm btn-default mr-2"
             onClick={(e) => {
               e.preventDefault()
-              setShowMessagePreview((prev) => !prev)
-              setShowSignatureDropdown(false)
+              const shouldShowPreview = !showMessagePreview
+              flushSync(() => {
+                setShowMessagePreview((prev) => !prev)
+                setShowSignatureDropdown(false)
+                if (shouldShowPreview) {
+                  setSanitizedHtml(DOMPurify.sanitize(marked(message)))
+                }
+              })
+              if (shouldShowPreview) {
+                try {
+                  MathJax.typesetPromise()
+                } catch (error) {
+                  // eslint-disable-next-line no-console
+                  console.warn('Could not format math notation')
+                }
+              }
             }}
             disabled={!message || !message.trim()}
           >

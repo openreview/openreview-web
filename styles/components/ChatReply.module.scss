@@ -1,6 +1,9 @@
 @use '../utils/constants';
 @use '../utils/mixins';
 
+$gray1: #f7f6f4;
+$gray2: #f0f0f0;
+
 .container {
   margin-bottom: 0.5rem;
   border-radius: 2px;
@@ -118,6 +121,56 @@
         margin-bottom: 0;
       }
     }
+
+    .chat-reactions {
+      margin-top: .5rem;
+      margin-left: 0;
+      margin-bottom: 0;
+
+      li {
+        padding-left: 0;
+      }
+      button {
+        border-width: 1px;
+        padding: 1px .5rem;
+        border-color: constants.$mediumBlue;
+        background-color: $gray1;
+        &:hover {
+          color: constants.$mediumDarkBlue;
+          border-color: constants.$mediumDarkBlue;
+          background-color: $gray2;
+          opacity: 1;
+        }
+        &.selected {
+          background-color: lighten(constants.$mediumDarkBlue, 56%);
+          border-color: constants.$mediumDarkBlue;
+        }
+        span {
+          padding-right: .125rem;
+          font-size: 12px;
+        }
+      }
+      .add-reaction {
+        border-color: constants.$subtleGray;
+        color: constants.$subtleGray;
+        opacity: .75;
+        svg {
+          position: relative;
+          display: inline-block;
+          line-height: 1;
+          top: 2.5px;
+          width: 14px;
+          height: 14px;
+          margin-top: -2px;
+          padding: 0;
+          fill: constants.$subtleGray;
+        }
+        &:hover svg,
+        &:active svg {
+          fill: constants.$mediumBlue;
+        }
+      }
+    }
   }
 }
 .container:hover > .chat-actions {
@@ -137,7 +190,7 @@
   position: absolute;
   right: 0px;
   top: 0px;
-  z-index: 100;
+  z-index: 90;
   display: none;
 
   :global {
@@ -146,6 +199,7 @@
       border: 1px solid constants.$borderGray;
       border-radius: 0;
       font-weight: normal;
+      line-height: 1.125rem;
       &:focus {
         border-color: constants.$borderGray;
         background-color: constants.$backgroundWhite;
@@ -161,11 +215,94 @@
         padding-right: .125rem;
       }
     }
+    .btn-add-reaction {
+      svg {
+        position: relative;
+        display: inline-block;
+        line-height: 1;
+        top: 2.5px;
+        width: 1rem;
+        height: 1rem;
+        margin-top: -2px;
+        padding: 0 .125rem 0 0;
+        fill: constants.$mediumBlue;
+      }
+      &:hover svg,
+      &:active svg {
+        fill: #fff;
+      }
+    }
     .btn-group > .btn:first-child {
       border-bottom-left-radius: 2px;
     }
     .btn-group > .btn:last-child {
       border-top-right-radius: 2px;
+    }
+  }
+}
+
+.reaction-picker-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(225, 225, 225, 0.6);
+  z-index: 100;
+}
+.reaction-picker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center the grid container */
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 371px;
+  margin: 0 auto; /* Center the grid horizontally */
+  z-index: 101;
+
+  :global {
+    .grid-item {
+      border: 1px solid constants.$lightGray;
+    }
+    .grid-item + .grid-item {
+      border-left: 0;
+    }
+    .grid-item:first-child {
+      border-top-left-radius: 3px;
+      border-bottom-left-radius: 3px;
+      button {
+        border-top-left-radius: 3px;
+        border-bottom-left-radius: 3px;
+      }
+    }
+    .grid-item:last-child {
+      border-top-right-radius: 3px;
+      border-bottom-right-radius: 3px;
+      button {
+        border-top-right-radius: 3px;
+        border-bottom-right-radius: 3px;
+      }
+    }
+    button {
+      padding: 8px 10px;
+      // border-width: 1px;
+      // border-color: constants.$mediumBlue;
+      border-radius: 0;
+      border: 0;
+      background-color: $gray1;
+      font-size: 1rem;
+      width: 36px;
+      line-height: 20px;
+      &:hover {
+        color: constants.$mediumDarkBlue;
+        border-color: constants.$mediumDarkBlue;
+        background-color: $gray2;
+        opacity: 1;
+      }
+      span {
+        padding-right: .125rem;
+      }
     }
   }
 }

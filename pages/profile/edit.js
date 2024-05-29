@@ -1,5 +1,4 @@
-/* globals promptMessage: false */
-/* globals promptError: false */
+/* globals promptMessage,promptError,marked: false */
 
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
@@ -133,7 +132,7 @@ export default function ProfileEdit({ appContext }) {
       promptMessage('Your profile information has been successfully updated')
       router.push('/profile')
     } catch (apiError) {
-      promptError(apiError.message)
+      promptError(marked(`**Error:** ${apiError.message}`), { html: true })
     }
     setLoading(false)
   }

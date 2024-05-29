@@ -13,6 +13,17 @@ import Icon from '../Icon'
 import { getInvitationColors } from '../../lib/forum-utils'
 import { prettyId, prettyInvitationId, forumDate, buildNoteTitle } from '../../lib/utils'
 
+function scrollToNote(noteId, showEditor) {
+  const el = document.querySelector(
+    `.note[data-id="${noteId}"]${showEditor ? ' .invitation-buttons' : ''}`
+  )
+  if (!el) return
+
+  const navBarHeight = 63
+  const y = el.getBoundingClientRect().top + window.scrollY - navBarHeight
+  window.scrollTo({ top: y, behavior: 'smooth' })
+}
+
 export default function ForumReply({
   note,
   replies,
@@ -39,20 +50,21 @@ export default function ForumReply({
   )
   const allRepliesHidden = allChildIds.every((childId) => displayOptionsMap[childId].hidden)
 
-  const showReplyInvitations =
-    note.replyInvitations?.filter((i) => !excludedInvitations?.includes(i.id)).length > 0 &&
-    !note.ddate
+  let replyInvitations = []
+  if (!note.ddate) {
+    const noteReadableByEveryone = note.readers.includes('everyone')
+    replyInvitations = note.replyInvitations?.filter((inv) => {
+      if (excludedInvitations && excludedInvitations.includes(inv.id)) return false
 
-  const scrollToNote = (noteId, showEditor) => {
-    const el = document.querySelector(
-      `.note[data-id="${noteId}"]${showEditor ? ' .invitation-buttons' : ''}`
-    )
-    if (!el) return
-
-    const navBarHeight = 63
-    const y = el.getBoundingClientRect().top + window.pageYOffset - navBarHeight
-
-    window.scrollTo({ top: y, behavior: 'smooth' })
+      const invitationReaders = Array.isArray(inv.edit?.note?.readers)
+        ? inv.edit?.note?.readers
+        : inv.edit?.note?.readers?.param?.const
+      return (
+        noteReadableByEveryone ||
+        !invitationReaders ||
+        invitationReaders.every((reader) => note.readers.includes(reader))
+      )
+    })
   }
 
   const openNoteEditor = (invitation, type) => {
@@ -63,13 +75,6 @@ export default function ForumReply({
       setActiveInvitation(null)
       setActiveEditInvitation(activeInvitation ? null : invitation)
     }
-  }
-
-  const isInvitationVisibleToEveryone = (invitation) => {
-    const invitationReaders = Array.isArray(invitation.edit?.note?.readers)
-      ? invitation.edit?.note?.readers
-      : invitation.edit?.note?.readers?.param?.const
-    return invitationReaders?.includes('everyone')
   }
 
   if (collapsed) {
@@ -337,29 +342,21 @@ export default function ForumReply({
         deleted={!!ddate}
       />
 
-      {showReplyInvitations && (
+      {replyInvitations.length > 0 && (
         <div className="invitations-container mt-2">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
-            {note.replyInvitations.map((inv) => {
-              if (
-                excludedInvitations?.includes(inv.id) ||
-                (isInvitationVisibleToEveryone(inv) && !note.readers.includes('everyone'))
-              )
-                return null
-
-              return (
-                <button
-                  key={inv.id}
-                  type="button"
-                  className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''}`}
-                  data-id={inv.id}
-                  onClick={() => openNoteEditor(inv, 'reply')}
-                >
-                  {prettyInvitationId(inv.id)}
-                </button>
-              )
-            })}
+            {replyInvitations.map((inv) => (
+              <button
+                key={inv.id}
+                type="button"
+                className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''}`}
+                data-id={inv.id}
+                onClick={() => openNoteEditor(inv, 'reply')}
+              >
+                {prettyInvitationId(inv.id)}
+              </button>
+            ))}
           </div>
 
           <NoteEditor

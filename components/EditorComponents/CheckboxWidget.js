@@ -98,7 +98,13 @@ const CheckboxWidget = ({
       const defaultValues = field[fieldName].value?.param?.default ?? [] // array value
       const mandatoryValues =
         itemsValues.flatMap((p) => (p.optional === false ? p.value : [])) ?? []
-      setCheckboxOptions(itemsValues)
+      setCheckboxOptions(
+        itemsValues.map((p) => ({
+          value: p.value,
+          label: p.description,
+          optional: p.optional,
+        }))
+      )
       if (!note && (defaultValues?.length || mandatoryValues?.length)) {
         onChange({ fieldName, value: [...new Set([...defaultValues, ...mandatoryValues])] })
       }
