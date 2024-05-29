@@ -9,6 +9,7 @@ import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
 import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
+import JsonEditorWidget from '../EditorComponents/JsonEditorWidget'
 
 const InvitationContentEditor = ({
   invitation,
@@ -40,7 +41,7 @@ const InvitationContentEditor = ({
 
   const renderField = (fieldName, fieldDescription) => {
     const isHiddenField = fieldDescription?.value?.param?.hidden
-
+    const isContentField = fieldDescription?.value?.param?.type === 'content'
     const error = errors.find((e) => e.fieldName === fieldName)
 
     const fieldValue = invitationEditorData[fieldName]
@@ -64,7 +65,7 @@ const InvitationContentEditor = ({
           }}
         >
           <EditorComponentHeader>
-            <EditorWidget />
+            {isContentField ? <JsonEditorWidget /> : <EditorWidget />}
           </EditorComponentHeader>
         </EditorComponentContext.Provider>
 

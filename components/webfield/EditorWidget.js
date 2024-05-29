@@ -51,7 +51,6 @@ const EditorWidget = () => {
     switch (type) {
       case 'json':
       case 'script':
-      case 'content':
         return <CodeEditorWidget />
       case 'json[]':
       case 'script[]':
