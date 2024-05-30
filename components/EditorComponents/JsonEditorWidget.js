@@ -13,21 +13,28 @@ import NoteEditor from '../NoteEditor'
 
 const JsonConstructor = ({ existingFields, onFieldChange }) => {
   const [nameOfFieldToEdit, setNameOfFieldToEdit] = useState(null)
+  const [nameOfNewField, setNameOfNewField] = useState(null)
   const widgetOptions = [
     { value: 'addANewField', label: 'Add a new field' },
     ...Object.keys(existingFields ?? {}).map((p) => ({ value: p, label: p })),
   ]
+  const isExistingField = nameOfFieldToEdit !== 'addANewField'
   const fieldSpecificationsOfJsonField = {
     name: {
       order: 1,
       description: 'Name of the field',
       value: {
         param: {
-          const: nameOfFieldToEdit,
+          ...(isExistingField
+            ? { const: nameOfFieldToEdit }
+            : {
+                input: 'text',
+                type: 'string',
+              }),
         },
       },
       shouldBeShown: (formData) => true,
-      getValue: (existingValue) => nameOfFieldToEdit,
+      getValue: (existingValue) => (isExistingField ? nameOfFieldToEdit : ''),
       valuePath: 'name',
     },
     order: {
@@ -36,11 +43,11 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
       value: {
         param: {
           input: 'text',
-          type: 'number',
+          type: 'integer',
           optional: true,
         },
       },
-      shouldBeShown: (formData) => true,
+      shouldBeShown: (formData) => isExistingField && true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -56,7 +63,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => true,
+      shouldBeShown: (formData) => isExistingField && true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -73,7 +80,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => true,
+      shouldBeShown: (formData) => isExistingField && true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -90,7 +97,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => true,
+      shouldBeShown: (formData) => isExistingField && true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -107,7 +114,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => true,
+      shouldBeShown: (formData) => isExistingField && true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -157,7 +164,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => true,
+      shouldBeShown: (formData) => isExistingField && true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -180,7 +187,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => true,
+      shouldBeShown: (formData) => isExistingField && true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -197,7 +204,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
           optional: false,
         },
       },
-      shouldBeShown: (formData) => formData.dataType === 'const',
+      shouldBeShown: (formData) => isExistingField && formData.dataType === 'const',
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -213,7 +220,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => formData.dataType === 'string',
+      shouldBeShown: (formData) => isExistingField && formData.dataType === 'string',
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -230,7 +237,9 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
         },
       },
       shouldBeShown: (formData) =>
-        ['integer', 'float'].includes(formData.dataType) && formData.inputType === 'text',
+        isExistingField &&
+        ['integer', 'float'].includes(formData.dataType) &&
+        formData.inputType === 'text',
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -246,7 +255,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => false,
+      shouldBeShown: (formData) => isExistingField && false,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -326,6 +335,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
         },
       },
       shouldBeShown: (formData) =>
+        isExistingField &&
         ['select', 'radio', 'checkbox'].includes(formData.input) &&
         !formData.dataType?.endsWith('[]'),
       getValue: function (existingValue) {
@@ -343,6 +353,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
         },
       },
       shouldBeShown: (formData) =>
+        isExistingField &&
         ['select', 'radio', 'checkbox'].includes(formData.input) &&
         formData.dataType?.endsWith('[]'),
       getValue: function (existingValue) {
@@ -359,7 +370,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => formData.dataType === 'file',
+      shouldBeShown: (formData) => isExistingField && formData.dataType === 'file',
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -375,7 +386,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => formData.dataType === 'file',
+      shouldBeShown: (formData) => isExistingField && formData.dataType === 'file',
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -408,7 +419,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => formData.dataType === 'string',
+      shouldBeShown: (formData) => isExistingField && formData.dataType === 'string',
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -417,6 +428,10 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
   }
 
   const onFormChange = (updatedForm) => {
+    if (!isExistingField) {
+      setNameOfNewField(updatedForm.name)
+      return
+    }
     const updatedField = Object.entries(fieldSpecificationsOfJsonField).reduce(
       (prev, [key, config]) => {
         if (config.valuePath) {
@@ -441,11 +456,21 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
         }}
       />
       {nameOfFieldToEdit && (
-        <Form
-          fields={fieldSpecificationsOfJsonField}
-          existingFieldsValue={existingFields[nameOfFieldToEdit]}
-          onFormChange={onFormChange}
-        />
+        <>
+          <Form
+            fields={fieldSpecificationsOfJsonField}
+            existingFieldsValue={isExistingField ? existingFields[nameOfFieldToEdit] : {}}
+            onFormChange={onFormChange}
+          />
+          {!isExistingField && (
+            <button
+              className="btn btn-sm"
+              onClick={() => setNameOfFieldToEdit(nameOfNewField)}
+            >
+              Add Field
+            </button>
+          )}
+        </>
       )}
     </div>
   )
