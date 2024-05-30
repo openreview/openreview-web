@@ -3,7 +3,6 @@
 import { useContext, useState } from 'react'
 import { get, set } from 'lodash'
 import EditorComponentContext from '../EditorComponentContext'
-
 import styles from '../../styles/components/TextareaWidget.module.scss'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import CodeEditorWidget from './CodeEditorWidget'
@@ -479,7 +478,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
 const JsonEditorWidget = () => {
   const { field, onChange, value, error } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
-  const [activeTabId, setActiveTabId] = useState('widgets')
+  const [activeTabId, setActiveTabId] = useState(`widgets${fieldName}`)
 
   const onFieldChange = (updatedField) => {
     const updatedJson = { ...value, [updatedField.name]: { ...updatedField, name: undefined } }
@@ -492,28 +491,28 @@ const JsonEditorWidget = () => {
         <Tabs className="markdown-preview">
           <TabList>
             <Tab
-              id="widgets"
-              active={activeTabId === 'widgets' ? true : undefined}
+              id={`widgets${fieldName}`}
+              active={activeTabId === `widgets${fieldName}` ? true : undefined}
               onClick={() => {
-                setActiveTabId('widgets')
+                setActiveTabId(`widgets${fieldName}`)
               }}
             >
               Widgets
             </Tab>
             <Tab
-              id="result"
-              active={activeTabId === 'result' ? true : undefined}
+              id={`result${fieldName}`}
+              active={activeTabId === `result${fieldName}` ? true : undefined}
               onClick={() => {
-                setActiveTabId('result')
+                setActiveTabId(`result${fieldName}`)
               }}
             >
               Content JSON
             </Tab>
             <Tab
-              id="preview"
-              active={activeTabId === 'preview' ? true : undefined}
+              id={`preview${fieldName}`}
+              active={activeTabId === `preview${fieldName}` ? true : undefined}
               onClick={() => {
-                setActiveTabId('preview')
+                setActiveTabId(`preview${fieldName}`)
               }}
             >
               Preview
@@ -521,12 +520,14 @@ const JsonEditorWidget = () => {
           </TabList>
 
           <TabPanels>
-            <TabPanel id="widgets">
+            <TabPanel id={`widgets${fieldName}`}>
               <JsonConstructor existingFields={value} onFieldChange={onFieldChange} />
             </TabPanel>
-            <TabPanel id="result">{activeTabId === 'result' && <CodeEditorWidget />}</TabPanel>
-            <TabPanel id="preview">
-              {activeTabId === 'preview' && (
+            <TabPanel id={`result${fieldName}`}>
+              {activeTabId === `result${fieldName}` && <CodeEditorWidget />}
+            </TabPanel>
+            <TabPanel id={`preview${fieldName}`}>
+              {activeTabId === `preview${fieldName}` && (
                 <NoteEditor
                   invitation={{ edit: { note: { content: value } } }}
                   closeNoteEditor={() => {}}
