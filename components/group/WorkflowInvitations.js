@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { get } from 'lodash'
+import { get, sortBy } from 'lodash'
 import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
 import { prettyField, prettyId } from '../../lib/utils'
@@ -142,23 +142,15 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const groupId = group.id
   const submissionName = group.content?.submission_name?.value
   const [allInvitations, setAllInvitations] = useState([])
-  const workflowInvitationIds = [
-    `${groupId}/-/${submissionName}`,
-    `${groupId}/-/Post_${submissionName}`,
-    `${groupId}/-/Supplementary_Material_Revision`,
-    `${groupId}/-/Official_Review`,
-    `${groupId}/-/Confidential_Comment`,
-    `${groupId}/-/Official_Comment`,
-    `${groupId}/-/Rebuttal`,
-    `${groupId}/-/Meta_Review`,
-    `${groupId}/-/Rating`,
-    `${groupId}/-/Meta_Review_SAC_Revision`,
-    `${groupId}/-/Decision`,
-    `${groupId}/-/Camera_Ready_Revision`,
-  ]
+  const workflowInvitationRegex = RegExp(`^${groupId}/-/[^/]+$`)
+  const workflowInvitations = sortBy(
+    allInvitations.filter((p) => workflowInvitationRegex.test(p.id)),
+    'cdate'
+  )
+
   const stageInvitationIds = [`${groupId}/-/Stage`]
 
-  const loadWorkflowInvitations = async (limit, offset) => {
+  const loadAllInvitations = async (limit, offset) => {
     const queryParam = {
       prefix: `${groupId}/-/.*`,
       expired: true,
@@ -173,70 +165,17 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
   useEffect(() => {
     if (!groupId) return
-    loadWorkflowInvitations()
+    loadAllInvitations()
   }, [groupId])
 
   return (
     <EditorSection
-      title={`Workflow Invitations (${workflowInvitationIds.length})`}
+      title={`Workflow Invitations (${workflowInvitations.length})`}
       className="workflow"
     >
       <div className="container workflow-container">
-        {/* <Link href={`/invitation/edit?id=${groupId}/-/${submissionName}`}>
-        {prettyId(`${groupId}/-/${submissionName}`)}
-      </Link>
-      <ul>
-        <li>
-          {prettyId(`Deadlines`)}{' '}
-          <Link href={`/invitation/edit?id=${groupId}/-/${submissionName}/Deadlines`}>
-            <u>{`Edit`}</u>
-          </Link>
-          <ul>
-            <li>
-              Activation Date: <i>2 April 2024 at 8:00 AM EST</i>
-            </li>
-            <li>
-              Due Date: <i>14 April 2024 at 11:59 PM EST</i>
-            </li>
-            <li>
-              Expiration Date: <i>14 April 2024 at 11:59 PM EST</i>
-            </li>
-          </ul>
-        </li>
-        <li>
-          {prettyId(`Submission_Form`)}{' '}
-          <Link href={`/invitation/edit?id=${groupId}/-/${submissionName}/Submission_Form`}>
-            <u>{`Edit`}</u>
-          </Link>
-        </li>
-        <ul>
-          <li>
-            Content: <i>Title, Authors, Abstract, TL;DR, Nominate reviewer, Subject areas</i>
-          </li>
-          <li>
-            License: <i>CC-BY 4.0</i>
-          </li>
-        </ul>
-        <li>
-          {prettyId(`Notifications`)}{' '}
-          <Link href={`/invitation/edit?id=${groupId}/-/${submissionName}/Notifications`}>
-            <u>{`Edit`}</u>
-          </Link>
-        </li>
-        <ul>
-          <li>
-            Email Authors: <i>True</i>
-          </li>
-          <li>
-            Email PCs: <i>False</i>
-          </li>
-        </ul>
-      </ul>
-      <Link href={`/invitation/edit?id=${groupId}/-/Post_${submissionName}`}>
-        {prettyId(`${groupId}/-/Post_${submissionName}`)}
-      </Link> */}
-
-        {workflowInvitationIds.map((invitationId) => {
+        {workflowInvitations.map((invitation) => {
+          const invitationId = invitation.id
           const workflowInvitationObj = allInvitations.find((i) => i.id === invitationId)
           const subInvitations = allInvitations.filter((i) =>
             i.id.startsWith(`${invitationId}/`)
@@ -254,7 +193,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                     key={subInvitation.id}
                     subInvitation={subInvitation}
                     workflowInvitation={workflowInvitationObj}
-                    loadWorkflowInvitations={loadWorkflowInvitations}
+                    loadWorkflowInvitations={loadAllInvitations}
                   />
                 ))}
             </div>
