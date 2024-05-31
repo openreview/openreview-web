@@ -1,3 +1,4 @@
+/* globals promptError: false */
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { get, sortBy } from 'lodash'
@@ -142,25 +143,39 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const groupId = group.id
   const submissionName = group.content?.submission_name?.value
   const [allInvitations, setAllInvitations] = useState([])
+  const [groupsAndInvitations, setGroupsAndInvitations] = useState([])
   const workflowInvitationRegex = RegExp(`^${groupId}/-/[^/]+$`)
-  const workflowInvitations = sortBy(
-    allInvitations.filter((p) => workflowInvitationRegex.test(p.id)),
-    'cdate'
-  )
 
   const stageInvitationIds = [`${groupId}/-/Stage`]
 
-  const loadAllInvitations = async (limit, offset) => {
-    const queryParam = {
-      prefix: `${groupId}/-/.*`,
-      expired: true,
-      type: 'all',
-      limit,
-      offset,
-    }
+  const loadAllInvitations = async () => {
+    const getAllGroupsP = api
+      .getAll(
+        '/groups',
+        {
+          parent: groupId,
+        },
+        { accessToken }
+      )
+      .then((groups) => groups.filter((p) => !p.id.includes(submissionName)))
 
-    const result = await api.getAll('/invitations', queryParam, { accessToken })
-    setAllInvitations(result)
+    const getAllInvitationsP = await api.getAll(
+      '/invitations',
+      { prefix: `${groupId}/-/.*`, expired: true, type: 'all' },
+      { accessToken }
+    )
+    try {
+      const [groups, invitations] = await Promise.all([getAllGroupsP, getAllInvitationsP])
+      const workFlowInvitations = invitations.filter((p) => workflowInvitationRegex.test(p.id))
+      const groupAndWorkflowInvitations = [
+        ...groups.map((p) => ({ ...p, type: 'group' })),
+        ...workFlowInvitations.map((p) => ({ ...p, type: 'invitation' })),
+      ]
+      setGroupsAndInvitations(sortBy(groupAndWorkflowInvitations, 'cdate'))
+      setAllInvitations(invitations)
+    } catch (error) {
+      promptError(error.message)
+    }
   }
 
   useEffect(() => {
@@ -170,17 +185,24 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
   return (
     <EditorSection
-      title={`Workflow Invitations (${workflowInvitations.length})`}
+      title={`Workflow Invitations (${groupsAndInvitations.length})`}
       className="workflow"
     >
       <div className="container workflow-container">
-        {workflowInvitations.map((invitation) => {
-          const invitationId = invitation.id
-          const workflowInvitationObj = allInvitations.find((i) => i.id === invitationId)
+        {groupsAndInvitations.map((stepObj) => {
+          if (stepObj.type === 'group') {
+            return (
+              <div key={stepObj.id}>
+                <Link href={`/group/edit?id=${stepObj.id}`}>
+                  {prettyId(stepObj.id)}({stepObj.members?.length || 0})
+                </Link>
+              </div>
+            )
+          }
+          const invitationId = stepObj.id
           const subInvitations = allInvitations.filter((i) =>
             i.id.startsWith(`${invitationId}/`)
           )
-          if (!workflowInvitationObj) return null
           return (
             <div key={invitationId}>
               <Link href={`/invitation/edit?id=${invitationId}`}>
@@ -192,7 +214,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                   <WorflowInvitationRow
                     key={subInvitation.id}
                     subInvitation={subInvitation}
-                    workflowInvitation={workflowInvitationObj}
+                    workflowInvitation={stepObj}
                     loadWorkflowInvitations={loadAllInvitations}
                   />
                 ))}
