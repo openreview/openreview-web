@@ -1,10 +1,47 @@
 import { useEffect, useReducer, useState } from 'react'
-import { classNames } from '../lib/utils'
+import { classNames, prettyField } from '../lib/utils'
 import styles from '../styles/components/NoteEditor.module.scss'
 import EditorComponentContext from './EditorComponentContext'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import EditorWidget from './webfield/EditorWidget'
 import Icon from './Icon'
+import IconButton, { TrashButton } from './IconButton'
+
+const EnumItemsEditor = ({ options, setOptions, fieldName }) => {
+  const renderOption = (option, index) => {
+    if (typeof option === 'string') {
+      return <input className="form-control" type="text" value={option} />
+    }
+    return (
+      <>
+        <input className="form-control" type="text" value={option.value} />
+        <input className="form-control" type="text" value={option.description} />
+        <input className="form-control" type="checkbox" value={option.optional} />
+      </>
+    )
+  }
+  return (
+    <div>
+      <thead>
+        <th>Value</th>
+        {fieldName === 'items' && (
+          <>
+            <th>Description</th>
+            <th>Optional</th>
+          </>
+        )}
+      </thead>
+
+      {options?.map((option, index) => (
+        <div key={index} style={{ display: 'flex' }}>
+          {renderOption(option)}
+          <TrashButton />
+        </div>
+      ))}
+      <IconButton name="plus" onClick={() => {}} text="Add Option" />
+    </div>
+  )
+}
 
 const Form = ({ fields, existingFieldsValue, onFormChange }) => {
   const [errors, setErrors] = useState([])
@@ -37,6 +74,27 @@ const Form = ({ fields, existingFieldsValue, onFormChange }) => {
     const error = errors.find((e) => e.fieldName === fieldName)
 
     const fieldValue = formData[fieldName]
+    if (fieldName === 'enum' || fieldName === 'items')
+      return (
+        <div key={fieldName} className={styles.fieldContainer}>
+          <EditorComponentHeader fieldNameOverwrite={prettyField(fieldName)}>
+            <EnumItemsEditor options={fieldValue} fieldName />
+          </EditorComponentHeader>
+
+          {fieldDescription.readers && (
+            <EditorComponentContext.Provider
+              value={{
+                field: { [fieldName]: fieldDescription.readers },
+              }}
+            >
+              <div className={styles.fieldReaders}>
+                <Icon name="eye-open" />
+                <span>Visible only to:</span> <EditorWidget />
+              </div>
+            </EditorComponentContext.Provider>
+          )}
+        </div>
+      )
 
     return (
       <div key={fieldName} className={styles.fieldContainer}>
