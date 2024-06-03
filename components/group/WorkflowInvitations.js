@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { get, sortBy } from 'lodash'
 import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
-import { prettyField, prettyId } from '../../lib/utils'
+import { formatDateTime, prettyField, prettyId } from '../../lib/utils'
 import InvitationContentEditor from './InvitationContentEditor'
 
 const WorflowInvitationRow = ({
@@ -14,7 +14,7 @@ const WorflowInvitationRow = ({
 }) => {
   const [showInvitationEditor, setShowInvitationEditor] = useState(false)
   const invitationName = prettyField(subInvitation.id.split('/').pop())
-  const getFieldDisplayValue = (invitation, path) => {
+  const getFieldDisplayValue = (invitation, path, type) => {
     if (!path) return null
     const fieldValue = get(invitation, path)
     if (typeof fieldValue === 'object') {
@@ -32,6 +32,9 @@ const WorflowInvitationRow = ({
         ))
       }
       return Object.keys(fieldValue).join(', ')
+    }
+    if (type === 'date') {
+      return formatDateTime(new Date(fieldValue), { second: undefined })
     }
     return fieldValue?.toString()
   }
@@ -91,7 +94,8 @@ const WorflowInvitationRow = ({
                 <i>
                   {getFieldDisplayValue(
                     workflowInvitation,
-                    getPath(subInvitation.edit.invitation, key)
+                    getPath(subInvitation.edit.invitation, key),
+                    subInvitation.edit.content?.[key]?.value?.param?.type
                   )}
                 </i>
               </li>
@@ -168,8 +172,18 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       const [groups, invitations] = await Promise.all([getAllGroupsP, getAllInvitationsP])
       const workFlowInvitations = invitations.filter((p) => workflowInvitationRegex.test(p.id))
       const groupAndWorkflowInvitations = [
-        ...groups.map((p) => ({ ...p, type: 'group' })),
-        ...workFlowInvitations.map((p) => ({ ...p, type: 'invitation' })),
+        ...groups.map((p) => ({
+          ...p,
+          type: 'group',
+          formattedCDate: formatDateTime(new Date(p.cdate), { second: undefined }),
+          passed: new Date(p.cdate) < new Date(),
+        })),
+        ...workFlowInvitations.map((p) => ({
+          ...p,
+          type: 'invitation',
+          formattedCDate: formatDateTime(new Date(p.cdate), { second: undefined }),
+          passed: new Date(p.cdate) < new Date(),
+        })),
       ]
       setGroupsAndInvitations(sortBy(groupAndWorkflowInvitations, 'cdate'))
       setAllInvitations(invitations)
@@ -193,9 +207,15 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           if (stepObj.type === 'group') {
             return (
               <div key={stepObj.id}>
-                <Link href={`/group/edit?id=${stepObj.id}`}>
-                  {prettyId(stepObj.id)}({stepObj.members?.length || 0})
-                </Link>
+                <span className={stepObj.passed ? 'text-muted' : ''}>
+                  {stepObj.formattedCDate}{' '}
+                </span>
+                <Link href={`/group/edit?id=${stepObj.id}`}>{prettyId(stepObj.id)}</Link>
+                <ul>
+                  {stepObj.members?.length > 0 && (
+                    <li>Member Count : {stepObj.members?.length || 0}</li>
+                  )}
+                </ul>
               </div>
             )
           }
@@ -205,9 +225,14 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           )
           return (
             <div key={invitationId}>
-              <Link href={`/invitation/edit?id=${invitationId}`}>
-                {prettyId(invitationId)}
-              </Link>
+              <div className="d-flex">
+                <span className={stepObj.passed ? 'text-muted' : ''}>
+                  {stepObj.formattedCDate}{' '}
+                </span>
+                <Link href={`/invitation/edit?id=${invitationId}`}>
+                  {prettyId(invitationId)}
+                </Link>
+              </div>
 
               {subInvitations.length > 0 &&
                 subInvitations.map((subInvitation) => (
