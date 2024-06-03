@@ -81,14 +81,13 @@ const EthicsChairPaperStatus = () => {
           '/notes',
           {
             invitation: submissionId,
-            details: 'replies,writable',
+            details: 'replies',
             select: 'id,number,forum,content,details,invitations,readers',
             sort: 'number:asc',
             domain: venueId,
           },
           { accessToken }
-        )
-        .then((notes) => notes.filter((note) => !note.details.writable))
+        ).then((notes) => notes.filter((note) => note.content?.flagged_for_ethics_review?.value))
 
       const perPaperGroupResultsP = api
         .get(
