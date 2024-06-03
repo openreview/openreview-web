@@ -171,7 +171,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
     try {
       const [groups, invitations] = await Promise.all([getAllGroupsP, getAllInvitationsP])
       const workFlowInvitations = invitations.filter((p) => workflowInvitationRegex.test(p.id))
-      console.log(workFlowInvitations)
       const currentTimeStamp = new Date()
       const groupAndWorkflowInvitations = [
         ...groups.map((p) => ({

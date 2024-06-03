@@ -1,0 +1,26 @@
+@use '../utils/constants';
+
+.enumContainer {
+}
+
+.enumRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.enumValue,
+.enumDescription {
+  flex-grow: 1;
+  margin-right: 0.25rem;
+}
+
+.enumOptional {
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.enumDeleteBtn {
+  color: constants.$mediumBlue;
+  font-size: 1.25rem;
+}

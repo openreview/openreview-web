@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useState } from 'react'
+import { nanoid } from 'nanoid'
 import { classNames, prettyField } from '../lib/utils'
-import styles from '../styles/components/NoteEditor.module.scss'
+import styles from '../styles/components/Form.module.scss'
 import EditorComponentContext from './EditorComponentContext'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import EditorWidget from './webfield/EditorWidget'
@@ -8,20 +9,135 @@ import Icon from './Icon'
 import IconButton, { TrashButton } from './IconButton'
 
 const EnumItemsEditor = ({ options, setOptions, fieldName }) => {
-  const renderOption = (option, index) => {
-    if (typeof option === 'string') {
-      return <input className="form-control" type="text" value={option} />
+  const [optionType, setOptionType] = useState(null)
+  const [localOptions, setLocalOptions] = useReducer(
+    (state, action) => {
+      switch (action.type) {
+        case 'INIT':
+          return action.options
+        case 'ADD':
+          if (optionType === 'string')
+            return [
+              ...state,
+              {
+                value: '',
+                key: nanoid(),
+              },
+            ]
+          return [
+            ...state,
+            {
+              value: '',
+              description: '',
+              optional: false,
+              key: nanoid(),
+              type: fieldName === 'enum' ? 'enum' : 'items',
+            },
+          ]
+        case 'UPDATEVALUE':
+          return state.map((option) => {
+            if (option.key === action.key) {
+              return { ...option, value: action.value }
+            }
+            return option
+          })
+        case 'UPDATEDESCRIPTION':
+          return state.map((option) => {
+            if (option.key === action.key) {
+              return { ...option, description: action.value }
+            }
+            return option
+          })
+        case 'UPDATDOPTIONAL':
+          return state.map((option) => {
+            if (option.key === action.key) {
+              return { ...option, optional: action.value }
+            }
+            return option
+          })
+        case 'DELETE':
+          return state.filter((option) => option.key !== action.key)
+        default:
+          return state
+      }
+    },
+    options
+      ? options.map((option) => {
+          if (typeof option === 'string') {
+            if (!optionType) setOptionType('string')
+            return { value: option, key: nanoid() }
+          }
+          if (fieldName === 'enum') {
+            if (!optionType) setOptionType('enum')
+            return { ...option, key: nanoid() }
+          }
+          if (!optionType) setOptionType('items')
+          return { ...option, key: nanoid() }
+        })
+      : []
+  )
+
+  useEffect(() => {
+    let updatedOptions = null
+    if (optionType === 'string') {
+      updatedOptions = localOptions.map((option) => option.value)
+    } else if (optionType === 'enum' || optionType === 'items') {
+      updatedOptions = localOptions.map((option) => {
+        const { key, ...rest } = option
+        return rest
+      })
     }
-    return (
-      <>
-        <input className="form-control" type="text" value={option.value} />
-        <input className="form-control" type="text" value={option.description} />
-        <input className="form-control" type="checkbox" value={option.optional} />
-      </>
-    )
-  }
+    setOptions({ fieldName, value: updatedOptions })
+  }, [localOptions])
+
+  const renderOption = (option, index) => (
+    <>
+      <div className={styles.enumValue}>
+        <input
+          className="form-control"
+          type="text"
+          value={option.value}
+          onChange={(e) => {
+            setLocalOptions({ type: 'UPDATEVALUE', value: e.target.value, key: option.key })
+          }}
+        />
+      </div>
+      <div className={styles.enumDescription}>
+        {(optionType === 'enum' || optionType === 'items') && (
+          <input
+            className="form-control"
+            type="text"
+            value={option.description}
+            onChange={(e) => {
+              setLocalOptions({
+                type: 'UPDATDESCRIPTION',
+                value: e.target.value,
+                key: option.key,
+              })
+            }}
+          />
+        )}
+      </div>
+      <div className={styles.enumOptional}>
+        {optionType === 'items' && (
+          <input
+            className="form-control"
+            type="checkbox"
+            checked={option.optional}
+            onChange={(e) => {
+              setLocalOptions({
+                type: 'UPDATDOPTIONAL',
+                value: e.target.checked,
+                key: option.key,
+              })
+            }}
+          />
+        )}
+      </div>
+    </>
+  )
   return (
-    <div>
+    <div className={styles.enumContainer}>
       <thead>
         <th>Value</th>
         {fieldName === 'items' && (
@@ -32,13 +148,24 @@ const EnumItemsEditor = ({ options, setOptions, fieldName }) => {
         )}
       </thead>
 
-      {options?.map((option, index) => (
-        <div key={index} style={{ display: 'flex' }}>
+      {localOptions?.map((option, index) => (
+        <div key={index} className={styles.enumRow}>
           {renderOption(option)}
-          <TrashButton />
+          <div className={styles.enumDeleteBtn}>
+            <div
+              role="button"
+              onClick={() => setLocalOptions({ type: 'DELETE', key: option.key })}
+            >
+              <Icon name="minus-sign" tooltip="remove relation" />
+            </div>
+          </div>
         </div>
       ))}
-      <IconButton name="plus" onClick={() => {}} text="Add Option" />
+      <IconButton
+        name="plus"
+        onClick={() => setLocalOptions({ type: 'ADD' })}
+        text="Add Option"
+      />
     </div>
   )
 }
@@ -78,7 +205,11 @@ const Form = ({ fields, existingFieldsValue, onFormChange }) => {
       return (
         <div key={fieldName} className={styles.fieldContainer}>
           <EditorComponentHeader fieldNameOverwrite={prettyField(fieldName)}>
-            <EnumItemsEditor options={fieldValue} fieldName />
+            <EnumItemsEditor
+              options={fieldValue}
+              fieldName={fieldName}
+              setOptions={setFormData}
+            />
           </EditorComponentHeader>
 
           {fieldDescription.readers && (
