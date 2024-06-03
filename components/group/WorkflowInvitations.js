@@ -34,7 +34,7 @@ const WorflowInvitationRow = ({
       return Object.keys(fieldValue).join(', ')
     }
     if (type === 'date') {
-      return formatDateTime(new Date(fieldValue), { second: undefined })
+      return formatDateTime(fieldValue, { second: undefined })
     }
     return fieldValue?.toString()
   }
@@ -171,18 +171,20 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
     try {
       const [groups, invitations] = await Promise.all([getAllGroupsP, getAllInvitationsP])
       const workFlowInvitations = invitations.filter((p) => workflowInvitationRegex.test(p.id))
+      console.log(workFlowInvitations)
+      const currentTimeStamp = new Date()
       const groupAndWorkflowInvitations = [
         ...groups.map((p) => ({
           ...p,
           type: 'group',
-          formattedCDate: formatDateTime(new Date(p.cdate), { second: undefined }),
-          passed: new Date(p.cdate) < new Date(),
+          formattedCDate: formatDateTime(p.cdate, { second: undefined }),
+          passed: p.cdate < currentTimeStamp,
         })),
         ...workFlowInvitations.map((p) => ({
           ...p,
           type: 'invitation',
-          formattedCDate: formatDateTime(new Date(p.cdate), { second: undefined }),
-          passed: new Date(p.cdate) < new Date(),
+          formattedCDate: formatDateTime(p.cdate, { second: undefined }),
+          passed: p.cdate < currentTimeStamp,
         })),
       ]
       setGroupsAndInvitations(sortBy(groupAndWorkflowInvitations, 'cdate'))
