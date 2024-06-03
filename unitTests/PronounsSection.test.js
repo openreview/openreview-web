@@ -15,7 +15,7 @@ describe ('Pronoun selection dropdown', () => {
       updatePronoun: jest.fn()
     }
 
-    const {container} = render(<PronounSection {...properties}/>)
+    render(<PronounSection {...properties}/>)
     const element = screen.getByText('Choose pronouns or type a custom pronouns')
     expect(element).toBeInTheDocument()
   })
@@ -26,7 +26,7 @@ describe ('Pronoun selection dropdown', () => {
       updatePronoun: jest.fn()
     }
 
-    const {container} = render(<PronounSection {...properties}/>)
+    render(<PronounSection {...properties}/>)
     const element = screen.getByText('he/him')
     expect(element).toBeInTheDocument()
   })
