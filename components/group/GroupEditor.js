@@ -15,13 +15,8 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
     {
       id: 'groupInfo',
       label: 'Group Info',
-      sections: ['groupGeneral', 'groupMembers', 'groupContent'],
+      sections: ['groupGeneral', 'groupMembers', 'groupContent', 'groupContentScripts', 'groupUICode'],
       default: true,
-    },
-    {
-      id: 'groupContentScripts',
-      label: 'Group Content Scripts',
-      sections: ['groupContentScripts'],
     },
     { id: 'signedNotes', label: 'Signed Notes', sections: ['groupSignedNotes'] },
     { id: 'childGroups', label: 'Child Groups', sections: ['groupChildGroups'] },
@@ -32,7 +27,7 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
     },
     {
       id: 'workflowInvitations',
-      label: 'Workflow Invitations',
+      label: 'Workflow Step Timeline',
       sections: ['workflowInvitations'],
     },
   ]
