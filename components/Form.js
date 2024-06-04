@@ -31,7 +31,6 @@ const EnumItemsEditor = ({ options, setOptions, fieldName }) => {
               description: '',
               optional: false,
               key: nanoid(),
-              type: fieldName === 'enum' ? 'enum' : 'items',
             },
           ]
         case 'UPDATEVALUE':
@@ -110,7 +109,7 @@ const EnumItemsEditor = ({ options, setOptions, fieldName }) => {
             value={option.description}
             onChange={(e) => {
               setLocalOptions({
-                type: 'UPDATDESCRIPTION',
+                type: 'UPDATEDESCRIPTION',
                 value: e.target.value,
                 key: option.key,
               })
@@ -121,7 +120,6 @@ const EnumItemsEditor = ({ options, setOptions, fieldName }) => {
       <div className={styles.enumOptional}>
         {optionType === 'items' && (
           <input
-            className="form-control"
             type="checkbox"
             checked={option.optional}
             onChange={(e) => {
@@ -136,17 +134,18 @@ const EnumItemsEditor = ({ options, setOptions, fieldName }) => {
       </div>
     </>
   )
+
   return (
     <div className={styles.enumContainer}>
-      <thead>
-        <th>Value</th>
+      <div className={styles.enumHeaderRow}>
+        <div className={styles.valueHeader}>Value</div>
         {fieldName === 'items' && (
           <>
-            <th>Description</th>
-            <th>Optional</th>
+            <div className={styles.descriptionHeader}>Description</div>
+            <div className={styles.optionalHeader}>Optional</div>
           </>
         )}
-      </thead>
+      </div>
 
       {localOptions?.map((option, index) => (
         <div key={index} className={styles.enumRow}>
@@ -163,6 +162,7 @@ const EnumItemsEditor = ({ options, setOptions, fieldName }) => {
       ))}
       <IconButton
         name="plus"
+        extraClasses={styles.addOptionBtn}
         onClick={() => setLocalOptions({ type: 'ADD' })}
         text="Add Option"
       />
@@ -265,7 +265,7 @@ const Form = ({ fields, existingFieldsValue, onFormChange }) => {
     )
   }
   return (
-    <div className={classNames('panel', styles.noteEditor)}>
+    <div className={classNames('panel', styles.formContainer)}>
       {Object.entries(fields)
         .sort((a, b) => (a[1].order ?? 100) - (b[1].order ?? 100))
         .map(([fieldName, fieldDescription]) => renderField(fieldName, fieldDescription))}

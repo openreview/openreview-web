@@ -17,24 +17,20 @@
       }
     }
   }
-  & > div[class^="EditorComponentHeader_inline__"] {
-    margin-bottom: .875rem;
+  & > div[class^='EditorComponentHeader_inline__'] {
+    margin-bottom: 0.875rem;
   }
   hr.titleSeparator {
     margin-top: 0;
-    margin-bottom: .5rem;
+    margin-bottom: 0.5rem;
   }
-}
-
-.fieldContainer {
-  margin-bottom: 1.125rem;
 }
 
 .title {
   font-weight: bold;
   font-size: 1.375rem;
   margin-top: 0;
-  margin-bottom: .5rem;
+  margin-bottom: 0.5rem;
 }
 
 .requiredField {
@@ -47,26 +43,26 @@
 }
 
 .fieldReaders {
-  font-size: .75rem;
-  margin-top: .25rem;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
 
   :global {
     span {
       color: constants.$subtleGray;
-      padding-right: .25rem;
+      padding-right: 0.25rem;
     }
-    div[class^="TagsWidget_container__"] {
+    div[class^='TagsWidget_container__'] {
       margin-top: 0;
     }
-    div[class^="TagsWidget_value__"] {
-      padding: .125rem .25rem;
+    div[class^='TagsWidget_value__'] {
+      padding: 0.125rem 0.25rem;
     }
   }
 }
 
 .responseButtons {
   display: flex;
-  margin-top: .5rem;
+  margin-top: 0.5rem;
 }
 
 .submitButton {
@@ -76,7 +72,7 @@
 .editReaderSignature {
   background: rgba(0, 0, 0, 0.08);
   padding: 0.5rem;
-  padding-bottom: .25rem;
+  padding-bottom: 0.25rem;
   margin-left: -0.5rem;
   margin-right: -0.5rem;
 
@@ -89,10 +85,10 @@
   }
   hr {
     margin-top: 0;
-    margin-bottom: .75rem;
+    margin-bottom: 0.75rem;
   }
-  & > div[class^="EditorComponentHeader_inline__"] {
-    margin-bottom: .875rem;
+  & > div[class^='EditorComponentHeader_inline__'] {
+    margin-bottom: 0.875rem;
   }
 }
 

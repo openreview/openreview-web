@@ -15,7 +15,13 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
     {
       id: 'groupInfo',
       label: 'Group Info',
-      sections: ['groupGeneral', 'groupMembers', 'groupContent', 'groupContentScripts', 'groupUICode'],
+      sections: [
+        'groupGeneral',
+        'groupMembers',
+        'groupContent',
+        'groupContentScripts',
+        'groupUICode',
+      ],
       default: true,
     },
     { id: 'signedNotes', label: 'Signed Notes', sections: ['groupSignedNotes'] },

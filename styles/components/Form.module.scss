@@ -1,12 +1,46 @@
 @use '../utils/constants';
 
+.formContainer {
+  padding-bottom: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.fieldContainer {
+  margin-bottom: 0.5rem;
+}
+
 .enumContainer {
+}
+
+.enumHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+
+  .valueHeader,
+  .descriptionHeader,
+  .optionalHeader {
+    font-weight: bold;
+    line-height: 1rem;
+    color: constants.$darkBlue;
+  }
+
+  .valueHeader,
+  .descriptionHeader {
+    flex-grow: 1;
+  }
+
+  .descriptionHeader {
+    margin-left: 3.75rem;
+  }
 }
 
 .enumRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 0.25rem;
 }
 
 .enumValue,
@@ -23,4 +57,7 @@
 .enumDeleteBtn {
   color: constants.$mediumBlue;
   font-size: 1.25rem;
+}
+
+.addOptionBtn {
 }
