@@ -1,5 +1,4 @@
-/* eslint-disable func-names */
-/* eslint-disable object-shorthand */
+/* eslint-disable func-names,object-shorthand */
 import { useContext, useState } from 'react'
 import { get, set } from 'lodash'
 import EditorComponentContext from '../EditorComponentContext'
@@ -9,7 +8,7 @@ import Dropdown from '../Dropdown'
 import Form from '../Form'
 import NoteEditor from '../NoteEditor'
 
-const JsonConstructor = ({ existingFields, onFieldChange }) => {
+const JsonEditor = ({ existingFields, onFieldChange }) => {
   const [nameOfFieldToEdit, setNameOfFieldToEdit] = useState(null)
   const [nameOfNewField, setNameOfNewField] = useState(null)
   const widgetOptions = [
@@ -475,7 +474,7 @@ const JsonConstructor = ({ existingFields, onFieldChange }) => {
   )
 }
 
-const JsonEditorWidget = () => {
+const ContentFieldEditor = () => {
   const { field, onChange, value, error } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const [activeTabId, setActiveTabId] = useState(`widgets${fieldName}`)
@@ -519,7 +518,7 @@ const JsonEditorWidget = () => {
 
       <TabPanels>
         <TabPanel id={`widgets${fieldName}`}>
-          <JsonConstructor existingFields={value} onFieldChange={onFieldChange} />
+          <JsonEditor existingFields={value} onFieldChange={onFieldChange} />
         </TabPanel>
         <TabPanel id={`result${fieldName}`}>
           {activeTabId === `result${fieldName}` && <CodeEditorWidget />}
@@ -537,4 +536,4 @@ const JsonEditorWidget = () => {
   )
 }
 
-export default JsonEditorWidget
+export default ContentFieldEditor

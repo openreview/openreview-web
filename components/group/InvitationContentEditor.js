@@ -9,7 +9,7 @@ import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
 import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
-import JsonEditorWidget from '../EditorComponents/JsonEditorWidget'
+import ContentFieldEditor from '../EditorComponents/ContentFieldEditor'
 
 const InvitationContentEditor = ({
   invitation,
@@ -65,7 +65,7 @@ const InvitationContentEditor = ({
           }}
         >
           <EditorComponentHeader>
-            {isContentField ? <JsonEditorWidget /> : <EditorWidget />}
+            {isContentField ? <ContentFieldEditor /> : <EditorWidget />}
           </EditorComponentHeader>
         </EditorComponentContext.Provider>
 
