@@ -86,8 +86,43 @@ const PaperStatusMenuBar = ({
         }),
         {}
       )),
-    ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
+    ...(typeof extraPropertiesAllowed === 'object' &&
+      Object.fromEntries(
+        Object.entries(extraPropertiesAllowed).map(([key, value]) => {
+          if (typeof value === 'string') {
+            return [key, [key]]
+          }
+          return [key, value]
+        })
+      )),
   }
+
+  const functionExtraProperties = (() => {
+    if (typeof extraPropertiesAllowed !== 'object') return {}
+    const result = {}
+    Object.entries(extraPropertiesAllowed).forEach(([key, value]) => {
+      if (Array.isArray(value)) return
+      try {
+        result[key] = Function('row', value) // eslint-disable-line no-new-func
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(`Error parsing function for extra property ${key}: ${error}`)
+      }
+    })
+    return result
+  })()
+
+  const tableRowsAllWithFilterProperties =
+    Object.keys(functionExtraProperties).length > 0
+      ? tableRowsAll.map((row) => {
+          const extraProperties = {}
+          // eslint-disable-next-line no-restricted-syntax
+          for (const [key, value] of Object.entries(functionExtraProperties)) {
+            extraProperties[key] = value(row)
+          }
+          return { ...row, ...extraProperties }
+        })
+      : tableRowsAll
 
   Object.keys(propertiesAllowed).forEach((key) => {
     if (!Array.isArray(propertiesAllowed[key]) || propertiesAllowed[key].length === 0) {
@@ -357,7 +392,7 @@ const PaperStatusMenuBar = ({
     row.note.content?.title?.value?.toLowerCase()?.includes(term)
   return (
     <BaseMenuBar
-      tableRowsAll={tableRowsAll}
+      tableRowsAll={tableRowsAllWithFilterProperties}
       tableRows={tableRows}
       selectedIds={selectedNoteIds}
       setData={setPaperStatusTabData}
