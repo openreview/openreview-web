@@ -1,5 +1,6 @@
-import { useEffect, useReducer, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { nanoid } from 'nanoid'
+import { debounce } from 'lodash'
 import { classNames, prettyField } from '../lib/utils'
 import styles from '../styles/components/Form.module.scss'
 import EditorComponentContext from './EditorComponentContext'
@@ -171,6 +172,7 @@ const EnumItemsEditor = ({ options, setOptions, fieldName }) => {
 }
 
 const Form = ({ fields, existingFieldsValue, onFormChange }) => {
+  const debouncedOnFormChange = useRef(debounce(onFormChange, 200)).current
   const [errors, setErrors] = useState([])
   const formDataReducer = (state, action) => {
     switch (action.type) {
@@ -181,10 +183,11 @@ const Form = ({ fields, existingFieldsValue, onFormChange }) => {
           return prev
         }, {})
       default:
-        onFormChange({
+        debouncedOnFormChange({
           ...state,
           [action.fieldName]: action.value,
         })
+
         return state
     }
   }

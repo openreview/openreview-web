@@ -363,7 +363,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       description: 'The extensions allowed for user to upload',
       value: {
         param: {
-          type: 'string',
+          type: 'string[]',
           optional: true,
         },
       },
