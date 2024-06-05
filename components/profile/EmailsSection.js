@@ -13,6 +13,8 @@ const EmailsButton = ({
   handleRemove,
   handleConfirm,
   handleMakePreferred,
+  handleVerify,
+  handleVerifyTokenChange,
   isNewProfile,
 }) => {
   const { confirmed, preferred, email, isValid } = emailObj
@@ -53,6 +55,22 @@ const EmailsButton = ({
       )
     }
   }
+
+  if (type === 'verify' && !(confirmed || preferred)) {
+    return (
+        <div ClassName='emails__verify'>
+          <input
+            type='text'
+            onChange={handleVerifyTokenChange}
+            placeholder='Enter Verification Code'
+            className={`form-control`}
+          />
+          <button type="button" className="btn verify-button" onClick={handleVerify}>
+            Verify
+          </button>
+        </div>
+    )
+  }
   return null
 }
 
@@ -63,6 +81,9 @@ const EmailsSection = ({
   institutionDomains,
   isNewProfile,
 }) => {
+  const [isVerifyTextboxVisible, setIsVerifyTextboxVisible] = useState(false)
+  const [verificationToken, setVerificationToken] = useState('')
+
   const emailsReducer = (state, action) => {
     if (action.addNewEmail) return [...state, action.data]
     if (action.updateEmail) {
@@ -110,6 +131,7 @@ const EmailsSection = ({
 
   const handleRemoveEmail = (key) => {
     setEmails({ removeEmail: true, data: { key } })
+    setIsVerifyTextboxVisible(false)
   }
 
   const handleMakeEmailPreferred = (key) => {
@@ -125,13 +147,31 @@ const EmailsSection = ({
       const linkData = { alternate: newEmail, username: profileId }
       try {
         await api.post('/user/confirm', linkData, { accessToken })
+        setIsVerifyTextboxVisible(true)
         return promptMessage(`A confirmation email has been sent to ${newEmail}`)
       } catch (error) {
+        setIsVerifyTextboxVisible(false)
         return promptError(error.message)
       }
     } else {
       return promptError('You need to save your profile before confirming a new email')
     }
+  }
+
+  const handleVerifyEmail = async (key) => {
+    const newEmail = emails?.find((p) => p.key === key)?.email?.toLowerCase()
+    const payload = { email: newEmail, token: verificationToken }
+    try {
+      await api.put('/activatelink', payload, {accessToken})
+      return promptMessage(`${newEmail} has been verified`)
+    } catch (error) {
+      return promptError(error.message)
+    }
+
+  }
+
+  const handleVerificationTokenUpdate = (event) => {
+    setVerificationToken(event.target.value)
   }
 
   useEffect(() => {
@@ -184,6 +224,16 @@ const EmailsSection = ({
                 emailObj={emailObj}
                 handleRemove={() => handleRemoveEmail(emailObj.key)}
               />
+            </div>
+            <div className='col-md-3 emails__value'>
+              { isVerifyTextboxVisible &&
+                <EmailsButton
+                  type="verify"
+                  emailObj={emailObj}
+                  handleVerify={() => handleVerifyEmail(emailObj.key)}
+                  handleVerifyTokenChange={handleVerificationTokenUpdate}
+                />
+              }
             </div>
           </div>
         ))}
