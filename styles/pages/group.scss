@@ -1211,4 +1211,10 @@ main.invitation {
   .save-button-wrapper {
     display: flex;
   }
+
+  .groupEditorTabsContainer {
+    .tab-pane {
+      padding-left: 0;
+    }
+  }
 }

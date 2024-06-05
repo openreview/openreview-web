@@ -98,22 +98,24 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
     }
   }
   return (
-    <Tabs>
-      <TabList>
-        {groupTabsConfig.map((tabConfig) => (
-          <Tab key={tabConfig.id} id={tabConfig.id} active={tabConfig.default}>
-            {tabConfig.label}
-          </Tab>
-        ))}
-      </TabList>
-      <TabPanels>
-        {groupTabsConfig.map((tabConfig) => (
-          <TabPanel key={tabConfig.id} id={tabConfig.id}>
-            {tabConfig.sections.map((section) => renderSection(section))}
-          </TabPanel>
-        ))}
-      </TabPanels>
-    </Tabs>
+    <div className="groupEditorTabsContainer">
+      <Tabs>
+        <TabList>
+          {groupTabsConfig.map((tabConfig) => (
+            <Tab key={tabConfig.id} id={tabConfig.id} active={tabConfig.default}>
+              {tabConfig.label}
+            </Tab>
+          ))}
+        </TabList>
+        <TabPanels>
+          {groupTabsConfig.map((tabConfig) => (
+            <TabPanel key={tabConfig.id} id={tabConfig.id}>
+              {tabConfig.sections.map((section) => renderSection(section))}
+            </TabPanel>
+          ))}
+        </TabPanels>
+      </Tabs>
+    </div>
   )
 }
 
