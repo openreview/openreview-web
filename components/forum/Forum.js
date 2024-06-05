@@ -763,7 +763,10 @@ export default function Forum({
 
   // Update reply visibility
   useEffect(() => {
-    if (!replyNoteMap || !displayOptionsMap || !orderedReplies?.length) return
+    if (!replyNoteMap || !displayOptionsMap || !orderedReplies?.length) {
+      delayedScroll(layout, scrolled)
+      return
+    }
 
     const newDisplayOptions = {}
 
