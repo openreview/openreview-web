@@ -17,6 +17,7 @@ const InvitationContentEditor = ({
   existingValue,
   closeInvitationEditor,
   onInvitationEditPosted,
+  isGroupInvitation = false,
 }) => {
   const { user, userLoading, accessToken } = useUser()
   const [errors, setErrors] = useState([])
@@ -86,21 +87,49 @@ const InvitationContentEditor = ({
   }
 
   const constructInvitationEdit = async (formData, invitationObj) => {
-    const { content: contentFields, ...otherFields } = invitationObj.edit
+    const {
+      content: editContentFields,
+      group: groupFields,
+      ...otherFields
+    } = invitationObj.edit
     const editToPost = {}
+    const group = {}
+    const groupContent = {}
 
     try {
       const editContent = {}
       Object.entries(otherFields).forEach(([field, value]) => {
         editToPost[field] = invitationObj.edit[field]
       })
-      Object.entries(contentFields).forEach(([field, value]) => {
+      Object.entries(editContentFields).forEach(([field, value]) => {
         editContent[field] = { value: formData[field] }
       })
       editToPost.content = editContent
-      editToPost.invitations = invitationObj.id
-      editToPost.invitation = undefined
-      await api.post('/invitations/edits', editToPost, { accessToken })
+
+      if (isGroupInvitation) {
+        const { content: groupContentFields, ...otherGroupFields } = groupFields
+        Object.entries(otherGroupFields ?? {}).forEach(([field, value]) => {
+          group[field] = invitationObj.edit.group[field]
+        })
+        Object.entries(groupContentFields ?? {}).forEach(([field, value]) => {
+          groupContent[field] = { value: formData[field] }
+        })
+        if (Object.keys(groupContent).length) group.content = groupContent
+        if (Object.keys(group).length) editToPost.group = group
+      }
+
+      if (isGroupInvitation) {
+        editToPost.invitations = undefined
+        editToPost.invitation = invitationObj.id
+      } else {
+        // invitation edit invitation use invitations as invitation
+        editToPost.invitations = invitationObj.id
+        editToPost.invitation = undefined
+      }
+
+      await api.post(isGroupInvitation ? '/groups/edits' : '/invitations/edits', editToPost, {
+        accessToken,
+      })
       onInvitationEditPosted?.()
     } catch (error) {
       promptError(error.message)
@@ -129,9 +158,21 @@ const InvitationContentEditor = ({
     }
 
     setFields(
-      Object.entries(invitation.edit.content).sort(
-        (a, b) => (a[1].order ?? 100) - (b[1].order ?? 100)
-      )
+      isGroupInvitation
+        ? Object.entries(
+            Object.assign(
+              {},
+              ...Object.entries(invitation.edit.content)
+                .sort((a, b) => (a[1].order ?? 100) - (b[1].order ?? 100))
+                .map(([key, value]) => ({ [key]: value })),
+              ...Object.entries(invitation.edit.group?.content ?? {})
+                .sort((a, b) => (a[1].order ?? 100) - (b[1].order ?? 100))
+                .map(([key, value]) => ({ [key]: value }))
+            )
+          )
+        : Object.entries(invitation.edit.content).sort(
+            (a, b) => (a[1].order ?? 100) - (b[1].order ?? 100)
+          )
     )
   }, [invitation, user, userLoading])
 

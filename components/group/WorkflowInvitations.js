@@ -143,6 +143,28 @@ const StageInvitationRow = ({ stageInvitation }) => {
   )
 }
 
+const GroupEditInvitationRow = ({ invitation }) => {
+  const [showEditor, setShowEditor] = useState(false)
+  return (
+    <>
+      <button className="btn btn-xs ml-2" onClick={() => setShowEditor(true)}>
+        Add
+      </button>
+      {showEditor && (
+        <InvitationContentEditor
+          invitation={invitation}
+          existingValue={{}}
+          isGroupInvitation={true}
+          closeInvitationEditor={() => {
+            setShowEditor(false)
+          }}
+          onInvitationEditPosted={() => {}}
+        />
+      )}
+    </>
+  )
+}
+
 const WorkFlowInvitations = ({ group, accessToken }) => {
   const groupId = group.id
   const submissionName = group.content?.submission_name?.value
@@ -233,6 +255,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                 <Link href={`/invitation/edit?id=${invitationId}`}>
                   {prettyId(invitationId)}
                 </Link>
+                {group.id !== group.domain && <GroupEditInvitationRow invitation={stepObj} />}
               </div>
 
               {subInvitations.length > 0 &&
