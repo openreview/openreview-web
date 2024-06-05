@@ -9,6 +9,7 @@ const PronounSection = ({ profilePronouns, updatePronoun }) => {
   useEffect(() => {
     updatePronoun(pronouns)
   }, [pronouns])
+  
   return (
     <div className="pronouns" translate="no">
       <CreatableDropdown
