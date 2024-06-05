@@ -62,7 +62,7 @@ const EmailsButton = ({
           <input
             type='text'
             onChange={handleVerifyTokenChange}
-            placeholder='Enter Verification Code'
+            placeholder='Enter Verification Token'
             className={`form-control`}
           />
           <button type="button" className="btn verify-button" onClick={handleVerify}>
@@ -148,7 +148,7 @@ const EmailsSection = ({
       try {
         await api.post('/user/confirm', linkData, { accessToken })
         setIsVerifyTextboxVisible(true)
-        return promptMessage(`A confirmation email has been sent to ${newEmail}`)
+        return promptMessage(`A confirmation email has been sent to ${newEmail} with a verification token`)
       } catch (error) {
         setIsVerifyTextboxVisible(false)
         return promptError(error.message)

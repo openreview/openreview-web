@@ -124,8 +124,17 @@ test('user open own profile', async (t) => {
     .ok()
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(errorMessageSelector.innerText)
-    .eql('A confirmation email has been sent to a@aa.com')
+    .eql('A confirmation email has been sent to a@aa.com with a verification token')
+    // text box to enter code should be displayed
+    .expect(Selector('button').withText('Verify').nth(0).visible)
+    .ok()
+    .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
+    .ok()
     .click(Selector('button').withText('Remove').filterVisible())
+    .expect(Selector('button').withText('Verify').nth(0).visible)
+    .notOk()
+    .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
+    .notOk()
     // add empty homepage link
     .typeText(homepageUrlInput, ' ', { replace: true })
     .click(saveProfileButton)
@@ -149,7 +158,7 @@ test('user open own profile', async (t) => {
   await t
     .expect(messages[0].content.text)
     .contains(
-      'Click on the link below to confirm that a@aa.com and a@a.com both belong to the same person'
+      'Use the token below to confirm that a@aa.com and a@a.com both belong to the same person'
     )
     // personal links
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
@@ -593,6 +602,11 @@ test('profile should be auto merged', async (t) => {
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
     .contains(`A confirmation email has been sent to ${userF.email}`)
 
+    // text box to enter code should be displayed
+    .expect(Selector('button').withText('Verify').nth(0).visible)
+    .ok()
+    .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
+    .ok()
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
     { to: userF.email, subject: 'OpenReview Account Linking - Duplicate Profile Found' },
@@ -680,6 +694,11 @@ test('#85 confirm profile email message', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
     .contains('A confirmation email has been sent to x@x.com')
+    // text box to enter code should be displayed
+    .expect(Selector('button').withText('Verify').nth(0).visible)
+    .ok()
+    .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
+    .ok()
 })
 test('#98 trailing slash error page', async (t) => {
   await t

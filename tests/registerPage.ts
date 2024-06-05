@@ -359,13 +359,18 @@ test('add alternate email', async (t) => {
     .expect(messagePanelSelector.exists)
     .ok()
     .expect(messageSelector.innerText)
-    .eql('A confirmation email has been sent to melisa@alternate.com')
+    .eql('A confirmation email has been sent to melisa@alternate.com with a verification token')
+    // text box to enter code should be displayed
+    .expect(Selector('button').withText('Verify').nth(0).visible)
+    .ok()
+    .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
+    .ok()
 
   const messages = await getMessages(
     { to: 'melisa@alternate.com', subject: 'OpenReview Account Linking' },
     t.fixtureCtx.superUserToken
   )
-  await t.expect(messages[0].content.text).contains('http://localhost:3030/confirm?token=')
+  await t.expect(messages[0].content.text).contains('Use the token below to confirm that melisa@alternate.com and melisa@test.com both belong to the same person')
 })
 
 // eslint-disable-next-line no-unused-expressions
