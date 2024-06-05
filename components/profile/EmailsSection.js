@@ -206,14 +206,16 @@ const EmailsSection = ({
                 onChange={(e) => handleUpdateEmail(e.target.value.trim(), emailObj.key)}
               />
             </div>
-            <div className="col-md-1 emails__value">
-              <EmailsButton
-                type="confirmed"
-                emailObj={emailObj}
-                handleConfirm={() => handleConfirmEmail(emailObj.key)}
-                isNewProfile={isNewProfile}
-              />
-            </div>
+            { !isVerifyTextboxVisible &&
+              <div className="col-md-1 emails__value">
+                <EmailsButton
+                  type="confirmed"
+                  emailObj={emailObj}
+                  handleConfirm={() => handleConfirmEmail(emailObj.key)}
+                  isNewProfile={isNewProfile}
+                />
+             </div>
+            }
             <div className="col-md-1 emails__value">
               <EmailsButton
                 type="preferred"
@@ -226,11 +228,7 @@ const EmailsSection = ({
                 handleRemove={() => handleRemoveEmail(emailObj.key)}
               />
             </div>
-          </div>
-        ))}
-        {emails.map((emailObj) => (
-          <div className="row d-flex" key={emailObj.key}>
-            <div className='col-md-4 emails__value'>
+            <div className='col-md-2 emails__value'>
               { isVerifyTextboxVisible && !emailObj.confirmed && !emailObj.preferred && (
                 <input
                 type='text'
