@@ -7,31 +7,27 @@ import CodeEditorWidget from './CodeEditorWidget'
 import Dropdown from '../Dropdown'
 import Form from '../Form'
 import NoteEditor from '../NoteEditor'
+import EditorComponentHeader from './EditorComponentHeader'
 
 const JsonEditor = ({ existingFields, onFieldChange }) => {
+  const [mode, setMode] = useState('empty')
   const [nameOfFieldToEdit, setNameOfFieldToEdit] = useState(null)
   const [nameOfNewField, setNameOfNewField] = useState(null)
   const widgetOptions = [
     { value: 'addANewField', label: 'Add a new field' },
     ...Object.keys(existingFields ?? {}).map((p) => ({ value: p, label: p })),
   ]
-  const isExistingField = nameOfFieldToEdit !== 'addANewField'
   const fieldSpecificationsOfJsonField = {
     name: {
       order: 1,
       description: 'Name of the field',
       value: {
         param: {
-          ...(isExistingField
-            ? { const: nameOfFieldToEdit }
-            : {
-                input: 'text',
-                type: 'string',
-              }),
+          const: nameOfFieldToEdit,
         },
       },
       shouldBeShown: (formData) => true,
-      getValue: (existingValue) => (isExistingField ? nameOfFieldToEdit : ''),
+      getValue: (existingValue) => nameOfFieldToEdit,
       valuePath: 'name',
     },
     order: {
@@ -44,7 +40,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => isExistingField && true,
+      shouldBeShown: (formData) => true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -60,7 +56,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => isExistingField && true,
+      shouldBeShown: (formData) => true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -77,7 +73,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => isExistingField && true,
+      shouldBeShown: (formData) => true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -94,7 +90,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => isExistingField && true,
+      shouldBeShown: (formData) => true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -111,7 +107,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => isExistingField && true,
+      shouldBeShown: (formData) => true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -161,7 +157,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => isExistingField && true,
+      shouldBeShown: (formData) => true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -184,7 +180,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => isExistingField && true,
+      shouldBeShown: (formData) => true,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -201,7 +197,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: false,
         },
       },
-      shouldBeShown: (formData) => isExistingField && formData.dataType === 'const',
+      shouldBeShown: (formData) => formData.dataType === 'const',
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -217,7 +213,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => isExistingField && formData.dataType === 'string',
+      shouldBeShown: (formData) => formData.dataType === 'string',
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -234,9 +230,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
         },
       },
       shouldBeShown: (formData) =>
-        isExistingField &&
-        ['integer', 'float'].includes(formData.dataType) &&
-        formData.inputType === 'text',
+        ['integer', 'float'].includes(formData.dataType) && formData.inputType === 'text',
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -252,7 +246,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => isExistingField && false,
+      shouldBeShown: (formData) => false,
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -332,7 +326,6 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
         },
       },
       shouldBeShown: (formData) =>
-        isExistingField &&
         ['select', 'radio', 'checkbox'].includes(formData.input) &&
         !formData.dataType?.endsWith('[]'),
       getValue: function (existingValue) {
@@ -350,7 +343,6 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
         },
       },
       shouldBeShown: (formData) =>
-        isExistingField &&
         ['select', 'radio', 'checkbox'].includes(formData.input) &&
         formData.dataType?.endsWith('[]'),
       getValue: function (existingValue) {
@@ -367,7 +359,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => isExistingField && formData.dataType === 'file',
+      shouldBeShown: (formData) => formData.dataType === 'file',
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -383,7 +375,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => isExistingField && formData.dataType === 'file',
+      shouldBeShown: (formData) => formData.dataType === 'file',
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -416,7 +408,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => isExistingField && formData.dataType === 'string',
+      shouldBeShown: (formData) => formData.dataType === 'string',
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -425,10 +417,6 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
   }
 
   const onFormChange = (updatedForm) => {
-    if (!isExistingField) {
-      setNameOfNewField(updatedForm.name)
-      return
-    }
     const updatedField = Object.entries(fieldSpecificationsOfJsonField).reduce(
       (prev, [key, config]) => {
         if (config.valuePath) {
@@ -450,25 +438,41 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
         placeholder="Add a field or Select a field to edit"
         onChange={(e) => {
           setNameOfFieldToEdit(e.value)
+          if (e.value === 'addANewField') {
+            setMode('newField')
+          } else {
+            setMode('editField')
+            setNameOfFieldToEdit(e.value)
+          }
         }}
         className="mb-2"
       />
-      {nameOfFieldToEdit && (
+      {mode === 'newField' && (
         <>
-          <Form
-            fields={fieldSpecificationsOfJsonField}
-            existingFieldsValue={isExistingField ? existingFields[nameOfFieldToEdit] : {}}
-            onFormChange={onFormChange}
-          />
-          {!isExistingField && (
-            <button
-              className="btn btn-sm"
-              onClick={() => setNameOfFieldToEdit(nameOfNewField)}
-            >
-              Add Field
-            </button>
-          )}
+          <EditorComponentHeader fieldNameOverwrite={'Name of New Field'}>
+            <input
+              className="form-control"
+              value={nameOfNewField}
+              onChange={(e) => setNameOfNewField(e.target.value)}
+            />
+          </EditorComponentHeader>
+          <button
+            className="btn btn-sm"
+            onClick={() => {
+              setNameOfFieldToEdit(nameOfNewField)
+              setMode('editField')
+            }}
+          >
+            Add Field
+          </button>
         </>
+      )}
+      {mode === 'editField' && (
+        <Form
+          fields={fieldSpecificationsOfJsonField}
+          existingFieldsValue={existingFields[nameOfFieldToEdit] ?? {}}
+          onFormChange={onFormChange}
+        />
       )}
     </div>
   )
