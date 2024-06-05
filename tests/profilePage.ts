@@ -65,6 +65,8 @@ const aclanthologyUrlInput = Selector('#aclanthology_url')
 const homepageUrlInput = Selector('#homepage_url')
 const yearOfBirthInput = Selector('section').nth(2).find('input')
 const firstHistoryEndInput = Selector('div.history').find('input').withAttribute('placeholder', 'end year').nth(0)
+const messageSelector = Selector('span').withAttribute('class', 'important_message')
+const messagePanelSelector = Selector('#flash-message-container')
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
@@ -767,4 +769,38 @@ test('#1011 remove space in personal links', async (t) => {
         .withAttribute('href', 'https://github.com/xkOpenReview').exists
     )
     .ok()
+})
+test('', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .expect(Selector('h4').withText('Emails').exists)
+    .ok()
+    .click(
+      Selector('div')
+        .withAttribute('class', 'profile-edit-container')
+        .child('section')
+        .nth(3)
+        .find('span.glyphicon')
+    ) // add button
+    .expect(Selector('div.container.emails').child('div.row').count)
+    .eql(2)
+    .typeText(
+      Selector('div.container.emails').child('div.row').nth(1).find('input'),
+      'aaa@alternate.com'
+    )
+    .click(Selector('div.container.emails').find('button.confirm-button'))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('A confirmation email has been sent to aaa@alternate.com with a verification token')
+    .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('aaa@alternate.com has been verified')
+    .click(saveProfileButton)
+    .expect(Selector('span').withText('aaa@alternate.com').exists).ok()
+    .expect(Selector('span').withText('aaa@alternate.com').parent().find('small').withText('Confirmed').exists).ok()
 })
