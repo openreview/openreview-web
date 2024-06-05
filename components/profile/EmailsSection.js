@@ -59,12 +59,12 @@ const EmailsButton = ({
   if (type === 'verify' && !(confirmed || preferred)) {
     return (
         <div ClassName='emails__verify'>
-          <input
+          {/* <input
             type='text'
             onChange={handleVerifyTokenChange}
             placeholder='Enter Verification Token'
             className={`form-control`}
-          />
+          /> */}
           <button type="button" className="btn verify-button" onClick={handleVerify}>
             Verify
           </button>
@@ -163,6 +163,7 @@ const EmailsSection = ({
     const payload = { email: newEmail, token: verificationToken }
     try {
       await api.put('/activatelink', payload, {accessToken})
+      setIsVerifyTextboxVisible(false)
       return promptMessage(`${newEmail} has been verified`)
     } catch (error) {
       return promptError(error.message)
@@ -225,7 +226,21 @@ const EmailsSection = ({
                 handleRemove={() => handleRemoveEmail(emailObj.key)}
               />
             </div>
-            <div className='col-md-3 emails__value'>
+          </div>
+        ))}
+        {emails.map((emailObj) => (
+          <div className="row d-flex" key={emailObj.key}>
+            <div className='col-md-4 emails__value'>
+              { isVerifyTextboxVisible && !emailObj.confirmed && !emailObj.preferred && (
+                <input
+                type='text'
+                onChange={handleVerificationTokenUpdate}
+                placeholder='Enter Verification Token'
+                className={`form-control`}
+              />
+              )}
+            </div>
+            <div className='col-md-1 emails__value'>
               { isVerifyTextboxVisible &&
                 <EmailsButton
                   type="verify"
