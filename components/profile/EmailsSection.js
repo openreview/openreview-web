@@ -1,6 +1,7 @@
 /* globals promptError,promptMessage,$: false */
 
 import { useEffect, useReducer, useRef, useState } from 'react'
+import { useRouter } from 'next/router'
 import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
@@ -19,7 +20,7 @@ const EmailsButton = ({
   const { confirmed, preferred, email, isValid } = emailObj
 
   if (type === 'confirmed') {
-    if (isNewProfile) return null
+    // if (isNewProfile) return null
 
     if (confirmed) {
       return <div className="emails__confirmed-text hint">(Confirmed)</div>
@@ -74,6 +75,7 @@ const EmailsSection = ({
 }) => {
   const [isVerifyTextboxVisible, setIsVerifyTextboxVisible] = useState(false)
   const [verificationToken, setVerificationToken] = useState('')
+  const router = useRouter()
 
   const emailsReducer = (state, action) => {
     if (action.addNewEmail) return [...state, action.data]
@@ -137,9 +139,13 @@ const EmailsSection = ({
     if (profileId) {
       const linkData = { alternate: newEmail, username: profileId }
       try {
-        await api.post('/user/confirm', linkData, { accessToken })
+        if (isNewProfile) {
+          await api.post(`/user/confirm/${router.query.token}`, linkData, { accessToken })
+        } else {
+          await api.post('/user/confirm', linkData, { accessToken })
+        }
         setIsVerifyTextboxVisible(true)
-        return promptMessage(`A confirmation email has been sent to ${newEmail} with a verification token`)
+        return promptMessage(`A confirmation email has been sent to ${newEmail} with a verification token/link`)
       } catch (error) {
         setIsVerifyTextboxVisible(false)
         return promptError(error.message)
@@ -153,7 +159,11 @@ const EmailsSection = ({
     const newEmail = emails?.find((p) => p.key === key)?.email?.toLowerCase()
     const payload = { email: newEmail, token: verificationToken }
     try {
-      await api.put('/activatelink', payload, {accessToken})
+      if (isNewProfile) {
+        await api.put(`/activatelink/${router.query.token}`, payload, {accessToken})
+      } else {
+        await api.put('/activatelink', payload, {accessToken})
+      }
       setIsVerifyTextboxVisible(false)
       return promptMessage(`${newEmail} has been verified`)
     } catch (error) {
