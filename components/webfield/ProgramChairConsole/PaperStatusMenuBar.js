@@ -26,11 +26,11 @@ const PaperStatusMenuBar = ({
     propertiesAllowed: extraPropertiesAllowed,
     customStageInvitations = [],
     additionalMetaReviewFields = [],
-    reviewerName,
+    reviewerName = 'Reviewers',
     seniorAreaChairName,
-    officialReviewName,
-    officialMetaReviewName,
-    areaChairName,
+    officialReviewName = 'Official_Review',
+    officialMetaReviewName = 'Meta_Review',
+    areaChairName = 'Area_Chairs',
     submissionName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
