@@ -6,6 +6,7 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import BasicModal from '../BasicModal'
 import WebFieldContext from '../WebFieldContext'
+import { prettyField } from '../../lib/utils'
 
 const MessageReviewersModal = ({
   tableRowsDisplayed,
@@ -14,8 +15,16 @@ const MessageReviewersModal = ({
   selectedIds,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, venueId, officialReviewName, submissionName, emailReplyTo,
-    messageSubmissionReviewersInvitationId } = useContext(WebFieldContext)
+  const {
+    shortPhrase,
+    venueId,
+    officialReviewName,
+    submissionName,
+    emailReplyTo,
+    messageSubmissionReviewersInvitationId,
+    reviewerName,
+    areaChairName,
+  } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -53,12 +62,14 @@ const MessageReviewersModal = ({
         return api.post(
           '/messages',
           {
-            invitation: messageSubmissionReviewersInvitationId && messageSubmissionReviewersInvitationId.replace('{number}', rowData.number),
+            invitation:
+              messageSubmissionReviewersInvitationId &&
+              messageSubmissionReviewersInvitationId.replace('{number}', rowData.number),
             signature: messageSubmissionReviewersInvitationId && rowData.messageSignature,
             groups: reviewerIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),
-            parentGroup: `${venueId}/${submissionName}${rowData.number}/Reviewers`,
+            parentGroup: `${venueId}/${submissionName}${rowData.number}/${reviewerName}`,
             replyTo: emailReplyTo,
           },
           { accessToken }
@@ -101,10 +112,14 @@ const MessageReviewersModal = ({
     if (!messageOption) return
     setMessage(`${
       messageOption.value === 'missingReviews'
-        ? `This is a reminder to please submit your review for ${shortPhrase}.\n\n`
+        ? `This is a reminder to please submit your ${prettyField(
+            officialReviewName
+          ).toLowerCase()} for ${shortPhrase}.\n\n`
         : ''
-    }Click on the link below to go to the review page:\n\n{{submit_review_link}}
-    \n\nThank you,\n${shortPhrase} Area Chair`)
+    }Click on the link below to go to the ${prettyField(
+      officialReviewName
+    ).toLowerCase()} page:\n\n{{submit_review_link}}
+    \n\nThank you,\n${shortPhrase} ${prettyField(areaChairName)}`)
 
     const recipients = getRecipients(selectedIds)
 
@@ -145,9 +160,15 @@ const MessageReviewersModal = ({
       {error && <div className="alert alert-danger">{error}</div>}
       {currentStep === 1 ? (
         <>
-          <p>{`You may customize the message that will be sent to the reviewers. In the email
+          <p>{`You may customize the message that will be sent to the ${prettyField(
+            reviewerName
+          ).toLowerCase()}. In the email
   body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
-  form where the reviewer can fill out his or her review.`}</p>
+  form where the ${prettyField(
+    reviewerName
+  ).toLowerCase()} can fill out his or her ${prettyField(
+    officialReviewName
+  ).toLowerCase()}.`}</p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
             <input
@@ -173,7 +194,7 @@ const MessageReviewersModal = ({
         <>
           <p>
             A total of <span className="num-reviewers">{totalMessagesCount}</span> reminder
-            emails will be sent to the following reviewers:
+            emails will be sent to the following {prettyField(reviewerName).toLowerCase()}:
           </p>
           <div className="well reviewer-list">
             <List
