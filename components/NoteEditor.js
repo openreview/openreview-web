@@ -358,17 +358,25 @@ const NoteEditor = ({
   const addMissingReaders = (
     readersSelected,
     readersDefinedInInvitation,
-    signatureInputValues
+    signatureInputValues,
+    roleNames
   ) => {
     if (!readersSelected) return undefined
+    const {
+      reviewerName = 'Reviewers',
+      anonReviewerName = 'Reviewer_',
+      areaChairName = 'Area_Chairs',
+      anonAreaChairName = 'Area_Chair_',
+      secondaryAreaChairName = 'Secondary_Area_Chair_',
+    } = roleNames
     if (signatureInputValues?.length && !readersSelected.includes('everyone')) {
       const signatureId = signatureInputValues[0]
-      const anonReviewerIndex = signatureId.indexOf('Reviewer_')
+      const anonReviewerIndex = signatureId.indexOf(anonReviewerName)
       if (anonReviewerIndex > 0) {
         const reviewersSubmittedGroupId = signatureId
           .slice(0, anonReviewerIndex)
-          .concat('Reviewers/Submitted')
-        const reviewersGroupId = signatureId.slice(0, anonReviewerIndex).concat('Reviewers')
+          .concat(`${reviewerName}/Submitted`)
+        const reviewersGroupId = signatureId.slice(0, anonReviewerIndex).concat(reviewerName)
         if (
           // reader does not contain the signature so user won't be able to see the note/edit
           isEmpty(
@@ -395,14 +403,14 @@ const NoteEditor = ({
           }
         }
       } else {
-        const acIndex = signatureId.indexOf('Area_Chair_')
-        const secondaryAcIndex = signatureId.indexOf('Secondary_Area_Chair_')
+        const acIndex = signatureId.indexOf(anonAreaChairName)
+        const secondaryAcIndex = signatureId.indexOf(secondaryAreaChairName)
 
         const acGroupId =
-          acIndex >= 0 ? signatureId.slice(0, acIndex).concat('Area_Chairs') : signatureId
+          acIndex >= 0 ? signatureId.slice(0, acIndex).concat(areaChairName) : signatureId
         const secondaryAcGroupId =
           secondaryAcIndex >= 0
-            ? signatureId.slice(0, secondaryAcIndex).concat('Area_Chairs')
+            ? signatureId.slice(0, secondaryAcIndex).concat(areaChairName)
             : signatureId
 
         const groupToAdd = [acGroupId, secondaryAcGroupId].filter((p) =>
@@ -417,7 +425,7 @@ const NoteEditor = ({
     return readersSelected
   }
 
-  const getNoteReaderValues = () => {
+  const getNoteReaderValues = (roleNames) => {
     if (!invitation.edit.note.readers || Array.isArray(invitation.edit.note.readers)) {
       return undefined
     }
@@ -438,11 +446,12 @@ const NoteEditor = ({
     return addMissingReaders(
       noteEditorData.noteReaderValues,
       invitationNoteReaderValues,
-      signatureInputValues
+      signatureInputValues,
+      roleNames
     )
   }
 
-  const getEditReaderValues = () => {
+  const getEditReaderValues = (roleNames) => {
     if (Array.isArray(invitation.edit.readers)) return undefined
 
     const invitationEditReaderValues =
@@ -454,7 +463,8 @@ const NoteEditor = ({
     return addMissingReaders(
       noteEditorData.editReaderValues,
       invitationEditReaderValues,
-      noteEditorData.editSignatureInputValues
+      noteEditorData.editSignatureInputValues,
+      roleNames
     )
   }
 
@@ -521,14 +531,31 @@ const NoteEditor = ({
         }
       }
 
+      const domainGroup = await api.get('/groups', { id: invitation.domain }, { accessToken })
+      const {
+        reviewers_name: { value: reviewerName } = {},
+        reviewers_anon_name: { value: anonReviewerName } = {},
+        area_chairs_name: { value: areaChairName } = {},
+        area_chairs_anon_name: { value: anonAreaChairName } = {},
+        secondary_area_chairs_name: { value: secondaryAreaChairName } = {},
+      } = domainGroup?.groups?.[0]?.content ?? {}
+
+      const roleNames = {
+        reviewerName,
+        anonReviewerName,
+        areaChairName,
+        anonAreaChairName,
+        secondaryAreaChairName,
+      }
+
       const formData = {
         ...noteEditorData,
         ...(note?.id &&
           Object.entries(noteEditorData)
             .filter(([key, value]) => value === undefined)
             .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {})),
-        noteReaderValues: getNoteReaderValues(),
-        editReaderValues: getEditReaderValues(),
+        noteReaderValues: getNoteReaderValues(roleNames),
+        editReaderValues: getEditReaderValues(roleNames),
         editWriterValues: getEditWriterValues(),
         ...(replyToNote && { replyto: replyToNote.id }),
         editContent: editContentData,

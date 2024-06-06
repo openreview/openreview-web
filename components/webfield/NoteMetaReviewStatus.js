@@ -5,7 +5,7 @@ import { useContext, useEffect, useState } from 'react'
 import WebFieldContext from '../WebFieldContext'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { inflect, prettyField } from '../../lib/utils'
+import { inflect, pluralizeString, prettyField } from '../../lib/utils'
 import { getNoteContentValues } from '../../lib/forum-utils'
 import { getProfileLink } from '../../lib/webfield-utils'
 
@@ -202,16 +202,22 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
     'edges/browse?',
     `edges/browse?start=staticList,type:head,ids:${note.id}&`
   )
+  const {
+    officialMetaReviewName,
+    areaChairName,
+    secondaryAreaChairName,
+    seniorAreaChairName,
+  } = useContext(WebFieldContext)
 
   return (
     <div className="areachair-progress">
       <h4 className="title">{`${numMetaReviewsDone} of ${areaChairs.length} ${inflect(
         areaChairs.length,
-        'Meta Review',
-        'Meta Reviews'
+        prettyField(officialMetaReviewName),
+        pluralizeString(prettyField(officialMetaReviewName))
       )} Submitted`}</h4>
 
-      <strong>Area Chair:</strong>
+      <strong>{prettyField(areaChairName)}:</strong>
       <div>
         {areaChairs.length !== 0 &&
           areaChairs.map((areaChair) => {
@@ -258,7 +264,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Read Meta Review
+                      Read {prettyField(officialMetaReviewName)}
                     </a>
                   </div>
                 )}
@@ -285,7 +291,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
 
       {secondaryAreaChairs?.length > 0 && (
         <div>
-          <strong>Secondary Area Chair:</strong>
+          <strong>{prettyField(secondaryAreaChairName)}:</strong>
           <div>
             {secondaryAreaChairs.map((areaChair) => (
               <div key={areaChair.anonymousId} className="meta-review-info">
@@ -309,7 +315,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
 
       {seniorAreaChairs?.length > 0 && (
         <div className="senior-areachair">
-          <strong>Senior Area Chair:</strong>
+          <strong>{prettyField(seniorAreaChairName)}:</strong>
           {seniorAreaChairs.map((seniorAreaChair, index) => (
             <div key={index} className="meta-review-info">
               <div className="seniorareachair-contact">
@@ -336,7 +342,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
             target="_blank"
             rel="noreferrer"
           >
-            Edit Area Chair Assignments
+            Edit {prettyField(areaChairName)} Assignments
           </a>
         </div>
       )}
