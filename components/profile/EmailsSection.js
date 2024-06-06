@@ -14,7 +14,6 @@ const EmailsButton = ({
   handleConfirm,
   handleMakePreferred,
   handleVerify,
-  handleVerifyTokenChange,
   isNewProfile,
 }) => {
   const { confirmed, preferred, email, isValid } = emailObj
@@ -58,17 +57,9 @@ const EmailsButton = ({
 
   if (type === 'verify' && !(confirmed || preferred)) {
     return (
-        <div ClassName='emails__verify'>
-          {/* <input
-            type='text'
-            onChange={handleVerifyTokenChange}
-            placeholder='Enter Verification Token'
-            className={`form-control`}
-          /> */}
-          <button type="button" className="btn verify-button" onClick={handleVerify}>
-            Verify
-          </button>
-        </div>
+      <button type="button" className="btn verify-button" onClick={handleVerify}>
+        Verify
+      </button>
     )
   }
   return null
@@ -206,6 +197,28 @@ const EmailsSection = ({
                 onChange={(e) => handleUpdateEmail(e.target.value.trim(), emailObj.key)}
               />
             </div>
+            { isVerifyTextboxVisible &&
+              <div className='col-md-2 emails__value'>
+                { !emailObj.confirmed && !emailObj.preferred && (
+                  <input
+                  type='text'
+                  onChange={handleVerificationTokenUpdate}
+                  placeholder='Enter Verification Token'
+                  className={`form-control`}
+                />
+                )}
+              </div>
+            }
+            { isVerifyTextboxVisible &&
+              <div className='col-md-1 emails__value'>
+                  <EmailsButton
+                    type="verify"
+                    emailObj={emailObj}
+                    handleVerify={() => handleVerifyEmail(emailObj.key)}
+                    handleVerifyTokenChange={handleVerificationTokenUpdate}
+                  />
+              </div>
+            }
             { !isVerifyTextboxVisible &&
               <div className="col-md-1 emails__value">
                 <EmailsButton
@@ -227,26 +240,6 @@ const EmailsSection = ({
                 emailObj={emailObj}
                 handleRemove={() => handleRemoveEmail(emailObj.key)}
               />
-            </div>
-            <div className='col-md-2 emails__value'>
-              { isVerifyTextboxVisible && !emailObj.confirmed && !emailObj.preferred && (
-                <input
-                type='text'
-                onChange={handleVerificationTokenUpdate}
-                placeholder='Enter Verification Token'
-                className={`form-control`}
-              />
-              )}
-            </div>
-            <div className='col-md-1 emails__value'>
-              { isVerifyTextboxVisible &&
-                <EmailsButton
-                  type="verify"
-                  emailObj={emailObj}
-                  handleVerify={() => handleVerifyEmail(emailObj.key)}
-                  handleVerifyTokenChange={handleVerificationTokenUpdate}
-                />
-              }
             </div>
           </div>
         ))}
