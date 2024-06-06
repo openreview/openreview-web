@@ -20,11 +20,14 @@ import {
   prettyList,
   inflect,
   parseNumberField,
+  prettyField,
+  pluralizeString,
 } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
+import { getProfileLink } from '../../lib/webfield-utils'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -62,7 +65,9 @@ const AssignedPaperRow = ({
 }) => {
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
-    `[Area Chair Console](/group?id=${venueId}/${areaChairName}${activeTabId})`
+    `[${prettyField(
+      areaChairName
+    )} Console](/group?id=${venueId}/${areaChairName}${activeTabId})`
   )
   return (
     <tr>
@@ -112,7 +117,9 @@ const AssignedPaperRow = ({
 
 const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
   const referrer = encodeURIComponent(
-    `[Area Chair Console](/group?id=${venueId}/${areaChairName}#areachair-tasks)`
+    `[${prettyField(
+      areaChairName
+    )} Console](/group?id=${venueId}/${areaChairName}#${areaChairName}-tasks)`
   )
 
   return (
@@ -140,8 +147,8 @@ const AreaChairConsole = ({ appContext }) => {
     reviewRatingName,
     reviewConfidenceName,
     officialMetaReviewName,
-    reviewerName = 'Reviewers',
-    anonReviewerName = 'Reviewer_',
+    reviewerName,
+    anonReviewerName,
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
     shortPhrase,
@@ -163,14 +170,16 @@ const AreaChairConsole = ({ appContext }) => {
   const { setBannerContent } = appContext
   const [acConsoleData, setAcConsoleData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
-  const [activeTabId, setActiveTabId] = useState(window.location.hash || '#assigned-papers')
+  const [activeTabId, setActiveTabId] = useState(
+    window.location.hash || `#assigned-${pluralizeString(submissionName)}`
+  )
 
   const edgeBrowserUrl = proposedAssignmentTitle
     ? edgeBrowserProposedUrl
     : edgeBrowserDeployedUrl
   const headerInstructions = showEdgeBrowserUrl
-    ? `${header.instructions}<p><strong>Reviewer Assignment Browser: </strong><a id="edge_browser_url" href="${edgeBrowserUrl}"" target="_blank" rel="nofollow">Modify Reviewer Assignments</a></p>`
-    : header.instructions
+    ? `${header?.instructions}<p><strong>Reviewer Assignment Browser: </strong><a id="edge_browser_url" href="${edgeBrowserUrl}"" target="_blank" rel="nofollow">Modify Reviewer Assignments</a></p>`
+    : header?.instructions
 
   const getReviewerName = (reviewerProfile) => {
     const name =
@@ -181,16 +190,18 @@ const AreaChairConsole = ({ appContext }) => {
 
   const getSACLinkText = () => {
     if (!acConsoleData.sacProfiles?.length) return ''
-    const sacText = `Your assigned Senior Area ${inflect(
+    const sacName = prettyField(seniorAreaChairsId?.split('/')?.pop())
+    const singluarSACName = sacName.endsWith('s') ? sacName.slice(0, -1) : sacName
+    const sacText = `Your assigned ${inflect(
       acConsoleData.sacProfiles.length,
-      'Chair is',
-      'Chairs are'
+      `${singluarSACName} is`,
+      `${singluarSACName}s are`
     )}`
     const sacProfileLinks = acConsoleData.sacProfiles.map(
       (sacProfile) =>
-        `<a href='https://openreview.net/profile?id=${
-          sacProfile.id
-        }' target='_blank'>${prettyId(sacProfile.id)}</a> (${sacProfile.email})`
+        `<a href="${getProfileLink(sacProfile.id)}" >${prettyId(sacProfile.id)}</a> (${
+          sacProfile.email
+        })`
     )
     return `<p class="dark">${sacText} ${prettyList(
       sacProfileLinks,
@@ -218,12 +229,17 @@ const AreaChairConsole = ({ appContext }) => {
         ? allGroups.filter((p) => p.id.endsWith(`/${secondaryAreaChairName}`))
         : []
 
-      const anonymousAreaChairGroups = allGroups.filter((p) => p.id.includes('/Area_Chair_'))
+      const singularName = areaChairName.endsWith('s')
+        ? areaChairName.slice(0, -1)
+        : areaChairName
+      const anonymousAreaChairGroups = allGroups.filter((p) =>
+        p.id.includes(`/${singularName}_`)
+      )
       const anonymousAreaChairIdByNumber = {}
       const areaChairPaperNums = areaChairGroups.flatMap((p) => {
         const num = getNumberFromGroup(p.id, submissionName)
         const anonymousAreaChairGroup = anonymousAreaChairGroups.find((q) =>
-          q.id.startsWith(`${venueId}/${submissionName}${num}/Area_Chair_`)
+          q.id.startsWith(`${venueId}/${submissionName}${num}/${singularName}_`)
         )
         if (anonymousAreaChairGroup) {
           anonymousAreaChairIdByNumber[num] = anonymousAreaChairGroup.id
@@ -518,8 +534,8 @@ const AreaChairConsole = ({ appContext }) => {
     if (acConsoleData.tableRowsAll?.length === 0)
       return (
         <p className="empty-message">
-          No assigned papers.Check back later or contact info@openreview.net if you believe
-          this to be an error.
+          No assigned {submissionName.toLowerCase()}. Check back later or contact
+          info@openreview.net if you believe this to be an error.
         </p>
       )
     if (acConsoleData.tableRows?.length === 0)
@@ -538,8 +554,15 @@ const AreaChairConsole = ({ appContext }) => {
             reviewRatingName={reviewRatingName}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
+            reviewerName={reviewerName}
+            officialReviewName={officialReviewName}
+            submissionName={submissionName}
+            officialMetaReviewName={officialMetaReviewName}
+            areaChairName={areaChairName}
           />
-          <p className="empty-message">No assigned papers matching search criteria.</p>
+          <p className="empty-message">
+            No assigned {submissionName.toLowerCase()} matching search criteria.
+          </p>
         </div>
       )
     return (
@@ -557,6 +580,11 @@ const AreaChairConsole = ({ appContext }) => {
           reviewRatingName={reviewRatingName}
           metaReviewRecommendationName={metaReviewRecommendationName}
           additionalMetaReviewFields={additionalMetaReviewFields}
+          reviewerName={reviewerName}
+          officialReviewName={officialReviewName}
+          submissionName={submissionName}
+          officialMetaReviewName={officialMetaReviewName}
+          areaChairName={areaChairName}
         />
         <Table
           className="console-table table-striped areachair-console-table"
@@ -573,9 +601,17 @@ const AreaChairConsole = ({ appContext }) => {
               width: '35px',
             },
             { id: 'number', content: '#', width: '55px' },
-            { id: 'summary', content: 'Paper Summary', width: '34%' },
-            { id: 'reviewProgress', content: 'Review Progress', width: '34%' },
-            { id: 'metaReviewStatus', content: 'Meta Review Status', width: 'auto' },
+            { id: 'summary', content: `${submissionName} Summary`, width: '34%' },
+            {
+              id: 'reviewProgress',
+              content: `${prettyField(officialReviewName)} Progress`,
+              width: '34%',
+            },
+            {
+              id: 'metaReviewStatus',
+              content: `${prettyField(officialMetaReviewName)} Status`,
+              width: 'auto',
+            },
           ]}
         >
           {acConsoleData.tableRows?.map((row) => (
@@ -601,12 +637,12 @@ const AreaChairConsole = ({ appContext }) => {
   }
 
   const renderTripletACTable = () => {
-    if (!acConsoleData.tableRows) return <LoadingSpinner />
-    if (acConsoleData.tableRows?.length === 0)
+    if (!acConsoleData.tripletACtableRows) return <LoadingSpinner />
+    if (acConsoleData.tripletACtableRows?.length === 0)
       return (
         <p className="empty-message">
-          No assigned papers.Check back later or contact info@openreview.net if you believe
-          this to be an error.
+          No assigned {submissionName.toLowerCase()}.Check back later or contact
+          info@openreview.net if you believe this to be an error.
         </p>
       )
     return (
@@ -616,8 +652,16 @@ const AreaChairConsole = ({ appContext }) => {
           headings={[
             { id: 'number', content: '#', width: '55px' },
             { id: 'summary', content: 'Paper Summary', width: '34%' },
-            { id: 'reviewProgress', content: 'Review Progress', width: '34%' },
-            { id: 'metaReviewStatus', content: 'Meta Review Status', width: 'auto' },
+            {
+              id: 'reviewProgress',
+              content: `${prettyField(officialReviewName)} Progress`,
+              width: '34%',
+            },
+            {
+              id: 'metaReviewStatus',
+              content: `${prettyField(officialMetaReviewName)} Status`,
+              width: 'auto',
+            },
           ]}
         >
           {acConsoleData.tripletACtableRows?.map((row) => (
@@ -681,6 +725,19 @@ const AreaChairConsole = ({ appContext }) => {
     }
   }, [acConsoleData.notes])
 
+  useEffect(() => {
+    const validTabIds = [
+      `#assigned-${pluralizeString(submissionName)}`,
+      ...(secondaryAreaChairName ? [`#${secondaryAreaChairName}-assignments`] : []),
+      `#${areaChairName}-tasks`,
+    ]
+    if (!validTabIds.includes(activeTabId)) {
+      setActiveTabId(`#assigned-${pluralizeString(submissionName)}`)
+      return
+    }
+    router.replace(activeTabId)
+  }, [activeTabId])
+
   const missingConfig = Object.entries({
     header,
     group,
@@ -695,13 +752,15 @@ const AreaChairConsole = ({ appContext }) => {
     officialMetaReviewName,
     shortPhrase,
     enableQuerySearch,
+    reviewerName,
+    anonReviewerName,
   })
     .filter(([key, value]) => value === undefined)
     .map((p) => p[0])
   if (missingConfig.length > 0) {
-    const errorMessage = `AC Console is missing required properties: ${missingConfig.join(
-      ', '
-    )}`
+    const errorMessage = `${
+      areaChairName ? `${prettyField(areaChairName)} ` : ''
+    }Console is missing required properties: ${missingConfig.join(', ')}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
 
@@ -715,37 +774,46 @@ const AreaChairConsole = ({ appContext }) => {
       <Tabs>
         <TabList>
           <Tab
-            id="assigned-papers"
-            active={activeTabId === '#assigned-papers' ? true : undefined}
-            onClick={() => setActiveTabId('#assigned-papers')}
+            id={`assigned-${pluralizeString(submissionName)}`}
+            active={
+              activeTabId === `#assigned-${pluralizeString(submissionName)}` ? true : undefined
+            }
+            onClick={() => setActiveTabId(`#assigned-${pluralizeString(submissionName)}`)}
           >
-            Assigned Papers
+            Assigned {pluralizeString(submissionName)}
           </Tab>
           {secondaryAreaChairName && (
             <Tab
-              id="triplet-ac-assignments"
-              active={activeTabId === '#triplet-ac-assignments' ? true : undefined}
-              onClick={() => setActiveTabId('#triplet-ac-assignments')}
+              id={`${secondaryAreaChairName}-assignments`}
+              active={
+                activeTabId === `#${secondaryAreaChairName}-assignments` ? true : undefined
+              }
+              onClick={() => setActiveTabId(`#${secondaryAreaChairName}-assignments`)}
             >
-              Secondary AC Assignments
+              {prettyField(secondaryAreaChairName)} Assignments
             </Tab>
           )}
           <Tab
-            id="areachair-tasks"
-            active={activeTabId === '#areachair-tasks' ? true : undefined}
-            onClick={() => setActiveTabId('#areachair-tasks')}
+            id={`${areaChairName}-tasks`}
+            active={activeTabId === `#${areaChairName}-tasks` ? true : undefined}
+            onClick={() => setActiveTabId(`#${areaChairName}-tasks`)}
           >
-            Area Chair Tasks
+            {prettyField(areaChairName)} Tasks
           </Tab>
         </TabList>
 
         <TabPanels>
-          <TabPanel id="assigned-papers">{renderTable()}</TabPanel>
+          <TabPanel id={`assigned-${pluralizeString(submissionName)}`}>
+            {activeTabId === `#assigned-${pluralizeString(submissionName)}` && renderTable()}
+          </TabPanel>
           {secondaryAreaChairName && (
-            <TabPanel id="triplet-ac-assignments">{renderTripletACTable()}</TabPanel>
+            <TabPanel id={`${secondaryAreaChairName}-assignments`}>
+              {activeTabId === `#${secondaryAreaChairName}-assignments` &&
+                renderTripletACTable()}
+            </TabPanel>
           )}
-          <TabPanel id="areachair-tasks">
-            {activeTabId === '#areachair-tasks' && (
+          <TabPanel id={`${areaChairName}-tasks`}>
+            {activeTabId === `#${areaChairName}-tasks` && (
               <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />
             )}
           </TabPanel>
