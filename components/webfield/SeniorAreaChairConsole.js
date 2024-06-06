@@ -40,7 +40,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     reviewRatingName,
     reviewConfidenceName,
     officialReviewName,
-    officialMetaReviewName,
+    officialMetaReviewName = 'Meta_Review',
     decisionName = 'Decision',
     preliminaryDecisionName,
     metaReviewRecommendationName = 'recommendation',

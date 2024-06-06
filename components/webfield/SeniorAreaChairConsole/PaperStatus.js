@@ -104,7 +104,13 @@ const PaperStatus = ({ sacConsoleData }) => {
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(sacConsoleData.notes?.length ?? 0)
-  const { reviewRatingName, submissionName, officialReviewName } = useContext(WebFieldContext)
+  const {
+    reviewRatingName,
+    submissionName,
+    officialReviewName,
+    areaChairName = 'Area_Chairs',
+    officialMetaReviewName = 'Meta_Review',
+  } = useContext(WebFieldContext)
   const pageSize = 25
 
   useEffect(() => {
