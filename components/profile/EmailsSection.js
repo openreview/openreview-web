@@ -103,7 +103,7 @@ const EmailsSection = ({
     }
     if (action.setVerified) {
       return state.map((email) => {
-        const emailCopy = { ...email, preferred: false }
+        const emailCopy = { ...email }
         if (email.key === action.data.key) emailCopy.verified = action.setVerified
         return emailCopy
       })
@@ -177,7 +177,7 @@ const EmailsSection = ({
         await api.put('/activatelink', payload, {accessToken})
       }
       setEmails({ setVisible: true, data: { key, visibleValue: false} })
-      setEmails({setVerified: true, data: { key }})
+      setEmails({ setVerified: true, data: { key }})
       return promptMessage(`${newEmail} has been verified`)
     } catch (error) {
       return promptError(error.message)
