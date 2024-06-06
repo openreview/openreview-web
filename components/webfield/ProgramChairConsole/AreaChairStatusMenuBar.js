@@ -21,7 +21,7 @@ const MessageAreaChairsModal = ({
     emailReplyTo,
     submissionVenueId,
     messageAreaChairsInvitationId,
-    areaChairName,
+    areaChairName = 'Area_Chairs',
   } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
@@ -190,10 +190,10 @@ const AreaChairStatusMenuBar = ({
     areaChairStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
-    seniorAreaChairName,
-    areaChairName,
+    seniorAreaChairName = 'Senior_Area_Chairs',
+    areaChairName = 'Area_Chairs',
     officialReviewName,
-    officialMetaReviewName,
+    officialMetaReviewName = 'Meta_Review',
     submissionName,
     reviewerName,
   } = useContext(WebFieldContext)

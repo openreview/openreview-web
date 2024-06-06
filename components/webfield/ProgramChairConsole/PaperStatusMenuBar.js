@@ -27,7 +27,7 @@ const PaperStatusMenuBar = ({
     customStageInvitations = [],
     additionalMetaReviewFields = [],
     reviewerName,
-    seniorAreaChairName,
+    seniorAreaChairName = 'Senior_Area_Chairs',
     officialReviewName,
     officialMetaReviewName = 'Meta_Review',
     areaChairName = 'Area_Chairs',
