@@ -203,10 +203,10 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
     `edges/browse?start=staticList,type:head,ids:${note.id}&`
   )
   const {
-    officialMetaReviewName,
-    areaChairName,
+    officialMetaReviewName = 'Meta_Review',
+    areaChairName = 'Area_Chairs',
     secondaryAreaChairName,
-    seniorAreaChairName,
+    seniorAreaChairName = 'Senior_Area_Chairs',
   } = useContext(WebFieldContext)
 
   return (
