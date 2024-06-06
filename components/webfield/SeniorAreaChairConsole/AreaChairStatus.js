@@ -98,7 +98,7 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
 const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
-  const { metaReviewRecommendationName } = useContext(WebFieldContext)
+  const { metaReviewRecommendationName = 'recommendation' } = useContext(WebFieldContext)
 
   return (
     <div className="areachair-progress">
