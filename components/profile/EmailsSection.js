@@ -15,9 +15,8 @@ const EmailsButton = ({
   handleConfirm,
   handleMakePreferred,
   handleVerify,
-  isNewProfile,
 }) => {
-  const { confirmed, preferred, email, isValid } = emailObj
+  const { confirmed, preferred, email, isValid, visible} = emailObj
 
   if (type === 'confirmed') {
     // if (isNewProfile) return null
@@ -25,7 +24,7 @@ const EmailsButton = ({
     if (confirmed) {
       return <div className="emails__confirmed-text hint">(Confirmed)</div>
     }
-    if (email && isValid) {
+    if (!confirmed && email && isValid) {
       return (
         <button type="button" className="btn confirm-button" onClick={handleConfirm}>
           Confirm
@@ -56,7 +55,7 @@ const EmailsButton = ({
     }
   }
 
-  if (type === 'verify' && !(confirmed || preferred)) {
+  if (type === 'verify' && !(confirmed || preferred) && visible) {
     return (
       <button type="button" className="btn verify-button" onClick={handleVerify}>
         Verify
@@ -73,7 +72,6 @@ const EmailsSection = ({
   institutionDomains,
   isNewProfile,
 }) => {
-  const [isVerifyTextboxVisible, setIsVerifyTextboxVisible] = useState(false)
   const [verificationToken, setVerificationToken] = useState('')
   const router = useRouter()
 
@@ -93,6 +91,20 @@ const EmailsSection = ({
       return state.map((email) => {
         const emailCopy = { ...email, preferred: false }
         if (email.key === action.data.key) emailCopy.preferred = true
+        return emailCopy
+      })
+    }
+    if (action.setVisible) {
+      return state.map((email) => {
+        const emailCopy = { ...email }
+        if (email.key === action.data.key) emailCopy.visible = action.data.visibleValue
+        return emailCopy
+      })
+    }
+    if (action.setVerified) {
+      return state.map((email) => {
+        const emailCopy = { ...email, preferred: false }
+        if (email.key === action.data.key) emailCopy.verified = action.setVerified
         return emailCopy
       })
     }
@@ -124,7 +136,7 @@ const EmailsSection = ({
 
   const handleRemoveEmail = (key) => {
     setEmails({ removeEmail: true, data: { key } })
-    setIsVerifyTextboxVisible(false)
+    setEmails({ setVisible: true, data: { key, visibleValue: false } })
   }
 
   const handleMakeEmailPreferred = (key) => {
@@ -144,10 +156,10 @@ const EmailsSection = ({
         } else {
           await api.post('/user/confirm', linkData, { accessToken })
         }
-        setIsVerifyTextboxVisible(true)
+        setEmails({ setVisible: true, data: { key, visibleValue: true} })
         return promptMessage(`A confirmation email has been sent to ${newEmail} with a verification token/link`)
       } catch (error) {
-        setIsVerifyTextboxVisible(false)
+        setEmails({ setVisible: true, data: { key, visibleValue: false} })
         return promptError(error.message)
       }
     } else {
@@ -164,7 +176,8 @@ const EmailsSection = ({
       } else {
         await api.put('/activatelink', payload, {accessToken})
       }
-      setIsVerifyTextboxVisible(false)
+      setEmails({ setVisible: true, data: { key, visibleValue: false} })
+      setEmails({setVerified: true, data: { key }})
       return promptMessage(`${newEmail} has been verified`)
     } catch (error) {
       return promptError(error.message)
@@ -207,19 +220,17 @@ const EmailsSection = ({
                 onChange={(e) => handleUpdateEmail(e.target.value.trim(), emailObj.key)}
               />
             </div>
-            { isVerifyTextboxVisible &&
+            { emailObj.visible && !emailObj.confirmed && !emailObj.preferred && (
               <div className='col-md-2 emails__value'>
-                { !emailObj.confirmed && !emailObj.preferred && (
                   <input
                   type='text'
                   onChange={handleVerificationTokenUpdate}
                   placeholder='Enter Verification Token'
                   className={`form-control`}
                 />
-                )}
               </div>
-            }
-            { isVerifyTextboxVisible &&
+            )}
+            { emailObj.visible &&
               <div className='col-md-1 emails__value'>
                   <EmailsButton
                     type="verify"
@@ -229,7 +240,7 @@ const EmailsSection = ({
                   />
               </div>
             }
-            { !isVerifyTextboxVisible &&
+            { !(emailObj.verified && !emailObj.confirmed) && !emailObj.visible  &&
               <div className="col-md-1 emails__value">
                 <EmailsButton
                   type="confirmed"
@@ -245,11 +256,13 @@ const EmailsSection = ({
                 emailObj={emailObj}
                 handleMakePreferred={() => handleMakeEmailPreferred(emailObj.key)}
               />
-              <EmailsButton
-                type="remove"
-                emailObj={emailObj}
-                handleRemove={() => handleRemoveEmail(emailObj.key)}
-              />
+              { !(emailObj.verified && !emailObj.confirmed) &&
+                <EmailsButton
+                  type="remove"
+                  emailObj={emailObj}
+                  handleRemove={() => handleRemoveEmail(emailObj.key)}
+                />
+              }
             </div>
           </div>
         ))}
