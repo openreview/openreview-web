@@ -72,7 +72,6 @@ const EmailsSection = ({
   institutionDomains,
   isNewProfile,
 }) => {
-  const [verificationToken, setVerificationToken] = useState('')
   const router = useRouter()
 
   const emailsReducer = (state, action) => {
@@ -105,6 +104,13 @@ const EmailsSection = ({
       return state.map((email) => {
         const emailCopy = { ...email }
         if (email.key === action.data.key) emailCopy.verified = action.setVerified
+        return emailCopy
+      })
+    }
+    if (action.setVerificationToken) {
+      return state.map((email) => {
+        const emailCopy = { ...email }
+        emailCopy.verificationToken = email.key === action.data.key? action.data.verificationToken : ''
         return emailCopy
       })
     }
@@ -157,7 +163,7 @@ const EmailsSection = ({
           await api.post('/user/confirm', linkData, { accessToken })
         }
         setEmails({ setVisible: true, data: { key, visibleValue: true} })
-        return promptMessage(`A confirmation email has been sent to ${newEmail} with a verification token/link`)
+        return promptMessage(`A confirmation email has been sent to ${newEmail} with confirmation instructions`)
       } catch (error) {
         setEmails({ setVisible: true, data: { key, visibleValue: false} })
         return promptError(error.message)
@@ -169,7 +175,8 @@ const EmailsSection = ({
 
   const handleVerifyEmail = async (key) => {
     const newEmail = emails?.find((p) => p.key === key)?.email?.toLowerCase()
-    const payload = { email: newEmail, token: verificationToken }
+    const token = emails?.find((p) => p.key === key)?.verificationToken ?? ''
+    const payload = { email: newEmail, token }
     try {
       if (isNewProfile) {
         await api.put(`/activatelink/${router.query.token}`, payload, {accessToken})
@@ -185,8 +192,8 @@ const EmailsSection = ({
 
   }
 
-  const handleVerificationTokenUpdate = (event) => {
-    setVerificationToken(event.target.value)
+  const handleVerificationTokenUpdate = (key, value) => {
+    setEmails({ setVerificationToken: true, data: {key, verificationToken: value}})
   }
 
   useEffect(() => {
@@ -224,7 +231,7 @@ const EmailsSection = ({
               <div className='col-md-2 emails__value'>
                   <input
                   type='text'
-                  onChange={handleVerificationTokenUpdate}
+                  onChange={(e) => handleVerificationTokenUpdate(emailObj.key, e.target.value)}
                   placeholder='Enter Verification Token'
                   className={`form-control`}
                 />
@@ -236,7 +243,6 @@ const EmailsSection = ({
                     type="verify"
                     emailObj={emailObj}
                     handleVerify={() => handleVerifyEmail(emailObj.key)}
-                    handleVerifyTokenChange={handleVerificationTokenUpdate}
                   />
               </div>
             }
