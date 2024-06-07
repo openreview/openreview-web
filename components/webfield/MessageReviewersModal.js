@@ -22,7 +22,7 @@ const MessageReviewersModal = ({
     submissionName,
     emailReplyTo,
     messageSubmissionReviewersInvitationId,
-    reviewerName,
+    reviewerName = 'Reviewers',
     areaChairName,
   } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
