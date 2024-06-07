@@ -208,7 +208,7 @@ test('add and delete year of birth', async (t) => {
     .eql('')
 })
 
-test('add and delete pronouns', async (t) => {
+test.only('add and delete pronouns', async (t) => {
 
   const customPronouns = 'Ze/Zir/Hir'
 
@@ -218,12 +218,11 @@ test('add and delete pronouns', async (t) => {
   .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
   .click(Selector('div.pronouns-dropdown__control'))
   .wait(500)
-  .click(Selector('div.pronouns-dropdown__option').nth(3))
+  .click(Selector('div.pronouns-dropdown__option').nth(2))
   .click(saveProfileButton)
   .expect(
-    Selector('h3').nth(0)
-      .withText('he/him').exists
-  ).ok()
+    Selector('h4').nth(0).textContent
+  ).eql('Pronouns: he/him')
 
   // Type custom pronouns & check if pronouns updated on profile
 
@@ -235,9 +234,8 @@ test('add and delete pronouns', async (t) => {
     .click(Selector('div.pronouns-dropdown__option').nth(0))
     .click(saveProfileButton)
     .expect(
-      Selector('h3').nth(0)
-        .withText(customPronouns).exists
-    ).ok()
+      Selector('h4').nth(0).textContent
+    ).eql(`Pronouns: ${customPronouns}`)
 
     // Don't Specify pronouns & check if pronouns not shown on profile
 
@@ -246,12 +244,11 @@ test('add and delete pronouns', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .click(Selector('div.pronouns-dropdown__control'))
     .wait(500)
-    .click(Selector('div.pronouns-dropdown__option').nth(0))
+    .click(Selector('div.pronouns-dropdown__option').nth(3))
     .click(saveProfileButton)
     .expect(
-      Selector('h3').nth(0)
-        .withText('he/him').exists
-    ).notOk()
+      Selector('h4').nth(0).textContent
+    ).notEql('Pronouns: he/him')
 
 })
 

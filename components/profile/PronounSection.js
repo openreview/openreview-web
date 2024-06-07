@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react'
 import { CreatableDropdown } from '../Dropdown'
 
 const PronounSection = ({ profilePronouns, updatePronoun }) => {
-  const defaultPronounOptions = ["Don't Specify", 'they/them', 'she/her', 'he/him']
+  const defaultPronounOptions = ['they/them', 'she/her', 'he/him', 'Not Specified']
   const pronounOptions = defaultPronounOptions.map((p) => ({ value: p, label: p }))
   const [pronouns, setPronoun] = useState(profilePronouns)
 
   useEffect(() => {
     updatePronoun(pronouns)
   }, [pronouns])
-  
+
   return (
     <div className="pronouns" translate="no">
       <CreatableDropdown

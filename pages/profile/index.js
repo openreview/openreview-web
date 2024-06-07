@@ -138,7 +138,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       <header className="clearfix">
         <div className="title-container">
           <h1>{profile.preferredName}</h1>
-          {profile.pronouns !== "Don't Specify" && (<h4 className='pronouns'>Pronouns: {profile.pronouns}</h4>)}
+          {profile.pronouns !== 'Not Specified' && (<h4 className='pronouns'>Pronouns: {profile.pronouns}</h4>)}
           <h3>{profile.currentInstitution}</h3>
           <ul className="list-inline">
             <li><Icon name="calendar" extraClasses="pr-1" /> Joined {profile.joined}</li>
