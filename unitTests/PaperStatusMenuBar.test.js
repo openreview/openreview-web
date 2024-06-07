@@ -16,7 +16,11 @@ beforeEach(() => {
 
 describe('PaperStatusMenuBar', () => {
   test('display base menu bar', () => {
-    const providerProps = { value: {} }
+    const providerProps = { value: {
+      reviewerName: 'Reviewers',
+      anonReviewerName: 'Reviewer_',
+      officialReviewName: 'Offical_Review'
+    } }
     const componentProps = { reviewRatingName: 'rating' }
     renderWithWebFieldContext(<PaperStatusMenuBar {...componentProps} />, providerProps)
     expect(screen.getByText('Base Menu Bar')).toBeInTheDocument()
@@ -25,6 +29,9 @@ describe('PaperStatusMenuBar', () => {
   test('add propertiesAllowd to query search filters', () => {
     const providerProps = {
       value: {
+      reviewerName: 'Reviewers',
+      anonReviewerName: 'Reviewer_',
+      officialReviewName: 'Offical_Review',
         propertiesAllowed: {
           testProperty: ['note.content.testProperty.value'],
         },
@@ -40,6 +47,9 @@ describe('PaperStatusMenuBar', () => {
   test('support function in propertiesAllowd', () => {
     const providerProps = {
       value: {
+        reviewerName: 'Reviewers',
+        anonReviewerName: 'Reviewer_',
+        officialReviewName: 'Offical_Review',
         propertiesAllowed: {
           testProperty: ['note.content.testProperty.value'],
           hasMetaReview: `
@@ -124,6 +134,9 @@ return officialReviews.length;
     console.error = jest.fn()
     const providerProps = {
       value: {
+      reviewerName: 'Reviewers',
+      anonReviewerName: 'Reviewer_',
+      officialReviewName: 'Offical_Review',
         propertiesAllowed: {
           testProperty: ['note.content.testProperty.value'],
           hasMetaReview: `

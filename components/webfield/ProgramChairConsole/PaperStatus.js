@@ -243,8 +243,14 @@ const PaperRow = ({
 const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField }) => {
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
-  const { venueId, areaChairsId, assignmentUrls, reviewRatingName } =
-    useContext(WebFieldContext)
+  const {
+    venueId,
+    areaChairsId,
+    assignmentUrls,
+    reviewRatingName ,
+    areaChairName = 'Area_Chairs',
+    officialMetaReviewName = 'Meta_Review',
+  } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
   const pageSize = 25
