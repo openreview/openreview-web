@@ -23,7 +23,6 @@ const MessageReviewersModal = ({
     emailReplyTo,
     messageSubmissionReviewersInvitationId,
     reviewerName = 'Reviewers',
-    areaChairName,
   } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
@@ -119,7 +118,7 @@ const MessageReviewersModal = ({
     }Click on the link below to go to the ${prettyField(
       officialReviewName
     ).toLowerCase()} page:\n\n{{submit_review_link}}
-    \n\nThank you,\n${shortPhrase} ${prettyField(areaChairName)}`)
+    \n\nThank you,\n${shortPhrase}`)
 
     const recipients = getRecipients(selectedIds)
 
