@@ -431,7 +431,11 @@ export const AcPcConsoleNoteReviewStatus = ({
   reviewerAssignmentUrl,
 }) => {
   const { officialReviews, reviewers = [], note } = rowData
-  const { reviewRatingName, reviewerName, areaChairName } = useContext(WebFieldContext)
+  const {
+    reviewRatingName,
+    reviewerName = 'Reviewers',
+    areaChairName,
+  } = useContext(WebFieldContext)
   const {
     numReviewsDone,
     numReviewersAssigned,
