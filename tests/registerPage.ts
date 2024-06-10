@@ -346,7 +346,7 @@ test('add alternate email', async (t) => {
       Selector('div')
         .withAttribute('class', 'profile-edit-container')
         .child('section')
-        .nth(3)
+        .nth(4)
         .find('span.glyphicon')
     ) // add button
     .expect(Selector('div.container.emails').child('div.row').count)
