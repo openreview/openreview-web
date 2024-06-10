@@ -20,7 +20,7 @@ describe('TextAreaWidget', () => {
   test('display textarea', () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           abstract: {},
         },
@@ -34,7 +34,7 @@ describe('TextAreaWidget', () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           abstract: {
             value: {
@@ -58,7 +58,7 @@ describe('TextAreaWidget', () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           abstract: {
             value: {
@@ -81,7 +81,7 @@ describe('TextAreaWidget', () => {
   test('perform type conversion when existing value has wrong type', () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           abstract: {
             value: {
@@ -102,7 +102,7 @@ describe('TextAreaWidget', () => {
   test('display markdown preview tab if markdown is true', () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           abstract: {
             value: {
@@ -121,7 +121,7 @@ describe('TextAreaWidget', () => {
   test('display mathjax warning if value contains formula', () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           abstract: {
             value: {
@@ -144,7 +144,7 @@ describe('TextAreaWidget', () => {
   test('display char counter for min length', async () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           abstract: {
             value: {
@@ -171,7 +171,7 @@ describe('TextAreaWidget', () => {
   test('display char counter for max length', async () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           abstract: {
             value: {
@@ -201,7 +201,7 @@ describe('TextAreaWidget', () => {
   test('not to display char counter when there is no maxLength or maxLength is 0', async () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           abstract: {
             value: {
@@ -228,7 +228,7 @@ describe('TextAreaWidget', () => {
   test('display char counter for over max length', async () => {
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           abstract: {
             value: {
@@ -257,7 +257,7 @@ describe('TextAreaWidget', () => {
     const clearError = jest.fn()
     const providerProps = {
       value: {
-        invitation: { id: 'invitaitonId' },
+        invitation: { id: 'invitationId' },
         field: {
           abstract: {
             value: {

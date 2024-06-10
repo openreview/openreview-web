@@ -12,11 +12,18 @@ import Signatures from '../Signatures'
 import { NoteContentV2, NoteContentValue } from '../NoteContent'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId, prettyInvitationId, prettyContentValue } from '../../lib/utils'
+import {
+  prettyId,
+  prettyInvitationId,
+  prettyContentValue,
+  prettyList,
+  inflect,
+} from '../../lib/utils'
 import {
   getInvitationColors,
   getSignatureColors,
   getReplySnippet,
+  addTagToReactionsList,
 } from '../../lib/forum-utils'
 
 import styles from '../../styles/components/ChatReply.module.scss'
@@ -27,29 +34,24 @@ dayjs.extend(isYesterday)
 
 // eslint-disable-next-line prefer-arrow-callback
 export default forwardRef(function ChatReply(
-  { note, parentNote, displayOptions, isSelected, setChatReplyNote, updateNote, scrollToNote },
+  {
+    note,
+    parentNote,
+    displayOptions,
+    isSelected,
+    setChatReplyNote,
+    signature,
+    updateNote,
+    scrollToNote,
+  },
   ref
 ) {
   const [loading, setLoading] = useState(false)
   const [useMarkdown, setUseMarkdown] = useState(true)
   const [needsRerender, setNeedsRerender] = useState(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
+  const [showReactionPicker, setShowReactionPicker] = useState(false)
   const { accessToken } = useUser()
-
-  useEffect(() => {
-    if (needsRerender && useMarkdown) {
-      setTimeout(() => {
-        try {
-          MathJax.typesetPromise()
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.warn('Could not format math notation')
-        }
-      }, 100)
-    }
-  }, [useMarkdown, needsRerender])
-
-  if (!note || displayOptions.hidden) return null
 
   const isChatNote = Object.keys(note.content).length === 1 && note.content.message
   const presentation = note.details?.presentation
@@ -65,15 +67,21 @@ export default forwardRef(function ChatReply(
   } else {
     datePrefix = cdate.format('l')
   }
+  const reactionInvitation = note.tagInvitations?.find((i) => i.id.endsWith('/Chat_Reaction'))
 
   const showDeleteModal = (e) => {
     setDeleteModalVisible(true)
     $(`#delete-modal-${note.id}`).modal('show')
   }
+
   const hideDeleteModal = () => {
     setDeleteModalVisible(false)
     $('body').removeClass('modal-open')
     $('.modal-backdrop').remove()
+  }
+
+  const toggleReactionPicker = () => {
+    setShowReactionPicker((oldVal) => !oldVal)
   }
 
   const deleteNote = (deleteSignatures) => {
@@ -105,6 +113,40 @@ export default forwardRef(function ChatReply(
     hideDeleteModal()
   }
 
+  const addOrRemoveTag = (tagValue, existingTags) => {
+    if (loading || !accessToken || !reactionInvitation || !signature) return
+
+    setLoading(true)
+    setShowReactionPicker(false)
+
+    let existingTagId
+    if (existingTags?.length > 0) {
+      existingTagId = existingTags.find((t) => t.signature === signature)?.id
+    }
+    const tagData = {
+      tag: tagValue,
+      invitation: reactionInvitation.id,
+      replyto: note.id,
+      forum: note.forum,
+      signatures: [signature],
+      ...(existingTagId && { id: existingTagId, ddate: Date.now() }),
+    }
+    api
+      .post('/tags', tagData, { accessToken })
+      .then((tagRes) => {
+        const tooltipEl = document.querySelector(`#__next div.tooltip.in`)
+        if (tooltipEl) tooltipEl.remove()
+
+        const newTags = addTagToReactionsList(note.reactions ?? [], tagRes)
+        updateNote({ ...note, reactions: newTags })
+        setLoading(false)
+      })
+      .catch((err) => {
+        promptError(err.message, { scrollToTop: false })
+        setLoading(false)
+      })
+  }
+
   const copyNoteUrl = (e) => {
     if (!window.location) return
 
@@ -114,13 +156,31 @@ export default forwardRef(function ChatReply(
     promptMessage('Reply URL copied to clipboard', { scrollToTop: false })
   }
 
+  useEffect(() => {
+    if (needsRerender && useMarkdown) {
+      setTimeout(() => {
+        try {
+          MathJax.typesetPromise()
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.warn('Could not format math notation')
+        }
+      }, 0)
+    }
+  }, [useMarkdown, needsRerender])
+
+  if (!note || displayOptions.hidden) return null
+
   // Deleted Reply
   if (note.ddate) {
-    const signature = note.signatures[0]
     return (
       <div className={`${styles.container}`} data-id={note.id} ref={ref}>
         <div className="chat-body deleted clearfix">
-          <ReplyInfo parentNote={parentNote} parentTitle={note.parentTitle} scrollToNote={scrollToNote} />
+          <ReplyInfo
+            parentNote={parentNote}
+            parentTitle={note.parentTitle}
+            scrollToNote={scrollToNote}
+          />
           {/* TODO: uncomment when signatures are sent with deleted notes */}
           {/*
           <div className="header">
@@ -145,19 +205,26 @@ export default forwardRef(function ChatReply(
       className={`left clearfix ${styles.container} ${isSelected ? styles.active : ''}`}
       data-id={note.id}
       ref={ref}
+      onMouseLeave={() => {
+        setShowReactionPicker(false)
+      }}
     >
       <div className="chat-body" style={{ backgroundColor: `${colorHash}1E` }}>
-        <ReplyInfo parentNote={parentNote} parentTitle={note.parentTitle} scrollToNote={scrollToNote} />
+        <ReplyInfo
+          parentNote={parentNote}
+          parentTitle={note.parentTitle}
+          scrollToNote={scrollToNote}
+        />
 
         <div className="header">
           <span className="indicator" style={{ backgroundColor: colorHash }} />
 
           {note.signatures
-            .map((signature) => (
+            .map((sigId) => (
               <ChatSignature
-                key={signature}
-                groupId={signature}
-                signatureGroup={note.details.signatures?.find((p) => p.id === signature)}
+                key={sigId}
+                groupId={sigId}
+                signatureGroup={note.details.signatures?.find((p) => p.id === sigId)}
               />
             ))
             .reduce((accu, elem) => (accu === null ? [elem] : [...accu, ', ', elem]), null)}
@@ -200,6 +267,14 @@ export default forwardRef(function ChatReply(
             include={['title']}
           />
         )}
+
+        <ReactionButtons
+          noteReactions={note.reactions}
+          signature={signature}
+          addOrRemoveTag={addOrRemoveTag}
+          toggleReactionPicker={toggleReactionPicker}
+          showAddButton={!!reactionInvitation}
+        />
       </div>
 
       <div className={styles['chat-actions']}>
@@ -213,6 +288,21 @@ export default forwardRef(function ChatReply(
           >
             <Icon name="share-alt" /> Reply
           </button>
+
+          {reactionInvitation && (
+            <button
+              type="button"
+              className="btn btn-default btn-add-reaction"
+              onClick={() => {
+                toggleReactionPicker()
+              }}
+            >
+              <svg viewBox="0 0 16 16" version="1.1" aria-hidden="true">
+                <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm3.82 1.636a.75.75 0 0 1 1.038.175l.007.009c.103.118.22.222.35.31.264.178.683.37 1.285.37.602 0 1.02-.192 1.285-.371.13-.088.247-.192.35-.31l.007-.008a.75.75 0 0 1 1.222.87l-.022-.015c.02.013.021.015.021.015v.001l-.001.002-.002.003-.005.007-.014.019a2.066 2.066 0 0 1-.184.213c-.16.166-.338.316-.53.445-.63.418-1.37.638-2.127.629-.946 0-1.652-.308-2.126-.63a3.331 3.331 0 0 1-.715-.657l-.014-.02-.005-.006-.002-.003v-.002h-.001l.613-.432-.614.43a.75.75 0 0 1 .183-1.044ZM12 7a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM5 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5.25 2.25.592.416a97.71 97.71 0 0 0-.592-.416Z"></path>
+              </svg>{' '}
+              Add Reaction
+            </button>
+          )}
 
           <button type="button" className="btn btn-default" onClick={copyNoteUrl}>
             <Icon name="link" /> Copy Link
@@ -239,6 +329,15 @@ export default forwardRef(function ChatReply(
         </div>
       </div>
 
+      {showReactionPicker && (
+        <ReactionPicker
+          options={reactionInvitation.tag.tag.param.enum}
+          noteReactions={note.reactions}
+          addOrRemoveTag={addOrRemoveTag}
+          toggleReactionPicker={toggleReactionPicker}
+        />
+      )}
+
       {note.details.writable && note.deleteInvitation && (
         <DeleteChatModal
           noteId={note.id}
@@ -256,9 +355,11 @@ function ReplyInfo({ parentNote, parentTitle, scrollToNote }) {
 
   return (
     <div className="parent-info disable-tex-rendering">
-      <h5 onClick={() => {
-        scrollToNote(parentNote.id)
-      }}>
+      <h5
+        onClick={() => {
+          scrollToNote(parentNote.id)
+        }}
+      >
         {/* <Icon name="share-alt" />{' '} */}
         <span>Replying to {prettyId(parentNote.signatures[0], true)}</span>
         {' – '}
@@ -321,6 +422,108 @@ function ChatSignature({ groupId, signatureGroup }) {
         </span>
       )}
     </strong>
+  )
+}
+
+function ReactionButtons({
+  noteReactions,
+  signature,
+  addOrRemoveTag,
+  toggleReactionPicker,
+  showAddButton,
+}) {
+  if (!noteReactions || noteReactions.length === 0) return null
+
+  return (
+    <ul className="chat-reactions list-inline">
+      {noteReactions.map(([reaction, tags]) => {
+        const sigs = tags.map((t) => t.signature)
+        const isActive = sigs.includes(signature)
+        const tooltipText = `${inflect(
+          tags.length,
+          'reaction',
+          'reactions',
+          true
+        )} from ${prettyList(sigs, 'short', 'conjunction')}`
+
+        return (
+          <li key={reaction}>
+            <button
+              className={`btn btn-xs btn-default ${isActive ? 'selected' : ''}`}
+              data-placement="top"
+              data-container="#__next"
+              data-animation=""
+              title={tooltipText}
+              onClick={(e) => {
+                $(e.target).tooltip('destroy')
+                addOrRemoveTag(reaction, tags)
+              }}
+              onMouseEnter={(e) => {
+                $(e.target).tooltip('show')
+              }}
+              onMouseLeave={(e) => {
+                $(e.target).tooltip('destroy')
+              }}
+            >
+              <span>{reaction}</span> {tags.length}
+            </button>
+          </li>
+        )
+      })}
+      {showAddButton && (
+        <li key={'add-reaction'}>
+          <button
+            className="btn btn-xs btn-default add-reaction"
+            data-placement="top"
+            data-animation=""
+            title="Add Reaction"
+            onClick={(e) => {
+              $(e.target).tooltip('hide')
+              toggleReactionPicker()
+            }}
+            onMouseEnter={(e) => {
+              $(e.target).tooltip('show')
+            }}
+            onMouseLeave={(e) => {
+              $(e.target).tooltip('hide')
+            }}
+          >
+            <svg viewBox="0 0 16 16" version="1.1" aria-hidden="true">
+              <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm3.82 1.636a.75.75 0 0 1 1.038.175l.007.009c.103.118.22.222.35.31.264.178.683.37 1.285.37.602 0 1.02-.192 1.285-.371.13-.088.247-.192.35-.31l.007-.008a.75.75 0 0 1 1.222.87l-.022-.015c.02.013.021.015.021.015v.001l-.001.002-.002.003-.005.007-.014.019a2.066 2.066 0 0 1-.184.213c-.16.166-.338.316-.53.445-.63.418-1.37.638-2.127.629-.946 0-1.652-.308-2.126-.63a3.331 3.331 0 0 1-.715-.657l-.014-.02-.005-.006-.002-.003v-.002h-.001l.613-.432-.614.43a.75.75 0 0 1 .183-1.044ZM12 7a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM5 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5.25 2.25.592.416a97.71 97.71 0 0 0-.592-.416Z"></path>
+            </svg>{' '}
+            +
+          </button>
+        </li>
+      )}
+    </ul>
+  )
+}
+
+function ReactionPicker({ options, noteReactions, addOrRemoveTag, toggleReactionPicker }) {
+  return (
+    <div className={styles['reaction-picker-overlay']} onClick={toggleReactionPicker}>
+      <div className={styles['reaction-picker']}>
+        {options.map((tag) => (
+          <div key={tag} className="grid-item">
+            <button
+              className="btn btn-xs btn-default"
+              data-toggle="tooltip"
+              data-placement="top"
+              title="Add reaction"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+
+                const existingTags = noteReactions.find((tuple) => tuple[0] === tag)?.[1]
+                addOrRemoveTag(tag, existingTags)
+              }}
+            >
+              {tag}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 

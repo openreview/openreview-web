@@ -12,7 +12,7 @@ import ErrorAlert from '../ErrorAlert'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
 import WebFieldContext from '../WebFieldContext'
-import { prettyField } from '../../lib/utils'
+import { pluralizeString, prettyField } from '../../lib/utils'
 import { getProfileLink } from '../../lib/webfield-utils'
 
 // modified from noteReviewStatus.hbs handlebar template
@@ -22,6 +22,7 @@ export const ReviewerConsoleNoteReviewStatus = ({
   officialReview,
   invitationUrl,
   reviewDisplayFields,
+  officialReviewName = 'Official_Review',
 }) => (
   <div>
     {editUrl ? (
@@ -47,20 +48,26 @@ export const ReviewerConsoleNoteReviewStatus = ({
           )
         })}
         <p>
-          <Link href={editUrl}>Edit Official Review</Link>
+          <Link href={editUrl}>Edit {prettyField(officialReviewName)}</Link>
         </p>
       </>
     ) : (
       invitationUrl && (
         <h4>
-          <Link href={invitationUrl}>Submit Official Review</Link>
+          <Link href={invitationUrl}>Submit {prettyField(officialReviewName)}</Link>
         </h4>
       )
     )}
   </div>
 )
 
-const AcPcConsoleReviewerActivityModal = ({ note, reviewer, venueId, submissionName }) => {
+const AcPcConsoleReviewerActivityModal = ({
+  note,
+  reviewer,
+  venueId,
+  submissionName,
+  reviewerName,
+}) => {
   const { accessToken } = useUser()
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -90,7 +97,9 @@ const AcPcConsoleReviewerActivityModal = ({ note, reviewer, venueId, submissionN
       id={`reviewer-activity-${reviewer.anonymousId}`}
       title={
         <>
-          {`Paper ${note.number} Reviewer ${reviewer.anonymousId} Activity`}
+          {`${prettyField(submissionName)} ${note.number} ${prettyField(reviewerName)} ${
+            reviewer.anonymousId
+          } Activity`}
           <div className="reviewer-activity-header">
             <span>
               <strong>Name:</strong> {reviewer.preferredName}
@@ -122,6 +131,7 @@ const AcPcConsoleReviewerReminderModal = ({
   shortPhrase,
   venueId,
   officialReviewName,
+  reviewerName,
   setUpdateLastSent,
   submissionName,
   messageSignature,
@@ -129,9 +139,13 @@ const AcPcConsoleReviewerReminderModal = ({
   const { emailReplyTo, messageSubmissionReviewersInvitationId } = useContext(WebFieldContext)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
   const [message, setMessage] =
-    useState(`This is a reminder to please submit your review for ${shortPhrase}.\n\n
-Click on the link below to go to the review page:\n\n{{submit_review_link}}
-  \n\nThank you,\n${shortPhrase} Area Chair`)
+    useState(`This is a reminder to please submit your ${prettyField(
+      officialReviewName
+    ).toLowerCase()} for ${shortPhrase}.\n\n
+Click on the link below to go to the ${prettyField(
+      officialReviewName
+    ).toLowerCase()} page:\n\n{{submit_review_link}}
+  \n\nThank you,\n${shortPhrase}`)
   const [error, setError] = useState(null)
   const { accessToken } = useUser()
 
@@ -141,12 +155,14 @@ Click on the link below to go to the review page:\n\n{{submit_review_link}}
       await api.post(
         '/messages',
         {
-          invitation: messageSubmissionReviewersInvitationId && messageSubmissionReviewersInvitationId.replace('{number}', note.number),
+          invitation:
+            messageSubmissionReviewersInvitationId &&
+            messageSubmissionReviewersInvitationId.replace('{number}', note.number),
           signature: messageSubmissionReviewersInvitationId && messageSignature,
           groups: [reviewer.anonymizedGroup],
           subject,
           message: message.replaceAll('{{submit_review_link}}', forumUrl),
-          parentGroup: `${venueId}/${submissionName}${note.number}/Reviewers`,
+          parentGroup: `${venueId}/${submissionName}${note.number}/${reviewerName}`,
           replyTo: emailReplyTo,
         },
         { accessToken }
@@ -172,12 +188,16 @@ Click on the link below to go to the review page:\n\n{{submit_review_link}}
     >
       {error && <div className="alert alert-danger">{error}</div>}
       <p>
-        {`You may customize the message that will be sent to the reviewer. In the email body,
+        {`You may customize the message that will be sent to the ${prettyField(
+          reviewerName
+        ).toLowerCase()}. In the email body,
           the text {{ submit_review_link }} will be replaced with a hyperlink to the form where
-          the reviewer can fill out his or her review.`}
+          the ${prettyField(reviewerName).toLowerCase()} can fill out his or her ${prettyField(
+            officialReviewName
+          ).toLowerCase()}.`}
       </p>
       <div className="form-group">
-        <label htmlFor="reviewer">Reviewer</label>
+        <label htmlFor="reviewer">{prettyField(reviewerName)}</label>
         <input
           type="text"
           name="reviewer"
@@ -214,6 +234,7 @@ export const AcPcConsoleReviewerStatusRow = ({
   note,
   venueId,
   officialReviewName,
+  reviewerName,
   referrerUrl,
   shortPhrase,
   submissionName,
@@ -272,14 +293,16 @@ export const AcPcConsoleReviewerStatusRow = ({
               </div>
             )}
             {completedReview.reviewLength && (
-              <span>Review length: {completedReview.reviewLength}</span>
+              <span>
+                {prettyField(officialReviewName)} length: {completedReview.reviewLength}
+              </span>
             )}
             <a
               href={`/forum?id=${note.forum}&noteId=${completedReview.id}&referrer=${referrerUrl}`}
               target="_blank"
               rel="nofollow noreferrer"
             >
-              Read Review
+              Read {prettyField(officialReviewName)}
             </a>
           </>
         ) : (
@@ -290,6 +313,7 @@ export const AcPcConsoleReviewerStatusRow = ({
               shortPhrase={shortPhrase}
               venueId={venueId}
               officialReviewName={officialReviewName}
+              reviewerName={reviewerName}
               setUpdateLastSent={setUpdateLastSent}
               submissionName={submissionName}
               messageSignature={messageSignature}
@@ -324,13 +348,14 @@ export const AcPcConsoleReviewerStatusRow = ({
                 handleShowReviewerActivityClick(reviewer.anonymousId)
               }}
             >
-              Show Reviewer Activity
+              Show {prettyField(reviewerName)} Activity
             </a>
             <AcPcConsoleReviewerActivityModal
               note={note}
               reviewer={reviewer}
               venueId={venueId}
               submissionName={submissionName}
+              reviewerName={reviewerName}
             />
           </>
         )}
@@ -345,6 +370,7 @@ export const AcPcConsoleReviewStatusRow = ({
   note,
   referrerUrl,
   reviewRatingName,
+  officialReviewName,
   showRatingConfidence = true,
 }) => {
   const hasConfidence = review?.confidence !== null
@@ -374,13 +400,17 @@ export const AcPcConsoleReviewStatusRow = ({
           {hasConfidence && ` / Confidence: ${review.confidence}`}
         </div>
       )}
-      {review.reviewLength && <span>Review length: {review.reviewLength}</span>}
+      {review.reviewLength && (
+        <span>
+          {prettyField(officialReviewName)} length: {review.reviewLength}
+        </span>
+      )}
       <a
         href={`/forum?id=${note.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
         target="_blank"
         rel="nofollow noreferrer"
       >
-        Read Review
+        Read {prettyField(officialReviewName)}
       </a>
     </div>
   )
@@ -397,8 +427,8 @@ export const AcPcConsoleNoteReviewStatus = ({
   submissionName,
   reviewerAssignmentUrl,
 }) => {
-  const { officialReviews, reviewers, note } = rowData
-  const { reviewRatingName } = useContext(WebFieldContext)
+  const { officialReviews, reviewers = [], note } = rowData
+  const { reviewRatingName, reviewerName = 'Reviewers' } = useContext(WebFieldContext)
   const {
     numReviewsDone,
     numReviewersAssigned,
@@ -417,10 +447,12 @@ export const AcPcConsoleNoteReviewStatus = ({
   if (reviewers.length === 0 && numReviewsDone > 0)
     return (
       <div className="console-reviewer-progress">
-        <h4>{numReviewsDone} Reviews Submitted</h4>
+        <h4>
+          {numReviewsDone} {pluralizeString(prettyField(officialReviewName))} Submitted
+        </h4>
         <Collapse
-          showLabel="Show reviews"
-          hideLabel="Hide reviews"
+          showLabel={`Show ${pluralizeString(prettyField(reviewerName))}`}
+          hideLabel={`Hide ${pluralizeString(prettyField(reviewerName))}`}
           className="assigned-reviewers"
         >
           {officialReviews.map((review) => (
@@ -430,6 +462,7 @@ export const AcPcConsoleNoteReviewStatus = ({
               note={note}
               referrerUrl={referrerUrl}
               reviewRatingName={reviewRatingName}
+              officialReviewName={officialReviewName}
             />
           ))}
         </Collapse>
@@ -458,7 +491,7 @@ export const AcPcConsoleNoteReviewStatus = ({
               target="_blank"
               rel="noreferrer"
             >
-              Edit Reviewer Assignments
+              Edit {prettyField(reviewerName)} Assignments
             </a>
           </div>
         )}
@@ -468,11 +501,12 @@ export const AcPcConsoleNoteReviewStatus = ({
   return (
     <div className="console-reviewer-progress">
       <h4>
-        {numReviewsDone} of {numReviewersAssigned} Reviews Submitted
+        {numReviewsDone} of {numReviewersAssigned}{' '}
+        {pluralizeString(prettyField(officialReviewName))} Submitted
       </h4>
       <Collapse
-        showLabel="Show reviewers"
-        hideLabel="Hide reviewers"
+        showLabel={`Show ${pluralizeString(prettyField(reviewerName))}`}
+        hideLabel={`Hide ${pluralizeString(prettyField(reviewerName))}`}
         className="assigned-reviewers"
       >
         <div>
@@ -484,6 +518,7 @@ export const AcPcConsoleNoteReviewStatus = ({
               note={note}
               venueId={venueId}
               officialReviewName={officialReviewName}
+              reviewerName={reviewerName}
               referrerUrl={referrerUrl}
               shortPhrase={shortPhrase}
               submissionName={submissionName}
@@ -519,7 +554,7 @@ export const AcPcConsoleNoteReviewStatus = ({
             target="_blank"
             rel="noreferrer"
           >
-            Edit Reviewer Assignments
+            Edit {prettyField(reviewerName)} Assignments
           </a>
         </div>
       )}
@@ -532,6 +567,7 @@ export const EthicsReviewStatus = ({
   venueId,
   ethicsReviewersName,
   ethicsReviewName,
+  ethicsChairsName,
   referrerUrl,
   shortPhrase,
   submissionName,
@@ -571,6 +607,7 @@ export const EthicsReviewStatus = ({
                 note={note}
                 venueId={venueId}
                 officialReviewName={ethicsReviewName}
+                reviewerName={ethicsReviewersName}
                 referrerUrl={referrerUrl}
                 shortPhrase={shortPhrase}
                 submissionName={submissionName}

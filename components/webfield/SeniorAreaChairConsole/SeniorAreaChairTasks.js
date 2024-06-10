@@ -2,11 +2,14 @@
 import { useContext } from 'react'
 import WebFieldContext from '../../WebFieldContext'
 import ConsoleTaskList from '../ConsoleTaskList'
+import { prettyField } from '../../../lib/utils'
 
 const SeniorAreaChairTasks = () => {
   const { venueId, seniorAreaChairName } = useContext(WebFieldContext)
   const referrer = encodeURIComponent(
-    `[Senior Area Chair Console](/group?id=${venueId}/${seniorAreaChairName}#seniorareachair-tasks)`
+    `[${prettyField(
+      seniorAreaChairName
+    )} Console](/group?id=${venueId}/${seniorAreaChairName}#${seniorAreaChairName}-tasks)`
   )
 
   return (
