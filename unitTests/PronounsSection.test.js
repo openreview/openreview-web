@@ -1,12 +1,7 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
-import { afterEach } from 'node:test'
+import {render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import PronounSection from "../components/profile/PronounSection"
-import GenderSection from '../components/profile/GenderSection'
 
-afterEach(() => {
-  cleanup()
-})
 
 describe ('Pronoun selection dropdown', () => {
   test ('check if pronouns dropdown renders successfully when no pronouns are selected', () => {
