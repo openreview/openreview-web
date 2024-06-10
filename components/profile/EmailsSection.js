@@ -114,6 +114,13 @@ const EmailsSection = ({
         return emailCopy
       })
     }
+    if (action.setConfirmed) {
+      return state.map((email) => {
+        const emailCopy = { ...email }
+        if (email.key === action.data.key) emailCopy.confirmed = true
+        return emailCopy
+      })
+    }
     return state
   }
   // eslint-disable-next-line max-len
@@ -185,6 +192,7 @@ const EmailsSection = ({
       }
       setEmails({ setVisible: true, data: { key, visibleValue: false} })
       setEmails({ setVerified: true, data: { key }})
+      setEmails({ setConfirmed: true, data: { key }})
       return promptMessage(`${newEmail} has been verified`)
     } catch (error) {
       return promptError(error.message)
