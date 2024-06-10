@@ -1,6 +1,6 @@
 /* globals promptError,promptMessage,$: false */
 
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { useRouter } from 'next/router'
 import { nanoid } from 'nanoid'
 import Icon from '../Icon'
@@ -129,9 +129,9 @@ const EmailsSection = ({
     profileEmails?.map((p) => ({ ...p, key: nanoid(), isValid: true })) ?? []
   )
   const { accessToken } = useUser()
-  const hasInstitutionEmail = emails.some(
+  const [hasInstitutionEmail, setHasInstitutionEmail] = useState(emails.some(
     (p) => p.confirmed && isInstitutionEmail(p.email, institutionDomains)
-  )
+  ))
 
   const handleAddEmail = () => {
     setEmails({ addNewEmail: true, data: { email: '', key: nanoid(), isValid: true } })
@@ -193,6 +193,7 @@ const EmailsSection = ({
       setEmails({ setVisible: true, data: { key, visibleValue: false} })
       setEmails({ setVerified: true, data: { key }})
       setEmails({ setConfirmed: true, data: { key }})
+      if (isInstitutionEmail(newEmail, institutionDomains)) setHasInstitutionEmail(true)
       return promptMessage(`${newEmail} has been verified`)
     } catch (error) {
       return promptError(error.message)
@@ -215,7 +216,8 @@ const EmailsSection = ({
           <Icon name="warning-sign" />
           <p>
             Your profile does not contain any institution email and it can take up to 2 weeks
-            for your profile to be activated.
+            for your profile to be activated. If you would like to activate your profile,
+            please add an institutional email.
           </p>
         </div>
       )}
