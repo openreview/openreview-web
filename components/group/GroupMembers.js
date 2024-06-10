@@ -60,10 +60,6 @@ const MessageMemberModal = ({
     }
 
     try {
-      const venueTitle = groupDomainContent?.subtitle?.value
-      const cleanTitle = venueTitle
-        ? deburr(venueTitle).replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
-        : ''
       const result = await api.post(
         '/messages',
         {
@@ -75,10 +71,8 @@ const MessageMemberModal = ({
           parentGroup: groupId,
           ...(cleanReplytoEmail && { replyTo: cleanReplytoEmail }),
           useJob: true,
-          ...(cleanTitle && {
-            fromName: venueTitle,
-            fromEmail: `${cleanTitle}-notifications@openreview.net`,
-          }),
+          fromName: groupDomainContent?.message_sender?.value?.fromName,
+          fromEmail: groupDomainContent?.message_sender?.value?.fromEmail,
         },
         { accessToken }
       )
