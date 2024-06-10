@@ -208,7 +208,7 @@ test('add and delete year of birth', async (t) => {
     .eql('')
 })
 
-test.only('add and delete pronouns', async (t) => {
+test('add and delete pronouns', async (t) => {
 
   const customPronouns = 'Ze/Zir/Hir'
 
