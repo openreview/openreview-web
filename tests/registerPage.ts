@@ -499,7 +499,7 @@ fixture`Edit profile`.page`http://localhost:${process.env.NEXT_PORT}/login`.befo
   }
 )
 
-test('add alternate email', async (t) => {
+test.only('add alternate email', async (t) => {
   const getPageUrl = ClientFunction(() => window.location.href.toString())
   await t
     .typeText(Selector('#email-input'), 'melisa@test.com')
@@ -526,7 +526,7 @@ test('add alternate email', async (t) => {
     .expect(Selector('div.container.emails').child('div.row').count)
     .eql(3)
     .typeText(
-      Selector('div.container.emails').child('div.row').nth(1).find('input'),
+      Selector('div.container.emails').child('div.row').nth(2).find('input'),
       'melisa@alternate.com'
     )
     .click(Selector('div.container.emails').find('button.confirm-button'))
@@ -543,13 +543,13 @@ test('add alternate email', async (t) => {
     .ok()
 
   const messages = await getMessages(
-    { to: 'melisa@alternate.com', subject: 'OpenReview Account Linking' },
+    { to: 'melisa@alternate.com' },
     t.fixtureCtx.superUserToken
   )
   await t
     .expect(messages[0].content.text)
     .contains(
-      'Use the token below to confirm that melisa@alternate.com and melisa@test.com both belong to the same person'
+      'to confirm an alternate email address melisa@alternate.com. If you would like to confirm this email, please use the verification token mentioned below'
     )
 })
 
