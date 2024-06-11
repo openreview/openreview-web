@@ -176,7 +176,7 @@ test('user open own profile', async (t) => {
   await t
     .expect(messages[0].content.text)
     .contains(
-      'Use the token below to confirm that a@aa.com and a@a.com both belong to the same person'
+      'to confirm an alternate email address a@aa.com. If you would like to confirm this email, please use the verification token mentioned below'
     )
     // personal links
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
