@@ -249,9 +249,47 @@ test('email address should be masked', async (t) => {
 fixture`Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=melisa@test.com`
 
-test('update profile', async (t) => {
+test.only('update profile', async (t) => {
   await t
     .expect(Selector('p').withText('Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.').exists).ok()
+    // add alternate email while registering
+    .click(
+      Selector('span.glyphicon.glyphicon-plus-sign')
+        .nth(1)
+    ) // add button
+    .expect(Selector('div.container.emails').child('div.row').count)
+    .eql(2)
+    .typeText(
+      Selector('div.container.emails').child('div.row').nth(1).find('input'),
+      'melisa@umass.edu'
+    )
+    .click(Selector('div.container.emails').find('button.confirm-button'))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('A confirmation email has been sent to melisa@umass.edu with confirmation instructions')
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('token must NOT have fewer than 1 characters')
+    .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('melisa@umass.edu has been verified')
+    // check if buttons disappeared
+    .expect(Selector('button').withText('Verify').nth(0).exists)
+    .notOk()
+    .expect(Selector('button').withText('Confirm').nth(0).exists)
+    .notOk()
+    .expect(Selector('div').withText('(Confirmed)').nth(0).exists)
+    .ok()
+    .expect(Selector('button').withText('Make Preferred').nth(0).exists)
+    .ok()
+    .expect(Selector('p').withText('Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.').exists).notOk()
+
     .typeText(Selector('#homepage_url'), 'http://homepage.do', { paste: true })
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .pressKey('M S space s t u d e n t tab')
@@ -350,7 +388,7 @@ test('add alternate email', async (t) => {
         .find('span.glyphicon')
     ) // add button
     .expect(Selector('div.container.emails').child('div.row').count)
-    .eql(2)
+    .eql(3)
     .typeText(
       Selector('div.container.emails').child('div.row').nth(1).find('input'),
       'melisa@alternate.com'
@@ -359,7 +397,7 @@ test('add alternate email', async (t) => {
     .expect(messagePanelSelector.exists)
     .ok()
     .expect(messageSelector.innerText)
-    .eql('A confirmation email has been sent to melisa@alternate.com with a verification token')
+    .eql('A confirmation email has been sent to melisa@alternate.com with confirmation instructions')
     // text box to enter code should be displayed
     .expect(Selector('button').withText('Verify').nth(0).visible)
     .ok()

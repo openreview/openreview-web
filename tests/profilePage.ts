@@ -126,7 +126,7 @@ test('user open own profile', async (t) => {
     .ok()
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(errorMessageSelector.innerText)
-    .eql('A confirmation email has been sent to a@aa.com with a verification token')
+    .eql('A confirmation email has been sent to a@aa.com with confirmation instructions')
     // text box to enter code should be displayed
     .expect(Selector('button').withText('Verify').nth(0).visible)
     .ok()
@@ -770,7 +770,7 @@ test('#1011 remove space in personal links', async (t) => {
     )
     .ok()
 })
-test('', async (t) => {
+test('confirm an email with a numeric token', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
@@ -793,14 +793,86 @@ test('', async (t) => {
     .expect(messagePanelSelector.exists)
     .ok()
     .expect(messageSelector.innerText)
-    .eql('A confirmation email has been sent to aaa@alternate.com with a verification token')
+    .eql('A confirmation email has been sent to aaa@alternate.com with confirmation instructions')
     .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
     .click(Selector('button').withText('Verify').nth(0))
     .expect(messagePanelSelector.exists)
     .ok()
     .expect(messageSelector.innerText)
     .eql('aaa@alternate.com has been verified')
+    // check if buttons disappeared
+    .expect(Selector('button').withText('Verify').nth(0).exists)
+    .notOk()
+    .expect(Selector('button').withText('Confirm').nth(0).exists)
+    .notOk()
+    .expect(Selector('div').withText('(Confirmed)').nth(0).exists)
+    .ok()
+    .expect(Selector('button').withText('Make Preferred').nth(0).exists)
+    .ok()
     .click(saveProfileButton)
     .expect(Selector('span').withText('aaa@alternate.com').exists).ok()
     .expect(Selector('span').withText('aaa@alternate.com').parent().find('small').withText('Confirmed').exists).ok()
+})
+
+test('check if a user can add multiple emails without entering verification token', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .expect(Selector('h4').withText('Emails').exists)
+    .ok()
+    .click(
+      Selector('div')
+        .withAttribute('class', 'profile-edit-container')
+        .child('section')
+        .nth(3)
+        .find('span.glyphicon')
+    ) // add button
+    .expect(Selector('div.container.emails').child('div.row').count)
+    .eql(3)
+    .typeText(
+      Selector('div.container.emails').child('div.row').nth(2).find('input'),
+      'aab@alternate.com'
+    )
+    .click(Selector('div.container.emails').find('button.confirm-button'))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('A confirmation email has been sent to aab@alternate.com with confirmation instructions')
+    .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('aab@alternate.com has been verified')
+
+    .click(
+      Selector('div')
+        .withAttribute('class', 'profile-edit-container')
+        .child('section')
+        .nth(3)
+        .find('span.glyphicon')
+    ) // add button
+    .expect(Selector('div.container.emails').child('div.row').count)
+    .eql(4)
+    .typeText(
+      Selector('div.container.emails').child('div.row').nth(3).find('input'),
+      'aac@alternate.com'
+    )
+    .click(Selector('div.container.emails').find('button.confirm-button'))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('A confirmation email has been sent to aac@alternate.com with confirmation instructions')
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('token must NOT have fewer than 1 characters')
+
+    .click(saveProfileButton)
+    .expect(Selector('span').withText('aab@alternate.com').exists).ok()
+    .expect(Selector('span').withText('aab@alternate.com').parent().find('small').withText('Confirmed').exists).ok()
+
+    .expect(Selector('span').withText('aac@alternate.com').exists).ok()
+    .expect(Selector('span').withText('aac@alternate.com').parent().textContent).notContains('Confirmed')
 })
