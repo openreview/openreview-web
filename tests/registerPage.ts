@@ -49,8 +49,14 @@ fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(as
 test('create new profile', async (t) => {
   await t
     .typeText(fullNameInputSelector, 'Melisa Bok')
-    .expect(emailAddressInputSelector.exists).notOk()
-    .expect(Selector('label').withText("I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.").exists).ok()
+    .expect(emailAddressInputSelector.exists)
+    .notOk()
+    .expect(
+      Selector('label').withText(
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+      ).exists
+    )
+    .ok()
     .wait(500)
     .click(Selector('label.name-confirmation'))
     .typeText(emailAddressInputSelector, 'melisa@test.com')
@@ -61,23 +67,39 @@ test('create new profile', async (t) => {
     .ok()
     .expect(confirmPasswordInputSelector.exists)
     .ok()
-    .expect(Selector('span').withText(`test.com does not appear in our list of publishing institutions.`).exists).ok()
+    .expect(
+      Selector('span').withText(
+        `test.com does not appear in our list of publishing institutions.`
+      ).exists
+    )
+    .ok()
     // type another non institution email
-    .selectText(emailAddressInputSelector).pressKey('delete')
+    .selectText(emailAddressInputSelector)
+    .pressKey('delete')
     .typeText(emailAddressInputSelector, 'non@institution.email')
     .click(signupButtonSelector)
-    .expect(Selector('span').withText(`institution.email does not appear in our list of publishing institutions.`,).exists).ok()
+    .expect(
+      Selector('span').withText(
+        `institution.email does not appear in our list of publishing institutions.`
+      ).exists
+    )
+    .ok()
     // correct email to be institution email
-    .selectText(emailAddressInputSelector).pressKey('delete')
+    .selectText(emailAddressInputSelector)
+    .pressKey('delete')
     .typeText(emailAddressInputSelector, 'validemail@umass.edu')
     .click(signupButtonSelector)
-    .expect(Selector('div.activation-message-row').exists).notOk() // no warning
+    .expect(Selector('div.activation-message-row').exists)
+    .notOk() // no warning
     // change email to subdomain of institution email
-    .selectText(emailAddressInputSelector).pressKey('delete')
+    .selectText(emailAddressInputSelector)
+    .pressKey('delete')
     .typeText(emailAddressInputSelector, 'validemail@test.umass.edu')
     .click(signupButtonSelector)
-    .expect(Selector('div.activation-message-row').exists).notOk() // no warning
-    .selectText(emailAddressInputSelector).pressKey('delete')
+    .expect(Selector('div.activation-message-row').exists)
+    .notOk() // no warning
+    .selectText(emailAddressInputSelector)
+    .pressKey('delete')
     .typeText(emailAddressInputSelector, 'melisa@test.com')
     .click(signupButtonSelector)
     .typeText(newPasswordInputSelector, strongPassword)
@@ -88,7 +110,8 @@ test('create new profile', async (t) => {
     .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
     .ok()
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
-    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled')).notOk({ timeout: 8000 })
+    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
+    .notOk({ timeout: 8000 })
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
@@ -134,7 +157,8 @@ test('enter valid name invalid email and change to valid email and register', as
     .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
-    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled')).notOk({ timeout: 8000 })
+    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
+    .notOk({ timeout: 8000 })
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
@@ -251,12 +275,14 @@ fixture`Activate`
 
 test.only('update profile', async (t) => {
   await t
-    .expect(Selector('p').withText('Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.').exists).ok()
+    .expect(
+      Selector('p').withText(
+        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+      ).exists
+    )
+    .ok()
     // add alternate email while registering
-    .click(
-      Selector('span.glyphicon.glyphicon-plus-sign')
-        .nth(1)
-    ) // add button
+    .click(Selector('span.glyphicon.glyphicon-plus-sign').nth(1)) // add button
     .expect(Selector('div.container.emails').child('div.row').count)
     .eql(2)
     .typeText(
@@ -267,7 +293,9 @@ test.only('update profile', async (t) => {
     .expect(messagePanelSelector.exists)
     .ok()
     .expect(messageSelector.innerText)
-    .eql('A confirmation email has been sent to melisa@umass.edu with confirmation instructions')
+    .eql(
+      'A confirmation email has been sent to melisa@umass.edu with confirmation instructions'
+    )
     .click(Selector('button').withText('Verify').nth(0))
     .expect(messagePanelSelector.exists)
     .ok()
@@ -288,7 +316,12 @@ test.only('update profile', async (t) => {
     .ok()
     .expect(Selector('button').withText('Make Preferred').nth(0).exists)
     .ok()
-    .expect(Selector('p').withText('Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.').exists).notOk()
+    .expect(
+      Selector('p').withText(
+        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+      ).exists
+    )
+    .notOk()
 
     .typeText(Selector('#homepage_url'), 'http://homepage.do', { paste: true })
     .click(Selector('input.position-dropdown__placeholder').nth(0))
@@ -397,7 +430,9 @@ test('add alternate email', async (t) => {
     .expect(messagePanelSelector.exists)
     .ok()
     .expect(messageSelector.innerText)
-    .eql('A confirmation email has been sent to melisa@alternate.com with confirmation instructions')
+    .eql(
+      'A confirmation email has been sent to melisa@alternate.com with confirmation instructions'
+    )
     // text box to enter code should be displayed
     .expect(Selector('button').withText('Verify').nth(0).visible)
     .ok()
@@ -408,7 +443,11 @@ test('add alternate email', async (t) => {
     { to: 'melisa@alternate.com', subject: 'OpenReview Account Linking' },
     t.fixtureCtx.superUserToken
   )
-  await t.expect(messages[0].content.text).contains('Use the token below to confirm that melisa@alternate.com and melisa@test.com both belong to the same person')
+  await t
+    .expect(messages[0].content.text)
+    .contains(
+      'Use the token below to confirm that melisa@alternate.com and melisa@test.com both belong to the same person'
+    )
 })
 
 // eslint-disable-next-line no-unused-expressions
@@ -417,25 +456,33 @@ fixture`Confirm altenate email`
 // guest redirect to login
 test('confirm email as guest', async (t) => {
   const getPageUrl = ClientFunction(() => window.location.href.toString())
-  await t.navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
+  await t
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
     .expect(getPageUrl())
     .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
 })
 
 // another user show error
 test('confirm email as another user', async (t) => {
-  await t.useRole(SURole)
+  await t
+    .useRole(SURole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
     .expect(Selector('#content h1').innerText)
     .eql('Error 403')
     .expect(Selector('.error-message').innerText)
-    .eql("You are not authorized to activate this email.")
+    .eql('You are not authorized to activate this email.')
 })
 
 test('update profile', async (t) => {
-  await t.useRole(EmailOwnerRole)
+  await t
+    .useRole(EmailOwnerRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
-    .expect(Selector('p').withText('Click Confirm Email button below to confirm adding melisa@alternate.com to your account.').exists).ok()
+    .expect(
+      Selector('p').withText(
+        'Click Confirm Email button below to confirm adding melisa@alternate.com to your account.'
+      ).exists
+    )
+    .ok()
     .click(Selector('button').withText('Confirm Email'))
     .expect(messagePanelSelector.exists)
     .ok()
