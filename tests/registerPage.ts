@@ -273,7 +273,7 @@ test('email address should be masked', async (t) => {
 fixture`Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=melisa@test.com`
 
-test.only('update profile', async (t) => {
+test('update profile', async (t) => {
   await t
     .expect(
       Selector('p').withText(
