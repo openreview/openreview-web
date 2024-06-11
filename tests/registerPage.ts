@@ -499,7 +499,7 @@ fixture`Edit profile`.page`http://localhost:${process.env.NEXT_PORT}/login`.befo
   }
 )
 
-test.only('add alternate email', async (t) => {
+test('add alternate email', async (t) => {
   const getPageUrl = ClientFunction(() => window.location.href.toString())
   await t
     .typeText(Selector('#email-input'), 'melisa@test.com')
