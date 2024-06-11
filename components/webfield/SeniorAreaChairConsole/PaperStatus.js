@@ -30,13 +30,14 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
   )
 }
 
-const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venue }) => {
+const PaperRow = ({ sacConsoleData, rowData, selectedNoteIds, setSelectedNoteIds, decision, venue }) => {
   const {
     venueId,
     officialReviewName,
     shortPhrase,
     seniorAreaChairName,
     submissionName,
+    assignmentUrls,
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
   } = useContext(WebFieldContext)
@@ -46,6 +47,23 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
       seniorAreaChairName
     )} Console](/group?id=${venueId}/${seniorAreaChairName}#${submissionName}-status)`
   )
+  const getManualAssignmentUrl = (role) => {
+    if (!assignmentUrls) return null
+    const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
+    // auto
+    const isAssignmentConfigDeployed = sacConsoleData.invitations?.some(
+      (p) => p.id === `${venueId}/${role}/-/Assignment`
+    )
+    // manual
+    const isMatchingSetup = isAssignmentConfigDeployed
+
+    if (
+      (assignmentUrls[role]?.automaticAssignment === false && isMatchingSetup) ||
+      (assignmentUrls[role]?.automaticAssignment === true && isAssignmentConfigDeployed)
+    )
+      return assignmentUrl
+    return null
+  }
 
   return (
     <tr>
@@ -81,6 +99,7 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
+          reviewerAssignmentUrl={getManualAssignmentUrl('Reviewers')}
         />
       </td>
       <td>
@@ -203,6 +222,7 @@ const PaperStatus = ({ sacConsoleData }) => {
         {paperStatusTabData.tableRowsDisplayed?.map((row) => (
           <PaperRow
             key={row.note.id}
+            sacConsoleData={sacConsoleData}
             rowData={row}
             selectedNoteIds={selectedNoteIds}
             setSelectedNoteIds={setSelectedNoteIds}
