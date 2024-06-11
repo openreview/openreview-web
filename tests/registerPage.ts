@@ -543,7 +543,7 @@ test('add alternate email', async (t) => {
     .ok()
 
   const messages = await getMessages(
-    { to: 'melisa@alternate.com' },
+    { to: 'melisa@alternate.com', subject: 'OpenReview Email Confirmation' },
     t.fixtureCtx.superUserToken
   )
   await t

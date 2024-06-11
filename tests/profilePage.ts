@@ -170,7 +170,7 @@ test('user open own profile', async (t) => {
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
-    { to: 'a@aa.com', subject: 'OpenReview Account Linking' },
+    { to: 'a@aa.com', subject: 'OpenReview Email Confirmation' },
     superUserToken
   )
   await t
