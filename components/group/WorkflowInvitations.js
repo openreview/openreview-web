@@ -19,6 +19,10 @@ const WorflowInvitationRow = ({
     const fieldValue = get(invitation, path)
     if (typeof fieldValue === 'object') {
       if (Array.isArray(fieldValue)) {
+        if (typeof fieldValue[0] === 'object') {
+          // enum
+          return fieldValue.map((p) => p.description).join(', ')
+        }
         const valueSegments = fieldValue.map((value) =>
           prettyId(value).split(/\{(\S+\s*\S*)\}/g)
         )
@@ -226,6 +230,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       className="workflow"
     >
       <div className="container workflow-container">
+        {/* {groupsAndInvitations.slice(0, 1).map((stepObj) => { */}
         {groupsAndInvitations.map((stepObj) => {
           if (stepObj.type === 'group') {
             return (
@@ -246,6 +251,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           const subInvitations = allInvitations.filter((i) =>
             i.id.startsWith(`${invitationId}/`)
           )
+          // .slice(1, 2)
           return (
             <div key={invitationId}>
               <div className="d-flex">
