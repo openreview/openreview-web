@@ -16,7 +16,7 @@ const EmailsButton = ({
   handleMakePreferred,
   handleVerify,
 }) => {
-  const { confirmed, preferred, email, isValid, visible} = emailObj
+  const { confirmed, preferred, email, isValid, visible } = emailObj
   if (type === 'confirmed') {
     if (confirmed) {
       return <div className="emails__confirmed-text hint">(Confirmed)</div>
@@ -115,7 +115,8 @@ const EmailsSection = ({
     if (action.setVerificationToken) {
       return state.map((email) => {
         const emailCopy = { ...email }
-        emailCopy.verificationToken = email.key === action.data.key? action.data.verificationToken : ''
+        emailCopy.verificationToken =
+          email.key === action.data.key ? action.data.verificationToken : ''
         return emailCopy
       })
     }
@@ -128,12 +129,16 @@ const EmailsSection = ({
     profileEmails?.map((p) => ({ ...p, key: nanoid(), isValid: true })) ?? []
   )
   const { accessToken } = useUser()
-  const [hasInstitutionEmail, setHasInstitutionEmail] = useState(emails.some(
-    (p) => p.confirmed && isInstitutionEmail(p.email, institutionDomains)
-  ))
+  const [hasInstitutionEmail, setHasInstitutionEmail] = useState(
+    emails.some((p) => p.confirmed && isInstitutionEmail(p.email, institutionDomains))
+  )
 
   const handleAddEmail = () => {
-    setEmails({ addNewEmail: true, setVisible: true, data: { email: '', key: nanoid(), isValid: true, visibleValue: false} })
+    setEmails({
+      addNewEmail: true,
+      setVisible: true,
+      data: { email: '', key: nanoid(), isValid: true, visibleValue: false },
+    })
   }
 
   const handleUpdateEmail = (targetValue, key) => {
@@ -143,7 +148,7 @@ const EmailsSection = ({
     setEmails({
       updateEmail: true,
       setVisible: true,
-      data: { ...existingEmailObj, key, email: targetValue, isValid, visibleValue: false},
+      data: { ...existingEmailObj, key, email: targetValue, isValid, visibleValue: false },
     })
   }
 
@@ -168,10 +173,12 @@ const EmailsSection = ({
         } else {
           await api.post('/user/confirm', linkData, { accessToken })
         }
-        setEmails({ setVisible: true, data: { key, visibleValue: true} })
-        return promptMessage(`A confirmation email has been sent to ${newEmail} with confirmation instructions`)
+        setEmails({ setVisible: true, data: { key, visibleValue: true } })
+        return promptMessage(
+          `A confirmation email has been sent to ${newEmail} with confirmation instructions`
+        )
       } catch (error) {
-        setEmails({ setVisible: true, data: { key, visibleValue: false} })
+        setEmails({ setVisible: true, data: { key, visibleValue: false } })
         return promptError(error.message)
       }
     } else {
@@ -185,21 +192,20 @@ const EmailsSection = ({
     const payload = { email: newEmail, token }
     try {
       if (isNewProfile) {
-        await api.put(`/activatelink/${router.query.token}`, payload, {accessToken})
+        await api.put(`/activatelink/${router.query.token}`, payload, { accessToken })
       } else {
-        await api.put('/activatelink', payload, {accessToken})
+        await api.put('/activatelink', payload, { accessToken })
       }
-      setEmails({ setVisible: true, setConfirmed: true, data: { key, visibleValue: false} })
+      setEmails({ setVisible: true, setConfirmed: true, data: { key, visibleValue: false } })
       if (isInstitutionEmail(newEmail, institutionDomains)) setHasInstitutionEmail(true)
       return promptMessage(`${newEmail} has been verified`)
     } catch (error) {
       return promptError(error.message)
     }
-
   }
 
   const handleVerificationTokenUpdate = (key, value) => {
-    setEmails({ setVerificationToken: true, data: {key, verificationToken: value}})
+    setEmails({ setVerificationToken: true, data: { key, verificationToken: value } })
   }
 
   useEffect(() => {
@@ -234,26 +240,34 @@ const EmailsSection = ({
                 onChange={(e) => handleUpdateEmail(e.target.value.trim(), emailObj.key)}
               />
             </div>
-            { emailObj.visible && !emailObj.confirmed && !emailObj.preferred && emailObj.isValid && (
-              <div className='col-md-2 emails__value'>
+            {emailObj.visible &&
+              !emailObj.confirmed &&
+              !emailObj.preferred &&
+              emailObj.isValid && (
+                <div className="col-md-2 emails__value">
                   <input
-                  type='text'
-                  onChange={(e) => handleVerificationTokenUpdate(emailObj.key, e.target.value)}
-                  placeholder='Enter Verification Token'
-                  className={`form-control`}
-                />
-              </div>
-            )}
-            { emailObj.visible && !emailObj.confirmed && !emailObj.preferred && emailObj.isValid && (
-              <div className='col-md-1 emails__value'>
+                    type="text"
+                    onChange={(e) =>
+                      handleVerificationTokenUpdate(emailObj.key, e.target.value)
+                    }
+                    placeholder="Enter Verification Token"
+                    className={`form-control`}
+                  />
+                </div>
+              )}
+            {emailObj.visible &&
+              !emailObj.confirmed &&
+              !emailObj.preferred &&
+              emailObj.isValid && (
+                <div className="col-md-1 emails__value">
                   <EmailsButton
                     type="verify"
                     emailObj={emailObj}
                     handleVerify={() => handleVerifyEmail(emailObj.key)}
                   />
-              </div>
-            )}
-            { !emailObj.visible && emailObj.isValid &&
+                </div>
+              )}
+            {!emailObj.visible && emailObj.isValid && (
               <div className="col-md-1 emails__value">
                 <EmailsButton
                   type="confirmed"
@@ -261,27 +275,26 @@ const EmailsSection = ({
                   handleConfirm={() => handleConfirmEmail(emailObj.key)}
                   isNewProfile={isNewProfile}
                 />
-             </div>
-            }
+              </div>
+            )}
             <div className="col-md-1 emails__value">
-            { !emailObj.visible && emailObj.confirmed && emailObj.isValid &&
-              <EmailsButton
-                type="preferred"
-                emailObj={emailObj}
-                handleMakePreferred={() => handleMakeEmailPreferred(emailObj.key)}
-              />
-            }
-            { !emailObj.confirmed && !emailObj.preferred && emailObj.isValid &&
+              {!emailObj.visible && emailObj.confirmed && emailObj.isValid && (
+                <EmailsButton
+                  type="preferred"
+                  emailObj={emailObj}
+                  handleMakePreferred={() => handleMakeEmailPreferred(emailObj.key)}
+                />
+              )}
+              {!emailObj.confirmed && !emailObj.preferred && emailObj.isValid && (
                 <EmailsButton
                   type="remove"
                   emailObj={emailObj}
                   handleRemove={() => handleRemoveEmail(emailObj.key)}
                 />
-            }
+              )}
             </div>
           </div>
-        ))
-        }
+        ))}
       </div>
 
       <div role="button" aria-label="add another email" tabIndex={0} onClick={handleAddEmail}>
