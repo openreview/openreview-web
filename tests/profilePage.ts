@@ -64,7 +64,13 @@ const dblpUrlInput = Selector('#dblp_url')
 const aclanthologyUrlInput = Selector('#aclanthology_url')
 const homepageUrlInput = Selector('#homepage_url')
 const yearOfBirthInput = Selector('section').nth(3).find('input')
-const firstHistoryEndInput = Selector('div.history').find('input').withAttribute('placeholder', 'end year').nth(0)
+const firstHistoryEndInput = Selector('div.history')
+  .find('input')
+  .withAttribute('placeholder', 'end year')
+  .nth(0)
+const messageSelector = Selector('span').withAttribute('class', 'important_message')
+const messagePanelSelector = Selector('#flash-message-container')
+
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
@@ -110,7 +116,12 @@ test('user open own profile', async (t) => {
     )
     .click(Selector('button.remove_button').filterVisible())
     // add a email
-    .expect(Selector('p').withText('Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.').exists).notOk() // not activation
+    .expect(
+      Selector('p').withText(
+        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+      ).exists
+    )
+    .notOk() // not activation
     .click(emailSectionPlusIconSelector)
     .typeText(editEmailInputSelector, 'a@aa.')
     .expect(emailConfirmButtons.exists)
@@ -124,32 +135,49 @@ test('user open own profile', async (t) => {
     .ok()
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(errorMessageSelector.innerText)
-    .eql('A confirmation email has been sent to a@aa.com')
+    .eql('A confirmation email has been sent to a@aa.com with confirmation instructions')
+    // text box to enter code should be displayed
+    .expect(Selector('button').withText('Verify').nth(0).visible)
+    .ok()
+    .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
+    .ok()
     .click(Selector('button').withText('Remove').filterVisible())
+    .expect(Selector('button').withText('Verify').nth(0).visible)
+    .notOk()
+    .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
+    .notOk()
     // add empty homepage link
     .typeText(homepageUrlInput, ' ', { replace: true })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql('Error: You must enter at least one personal link')
     // show error for all personal links
-    .expect(homepageUrlInput.hasClass('invalid-value')).ok()
-    .expect(Selector('#gscholar_url').hasClass('invalid-value')).ok()
-    .expect(dblpUrlInput.hasClass('invalid-value')).ok()
-    .expect(Selector('#orcid_url').hasClass('invalid-value')).ok()
-    .expect(Selector('#wikipedia_url').hasClass('invalid-value')).ok()
-    .expect(Selector('#linkedin_url').hasClass('invalid-value')).ok()
-    .expect(Selector('#semanticScholar_url').hasClass('invalid-value')).ok()
-    .expect(Selector('#aclanthology_url').hasClass('invalid-value')).ok()
+    .expect(homepageUrlInput.hasClass('invalid-value'))
+    .ok()
+    .expect(Selector('#gscholar_url').hasClass('invalid-value'))
+    .ok()
+    .expect(dblpUrlInput.hasClass('invalid-value'))
+    .ok()
+    .expect(Selector('#orcid_url').hasClass('invalid-value'))
+    .ok()
+    .expect(Selector('#wikipedia_url').hasClass('invalid-value'))
+    .ok()
+    .expect(Selector('#linkedin_url').hasClass('invalid-value'))
+    .ok()
+    .expect(Selector('#semanticScholar_url').hasClass('invalid-value'))
+    .ok()
+    .expect(Selector('#aclanthology_url').hasClass('invalid-value'))
+    .ok()
 
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
-    { to: 'a@aa.com', subject: 'OpenReview Account Linking' },
+    { to: 'a@aa.com', subject: 'OpenReview Email Confirmation' },
     superUserToken
   )
   await t
     .expect(messages[0].content.text)
     .contains(
-      'Click on the link below to confirm that a@aa.com and a@a.com both belong to the same person'
+      'to confirm an alternate email address a@aa.com. If you would like to confirm this email, please use the verification token mentioned below'
     )
     // personal links
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
@@ -264,17 +292,30 @@ test('add and delete geolocation of history', async (t) => {
     .typeText(Selector('input.institution-state'), 'test state')
     .typeText(Selector('input.institution-department'), 'test department')
     .click(saveProfileButton)
-    .expect(Selector('.glyphicon-map-marker').exists).ok()
-    .expect(Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test city, test state, MX').exists)
+    .expect(Selector('.glyphicon-map-marker').exists)
+    .ok()
+    .expect(
+      Selector('.glyphicon-map-marker').withAttribute(
+        'data-original-title',
+        'test city, test state, MX'
+      ).exists
+    )
     .ok()
   // remove country code
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(Selector('div.country-dropdown__control')).pressKey('delete')
+    .click(Selector('div.country-dropdown__control'))
+    .pressKey('delete')
     .click(saveProfileButton)
-    .expect(Selector('.glyphicon-map-marker').exists).ok()
-    .expect(Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test city, test state').exists)
+    .expect(Selector('.glyphicon-map-marker').exists)
+    .ok()
+    .expect(
+      Selector('.glyphicon-map-marker').withAttribute(
+        'data-original-title',
+        'test city, test state'
+      ).exists
+    )
     .ok()
   // remove only city
   await t
@@ -283,21 +324,31 @@ test('add and delete geolocation of history', async (t) => {
     .click(Selector('div.country-dropdown__control'))
     .wait(500)
     .click(Selector('div.country-dropdown__option').nth(3))
-    .selectText(Selector('input.institution-city')).pressKey('delete')
+    .selectText(Selector('input.institution-city'))
+    .pressKey('delete')
     .click(saveProfileButton)
-    .expect(Selector('.glyphicon-map-marker').exists).ok()
-    .expect(Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test state, MX').exists)
+    .expect(Selector('.glyphicon-map-marker').exists)
+    .ok()
+    .expect(
+      Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test state, MX')
+        .exists
+    )
     .ok()
   // remove all geolocation info
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(Selector('div.country-dropdown__control')).pressKey('delete')
-    .selectText(Selector('input.institution-city')).pressKey('delete')
-    .selectText(Selector('input.institution-state')).pressKey('delete')
-    .selectText(Selector('input.institution-department')).pressKey('delete')
+    .click(Selector('div.country-dropdown__control'))
+    .pressKey('delete')
+    .selectText(Selector('input.institution-city'))
+    .pressKey('delete')
+    .selectText(Selector('input.institution-state'))
+    .pressKey('delete')
+    .selectText(Selector('input.institution-department'))
+    .pressKey('delete')
     .click(saveProfileButton)
-    .expect(Selector('.glyphicon-map-marker').exists).notOk()
+    .expect(Selector('.glyphicon-map-marker').exists)
+    .notOk()
 })
 
 test('add links', async (t) => {
@@ -307,17 +358,25 @@ test('add links', async (t) => {
     // add invalid acl url
     .typeText(aclanthologyUrlInput, 'https://aclanthology.org/invalid_url')
     .pressKey('tab')
-    .expect(aclanthologyUrlInput.hasClass('invalid-value')).ok()
-    .expect(errorMessageSelector.innerText).eql('Error: https://aclanthology.org/invalid_url is not a valid ACL Anthology URL')
+    .expect(aclanthologyUrlInput.hasClass('invalid-value'))
+    .ok()
+    .expect(errorMessageSelector.innerText)
+    .eql('Error: https://aclanthology.org/invalid_url is not a valid ACL Anthology URL')
     .click(saveProfileButton)
-    .expect(errorMessageSelector.innerText).eql('Error: One of your personal links is invalid. Please make sure all URLs start with http:// or https://')
-    .expect(aclanthologyUrlInput.hasClass('invalid-value')).ok()
+    .expect(errorMessageSelector.innerText)
+    .eql(
+      'Error: One of your personal links is invalid. Please make sure all URLs start with http:// or https://'
+    )
+    .expect(aclanthologyUrlInput.hasClass('invalid-value'))
+    .ok()
     // add valid acl url
     .typeText(aclanthologyUrlInput, 'https://aclanthology.org/people/userB', { replace: true })
     .pressKey('tab')
-    .expect(aclanthologyUrlInput.hasClass('invalid-value')).notOk()
+    .expect(aclanthologyUrlInput.hasClass('invalid-value'))
+    .notOk()
     .click(saveProfileButton)
-    .expect(errorMessageSelector.innerText).eql('Your profile information has been successfully updated')
+    .expect(errorMessageSelector.innerText)
+    .eql('Your profile information has been successfully updated')
 })
 
 test('add relation', async (t) => {
@@ -331,38 +390,80 @@ test('add relation', async (t) => {
     .click(Selector('div.relation-dropdown__option').nth(3))
     .typeText(firstRelationRow.find('input.search-input'), 'FirstA')
     .pressKey('enter')
-    .expect(firstRelationRow.find('a').withAttribute('href', "/profile?id=~FirstA_LastA1").exists).ok()
+    .expect(
+      firstRelationRow.find('a').withAttribute('href', '/profile?id=~FirstA_LastA1').exists
+    )
+    .ok()
     .click(firstRelationRow.find('.glyphicon-plus'))
-    .typeText(firstRelationRow.find('input').withAttribute('placeholder', 'year').nth(0), '1999')
-    .typeText(firstRelationRow.find('input').withAttribute('placeholder', 'year').nth(1), '2023')
+    .typeText(
+      firstRelationRow.find('input').withAttribute('placeholder', 'year').nth(0),
+      '1999'
+    )
+    .typeText(
+      firstRelationRow.find('input').withAttribute('placeholder', 'year').nth(1),
+      '2023'
+    )
     // add a custom relation
     .click(secondRelationRow.find('div.relation__value').nth(0)) // relation dropdown
     .click(Selector('div.relation-dropdown__option').nth(3))
     .typeText(secondRelationRow.find('input.search-input'), 'Some Relation Name')
     .pressKey('enter')
-    .expect(secondRelationRow.find('div').withText('No results found for your search query.').exists).ok()
+    .expect(
+      secondRelationRow.find('div').withText('No results found for your search query.').exists
+    )
+    .ok()
     .click(secondRelationRow.find('button').withText('Manually Enter Relation Info'))
-    .typeText(secondRelationRow.find('input').withAttribute('name', 'fullName'), 'Some Relation Name')
-    .typeText(secondRelationRow.find('input').withAttribute('name', 'email'), 'test@relation.test')
+    .typeText(
+      secondRelationRow.find('input').withAttribute('name', 'fullName'),
+      'Some Relation Name'
+    )
+    .typeText(
+      secondRelationRow.find('input').withAttribute('name', 'email'),
+      'test@relation.test'
+    )
     .click(secondRelationRow.find('button').withText('Add'))
-    .typeText(secondRelationRow.find('input').withAttribute('placeholder', 'year').nth(0), '1999')
-    .typeText(secondRelationRow.find('input').withAttribute('placeholder', 'year').nth(1), '2023')
+    .typeText(
+      secondRelationRow.find('input').withAttribute('placeholder', 'year').nth(0),
+      '1999'
+    )
+    .typeText(
+      secondRelationRow.find('input').withAttribute('placeholder', 'year').nth(1),
+      '2023'
+    )
     .click(saveProfileButton)
     // verify relation is added
-    .expect(Selector('span').withText('Some Relation Name').exists).ok()
-    .expect(Selector('a').withAttribute('href', '/profile?id=~FirstA_LastA1').textContent).eql('FirstA LastA')
+    .expect(Selector('span').withText('Some Relation Name').exists)
+    .ok()
+    .expect(Selector('a').withAttribute('href', '/profile?id=~FirstA_LastA1').textContent)
+    .eql('FirstA LastA')
 
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .expect(firstRelationRow.find('a').withAttribute('href', '/profile?id=~FirstA_LastA1').textContent).eql('FirstA LastA')
-    .expect(secondRelationRow.find('span').withText('Some Relation Name').exists).ok()
-    .expect(secondRelationRow.find('span').withText('<test@relation.test>').exists).ok()
+    .expect(
+      firstRelationRow.find('a').withAttribute('href', '/profile?id=~FirstA_LastA1')
+        .textContent
+    )
+    .eql('FirstA LastA')
+    .expect(secondRelationRow.find('span').withText('Some Relation Name').exists)
+    .ok()
+    .expect(secondRelationRow.find('span').withText('<test@relation.test>').exists)
+    .ok()
     // clear value
     .click(firstRelationRow.find('.glyphicon-edit'))
-    .expect(firstRelationRow.find('input.search-input').withAttribute('placeholder', 'Search relation by name or email').exists).ok()
+    .expect(
+      firstRelationRow
+        .find('input.search-input')
+        .withAttribute('placeholder', 'Search relation by name or email').exists
+    )
+    .ok()
     .click(secondRelationRow.find('.glyphicon-edit'))
-    .expect(secondRelationRow.find('input.search-input').withAttribute('placeholder', 'Search relation by name or email').exists).ok()
+    .expect(
+      secondRelationRow
+        .find('input.search-input')
+        .withAttribute('placeholder', 'Search relation by name or email').exists
+    )
+    .ok()
     .click(firstRelationRow.find('.glyphicon-minus-sign'))
     .click(firstRelationRow.find('.glyphicon-minus-sign')) // second row becomes first row
     .click(saveProfileButton)
@@ -376,21 +477,34 @@ test('add expertise', async (t) => {
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     // add expertise correctly
-    .typeText(firstExpertiseRow.find('div.expertise__value').nth(0).find('input'), 'some,correct,expertise')
+    .typeText(
+      firstExpertiseRow.find('div.expertise__value').nth(0).find('input'),
+      'some,correct,expertise'
+    )
     .typeText(firstExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
     .typeText(firstExpertiseRow.find('div.expertise__value').nth(2).find('input'), '2000')
     // add empty expertise
-    .typeText(secondExpertiseRow.find('div.expertise__value').nth(0).find('input'), '   ,   ,   ,   ')
+    .typeText(
+      secondExpertiseRow.find('div.expertise__value').nth(0).find('input'),
+      '   ,   ,   ,   '
+    )
     .typeText(secondExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
     // add expertise with empty value
-    .typeText(thirdExpertiseRow.find('div.expertise__value').nth(0).find('input'), 'other expertise,   ')
+    .typeText(
+      thirdExpertiseRow.find('div.expertise__value').nth(0).find('input'),
+      'other expertise,   '
+    )
     .typeText(thirdExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
     .click(saveProfileButton)
     // verify relation is added
-    .expect(Selector('span').withText('other expertise').exists).ok()
-    .expect(Selector('span').withText('some, correct, expertise').exists).ok()
-    .expect(Selector('div.start-end-year').withText('1999 – Present').exists).ok()
-    .expect(Selector('div.start-end-year').withText('1999 – 2000').exists).ok()
+    .expect(Selector('span').withText('other expertise').exists)
+    .ok()
+    .expect(Selector('span').withText('some, correct, expertise').exists)
+    .ok()
+    .expect(Selector('div.start-end-year').withText('1999 – Present').exists)
+    .ok()
+    .expect(Selector('div.start-end-year').withText('1999 – 2000').exists)
+    .ok()
 })
 
 test('import paper from dblp', async (t) => {
@@ -416,13 +530,21 @@ test('import paper from dblp', async (t) => {
     .typeText(persistentUrlInput, testPersistentUrl, { replace: true, paste: true })
     .click(showPapersButton)
     .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText)
-    .contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.', undefined, { timeout: 5000 })
+    .contains(
+      'Your OpenReview profile must contain the EXACT name used in your DBLP papers.',
+      undefined,
+      { timeout: 5000 }
+    )
     .click(dblpImportModalCancelButton)
     // put persistent url of other people in page
     .typeText(dblpUrlInput, testPersistentUrl, { replace: true, paste: true })
     .click(addDBLPPaperToProfileButton)
     .expect(Selector('#dblp-import-modal').find('div.modal-body>p').nth(0).innerText)
-    .contains('Your OpenReview profile must contain the EXACT name used in your DBLP papers.', undefined, { timeout: 5000 })
+    .contains(
+      'Your OpenReview profile must contain the EXACT name used in your DBLP papers.',
+      undefined,
+      { timeout: 5000 }
+    )
     .click(dblpImportModalCancelButton)
     // add name to skip validation error
     .click(nameSectionPlusIconSelector)
@@ -500,9 +622,8 @@ test('imported paper has banner back to profile edit', async (t) => {
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .click(addDBLPPaperToProfileButton)
-    .expect(Selector('div.publication-title').nth(0).find(
-      'a'
-    ).getAttribute('href')).contains('referrer=[profile](/profile/edit)')
+    .expect(Selector('div.publication-title').nth(0).find('a').getAttribute('href'))
+    .contains('referrer=[profile](/profile/edit)')
 })
 
 test('unlink paper', async (t) => {
@@ -609,12 +730,13 @@ test('validate current history', async (t) => {
     .expect(errorMessageSelector.innerText)
     .eql('Error: Your Education & Career History must include at least one current position.')
     // add current end date
-    .typeText(firstHistoryEndInput, (new Date().getFullYear()).toString(), {
+    .typeText(firstHistoryEndInput, new Date().getFullYear().toString(), {
       replace: true,
       paste: true,
     })
     .click(saveProfileButton)
-    .expect(Selector('.glyphicon-map-marker').exists).notOk()
+    .expect(Selector('.glyphicon-map-marker').exists)
+    .notOk()
 
   // add empty end date
   await t
@@ -623,7 +745,8 @@ test('validate current history', async (t) => {
     .selectText(firstHistoryEndInput)
     .pressKey('delete')
     .click(saveProfileButton)
-    .expect(Selector('.glyphicon-map-marker').exists).notOk()
+    .expect(Selector('.glyphicon-map-marker').exists)
+    .notOk()
 })
 
 test('profile should be auto merged', async (t) => {
@@ -633,10 +756,16 @@ test('profile should be auto merged', async (t) => {
     .click(emailSectionPlusIconSelector)
     .typeText(editEmailInputSelector, userF.email)
     .click(Selector('button').withText('Confirm').filterVisible())
-    .expect(Selector('a').withText('Merge Profiles').exists).notOk()
+    .expect(Selector('a').withText('Merge Profiles').exists)
+    .notOk()
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
     .contains(`A confirmation email has been sent to ${userF.email}`)
 
+    // text box to enter code should be displayed
+    .expect(Selector('button').withText('Verify').nth(0).visible)
+    .ok()
+    .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
+    .ok()
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
     { to: userF.email, subject: 'OpenReview Account Linking - Duplicate Profile Found' },
@@ -648,25 +777,42 @@ test('profile should be auto merged', async (t) => {
       'This alternate email address is already associated with the user [~FirstF_LastF1]'
     )
 
-
   // access merge link as non-related user
-  await t.useRole(userBRole).navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/merge?token=${userF.email}`)
-    .expect(Selector('h1').withText('Error 403').exists).ok()
-    .expect(Selector('pre.error-message').textContent).eql('You are not authorized to perform this merge.')
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/merge?token=${userF.email}`)
+    .expect(Selector('h1').withText('Error 403').exists)
+    .ok()
+    .expect(Selector('pre.error-message').textContent)
+    .eql('You are not authorized to perform this merge.')
 
   // access merge link as user which initiated the merge
-  await t.useRole(userARole).navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/merge?token=${userF.email}`)
-    .expect(Selector('p').withText('Click the confirm button below to merge ~FirstF_LastF1<alternate@a.com> into your user profile.').exists).ok()
-    .expect(Selector('button').withText('Confirm Profile Merge').exists).ok()
+  await t
+    .useRole(userARole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/merge?token=${userF.email}`)
+    .expect(
+      Selector('p').withText(
+        'Click the confirm button below to merge ~FirstF_LastF1<alternate@a.com> into your user profile.'
+      ).exists
+    )
+    .ok()
+    .expect(Selector('button').withText('Confirm Profile Merge').exists)
+    .ok()
     .click(Selector('button').withText('Confirm Profile Merge'))
-    .expect(Selector('div.alert-content').innerText).contains('Thank you for confirming the profile merge.')
+    .expect(Selector('div.alert-content').innerText)
+    .contains('Thank you for confirming the profile merge.')
 
   // email should have been added to hasTaskUser's profile
   await t
     .useRole(userARole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
-    .expect(Selector('span').withText(userF.email).exists).ok()
-    .expect(Selector('span').withText(userF.email).parent().find('small').withText('Confirmed').exists).ok()
+    .expect(Selector('span').withText(userF.email).exists)
+    .ok()
+    .expect(
+      Selector('span').withText(userF.email).parent().find('small').withText('Confirmed')
+        .exists
+    )
+    .ok()
 })
 
 // eslint-disable-next-line no-unused-expressions
@@ -724,6 +870,11 @@ test('#85 confirm profile email message', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
     .contains('A confirmation email has been sent to x@x.com')
+    // text box to enter code should be displayed
+    .expect(Selector('button').withText('Verify').nth(0).visible)
+    .ok()
+    .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
+    .ok()
 })
 test('#98 trailing slash error page', async (t) => {
   await t
@@ -773,7 +924,9 @@ test('fail before 2099', async (t) => {
     ) // to fail in 2090, update validation regex
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('Your profile information has been successfully updated', undefined, { timeout: 5000 })
+    .eql('Your profile information has been successfully updated', undefined, {
+      timeout: 5000,
+    })
 })
 test('#1011 remove space in personal links', async (t) => {
   await t
@@ -792,4 +945,134 @@ test('#1011 remove space in personal links', async (t) => {
         .withAttribute('href', 'https://github.com/xkOpenReview').exists
     )
     .ok()
+})
+test('confirm an email with a numeric token', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .expect(Selector('h4').withText('Emails').exists)
+    .ok()
+    .click(
+      Selector('div')
+        .withAttribute('class', 'profile-edit-container')
+        .child('section')
+        .nth(3)
+        .find('span.glyphicon')
+    ) // add button
+    .expect(Selector('div.container.emails').child('div.row').count)
+    .eql(2)
+    .typeText(
+      Selector('div.container.emails').child('div.row').nth(1).find('input'),
+      'aaa@alternate.com'
+    )
+    .click(Selector('div.container.emails').find('button.confirm-button'))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql(
+      'A confirmation email has been sent to aaa@alternate.com with confirmation instructions'
+    )
+    .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('aaa@alternate.com has been verified')
+    // check if buttons disappeared
+    .expect(Selector('button').withText('Verify').nth(0).exists)
+    .notOk()
+    .expect(Selector('button').withText('Confirm').nth(0).exists)
+    .notOk()
+    .expect(Selector('div').withText('(Confirmed)').nth(0).exists)
+    .ok()
+    .expect(Selector('button').withText('Make Preferred').nth(0).exists)
+    .ok()
+    .click(saveProfileButton)
+    .expect(Selector('span').withText('aaa@alternate.com').exists)
+    .ok()
+    .expect(
+      Selector('span')
+        .withText('aaa@alternate.com')
+        .parent()
+        .find('small')
+        .withText('Confirmed').exists
+    )
+    .ok()
+})
+
+test('check if a user can add multiple emails without entering verification token', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .expect(Selector('h4').withText('Emails').exists)
+    .ok()
+    .click(
+      Selector('div')
+        .withAttribute('class', 'profile-edit-container')
+        .child('section')
+        .nth(3)
+        .find('span.glyphicon')
+    ) // add button
+    .expect(Selector('div.container.emails').child('div.row').count)
+    .eql(3)
+    .typeText(
+      Selector('div.container.emails').child('div.row').nth(2).find('input'),
+      'aab@alternate.com'
+    )
+    .click(Selector('div.container.emails').find('button.confirm-button'))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql(
+      'A confirmation email has been sent to aab@alternate.com with confirmation instructions'
+    )
+    .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('aab@alternate.com has been verified')
+
+    .click(
+      Selector('div')
+        .withAttribute('class', 'profile-edit-container')
+        .child('section')
+        .nth(3)
+        .find('span.glyphicon')
+    ) // add button
+    .expect(Selector('div.container.emails').child('div.row').count)
+    .eql(4)
+    .typeText(
+      Selector('div.container.emails').child('div.row').nth(3).find('input'),
+      'aac@alternate.com'
+    )
+    .click(Selector('div.container.emails').find('button.confirm-button'))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql(
+      'A confirmation email has been sent to aac@alternate.com with confirmation instructions'
+    )
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('token must NOT have fewer than 1 characters')
+
+    .click(saveProfileButton)
+    .expect(Selector('span').withText('aab@alternate.com').exists)
+    .ok()
+    .expect(
+      Selector('span')
+        .withText('aab@alternate.com')
+        .parent()
+        .find('small')
+        .withText('Confirmed').exists
+    )
+    .ok()
+
+    .expect(Selector('span').withText('aac@alternate.com').exists)
+    .ok()
+    .expect(Selector('span').withText('aac@alternate.com').parent().textContent)
+    .notContains('Confirmed')
 })
