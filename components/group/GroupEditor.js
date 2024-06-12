@@ -42,6 +42,7 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
       case 'groupGeneral':
         return (
           <GroupGeneral
+            key={sectionName}
             group={group}
             profileId={profileId}
             isSuperUser={isSuperUser}
@@ -51,12 +52,18 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
         )
       case 'groupMembers':
         return (
-          <GroupMembers group={group} accessToken={accessToken} reloadGroup={reloadGroup} />
+          <GroupMembers
+            key={sectionName}
+            group={group}
+            accessToken={accessToken}
+            reloadGroup={reloadGroup}
+          />
         )
       case 'groupContent':
         return (
           group.invitations && (
             <GroupContent
+              key={sectionName}
               group={group}
               profileId={profileId}
               accessToken={accessToken}
@@ -68,7 +75,7 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
         return (
           group.invitations && (
             <GroupContentScripts
-              key={`${group.id}-content-scripts`}
+              key={sectionName}
               group={group}
               profileId={profileId}
               accessToken={accessToken}
@@ -77,16 +84,23 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
           )
         )
       case 'groupSignedNotes':
-        return <GroupSignedNotes group={group} accessToken={accessToken} />
+        return <GroupSignedNotes key={sectionName} group={group} accessToken={accessToken} />
       case 'groupChildGroups':
-        return <GroupChildGroups groupId={group.id} accessToken={accessToken} />
+        return (
+          <GroupChildGroups key={sectionName} groupId={group.id} accessToken={accessToken} />
+        )
       case 'groupRelatedInvitations':
-        return <GroupRelatedInvitations group={group} accessToken={accessToken} />
+        return (
+          <GroupRelatedInvitations key={sectionName} group={group} accessToken={accessToken} />
+        )
       case 'workflowInvitations':
-        return <WorkFlowInvitations group={group} accessToken={accessToken} />
+        return (
+          <WorkFlowInvitations key={sectionName} group={group} accessToken={accessToken} />
+        )
       case 'groupUICode':
         return (
           <GroupUICode
+            key={sectionName}
             group={group}
             profileId={profileId}
             accessToken={accessToken}

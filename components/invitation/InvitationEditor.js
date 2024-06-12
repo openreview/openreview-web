@@ -131,13 +131,12 @@ export const InvitationEditorV2 = ({
     },
   ]
 
-  console.log('invitationTabsConfig', invitationTabsConfig)
-
   const renderSection = (sectionName) => {
     switch (sectionName) {
       case 'invitationGeneral':
         return (
           <InvitationGeneralV2
+            key={sectionName}
             invitation={invitation}
             profileId={profileId}
             accessToken={accessToken}
@@ -146,11 +145,11 @@ export const InvitationEditorV2 = ({
           />
         )
       case 'invitationChildInvitations':
-        return <InvitationChildInvitationsV2 invitation={invitation} />
+        return <InvitationChildInvitationsV2 key={sectionName} invitation={invitation} />
       case 'invitationReply':
         return (
           <InvitationReplyV2
-            key={`${invitation.id}-edit`}
+            key={sectionName}
             invitation={invitation}
             profileId={profileId}
             accessToken={accessToken}
@@ -161,7 +160,7 @@ export const InvitationEditorV2 = ({
       case 'invitationReplyForumViews':
         return (
           <InvitationReplyV2
-            key={`${invitation.id}-replyForumViews`}
+            key={sectionName}
             invitation={invitation}
             profileId={profileId}
             accessToken={accessToken}
@@ -172,7 +171,7 @@ export const InvitationEditorV2 = ({
       case 'invitationContentReply':
         return (
           <InvitationReplyV2
-            key={`${invitation.id}-content`}
+            key={sectionName}
             invitation={invitation}
             profileId={profileId}
             accessToken={accessToken}
@@ -184,6 +183,7 @@ export const InvitationEditorV2 = ({
       case 'contentProcessFunctions':
         return (
           <ContentProcessFunctions
+            key={sectionName}
             invitation={invitation}
             profileId={profileId}
             accessToken={accessToken}
@@ -194,6 +194,7 @@ export const InvitationEditorV2 = ({
       case 'invitationProcessFunctions':
         return (
           <InvitationProcessFunctionsV2
+            key={sectionName}
             invitation={invitation}
             profileId={profileId}
             accessToken={accessToken}
@@ -204,6 +205,7 @@ export const InvitationEditorV2 = ({
       case 'invitationCode':
         return (
           <InvitationCodeV2
+            key={sectionName}
             invitation={invitation}
             profileId={profileId}
             accessToken={accessToken}
