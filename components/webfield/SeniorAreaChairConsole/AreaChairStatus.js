@@ -8,10 +8,11 @@ import WebFieldContext from '../../WebFieldContext'
 import AreaChairStatusMenuBar from '../ProgramChairConsole/AreaChairStatusMenuBar'
 import { getProfileLink } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
+import { pluralizeString, prettyField } from '../../../lib/utils'
 
 const CommitteeSummary = ({ rowData }) => {
   const { id, preferredName, preferredEmail } = rowData.areaChairProfile ?? {}
-  const { edgeBrowserDeployedUrl } = useContext(WebFieldContext)
+  const { edgeBrowserDeployedUrl, reviewerName } = useContext(WebFieldContext)
   const edgeBrowserUrl = edgeBrowserDeployedUrl?.replaceAll('{ac.profile.id}', id)
 
   return (
@@ -31,7 +32,7 @@ const CommitteeSummary = ({ rowData }) => {
             <p className="text-muted">({preferredEmail})</p>
             {edgeBrowserUrl && (
               <a target="_blank" rel="noreferrer" href={edgeBrowserUrl}>
-                Modify Reviewer Assignments
+                Modify {prettyField(reviewerName)} Assignments
               </a>
             )}
           </>
@@ -47,13 +48,17 @@ const CommitteeSummary = ({ rowData }) => {
 const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
   const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
+  const { submissionName, officialReviewName } = useContext(WebFieldContext)
 
   return (
     <div className="reviewer-progress">
       <h4>
-        {numCompletedReviews} of {numPapers} Papers Reviews Completed
+        {numCompletedReviews} of {numPapers} {pluralizeString(submissionName)}{' '}
+        {prettyField(officialReviewName)} Completed
       </h4>
-      {rowData.notes.length !== 0 && <strong className="paper-label">Papers:</strong>}
+      {rowData.notes.length !== 0 && (
+        <strong className="paper-label">{pluralizeString(submissionName)}:</strong>
+      )}
       <div className="review-progress">
         {rowData.notes.map((p) => {
           const { numReviewsDone, numReviewersAssigned, ratingAvg, ratingMin, ratingMax } =
@@ -73,7 +78,8 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
                   </a>
                   <div>
                     <strong>
-                      {numReviewsDone} of {numReviewersAssigned} Reviews Submitted{' '}
+                      {numReviewsDone} of {numReviewersAssigned}{' '}
+                      {pluralizeString(prettyField(officialReviewName))} Submitted{' '}
                     </strong>
                     {ratingAvg &&
                       `/ Average Rating:${ratingAvg} (Min: ${ratingMin}, Max: ${ratingMax})`}
@@ -89,9 +95,11 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
 }
 
 // modified based on notesAreaChairStatus.hbs
-const NoteAreaChairStatus = ({ rowData, referrerUrl, metaReviewRecommendationName }) => {
+const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
+  const { metaReviewRecommendationName = 'recommendation' } = useContext(WebFieldContext)
+
   return (
     <div className="areachair-progress">
       <h4>
@@ -141,7 +149,7 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl, metaReviewRecommendationNam
   )
 }
 
-const AreaChairStatusRow = ({ rowData, metaReviewRecommendationName, referrerUrl }) => (
+const AreaChairStatusRow = ({ rowData, referrerUrl }) => (
   <tr>
     <td>
       <strong>{rowData.number}</strong>
@@ -153,18 +161,14 @@ const AreaChairStatusRow = ({ rowData, metaReviewRecommendationName, referrerUrl
       <NoteAreaChairProgress rowData={rowData} referrerUrl={referrerUrl} />
     </td>
     <td>
-      <NoteAreaChairStatus
-        rowData={rowData}
-        referrerUrl={referrerUrl}
-        metaReviewRecommendationName={metaReviewRecommendationName}
-      />
+      <NoteAreaChairStatus rowData={rowData} referrerUrl={referrerUrl} />
     </td>
   </tr>
 )
 
 const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
   const [areaChairStatusTabData, setAreaChairStatusTabData] = useState({})
-  const { seniorAreaChairName, areaChairName, venueId, metaReviewRecommendationName } =
+  const { seniorAreaChairName, areaChairName, venueId, officialReviewName } =
     useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(
@@ -172,7 +176,9 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
   )
   const pageSize = 25
   const referrerUrl = encodeURIComponent(
-    `[Senior Area Chair Console](/group?id=${venueId}/${seniorAreaChairName}#areachair-status)`
+    `[${prettyField(
+      seniorAreaChairName
+    )} Console](/group?id=${venueId}/${seniorAreaChairName}#${areaChairName}-status)`
   )
 
   const calcACStatusTabData = () => {
@@ -253,8 +259,8 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
   if (areaChairStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no area chairs. Check back later or contact info@openreview.net if you
-        believe this to be an error.
+        There are no {prettyField(areaChairName).toLowerCase()}. Check back later or contact
+        info@openreview.net if you believe this to be an error.
       </p>
     )
   if (areaChairStatusTabData.tableRows?.length === 0)
@@ -269,7 +275,9 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
           messageParentGroup={`${venueId}/${areaChairName}`}
           messageSignature={user?.profile?.id}
         />
-        <p className="empty-message">No area chair matching search criteria.</p>
+        <p className="empty-message">
+          No {prettyField(areaChairName)} matching search criteria.
+        </p>
       </div>
     )
   return (
@@ -287,8 +295,8 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
         className="console-table table-striped pc-console-ac-status"
         headings={[
           { id: 'number', content: '#', width: '55px' },
-          { id: 'areachair', content: 'Area Chair', width: '10%' },
-          { id: 'reviewProgress', content: 'Review Progress' },
+          { id: 'areachair', content: prettyField(areaChairName), width: '10%' },
+          { id: 'reviewProgress', content: `${prettyField(officialReviewName)} Progress` },
           { id: 'status', content: 'Status' },
         ]}
       >
@@ -296,7 +304,6 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
           <AreaChairStatusRow
             key={row.areaChairProfileId}
             rowData={row}
-            metaReviewRecommendationName={metaReviewRecommendationName}
             referrerUrl={referrerUrl}
           />
         ))}
