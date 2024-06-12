@@ -25,6 +25,7 @@ import SeniorAreaChairStatus from './ProgramChairConsole/SeniorAreaChairStatus'
 import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
+import TrackStatus from './ProgramChairConsole/TrackStatus'
 
 const ProgramChairConsole = ({ appContext }) => {
   const {
@@ -38,6 +39,7 @@ const ProgramChairConsole = ({ appContext }) => {
     authorsId,
     paperReviewsCompleteThreshold,
     bidName,
+    cmpName,
     recommendationName, // to get ac recommendation edges
     metaReviewRecommendationName = 'recommendation', // recommendation field in meta review
     additionalMetaReviewFields = [],
@@ -69,6 +71,7 @@ const ProgramChairConsole = ({ appContext }) => {
     customStageInvitations,
     assignmentUrls,
     emailReplyTo,
+    enableARRTrackStatus,
     reviewerEmailFuncs,
     acEmailFuncs,
     submissionContentFields = [],
@@ -264,6 +267,24 @@ const ProgramChairConsole = ({ appContext }) => {
       )
       // #endregion
 
+      // #region get Reviewer, AC, SAC custom max papers
+      const customMaxPapersP = Promise.all(
+        [reviewersId, areaChairsId, seniorAreaChairsId].map((id) => {
+          if (!id) return Promise.resolve([]) // change to cmpName
+          return api.getAll(
+            '/edges',
+            {
+              invitation: `${id}/-/${cmpName}`, // change to cmpName
+              groupBy: 'tail',
+              select: 'weight',
+              domain: venueId,
+            },
+            { accessToken, resultsKey: 'groupedEdges' }
+          )
+        })
+      )
+      // #endregion
+
       // #region getGroups (per paper groups)
       const perPaperGroupResultsP = api.get(
         '/groups',
@@ -286,6 +307,7 @@ const ProgramChairConsole = ({ appContext }) => {
         getAcRecommendationsP,
         bidCountResultsP,
         perPaperGroupResultsP,
+        customMaxPapersP
       ])
       const invitationResults = results[0]
       const requestForm = results[1]
@@ -299,6 +321,7 @@ const ProgramChairConsole = ({ appContext }) => {
       const acRecommendationsCount = results[5]
       const bidCountResults = results[6]
       const perPaperGroupResults = results[7]
+      const customMaxPapersResults = results[8]
 
       // Get registration notes from all registration forms
       const registrationNotes = await Promise.all(
@@ -536,6 +559,11 @@ const ProgramChairConsole = ({ appContext }) => {
         }),
 
         acRecommendationsCount,
+        customMaxPapers: {
+          reviewers: customMaxPapersResults[0],
+          areaChairs: customMaxPapersResults[1],
+          seniorAreaChairs: customMaxPapersResults[2],
+        },
         bidCounts: {
           reviewers: bidCountResults[0],
           areaChairs: bidCountResults[1],
@@ -1069,6 +1097,13 @@ const ProgramChairConsole = ({ appContext }) => {
                 {prettyField(fieldAttrs.field)}
               </Tab>
             ))}
+            {(enableARRTrackStatus && <Tab
+              id="track-status"
+              active={activeTabId === '#track-status' ? true : undefined}
+              onClick={() => setActiveTabId('#track-status')}
+            >
+              Track Status
+            </Tab>)}
         </TabList>
 
         <TabPanels>
@@ -1124,6 +1159,13 @@ const ProgramChairConsole = ({ appContext }) => {
                 )}
               </TabPanel>
             ))}
+          {(enableARRTrackStatus && activeTabId === '#track-status' &&
+            <TabPanel id="track-status">
+              <TrackStatus
+                pcConsoleData={pcConsoleData}
+              />
+            </TabPanel>
+          )}
         </TabPanels>
       </Tabs>
     </>
