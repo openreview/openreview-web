@@ -346,6 +346,7 @@ test('update profile', async (t) => {
     .eql(
       'A confirmation email has been sent to melisa@umass.edu with confirmation instructions'
     )
+    .wait(500)
     .click(Selector('button').withText('Verify').nth(0))
     .expect(messagePanelSelector.exists)
     .ok()
