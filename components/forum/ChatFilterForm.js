@@ -5,13 +5,10 @@ import { prettyId, prettyInvitationId } from '../../lib/utils'
 import styles from '../../styles/components/ChatFilterForm.module.scss'
 
 export default function ChatFilterForm({
-  forumId,
   defaultFilters,
   selectedFilters,
   setSelectedFilters,
   filterOptions,
-  numReplies,
-  numRepliesHidden,
 }) {
   // Options for dropdowns
   const invDropdownFilterOptions = [
@@ -71,9 +68,10 @@ export default function ChatFilterForm({
             id="keyword-input"
             placeholder="Search keywords..."
             defaultValue={selectedFilters.keywords ? selectedFilters.keywords[0] : ''}
+            maxLength={100}
             onChange={(e) => {
               updateFilters({
-                keywords: e.target.value ? [e.target.value.toLowerCase()] : null,
+                keywords: e.target.value ? [e.target.value.toLowerCase().trim()] : null,
               })
             }}
           />

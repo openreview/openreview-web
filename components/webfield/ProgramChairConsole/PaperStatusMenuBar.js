@@ -1,10 +1,11 @@
 import { useContext } from 'react'
-import { camelCase, startCase, upperFirst } from 'lodash'
+import camelCase from 'lodash/camelCase'
+import upperFirst from 'lodash/upperFirst'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import MessageReviewersModal from '../MessageReviewersModal'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
-import { prettyField, prettyId } from '../../../lib/utils'
+import { pluralizeString, prettyField, prettyId } from '../../../lib/utils'
 
 const PaperStatusMenuBar = ({
   tableRowsAll,
@@ -12,6 +13,7 @@ const PaperStatusMenuBar = ({
   selectedNoteIds,
   setPaperStatusTabData,
   reviewRatingName,
+  noteContentField,
 }) => {
   const {
     apiVersion,
@@ -24,18 +26,29 @@ const PaperStatusMenuBar = ({
     propertiesAllowed: extraPropertiesAllowed,
     customStageInvitations = [],
     additionalMetaReviewFields = [],
+    reviewerName,
+    seniorAreaChairName = 'Senior_Area_Chairs',
+    officialReviewName,
+    officialMetaReviewName = 'Meta_Review',
+    areaChairName = 'Area_Chairs',
+    submissionName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
+  const formattedReviewerName = upperFirst(camelCase(reviewerName))
+  const formattedSACName = upperFirst(camelCase(seniorAreaChairName))
+  const formattedOfficialReviewName = upperFirst(camelCase(officialReviewName))
+  const formattedOfficialMetaReviewName = upperFirst(camelCase(officialMetaReviewName))
+
   const propertiesAllowed = {
     number: ['note.number'],
     id: ['note.id'],
     title: ['note.content.title.value'],
     author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords.value'],
-    reviewer: ['reviewers'],
-    sac: ['metaReviewData.seniorAreaChairs'],
-    numReviewersAssigned: ['reviewProgressData.numReviewersAssigned'],
-    numReviewsDone: ['reviewProgressData.numReviewsDone'],
+    [formattedReviewerName]: ['reviewers'],
+    [formattedSACName]: ['metaReviewData.seniorAreaChairs'],
+    [`num${formattedReviewerName}Assigned`]: ['reviewProgressData.numReviewersAssigned'],
+    [`num${formattedOfficialReviewName}Done`]: ['reviewProgressData.numReviewsDone'],
     ...Object.fromEntries(
       (Array.isArray(reviewRatingName)
         ? reviewRatingName.map((p) => (typeof p === 'object' ? Object.keys(p)[0] : p))
@@ -59,7 +72,9 @@ const PaperStatusMenuBar = ({
       additionalMetaReviewFields.reduce(
         (prev, curr) => ({
           ...prev,
-          [`MetaReview${upperFirst(camelCase(curr))}`]: [`metaReviewData.${curr}SearchValue`],
+          [`${formattedOfficialMetaReviewName}${upperFirst(camelCase(curr))}`]: [
+            `metaReviewData.${curr}SearchValue`,
+          ],
         }),
         {}
       )),
@@ -71,8 +86,43 @@ const PaperStatusMenuBar = ({
         }),
         {}
       )),
-    ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
+    ...(typeof extraPropertiesAllowed === 'object' &&
+      Object.fromEntries(
+        Object.entries(extraPropertiesAllowed).map(([key, value]) => {
+          if (typeof value === 'string') {
+            return [key, [key]]
+          }
+          return [key, value]
+        })
+      )),
   }
+
+  const functionExtraProperties = (() => {
+    if (typeof extraPropertiesAllowed !== 'object') return {}
+    const result = {}
+    Object.entries(extraPropertiesAllowed).forEach(([key, value]) => {
+      if (Array.isArray(value)) return
+      try {
+        result[key] = Function('row', value) // eslint-disable-line no-new-func
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(`Error parsing function for extra property ${key}: ${error}`)
+      }
+    })
+    return result
+  })()
+
+  const tableRowsAllWithFilterProperties =
+    Object.keys(functionExtraProperties).length > 0
+      ? tableRowsAll.map((row) => {
+          const extraProperties = {}
+          // eslint-disable-next-line no-restricted-syntax
+          for (const [key, value] of Object.entries(functionExtraProperties)) {
+            extraProperties[key] = value(row)
+          }
+          return { ...row, ...extraProperties }
+        })
+      : tableRowsAll
 
   Object.keys(propertiesAllowed).forEach((key) => {
     if (!Array.isArray(propertiesAllowed[key]) || propertiesAllowed[key].length === 0) {
@@ -81,10 +131,22 @@ const PaperStatusMenuBar = ({
   })
 
   const messageReviewerOptions = [
-    { label: 'All Reviewers of selected papers', value: 'allReviewers' },
-    { label: 'Reviewers of selected papers with submitted reviews', value: 'withReviews' },
     {
-      label: 'Reviewers of selected papers with unsubmitted reviews',
+      label: `All ${pluralizeString(prettyField(reviewerName))} of selected ${pluralizeString(
+        submissionName
+      )}`,
+      value: 'allReviewers',
+    },
+    {
+      label: `${pluralizeString(prettyField(reviewerName))} of selected ${pluralizeString(
+        submissionName
+      )} with submitted ${pluralizeString(prettyField(officialReviewName).toLowerCase())}`,
+      value: 'withReviews',
+    },
+    {
+      label: `${pluralizeString(prettyField(reviewerName))} of selected ${pluralizeString(
+        submissionName
+      )} with unsubmitted ${pluralizeString(prettyField(officialReviewName).toLowerCase())}`,
       value: 'missingReviews',
     },
   ]
@@ -99,13 +161,16 @@ const PaperStatusMenuBar = ({
       header: 'abstract',
       getValue: (p) => p.note?.content?.abstract?.value,
     },
-    { header: 'num reviewers', getValue: (p) => p.reviewProgressData?.numReviewersAssigned },
     {
-      header: 'num submitted reviewers',
+      header: `num ${prettyField(reviewerName)}`,
+      getValue: (p) => p.reviewProgressData?.numReviewersAssigned,
+    },
+    {
+      header: `num submitted ${prettyField(reviewerName)}`,
       getValue: (p) => p.reviewProgressData?.numReviewsDone,
     },
     {
-      header: 'missing reviewers',
+      header: `missing ${prettyField(reviewerName)}`,
       getValue: (p) =>
         p.reviewers
           ?.filter((q) => !q.hasReview)
@@ -113,7 +178,7 @@ const PaperStatusMenuBar = ({
           ?.join('|'),
     },
     {
-      header: 'reviewer contact info',
+      header: `${prettyField(reviewerName)} contact info`,
       getValue: (p) =>
         p.reviewers.map((q) => `${q.preferredName}<${q.preferredEmail}>`).join(','),
     },
@@ -138,22 +203,22 @@ const PaperStatusMenuBar = ({
     { header: 'max confidence', getValue: (p) => p.reviewProgressData?.confidenceMax },
     { header: 'average confidence', getValue: (p) => p.reviewProgressData?.confidenceAvg },
     {
-      header: 'num area chairs assigned',
+      header: `num ${prettyField(areaChairName)} assigned`,
       getValue: (p) => p.metaReviewData?.numAreaChairsAssigned,
     },
     {
-      header: 'area chairs contact info',
+      header: `${prettyField(areaChairName)} contact info`,
       getValue: (p) =>
         p.metaReviewData?.areaChairs
           ?.map((q) => `${q.preferredName}<${q.preferredEmail}>`)
           .join(','),
     },
     {
-      header: 'num submitted area chairs',
+      header: `num submitted ${prettyField(areaChairName)}`,
       getValue: (p) => p.metaReviewData?.numMetaReviewsDone,
     },
     {
-      header: 'meta reviews',
+      header: prettyField(officialMetaReviewName),
       getValue: (p) =>
         p.metaReviewData?.metaReviews?.map((q) => q[metaReviewRecommendationName])?.join('|'),
     },
@@ -164,7 +229,7 @@ const PaperStatusMenuBar = ({
     ...(seniorAreaChairsId
       ? [
           {
-            header: 'senior area chairs',
+            header: prettyField(seniorAreaChairName),
             getValue: (p) =>
               p.metaReviewData?.seniorAreaChairs?.map((q) => q.preferredName).join('|'),
           },
@@ -180,6 +245,16 @@ const PaperStatusMenuBar = ({
         }))
       : []),
     ...(exportColumnsConfig ?? []),
+    ...(noteContentField !== undefined &&
+    typeof noteContentField === 'object' &&
+    'field' in noteContentField
+      ? [
+          {
+            header: noteContentField.field,
+            getValue: (p) => p.note?.content[noteContentField.field].value.toString() ?? 'N/A',
+          },
+        ]
+      : []),
   ]
 
   const getValueWithDefault = (value) => {
@@ -188,13 +263,28 @@ const PaperStatusMenuBar = ({
   }
 
   const sortOptions = [
-    { label: 'Paper Number', value: 'Paper Number', getValue: (p) => p.note?.number },
     {
-      label: 'Paper Title',
+      label: `${submissionName} Number`,
+      value: 'Paper Number',
+      getValue: (p) => p.note?.number,
+    },
+    {
+      label: `${submissionName} Title`,
       value: 'Paper Title',
       getValue: (p) =>
         p.note?.version === 2 ? p.note?.content?.title?.value : p.note?.content?.title,
     },
+    ...(noteContentField !== undefined &&
+    typeof noteContentField === 'object' &&
+    'field' in noteContentField
+      ? [
+          {
+            label: prettyField(noteContentField.field),
+            value: prettyField(noteContentField.field),
+            getValue: (p) => p.note?.content[noteContentField.field].value.toString() ?? 'N/A',
+          },
+        ]
+      : []),
     {
       label: 'Number of Forum Replies',
       value: 'Number of Forum Replies',
@@ -202,19 +292,19 @@ const PaperStatusMenuBar = ({
       initialDirection: 'desc',
     },
     {
-      label: 'Number of Reviewers Assigned',
+      label: `Number of ${prettyField(reviewerName)} Assigned`,
       value: 'Number of Reviewers Assigned',
       getValue: (p) => p.reviewProgressData?.numReviewersAssigned,
       initialDirection: 'desc',
     },
     {
-      label: 'Number of Reviews Submitted',
+      label: `Number of ${prettyField(officialReviewName)} Submitted`,
       value: 'Number of Reviews Submitted',
       getValue: (p) => p.reviewProgressData?.numReviewsDone,
       initialDirection: 'desc',
     },
     {
-      label: 'Number of Reviews Missing',
+      label: `Number of ${prettyField(officialReviewName)} Missing`,
       value: 'Number of Reviews Missing',
       getValue: (p) =>
         getValueWithDefault(p.reviewProgressData?.numReviewersAssigned) -
@@ -274,7 +364,7 @@ const PaperStatusMenuBar = ({
         getValueWithDefault(p.reviewProgressData?.confidenceMin),
     },
     {
-      label: 'Meta Review Missing',
+      label: `${prettyField(officialMetaReviewName)} Missing`,
       value: 'Meta Review Missing',
       getValue: (p) =>
         getValueWithDefault(p.metaReviewData?.areaChairs?.length) -
@@ -302,7 +392,7 @@ const PaperStatusMenuBar = ({
     row.note.content?.title?.value?.toLowerCase()?.includes(term)
   return (
     <BaseMenuBar
-      tableRowsAll={tableRowsAll}
+      tableRowsAll={tableRowsAllWithFilterProperties}
       tableRows={tableRows}
       selectedIds={selectedNoteIds}
       setData={setPaperStatusTabData}
@@ -313,6 +403,7 @@ const PaperStatusMenuBar = ({
       messageOptions={messageReviewerOptions}
       messageModalId="message-reviewers"
       exportColumns={exportColumns}
+      exportFileName={`${submissionName} Status`}
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
       messageModal={(props) => <MessageReviewersModal {...props} />}

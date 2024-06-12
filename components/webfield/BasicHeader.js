@@ -1,7 +1,8 @@
 // webfield.ui.header
+import { inflect, pluralizeString } from '../../lib/utils'
 import Markdown from '../EditorComponents/Markdown'
 
-const BasicHeader = ({ title, instructions, customLoad, options }) => {
+const BasicHeader = ({ title, instructions, customLoad, submissionName, options }) => {
   if (options?.fullWidth) {
     return (
       <div id="header">
@@ -25,7 +26,16 @@ const BasicHeader = ({ title, instructions, customLoad, options }) => {
           <Markdown text={instructions} />
           {customLoad && customLoad !== 0 ? (
             <p className="dark">
-              You have agreed to review up to <strong>{`${customLoad} papers`}</strong>.
+              You have agreed to review up to{' '}
+              <strong>
+                {inflect(
+                  customLoad,
+                  submissionName.toLowerCase(),
+                  pluralizeString(submissionName.toLowerCase()),
+                  true
+                )}
+              </strong>
+              .
             </p>
           ) : null}
         </div>

@@ -1,9 +1,14 @@
-/* globals DOMPurify: false */
-/* globals marked: false */
+/* globals DOMPurify,marked: false */
 
 import { useState, useEffect } from 'react'
 import union from 'lodash/union'
-import { prettyField, prettyContentValue, orderReplyFields, prettyId } from '../lib/utils'
+import {
+  prettyField,
+  prettyContentValue,
+  orderReplyFields,
+  prettyId,
+  classNames,
+} from '../lib/utils'
 import Icon from './Icon'
 
 function NoteContent({
@@ -79,7 +84,7 @@ function NoteContentField({ name, customFieldName }) {
   )
 }
 
-export function NoteContentValue({ content = '', enableMarkdown }) {
+export function NoteContentValue({ content = '', enableMarkdown, className }) {
   const [sanitizedHtml, setSanitizedHtml] = useState(null)
 
   const autoLinkContent = (value) => {
@@ -105,21 +110,24 @@ export function NoteContentValue({ content = '', enableMarkdown }) {
     if (enableMarkdown) {
       setSanitizedHtml(DOMPurify.sanitize(marked(content)))
     } else {
-      setSanitizedHtml(autoLinkContent(content))
+      setSanitizedHtml(DOMPurify.sanitize(autoLinkContent(content)))
     }
   }, [enableMarkdown, content])
 
   if (!sanitizedHtml) {
-    return <span className="note-content-value">{content}</span>
+    return <span className={classNames('note-content-value', className)}>{content}</span>
   }
 
   return enableMarkdown ? (
     <div
-      className="note-content-value markdown-rendered"
+      className={classNames('note-content-value', 'markdown-rendered', className)}
       dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
     />
   ) : (
-    <span className="note-content-value" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+    <span
+      className={classNames('note-content-value', className)}
+      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+    />
   )
 }
 

@@ -1,0 +1,103 @@
+@use '../utils/constants';
+@use '../utils/mixins';
+
+.container {
+  border: 1px solid constants.$borderGray;
+  border-radius: 2px;
+  padding: 0.5rem;
+  background-color: constants.$backgroundWhite;
+
+  :global {
+    .parent-info {
+      h5 {
+        margin-top: 0;
+        margin-bottom: .375rem;
+        font-size: .75rem;
+        color: constants.$subtleGray;
+        cursor: pointer;
+        span {
+          color: constants.$orRed;
+          font-weight: bold;
+        }
+        span.glyphicon {
+          color: constants.$mediumBlue;
+        }
+      }
+    }
+    .form-group {
+      margin-bottom: .5rem;
+    }
+    .form-control {
+      border-radius: 2px;
+    }
+    textarea {
+      line-height: normal;
+      max-width: 100%;
+    }
+    .signatures-container {
+      position: relative;
+      .indicator {
+        position: absolute;
+        width: 0.875rem;
+        height: 0.875rem;
+        left: 0;
+        top: 3px;
+        border-radius: 50%;
+        box-sizing: border-box;
+        content: ' ';
+      }
+      strong {
+        padding-left: 1.25rem;
+        font-size: 1rem;
+        line-height: .875rem;
+      }
+      a {
+        font-size: .75rem;
+      }
+      .dropdown-select {
+        width: 280px;
+      }
+    }
+    .preview {
+      border-bottom: 1px solid #eee;
+    }
+    .markdown-rendered {
+      overflow-x: scroll;
+      @include mixins.markdown-content-styles;
+    }
+    .custom-switch {
+      display: inline-block;
+      padding-right: 1rem;
+    }
+    .d-flex {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: space-between;
+
+      @media #{constants.$desktop} {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+    .readers-container {
+      flex-grow: 3;
+      padding-bottom: 6px;
+
+      @media #{constants.$desktop} {
+        padding-bottom: 0;
+      }
+    }
+    .buttons-container {
+      flex-shrink: 0;
+      text-align: right;
+
+      @media #{constants.$desktop} {
+        flex-basis: 350px;
+      }
+      span.glyphicon {
+        padding-left: .25rem;
+      }
+    }
+  }
+}

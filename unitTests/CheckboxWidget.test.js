@@ -289,7 +289,7 @@ describe('CheckboxWidget in context of note editor', () => {
               param: {
                 input: 'checkbox',
                 type: 'string',
-                enum: ['I certify not'], // invitaiton has been changed
+                enum: ['I certify not'], // invitation has been changed
               },
             },
           },
@@ -340,7 +340,7 @@ describe('CheckboxWidget in context of note editor', () => {
               param: {
                 input: 'checkbox',
                 type: 'integer',
-                enum: [{ value: 1, description: 'I certify' }], // invitaiton has been changed
+                enum: [{ value: 1, description: 'I certify' }], // invitation has been changed
               },
             },
           },
@@ -382,6 +382,10 @@ describe('CheckboxWidget in context of note editor', () => {
     }
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(screen.getByText('I certify')).toBeInTheDocument()
+    expect(screen.getByText('I do not certify')).toBeInTheDocument()
+    expect(screen.getByText('I am not sure')).toBeInTheDocument()
+
     expect(screen.getByDisplayValue('1')).toHaveAttribute('checked')
     expect(screen.getByDisplayValue('2')).not.toHaveAttribute('checked')
     expect(screen.getByDisplayValue('3')).toHaveAttribute('checked')

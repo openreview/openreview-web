@@ -27,6 +27,7 @@ const InvitationInfo = ({ appContext }) => {
   const getReplyFieldByInvitationType = (invitation) => {
     if (!invitation) return 'edit'
     if (invitation.edge) return 'edge'
+    if (invitation.tag) return 'tag'
     if (invitation.message) return 'message'
     return 'edit'
   }

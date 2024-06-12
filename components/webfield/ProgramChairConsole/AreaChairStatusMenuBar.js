@@ -1,11 +1,13 @@
 /* globals $,promptMessage: false */
 import { useContext, useEffect, useState } from 'react'
+import camelCase from 'lodash/camelCase'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import BasicModal from '../../BasicModal'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
+import { pluralizeString, prettyField } from '../../../lib/utils'
 
 const MessageAreaChairsModal = ({
   tableRowsDisplayed: tableRows,
@@ -14,7 +16,13 @@ const MessageAreaChairsModal = ({
   messageSignature,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, emailReplyTo, submissionVenueId, messageAreaChairsInvitationId } = useContext(WebFieldContext)
+  const {
+    shortPhrase,
+    emailReplyTo,
+    submissionVenueId,
+    messageAreaChairsInvitationId,
+    areaChairName = 'Area_Chairs',
+  } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -121,8 +129,9 @@ const MessageAreaChairsModal = ({
       {currentStep === 1 ? (
         <>
           <p>
-            Enter a message to be sent to all selected area chairs below. You will have a
-            chance to review a list of all recipients after clicking &quot;Next&quot; below.
+            Enter a message to be sent to all selected{' '}
+            {prettyField(areaChairName).toLowerCase()} below. You will have a chance to review
+            a list of all recipients after clicking &quot;Next&quot; below.
           </p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
@@ -149,7 +158,7 @@ const MessageAreaChairsModal = ({
         <>
           <p>
             A total of <span className="num-reviewers">{totalMessagesCount}</span> reminder
-            emails will be sent to the following area chairs:
+            emails will be sent to the following {prettyField(areaChairName).toLowerCase()}:
           </p>
           <div className="well reviewer-list">
             {recipientsInfo.map((recipientInfo, index) => (
@@ -181,19 +190,25 @@ const AreaChairStatusMenuBar = ({
     areaChairStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
+    seniorAreaChairName = 'Senior_Area_Chairs',
+    areaChairName = 'Area_Chairs',
+    officialReviewName,
+    officialMetaReviewName = 'Meta_Review',
+    submissionName,
+    reviewerName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
     number: ['number'],
     name: ['areaChairProfile.preferredName'],
     email: ['areaChairProfile.preferredEmail'],
-    sac: ['seniorAreaChair.seniorAreaChairId'],
+    [camelCase(seniorAreaChairName)]: ['seniorAreaChair.seniorAreaChairId'],
   }
   const messageAreaChairOptions = [
     ...(bidEnabled
       ? [
           {
-            label: 'Area Chairs with 0 bids',
+            label: `${prettyField(areaChairName)} with 0 bids`,
             value: 'noBids',
           },
         ]
@@ -201,19 +216,31 @@ const AreaChairStatusMenuBar = ({
     ...(recommendationEnabled
       ? [
           {
-            label: 'Area Chairs with 0 recommendations',
+            label: `${prettyField(areaChairName)} with 0 recommendations`,
             value: 'noRecommendations',
           },
         ]
       : []),
-    { label: 'Area Chairs with unsubmitted reviews', value: 'missingReviews' },
-    { label: 'Area Chairs with 0 submitted meta reviews', value: 'noMetaReviews' },
     {
-      label: 'Area Chairs with unsubmitted meta reviews',
+      label: `${prettyField(areaChairName)} with unsubmitted ${prettyField(
+        officialReviewName
+      )}`,
+      value: 'missingReviews',
+    },
+    {
+      label: `${prettyField(areaChairName)} with 0 submitted ${prettyField(
+        officialMetaReviewName
+      )}`,
+      value: 'noMetaReviews',
+    },
+    {
+      label: `${prettyField(areaChairName)} with unsubmitted ${prettyField(
+        officialMetaReviewName
+      )}`,
       value: 'missingMetaReviews',
     },
     {
-      label: 'Area Chairs with 0 assignments',
+      label: `${prettyField(areaChairName)} with 0 assignments`,
       value: 'missingAssignments',
     },
     ...(acEmailFuncs ?? []),
@@ -228,18 +255,27 @@ const AreaChairStatusMenuBar = ({
       header: 'email',
       getValue: (p) => p.areaChairProfile?.preferredEmail ?? p.areaChairProfileId,
     },
-    { header: 'assigned papers', getValue: (p) => p.notes?.length },
-    { header: 'reviews completed', getValue: (p) => p.numCompletedReviews },
-    { header: 'meta reviews completed', getValue: (p) => p.numCompletedMetaReviews },
+    { header: `assigned ${submissionName}`, getValue: (p) => p.notes?.length },
+    {
+      header: `${prettyField(officialReviewName)} completed`,
+      getValue: (p) => p.numCompletedReviews,
+    },
+    {
+      header: `${prettyField(officialMetaReviewName)} completed`,
+      getValue: (p) => p.numCompletedMetaReviews,
+    },
     ...(seniorAreaChairsId
       ? [
-          { header: 'sac id', getValue: (p) => p.seniorAreaChair?.seniorAreaChairId ?? 'N/A' },
           {
-            header: 'sac name',
+            header: `${prettyField(seniorAreaChairName)} id`,
+            getValue: (p) => p.seniorAreaChair?.seniorAreaChairId ?? 'N/A',
+          },
+          {
+            header: `${prettyField(seniorAreaChairName)} name`,
             getValue: (p) => p.seniorAreaChair?.sacProfile?.preferredName ?? 'N/A',
           },
           {
-            header: 'sac email',
+            header: `${prettyField(seniorAreaChairName)} email`,
             getValue: (p) => p.seniorAreaChair?.sacProfile?.preferredEmail ?? 'N/A',
           },
         ]
@@ -248,12 +284,12 @@ const AreaChairStatusMenuBar = ({
   ]
   const sortOptions = [
     {
-      label: 'Area Chair',
+      label: prettyField(areaChairName),
       value: 'Area Chair',
       getValue: (p) => p.number,
     },
     {
-      label: 'Area Chair Name',
+      label: `${prettyField(areaChairName)} Name`,
       value: 'Area Chair Name',
       getValue: (p) => p.areaChairProfile?.preferredName ?? p.areaChairProfileId,
     },
@@ -267,36 +303,40 @@ const AreaChairStatusMenuBar = ({
         ]
       : []),
     {
-      label: 'Reviewer Recommendations Completed',
+      label: `${prettyField(reviewerName)} Recommendations Completed`,
       value: 'Reviewer Recommendations Completed',
       getValue: (p) => p.completedRecommendations,
     },
     {
-      label: 'Number of Papers Assigned',
+      label: `Number of ${pluralizeString(submissionName)} Assigned`,
       value: 'Number of Papers Assigned',
       getValue: (p) => p.notes?.length,
       initialDirection: 'desc',
     },
     {
-      label: 'Number of Papers with Missing Reviews',
+      label: `Number of ${pluralizeString(submissionName)} with Missing ${pluralizeString(
+        prettyField(officialReviewName)
+      )}`,
       value: 'Number of Papers with Missing Reviews',
       getValue: (p) => (p.notes?.length ?? 0) - p.numCompletedReviews ?? 0,
       initialDirection: 'desc',
     },
     {
-      label: 'Number of Papers with Completed Reviews',
+      label: `Number of ${pluralizeString(submissionName)} with Completed ${pluralizeString(
+        prettyField(officialReviewName)
+      )}`,
       value: 'Number of Papers with Completed Reviews',
       getValue: (p) => p.numCompletedReviews,
       initialDirection: 'desc',
     },
     {
-      label: 'Number of Missing MetaReviews',
+      label: `Number of Missing ${pluralizeString(prettyField(officialMetaReviewName))}`,
       value: 'Number of Missing MetaReviews',
       getValue: (p) => (p.notes?.length ?? 0) - p.numCompletedMetaReviews,
       initialDirection: 'desc',
     },
     {
-      label: 'Number of Completed MetaReviews',
+      label: `Number of Completed ${pluralizeString(prettyField(officialMetaReviewName))}`,
       value: 'Number of Completed MetaReviews',
       getValue: (p) => p.numCompletedMetaReviews,
       initialDirection: 'desc',
@@ -316,13 +356,13 @@ const AreaChairStatusMenuBar = ({
       enableQuerySearch={enableQuerySearch}
       filterOperators={filterOperators}
       propertiesAllowed={propertiesAllowed}
-      messageDropdownLabel="Message Area Chairs"
+      messageDropdownLabel={`Message ${prettyField(areaChairName)}`}
       messageOptions={messageAreaChairOptions}
       messageModalId="message-areachairs"
       messageParentGroup={messageParentGroup}
       messageSignature={messageSignature}
       exportColumns={exportColumns}
-      exportFileName="Area Chair Status"
+      exportFileName={`${prettyField(areaChairName)} Status`}
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
       messageModal={(props) => <MessageAreaChairsModal {...props} />}

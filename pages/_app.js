@@ -2,7 +2,7 @@
 
 import App from 'next/app'
 import Router from 'next/router'
-import DOMPurify from 'dompurify'
+import DOMPurify from 'isomorphic-dompurify'
 import { nanoid } from 'nanoid'
 import random from 'lodash/random'
 import { marked } from 'marked'
@@ -308,6 +308,14 @@ export default class OpenReviewApp extends App {
 
     // Setup marked options and renderer overwrite
     window.view.setupMarked()
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch((error) => {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to register service worker: ', error)
+      })
+    }
 
     const setUserState = ({ user, token, expiration }) => {
       if (!user) {
