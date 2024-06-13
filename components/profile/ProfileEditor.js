@@ -7,6 +7,7 @@ import EducationHistorySection from './EducationHistorySection'
 import EmailsSection from './EmailsSection'
 import ExpertiseSection from './ExpertiseSection'
 import GenderSection from './GenderSection'
+import PronounSection from './PronounSection'
 import ImportedPublicationsSection from './ImportedPublicationsSection'
 import LoadingSpinner from '../LoadingSpinner'
 import NamesSection from './NameSection'
@@ -379,6 +380,16 @@ export default function ProfileEditor({
           profileNames={profile?.names}
           updateNames={(names) => setProfile({ type: 'names', data: names })}
           preferredUsername={loadedProfile?.names?.find((p) => p.preferred)?.username}
+        />
+      </ProfileSection>
+
+      <ProfileSection
+        title="Pronouns"
+        instructions="This information helps conferences know how to refer to you. (Optional)"
+      >
+        <PronounSection
+          profilePronouns={profile?.pronouns}
+          updatePronoun={(pronouns) => setProfile({ type: 'pronouns', data: pronouns })}
         />
       </ProfileSection>
 
