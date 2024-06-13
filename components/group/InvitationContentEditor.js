@@ -107,18 +107,6 @@ const InvitationContentEditor = ({
       editToPost.content = editContent
 
       if (isGroupInvitation) {
-        const { content: groupContentFields, ...otherGroupFields } = groupFields
-        Object.entries(otherGroupFields ?? {}).forEach(([field, value]) => {
-          group[field] = invitationObj.edit.group[field]
-        })
-        Object.entries(groupContentFields ?? {}).forEach(([field, value]) => {
-          groupContent[field] = { value: formData[field] }
-        })
-        if (Object.keys(groupContent).length) group.content = groupContent
-        if (Object.keys(group).length) editToPost.group = group
-      }
-
-      if (isGroupInvitation) {
         editToPost.invitations = undefined
         editToPost.invitation = invitationObj.id
       } else {
@@ -158,21 +146,9 @@ const InvitationContentEditor = ({
     }
 
     setFields(
-      isGroupInvitation
-        ? Object.entries(
-            Object.assign(
-              {},
-              ...Object.entries(invitation.edit.content)
-                .sort((a, b) => (a[1].order ?? 100) - (b[1].order ?? 100))
-                .map(([key, value]) => ({ [key]: value })),
-              ...Object.entries(invitation.edit.group?.content ?? {})
-                .sort((a, b) => (a[1].order ?? 100) - (b[1].order ?? 100))
-                .map(([key, value]) => ({ [key]: value }))
-            )
-          )
-        : Object.entries(invitation.edit.content).sort(
-            (a, b) => (a[1].order ?? 100) - (b[1].order ?? 100)
-          )
+      Object.entries(invitation.edit.content).sort(
+        (a, b) => (a[1].order ?? 100) - (b[1].order ?? 100)
+      )
     )
   }, [invitation, user, userLoading])
 

@@ -230,7 +230,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       className="workflow"
     >
       <div className="container workflow-container">
-        {/* {groupsAndInvitations.slice(0, 1).map((stepObj) => { */}
         {groupsAndInvitations.map((stepObj) => {
           if (stepObj.type === 'group') {
             return (
@@ -251,7 +250,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           const subInvitations = allInvitations.filter((i) =>
             i.id.startsWith(`${invitationId}/`)
           )
-          // .slice(1, 2)
           return (
             <div key={invitationId}>
               <div className="d-flex">
