@@ -168,7 +168,7 @@ return {
 
   const isWebfieldComponent = group.web.startsWith('// Webfield component')
 
-  // Get venue group to pass to pass to webfield component
+  // Get venue group to pass to webfield component
   let domainGroup = null
   if (isWebfieldComponent && group.domain !== group.id) {
     try {
@@ -185,11 +185,19 @@ return {
     domainGroup = group
   }
 
+  let webfieldCode = null
+  const jsAllowedGroups = ['TMLR']
+  if (!isWebfieldComponent) {
+    webfieldCode = jsAllowedGroups.includes(group.domain)
+      ? generateGroupWebfieldCode(group, ctx.query)
+      : `Webfield.ui.setup('#group-container');Webfield2.ui.errorMessage('JS is disabled for ${group.domain}')`
+  }
+
   return {
     groupId: group.id,
     ...(isWebfieldComponent
       ? { componentObj: parseComponentCode(group, domainGroup, user, ctx.query) }
-      : { webfieldCode: generateGroupWebfieldCode(group, ctx.query) }),
+      : { webfieldCode }),
     writable: group.details?.writable ?? false,
   }
 }
