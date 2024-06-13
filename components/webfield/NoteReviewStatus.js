@@ -132,7 +132,6 @@ const AcPcConsoleReviewerReminderModal = ({
   venueId,
   officialReviewName,
   reviewerName,
-  areaChairName,
   setUpdateLastSent,
   submissionName,
   messageSignature,
@@ -146,7 +145,7 @@ const AcPcConsoleReviewerReminderModal = ({
 Click on the link below to go to the ${prettyField(
       officialReviewName
     ).toLowerCase()} page:\n\n{{submit_review_link}}
-  \n\nThank you,\n${shortPhrase} ${prettyField(areaChairName)}`)
+  \n\nThank you,\n${shortPhrase}`)
   const [error, setError] = useState(null)
   const { accessToken } = useUser()
 
@@ -236,7 +235,6 @@ export const AcPcConsoleReviewerStatusRow = ({
   venueId,
   officialReviewName,
   reviewerName,
-  areaChairName,
   referrerUrl,
   shortPhrase,
   submissionName,
@@ -316,7 +314,6 @@ export const AcPcConsoleReviewerStatusRow = ({
               venueId={venueId}
               officialReviewName={officialReviewName}
               reviewerName={reviewerName}
-              areaChairName={areaChairName}
               setUpdateLastSent={setUpdateLastSent}
               submissionName={submissionName}
               messageSignature={messageSignature}
@@ -431,7 +428,7 @@ export const AcPcConsoleNoteReviewStatus = ({
   reviewerAssignmentUrl,
 }) => {
   const { officialReviews, reviewers = [], note } = rowData
-  const { reviewRatingName, reviewerName, areaChairName } = useContext(WebFieldContext)
+  const { reviewRatingName, reviewerName = 'Reviewers' } = useContext(WebFieldContext)
   const {
     numReviewsDone,
     numReviewersAssigned,
@@ -522,7 +519,6 @@ export const AcPcConsoleNoteReviewStatus = ({
               venueId={venueId}
               officialReviewName={officialReviewName}
               reviewerName={reviewerName}
-              areaChairName={areaChairName}
               referrerUrl={referrerUrl}
               shortPhrase={shortPhrase}
               submissionName={submissionName}
@@ -612,7 +608,6 @@ export const EthicsReviewStatus = ({
                 venueId={venueId}
                 officialReviewName={ethicsReviewName}
                 reviewerName={ethicsReviewersName}
-                areaChairName={ethicsChairsName}
                 referrerUrl={referrerUrl}
                 shortPhrase={shortPhrase}
                 submissionName={submissionName}
