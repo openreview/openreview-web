@@ -226,7 +226,12 @@ const ReviewerStatusRow = ({
   </tr>
 )
 
-const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showContent }) => {
+const ReviewerStatusTab = ({
+  pcConsoleData,
+  loadReviewMetaReviewData,
+  loadRegistrationNoteMap,
+  showContent,
+}) => {
   const [reviewerStatusTabData, setReviewerStatusTabData] = useState({})
   const {
     venueId,
@@ -293,6 +298,19 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
         reviewerProfilesWithoutAssignment.forEach((profile) => {
           const usernames = profile.content.names.flatMap((p) => p.username ?? [])
           const profileEmails = profile.content.emails.filter((p) => p)
+
+          let userRegNotes = []
+          usernames.forEach((username) => {
+            if (
+              pcConsoleData.registrationNoteMap &&
+              pcConsoleData.registrationNoteMap[username]
+            ) {
+              userRegNotes = userRegNotes.concat(pcConsoleData.registrationNoteMap[username])
+            }
+          })
+          // eslint-disable-next-line no-param-reassign
+          profile.registrationNotes = userRegNotes
+
           usernames.concat(profileEmails).forEach((key) => {
             reviewerProfileWithoutAssignmentMap.set(key, profile)
           })
@@ -375,8 +393,17 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
 
   useEffect(() => {
     if (!pcConsoleData.reviewers || !showContent) return
-    loadReviewerData()
-  }, [pcConsoleData.reviewers, pcConsoleData.noteNumberReviewMetaReviewMap, showContent])
+    if (!pcConsoleData.registrationNoteMap) {
+      loadRegistrationNoteMap()
+    } else {
+      loadReviewerData()
+    }
+  }, [
+    pcConsoleData.reviewers,
+    pcConsoleData.noteNumberReviewMetaReviewMap,
+    pcConsoleData.registrationNoteMap,
+    showContent,
+  ])
 
   useEffect(() => {
     setReviewerStatusTabData((data) => ({
