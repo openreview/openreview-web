@@ -71,7 +71,7 @@ const ProgramChairConsole = ({ appContext }) => {
     customStageInvitations,
     assignmentUrls,
     emailReplyTo,
-    enableARRTrackStatus,
+    trackStatusConfig,
     reviewerEmailFuncs,
     acEmailFuncs,
     submissionContentFields = [],
@@ -1097,7 +1097,7 @@ const ProgramChairConsole = ({ appContext }) => {
                 {prettyField(fieldAttrs.field)}
               </Tab>
             ))}
-            {(enableARRTrackStatus && <Tab
+            {(trackStatusConfig && <Tab
               id="track-status"
               active={activeTabId === '#track-status' ? true : undefined}
               onClick={() => setActiveTabId('#track-status')}
@@ -1159,9 +1159,10 @@ const ProgramChairConsole = ({ appContext }) => {
                 )}
               </TabPanel>
             ))}
-          {(enableARRTrackStatus && activeTabId === '#track-status' &&
+          {(trackStatusConfig && activeTabId === '#track-status' &&
             <TabPanel id="track-status">
               <TrackStatus
+                trackStatusConfig={trackStatusConfig}
                 pcConsoleData={pcConsoleData}
               />
             </TabPanel>
