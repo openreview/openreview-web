@@ -1212,7 +1212,8 @@ main.invitation {
     display: flex;
   }
 
-  .groupEditorTabsContainer {
+  .groupEditorTabsContainer,
+  .groupInfoTabsContainer {
     .tab-pane {
       padding-left: 0;
     }
