@@ -266,24 +266,6 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
       )
       // #endregion
 
-      // #region get Reviewer, AC, SAC custom max papers
-      const customMaxPapersP = Promise.all(
-        [reviewersId, areaChairsId, seniorAreaChairsId].map((id) => {
-          if (!id) return Promise.resolve([]) // change to cmpName
-          return api.getAll(
-            '/edges',
-            {
-              invitation: `${id}/-/${cmpName}`, // change to cmpName
-              groupBy: 'tail',
-              select: 'weight',
-              domain: venueId,
-            },
-            { accessToken, resultsKey: 'groupedEdges' }
-          )
-        })
-      )
-      // #endregion
-
       // #region getGroups (per paper groups)
       const perPaperGroupResultsP = api.get(
         '/groups',
@@ -305,8 +287,7 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
         notesP,
         getAcRecommendationsP,
         bidCountResultsP,
-        perPaperGroupResultsP,
-        customMaxPapersP
+        perPaperGroupResultsP
       ])
       const invitationResults = results[0]
       const requestForm = results[1]
@@ -320,7 +301,6 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
       const acRecommendationsCount = results[5]
       const bidCountResults = results[6]
       const perPaperGroupResults = results[7]
-      const customMaxPapersResults = results[8]
 
       // Get registration notes from all registration forms
       const registrationNotes = await Promise.all(
@@ -558,11 +538,6 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
         }),
 
         acRecommendationsCount,
-        customMaxPapers: {
-          reviewers: customMaxPapersResults[0],
-          areaChairs: customMaxPapersResults[1],
-          seniorAreaChairs: customMaxPapersResults[2],
-        },
         bidCounts: {
           reviewers: bidCountResults[0],
           areaChairs: bidCountResults[1],
