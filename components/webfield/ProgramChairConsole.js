@@ -38,7 +38,6 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
     authorsId,
     paperReviewsCompleteThreshold,
     bidName,
-    cmpName,
     recommendationName, // to get ac recommendation edges
     metaReviewRecommendationName = 'recommendation', // recommendation field in meta review
     additionalMetaReviewFields = [],
@@ -70,7 +69,6 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
     customStageInvitations,
     assignmentUrls,
     emailReplyTo,
-    trackStatusConfig,
     reviewerEmailFuncs,
     acEmailFuncs,
     submissionContentFields = [],
