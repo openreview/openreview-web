@@ -5,6 +5,7 @@ import api from '../../../lib/api-client'
 import BasicModal from '../../BasicModal'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
+import { pluralizeString, prettyField, getSingularRoleName } from '../../../lib/utils'
 
 const MessageReviewersModal = ({
   tableRowsDisplayed: tableRows,
@@ -13,7 +14,7 @@ const MessageReviewersModal = ({
   messageSignature,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, emailReplyTo, messageReviewersInvitationId } = useContext(WebFieldContext)
+  const { shortPhrase, emailReplyTo, messageReviewersInvitationId, reviewerName } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -107,8 +108,8 @@ const MessageReviewersModal = ({
       {currentStep === 1 ? (
         <>
           <p>
-            Enter a message to be sent to all selected reviewers below. You will have a chance
-            to review a list of all recipients after clicking &quot;Next&quot; below.
+            Enter a message to be sent to all selected {prettyField(reviewerName).toLowerCase()} below. You will have a
+            chance to review a list of all recipients after clicking &quot;Next&quot; below.
           </p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
@@ -135,7 +136,7 @@ const MessageReviewersModal = ({
         <>
           <p>
             A total of <span className="num-reviewers">{totalMessagesCount}</span> reminder
-            emails will be sent to the following reviewers:
+            emails will be sent to the following {prettyField(reviewerName).toLowerCase()}:
           </p>
           <div className="well reviewer-list">
             {recipientsInfo.map((recipientInfo, index) => (
@@ -161,19 +162,19 @@ const ReviewerStatusMenuBar = ({
   messageParentGroup,
   messageSignature,
 }) => {
-  const { reviewerEmailFuncs } = useContext(WebFieldContext)
+  const { reviewerEmailFuncs, officialReviewName, reviewerName } = useContext(WebFieldContext)
   const messageAreaChairOptions = [
     ...(bidEnabled
       ? [
           {
-            label: 'Reviewers with 0 bids',
+            label: `${prettyField(reviewerName)} with 0 bids`,
             value: 'noBids',
           },
         ]
       : []),
-    { label: 'Reviewers with unsubmitted reviews', value: 'missingReviews' },
-    { label: 'Reviewers with submitted reviews', value: 'submittedReviews' },
-    { label: 'Reviewers with 0 assignments', value: 'noAssignments' },
+    { label: `${prettyField(reviewerName)} with unsubmitted ${pluralizeString(prettyField(officialReviewName))}`, value: 'missingReviews' },
+    { label: `${prettyField(reviewerName)} with submitted ${pluralizeString(prettyField(officialReviewName))}`, value: 'submittedReviews' },
+    { label: `${prettyField(reviewerName)} with 0 assignments`, value: 'noAssignments' },
     ...(reviewerEmailFuncs ?? []),
   ]
 
@@ -196,17 +197,17 @@ const ReviewerStatusMenuBar = ({
       getValue: (p) => p.reviewerProfile?.content?.history?.[0]?.institution?.domain ?? '',
     },
     { header: 'num assigned papers', getValue: (p) => p.notesInfo.length },
-    { header: 'num submitted reviews', getValue: (p) => p.numCompletedReviews },
+    { header: `num submitted ${pluralizeString(prettyField(officialReviewName))}`, getValue: (p) => p.numCompletedReviews },
   ]
 
   const sortOptions = [
     {
-      label: 'Reviewer',
+      label: `${getSingularRoleName(prettyField(reviewerName))}`,
       value: 'Reviewer',
       getValue: (p) => p.number,
     },
     {
-      label: 'Reviewer Name',
+      label: `${getSingularRoleName(prettyField(reviewerName))} Name`,
       value: 'Reviewer Name',
       getValue: (p) => p.reviewerProfile?.preferredName ?? p.reviewerProfileId,
     },
@@ -225,22 +226,22 @@ const ReviewerStatusMenuBar = ({
       getValue: (p) => p.notesInfo.length,
     },
     {
-      label: 'Papers with Reviews Missing',
+      label: `Papers with ${pluralizeString(prettyField(officialReviewName))} Missing`,
       value: 'Papers with Reviews Missing',
       getValue: (p) => p.notesInfo.length - p.numCompletedReviews,
     },
     {
-      label: 'Papers with Reviews Submitted',
+      label: `Papers with ${pluralizeString(prettyField(officialReviewName))} Submitted`,
       value: 'Papers with Reviews Submitted',
       getValue: (p) => p.numCompletedReviews,
     },
     {
-      label: 'Papers with Completed Reviews Missing',
+      label: `Papers with Completed ${pluralizeString(prettyField(officialReviewName))} Missing`,
       value: 'Papers with Completed Reviews Missing',
       getValue: (p) => p.notesInfo.length - p.numOfPapersWhichCompletedReviews,
     },
     {
-      label: 'Papers with Completed Reviews',
+      label: `Papers with Completed ${pluralizeString(prettyField(officialReviewName))}`,
       value: 'Papers with Completed Reviews',
       getValue: (p) => p.numOfPapersWhichCompletedReviews,
     },
@@ -258,17 +259,17 @@ const ReviewerStatusMenuBar = ({
       selectedIds={selectedNoteIds}
       setData={setReviewerStatusTabData}
       shortPhrase={shortPhrase}
-      messageDropdownLabel="Message Reviewers"
+      messageDropdownLabel={`Message ${prettyField(reviewerName)}`}
       messageOptions={messageAreaChairOptions}
       messageModalId="message-reviewers"
       messageParentGroup={messageParentGroup}
       messageSignature={messageSignature}
       exportColumns={exportColumns}
-      exportFileName="Reviewer Status"
+      exportFileName={`${prettyField(reviewerName)} Status`}
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
       messageModal={(props) => <MessageReviewersModal {...props} />}
-      searchPlaceHolder="Search all reviewers"
+      searchPlaceHolder={`Search all ${prettyField(reviewerName)}`}
       extraClasses="ac-status-menu"
     />
   )

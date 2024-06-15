@@ -65,14 +65,14 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
 }
 
 // modified from notesReviewerProgress.hbs
-const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName }) => {
+const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName, officialReviewName }) => {
   const numPapers = rowData.notesInfo.length
   const { numCompletedReviews, notesInfo } = rowData
 
   return (
     <div className="review-progress">
       <h4>
-        {numCompletedReviews} of {numPapers} Reviews Submitted
+        {numCompletedReviews} of {numPapers} {prettyField(officialReviewName)} Submitted
       </h4>
       <strong className="paper-label">Papers:</strong>
       <div className="paper-progress">
@@ -133,7 +133,7 @@ const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName }) => {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Read Review
+                      Read {prettyField(officialReviewName)}
                     </a>
                   </>
                 )}
@@ -147,7 +147,7 @@ const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName }) => {
 }
 
 // modified from notesReviewerStatus.hbs
-const ReviewerStatus = ({ rowData }) => {
+const ReviewerStatus = ({ rowData, officialReviewName }) => {
   const { numOfPapersWhichCompletedReviews, notesInfo, reviewerProfile } = rowData
   const numPapers = notesInfo.length
   const { registrationNotes } = reviewerProfile ?? {}
@@ -155,7 +155,7 @@ const ReviewerStatus = ({ rowData }) => {
   return (
     <div className="status-column">
       <h4>
-        {numOfPapersWhichCompletedReviews} of {numPapers} Reviews Completed
+        {numOfPapersWhichCompletedReviews} of {numPapers} {prettyField(officialReviewName)} Completed
       </h4>
       <strong className="paper-label">Papers:</strong>
       <div>
@@ -205,6 +205,7 @@ const ReviewerStatusRow = ({
   bidEnabled,
   invitations,
   reviewRatingName,
+  officialReviewName
 }) => (
   <tr>
     <td>
@@ -218,10 +219,11 @@ const ReviewerStatusRow = ({
         rowData={rowData}
         referrerUrl={referrerUrl}
         reviewRatingName={reviewRatingName}
+        officialReviewName={officialReviewName}
       />
     </td>
     <td>
-      <ReviewerStatus rowData={rowData} />
+      <ReviewerStatus rowData={rowData} officialReviewName={officialReviewName} />
     </td>
   </tr>
 )
@@ -232,9 +234,11 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
     venueId,
     bidName,
     reviewersId,
+    reviewerName,
     shortPhrase,
     reviewerStatusExportColumns,
     reviewRatingName,
+    officialReviewName
   } = useContext(WebFieldContext)
   const { accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
@@ -436,8 +440,8 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
         className="console-table table-striped pc-console-reviewer-status"
         headings={[
           { id: 'number', content: '#', width: '55px' },
-          { id: 'reviewer', content: 'Reviewer', width: '10%' },
-          { id: 'reviewProgress', content: 'Review Progress', width: '40%' },
+          { id: 'reviewer', content: `${prettyField(reviewerName)}`, width: '10%' },
+          { id: 'reviewProgress', content: `${prettyField(officialReviewName)} Progress`, width: '40%' },
           { id: 'status', content: 'Status' },
         ]}
       >
@@ -448,6 +452,7 @@ const ReviewerStatusTab = ({ pcConsoleData, loadReviewMetaReviewData, showConten
             referrerUrl={referrerUrl}
             bidEnabled={bidEnabled}
             invitations={pcConsoleData.invitations}
+            officialReviewName={officialReviewName}
             reviewRatingName={reviewRatingName}
           />
         ))}
