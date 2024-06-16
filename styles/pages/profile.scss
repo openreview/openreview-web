@@ -38,6 +38,13 @@ main.profile {
     }
     .title-container {
       float: left;
+      h4 {
+        font-weight: normal;
+        color: constants.$subtleGray;
+        line-height: normal;
+        margin-top: .25rem;
+        margin-bottom: 0;
+      }
     }
   }
 

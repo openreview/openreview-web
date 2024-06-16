@@ -220,6 +220,34 @@ main.profile-edit {
     }
   }
 
+  .pronouns-dropdown {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    &__control {
+      max-width: 500px;
+      background-color: #fffaf4;
+      border: 2px solid lighten(constants.$mediumBlue, 10%);
+      padding: 0 0.75rem;
+    }
+    &__value-container {
+      padding: 0;
+    }
+    &__menu {
+      max-width: 500px;
+    }
+
+    > div {
+      cursor: pointer;
+      color: constants.$subtleGray;
+      padding: 0.25rem 0.75rem;
+    }
+    .active {
+      background-color: constants.$mediumBlue;
+      color: #fff;
+      outline: 0px solid transparent;
+    }
+  }
+
   .year-of-birth {
     max-width: 500px;
   }
