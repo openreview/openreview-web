@@ -228,7 +228,13 @@ const TrackStatus = () => {
   const registrationTrackName = trackStatusConfig?.registrationTrackName ?? 'research_area'
   const registrationFormName = trackStatusConfig?.registrationFormName ?? 'Registration'
   const roles = trackStatusConfig?.roles ?? ['Reviewers', 'Area_Chairs', 'Senior_Area_Chairs']
-  const jsRoles = trackStatusConfig.jsRoles ?? ['reviewers', 'areaChairs', 'seniorAreaChairs']
+
+  const rolesToCheck = [
+    { id: reviewersId, role: 'reviewers' },
+    { id: areaChairsId, role: 'areaChairs' },
+    { id: seniorAreaChairsId, role: 'seniorAreaChairs' },
+  ]
+  const jsRoles = rolesToCheck.filter((item) => item.id).map((item) => item.role)
   const zippedRoles = roles.map((role, index) => [role, jsRoles[index]])
 
   const tracks = trackStatusData.invitations
