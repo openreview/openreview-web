@@ -1,11 +1,11 @@
-/* globals $: false */
+/* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
+import groupBy from 'lodash/groupBy'
 import LoadingSpinner from '../../LoadingSpinner'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
-import groupBy from 'lodash/groupBy'
 import { getProfileName, prettyId } from '../../../lib/utils'
 
 const TrackStatus = () => {
@@ -204,24 +204,18 @@ const TrackStatus = () => {
 
   const convertToTableRows = (data) => {
     const result = {}
-    for (const track in data) {
-      if (data.hasOwnProperty(track)) {
-        const roles = data[track]
-        const rows = []
-        for (const role in roles) {
-          if (roles.hasOwnProperty(role)) {
-            const { Average_Load, Maximum_Load } = roles[role]
-            rows.push({
-              Track: track,
-              Role: role,
-              Average_Load: Average_Load,
-              Maximum_Load: Maximum_Load,
-            })
-          }
-        }
-        result[track] = rows
-      }
-    }
+    Object.entries(data).forEach(([track, roles]) => {
+      const rows = []
+      Object.entries(roles).forEach(([role, { averageLoad, maximumLoad }]) => {
+        rows.push({
+          Track: track,
+          Role: role,
+          averageLoad,
+          maximumLoad,
+        })
+      })
+      result[track] = rows
+    })
     return result
   }
 
@@ -253,20 +247,20 @@ const TrackStatus = () => {
 
   const parsedCmp = Object.keys(trackStatusData.customMaxPapers).reduce((cmp, key) => {
     const edges = trackStatusData.customMaxPapers[key] ?? []
-    cmp[key] = edges.reduce((acc, edgeGroup) => {
+    const edgeGroupRes = edges.reduce((acc, edgeGroup) => {
       acc[edgeGroup.id.tail] = edgeGroup.values[0].weight
       return acc
     }, {})
-    return cmp
+    return {...cmp, key: edgeGroupRes}
   }, {})
 
   const reviewLoadData = tracks.reduce((acc, track) => {
     acc[track] = roles.reduce((roleAcc, role) => {
-      roleAcc[role] = {
-        Average_Load: 0,
-        Maximum_Load: 0,
+      const defaultValues = {
+        averageLoad: 0,
+        maximumLoad: 0,
       }
-      return roleAcc
+      return {...roleAcc, role: defaultValues}
     }, {})
     return acc
   }, {})
@@ -291,14 +285,14 @@ const TrackStatus = () => {
     // #endregion
 
     // #region loadDataIntoObject
-    Object.entries(registrations).forEach(([role, registrations]) => {
-      if (registrations.length > 0) {
-        const profileTracks = registrations[0].content[registrationTrackName].value
+    Object.entries(registrations).forEach(([role, roleRegistrations]) => {
+      if (roleRegistrations.length > 0) {
+        const profileTracks = roleRegistrations[0].content[registrationTrackName].value
         const profileAverageLoad = loads[role] / profileTracks.length
         profileTracks.forEach((track) => {
           if (tracks.includes(track)) {
-            reviewLoadData[track][role]['Average_Load'] += profileAverageLoad
-            reviewLoadData[track][role]['Maximum_Load'] += loads[role]
+            reviewLoadData[track][role].averageLoad += profileAverageLoad
+            reviewLoadData[track][role].maximumLoad += loads[role]
           }
         })
       }
@@ -308,8 +302,7 @@ const TrackStatus = () => {
 
   const rows = convertToTableRows(reviewLoadData)
 
-  const LoadRow = ({ index, track, loadObj, rowSpan }) => {
-    return (
+  const LoadRow = ({ index, track, loadObj, rowSpan }) => (
       <tr key={index}>
         {index === 0 && (
           <>
@@ -317,33 +310,32 @@ const TrackStatus = () => {
             <td rowSpan={rowSpan}>{submissionCounts[track]}</td>
           </>
         )}
-        {loadObj['Average_Load'] < submissionCounts[track] ? (
+        {loadObj.averageLoad < submissionCounts[track] ? (
           <>
             <td>
-              <strong>{prettyId(loadObj['Role'])}</strong>
+              <strong>{prettyId(loadObj.Role)}</strong>
             </td>
             <td>
-              <strong>{loadObj['Average_Load'].toFixed(1)}</strong>
+              <strong>{loadObj.averageLoad.toFixed(1)}</strong>
             </td>
           </>
         ) : (
           <>
-            <td>{prettyId(loadObj['Role'])}</td>
-            <td>{loadObj['Average_Load'].toFixed(1)}</td>
+            <td>{prettyId(loadObj.Role)}</td>
+            <td>{loadObj.averageLoad.toFixed(1)}</td>
           </>
         )}
-        <td>{loadObj['Maximum_Load']}</td>
+        <td>{loadObj.maximumLoad}</td>
       </tr>
     )
-  }
 
   const TracksTable = ({ loadData }) => {
-    console.log(loadData)
-    return (
+    (
       <>
         {Object.keys(loadData).map((track) =>
           loadData[track].map((row, index) => (
             <LoadRow
+              key={track}
               index={index}
               track={track}
               loadObj={row}
