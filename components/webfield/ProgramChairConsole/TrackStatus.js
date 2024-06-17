@@ -337,7 +337,7 @@ const TrackStatus = () => {
       {Object.keys(loadData).map((track) =>
         loadData[track].map((row, index) => (
           <LoadRow
-            key={track}
+            key={track.concat(index)}
             index={index}
             track={track}
             loadObj={row}
