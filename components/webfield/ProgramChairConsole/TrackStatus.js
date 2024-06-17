@@ -251,7 +251,7 @@ const TrackStatus = () => {
       acc[edgeGroup.id.tail] = edgeGroup.values[0].weight
       return acc
     }, {})
-    return {...cmp, key: edgeGroupRes}
+    return {...cmp, [key]: edgeGroupRes}
   }, {})
 
   const reviewLoadData = tracks.reduce((acc, track) => {
@@ -260,7 +260,7 @@ const TrackStatus = () => {
         averageLoad: 0,
         maximumLoad: 0,
       }
-      return {...roleAcc, role: defaultValues}
+      return {...roleAcc, [role]: defaultValues}
     }, {})
     return acc
   }, {})
@@ -278,7 +278,7 @@ const TrackStatus = () => {
     }, {})
 
     const loads = zippedRoles.reduce((acc, [role, jsRole]) => {
-      acc[role] = parsedCmp[jsRole][profile.id] ?? 0
+      acc[role] = parsedCmp?.[jsRole]?.[profile.id] ?? 0
       return acc
     }, {})
 
@@ -329,23 +329,21 @@ const TrackStatus = () => {
       </tr>
     )
 
-  const TracksTable = ({ loadData }) => {
-    (
-      <>
-        {Object.keys(loadData).map((track) =>
-          loadData[track].map((row, index) => (
-            <LoadRow
-              key={track}
-              index={index}
-              track={track}
-              loadObj={row}
-              rowSpan={loadData[track].length}
-            />
-          ))
-        )}
-      </>
-    )
-  }
+  const TracksTable = ({ loadData }) => (
+    <>
+      {Object.keys(loadData).map((track) =>
+        loadData[track].map((row, index) => (
+          <LoadRow
+            key={track}
+            index={index}
+            track={track}
+            loadObj={row}
+            rowSpan={loadData[track].length}
+          />
+        ))
+      )}
+    </>
+  )
 
   return (
     <div className="table-container">
