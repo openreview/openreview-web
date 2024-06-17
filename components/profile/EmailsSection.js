@@ -129,8 +129,8 @@ const EmailsSection = ({
     profileEmails?.map((p) => ({ ...p, key: nanoid(), isValid: true })) ?? []
   )
   const { accessToken } = useUser()
-  const [hasInstitutionEmail, setHasInstitutionEmail] = useState(
-    emails.some((p) => p.confirmed && isInstitutionEmail(p.email, institutionDomains))
+  let hasInstitutionEmail = emails.some(
+    (p) => p.confirmed && isInstitutionEmail(p.email, institutionDomains)
   )
 
   const handleAddEmail = () => {
@@ -197,7 +197,7 @@ const EmailsSection = ({
         await api.put('/activatelink', payload, { accessToken })
       }
       setEmails({ setVerifyVisible: true, setConfirmed: true, data: { key, visibleValue: false } })
-      if (isInstitutionEmail(newEmail, institutionDomains)) setHasInstitutionEmail(true)
+      if (isInstitutionEmail(newEmail, institutionDomains)) hasInstitutionEmail = true
       return promptMessage(`${newEmail} has been verified`)
     } catch (error) {
       return promptError(error.message)
