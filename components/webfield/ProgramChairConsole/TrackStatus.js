@@ -19,6 +19,7 @@ const TrackStatus = () => {
     withdrawnVenueId,
     deskRejectedVenueId,
     customMaxPapersName,
+    submissionName,
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
   const [trackStatusData, setTrackStatusData] = useState({})
@@ -27,13 +28,10 @@ const TrackStatus = () => {
     if (trackStatusData.allProfiles) return // check if data already loaded
     try {
       // #region getInvitationMap
-      const conferenceInvitationsP = api.getAll(
+      const conferenceInvitationsP = api.get(
         '/invitations',
         {
-          prefix: `${venueId}/-/.*`,
-          expired: true,
-          type: 'all',
-          domain: venueId,
+          id: `${venueId}/-/${submissionName}`
         },
         { accessToken }
       )
@@ -117,7 +115,7 @@ const TrackStatus = () => {
         return note
       })
       const customMaxPapersResults = results[3]
-      const invitationResults = results[4]
+      const invitationResult = results[4]?.[0]?.invitations[0]
 
       const reviewers = committeeMemberResults[0]?.members ?? []
       const areaChairs = committeeMemberResults[1]?.members ?? []
@@ -185,7 +183,7 @@ const TrackStatus = () => {
         profile.registrationNotes = userRegNotes
       })
       setTrackStatusData({
-        invitations: invitationResults.flat(),
+        submissionInvitation: invitationResult,
         notes,
         customMaxPapers: {
           reviewers: customMaxPapersResults[0],
@@ -237,9 +235,9 @@ const TrackStatus = () => {
   const jsRoles = rolesToCheck.filter((item) => item.id).map((item) => item.role)
   const zippedRoles = roles.map((role, index) => [role, jsRoles[index]])
 
-  const tracks = trackStatusData.invitations
-    .filter((invitation) => invitation.id.includes('/-/Submission'))
-    .flat()[0].edit.note.content[submissionTrackName].value.param.enum
+  const tracks =
+    trackStatusData.submissionInvitation.edit.note.content[submissionTrackName].value.param
+      .enum
 
   const submissionCounts = tracks.reduce((acc, track) => {
     acc[track] = trackStatusData.notes.filter(
