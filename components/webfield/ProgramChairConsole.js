@@ -26,7 +26,7 @@ import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
 
-const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
+const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
     header,
     entity: group,
@@ -285,7 +285,7 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
         notesP,
         getAcRecommendationsP,
         bidCountResultsP,
-        perPaperGroupResultsP
+        perPaperGroupResultsP,
       ])
       const invitationResults = results[0]
       const requestForm = results[1]
@@ -1101,9 +1101,10 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
               <Tab
                 id={tabAttrs.tabId}
                 key={tabAttrs.tabId}
-                active={activeTabId === tabAttrs.tabId ? true : undefined}
-                onClick={() => setActiveTabId(`#${tabAttrs.tabId}`)}>
-                  {tabAttrs.tabName}
+                active={activeTabId === `#${tabAttrs.tabId}` ? true : undefined}
+                onClick={() => setActiveTabId(`#${tabAttrs.tabId}`)}
+              >
+                {tabAttrs.tabName}
               </Tab>
             ))}
         </TabList>
@@ -1166,9 +1167,7 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
           {extraTabs.length > 0 &&
             extraTabs.map((tabAttrs) => (
               <TabPanel id={tabAttrs.tabId} key={tabAttrs.tabId}>
-                {activeTabId === `#${tabAttrs.tabId}` && (
-                  tabAttrs.renderTab()
-                )}
+                {activeTabId === `#${tabAttrs.tabId}` && tabAttrs.renderTab()}
               </TabPanel>
             ))}
         </TabPanels>
