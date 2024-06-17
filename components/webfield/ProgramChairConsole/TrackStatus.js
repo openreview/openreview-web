@@ -31,7 +31,7 @@ const TrackStatus = () => {
       const conferenceInvitationsP = api.get(
         '/invitations',
         {
-          id: `${venueId}/-/${submissionName}`
+          id: submissionId
         },
         { accessToken }
       )
