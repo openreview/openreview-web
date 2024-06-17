@@ -13,7 +13,8 @@ import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
-  const { id, preferredName, preferredEmail } = rowData.reviewerProfile ?? {}
+  const { id, preferredName, preferredEmail, registrationNotes } =
+    rowData.reviewerProfile ?? {}
   const { completedBids, reviewerProfileId } = rowData
   const { reviewersId, bidName } = useContext(WebFieldContext)
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
@@ -60,6 +61,20 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
           </>
         )}
       </div>
+      {registrationNotes?.length > 0 && (
+        <>
+          <br />
+          <strong className="paper-label">Registration Notes:</strong>
+          {registrationNotes.map((note) => (
+            <NoteContentV2
+              key={note.id}
+              id={note.id}
+              content={note.content}
+              noteReaders={note.readers}
+            />
+          ))}
+        </>
+      )}
     </div>
   )
 }
@@ -148,9 +163,8 @@ const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName }) => {
 
 // modified from notesReviewerStatus.hbs
 const ReviewerStatus = ({ rowData }) => {
-  const { numOfPapersWhichCompletedReviews, notesInfo, reviewerProfile } = rowData
+  const { numOfPapersWhichCompletedReviews, notesInfo } = rowData
   const numPapers = notesInfo.length
-  const { registrationNotes } = reviewerProfile ?? {}
 
   return (
     <div className="status-column">
@@ -180,21 +194,6 @@ const ReviewerStatus = ({ rowData }) => {
           )
         })}
       </div>
-
-      {registrationNotes?.length > 0 && (
-        <>
-          <br />
-          <strong className="paper-label">Registration Notes:</strong>
-          {registrationNotes.map((note) => (
-            <NoteContentV2
-              key={note.id}
-              id={note.id}
-              content={note.content}
-              noteReaders={note.readers}
-            />
-          ))}
-        </>
-      )}
     </div>
   )
 }
