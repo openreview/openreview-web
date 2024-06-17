@@ -18,13 +18,10 @@ const TrackStatus = () => {
     trackStatusConfig,
     withdrawnVenueId,
     deskRejectedVenueId,
-    cmpName,
+    customMaxPapersName,
   } = useContext(WebFieldContext)
   const { user, accessToken, userLoading } = useUser()
   const [trackStatusData, setTrackStatusData] = useState({})
-  const referrerUrl = encodeURIComponent(
-    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#track-status)`
-  )
 
   const loadTrackStatusData = async () => {
     if (trackStatusData.allProfiles) return // check if data already loaded
@@ -72,7 +69,7 @@ const TrackStatus = () => {
           return api.getAll(
             '/edges',
             {
-              invitation: `${id}/-/${cmpName}`, // change to cmpName
+              invitation: `${id}/-/${customMaxPapersName}`, // change to cmpName
               groupBy: 'tail',
               select: 'weight',
               domain: venueId,
