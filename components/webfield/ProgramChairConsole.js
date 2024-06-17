@@ -26,7 +26,7 @@ import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
 
-const ProgramChairConsole = ({ appContext }) => {
+const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
     header,
     entity: group,
@@ -1096,6 +1096,17 @@ const ProgramChairConsole = ({ appContext }) => {
                 {prettyField(fieldAttrs.field)}
               </Tab>
             ))}
+          {extraTabs.length > 0 &&
+            extraTabs.map((tabAttrs) => (
+              <Tab
+                id={tabAttrs.tabId}
+                key={tabAttrs.tabId}
+                active={activeTabId === `#${tabAttrs.tabId}` ? true : undefined}
+                onClick={() => setActiveTabId(`#${tabAttrs.tabId}`)}
+              >
+                {tabAttrs.tabName}
+              </Tab>
+            ))}
         </TabList>
 
         <TabPanels>
@@ -1151,6 +1162,12 @@ const ProgramChairConsole = ({ appContext }) => {
                     noteContentField={fieldAttrs}
                   />
                 )}
+              </TabPanel>
+            ))}
+          {extraTabs.length > 0 &&
+            extraTabs.map((tabAttrs) => (
+              <TabPanel id={tabAttrs.tabId} key={tabAttrs.tabId}>
+                {activeTabId === `#${tabAttrs.tabId}` && tabAttrs.renderTab()}
               </TabPanel>
             ))}
         </TabPanels>
