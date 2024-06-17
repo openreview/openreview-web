@@ -300,22 +300,6 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
       const bidCountResults = results[6]
       const perPaperGroupResults = results[7]
 
-      // Get registration notes from all registration forms
-      const registrationNotes = await Promise.all(
-        registrationForms.map((regForm) =>
-          api.getAll(
-            '/notes',
-            {
-              forum: regForm.id,
-              select: 'id,signatures,invitations,content',
-              domain: venueId,
-            },
-            { accessToken }
-          )
-        )
-      )
-      const registrationNoteMap = groupBy(registrationNotes.flat(), 'signatures[0]')
-
       // #region categorize result of per paper groups
       const reviewerGroups = []
       const anonReviewerGroups = {}
@@ -433,16 +417,6 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
       allProfiles.forEach((profile) => {
         const usernames = profile.content.names.flatMap((p) => p.username ?? [])
         const profileEmails = profile.content.emails.filter((p) => p)
-
-        let userRegNotes = []
-        usernames.forEach((username) => {
-          if (registrationNoteMap[username]) {
-            userRegNotes = userRegNotes.concat(registrationNoteMap[username])
-          }
-        })
-        // eslint-disable-next-line no-param-reassign
-        profile.registrationNotes = userRegNotes
-
         usernames.concat(profileEmails).forEach((key) => {
           allProfilesMap.set(key, profile)
         })
@@ -859,6 +833,21 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
         messageSignature: programChairsId,
       })
     })
+
+    // add profileRegistrationNote
+    pcConsoleData.allProfilesMap.forEach((profile, id) => {
+      const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+
+      let userRegNotes = []
+      usernames.forEach((username) => {
+        if (pcConsoleData.registrationNoteMap && pcConsoleData.registrationNoteMap[username]) {
+          userRegNotes = userRegNotes.concat(pcConsoleData.registrationNoteMap[username])
+        }
+      })
+      // eslint-disable-next-line no-param-reassign
+      profile.registrationNotes = userRegNotes
+    })
+
     setPcConsoleData((data) => ({ ...data, noteNumberReviewMetaReviewMap }))
   }
 
@@ -933,6 +922,17 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
     acSacProfilesWithoutAssignment.forEach((profile) => {
       const usernames = profile.content.names.flatMap((p) => p.username ?? [])
       const profileEmails = profile.content.emails.filter((p) => p)
+
+      let userRegNotes = []
+      usernames.forEach((username) => {
+        if (pcConsoleData.registrationNoteMap && pcConsoleData.registrationNoteMap[username]) {
+          userRegNotes = userRegNotes.concat(pcConsoleData.registrationNoteMap[username])
+        }
+      })
+
+      // eslint-disable-next-line no-param-reassign
+      profile.registrationNotes = userRegNotes
+
       usernames.concat(profileEmails).forEach((key) => {
         acSacProfileWithoutAssignmentMap.set(key, profile)
       })
@@ -948,6 +948,33 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
         seniorAreaChairWithoutAssignmentIds,
       },
     }))
+  }
+
+  const loadRegistrationNoteMap = async () => {
+    if (!pcConsoleData.registrationForms) {
+      setPcConsoleData((data) => ({ ...data, registrationNoteMap: {} }))
+    }
+    if (pcConsoleData.registrationNoteMap) return
+
+    try {
+      const registrationNotes = await Promise.all(
+        pcConsoleData.registrationForms.map((regForm) =>
+          api.getAll(
+            '/notes',
+            {
+              forum: regForm.id,
+              select: 'id,signatures,invitations,content',
+              domain: venueId,
+            },
+            { accessToken }
+          )
+        )
+      )
+      const registrationNoteMap = groupBy(registrationNotes.flat(), 'signatures[0]')
+      setPcConsoleData((data) => ({ ...data, registrationNoteMap }))
+    } catch (error) {
+      promptError(`Erro loading registration notes: ${error.message}`)
+    }
   }
 
   useEffect(() => {
@@ -1097,6 +1124,7 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
             <ReviewerStatusTab
               pcConsoleData={pcConsoleData}
               loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
+              loadRegistrationNoteMap={loadRegistrationNoteMap}
               showContent={activeTabId === '#reviewer-status'}
             />
           </TabPanel>
@@ -1106,6 +1134,7 @@ const ProgramChairConsole = ({ appContext, extraTabs=[] }) => {
                 pcConsoleData={pcConsoleData}
                 loadSacAcInfo={loadSacAcInfo}
                 loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
+                loadRegistrationNoteMap={loadRegistrationNoteMap}
               />
             </TabPanel>
           )}
