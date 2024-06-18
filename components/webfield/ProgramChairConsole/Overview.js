@@ -5,7 +5,7 @@ import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import LoadingSpinner from '../../LoadingSpinner'
 import WebFieldContext from '../../WebFieldContext'
-import { formatDateTime, inflect, getSingularRoleName, prettyId, prettyField } from '../../../lib/utils'
+import { formatDateTime, inflect, getSingularRoleName, prettyId, prettyField, pluralizeString } from '../../../lib/utils'
 import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
 
 const StatContainer = ({ title, hint, value }) => (
@@ -276,7 +276,7 @@ const BiddingStatsRow = ({
 }
 
 const ReviewStatsRow = ({ pcConsoleData }) => {
-  const { paperReviewsCompleteThreshold, reviewerName } = useContext(WebFieldContext)
+  const { paperReviewsCompleteThreshold, reviewerName, officialReviewName } = useContext(WebFieldContext)
   const singularReviewerName = getSingularRoleName(reviewerName)
 
   const [reviewStats, setReviewStats] = useState({})
@@ -363,8 +363,8 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
     <>
       <div className="row">
         <StatContainer
-          title="Review Progress"
-          hint="% of all assigned official reviews that have been submitted"
+          title={`${prettyField(officialReviewName)} Progress`}
+          hint={`% of all assigned reviews that have been submitted`}
           value={
             pcConsoleData.notes ? (
               renderStat(
@@ -415,7 +415,12 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
 }
 
 const MetaReviewStatsRow = ({ pcConsoleData }) => {
-  const { areaChairsId, areaChairName, metaReviewRecommendationName } = useContext(WebFieldContext)
+  const {
+    areaChairsId,
+    areaChairName,
+    metaReviewRecommendationName,
+    officialMetaReviewName
+  } = useContext(WebFieldContext)
   const singularAreaChairName = getSingularRoleName(areaChairName)
   const metaReivews = [...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? [])].filter(
     (p) => p.length
@@ -470,8 +475,8 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
     <>
       <div className="row">
         <StatContainer
-          title="Meta-Review Progress"
-          hint="% of papers that have received meta-reviews"
+          title={`${prettyField(officialMetaReviewName)} Progress`}
+          hint={`% of papers that have received ${pluralizeString(prettyField(officialMetaReviewName)).toLowerCase()}`}
           value={
             pcConsoleData.notes && pcConsoleData.paperGroups ? (
               renderStat(metaReviewsCount, pcConsoleData.notes.length)
@@ -481,8 +486,8 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
           }
         />
         <StatContainer
-          title={`${prettyField(singularAreaChairName)} Meta-Review Progress`}
-          hint={`% of ${prettyField(areaChairName)} who have completed meta reviews for all their assigned papers`}
+          title={`${prettyField(singularAreaChairName)} ${prettyField(officialMetaReviewName)} Progress`}
+          hint={`% of ${prettyField(areaChairName)} who have completed ${pluralizeString(prettyField(officialMetaReviewName)).toLowerCase()} for all their assigned papers`}
           value={
             pcConsoleData.notes && pcConsoleData.paperGroups ? (
               renderStat(areaChairsComplete, areaChairsWithAssignmentsCount)
@@ -1014,7 +1019,7 @@ const DescriptionTimelineOtherConfigRow = ({
                         scoresName
                       )}
                     >
-                      {prettyField(singularAreaChairName)} Bid
+                      {prettyField(singularAreaChairName)} Bids
                     </Link>
                   </li>
                   {recommendationEnabled && (
