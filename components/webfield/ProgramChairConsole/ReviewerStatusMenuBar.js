@@ -172,8 +172,8 @@ const ReviewerStatusMenuBar = ({
           },
         ]
       : []),
-    { label: `${prettyField(reviewerName)} with unsubmitted ${pluralizeString(prettyField(officialReviewName))}`, value: 'missingReviews' },
-    { label: `${prettyField(reviewerName)} with submitted ${pluralizeString(prettyField(officialReviewName))}`, value: 'submittedReviews' },
+    { label: `${prettyField(reviewerName)} with unsubmitted ${pluralizeString(prettyField(officialReviewName)).toLowerCase()}`, value: 'missingReviews' },
+    { label: `${prettyField(reviewerName)} with submitted ${pluralizeString(prettyField(officialReviewName)).toLowerCase()}`, value: 'submittedReviews' },
     { label: `${prettyField(reviewerName)} with 0 assignments`, value: 'noAssignments' },
     ...(reviewerEmailFuncs ?? []),
   ]
@@ -197,7 +197,7 @@ const ReviewerStatusMenuBar = ({
       getValue: (p) => p.reviewerProfile?.content?.history?.[0]?.institution?.domain ?? '',
     },
     { header: 'num assigned papers', getValue: (p) => p.notesInfo.length },
-    { header: `num submitted ${pluralizeString(prettyField(officialReviewName))}`, getValue: (p) => p.numCompletedReviews },
+    { header: `num submitted ${pluralizeString(prettyField(officialReviewName)).toLowerCase()}`, getValue: (p) => p.numCompletedReviews },
   ]
 
   const sortOptions = [
@@ -259,7 +259,7 @@ const ReviewerStatusMenuBar = ({
       selectedIds={selectedNoteIds}
       setData={setReviewerStatusTabData}
       shortPhrase={shortPhrase}
-      messageDropdownLabel={`Message ${prettyField(reviewerName)}`}
+      messageDropdownLabel="Message"
       messageOptions={messageAreaChairOptions}
       messageModalId="message-reviewers"
       messageParentGroup={messageParentGroup}

@@ -3,7 +3,7 @@ import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
-import { getProfileName, prettyField } from '../../../lib/utils'
+import { getProfileName, inflect, pluralizeString, prettyField } from '../../../lib/utils'
 import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
@@ -87,7 +87,11 @@ const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName, officialRevi
   return (
     <div className="review-progress">
       <h4>
-        {numCompletedReviews} of {numPapers} {prettyField(officialReviewName)} Submitted
+        {numCompletedReviews} of {numPapers} {inflect(
+          numPapers,
+          prettyField(officialReviewName),
+          pluralizeString(prettyField(officialReviewName))
+          )} Submitted
       </h4>
       <strong className="paper-label">Papers:</strong>
       <div className="paper-progress">
@@ -169,7 +173,11 @@ const ReviewerStatus = ({ rowData, officialReviewName }) => {
   return (
     <div className="status-column">
       <h4>
-        {numOfPapersWhichCompletedReviews} of {numPapers} {prettyField(officialReviewName)} Completed
+        {numOfPapersWhichCompletedReviews} of {numPapers} {inflect(
+          numPapers,
+          prettyField(officialReviewName),
+          pluralizeString(prettyField(officialReviewName))
+        )} Completed
       </h4>
       <strong className="paper-label">Papers:</strong>
       <div>
@@ -430,7 +438,7 @@ const ReviewerStatusTab = ({
   if (reviewerStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no reviewers.Check back later or contact info@openreview.net if you believe
+        There are no {prettyField(reviewerName)}.Check back later or contact info@openreview.net if you believe
         this to be an error.
       </p>
     )
@@ -447,7 +455,7 @@ const ReviewerStatusTab = ({
           messageParentGroup={reviewersId}
           messageSignature={venueId}
         />
-        <p className="empty-message">No reviewer matching search criteria.</p>
+        <p className="empty-message">No {prettyField(reviewerName)} matching search criteria.</p>
       </div>
     )
   return (
