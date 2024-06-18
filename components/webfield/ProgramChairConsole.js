@@ -1144,6 +1144,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               <SeniorAreaChairStatus
                 pcConsoleData={pcConsoleData}
                 loadSacAcInfo={loadSacAcInfo}
+                loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
               />
             </TabPanel>
           )}
