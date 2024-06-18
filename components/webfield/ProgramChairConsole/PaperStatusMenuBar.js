@@ -132,19 +132,19 @@ const PaperStatusMenuBar = ({
 
   const messageReviewerOptions = [
     {
-      label: `All ${pluralizeString(prettyField(reviewerName))} of selected ${pluralizeString(
+      label: `All ${prettyField(reviewerName)} of selected ${pluralizeString(
         submissionName
       )}`,
       value: 'allReviewers',
     },
     {
-      label: `${pluralizeString(prettyField(reviewerName))} of selected ${pluralizeString(
+      label: `${prettyField(reviewerName)} of selected ${pluralizeString(
         submissionName
       )} with submitted ${pluralizeString(prettyField(officialReviewName).toLowerCase())}`,
       value: 'withReviews',
     },
     {
-      label: `${pluralizeString(prettyField(reviewerName))} of selected ${pluralizeString(
+      label: `${prettyField(reviewerName)} of selected ${pluralizeString(
         submissionName
       )} with unsubmitted ${pluralizeString(prettyField(officialReviewName).toLowerCase())}`,
       value: 'missingReviews',
