@@ -15,9 +15,8 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
   const { id, preferredName, preferredEmail, registrationNotes } =
     rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
-  const { seniorAreaChairsId, areaChairsId, reviewersId, bidName, scoresName, recommendationName } =
+  const { seniorAreaChairName, areaChairsId, reviewersId, bidName, scoresName, recommendationName } =
     useContext(WebFieldContext)
-  const sacName = getSingularRoleName(prettyField(seniorAreaChairsId?.split('/')?.pop()))
   const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
@@ -89,7 +88,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
       </div>
       {sacProfile && (
         <>
-          <h4>{sacName}: </h4>
+          <h4>{getSingularRoleName(prettyField(seniorAreaChairName))}: </h4>
           <div className="note">
             {sacProfile?.preferredName && (
               <>
@@ -228,6 +227,7 @@ const AreaChairStatusRow = ({
   bidEnabled,
   recommendationEnabled,
   invitations,
+  seniorAreaChairName,
   officialReviewName,
   officialMetaReviewName,
   metaReviewRecommendationName,
@@ -243,6 +243,7 @@ const AreaChairStatusRow = ({
         bidEnabled={bidEnabled}
         recommendationEnabled={recommendationEnabled}
         invitations={invitations}
+        seniorAreaChairName={seniorAreaChairName}
       />
     </td>
     <td>
@@ -269,6 +270,7 @@ const AreaChairStatus = ({
   const {
     shortPhrase,
     seniorAreaChairsId,
+    seniorAreaChairName,
     areaChairsId,
     areaChairName,
     reviewersId,
@@ -470,6 +472,7 @@ const AreaChairStatus = ({
             bidEnabled={bidEnabled}
             recommendationEnabled={recommendationEnabled}
             invitations={pcConsoleData.invitations}
+            seniorAreaChairName={seniorAreaChairName}
             officialReviewName={officialReviewName}
             officialMetaReviewName={officialMetaReviewName}
             metaReviewRecommendationName={metaReviewRecommendationName}
