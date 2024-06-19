@@ -291,6 +291,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
           tableRowsAll={seniorAreaChairStatusTabData.tableRowsAll}
           tableRows={seniorAreaChairStatusTabData.tableRows}
           setSeniorAreaChairStatusTabData={setSeniorAreaChairStatusTabData}
+          sacDirectPaperAssignment={sacDirectPaperAssignment}
         />
         <p className="empty-message">No senior area chair matching search criteria.</p>
       </div>
@@ -301,6 +302,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
         tableRowsAll={seniorAreaChairStatusTabData.tableRowsAll}
         tableRows={seniorAreaChairStatusTabData.tableRows}
         setSeniorAreaChairStatusTabData={setSeniorAreaChairStatusTabData}
+        sacDirectPaperAssignment={sacDirectPaperAssignment}
       />
       <Table
         className="console-table table-striped pc-console-ac-status"

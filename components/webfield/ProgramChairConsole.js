@@ -72,6 +72,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     reviewerEmailFuncs,
     acEmailFuncs,
     submissionContentFields = [],
+    sacDirectPaperAssignment,
+    propertiesAllowed,
+    sacStatuspropertiesAllowed,
+    messageAreaChairsInvitationId,
+    messageSeniorAreaChairsInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
