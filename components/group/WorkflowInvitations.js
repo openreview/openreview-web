@@ -6,6 +6,7 @@ import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
 import { formatDateTime, prettyField, prettyId } from '../../lib/utils'
 import InvitationContentEditor from './InvitationContentEditor'
+import Dropdown from '../Dropdown'
 
 const WorflowInvitationRow = ({
   subInvitation,
@@ -147,6 +148,39 @@ const StageInvitationRow = ({ stageInvitation }) => {
   )
 }
 
+const AddStageInvitationSection = ({ stageInvitations }) => {
+  const [stageToAdd, setStageToAdd] = useState(null)
+  const addStageOptions = stageInvitations.map((p) => ({
+    value: p.id,
+    label: prettyId(p.id),
+  }))
+
+  return (
+    <div id="invitation">
+      <div className="panel add-stage">
+        <strong className="item hint">Add:</strong>
+        <Dropdown
+          options={addStageOptions}
+          value={addStageOptions.find((p) => p.value === stageToAdd?.id) ?? null}
+          placeholder="Select a template to add stage"
+          onChange={(e) => setStageToAdd(stageInvitations.find((p) => p.id === e.value))}
+        />
+      </div>
+      {stageToAdd && (
+        <InvitationContentEditor
+          invitation={stageToAdd}
+          existingValue={{}}
+          className="panel"
+          closeInvitationEditor={() => setStageToAdd(null)}
+          onInvitationEditPosted={() => {
+            setStageToAdd(null)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
 const GroupEditInvitationRow = ({ invitation }) => {
   const [showEditor, setShowEditor] = useState(false)
   return (
@@ -174,9 +208,8 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const submissionName = group.content?.submission_name?.value
   const [allInvitations, setAllInvitations] = useState([])
   const [groupsAndInvitations, setGroupsAndInvitations] = useState([])
+  const [stageInvitations, setStageInvitations] = useState([])
   const workflowInvitationRegex = RegExp(`^${groupId}/-/[^/]+$`)
-
-  const stageInvitationIds = [`${groupId}/-/Stage`]
 
   const loadAllInvitations = async () => {
     const getAllGroupsP = api
@@ -194,8 +227,24 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       { prefix: `${groupId}/-/.*`, expired: true, type: 'all' },
       { accessToken }
     )
+
+    const getStageInvitationTemplatesP = api
+      .getAll(
+        '/invitations',
+        {
+          prefix: `${process.env.SUPER_USER}/Support/-/.*`,
+        },
+        { accessToken }
+      )
+      .then((invitations) => invitations.filter((p) => p.id.endsWith('_Template')))
+
     try {
-      const [groups, invitations] = await Promise.all([getAllGroupsP, getAllInvitationsP])
+      // eslint-disable-next-line no-shadow
+      const [groups, invitations, stageInvitations] = await Promise.all([
+        getAllGroupsP,
+        getAllInvitationsP,
+        getStageInvitationTemplatesP,
+      ])
       const workFlowInvitations = invitations.filter((p) => workflowInvitationRegex.test(p.id))
       const currentTimeStamp = new Date()
       const groupAndWorkflowInvitations = [
@@ -214,6 +263,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       ]
       setGroupsAndInvitations(sortBy(groupAndWorkflowInvitations, 'cdate'))
       setAllInvitations(invitations)
+      setStageInvitations(stageInvitations)
     } catch (error) {
       promptError(error.message)
     }
@@ -275,13 +325,9 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           )
         })}
 
-        {stageInvitationIds.map((stageInvitationId) => {
-          const stageInvitation = allInvitations.find((i) => i.id === stageInvitationId)
-          if (!stageInvitation) return null
-          return (
-            <StageInvitationRow key={stageInvitation.id} stageInvitation={stageInvitation} />
-          )
-        })}
+        {stageInvitations.length > 0 && (
+          <AddStageInvitationSection stageInvitations={stageInvitations} />
+        )}
       </div>
     </EditorSection>
   )

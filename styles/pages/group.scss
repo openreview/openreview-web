@@ -1202,6 +1202,14 @@ main.invitation {
     em {
       color: constants.$orRed;
     }
+    .add-stage {
+      display: flex;
+      align-items: center;
+
+      .dropdown-select {
+        width: 50%;
+      }
+    }
   }
 
   .spinner-small {
