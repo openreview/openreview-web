@@ -15,6 +15,7 @@ const SeniorAreaChairStatusMenuBarForDirectPaperAssignment = ({
     shortPhrase,
     seniorAreaChairsId,
     enableQuerySearch,
+    sacEmailFuncs,
     areaChairStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
     sacStatuspropertiesAllowed: propertiesAllowedConfig,
@@ -29,7 +30,7 @@ const SeniorAreaChairStatusMenuBarForDirectPaperAssignment = ({
     name: ['sacProfile.preferredName'],
     email: ['areaChairProfile.preferredEmail'],
   }
-  const messageAreaChairOptions = [
+  const messageSeniorAreaChairOptions = [
     {
       label: `${prettyField(seniorAreaChairName)} with unsubmitted ${prettyField(
         officialReviewName
@@ -52,6 +53,7 @@ const SeniorAreaChairStatusMenuBarForDirectPaperAssignment = ({
       label: `${prettyField(seniorAreaChairName)} with 0 assignments`,
       value: 'missingAssignments',
     },
+    ...(sacEmailFuncs ?? []),
   ]
   const exportColumns = [
     { header: 'id', getValue: (p) => p.sacProfileId },
@@ -135,8 +137,8 @@ const SeniorAreaChairStatusMenuBarForDirectPaperAssignment = ({
       filterOperators={filterOperators}
       propertiesAllowed={propertiesAllowed}
       messageDropdownLabel={`Message ${prettyField(seniorAreaChairName)}`}
-      messageOptions={messageAreaChairOptions}
-      messageModalId="message-areachairs"
+      messageOptions={messageSeniorAreaChairOptions}
+      messageModalId="message-seniorareachairs"
       messageParentGroup={seniorAreaChairsId}
       messageSignature={venueId}
       exportColumns={exportColumns}

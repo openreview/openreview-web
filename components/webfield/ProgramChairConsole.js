@@ -71,6 +71,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     emailReplyTo,
     reviewerEmailFuncs,
     acEmailFuncs,
+    sacEmailFuncs,
     submissionContentFields = [],
     sacDirectPaperAssignment,
     propertiesAllowed,

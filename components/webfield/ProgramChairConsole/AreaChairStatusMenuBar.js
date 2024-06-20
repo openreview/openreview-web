@@ -57,7 +57,9 @@ export const MessageACSACModal = ({
         },
         { accessToken }
       )
-      $('#message-areachairs').modal('hide')
+      $(
+        `#${isMessageSeniorAreaChairs ? 'message-seniorareachairs' : 'message-areachairs'}`
+      ).modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
     } catch (apiError) {
       setError(apiError.message)
@@ -122,7 +124,7 @@ export const MessageACSACModal = ({
 
   return (
     <BasicModal
-      id="message-areachairs"
+      id={isMessageSeniorAreaChairs ? 'message-seniorareachairs' : 'message-areachairs'}
       title={messageOption?.label}
       primaryButtonText={primaryButtonText}
       onPrimaryButtonClick={handlePrimaryButtonClick}
