@@ -687,7 +687,6 @@ module.exports = (function () {
       var postReviewerEmails = function (postData) {
         postData.message = postData.message.replace('{{forumUrl}}', postData.forumUrl)
 
-        console.log('post message', postData)
         return post(
           '/messages',
           _.pick(postData, ['groups', 'subject', 'message', 'replyTo', 'invitation', 'signature'])
