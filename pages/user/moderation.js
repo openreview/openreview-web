@@ -2227,7 +2227,7 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
     {
       value: 'requestEmailVerification',
       label: 'Request Email Verification',
-      rejectionText: `Please send us an email from the institution email you have in your profile so that we can verify your identity.\n\n${instructionText}`,
+      rejectionText: `Please add and confirm an institutional email to your profile.\n\n${instructionText}`,
     },
     {
       value: 'invalidName',
