@@ -296,7 +296,7 @@ const ReviewerStatusTab = ({
         const reviewerProfileWithoutAssignmentMap = new Map()
         reviewerProfilesWithoutAssignment.forEach((profile) => {
           const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-          const profileEmails = profile.content.emails.filter((p) => p)
+          const profileEmails = profile.email ? [profile.email] : []
 
           let userRegNotes = []
           usernames.forEach((username) => {

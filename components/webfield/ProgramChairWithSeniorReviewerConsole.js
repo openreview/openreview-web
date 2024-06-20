@@ -1794,7 +1794,7 @@ const ProgramChairWithSeniorReviewerConsole = ({ appContext }) => {
       const allProfilesMap = new Map()
       allProfiles.forEach((profile) => {
         const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-        const profileEmails = profile.content.emails.filter((p) => p)
+        const profileEmails = profile.email ? [profile.email] : []
         usernames.concat(profileEmails).forEach((key) => {
           allProfilesMap.set(key, profile)
         })
@@ -1825,7 +1825,7 @@ const ProgramChairWithSeniorReviewerConsole = ({ appContext }) => {
                   const profile = allProfilesMap.get(anonReviewerId)
                   if (!profile) return
                   const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-                  const profileEmails = profile.content.emails.filter((p) => p)
+                  const profileEmails = profile.email ? [profile.email] : []
                   usernames.concat(profileEmails).forEach((key) => {
                     idToAnonIdMap[key] = anonReviewerGroupId
                   })
@@ -1864,7 +1864,7 @@ const ProgramChairWithSeniorReviewerConsole = ({ appContext }) => {
                   const profile = allProfilesMap.get(anonSeniorReviewerId)
                   if (!profile) return
                   const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-                  const profileEmails = profile.content.emails.filter((p) => p)
+                  const profileEmails = profile.email ? [profile.email] : []
                   usernames.concat(profileEmails).forEach((key) => {
                     idToAnonIdMap[key] = anonSeniorReviewerGroupId
                   })
