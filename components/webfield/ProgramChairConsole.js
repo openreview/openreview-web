@@ -17,6 +17,7 @@ import {
   prettyField,
   parseNumberField,
   isValidEmail,
+  getSingularRoleName
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
@@ -1056,7 +1057,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             active={activeTabId === '#reviewer-status' ? true : undefined}
             onClick={() => setActiveTabId('#reviewer-status')}
           >
-            Reviewer Status
+            {getSingularRoleName(prettyField(reviewerName))} Status
           </Tab>
           {areaChairsId && (
             <Tab
@@ -1064,7 +1065,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               active={activeTabId === '#areachair-status' ? true : undefined}
               onClick={() => setActiveTabId('#areachair-status')}
             >
-              Area Chair Status
+              {getSingularRoleName(prettyField(areaChairName))} Status
             </Tab>
           )}
           {seniorAreaChairsId && (
@@ -1073,7 +1074,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               active={activeTabId === '#seniorareachair-status' ? true : undefined}
               onClick={() => setActiveTabId('#seniorareachair-status')}
             >
-              Senior Area Chair Status
+              {getSingularRoleName(prettyField(seniorAreaChairName))} Status
             </Tab>
           )}
           {(withdrawnVenueId || deskRejectedVenueId) && (
