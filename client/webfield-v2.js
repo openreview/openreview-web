@@ -644,6 +644,7 @@ module.exports = (function () {
         var $link = $(this)
         var userId = $link.data('userId')
         var forumUrl = $link.data('forumUrl')
+        var paperNumber = $link.data('paperNumber')
 
         var sendReviewerReminderEmails = function (e) {
           var postData = {
@@ -652,7 +653,7 @@ module.exports = (function () {
             subject: $('#message-reviewers-modal input[name="subject"]').val().trim(),
             message: $('#message-reviewers-modal textarea[name="message"]').val().trim(),
             replyTo: options.reminderOptions.replyTo,
-            invitation: options.reminderOptions.messageInvitationId,
+            invitation: options.reminderOptions.messageInvitationId && options.reminderOptions.messageInvitationId.replace('{number}', paperNumber),
             signature: options.reminderOptions.messageInvitationId && options.reminderOptions.messageSignature,
           }
 
@@ -686,6 +687,7 @@ module.exports = (function () {
       var postReviewerEmails = function (postData) {
         postData.message = postData.message.replace('{{forumUrl}}', postData.forumUrl)
 
+        console.log('post message', postData)
         return post(
           '/messages',
           _.pick(postData, ['groups', 'subject', 'message', 'replyTo', 'invitation', 'signature'])
