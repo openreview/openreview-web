@@ -32,9 +32,11 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     submissionName,
     reviewersId,
     reviewerName,
+    reviewerAssignmentId,
     anonReviewerName,
     areaChairsId,
     areaChairName = 'Area_Chairs',
+    areaChairAssignmentId,
     anonAreaChairName,
     secondaryAreaChairName,
     secondaryAnonAreaChairName,
@@ -116,31 +118,20 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       // #endregion
 
       // #region getInvitations
-      const reviewerInvitationsP = api.getAll(
-        '/invitations',
-        {
-          prefix: `${reviewersId}/-/.*`,
-          type: 'all',
-          domain: venueId,
-        },
-        { accessToken }
-      )
-      const acInvitationsP = areaChairsId
-        ? api.getAll(
-            '/invitations',
-            {
-              prefix: `${areaChairsId}/-/.*`,
-              type: 'all',
-              domain: venueId,
-            },
-            { accessToken }
-          )
-        : Promise.resolve([])
 
-      const invitationResultsP = Promise.all([
-        reviewerInvitationsP,
-        acInvitationsP
-      ])
+      const invitationsP = [reviewerAssignmentId, areaChairAssignmentId].map(invitation =>
+        api.get(
+          '/invitations',
+          {
+            id: invitation
+          },
+          { accessToken }
+        )
+      )
+
+      const invitationResultsP = Promise.all(
+        invitationsP
+      )
       // #endregion
 
       // #region getGroups (per paper groups)
@@ -379,7 +370,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         assignedAreaChairIds,
         areaChairGroups,
         allProfilesMap,
-        invitations: invitations.flat(),
+        assignmentInvitations: invitations.flatMap(res => res.invitations),
         notes: assignedNotes.map((note) => {
           const assignedReviewers =
             reviewerGroups?.find((p) => p.noteNumber === note.number)?.members ?? []

@@ -30,10 +30,11 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
   )
 }
 
-const PaperRow = ({ sacConsoleData, rowData, selectedNoteIds, setSelectedNoteIds, decision, venue }) => {
+const PaperRow = ({ assignmentInvitations, rowData, selectedNoteIds, setSelectedNoteIds, decision, venue }) => {
   const {
     venueId,
     officialReviewName,
+    reviewerName,
     shortPhrase,
     seniorAreaChairName,
     submissionName,
@@ -51,7 +52,7 @@ const PaperRow = ({ sacConsoleData, rowData, selectedNoteIds, setSelectedNoteIds
     if (!assignmentUrls) return null
     const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
     // auto
-    const isAssignmentConfigDeployed = sacConsoleData.invitations?.some(
+    const isAssignmentConfigDeployed = assignmentInvitations?.some(
       (p) => p.id === `${venueId}/${role}/-/Assignment`
     )
     // manual
@@ -99,7 +100,7 @@ const PaperRow = ({ sacConsoleData, rowData, selectedNoteIds, setSelectedNoteIds
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
-          reviewerAssignmentUrl={getManualAssignmentUrl('Reviewers')}
+          reviewerAssignmentUrl={getManualAssignmentUrl(reviewerName)}
         />
       </td>
       <td>
@@ -222,7 +223,7 @@ const PaperStatus = ({ sacConsoleData }) => {
         {paperStatusTabData.tableRowsDisplayed?.map((row) => (
           <PaperRow
             key={row.note.id}
-            sacConsoleData={sacConsoleData}
+            assignmentInvitations={sacConsoleData.assignmentInvitations}
             rowData={row}
             selectedNoteIds={selectedNoteIds}
             setSelectedNoteIds={setSelectedNoteIds}
