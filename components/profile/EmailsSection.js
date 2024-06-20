@@ -129,9 +129,7 @@ const EmailsSection = ({
     profileEmails?.map((p) => ({ ...p, key: nanoid(), isValid: true })) ?? []
   )
   const { accessToken } = useUser()
-  const [hasInstitutionEmail, setHasInstitutionEmail] = useState(
-    emails.some((p) => p.confirmed && isInstitutionEmail(p.email, institutionDomains))
-  )
+  const [hasInstitutionEmail, setHasInstitutionEmail] = useState(true)
 
   const handleAddEmail = () => {
     setEmails({
@@ -153,7 +151,11 @@ const EmailsSection = ({
   }
 
   const handleRemoveEmail = (key) => {
-    setEmails({ removeEmail: true, setVerifyVisible: true, data: { key, visibleValue: false } })
+    setEmails({
+      removeEmail: true,
+      setVerifyVisible: true,
+      data: { key, visibleValue: false },
+    })
   }
 
   const handleMakeEmailPreferred = (key) => {
@@ -196,7 +198,11 @@ const EmailsSection = ({
       } else {
         await api.put('/activatelink', payload, { accessToken })
       }
-      setEmails({ setVerifyVisible: true, setConfirmed: true, data: { key, visibleValue: false } })
+      setEmails({
+        setVerifyVisible: true,
+        setConfirmed: true,
+        data: { key, visibleValue: false },
+      })
       if (isInstitutionEmail(newEmail, institutionDomains)) setHasInstitutionEmail(true)
       return promptMessage(`${newEmail} has been verified`)
     } catch (error) {
@@ -210,7 +216,13 @@ const EmailsSection = ({
 
   useEffect(() => {
     updateEmails(emails)
-  }, [emails])
+    if (institutionDomains) {
+      const hasEmail = emails.some(
+        (p) => p.confirmed && isInstitutionEmail(p.email, institutionDomains)
+      )
+      setHasInstitutionEmail(hasEmail)
+    }
+  }, [emails, institutionDomains])
 
   return (
     <div>
