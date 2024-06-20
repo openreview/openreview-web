@@ -30,7 +30,14 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
   )
 }
 
-const PaperRow = ({ assignmentInvitations, rowData, selectedNoteIds, setSelectedNoteIds, decision, venue }) => {
+const PaperRow = ({
+  assignmentInvitations,
+  rowData,
+  selectedNoteIds,
+  setSelectedNoteIds,
+  decision,
+  venue,
+}) => {
   const {
     venueId,
     officialReviewName,

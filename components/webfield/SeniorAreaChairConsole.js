@@ -119,19 +119,17 @@ const SeniorAreaChairConsole = ({ appContext }) => {
 
       // #region getInvitations
 
-      const invitationsP = [reviewerAssignmentId, areaChairAssignmentId].map(invitation =>
+      const invitationsP = [reviewerAssignmentId, areaChairAssignmentId].map((invitation) =>
         api.get(
           '/invitations',
           {
-            id: invitation
+            id: invitation,
           },
           { accessToken }
         )
       )
 
-      const invitationResultsP = Promise.all(
-        invitationsP
-      )
+      const invitationResultsP = Promise.all(invitationsP)
       // #endregion
 
       // #region getGroups (per paper groups)
@@ -370,7 +368,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         assignedAreaChairIds,
         areaChairGroups,
         allProfilesMap,
-        assignmentInvitations: invitations.flatMap(res => res.invitations),
+        assignmentInvitations: invitations.flatMap((res) => res.invitations),
         notes: assignedNotes.map((note) => {
           const assignedReviewers =
             reviewerGroups?.find((p) => p.noteNumber === note.number)?.members ?? []
