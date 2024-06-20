@@ -1,3 +1,6 @@
+import { useContext } from 'react'
+import WebFieldContext from '../../WebFieldContext'
+import { prettyField } from '../../../lib/utils'
 import BaseMenuBar from '../BaseMenuBar'
 
 const SeniorAreaChairStatusMenuBar = ({
@@ -5,14 +8,15 @@ const SeniorAreaChairStatusMenuBar = ({
   tableRows,
   setSeniorAreaChairStatusTabData,
 }) => {
+  const { seniorAreaChairName } = useContext(WebFieldContext)
   const sortOptions = [
     {
-      label: 'Senior Area Chair',
+      label: prettyField(seniorAreaChairName),
       value: 'Senior Area Chair',
       getValue: (p) => p.number,
     },
     {
-      label: 'Senior Area Chair Name',
+      label: `${prettyField(seniorAreaChairName)} Name`,
       value: 'Senior Area Chair Name',
       getValue: (p) => p.sacProfile?.preferredName ?? p.sacProfileId,
     },
@@ -29,9 +33,9 @@ const SeniorAreaChairStatusMenuBar = ({
       setData={setSeniorAreaChairStatusTabData}
       enableQuerySearch={false}
       sortOptions={sortOptions}
-      exportFileName="Senior Area Chair Status"
+      exportFileName={`${prettyField(seniorAreaChairName)} Status`}
       basicSearchFunction={basicSearchFunction}
-      searchPlaceHolder="Search all senior area chairs"
+      searchPlaceHolder={`Search all ${prettyField(seniorAreaChairName)}`}
       extraClasses="sac-status-menu"
     />
   )

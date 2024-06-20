@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+import WebFieldContext from '../../WebFieldContext'
 import { getProfileLink } from '../../../lib/webfield-utils'
+import { prettyField } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -45,6 +47,7 @@ const SeniorAreaChairStatusRow = ({ rowData }) => (
 )
 
 const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo }) => {
+  const { seniorAreaChairName, areaChairName } = useContext(WebFieldContext)
   const [seniorAreaChairStatusTabData, setSeniorAreaChairStatusTabData] = useState({})
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.areaChairs?.length ?? 0)
@@ -111,7 +114,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo }) => {
   if (seniorAreaChairStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no senior area chairs.Check back later or contact info@openreview.net if you
+        There are no {prettyField(seniorAreaChairName)}.Check back later or contact info@openreview.net if you
         believe this to be an error.
       </p>
     )
@@ -123,7 +126,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo }) => {
           tableRows={seniorAreaChairStatusTabData.tableRows}
           setSeniorAreaChairStatusTabData={setSeniorAreaChairStatusTabData}
         />
-        <p className="empty-message">No senior area chair matching search criteria.</p>
+        <p className="empty-message">No {prettyField(seniorAreaChairName)} matching search criteria.</p>
       </div>
     )
   return (
@@ -137,8 +140,8 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo }) => {
         className="console-table table-striped pc-console-ac-status"
         headings={[
           { id: 'number', content: '#', width: '55px' },
-          { id: 'seniorAreaChair', content: 'Senior Area Chair' },
-          { id: 'areachair', content: 'Area Chair' },
+          { id: 'seniorAreaChair', content: `${prettyField(seniorAreaChairName)}` },
+          { id: 'areachair', content: `${prettyField(areaChairName)}` },
         ]}
       >
         {seniorAreaChairStatusTabData.tableRowsDisplayed?.map((row) => (
