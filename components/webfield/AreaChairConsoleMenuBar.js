@@ -24,7 +24,7 @@ const AreaChairConsoleMenuBar = ({
   areaChairName,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
-  const formattedReviewerName = upperFirst(camelCase(reviewerName))
+  const formattedReviewerName = camelCase(reviewerName)
   const formattedOfficialReviewName = upperFirst(camelCase(officialReviewName))
 
   const propertiesAllowed = {
@@ -34,7 +34,7 @@ const AreaChairConsoleMenuBar = ({
     author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords.value'],
     [formattedReviewerName]: ['reviewers'],
-    [`num${formattedReviewerName}Assigned`]: ['reviewProgressData.numReviewersAssigned'],
+    [`num${upperFirst(formattedReviewerName)}Assigned`]: ['reviewProgressData.numReviewersAssigned'],
     [`num${formattedOfficialReviewName}Done`]: ['reviewProgressData.numReviewsDone'],
     ...Object.fromEntries(
       (Array.isArray(reviewRatingName)

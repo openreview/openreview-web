@@ -34,8 +34,8 @@ const PaperStatusMenuBar = ({
     submissionName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
-  const formattedReviewerName = upperFirst(camelCase(reviewerName))
-  const formattedSACName = upperFirst(camelCase(seniorAreaChairName))
+  const formattedReviewerName = camelCase(reviewerName)
+  const formattedSACName = camelCase(seniorAreaChairName)
   const formattedOfficialReviewName = upperFirst(camelCase(officialReviewName))
   const formattedOfficialMetaReviewName = upperFirst(camelCase(officialMetaReviewName))
 
@@ -47,7 +47,7 @@ const PaperStatusMenuBar = ({
     keywords: ['note.content.keywords.value'],
     [formattedReviewerName]: ['reviewers'],
     [formattedSACName]: ['metaReviewData.seniorAreaChairs'],
-    [`num${formattedReviewerName}Assigned`]: ['reviewProgressData.numReviewersAssigned'],
+    [`num${upperFirst(formattedReviewerName)}Assigned`]: ['reviewProgressData.numReviewersAssigned'],
     [`num${formattedOfficialReviewName}Done`]: ['reviewProgressData.numReviewsDone'],
     ...Object.fromEntries(
       (Array.isArray(reviewRatingName)
