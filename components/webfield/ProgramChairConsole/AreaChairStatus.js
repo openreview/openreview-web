@@ -9,7 +9,7 @@ import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
-import { prettyField, getSingularRoleName, pluralizeString } from '../../../lib/utils'
+import { prettyField, pluralizeString } from '../../../lib/utils'
 
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
   const { id, preferredName, preferredEmail, registrationNotes } =
@@ -88,7 +88,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
       </div>
       {sacProfile && (
         <>
-          <h4>{getSingularRoleName(prettyField(seniorAreaChairName))}: </h4>
+          <h4>{prettyField(seniorAreaChairName)}: </h4>
           <div className="note">
             {sacProfile?.preferredName && (
               <>
@@ -442,7 +442,7 @@ const AreaChairStatus = ({
           messageParentGroup={areaChairsId}
           messageSignature={venueId}
         />
-        <p className="empty-message">No {getSingularRoleName(prettyField(areaChairName))} matching search criteria.</p>
+        <p className="empty-message">No {prettyField(areaChairName)} matching search criteria.</p>
       </div>
     )
   return (

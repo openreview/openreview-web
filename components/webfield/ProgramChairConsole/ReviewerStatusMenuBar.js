@@ -5,7 +5,7 @@ import api from '../../../lib/api-client'
 import BasicModal from '../../BasicModal'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
-import { pluralizeString, prettyField, getSingularRoleName } from '../../../lib/utils'
+import { pluralizeString, prettyField } from '../../../lib/utils'
 
 const MessageReviewersModal = ({
   tableRowsDisplayed: tableRows,
@@ -202,12 +202,12 @@ const ReviewerStatusMenuBar = ({
 
   const sortOptions = [
     {
-      label: `${getSingularRoleName(prettyField(reviewerName))}`,
+      label: `${prettyField(reviewerName)}`,
       value: 'Reviewer',
       getValue: (p) => p.number,
     },
     {
-      label: `${getSingularRoleName(prettyField(reviewerName))} Name`,
+      label: `${prettyField(reviewerName)} Name`,
       value: 'Reviewer Name',
       getValue: (p) => p.reviewerProfile?.preferredName ?? p.reviewerProfileId,
     },

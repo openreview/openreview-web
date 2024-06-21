@@ -244,28 +244,28 @@ const BiddingStatsRow = ({
         {reviewersBidEnabled && reviewersId && (
           <StatContainer
             title={`${prettyField(singularReviewerName)} Bidding Progress`}
-            hint={`% of ${prettyField(reviewerName)} who have completed the required number of bids`}
+            hint={`% of ${prettyField(reviewerName).toLowerCase()} who have completed the required number of bids`}
             value={calcBiddingProgress(reviewersId, 'reviewers')}
           />
         )}
         {areaChairsBidEnabled && areaChairsId && (
           <StatContainer
             title={`${prettyField(singularAreaChairName)} Bidding Progress`}
-            hint={`% of ${prettyField(areaChairName)} who have completed the required number of bids`}
+            hint={`% of ${prettyField(areaChairName).toLowerCase()} who have completed the required number of bids`}
             value={calcBiddingProgress(areaChairsId, 'areaChairs')}
           />
         )}
         {recommendationEnabled && areaChairsId && (
           <StatContainer
             title="Recommendation Progress"
-            hint={`% of ${prettyField(areaChairName)} who have completed the required number of reviewer recommendations`}
+            hint={`% of ${prettyField(areaChairName).toLowerCase()} who have completed the required number of reviewer recommendations`}
             value={calcRecommendationProgress()}
           />
         )}
         {seniorAreaChairsBidEnabled && seniorAreaChairsId && (
           <StatContainer
             title={`${prettyField(singularSeniorAreaChairName)} Bidding Progress`}
-            hint={`% of ${prettyField(seniorAreaChairName)} who have completed the required number of bids`}
+            hint={`% of ${prettyField(seniorAreaChairName).toLowerCase()} who have completed the required number of bids`}
             value={calcBiddingProgress(seniorAreaChairsId, 'seniorAreaChairs')}
           />
         )}
@@ -378,7 +378,7 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
         />
         <StatContainer
           title={`${prettyField(singularReviewerName)} Progress`}
-          hint={`% of ${prettyField(reviewerName)} who have reviewed all of their assigned papers`}
+          hint={`% of ${prettyField(reviewerName).toLowerCase()} who have reviewed all of their assigned papers`}
           value={
             pcConsoleData.notes ? (
               renderStat(
@@ -487,7 +487,7 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
         />
         <StatContainer
           title={`${prettyField(singularAreaChairName)} ${prettyField(officialMetaReviewName)} Progress`}
-          hint={`% of ${prettyField(areaChairName)} who have completed ${pluralizeString(prettyField(officialMetaReviewName)).toLowerCase()} for all their assigned papers`}
+          hint={`% of ${prettyField(areaChairName).toLowerCase()} who have completed ${pluralizeString(prettyField(officialMetaReviewName)).toLowerCase()} for all of their assigned papers`}
           value={
             pcConsoleData.notes && pcConsoleData.paperGroups ? (
               renderStat(areaChairsComplete, areaChairsWithAssignmentsCount)
