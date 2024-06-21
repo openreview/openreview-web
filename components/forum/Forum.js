@@ -367,7 +367,7 @@ export default function Forum({
           listElem.scrollTop = listElem.scrollHeight
         }
       }
-    }, 200),
+    }, 500),
     [selectedNoteId, selectedInvitationId]
   )
 

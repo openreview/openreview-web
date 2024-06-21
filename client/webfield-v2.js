@@ -644,6 +644,7 @@ module.exports = (function () {
         var $link = $(this)
         var userId = $link.data('userId')
         var forumUrl = $link.data('forumUrl')
+        var paperNumber = $link.data('paperNumber')
 
         var sendReviewerReminderEmails = function (e) {
           var postData = {
@@ -652,7 +653,7 @@ module.exports = (function () {
             subject: $('#message-reviewers-modal input[name="subject"]').val().trim(),
             message: $('#message-reviewers-modal textarea[name="message"]').val().trim(),
             replyTo: options.reminderOptions.replyTo,
-            invitation: options.reminderOptions.messageInvitationId,
+            invitation: options.reminderOptions.messageInvitationId && options.reminderOptions.messageInvitationId.replace('{number}', paperNumber),
             signature: options.reminderOptions.messageInvitationId && options.reminderOptions.messageSignature,
           }
 
