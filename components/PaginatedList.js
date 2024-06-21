@@ -1,3 +1,4 @@
+/* globals typesetMathJax: false */
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import debounce from 'lodash/debounce'
@@ -64,6 +65,11 @@ export default function PaginatedList({
       fetchItems()
     }
   }, [page, searchTerm, loadItems, searchItems, itemsPerPage, shouldReload])
+
+  useEffect(() => {
+    if (!listItems?.length) return
+    typesetMathJax()
+  }, [listItems])
 
   return (
     <div>
