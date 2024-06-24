@@ -569,47 +569,6 @@ main.invitation {
     }
   }
 
-  .pc-console-ac-status {
-    table-layout: auto;
-    .review-progress {
-      display: flex;
-      flex-direction: column;
-
-      .note-info {
-        display: flex;
-        align-items: baseline;
-        margin-bottom: 0.25rem;
-        .note-number {
-          margin-right: 0.25rem;
-          font-size: 0.75rem;
-          width: 8%;
-        }
-      }
-
-      .review-info {
-        width: 92%;
-      }
-    }
-    .areachair-progress {
-      display: flex;
-      flex-direction: column;
-
-      .meta-review-info {
-        display: flex;
-        align-items: baseline;
-        .note-number {
-          margin-right: 0.25rem;
-          font-size: 0.75rem;
-          width: 20%;
-        }
-        .meta-review {
-          display: flex;
-          flex-direction: column;
-        }
-      }
-    }
-  }
-
   .pc-console-reviewer-status {
     table-layout: auto;
     .paper-progress {
@@ -652,7 +611,7 @@ main.invitation {
     table-layout: auto;
   }
 
-  .pc-console-ac-status {
+  .pc-console-ac-sac-status {
     table-layout: auto;
     .review-progress {
       display: flex;
@@ -688,6 +647,17 @@ main.invitation {
         .meta-review {
           display: flex;
           flex-direction: column;
+        }
+      }
+    }
+    .note {
+      .copy-email-container {
+        display: flex;
+        align-items: baseline;
+
+        .copy-email-link {
+          margin-left: 0.25rem;
+          font-size: 0.75rem;
         }
       }
     }

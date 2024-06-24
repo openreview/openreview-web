@@ -1,6 +1,7 @@
-/* globals promptError: false */
+/* globals promptError, promptMessage: false */
 import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
+import copy from 'copy-to-clipboard'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import { getProfileName, prettyField } from '../../../lib/utils'
@@ -12,9 +13,8 @@ import WebFieldContext from '../../WebFieldContext'
 import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 
-const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
-  const { id, preferredName, preferredEmail, registrationNotes } =
-    rowData.reviewerProfile ?? {}
+const ReviewerSummary = ({ rowData, bidEnabled, invitations, preferredEmailInvitation }) => {
+  const { id, preferredName, registrationNotes } = rowData.reviewerProfile ?? {}
   const { completedBids, reviewerProfileId } = rowData
   const { reviewersId, bidName } = useContext(WebFieldContext)
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
@@ -24,6 +24,24 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
     bidName,
     null
   )
+  const getReviewerEmail = async (profileId) => {
+    if (!preferredEmailInvitation) {
+      promptError('Email is not available.')
+      return
+    }
+    try {
+      const result = await api.get(`/edges`, {
+        invitation: preferredEmailInvitation,
+        head: profileId,
+      })
+      const email = result.edges?.[0]?.tail
+      if (!email) throw new Error('Email is not available.')
+      copy(`<${email}>`)
+      promptMessage(`${email} copied to clipboard`)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
   return (
     <div className="note">
       {preferredName ? (
@@ -33,7 +51,19 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
               {preferredName}
             </a>
           </h4>
-          <p className="text-muted">({preferredEmail})</p>
+          {preferredEmailInvitation && (
+            // eslint-disable-next-line jsx-a11y/anchor-is-valid
+            <a
+              href="#"
+              className="text-muted"
+              onClick={(e) => {
+                e.preventDefault()
+                getReviewerEmail(id ?? reviewerProfileId)
+              }}
+            >
+              Copy Email
+            </a>
+          )}
         </>
       ) : (
         <h4>
@@ -291,12 +321,10 @@ const ReviewerStatusTab = ({
           .map((profile) => ({
             ...profile,
             preferredName: getProfileName(profile),
-            preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
           }))
         const reviewerProfileWithoutAssignmentMap = new Map()
         reviewerProfilesWithoutAssignment.forEach((profile) => {
           const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-          const profileEmails = profile.email ? [profile.email] : []
 
           let userRegNotes = []
           usernames.forEach((username) => {
@@ -310,7 +338,7 @@ const ReviewerStatusTab = ({
           // eslint-disable-next-line no-param-reassign
           profile.registrationNotes = userRegNotes
 
-          usernames.concat(profileEmails).forEach((key) => {
+          usernames.concat(profile.email ?? []).forEach((key) => {
             reviewerProfileWithoutAssignmentMap.set(key, profile)
           })
         })
@@ -462,7 +490,7 @@ const ReviewerStatusTab = ({
         className="console-table table-striped pc-console-reviewer-status"
         headings={[
           { id: 'number', content: '#', width: '55px' },
-          { id: 'reviewer', content: 'Reviewer', width: '10%' },
+          { id: 'reviewer', content: 'Reviewer', width: '15%' },
           { id: 'reviewProgress', content: 'Review Progress', width: '40%' },
           { id: 'status', content: 'Status' },
         ]}

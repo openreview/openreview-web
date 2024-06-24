@@ -1,23 +1,58 @@
-import { useEffect, useState } from 'react'
+/* globals promptError, promptMessage: false */
+import { useContext, useEffect, useState } from 'react'
+import copy from 'copy-to-clipboard'
 import { getProfileLink } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import SeniorAreaChairStatusMenuBar from './SeniorAreaChairStatusMenuBar'
+import api from '../../../lib/api-client'
+import WebFieldContext from '../../WebFieldContext'
 
 const BasicProfileSummary = ({ profile, profileId }) => {
-  const { id, preferredName, preferredEmail } = profile ?? {}
+  const { id, preferredName } = profile ?? {}
+  const { preferredEmailInvitation } = useContext(WebFieldContext)
+  const getEmail = async () => {
+    if (!preferredEmailInvitation) {
+      promptError('Email is not available.')
+      return
+    }
+    try {
+      const result = await api.get(`/edges`, {
+        invitation: preferredEmailInvitation,
+        head: id ?? profileId,
+      })
+      const email = result.edges?.[0]?.tail
+      if (!email) throw new Error('Email is not available.')
+      copy(`<${email}>`)
+      promptMessage(`${email} copied to clipboard`)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
   return (
     <div className="note">
       {preferredName ? (
-        <>
+        <div className="copy-email-container">
           <h4>
             <a href={getProfileLink(id ?? profileId)} target="_blank" rel="noreferrer">
               {preferredName}
             </a>
           </h4>
-          <p className="text-muted">({preferredEmail})</p>
-        </>
+          {preferredEmailInvitation && (
+            // eslint-disable-next-line jsx-a11y/anchor-is-valid
+            <a
+              href="#"
+              className="text-muted copy-email-link"
+              onClick={(e) => {
+                e.preventDefault()
+                getEmail()
+              }}
+            >
+              Copy Email
+            </a>
+          )}
+        </div>
       ) : (
         <h4>{profileId}</h4>
       )}
@@ -134,7 +169,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo }) => {
         setSeniorAreaChairStatusTabData={setSeniorAreaChairStatusTabData}
       />
       <Table
-        className="console-table table-striped pc-console-ac-status"
+        className="console-table table-striped pc-console-ac-sac-status"
         headings={[
           { id: 'number', content: '#', width: '55px' },
           { id: 'seniorAreaChair', content: 'Senior Area Chair' },

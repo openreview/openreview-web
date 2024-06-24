@@ -157,6 +157,7 @@ const AreaChairConsole = ({ appContext }) => {
     enableQuerySearch,
     emailReplyTo,
     extraExportColumns,
+    preferredEmailInvitation,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
@@ -173,6 +174,7 @@ const AreaChairConsole = ({ appContext }) => {
   const [activeTabId, setActiveTabId] = useState(
     window.location.hash || `#assigned-${pluralizeString(submissionName)}`
   )
+  const [sacLinkText, setSacLinkText] = useState('')
 
   const edgeBrowserUrl = proposedAssignmentTitle
     ? edgeBrowserProposedUrl
@@ -188,8 +190,8 @@ const AreaChairConsole = ({ appContext }) => {
     return name ? name.fullname : prettyId(reviewerProfile.id)
   }
 
-  const getSACLinkText = () => {
-    if (!acConsoleData.sacProfiles?.length) return ''
+  const getSACLinkText = async () => {
+    if (!acConsoleData.sacProfiles?.length) return
     const sacName = prettyField(seniorAreaChairsId?.split('/')?.pop())
     const singluarSACName = sacName.endsWith('s') ? sacName.slice(0, -1) : sacName
     const sacText = `Your assigned ${inflect(
@@ -197,18 +199,37 @@ const AreaChairConsole = ({ appContext }) => {
       `${singluarSACName} is`,
       `${singluarSACName}s are`
     )}`
+
+    let sacEmails = []
+    try {
+      const sacEmailPs = acConsoleData.sacProfiles.map((sacProfile) =>
+        api
+          .get(
+            '/edges',
+            { invitation: preferredEmailInvitation, head: sacProfile.id },
+            { accessToken }
+          )
+          .then((result) => result.edges[0]?.tail)
+      )
+      sacEmails = await Promise.all(sacEmailPs)
+    } catch (error) {
+      /* empty */
+    }
+
     const sacProfileLinks = acConsoleData.sacProfiles.map(
-      (sacProfile) =>
-        `<a href="${getProfileLink(sacProfile.id)}" >${prettyId(sacProfile.id)}</a> (${
-          sacProfile.email
-        })`
+      (sacProfile, index) =>
+        `<a href="${getProfileLink(sacProfile.id)}" >${prettyId(sacProfile.id)}</a>${
+          sacEmails[index] ? `(${sacEmails[index]})` : ''
+        }`
     )
-    return `<p class="dark">${sacText} ${prettyList(
-      sacProfileLinks,
-      'long',
-      'conjunction',
-      false
-    )}</p>`
+    setSacLinkText(
+      `<p class="dark">${sacText} ${prettyList(
+        sacProfileLinks,
+        'long',
+        'conjunction',
+        false
+      )}</p>`
+    )
   }
 
   const loadData = async () => {
@@ -378,7 +399,7 @@ const AreaChairConsole = ({ appContext }) => {
           allProfiles.find(
             (p) =>
               p.content.names.some((q) => q.username === reviewer.reviewerProfileId) ||
-              p.content.emails.includes(reviewer.reviewerProfileId)
+              p.email === reviewer.reviewerProfileId
           )
         )
         const officialReviews = note.details.replies
@@ -458,7 +479,7 @@ const AreaChairConsole = ({ appContext }) => {
               const profile = allProfiles.find(
                 (p) =>
                   p.content.names.some((q) => q.username === reviewer.reviewerProfileId) ||
-                  p.content.emails.includes(reviewer.reviewerProfileId)
+                  p.email === reviewer.reviewerProfileId
               )
               return {
                 ...reviewer,
@@ -468,9 +489,6 @@ const AreaChairConsole = ({ appContext }) => {
                 noteNumber: note.number,
                 preferredId: reviewer.reviewerProfileId,
                 preferredName: profile ? getReviewerName(profile) : reviewer.reviewerProfileId,
-                preferredEmail: profile
-                  ? profile.content.preferredEmail ?? profile.content.emails[0]
-                  : reviewer.reviewerProfileId,
               }
             }),
           reviewerProfiles: assignedReviewerProfiles,
@@ -502,7 +520,7 @@ const AreaChairConsole = ({ appContext }) => {
       const sacProfiles = allProfiles.filter(
         (p) =>
           p.content.names.some((q) => result[2].includes(q.username)) ||
-          p.content.emails.some((r) => result[2].includes(r))
+          result[2].includes(p.email)
       )
 
       const assignedPaperRows = tableRows.filter((p) =>
@@ -521,7 +539,6 @@ const AreaChairConsole = ({ appContext }) => {
         allProfiles,
         sacProfiles: sacProfiles.map((sacProfile) => ({
           id: sacProfile.id,
-          email: sacProfile.content.preferredEmail ?? sacProfile.content.emails[0],
         })),
       })
     } catch (error) {
@@ -726,6 +743,10 @@ const AreaChairConsole = ({ appContext }) => {
   }, [acConsoleData.notes])
 
   useEffect(() => {
+    getSACLinkText()
+  }, [acConsoleData.sacProfiles])
+
+  useEffect(() => {
     const validTabIds = [
       `#assigned-${pluralizeString(submissionName)}`,
       ...(secondaryAreaChairName ? [`#${secondaryAreaChairName}-assignments`] : []),
@@ -768,7 +789,7 @@ const AreaChairConsole = ({ appContext }) => {
     <>
       <BasicHeader
         title={header?.title}
-        instructions={`${headerInstructions}${getSACLinkText()}`}
+        instructions={`${headerInstructions}${sacLinkText}`}
       />
 
       <Tabs>

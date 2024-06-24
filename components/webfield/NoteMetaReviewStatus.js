@@ -1,7 +1,8 @@
-/* globals promptError: false */
+/* globals promptError,promptMessage: false */
 
 // modified from noteMetaReviewStatus.hbs handlebar template
 import { useContext, useEffect, useState } from 'react'
+import copy from 'copy-to-clipboard'
 import WebFieldContext from '../WebFieldContext'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -189,6 +190,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
   areaChairAssignmentUrl,
   metaReviewRecommendationName,
   additionalMetaReviewFields,
+  preferredEmailInvitation,
 }) => {
   const { note, metaReviewData, preliminaryDecision } = rowData
   const {
@@ -208,6 +210,25 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
     secondaryAreaChairName,
     seniorAreaChairName = 'Senior_Area_Chairs',
   } = useContext(WebFieldContext)
+
+  const getACSACEmail = async (profileId) => {
+    if (!preferredEmailInvitation) {
+      promptError('Email is not available.')
+      return
+    }
+    try {
+      const result = await api.get(`/edges`, {
+        invitation: preferredEmailInvitation,
+        head: profileId,
+      })
+      const email = result.edges?.[0]?.tail
+      if (!email) throw new Error('Email is not available.')
+      copy(`<${email}>`)
+      promptMessage(`${email} copied to clipboard`)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
 
   return (
     <div className="areachair-progress">
@@ -235,7 +256,19 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                     >
                       {areaChair.preferredName}
                     </a>{' '}
-                    <span className="text-muted">&lt;{areaChair.preferredEmail}&gt;</span>
+                    {preferredEmailInvitation && (
+                      // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                      <a
+                        href="#"
+                        className="text-muted"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          getACSACEmail(areaChair.areaChairProfileId)
+                        }}
+                      >
+                        Copy Email
+                      </a>
+                    )}
                   </span>
                 </div>
                 {metaReview && (
@@ -304,7 +337,19 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                     >
                       {areaChair.preferredName}
                     </a>{' '}
-                    <span className="text-muted">&lt;{areaChair.preferredEmail}&gt;</span>
+                    {preferredEmailInvitation && (
+                      // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                      <a
+                        href="#"
+                        className="text-muted"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          getACSACEmail(areaChair.areaChairProfileId)
+                        }}
+                      >
+                        Copy Email
+                      </a>
+                    )}
                   </span>
                 </div>
               </div>
@@ -327,7 +372,19 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                   >
                     {seniorAreaChair.preferredName}
                   </a>{' '}
-                  <span className="text-muted">&lt;{seniorAreaChair.preferredEmail}&gt;</span>
+                  {preferredEmailInvitation && (
+                    // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                    <a
+                      href="#"
+                      className="text-muted"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        getACSACEmail(seniorAreaChair.preferredId)
+                      }}
+                    >
+                      Copy Email
+                    </a>
+                  )}
                 </span>
               </div>
             </div>

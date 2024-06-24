@@ -177,11 +177,6 @@ const PaperStatusMenuBar = ({
           ?.map((r) => r.reviewerProfileId)
           ?.join('|'),
     },
-    {
-      header: `${prettyField(reviewerName)} contact info`,
-      getValue: (p) =>
-        p.reviewers.map((q) => `${q.preferredName}<${q.preferredEmail}>`).join(','),
-    },
     ...(Array.isArray(reviewRatingName)
       ? reviewRatingName.map((p) => (typeof p === 'object' ? Object.keys(p)[0] : p))
       : [reviewRatingName]
@@ -205,13 +200,6 @@ const PaperStatusMenuBar = ({
     {
       header: `num ${prettyField(areaChairName)} assigned`,
       getValue: (p) => p.metaReviewData?.numAreaChairsAssigned,
-    },
-    {
-      header: `${prettyField(areaChairName)} contact info`,
-      getValue: (p) =>
-        p.metaReviewData?.areaChairs
-          ?.map((q) => `${q.preferredName}<${q.preferredEmail}>`)
-          .join(','),
     },
     {
       header: `num submitted ${prettyField(areaChairName)}`,

@@ -1,6 +1,7 @@
-/* globals promptError: false */
+/* globals promptError, promptMessage: false */
 import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
+import copy from 'copy-to-clipboard'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -9,13 +10,19 @@ import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
+import api from '../../../lib/api-client'
 
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
-  const { id, preferredName, preferredEmail, registrationNotes } =
-    rowData.areaChairProfile ?? {}
+  const { id, preferredName, registrationNotes } = rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
-  const { areaChairsId, reviewersId, bidName, scoresName, recommendationName } =
-    useContext(WebFieldContext)
+  const {
+    areaChairsId,
+    reviewersId,
+    bidName,
+    scoresName,
+    recommendationName,
+    preferredEmailInvitation,
+  } = useContext(WebFieldContext)
   const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
@@ -33,11 +40,30 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
     scoresName
   )
 
+  const getACSACEmail = async (profileId) => {
+    if (!preferredEmailInvitation) {
+      promptError('Email is not available.')
+      return
+    }
+    try {
+      const result = await api.get(`/edges`, {
+        invitation: preferredEmailInvitation,
+        head: profileId,
+      })
+      const email = result.edges?.[0]?.tail
+      if (!email) throw new Error('Email is not available.')
+      copy(`<${email}>`)
+      promptMessage(`${email} copied to clipboard`)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   return (
     <>
       <div className="note">
         {preferredName ? (
-          <>
+          <div className="copy-email-container">
             <h4>
               <a
                 href={getProfileLink(id ?? rowData.areaChairProfileId)}
@@ -47,8 +73,20 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
                 {preferredName}
               </a>
             </h4>
-            <p className="text-muted">({preferredEmail})</p>
-          </>
+            {preferredEmailInvitation && (
+              // eslint-disable-next-line jsx-a11y/anchor-is-valid
+              <a
+                href="#"
+                className="text-muted copy-email-link"
+                onClick={(e) => {
+                  e.preventDefault()
+                  getACSACEmail(id ?? rowData.areaChairProfileId)
+                }}
+              >
+                Copy Email
+              </a>
+            )}
+          </div>
         ) : (
           <h4>{rowData.areaChairProfileId}</h4>
         )}
@@ -90,7 +128,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
           <h4>Senior Area Chair: </h4>
           <div className="note">
             {sacProfile?.preferredName && (
-              <>
+              <div className="copy-email-container">
                 <h4>
                   <a
                     href={getProfileLink(sacProfile?.id ?? seniorAreaChairId)}
@@ -100,8 +138,20 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
                     {sacProfile.preferredName}
                   </a>
                 </h4>
-                <p className="text-muted">({sacProfile.preferredEmail})</p>
-              </>
+                {preferredEmailInvitation && (
+                  // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                  <a
+                    href="#"
+                    className="text-muted copy-email-link"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      getACSACEmail(sacProfile?.id ?? seniorAreaChairId)
+                    }}
+                  >
+                    Copy Email
+                  </a>
+                )}
+              </div>
             )}
           </div>
         </>
@@ -446,7 +496,7 @@ const AreaChairStatus = ({
         messageSignature={venueId}
       />
       <Table
-        className="console-table table-striped pc-console-ac-status"
+        className="console-table table-striped pc-console-ac-sac-status"
         headings={[
           { id: 'number', content: '#', width: '55px' },
           { id: 'areachair', content: 'Area Chair', width: '10%' },
