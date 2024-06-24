@@ -201,21 +201,22 @@ const AreaChairConsole = ({ appContext }) => {
     )}`
 
     let sacEmails = []
-    try {
-      const sacEmailPs = acConsoleData.sacProfiles.map((sacProfile) =>
-        api
-          .get(
-            '/edges',
-            { invitation: preferredEmailInvitation, head: sacProfile.id },
-            { accessToken }
-          )
-          .then((result) => result.edges[0]?.tail)
-      )
-      sacEmails = await Promise.all(sacEmailPs)
-    } catch (error) {
-      /* empty */
+    if (preferredEmailInvitation) {
+      try {
+        const sacEmailPs = acConsoleData.sacProfiles.map((sacProfile) =>
+          api
+            .get(
+              '/edges',
+              { invitation: preferredEmailInvitation, head: sacProfile.id },
+              { accessToken }
+            )
+            .then((result) => result.edges[0]?.tail)
+        )
+        sacEmails = await Promise.all(sacEmailPs)
+      } catch (error) {
+        /* empty */
+      }
     }
-
     const sacProfileLinks = acConsoleData.sacProfiles.map(
       (sacProfile, index) =>
         `<a href="${getProfileLink(sacProfile.id)}" >${prettyId(sacProfile.id)}</a>${
