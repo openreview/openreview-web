@@ -63,7 +63,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
     <>
       <div className="note">
         {preferredName ? (
-          <div className="copy-email-container">
+          <>
             <h4>
               <a
                 href={getProfileLink(id ?? rowData.areaChairProfileId)}
@@ -86,7 +86,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
                 Copy Email
               </a>
             )}
-          </div>
+          </>
         ) : (
           <h4>{rowData.areaChairProfileId}</h4>
         )}
@@ -128,7 +128,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
           <h4>Senior Area Chair: </h4>
           <div className="note">
             {sacProfile?.preferredName && (
-              <div className="copy-email-container">
+              <>
                 <h4>
                   <a
                     href={getProfileLink(sacProfile?.id ?? seniorAreaChairId)}
@@ -151,7 +151,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
                     Copy Email
                   </a>
                 )}
-              </div>
+              </>
             )}
           </div>
         </>

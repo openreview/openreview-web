@@ -78,6 +78,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     sacStatuspropertiesAllowed,
     messageAreaChairsInvitationId,
     messageSeniorAreaChairsInvitationId,
+    preferredEmailInvitation,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()

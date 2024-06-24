@@ -13,10 +13,10 @@ import WebFieldContext from '../../WebFieldContext'
 import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 
-const ReviewerSummary = ({ rowData, bidEnabled, invitations, preferredEmailInvitation }) => {
+const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, registrationNotes } = rowData.reviewerProfile ?? {}
   const { completedBids, reviewerProfileId } = rowData
-  const { reviewersId, bidName } = useContext(WebFieldContext)
+  const { reviewersId, bidName, preferredEmailInvitation } = useContext(WebFieldContext)
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
     `tail:${id}`,
     invitations,

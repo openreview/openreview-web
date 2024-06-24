@@ -35,7 +35,7 @@ const BasicProfileSummary = ({ profile, profileId }) => {
   return (
     <div className="note">
       {preferredName ? (
-        <div className="copy-email-container">
+        <>
           <h4>
             <a href={getProfileLink(id ?? profileId)} target="_blank" rel="noreferrer">
               {preferredName}
@@ -54,7 +54,7 @@ const BasicProfileSummary = ({ profile, profileId }) => {
               Copy Email
             </a>
           )}
-        </div>
+        </>
       ) : (
         <h4>{profileId}</h4>
       )}
@@ -86,10 +86,30 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
   referrerUrl,
   metaReviewRecommendationName,
 }) => {
-  const { id, preferredName, preferredEmail } = rowData.sacProfile ?? {}
+  const { id, preferredName } = rowData.sacProfile ?? {}
+  const { preferredEmailInvitation } = useContext(WebFieldContext)
   const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
+
+  const getEmail = async () => {
+    if (!preferredEmailInvitation) {
+      promptError('Email is not available.')
+      return
+    }
+    try {
+      const result = await api.get(`/edges`, {
+        invitation: preferredEmailInvitation,
+        head: id ?? rowData.sacProfileId,
+      })
+      const email = result.edges?.[0]?.tail
+      if (!email) throw new Error('Email is not available.')
+      copy(`<${email}>`)
+      promptMessage(`${email} copied to clipboard`)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
 
   return (
     <tr>
@@ -109,7 +129,19 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
                   {preferredName}
                 </a>
               </h4>
-              <p className="text-muted">({preferredEmail})</p>
+              {preferredEmailInvitation && (
+                // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                <a
+                  href="#"
+                  className="text-muted copy-email-link"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    getEmail()
+                  }}
+                >
+                  Copy Email
+                </a>
+              )}
             </>
           ) : (
             <h4>{rowData.sacProfileId}</h4>
