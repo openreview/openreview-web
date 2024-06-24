@@ -42,6 +42,9 @@ const PaperRow = ({
     venueId,
     officialReviewName,
     reviewerName,
+    reviewersId,
+    areaChairName,
+    areaChairsId,
     shortPhrase,
     seniorAreaChairName,
     submissionName,
@@ -55,12 +58,12 @@ const PaperRow = ({
       seniorAreaChairName
     )} Console](/group?id=${venueId}/${seniorAreaChairName}#${submissionName}-status)`
   )
-  const getManualAssignmentUrl = (role) => {
+  const getManualAssignmentUrl = (role, roleId) => {
     if (!assignmentUrls) return null
     const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
     // auto
     const isAssignmentConfigDeployed = assignmentInvitations?.some(
-      (p) => p.id === `${venueId}/${role}/-/Assignment`
+      (p) => p.id.startsWith(roleId)
     )
     // manual
     const isMatchingSetup = isAssignmentConfigDeployed
@@ -107,13 +110,14 @@ const PaperRow = ({
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
-          reviewerAssignmentUrl={getManualAssignmentUrl(reviewerName)}
+          reviewerAssignmentUrl={getManualAssignmentUrl(reviewerName, reviewersId)}
         />
       </td>
       <td>
         <ProgramChairConsolePaperAreaChairProgress
           rowData={rowData}
           referrerUrl={referrerUrl}
+          areaChairAssignmentUrl={getManualAssignmentUrl(areaChairName, areaChairsId)}
           metaReviewRecommendationName={metaReviewRecommendationName}
           additionalMetaReviewFields={additionalMetaReviewFields}
         />
