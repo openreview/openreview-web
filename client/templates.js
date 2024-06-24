@@ -936,7 +936,7 @@ templates['noteReviewers'] = template({"1":function(container,depth0,helpers,par
 },"39":function(container,depth0,helpers,partials,data) {
     return " &nbsp;&bull;&nbsp;";
 },"41":function(container,depth0,helpers,partials,data,blockParams) {
-    var stack1, alias1=container.lambda, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+    var stack1, alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
         }
@@ -944,9 +944,11 @@ templates['noteReviewers'] = template({"1":function(container,depth0,helpers,par
     };
 
   return "                  <a href=\"#\" class=\"send-reminder-link\" data-user-id=\""
-    + container.escapeExpression(alias1(((stack1 = blockParams[2][0]) != null ? lookupProperty(stack1,"id") : stack1), depth0))
+    + alias2(alias1(((stack1 = blockParams[2][0]) != null ? lookupProperty(stack1,"anonymousGroupId") : stack1), depth0))
     + "\" data-forum-url=\""
     + ((stack1 = alias1(((stack1 = blockParams[2][0]) != null ? lookupProperty(stack1,"forumUrl") : stack1), depth0)) != null ? stack1 : "")
+    + "\" data-paper-number=\""
+    + alias2(alias1(((stack1 = blockParams[2][0]) != null ? lookupProperty(stack1,"paperNumber") : stack1), depth0))
     + "\">Send Reminder</a>\n                  "
     + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),((stack1 = blockParams[2][0]) != null ? lookupProperty(stack1,"lastReminderSent") : stack1),{"name":"if","hash":{},"fn":container.program(42, data, 0, blockParams),"inverse":container.noop,"data":data,"blockParams":blockParams,"loc":{"start":{"line":39,"column":18},"end":{"line":39,"column":92}}})) != null ? stack1 : "")
     + "\n";
