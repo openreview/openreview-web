@@ -9,11 +9,12 @@ import BaseMenuBar from '../BaseMenuBar'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
 import { pluralizeString, prettyField } from '../../../lib/utils'
 
-const MessageAreaChairsModal = ({
+export const MessageACSACModal = ({
   tableRowsDisplayed: tableRows,
   messageOption,
   messageParentGroup,
   messageSignature,
+  isMessageSeniorAreaChairs = false,
 }) => {
   const { accessToken } = useUser()
   const {
@@ -21,7 +22,9 @@ const MessageAreaChairsModal = ({
     emailReplyTo,
     submissionVenueId,
     messageAreaChairsInvitationId,
+    messageSeniorAreaChairsInvitationId,
     areaChairName = 'Area_Chairs',
+    seniorAreaChairName = 'Senior_Area_Chairs',
   } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
@@ -30,6 +33,9 @@ const MessageAreaChairsModal = ({
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
   const [recipientsInfo, setRecipientsInfo] = useState([])
   const totalMessagesCount = recipientsInfo.length
+  const messageInvitationId = isMessageSeniorAreaChairs
+    ? messageSeniorAreaChairsInvitationId
+    : messageAreaChairsInvitationId
 
   const handlePrimaryButtonClick = async () => {
     if (currentStep === 1) {
@@ -41,8 +47,8 @@ const MessageAreaChairsModal = ({
       await api.post(
         '/messages',
         {
-          invitation: messageAreaChairsInvitationId,
-          signature: messageAreaChairsInvitationId && messageSignature,
+          invitation: messageInvitationId,
+          signature: messageInvitationId && messageSignature,
           groups: recipientsInfo.map((p) => p.id),
           subject,
           message,
@@ -51,7 +57,9 @@ const MessageAreaChairsModal = ({
         },
         { accessToken }
       )
-      $('#message-areachairs').modal('hide')
+      $(
+        `#${isMessageSeniorAreaChairs ? 'message-seniorareachairs' : 'message-areachairs'}`
+      ).modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
     } catch (apiError) {
       setError(apiError.message)
@@ -97,17 +105,18 @@ const MessageAreaChairsModal = ({
     const recipientRows = getRecipientRows()
     setRecipientsInfo(
       recipientRows.map((row) => {
-        const acProfile = row.areaChairProfile
-        return acProfile
+        const profile = isMessageSeniorAreaChairs ? row.sacProfile : row.areaChairProfile
+        const id = isMessageSeniorAreaChairs ? row.sacProfileId : row.areaChairProfileId
+        return profile
           ? {
-              id: row.areaChairProfileId,
-              preferredName: acProfile.preferredName,
-              preferredEmail: acProfile.preferredEmail,
+              id,
+              preferredName: profile.preferredName,
+              preferredEmail: profile.preferredEmail,
             }
           : {
-              id: row.areaChairProfileId,
-              preferredName: row.areaChairProfileId,
-              preferredEmail: row.areaChairProfileId,
+              id,
+              preferredName: id,
+              preferredEmail: id,
             }
       })
     )
@@ -115,7 +124,7 @@ const MessageAreaChairsModal = ({
 
   return (
     <BasicModal
-      id="message-areachairs"
+      id={isMessageSeniorAreaChairs ? 'message-seniorareachairs' : 'message-areachairs'}
       title={messageOption?.label}
       primaryButtonText={primaryButtonText}
       onPrimaryButtonClick={handlePrimaryButtonClick}
@@ -130,8 +139,11 @@ const MessageAreaChairsModal = ({
         <>
           <p>
             Enter a message to be sent to all selected{' '}
-            {prettyField(areaChairName).toLowerCase()} below. You will have a chance to review
-            a list of all recipients after clicking &quot;Next&quot; below.
+            {prettyField(
+              isMessageSeniorAreaChairs ? seniorAreaChairName : areaChairName
+            ).toLowerCase()}{' '}
+            below. You will have a chance to review a list of all recipients after clicking
+            &quot;Next&quot; below.
           </p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
@@ -365,7 +377,7 @@ const AreaChairStatusMenuBar = ({
       exportFileName={`${prettyField(areaChairName)} Status`}
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
-      messageModal={(props) => <MessageAreaChairsModal {...props} />}
+      messageModal={(props) => <MessageACSACModal {...props} />}
       querySearchInfoModal={(props) => <QuerySearchInfoModal {...props} />}
       extraClasses="ac-status-menu"
     />

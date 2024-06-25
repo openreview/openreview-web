@@ -36,7 +36,7 @@ const MessageReviewersModal = ({
     0
   )
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
-  const uniqueRecipientsInfo = uniqBy(recipientsInfo, (p) => p.preferredEmail)
+  const uniqueRecipientsInfo = uniqBy(recipientsInfo, (p) => p.preferredId)
 
   const handlePrimaryButtonClick = async () => {
     if (currentStep === 1) {
@@ -132,10 +132,10 @@ const MessageReviewersModal = ({
       } else {
         noteNumberReviewerIdsMap.set(noteNumber, [recipient.anonymizedGroup])
       }
-      if (recipient.preferredEmail in recipientsWithCount) {
-        recipientsWithCount[recipient.preferredEmail].count += 1
+      if (recipient.preferredId in recipientsWithCount) {
+        recipientsWithCount[recipient.preferredId].count += 1
       } else {
-        recipientsWithCount[recipient.preferredEmail] = { ...recipient, count: 1 }
+        recipientsWithCount[recipient.preferredId] = { ...recipient, count: 1 }
       }
     })
     setAllRecipients(noteNumberReviewerIdsMap)
@@ -200,7 +200,7 @@ const MessageReviewersModal = ({
               data={uniqueRecipientsInfo}
               itemHeight={18}
               height={Math.min(uniqueRecipientsInfo.length * 18, 580)}
-              itemKey="preferredEmail"
+              itemKey="preferredId"
             >
               {(recipientInfo) => (
                 <li>
