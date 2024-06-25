@@ -72,7 +72,13 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     emailReplyTo,
     reviewerEmailFuncs,
     acEmailFuncs,
+    sacEmailFuncs,
     submissionContentFields = [],
+    sacDirectPaperAssignment,
+    propertiesAllowed,
+    sacStatuspropertiesAllowed,
+    messageAreaChairsInvitationId,
+    messageSeniorAreaChairsInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -1145,6 +1151,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               <SeniorAreaChairStatus
                 pcConsoleData={pcConsoleData}
                 loadSacAcInfo={loadSacAcInfo}
+                loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
               />
             </TabPanel>
           )}
