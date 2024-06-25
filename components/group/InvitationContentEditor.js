@@ -1,5 +1,6 @@
 /* globals promptLogin,promptError: false */
 import { useEffect, useReducer, useState } from 'react'
+import { get } from 'lodash'
 import styles from '../../styles/components/InvitationContentEditor.module.scss'
 import { classNames } from '../../lib/utils'
 import EditorComponentContext from '../EditorComponentContext'
@@ -10,6 +11,7 @@ import useUser from '../../hooks/useUser'
 import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
 import ContentFieldEditor from '../EditorComponents/ContentFieldEditor'
+import { EditSignatures } from '../Signatures'
 
 const InvitationContentEditor = ({
   invitation,
@@ -93,8 +95,11 @@ const InvitationContentEditor = ({
       ...otherFields
     } = invitationObj.edit
     const editToPost = {}
-    const group = {}
-    const groupContent = {}
+
+    const shouldSetValue = (fieldPath) => {
+      const field = get(invitation, fieldPath)
+      return field && field.param && !field.param.const
+    }
 
     try {
       const editContent = {}
@@ -113,6 +118,10 @@ const InvitationContentEditor = ({
         // invitation edit invitation use invitations as invitation
         editToPost.invitations = invitationObj.id
         editToPost.invitation = undefined
+      }
+
+      if (shouldSetValue('edit.signatures')) {
+        editToPost.signatures = formData.editSignatureInputValues
       }
 
       await api.post(isGroupInvitation ? '/groups/edits' : '/invitations/edits', editToPost, {
@@ -156,6 +165,16 @@ const InvitationContentEditor = ({
   return (
     <div className={classNames(className, styles.invitationEditor)}>
       {fields.map(([fieldName, fieldDescription]) => renderField(fieldName, fieldDescription))}
+      <EditSignatures
+        fieldDescription={invitation.edit.signatures}
+        setLoading={() => {}}
+        editorData={invitationEditorData}
+        setEditorData={setInvitationEditorData}
+        closeEditor={handleCancelClick}
+        errors={errors}
+        setErrors={setErrors}
+        extraClasses={styles.signatures}
+      />
       <div className={styles.responseButtons}>
         <SpinnerButton
           className={styles.submitButton}

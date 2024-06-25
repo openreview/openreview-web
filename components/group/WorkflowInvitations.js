@@ -122,38 +122,14 @@ const WorflowInvitationRow = ({
   )
 }
 
-const StageInvitationRow = ({ stageInvitation }) => {
-  const [showInvitationEditor, setShowInvitationEditor] = useState(false)
-
-  return showInvitationEditor ? (
-    <div>
-      {showInvitationEditor && (
-        <InvitationContentEditor
-          invitation={stageInvitation}
-          existingValue={{}}
-          closeInvitationEditor={() => setShowInvitationEditor(false)}
-          onInvitationEditPosted={() => {}}
-        />
-      )}
-    </div>
-  ) : (
-    <div id="invitation">
-      <div className="panel">
-        <strong className="item hint">Add:</strong>
-        <button className="btn" onClick={() => setShowInvitationEditor(true)}>
-          {prettyId(stageInvitation.id)}
-        </button>
-      </div>
-    </div>
-  )
-}
-
-const AddStageInvitationSection = ({ stageInvitations }) => {
+const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
   const [stageToAdd, setStageToAdd] = useState(null)
   const addStageOptions = stageInvitations.map((p) => ({
     value: p.id,
     label: prettyId(p.id),
   }))
+
+  const existingValue = stageToAdd?.edit?.content?.venue_id ? { venue_id: venueId } : {}
 
   return (
     <div id="invitation">
@@ -169,7 +145,7 @@ const AddStageInvitationSection = ({ stageInvitations }) => {
       {stageToAdd && (
         <InvitationContentEditor
           invitation={stageToAdd}
-          existingValue={{}}
+          existingValue={existingValue}
           className="panel"
           closeInvitationEditor={() => setStageToAdd(null)}
           onInvitationEditPosted={() => {
@@ -228,15 +204,18 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       { accessToken }
     )
 
-    const getStageInvitationTemplatesP = api
-      .getAll(
-        '/invitations',
-        {
-          prefix: `${process.env.SUPER_USER}/Support/-/.*`,
-        },
-        { accessToken }
-      )
-      .then((invitations) => invitations.filter((p) => p.id.endsWith('_Template')))
+    const getStageInvitationTemplatesP =
+      group.id === group.domain
+        ? api
+            .getAll(
+              '/invitations',
+              {
+                prefix: `${process.env.SUPER_USER}/Support/-/.*`,
+              },
+              { accessToken }
+            )
+            .then((invitations) => invitations.filter((p) => p.id.endsWith('_Template')))
+        : Promise.resolve([])
 
     try {
       // eslint-disable-next-line no-shadow
@@ -326,7 +305,10 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         })}
 
         {stageInvitations.length > 0 && (
-          <AddStageInvitationSection stageInvitations={stageInvitations} />
+          <AddStageInvitationSection
+            stageInvitations={stageInvitations}
+            venueId={group.domain}
+          />
         )}
       </div>
     </EditorSection>

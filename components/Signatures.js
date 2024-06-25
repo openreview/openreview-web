@@ -1,3 +1,5 @@
+/* globals promptError: false */
+
 import { useEffect, useState } from 'react'
 import uniqBy from 'lodash/uniqBy'
 import flatten from 'lodash/flatten'
@@ -6,6 +8,7 @@ import TagsWidget from './EditorComponents/TagsWidget'
 import api from '../lib/api-client'
 import { prettyId } from '../lib/utils'
 import useUser from '../hooks/useUser'
+import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 
 const prettyGroupIdWithMember = (group) => {
   let label = prettyId(group.id)
@@ -154,6 +157,50 @@ const Signatures = ({
   }, [descriptionType])
 
   return <div className={`${extraClasses ?? ''}`}>{renderNoteSignatures()}</div>
+}
+
+export const EditSignatures = ({
+  fieldDescription,
+  setLoading,
+  editorData,
+  setEditorData,
+  closeNoteEditor,
+  errors,
+  setErrors,
+  extraClasses,
+}) => {
+  const fieldName = 'editSignatureInputValues'
+  const error = errors.find((e) => e.fieldName === fieldName)
+
+  const onChange = ({ loading, value }) => {
+    setLoading((existingLoadingState) => ({
+      ...existingLoadingState,
+      editSignatures: loading,
+    }))
+    if (value) setEditorData({ fieldName, value })
+  }
+
+  const onError = (errorMessage) => {
+    promptError(errorMessage)
+    closeNoteEditor()
+  }
+
+  return (
+    <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true} error={error}>
+      <Signatures
+        fieldDescription={fieldDescription}
+        onChange={onChange}
+        currentValue={editorData[fieldName]}
+        onError={onError}
+        extraClasses={extraClasses}
+        clearError={() =>
+          setErrors((existingErrors) =>
+            existingErrors.filter((p) => p.fieldName !== fieldName)
+          )
+        }
+      />
+    </EditorComponentHeader>
+  )
 }
 
 export default Signatures
