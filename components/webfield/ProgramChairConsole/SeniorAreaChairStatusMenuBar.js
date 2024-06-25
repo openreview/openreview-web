@@ -32,21 +32,21 @@ const SeniorAreaChairStatusMenuBarForDirectPaperAssignment = ({
   }
   const messageSeniorAreaChairOptions = [
     {
-      label: `${prettyField(seniorAreaChairName)} with unsubmitted ${prettyField(
-        officialReviewName
-      )}`,
+      label: `${prettyField(seniorAreaChairName)} with unsubmitted ${pluralizeString(
+        prettyField(officialReviewName)).toLowerCase()
+      }`,
       value: 'missingReviews',
     },
     {
-      label: `${prettyField(seniorAreaChairName)} with 0 submitted ${prettyField(
-        officialMetaReviewName
-      )}`,
+      label: `${prettyField(seniorAreaChairName)} with 0 submitted ${pluralizeString(
+        prettyField(officialMetaReviewName)).toLowerCase()
+      }`,
       value: 'noMetaReviews',
     },
     {
-      label: `${prettyField(seniorAreaChairName)} with unsubmitted ${prettyField(
-        officialMetaReviewName
-      )}`,
+      label: `${prettyField(seniorAreaChairName)} with unsubmitted ${pluralizeString(
+        prettyField(officialMetaReviewName)).toLowerCase()
+      }`,
       value: 'missingMetaReviews',
     },
     {
