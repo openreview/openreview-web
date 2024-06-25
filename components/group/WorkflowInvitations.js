@@ -15,6 +15,8 @@ const WorflowInvitationRow = ({
 }) => {
   const [showInvitationEditor, setShowInvitationEditor] = useState(false)
   const invitationName = prettyField(subInvitation.id.split('/').pop())
+  const isGroupInvitation = subInvitation.edit?.group // sub invitation can be group invitation too
+
   const getFieldDisplayValue = (invitation, path, type) => {
     if (!path) return null
     const fieldValue = get(invitation, path)
@@ -81,17 +83,24 @@ const WorflowInvitationRow = ({
       <li>
         <div>
           <span>{invitationName}</span>
-          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a
-            href="#"
-            className="ml-2"
-            onClick={(e) => {
-              e.preventDefault()
-              setShowInvitationEditor((isOpen) => !isOpen)
-            }}
-          >
-            {showInvitationEditor ? 'Close' : 'Edit'}
-          </a>
+          {isGroupInvitation ? (
+            <button className="btn btn-xs ml-2" onClick={() => setShowInvitationEditor(true)}>
+              Add
+            </button>
+          ) : (
+            // eslint-disable-next-line jsx-a11y/anchor-is-valid
+            <a
+              href="#"
+              className="ml-2"
+              onClick={(e) => {
+                e.preventDefault()
+                setShowInvitationEditor((isOpen) => !isOpen)
+              }}
+            >
+              {showInvitationEditor ? 'Close' : 'Edit'}
+            </a>
+          )}
+
           <ul>
             {Object.keys(subInvitation.edit?.content ?? {}).map((key) => (
               <li key={key}>
@@ -114,6 +123,7 @@ const WorflowInvitationRow = ({
               existingValue={existingValue}
               closeInvitationEditor={() => setShowInvitationEditor(false)}
               onInvitationEditPosted={() => loadWorkflowInvitations()}
+              isGroupInvitation={isGroupInvitation}
             />
           )}
         </div>
