@@ -31,9 +31,9 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
     reviewersId,
     reviewerName,
     areaChairsId,
-    areaChairName,
+    areaChairName = 'Area_Chairs',
     seniorAreaChairsId,
-    seniorAreaChairName
+    seniorAreaChairName = 'Senior_Area_Chairs',
   } = useContext(WebFieldContext)
   const { accessToken } = useUser()
   const [invitedCount, setInvitedCount] = useState({})
@@ -174,9 +174,9 @@ const BiddingStatsRow = ({
 }) => {
   const {
     areaChairsId,
-    areaChairName,
+    areaChairName = 'Area_Chairs',
     seniorAreaChairsId,
-    seniorAreaChairName,
+    seniorAreaChairName = 'Senior_Area_Chairs',
     reviewersId,
     reviewerName,
     bidName,
@@ -417,7 +417,7 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
 const MetaReviewStatsRow = ({ pcConsoleData }) => {
   const {
     areaChairsId,
-    areaChairName,
+    areaChairName = 'Area_Chairs',
     metaReviewRecommendationName,
     officialMetaReviewName
   } = useContext(WebFieldContext)
@@ -655,9 +655,9 @@ const DescriptionTimelineOtherConfigRow = ({
   const {
     venueId,
     areaChairsId,
-    areaChairName,
+    areaChairName = 'Area_Chairs',
     seniorAreaChairsId,
-    seniorAreaChairName,
+    seniorAreaChairName = 'Senior_Area_Chairs',
     reviewersId,
     reviewerName,
     programChairsId,
@@ -1048,8 +1048,15 @@ const DescriptionTimelineOtherConfigRow = ({
 }
 
 const Overview = ({ pcConsoleData }) => {
-  const { areaChairsId, seniorAreaChairsId, reviewersId, bidName, recommendationName } =
-    useContext(WebFieldContext)
+  const {
+    areaChairsId,
+    areaChairName = 'Area_Chairs',
+    seniorAreaChairsId,
+    seniorAreaChairName = 'Senior_Area_Chairs',
+    reviewersId,
+    bidName,
+    recommendationName
+  } = useContext(WebFieldContext)
 
   const isBidEnabled = (groupId) =>
     bidName
