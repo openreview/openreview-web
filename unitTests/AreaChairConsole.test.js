@@ -808,13 +808,11 @@ describe('AreaChairConsole', () => {
           {
             content: {
               names: [{ username: '~Senior_AC1' }],
-              preferredEmail: 'senior@ac.1',
             },
           },
           {
             content: {
               names: [{ username: '~Senior_AC2' }],
-              emails: ['senior@ac.2'],
             },
           },
         ],
@@ -1482,13 +1480,11 @@ describe('AreaChairConsole', () => {
           {
             content: {
               names: [{ username: '~Senior_AC1' }],
-              preferredEmail: 'senior@ac.1',
             },
           },
           {
             content: {
               names: [{ username: '~Senior_AC2' }],
-              emails: ['senior@ac.2'],
             },
           },
         ],
