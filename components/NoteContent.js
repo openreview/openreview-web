@@ -1,4 +1,4 @@
-/* globals DOMPurify,marked: false */
+/* globals DOMPurify,marked,typesetMathJax: false */
 
 import { useState, useEffect } from 'react'
 import union from 'lodash/union'
@@ -184,6 +184,10 @@ export const NoteContentV2 = ({
   ]
     .concat(omit)
     .filter((field) => !include.includes(field))
+
+  useEffect(() => {
+    if (content) typesetMathJax()
+  }, [content])
 
   return (
     <div className="note-content">
