@@ -591,7 +591,7 @@ test('reset password of active profile', async (t) => {
     .expect(Selector('button').withText('Reset Password').hasAttribute('disabled')).notOk({ timeout: 5000 })
 
   await t
-    .expect(Selector('button').withText('Reset Password').hasAttribute('disabled')).notOk()
+    .wait(5000)
     .click(Selector('button').withText('Reset Password'))
     .expect(Selector('div').withAttribute('role', 'alert').exists)
     .ok()
