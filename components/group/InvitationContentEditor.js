@@ -104,7 +104,16 @@ const InvitationContentEditor = ({
     try {
       const editContent = {}
       Object.entries(otherFields).forEach(([field, value]) => {
-        editToPost[field] = invitationObj.edit[field]
+        if (shouldSetValue(`edit/${field}`)) {
+          editToPost[field] = invitationObj.edit[field]
+        }
+        switch (field) {
+          case 'signatures':
+            editToPost.signatures = formData.editSignatureInputValues
+            break
+          default:
+            break
+        }
       })
       Object.entries(editContentFields).forEach(([field, value]) => {
         editContent[field] = { value: formData[field] }
@@ -118,10 +127,6 @@ const InvitationContentEditor = ({
         // invitation edit invitation use invitations as invitation
         editToPost.invitations = invitationObj.id
         editToPost.invitation = undefined
-      }
-
-      if (shouldSetValue('edit.signatures')) {
-        editToPost.signatures = formData.editSignatureInputValues
       }
 
       await api.post(isGroupInvitation ? '/groups/edits' : '/invitations/edits', editToPost, {
