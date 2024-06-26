@@ -26,7 +26,7 @@ import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
 
-const ProgramChairConsole = ({ appContext }) => {
+const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
     header,
     entity: group,
@@ -71,7 +71,13 @@ const ProgramChairConsole = ({ appContext }) => {
     emailReplyTo,
     reviewerEmailFuncs,
     acEmailFuncs,
+    sacEmailFuncs,
     submissionContentFields = [],
+    sacDirectPaperAssignment,
+    propertiesAllowed,
+    sacStatuspropertiesAllowed,
+    messageAreaChairsInvitationId,
+    messageSeniorAreaChairsInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -300,22 +306,6 @@ const ProgramChairConsole = ({ appContext }) => {
       const bidCountResults = results[6]
       const perPaperGroupResults = results[7]
 
-      // Get registration notes from all registration forms
-      const registrationNotes = await Promise.all(
-        registrationForms.map((regForm) =>
-          api.getAll(
-            '/notes',
-            {
-              forum: regForm.id,
-              select: 'id,signatures,invitations,content',
-              domain: venueId,
-            },
-            { accessToken }
-          )
-        )
-      )
-      const registrationNoteMap = groupBy(registrationNotes.flat(), 'signatures[0]')
-
       // #region categorize result of per paper groups
       const reviewerGroups = []
       const anonReviewerGroups = {}
@@ -433,16 +423,6 @@ const ProgramChairConsole = ({ appContext }) => {
       allProfiles.forEach((profile) => {
         const usernames = profile.content.names.flatMap((p) => p.username ?? [])
         const profileEmails = profile.content.emails.filter((p) => p)
-
-        let userRegNotes = []
-        usernames.forEach((username) => {
-          if (registrationNoteMap[username]) {
-            userRegNotes = userRegNotes.concat(registrationNoteMap[username])
-          }
-        })
-        // eslint-disable-next-line no-param-reassign
-        profile.registrationNotes = userRegNotes
-
         usernames.concat(profileEmails).forEach((key) => {
           allProfilesMap.set(key, profile)
         })
@@ -859,6 +839,21 @@ const ProgramChairConsole = ({ appContext }) => {
         messageSignature: programChairsId,
       })
     })
+
+    // add profileRegistrationNote
+    pcConsoleData.allProfilesMap.forEach((profile, id) => {
+      const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+
+      let userRegNotes = []
+      usernames.forEach((username) => {
+        if (pcConsoleData.registrationNoteMap && pcConsoleData.registrationNoteMap[username]) {
+          userRegNotes = userRegNotes.concat(pcConsoleData.registrationNoteMap[username])
+        }
+      })
+      // eslint-disable-next-line no-param-reassign
+      profile.registrationNotes = userRegNotes
+    })
+
     setPcConsoleData((data) => ({ ...data, noteNumberReviewMetaReviewMap }))
   }
 
@@ -933,6 +928,17 @@ const ProgramChairConsole = ({ appContext }) => {
     acSacProfilesWithoutAssignment.forEach((profile) => {
       const usernames = profile.content.names.flatMap((p) => p.username ?? [])
       const profileEmails = profile.content.emails.filter((p) => p)
+
+      let userRegNotes = []
+      usernames.forEach((username) => {
+        if (pcConsoleData.registrationNoteMap && pcConsoleData.registrationNoteMap[username]) {
+          userRegNotes = userRegNotes.concat(pcConsoleData.registrationNoteMap[username])
+        }
+      })
+
+      // eslint-disable-next-line no-param-reassign
+      profile.registrationNotes = userRegNotes
+
       usernames.concat(profileEmails).forEach((key) => {
         acSacProfileWithoutAssignmentMap.set(key, profile)
       })
@@ -948,6 +954,33 @@ const ProgramChairConsole = ({ appContext }) => {
         seniorAreaChairWithoutAssignmentIds,
       },
     }))
+  }
+
+  const loadRegistrationNoteMap = async () => {
+    if (!pcConsoleData.registrationForms) {
+      setPcConsoleData((data) => ({ ...data, registrationNoteMap: {} }))
+    }
+    if (pcConsoleData.registrationNoteMap) return
+
+    try {
+      const registrationNotes = await Promise.all(
+        pcConsoleData.registrationForms.map((regForm) =>
+          api.getAll(
+            '/notes',
+            {
+              forum: regForm.id,
+              select: 'id,signatures,invitations,content',
+              domain: venueId,
+            },
+            { accessToken }
+          )
+        )
+      )
+      const registrationNoteMap = groupBy(registrationNotes.flat(), 'signatures[0]')
+      setPcConsoleData((data) => ({ ...data, registrationNoteMap }))
+    } catch (error) {
+      promptError(`Erro loading registration notes: ${error.message}`)
+    }
   }
 
   useEffect(() => {
@@ -1069,6 +1102,17 @@ const ProgramChairConsole = ({ appContext }) => {
                 {prettyField(fieldAttrs.field)}
               </Tab>
             ))}
+          {extraTabs.length > 0 &&
+            extraTabs.map((tabAttrs) => (
+              <Tab
+                id={tabAttrs.tabId}
+                key={tabAttrs.tabId}
+                active={activeTabId === `#${tabAttrs.tabId}` ? true : undefined}
+                onClick={() => setActiveTabId(`#${tabAttrs.tabId}`)}
+              >
+                {tabAttrs.tabName}
+              </Tab>
+            ))}
         </TabList>
 
         <TabPanels>
@@ -1087,6 +1131,7 @@ const ProgramChairConsole = ({ appContext }) => {
             <ReviewerStatusTab
               pcConsoleData={pcConsoleData}
               loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
+              loadRegistrationNoteMap={loadRegistrationNoteMap}
               showContent={activeTabId === '#reviewer-status'}
             />
           </TabPanel>
@@ -1096,6 +1141,7 @@ const ProgramChairConsole = ({ appContext }) => {
                 pcConsoleData={pcConsoleData}
                 loadSacAcInfo={loadSacAcInfo}
                 loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
+                loadRegistrationNoteMap={loadRegistrationNoteMap}
               />
             </TabPanel>
           )}
@@ -1104,6 +1150,7 @@ const ProgramChairConsole = ({ appContext }) => {
               <SeniorAreaChairStatus
                 pcConsoleData={pcConsoleData}
                 loadSacAcInfo={loadSacAcInfo}
+                loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
               />
             </TabPanel>
           )}
@@ -1122,6 +1169,12 @@ const ProgramChairConsole = ({ appContext }) => {
                     noteContentField={fieldAttrs}
                   />
                 )}
+              </TabPanel>
+            ))}
+          {extraTabs.length > 0 &&
+            extraTabs.map((tabAttrs) => (
+              <TabPanel id={tabAttrs.tabId} key={tabAttrs.tabId}>
+                {activeTabId === `#${tabAttrs.tabId}` && tabAttrs.renderTab()}
               </TabPanel>
             ))}
         </TabPanels>

@@ -124,9 +124,59 @@ test('create new profile', async (t) => {
     .contains('http://localhost:3030/profile/activate?token=')
 })
 
-test('create another new profile', async(t) => {
+test('create another new profile', async (t) => {
   await t
-  .typeText(fullNameInputSelector, 'Peter Pan')
+    .typeText(fullNameInputSelector, 'Peter Pan')
+    .expect(emailAddressInputSelector.exists)
+    .notOk()
+    .expect(
+      Selector('label').withText(
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+      ).exists
+    )
+    .ok()
+    .wait(500)
+    .click(Selector('label.name-confirmation'))
+    .typeText(emailAddressInputSelector, 'peter@test.com')
+    .expect(signupButtonSelector.hasAttribute('disabled'))
+    .notOk('not enabled yet', { timeout: 5000 })
+    .click(signupButtonSelector)
+    .expect(newPasswordInputSelector.exists)
+    .ok()
+    .expect(confirmPasswordInputSelector.exists)
+    .ok()
+    .expect(
+      Selector('span').withText(
+        `test.com does not appear in our list of publishing institutions.`
+      ).exists
+    )
+    .ok()
+
+    .typeText(newPasswordInputSelector, strongPassword)
+    .typeText(confirmPasswordInputSelector, strongPassword)
+    .click(signupButtonSelector)
+    .expect(Selector('.modal-title').withText('Confirm Full Name').exists)
+    .ok()
+    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
+    .ok()
+    .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
+    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
+    .notOk({ timeout: 8000 })
+    .click(Selector('#confirm-name-modal').find('.btn-primary'))
+    .expect(Selector('h1').withText('Thank You for Signing Up').exists)
+    .ok()
+    .expect(Selector('span').withAttribute('class', 'email').innerText)
+    .eql('peter@test.com')
+
+  const messages = await getMessages({ to: 'peter@test.com' }, t.fixtureCtx.superUserToken)
+  await t
+    .expect(messages[0].content.text)
+    .contains('http://localhost:3030/profile/activate?token=')
+})
+
+test('create a new profile with an institutional email', async(t) => {
+  await t
+  .typeText(fullNameInputSelector, 'Kevin Malone')
   .expect(emailAddressInputSelector.exists)
   .notOk()
   .expect(
@@ -137,19 +187,13 @@ test('create another new profile', async(t) => {
   .ok()
   .wait(500)
   .click(Selector('label.name-confirmation'))
-  .typeText(emailAddressInputSelector, 'peter@test.com')
+  .typeText(emailAddressInputSelector, 'kevin@umass.edu')
   .expect(signupButtonSelector.hasAttribute('disabled'))
   .notOk('not enabled yet', { timeout: 5000 })
   .click(signupButtonSelector)
   .expect(newPasswordInputSelector.exists)
   .ok()
   .expect(confirmPasswordInputSelector.exists)
-  .ok()
-  .expect(
-    Selector('span').withText(
-      `test.com does not appear in our list of publishing institutions.`
-    ).exists
-  )
   .ok()
 
   .typeText(newPasswordInputSelector, strongPassword)
@@ -166,9 +210,9 @@ test('create another new profile', async(t) => {
   .expect(Selector('h1').withText('Thank You for Signing Up').exists)
   .ok()
   .expect(Selector('span').withAttribute('class', 'email').innerText)
-  .eql('peter@test.com')
+  .eql('kevin@umass.edu')
 
-const messages = await getMessages({ to: 'peter@test.com' }, t.fixtureCtx.superUserToken)
+const messages = await getMessages({ to: 'kevin@umass.edu' }, t.fixtureCtx.superUserToken)
 await t
   .expect(messages[0].content.text)
   .contains('http://localhost:3030/profile/activate?token=')
@@ -385,59 +429,123 @@ test('update profile', async (t) => {
     .ok()
     .expect(messageSelector.innerText)
     .eql('Your OpenReview profile has been successfully created')
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile?id=~Melisa_Bok1`)
+    .expect(Selector('h4.pronouns').nth(0).exists)
+    .notOk()
 })
 
 // eslint-disable-next-line no-unused-expressions
 fixture`Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=peter@test.com`
 
-test('do not allow merging from not registered profiles', async(t) => {
+test('do not allow merging from not registered profiles', async (t) => {
   await t
-  .expect(
-    Selector('p').withText(
-      'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
-    ).exists
-  )
-  .ok()
-  // add alternate email while registering
-  .click(Selector('span.glyphicon.glyphicon-plus-sign').nth(1)) // add button
-  .expect(Selector('div.container.emails').child('div.row').count)
-  .eql(2)
-  .typeText(
-    Selector('div.container.emails').child('div.row').nth(1).find('input'),
-    'melisa@umass.edu'
-  )
-  .click(Selector('div.container.emails').find('button.confirm-button'))
-  .expect(messagePanelSelector.exists)
-  .ok()
-  .expect(messageSelector.innerText)
-  .eql(
-    'A confirmation email has been sent to melisa@umass.edu with confirmation instructions'
-  )
-  .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/merge?token=melisa@umass.edu`)
-  .typeText(Selector('#email-input'), 'peter@test.com')
-  .typeText(Selector('#password-input'), strongPassword)
-  .click(Selector('button').withText('Login to OpenReview'))
-  .expect(messagePanelSelector.exists)
-  .ok()
-  .expect(messageSelector.innerText)
-  .eql(
-    'User not confirmed. Please click on "Didn\'t receive email confirmation?" to complete the registration.'
-  )
-  .selectText(Selector('#email-input'))
-  .pressKey('delete')
-  .typeText(Selector('#email-input'), 'melisa@test.com')
-  .selectText(Selector('#password-input'))
-  .pressKey('delete')
-  .typeText(Selector('#password-input'), strongPassword)
-  .click(Selector('button').withText('Login to OpenReview'))
-  .expect(Selector('pre.error-message').exists)
-  .ok()
-  .expect(Selector('pre.error-message').innerText)
-  .eql(
-    'You are not authorized to perform this merge.'
-  )
+    .expect(
+      Selector('p').withText(
+        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+      ).exists
+    )
+    .ok()
+    // add alternate email while registering
+    .click(Selector('span.glyphicon.glyphicon-plus-sign').nth(1)) // add button
+    .expect(Selector('div.container.emails').child('div.row').count)
+    .eql(2)
+    .typeText(
+      Selector('div.container.emails').child('div.row').nth(1).find('input'),
+      'melisa@umass.edu'
+    )
+    .click(Selector('div.container.emails').find('button.confirm-button'))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql(
+      'A confirmation email has been sent to melisa@umass.edu with confirmation instructions'
+    )
+    .navigateTo(
+      `http://localhost:${process.env.NEXT_PORT}/profile/merge?token=melisa@umass.edu`
+    )
+    .typeText(Selector('#email-input'), 'peter@test.com')
+    .typeText(Selector('#password-input'), strongPassword)
+    .click(Selector('button').withText('Login to OpenReview'))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql(
+      'User not confirmed. Please click on "Didn\'t receive email confirmation?" to complete the registration.'
+    )
+    .selectText(Selector('#email-input'))
+    .pressKey('delete')
+    .typeText(Selector('#email-input'), 'melisa@test.com')
+    .selectText(Selector('#password-input'))
+    .pressKey('delete')
+    .typeText(Selector('#password-input'), strongPassword)
+    .click(Selector('button').withText('Login to OpenReview'))
+    .expect(Selector('pre.error-message').exists)
+    .ok()
+    .expect(Selector('pre.error-message').innerText)
+    .eql('You are not authorized to perform this merge.')
+})
 
+// eslint-disable-next-line no-unused-expressions
+fixture`Activate`
+  .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=kevin@umass.edu`
+
+test('register a profile with an institutional email', async (t) => {
+  await t
+    .expect(
+      Selector('p').withText(
+        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+      ).exists
+    )
+    .notOk()
+    // add alternate email while registering
+    .click(Selector('span.glyphicon.glyphicon-plus-sign').nth(1)) // add button
+    .expect(Selector('div.container.emails').child('div.row').count)
+    .eql(2)
+    .typeText(
+      Selector('div.container.emails').child('div.row').nth(1).find('input'),
+      'kevin@test.com'
+    )
+    .click(Selector('div.container.emails').find('button.confirm-button'))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql(
+      'A confirmation email has been sent to kevin@test.com with confirmation instructions'
+    )
+    .wait(500)
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('token must NOT have fewer than 1 characters')
+    .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('kevin@test.com has been verified')
+    // check if buttons disappeared
+    .expect(Selector('button').withText('Verify').nth(0).exists)
+    .notOk()
+    .expect(Selector('button').withText('Confirm').nth(0).exists)
+    .notOk()
+    .expect(Selector('div').withText('(Confirmed)').nth(0).exists)
+    .ok()
+    .expect(Selector('button').withText('Make Preferred').nth(0).exists)
+    .ok()
+
+    .typeText(Selector('#homepage_url'), 'http://kevinmalone.com', { paste: true })
+    .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .pressKey('M S space s t u d e n t tab')
+    .click(Selector('input.institution-dropdown__placeholder').nth(0))
+    .click(Selector('div.institution-dropdown__option').nth(0))
+    .pressKey('tab')
+    .click(Selector('button').withText('Register for OpenReview'))
+    .expect(messagePanelSelector.exists)
+    .ok()
+    .expect(messageSelector.innerText)
+    .eql('Your OpenReview profile has been successfully created')
 })
 
 // eslint-disable-next-line no-unused-expressions
@@ -522,7 +630,7 @@ test('add alternate email', async (t) => {
       Selector('div')
         .withAttribute('class', 'profile-edit-container')
         .child('section')
-        .nth(3)
+        .nth(4)
         .find('span.glyphicon')
     ) // add button
     .expect(Selector('div.container.emails').child('div.row').count)

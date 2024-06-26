@@ -253,7 +253,12 @@ const AreaChairStatusRow = ({
   </tr>
 )
 
-const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewData }) => {
+const AreaChairStatus = ({
+  pcConsoleData,
+  loadSacAcInfo,
+  loadReviewMetaReviewData,
+  loadRegistrationNoteMap,
+}) => {
   const [areaChairStatusTabData, setAreaChairStatusTabData] = useState({})
   const {
     shortPhrase,
@@ -279,7 +284,9 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
   )
 
   const loadACStatusTabData = async () => {
-    if (!pcConsoleData.sacAcInfo) {
+    if (!pcConsoleData.registrationNoteMap) {
+      loadRegistrationNoteMap()
+    } else if (!pcConsoleData.sacAcInfo) {
       loadSacAcInfo()
     } else if (!pcConsoleData.noteNumberReviewMetaReviewMap) {
       loadReviewMetaReviewData()
@@ -378,6 +385,7 @@ const AreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaReviewDat
     pcConsoleData.paperGroups?.areaChairGroups,
     pcConsoleData.sacAcInfo,
     pcConsoleData.noteNumberReviewMetaReviewMap,
+    pcConsoleData.registrationNoteMap,
   ])
 
   useEffect(() => {
