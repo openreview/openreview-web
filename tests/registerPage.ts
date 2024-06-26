@@ -592,12 +592,13 @@ test('reset password of active profile', async (t) => {
     .click(Selector('button').withText('Reset Password'))
     .expect(Selector('div').withAttribute('role', 'alert').exists)
     .ok()
+    .wait(500)
 
   const messages = await getMessages(
     { to: 'melisa@test.com', subject: 'OpenReview Password Reset' },
     t.fixtureCtx.superUserToken
   )
-  console.log(messages[0])
+
   await t
     .expect(messages[0].content.text)
     .contains('http://localhost:3030/user/password?token=')
