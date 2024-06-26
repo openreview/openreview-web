@@ -70,13 +70,15 @@ const WorflowInvitationRow = ({
     return null
   }
 
-  const existingValue = Object.fromEntries(
-    Object.keys(subInvitation.edit?.content ?? {}).map((key) => {
-      const path = getPath(subInvitation.edit.invitation, key)
-      const existingFieldValue = get(workflowInvitation, path)
-      return [key, existingFieldValue]
-    })
-  )
+  const existingValue = isGroupInvitation
+    ? {}
+    : Object.fromEntries(
+        Object.keys(subInvitation.edit?.content ?? {}).map((key) => {
+          const path = getPath(subInvitation.edit.invitation, key)
+          const existingFieldValue = get(workflowInvitation, path)
+          return [key, existingFieldValue]
+        })
+      )
 
   return (
     <ul>
@@ -101,20 +103,22 @@ const WorflowInvitationRow = ({
             </a>
           )}
 
-          <ul>
-            {Object.keys(subInvitation.edit?.content ?? {}).map((key) => (
-              <li key={key}>
-                {prettyField(key)}:{' '}
-                <i>
-                  {getFieldDisplayValue(
-                    workflowInvitation,
-                    getPath(subInvitation.edit.invitation, key),
-                    subInvitation.edit.content?.[key]?.value?.param?.type
-                  )}
-                </i>
-              </li>
-            ))}
-          </ul>
+          {!isGroupInvitation && (
+            <ul>
+              {Object.keys(subInvitation.edit?.content ?? {}).map((key) => (
+                <li key={key}>
+                  {prettyField(key)}:{' '}
+                  <i>
+                    {getFieldDisplayValue(
+                      workflowInvitation,
+                      getPath(subInvitation.edit.invitation, key),
+                      subInvitation.edit.content?.[key]?.value?.param?.type
+                    )}
+                  </i>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <div>
           {showInvitationEditor && (
