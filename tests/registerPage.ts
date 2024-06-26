@@ -593,6 +593,7 @@ test('reset password of active profile', async (t) => {
   await t
     .wait(5000)
     .click(Selector('button').withText('Reset Password'))
+    .wait(5000)
     .expect(Selector('div').withAttribute('role', 'alert').exists)
     .ok()
 
