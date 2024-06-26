@@ -174,48 +174,48 @@ test('create another new profile', async (t) => {
     .contains('http://localhost:3030/profile/activate?token=')
 })
 
-test('create a new profile with an institutional email', async(t) => {
+test('create a new profile with an institutional email', async (t) => {
   await t
-  .typeText(fullNameInputSelector, 'Kevin Malone')
-  .expect(emailAddressInputSelector.exists)
-  .notOk()
-  .expect(
-    Selector('label').withText(
-      'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
-    ).exists
-  )
-  .ok()
-  .wait(500)
-  .click(Selector('label.name-confirmation'))
-  .typeText(emailAddressInputSelector, 'kevin@umass.edu')
-  .expect(signupButtonSelector.hasAttribute('disabled'))
-  .notOk('not enabled yet', { timeout: 5000 })
-  .click(signupButtonSelector)
-  .expect(newPasswordInputSelector.exists)
-  .ok()
-  .expect(confirmPasswordInputSelector.exists)
-  .ok()
+    .typeText(fullNameInputSelector, 'Kevin Malone')
+    .expect(emailAddressInputSelector.exists)
+    .notOk()
+    .expect(
+      Selector('label').withText(
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+      ).exists
+    )
+    .ok()
+    .wait(500)
+    .click(Selector('label.name-confirmation'))
+    .typeText(emailAddressInputSelector, 'kevin@umass.edu')
+    .expect(signupButtonSelector.hasAttribute('disabled'))
+    .notOk('not enabled yet', { timeout: 5000 })
+    .click(signupButtonSelector)
+    .expect(newPasswordInputSelector.exists)
+    .ok()
+    .expect(confirmPasswordInputSelector.exists)
+    .ok()
 
-  .typeText(newPasswordInputSelector, strongPassword)
-  .typeText(confirmPasswordInputSelector, strongPassword)
-  .click(signupButtonSelector)
-  .expect(Selector('.modal-title').withText('Confirm Full Name').exists)
-  .ok()
-  .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
-  .ok()
-  .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
-  .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
-  .notOk({ timeout: 8000 })
-  .click(Selector('#confirm-name-modal').find('.btn-primary'))
-  .expect(Selector('h1').withText('Thank You for Signing Up').exists)
-  .ok()
-  .expect(Selector('span').withAttribute('class', 'email').innerText)
-  .eql('kevin@umass.edu')
+    .typeText(newPasswordInputSelector, strongPassword)
+    .typeText(confirmPasswordInputSelector, strongPassword)
+    .click(signupButtonSelector)
+    .expect(Selector('.modal-title').withText('Confirm Full Name').exists)
+    .ok()
+    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
+    .ok()
+    .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
+    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
+    .notOk({ timeout: 8000 })
+    .click(Selector('#confirm-name-modal').find('.btn-primary'))
+    .expect(Selector('h1').withText('Thank You for Signing Up').exists)
+    .ok()
+    .expect(Selector('span').withAttribute('class', 'email').innerText)
+    .eql('kevin@umass.edu')
 
-const messages = await getMessages({ to: 'kevin@umass.edu' }, t.fixtureCtx.superUserToken)
-await t
-  .expect(messages[0].content.text)
-  .contains('http://localhost:3030/profile/activate?token=')
+  const messages = await getMessages({ to: 'kevin@umass.edu' }, t.fixtureCtx.superUserToken)
+  await t
+    .expect(messages[0].content.text)
+    .contains('http://localhost:3030/profile/activate?token=')
 })
 
 test('enter invalid name', async (t) => {
@@ -597,6 +597,7 @@ test('reset password of active profile', async (t) => {
     { to: 'melisa@test.com', subject: 'OpenReview Password Reset' },
     t.fixtureCtx.superUserToken
   )
+  console.log(messages[0])
   await t
     .expect(messages[0].content.text)
     .contains('http://localhost:3030/user/password?token=')
