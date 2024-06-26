@@ -119,7 +119,7 @@ const PaperRow = ({
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
-          reviewerAssignmentUrl={getManualAssignmentUrl(`${prettyField(reviewerName)}`)}
+          reviewerAssignmentUrl={getManualAssignmentUrl(reviewerName)}
         />
       </td>
       {!noteContentField && areaChairsId && (
@@ -127,7 +127,7 @@ const PaperRow = ({
           <ProgramChairConsolePaperAreaChairProgress
             rowData={rowData}
             referrerUrl={referrerUrl}
-            areaChairAssignmentUrl={getManualAssignmentUrl(`${prettyField(areaChairName)}`)}
+            areaChairAssignmentUrl={getManualAssignmentUrl(areaChairName)}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
           />
@@ -138,7 +138,7 @@ const PaperRow = ({
           <ProgramChairConsolePaperAreaChairProgress
             rowData={rowData}
             referrerUrl={referrerUrl}
-            areaChairAssignmentUrl={getManualAssignmentUrl(`${prettyField(areaChairName)}`)}
+            areaChairAssignmentUrl={getManualAssignmentUrl(areaChairName)}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
           />
