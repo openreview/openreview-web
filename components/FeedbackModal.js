@@ -7,20 +7,21 @@ import ErrorAlert from './ErrorAlert'
 import api from '../lib/api-client'
 import { CreatableDropdown } from './Dropdown'
 import { ClearButton } from './IconButton'
+import useTurnstileToken from '../hooks/useTurnstileToken'
 
 export default function FeedbackModal() {
   const [text, setText] = useState(null)
   const [submitting, setSubmitting] = useState(false)
-  const [turnstileToken, setTurnstileToken] = useState(null)
   const [error, setError] = useState(null)
+  const [isOpen, setIsOpen] = useState(false)
   const { accessToken } = useContext(UserContext)
   const [formData, setFormData] = useReducer((state, action) => {
     if (action.type === 'reset') return {}
     if (action.type === 'prefill') return action.payload
     return { ...state, [action.type]: action.payload }
   }, {})
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken('feedback')
 
-  const missingToken = process.env.TURNSTILE_SITEKEY && !turnstileToken
   const profileSubject = 'My OpenReview profile'
   const submissionSubject = 'A conference I submitted to'
   const organizationSubject = 'A conference I organized'
@@ -106,7 +107,7 @@ export default function FeedbackModal() {
   const resetForm = () => {
     setError(null)
     setText(null)
-    setTurnstileToken(null)
+    setIsOpen(false)
     setFormData({ type: 'reset' })
   }
 
@@ -157,6 +158,7 @@ export default function FeedbackModal() {
       setError(null)
       setText('Your feedback has been submitted. Thank you.')
       setTimeout(() => {
+        setIsOpen(false)
         $('#feedback-modal').modal('hide')
         setSubmitting(false)
       }, 2500)
@@ -238,29 +240,14 @@ export default function FeedbackModal() {
       title="Send Feedback"
       primaryButtonText="Send"
       onPrimaryButtonClick={sendFeedback}
-      primaryButtonDisabled={submitting || missingToken}
+      primaryButtonDisabled={submitting || !turnstileToken}
       onClose={resetForm}
       onOpen={(e) => {
+        setIsOpen(true)
         if (e) {
           const from = e.getAttribute('data-from')
           const subject = e.getAttribute('data-subject')
           setFormData({ type: 'prefill', payload: { from, subject } })
-        }
-        if (!process.env.TURNSTILE_SITEKEY) return
-
-        if (window.turnstile) {
-          window.turnstile.render('#turnstile-feedback', {
-            sitekey: process.env.TURNSTILE_SITEKEY,
-            action: 'feedback',
-            callback: (token) => {
-              setTurnstileToken(token)
-            },
-          })
-        } else {
-          setError({
-            message:
-              'Could not verify browser. Please make sure third-party scripts are not being blocked and try again.',
-          })
         }
       }}
     >
@@ -293,7 +280,7 @@ export default function FeedbackModal() {
           </div>
         ))}
       </form>
-      {process.env.TURNSTILE_SITEKEY && <div id="turnstile-feedback"></div>}
+      <div ref={turnstileContainerRef} />
     </BasicModal>
   )
 }
