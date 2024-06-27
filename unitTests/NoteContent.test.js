@@ -7,6 +7,7 @@ beforeEach(() => {
     sanitize: jest.fn(),
   }
   global.marked = jest.fn()
+  global.typesetMathJax = jest.fn()
 })
 
 describe('NoteContentV2', () => {
@@ -100,8 +101,7 @@ describe('NoteContentV2', () => {
       ],
     }
 
-    const { container } = render(<NoteContentV2 {...props} />)
-    screen.debug()
+    render(<NoteContentV2 {...props} />)
     expect(global.marked).toHaveBeenCalledTimes(1)
     expect(global.marked).toHaveBeenCalledWith('<image/src/onerror=prompt(document.domain)>')
 
@@ -111,5 +111,6 @@ describe('NoteContentV2', () => {
       '<image/src/onerror=prompt(document.domain)>'
     )
     expect(global.DOMPurify.sanitize).toHaveBeenNthCalledWith(2, 'markdown output')
+    expect(global.typesetMathJax).toHaveBeenCalled()
   })
 })
