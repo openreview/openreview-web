@@ -15,7 +15,7 @@ import NoteSummary from './NoteSummary'
 import useQuery from '../../hooks/useQuery'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { parseNumberField, prettyField, prettyId } from '../../lib/utils'
+import { parseNumberField, prettyField, prettyId, inflect } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import ConsoleTaskList from './ConsoleTaskList'
@@ -86,7 +86,7 @@ const ReviewSummary = ({
 
   return (
     <div className="author-console-reviewer-progress">
-      <h4>{`${noteCompletedReviews.length} Reviews Submitted`}</h4>
+      <h4>{`${inflect(noteCompletedReviews.length, 'Review', 'Reviews', true)} Submitted`}</h4>
 
       <ul className="list-unstyled">
         {noteCompletedReviews.map((review) => {
@@ -530,7 +530,7 @@ const AuthorConsole = ({ appContext }) => {
                       headings={[
                         { id: 'number', content: '#', width: '55px' },
                         { id: 'summary', content: 'Paper Summary', width: '35%' },
-                        { id: 'reviews', content: 'Reviews', width: 'auto' },
+                        { id: 'reviews', content: `${prettyField(officialReviewName)}`, width: 'auto' },
                         { id: 'decision', content: 'Decision', width: '30%' },
                       ]}
                     >
