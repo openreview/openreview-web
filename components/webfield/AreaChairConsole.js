@@ -157,7 +157,7 @@ const AreaChairConsole = ({ appContext }) => {
     enableQuerySearch,
     emailReplyTo,
     extraExportColumns,
-    preferredEmailInvitation,
+    preferredEmailInvitationIdId,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
@@ -201,13 +201,13 @@ const AreaChairConsole = ({ appContext }) => {
     )}`
 
     let sacEmails = []
-    if (preferredEmailInvitation) {
+    if (preferredEmailInvitationId) {
       try {
         const sacEmailPs = acConsoleData.sacProfiles.map((sacProfile) =>
           api
             .get(
               '/edges',
-              { invitation: preferredEmailInvitation, head: sacProfile.id },
+              { invitation: preferredEmailInvitationId, head: sacProfile.id },
               { accessToken }
             )
             .then((result) => result.edges[0]?.tail)

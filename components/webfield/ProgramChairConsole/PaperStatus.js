@@ -47,7 +47,7 @@ const PaperRow = ({
     submissionName,
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
-    preferredEmailInvitation,
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
@@ -129,7 +129,7 @@ const PaperRow = ({
             areaChairAssignmentUrl={getManualAssignmentUrl('Area_Chairs')}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
-            preferredEmailInvitation={preferredEmailInvitation}
+            preferredEmailInvitationId={preferredEmailInvitationId}
           />
         </td>
       )}
@@ -141,7 +141,7 @@ const PaperRow = ({
             areaChairAssignmentUrl={getManualAssignmentUrl('Area_Chairs')}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
-            preferredEmailInvitation={preferredEmailInvitation}
+            preferredEmailInvitationId={preferredEmailInvitationId}
           />
         </td>
       )}

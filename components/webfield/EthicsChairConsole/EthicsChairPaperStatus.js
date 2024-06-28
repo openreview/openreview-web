@@ -24,7 +24,7 @@ const EthicsSubmissionRow = ({ rowData }) => {
     shortPhrase,
     submissionName,
     ethicsChairsName,
-    preferredEmailInvitation,
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
 
   const referrerUrl = encodeURIComponent(
@@ -54,7 +54,7 @@ const EthicsSubmissionRow = ({ rowData }) => {
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
-          preferredEmailInvitation={preferredEmailInvitation}
+          preferredEmailInvitationId={preferredEmailInvitationId}
         />
       </td>
     </tr>

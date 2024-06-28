@@ -13,16 +13,16 @@ import { getNoteContentValues } from '../../../lib/forum-utils'
 
 const BasicProfileSummary = ({ profile, profileId }) => {
   const { id, preferredName } = profile ?? {}
-  const { preferredEmailInvitation } = useContext(WebFieldContext)
+  const { preferredEmailInvitationId } = useContext(WebFieldContext)
 
   const getEmail = async () => {
-    if (!preferredEmailInvitation) {
+    if (!preferredEmailInvitationId) {
       promptError('Email is not available.')
       return
     }
     try {
       const result = await api.get(`/edges`, {
-        invitation: preferredEmailInvitation,
+        invitation: preferredEmailInvitationId,
         head: id ?? profileId,
       })
       const email = result.edges?.[0]?.tail
@@ -42,7 +42,7 @@ const BasicProfileSummary = ({ profile, profileId }) => {
               {preferredName}
             </a>
           </h4>
-          {preferredEmailInvitation && (
+          {preferredEmailInvitationId && (
             // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <a
               href="#"
@@ -88,19 +88,19 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
   metaReviewRecommendationName,
 }) => {
   const { id, preferredName } = rowData.sacProfile ?? {}
-  const { preferredEmailInvitation } = useContext(WebFieldContext)
+  const { preferredEmailInvitationId } = useContext(WebFieldContext)
   const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
 
   const getEmail = async () => {
-    if (!preferredEmailInvitation) {
+    if (!preferredEmailInvitationId) {
       promptError('Email is not available.')
       return
     }
     try {
       const result = await api.get(`/edges`, {
-        invitation: preferredEmailInvitation,
+        invitation: preferredEmailInvitationId,
         head: id ?? rowData.sacProfileId,
       })
       const email = result.edges?.[0]?.tail
@@ -130,7 +130,7 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
                   {preferredName}
                 </a>
               </h4>
-              {preferredEmailInvitation && (
+              {preferredEmailInvitationId && (
                 // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a
                   href="#"

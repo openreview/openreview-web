@@ -447,7 +447,7 @@ describe('AreaChairConsole', () => {
         enableQuerySearch: true,
         emailReplyTo: 'pc@aaai.org',
         extraExportColumns: undefined,
-        preferredEmailInvitation: 'test_invitation',
+        preferredEmailInvitationId: 'test_invitation',
       },
     }
 

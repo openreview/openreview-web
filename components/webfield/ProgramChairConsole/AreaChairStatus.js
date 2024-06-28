@@ -21,7 +21,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
     bidName,
     scoresName,
     recommendationName,
-    preferredEmailInvitation,
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
@@ -41,13 +41,13 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
   )
 
   const getACSACEmail = async (name, profileId) => {
-    if (!preferredEmailInvitation) {
+    if (!preferredEmailInvitationId) {
       promptError('Email is not available.')
       return
     }
     try {
       const result = await api.get(`/edges`, {
-        invitation: preferredEmailInvitation,
+        invitation: preferredEmailInvitationId,
         head: profileId,
       })
       const email = result.edges?.[0]?.tail
@@ -73,7 +73,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
                 {preferredName}
               </a>
             </h4>
-            {preferredEmailInvitation && (
+            {preferredEmailInvitationId && (
               // eslint-disable-next-line jsx-a11y/anchor-is-valid
               <a
                 href="#"
@@ -138,7 +138,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
                     {sacProfile.preferredName}
                   </a>
                 </h4>
-                {preferredEmailInvitation && (
+                {preferredEmailInvitationId && (
                   // eslint-disable-next-line jsx-a11y/anchor-is-valid
                   <a
                     href="#"

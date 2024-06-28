@@ -54,7 +54,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     withdrawnVenueId,
     deskRejectedVenueId,
     filterFunction,
-    preferredEmailInvitation,
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()

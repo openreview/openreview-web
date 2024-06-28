@@ -16,7 +16,7 @@ import { NoteContentV2 } from '../../NoteContent'
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, registrationNotes } = rowData.reviewerProfile ?? {}
   const { completedBids, reviewerProfileId } = rowData
-  const { reviewersId, bidName, preferredEmailInvitation } = useContext(WebFieldContext)
+  const { reviewersId, bidName, preferredEmailInvitationId } = useContext(WebFieldContext)
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
     `tail:${id}`,
     invitations,
@@ -25,13 +25,13 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
     null
   )
   const getReviewerEmail = async (name, profileId) => {
-    if (!preferredEmailInvitation) {
+    if (!preferredEmailInvitationId) {
       promptError('Email is not available.')
       return
     }
     try {
       const result = await api.get(`/edges`, {
-        invitation: preferredEmailInvitation,
+        invitation: preferredEmailInvitationId,
         head: profileId,
       })
       const email = result.edges?.[0]?.tail
@@ -51,7 +51,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
               {preferredName}
             </a>
           </h4>
-          {preferredEmailInvitation && (
+          {preferredEmailInvitationId && (
             // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <a
               href="#"

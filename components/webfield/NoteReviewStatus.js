@@ -240,7 +240,7 @@ export const AcPcConsoleReviewerStatusRow = ({
   showRatingConfidence = true,
   showActivity = true,
   messageSignature,
-  preferredEmailInvitation,
+  preferredEmailInvitationId,
 }) => {
   const [updateLastSent, setUpdateLastSent] = useState(true)
   const completedReview = officialReviews.find((p) => p.anonymousId === reviewer.anonymousId)
@@ -255,13 +255,13 @@ export const AcPcConsoleReviewerStatusRow = ({
     $(`#reviewer-reminder-${anonymousId}`).modal('show')
   }
   const getReviewerEmail = async () => {
-    if (!preferredEmailInvitation) {
+    if (!preferredEmailInvitationId) {
       promptError('Email is not available.')
       return
     }
     try {
       const result = await api.get(`/edges`, {
-        invitation: preferredEmailInvitation,
+        invitation: preferredEmailInvitationId,
         head: reviewer.reviewerProfileId,
       })
       const email = result.edges?.[0]?.tail
@@ -284,7 +284,7 @@ export const AcPcConsoleReviewerStatusRow = ({
           >
             {reviewer.preferredName}
           </a>{' '}
-          {preferredEmailInvitation && (
+          {preferredEmailInvitationId && (
             // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <a
               href="#"
@@ -460,7 +460,7 @@ export const AcPcConsoleNoteReviewStatus = ({
   const {
     reviewRatingName,
     reviewerName = 'Reviewers',
-    preferredEmailInvitation,
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const {
     numReviewsDone,
@@ -557,7 +557,7 @@ export const AcPcConsoleNoteReviewStatus = ({
               submissionName={submissionName}
               reviewRatingName={reviewRatingName}
               messageSignature={rowData.messageSignature}
-              preferredEmailInvitation={preferredEmailInvitation}
+              preferredEmailInvitationId={preferredEmailInvitationId}
             />
           ))}
         </div>
@@ -605,7 +605,7 @@ export const EthicsReviewStatus = ({
   referrerUrl,
   shortPhrase,
   submissionName,
-  preferredEmailInvitation,
+  preferredEmailInvitationId,
 }) => {
   const {
     ethicsReviews,
@@ -648,7 +648,7 @@ export const EthicsReviewStatus = ({
                 submissionName={submissionName}
                 showRatingConfidence={false}
                 showActivity={false}
-                preferredEmailInvitation={preferredEmailInvitation}
+                preferredEmailInvitationId={preferredEmailInvitationId}
               />
             ))}
           </div>

@@ -14,18 +14,18 @@ import api from '../../../lib/api-client'
 
 const CommitteeSummary = ({ rowData }) => {
   const { id, preferredName } = rowData.areaChairProfile ?? {}
-  const { edgeBrowserDeployedUrl, reviewerName, preferredEmailInvitation } =
+  const { edgeBrowserDeployedUrl, reviewerName, preferredEmailInvitationId } =
     useContext(WebFieldContext)
   const edgeBrowserUrl = edgeBrowserDeployedUrl?.replaceAll('{ac.profile.id}', id)
 
   const getACEmail = async () => {
-    if (!preferredEmailInvitation) {
+    if (!preferredEmailInvitationId) {
       promptError('Email is not available.')
       return
     }
     try {
       const result = await api.get(`/edges`, {
-        invitation: preferredEmailInvitation,
+        invitation: preferredEmailInvitationId,
         head: id ?? rowData.areaChairProfileId,
       })
       const email = result.edges?.[0]?.tail
@@ -51,7 +51,7 @@ const CommitteeSummary = ({ rowData }) => {
                 {preferredName}
               </a>
             </h4>
-            {preferredEmailInvitation && (
+            {preferredEmailInvitationId && (
               // eslint-disable-next-line jsx-a11y/anchor-is-valid
               <a
                 href="#"

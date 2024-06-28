@@ -190,7 +190,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
   areaChairAssignmentUrl,
   metaReviewRecommendationName,
   additionalMetaReviewFields,
-  preferredEmailInvitation,
+  preferredEmailInvitationId,
 }) => {
   const { note, metaReviewData, preliminaryDecision } = rowData
   const {
@@ -212,13 +212,13 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
   } = useContext(WebFieldContext)
 
   const getACSACEmail = async (preferredName, profileId) => {
-    if (!preferredEmailInvitation) {
+    if (!preferredEmailInvitationId) {
       promptError('Email is not available.')
       return
     }
     try {
       const result = await api.get(`/edges`, {
-        invitation: preferredEmailInvitation,
+        invitation: preferredEmailInvitationId,
         head: profileId,
       })
       const email = result.edges?.[0]?.tail
@@ -256,7 +256,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                     >
                       {areaChair.preferredName}
                     </a>{' '}
-                    {preferredEmailInvitation && (
+                    {preferredEmailInvitationId && (
                       // eslint-disable-next-line jsx-a11y/anchor-is-valid
                       <a
                         href="#"
@@ -337,7 +337,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                     >
                       {areaChair.preferredName}
                     </a>{' '}
-                    {preferredEmailInvitation && (
+                    {preferredEmailInvitationId && (
                       // eslint-disable-next-line jsx-a11y/anchor-is-valid
                       <a
                         href="#"
@@ -372,7 +372,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                   >
                     {seniorAreaChair.preferredName}
                   </a>{' '}
-                  {preferredEmailInvitation && (
+                  {preferredEmailInvitationId && (
                     // eslint-disable-next-line jsx-a11y/anchor-is-valid
                     <a
                       href="#"
