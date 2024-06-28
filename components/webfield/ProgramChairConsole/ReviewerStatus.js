@@ -397,7 +397,7 @@ const ReviewerStatusTab = ({
         })
         setReviewerStatusTabData({ tableRowsAll: tableRows, tableRows: [...tableRows] })
       } catch (error) {
-        promptError(`loading reviewer status: ${error.message}`)
+        promptError(`loading ${prettyField(reviewerName)} status: ${error.message}`)
       }
     }
   }

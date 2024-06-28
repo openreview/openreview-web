@@ -15,7 +15,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
   const { id, preferredName, preferredEmail, registrationNotes } =
     rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
-  const { seniorAreaChairName, areaChairsId, reviewersId, bidName, scoresName, recommendationName } =
+  const { seniorAreaChairName, areaChairsId, reviewersId, reviewerName, bidName, scoresName, recommendationName } =
     useContext(WebFieldContext)
   const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
@@ -71,7 +71,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
           )}
           {recommendationEnabled && (
             <>
-              {`Reviewers Recommended: ${completedRecs}`}{' '}
+              {`${prettyField(reviewerName)} Recommended: ${completedRecs}`}{' '}
               {completedBids > 0 && (
                 <a
                   href={edgeBrowserRecsUrl}

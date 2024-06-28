@@ -258,7 +258,7 @@ const BiddingStatsRow = ({
         {recommendationEnabled && areaChairsId && (
           <StatContainer
             title="Recommendation Progress"
-            hint={`% of ${prettyField(areaChairName).toLowerCase()} who have completed the required number of reviewer recommendations`}
+            hint={`% of ${prettyField(areaChairName).toLowerCase()} who have completed the required number of ${prettyField(reviewerName).toLowerCase()} recommendations`}
             value={calcRecommendationProgress()}
           />
         )}
@@ -395,7 +395,7 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
           hint={`% of papers that have received ${
             paperReviewsCompleteThreshold
               ? `at least ${inflect(paperReviewsCompleteThreshold, 'review', 'reviews', true)}`
-              : 'reviews from all assigned reviewers'
+              : `reviews from all assigned ${prettyField(reviewerName).toLowerCase()}`
           }`}
           value={
             pcConsoleData.notes ? (
@@ -662,6 +662,8 @@ const DescriptionTimelineOtherConfigRow = ({
     reviewerName,
     programChairsId,
     authorsId,
+    ethicsReviewersName,
+    ethicsChairsName,
     bidName,
     submissionId,
     officialReviewName,
@@ -922,24 +924,24 @@ const DescriptionTimelineOtherConfigRow = ({
             {hasEthicsChairs && (
               <>
                 <li>
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs`}>Ethics_Chairs</Link> (
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Invited`}>Invited</Link>
+                  <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}`}>{prettyField(ethicsChairsName)}</Link> (
+                  <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}/Invited`}>Invited</Link>
                   ,
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Chairs/Declined`}>
+                  <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}/Declined`}>
                     Declined
                   </Link>
                   )
                 </li>
                 <li>
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers`}>
-                    Ethics_Reviewers
+                  <Link href={`/group/edit?id=${venueId}/${ethicsReviewersName}`}>
+                    {prettyField(ethicsReviewersName)}
                   </Link>{' '}
                   (
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Invited`}>
+                  <Link href={`/group/edit?id=${venueId}/${ethicsReviewersName}/Invited`}>
                     Invited
                   </Link>
                   ,
-                  <Link href={`/group/edit?id=${venueId}/Ethics_Reviewers/Declined`}>
+                  <Link href={`/group/edit?id=${venueId}/${ethicsReviewersName}/Declined`}>
                     Declined
                   </Link>
                   )
@@ -1033,7 +1035,7 @@ const DescriptionTimelineOtherConfigRow = ({
                           scoresName
                         )}
                       >
-                        {prettyField(singularAreaChairName)} Reviewer Recommendations
+                        {prettyField(singularReviewerName)} Recommendations
                       </Link>
                     </li>
                   )}
