@@ -211,7 +211,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
     seniorAreaChairName = 'Senior_Area_Chairs',
   } = useContext(WebFieldContext)
 
-  const getACSACEmail = async (profileId) => {
+  const getACSACEmail = async (preferredName, profileId) => {
     if (!preferredEmailInvitation) {
       promptError('Email is not available.')
       return
@@ -223,7 +223,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
       })
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
-      copy(`<${email}>`)
+      copy(`${preferredName} <${email}>`)
       promptMessage(`${email} copied to clipboard`)
     } catch (error) {
       promptError(error.message)
@@ -263,7 +263,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                         className="text-muted"
                         onClick={(e) => {
                           e.preventDefault()
-                          getACSACEmail(areaChair.areaChairProfileId)
+                          getACSACEmail(areaChair.preferredName, areaChair.areaChairProfileId)
                         }}
                       >
                         Copy Email
@@ -344,7 +344,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                         className="text-muted"
                         onClick={(e) => {
                           e.preventDefault()
-                          getACSACEmail(areaChair.areaChairProfileId)
+                          getACSACEmail(areaChair.preferredName, areaChair.areaChairProfileId)
                         }}
                       >
                         Copy Email
@@ -379,7 +379,10 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                       className="text-muted"
                       onClick={(e) => {
                         e.preventDefault()
-                        getACSACEmail(seniorAreaChair.preferredId)
+                        getACSACEmail(
+                          seniorAreaChair.preferredName,
+                          seniorAreaChair.preferredId
+                        )
                       }}
                     >
                       Copy Email

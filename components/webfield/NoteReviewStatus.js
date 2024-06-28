@@ -266,7 +266,7 @@ export const AcPcConsoleReviewerStatusRow = ({
       })
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
-      copy(`<${email}>`)
+      copy(`${reviewer.preferredName} <${email}>`)
       promptMessage(`${email} copied to clipboard`)
     } catch (error) {
       promptError(error.message)

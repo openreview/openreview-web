@@ -40,7 +40,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
     scoresName
   )
 
-  const getACSACEmail = async (profileId) => {
+  const getACSACEmail = async (name, profileId) => {
     if (!preferredEmailInvitation) {
       promptError('Email is not available.')
       return
@@ -52,7 +52,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
       })
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
-      copy(`<${email}>`)
+      copy(`${name} <${email}>`)
       promptMessage(`${email} copied to clipboard`)
     } catch (error) {
       promptError(error.message)
@@ -80,7 +80,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
                 className="text-muted copy-email-link"
                 onClick={(e) => {
                   e.preventDefault()
-                  getACSACEmail(id ?? rowData.areaChairProfileId)
+                  getACSACEmail(preferredName, id ?? rowData.areaChairProfileId)
                 }}
               >
                 Copy Email
@@ -145,7 +145,10 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
                     className="text-muted copy-email-link"
                     onClick={(e) => {
                       e.preventDefault()
-                      getACSACEmail(sacProfile?.id ?? seniorAreaChairId)
+                      getACSACEmail(
+                        sacProfile.preferredName,
+                        sacProfile?.id ?? seniorAreaChairId
+                      )
                     }}
                   >
                     Copy Email

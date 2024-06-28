@@ -24,7 +24,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
     bidName,
     null
   )
-  const getReviewerEmail = async (profileId) => {
+  const getReviewerEmail = async (name, profileId) => {
     if (!preferredEmailInvitation) {
       promptError('Email is not available.')
       return
@@ -36,7 +36,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
       })
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
-      copy(`<${email}>`)
+      copy(`${name} <${email}>`)
       promptMessage(`${email} copied to clipboard`)
     } catch (error) {
       promptError(error.message)
@@ -58,7 +58,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
               className="text-muted"
               onClick={(e) => {
                 e.preventDefault()
-                getReviewerEmail(id ?? reviewerProfileId)
+                getReviewerEmail(preferredName, id ?? reviewerProfileId)
               }}
             >
               Copy Email

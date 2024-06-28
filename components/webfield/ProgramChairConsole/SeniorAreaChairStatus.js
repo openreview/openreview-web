@@ -14,6 +14,7 @@ import { getNoteContentValues } from '../../../lib/forum-utils'
 const BasicProfileSummary = ({ profile, profileId }) => {
   const { id, preferredName } = profile ?? {}
   const { preferredEmailInvitation } = useContext(WebFieldContext)
+
   const getEmail = async () => {
     if (!preferredEmailInvitation) {
       promptError('Email is not available.')
@@ -26,7 +27,7 @@ const BasicProfileSummary = ({ profile, profileId }) => {
       })
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
-      copy(`<${email}>`)
+      copy(`${preferredName} <${email}>`)
       promptMessage(`${email} copied to clipboard`)
     } catch (error) {
       promptError(error.message)
@@ -104,7 +105,7 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
       })
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
-      copy(`<${email}>`)
+      copy(`${preferredName} <${email}>`)
       promptMessage(`${email} copied to clipboard`)
     } catch (error) {
       promptError(error.message)
