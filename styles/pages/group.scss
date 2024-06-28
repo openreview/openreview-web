@@ -1198,11 +1198,32 @@ main.invitation {
     }
   }
 
+  .workflow {
+    em {
+      color: constants.$orRed;
+    }
+    .add-stage {
+      display: flex;
+      align-items: center;
+
+      .dropdown-select {
+        width: 50%;
+      }
+    }
+  }
+
   .spinner-small {
     width: 40px;
   }
 
   .save-button-wrapper {
     display: flex;
+  }
+
+  .groupEditorTabsContainer,
+  .groupInfoTabsContainer {
+    .tab-pane {
+      padding-left: 0;
+    }
   }
 }

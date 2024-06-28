@@ -8,7 +8,7 @@ import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import EditorWidget from './webfield/EditorWidget'
 import SpinnerButton from './SpinnerButton'
 import LoadingSpinner from './LoadingSpinner'
-import Signatures from './Signatures'
+import Signatures, { EditSignatures } from './Signatures'
 import { NewNoteReaders, NewReplyEditNoteReaders } from './NoteEditorReaders'
 import Icon from './Icon'
 import useUser from '../hooks/useUser'
@@ -51,49 +51,6 @@ const NoteSignatures = ({
   }
 
   if (!fieldDescription) return null
-
-  return (
-    <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true} error={error}>
-      <Signatures
-        fieldDescription={fieldDescription}
-        onChange={onChange}
-        currentValue={noteEditorData[fieldName]}
-        onError={onError}
-        extraClasses={styles.signatures}
-        clearError={() =>
-          setErrors((existingErrors) =>
-            existingErrors.filter((p) => p.fieldName !== fieldName)
-          )
-        }
-      />
-    </EditorComponentHeader>
-  )
-}
-
-const EditSignatures = ({
-  fieldDescription,
-  setLoading,
-  noteEditorData,
-  setNoteEditorData,
-  closeNoteEditor,
-  errors,
-  setErrors,
-}) => {
-  const fieldName = 'editSignatureInputValues'
-  const error = errors.find((e) => e.fieldName === fieldName)
-
-  const onChange = ({ loading, value }) => {
-    setLoading((existingLoadingState) => ({
-      ...existingLoadingState,
-      editSignatures: loading,
-    }))
-    if (value) setNoteEditorData({ fieldName, value })
-  }
-
-  const onError = (errorMessage) => {
-    promptError(errorMessage)
-    closeNoteEditor()
-  }
 
   return (
     <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true} error={error}>
@@ -742,11 +699,12 @@ const NoteEditor = ({
         <EditSignatures
           fieldDescription={invitation.edit.signatures}
           setLoading={setLoading}
-          noteEditorData={noteEditorData}
-          setNoteEditorData={setNoteEditorData}
-          closeNoteEditor={closeNoteEditor}
+          editorData={noteEditorData}
+          setEditorData={setNoteEditorData}
+          closeEditor={closeNoteEditor}
           errors={errors}
           setErrors={setErrors}
+          extraClasses={styles.signatures}
         />
       </div>
 
