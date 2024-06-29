@@ -384,7 +384,7 @@ const AreaChairStatus = ({
           tableRows: [...tableRows],
         })
       } catch (error) {
-        promptError(`loading area chair status: ${error.message}`)
+        promptError(`loading ${prettyField(areaChairName)} status: ${error.message}`)
       }
     }
   }
