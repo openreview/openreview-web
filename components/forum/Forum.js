@@ -841,6 +841,7 @@ export default function Forum({
     numRepliesVisible.current = numVisible
 
     typesetMathJax()
+    $('.forum-note [data-toggle="tooltip"]').tooltip({ html: true })
     delayedScroll(layout, scrolled)
   }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations, maxLength])
 

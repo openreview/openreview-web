@@ -13,6 +13,7 @@ jest.mock('../components/EditorComponents/Markdown', () => (props) => {
   return <span>{props.text}</span>
 })
 jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
+jest.mock('../hooks/useTurnstileToken', () => () => ({ turnstileToken: 'some token' }))
 jest.mock('../lib/utils', () => {
   const original = jest.requireActual('../lib/utils')
   return {
