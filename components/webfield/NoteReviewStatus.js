@@ -283,7 +283,8 @@ export const AcPcConsoleReviewerStatusRow = ({
             rel="noreferrer"
           >
             {reviewer.preferredName}
-          </a>{' '}
+          </a>
+          <div>{reviewer.profile?.title}</div>
           {preferredEmailInvitationId && (
             // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <a

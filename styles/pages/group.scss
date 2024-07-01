@@ -571,6 +571,20 @@ main.invitation {
 
   .pc-console-reviewer-status {
     table-layout: auto;
+    .reviewer-summary {
+      .reviewer-info {
+        display: flex;
+        flex-direction: column;
+
+        .profile-title,
+        .copy-email-link {
+          color: constants.$subtleGray;
+          font-size: 0.75rem;
+          margin-bottom: 0.25rem;
+        }
+      }
+    }
+
     .paper-progress {
       display: flex;
       flex-direction: column;
@@ -613,6 +627,20 @@ main.invitation {
 
   .pc-console-ac-sac-status {
     table-layout: auto;
+    .ac-sac-summary {
+      .ac-sac-info {
+        display: flex;
+        flex-direction: column;
+
+        .profile-title,
+        .copy-email-link {
+          color: constants.$subtleGray;
+          font-size: 0.75rem;
+          margin-bottom: 0.25rem;
+        }
+      }
+    }
+
     .review-progress {
       display: flex;
       flex-direction: column;

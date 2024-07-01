@@ -14,7 +14,7 @@ import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
-  const { id, preferredName, registrationNotes } = rowData.reviewerProfile ?? {}
+  const { id, preferredName, registrationNotes, title } = rowData.reviewerProfile ?? {}
   const { completedBids, reviewerProfileId } = rowData
   const { reviewersId, bidName, preferredEmailInvitationId } = useContext(WebFieldContext)
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
@@ -43,19 +43,20 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
     }
   }
   return (
-    <div className="note">
+    <div className="reviewer-summary">
       {preferredName ? (
-        <>
+        <div className="reviewer-info">
           <h4>
             <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">
               {preferredName}
             </a>
           </h4>
+          <div className="profile-title">{title}</div>
           {preferredEmailInvitationId && (
             // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <a
               href="#"
-              className="text-muted"
+              className="copy-email-link"
               onClick={(e) => {
                 e.preventDefault()
                 getReviewerEmail(preferredName, id ?? reviewerProfileId)
@@ -64,7 +65,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
               Copy Email
             </a>
           )}
-        </>
+        </div>
       ) : (
         <h4>
           <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">

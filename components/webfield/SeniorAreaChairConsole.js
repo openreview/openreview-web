@@ -20,6 +20,7 @@ import {
   parseNumberField,
   prettyField,
 } from '../../lib/utils'
+import { formatProfileContent } from '../../lib/edge-utils'
 
 const SeniorAreaChairConsole = ({ appContext }) => {
   const {
@@ -336,6 +337,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         .map((profile) => ({
           ...profile,
           preferredName: getProfileName(profile),
+          title: formatProfileContent(profile.content).title,
         }))
 
       const allProfilesMap = new Map()
@@ -559,6 +561,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                   preferredName: profile
                     ? getProfileName(profile)
                     : areaChair.areaChairProfileId,
+                  title: profile?.title,
                 }
               }),
               secondaryAreaChairs: secondaryAreaChairs.map((areaChair) => {

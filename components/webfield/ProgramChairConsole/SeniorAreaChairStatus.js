@@ -12,7 +12,7 @@ import WebFieldContext from '../../WebFieldContext'
 import { getNoteContentValues } from '../../../lib/forum-utils'
 
 const BasicProfileSummary = ({ profile, profileId }) => {
-  const { id, preferredName } = profile ?? {}
+  const { id, preferredName, title } = profile ?? {}
   const { preferredEmailInvitationId } = useContext(WebFieldContext)
 
   const getEmail = async () => {
@@ -34,19 +34,20 @@ const BasicProfileSummary = ({ profile, profileId }) => {
     }
   }
   return (
-    <div className="note">
+    <div className="ac-sac-summary">
       {preferredName ? (
-        <>
+        <div className="ac-sac-info">
           <h4>
             <a href={getProfileLink(id ?? profileId)} target="_blank" rel="noreferrer">
               {preferredName}
             </a>
           </h4>
+          <div className="profile-title">{title}</div>
           {preferredEmailInvitationId && (
             // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <a
               href="#"
-              className="text-muted copy-email-link"
+              className="copy-email-link"
               onClick={(e) => {
                 e.preventDefault()
                 getEmail()
@@ -55,7 +56,7 @@ const BasicProfileSummary = ({ profile, profileId }) => {
               Copy Email
             </a>
           )}
-        </>
+        </div>
       ) : (
         <h4>{profileId}</h4>
       )}
@@ -87,7 +88,7 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
   referrerUrl,
   metaReviewRecommendationName,
 }) => {
-  const { id, preferredName } = rowData.sacProfile ?? {}
+  const { id, preferredName, title } = rowData.sacProfile ?? {}
   const { preferredEmailInvitationId } = useContext(WebFieldContext)
   const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
@@ -118,9 +119,9 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
         <strong>{rowData.number}</strong>
       </td>
       <td>
-        <div>
+        <div className="ac-sac-summary">
           {preferredName ? (
-            <>
+            <div className="ac-sac-info">
               <h4>
                 <a
                   href={getProfileLink(id ?? rowData.sacProfileId)}
@@ -130,11 +131,12 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
                   {preferredName}
                 </a>
               </h4>
+              <div className="profile-title">{title}</div>
               {preferredEmailInvitationId && (
                 // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a
                   href="#"
-                  className="text-muted copy-email-link"
+                  className="copy-email-link"
                   onClick={(e) => {
                     e.preventDefault()
                     getEmail()
@@ -143,7 +145,7 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
                   Copy Email
                 </a>
               )}
-            </>
+            </div>
           ) : (
             <h4>{rowData.sacProfileId}</h4>
           )}

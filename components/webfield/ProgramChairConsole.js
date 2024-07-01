@@ -25,6 +25,7 @@ import SeniorAreaChairStatus from './ProgramChairConsole/SeniorAreaChairStatus'
 import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
+import { formatProfileContent } from '../../lib/edge-utils'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -416,6 +417,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         .map((profile) => ({
           ...profile,
           preferredName: getProfileName(profile),
+          title: formatProfileContent(profile.content).title,
         }))
       // #endregion
 
@@ -782,6 +784,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             return {
               ...areaChair,
               preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
+              title: profile?.title,
             }
           }),
           secondaryAreaChairs: secondaryAreaChairs.map((areaChair) => {
@@ -791,6 +794,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             return {
               ...areaChair,
               preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
+              title: profile?.title,
             }
           }),
           seniorAreaChairs: assignedSeniorAreaChairs.map((seniorAreaChairProfileId) => {
@@ -801,6 +805,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               type: 'profile',
               preferredId: seniorAreaChairProfileId,
               preferredName: profile ? getProfileName(profile) : seniorAreaChairProfileId,
+              title: profile?.title,
             }
           }),
           numMetaReviewsDone: metaReviews.length,
@@ -907,6 +912,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       .map((profile) => ({
         ...profile,
         preferredName: getProfileName(profile),
+        title: formatProfileContent(profile.content).title,
       }))
 
     const acSacProfileWithoutAssignmentMap = new Map()

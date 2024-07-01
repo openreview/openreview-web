@@ -13,7 +13,7 @@ import { getNoteContentValues } from '../../../lib/forum-utils'
 import api from '../../../lib/api-client'
 
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
-  const { id, preferredName, registrationNotes } = rowData.areaChairProfile ?? {}
+  const { id, preferredName, registrationNotes, title } = rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
   const {
     areaChairsId,
@@ -61,9 +61,9 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
 
   return (
     <>
-      <div className="note">
+      <div className="ac-sac-summary">
         {preferredName ? (
-          <>
+          <div className="ac-sac-info">
             <h4>
               <a
                 href={getProfileLink(id ?? rowData.areaChairProfileId)}
@@ -73,11 +73,12 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
                 {preferredName}
               </a>
             </h4>
+            <div className="profile-title">{title}</div>
             {preferredEmailInvitationId && (
               // eslint-disable-next-line jsx-a11y/anchor-is-valid
               <a
                 href="#"
-                className="text-muted copy-email-link"
+                className="copy-email-link"
                 onClick={(e) => {
                   e.preventDefault()
                   getACSACEmail(preferredName, id ?? rowData.areaChairProfileId)
@@ -86,7 +87,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
                 Copy Email
               </a>
             )}
-          </>
+          </div>
         ) : (
           <h4>{rowData.areaChairProfileId}</h4>
         )}
@@ -124,40 +125,40 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
         </p>
       </div>
       {sacProfile && (
-        <>
+        <div className="ac-sac-summary">
           <h4>Senior Area Chair: </h4>
-          <div className="note">
-            {sacProfile?.preferredName && (
-              <>
-                <h4>
-                  <a
-                    href={getProfileLink(sacProfile?.id ?? seniorAreaChairId)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {sacProfile.preferredName}
-                  </a>
-                </h4>
-                {preferredEmailInvitationId && (
-                  // eslint-disable-next-line jsx-a11y/anchor-is-valid
-                  <a
-                    href="#"
-                    className="text-muted copy-email-link"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      getACSACEmail(
-                        sacProfile.preferredName,
-                        sacProfile?.id ?? seniorAreaChairId
-                      )
-                    }}
-                  >
-                    Copy Email
-                  </a>
-                )}
-              </>
-            )}
-          </div>
-        </>
+
+          {sacProfile?.preferredName && (
+            <div className="ac-sac-info">
+              <h4>
+                <a
+                  href={getProfileLink(sacProfile?.id ?? seniorAreaChairId)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {sacProfile.preferredName}
+                </a>
+              </h4>
+              <div className="profile-title">{title}</div>
+              {preferredEmailInvitationId && (
+                // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                <a
+                  href="#"
+                  className="copy-email-link"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    getACSACEmail(
+                      sacProfile.preferredName,
+                      sacProfile?.id ?? seniorAreaChairId
+                    )
+                  }}
+                >
+                  Copy Email
+                </a>
+              )}
+            </div>
+          )}
+        </div>
       )}
       {registrationNotes?.length > 0 && (
         <>

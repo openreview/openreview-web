@@ -13,7 +13,7 @@ import { pluralizeString, prettyField } from '../../../lib/utils'
 import api from '../../../lib/api-client'
 
 const CommitteeSummary = ({ rowData }) => {
-  const { id, preferredName } = rowData.areaChairProfile ?? {}
+  const { id, preferredName, title } = rowData.areaChairProfile ?? {}
   const { edgeBrowserDeployedUrl, reviewerName, preferredEmailInvitationId } =
     useContext(WebFieldContext)
   const edgeBrowserUrl = edgeBrowserDeployedUrl?.replaceAll('{ac.profile.id}', id)
@@ -38,44 +38,43 @@ const CommitteeSummary = ({ rowData }) => {
   }
 
   return (
-    <>
-      <div className="note">
-        {preferredName ? (
-          <div className="copy-email-container">
-            <h4>
-              <a
-                href={getProfileLink(id ?? rowData.areaChairProfileId)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {preferredName}
-              </a>
-            </h4>
-            {preferredEmailInvitationId && (
-              // eslint-disable-next-line jsx-a11y/anchor-is-valid
-              <a
-                href="#"
-                className="text-muted copy-email-link"
-                onClick={(e) => {
-                  e.preventDefault()
-                  getACEmail()
-                }}
-              >
-                Copy Email
-              </a>
-            )}
-          </div>
-        ) : (
-          <h4>{rowData.areaChairProfileId}</h4>
-        )}
+    <div className="ac-sac-summary">
+      {preferredName ? (
+        <div className="ac-sac-info">
+          <h4>
+            <a
+              href={getProfileLink(id ?? rowData.areaChairProfileId)}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {preferredName}
+            </a>
+          </h4>
+          <div className="profile-title">{title}</div>
+          {preferredEmailInvitationId && (
+            // eslint-disable-next-line jsx-a11y/anchor-is-valid
+            <a
+              href="#"
+              className="copy-email-link"
+              onClick={(e) => {
+                e.preventDefault()
+                getACEmail()
+              }}
+            >
+              Copy Email
+            </a>
+          )}
+        </div>
+      ) : (
+        <h4>{rowData.areaChairProfileId}</h4>
+      )}
 
-        {edgeBrowserUrl && (
-          <a target="_blank" rel="noreferrer" href={edgeBrowserUrl}>
-            Modify {prettyField(reviewerName)} Assignments
-          </a>
-        )}
-      </div>
-    </>
+      {edgeBrowserUrl && (
+        <a target="_blank" rel="noreferrer" href={edgeBrowserUrl}>
+          Modify {prettyField(reviewerName)} Assignments
+        </a>
+      )}
+    </div>
   )
 }
 

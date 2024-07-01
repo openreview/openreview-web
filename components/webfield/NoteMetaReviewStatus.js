@@ -255,7 +255,8 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                       rel="noreferrer"
                     >
                       {areaChair.preferredName}
-                    </a>{' '}
+                    </a>
+                    <div>{areaChair.title}</div>
                     {preferredEmailInvitationId && (
                       // eslint-disable-next-line jsx-a11y/anchor-is-valid
                       <a
@@ -336,7 +337,8 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                       rel="noreferrer"
                     >
                       {areaChair.preferredName}
-                    </a>{' '}
+                    </a>
+                    <div>{areaChair.title}</div>
                     {preferredEmailInvitationId && (
                       // eslint-disable-next-line jsx-a11y/anchor-is-valid
                       <a
@@ -371,7 +373,8 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                     rel="noreferrer"
                   >
                     {seniorAreaChair.preferredName}
-                  </a>{' '}
+                  </a>
+                  <div>{seniorAreaChair.title}</div>
                   {preferredEmailInvitationId && (
                     // eslint-disable-next-line jsx-a11y/anchor-is-valid
                     <a
