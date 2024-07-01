@@ -65,7 +65,7 @@ const MessageReviewersModal = ({
         return api.post(
           '/messages',
           {
-            invitation: messageInvitation && messageInvitation.replace('{number}', rowData.number),
+            invitation: messageInvitation?.replace('{number}', rowData.number),
             signature: messageInvitation && rowData.messageSignature,
             groups: groupIds,
             subject,
