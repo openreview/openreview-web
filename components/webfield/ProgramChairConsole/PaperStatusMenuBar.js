@@ -149,6 +149,12 @@ const PaperStatusMenuBar = ({
       )} with unsubmitted ${pluralizeString(prettyField(officialReviewName).toLowerCase())}`,
       value: 'missingReviews',
     },
+    {
+      label: `All ${pluralizeString(prettyField(areaChairName))} of selected ${pluralizeString(
+        submissionName
+      )}`,
+      value: 'allAreaChairs',
+    },
   ]
   const exportColumns = [
     { header: 'number', getValue: (p) => p.note?.number },

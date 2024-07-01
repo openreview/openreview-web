@@ -22,7 +22,9 @@ const MessageReviewersModal = ({
     submissionName,
     emailReplyTo,
     messageSubmissionReviewersInvitationId,
+    messageSubmissionAreaChairsInvitationId,
     reviewerName = 'Reviewers',
+    areaChairName = 'Area Chairs',
   } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
@@ -45,6 +47,8 @@ const MessageReviewersModal = ({
     }
     // send emails
     setIsSending(true)
+    const messageInvitation = messageOption.value === 'allAreaChairs' ? messageSubmissionAreaChairsInvitationId : messageSubmissionReviewersInvitationId
+    const roleName = messageOption.value === 'allAreaChairs' ? areaChairName : reviewerName
     try {
       const simplifiedTableRowsDisplayed = tableRowsDisplayed.map((p) => ({
         id: p.note.id,
@@ -61,14 +65,12 @@ const MessageReviewersModal = ({
         return api.post(
           '/messages',
           {
-            invitation:
-              messageSubmissionReviewersInvitationId &&
-              messageSubmissionReviewersInvitationId.replace('{number}', rowData.number),
-            signature: messageSubmissionReviewersInvitationId && rowData.messageSignature,
+            invitation: messageInvitation && messageInvitation.replace('{number}', rowData.number),
+            signature: messageInvitation && rowData.messageSignature,
             groups: reviewerIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),
-            parentGroup: `${venueId}/${submissionName}${rowData.number}/${reviewerName}`,
+            parentGroup: `${venueId}/${submissionName}${rowData.number}/${roleName}`,
             replyTo: emailReplyTo,
           },
           { accessToken }
@@ -94,6 +96,8 @@ const MessageReviewersModal = ({
     switch (messageOption.value) {
       case 'allReviewers':
         return selectedRows.flatMap((row) => row.reviewers)
+      case 'allAreaChairs':
+        return selectedRows.flatMap((row) => row.metaReviewData.areaChairs)
       case 'withReviews':
         return selectedRows
           .flatMap((row) => row.reviewers)
@@ -119,6 +123,10 @@ const MessageReviewersModal = ({
       officialReviewName
     ).toLowerCase()} page:\n\n{{submit_review_link}}
     \n\nThank you,\n${shortPhrase}`)
+
+    if (messageOption.value === 'allAreaChairs') {
+      setMessage('Your message...')
+    }
 
     const recipients = getRecipients(selectedIds)
 
@@ -162,7 +170,7 @@ const MessageReviewersModal = ({
           <p>{`You may customize the message that will be sent to the ${prettyField(
             reviewerName
           ).toLowerCase()}. In the email
-  body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
+  body, the text {{submit_review_link}} will be replaced with a hyperlink to the
   form where the ${prettyField(
     reviewerName
   ).toLowerCase()} can fill out his or her ${prettyField(

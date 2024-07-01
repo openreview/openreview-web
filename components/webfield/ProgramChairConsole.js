@@ -786,6 +786,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             )?.profile
             return {
               ...areaChair,
+              noteNumber: note.number,
               preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
               preferredEmail: profile
                 ? profile.content.preferredEmail ?? profile.content.emails[0]
