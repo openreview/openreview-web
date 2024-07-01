@@ -185,10 +185,6 @@ export const NoteContentV2 = ({
     .concat(omit)
     .filter((field) => !include.includes(field))
 
-  useEffect(() => {
-    if (content) typesetMathJax()
-  }, [content])
-
   return (
     <div className="note-content">
       {contentOrder.map((fieldName, i) => {
