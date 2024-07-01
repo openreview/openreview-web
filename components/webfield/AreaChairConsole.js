@@ -157,7 +157,7 @@ const AreaChairConsole = ({ appContext }) => {
     enableQuerySearch,
     emailReplyTo,
     extraExportColumns,
-    preferredEmailInvitationIdId,
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
