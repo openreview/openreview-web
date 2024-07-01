@@ -20,6 +20,7 @@ const PaperStatusMenuBar = ({
     metaReviewRecommendationName,
     shortPhrase,
     enableQuerySearch,
+    areaChairsId,
     seniorAreaChairsId,
     paperStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
@@ -149,12 +150,15 @@ const PaperStatusMenuBar = ({
       )} with unsubmitted ${pluralizeString(prettyField(officialReviewName).toLowerCase())}`,
       value: 'missingReviews',
     },
-    {
-      label: `All ${pluralizeString(prettyField(areaChairName))} of selected ${pluralizeString(
-        submissionName
-      )}`,
-      value: 'allAreaChairs',
-    },
+    ...(areaChairsId
+      ? [{
+        label: `All ${pluralizeString(prettyField(areaChairName))} of selected ${pluralizeString(
+          submissionName
+        )}`,
+        value: 'allAreaChairs',
+      }]
+      : []
+    )
   ]
   const exportColumns = [
     { header: 'number', getValue: (p) => p.note?.number },

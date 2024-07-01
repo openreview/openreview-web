@@ -33,7 +33,7 @@ const MessageReviewersModal = ({
   const [isSending, setIsSending] = useState(false)
   const [allRecipients, setAllRecipients] = useState([])
   const [recipientsInfo, setRecipientsInfo] = useState([])
-  const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.reviewerProfileId).reduce(
+  const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.preferredId).reduce(
     (prev, curr) => prev + curr.count,
     0
   )
@@ -59,15 +59,15 @@ const MessageReviewersModal = ({
 
       const sendEmailPs = selectedIds.map((noteId) => {
         const rowData = simplifiedTableRowsDisplayed.find((row) => row.id === noteId)
-        const reviewerIds = allRecipients.get(rowData.number)
-        if (!reviewerIds?.length) return Promise.resolve()
+        const groupIds = allRecipients.get(rowData.number)
+        if (!groupIds?.length) return Promise.resolve()
         const forumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialReviewName}`
         return api.post(
           '/messages',
           {
             invitation: messageInvitation && messageInvitation.replace('{number}', rowData.number),
             signature: messageInvitation && rowData.messageSignature,
-            groups: reviewerIds,
+            groups: groupIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),
             parentGroup: `${venueId}/${submissionName}${rowData.number}/${roleName}`,
@@ -113,20 +113,7 @@ const MessageReviewersModal = ({
 
   useEffect(() => {
     if (!messageOption) return
-    setMessage(`${
-      messageOption.value === 'missingReviews'
-        ? `This is a reminder to please submit your ${prettyField(
-            officialReviewName
-          ).toLowerCase()} for ${shortPhrase}.\n\n`
-        : ''
-    }Click on the link below to go to the ${prettyField(
-      officialReviewName
-    ).toLowerCase()} page:\n\n{{submit_review_link}}
-    \n\nThank you,\n${shortPhrase}`)
-
-    if (messageOption.value === 'allAreaChairs') {
-      setMessage('Your message...')
-    }
+    setMessage('Your message...')
 
     const recipients = getRecipients(selectedIds)
 
@@ -175,7 +162,7 @@ const MessageReviewersModal = ({
     reviewerName
   ).toLowerCase()} can fill out his or her ${prettyField(
     officialReviewName
-  ).toLowerCase()}.`}</p>
+  ).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`}</p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
             <input
