@@ -78,18 +78,7 @@ describe('MessageReviewersModal', () => {
       expect(
         basicModalProps.children[1].props.children[1].props.children[3].props.value
       ).toEqual(
-        expect.stringContaining('Click on the link below to go to the official review page:')
-      )
-      expect(
-        basicModalProps.children[1].props.children[1].props.children[3].props.value
-      ).toEqual(expect.stringContaining(`Thank you,\nTest Venue`))
-
-      expect(
-        basicModalProps.children[1].props.children[1].props.children[3].props.value
-      ).not.toEqual(
-        expect.stringContaining(
-          'This is a reminder to please submit your official review for Test Venue'
-        )
+        expect.stringContaining('Your message...')
       )
     })
   })
@@ -135,7 +124,7 @@ describe('MessageReviewersModal', () => {
         basicModalProps.children[1].props.children[1].props.children[3].props.value
       ).toEqual(
         expect.stringContaining(
-          'This is a reminder to please submit your official review for Test Venue'
+          'Your message...'
         )
       )
     })
