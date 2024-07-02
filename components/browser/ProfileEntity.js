@@ -38,7 +38,6 @@ export default function ProfileEntity(props) {
   // Format profile data for rendering
   const {
     id,
-    email,
     content,
     editEdges,
     editEdgeTemplates,
@@ -422,8 +421,7 @@ export default function ProfileEntity(props) {
             rel="noreferrer"
           >
             {content.name.fullname}
-          </a>{' '}
-          <span>({content.email})</span>
+          </a>
         </h3>
 
         <p>{content.title}</p>

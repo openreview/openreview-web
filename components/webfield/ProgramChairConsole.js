@@ -25,6 +25,7 @@ import SeniorAreaChairStatus from './ProgramChairConsole/SeniorAreaChairStatus'
 import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
+import { formatProfileContent } from '../../lib/edge-utils'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -78,6 +79,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     sacStatuspropertiesAllowed,
     messageAreaChairsInvitationId,
     messageSeniorAreaChairsInvitationId,
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -415,15 +417,14 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         .map((profile) => ({
           ...profile,
           preferredName: getProfileName(profile),
-          preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
+          title: formatProfileContent(profile.content).title,
         }))
       // #endregion
 
       const allProfilesMap = new Map()
       allProfiles.forEach((profile) => {
         const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-        const profileEmails = profile.content.emails.filter((p) => p)
-        usernames.concat(profileEmails).forEach((key) => {
+        usernames.concat(profile.email ?? []).forEach((key) => {
           allProfilesMap.set(key, profile)
         })
       })
@@ -452,8 +453,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                   const profile = allProfilesMap.get(anonReviewerId)
                   if (!profile) return
                   const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-                  const profileEmails = profile.content.emails.filter((p) => p)
-                  usernames.concat(profileEmails).forEach((key) => {
+                  usernames.concat(profile.email ?? []).forEach((key) => {
                     idToAnonIdMap[key] = anonReviewerGroupId
                   })
                 }
@@ -761,9 +761,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             noteNumber: note.number,
             preferredId: reviewer.reviewerProfileId,
             preferredName: profile ? getProfileName(profile) : reviewer.reviewerProfileId,
-            preferredEmail: profile
-              ? profile.content.preferredEmail ?? profile.content.emails[0]
-              : reviewer.reviewerProfileId,
           }
         }),
         reviewerProfiles: assignedReviewerProfiles,
@@ -789,9 +786,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               noteNumber: note.number,
               preferredId: profile ? profile.id : areaChair.areaChairProfileId,
               preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
-              preferredEmail: profile
-                ? profile.content.preferredEmail ?? profile.content.emails[0]
-                : areaChair.areaChairProfileId,
+              title: profile?.title,
             }
           }),
           secondaryAreaChairs: secondaryAreaChairs.map((areaChair) => {
@@ -801,9 +796,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             return {
               ...areaChair,
               preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
-              preferredEmail: profile
-                ? profile.content.preferredEmail ?? profile.content.emails[0]
-                : areaChair.areaChairProfileId,
+              title: profile?.title,
             }
           }),
           seniorAreaChairs: assignedSeniorAreaChairs.map((seniorAreaChairProfileId) => {
@@ -814,9 +807,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               type: 'profile',
               preferredId: seniorAreaChairProfileId,
               preferredName: profile ? getProfileName(profile) : seniorAreaChairProfileId,
-              preferredEmail: profile
-                ? profile.content.preferredEmail ?? profile.content.emails[0]
-                : seniorAreaChairProfileId,
+              title: profile?.title,
             }
           }),
           numMetaReviewsDone: metaReviews.length,
@@ -923,14 +914,12 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       .map((profile) => ({
         ...profile,
         preferredName: getProfileName(profile),
-        preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
+        title: formatProfileContent(profile.content).title,
       }))
 
     const acSacProfileWithoutAssignmentMap = new Map()
     acSacProfilesWithoutAssignment.forEach((profile) => {
       const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-      const profileEmails = profile.content.emails.filter((p) => p)
-
       let userRegNotes = []
       usernames.forEach((username) => {
         if (pcConsoleData.registrationNoteMap && pcConsoleData.registrationNoteMap[username]) {
@@ -941,7 +930,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // eslint-disable-next-line no-param-reassign
       profile.registrationNotes = userRegNotes
 
-      usernames.concat(profileEmails).forEach((key) => {
+      usernames.concat(profile.email ?? []).forEach((key) => {
         acSacProfileWithoutAssignmentMap.set(key, profile)
       })
     })

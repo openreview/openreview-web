@@ -13,7 +13,8 @@ const MessageReviewersModal = ({
   messageSignature,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, emailReplyTo, messageReviewersInvitationId } = useContext(WebFieldContext)
+  const { shortPhrase, emailReplyTo, messageReviewersInvitationId } =
+    useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -79,12 +80,10 @@ const MessageReviewersModal = ({
           ? {
               id: row.reviewerProfileId,
               preferredName: reviewerProfile.preferredName,
-              preferredEmail: reviewerProfile.preferredEmail,
             }
           : {
               id: row.reviewerProfileId,
               preferredName: row.reviewerProfileId,
-              preferredEmail: row.reviewerProfileId,
             }
       })
     )
@@ -139,9 +138,7 @@ const MessageReviewersModal = ({
           </p>
           <div className="well reviewer-list">
             {recipientsInfo.map((recipientInfo, index) => (
-              <li
-                key={index}
-              >{`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>`}</li>
+              <li key={index}>{`${recipientInfo.preferredName}`}</li>
             ))}
           </div>
         </>
@@ -182,10 +179,6 @@ const ReviewerStatusMenuBar = ({
     {
       header: 'name',
       getValue: (p) => p.reviewerProfile?.preferredName ?? p.reviewerProfileId,
-    },
-    {
-      header: 'email',
-      getValue: (p) => p.reviewerProfile?.preferredEmail ?? p.reviewerProfileId,
     },
     {
       header: 'institution name',

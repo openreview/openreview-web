@@ -47,6 +47,7 @@ const PaperRow = ({
     submissionName,
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
@@ -128,6 +129,7 @@ const PaperRow = ({
             areaChairAssignmentUrl={getManualAssignmentUrl('Area_Chairs')}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
+            preferredEmailInvitationId={preferredEmailInvitationId}
           />
         </td>
       )}
@@ -139,10 +141,11 @@ const PaperRow = ({
             areaChairAssignmentUrl={getManualAssignmentUrl('Area_Chairs')}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
+            preferredEmailInvitationId={preferredEmailInvitationId}
           />
         </td>
       )}
-      {noteContentField && (
+      {noteContentField ? (
         <td className="console-decision">
           <h4 className="title">
             {prettyField(rowData.note?.content[noteContentField.field].value.toString()) ??
@@ -229,8 +232,7 @@ const PaperRow = ({
             </div>
           )}
         </td>
-      )}
-      {!noteContentField && (
+      ) : (
         <td className="console-decision">
           <h4 className="title">{decision}</h4>
           {venue && <span>{venue}</span>}
@@ -247,7 +249,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
     venueId,
     areaChairsId,
     assignmentUrls,
-    reviewRatingName ,
+    reviewRatingName,
     areaChairName = 'Area_Chairs',
     officialMetaReviewName = 'Meta_Review',
   } = useContext(WebFieldContext)

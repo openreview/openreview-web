@@ -101,6 +101,7 @@ describe('NoteContentV2', () => {
     }
 
     render(<NoteContentV2 {...props} />)
+
     expect(global.marked).toHaveBeenCalledTimes(1)
     expect(global.marked).toHaveBeenCalledWith('<image/src/onerror=prompt(document.domain)>')
 

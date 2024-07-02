@@ -195,7 +195,6 @@ export default class EdgeBrowser extends React.Component {
               id: key,
               content: {
                 name: { fullname: key },
-                email: key,
                 title: '',
                 expertise: [],
                 isDummyProfile: true,
@@ -214,7 +213,6 @@ export default class EdgeBrowser extends React.Component {
               id: key,
               content: {
                 name: { fullname: prettyId(key) },
-                email: key,
                 title: '',
                 expertise: [],
                 isDummyProfile: true,

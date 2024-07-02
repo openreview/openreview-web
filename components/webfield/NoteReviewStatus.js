@@ -1,9 +1,10 @@
-/* globals $,promptMessage: false */
+/* globals $,promptMessage,promptError: false */
 
 // modified from noteReviewStatus.hbs handlebar template
 import Link from 'next/link'
 import React, { useContext, useState } from 'react'
 import upperFirst from 'lodash/upperFirst'
+import copy from 'copy-to-clipboard'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import BasicModal from '../BasicModal'
@@ -103,9 +104,6 @@ const AcPcConsoleReviewerActivityModal = ({
           <div className="reviewer-activity-header">
             <span>
               <strong>Name:</strong> {reviewer.preferredName}
-            </span>
-            <span>
-              <strong>Email:</strong> {reviewer.preferredEmail}
             </span>
           </div>
         </>
@@ -242,6 +240,7 @@ export const AcPcConsoleReviewerStatusRow = ({
   showRatingConfidence = true,
   showActivity = true,
   messageSignature,
+  preferredEmailInvitationId,
 }) => {
   const [updateLastSent, setUpdateLastSent] = useState(true)
   const completedReview = officialReviews.find((p) => p.anonymousId === reviewer.anonymousId)
@@ -255,6 +254,24 @@ export const AcPcConsoleReviewerStatusRow = ({
   const handleSendReminder = (anonymousId) => {
     $(`#reviewer-reminder-${anonymousId}`).modal('show')
   }
+  const getReviewerEmail = async () => {
+    if (!preferredEmailInvitationId) {
+      promptError('Email is not available.')
+      return
+    }
+    try {
+      const result = await api.get(`/edges`, {
+        invitation: preferredEmailInvitationId,
+        head: reviewer.reviewerProfileId,
+      })
+      const email = result.edges?.[0]?.tail
+      if (!email) throw new Error('Email is not available.')
+      copy(`${reviewer.preferredName} <${email}>`)
+      promptMessage(`${email} copied to clipboard`)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
   return (
     <div key={reviewer.reviewerProfileId} className="assigned-reviewer-row">
       <strong className="assigned-reviewer-id">{reviewer.anonymousId}</strong>
@@ -266,8 +283,21 @@ export const AcPcConsoleReviewerStatusRow = ({
             rel="noreferrer"
           >
             {reviewer.preferredName}
-          </a>{' '}
-          <span className="text-muted">&lt;{reviewer.preferredEmail}&gt;</span>
+          </a>
+          <div>{reviewer.profile?.title}</div>
+          {preferredEmailInvitationId && (
+            // eslint-disable-next-line jsx-a11y/anchor-is-valid
+            <a
+              href="#"
+              className="text-muted"
+              onClick={(e) => {
+                e.preventDefault()
+                getReviewerEmail()
+              }}
+            >
+              Copy Email
+            </a>
+          )}
         </span>
         {completedReview ? (
           <>
@@ -428,7 +458,11 @@ export const AcPcConsoleNoteReviewStatus = ({
   reviewerAssignmentUrl,
 }) => {
   const { officialReviews, reviewers = [], note } = rowData
-  const { reviewRatingName, reviewerName = 'Reviewers' } = useContext(WebFieldContext)
+  const {
+    reviewRatingName,
+    reviewerName = 'Reviewers',
+    preferredEmailInvitationId,
+  } = useContext(WebFieldContext)
   const {
     numReviewsDone,
     numReviewersAssigned,
@@ -524,6 +558,7 @@ export const AcPcConsoleNoteReviewStatus = ({
               submissionName={submissionName}
               reviewRatingName={reviewRatingName}
               messageSignature={rowData.messageSignature}
+              preferredEmailInvitationId={preferredEmailInvitationId}
             />
           ))}
         </div>
@@ -571,6 +606,7 @@ export const EthicsReviewStatus = ({
   referrerUrl,
   shortPhrase,
   submissionName,
+  preferredEmailInvitationId,
 }) => {
   const {
     ethicsReviews,
@@ -613,6 +649,7 @@ export const EthicsReviewStatus = ({
                 submissionName={submissionName}
                 showRatingConfidence={false}
                 showActivity={false}
+                preferredEmailInvitationId={preferredEmailInvitationId}
               />
             ))}
           </div>

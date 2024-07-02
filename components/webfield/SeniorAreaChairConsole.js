@@ -20,6 +20,7 @@ import {
   parseNumberField,
   prettyField,
 } from '../../lib/utils'
+import { formatProfileContent } from '../../lib/edge-utils'
 
 const SeniorAreaChairConsole = ({ appContext }) => {
   const {
@@ -54,6 +55,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     withdrawnVenueId,
     deskRejectedVenueId,
     filterFunction,
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -335,14 +337,13 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         .map((profile) => ({
           ...profile,
           preferredName: getProfileName(profile),
-          preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
+          title: formatProfileContent(profile.content).title,
         }))
 
       const allProfilesMap = new Map()
       allProfiles.forEach((profile) => {
         const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-        const profileEmails = profile.content.emails.filter((p) => p)
-        usernames.concat(profileEmails).forEach((key) => {
+        usernames.concat(profile.email ?? []).forEach((key) => {
           allProfilesMap.set(key, profile)
         })
       })
@@ -535,9 +536,6 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 noteNumber: note.number,
                 preferredId: reviewer.reviewerProfileId,
                 preferredName: profile ? getProfileName(profile) : reviewer.reviewerProfileId,
-                preferredEmail: profile
-                  ? profile.content.preferredEmail ?? profile.content.emails[0]
-                  : reviewer.reviewerProfileId,
               }
             }),
             officialReviews,
@@ -565,9 +563,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                   preferredName: profile
                     ? getProfileName(profile)
                     : areaChair.areaChairProfileId,
-                  preferredEmail: profile
-                    ? profile.content.preferredEmail ?? profile.content.emails[0]
-                    : areaChair.areaChairProfileId,
+                  title: profile?.title,
                 }
               }),
               secondaryAreaChairs: secondaryAreaChairs.map((areaChair) => {
@@ -576,9 +572,6 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                   ...areaChair,
                   preferredName: profile
                     ? getProfileName(profile)
-                    : areaChair.areaChairProfileId,
-                  preferredEmail: profile
-                    ? profile.content.preferredEmail ?? profile.content.emails[0]
                     : areaChair.areaChairProfileId,
                 }
               }),

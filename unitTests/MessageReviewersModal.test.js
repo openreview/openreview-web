@@ -142,7 +142,6 @@ describe('MessageReviewersModal', () => {
             {
               reviewerProfileId: '~Reviewer_One1',
               preferredId: '~Reviewer_One1',
-              preferredEmail: '****@test.com',
               anonymizedGroup: 'TestVenue/Submission1/Reviewer_ABCD',
               hasReview: true,
               noteNumber: 1,
@@ -172,7 +171,6 @@ describe('MessageReviewersModal', () => {
       ).toEqual({
         reviewerProfileId: '~Reviewer_One1',
         preferredId: '~Reviewer_One1',
-        preferredEmail: '****@test.com',
         anonymizedGroup: 'TestVenue/Submission1/Reviewer_ABCD',
         hasReview: true,
         count: 1,
@@ -194,7 +192,6 @@ describe('MessageReviewersModal', () => {
             {
               reviewerProfileId: '~Reviewer_One1',
               preferredId: '~Reviewer_One1',
-              preferredEmail: '****@test.com',
               anonymizedGroup: 'TestVenue/Submission1/Reviewer_ABCD',
               hasReview: true,
               noteNumber: 1,
@@ -202,7 +199,6 @@ describe('MessageReviewersModal', () => {
             {
               reviewerProfileId: '~Reviewer_Two1',
               preferredId: '~Reviewer_Two1',
-              preferredEmail: '****@test.com',
               anonymizedGroup: 'TestVenue/Submission1/Reviewer_QWER',
               hasReview: false,
               noteNumber: 1,
@@ -210,7 +206,6 @@ describe('MessageReviewersModal', () => {
             {
               reviewerProfileId: '~Reviewer_Three1',
               preferredId: '~Reviewer_Three1',
-              preferredEmail: '****@test.com',
               anonymizedGroup: 'TestVenue/Submission1/Reviewer_XXYY',
               hasReview: true,
               noteNumber: 1,
@@ -224,7 +219,6 @@ describe('MessageReviewersModal', () => {
             {
               reviewerProfileId: '~Reviewer_One1',
               preferredId: '~Reviewer_One1',
-              preferredEmail: '****@test.com',
               anonymizedGroup: 'TestVenue/Submission2/Reviewer_DCBA',
               hasReview: true,
               noteNumber: 2,
@@ -232,7 +226,6 @@ describe('MessageReviewersModal', () => {
             {
               reviewerProfileId: '~Reviewer_Two2', // an alternate id of reviewer two
               preferredId: '~Reviewer_Two2',
-              preferredEmail: '****@test.com',
               anonymizedGroup: 'TestVenue/Submission2/Reviewer_RRSS',
               hasReview: true,
               noteNumber: 2,
