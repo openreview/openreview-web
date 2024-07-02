@@ -18,6 +18,7 @@ import {
   parseNumberField,
   isValidEmail,
   prettyField,
+  getSingularRoleName,
 } from '../../lib/utils'
 import {
   BiddingStatsRow,
@@ -79,7 +80,7 @@ const AcPcConsoleNoteReviewStatus = ({
   officialReviews,
 }) => {
   const { note } = rowData
-  const { reviewRatingName } = useContext(WebFieldContext)
+  const { reviewRatingName, reviewerName } = useContext(WebFieldContext)
   const {
     numReviewsDone,
     numReviewersAssigned,
@@ -100,8 +101,8 @@ const AcPcConsoleNoteReviewStatus = ({
         {numReviewsDone} of {numReviewersAssigned} Reviews Submitted
       </h4>
       <Collapse
-        showLabel="Show reviewers"
-        hideLabel="Hide reviewers"
+        showLabel={`Show ${prettyField(reviewerName)}`}
+        hideLabel={`Hide ${prettyField(reviewerName)}`}
         className="assigned-reviewers"
       >
         <div>
@@ -147,7 +148,7 @@ const AcPcConsoleNoteReviewStatus = ({
             target="_blank"
             rel="noreferrer"
           >
-            Edit Reviewer Assignments
+            Edit {getSingularRoleName(prettyField(reviewerName))} Assignments
           </a>
         </div>
       )}
@@ -165,6 +166,8 @@ const PaperRow = ({
 }) => {
   const {
     areaChairsId,
+    areaChairName,
+    reviewerName,
     venueId,
     officialReviewName,
     seniorOfficialReviewName,
@@ -212,7 +215,7 @@ const PaperRow = ({
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
-          reviewerAssignmentUrl={getManualAssignmentUrl('Reviewers')}
+          reviewerAssignmentUrl={getManualAssignmentUrl(reviewerName)}
           reviewProgressData={rowData.reviewProgressData}
           reviewers={rowData.reviewers}
           officialReviews={rowData.officialReviews}
@@ -226,7 +229,7 @@ const PaperRow = ({
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
-          reviewerAssignmentUrl={getManualAssignmentUrl('Reviewers')}
+          reviewerAssignmentUrl={getManualAssignmentUrl(reviewerName)}
           reviewProgressData={rowData.seniorReviewProgressData}
           reviewers={rowData.seniorReviewers}
           officialReviews={rowData.seniorOfficialReviews}
@@ -237,7 +240,7 @@ const PaperRow = ({
           <ProgramChairConsolePaperAreaChairProgress
             rowData={rowData}
             referrerUrl={referrerUrl}
-            areaChairAssignmentUrl={getManualAssignmentUrl('Area_Chairs')}
+            areaChairAssignmentUrl={getManualAssignmentUrl(areaChairName)}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
           />
@@ -389,7 +392,8 @@ const ReviewStatsRow = ({ pcConsoleData, isSeniorReviewer = false }) => {
               ? `at least ${completeThreshold} ${prettyId(
                   isSeniorReviewer ? seniorOfficialReviewName : officialReviewName
                 ).toLowerCase()}`
-              : 'reviews from all assigned reviewers'
+              : `reviews from all assigned ${prettyField(
+                isSeniorReviewer ? seniorReviewerName : reviewerName)}`
           }`}
           value={
             pcConsoleData.notes ? (
@@ -471,6 +475,9 @@ const MessageReviewersModal = ({
     seniorOfficialReviewName,
     submissionName,
     emailReplyTo,
+    seniorReviewerName,
+    reviewerName,
+    areaChairName
   } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
@@ -520,7 +527,7 @@ const MessageReviewersModal = ({
                   groups: reviewerIds,
                   subject,
                   message: message.replaceAll('{{submit_review_link}}', forumReviewUrl),
-                  parentGroup: `${venueId}/${submissionName}${rowData.number}/Reviewers`,
+                  parentGroup: `${venueId}/${submissionName}${rowData.number}/${reviewerName}`,
                   replyTo: emailReplyTo,
                 },
                 { accessToken }
@@ -533,7 +540,7 @@ const MessageReviewersModal = ({
                   groups: seniorReviewerIds,
                   subject,
                   message: message.replaceAll('{{submit_review_link}}', forumSeniorReviewUrl),
-                  parentGroup: `${venueId}/${submissionName}${rowData.number}/Senior_Reviewers`,
+                  parentGroup: `${venueId}/${submissionName}${rowData.number}/${seniorReviewerName}`,
                   replyTo: emailReplyTo,
                 },
                 { accessToken }
@@ -625,7 +632,7 @@ const MessageReviewersModal = ({
         ? `This is a reminder to please submit your review for ${shortPhrase}.\n\n`
         : ''
     }Click on the link below to go to the review page:\n\n{{submit_review_link}}
-    \n\nThank you,\n${shortPhrase} Area Chair`)
+    \n\nThank you,\n${shortPhrase} ${getSingularRoleName(prettyField(areaChairName))}`)
 
     const recipients = getRecipients(selectedIds)
 
@@ -676,9 +683,11 @@ const MessageReviewersModal = ({
         <>
           <p>
             {messageOption?.info ??
-              `You may customize the message that will be sent to the reviewers. In the email
+              `You may customize the message that will be sent to the ${prettyField(reviewerName).toLowerCase()}. In the email
   body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
-  form where the reviewer can fill out his or her review.`}
+  form where the ${prettyField(reviewerName).toLowerCase()} can fill out his or her ${prettyField(
+    officialReviewName
+  ).toLowerCase()}.`}
           </p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
@@ -705,7 +714,7 @@ const MessageReviewersModal = ({
         <>
           <p>
             A total of <span className="num-reviewers">{totalMessagesCount}</span> reminder
-            emails will be sent to the following reviewers:
+            emails will be sent to the following {prettyField(reviewerName)}:
           </p>
           <div className="well reviewer-list">
             <List
@@ -750,7 +759,10 @@ const PaperStatusMenuBar = ({
     additionalMetaReviewFields = [],
     reviewerName,
     seniorReviewerName,
+    areaChairName,
+    seniorAreaChairName,
     officialReviewName,
+    officialMetaReviewName,
     seniorOfficialReviewName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
@@ -1030,22 +1042,22 @@ const PaperStatusMenuBar = ({
       getValue: (p) => p.seniorReviewProgressData?.confidenceAvg,
     },
     {
-      header: 'num area chairs assigned',
+      header: `num ${areaChairName} assigned`,
       getValue: (p) => p.metaReviewData?.numAreaChairsAssigned,
     },
     {
-      header: 'area chairs contact info',
+      header: `${areaChairName} contact info`,
       getValue: (p) =>
         p.metaReviewData?.areaChairs
           ?.map((q) => `${q.preferredName}<${q.preferredEmail}>`)
           .join(','),
     },
     {
-      header: 'num submitted area chairs',
+      header: `num submitted ${areaChairName}`,
       getValue: (p) => p.metaReviewData?.numMetaReviewsDone,
     },
     {
-      header: 'meta reviews',
+      header: `${officialMetaReviewName}`,
       getValue: (p) =>
         p.metaReviewData?.metaReviews?.map((q) => q[metaReviewRecommendationName])?.join('|'),
     },
@@ -1056,7 +1068,7 @@ const PaperStatusMenuBar = ({
     ...(seniorAreaChairsId
       ? [
           {
-            header: 'senior area chairs',
+            header: `${seniorAreaChairName}`,
             getValue: (p) =>
               p.metaReviewData?.seniorAreaChairs?.map((q) => q.preferredName).join('|'),
           },
@@ -1236,7 +1248,7 @@ const PaperStatusMenuBar = ({
 const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
-  const { venueId, areaChairsId, assignmentUrls, reviewRatingName, seniorReviewerName } =
+  const { venueId, areaChairsId, assignmentUrls, reviewRatingName, seniorReviewerName, officialReviewName } =
     useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
@@ -1344,7 +1356,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
           },
           { id: 'number', content: '#', width: '55px' },
           { id: 'summary', content: 'Paper Summary', width: '30%' },
-          { id: 'reviewProgress', content: 'Review Progress', width: '25%' },
+          { id: 'reviewProgress', content: `${prettyField(officialReviewName)} Progress`, width: '25%' },
           {
             id: 'seniorReviewProgress',
             content: `${prettyId(seniorReviewerName)} Progress`,
@@ -2566,7 +2578,7 @@ const ProgramChairWithSeniorReviewerConsole = ({ appContext }) => {
               active={activeTabId === '#areachair-status' ? true : undefined}
               onClick={() => setActiveTabId('#areachair-status')}
             >
-              Area Chair Status
+              {prettyId(areaChairName)} Status
             </Tab>
           )}
           {seniorAreaChairsId && (
@@ -2575,7 +2587,7 @@ const ProgramChairWithSeniorReviewerConsole = ({ appContext }) => {
               active={activeTabId === '#seniorareachair-status' ? true : undefined}
               onClick={() => setActiveTabId('#seniorareachair-status')}
             >
-              Senior Area Chair Status
+              {prettyId(seniorAreaChairName)} Status
             </Tab>
           )}
           {(withdrawnVenueId || deskRejectedVenueId) && (

@@ -111,7 +111,7 @@ describe('AreaChairConsoleMenuBar', () => {
       areaChairName: 'Senior_Program_Committee',
     }
     render(<AreaChairConsoleMenuBar {...props} />)
-    expect(baseMenuBarProps.propertiesAllowed).toHaveProperty('Reviewers')
+    expect(baseMenuBarProps.propertiesAllowed).toHaveProperty('reviewers')
     expect(baseMenuBarProps.propertiesAllowed).toHaveProperty('numOfficialReviewDone')
     expect(
       baseMenuBarProps.sortOptions.find((p) => p.label === 'Submission Number')
@@ -131,7 +131,7 @@ describe('AreaChairConsoleMenuBar', () => {
     props.reviewerName = 'Program_Committee'
     props.officialReviewName = 'First_Round_Review'
     render(<AreaChairConsoleMenuBar {...props} />)
-    expect(baseMenuBarProps.propertiesAllowed).toHaveProperty('ProgramCommittee')
+    expect(baseMenuBarProps.propertiesAllowed).toHaveProperty('programCommittee')
     expect(baseMenuBarProps.propertiesAllowed).toHaveProperty('numFirstRoundReviewDone')
     expect(baseMenuBarProps.sortOptions.find((p) => p.label === 'Paper Number')).toBeTruthy()
     expect(
@@ -179,7 +179,7 @@ describe('AreaChairConsoleMenuBar', () => {
     props.reviewerName = 'Program_Committee'
     props.officialReviewName = 'First_Round_Review'
     render(<AreaChairConsoleMenuBar {...props} />)
-    expect(baseMenuBarProps.propertiesAllowed).toHaveProperty('ProgramCommittee')
+    expect(baseMenuBarProps.propertiesAllowed).toHaveProperty('programCommittee')
     expect(baseMenuBarProps.propertiesAllowed).toHaveProperty('numFirstRoundReviewDone')
     expect(baseMenuBarProps.sortOptions.find((p) => p.label === 'Paper Number')).toBeTruthy()
     expect(

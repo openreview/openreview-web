@@ -9,12 +9,13 @@ import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
+import { prettyField, pluralizeString } from '../../../lib/utils'
 
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
   const { id, preferredName, preferredEmail, registrationNotes } =
     rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
-  const { areaChairsId, reviewersId, bidName, scoresName, recommendationName } =
+  const { seniorAreaChairName, areaChairsId, reviewersId, reviewerName, bidName, scoresName, recommendationName } =
     useContext(WebFieldContext)
   const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
@@ -70,7 +71,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
           )}
           {recommendationEnabled && (
             <>
-              {`Reviewers Recommended: ${completedRecs}`}{' '}
+              {`${prettyField(reviewerName)} Recommended: ${completedRecs}`}{' '}
               {completedBids > 0 && (
                 <a
                   href={edgeBrowserRecsUrl}
@@ -87,7 +88,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
       </div>
       {sacProfile && (
         <>
-          <h4>Senior Area Chair: </h4>
+          <h4>{prettyField(seniorAreaChairName)}: </h4>
           <div className="note">
             {sacProfile?.preferredName && (
               <>
@@ -124,13 +125,13 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
 }
 
 // modified based on notesAreaChairProgress.hbs
-const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
+const NoteAreaChairProgress = ({ rowData, referrerUrl, officialReviewName }) => {
   const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
     <div className="reviewer-progress">
       <h4>
-        {numCompletedReviews} of {numPapers} Papers Reviews Completed
+        {numCompletedReviews} of {numPapers} Papers with {pluralizeString(prettyField(officialReviewName))} Completed
       </h4>
       {rowData.notes.length !== 0 && <strong>Papers:</strong>}
       <div className="review-progress">
@@ -168,13 +169,14 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
 }
 
 // modified based on notesAreaChairStatus.hbs
-const NoteAreaChairStatus = ({ rowData, referrerUrl, metaReviewRecommendationName }) => {
+const NoteAreaChairStatus = ({ rowData, referrerUrl, metaReviewRecommendationName, officialMetaReviewName }) => {
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
     <div className="areachair-progress">
       <h4>
-        {numCompletedMetaReviews} of {numPapers} Papers Meta Review Completed
+        {numCompletedMetaReviews} of {numPapers} Papers with {pluralizeString(
+          prettyField(officialMetaReviewName))} Completed
       </h4>
       {rowData.notes.length !== 0 && <strong>Papers:</strong>}
       <div>
@@ -203,14 +205,14 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl, metaReviewRecommendationNam
                           target="_blank"
                           rel="noreferrer"
                         >
-                          Read Meta Review
+                          Read {prettyField(officialMetaReviewName)}
                         </a>
                       </div>
                     )
                   })}
                 </>
               ) : (
-                <span>{`${noteVenue ? `${noteVenue} - ` : ''} No Meta Review`}</span>
+                <span>{`${noteVenue ? `${noteVenue} - ` : ''} No ${prettyField(officialMetaReviewName)}`}</span>
               )}
             </div>
           )
@@ -225,6 +227,9 @@ const AreaChairStatusRow = ({
   bidEnabled,
   recommendationEnabled,
   invitations,
+  seniorAreaChairName,
+  officialReviewName,
+  officialMetaReviewName,
   metaReviewRecommendationName,
   referrerUrl,
 }) => (
@@ -238,16 +243,18 @@ const AreaChairStatusRow = ({
         bidEnabled={bidEnabled}
         recommendationEnabled={recommendationEnabled}
         invitations={invitations}
+        seniorAreaChairName={seniorAreaChairName}
       />
     </td>
     <td>
-      <NoteAreaChairProgress rowData={rowData} referrerUrl={referrerUrl} />
+      <NoteAreaChairProgress rowData={rowData} referrerUrl={referrerUrl} officialReviewName={officialReviewName} />
     </td>
     <td>
       <NoteAreaChairStatus
         rowData={rowData}
         referrerUrl={referrerUrl}
         metaReviewRecommendationName={metaReviewRecommendationName}
+        officialMetaReviewName={officialMetaReviewName}
       />
     </td>
   </tr>
@@ -263,10 +270,14 @@ const AreaChairStatus = ({
   const {
     shortPhrase,
     seniorAreaChairsId,
+    seniorAreaChairName,
     areaChairsId,
+    areaChairName,
     reviewersId,
     bidName,
     recommendationName,
+    officialReviewName,
+    officialMetaReviewName,
     metaReviewRecommendationName = 'recommendation',
     venueId,
   } = useContext(WebFieldContext)
@@ -373,7 +384,7 @@ const AreaChairStatus = ({
           tableRows: [...tableRows],
         })
       } catch (error) {
-        promptError(`loading area chair status: ${error.message}`)
+        promptError(`loading ${prettyField(areaChairName)} status: ${error.message}`)
       }
     }
   }
@@ -414,7 +425,7 @@ const AreaChairStatus = ({
   if (areaChairStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no area chairs. Check back later or contact info@openreview.net if you
+        There are no {prettyField(areaChairName)}. Check back later or contact info@openreview.net if you
         believe this to be an error.
       </p>
     )
@@ -431,7 +442,7 @@ const AreaChairStatus = ({
           messageParentGroup={areaChairsId}
           messageSignature={venueId}
         />
-        <p className="empty-message">No area chair matching search criteria.</p>
+        <p className="empty-message">No {prettyField(areaChairName)} matching search criteria.</p>
       </div>
     )
   return (
@@ -449,8 +460,8 @@ const AreaChairStatus = ({
         className="console-table table-striped pc-console-ac-status"
         headings={[
           { id: 'number', content: '#', width: '55px' },
-          { id: 'areachair', content: 'Area Chair', width: '10%' },
-          { id: 'reviewProgress', content: 'Review Progress' },
+          { id: 'areachair', content: `${prettyField(areaChairName)}`, width: '10%' },
+          { id: 'reviewProgress', content: `${prettyField(officialReviewName)} Progress` },
           { id: 'status', content: 'Status' },
         ]}
       >
@@ -461,6 +472,9 @@ const AreaChairStatus = ({
             bidEnabled={bidEnabled}
             recommendationEnabled={recommendationEnabled}
             invitations={pcConsoleData.invitations}
+            seniorAreaChairName={seniorAreaChairName}
+            officialReviewName={officialReviewName}
+            officialMetaReviewName={officialMetaReviewName}
             metaReviewRecommendationName={metaReviewRecommendationName}
             referrerUrl={referrerUrl}
           />

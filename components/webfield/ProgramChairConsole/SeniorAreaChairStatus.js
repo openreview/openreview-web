@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { sortBy } from 'lodash'
 import { getProfileLink } from '../../../lib/webfield-utils'
+import { prettyField, pluralizeString } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -52,6 +53,7 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
   referrerUrl,
   metaReviewRecommendationName,
 }) => {
+  const { officialReviewName, officialMetaReviewName } = useContext(WebFieldContext)
   const { id, preferredName, preferredEmail } = rowData.sacProfile ?? {}
   const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
@@ -85,7 +87,8 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
       <td>
         <div className="reviewer-progress">
           <h4>
-            {numCompletedReviews} of {numPapers} Papers Reviews Completed
+            {numCompletedReviews} of {numPapers} Papers with {pluralizeString(
+              prettyField(officialReviewName))} Completed
           </h4>
           {rowData.notes.length !== 0 && <strong>Papers:</strong>}
           <div className="review-progress">
@@ -124,7 +127,8 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
       <td>
         <div className="areachair-progress">
           <h4>
-            {numCompletedMetaReviews} of {numPapers} Papers Meta Review Completed
+            {numCompletedMetaReviews} of {numPapers} Papers with {pluralizeString(
+              prettyField(officialMetaReviewName))} Completed
           </h4>
           {rowData.notes.length !== 0 && <strong>Papers:</strong>}
           <div>
@@ -154,14 +158,14 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
                               target="_blank"
                               rel="noreferrer"
                             >
-                              Read Meta Review
+                              Read {prettyField(officialMetaReviewName)}
                             </a>
                           </div>
                         )
                       })}
                     </>
                   ) : (
-                    <span>{`${noteVenue ? `${noteVenue} - ` : ''} No Meta Review`}</span>
+                    <span>{`${noteVenue ? `${noteVenue} - ` : ''} No ${prettyField(officialMetaReviewName)}`}</span>
                   )}
                 </div>
               )
@@ -182,6 +186,10 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
     venueId,
     metaReviewRecommendationName = 'recommendation',
     sacDirectPaperAssignment,
+    seniorAreaChairName,
+    areaChairName,
+    officialReviewName,
+    officialMetaReviewName
   } = useContext(WebFieldContext)
 
   const referrerUrl = encodeURIComponent(
@@ -280,7 +288,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
   if (seniorAreaChairStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no senior area chairs.Check back later or contact info@openreview.net if you
+        There are no {prettyField(seniorAreaChairName)}.Check back later or contact info@openreview.net if you
         believe this to be an error.
       </p>
     )
@@ -293,7 +301,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
           setSeniorAreaChairStatusTabData={setSeniorAreaChairStatusTabData}
           sacDirectPaperAssignment={sacDirectPaperAssignment}
         />
-        <p className="empty-message">No senior area chair matching search criteria.</p>
+        <p className="empty-message">No {prettyField(seniorAreaChairName)} matching search criteria.</p>
       </div>
     )
   return (
@@ -310,14 +318,14 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
           sacDirectPaperAssignment
             ? [
                 { id: 'number', content: '#', width: '55px' },
-                { id: 'seniorAreaChair', content: 'Senior Area Chair', width: '10%' },
-                { id: 'reviewProgress', content: 'Review Progress' },
-                { id: 'metaReviewstatus', content: 'Meta Review Status' },
+                { id: 'seniorAreaChair', content: `${prettyField(seniorAreaChairName)}`, width: '10%' },
+                { id: 'reviewProgress', content: `${prettyField(officialReviewName)} Progress` },
+                { id: 'metaReviewstatus', content: `${prettyField(officialMetaReviewName)} Status` },
               ]
             : [
                 { id: 'number', content: '#', width: '55px' },
-                { id: 'seniorAreaChair', content: 'Senior Area Chair' },
-                { id: 'areachair', content: 'Area Chair' },
+                { id: 'seniorAreaChair', content: `${prettyField(seniorAreaChairName)}` },
+                { id: 'areachair', content: `${prettyField(areaChairName)}` },
               ]
         }
       >
