@@ -1832,6 +1832,37 @@ describe('ConsoleTaskList', () => {
           ],
         },
       },
+      { // Use reply number in invitation id instead of anon id
+        id: `${venueId}/${submissionName}6/Meta_Review1/-/Meta_Review_Agreement`,
+        domain: `${venueId}`,
+        duedate: now + fourDays,
+        invitees: [`${venueId}/${submissionName}6/${seniorAreaChairName}`],
+        edit: {
+          note: {
+            forum: 'paper6Id',
+            replyto: 'metaReviewId',
+          },
+          details: {
+            replytoNote: {
+              id: 'metaReviewId',
+              forum: 'paper6Id',
+              replyto: 'paper6Id',
+              content: {
+                title: undefined, // meta review may not have title
+                metareview: { value: 'meta review content' },
+                recommendation: { value: 'meta review recommendation' },
+              },
+            },
+            repliedNotes: [
+              {
+                id: 'metaReviewAgreementId',
+                forum: 'paper6Id',
+                replyto: 'metaReviewId',
+              },
+            ],
+          },
+        },
+      },
     ]
     edgeInvitations = []
     tagInvitations = []
@@ -1851,6 +1882,7 @@ describe('ConsoleTaskList', () => {
       const metaReviewAgreementLink = screen.getByText('Submission5 Area Chair AnonId Meta Review Agreement')
       const metaReview5RevisionLink = screen.getByText('Submission5 Meta Review SAC Revision')
       const metaReview6RevisionLink = screen.getByText('Submission6 Meta Review SAC Revision')
+      const metaReview6AgreementLink = screen.getByText('Submission6 Meta Review1 Meta Review Agreement')
 
       expect(registrationLink).toBeInTheDocument()
       expect(registrationLink.parentElement.parentElement).not.toHaveClass('completed')
@@ -1897,6 +1929,16 @@ describe('ConsoleTaskList', () => {
       expect(screen.getByText('Paper 6 Title')).toHaveAttribute(
         'href',
         expect.stringContaining('id=paper6Id')
+      )
+
+      expect(metaReview6AgreementLink).toBeInTheDocument()
+      expect(metaReview6AgreementLink.parentElement.parentElement).not.toHaveClass('completed')
+      expect(metaReview6AgreementLink.nextElementSibling).toHaveClass('duedate', {
+        exact: true,
+      })
+      expect(metaReview6AgreementLink).toHaveAttribute(
+        'href',
+        expect.stringContaining('id=paper6Id&noteId=metaReviewId&invitationId=')
       )
     })
   })
