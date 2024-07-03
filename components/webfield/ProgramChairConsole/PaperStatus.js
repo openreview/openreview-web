@@ -144,10 +144,6 @@ const PaperRow = ({
       )}
       {noteContentField && (
         <td className="console-decision">
-          <h4 className="title">
-            {prettyField(rowData.note?.content[noteContentField.field].value.toString()) ??
-              'N/A'}
-          </h4>
           {reasonNotes.length > 0 && (
             <div>
               <Table
@@ -273,6 +269,28 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
     return null
   }
 
+  const getNotesByReplyFields = (notes) => (
+    // Find note(s) that justify the flag, display using non meta-invitation invitation
+    notes.filter((note) =>
+      note.details?.replies?.some((reply) => {
+        if (!reply?.invitations || !reply?.content) return false
+        const matchingInv = (
+          reply.invitations.some((replyInvitation) =>
+            noteContentField.reasonInvitations?.some((reasonInvitation) =>
+              replyInvitation.endsWith(reasonInvitation)
+            )
+          )
+        )
+        const containingField = Object.keys(reply.content).some((replyField) =>
+          noteContentField.reasonFields?.[replyField]?.includes(
+            reply.content[replyField].value
+          )
+        )
+        return matchingInv && containingField
+      })
+    )
+  )
+
   useEffect(() => {
     if (!pcConsoleData.notes) return
     if (!pcConsoleData.noteNumberReviewMetaReviewMap) {
@@ -283,7 +301,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
       const { notes, noteNumberReviewMetaReviewMap } = pcConsoleData
       if (!notes) return
       const actualNotes = noteContentField
-        ? notes.filter((note) => note.content[noteContentField.field])
+        ? getNotesByReplyFields(notes)
         : notes
       const actualNoteNumbers = actualNotes.map((note) => note.number)
       const actualNoteNumberReviewMetaReviewMap = noteContentField
