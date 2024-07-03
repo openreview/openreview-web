@@ -59,6 +59,12 @@ const ProfileHistory = ({ history }) => (
       <strong>{history.position}</strong>
     </div>
     <div className="institution">
+      {history.institution.department && (
+        <span>
+          {history.institution.department}
+          {', '}
+        </span>
+      )}
       {history.institution.name}{' '}
       {history.institution.domain && <small>{`(${history.institution.domain})`}</small>}
       {(history.institution.city ||

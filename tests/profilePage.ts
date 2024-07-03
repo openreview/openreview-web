@@ -244,7 +244,7 @@ test('add and delete pronouns', async (t) => {
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .click(Selector('div.pronouns-dropdown__control'))
-    .wait(500)
+    .wait(1000)
     .click(Selector('div.pronouns-dropdown__option').nth(2))
     .click(saveProfileButton)
     .expect(Selector('h4').nth(0).textContent)
@@ -276,15 +276,14 @@ test('add and delete pronouns', async (t) => {
 })
 
 test('add and delete geolocation of history', async (t) => {
-  // add geolocation info of history
+  // update geolocation info of history
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(Selector('div.country-dropdown__control'))
-    .wait(500)
+    .click(Selector('input.region-dropdown__placeholder')) // show dropdown
     .click(Selector('div.country-dropdown__option').nth(3))
-    .typeText(Selector('input.institution-city'), 'test city')
-    .typeText(Selector('input.institution-state'), 'test state')
+    .typeText(Selector('input.institution-city'), 'test city', { replace: true })
+    .typeText(Selector('input.institution-state'), 'test state', { replace: true })
     .typeText(Selector('input.institution-department'), 'test department')
     .click(saveProfileButton)
     .expect(Selector('.glyphicon-map-marker').exists)
@@ -296,11 +295,12 @@ test('add and delete geolocation of history', async (t) => {
       ).exists
     )
     .ok()
-  // remove country code
+
+  // remove state
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(Selector('div.country-dropdown__control'))
+    .selectText(Selector('input.institution-state'))
     .pressKey('delete')
     .click(saveProfileButton)
     .expect(Selector('.glyphicon-map-marker').exists)
@@ -308,42 +308,33 @@ test('add and delete geolocation of history', async (t) => {
     .expect(
       Selector('.glyphicon-map-marker').withAttribute(
         'data-original-title',
-        'test city, test state'
+        'test city, MX'
       ).exists
     )
     .ok()
-  // remove only city
+
+  // remove city should fail as it's mandatory
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(Selector('div.country-dropdown__control'))
-    .wait(500)
+    .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__option').nth(3))
     .selectText(Selector('input.institution-city'))
     .pressKey('delete')
     .click(saveProfileButton)
-    .expect(Selector('.glyphicon-map-marker').exists)
-    .ok()
-    .expect(
-      Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'test state, MX')
-        .exists
-    )
-    .ok()
-  // remove all geolocation info
+    .expect(errorMessageSelector.innerText)
+    .eql('Error: You must enter position, institution, domain, country/region and city information for each entry in your education and career history')
+
+  // remove country/region should fail as it's mandatory
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__control'))
     .pressKey('delete')
-    .selectText(Selector('input.institution-city'))
-    .pressKey('delete')
-    .selectText(Selector('input.institution-state'))
-    .pressKey('delete')
-    .selectText(Selector('input.institution-department'))
-    .pressKey('delete')
     .click(saveProfileButton)
-    .expect(Selector('.glyphicon-map-marker').exists)
-    .notOk()
+    .expect(errorMessageSelector.innerText)
+    .eql('Error: You must enter position, institution, domain, country/region and city information for each entry in your education and career history')
 })
 
 test('add links', async (t) => {
@@ -730,8 +721,8 @@ test('validate current history', async (t) => {
       paste: true,
     })
     .click(saveProfileButton)
-    .expect(Selector('.glyphicon-map-marker').exists)
-    .notOk()
+    .expect(errorMessageSelector.innerText)
+    .eql('Your profile information has been successfully updated')
 
   // add empty end date
   await t
@@ -740,8 +731,8 @@ test('validate current history', async (t) => {
     .selectText(firstHistoryEndInput)
     .pressKey('delete')
     .click(saveProfileButton)
-    .expect(Selector('.glyphicon-map-marker').exists)
-    .notOk()
+    .expect(errorMessageSelector.innerText)
+    .eql('Your profile information has been successfully updated')
 })
 
 test('profile should be auto merged', async (t) => {

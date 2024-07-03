@@ -52,7 +52,7 @@ export default function ProfileEditor({
     'wikipedia',
     'linkedin',
     'semanticScholar',
-    'aclanthology'
+    'aclanthology',
   ]
 
   const promptInvalidValue = (type, invalidKey, message) => {
@@ -204,13 +204,18 @@ export default function ProfileEditor({
     }
     if (
       (invalidRecord = profileContent.history.find(
-        (p) => !p.position || !p.institution.name || !p.institution.domain
+        (p) =>
+          !p.position ||
+          !p.institution.name ||
+          !p.institution.domain ||
+          !p.institution.country ||
+          !p.institution.city
       ))
     ) {
       return promptInvalidValue(
         'history',
         invalidRecord.key,
-        'You must enter position, institution, and domain information for each entry in your education and career history'
+        'You must enter position, institution, domain, country/region and city information for each entry in your education and career history'
       )
     }
     if (!profileContent.history.some((p) => !p.end || p.end >= new Date().getFullYear())) {
