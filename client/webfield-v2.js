@@ -684,6 +684,18 @@ module.exports = (function () {
         return false
       })
 
+      $container.on('click', 'a.copy-email', function (e) {
+        var $link = $(this)
+        var userId = $link.data('userId')
+
+        console.log('copy email', userId)
+        get('/edges', { invitation: 'TMLR/-/Preferred_Emails', head: userId })
+        .then(function (result) {
+          console.log('result', result)
+        })
+        return false
+      })
+
       var postReviewerEmails = function (postData) {
         postData.message = postData.message.replace('{{forumUrl}}', postData.forumUrl)
 

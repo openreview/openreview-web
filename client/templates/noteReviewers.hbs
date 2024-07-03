@@ -16,7 +16,7 @@
           <tr>
             <td style="width: 40px;"><strong>{{reviewerNum}}</strong></td>
             <td>
-              {{user.name}} <span class="text-muted">&lt;{{user.email}}&gt;</span>
+              {{user.name}} <a href="#" class="copy-email" data-user-id="{{user.id}}">Copy Email</a>
               {{#if user.status}}
                 {{#each user.status as |value name|}}
                   <br>
