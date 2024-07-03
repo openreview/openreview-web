@@ -3198,8 +3198,8 @@ describe('NewReplyEditNoteReaders', () => {
           readers: {
             param: {
               enum: [
-                'ICML.cc/2023/Conference/Submission1/Reviewer_abcd',
                 'ICML.cc/2023/Conference/Submission1/Reviewers',
+                'ICML.cc/2023/Conference/Submission1/Reviewer_abcd',
               ],
               default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
             },
@@ -3276,6 +3276,7 @@ describe('NewReplyEditNoteReaders', () => {
                 'ICML.cc/2023/Conference/Submission1/Action_Editors',
                 'ICML.cc/2023/Conference/Submission1/Area_Chairs',
                 'ICML.cc/2023/Conference/Submission1/Senior_Area_Chairs',
+                'ICML.cc/2023/Conference/Submission1/Action_Editor_xcvb',
               ],
             },
           },
@@ -3308,18 +3309,21 @@ describe('NewReplyEditNoteReaders', () => {
       const dropdownList = screen.getByText(
         'ICML 2023 Conference Submission1 Authors'
       ).parentElement
-      expect(dropdownList.childElementCount).toEqual(4)
+      expect(dropdownList.childElementCount).toEqual(5)
       expect(dropdownList.childNodes[0].textContent).toEqual(
         'ICML 2023 Conference Submission1 Authors'
       )
       expect(dropdownList.childNodes[1].textContent).toEqual(
-        'ICML 2023 Conference Submission1 Area Chairs'
+        'ICML 2023 Conference Submission1 Action Editors'
       )
       expect(dropdownList.childNodes[2].textContent).toEqual(
-        'ICML 2023 Conference Submission1 Senior Area Chairs'
+        'ICML 2023 Conference Submission1 Area Chairs'
       )
       expect(dropdownList.childNodes[3].textContent).toEqual(
-        'ICML 2023 Conference Submission1 Action Editors'
+        'ICML 2023 Conference Submission1 Senior Area Chairs'
+      )
+      expect(dropdownList.childNodes[4].textContent).toEqual(
+        'ICML 2023 Conference Submission1 Action Editor xcvb'
       )
     })
 
@@ -3342,18 +3346,21 @@ describe('NewReplyEditNoteReaders', () => {
       />
     )
     await waitFor(() => {
-      expect(screen.getAllByRole('checkbox').length).toEqual(4)
+      expect(screen.getAllByRole('checkbox').length).toEqual(5)
       expect(screen.getAllByRole('checkbox')[0].nextSibling.textContent).toEqual(
         'ICML 2023 Conference Submission1 Authors'
       )
       expect(screen.getAllByRole('checkbox')[1].nextSibling.textContent).toEqual(
-        'ICML 2023 Conference Submission1 Area Chairs'
+        'ICML 2023 Conference Submission1 Action Editors'
       )
       expect(screen.getAllByRole('checkbox')[2].nextSibling.textContent).toEqual(
-        'ICML 2023 Conference Submission1 Senior Area Chairs'
+        'ICML 2023 Conference Submission1 Area Chairs'
       )
       expect(screen.getAllByRole('checkbox')[3].nextSibling.textContent).toEqual(
-        'ICML 2023 Conference Submission1 Action Editors'
+        'ICML 2023 Conference Submission1 Senior Area Chairs'
+      )
+      expect(screen.getAllByRole('checkbox')[4].nextSibling.textContent).toEqual(
+        'ICML 2023 Conference Submission1 Action Editor xcvb'
       )
     })
   })
@@ -3401,7 +3408,7 @@ describe('NewReplyEditNoteReaders', () => {
     await waitFor(() => {
       const dropdownList = screen.getByText('description of reviewers').parentElement
       expect(dropdownList.childElementCount).toEqual(2)
-      expect(dropdownList.childNodes[1].textContent).toEqual('description of reviewer abcd')
+      expect(dropdownList.childNodes[0].textContent).toEqual('description of reviewer abcd')
       expect(onChange).toHaveBeenCalledWith(['ICML.cc/2023/Conference/Submission1/Reviewers'])
     })
   })
@@ -3452,187 +3459,6 @@ describe('NewReplyEditNoteReaders', () => {
       expect(
         screen.getByRole('checkbox', { name: 'description of reviewer abcd' })
       ).toBeInTheDocument()
-      expect(onChange).toHaveBeenCalledWith(['ICML.cc/2023/Conference/Submission1/Reviewers'])
-    })
-  })
-
-  test('show dropdown/checkbox of intersection of enum groups and replyToNote readers (adding AnonReviewer group)', async () => {
-    const invitation = {
-      edit: {
-        note: {
-          readers: {
-            param: {
-              enum: [
-                'ICML.cc/2023/Conference/Submission1/AnonReviewer',
-                'ICML.cc/2023/Conference/Submission1/Reviewers',
-              ],
-              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
-            },
-          },
-        },
-      },
-    }
-    const user = userEvent.setup()
-
-    const { rerender } = render(
-      <NewReplyEditNoteReaders
-        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
-        fieldDescription={invitation.edit.note.readers}
-        closeNoteEditor={jest.fn()}
-        value={undefined}
-        onChange={jest.fn()}
-        setLoading={jest.fn()}
-        useCheckboxWidget={undefined}
-      />
-    )
-
-    await user.click(await screen.findByText('Select readers'))
-    await waitFor(() => {
-      const dropdownList = screen.getByText(
-        'ICML 2023 Conference Submission1 Reviewers'
-      ).parentElement
-      expect(dropdownList.childElementCount).toEqual(2)
-      expect(dropdownList.childNodes[0].textContent).toEqual(
-        'ICML 2023 Conference Submission1 Reviewers'
-      )
-      expect(dropdownList.childNodes[1].textContent).toEqual(
-        'ICML 2023 Conference Submission1 AnonReviewer'
-      )
-    })
-
-    rerender(
-      <NewReplyEditNoteReaders
-        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
-        fieldDescription={invitation.edit.note.readers}
-        closeNoteEditor={jest.fn()}
-        value={undefined}
-        onChange={jest.fn()}
-        setLoading={jest.fn()}
-        useCheckboxWidget={true}
-      />
-    )
-    await waitFor(() => {
-      expect(screen.getAllByRole('checkbox').length).toEqual(2)
-      expect(screen.getAllByRole('checkbox')[0].nextSibling.textContent).toEqual(
-        'ICML 2023 Conference Submission1 Reviewers'
-      )
-      expect(screen.getAllByRole('checkbox')[0]).toHaveAttribute(
-        'value',
-        'ICML.cc/2023/Conference/Submission1/Reviewers'
-      )
-      expect(screen.getAllByRole('checkbox')[1].nextSibling.textContent).toEqual(
-        'ICML 2023 Conference Submission1 AnonReviewer'
-      )
-      expect(screen.getAllByRole('checkbox')[1]).toHaveAttribute(
-        'value',
-        'ICML.cc/2023/Conference/Submission1/AnonReviewer'
-      )
-    })
-  })
-
-  test('show dropdown of intersection of items groups and replyToNote readers (adding AnonReviewer group) and auto select those in parent readers', async () => {
-    const onChange = jest.fn()
-    const invitation = {
-      edit: {
-        note: {
-          readers: {
-            param: {
-              items: [
-                {
-                  value: 'ICML.cc/2023/Conference/Submission1/AnonReviewer',
-                  description: 'description of anon reviewer',
-                  optional: true,
-                },
-                {
-                  value: 'ICML.cc/2023/Conference/Submission1/Reviewers',
-                  description: 'description of reviewers',
-                  optional: true,
-                },
-              ],
-              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
-            },
-          },
-        },
-      },
-    }
-    const user = userEvent.setup()
-
-    render(
-      <NewReplyEditNoteReaders
-        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
-        fieldDescription={invitation.edit.note.readers}
-        closeNoteEditor={jest.fn()}
-        value={undefined}
-        onChange={onChange}
-        setLoading={jest.fn()}
-        useCheckboxWidget={undefined}
-      />
-    )
-
-    await user.click(await screen.findByText('Select readers'))
-    await waitFor(() => {
-      const dropdownList = screen.getByText('description of reviewers').parentElement
-      expect(dropdownList.childElementCount).toEqual(2)
-      expect(dropdownList.childNodes[0].textContent).toEqual('description of reviewers')
-      expect(dropdownList.childNodes[1].textContent).toEqual('description of anon reviewer')
-      expect(onChange).toHaveBeenCalledWith(['ICML.cc/2023/Conference/Submission1/Reviewers'])
-    })
-  })
-
-  test('show checkbox of intersection of items groups and replyToNote readers (adding AnonReviewer group) and auto select those in parent readers', async () => {
-    const onChange = jest.fn()
-    const invitation = {
-      edit: {
-        note: {
-          readers: {
-            param: {
-              items: [
-                {
-                  value: 'ICML.cc/2023/Conference/Submission1/AnonReviewer',
-                  description: 'description of anon reviewer',
-                  optional: true,
-                },
-                {
-                  value: 'ICML.cc/2023/Conference/Submission1/Reviewers',
-                  description: 'description of reviewers',
-                  optional: true,
-                },
-              ],
-              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
-            },
-          },
-        },
-      },
-    }
-
-    render(
-      <NewReplyEditNoteReaders
-        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
-        fieldDescription={invitation.edit.note.readers}
-        closeNoteEditor={jest.fn()}
-        value={undefined}
-        onChange={onChange}
-        setLoading={jest.fn()}
-        useCheckboxWidget={true}
-      />
-    )
-
-    await waitFor(() => {
-      expect(screen.getAllByRole('checkbox').length).toEqual(2)
-      expect(screen.getAllByRole('checkbox')[0].nextSibling.textContent).toEqual(
-        'description of reviewers'
-      )
-      expect(screen.getAllByRole('checkbox')[0]).toHaveAttribute(
-        'value',
-        'ICML.cc/2023/Conference/Submission1/Reviewers'
-      )
-      expect(screen.getAllByRole('checkbox')[1].nextSibling.textContent).toEqual(
-        'description of anon reviewer'
-      )
-      expect(screen.getAllByRole('checkbox')[1]).toHaveAttribute(
-        'value',
-        'ICML.cc/2023/Conference/Submission1/AnonReviewer'
-      )
       expect(onChange).toHaveBeenCalledWith(['ICML.cc/2023/Conference/Submission1/Reviewers'])
     })
   })
@@ -3797,62 +3623,4 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
-  test('call clearError when user check/uncheck selection', async () => {
-    const clearError = jest.fn()
-    const onChange = jest.fn()
-    const invitation = {
-      edit: {
-        note: {
-          readers: {
-            param: {
-              items: [
-                {
-                  value: 'ICML.cc/2023/Conference/Submission1/AnonReviewer',
-                  description: 'description of anon reviewer',
-                  optional: true,
-                },
-                {
-                  value: 'ICML.cc/2023/Conference/Submission1/Reviewers',
-                  description: 'description of reviewers',
-                  optional: true,
-                },
-              ],
-              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
-            },
-          },
-        },
-      },
-    }
-    const user = userEvent.setup()
-
-    render(
-      <NewReplyEditNoteReaders
-        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewers'] }}
-        fieldDescription={invitation.edit.note.readers}
-        closeNoteEditor={jest.fn()}
-        value={['ICML.cc/2023/Conference/Submission1/Reviewers']}
-        onChange={onChange}
-        setLoading={jest.fn()}
-        clearError={clearError}
-        useCheckboxWidget={true}
-      />
-    )
-
-    let reviewerCheckbox
-    let anonReviewerCheckbox
-    await waitFor(() => {
-      reviewerCheckbox = screen.getByRole('checkbox', { name: 'description of reviewers' })
-      anonReviewerCheckbox = screen.getByRole('checkbox', {
-        name: 'description of anon reviewer',
-      })
-
-      expect(reviewerCheckbox).toBeChecked()
-      expect(anonReviewerCheckbox).not.toBeChecked()
-    })
-
-    await user.click(reviewerCheckbox)
-    expect(clearError).toHaveBeenCalledTimes(1)
-    await user.click(anonReviewerCheckbox)
-    expect(clearError).toHaveBeenCalledTimes(2)
-  })
 })

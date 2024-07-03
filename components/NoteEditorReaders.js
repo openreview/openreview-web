@@ -240,53 +240,27 @@ export const NewReplyEditNoteReaders = ({
   const addEnumParentReaders = (groupResults, parentReaders) => {
     if (!parentReaders?.length || parentReaders.includes('everyone') || isDirectReplyToForum)
       return groupResults
-    const readersIntersection = parentReaders.flatMap((p) => {
-      const groupResult = groupResults.find((q) => q.value === p)
-      return groupResult ?? []
-    })
 
-    const mismatchingRoles = [
-      'Area_Chairs',
-      'Senior_Area_Chairs',
-      'Action_Editors',
-      'Reviewers',
-    ]
+    const filteredGroups = parentReaders.map((p) => {
+      const committeeName = p.split('/').pop()
+      const singularCommitteeName = committeeName.endsWith('s') ? committeeName.slice(0, -1) : committeeName
 
-    mismatchingRoles.forEach((role) => {
-      const parentHasRole = parentReaders.find((p) => {
-        if (!p.endsWith(`/${role}`)) return false
-        const tokens = p.split('/')
-        const tokenBeforeRole = tokens[tokens.length - 2]
-        return !/[a-zA-Z]+\d+/.test(tokenBeforeRole)
-      }) // role group
-      const invitationRole = groupResults.find((p) => {
-        if (!p.value.endsWith(`/${role}`)) return false
-        const tokens = p.value.split('/')
-        const tokenBeforeRole = tokens[tokens.length - 2]
-        return /[a-zA-Z]+\d+/.test(tokenBeforeRole)
-      }) // per paper role group
-      if (
-        parentHasRole &&
-        invitationRole &&
-        !readersIntersection.find((p) => p.value.endsWith(`/${role}`))
-      ) {
-        readersIntersection.push(invitationRole)
+      return groupResults.filter((q) =>
+        // 1. parent reader is the same as the invitation group reader
+        // 2. parent reader is a committee reader and invitation group reader is an anonymous committee reader
+        // 3. parent reader is a committee reader and invitation group reader is a committee reader with a longer path
+        q.value === p || q.value.split('/').pop().startsWith(`${singularCommitteeName}_`) || (q.value.endsWith(`/${committeeName}`) && q.value.length > p.length)
+      )
+
+    }).flat()
+
+    const readersIntersection = []
+    groupResults.forEach((q) => {
+      if (!readersIntersection.find((r) => r.value === q.value) && filteredGroups.find((r) => r.value === q.value)){
+        readersIntersection.push(q)
       }
     })
 
-    if (
-      readersIntersection.find((p) => p.value.endsWith('/Reviewers')) &&
-      !readersIntersection.find(
-        (p) => p.value.includes('/AnonReviewer') || p.value.includes('/Reviewer_')
-      )
-    ) {
-      const readersIntersectionWithAnonReviewers = readersIntersection.concat(
-        groupResults.filter(
-          (p) => p.value.includes('AnonReviewer') || p.value.includes('Reviewer_')
-        )
-      )
-      return readersIntersectionWithAnonReviewers
-    }
     return readersIntersection
   }
 
