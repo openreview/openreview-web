@@ -699,7 +699,7 @@ module.exports = (function () {
         var userId = $link.data('userId')
         var name = $link.data('userName')
 
-        get('/edges', { invitation: 'TMLR/-/Preferred_Emails', head: userId }).then(
+        get('/edges', { invitation: options.preferredEmailsInvitationId, head: userId }).then(
           function (result) {
             var email = result.edges?.[0]?.tail
 
