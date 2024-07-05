@@ -1,4 +1,4 @@
-/* globals DOMPurify,marked,typesetMathJax: false */
+/* globals DOMPurify,marked: false */
 
 import { useState, useEffect } from 'react'
 import union from 'lodash/union'

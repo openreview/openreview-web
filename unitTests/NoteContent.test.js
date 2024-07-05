@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { NoteContentV2 } from '../components/NoteContent'
 
@@ -7,7 +7,6 @@ beforeEach(() => {
     sanitize: jest.fn(),
   }
   global.marked = jest.fn()
-  global.typesetMathJax = jest.fn()
 })
 
 describe('NoteContentV2', () => {
@@ -112,6 +111,5 @@ describe('NoteContentV2', () => {
       '<image/src/onerror=prompt(document.domain)>'
     )
     expect(global.DOMPurify.sanitize).toHaveBeenNthCalledWith(2, 'markdown output')
-    // expect(global.typesetMathJax).toHaveBeenCalled()
   })
 })

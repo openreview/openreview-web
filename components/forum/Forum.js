@@ -605,6 +605,10 @@ export default function Forum({
       )
     }
 
+    setTimeout(() => {
+      typesetMathJax()
+    }, 200)
+
     return replies.map((reply) => (
       <ForumReply
         key={reply.id}
