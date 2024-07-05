@@ -12,7 +12,7 @@ const DatePickerWidget = (props) => {
   const { field, onChange, value, error, clearError } =
     props.isEditor === false ? props : editorComponentContext
   const fieldName = Object.keys(field ?? {})[0]
-  const [timeZone, setTimeZone] = useState(getDefaultTimezone().value)
+  const [timeZone, setTimeZone] = useState(getDefaultTimezone()?.value)
 
   const onDateTimeChange = (e) => {
     clearError?.()
