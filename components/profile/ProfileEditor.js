@@ -208,8 +208,8 @@ export default function ProfileEditor({
           !p.position ||
           !p.institution.name ||
           !p.institution.domain ||
-          !p.institution.country ||
-          !p.institution.city
+          ((!p.end || p.end >= new Date().getFullYear()) &&
+            (!p.institution.country || !p.institution.city))
       ))
     ) {
       return promptInvalidValue(

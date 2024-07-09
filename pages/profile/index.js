@@ -91,8 +91,8 @@ const Profile = ({ profile, publicProfile, appContext }) => {
       <>
         {currentHistories?.map((history, index) => {
           const posititon = upperFirst(history.position).trim()
-          const department = history.department?.trim()
-          const institutionName = history.institution?.name?.trim()
+          const department = history.institution.department?.trim()
+          const institutionName = history.institution.name?.trim()
 
           return (
             <h3 key={index}>
