@@ -57,17 +57,20 @@ export default function ProfileEntity(props) {
       p.invitation.includes('Custom_Max_Papers')
     )?.weight ?? defaultWeight
 
-  ignoreHeadBrowseInvitations.forEach((p) => {
-    if (!p.defaultLabel && !p.defaultWeight && p.defaultWeight !== 0) return
-    if (!browseEdges?.find((q) => q.invitation === p.id)) {
-      browseEdges = browseEdges.concat({
-        id: nanoid(),
-        name: p.name,
-        label: p.defaultLabel,
-        weight: p.defaultWeight,
-      })
-    }
-  })
+  if (!content.isDummyProfile) {
+    ignoreHeadBrowseInvitations.forEach((p) => {
+      if (!p.defaultLabel && !p.defaultWeight && p.defaultWeight !== 0) return
+      if (!browseEdges?.find((q) => q.invitation === p.id)) {
+        browseEdges = browseEdges.concat({
+          id: nanoid(),
+          name: p.name,
+          label: p.defaultLabel,
+          weight: p.defaultWeight,
+        })
+      }
+    })
+  }
+
   const isInviteAcceptedProfile =
     editEdges?.find((p) => p.invitation.includes('Invite_Assignment'))?.label === 'Accepted'
 
