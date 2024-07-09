@@ -3279,7 +3279,7 @@ describe('NewReplyEditNoteReaders', () => {
                 'ICML.cc/2023/Conference/Submission1/Reviewer_.*',
                 'ICML.cc/2023/Conference/Submission1/Authors',
               ],
-              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
+              default: ['ICML.cc/2023/Conference/Submission1/Authors'],
             },
           },
         },
@@ -3289,7 +3289,12 @@ describe('NewReplyEditNoteReaders', () => {
 
     const { rerender } = render(
       <NewReplyEditNoteReaders
-        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewer_abcd'] }}
+        replyToNote={{
+          readers: [
+            'ICML.cc/2023/Conference/Submission1/Authors',
+            'ICML.cc/2023/Conference/Submission1/Reviewer_abcd',
+          ],
+        }}
         fieldDescription={invitation.edit.note.readers}
         closeNoteEditor={jest.fn()}
         value={undefined}
@@ -3302,11 +3307,11 @@ describe('NewReplyEditNoteReaders', () => {
     await user.click(await screen.findByText('Select readers'))
     await waitFor(() => {
       const dropdownList = screen.getByText(
-        'ICML 2023 Conference Submission1 Reviewers'
+        'ICML 2023 Conference Submission1 Authors'
       ).parentElement
       expect(dropdownList.childElementCount).toEqual(2)
       expect(dropdownList.childNodes[0].textContent).toEqual(
-        'ICML 2023 Conference Submission1 Reviewers'
+        'ICML 2023 Conference Submission1 Authors'
       )
       expect(dropdownList.childNodes[1].textContent).toEqual(
         'ICML 2023 Conference Submission1 Reviewer abcd'
@@ -3332,11 +3337,11 @@ describe('NewReplyEditNoteReaders', () => {
     await waitFor(() => {
       expect(screen.getAllByRole('checkbox').length).toEqual(2)
       expect(screen.getAllByRole('checkbox')[0].nextSibling.textContent).toEqual(
-        'ICML 2023 Conference Submission1 Reviewers'
+        'ICML 2023 Conference Submission1 Authors'
       )
       expect(screen.getAllByRole('checkbox')[0]).toHaveAttribute(
         'value',
-        'ICML.cc/2023/Conference/Submission1/Reviewers'
+        'ICML.cc/2023/Conference/Submission1/Authors'
       )
       expect(screen.getAllByRole('checkbox')[1].nextSibling.textContent).toEqual(
         'ICML 2023 Conference Submission1 Reviewer abcd'
