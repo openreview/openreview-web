@@ -254,7 +254,7 @@ export const NewReplyEditNoteReaders = ({
           (q) =>
             // 1. parent reader is the same as the invitation group reader
             // 2. parent reader is a committee reader and invitation group reader is an anonymous committee reader
-            // 3. parent reader is a committee reader and invitation group reader is a committee reader with a longer path
+            // 3. parent reader is a committee reader and invitation group reader is a reader with a longer path
             q.value === p ||
             q.value.split('/').pop().startsWith(`${singularCommitteeName}_`) ||
             (q.value.endsWith(`/${committeeName}`) && q.value.length > p.length)
@@ -272,7 +272,7 @@ export const NewReplyEditNoteReaders = ({
       }
     })
 
-    // 4. parent reader matches with a prefix of the invitation readers even if the group API call doesn't return the group
+    // 4. parent reader matches with a prefix of the invitation readers even if the API call doesn't return the group
     parentReaders.forEach((p) => {
       const isRegexReader = invitationReadersWithRegex.some((q) => p.match(q.prefix))
 
