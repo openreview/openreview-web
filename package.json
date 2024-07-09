@@ -1,6 +1,6 @@
 {
   "name": "openreview-web",
-  "version": "1.12.5",
+  "version": "1.12.7",
   "private": true,
   "scripts": {
     "dev": "next dev --port $NEXT_PORT",
