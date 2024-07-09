@@ -699,6 +699,11 @@ module.exports = (function () {
         var userId = $link.data('userId')
         var name = $link.data('userName')
 
+        if (!options.preferredEmailsInvitationId) {
+          promptError('Email is not available.')
+          return
+        }
+
         get('/edges', { invitation: options.preferredEmailsInvitationId, head: userId }).then(
           function (result) {
             var email = result.edges?.[0]?.tail
@@ -709,6 +714,9 @@ module.exports = (function () {
             }
             copy(`${name} <${email}>`)
             promptMessage(`${email} copied to clipboard`)
+          },
+          function () {
+            promptError('Email is not available.')
           }
         )
         return false
