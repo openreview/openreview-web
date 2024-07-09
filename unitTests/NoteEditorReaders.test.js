@@ -3265,6 +3265,89 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
+  test('show dropdown/checkbox of intersection of enum groups with prefix and replyToNote readers (adding anonymized reviewer group)', async () => {
+    const getGroups = jest.fn(() => Promise.resolve({ groups: [] }))
+    api.get = getGroups
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              enum: [
+                'ICML.cc/2023/Conference/Submission1/Reviewers',
+                'ICML.cc/2023/Conference/Submission1/Reviewer_.*',
+                'ICML.cc/2023/Conference/Submission1/Authors',
+              ],
+              default: ['ICML.cc/2023/Conference/Submission1/Reviewers'],
+            },
+          },
+        },
+      },
+    }
+    const user = userEvent.setup()
+
+    const { rerender } = render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['ICML.cc/2023/Conference/Submission1/Reviewer_abcd'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={undefined}
+      />
+    )
+
+    await user.click(await screen.findByText('Select readers'))
+    await waitFor(() => {
+      const dropdownList = screen.getByText(
+        'ICML 2023 Conference Submission1 Reviewers'
+      ).parentElement
+      expect(dropdownList.childElementCount).toEqual(2)
+      expect(dropdownList.childNodes[0].textContent).toEqual(
+        'ICML 2023 Conference Submission1 Reviewers'
+      )
+      expect(dropdownList.childNodes[1].textContent).toEqual(
+        'ICML 2023 Conference Submission1 Reviewer abcd'
+      )
+    })
+
+    rerender(
+      <NewReplyEditNoteReaders
+        replyToNote={{
+          readers: [
+            'ICML.cc/2023/Conference/Submission1/Authors',
+            'ICML.cc/2023/Conference/Submission1/Reviewer_abcd',
+          ],
+        }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(2)
+      expect(screen.getAllByRole('checkbox')[0].nextSibling.textContent).toEqual(
+        'ICML 2023 Conference Submission1 Reviewers'
+      )
+      expect(screen.getAllByRole('checkbox')[0]).toHaveAttribute(
+        'value',
+        'ICML.cc/2023/Conference/Submission1/Reviewers'
+      )
+      expect(screen.getAllByRole('checkbox')[1].nextSibling.textContent).toEqual(
+        'ICML 2023 Conference Submission1 Reviewer abcd'
+      )
+      expect(screen.getAllByRole('checkbox')[1]).toHaveAttribute(
+        'value',
+        'ICML.cc/2023/Conference/Submission1/Reviewer_abcd'
+      )
+    })
+  })
+
   test('show dropdown/checkbox of intersection of enum groups and replyToNote readers (adding mismatching groups)', async () => {
     const invitation = {
       edit: {
@@ -3622,5 +3705,4 @@ describe('NewReplyEditNoteReaders', () => {
       expect(clearError).toHaveBeenCalled()
     })
   })
-
 })

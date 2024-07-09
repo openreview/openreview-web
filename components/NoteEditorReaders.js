@@ -237,27 +237,47 @@ export const NewReplyEditNoteReaders = ({
   const [readerOptions, setReaderOptions] = useState(null)
   const { user, accessToken } = useUser()
 
-  const addEnumParentReaders = (groupResults, parentReaders) => {
+  const addEnumParentReaders = (groupResults, parentReaders, invitationReaders) => {
     if (!parentReaders?.length || parentReaders.includes('everyone') || isDirectReplyToForum)
       return groupResults
 
-    const filteredGroups = parentReaders.map((p) => {
-      const committeeName = p.split('/').pop()
-      const singularCommitteeName = committeeName.endsWith('s') ? committeeName.slice(0, -1) : committeeName
+    const invitationReadersWithRegex = invitationReaders.filter((p) => p.prefix)
 
-      return groupResults.filter((q) =>
-        // 1. parent reader is the same as the invitation group reader
-        // 2. parent reader is a committee reader and invitation group reader is an anonymous committee reader
-        // 3. parent reader is a committee reader and invitation group reader is a committee reader with a longer path
-        q.value === p || q.value.split('/').pop().startsWith(`${singularCommitteeName}_`) || (q.value.endsWith(`/${committeeName}`) && q.value.length > p.length)
-      )
+    const filteredGroups = parentReaders
+      .map((p) => {
+        const committeeName = p.split('/').pop()
+        const singularCommitteeName = committeeName.endsWith('s')
+          ? committeeName.slice(0, -1)
+          : committeeName
 
-    }).flat()
+        return groupResults.filter(
+          (q) =>
+            // 1. parent reader is the same as the invitation group reader
+            // 2. parent reader is a committee reader and invitation group reader is an anonymous committee reader
+            // 3. parent reader is a committee reader and invitation group reader is a committee reader with a longer path
+            q.value === p ||
+            q.value.split('/').pop().startsWith(`${singularCommitteeName}_`) ||
+            (q.value.endsWith(`/${committeeName}`) && q.value.length > p.length)
+        )
+      })
+      .flat()
 
     const readersIntersection = []
     groupResults.forEach((q) => {
-      if (!readersIntersection.find((r) => r.value === q.value) && filteredGroups.find((r) => r.value === q.value)){
+      if (
+        !readersIntersection.find((r) => r.value === q.value) &&
+        filteredGroups.find((r) => r.value === q.value)
+      ) {
         readersIntersection.push(q)
+      }
+    })
+
+    // 4. parent reader matches with a prefix of the invitation readers even if the group API call doesn't return the group
+    parentReaders.forEach((p) => {
+      const isRegexReader = invitationReadersWithRegex.some((q) => p.match(q.prefix))
+
+      if (isRegexReader && !readersIntersection.find((q) => q.value === p)) {
+        readersIntersection.push({ value: p, description: prettyId(p, false) })
       }
     })
 
@@ -327,7 +347,8 @@ export const NewReplyEditNoteReaders = ({
 
       const optionWithParentReaders = addEnumParentReaders(
         groupResults.flat(),
-        replyToNote?.readers
+        replyToNote?.readers,
+        enumItemsConfigOptions
       )
 
       let options
