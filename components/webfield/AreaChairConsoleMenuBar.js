@@ -34,7 +34,9 @@ const AreaChairConsoleMenuBar = ({
     author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords.value'],
     [formattedReviewerName]: ['reviewers'],
-    [`num${upperFirst(formattedReviewerName)}Assigned`]: ['reviewProgressData.numReviewersAssigned'],
+    [`num${upperFirst(formattedReviewerName)}Assigned`]: [
+      'reviewProgressData.numReviewersAssigned',
+    ],
     [`num${formattedOfficialReviewName}Done`]: ['reviewProgressData.numReviewsDone'],
     ...Object.fromEntries(
       (Array.isArray(reviewRatingName)

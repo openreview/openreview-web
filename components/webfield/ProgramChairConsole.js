@@ -17,7 +17,7 @@ import {
   prettyField,
   parseNumberField,
   isValidEmail,
-  getSingularRoleName
+  getSingularRoleName,
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'

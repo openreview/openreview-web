@@ -13,7 +13,7 @@ const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) 
     propertiesAllowed: propertiesAllowedConfig,
     ethicsMetaReviewName,
     ethicsReviewName,
-    ethicsReviewersName
+    ethicsReviewersName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {

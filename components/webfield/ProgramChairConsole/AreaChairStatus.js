@@ -15,8 +15,15 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
   const { id, preferredName, preferredEmail, registrationNotes } =
     rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
-  const { seniorAreaChairName, areaChairsId, reviewersId, reviewerName, bidName, scoresName, recommendationName } =
-    useContext(WebFieldContext)
+  const {
+    seniorAreaChairName,
+    areaChairsId,
+    reviewersId,
+    reviewerName,
+    bidName,
+    scoresName,
+    recommendationName,
+  } = useContext(WebFieldContext)
   const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
@@ -131,7 +138,8 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl, officialReviewName }) => 
   return (
     <div className="reviewer-progress">
       <h4>
-        {numCompletedReviews} of {numPapers} Papers with {pluralizeString(prettyField(officialReviewName))} Completed
+        {numCompletedReviews} of {numPapers} Papers with{' '}
+        {pluralizeString(prettyField(officialReviewName))} Completed
       </h4>
       {rowData.notes.length !== 0 && <strong>Papers:</strong>}
       <div className="review-progress">
@@ -169,14 +177,19 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl, officialReviewName }) => 
 }
 
 // modified based on notesAreaChairStatus.hbs
-const NoteAreaChairStatus = ({ rowData, referrerUrl, metaReviewRecommendationName, officialMetaReviewName }) => {
+const NoteAreaChairStatus = ({
+  rowData,
+  referrerUrl,
+  metaReviewRecommendationName,
+  officialMetaReviewName,
+}) => {
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
     <div className="areachair-progress">
       <h4>
-        {numCompletedMetaReviews} of {numPapers} Papers with {pluralizeString(
-          prettyField(officialMetaReviewName))} Completed
+        {numCompletedMetaReviews} of {numPapers} Papers with{' '}
+        {pluralizeString(prettyField(officialMetaReviewName))} Completed
       </h4>
       {rowData.notes.length !== 0 && <strong>Papers:</strong>}
       <div>
@@ -212,7 +225,9 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl, metaReviewRecommendationNam
                   })}
                 </>
               ) : (
-                <span>{`${noteVenue ? `${noteVenue} - ` : ''} No ${prettyField(officialMetaReviewName)}`}</span>
+                <span>{`${noteVenue ? `${noteVenue} - ` : ''} No ${prettyField(
+                  officialMetaReviewName
+                )}`}</span>
               )}
             </div>
           )
@@ -247,7 +262,11 @@ const AreaChairStatusRow = ({
       />
     </td>
     <td>
-      <NoteAreaChairProgress rowData={rowData} referrerUrl={referrerUrl} officialReviewName={officialReviewName} />
+      <NoteAreaChairProgress
+        rowData={rowData}
+        referrerUrl={referrerUrl}
+        officialReviewName={officialReviewName}
+      />
     </td>
     <td>
       <NoteAreaChairStatus
@@ -425,8 +444,8 @@ const AreaChairStatus = ({
   if (areaChairStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no {prettyField(areaChairName)}. Check back later or contact info@openreview.net if you
-        believe this to be an error.
+        There are no {prettyField(areaChairName)}. Check back later or contact
+        info@openreview.net if you believe this to be an error.
       </p>
     )
   if (areaChairStatusTabData.tableRows?.length === 0)
@@ -442,7 +461,9 @@ const AreaChairStatus = ({
           messageParentGroup={areaChairsId}
           messageSignature={venueId}
         />
-        <p className="empty-message">No {prettyField(areaChairName)} matching search criteria.</p>
+        <p className="empty-message">
+          No {prettyField(areaChairName)} matching search criteria.
+        </p>
       </div>
     )
   return (

@@ -253,7 +253,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
     areaChairName = 'Area_Chairs',
     officialReviewName,
     officialMetaReviewName = 'Meta_Review',
-    submissionName
+    submissionName,
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
@@ -374,7 +374,11 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
           },
           { id: 'number', content: '#', width: '55px' },
           { id: 'summary', content: `${submissionName} Summary`, width: '30%' },
-          { id: 'reviewProgress', content: `${prettyField(officialReviewName)} Progress`, width: '30%' },
+          {
+            id: 'reviewProgress',
+            content: `${prettyField(officialReviewName)} Progress`,
+            width: '30%',
+          },
           ...(areaChairsId ? [{ id: 'status', content: 'Status' }] : []),
           {
             id: noteContentField?.field ?? 'decision',

@@ -87,8 +87,8 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
       <td>
         <div className="reviewer-progress">
           <h4>
-            {numCompletedReviews} of {numPapers} Papers with {pluralizeString(
-              prettyField(officialReviewName))} Completed
+            {numCompletedReviews} of {numPapers} Papers with{' '}
+            {pluralizeString(prettyField(officialReviewName))} Completed
           </h4>
           {rowData.notes.length !== 0 && <strong>Papers:</strong>}
           <div className="review-progress">
@@ -127,8 +127,8 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
       <td>
         <div className="areachair-progress">
           <h4>
-            {numCompletedMetaReviews} of {numPapers} Papers with {pluralizeString(
-              prettyField(officialMetaReviewName))} Completed
+            {numCompletedMetaReviews} of {numPapers} Papers with{' '}
+            {pluralizeString(prettyField(officialMetaReviewName))} Completed
           </h4>
           {rowData.notes.length !== 0 && <strong>Papers:</strong>}
           <div>
@@ -165,7 +165,9 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
                       })}
                     </>
                   ) : (
-                    <span>{`${noteVenue ? `${noteVenue} - ` : ''} No ${prettyField(officialMetaReviewName)}`}</span>
+                    <span>{`${noteVenue ? `${noteVenue} - ` : ''} No ${prettyField(
+                      officialMetaReviewName
+                    )}`}</span>
                   )}
                 </div>
               )
@@ -189,7 +191,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
     seniorAreaChairName,
     areaChairName,
     officialReviewName,
-    officialMetaReviewName
+    officialMetaReviewName,
   } = useContext(WebFieldContext)
 
   const referrerUrl = encodeURIComponent(
@@ -288,8 +290,8 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
   if (seniorAreaChairStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no {prettyField(seniorAreaChairName)}.Check back later or contact info@openreview.net if you
-        believe this to be an error.
+        There are no {prettyField(seniorAreaChairName)}.Check back later or contact
+        info@openreview.net if you believe this to be an error.
       </p>
     )
   if (seniorAreaChairStatusTabData.tableRows?.length === 0)
@@ -301,7 +303,9 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
           setSeniorAreaChairStatusTabData={setSeniorAreaChairStatusTabData}
           sacDirectPaperAssignment={sacDirectPaperAssignment}
         />
-        <p className="empty-message">No {prettyField(seniorAreaChairName)} matching search criteria.</p>
+        <p className="empty-message">
+          No {prettyField(seniorAreaChairName)} matching search criteria.
+        </p>
       </div>
     )
   return (
@@ -318,9 +322,19 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
           sacDirectPaperAssignment
             ? [
                 { id: 'number', content: '#', width: '55px' },
-                { id: 'seniorAreaChair', content: `${prettyField(seniorAreaChairName)}`, width: '10%' },
-                { id: 'reviewProgress', content: `${prettyField(officialReviewName)} Progress` },
-                { id: 'metaReviewstatus', content: `${prettyField(officialMetaReviewName)} Status` },
+                {
+                  id: 'seniorAreaChair',
+                  content: `${prettyField(seniorAreaChairName)}`,
+                  width: '10%',
+                },
+                {
+                  id: 'reviewProgress',
+                  content: `${prettyField(officialReviewName)} Progress`,
+                },
+                {
+                  id: 'metaReviewstatus',
+                  content: `${prettyField(officialMetaReviewName)} Status`,
+                },
               ]
             : [
                 { id: 'number', content: '#', width: '55px' },

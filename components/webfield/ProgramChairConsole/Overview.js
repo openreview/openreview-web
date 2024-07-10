@@ -5,7 +5,14 @@ import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import LoadingSpinner from '../../LoadingSpinner'
 import WebFieldContext from '../../WebFieldContext'
-import { formatDateTime, inflect, getSingularRoleName, prettyId, prettyField, pluralizeString } from '../../../lib/utils'
+import {
+  formatDateTime,
+  inflect,
+  getSingularRoleName,
+  prettyId,
+  prettyField,
+  pluralizeString,
+} from '../../../lib/utils'
 import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
 
 const StatContainer = ({ title, hint, value }) => (
@@ -180,7 +187,7 @@ const BiddingStatsRow = ({
     reviewersId,
     reviewerName = 'Reviewers',
     bidName,
-    recommendationName
+    recommendationName,
   } = useContext(WebFieldContext)
   const singularReviewerName = getSingularRoleName(reviewerName)
   const singularAreaChairName = getSingularRoleName(areaChairName)
@@ -244,28 +251,38 @@ const BiddingStatsRow = ({
         {reviewersBidEnabled && reviewersId && (
           <StatContainer
             title={`${prettyField(singularReviewerName)} Bidding Progress`}
-            hint={`% of ${prettyField(reviewerName).toLowerCase()} who have completed the required number of bids`}
+            hint={`% of ${prettyField(
+              reviewerName
+            ).toLowerCase()} who have completed the required number of bids`}
             value={calcBiddingProgress(reviewersId, 'reviewers')}
           />
         )}
         {areaChairsBidEnabled && areaChairsId && (
           <StatContainer
             title={`${prettyField(singularAreaChairName)} Bidding Progress`}
-            hint={`% of ${prettyField(areaChairName).toLowerCase()} who have completed the required number of bids`}
+            hint={`% of ${prettyField(
+              areaChairName
+            ).toLowerCase()} who have completed the required number of bids`}
             value={calcBiddingProgress(areaChairsId, 'areaChairs')}
           />
         )}
         {recommendationEnabled && areaChairsId && (
           <StatContainer
             title="Recommendation Progress"
-            hint={`% of ${prettyField(areaChairName).toLowerCase()} who have completed the required number of ${prettyField(reviewerName).toLowerCase()} recommendations`}
+            hint={`% of ${prettyField(
+              areaChairName
+            ).toLowerCase()} who have completed the required number of ${prettyField(
+              reviewerName
+            ).toLowerCase()} recommendations`}
             value={calcRecommendationProgress()}
           />
         )}
         {seniorAreaChairsBidEnabled && seniorAreaChairsId && (
           <StatContainer
             title={`${prettyField(singularSeniorAreaChairName)} Bidding Progress`}
-            hint={`% of ${prettyField(seniorAreaChairName).toLowerCase()} who have completed the required number of bids`}
+            hint={`% of ${prettyField(
+              seniorAreaChairName
+            ).toLowerCase()} who have completed the required number of bids`}
             value={calcBiddingProgress(seniorAreaChairsId, 'seniorAreaChairs')}
           />
         )}
@@ -276,7 +293,11 @@ const BiddingStatsRow = ({
 }
 
 const ReviewStatsRow = ({ pcConsoleData }) => {
-  const { paperReviewsCompleteThreshold, reviewerName = 'Reviewers', officialReviewName } = useContext(WebFieldContext)
+  const {
+    paperReviewsCompleteThreshold,
+    reviewerName = 'Reviewers',
+    officialReviewName,
+  } = useContext(WebFieldContext)
   const singularReviewerName = getSingularRoleName(reviewerName)
 
   const [reviewStats, setReviewStats] = useState({})
@@ -378,7 +399,9 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
         />
         <StatContainer
           title={`${prettyField(singularReviewerName)} Progress`}
-          hint={`% of ${prettyField(reviewerName).toLowerCase()} who have reviewed all of their assigned papers`}
+          hint={`% of ${prettyField(
+            reviewerName
+          ).toLowerCase()} who have reviewed all of their assigned papers`}
           value={
             pcConsoleData.notes ? (
               renderStat(
@@ -419,7 +442,7 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
     areaChairsId,
     areaChairName = 'Area_Chairs',
     metaReviewRecommendationName,
-    officialMetaReviewName
+    officialMetaReviewName,
   } = useContext(WebFieldContext)
   const singularAreaChairName = getSingularRoleName(areaChairName)
   const metaReivews = [...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? [])].filter(
@@ -476,7 +499,9 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
       <div className="row">
         <StatContainer
           title={`${prettyField(officialMetaReviewName)} Progress`}
-          hint={`% of papers that have received ${pluralizeString(prettyField(officialMetaReviewName)).toLowerCase()}`}
+          hint={`% of papers that have received ${pluralizeString(
+            prettyField(officialMetaReviewName)
+          ).toLowerCase()}`}
           value={
             pcConsoleData.notes && pcConsoleData.paperGroups ? (
               renderStat(metaReviewsCount, pcConsoleData.notes.length)
@@ -486,8 +511,14 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
           }
         />
         <StatContainer
-          title={`${prettyField(singularAreaChairName)} ${prettyField(officialMetaReviewName)} Progress`}
-          hint={`% of ${prettyField(areaChairName).toLowerCase()} who have completed ${pluralizeString(prettyField(officialMetaReviewName)).toLowerCase()} for all of their assigned papers`}
+          title={`${prettyField(singularAreaChairName)} ${prettyField(
+            officialMetaReviewName
+          )} Progress`}
+          hint={`% of ${prettyField(
+            areaChairName
+          ).toLowerCase()} who have completed ${pluralizeString(
+            prettyField(officialMetaReviewName)
+          ).toLowerCase()} for all of their assigned papers`}
           value={
             pcConsoleData.notes && pcConsoleData.paperGroups ? (
               renderStat(areaChairsComplete, areaChairsWithAssignmentsCount)
@@ -717,9 +748,17 @@ const DescriptionTimelineOtherConfigRow = ({
   const timelineInvitations = [
     { id: submissionId, displayName: 'Paper Submissions' },
     ...(bidName
-      ? [{ id: `${reviewersId}/-/${bidName}`, displayName: `${prettyField(reviewerName)} Bidding` }]
+      ? [
+          {
+            id: `${reviewersId}/-/${bidName}`,
+            displayName: `${prettyField(reviewerName)} Bidding`,
+          },
+        ]
       : []),
-    { id: `${reviewersId}/-/${recruitmentName}`, displayName: `${prettyField(reviewerName)} Recruitment` },
+    {
+      id: `${reviewersId}/-/${recruitmentName}`,
+      displayName: `${prettyField(reviewerName)} Recruitment`,
+    },
     ...(seniorAreaChairsId
       ? [
           ...(bidName
@@ -924,8 +963,13 @@ const DescriptionTimelineOtherConfigRow = ({
             {hasEthicsChairs && (
               <>
                 <li>
-                  <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}`}>{prettyField(ethicsChairsName)}</Link> (
-                  <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}/Invited`}>Invited</Link>
+                  <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}`}>
+                    {prettyField(ethicsChairsName)}
+                  </Link>{' '}
+                  (
+                  <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}/Invited`}>
+                    Invited
+                  </Link>
                   ,
                   <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}/Declined`}>
                     Declined
@@ -1057,7 +1101,7 @@ const Overview = ({ pcConsoleData }) => {
     seniorAreaChairName = 'Senior_Area_Chairs',
     reviewersId,
     bidName,
-    recommendationName
+    recommendationName,
   } = useContext(WebFieldContext)
 
   const isBidEnabled = (groupId) =>

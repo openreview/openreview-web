@@ -393,7 +393,8 @@ const ReviewStatsRow = ({ pcConsoleData, isSeniorReviewer = false }) => {
                   isSeniorReviewer ? seniorOfficialReviewName : officialReviewName
                 ).toLowerCase()}`
               : `reviews from all assigned ${prettyField(
-                isSeniorReviewer ? seniorReviewerName : reviewerName)}`
+                  isSeniorReviewer ? seniorReviewerName : reviewerName
+                )}`
           }`}
           value={
             pcConsoleData.notes ? (
@@ -477,7 +478,7 @@ const MessageReviewersModal = ({
     emailReplyTo,
     seniorReviewerName,
     reviewerName,
-    areaChairName
+    areaChairName,
   } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
@@ -683,11 +684,13 @@ const MessageReviewersModal = ({
         <>
           <p>
             {messageOption?.info ??
-              `You may customize the message that will be sent to the ${prettyField(reviewerName).toLowerCase()}. In the email
+              `You may customize the message that will be sent to the ${prettyField(
+                reviewerName
+              ).toLowerCase()}. In the email
   body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
-  form where the ${prettyField(reviewerName).toLowerCase()} can fill out his or her ${prettyField(
-    officialReviewName
-  ).toLowerCase()}.`}
+  form where the ${prettyField(
+    reviewerName
+  ).toLowerCase()} can fill out his or her ${prettyField(officialReviewName).toLowerCase()}.`}
           </p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
@@ -1248,8 +1251,14 @@ const PaperStatusMenuBar = ({
 const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
-  const { venueId, areaChairsId, assignmentUrls, reviewRatingName, seniorReviewerName, officialReviewName } =
-    useContext(WebFieldContext)
+  const {
+    venueId,
+    areaChairsId,
+    assignmentUrls,
+    reviewRatingName,
+    seniorReviewerName,
+    officialReviewName,
+  } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
   const pageSize = 25
@@ -1356,7 +1365,11 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData }) => {
           },
           { id: 'number', content: '#', width: '55px' },
           { id: 'summary', content: 'Paper Summary', width: '30%' },
-          { id: 'reviewProgress', content: `${prettyField(officialReviewName)} Progress`, width: '25%' },
+          {
+            id: 'reviewProgress',
+            content: `${prettyField(officialReviewName)} Progress`,
+            width: '25%',
+          },
           {
             id: 'seniorReviewProgress',
             content: `${prettyId(seniorReviewerName)} Progress`,

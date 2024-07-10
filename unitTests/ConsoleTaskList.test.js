@@ -1832,7 +1832,8 @@ describe('ConsoleTaskList', () => {
           ],
         },
       },
-      { // Use reply number in invitation id instead of anon id
+      {
+        // Use reply number in invitation id instead of anon id
         id: `${venueId}/${submissionName}6/Meta_Review1/-/Meta_Review_Agreement`,
         domain: `${venueId}`,
         duedate: now + fourDays,
@@ -1879,10 +1880,14 @@ describe('ConsoleTaskList', () => {
 
     await waitFor(() => {
       const registrationLink = screen.getByText('Senior Area Chairs Registration')
-      const metaReviewAgreementLink = screen.getByText('Submission5 Area Chair AnonId Meta Review Agreement')
+      const metaReviewAgreementLink = screen.getByText(
+        'Submission5 Area Chair AnonId Meta Review Agreement'
+      )
       const metaReview5RevisionLink = screen.getByText('Submission5 Meta Review SAC Revision')
       const metaReview6RevisionLink = screen.getByText('Submission6 Meta Review SAC Revision')
-      const metaReview6AgreementLink = screen.getByText('Submission6 Meta Review1 Meta Review Agreement')
+      const metaReview6AgreementLink = screen.getByText(
+        'Submission6 Meta Review1 Meta Review Agreement'
+      )
 
       expect(registrationLink).toBeInTheDocument()
       expect(registrationLink.parentElement.parentElement).not.toHaveClass('completed')
@@ -2204,7 +2209,9 @@ describe('ConsoleTaskList', () => {
       const Paper123metaReviewLink = screen.getByText('Submission123 Meta Review')
 
       const sacRegistrationLink = screen.queryByText('Senior Area Chair Registration')
-      const metaReviewAgreementLink = screen.getByText('Submission5 Area Chair AnonId Meta Review Agreement')
+      const metaReviewAgreementLink = screen.getByText(
+        'Submission5 Area Chair AnonId Meta Review Agreement'
+      )
       const metaReview5RevisionLink = screen.queryByText(
         'Submission5 Meta Review SAC Revision'
       )
@@ -2225,5 +2232,4 @@ describe('ConsoleTaskList', () => {
       expect(metaReview6RevisionLink).not.toBeInTheDocument()
     })
   })
-
 })

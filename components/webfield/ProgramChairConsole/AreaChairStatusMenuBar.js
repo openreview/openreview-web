@@ -234,15 +234,21 @@ const AreaChairStatusMenuBar = ({
         ]
       : []),
     {
-      label: `${prettyField(areaChairName)} with unsubmitted ${pluralizeString(prettyField(officialReviewName)).toLowerCase()}`,
+      label: `${prettyField(areaChairName)} with unsubmitted ${pluralizeString(
+        prettyField(officialReviewName)
+      ).toLowerCase()}`,
       value: 'missingReviews',
     },
     {
-      label: `${prettyField(areaChairName)} with 0 submitted ${pluralizeString(prettyField(officialMetaReviewName)).toLowerCase()}`,
+      label: `${prettyField(areaChairName)} with 0 submitted ${pluralizeString(
+        prettyField(officialMetaReviewName)
+      ).toLowerCase()}`,
       value: 'noMetaReviews',
     },
     {
-      label: `${prettyField(areaChairName)} with unsubmitted ${pluralizeString(prettyField(officialMetaReviewName)).toLowerCase()}`,
+      label: `${prettyField(areaChairName)} with unsubmitted ${pluralizeString(
+        prettyField(officialMetaReviewName)
+      ).toLowerCase()}`,
       value: 'missingMetaReviews',
     },
     {

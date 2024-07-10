@@ -80,18 +80,26 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
 }
 
 // modified from notesReviewerProgress.hbs
-const ReviewerProgress = ({ rowData, referrerUrl, reviewRatingName, officialReviewName, submissionName }) => {
+const ReviewerProgress = ({
+  rowData,
+  referrerUrl,
+  reviewRatingName,
+  officialReviewName,
+  submissionName,
+}) => {
   const numPapers = rowData.notesInfo.length
   const { numCompletedReviews, notesInfo } = rowData
 
   return (
     <div className="review-progress">
       <h4>
-        {numCompletedReviews} of {numPapers} {inflect(
+        {numCompletedReviews} of {numPapers}{' '}
+        {inflect(
           numPapers,
           prettyField(officialReviewName),
           pluralizeString(prettyField(officialReviewName))
-          )} Submitted
+        )}{' '}
+        Submitted
       </h4>
       <strong className="paper-label">{pluralizeString(submissionName)}:</strong>
       <div className="paper-progress">
@@ -173,11 +181,13 @@ const ReviewerStatus = ({ rowData, officialReviewName, submissionName }) => {
   return (
     <div className="status-column">
       <h4>
-        {numOfPapersWhichCompletedReviews} of {numPapers} {inflect(
+        {numOfPapersWhichCompletedReviews} of {numPapers}{' '}
+        {inflect(
           numPapers,
           prettyField(officialReviewName),
           pluralizeString(prettyField(officialReviewName))
-        )} Completed
+        )}{' '}
+        Completed
       </h4>
       <strong className="paper-label">{pluralizeString(submissionName)}:</strong>
       <div>
@@ -213,7 +223,7 @@ const ReviewerStatusRow = ({
   invitations,
   reviewRatingName,
   officialReviewName,
-  submissionName
+  submissionName,
 }) => (
   <tr>
     <td>
@@ -232,7 +242,11 @@ const ReviewerStatusRow = ({
       />
     </td>
     <td>
-      <ReviewerStatus rowData={rowData} officialReviewName={officialReviewName} submissionName={submissionName} />
+      <ReviewerStatus
+        rowData={rowData}
+        officialReviewName={officialReviewName}
+        submissionName={submissionName}
+      />
     </td>
   </tr>
 )
@@ -253,7 +267,7 @@ const ReviewerStatusTab = ({
     reviewerStatusExportColumns,
     reviewRatingName,
     officialReviewName,
-    submissionName
+    submissionName,
   } = useContext(WebFieldContext)
   const { accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
@@ -441,8 +455,8 @@ const ReviewerStatusTab = ({
   if (reviewerStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no {prettyField(reviewerName)}.Check back later or contact info@openreview.net if you believe
-        this to be an error.
+        There are no {prettyField(reviewerName)}.Check back later or contact
+        info@openreview.net if you believe this to be an error.
       </p>
     )
   if (reviewerStatusTabData.tableRows?.length === 0)
@@ -458,7 +472,9 @@ const ReviewerStatusTab = ({
           messageParentGroup={reviewersId}
           messageSignature={venueId}
         />
-        <p className="empty-message">No {prettyField(reviewerName)} matching search criteria.</p>
+        <p className="empty-message">
+          No {prettyField(reviewerName)} matching search criteria.
+        </p>
       </div>
     )
   return (
@@ -478,7 +494,11 @@ const ReviewerStatusTab = ({
         headings={[
           { id: 'number', content: '#', width: '55px' },
           { id: 'reviewer', content: `${prettyField(reviewerName)}`, width: '10%' },
-          { id: 'reviewProgress', content: `${prettyField(officialReviewName)} Progress`, width: '40%' },
+          {
+            id: 'reviewProgress',
+            content: `${prettyField(officialReviewName)} Progress`,
+            width: '40%',
+          },
           { id: 'status', content: 'Status' },
         ]}
       >

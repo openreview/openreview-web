@@ -48,7 +48,9 @@ const PaperStatusMenuBar = ({
     keywords: ['note.content.keywords.value'],
     [formattedReviewerName]: ['reviewers'],
     [formattedSACName]: ['metaReviewData.seniorAreaChairs'],
-    [`num${upperFirst(formattedReviewerName)}Assigned`]: ['reviewProgressData.numReviewersAssigned'],
+    [`num${upperFirst(formattedReviewerName)}Assigned`]: [
+      'reviewProgressData.numReviewersAssigned',
+    ],
     [`num${formattedOfficialReviewName}Done`]: ['reviewProgressData.numReviewsDone'],
     ...Object.fromEntries(
       (Array.isArray(reviewRatingName)
@@ -133,9 +135,7 @@ const PaperStatusMenuBar = ({
 
   const messageReviewerOptions = [
     {
-      label: `All ${prettyField(reviewerName)} of selected ${pluralizeString(
-        submissionName
-      )}`,
+      label: `All ${prettyField(reviewerName)} of selected ${pluralizeString(submissionName)}`,
       value: 'allReviewers',
     },
     {
@@ -151,14 +151,15 @@ const PaperStatusMenuBar = ({
       value: 'missingReviews',
     },
     ...(areaChairsId
-      ? [{
-        label: `All ${pluralizeString(prettyField(areaChairName))} of selected ${pluralizeString(
-          submissionName
-        )}`,
-        value: 'allAreaChairs',
-      }]
-      : []
-    )
+      ? [
+          {
+            label: `All ${pluralizeString(
+              prettyField(areaChairName)
+            )} of selected ${pluralizeString(submissionName)}`,
+            value: 'allAreaChairs',
+          },
+        ]
+      : []),
   ]
   const exportColumns = [
     { header: 'number', getValue: (p) => p.note?.number },

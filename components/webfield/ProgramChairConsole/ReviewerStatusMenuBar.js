@@ -14,7 +14,8 @@ const MessageReviewersModal = ({
   messageSignature,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, emailReplyTo, messageReviewersInvitationId, reviewerName } = useContext(WebFieldContext)
+  const { shortPhrase, emailReplyTo, messageReviewersInvitationId, reviewerName } =
+    useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -108,8 +109,9 @@ const MessageReviewersModal = ({
       {currentStep === 1 ? (
         <>
           <p>
-            Enter a message to be sent to all selected {prettyField(reviewerName).toLowerCase()} below. You will have a
-            chance to review a list of all recipients after clicking &quot;Next&quot; below.
+            Enter a message to be sent to all selected{' '}
+            {prettyField(reviewerName).toLowerCase()} below. You will have a chance to review a
+            list of all recipients after clicking &quot;Next&quot; below.
           </p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
@@ -162,7 +164,8 @@ const ReviewerStatusMenuBar = ({
   messageParentGroup,
   messageSignature,
 }) => {
-  const { reviewerEmailFuncs, officialReviewName, reviewerName, submissionName } = useContext(WebFieldContext)
+  const { reviewerEmailFuncs, officialReviewName, reviewerName, submissionName } =
+    useContext(WebFieldContext)
   const messageAreaChairOptions = [
     ...(bidEnabled
       ? [
@@ -172,8 +175,18 @@ const ReviewerStatusMenuBar = ({
           },
         ]
       : []),
-    { label: `${prettyField(reviewerName)} with unsubmitted ${pluralizeString(prettyField(officialReviewName)).toLowerCase()}`, value: 'missingReviews' },
-    { label: `${prettyField(reviewerName)} with submitted ${pluralizeString(prettyField(officialReviewName)).toLowerCase()}`, value: 'submittedReviews' },
+    {
+      label: `${prettyField(reviewerName)} with unsubmitted ${pluralizeString(
+        prettyField(officialReviewName)
+      ).toLowerCase()}`,
+      value: 'missingReviews',
+    },
+    {
+      label: `${prettyField(reviewerName)} with submitted ${pluralizeString(
+        prettyField(officialReviewName)
+      ).toLowerCase()}`,
+      value: 'submittedReviews',
+    },
     { label: `${prettyField(reviewerName)} with 0 assignments`, value: 'noAssignments' },
     ...(reviewerEmailFuncs ?? []),
   ]
@@ -196,8 +209,16 @@ const ReviewerStatusMenuBar = ({
       header: 'institution domain',
       getValue: (p) => p.reviewerProfile?.content?.history?.[0]?.institution?.domain ?? '',
     },
-    { header: `num assigned ${pluralizeString(submissionName)}`, getValue: (p) => p.notesInfo.length },
-    { header: `num submitted ${pluralizeString(prettyField(officialReviewName)).toLowerCase()}`, getValue: (p) => p.numCompletedReviews },
+    {
+      header: `num assigned ${pluralizeString(submissionName)}`,
+      getValue: (p) => p.notesInfo.length,
+    },
+    {
+      header: `num submitted ${pluralizeString(
+        prettyField(officialReviewName)
+      ).toLowerCase()}`,
+      getValue: (p) => p.numCompletedReviews,
+    },
   ]
 
   const sortOptions = [
@@ -236,7 +257,9 @@ const ReviewerStatusMenuBar = ({
       getValue: (p) => p.numCompletedReviews,
     },
     {
-      label: `Papers with Completed ${pluralizeString(prettyField(officialReviewName))} Missing`,
+      label: `Papers with Completed ${pluralizeString(
+        prettyField(officialReviewName)
+      )} Missing`,
       value: 'Papers with Completed Reviews Missing',
       getValue: (p) => p.notesInfo.length - p.numOfPapersWhichCompletedReviews,
     },
