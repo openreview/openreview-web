@@ -313,15 +313,21 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const requestForm = results[1]
       const registrationForms = results[2].flatMap((p) => p ?? [])
       const committeeMemberResults = results[3]
+      const ithenticateEdges = results[8]
       const notes = results[4].flatMap((note) => {
         if ([withdrawnVenueId, deskRejectedVenueId].includes(note.content?.venueid?.value))
           return []
-        return note
+        return {
+          ...note,
+          ...(ithenticateInvitationId && {
+            ithenticateWeight:
+              ithenticateEdges.find((p) => p.head === note.id)?.weight ?? 'N/A',
+          }),
+        }
       })
       const acRecommendationsCount = results[5]
       const bidCountResults = results[6]
       const perPaperGroupResults = results[7]
-      const ithenticateEdges = results[8]
 
       // #region categorize result of per paper groups
       const reviewerGroups = []
@@ -858,7 +864,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         venue: note?.content?.venue?.value,
         messageSignature: programChairsId,
         ithenticateEdge: pcConsoleData.ithenticateEdges.find((p) => p.head === note.id),
-        ithenticateWeight: this.ithenticateEdge?.weight,
       })
     })
 

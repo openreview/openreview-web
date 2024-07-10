@@ -149,9 +149,12 @@ const NoteSummary = ({
         )}
       </Collapse>
 
-      {ithenticateEdge && (
-        <div onClick={getPlagiarismReport}>{ithenticateEdge.weight} % duplicated</div>
-      )}
+      {ithenticateEdge &&
+        (ithenticateEdge.label === 'COMPLETE' ? (
+          <div onClick={getPlagiarismReport}>{ithenticateEdge.weight} % duplicated</div>
+        ) : (
+          <div>iThenticate Report: {ithenticateEdge.label}</div>
+        ))}
     </div>
   )
 }

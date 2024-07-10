@@ -16,7 +16,6 @@ const PaperStatusMenuBar = ({
   noteContentField,
 }) => {
   const {
-    apiVersion,
     metaReviewRecommendationName,
     shortPhrase,
     enableQuerySearch,
@@ -33,6 +32,7 @@ const PaperStatusMenuBar = ({
     officialMetaReviewName = 'Meta_Review',
     areaChairName = 'Area_Chairs',
     submissionName,
+    ithenticateInvitationId,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const formattedReviewerName = upperFirst(camelCase(reviewerName))
@@ -66,6 +66,9 @@ const PaperStatusMenuBar = ({
     replyCount: ['reviewProgressData.replyCount'],
     decision: ['decision'],
     venue: ['venue'],
+    ...(ithenticateInvitationId && {
+      duplication: ['note.ithenticateWeight'],
+    }),
     ...(metaReviewRecommendationName && {
       [metaReviewRecommendationName]: ['metaReviewData.metaReviewsSearchValue'],
     }),
@@ -151,14 +154,15 @@ const PaperStatusMenuBar = ({
       value: 'missingReviews',
     },
     ...(areaChairsId
-      ? [{
-        label: `All ${pluralizeString(prettyField(areaChairName))} of selected ${pluralizeString(
-          submissionName
-        )}`,
-        value: 'allAreaChairs',
-      }]
-      : []
-    )
+      ? [
+          {
+            label: `All ${pluralizeString(
+              prettyField(areaChairName)
+            )} of selected ${pluralizeString(submissionName)}`,
+            value: 'allAreaChairs',
+          },
+        ]
+      : []),
   ]
   const exportColumns = [
     { header: 'number', getValue: (p) => p.note?.number },
@@ -171,6 +175,14 @@ const PaperStatusMenuBar = ({
       header: 'abstract',
       getValue: (p) => p.note?.content?.abstract?.value,
     },
+    ...(ithenticateInvitationId
+      ? [
+          {
+            header: 'Duplication %',
+            getValue: (p) => p.note?.ithenticateWeight,
+          },
+        ]
+      : []),
     {
       header: `num ${prettyField(reviewerName)}`,
       getValue: (p) => p.reviewProgressData?.numReviewersAssigned,
@@ -386,12 +398,17 @@ const PaperStatusMenuBar = ({
       value: 'Decision',
       getValue: (p) => p.decision,
     },
-    ...(apiVersion === 2
+    {
+      label: 'Venue',
+      value: 'Venue',
+      getValue: (p) => p.venue,
+    },
+    ...(ithenticateInvitationId
       ? [
           {
-            label: 'Venue',
-            value: 'Venue',
-            getValue: (p) => p.venue,
+            label: 'Duplication %',
+            value: 'ithenticateWeight',
+            getValue: (p) => p.note?.ithenticateWeight,
           },
         ]
       : []),
