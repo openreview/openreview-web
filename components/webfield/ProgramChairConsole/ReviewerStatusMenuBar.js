@@ -162,7 +162,7 @@ const ReviewerStatusMenuBar = ({
   messageParentGroup,
   messageSignature,
 }) => {
-  const { reviewerEmailFuncs, officialReviewName, reviewerName } = useContext(WebFieldContext)
+  const { reviewerEmailFuncs, officialReviewName, reviewerName, submissionName } = useContext(WebFieldContext)
   const messageAreaChairOptions = [
     ...(bidEnabled
       ? [
@@ -196,7 +196,7 @@ const ReviewerStatusMenuBar = ({
       header: 'institution domain',
       getValue: (p) => p.reviewerProfile?.content?.history?.[0]?.institution?.domain ?? '',
     },
-    { header: 'num assigned papers', getValue: (p) => p.notesInfo.length },
+    { header: `num assigned ${pluralizeString(submissionName)}`, getValue: (p) => p.notesInfo.length },
     { header: `num submitted ${pluralizeString(prettyField(officialReviewName)).toLowerCase()}`, getValue: (p) => p.numCompletedReviews },
   ]
 

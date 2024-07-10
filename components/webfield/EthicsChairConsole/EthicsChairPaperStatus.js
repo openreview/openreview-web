@@ -307,7 +307,7 @@ const EthicsChairPaperStatus = () => {
         className="console-table table-striped ethics-chairs-console-paper-status"
         headings={[
           { id: 'number', content: '#', width: '10%' },
-          { id: 'summary', content: 'Paper Summary', width: '45%' },
+          { id: 'summary', content: `${submissionName} Summary`, width: '45%' },
           { id: 'ethicsReviewProgress', content: 'Ethics Review Progress', width: '45%' },
         ]}
       >

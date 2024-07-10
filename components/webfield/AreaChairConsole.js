@@ -179,7 +179,7 @@ const AreaChairConsole = ({ appContext }) => {
     ? edgeBrowserProposedUrl
     : edgeBrowserDeployedUrl
   const headerInstructions = showEdgeBrowserUrl
-    ? `${header?.instructions}<p><strong>${getSingularRoleName(prettyField(reviewerName))} Assignment Browser: </strong><a id="edge_browser_url" href="${edgeBrowserUrl}"" target="_blank" rel="nofollow">Modify ${getSingularRoleName(prettyField(reviewerName))} Assignments</a></p>`
+    ? `${header?.instructions}<p><strong>${getSingularRoleName(prettyField(reviewerName))} Assignment Browser: </strong><a id="edge_browser_url" href="${edgeBrowserUrl}" target="_blank" rel="nofollow">Modify ${getSingularRoleName(prettyField(reviewerName))} Assignments</a></p>`
     : header?.instructions
 
   const getReviewerName = (reviewerProfile) => {
@@ -652,7 +652,7 @@ const AreaChairConsole = ({ appContext }) => {
           className="console-table table-striped areachair-console-table"
           headings={[
             { id: 'number', content: '#', width: '55px' },
-            { id: 'summary', content: 'Paper Summary', width: '34%' },
+            { id: 'summary', content: `${submissionName} Summary`, width: '34%' },
             {
               id: 'reviewProgress',
               content: `${prettyField(officialReviewName)} Progress`,

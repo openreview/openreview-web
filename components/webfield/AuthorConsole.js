@@ -15,7 +15,7 @@ import NoteSummary from './NoteSummary'
 import useQuery from '../../hooks/useQuery'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { parseNumberField, prettyField, prettyId, inflect } from '../../lib/utils'
+import { parseNumberField, prettyField, prettyId, inflect, pluralizeString } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import ConsoleTaskList from './ConsoleTaskList'
@@ -86,7 +86,7 @@ const ReviewSummary = ({
 
   return (
     <div className="author-console-reviewer-progress">
-      <h4>{`${inflect(noteCompletedReviews.length, 'Review', 'Reviews', true)} Submitted`}</h4>
+      <h4>{`${inflect(noteCompletedReviews.length, prettyField(officialReviewName), prettyField(pluralizeString(officialReviewName)), true)} Submitted`}</h4>
 
       <ul className="list-unstyled">
         {noteCompletedReviews.map((review) => {
@@ -133,7 +133,7 @@ const ReviewSummary = ({
               <Link
                 href={`/forum?id=${review.forum}&noteId=${review.id}&referrer=${referrerUrl}`}
               >
-                Read Review
+                Read {prettyField(officialReviewName)}
               </Link>
             </li>
           )
@@ -529,7 +529,7 @@ const AuthorConsole = ({ appContext }) => {
                       className="console-table table-striped"
                       headings={[
                         { id: 'number', content: '#', width: '55px' },
-                        { id: 'summary', content: 'Paper Summary', width: '35%' },
+                        { id: 'summary', content: `${prettyField(submissionName)} Summary`, width: '35%' },
                         { id: 'reviews', content: `${prettyField(officialReviewName)}`, width: 'auto' },
                         { id: 'decision', content: 'Decision', width: '30%' },
                       ]}

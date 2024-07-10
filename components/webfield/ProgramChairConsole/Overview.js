@@ -29,7 +29,7 @@ const renderStat = (numComplete, total) =>
 const RecruitmentStatsRow = ({ pcConsoleData }) => {
   const {
     reviewersId,
-    reviewerName,
+    reviewerName = 'Reviewers',
     areaChairsId,
     areaChairName = 'Area_Chairs',
     seniorAreaChairsId,
@@ -178,7 +178,7 @@ const BiddingStatsRow = ({
     seniorAreaChairsId,
     seniorAreaChairName = 'Senior_Area_Chairs',
     reviewersId,
-    reviewerName,
+    reviewerName = 'Reviewers',
     bidName,
     recommendationName
   } = useContext(WebFieldContext)
@@ -276,7 +276,7 @@ const BiddingStatsRow = ({
 }
 
 const ReviewStatsRow = ({ pcConsoleData }) => {
-  const { paperReviewsCompleteThreshold, reviewerName, officialReviewName } = useContext(WebFieldContext)
+  const { paperReviewsCompleteThreshold, reviewerName = 'Reviewers', officialReviewName } = useContext(WebFieldContext)
   const singularReviewerName = getSingularRoleName(reviewerName)
 
   const [reviewStats, setReviewStats] = useState({})
@@ -659,7 +659,7 @@ const DescriptionTimelineOtherConfigRow = ({
     seniorAreaChairsId,
     seniorAreaChairName = 'Senior_Area_Chairs',
     reviewersId,
-    reviewerName,
+    reviewerName = 'Reviewers',
     programChairsId,
     authorsId,
     ethicsReviewersName,
@@ -809,7 +809,7 @@ const DescriptionTimelineOtherConfigRow = ({
           <h4>Description:</h4>
           <p>
             <span>
-              {`Author And ${prettyField(singularReviewerName)} Anonymity: ${requestFormContent?.['Author and Reviewer Anonymity']}`}
+              {`Author And Reviewer Anonymity: ${requestFormContent?.['Author and Reviewer Anonymity']}`}
               <br />
               {requestFormContent?.['Open Reviewing Policy']}
               <br />
