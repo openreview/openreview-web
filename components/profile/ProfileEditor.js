@@ -208,14 +208,13 @@ export default function ProfileEditor({
           !p.position ||
           !p.institution.name ||
           !p.institution.domain ||
-          ((!p.end || p.end >= new Date().getFullYear()) &&
-            (!p.institution.country || !p.institution.city))
+          ((!p.end || p.end >= new Date().getFullYear()) && !p.institution.country)
       ))
     ) {
       return promptInvalidValue(
         'history',
         invalidRecord.key,
-        'You must enter position, institution, domain, country/region and city information for each entry in your education and career history'
+        'You must enter position, institution, domain and country/region information for each entry in your education and career history'
       )
     }
     if (!profileContent.history.some((p) => !p.end || p.end >= new Date().getFullYear())) {

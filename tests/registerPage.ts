@@ -424,10 +424,9 @@ test('update profile', async (t) => {
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
     .click(Selector('div.institution-dropdown__option').nth(0))
     .pressKey('tab')
-    // add mandatory region and city
+    // add mandatory region
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__option').nth(3))
-    .typeText(Selector('input.institution-city'), 'test city')
 
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messagePanelSelector.exists)
@@ -546,10 +545,9 @@ test('register a profile with an institutional email', async (t) => {
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
     .click(Selector('div.institution-dropdown__option').nth(0))
     .pressKey('tab')
-    // add mandatory region and city
+    // add mandatory region
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__option').nth(3))
-    .typeText(Selector('input.institution-city'), 'test city')
 
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messagePanelSelector.exists)

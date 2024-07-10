@@ -274,11 +274,7 @@ const EducationHistoryRow = ({
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution City</div>}
         <input
-          className={`form-control institution-city ${
-            profileHistory?.find((q) => q.key === p.key)?.valid === false
-              ? 'invalid_value'
-              : ''
-          }`}
+          className="form-control institution-city"
           placeholder="Institution City"
           value={p.institution?.city ?? ''}
           onChange={(e) =>

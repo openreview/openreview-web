@@ -296,11 +296,13 @@ test('add and delete geolocation of history', async (t) => {
     )
     .ok()
 
-  // remove state
+  // remove state and city
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .selectText(Selector('input.institution-state'))
+    .pressKey('delete')
+    .selectText(Selector('input.institution-city'))
     .pressKey('delete')
     .click(saveProfileButton)
     .expect(Selector('.glyphicon-map-marker').exists)
@@ -308,22 +310,10 @@ test('add and delete geolocation of history', async (t) => {
     .expect(
       Selector('.glyphicon-map-marker').withAttribute(
         'data-original-title',
-        'test city, MX'
+        'MX'
       ).exists
     )
     .ok()
-
-  // remove city should fail as it's mandatory
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(Selector('input.region-dropdown__placeholder'))
-    .click(Selector('div.country-dropdown__option').nth(3))
-    .selectText(Selector('input.institution-city'))
-    .pressKey('delete')
-    .click(saveProfileButton)
-    .expect(errorMessageSelector.innerText)
-    .eql('Error: You must enter position, institution, domain, country/region and city information for each entry in your education and career history')
 
   // remove country/region should fail as it's mandatory
   await t
@@ -334,7 +324,7 @@ test('add and delete geolocation of history', async (t) => {
     .pressKey('delete')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('Error: You must enter position, institution, domain, country/region and city information for each entry in your education and career history')
+    .eql('Error: You must enter position, institution, domain and country/region information for each entry in your education and career history')
 })
 
 test('add links', async (t) => {

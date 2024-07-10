@@ -142,7 +142,6 @@ export async function createUser({
       domain: 'umass.edu',
       name: 'University of Massachusetts, Amherst',
       country: 'US',
-      city: 'Amherst',
     },
   }
   const activateJson = {
@@ -231,7 +230,6 @@ export async function createProfile(fullname, email, tildeId, superUserToken) {
             domain: 'umass.edu',
             name: 'University of Massachusetts, Amherst',
             country: 'US',
-            city: 'Amherst',
           },
         },
       ],
@@ -279,7 +277,6 @@ export async function createEmptyProfile(fullname, tildeId, superUserToken) {
             domain: 'umass.edu',
             name: 'University of Massachusetts, Amherst',
             country: 'US',
-            city: 'Amherst',
           },
         },
       ],
