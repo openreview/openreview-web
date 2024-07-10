@@ -1,3 +1,4 @@
+/* globals promptError: false */
 import isEqual from 'lodash/isEqual'
 import { forumDate, getNotePdfUrl } from '../../lib/utils'
 import Collapse from '../Collapse'
@@ -5,6 +6,7 @@ import Icon from '../Icon'
 import NoteContent, { NoteContentV2 } from '../NoteContent'
 import NoteReaders from '../NoteReaders'
 import ExpandableList from '../ExpandableList'
+import api from '../../lib/api-client'
 
 const getAuthorsValue = (note, isV2Note) => {
   if (isV2Note) return note.content?.authors?.value
@@ -21,6 +23,8 @@ const NoteSummary = ({
   profileMap,
   showDates = false,
   showReaders = false,
+  ithenticateEdge,
+  accessToken,
 }) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
@@ -52,6 +56,19 @@ const NoteSummary = ({
       </span>
     )
   })
+
+  const getPlagiarismReport = async () => {
+    try {
+      const { viewerUrl } = await api.get(
+        '/ithenticate/viewer-url',
+        { edge: ithenticateEdge.id },
+        { accessToken }
+      )
+      window.open(viewerUrl, '_blank')
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
 
   return (
     <div className="note">
@@ -121,11 +138,7 @@ const NoteSummary = ({
 
       <Collapse showLabel="Show details" hideLabel="Hide details">
         {isV2Note ? (
-          <NoteContentV2
-            id={note.id}
-            content={note.content}
-            invitation={note.invitation}
-          />
+          <NoteContentV2 id={note.id} content={note.content} invitation={note.invitation} />
         ) : (
           <NoteContent
             id={note.id}
@@ -135,6 +148,10 @@ const NoteSummary = ({
           />
         )}
       </Collapse>
+
+      {ithenticateEdge && (
+        <div onClick={getPlagiarismReport}>{ithenticateEdge.weight} % duplicated</div>
+      )}
     </div>
   )
 }

@@ -9,6 +9,7 @@ import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from './PaperStatusMenuBar'
 import { prettyField } from '../../../lib/utils'
+import useUser from '../../../hooks/useUser'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -38,6 +39,7 @@ const PaperRow = ({
   venue,
   getManualAssignmentUrl,
   noteContentField,
+  accessToken,
 }) => {
   const {
     areaChairsId,
@@ -48,7 +50,7 @@ const PaperRow = ({
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
   } = useContext(WebFieldContext)
-  const { note, metaReviewData } = rowData
+  const { note, metaReviewData, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs#paper-status)`
   )
@@ -107,6 +109,8 @@ const PaperRow = ({
           referrerUrl={referrerUrl}
           showReaders={true}
           isV2Note={true}
+          ithenticateEdge={ithenticateEdge}
+          accessToken={accessToken}
         />
       </td>
       <td>
@@ -247,12 +251,13 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
     venueId,
     areaChairsId,
     assignmentUrls,
-    reviewRatingName ,
+    reviewRatingName,
     areaChairName = 'Area_Chairs',
     officialMetaReviewName = 'Meta_Review',
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
+  const { accessToken } = useUser()
   const pageSize = 25
 
   const getManualAssignmentUrl = (role) => {
@@ -389,6 +394,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
             venue={row.venue}
             getManualAssignmentUrl={getManualAssignmentUrl}
             noteContentField={noteContentField}
+            accessToken={accessToken}
           />
         ))}
       </Table>
