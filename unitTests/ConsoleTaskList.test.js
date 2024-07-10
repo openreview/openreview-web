@@ -100,7 +100,7 @@ describe('ConsoleTaskList', () => {
     noteInvitations = [
       {
         id: `${venueId}/${submissionName}5/-/CommentOne`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${submissionName}5/${authorName}`],
         reply: {
@@ -118,7 +118,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/CommentTwo`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         invitees: [`${venueId}/${submissionName}5/${authorName}`],
         reply: {
@@ -134,14 +134,14 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/CommentThree`,
-        domain: `${venueId}`,
+        domain: venueId,
         reply: {
           replyto: undefined,
         },
       },
       {
         id: `${venueId}/${submissionName}5/-/${authorName}CommentFour`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - fourDays,
         invitees: [`${venueId}/${submissionName}5/authors`],
         reply: {
@@ -159,7 +159,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/${authorName}CommentFive`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + fourDays,
         invitees: [`${venueId}/${submissionName}5/authors`],
         reply: {
@@ -177,7 +177,7 @@ describe('ConsoleTaskList', () => {
     edgeInvitations = [
       {
         id: `${venueId}/-/Expertise_Selection_One`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -192,7 +192,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/-/Expertise_Selection_Two`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + fourDays,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -207,7 +207,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/-/Expertise_Selection_Three`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -225,7 +225,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/-/Expertise_Selection_Four`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -243,7 +243,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/-/Expertise_Selection_Five`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${authorName}`],
         minReplies: 1,
@@ -263,7 +263,7 @@ describe('ConsoleTaskList', () => {
     tagInvitations = [
       {
         id: `${venueId}/-/Paper_Ranking_One`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -278,7 +278,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/-/Paper_Ranking_Two`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + fourDays,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -293,7 +293,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/-/Paper_Ranking_Three`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -311,7 +311,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/-/Paper_Ranking_Four`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -329,7 +329,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/-/Paper_Ranking_Five`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${authorName}`],
         minReplies: 1,
@@ -497,7 +497,7 @@ describe('ConsoleTaskList', () => {
     noteInvitations = [
       {
         id: `${venueId}/${submissionName}5/-/No_Reply`, // filter out by has replyto
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         edit: {
           note: {
@@ -509,7 +509,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Revision`, // id is string no replyto
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         edit: {
           note: {
@@ -528,7 +528,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Revision_Complete`, // id is string no replyto
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         edit: {
           note: {
@@ -552,7 +552,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Camera_Ready_Revision`, // no id replyto is string
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + fourDays,
         edit: {
           note: {
@@ -572,7 +572,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Camera_Ready_Revision_Complete`, // no id replyto is string
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - fourDays,
         edit: {
           note: {
@@ -601,7 +601,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Rebuttal`, // no id replyto is string
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         edit: {
           note: {
@@ -622,7 +622,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Rebuttal_Single_Reply`, // no id replyto is string
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         edit: {
           note: {
@@ -648,7 +648,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Rebuttal_Multi_Reply`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         edit: {
           note: {
@@ -678,7 +678,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/Official_Review1/-/Rating`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         edit: {
           note: {
@@ -703,7 +703,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/Meta_Review1/-/Revision`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         edit: {
           note: {
@@ -726,7 +726,7 @@ describe('ConsoleTaskList', () => {
     edgeInvitations = [
       {
         id: `${venueId}/Action_Editors/-/Recommendation`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -739,7 +739,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/Action_Editors/-/Recommendation_Two`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + fourDays,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -752,7 +752,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/Action_Editors/-/Recommendation_Three`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -768,7 +768,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/Action_Editors/-/Recommendation_Four`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -784,7 +784,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/Action_Editors/-/Recommendation_Five`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${authorName}`],
         minReplies: 1,
@@ -802,7 +802,7 @@ describe('ConsoleTaskList', () => {
     tagInvitations = [
       {
         id: `${venueId}/-/Paper_Ranking_One`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -813,7 +813,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/-/Paper_Ranking_Two`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + fourDays,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -824,7 +824,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/-/Paper_Ranking_Three`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -838,7 +838,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/-/Paper_Ranking_Four`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         invitees: [`${venueId}/${authorName}`],
         taskCompletionCount: 1,
@@ -852,7 +852,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/-/Paper_Ranking_Five`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${authorName}`],
         minReplies: 1,
@@ -1066,7 +1066,7 @@ describe('ConsoleTaskList', () => {
     noteInvitations = [
       {
         id: `${venueId}/${submissionName}5/-/CommentOne`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${submissionName}5/${reviewerName}`],
         reply: {
@@ -1084,7 +1084,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/CommentTwo`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         invitees: [`${venueId}/${submissionName}5/${reviewerName}`],
         reply: {
@@ -1100,7 +1100,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/CommentThree`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - fourDays,
         reply: {
           replyto: undefined,
@@ -1116,7 +1116,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}123/-/CommentOne`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${submissionName}123/${reviewerName}`],
         reply: {
@@ -1134,7 +1134,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}123/-/CommentTwo`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         invitees: [`${venueId}/${submissionName}123/${reviewerName}`],
         reply: {
@@ -1202,7 +1202,7 @@ describe('ConsoleTaskList', () => {
     noteInvitations = [
       {
         id: `${venueId}/-/No_Reply`, // filter out by has replyto
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         edit: {
           note: {
@@ -1214,7 +1214,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Official_Comment_One`, // id is string no replyto
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         edit: {
           note: {
@@ -1233,7 +1233,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Official_Comment_Two`, // id is string no replyto
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         edit: {
           note: {
@@ -1254,7 +1254,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Official_Comment_Three`, // no id replyto is string
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + fourDays,
         edit: {
           note: {
@@ -1270,7 +1270,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Official_Comment_Four`, // no id replyto is string
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - fourDays,
         edit: {
           note: {
@@ -1295,7 +1295,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Official_Comment_Five`, // no id replyto is string
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         edit: {
           note: {
@@ -1320,7 +1320,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Official_Comment_Six`, // no id replyto is string
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         edit: {
           note: {
@@ -1350,7 +1350,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Official_Comment_Seven`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         edit: {
           note: {
@@ -1384,7 +1384,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}123/-/Official_Comment_Seven`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         edit: {
           note: {
@@ -1503,7 +1503,7 @@ describe('ConsoleTaskList', () => {
     noteInvitations = [
       {
         id: `${venueId}/${areaChairName}/-/Registration`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${areaChairName}`],
         edit: {
@@ -1526,7 +1526,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${areaChairName}/-/Registration_Two`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         invitees: [`${venueId}/${areaChairName}`],
         edit: {
@@ -1554,7 +1554,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Meta_Review`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + fourDays,
         invitees: [`${venueId}/${areaChairName}`],
         edit: {
@@ -1577,7 +1577,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}123/-/Meta_Review`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - fourDays,
         invitees: [`${venueId}/${areaChairName}`],
         edit: {
@@ -1606,7 +1606,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}456/-/Revision`, // AC is also author of this paper
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         edit: {
           note: {
@@ -1702,7 +1702,7 @@ describe('ConsoleTaskList', () => {
     noteInvitations = [
       {
         id: `${venueId}/${seniorAreaChairName}/-/Registration`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${seniorAreaChairName}`],
         edit: {
@@ -1725,7 +1725,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/Area_Chair_AnonId/-/Meta_Review_Agreement`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + fourDays,
         invitees: [`${venueId}/${submissionName}5/${seniorAreaChairName}`],
         edit: {
@@ -1756,7 +1756,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Meta_Review_SAC_Revision`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - fourDays,
         invitees: [`${venueId}/${submissionName}5/${seniorAreaChairName}`],
         edit: {
@@ -1790,7 +1790,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}6/-/Meta_Review_SAC_Revision`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - fourDays,
         invitees: [`${venueId}/${submissionName}5/${seniorAreaChairName}`],
         edit: {
@@ -1835,7 +1835,7 @@ describe('ConsoleTaskList', () => {
       {
         // Use reply number in invitation id instead of anon id
         id: `${venueId}/${submissionName}6/Meta_Review1/-/Meta_Review_Agreement`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + fourDays,
         invitees: [`${venueId}/${submissionName}6/${seniorAreaChairName}`],
         edit: {
@@ -1953,7 +1953,7 @@ describe('ConsoleTaskList', () => {
     noteInvitations = [
       {
         id: `${venueId}/${areaChairName}/-/Registration`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${areaChairName}`],
         edit: {
@@ -1976,7 +1976,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${areaChairName}/-/Registration_Two`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - oneDay,
         invitees: [`${venueId}/${areaChairName}`],
         edit: {
@@ -2004,7 +2004,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Meta_Review`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + fourDays,
         invitees: [`${venueId}/${areaChairName}`],
         edit: {
@@ -2027,7 +2027,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}123/-/Meta_Review`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - fourDays,
         invitees: [`${venueId}/${areaChairName}`],
         edit: {
@@ -2057,7 +2057,7 @@ describe('ConsoleTaskList', () => {
       // invitations for SAC
       {
         id: `${venueId}/${seniorAreaChairName}/-/Registration`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + oneDay,
         invitees: [`${venueId}/${seniorAreaChairName}`],
         edit: {
@@ -2080,7 +2080,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/Area_Chair_AnonId/-/Meta_Review_Agreement`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now + fourDays,
         invitees: [`${venueId}/${submissionName}5/${seniorAreaChairName}`],
         edit: {
@@ -2111,7 +2111,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}5/-/Meta_Review_SAC_Revision`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - fourDays,
         invitees: [`${venueId}/${submissionName}5/${seniorAreaChairName}`],
         edit: {
@@ -2145,7 +2145,7 @@ describe('ConsoleTaskList', () => {
       },
       {
         id: `${venueId}/${submissionName}6/-/Meta_Review_SAC_Revision`,
-        domain: `${venueId}`,
+        domain: venueId,
         duedate: now - fourDays,
         invitees: [`${venueId}/${submissionName}5/${seniorAreaChairName}`],
         edit: {
