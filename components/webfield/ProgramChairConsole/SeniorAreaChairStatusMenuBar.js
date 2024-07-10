@@ -157,7 +157,7 @@ const SeniorAreaChairStatusMenuBarForACAssignment = ({
   tableRows,
   setSeniorAreaChairStatusTabData,
 }) => {
-  const { seniorAreaChairName } = useContext(WebFieldContext)
+  const { seniorAreaChairName = 'Senior_Area_Chairs', } = useContext(WebFieldContext)
   const sortOptions = [
     {
       label: prettyField(seniorAreaChairName),

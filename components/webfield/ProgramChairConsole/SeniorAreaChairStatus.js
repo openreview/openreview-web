@@ -188,7 +188,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
     venueId,
     metaReviewRecommendationName = 'recommendation',
     sacDirectPaperAssignment,
-    seniorAreaChairName,
+    seniorAreaChairName = 'Senior_Area_Chairs',
     areaChairName,
     officialReviewName,
     officialMetaReviewName,
