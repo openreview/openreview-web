@@ -5,6 +5,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Router, { useRouter } from 'next/router'
 import pick from 'lodash/pick'
+import { upperFirst } from 'lodash'
 import ProfileViewSection from '../../components/profile/ProfileViewSection'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import LimitedStatusAlert from '../../components/profile/LimitedStateAlert'
@@ -82,6 +83,27 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   const router = useRouter()
   const { setBannerHidden, setEditBanner } = appContext
 
+  const getCurrentInstitutionInfo = () => {
+    const currentHistories = profile?.history?.filter(
+      (p) => !p.end || p.end >= new Date().getFullYear()
+    )
+    return (
+      <>
+        {currentHistories?.map((history, index) => {
+          const posititon = upperFirst(history.position).trim()
+          const department = history.institution.department?.trim()
+          const institutionName = history.institution.name?.trim()
+
+          return (
+            <h3 key={index}>
+              {[posititon, department, institutionName].filter(Boolean).join(', ')}
+            </h3>
+          )
+        })}
+      </>
+    )
+  }
+
   const loadPublications = async () => {
     let apiRes
     const queryParam = {
@@ -143,7 +165,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
             profile.pronouns !== 'Not Specified' && (
               <h4 className="pronouns">Pronouns: {profile.pronouns}</h4>
             )}
-          <h3>{profile.currentInstitution}</h3>
+          {getCurrentInstitutionInfo()}
           <ul className="list-inline">
             <li>
               <Icon name="calendar" extraClasses="pr-1" /> Joined {profile.joined}
