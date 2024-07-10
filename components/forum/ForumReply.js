@@ -60,12 +60,10 @@ export default function ForumReply({
         ? inv.edit?.note?.readers
         : inv.edit?.note?.readers?.param?.const
 
-      const hasDollarSignSubstitution =
-        invitationReaders && invitationReaders.some((r) => r.startsWith('$'))
       return (
         noteReadableByEveryone ||
         !invitationReaders ||
-        hasDollarSignSubstitution ||
+        invitationReaders.some((r) => r.startsWith('$')) ||
         invitationReaders.every((reader) => note.readers.includes(reader))
       )
     })
