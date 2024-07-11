@@ -1,6 +1,9 @@
 @use '../utils/constants';
 
 main.profile {
+  width: calc(100% + 100px);
+  left: -50px;
+
   header {
     margin-top: 0.75rem;
     margin-bottom: 1.75rem;
@@ -13,7 +16,7 @@ main.profile {
       font-size: 1.375rem;
       color: constants.$subtleGray;
       line-height: normal;
-      margin-top: .25rem;
+      margin-top: 0.25rem;
       margin-bottom: 0;
     }
     h5 {
@@ -42,7 +45,7 @@ main.profile {
         font-weight: normal;
         color: constants.$subtleGray;
         line-height: normal;
-        margin-top: .25rem;
+        margin-top: 0.25rem;
         margin-bottom: 0;
       }
     }

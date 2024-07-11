@@ -605,6 +605,10 @@ export default function Forum({
       )
     }
 
+    setTimeout(() => {
+      typesetMathJax()
+    }, 200)
+
     return replies.map((reply) => (
       <ForumReply
         key={reply.id}
@@ -841,6 +845,7 @@ export default function Forum({
     numRepliesVisible.current = numVisible
 
     typesetMathJax()
+    $('.forum-note [data-toggle="tooltip"]').tooltip({ html: true })
     delayedScroll(layout, scrolled)
   }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations, maxLength])
 

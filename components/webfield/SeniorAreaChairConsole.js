@@ -30,9 +30,13 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     assignmentLabel,
     submissionId,
     submissionName,
+    reviewersId,
     reviewerName,
+    reviewerAssignmentId = `${reviewersId}/-/Assignment`,
     anonReviewerName,
+    areaChairsId,
     areaChairName = 'Area_Chairs',
+    areaChairAssignmentId = `${areaChairsId}/-/Assignment`,
     anonAreaChairName,
     secondaryAreaChairName,
     secondaryAnonAreaChairName,
@@ -113,6 +117,18 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         : Promise.resolve([])
       // #endregion
 
+      // #region getInvitations
+
+      const invitationsP = api.getAll(
+        '/invitations',
+        {
+          ids: [reviewerAssignmentId, areaChairAssignmentId],
+        },
+        { accessToken }
+      )
+
+      // #endregion
+
       // #region getGroups (per paper groups)
       const perPaperGroupResultsP = api.get(
         '/groups',
@@ -141,8 +157,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         : Promise.resolve([])
       // #endregion
 
-      const [notes, perPaperGroupResults, assignmentEdges] = await Promise.all([
+      const [notes, invitations, perPaperGroupResults, assignmentEdges] = await Promise.all([
         notesP,
+        invitationsP,
         perPaperGroupResultsP,
         assignmentsP,
       ])
@@ -348,6 +365,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         assignedAreaChairIds,
         areaChairGroups,
         allProfilesMap,
+        assignmentInvitations: invitations,
         notes: assignedNotes.map((note) => {
           const assignedReviewers =
             reviewerGroups?.find((p) => p.noteNumber === note.number)?.members ?? []
@@ -542,6 +560,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 const profile = allProfilesMap.get(areaChair.areaChairProfileId)
                 return {
                   ...areaChair,
+                  noteNumber: note.number,
+                  preferredId: profile ? profile.id : areaChair.areaChairProfileId,
                   preferredName: profile
                     ? getProfileName(profile)
                     : areaChair.areaChairProfileId,
