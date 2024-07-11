@@ -241,7 +241,9 @@ const AuthorSubmissionRowMobile = ({
   )
   return (
     <div className="mobile-paper-container">
-      <span className="mobile-header">Paper #{note.number}</span>
+      <span className="mobile-header">
+        {submissionName} #{note.number}
+      </span>
       <NoteSummary
         note={note}
         profileMap={profileMap}

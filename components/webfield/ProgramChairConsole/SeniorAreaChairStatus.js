@@ -53,7 +53,8 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
   referrerUrl,
   metaReviewRecommendationName,
 }) => {
-  const { officialReviewName, officialMetaReviewName } = useContext(WebFieldContext)
+  const { officialReviewName, officialMetaReviewName, submissionName } =
+    useContext(WebFieldContext)
   const { id, preferredName, preferredEmail } = rowData.sacProfile ?? {}
   const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
@@ -87,10 +88,10 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
       <td>
         <div className="reviewer-progress">
           <h4>
-            {numCompletedReviews} of {numPapers} Papers with{' '}
+            {numCompletedReviews} of {numPapers} {pluralizeString(submissionName)} with{' '}
             {pluralizeString(prettyField(officialReviewName))} Completed
           </h4>
-          {rowData.notes.length !== 0 && <strong>Papers:</strong>}
+          {rowData.notes.length !== 0 && <strong>{pluralizeString(submissionName)}:</strong>}
           <div className="review-progress">
             {rowData.notes.map((p) => {
               if (!p) return null
@@ -127,10 +128,10 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
       <td>
         <div className="areachair-progress">
           <h4>
-            {numCompletedMetaReviews} of {numPapers} Papers with{' '}
+            {numCompletedMetaReviews} of {numPapers} {pluralizeString(submissionName)} with{' '}
             {pluralizeString(prettyField(officialMetaReviewName))} Completed
           </h4>
-          {rowData.notes.length !== 0 && <strong>Papers:</strong>}
+          {rowData.notes.length !== 0 && <strong>{pluralizeString(submissionName)}:</strong>}
           <div>
             {rowData.notes.map((p) => {
               if (!p) return null

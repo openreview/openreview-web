@@ -242,29 +242,35 @@ const ReviewerStatusMenuBar = ({
         ]
       : []),
     {
-      label: 'Papers Assigned',
+      label: `${pluralizeString(submissionName)} Assigned`,
       value: 'Papers Assigned',
       getValue: (p) => p.notesInfo.length,
     },
     {
-      label: `Papers with ${pluralizeString(prettyField(officialReviewName))} Missing`,
+      label: `${pluralizeString(submissionName)} with ${pluralizeString(
+        prettyField(officialReviewName)
+      )} Missing`,
       value: 'Papers with Reviews Missing',
       getValue: (p) => p.notesInfo.length - p.numCompletedReviews,
     },
     {
-      label: `Papers with ${pluralizeString(prettyField(officialReviewName))} Submitted`,
+      label: `${pluralizeString(submissionName)} with ${pluralizeString(
+        prettyField(officialReviewName)
+      )} Submitted`,
       value: 'Papers with Reviews Submitted',
       getValue: (p) => p.numCompletedReviews,
     },
     {
-      label: `Papers with Completed ${pluralizeString(
+      label: `${pluralizeString(submissionName)} with Completed ${pluralizeString(
         prettyField(officialReviewName)
       )} Missing`,
       value: 'Papers with Completed Reviews Missing',
       getValue: (p) => p.notesInfo.length - p.numOfPapersWhichCompletedReviews,
     },
     {
-      label: `Papers with Completed ${pluralizeString(prettyField(officialReviewName))}`,
+      label: `${pluralizeString(submissionName)} with Completed ${pluralizeString(
+        prettyField(officialReviewName)
+      )}`,
       value: 'Papers with Completed Reviews',
       getValue: (p) => p.numOfPapersWhichCompletedReviews,
     },

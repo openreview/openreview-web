@@ -132,16 +132,21 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
 }
 
 // modified based on notesAreaChairProgress.hbs
-const NoteAreaChairProgress = ({ rowData, referrerUrl, officialReviewName }) => {
+const NoteAreaChairProgress = ({
+  rowData,
+  referrerUrl,
+  officialReviewName,
+  submissionName,
+}) => {
   const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
     <div className="reviewer-progress">
       <h4>
-        {numCompletedReviews} of {numPapers} Papers with{' '}
+        {numCompletedReviews} of {numPapers} {pluralizeString(submissionName)} with{' '}
         {pluralizeString(prettyField(officialReviewName))} Completed
       </h4>
-      {rowData.notes.length !== 0 && <strong>Papers:</strong>}
+      {rowData.notes.length !== 0 && <strong>{pluralizeString(submissionName)}:</strong>}
       <div className="review-progress">
         {rowData.notes.map((p) => {
           const { numReviewsDone, numReviewersAssigned, ratingAvg, ratingMin, ratingMax } =
@@ -182,16 +187,17 @@ const NoteAreaChairStatus = ({
   referrerUrl,
   metaReviewRecommendationName,
   officialMetaReviewName,
+  submissionName,
 }) => {
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
     <div className="areachair-progress">
       <h4>
-        {numCompletedMetaReviews} of {numPapers} Papers with{' '}
+        {numCompletedMetaReviews} of {numPapers} {pluralizeString(submissionName)} with{' '}
         {pluralizeString(prettyField(officialMetaReviewName))} Completed
       </h4>
-      {rowData.notes.length !== 0 && <strong>Papers:</strong>}
+      {rowData.notes.length !== 0 && <strong>{pluralizeString(submissionName)}:</strong>}
       <div>
         {rowData.notes.map((p) => {
           const noteContent = getNoteContentValues(p.note?.content)
@@ -247,6 +253,7 @@ const AreaChairStatusRow = ({
   officialMetaReviewName,
   metaReviewRecommendationName,
   referrerUrl,
+  submissionName,
 }) => (
   <tr>
     <td>
@@ -266,6 +273,7 @@ const AreaChairStatusRow = ({
         rowData={rowData}
         referrerUrl={referrerUrl}
         officialReviewName={officialReviewName}
+        submissionName={submissionName}
       />
     </td>
     <td>
@@ -274,6 +282,7 @@ const AreaChairStatusRow = ({
         referrerUrl={referrerUrl}
         metaReviewRecommendationName={metaReviewRecommendationName}
         officialMetaReviewName={officialMetaReviewName}
+        submissionName={submissionName}
       />
     </td>
   </tr>
@@ -299,6 +308,7 @@ const AreaChairStatus = ({
     officialMetaReviewName,
     metaReviewRecommendationName = 'recommendation',
     venueId,
+    submissionName,
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.areaChairs?.length ?? 0)
@@ -498,6 +508,7 @@ const AreaChairStatus = ({
             officialMetaReviewName={officialMetaReviewName}
             metaReviewRecommendationName={metaReviewRecommendationName}
             referrerUrl={referrerUrl}
+            submissionName={submissionName}
           />
         ))}
       </Table>

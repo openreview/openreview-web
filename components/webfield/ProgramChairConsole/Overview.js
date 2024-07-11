@@ -297,6 +297,7 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
     paperReviewsCompleteThreshold,
     reviewerName = 'Reviewers',
     officialReviewName,
+    submissionName,
   } = useContext(WebFieldContext)
   const singularReviewerName = getSingularRoleName(reviewerName)
 
@@ -414,7 +415,7 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
           }
         />
         <StatContainer
-          title="Paper Progress"
+          title={`${submissionName} Progress`}
           hint={`% of papers that have received ${
             paperReviewsCompleteThreshold
               ? `at least ${inflect(paperReviewsCompleteThreshold, 'review', 'reviews', true)}`
@@ -511,9 +512,7 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
           }
         />
         <StatContainer
-          title={`${prettyField(singularAreaChairName)} ${prettyField(
-            officialMetaReviewName
-          )} Progress`}
+          title={`${prettyField(singularAreaChairName)} Progress`}
           hint={`% of ${prettyField(
             areaChairName
           ).toLowerCase()} who have completed ${pluralizeString(
@@ -706,6 +705,7 @@ const DescriptionTimelineOtherConfigRow = ({
     recruitmentName = 'Recruitment',
     customStageInvitations = [],
     assignmentUrls,
+    submissionName,
   } = useContext(WebFieldContext)
 
   const { requestForm, registrationForms, invitations } = pcConsoleData
@@ -746,7 +746,7 @@ const DescriptionTimelineOtherConfigRow = ({
   }
 
   const timelineInvitations = [
-    { id: submissionId, displayName: 'Paper Submissions' },
+    { id: submissionId, displayName: `${pluralizeString(submissionName)}` },
     ...(bidName
       ? [
           {

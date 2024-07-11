@@ -18,6 +18,7 @@ import {
   parseNumberField,
   isValidEmail,
   getSingularRoleName,
+  pluralizeString,
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
@@ -1058,7 +1059,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             active={activeTabId === '#paper-status' ? true : undefined}
             onClick={() => setActiveTabId('#paper-status')}
           >
-            Paper Status
+            {submissionName} Status
           </Tab>
           <Tab
             id="reviewer-status"
@@ -1091,7 +1092,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               active={activeTabId === '#deskrejectwithdrawn-status' ? true : undefined}
               onClick={() => setActiveTabId('#deskrejectwithdrawn-status')}
             >
-              Desk Rejected/Withdrawn Papers
+              Desk Rejected/Withdrawn {pluralizeString(submissionName)}
             </Tab>
           )}
           {submissionContentFields.length > 0 &&
