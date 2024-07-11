@@ -21,7 +21,7 @@ test('should open tasks page and complete pending task', async (t) => {
     .expect(Selector('div.tasks-container').find('ul.list-unstyled').nth(0).childElementCount)
     .eql(1)
     .click(Selector('span.task-count-message')) // perform the task
-    .click(Selector('a').withText('Submission1 Official Review'))
+    .click(Selector('a').withText('Paper1 Official Review'))
     .typeText(Selector('input').withAttribute('name', 'title'), 'test title') // fill in comment title
     .typeText(Selector('textarea').withAttribute('name', 'review'), 'test comment') // fill in comment content
     .click(Selector('input').withAttribute('name', 'rating')) // fill in comment content
@@ -51,7 +51,7 @@ test('task should change when note is deleted and restored', async (t) => {
     .useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
     .click(Selector('span.task-count-message'))
-    .click(Selector('a').withText('Submission1 Official Review')) // go to forum page
+    .click(Selector('a').withText('Paper1 Official Review')) // go to forum page
     .wait(2000)
     .click(Selector('#note_children').find('button.trash_button'))
     .click(Selector('a').withText('Tasks'))
@@ -59,7 +59,7 @@ test('task should change when note is deleted and restored', async (t) => {
     .expect(Selector('span.task-count-message').innerText)
     .eql('Show 1 pending task')
     .click(Selector('span.task-count-message'))
-    .click(Selector('a').withText('Submission1 Official Review'))
+    .click(Selector('a').withText('Paper1 Official Review'))
     .click(Selector('.note_editor').find('button').withText('Cancel')) // don't add new comment
     .click(Selector('button').withText('Restore'))
     .click(Selector('a').withText('Tasks'))
@@ -88,7 +88,7 @@ test('should not show referrer banner after navigation', async (t) => {
     .useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
     .click(Selector('span.task-count-message'))
-    .click(Selector('a').withText('Submission1 Official Review')) // go to the actual forum page
+    .click(Selector('a').withText('Paper1 Official Review')) // go to the actual forum page
     .expect(Selector('.banner').find('a').withText('Back to Tasks').exists)
     .ok() // banner shows back to tasks
     .click(Selector('a.home.push-link')) // go to index page
