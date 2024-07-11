@@ -136,6 +136,15 @@ const NoteSummary = ({
         <span className="note-venue">{note.content.venue.value}</span>
       )}
 
+      {ithenticateEdge &&
+        (ithenticateEdge.label === 'COMPLETE' ? (
+          <div className="note-ithenticate report-complete" onClick={getPlagiarismReport}>
+            iThenticate Report {ithenticateEdge.weight}%
+          </div>
+        ) : (
+          <div className="note-ithenticate">iThenticate Report: {ithenticateEdge.label}</div>
+        ))}
+
       <Collapse showLabel="Show details" hideLabel="Hide details">
         {isV2Note ? (
           <NoteContentV2 id={note.id} content={note.content} invitation={note.invitation} />
@@ -148,13 +157,6 @@ const NoteSummary = ({
           />
         )}
       </Collapse>
-
-      {ithenticateEdge &&
-        (ithenticateEdge.label === 'COMPLETE' ? (
-          <div onClick={getPlagiarismReport}>{ithenticateEdge.weight} % duplicated</div>
-        ) : (
-          <div>iThenticate Report: {ithenticateEdge.label}</div>
-        ))}
     </div>
   )
 }
