@@ -17,6 +17,8 @@ import {
   prettyField,
   parseNumberField,
   isValidEmail,
+  getSingularRoleName,
+  pluralizeString,
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
@@ -1082,14 +1084,14 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             active={activeTabId === '#paper-status' ? true : undefined}
             onClick={() => setActiveTabId('#paper-status')}
           >
-            Paper Status
+            {submissionName} Status
           </Tab>
           <Tab
             id="reviewer-status"
             active={activeTabId === '#reviewer-status' ? true : undefined}
             onClick={() => setActiveTabId('#reviewer-status')}
           >
-            Reviewer Status
+            {getSingularRoleName(prettyField(reviewerName))} Status
           </Tab>
           {areaChairsId && (
             <Tab
@@ -1097,7 +1099,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               active={activeTabId === '#areachair-status' ? true : undefined}
               onClick={() => setActiveTabId('#areachair-status')}
             >
-              Area Chair Status
+              {getSingularRoleName(prettyField(areaChairName))} Status
             </Tab>
           )}
           {seniorAreaChairsId && (
@@ -1106,7 +1108,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               active={activeTabId === '#seniorareachair-status' ? true : undefined}
               onClick={() => setActiveTabId('#seniorareachair-status')}
             >
-              Senior Area Chair Status
+              {getSingularRoleName(prettyField(seniorAreaChairName))} Status
             </Tab>
           )}
           {(withdrawnVenueId || deskRejectedVenueId) && (
@@ -1115,7 +1117,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               active={activeTabId === '#deskrejectwithdrawn-status' ? true : undefined}
               onClick={() => setActiveTabId('#deskrejectwithdrawn-status')}
             >
-              Desk Rejected/Withdrawn Papers
+              Desk Rejected/Withdrawn {pluralizeString(submissionName)}
             </Tab>
           )}
           {submissionContentFields.length > 0 &&

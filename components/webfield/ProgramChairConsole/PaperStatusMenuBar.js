@@ -35,8 +35,8 @@ const PaperStatusMenuBar = ({
     ithenticateInvitationId,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
-  const formattedReviewerName = upperFirst(camelCase(reviewerName))
-  const formattedSACName = upperFirst(camelCase(seniorAreaChairName))
+  const formattedReviewerName = camelCase(reviewerName)
+  const formattedSACName = camelCase(seniorAreaChairName)
   const formattedOfficialReviewName = upperFirst(camelCase(officialReviewName))
   const formattedOfficialMetaReviewName = upperFirst(camelCase(officialMetaReviewName))
 
@@ -48,7 +48,9 @@ const PaperStatusMenuBar = ({
     keywords: ['note.content.keywords.value'],
     [formattedReviewerName]: ['reviewers'],
     [formattedSACName]: ['metaReviewData.seniorAreaChairs'],
-    [`num${formattedReviewerName}Assigned`]: ['reviewProgressData.numReviewersAssigned'],
+    [`num${upperFirst(formattedReviewerName)}Assigned`]: [
+      'reviewProgressData.numReviewersAssigned',
+    ],
     [`num${formattedOfficialReviewName}Done`]: ['reviewProgressData.numReviewsDone'],
     ...Object.fromEntries(
       (Array.isArray(reviewRatingName)
@@ -136,19 +138,17 @@ const PaperStatusMenuBar = ({
 
   const messageReviewerOptions = [
     {
-      label: `All ${pluralizeString(prettyField(reviewerName))} of selected ${pluralizeString(
-        submissionName
-      )}`,
+      label: `All ${prettyField(reviewerName)} of selected ${pluralizeString(submissionName)}`,
       value: 'allReviewers',
     },
     {
-      label: `${pluralizeString(prettyField(reviewerName))} of selected ${pluralizeString(
+      label: `${prettyField(reviewerName)} of selected ${pluralizeString(
         submissionName
       )} with submitted ${pluralizeString(prettyField(officialReviewName).toLowerCase())}`,
       value: 'withReviews',
     },
     {
-      label: `${pluralizeString(prettyField(reviewerName))} of selected ${pluralizeString(
+      label: `${prettyField(reviewerName)} of selected ${pluralizeString(
         submissionName
       )} with unsubmitted ${pluralizeString(prettyField(officialReviewName).toLowerCase())}`,
       value: 'missingReviews',

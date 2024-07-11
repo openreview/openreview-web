@@ -12,7 +12,7 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import Icon from '../Icon'
 import Dropdown from '../Dropdown'
-import { prettyInvitationId } from '../../lib/utils'
+import { pluralizeString, prettyInvitationId } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
 import PaginationLinks from '../PaginationLinks'
 import ErrorDisplay from '../ErrorDisplay'
@@ -632,10 +632,15 @@ const BidConsole = ({ appContext }) => {
     submissionVenueId,
     conflictInvitationId,
     subjectAreas,
+    submissionName = 'Submission',
   } = useContext(WebFieldContext)
 
   const bidOptions = invitation.edge?.label?.param?.enum
-  const bidOptionsWithDefaultTabs = ['All Papers', ...(bidOptions ?? []), 'No Bid']
+  const bidOptionsWithDefaultTabs = [
+    `All ${pluralizeString(submissionName)}`,
+    ...(bidOptions ?? []),
+    'No Bid',
+  ]
   const getActiveTabIndex = () => {
     const tabIndex = bidOptionsWithDefaultTabs.findIndex(
       (p) => `#${kebabCase(p)}` === window.location.hash

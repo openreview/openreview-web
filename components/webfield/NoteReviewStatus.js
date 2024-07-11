@@ -451,8 +451,8 @@ export const AcPcConsoleNoteReviewStatus = ({
           {numReviewsDone} {pluralizeString(prettyField(officialReviewName))} Submitted
         </h4>
         <Collapse
-          showLabel={`Show ${pluralizeString(prettyField(reviewerName))}`}
-          hideLabel={`Hide ${pluralizeString(prettyField(reviewerName))}`}
+          showLabel={`Show ${prettyField(reviewerName)}`}
+          hideLabel={`Hide ${prettyField(reviewerName)}`}
           className="assigned-reviewers"
         >
           {officialReviews.map((review) => (
@@ -505,8 +505,8 @@ export const AcPcConsoleNoteReviewStatus = ({
         {pluralizeString(prettyField(officialReviewName))} Submitted
       </h4>
       <Collapse
-        showLabel={`Show ${pluralizeString(prettyField(reviewerName))}`}
-        hideLabel={`Hide ${pluralizeString(prettyField(reviewerName))}`}
+        showLabel={`Show ${prettyField(reviewerName)}`}
+        hideLabel={`Hide ${prettyField(reviewerName)}`}
         className="assigned-reviewers"
       >
         <div>
