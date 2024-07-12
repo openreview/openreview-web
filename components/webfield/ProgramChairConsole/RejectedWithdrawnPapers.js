@@ -28,7 +28,7 @@ const RejectedWithdrawnPaperRow = ({ rowData, referrerUrl }) => {
 
 const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
   const [rejectedPaperTabData, setRejectedPaperTabData] = useState({})
-  const { withdrawnVenueId, deskRejectedVenueId, shortPhrase, enableQuerySearch, venueId } =
+  const { withdrawnVenueId, deskRejectedVenueId, shortPhrase, enableQuerySearch, venueId, submissionName } =
     useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
@@ -140,7 +140,7 @@ const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
         className="console-table table-striped pc-console-rejected-papers"
         headings={[
           { id: 'number', content: '#', width: '55px' },
-          { id: 'paperSummary', content: 'Paper Summary', width: '60%' },
+          { id: 'paperSummary', content: `${submissionName} Summary`, width: '60%' },
           { id: 'reason', content: 'Reason' },
         ]}
       >
