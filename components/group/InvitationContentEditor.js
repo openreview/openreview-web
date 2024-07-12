@@ -168,7 +168,7 @@ const InvitationContentEditor = ({
 
   if (!invitation?.edit?.content) return null
   return (
-    <div className={classNames(className, styles.invitationEditor)}>
+    <div className={classNames(className, styles.invitationContentEditor)}>
       {fields.map(([fieldName, fieldDescription]) => renderField(fieldName, fieldDescription))}
       <EditSignatures
         fieldDescription={invitation.edit.signatures}

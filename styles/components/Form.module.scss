@@ -3,13 +3,11 @@
 .formContainer {
   padding-bottom: 0.25rem;
   margin-top: 0.5rem;
+  background-color: unset;
 }
 
 .fieldContainer {
   margin-bottom: 0.5rem;
-}
-
-.enumContainer {
 }
 
 .enumHeaderRow {
@@ -57,7 +55,4 @@
 .enumDeleteBtn {
   color: constants.$mediumBlue;
   font-size: 1.25rem;
-}
-
-.addOptionBtn {
 }

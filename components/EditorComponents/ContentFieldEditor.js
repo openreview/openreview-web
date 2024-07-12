@@ -8,6 +8,7 @@ import Dropdown from '../Dropdown'
 import Form from '../Form'
 import NoteEditor from '../NoteEditor'
 import EditorComponentHeader from './EditorComponentHeader'
+import styles from '../../styles/components/ContentFieldEditor.module.scss'
 
 const JsonEditor = ({ existingFields, onFieldChange }) => {
   const [mode, setMode] = useState('empty')
@@ -432,7 +433,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
   }
 
   return (
-    <div>
+    <div className={styles.jsonEditorContainer}>
       <Dropdown
         options={widgetOptions}
         placeholder="Add a field or Select a field to edit"
@@ -445,19 +446,19 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
             setNameOfFieldToEdit(e.value)
           }
         }}
-        className="mb-2"
+        className={styles.addFieldDropdown}
       />
       {mode === 'newField' && (
-        <>
+        <div className={styles.newFieldForm}>
           <EditorComponentHeader fieldNameOverwrite={'Name of New Field'}>
             <input
-              className="form-control"
+              className={`form-control ${styles.newFieldNameInput}`}
               value={nameOfNewField}
               onChange={(e) => setNameOfNewField(e.target.value)}
             />
           </EditorComponentHeader>
           <button
-            className="btn btn-sm"
+            className={`btn btn-sm ${styles.addFieldButton}`}
             onClick={() => {
               setNameOfFieldToEdit(nameOfNewField)
               setMode('editField')
@@ -465,7 +466,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           >
             Add Field
           </button>
-        </>
+        </div>
       )}
       {mode === 'editField' && (
         <Form
@@ -489,7 +490,7 @@ const ContentFieldEditor = () => {
   }
 
   return (
-    <Tabs className="markdown-preview mb-2">
+    <Tabs className={styles.contentEditorTabs}>
       <TabList>
         <Tab
           id={`widgets${fieldName}`}
@@ -532,6 +533,11 @@ const ContentFieldEditor = () => {
             <NoteEditor
               invitation={{ edit: { note: { content: value } } }}
               closeNoteEditor={() => {}}
+              className={styles.contentPreview}
+              customValidator={() => ({
+                isValid: false,
+                errorMessage: 'This is a note editor preview',
+              })}
             />
           )}
         </TabPanel>

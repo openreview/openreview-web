@@ -1,29 +1,20 @@
 @use '../utils/constants';
 
-.noteEditor {
+.invitationContentEditor {
   display: flex;
   flex-direction: column;
-  padding: 0.5rem;
-  margin-bottom: 1.875rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 
   :global {
-    .dropdown-select {
-      width: 500px;
-      &__indicator-separator {
-        display: none;
-      }
-      @media #{constants.$phone-only} {
-        width: 100%;
-      }
+    .tabs-container {
+      margin-bottom: 0;
     }
   }
-  & > div[class^='EditorComponentHeader_inline__'] {
-    margin-bottom: 0.875rem;
-  }
-  hr.titleSeparator {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-  }
+}
+
+.fieldContainer {
+  margin-bottom: 0.5rem;
 }
 
 .title {

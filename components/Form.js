@@ -7,9 +7,9 @@ import EditorComponentContext from './EditorComponentContext'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import EditorWidget from './webfield/EditorWidget'
 import Icon from './Icon'
-import IconButton, { TrashButton } from './IconButton'
+import IconButton from './IconButton'
 
-const EnumItemsEditor = ({ options, setOptions, fieldName }) => {
+const EnumItemsEditor = ({ options, setOptions, fieldName, formData }) => {
   const [optionType, setOptionType] = useState(null)
   const [localOptions, setLocalOptions] = useReducer(
     (state, action) => {
@@ -79,24 +79,31 @@ const EnumItemsEditor = ({ options, setOptions, fieldName }) => {
 
   useEffect(() => {
     let updatedOptions = null
-    if (optionType === 'string') {
-      updatedOptions = localOptions.map((option) => option.value)
-    } else if (optionType === 'enum' || optionType === 'items') {
+    // if (optionType === 'string') {
+    //   updatedOptions = localOptions.map((option) => option.value)
+    // } else
+    if (optionType === 'enum' || optionType === 'items') {
       updatedOptions = localOptions.map((option) => {
         const { key, ...rest } = option
         return rest
       })
     }
-    setOptions({ fieldName, value: updatedOptions })
+    if (updatedOptions) {
+      setOptions({ fieldName, value: updatedOptions })
+    } else {
+      // new field or type changed field
+      setOptions({ fieldName, value: [] })
+      setOptionType(formData.dataType?.endsWith('[]') ? 'items' : 'enum')
+    }
   }, [localOptions])
 
-  const renderOption = (option, index) => (
+  const renderOption = (option) => (
     <>
       <div className={styles.enumValue}>
         <input
           className="form-control"
           type="text"
-          value={option.value}
+          value={option.value ?? ''}
           onChange={(e) => {
             setLocalOptions({ type: 'UPDATEVALUE', value: e.target.value, key: option.key })
           }}
@@ -107,7 +114,7 @@ const EnumItemsEditor = ({ options, setOptions, fieldName }) => {
           <input
             className="form-control"
             type="text"
-            value={option.description}
+            value={option.description ?? ''}
             onChange={(e) => {
               setLocalOptions({
                 type: 'UPDATEDESCRIPTION',
@@ -140,12 +147,8 @@ const EnumItemsEditor = ({ options, setOptions, fieldName }) => {
     <div className={styles.enumContainer}>
       <div className={styles.enumHeaderRow}>
         <div className={styles.valueHeader}>Value</div>
-        {fieldName === 'items' && (
-          <>
-            <div className={styles.descriptionHeader}>Description</div>
-            <div className={styles.optionalHeader}>Optional</div>
-          </>
-        )}
+        <div className={styles.descriptionHeader}>Description</div>
+        {fieldName === 'items' && <div className={styles.optionalHeader}>Optional</div>}
       </div>
 
       {localOptions?.map((option, index) => (
@@ -211,6 +214,7 @@ const Form = ({ fields, existingFieldsValue, onFormChange }) => {
             <EnumItemsEditor
               options={fieldValue}
               fieldName={fieldName}
+              formData={formData}
               setOptions={setFormData}
             />
           </EditorComponentHeader>

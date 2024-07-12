@@ -185,6 +185,8 @@ export const EditSignatures = ({
     closeNoteEditor()
   }
 
+  if (!fieldDescription) return null
+
   return (
     <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true} error={error}>
       <Signatures
