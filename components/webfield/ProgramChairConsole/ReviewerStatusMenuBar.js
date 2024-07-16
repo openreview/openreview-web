@@ -23,6 +23,7 @@ const MessageReviewersModal = ({
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
   const [recipientsInfo, setRecipientsInfo] = useState([])
   const totalMessagesCount = recipientsInfo.length
+  const reviewerUrlFormat = reviewerName.toLowerCase().replaceAll('_', '-')
 
   const handlePrimaryButtonClick = async () => {
     if (currentStep === 1) {
@@ -44,7 +45,7 @@ const MessageReviewersModal = ({
         },
         { accessToken }
       )
-      $('#message-reviewers').modal('hide')
+      $(`#message-${reviewerUrlFormat}`).modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
     } catch (apiError) {
       setError(apiError.message)

@@ -9,7 +9,7 @@ import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
-import { prettyField, pluralizeString } from '../../../lib/utils'
+import { prettyField, pluralizeString, getSingularRoleName } from '../../../lib/utils'
 
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
   const { id, preferredName, preferredEmail, registrationNotes } =
@@ -319,8 +319,9 @@ const AreaChairStatus = ({
   const recommendationEnabled = pcConsoleData.invitations?.some(
     (p) => p.id === `${reviewersId}/-/${recommendationName}`
   )
+  const areaChairUrlFormat = getSingularRoleName(areaChairName).toLowerCase().replace('_', '-')
   const referrerUrl = encodeURIComponent(
-    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#areachair-status)`
+    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#${areaChairUrlFormat}-status)`
   )
 
   const loadACStatusTabData = async () => {

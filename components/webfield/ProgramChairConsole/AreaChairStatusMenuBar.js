@@ -36,6 +36,8 @@ export const MessageACSACModal = ({
   const messageInvitationId = isMessageSeniorAreaChairs
     ? messageSeniorAreaChairsInvitationId
     : messageAreaChairsInvitationId
+  const seniorAreaChairUrlFormat = seniorAreaChairName.toLowerCase().replaceAll('_', '-')
+  const areaChairUrlFormat = areaChairName.toLowerCase().replaceAll('_', '-')
 
   const handlePrimaryButtonClick = async () => {
     if (currentStep === 1) {
@@ -58,7 +60,7 @@ export const MessageACSACModal = ({
         { accessToken }
       )
       $(
-        `#${isMessageSeniorAreaChairs ? 'message-seniorareachairs' : 'message-areachairs'}`
+        `#${isMessageSeniorAreaChairs ? `message-${seniorAreaChairUrlFormat}` : `message-${areaChairUrlFormat}`}`
       ).modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
     } catch (apiError) {

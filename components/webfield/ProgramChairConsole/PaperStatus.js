@@ -52,7 +52,7 @@ const PaperRow = ({
   } = useContext(WebFieldContext)
   const { note, metaReviewData } = rowData
   const referrerUrl = encodeURIComponent(
-    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#paper-status)`
+    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#${submissionName.toLowerCase()}-status)`
   )
 
   // Find note(s) that responds to the flag
