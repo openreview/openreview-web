@@ -18,6 +18,7 @@ import {
   getProfileName,
   prettyId,
   parseNumberField,
+  prettyField,
 } from '../../lib/utils'
 
 const SeniorAreaChairConsole = ({ appContext }) => {
@@ -29,9 +30,13 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     assignmentLabel,
     submissionId,
     submissionName,
+    reviewersId,
     reviewerName,
+    reviewerAssignmentId = `${reviewersId}/-/Assignment`,
     anonReviewerName,
+    areaChairsId,
     areaChairName = 'Area_Chairs',
+    areaChairAssignmentId = `${areaChairsId}/-/Assignment`,
     anonAreaChairName,
     secondaryAreaChairName,
     secondaryAnonAreaChairName,
@@ -39,7 +44,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     reviewRatingName,
     reviewConfidenceName,
     officialReviewName,
-    officialMetaReviewName,
+    officialMetaReviewName = 'Meta_Review',
     decisionName = 'Decision',
     preliminaryDecisionName,
     metaReviewRecommendationName = 'recommendation',
@@ -56,7 +61,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   const [isLoadingData, setIsLoadingData] = useState(false)
   const router = useRouter()
   const query = useQuery()
-  const [activeTabId, setActiveTabId] = useState(window.location.hash || '#paper-status')
+  const [activeTabId, setActiveTabId] = useState(
+    window.location.hash || `#${submissionName}-status`
+  )
 
   const loadData = async () => {
     if (isLoadingData) return
@@ -110,6 +117,18 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         : Promise.resolve([])
       // #endregion
 
+      // #region getInvitations
+
+      const invitationsP = api.getAll(
+        '/invitations',
+        {
+          ids: [reviewerAssignmentId, areaChairAssignmentId],
+        },
+        { accessToken }
+      )
+
+      // #endregion
+
       // #region getGroups (per paper groups)
       const perPaperGroupResultsP = api.get(
         '/groups',
@@ -138,8 +157,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         : Promise.resolve([])
       // #endregion
 
-      const [notes, perPaperGroupResults, assignmentEdges] = await Promise.all([
+      const [notes, invitations, perPaperGroupResults, assignmentEdges] = await Promise.all([
         notesP,
+        invitationsP,
         perPaperGroupResultsP,
         assignmentsP,
       ])
@@ -345,6 +365,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         assignedAreaChairIds,
         areaChairGroups,
         allProfilesMap,
+        assignmentInvitations: invitations,
         notes: assignedNotes.map((note) => {
           const assignedReviewers =
             reviewerGroups?.find((p) => p.noteNumber === note.number)?.members ?? []
@@ -539,6 +560,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 const profile = allProfilesMap.get(areaChair.areaChairProfileId)
                 return {
                   ...areaChair,
+                  noteNumber: note.number,
+                  preferredId: profile ? profile.id : areaChair.areaChairProfileId,
                   preferredName: profile
                     ? getProfileName(profile)
                     : areaChair.areaChairProfileId,
@@ -613,7 +636,16 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   }, [user, userLoading, group])
 
   useEffect(() => {
-    if (!activeTabId) return
+    // if (!activeTabId) return
+    const validTabIds = [
+      `#${submissionName}-status`,
+      `#${areaChairName}-status`,
+      `#${seniorAreaChairName}-tasks`,
+    ]
+    if (!validTabIds.includes(activeTabId)) {
+      setActiveTabId(`#${submissionName}-status`)
+      return
+    }
     router.replace(activeTabId)
   }, [activeTabId])
 
@@ -621,13 +653,17 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     header,
     entity: group,
     venueId,
+    submissionName,
+    reviewerName,
+    anonReviewerName,
+    officialReviewName,
   })
     .filter(([key, value]) => value === undefined)
     .map((p) => p[0])
   if (missingConfig.length > 0) {
-    const errorMessage = `SAC Console is missing required properties: ${missingConfig.join(
-      ', '
-    )}`
+    const errorMessage = `${prettyField(
+      seniorAreaChairName
+    )} Console is missing required properties: ${missingConfig.join(', ')}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
 
@@ -638,37 +674,37 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       <Tabs>
         <TabList>
           <Tab
-            id="paper-status"
-            active={activeTabId === '#paper-status' ? true : undefined}
-            onClick={() => setActiveTabId('#paper-status')}
+            id={`${submissionName}-status`}
+            active={activeTabId === `#${submissionName}-status` ? true : undefined}
+            onClick={() => setActiveTabId(`#${submissionName}-status`)}
           >
-            Paper Status
+            {submissionName} Status
           </Tab>
           <Tab
-            id="areachair-status"
-            active={activeTabId === '#areachair-status' ? true : undefined}
-            onClick={() => setActiveTabId('#areachair-status')}
+            id={`${areaChairName}-status`}
+            active={activeTabId === `#${areaChairName}-status` ? true : undefined}
+            onClick={() => setActiveTabId(`#${areaChairName}-status`)}
             hidden={!assignmentInvitation}
           >
-            Area Chair Status
+            {prettyField(areaChairName)} Status
           </Tab>
           <Tab
-            id="seniorareachair-tasks"
-            active={activeTabId === '#seniorareachair-tasks' ? true : undefined}
-            onClick={() => setActiveTabId('#seniorareachair-tasks')}
+            id={`${seniorAreaChairName}-tasks`}
+            active={activeTabId === `#${seniorAreaChairName}-tasks` ? true : undefined}
+            onClick={() => setActiveTabId(`#${seniorAreaChairName}-tasks`)}
           >
-            Senior Area Chair Tasks
+            {prettyField(seniorAreaChairName)} Tasks
           </Tab>
         </TabList>
 
         <TabPanels>
-          <TabPanel id="paper-status">
-            {activeTabId === '#paper-status' && (
+          <TabPanel id={`${submissionName}-status`}>
+            {activeTabId === `#${submissionName}-status` && (
               <PaperStatus sacConsoleData={sacConsoleData} />
             )}
           </TabPanel>
-          {activeTabId === '#areachair-status' && (
-            <TabPanel id="areachair-status">
+          {activeTabId === `#${areaChairName}-status` && (
+            <TabPanel id={`${areaChairName}-status`}>
               <AreaChairStatus
                 sacConsoleData={sacConsoleData}
                 loadSacConsoleData={loadData}
@@ -676,8 +712,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               />
             </TabPanel>
           )}
-          {activeTabId === '#seniorareachair-tasks' && (
-            <TabPanel id="seniorareachair-tasks">
+          {activeTabId === `#${seniorAreaChairName}-tasks` && (
+            <TabPanel id={`${seniorAreaChairName}-tasks`}>
               <SeniorAreaChairTasks />
             </TabPanel>
           )}

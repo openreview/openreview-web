@@ -13,6 +13,7 @@ import { isInstitutionEmail, isValidEmail, isValidPassword } from '../lib/utils'
 import ProfileMergeModal from '../components/ProfileMergeModal'
 import ErrorAlert from '../components/ErrorAlert'
 import Icon from '../components/Icon'
+import useTurnstileToken from '../hooks/useTurnstileToken'
 
 const LoadingContext = createContext()
 
@@ -264,7 +265,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
               setNameConfirmed(true)
               $('#confirm-name-modal').modal('hide')
             }}
-            turnstileToken={turnstileToken}
             setTurnstileToken={setTurnstileToken}
           />
 
@@ -715,46 +715,31 @@ const SubmitButton = ({ disabled, children }) => {
   )
 }
 
-const ConfirmNameModal = ({
-  fullName,
-  newUsername,
-  onConfirm,
-  turnstileToken,
-  setTurnstileToken,
-}) => {
+const ConfirmNameModal = ({ fullName, newUsername, onConfirm, setTurnstileToken }) => {
   const [agreeTerms, setAgreeTerms] = useState(false)
-  const [error, setError] = useState(null)
-  const missingToken = process.env.TURNSTILE_SITEKEY && !turnstileToken
+  const [isOpen, setIsOpen] = useState(false)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken('registration', isOpen)
+
+  useEffect(() => {
+    setTurnstileToken(turnstileToken)
+  }, [turnstileToken])
 
   return (
     <BasicModal
       id="confirm-name-modal"
       title="Confirm Full Name"
       primaryButtonText="Register"
-      onPrimaryButtonClick={onConfirm}
-      primaryButtonDisabled={!agreeTerms || missingToken}
-      onClose={() => setAgreeTerms(false)}
-      onOpen={() => {
-        if (!process.env.TURNSTILE_SITEKEY) return
-
-        if (window.turnstile) {
-          window.turnstile.render('#turnstile-registration', {
-            sitekey: process.env.TURNSTILE_SITEKEY,
-            action: 'register',
-            callback: (token) => {
-              setTurnstileToken(token)
-            },
-          })
-        } else {
-          setError({
-            message:
-              'Could not verify browser. Please make sure third-party scripts are not being blocked and try again.',
-          })
-        }
+      onPrimaryButtonClick={() => {
+        setIsOpen(false)
+        onConfirm()
       }}
+      primaryButtonDisabled={!agreeTerms || !turnstileToken}
+      onClose={() => {
+        setAgreeTerms(false)
+        setIsOpen(false)
+      }}
+      onOpen={() => setIsOpen(true)}
     >
-      {error && <ErrorAlert error={error} />}
-
       <p className="mb-3">
         You are registering with the name <strong>{fullName}</strong>. On your OpenReview
         profile your username will be <strong>{newUsername}</strong>.
@@ -769,9 +754,7 @@ const ConfirmNameModal = ({
           I confirm my name is correct
         </label>
       </div>
-      {process.env.TURNSTILE_SITEKEY && (
-        <div id="turnstile-registration" className="mt-3 mb-2 text-center"></div>
-      )}
+      <div className="mt-3 mb-2 text-center" ref={turnstileContainerRef}></div>
     </BasicModal>
   )
 }

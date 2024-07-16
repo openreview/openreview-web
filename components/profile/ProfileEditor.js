@@ -7,6 +7,7 @@ import EducationHistorySection from './EducationHistorySection'
 import EmailsSection from './EmailsSection'
 import ExpertiseSection from './ExpertiseSection'
 import GenderSection from './GenderSection'
+import PronounSection from './PronounSection'
 import ImportedPublicationsSection from './ImportedPublicationsSection'
 import LoadingSpinner from '../LoadingSpinner'
 import NamesSection from './NameSection'
@@ -51,7 +52,7 @@ export default function ProfileEditor({
     'wikipedia',
     'linkedin',
     'semanticScholar',
-    'aclanthology'
+    'aclanthology',
   ]
 
   const promptInvalidValue = (type, invalidKey, message) => {
@@ -203,13 +204,17 @@ export default function ProfileEditor({
     }
     if (
       (invalidRecord = profileContent.history.find(
-        (p) => !p.position || !p.institution.name || !p.institution.domain
+        (p) =>
+          !p.position ||
+          !p.institution.name ||
+          !p.institution.domain ||
+          ((!p.end || p.end >= new Date().getFullYear()) && !p.institution.country)
       ))
     ) {
       return promptInvalidValue(
         'history',
         invalidRecord.key,
-        'You must enter position, institution, and domain information for each entry in your education and career history'
+        'You must enter position, institution, domain and country/region information for each entry in your education and career history'
       )
     }
     if (!profileContent.history.some((p) => !p.end || p.end >= new Date().getFullYear())) {
@@ -379,6 +384,16 @@ export default function ProfileEditor({
           profileNames={profile?.names}
           updateNames={(names) => setProfile({ type: 'names', data: names })}
           preferredUsername={loadedProfile?.names?.find((p) => p.preferred)?.username}
+        />
+      </ProfileSection>
+
+      <ProfileSection
+        title="Pronouns"
+        instructions="This information helps conferences know how to refer to you. (Optional)"
+      >
+        <PronounSection
+          profilePronouns={profile?.pronouns}
+          updatePronoun={(pronouns) => setProfile({ type: 'pronouns', data: pronouns })}
         />
       </ProfileSection>
 

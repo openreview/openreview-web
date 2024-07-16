@@ -138,7 +138,11 @@ export async function createUser({
     position: 'Postdoc',
     start: 2000,
     end: new Date().getFullYear(),
-    institution: { domain: 'umass.edu', name: 'University of Massachusetts, Amherst' },
+    institution: {
+      domain: 'umass.edu',
+      name: 'University of Massachusetts, Amherst',
+      country: 'US',
+    },
   }
   const activateJson = {
     content: {
@@ -222,7 +226,11 @@ export async function createProfile(fullname, email, tildeId, superUserToken) {
           position: 'Postdoc',
           start: 2000,
           end: new Date().getFullYear(),
-          institution: { domain: 'umass.edu', name: 'University of Massachusetts, Amherst' },
+          institution: {
+            domain: 'umass.edu',
+            name: 'University of Massachusetts, Amherst',
+            country: 'US',
+          },
         },
       ],
     },
@@ -265,7 +273,11 @@ export async function createEmptyProfile(fullname, tildeId, superUserToken) {
           position: 'Postdoc',
           start: 2000,
           end: new Date().getFullYear(),
-          institution: { domain: 'umass.edu', name: 'University of Massachusetts, Amherst' },
+          institution: {
+            domain: 'umass.edu',
+            name: 'University of Massachusetts, Amherst',
+            country: 'US',
+          },
         },
       ],
     },

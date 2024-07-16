@@ -1,4 +1,4 @@
-/* globals $, promptError, view2: false */
+/* globals $, promptError, view2, DOMPurify: false */
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -6,12 +6,7 @@ import NoteEditor from '../NoteEditor'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
-import {
-  prettyId,
-  prettyInvitationId,
-  forumDate,
-  classNames,
-} from '../../lib/utils'
+import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
 
 function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
@@ -91,7 +86,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
     >
       <ForumTitle
         id={id}
-        title={content.title?.value}
+        title={DOMPurify.sanitize(content.title?.value)}
         pdf={canShowIcon('pdf')}
         html={canShowIcon('html')}
       />

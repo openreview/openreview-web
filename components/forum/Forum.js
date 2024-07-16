@@ -367,7 +367,7 @@ export default function Forum({
           listElem.scrollTop = listElem.scrollHeight
         }
       }
-    }, 200),
+    }, 500),
     [selectedNoteId, selectedInvitationId]
   )
 
@@ -605,6 +605,10 @@ export default function Forum({
       )
     }
 
+    setTimeout(() => {
+      typesetMathJax()
+    }, 200)
+
     return replies.map((reply) => (
       <ForumReply
         key={reply.id}
@@ -763,7 +767,10 @@ export default function Forum({
 
   // Update reply visibility
   useEffect(() => {
-    if (!replyNoteMap || !displayOptionsMap || !orderedReplies?.length) return
+    if (!replyNoteMap || !displayOptionsMap || !orderedReplies?.length) {
+      delayedScroll(layout, scrolled)
+      return
+    }
 
     const newDisplayOptions = {}
 
@@ -838,6 +845,7 @@ export default function Forum({
     numRepliesVisible.current = numVisible
 
     typesetMathJax()
+    $('.forum-note [data-toggle="tooltip"]').tooltip({ html: true })
     delayedScroll(layout, scrolled)
   }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations, maxLength])
 

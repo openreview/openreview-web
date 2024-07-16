@@ -24,9 +24,15 @@ const Collapse = ({ showLabel, hideLabel, onExpand, className, indent, children 
       >
         {collapsed ? showLabel : hideLabel}
       </a>
-      <div ref={collapseRef} className={`collapse${indent ? ' collapse-indent' : ''}`} id={id}>
-        {children}
-      </div>
+      {!collapsed && (
+        <div
+          ref={collapseRef}
+          className={`collapse${indent ? ' collapse-indent' : ''}`}
+          id={id}
+        >
+          {children}
+        </div>
+      )}
     </div>
   )
 }

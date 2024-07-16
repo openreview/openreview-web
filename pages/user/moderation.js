@@ -31,21 +31,12 @@ dayjs.extend(relativeTime)
 const UserModerationTab = ({ accessToken }) => {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const [configNote, setConfigNote] = useState(null)
-  const [configNoteV2, setConfigNoteV2] = useState(null)
 
-  const moderationDisabled = configNoteV2?.content?.moderate?.value === 'No'
+  const moderationDisabled = configNote?.content?.moderate?.value === 'No'
 
   const getModerationStatus = async () => {
     try {
-      const configNoteV1P = api.get(
-        '/notes',
-        {
-          invitation: `${process.env.SUPER_USER}/Support/-/OpenReview_Config`,
-          limit: 1,
-        },
-        { accessToken, version: 1 }
-      )
-      const configNoteV2P = api.get(
+      const result = await api.get(
         '/notes',
         {
           invitation: `${process.env.SUPER_USER}/-/OpenReview_Config`,
@@ -54,17 +45,11 @@ const UserModerationTab = ({ accessToken }) => {
         },
         { accessToken }
       )
-      const results = await Promise.all([configNoteV1P, configNoteV2P])
 
-      if (results?.[0]?.notes?.[0]) {
-        setConfigNote(results?.[0]?.notes?.[0])
+      if (result?.notes?.[0]) {
+        setConfigNote(result?.notes?.[0])
       } else {
         promptError('Moderation config could not be loaded')
-      }
-      if (results?.[1]?.notes?.[0]) {
-        setConfigNoteV2(results?.[1]?.notes?.[0])
-      } else {
-        promptError('Moderation config could not be loaded for new API')
       }
     } catch (error) {
       promptError(error.message)
@@ -85,8 +70,8 @@ const UserModerationTab = ({ accessToken }) => {
         '/notes/edits',
         view2.constructEdit({
           formData: { moderate: moderationDisabled ? 'Yes' : 'No' },
-          invitationObj: configNoteV2.details.invitation,
-          noteObj: configNoteV2,
+          invitationObj: configNote.details.invitation,
+          noteObj: configNote,
         }),
         { accessToken }
       )
@@ -111,19 +96,12 @@ const UserModerationTab = ({ accessToken }) => {
         '/notes/edits',
         view2.constructEdit({
           formData: { terms_timestamp: currentTimeStamp },
-          invitationObj: configNoteV2.details.invitation,
-          noteObj: configNoteV2,
+          invitationObj: configNote.details.invitation,
+          noteObj: configNote,
         }),
         { accessToken }
       )
-      await api.post(
-        '/notes',
-        {
-          ...configNote,
-          content: { ...configNote.content, terms_timestamp: currentTimeStamp },
-        },
-        { accessToken, version: 1 }
-      )
+
       getModerationStatus()
     } catch (error) {
       promptError(error.message)
@@ -132,7 +110,7 @@ const UserModerationTab = ({ accessToken }) => {
 
   return (
     <>
-      {configNoteV2 && (
+      {configNote && (
         <div className="moderation-status">
           <h4>Moderation Status:</h4>
 
@@ -146,7 +124,7 @@ const UserModerationTab = ({ accessToken }) => {
           </select>
 
           <span className="terms-timestamp">
-            {`Terms Timestamp is ${configNoteV2?.content?.terms_timestamp?.value ?? 'unset'}`}
+            {`Terms Timestamp is ${configNote?.content?.terms_timestamp?.value ?? 'unset'}`}
           </span>
           <button type="button" className="btn btn-xs" onClick={updateTermStamp}>
             Update Terms Stamp
@@ -2249,7 +2227,7 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
     {
       value: 'requestEmailVerification',
       label: 'Request Email Verification',
-      rejectionText: `Please send us an email from the institution email you have in your profile so that we can verify your identity.\n\n${instructionText}`,
+      rejectionText: `Please add and confirm an institutional email to your profile.\n\n${instructionText}`,
     },
     {
       value: 'invalidName',

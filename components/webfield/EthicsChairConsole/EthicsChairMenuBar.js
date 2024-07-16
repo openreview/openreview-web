@@ -3,6 +3,7 @@ import { useContext } from 'react'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
+import { prettyField } from '../../../lib/utils'
 
 const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) => {
   const {
@@ -11,6 +12,8 @@ const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) 
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
     ethicsMetaReviewName,
+    ethicsReviewName,
+    ethicsReviewersName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = propertiesAllowedConfig ?? {
@@ -45,19 +48,19 @@ const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) 
       initialDirection: 'desc',
     },
     {
-      label: 'Number of Reviewers Assigned',
+      label: `Number of ${prettyField(ethicsReviewersName)} Assigned`,
       value: 'Number of Reviewers Assigned',
       getValue: (p) => p.numReviewersAssigned,
       initialDirection: 'desc',
     },
     {
-      label: 'Number of Reviews Submitted',
+      label: `Number of ${prettyField(ethicsReviewName)} Submitted`,
       value: 'Number of Reviews Submitted',
       getValue: (p) => p.numReviewsDone,
       initialDirection: 'desc',
     },
     {
-      label: 'Number of Reviews Missing',
+      label: `Number of ${prettyField(ethicsReviewName)} Missing`,
       value: 'Number of Reviews Missing',
       getValue: (p) =>
         getValueWithDefault(p.numReviewersAssigned) - getValueWithDefault(p.numReviewsDone),
@@ -66,7 +69,7 @@ const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) 
     ...(ethicsMetaReviewName
       ? [
           {
-            label: 'Ethics Meta Review',
+            label: `${prettyField(ethicsMetaReviewName)}`,
             value: 'Ethics Meta Review',
             getValue: (p) => p.hasEthicsMetaReview,
             initialDirection: 'desc',

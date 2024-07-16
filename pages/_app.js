@@ -2,7 +2,7 @@
 
 import App from 'next/app'
 import Router from 'next/router'
-import DOMPurify from 'dompurify'
+import DOMPurify from 'isomorphic-dompurify'
 import { nanoid } from 'nanoid'
 import random from 'lodash/random'
 import { marked } from 'marked'

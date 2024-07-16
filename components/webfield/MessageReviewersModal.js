@@ -6,6 +6,7 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import BasicModal from '../BasicModal'
 import WebFieldContext from '../WebFieldContext'
+import { prettyField } from '../../lib/utils'
 
 const MessageReviewersModal = ({
   tableRowsDisplayed,
@@ -14,8 +15,17 @@ const MessageReviewersModal = ({
   selectedIds,
 }) => {
   const { accessToken } = useUser()
-  const { shortPhrase, venueId, officialReviewName, submissionName, emailReplyTo,
-    messageSubmissionReviewersInvitationId } = useContext(WebFieldContext)
+  const {
+    shortPhrase,
+    venueId,
+    officialReviewName,
+    submissionName,
+    emailReplyTo,
+    messageSubmissionReviewersInvitationId,
+    messageSubmissionAreaChairsInvitationId,
+    reviewerName = 'Reviewers',
+    areaChairName = 'Area Chairs',
+  } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
   const [subject, setSubject] = useState(`${shortPhrase} Reminder`)
@@ -23,12 +33,12 @@ const MessageReviewersModal = ({
   const [isSending, setIsSending] = useState(false)
   const [allRecipients, setAllRecipients] = useState([])
   const [recipientsInfo, setRecipientsInfo] = useState([])
-  const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.reviewerProfileId).reduce(
+  const totalMessagesCount = uniqBy(recipientsInfo, (p) => p.preferredId).reduce(
     (prev, curr) => prev + curr.count,
     0
   )
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
-  const uniqueRecipientsInfo = uniqBy(recipientsInfo, (p) => p.preferredEmail)
+  const uniqueRecipientsInfo = uniqBy(recipientsInfo, (p) => p.preferredId)
 
   const handlePrimaryButtonClick = async () => {
     if (currentStep === 1) {
@@ -37,6 +47,8 @@ const MessageReviewersModal = ({
     }
     // send emails
     setIsSending(true)
+    const messageInvitation = messageOption.value === 'allAreaChairs' ? messageSubmissionAreaChairsInvitationId : messageSubmissionReviewersInvitationId
+    const roleName = messageOption.value === 'allAreaChairs' ? areaChairName : reviewerName
     try {
       const simplifiedTableRowsDisplayed = tableRowsDisplayed.map((p) => ({
         id: p.note.id,
@@ -47,18 +59,18 @@ const MessageReviewersModal = ({
 
       const sendEmailPs = selectedIds.map((noteId) => {
         const rowData = simplifiedTableRowsDisplayed.find((row) => row.id === noteId)
-        const reviewerIds = allRecipients.get(rowData.number)
-        if (!reviewerIds?.length) return Promise.resolve()
+        const groupIds = allRecipients.get(rowData.number)
+        if (!groupIds?.length) return Promise.resolve()
         const forumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialReviewName}`
         return api.post(
           '/messages',
           {
-            invitation: messageSubmissionReviewersInvitationId && messageSubmissionReviewersInvitationId.replace('{number}', rowData.number),
-            signature: messageSubmissionReviewersInvitationId && rowData.messageSignature,
-            groups: reviewerIds,
+            invitation: messageInvitation?.replace('{number}', rowData.number),
+            signature: messageInvitation && rowData.messageSignature,
+            groups: groupIds,
             subject,
             message: message.replaceAll('{{submit_review_link}}', forumUrl),
-            parentGroup: `${venueId}/${submissionName}${rowData.number}/Reviewers`,
+            parentGroup: `${venueId}/${submissionName}${rowData.number}/${roleName}`,
             replyTo: emailReplyTo,
           },
           { accessToken }
@@ -84,6 +96,8 @@ const MessageReviewersModal = ({
     switch (messageOption.value) {
       case 'allReviewers':
         return selectedRows.flatMap((row) => row.reviewers)
+      case 'allAreaChairs':
+        return selectedRows.flatMap((row) => row.metaReviewData.areaChairs)
       case 'withReviews':
         return selectedRows
           .flatMap((row) => row.reviewers)
@@ -99,12 +113,7 @@ const MessageReviewersModal = ({
 
   useEffect(() => {
     if (!messageOption) return
-    setMessage(`${
-      messageOption.value === 'missingReviews'
-        ? `This is a reminder to please submit your review for ${shortPhrase}.\n\n`
-        : ''
-    }Click on the link below to go to the review page:\n\n{{submit_review_link}}
-    \n\nThank you,\n${shortPhrase} Area Chair`)
+    setMessage('Your message...')
 
     const recipients = getRecipients(selectedIds)
 
@@ -118,10 +127,10 @@ const MessageReviewersModal = ({
       } else {
         noteNumberReviewerIdsMap.set(noteNumber, [recipient.anonymizedGroup])
       }
-      if (recipient.preferredEmail in recipientsWithCount) {
-        recipientsWithCount[recipient.preferredEmail].count += 1
+      if (recipient.preferredId in recipientsWithCount) {
+        recipientsWithCount[recipient.preferredId].count += 1
       } else {
-        recipientsWithCount[recipient.preferredEmail] = { ...recipient, count: 1 }
+        recipientsWithCount[recipient.preferredId] = { ...recipient, count: 1 }
       }
     })
     setAllRecipients(noteNumberReviewerIdsMap)
@@ -145,9 +154,15 @@ const MessageReviewersModal = ({
       {error && <div className="alert alert-danger">{error}</div>}
       {currentStep === 1 ? (
         <>
-          <p>{`You may customize the message that will be sent to the reviewers. In the email
-  body, the text {{ submit_review_link }} will be replaced with a hyperlink to the
-  form where the reviewer can fill out his or her review.`}</p>
+          <p>{`You may customize the message that will be sent to the ${prettyField(
+            reviewerName
+          ).toLowerCase()}. In the email
+  body, the text {{submit_review_link}} will be replaced with a hyperlink to the
+  form where the ${prettyField(
+    reviewerName
+  ).toLowerCase()} can fill out his or her ${prettyField(
+    officialReviewName
+  ).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`}</p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
             <input
@@ -173,14 +188,14 @@ const MessageReviewersModal = ({
         <>
           <p>
             A total of <span className="num-reviewers">{totalMessagesCount}</span> reminder
-            emails will be sent to the following reviewers:
+            emails will be sent to the following {prettyField(reviewerName).toLowerCase()}:
           </p>
           <div className="well reviewer-list">
             <List
               data={uniqueRecipientsInfo}
               itemHeight={18}
               height={Math.min(uniqueRecipientsInfo.length * 18, 580)}
-              itemKey="preferredEmail"
+              itemKey="preferredId"
             >
               {(recipientInfo) => (
                 <li>

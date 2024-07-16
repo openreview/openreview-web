@@ -49,6 +49,7 @@ const EthicsSubmissionRow = ({ rowData }) => {
           venueId={venueId}
           ethicsReviewersName={ethicsReviewersName}
           ethicsReviewName={ethicsReviewName}
+          ethicsChairsName={ethicsChairsName}
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
@@ -81,14 +82,13 @@ const EthicsChairPaperStatus = () => {
           '/notes',
           {
             invitation: submissionId,
-            details: 'replies,writable',
+            details: 'replies',
             select: 'id,number,forum,content,details,invitations,readers',
             sort: 'number:asc',
             domain: venueId,
           },
           { accessToken }
-        )
-        .then((notes) => notes.filter((note) => !note.details.writable))
+        ).then((notes) => notes.filter((note) => note.content?.flagged_for_ethics_review?.value))
 
       const perPaperGroupResultsP = api
         .get(
@@ -307,7 +307,7 @@ const EthicsChairPaperStatus = () => {
         className="console-table table-striped ethics-chairs-console-paper-status"
         headings={[
           { id: 'number', content: '#', width: '10%' },
-          { id: 'summary', content: 'Paper Summary', width: '45%' },
+          { id: 'summary', content: `${submissionName} Summary`, width: '45%' },
           { id: 'ethicsReviewProgress', content: 'Ethics Review Progress', width: '45%' },
         ]}
       >

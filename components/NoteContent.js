@@ -1,5 +1,4 @@
-/* globals DOMPurify: false */
-/* globals marked: false */
+/* globals DOMPurify,marked: false */
 
 import { useState, useEffect } from 'react'
 import union from 'lodash/union'
@@ -111,7 +110,7 @@ export function NoteContentValue({ content = '', enableMarkdown, className }) {
     if (enableMarkdown) {
       setSanitizedHtml(DOMPurify.sanitize(marked(content)))
     } else {
-      setSanitizedHtml(autoLinkContent(content))
+      setSanitizedHtml(DOMPurify.sanitize(autoLinkContent(content)))
     }
   }, [enableMarkdown, content])
 

@@ -51,8 +51,8 @@ function Invitation({ invitation, referrer }) {
 }
 
 function InvitationLink({ invitation, referrer }) {
-  const { web, id, groupId, noteId, completed, apiVersion } = invitation
-  const prettifiedInvitationId = prettyTasksInvitationId(id)
+  const { web, id, groupId, noteId, completed, apiVersion, domain } = invitation
+  const prettifiedInvitationId = prettyTasksInvitationId(id, domain)
   const replyTo = apiVersion === 2 ? invitation.edit?.note?.replyto : invitation.reply?.replyto
   const hasId = apiVersion === 2 && typeof invitation.edit?.note?.id === 'string'
 

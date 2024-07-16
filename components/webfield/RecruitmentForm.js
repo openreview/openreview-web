@@ -18,6 +18,7 @@ import { translateInvitationMessage } from '../../lib/webfield-utils'
 import styles from '../../styles/components/RecruitmentForm.module.scss'
 import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
 import RecruitmentFormWidget from '../EditorComponents/RecruitmentFormWidget'
+import useTurnstileToken from '../../hooks/useTurnstileToken'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
 
@@ -268,7 +269,7 @@ const RecruitmentForm = () => {
   const [decision, setDecision] = useState(null)
   const [responseNote, setResponseNote] = useState(null)
   const [reducedLoad, setReducedLoad] = useState(null)
-  const [turnstileToken, setTurnstileToken] = useState(null)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken('recruitment')
   const {
     acceptMessage,
     header,
@@ -284,7 +285,6 @@ const RecruitmentForm = () => {
   const invitationContentFields = isV2Invitation
     ? Object.keys(invitation.edit?.note?.content)
     : Object.keys(invitation.reply?.content)
-  const invalidTurnstileToken = process.env.TURNSTILE_SITEKEY && !turnstileToken
 
   const defaultButtonState = [
     { response: 'Yes', loading: false, disabled: false },
@@ -385,8 +385,7 @@ const RecruitmentForm = () => {
                 onClick={() => onResponseClick('Yes')}
                 loading={buttonStatus.find((p) => p.response === 'Yes').loading}
                 disabled={
-                  buttonStatus.find((p) => p.response === 'Yes').disabled ||
-                  invalidTurnstileToken
+                  buttonStatus.find((p) => p.response === 'Yes').disabled || !turnstileToken
                 }
                 size="lg"
               >
@@ -402,7 +401,7 @@ const RecruitmentForm = () => {
                   }
                   disabled={
                     buttonStatus.find((p) => p.response === 'YesWithReducedLoad').disabled ||
-                    invalidTurnstileToken
+                    !turnstileToken
                   }
                   size="lg"
                 >
@@ -415,38 +414,18 @@ const RecruitmentForm = () => {
                 onClick={() => onResponseClick('No')}
                 loading={buttonStatus.find((p) => p.response === 'No').loading}
                 disabled={
-                  buttonStatus.find((p) => p.response === 'No').disabled ||
-                  invalidTurnstileToken
+                  buttonStatus.find((p) => p.response === 'No').disabled || !turnstileToken
                 }
                 size="lg"
               >
                 Decline
               </SpinnerButton>
             </div>
-            {process.env.TURNSTILE_SITEKEY && (
-              <div id="turnstile-recruitment" className="mt-4 text-center"></div>
-            )}
+            <div className="mt-4 text-center" ref={turnstileContainerRef}></div>
           </div>
         )
     }
   }
-
-  useEffect(() => {
-    if (decision || !process.env.TURNSTILE_SITEKEY) return
-    if (window.turnstile) {
-      window.turnstile.render('#turnstile-recruitment', {
-        sitekey: process.env.TURNSTILE_SITEKEY,
-        action: 'recruitment',
-        callback: (token) => {
-          setTurnstileToken(token)
-        },
-      })
-    } else {
-      promptError(
-        'Could not verify browser. Please make sure third-party scripts are not being blocked and try again.'
-      )
-    }
-  }, [decision])
 
   useEffect(() => {
     if (!['id', 'user', 'key'].every((p) => typeof args[p] === 'string')) {

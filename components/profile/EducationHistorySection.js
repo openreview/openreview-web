@@ -14,6 +14,7 @@ const CreatableDropdown = dynamic(() =>
 
 const positionPlaceholder = 'Choose or type a position'
 const institutionPlaceholder = 'Choose or type an institution'
+const regionPlaceholder = 'Institution Country/Region'
 // #region action type constants
 const posititonType = 'updatePosition'
 const startType = 'updateStart'
@@ -40,6 +41,7 @@ const EducationHistoryRow = ({
 }) => {
   const [isPositionClicked, setIsPositionClicked] = useState(false)
   const [isDomainClicked, setIsDomainClicked] = useState(false)
+  const [isRegionClicked, setIsRegionClicked] = useState(false)
 
   const updateDomain = async (domain, key) => {
     if (!domain) {
@@ -220,20 +222,40 @@ const EducationHistoryRow = ({
       </div>
       <div className="col-md-2 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution Country/Region</div>}
-        <Dropdown
-          options={countryOptions}
-          onChange={(e) => {
-            setHistory({
-              type: institutionCountryType,
-              data: { value: e?.value, key: p.key },
-            })
-          }}
-          value={countryOptions?.find((q) => q.value === p.institution?.country)}
-          placeholder="Institution Country/Region"
-          classNamePrefix="country-dropdown"
-          hideArrow
-          isClearable
-        />
+        {isRegionClicked ? (
+          <Dropdown
+            options={countryOptions}
+            onChange={(e) => {
+              setHistory({
+                type: institutionCountryType,
+                data: { value: e?.value, key: p.key },
+              })
+              if (e) setIsRegionClicked(false)
+            }}
+            value={countryOptions?.find((q) => q.value === p.institution?.country)}
+            placeholder={regionPlaceholder}
+            classNamePrefix="country-dropdown"
+            hideArrow
+            isClearable
+            defaultMenuIsOpen
+            autofocus
+          />
+        ) : (
+          <input
+            className={`form-control region-dropdown__placeholder ${
+              profileHistory?.find((q) => q.key === p.key)?.valid === false
+                ? 'invalid_value'
+                : ''
+            }`}
+            placeholder={regionPlaceholder}
+            value={
+              countryOptions?.find((q) => q.value === p.institution?.country)?.label ?? ''
+            }
+            onClick={() => setIsRegionClicked(true)}
+            onFocus={() => setIsRegionClicked(true)}
+            onChange={() => {}}
+          />
+        )}
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution State/Province</div>}

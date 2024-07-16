@@ -4,7 +4,7 @@ import Link from 'next/link'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import WebFieldContext from '../../WebFieldContext'
-import { prettyId } from '../../../lib/utils'
+import { getSingularRoleName, prettyField, prettyId } from '../../../lib/utils'
 import { StatContainer } from '../ProgramChairConsole/Overview'
 import LoadingSpinner from '../../LoadingSpinner'
 
@@ -43,7 +43,7 @@ const EthicsChairOverview = () => {
     <>
       <div className="row recruitment-stat-row">
         <StatContainer
-          title="Ethics Reviewer Recruitment"
+          title={`${getSingularRoleName(prettyField(ethicsReviewersName))} Recruitment`}
           hint="accepted / invited"
           value={
             recruitmentGroups ? (

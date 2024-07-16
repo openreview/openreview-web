@@ -315,9 +315,9 @@ const InvitationGeneralEdit = ({ invitation, accessToken, loadInvitation, setIsE
     invitees: invitation.invitees?.join(', '),
     noninvitees: invitation.noninvitees?.join(', '),
     final: invitation.final?.join(', '),
-    activationDateTimezone: getDefaultTimezone().value,
-    duedateTimezone: getDefaultTimezone().value,
-    expDateTimezone: getDefaultTimezone().value,
+    activationDateTimezone: getDefaultTimezone()?.value,
+    duedateTimezone: getDefaultTimezone()?.value,
+    expDateTimezone: getDefaultTimezone()?.value,
     signatures: invitation.signatures?.join(', '),
   })
 
@@ -607,9 +607,9 @@ const InvitationGeneralEditV2 = ({
     writers: invitation.writers?.join(', '),
     invitees: invitation.invitees?.join(', '),
     noninvitees: invitation.noninvitees?.join(', '),
-    activationDateTimezone: getDefaultTimezone().value,
-    duedateTimezone: getDefaultTimezone().value,
-    expDateTimezone: getDefaultTimezone().value,
+    activationDateTimezone: getDefaultTimezone()?.value,
+    duedateTimezone: getDefaultTimezone()?.value,
+    expDateTimezone: getDefaultTimezone()?.value,
     signatures: invitation.signatures?.join(', '),
   })
 

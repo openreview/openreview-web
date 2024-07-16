@@ -8,6 +8,7 @@ import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStat
 import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from '../ProgramChairConsole/PaperStatusMenuBar'
+import { pluralizeString, prettyField } from '../../../lib/utils'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -29,20 +30,51 @@ const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) 
   )
 }
 
-const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venue }) => {
+const PaperRow = ({
+  assignmentInvitations,
+  rowData,
+  selectedNoteIds,
+  setSelectedNoteIds,
+  decision,
+  venue,
+}) => {
   const {
     venueId,
     officialReviewName,
+    reviewerName,
+    reviewersId,
+    areaChairName,
+    areaChairsId,
     shortPhrase,
     seniorAreaChairName,
     submissionName,
+    assignmentUrls,
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
   } = useContext(WebFieldContext)
   const { note } = rowData
   const referrerUrl = encodeURIComponent(
-    `[Senior Area Chair Console](/group?id=${venueId}/${seniorAreaChairName}#paper-status)`
+    `[${prettyField(
+      seniorAreaChairName
+    )} Console](/group?id=${venueId}/${seniorAreaChairName}#${submissionName}-status)`
   )
+  const getManualAssignmentUrl = (role, roleId) => {
+    if (!assignmentUrls) return null
+    const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
+    // auto
+    const isAssignmentConfigDeployed = assignmentInvitations?.some(
+      (p) => p.id.startsWith(roleId)
+    )
+    // manual
+    const isMatchingSetup = isAssignmentConfigDeployed
+
+    if (
+      (assignmentUrls[role]?.automaticAssignment === false && isMatchingSetup) ||
+      (assignmentUrls[role]?.automaticAssignment === true && isAssignmentConfigDeployed)
+    )
+      return assignmentUrl
+    return null
+  }
 
   return (
     <tr>
@@ -78,12 +110,14 @@ const PaperRow = ({ rowData, selectedNoteIds, setSelectedNoteIds, decision, venu
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
+          reviewerAssignmentUrl={getManualAssignmentUrl(reviewerName, reviewersId)}
         />
       </td>
       <td>
         <ProgramChairConsolePaperAreaChairProgress
           rowData={rowData}
           referrerUrl={referrerUrl}
+          areaChairAssignmentUrl={getManualAssignmentUrl(areaChairName, areaChairsId)}
           metaReviewRecommendationName={metaReviewRecommendationName}
           additionalMetaReviewFields={additionalMetaReviewFields}
         />
@@ -101,7 +135,13 @@ const PaperStatus = ({ sacConsoleData }) => {
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(sacConsoleData.notes?.length ?? 0)
-  const { reviewRatingName } = useContext(WebFieldContext)
+  const {
+    reviewRatingName,
+    submissionName,
+    officialReviewName,
+    areaChairName = 'Area_Chairs',
+    officialMetaReviewName = 'Meta_Review',
+  } = useContext(WebFieldContext)
   const pageSize = 25
 
   useEffect(() => {
@@ -137,8 +177,8 @@ const PaperStatus = ({ sacConsoleData }) => {
   if (paperStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        No papers have been submitted.Check back later or contact info@openreview.net if you
-        believe this to be an error.
+        No {submissionName.toLowerCase()} have been submitted.Check back later or contact
+        info@openreview.net if you believe this to be an error.
       </p>
     )
   if (paperStatusTabData.tableRows?.length === 0)
@@ -151,7 +191,9 @@ const PaperStatus = ({ sacConsoleData }) => {
           setPaperStatusTabData={setPaperStatusTabData}
           reviewRatingName={reviewRatingName}
         />
-        <p className="empty-message">No papers matching search criteria.</p>
+        <p className="empty-message">
+          No {pluralizeString(submissionName.toLowerCase())} matching search criteria.
+        </p>
       </div>
     )
   return (
@@ -179,8 +221,12 @@ const PaperStatus = ({ sacConsoleData }) => {
             width: '35px',
           },
           { id: 'number', content: '#', width: '55px' },
-          { id: 'summary', content: 'Paper Summary' },
-          { id: 'reviewProgress', content: 'Review Progress', width: '30%' },
+          { id: 'summary', content: `${submissionName} Summary` },
+          {
+            id: 'reviewProgress',
+            content: `${prettyField(officialReviewName)} Progress`,
+            width: '30%',
+          },
           { id: 'status', content: 'Status' },
           { id: 'decision', content: 'Decision' },
         ]}
@@ -188,6 +234,7 @@ const PaperStatus = ({ sacConsoleData }) => {
         {paperStatusTabData.tableRowsDisplayed?.map((row) => (
           <PaperRow
             key={row.note.id}
+            assignmentInvitations={sacConsoleData.assignmentInvitations}
             rowData={row}
             selectedNoteIds={selectedNoteIds}
             setSelectedNoteIds={setSelectedNoteIds}

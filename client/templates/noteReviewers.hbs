@@ -35,7 +35,7 @@
                   {{#if ../sendReminder}} &nbsp;&bull;&nbsp;{{/if}}
                 {{/if}}
                 {{#if ../sendReminder}}
-                  <a href="#" class="send-reminder-link" data-user-id="{{user.id}}" data-forum-url="{{{user.forumUrl}}}">Send Reminder</a>
+                  <a href="#" class="send-reminder-link" data-user-id="{{user.anonymousGroupId}}" data-forum-url="{{{user.forumUrl}}}" data-paper-number="{{user.paperNumber}}">Send Reminder</a>
                   {{#if user.lastReminderSent}}(Last sent: {{user.lastReminderSent}}){{/if}}
                 {{/if}}
               {{/if}}

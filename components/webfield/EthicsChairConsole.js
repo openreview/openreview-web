@@ -95,7 +95,7 @@ const EthicsChairConsole = ({ appContext }) => {
             active={activeTabId === '#paper-status' ? true : undefined}
             onClick={() => setActiveTabId('#paper-status')}
           >
-            Paper Status
+            {submissionName} Status
           </Tab>
           <Tab
             id="ethicschair-tasks"

@@ -7,11 +7,13 @@ import UserContext from '../components/UserContext'
 import Alert from '../components/Alert'
 import api from '../lib/api-client'
 import { isValidEmail } from '../lib/utils'
+import useTurnstileToken from '../hooks/useTurnstileToken'
 
 const ResetForm = ({ setEmailSent }) => {
   const [email, setEmail] = useState('')
   const [error, setError] = useState(null)
   const { user } = useContext(UserContext)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken('reset')
 
   useEffect(() => {
     if (!user) return
@@ -24,7 +26,7 @@ const ResetForm = ({ setEmailSent }) => {
     setError(null)
 
     try {
-      const apiRes = await api.post('/resettable', { id: email })
+      const apiRes = await api.post('/resettable', { id: email, token: turnstileToken })
       setEmailSent(apiRes.id)
     } catch (apiError) {
       setError(apiError)
@@ -50,8 +52,12 @@ const ResetForm = ({ setEmailSent }) => {
           onChange={(e) => setEmail(e.target.value.trim())}
         />
       </div>
-
-      <button type="submit" className="btn btn-primary" disabled={!isValidEmail(email)}>
+      <div ref={turnstileContainerRef} />
+      <button
+        type="submit"
+        className="btn btn-primary"
+        disabled={!isValidEmail(email) || !turnstileToken}
+      >
         Reset Password
       </button>
     </form>

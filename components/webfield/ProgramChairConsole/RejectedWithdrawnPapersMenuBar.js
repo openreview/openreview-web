@@ -1,5 +1,8 @@
+import { useContext } from 'react'
 import BaseMenuBar from '../BaseMenuBar'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
+import WebFieldContext from '../../WebFieldContext'
+import { pluralizeString } from '../../../lib/utils'
 
 const DeskrejectedWithdrawnPapersMenuBar = ({
   tableRowsAll,
@@ -8,6 +11,7 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
   shortPhrase,
   enableQuerySearch,
 }) => {
+  const { submissionName } = useContext(WebFieldContext)
   const filterOperators = ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = {
     number: ['number'],
@@ -36,12 +40,12 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
 
   const sortOptions = [
     {
-      label: 'Paper Number',
+      label: `${submissionName} Number`,
       value: 'Paper Number',
       getValue: (p) => p.number,
     },
     {
-      label: 'Paper Title',
+      label: `${submissionName} Title`,
       value: 'Paper Title',
       getValue: (p) => p.note?.content?.title?.value,
     },
@@ -66,11 +70,13 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
       filterOperators={filterOperators}
       propertiesAllowed={propertiesAllowed}
       exportColumns={exportColumns}
-      exportFileName="Rejected Withdrawn Paper Status"
+      exportFileName={`Rejected Withdrawn ${submissionName} Status`}
       sortOptions={sortOptions}
       basicSearchFunction={basicSearchFunction}
       querySearchInfoModal={(props) => <QuerySearchInfoModal {...props} />}
-      searchPlaceHolder="Search desk rejected/withdrawn papers"
+      searchPlaceHolder={`Search desk rejected/withdrawn ${pluralizeString(
+        submissionName
+      ).toLowerCase()}`}
       extraClasses="rejected-paper-status-menu"
     />
   )
