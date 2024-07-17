@@ -47,7 +47,11 @@ export default function Home() {
             : Promise.resolve([]),
           api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
           api
-            .getCombined('/invitations', { invitee: '~', pastdue: false, type: 'notes' }, { invitee: '~', pastdue: false, type: 'note' })
+            .getCombined(
+              '/invitations',
+              { invitee: '~', pastdue: false, type: 'notes' },
+              { invitee: '~', pastdue: false, type: 'note' }
+            )
             .then(formatInvitationResults),
           api.get('/groups', { id: 'host' }).then(formatGroupResults).then(sortAlpha),
         ])
@@ -204,6 +208,10 @@ function VenueList({ name, venues, maxVisible = 14, listType = 'vertical' }) {
     )
   }
 
+  function normalizedFirstLetter(venue) {
+    return prettyId(venue.groupId).charAt(0).toLowerCase().normalize()
+  }
+
   return (
     <div>
       <ul className={`conferences list-${listType === 'vertical' ? 'unstyled' : 'inline'}`}>
@@ -211,10 +219,7 @@ function VenueList({ name, venues, maxVisible = 14, listType = 'vertical' }) {
           const isLeadingVenue =
             name === 'all venues'
               ? // eslint-disable-next-line max-len
-                prettyId(venue.groupId).charAt(0).toLowerCase() !==
-                prettyId(venues[i - 1]?.groupId)
-                  ?.charAt(0)
-                  ?.toLowerCase()
+                normalizedFirstLetter(venue) !== normalizedFirstLetter(venues[i - 1])
               : false
           return (
             <VenueListItem
