@@ -289,9 +289,10 @@ const ReviewerConsole = ({ appContext }) => {
   const [enablePaperRanking, setEnablePaperRanking] = useState(true)
 
   const paperRankingId = `${venueId}/${reviewerName}/-/Paper_Ranking`
-  const reviewerUrlFormat = getSingularRoleName(reviewerName)
+  const reviewerUrlFormat = reviewerName ? getSingularRoleName(reviewerName)
     .toLowerCase()
     .replaceAll('_', '-')
+    : null
 
   const loadData = async () => {
     let anonGroups
