@@ -61,7 +61,7 @@ const NoteSummary = ({
     try {
       const { viewerUrl } = await api.get(
         '/ithenticate/viewer-url',
-        { edge: ithenticateEdge.id },
+        { edgeId: ithenticateEdge.id },
         { accessToken }
       )
       window.open(viewerUrl, '_blank')
