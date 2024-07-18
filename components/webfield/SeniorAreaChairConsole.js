@@ -63,7 +63,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   const router = useRouter()
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || `#${submissionName.toLowerCase()}-status`
+    window.location.hash || `#${submissionName ?? ''.toLowerCase()}-status`
   )
 
   const seniorAreaChairUrlFormat = getSingularRoleName(seniorAreaChairName)
@@ -646,12 +646,12 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   useEffect(() => {
     // if (!activeTabId) return
     const validTabIds = [
-      `#${submissionName.toLowerCase()}-status`,
+      `#${(submissionName ?? '').toLowerCase()}-status`,
       `#${areaChairUrlFormat}-status`,
       `#${seniorAreaChairUrlFormat}-tasks`,
     ]
     if (!validTabIds.includes(activeTabId)) {
-      setActiveTabId(`#${submissionName.toLowerCase()}-status`)
+      setActiveTabId(`#${(submissionName ?? '').toLowerCase()}-status`)
       return
     }
     router.replace(activeTabId)
@@ -708,7 +708,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         </TabList>
 
         <TabPanels>
-          <TabPanel id={`${submissionName.toLower()}-status`}>
+          <TabPanel id={`${submissionName.toLowerCase()}-status`}>
             {activeTabId === `#${submissionName.toLowerCase()}-status` && (
               <PaperStatus sacConsoleData={sacConsoleData} />
             )}
