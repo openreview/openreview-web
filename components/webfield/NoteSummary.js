@@ -137,7 +137,7 @@ const NoteSummary = ({
       )}
 
       {ithenticateEdge &&
-        (ithenticateEdge.label === 'COMPLETE' ? (
+        (ithenticateEdge.label === 'Complete' ? (
           <div className="note-ithenticate report-complete" onClick={getPlagiarismReport}>
             iThenticate Report {ithenticateEdge.weight}%
           </div>
