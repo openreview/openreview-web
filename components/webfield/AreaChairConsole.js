@@ -117,9 +117,10 @@ const AssignedPaperRow = ({
 }
 
 const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
-  const areaChairUrlFormat = getSingularRoleName(areaChairName)
+  const areaChairUrlFormat = areaChairName ? getSingularRoleName(areaChairName)
     .toLowerCase()
     .replaceAll('_', '-')
+    : null
   const referrer = encodeURIComponent(
     `[${prettyField(
       areaChairName
@@ -189,12 +190,14 @@ const AreaChairConsole = ({ appContext }) => {
       )} Assignments</a></p>`
     : header?.instructions
 
-  const areaChairUrlFormat = getSingularRoleName(areaChairName)
+  const areaChairUrlFormat = areaChairName ? getSingularRoleName(areaChairName)
     .toLowerCase()
     .replaceAll('_', '-')
-  const secondaryAreaChairUrlFormat = getSingularRoleName(secondaryAreaChairName)
+    : null
+  const secondaryAreaChairUrlFormat = secondaryAreaChairName ? getSingularRoleName(secondaryAreaChairName)
     .toLowerCase()
     .replaceAll('_', '-')
+    : null
 
   const getReviewerName = (reviewerProfile) => {
     const name =
@@ -742,12 +745,12 @@ const AreaChairConsole = ({ appContext }) => {
 
   useEffect(() => {
     const validTabIds = [
-      `#assigned-${pluralizeString(submissionName).toLowerCase()}`,
+      `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
       ...(secondaryAreaChairName ? [`#${secondaryAreaChairUrlFormat}-assignments`] : []),
       `#${areaChairUrlFormat}-tasks`,
     ]
     if (!validTabIds.includes(activeTabId)) {
-      setActiveTabId(`#assigned-${pluralizeString(submissionName).toLowerCase()}`)
+      setActiveTabId(`#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`)
       return
     }
     router.replace(activeTabId)
