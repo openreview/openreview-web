@@ -523,7 +523,11 @@ const ReviewerStatusTab = ({
         headings={[
           { id: 'number', content: '#', width: '55px' },
           { id: 'reviewer', content: prettyField(reviewerName), width: '15%' },
-          { id: 'reviewProgress', content: `${prettyField(officialReviewName)} Progress`, width: '40%' },
+          {
+            id: 'reviewProgress',
+            content: `${prettyField(officialReviewName)} Progress`,
+            width: '40%',
+          },
           { id: 'status', content: 'Status' },
         ]}
       >

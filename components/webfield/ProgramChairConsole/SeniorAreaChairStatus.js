@@ -90,8 +90,12 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
   metaReviewRecommendationName,
 }) => {
   const { id, preferredName, title } = rowData.sacProfile ?? {}
-  const { officialReviewName, officialMetaReviewName, submissionName,preferredEmailInvitationId } =
-    useContext(WebFieldContext)
+  const {
+    officialReviewName,
+    officialMetaReviewName,
+    submissionName,
+    preferredEmailInvitationId,
+  } = useContext(WebFieldContext)
   const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
