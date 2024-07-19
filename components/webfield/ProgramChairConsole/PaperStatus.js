@@ -40,6 +40,8 @@ const PaperRow = ({
   noteContentField,
 }) => {
   const {
+    reviewerName,
+    areaChairName,
     areaChairsId,
     venueId,
     officialReviewName,
@@ -118,7 +120,7 @@ const PaperRow = ({
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
-          reviewerAssignmentUrl={getManualAssignmentUrl('Reviewers')}
+          reviewerAssignmentUrl={getManualAssignmentUrl(reviewerName)}
         />
       </td>
       {!noteContentField && areaChairsId && (
@@ -126,7 +128,7 @@ const PaperRow = ({
           <ProgramChairConsolePaperAreaChairProgress
             rowData={rowData}
             referrerUrl={referrerUrl}
-            areaChairAssignmentUrl={getManualAssignmentUrl('Area_Chairs')}
+            areaChairAssignmentUrl={getManualAssignmentUrl(areaChairName)}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
             preferredEmailInvitationId={preferredEmailInvitationId}
@@ -138,7 +140,7 @@ const PaperRow = ({
           <ProgramChairConsolePaperAreaChairProgress
             rowData={rowData}
             referrerUrl={referrerUrl}
-            areaChairAssignmentUrl={getManualAssignmentUrl('Area_Chairs')}
+            areaChairAssignmentUrl={getManualAssignmentUrl(areaChairName)}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
             preferredEmailInvitationId={preferredEmailInvitationId}
@@ -251,7 +253,9 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
     assignmentUrls,
     reviewRatingName,
     areaChairName = 'Area_Chairs',
+    officialReviewName,
     officialMetaReviewName = 'Meta_Review',
+    submissionName,
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
@@ -371,8 +375,12 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
             width: '35px',
           },
           { id: 'number', content: '#', width: '55px' },
-          { id: 'summary', content: 'Paper Summary', width: '30%' },
-          { id: 'reviewProgress', content: 'Review Progress', width: '30%' },
+          { id: 'summary', content: `${submissionName} Summary`, width: '30%' },
+          {
+            id: 'reviewProgress',
+            content: `${prettyField(officialReviewName)} Progress`,
+            width: '30%',
+          },
           ...(areaChairsId ? [{ id: 'status', content: 'Status' }] : []),
           {
             id: noteContentField?.field ?? 'decision',

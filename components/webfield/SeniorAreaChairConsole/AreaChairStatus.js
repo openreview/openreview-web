@@ -129,7 +129,12 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
 }
 
 // modified based on notesAreaChairStatus.hbs
-const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
+const NoteAreaChairStatus = ({
+  rowData,
+  referrerUrl,
+  submissionName,
+  officialMetaReviewName,
+}) => {
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   const { metaReviewRecommendationName = 'recommendation' } = useContext(WebFieldContext)
@@ -137,9 +142,12 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
   return (
     <div className="areachair-progress">
       <h4>
-        {numCompletedMetaReviews} of {numPapers} Papers Meta Review Completed
+        {numCompletedMetaReviews} of {numPapers} {pluralizeString(submissionName)} with{' '}
+        {prettyField(officialMetaReviewName)} Completed
       </h4>
-      {rowData.notes.length !== 0 && <strong className="paper-label">Papers:</strong>}
+      {rowData.notes.length !== 0 && (
+        <strong className="paper-label">{pluralizeString(submissionName)}:</strong>
+      )}
       <div>
         {rowData.notes.map((p) => {
           const noteContent = getNoteContentValues(p.note?.content)
@@ -183,7 +191,12 @@ const NoteAreaChairStatus = ({ rowData, referrerUrl }) => {
   )
 }
 
-const AreaChairStatusRow = ({ rowData, referrerUrl }) => (
+const AreaChairStatusRow = ({
+  rowData,
+  referrerUrl,
+  submissionName,
+  officialMetaReviewName,
+}) => (
   <tr>
     <td>
       <strong>{rowData.number}</strong>
@@ -195,15 +208,26 @@ const AreaChairStatusRow = ({ rowData, referrerUrl }) => (
       <NoteAreaChairProgress rowData={rowData} referrerUrl={referrerUrl} />
     </td>
     <td>
-      <NoteAreaChairStatus rowData={rowData} referrerUrl={referrerUrl} />
+      <NoteAreaChairStatus
+        rowData={rowData}
+        referrerUrl={referrerUrl}
+        submissionName={submissionName}
+        officialMetaReviewName={officialMetaReviewName}
+      />
     </td>
   </tr>
 )
 
 const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
   const [areaChairStatusTabData, setAreaChairStatusTabData] = useState({})
-  const { seniorAreaChairName, areaChairName, venueId, officialReviewName } =
-    useContext(WebFieldContext)
+  const {
+    seniorAreaChairName,
+    areaChairName,
+    venueId,
+    officialReviewName,
+    submissionName,
+    officialMetaReviewName,
+  } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(
     sacConsoleData.assignedAreaChairIds?.length ?? 0
@@ -339,6 +363,8 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
             key={row.areaChairProfileId}
             rowData={row}
             referrerUrl={referrerUrl}
+            submissionName={submissionName}
+            officialMetaReviewName={officialMetaReviewName}
           />
         ))}
       </Table>

@@ -229,21 +229,21 @@ const AreaChairStatusMenuBar = ({
         ]
       : []),
     {
-      label: `${prettyField(areaChairName)} with unsubmitted ${prettyField(
-        officialReviewName
-      )}`,
+      label: `${prettyField(areaChairName)} with unsubmitted ${pluralizeString(
+        prettyField(officialReviewName)
+      ).toLowerCase()}`,
       value: 'missingReviews',
     },
     {
-      label: `${prettyField(areaChairName)} with 0 submitted ${prettyField(
-        officialMetaReviewName
-      )}`,
+      label: `${prettyField(areaChairName)} with 0 submitted ${pluralizeString(
+        prettyField(officialMetaReviewName)
+      ).toLowerCase()}`,
       value: 'noMetaReviews',
     },
     {
-      label: `${prettyField(areaChairName)} with unsubmitted ${prettyField(
-        officialMetaReviewName
-      )}`,
+      label: `${prettyField(areaChairName)} with unsubmitted ${pluralizeString(
+        prettyField(officialMetaReviewName)
+      ).toLowerCase()}`,
       value: 'missingMetaReviews',
     },
     {
@@ -355,7 +355,7 @@ const AreaChairStatusMenuBar = ({
       enableQuerySearch={enableQuerySearch}
       filterOperators={filterOperators}
       propertiesAllowed={propertiesAllowed}
-      messageDropdownLabel={`Message ${prettyField(areaChairName)}`}
+      messageDropdownLabel="Message"
       messageOptions={messageAreaChairOptions}
       messageModalId="message-areachairs"
       messageParentGroup={messageParentGroup}

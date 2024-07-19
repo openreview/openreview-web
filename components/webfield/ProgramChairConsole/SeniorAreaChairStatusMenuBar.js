@@ -32,21 +32,21 @@ const SeniorAreaChairStatusMenuBarForDirectPaperAssignment = ({
   }
   const messageSeniorAreaChairOptions = [
     {
-      label: `${prettyField(seniorAreaChairName)} with unsubmitted ${prettyField(
-        officialReviewName
-      )}`,
+      label: `${prettyField(seniorAreaChairName)} with unsubmitted ${pluralizeString(
+        prettyField(officialReviewName)
+      ).toLowerCase()}`,
       value: 'missingReviews',
     },
     {
-      label: `${prettyField(seniorAreaChairName)} with 0 submitted ${prettyField(
-        officialMetaReviewName
-      )}`,
+      label: `${prettyField(seniorAreaChairName)} with 0 submitted ${pluralizeString(
+        prettyField(officialMetaReviewName)
+      ).toLowerCase()}`,
       value: 'noMetaReviews',
     },
     {
-      label: `${prettyField(seniorAreaChairName)} with unsubmitted ${prettyField(
-        officialMetaReviewName
-      )}`,
+      label: `${prettyField(seniorAreaChairName)} with unsubmitted ${pluralizeString(
+        prettyField(officialMetaReviewName)
+      ).toLowerCase()}`,
       value: 'missingMetaReviews',
     },
     {
@@ -157,14 +157,15 @@ const SeniorAreaChairStatusMenuBarForACAssignment = ({
   tableRows,
   setSeniorAreaChairStatusTabData,
 }) => {
+  const { seniorAreaChairName = 'Senior_Area_Chairs', } = useContext(WebFieldContext)
   const sortOptions = [
     {
-      label: 'Senior Area Chair',
+      label: prettyField(seniorAreaChairName),
       value: 'Senior Area Chair',
       getValue: (p) => p.number,
     },
     {
-      label: 'Senior Area Chair Name',
+      label: `${prettyField(seniorAreaChairName)} Name`,
       value: 'Senior Area Chair Name',
       getValue: (p) => p.sacProfile?.preferredName ?? p.sacProfileId,
     },
@@ -181,9 +182,9 @@ const SeniorAreaChairStatusMenuBarForACAssignment = ({
       setData={setSeniorAreaChairStatusTabData}
       enableQuerySearch={false}
       sortOptions={sortOptions}
-      exportFileName="Senior Area Chair Status"
+      exportFileName={`${prettyField(seniorAreaChairName)} Status`}
       basicSearchFunction={basicSearchFunction}
-      searchPlaceHolder="Search all senior area chairs"
+      searchPlaceHolder={`Search all ${prettyField(seniorAreaChairName)}`}
       extraClasses="sac-status-menu"
     />
   )

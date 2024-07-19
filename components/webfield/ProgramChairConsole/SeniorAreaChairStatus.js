@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import { sortBy } from 'lodash'
 import { getProfileLink } from '../../../lib/webfield-utils'
+import { prettyField, pluralizeString } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -89,7 +90,8 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
   metaReviewRecommendationName,
 }) => {
   const { id, preferredName, title } = rowData.sacProfile ?? {}
-  const { preferredEmailInvitationId } = useContext(WebFieldContext)
+  const { officialReviewName, officialMetaReviewName, submissionName,preferredEmailInvitationId } =
+    useContext(WebFieldContext)
   const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
@@ -154,9 +156,10 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
       <td>
         <div className="reviewer-progress">
           <h4>
-            {numCompletedReviews} of {numPapers} Papers Reviews Completed
+            {numCompletedReviews} of {numPapers} {pluralizeString(submissionName)} with{' '}
+            {pluralizeString(prettyField(officialReviewName))} Completed
           </h4>
-          {rowData.notes.length !== 0 && <strong>Papers:</strong>}
+          {rowData.notes.length !== 0 && <strong>{pluralizeString(submissionName)}:</strong>}
           <div className="review-progress">
             {rowData.notes.map((p) => {
               if (!p) return null
@@ -193,9 +196,10 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
       <td>
         <div className="areachair-progress">
           <h4>
-            {numCompletedMetaReviews} of {numPapers} Papers Meta Review Completed
+            {numCompletedMetaReviews} of {numPapers} {pluralizeString(submissionName)} with{' '}
+            {pluralizeString(prettyField(officialMetaReviewName))} Completed
           </h4>
-          {rowData.notes.length !== 0 && <strong>Papers:</strong>}
+          {rowData.notes.length !== 0 && <strong>{pluralizeString(submissionName)}:</strong>}
           <div>
             {rowData.notes.map((p) => {
               if (!p) return null
@@ -223,14 +227,16 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
                               target="_blank"
                               rel="noreferrer"
                             >
-                              Read Meta Review
+                              Read {prettyField(officialMetaReviewName)}
                             </a>
                           </div>
                         )
                       })}
                     </>
                   ) : (
-                    <span>{`${noteVenue ? `${noteVenue} - ` : ''} No Meta Review`}</span>
+                    <span>{`${noteVenue ? `${noteVenue} - ` : ''} No ${prettyField(
+                      officialMetaReviewName
+                    )}`}</span>
                   )}
                 </div>
               )
@@ -251,6 +257,10 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
     venueId,
     metaReviewRecommendationName = 'recommendation',
     sacDirectPaperAssignment,
+    seniorAreaChairName = 'Senior_Area_Chairs',
+    areaChairName,
+    officialReviewName,
+    officialMetaReviewName,
   } = useContext(WebFieldContext)
 
   const referrerUrl = encodeURIComponent(
@@ -349,8 +359,8 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
   if (seniorAreaChairStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no senior area chairs.Check back later or contact info@openreview.net if you
-        believe this to be an error.
+        There are no {prettyField(seniorAreaChairName)}.Check back later or contact
+        info@openreview.net if you believe this to be an error.
       </p>
     )
   if (seniorAreaChairStatusTabData.tableRows?.length === 0)
@@ -362,7 +372,9 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
           setSeniorAreaChairStatusTabData={setSeniorAreaChairStatusTabData}
           sacDirectPaperAssignment={sacDirectPaperAssignment}
         />
-        <p className="empty-message">No senior area chair matching search criteria.</p>
+        <p className="empty-message">
+          No {prettyField(seniorAreaChairName)} matching search criteria.
+        </p>
       </div>
     )
   return (
@@ -379,14 +391,24 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
           sacDirectPaperAssignment
             ? [
                 { id: 'number', content: '#', width: '55px' },
-                { id: 'seniorAreaChair', content: 'Senior Area Chair', width: '10%' },
-                { id: 'reviewProgress', content: 'Review Progress' },
-                { id: 'metaReviewstatus', content: 'Meta Review Status' },
+                {
+                  id: 'seniorAreaChair',
+                  content: `${prettyField(seniorAreaChairName)}`,
+                  width: '10%',
+                },
+                {
+                  id: 'reviewProgress',
+                  content: `${prettyField(officialReviewName)} Progress`,
+                },
+                {
+                  id: 'metaReviewstatus',
+                  content: `${prettyField(officialMetaReviewName)} Status`,
+                },
               ]
             : [
                 { id: 'number', content: '#', width: '55px' },
-                { id: 'seniorAreaChair', content: 'Senior Area Chair' },
-                { id: 'areachair', content: 'Area Chair' },
+                { id: 'seniorAreaChair', content: `${prettyField(seniorAreaChairName)}` },
+                { id: 'areachair', content: `${prettyField(areaChairName)}` },
               ]
         }
       >
