@@ -527,6 +527,15 @@ main.invitation {
     .note-readers {
       font-size: 0.75rem;
     }
+    .ithenticate-container {
+      display: flex;
+      align-items: center;
+      .spinner-small {
+        & > div {
+          background-color: constants.$orRed;
+        }
+      }
+    }
     .areachair-progress {
       .title {
         white-space: nowrap;

@@ -1,5 +1,6 @@
 /* globals promptError: false */
 import isEqual from 'lodash/isEqual'
+import { useState } from 'react'
 import { forumDate, getNotePdfUrl } from '../../lib/utils'
 import Collapse from '../Collapse'
 import Icon from '../Icon'
@@ -33,6 +34,9 @@ const NoteSummary = ({
   const privatelyRevealed = !note.readers?.includes('everyone')
   const maxAuthors = 15
 
+  const [reportLink, setReportLink] = useState(null)
+  const [isLoadingReportLink, setIsLoadingReportLink] = useState(false)
+
   const authorNames = authorsValue?.map((authorName, i) => {
     const authorId = authorIdsValue[i]
     const authorProfile = profileMap?.[authorIdsValue[i]]
@@ -58,16 +62,23 @@ const NoteSummary = ({
   })
 
   const getPlagiarismReport = async () => {
+    if (reportLink) {
+      window.open(reportLink, '_blank')
+      return
+    }
+    setIsLoadingReportLink(true)
     try {
       const { viewerUrl } = await api.get(
         '/ithenticate/viewer-url',
         { edgeId: ithenticateEdge.id },
         { accessToken }
       )
+      setReportLink(viewerUrl)
       window.open(viewerUrl, '_blank')
     } catch (error) {
       promptError(error.message)
     }
+    setIsLoadingReportLink(false)
   }
 
   return (
@@ -138,8 +149,25 @@ const NoteSummary = ({
 
       {ithenticateEdge &&
         (ithenticateEdge.label === 'Complete' ? (
-          <div className="note-ithenticate report-complete" onClick={getPlagiarismReport}>
-            iThenticate Report {ithenticateEdge.weight}%
+          <div className="ithenticate-container">
+            <div
+              className="note-ithenticate report-complete"
+              title="Click to Open iThenticate Report"
+              data-toggle="tooltip"
+              data-placement="top"
+              onClick={getPlagiarismReport}
+            >
+              iThenticate Report {ithenticateEdge.weight}%
+            </div>
+
+            {isLoadingReportLink && (
+              <div className="spinner spinner-small">
+                <div className="rect1" />
+                <div className="rect2" />
+                <div className="rect3" />
+                <div className="rect4" />
+              </div>
+            )}
           </div>
         ) : (
           <div className="note-ithenticate">iThenticate Report: {ithenticateEdge.label}</div>
