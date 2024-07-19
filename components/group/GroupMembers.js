@@ -396,7 +396,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     readers: [profileId],
     writers: [profileId],
     signatures: [profileId],
-    invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
+    invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations?.[0],
   })
 
   const deleteMember = async (memberId) => {
@@ -406,15 +406,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     if (userIds.includes(memberId) && !window.confirm(confirmMessage)) return
 
     try {
-      if (group.invitations) {
-        await api.post('/groups/edits', buildEdit('remove', [memberId]), { accessToken })
-      } else {
-        await api.delete(
-          '/groups/members',
-          { id: group.id, members: [memberId] },
-          { accessToken, version: 1 }
-        )
-      }
+      await api.post('/groups/edits', buildEdit('remove', [memberId]), { accessToken })
       setGroupMembers({ type: 'DELETE', payload: [memberId] })
       reloadGroup()
     } catch (error) {
@@ -424,15 +416,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
 
   const restoreMember = async (memberId) => {
     try {
-      if (group.invitations) {
-        await api.post('/groups/edits', buildEdit('append', [memberId]), { accessToken })
-      } else {
-        await api.put(
-          '/groups/members',
-          { id: group.id, members: [memberId] },
-          { accessToken, version: 1 }
-        )
-      }
+      await api.post('/groups/edits', buildEdit('append', [memberId]), { accessToken })
       setGroupMembers({ type: 'RESTORE', payload: [memberId] })
       reloadGroup()
     } catch (error) {
@@ -498,19 +482,11 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       : ''
 
     try {
-      if (group.invitations) {
-        await api.post(
-          '/groups/edits',
-          buildEdit('append', [...newMembers, ...existingDeleted]),
-          { accessToken }
-        )
-      } else {
-        await api.put(
-          '/groups/members',
-          { id: group.id, members: [...newMembers, ...existingDeleted] },
-          { accessToken, version: 1 }
-        )
-      }
+      await api.post(
+        '/groups/edits',
+        buildEdit('append', [...newMembers, ...existingDeleted]),
+        { accessToken }
+      )
       setSearchTerm('')
       setGroupMembers({
         type: 'ADD',
@@ -548,15 +524,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     }
 
     try {
-      if (group.invitations) {
-        await api.post('/groups/edits', buildEdit('remove', membersToRemove), { accessToken })
-      } else {
-        await api.delete(
-          '/groups/members',
-          { id: group.id, members: membersToRemove },
-          { accessToken, version: 1 }
-        )
-      }
+      await api.post('/groups/edits', buildEdit('remove', membersToRemove), { accessToken })
       setGroupMembers({ type: 'DELETE', payload: membersToRemove })
       reloadGroup()
     } catch (error) {
