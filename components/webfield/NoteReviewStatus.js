@@ -12,7 +12,7 @@ import ErrorAlert from '../ErrorAlert'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
 import WebFieldContext from '../WebFieldContext'
-import { pluralizeString, prettyField, getSingularRoleName } from '../../lib/utils'
+import { pluralizeString, prettyField } from '../../lib/utils'
 import { getProfileLink } from '../../lib/webfield-utils'
 
 // modified from noteReviewStatus.hbs handlebar template
@@ -148,9 +148,6 @@ Click on the link below to go to the ${prettyField(
   \n\nThank you,\n${shortPhrase}`)
   const [error, setError] = useState(null)
   const { accessToken } = useUser()
-  const reviewerUrlFormat = getSingularRoleName(reviewerName)
-    .toLowerCase()
-    .replaceAll('_', '-')
 
   const sendReminder = async () => {
     try {
@@ -172,7 +169,7 @@ Click on the link below to go to the ${prettyField(
       )
       localStorage.setItem(`${forumUrl}|${reviewer.reviewerProfileId}`, Date.now())
       setUpdateLastSent((p) => !p)
-      $(`#${reviewerUrlFormat}-reminder-${reviewer.anonymousId}`).modal('hide')
+      $(`#reviewer-reminder-${reviewer.anonymousId}`).modal('hide')
       promptMessage(`A reminder email has been sent to ${reviewer.preferredName}`, {
         scrollToTop: false,
       })
@@ -183,7 +180,7 @@ Click on the link below to go to the ${prettyField(
 
   return (
     <BasicModal
-      id={`${reviewerUrlFormat}-reminder-${reviewer.anonymousId}`}
+      id={`reviewer-reminder-${reviewer.anonymousId}`}
       title="Message"
       primaryButtonText="Send Message"
       onPrimaryButtonClick={sendReminder}
@@ -252,14 +249,11 @@ export const AcPcConsoleReviewerStatusRow = ({
   const lastReminderSent = localStorage.getItem(
     `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}|${reviewer.reviewerProfileId}`
   )
-  const reviewerUrlFormat = getSingularRoleName(reviewerName)
-    .toLowerCase()
-    .replaceAll('_', '-')
   const handleShowReviewerActivityClick = (anonymousId) => {
-    $(`#${reviewerUrlFormat}-activity-${anonymousId}`).modal('show')
+    $(`#reviewer-activity-${anonymousId}`).modal('show')
   }
   const handleSendReminder = (anonymousId) => {
-    $(`#${reviewerUrlFormat}-reminder-${anonymousId}`).modal('show')
+    $(`#reviewer-reminder-${anonymousId}`).modal('show')
   }
   return (
     <div key={reviewer.reviewerProfileId} className="assigned-reviewer-row">
