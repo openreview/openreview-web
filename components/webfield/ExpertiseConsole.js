@@ -11,7 +11,7 @@ import ControllableExpertiseSelector from '../ControllableExpertiseSelector'
 import { prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
-export default function ExpertiseConsole({ appContext }) {
+export default function ExpertiseConsole({ appContext, useControllableExpertiseSelector = false }) {
   const {
     entity: invitation,
     venueId,
@@ -22,8 +22,6 @@ export default function ExpertiseConsole({ appContext }) {
   } = useContext(WebFieldContext)
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const router = useRouter()
-  const useControllableExpertiseSelector = true
-
   const { setBannerContent } = appContext
   const options =
     apiVersion === 2
