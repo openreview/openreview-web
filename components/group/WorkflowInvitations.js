@@ -171,25 +171,35 @@ const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
   )
 }
 
-const GroupEditInvitationRow = ({ invitation }) => {
+const EditInvitationRow = ({ invitation, isDomainGroup }) => {
   const [showEditor, setShowEditor] = useState(false)
   return (
-    <>
-      <button className="btn btn-xs ml-2" onClick={() => setShowEditor(true)}>
-        Add
-      </button>
+    <div className="edit-invitation-container">
+      <div className="invitation-info">
+        <span className={invitation.passed ? 'text-muted cdate' : 'cdate'}>
+          {invitation.formattedCDate}{' '}
+        </span>
+        <Link href={`/invitation/edit?id=${invitation.id}`}>{prettyId(invitation.id)}</Link>
+        {invitation.edit?.content && isDomainGroup && !showEditor && (
+          <button className="btn btn-xs ml-2" onClick={() => setShowEditor(true)}>
+            Add
+          </button>
+        )}
+      </div>
       {showEditor && (
-        <InvitationContentEditor
-          invitation={invitation}
-          existingValue={{}}
-          isGroupInvitation={true}
-          closeInvitationEditor={() => {
-            setShowEditor(false)
-          }}
-          onInvitationEditPosted={() => {}}
-        />
+        <div className="content-editor-container">
+          <InvitationContentEditor
+            invitation={invitation}
+            existingValue={{}}
+            isGroupInvitation={true}
+            closeInvitationEditor={() => {
+              setShowEditor(false)
+            }}
+            onInvitationEditPosted={() => {}}
+          />
+        </div>
       )}
-    </>
+    </div>
   )
 }
 
@@ -295,15 +305,10 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           )
           return (
             <div key={invitationId}>
-              <div className="d-flex">
-                <span className={stepObj.passed ? 'text-muted' : ''}>
-                  {stepObj.formattedCDate}{' '}
-                </span>
-                <Link href={`/invitation/edit?id=${invitationId}`}>
-                  {prettyId(invitationId)}
-                </Link>
-                {group.id !== group.domain && <GroupEditInvitationRow invitation={stepObj} />}
-              </div>
+              <EditInvitationRow
+                invitation={stepObj}
+                isDomainGroup={group.id !== group.domain}
+              />
 
               {subInvitations.length > 0 &&
                 subInvitations.map((subInvitation) => (

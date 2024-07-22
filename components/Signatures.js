@@ -170,7 +170,7 @@ export const EditSignatures = ({
   extraClasses,
 }) => {
   const fieldName = 'editSignatureInputValues'
-  const error = errors.find((e) => e.fieldName === fieldName)
+  const error = errors?.find((e) => e.fieldName === fieldName)
 
   const onChange = ({ loading, value }) => {
     setLoading((existingLoadingState) => ({
@@ -192,7 +192,7 @@ export const EditSignatures = ({
       <Signatures
         fieldDescription={fieldDescription}
         onChange={onChange}
-        currentValue={editorData[fieldName]}
+        currentValue={editorData?.[fieldName]}
         onError={onError}
         extraClasses={extraClasses}
         clearError={() =>

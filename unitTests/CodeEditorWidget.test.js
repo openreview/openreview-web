@@ -26,7 +26,7 @@ beforeEach(() => {
   onCodeChange = null
 })
 
-describe('CheckboxWidget', () => {
+describe('CodeEditorWidget', () => {
   test('render non-json editor if type is not json', async () => {
     const providerProps = {
       value: {
@@ -57,6 +57,28 @@ describe('CheckboxWidget', () => {
             value: {
               param: {
                 type: 'json',
+              },
+            },
+          },
+        },
+      },
+    }
+
+    renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
+    await waitFor(() => {
+      expect(screen.getByText('code editor')).toBeInTheDocument()
+      expect(codeEditorProps).toHaveBeenCalledWith(expect.objectContaining({ isJson: true }))
+    })
+  })
+
+  test('render json editor if type is content', async () => {
+    const providerProps = {
+      value: {
+        field: {
+          setting: {
+            value: {
+              param: {
+                type: 'content',
               },
             },
           },
