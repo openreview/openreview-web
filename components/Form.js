@@ -63,10 +63,6 @@ const EnumItemsEditor = ({ options, setOptions, fieldName, formData }) => {
     },
     options
       ? options.map((option) => {
-          if (typeof option === 'string') {
-            if (!optionType) setOptionType('string')
-            return { value: option, key: nanoid() }
-          }
           if (fieldName === 'enum') {
             if (!optionType) setOptionType('enum')
             return { ...option, key: nanoid() }
@@ -79,10 +75,13 @@ const EnumItemsEditor = ({ options, setOptions, fieldName, formData }) => {
 
   useEffect(() => {
     let updatedOptions = null
-    // if (optionType === 'string') {
-    //   updatedOptions = localOptions.map((option) => option.value)
-    // } else
-    if (optionType === 'enum' || optionType === 'items') {
+    if (optionType === 'enum') {
+      updatedOptions = localOptions.map((option) => {
+        const { key, optional, ...rest } = option
+        return rest
+      })
+    }
+    if (optionType === 'items') {
       updatedOptions = localOptions.map((option) => {
         const { key, ...rest } = option
         return rest
@@ -186,10 +185,26 @@ const Form = ({ fields, existingFieldsValue, onFormChange }) => {
           return prev
         }, {})
       default:
-        debouncedOnFormChange({
-          ...state,
-          [action.fieldName]: action.value,
-        })
+        if (action.fieldName === 'dataType') {
+          if (action.value.endsWith('[]')) {
+            debouncedOnFormChange({
+              ...state,
+              [action.fieldName]: action.value,
+              enum: undefined,
+            })
+          } else {
+            debouncedOnFormChange({
+              ...state,
+              [action.fieldName]: action.value,
+              items: undefined,
+            })
+          }
+        } else {
+          debouncedOnFormChange({
+            ...state,
+            [action.fieldName]: action.value,
+          })
+        }
 
         return state
     }

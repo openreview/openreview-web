@@ -453,7 +453,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           <EditorComponentHeader fieldNameOverwrite={'Name of New Field'}>
             <input
               className={`form-control ${styles.newFieldNameInput}`}
-              value={nameOfNewField}
+              value={nameOfNewField ?? ''}
               onChange={(e) => setNameOfNewField(e.target.value)}
             />
           </EditorComponentHeader>
