@@ -11,7 +11,7 @@ import useUser from '../../hooks/useUser'
 import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
 import ContentFieldEditor from '../EditorComponents/ContentFieldEditor'
-import { EditSignatures } from '../Signatures'
+import EditSignatures from '../EditSignatures'
 
 const InvitationContentEditor = ({
   invitation,

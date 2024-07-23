@@ -8,7 +8,7 @@ import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
 import EditorWidget from './webfield/EditorWidget'
 import SpinnerButton from './SpinnerButton'
 import LoadingSpinner from './LoadingSpinner'
-import Signatures, { EditSignatures } from './Signatures'
+import Signatures from './Signatures'
 import { NewNoteReaders, NewReplyEditNoteReaders } from './NoteEditorReaders'
 import Icon from './Icon'
 import useUser from '../hooks/useUser'
@@ -20,6 +20,7 @@ import { getNoteContentValues } from '../lib/forum-utils'
 import styles from '../styles/components/NoteEditor.module.scss'
 import LicenseWidget from './EditorComponents/LicenseWidget'
 import DatePickerWidget from './EditorComponents/DatePickerWidget'
+import EditSignatures from './EditSignatures'
 
 const ExistingNoteReaders = NewReplyEditNoteReaders
 
