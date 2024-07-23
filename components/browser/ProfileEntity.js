@@ -5,6 +5,7 @@
 
 import { nanoid } from 'nanoid'
 import React, { useContext } from 'react'
+import copy from 'copy-to-clipboard'
 import api from '../../lib/api-client'
 import {
   getInterpolatedValues,
@@ -19,6 +20,7 @@ import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import ScoresList from './ScoresList'
+import useQuery from '../../hooks/useQuery'
 
 export default function ProfileEntity(props) {
   const {
@@ -30,6 +32,7 @@ export default function ProfileEntity(props) {
     version,
   } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
+  const query = useQuery()
 
   if (!props.profile || !props.profile.content) {
     return null
@@ -138,6 +141,21 @@ export default function ProfileEntity(props) {
         props.updateChildColumn(props.columnIndex, null)
       }
       props.reloadColumnEntities()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const getEmail = async () => {
+    try {
+      const result = await api.get(`/edges`, {
+        invitation: query.preferredEmailInvitationId,
+        head: id,
+      })
+      const email = result.edges?.[0]?.tail
+      if (!email) throw new Error('Email is not available.')
+      copy(`${content.name.fullname} <${email}>`)
+      promptMessage(`${email} copied to clipboard`)
     } catch (error) {
       promptError(error.message)
     }
@@ -426,7 +444,16 @@ export default function ProfileEntity(props) {
             {content.name.fullname}
           </a>
         </h3>
-
+        {query.preferredEmailInvitationId && !content.isDummyProfile && (
+          <p
+            onClick={(e) => {
+              e.stopPropagation()
+              getEmail()
+            }}
+          >
+            Copy Email
+          </p>
+        )}
         <p>{content.title}</p>
       </div>
 
