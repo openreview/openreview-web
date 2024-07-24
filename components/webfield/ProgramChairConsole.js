@@ -91,9 +91,15 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
 
-  const seniorAreaChairUrlFormat = getSingularRoleName(seniorAreaChairName).toLowerCase().replaceAll('_', '-')
-  const areaChairUrlFormat = getSingularRoleName(areaChairName).toLowerCase().replaceAll('_', '-')
-  const reviewerUrlFormat = getSingularRoleName(reviewerName).toLowerCase().replaceAll('_', '-')
+  const seniorAreaChairUrlFormat = getSingularRoleName(seniorAreaChairName)
+    .toLowerCase()
+    .replaceAll('_', '-')
+  const areaChairUrlFormat = getSingularRoleName(areaChairName)
+    .toLowerCase()
+    .replaceAll('_', '-')
+  const reviewerUrlFormat = getSingularRoleName(reviewerName)
+    .toLowerCase()
+    .replaceAll('_', '-')
 
   const loadData = async () => {
     if (isLoadingData) return
@@ -1017,7 +1023,28 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   }, [user, userLoading, group])
 
   useEffect(() => {
-    if (!activeTabId) return
+    // if (!activeTabId) return
+    const validTabIds = [
+      '#venue-configuration',
+      `#${submissionName.toLowerCase()}-status`,
+      `#${reviewerUrlFormat}-status`,
+      `#${areaChairUrlFormat}-status`,
+      `#${seniorAreaChairUrlFormat}-status`,
+      'deskrejectwithdrawn-status',
+    ]
+
+    if (submissionContentFields.length > 0) {
+      submissionContentFields.forEach((fieldAttrs) => validTabIds.push(`#${fieldAttrs.field}`))
+    }
+
+    if (extraTabs.length > 0) {
+      extraTabs.forEach((tabAttrs) => validTabIds.push(`#${tabAttrs.tabId}`))
+    }
+
+    if (!validTabIds.includes(activeTabId)) {
+      setActiveTabId('#venue-configuration')
+      return
+    }
     router.replace(activeTabId)
   }, [activeTabId])
 
@@ -1060,7 +1087,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           </Tab>
           <Tab
             id={`${submissionName.toLowerCase()}-status`}
-            active={activeTabId === `#${submissionName.toLowerCase()}-status` ? true : undefined}
+            active={
+              activeTabId === `#${submissionName.toLowerCase()}-status` ? true : undefined
+            }
             onClick={() => setActiveTabId(`#${submissionName.toLowerCase()}-status`)}
           >
             {submissionName} Status
