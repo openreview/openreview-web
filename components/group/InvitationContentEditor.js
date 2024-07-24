@@ -13,6 +13,7 @@ import api from '../../lib/api-client'
 import ContentFieldEditor from '../EditorComponents/ContentFieldEditor'
 import EditSignatures from '../EditSignatures'
 
+// For editing invitation.edit.content
 const InvitationContentEditor = ({
   invitation,
   className,

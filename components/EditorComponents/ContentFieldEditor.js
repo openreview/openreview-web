@@ -478,7 +478,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
     </div>
   )
 }
-
+// For editing fields where the type is content
 const ContentFieldEditor = () => {
   const { field, onChange, value, error } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]

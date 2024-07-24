@@ -149,7 +149,7 @@ export const InvitationEditorV2 = ({
       case 'invitationReply':
         return (
           <InvitationReplyV2
-            key={sectionName}
+            key={`${invitation.id}-${sectionName}`}
             invitation={invitation}
             profileId={profileId}
             accessToken={accessToken}
@@ -160,7 +160,7 @@ export const InvitationEditorV2 = ({
       case 'invitationReplyForumViews':
         return (
           <InvitationReplyV2
-            key={sectionName}
+            key={`${invitation.id}-${sectionName}`}
             invitation={invitation}
             profileId={profileId}
             accessToken={accessToken}
@@ -171,7 +171,7 @@ export const InvitationEditorV2 = ({
       case 'invitationContentReply':
         return (
           <InvitationReplyV2
-            key={sectionName}
+            key={`${invitation.id}-${sectionName}`}
             invitation={invitation}
             profileId={profileId}
             accessToken={accessToken}
