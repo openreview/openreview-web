@@ -58,7 +58,6 @@ describe('SeniorAreaChairConsole', () => {
       <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
       providerProps
     )
-    screen.debug()
     expect(routerParams).toEqual('#submission-status')
   })
 
