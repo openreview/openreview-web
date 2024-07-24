@@ -471,7 +471,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       {mode === 'editField' && (
         <Form
           fields={fieldSpecificationsOfJsonField}
-          existingFieldsValue={existingFields[nameOfFieldToEdit] ?? {}}
+          existingFieldsValue={existingFields?.[nameOfFieldToEdit] ?? {}}
           onFormChange={onFormChange}
         />
       )}
