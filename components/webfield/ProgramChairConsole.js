@@ -538,6 +538,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                     (key) => paperAnonReviewerGroups[key] === member
                   )
                 }
+                if (!anonymizedGroup) return []
                 return {
                   reviewerProfileId: deanonymizedGroup,
                   anonymizedGroup,
