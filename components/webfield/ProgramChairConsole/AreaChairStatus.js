@@ -11,19 +11,18 @@ import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils
 import { getNoteContentValues } from '../../../lib/forum-utils'
 import { prettyField, pluralizeString } from '../../../lib/utils'
 
-const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
+const CommitteeSummary = ({
+  rowData,
+  bidEnabled,
+  recommendationEnabled,
+  invitations,
+  seniorAreaChairName,
+}) => {
   const { id, preferredName, preferredEmail, registrationNotes } =
     rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
-  const {
-    seniorAreaChairName,
-    areaChairsId,
-    reviewersId,
-    reviewerName,
-    bidName,
-    scoresName,
-    recommendationName,
-  } = useContext(WebFieldContext)
+  const { areaChairsId, reviewersId, reviewerName, bidName, scoresName, recommendationName } =
+    useContext(WebFieldContext)
   const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
@@ -298,7 +297,7 @@ const AreaChairStatus = ({
   const {
     shortPhrase,
     seniorAreaChairsId,
-    seniorAreaChairName,
+    seniorAreaChairName = 'Senior_Area_Chairs',
     areaChairsId,
     areaChairName,
     reviewersId,
