@@ -343,6 +343,7 @@ export default function Column(props) {
               id: headOrTailId,
               content: {
                 name: { fullname: prettyId(headOrTailId) },
+                email: headOrTailId,
                 title: '',
                 expertise: [],
                 isInvitedProfile: true,
@@ -805,6 +806,7 @@ export default function Column(props) {
               id: headOrTailId,
               content: {
                 name: { fullname: prettyId(headOrTailId) },
+                email: headOrTailId,
                 title: '',
                 expertise: [],
                 isInvitedProfile: hasInviteInvitation || hasProposedAssignmentInvitation,
