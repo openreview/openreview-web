@@ -148,7 +148,7 @@ const NoteSummary = ({
       )}
 
       {ithenticateEdge &&
-        (ithenticateEdge.label === 'Complete' ? (
+        (ithenticateEdge.label === 'Similarity Complete' ? (
           <div className="ithenticate-container">
             <div
               className="note-ithenticate report-complete"
