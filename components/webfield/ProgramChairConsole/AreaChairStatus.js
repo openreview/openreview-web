@@ -11,18 +11,19 @@ import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils
 import { getNoteContentValues } from '../../../lib/forum-utils'
 import { prettyField, pluralizeString } from '../../../lib/utils'
 
-const CommitteeSummary = ({
-  rowData,
-  bidEnabled,
-  recommendationEnabled,
-  invitations,
-  seniorAreaChairName,
-}) => {
+const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
   const { id, preferredName, preferredEmail, registrationNotes } =
     rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
-  const { areaChairsId, reviewersId, reviewerName, bidName, scoresName, recommendationName } =
-    useContext(WebFieldContext)
+  const {
+    seniorAreaChairName = 'Senior_Area_Chairs',
+    areaChairsId,
+    reviewersId,
+    reviewerName,
+    bidName,
+    scoresName,
+    recommendationName,
+  } = useContext(WebFieldContext)
   const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
@@ -247,7 +248,6 @@ const AreaChairStatusRow = ({
   bidEnabled,
   recommendationEnabled,
   invitations,
-  seniorAreaChairName,
   officialReviewName,
   officialMetaReviewName,
   metaReviewRecommendationName,
@@ -264,7 +264,6 @@ const AreaChairStatusRow = ({
         bidEnabled={bidEnabled}
         recommendationEnabled={recommendationEnabled}
         invitations={invitations}
-        seniorAreaChairName={seniorAreaChairName}
       />
     </td>
     <td>
@@ -502,7 +501,6 @@ const AreaChairStatus = ({
             bidEnabled={bidEnabled}
             recommendationEnabled={recommendationEnabled}
             invitations={pcConsoleData.invitations}
-            seniorAreaChairName={seniorAreaChairName}
             officialReviewName={officialReviewName}
             officialMetaReviewName={officialMetaReviewName}
             metaReviewRecommendationName={metaReviewRecommendationName}
