@@ -1,5 +1,5 @@
 /* eslint-disable no-useless-computed-key */
-import { render } from '@testing-library/react'
+import { render, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import Form from '../components/Form'
 
@@ -169,5 +169,214 @@ describe('Form', () => {
         }),
       })
     )
+  })
+
+  test('update form parent when FormEnumItemsFieldEditor updates', async () => {
+    const onFormChange = jest.fn()
+    const formFields = {
+      ['name']: {
+        order: 1,
+        description: 'Name of the field',
+        value: {
+          param: {
+            const: 'title',
+          },
+        },
+        shouldBeShown: (formData) => true,
+        getValue: (existingValue) => existingValue?.name,
+      },
+      ['enum']: {
+        order: 2,
+        description: 'The options for user to select from',
+        value: {
+          param: {
+            type: 'json',
+            optional: true,
+          },
+        },
+        shouldBeShown: (formData) => true,
+        getValue: (existingValue) => existingValue?.value?.param?.enum,
+      },
+    }
+    render(
+      <Form
+        fields={formFields}
+        existingFieldsValue={{
+          name: 'test_field',
+          value: {
+            param: { enum: ['option one', 'option two', 'option three'] },
+          },
+        }}
+        onFormChange={onFormChange}
+      />
+    )
+
+    setFormData({ fieldName: 'enum', value: ['option one', 'option two'] })
+    await waitFor(() => {
+      expect(onFormChange).toHaveBeenCalledWith({
+        name: 'test_field',
+        enum: ['option one', 'option two'],
+      })
+    })
+  })
+
+  // if datatype has [](multi select) then enum field should be removed and vice versa
+  test('remove enum based on datatype', async () => {
+    const onFormChange = jest.fn()
+    const formFields = {
+      ['name']: {
+        order: 1,
+        description: 'Name of the field',
+        value: {
+          param: {
+            const: 'title',
+          },
+        },
+        shouldBeShown: (formData) => true,
+        getValue: (existingValue) => existingValue?.name,
+      },
+      ['dataType']: {
+        order: 2,
+        description: 'Data type of the field',
+        value: {
+          param: {
+            input: 'select',
+            type: 'string',
+            enum: ['string', 'string[]'],
+          },
+        },
+        shouldBeShown: (formData) => true,
+        getValue: (existingValue) => existingValue?.value?.param?.type,
+      },
+      ['enum']: {
+        order: 3,
+        description: 'The options for user to select from',
+        value: {
+          param: {
+            type: 'json',
+            optional: true,
+          },
+        },
+        shouldBeShown: (formData) => !formData.dataType?.endsWith('[]'),
+        getValue: (existingValue) => existingValue?.value?.param?.enum,
+      },
+      ['items']: {
+        order: 4,
+        description: 'The options for user to select from',
+        value: {
+          param: {
+            type: 'json',
+            optional: true,
+          },
+        },
+        shouldBeShown: (formData) => formData.dataType?.endsWith('[]'),
+        getValue: (existingValue) => existingValue?.value?.param?.items,
+      },
+    }
+    render(
+      <Form
+        fields={formFields}
+        existingFieldsValue={{
+          name: 'test_field',
+          value: {
+            param: { enum: ['option one', 'option two', 'option three'] },
+            type: 'string',
+          },
+        }}
+        onFormChange={onFormChange}
+      />
+    )
+
+    expect(mockedEnumItemsEditorProps).toHaveBeenCalledTimes(2) // initial render + render after value init of enum
+    expect(mockedEnumItemsEditorProps).not.toHaveBeenCalledWith(
+      expect.objectContaining({ fieldName: 'items' })
+    )
+    setFormData({ fieldName: 'dataType', value: 'string[]' }) // enum should be dropped
+    await waitFor(() => {
+      expect(onFormChange).toHaveBeenCalledWith(expect.objectContaining({ enum: undefined }))
+    })
+  })
+
+  test('remove items based on datatype', async () => {
+    const onFormChange = jest.fn()
+    const formFields = {
+      ['name']: {
+        order: 1,
+        description: 'Name of the field',
+        value: {
+          param: {
+            const: 'title',
+          },
+        },
+        shouldBeShown: (formData) => true,
+        getValue: (existingValue) => existingValue?.name,
+      },
+      ['dataType']: {
+        order: 2,
+        description: 'Data type of the field',
+        value: {
+          param: {
+            input: 'select',
+            type: 'string',
+            enum: ['string', 'string[]'],
+          },
+        },
+        shouldBeShown: (formData) => true,
+        getValue: (existingValue) => existingValue?.value?.param?.type,
+      },
+      ['enum']: {
+        order: 3,
+        description: 'The options for user to select from',
+        value: {
+          param: {
+            type: 'json',
+            optional: true,
+          },
+        },
+        shouldBeShown: (formData) => !formData.dataType?.endsWith('[]'),
+        getValue: (existingValue) => existingValue?.value?.param?.enum,
+      },
+      ['items']: {
+        order: 4,
+        description: 'The options for user to select from',
+        value: {
+          param: {
+            type: 'json',
+            optional: true,
+          },
+        },
+        shouldBeShown: (formData) => formData.dataType?.endsWith('[]'),
+        getValue: (existingValue) => existingValue?.value?.param?.items,
+      },
+    }
+    render(
+      <Form
+        fields={formFields}
+        existingFieldsValue={{
+          name: 'test_field',
+          value: {
+            param: {
+              items: [
+                { value: 1, description: 'option one', optional: true },
+                { value: 2, description: 'option two', optional: false },
+              ],
+              type: 'string[]',
+            },
+          },
+        }}
+        onFormChange={onFormChange}
+      />
+    )
+
+    expect(mockedEnumItemsEditorProps).toHaveBeenCalledTimes(2) // initial render + render after value init of items
+    expect(mockedEnumItemsEditorProps).not.toHaveBeenNthCalledWith(
+      // initial render shouldBeShown will be true because formData is empty
+      2,
+      expect.objectContaining({ fieldName: 'enum' })
+    )
+    setFormData({ fieldName: 'dataType', value: 'string' }) // items should be dropped
+    await waitFor(() => {
+      expect(onFormChange).toHaveBeenCalledWith(expect.objectContaining({ items: undefined }))
+    })
   })
 })
