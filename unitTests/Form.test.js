@@ -70,7 +70,7 @@ describe('Form', () => {
     render(<Form fields={formFields} existingFieldsValue={{}} onFormChange={jest.fn()} />)
 
     // shouldBeShown of description is false so show only 2 fields
-    expect(mockedEditorWidgetProps).toHaveBeenCalledTimes(2)
+    expect(mockedEditorWidgetProps).toHaveBeenCalledTimes(4) // init will cause rerender
   })
 
   test('render enum and items fields using FormEnumItemsFieldEditor', () => {
@@ -110,8 +110,8 @@ describe('Form', () => {
     }
     render(<Form fields={formFields} existingFieldsValue={{}} onFormChange={jest.fn()} />)
 
-    expect(mockedEditorWidgetProps).toHaveBeenCalledTimes(1)
-    expect(mockedEnumItemsEditorProps).toHaveBeenCalledTimes(2)
+    expect(mockedEditorWidgetProps).toHaveBeenCalledTimes(2)
+    expect(mockedEnumItemsEditorProps).toHaveBeenCalledTimes(4)
   })
 
   test('pass existing form data FormEnumItemsFieldEditor', () => {

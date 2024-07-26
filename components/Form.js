@@ -47,7 +47,6 @@ const Form = ({ fields, existingFieldsValue, onFormChange }) => {
   const [formData, setFormData] = useReducer(formDataReducer, {})
 
   useEffect(() => {
-    if (!Object.keys(existingFieldsValue).length) return
     setFormData({ type: 'INIT' })
   }, [existingFieldsValue])
 
