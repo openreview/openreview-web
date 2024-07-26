@@ -1024,14 +1024,13 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   }, [user, userLoading, group])
 
   useEffect(() => {
-    // if (!activeTabId) return
     const validTabIds = [
       '#venue-configuration',
       `#${submissionName.toLowerCase()}-status`,
       `#${reviewerUrlFormat}-status`,
       `#${areaChairUrlFormat}-status`,
       `#${seniorAreaChairUrlFormat}-status`,
-      'deskrejectwithdrawn-status',
+      '#deskrejectwithdrawn-status',
     ]
 
     if (submissionContentFields.length > 0) {
@@ -1134,7 +1133,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               <Tab
                 id={fieldAttrs.field}
                 key={fieldAttrs.field}
-                active={activeTabId === fieldAttrs.field ? true : undefined}
+                active={activeTabId === `#${fieldAttrs.field}` ? true : undefined}
                 onClick={() => setActiveTabId(`#${fieldAttrs.field}`)}
               >
                 {prettyField(fieldAttrs.field)}
