@@ -296,7 +296,6 @@ const AreaChairStatus = ({
   const {
     shortPhrase,
     seniorAreaChairsId,
-    seniorAreaChairName = 'Senior_Area_Chairs',
     areaChairsId,
     areaChairName,
     reviewersId,
