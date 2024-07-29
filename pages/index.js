@@ -6,7 +6,7 @@ import Icon from '../components/Icon'
 import LoadingSpinner from '../components/LoadingSpinner'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
-import { prettyId, formatTimestamp } from '../lib/utils'
+import { prettyId, deburrString, formatTimestamp } from '../lib/utils'
 import ErrorAlert from '../components/ErrorAlert'
 
 export default function Home() {
@@ -212,9 +212,9 @@ function VenueList({ name, venues, maxVisible = 14, listType = 'vertical' }) {
     // normalize() returns characters without accents and aumlats
     // This is useful for highlighting first letter in alphabet.
     if (!venue || !venue.groupId) {
-      return false
+      return ''
     }
-    return prettyId(venue.groupId).charAt(0).toLowerCase().normalize()
+    return deburrString(prettyId(venue.groupId).charAt(0), true)
   }
 
   return (
