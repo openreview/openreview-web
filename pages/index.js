@@ -209,6 +209,11 @@ function VenueList({ name, venues, maxVisible = 14, listType = 'vertical' }) {
   }
 
   function normalizedFirstLetter(venue) {
+    // normalize() returns characters without accents and aumlats
+    // This is useful for highlighting first letter in alphabet.
+    if (!venue || !venue.groupId) {
+      return false
+    }
     return prettyId(venue.groupId).charAt(0).toLowerCase().normalize()
   }
 
@@ -218,8 +223,7 @@ function VenueList({ name, venues, maxVisible = 14, listType = 'vertical' }) {
         {venues.map((venue, i) => {
           const isLeadingVenue =
             name === 'all venues'
-              ? // eslint-disable-next-line max-len
-                normalizedFirstLetter(venue) !== normalizedFirstLetter(venues[i - 1])
+              ? normalizedFirstLetter(venue) > normalizedFirstLetter(venues[i - 1])
               : false
           return (
             <VenueListItem
