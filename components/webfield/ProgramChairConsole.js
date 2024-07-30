@@ -1000,6 +1000,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   useEffect(() => {
     if (!userLoading && !user) {
+      // PAM instead of ${window.location.pathname}${window.location.search}${window.location.hash}
+      // try router.asPath
       router.replace(
         `/login?redirect=${encodeURIComponent(
           `${window.location.pathname}${window.location.search}${window.location.hash}`
