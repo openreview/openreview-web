@@ -512,16 +512,6 @@ const ReviewerConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!userLoading && !user) {
-      router.replace(
-        `/login?redirect=${encodeURIComponent(
-          `${window.location.pathname}${window.location.search}${window.location.hash}`
-        )}`
-      )
-    }
-  }, [user, userLoading])
-
-  useEffect(() => {
     if (
       userLoading ||
       !user ||
@@ -603,7 +593,11 @@ const ReviewerConsole = ({ appContext }) => {
                   headings={[
                     { id: 'number', content: '#', width: '55px' },
                     { id: 'summary', content: `${submissionName} Summary`, width: '46%' },
-                    { id: 'ratings', content: `Your ${prettyField(officialReviewName)} Ratings`, width: 'auto' },
+                    {
+                      id: 'ratings',
+                      content: `Your ${prettyField(officialReviewName)} Ratings`,
+                      width: 'auto',
+                    },
                   ]}
                 >
                   {reviewerConsoleData.notes?.map((note) => (

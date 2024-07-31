@@ -999,18 +999,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!userLoading && !user) {
-      // PAM instead of ${window.location.pathname}${window.location.search}${window.location.hash}
-      // try router.asPath
-      router.replace(
-        `/login?redirect=${encodeURIComponent(
-          `${window.location.pathname}${window.location.search}${window.location.hash}`
-        )}`
-      )
-    }
-  }, [user, userLoading])
-
-  useEffect(() => {
     if (userLoading || !user || !group || !venueId || !reviewersId || !submissionId) return
     loadData()
   }, [user, userLoading, group])
