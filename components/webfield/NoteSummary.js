@@ -143,35 +143,37 @@ const NoteSummary = ({
         </div>
       )}
 
-      {isV2Note && note?.content?.venue?.value && (
-        <span className="note-venue">{note.content.venue.value}</span>
-      )}
+      <div className="venue-ithenticate-container">
+        {isV2Note && note?.content?.venue?.value && (
+          <span className="note-venue">{note.content.venue.value}</span>
+        )}
 
-      {ithenticateEdge &&
-        (ithenticateEdge.label === 'Similarity Complete' ? (
-          <div className="ithenticate-container">
-            <div
-              className="note-ithenticate report-complete"
-              title="Click to Open iThenticate Report"
-              data-toggle="tooltip"
-              data-placement="top"
-              onClick={getPlagiarismReport}
-            >
-              iThenticate Report {ithenticateEdge.weight}%
-            </div>
-
-            {isLoadingReportLink && (
-              <div className="spinner spinner-small">
-                <div className="rect1" />
-                <div className="rect2" />
-                <div className="rect3" />
-                <div className="rect4" />
+        {ithenticateEdge &&
+          (ithenticateEdge.label === 'Similarity Complete' ? (
+            <div className="ithenticate-container">
+              <div
+                className="note-ithenticate report-complete"
+                title="Click to Open iThenticate Report"
+                data-toggle="tooltip"
+                data-placement="top"
+                onClick={getPlagiarismReport}
+              >
+                iThenticate Report {ithenticateEdge.weight}%
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="note-ithenticate">iThenticate Report: {ithenticateEdge.label}</div>
-        ))}
+
+              {isLoadingReportLink && (
+                <div className="spinner spinner-small">
+                  <div className="rect1" />
+                  <div className="rect2" />
+                  <div className="rect3" />
+                  <div className="rect4" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="note-ithenticate">iThenticate Report: {ithenticateEdge.label}</div>
+          ))}
+      </div>
 
       <Collapse showLabel="Show details" hideLabel="Hide details">
         {isV2Note ? (
