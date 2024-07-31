@@ -153,7 +153,7 @@ const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) 
               role="button"
               onClick={() => setLocalOptions({ type: 'DELETE', key: option.key })}
             >
-              <Icon name="minus-sign" tooltip="remove relation" />
+              <Icon name="minus-sign" tooltip="remove option" />
             </div>
           </div>
         </div>

@@ -211,7 +211,10 @@ describe('Form', () => {
       />
     )
 
-    setFormData({ fieldName: 'enum', value: ['option one', 'option two'] })
+    await waitFor(() => {
+      setFormData({ fieldName: 'enum', value: ['option one', 'option two'] })
+    })
+
     await waitFor(() => {
       expect(onFormChange).toHaveBeenCalledWith({
         name: 'test_field',
@@ -291,7 +294,10 @@ describe('Form', () => {
     expect(mockedEnumItemsEditorProps).not.toHaveBeenCalledWith(
       expect.objectContaining({ fieldName: 'items' })
     )
-    setFormData({ fieldName: 'dataType', value: 'string[]' }) // enum should be dropped
+    await waitFor(() => {
+      setFormData({ fieldName: 'dataType', value: 'string[]' }) // enum should be dropped
+    })
+
     await waitFor(() => {
       expect(onFormChange).toHaveBeenCalledWith(expect.objectContaining({ enum: undefined }))
     })
@@ -374,7 +380,10 @@ describe('Form', () => {
       2,
       expect.objectContaining({ fieldName: 'enum' })
     )
-    setFormData({ fieldName: 'dataType', value: 'string' }) // items should be dropped
+
+    await waitFor(() => {
+      setFormData({ fieldName: 'dataType', value: 'string' }) // items should be dropped
+    })
     await waitFor(() => {
       expect(onFormChange).toHaveBeenCalledWith(expect.objectContaining({ items: undefined }))
     })
