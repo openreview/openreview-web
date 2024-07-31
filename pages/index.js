@@ -210,12 +210,12 @@ function VenueList({ name, venues, maxVisible = 14, listType = 'vertical' }) {
     )
   }
 
-  function normalizedFirstLetter(venue) {
-    // normalize() returns characters without accents and aumlats
-    // This is useful for highlighting first letter in alphabet.
-    if (!venue || !venue.groupId) {
+  function deburrFirstLetter(venue) {
+    // return first letter of venue without accents and aumlats
+    if (!venue) {
       return ''
     }
+
     return deburrString(prettyId(venue.groupId).charAt(0), true)
   }
 
@@ -225,7 +225,7 @@ function VenueList({ name, venues, maxVisible = 14, listType = 'vertical' }) {
         {venues.map((venue, i) => {
           const isLeadingVenue =
             name === 'all venues'
-              ? normalizedFirstLetter(venue) > normalizedFirstLetter(venues[i - 1])
+              ? deburrFirstLetter(venue) > deburrFirstLetter(venues[i - 1])
               : false
           return (
             <VenueListItem
