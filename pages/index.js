@@ -39,10 +39,10 @@ export default function Home() {
 
     const loadVenues = async () => {
       try {
-        const [userVenues, activeVenues, openVenues, allVenues] = await Promise.all([
+        const [userVenues, activeVenues, openVenues, allVenues] = await Promise.allSettled([
           user
             ? api
-                .get('/groups', { member: user.id, web: true })
+                .get('/groups', { member: user.id, web: true, select: 'id' })
                 .then((apiRes) => apiRes.groups || [])
             : Promise.resolve([]),
           api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
@@ -55,16 +55,18 @@ export default function Home() {
             .then(formatInvitationResults),
           api.get('/groups', { id: 'host' }).then(formatGroupResults).then(sortAlpha),
         ])
-        const activeAndOpenVenues = activeVenues.concat(openVenues)
-        const filteredUserVenues = userVenues
-          .filter((group) => activeAndOpenVenues.find((v) => group.id.startsWith(v.groupId)))
+        const activeAndOpenVenues = (activeVenues.value ?? []).concat(openVenues.value ?? [])
+        const filteredUserVenues = (userVenues.value ?? [])
+          .filter((group) =>
+            (activeAndOpenVenues ?? []).find((v) => group.id.startsWith(v.groupId))
+          )
           .map((group) => ({ groupId: group.id, dueDate: null }))
 
         setVenues({
           user: filteredUserVenues,
-          active: activeVenues,
-          open: openVenues,
-          all: allVenues,
+          active: activeVenues.value,
+          open: openVenues.value,
+          all: allVenues.value,
         })
       } catch (apiError) {
         setError(apiError)
