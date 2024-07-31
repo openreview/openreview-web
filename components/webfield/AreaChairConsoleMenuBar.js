@@ -22,6 +22,7 @@ const AreaChairConsoleMenuBar = ({
   submissionName,
   officialMetaReviewName,
   areaChairName,
+  ithenticateInvitationId,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
   const formattedReviewerName = camelCase(reviewerName)
@@ -61,6 +62,9 @@ const AreaChairConsoleMenuBar = ({
         }),
         {}
       )),
+    ...(ithenticateInvitationId && {
+      duplication: ['ithenticateWeight'],
+    }),
     ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
   }
   const messageReviewerOptions = [
@@ -236,6 +240,15 @@ const AreaChairConsoleMenuBar = ({
           ? null
           : p.metaReviewData?.[metaReviewRecommendationName],
     },
+    ...(ithenticateInvitationId
+      ? [
+          {
+            label: 'Duplication %',
+            value: 'ithenticateWeight',
+            getValue: (p) => p.note?.ithenticateWeight,
+          },
+        ]
+      : []),
   ]
   const basicSearchFunction = (row, term) => {
     const noteTitle = row.note.content?.title?.value
