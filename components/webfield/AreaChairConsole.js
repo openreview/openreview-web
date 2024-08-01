@@ -64,7 +64,7 @@ const AssignedPaperRow = ({
   additionalMetaReviewFields,
   activeTabId,
 }) => {
-  const { note, metaReviewData } = rowData
+  const { note, metaReviewData, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
     `[${prettyField(
       areaChairName
@@ -91,7 +91,12 @@ const AssignedPaperRow = ({
         <strong className="note-number">{note.number}</strong>
       </td>
       <td>
-        <NoteSummary note={note} referrerUrl={referrerUrl} isV2Note={true} />
+        <NoteSummary
+          note={note}
+          referrerUrl={referrerUrl}
+          isV2Note={true}
+          ithenticateEdge={ithenticateEdge}
+        />
       </td>
       <td>
         <AcPcConsoleNoteReviewStatus
@@ -158,6 +163,7 @@ const AreaChairConsole = ({ appContext }) => {
     enableQuerySearch,
     emailReplyTo,
     extraExportColumns,
+    ithenticateInvitationId,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
@@ -339,7 +345,26 @@ const AreaChairConsole = ({ appContext }) => {
         : Promise.resolve([])
       // #endregion
 
-      const result = await Promise.all([blindedNotesP, reviewerGroupsP, assignedSACsP])
+      // #region get ithenticate edges
+      const ithenticateEdgesP = ithenticateInvitationId
+        ? api
+            .getAll(
+              '/edges',
+              {
+                invitation: ithenticateInvitationId,
+                groupBy: 'id',
+              },
+              { accessToken, resultsKey: 'groupedEdges' }
+            )
+            .then((result) => result.map((p) => p.values[0]))
+        : Promise.resolve([])
+      // #endregion
+      const result = await Promise.all([
+        blindedNotesP,
+        reviewerGroupsP,
+        assignedSACsP,
+        ithenticateEdgesP,
+      ])
 
       // #region get assigned reviewer , sac and all reviewer group members profiles
       const allIds = [
@@ -373,6 +398,7 @@ const AreaChairConsole = ({ appContext }) => {
 
       // #region calculate reviewProgressData and metaReviewData
       const notes = result[0]
+      const ithenticateEdges = result[3]
       const allProfiles = (profileResults[0].profiles ?? []).concat(
         profileResults[1].profiles ?? []
       )
@@ -501,6 +527,11 @@ const AreaChairConsole = ({ appContext }) => {
             metaReview,
           },
           messageSignature: anonymousAreaChairIdByNumber[note.number],
+          ...(ithenticateInvitationId && {
+            ithenticateEdge: ithenticateEdges.find((p) => p.head === note.id),
+            ithenticateWeight:
+              ithenticateEdges.find((p) => p.head === note.id)?.weight ?? 'N/A',
+          }),
         }
       })
 
@@ -564,6 +595,7 @@ const AreaChairConsole = ({ appContext }) => {
             submissionName={submissionName}
             officialMetaReviewName={officialMetaReviewName}
             areaChairName={areaChairName}
+            ithenticateInvitationId={ithenticateInvitationId}
           />
           <p className="empty-message">
             No assigned {submissionName.toLowerCase()} matching search criteria.
@@ -590,6 +622,7 @@ const AreaChairConsole = ({ appContext }) => {
           submissionName={submissionName}
           officialMetaReviewName={officialMetaReviewName}
           areaChairName={areaChairName}
+          ithenticateInvitationId={ithenticateInvitationId}
         />
         <Table
           className="console-table table-striped areachair-console-table"
