@@ -80,6 +80,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     sacStatuspropertiesAllowed,
     messageAreaChairsInvitationId,
     messageSeniorAreaChairsInvitationId,
+    ithenticateInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -295,6 +296,20 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       )
       // #endregion
 
+      // #region get ithenticate edges
+      const ithenticateEdgesP = ithenticateInvitationId
+        ? api
+            .getAll(
+              '/edges',
+              {
+                invitation: ithenticateInvitationId,
+                groupBy: 'id',
+              },
+              { accessToken, resultsKey: 'groupedEdges' }
+            )
+            .then((result) => result.map((p) => p.values[0]))
+        : Promise.resolve([])
+      // #endregion
       const results = await Promise.all([
         invitationResultsP,
         getRequestFormResultP,
@@ -304,15 +319,23 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         getAcRecommendationsP,
         bidCountResultsP,
         perPaperGroupResultsP,
+        ithenticateEdgesP,
       ])
       const invitationResults = results[0]
       const requestForm = results[1]
       const registrationForms = results[2].flatMap((p) => p ?? [])
       const committeeMemberResults = results[3]
+      const ithenticateEdges = results[8]
       const notes = results[4].flatMap((note) => {
         if ([withdrawnVenueId, deskRejectedVenueId].includes(note.content?.venueid?.value))
           return []
-        return note
+        return {
+          ...note,
+          ...(ithenticateInvitationId && {
+            ithenticateWeight:
+              ithenticateEdges.find((p) => p.head === note.id)?.weight ?? 'N/A',
+          }),
+        }
       })
       const acRecommendationsCount = results[5]
       const bidCountResults = results[6]
@@ -606,6 +629,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           }),
           seniorAreaChairGroups,
         },
+        ithenticateEdges,
       })
     } catch (error) {
       promptError(`loading data: ${error.message}`)
@@ -852,6 +876,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         decision,
         venue: note?.content?.venue?.value,
         messageSignature: programChairsId,
+        ithenticateEdge: pcConsoleData.ithenticateEdges.find((p) => p.head === note.id),
       })
     })
 

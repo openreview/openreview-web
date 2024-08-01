@@ -1,10 +1,13 @@
+/* globals promptError: false */
 import isEqual from 'lodash/isEqual'
+import { useState } from 'react'
 import { forumDate, getNotePdfUrl } from '../../lib/utils'
 import Collapse from '../Collapse'
 import Icon from '../Icon'
 import NoteContent, { NoteContentV2 } from '../NoteContent'
 import NoteReaders from '../NoteReaders'
 import ExpandableList from '../ExpandableList'
+import api from '../../lib/api-client'
 
 const getAuthorsValue = (note, isV2Note) => {
   if (isV2Note) return note.content?.authors?.value
@@ -21,6 +24,8 @@ const NoteSummary = ({
   profileMap,
   showDates = false,
   showReaders = false,
+  ithenticateEdge,
+  accessToken,
 }) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
@@ -28,6 +33,9 @@ const NoteSummary = ({
   const authorIdsValue = isV2Note ? note.content?.authorids?.value : note.content?.authorids
   const privatelyRevealed = !note.readers?.includes('everyone')
   const maxAuthors = 15
+
+  const [reportLink, setReportLink] = useState(null)
+  const [isLoadingReportLink, setIsLoadingReportLink] = useState(false)
 
   const authorNames = authorsValue?.map((authorName, i) => {
     const authorId = authorIdsValue[i]
@@ -52,6 +60,26 @@ const NoteSummary = ({
       </span>
     )
   })
+
+  const getPlagiarismReport = async () => {
+    if (reportLink) {
+      window.open(reportLink, '_blank')
+      return
+    }
+    setIsLoadingReportLink(true)
+    try {
+      const { viewerUrl } = await api.get(
+        '/ithenticate/viewer-url',
+        { edgeId: ithenticateEdge.id },
+        { accessToken }
+      )
+      setReportLink(viewerUrl)
+      window.open(viewerUrl, '_blank')
+    } catch (error) {
+      promptError(error.message)
+    }
+    setIsLoadingReportLink(false)
+  }
 
   return (
     <div className="note">
@@ -115,17 +143,41 @@ const NoteSummary = ({
         </div>
       )}
 
-      {isV2Note && note?.content?.venue?.value && (
-        <span className="note-venue">{note.content.venue.value}</span>
-      )}
+      <div className="venue-ithenticate-container">
+        {isV2Note && note?.content?.venue?.value && (
+          <span className="note-venue">{note.content.venue.value}</span>
+        )}
+
+        {ithenticateEdge &&
+          (ithenticateEdge.label === 'Similarity Complete' ? (
+            <div className="ithenticate-container">
+              <div
+                className="note-ithenticate report-complete"
+                title="Click to Open iThenticate Report"
+                data-toggle="tooltip"
+                data-placement="top"
+                onClick={getPlagiarismReport}
+              >
+                iThenticate Report {ithenticateEdge.weight}%
+              </div>
+
+              {isLoadingReportLink && (
+                <div className="spinner spinner-small">
+                  <div className="rect1" />
+                  <div className="rect2" />
+                  <div className="rect3" />
+                  <div className="rect4" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="note-ithenticate">iThenticate Report: {ithenticateEdge.label}</div>
+          ))}
+      </div>
 
       <Collapse showLabel="Show details" hideLabel="Hide details">
         {isV2Note ? (
-          <NoteContentV2
-            id={note.id}
-            content={note.content}
-            invitation={note.invitation}
-          />
+          <NoteContentV2 id={note.id} content={note.content} invitation={note.invitation} />
         ) : (
           <NoteContent
             id={note.id}
