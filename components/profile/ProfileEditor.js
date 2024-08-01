@@ -37,6 +37,8 @@ export default function ProfileEditor({
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
   const [renderPublicationEditor, setRenderPublicationEditor] = useState(false)
+  const [publications, setPublications] = useState(null)
+  const [publicationsCount, setPublicationsCount] = useState(0)
 
   const prefixedRelations = dropdownOptions?.prefixedRelations
   const relationReaders = dropdownOptions?.relationReaders
@@ -350,6 +352,35 @@ export default function ProfileEditor({
     }
   }
 
+  const loadPublications = async () => {
+    try {
+      const result = await api.getCombined(
+        '/notes',
+        {
+          'content.authorids': profile?.id,
+          invitations: ['dblp.org/-/record'],
+        },
+        {
+          'content.authorids': profile?.id,
+          invitations: [
+            'DBLP.org/-/Record',
+            'OpenReview.net/Archive/-/Imported_Record',
+            'OpenReview.net/Archive/-/Direct_Upload',
+          ],
+        },
+        { accessToken, includeVersion: true, sort: 'tmdate:desc' }
+      )
+      setPublications(result.notes)
+      setPublicationsCount(result.count)
+    } catch (error) {
+      promptError(`${error.message} when loading your publications`)
+    }
+  }
+
+  useEffect(() => {
+    loadPublications()
+  }, [renderPublicationEditor])
+
   useEffect(() => {
     const loadOptions = async () => {
       try {
@@ -371,6 +402,7 @@ export default function ProfileEditor({
         setDropdownOptions({})
       }
     }
+    ProfileSection
     loadOptions()
   }, [])
 
@@ -541,7 +573,7 @@ export default function ProfileEditor({
         </ProfileSection>
       )}
 
-      {!hidePublicationEditor && (
+      {!hidePublicationEditor && publicationsCount > 0 && (
         <ProfileSection
           title="Imported Publications"
           instructions="Below is a list of publications imported from DBLP and other sources that
@@ -549,11 +581,18 @@ export default function ProfileEditor({
             from your profile, click the minus sign next to the title."
         >
           <ImportedPublicationsSection
-            profileId={profile?.id}
             updatePublicationIdsToUnlink={(ids) => setPublicationIdsToUnlink(ids)}
-            reRender={renderPublicationEditor}
+            publications={publications}
+            totalCount={publicationsCount}
           />
         </ProfileSection>
+      )}
+
+      {!hidePublicationEditor && publicationsCount <= 0 && (
+        <ProfileSection
+          title="Imported Publications"
+          instructions="No publications listing you as an author were found in DBLP and other sources."
+        ></ProfileSection>
       )}
 
       {hidePublicationEditor && (
