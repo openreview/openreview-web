@@ -3,15 +3,12 @@
 import { useEffect, useState } from 'react'
 import NoteList from '../NoteList'
 import PaginationLinks from '../PaginationLinks'
-import useUser from '../../hooks/useUser'
-import api from '../../lib/api-client'
 
 const ImportedPublicationsSection = ({
   updatePublicationIdsToUnlink,
   publications,
   totalCount,
 }) => {
-  const { accessToken } = useUser()
   const [publicationsToDisplay, setPublicationsToDisplay] = useState([])
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
   const [pageNumber, setPageNumber] = useState(1)
@@ -45,7 +42,7 @@ const ImportedPublicationsSection = ({
     setPublicationsToDisplay(
       publications.slice((pageNumber - 1) * pageSize, pageNumber * pageSize)
     )
-  }, [pageNumber, publications])
+  }, [pageNumber])
 
   if (!publicationsToDisplay.length) return null
   return (

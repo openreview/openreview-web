@@ -14,6 +14,7 @@ import NamesSection from './NameSection'
 import PersonalLinksSection from './PersonalLinksSection'
 import ProfileSection from './ProfileSection'
 import RelationsSection from './RelationsSection'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
 import BirthDateSection from './BirthDateSection'
@@ -33,6 +34,7 @@ export default function ProfileEditor({
     ...state,
     [action.type]: action.data,
   })
+  const { accessToken } = useUser()
   const [profile, setProfile] = useReducer(profileReducer, loadedProfile)
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
@@ -377,6 +379,29 @@ export default function ProfileEditor({
     }
   }
 
+  const renderImportedPublications = () => {
+    if (publicationsCount > 0) {
+      return (
+        <ProfileSection
+          title="Imported Publications"
+          instructions="Below is a list of publications imported from DBLP and other sources that include you as an author. To remove any publications you are not actually an author of from your profile, click the minus sign next to the title."
+        >
+          <ImportedPublicationsSection
+            updatePublicationIdsToUnlink={(ids) => setPublicationIdsToUnlink(ids)}
+            publications={publications}
+            totalCount={publicationsCount}
+          />
+        </ProfileSection>
+      )
+    }
+    return (
+      <ProfileSection
+        title="Imported Publications"
+        instructions="No publications listing you as an author were found in DBLP and other sources."
+      ></ProfileSection>
+    )
+  }
+
   useEffect(() => {
     loadPublications()
   }, [renderPublicationEditor])
@@ -571,38 +596,7 @@ export default function ProfileEditor({
             </label>
           </div>
         </ProfileSection>
-      )}
-
-      {!hidePublicationEditor && publicationsCount > 0 && (
-        <ProfileSection
-          title="Imported Publications"
-          instructions="Below is a list of publications imported from DBLP and other sources that
-            include you as an author. To remove any publications you are not actually an author of
-            from your profile, click the minus sign next to the title."
-        >
-          <ImportedPublicationsSection
-            updatePublicationIdsToUnlink={(ids) => setPublicationIdsToUnlink(ids)}
-            publications={publications}
-            totalCount={publicationsCount}
-          />
-        </ProfileSection>
-      )}
-
-      {!hidePublicationEditor && publicationsCount <= 0 && (
-        <ProfileSection
-          title="Imported Publications"
-          instructions="No publications listing you as an author were found in DBLP and other sources."
-        ></ProfileSection>
-      )}
-
-      {hidePublicationEditor && (
-        <p className="help-block">
-          By registering, you agree to the{' '}
-          <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
-            <strong>Terms of Use</strong>
-          </a>
-          , last updated September 22, 2023.
-        </p>
+        {renderImportedPublications()}
       )}
 
       <div className="buttons-row">
