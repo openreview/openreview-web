@@ -17,6 +17,8 @@ import {
   prettyField,
   prettyId,
   prettyInvitationId,
+  getSingularRoleName,
+  getRoleHashFragment,
 } from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import useQuery from '../../hooks/useQuery'
@@ -154,7 +156,9 @@ const AssignedPaperRow = ({
   const referrerUrl = encodeURIComponent(
     `[${prettyField(
       reviewerName
-    )} Console](/group?id=${venueId}/${reviewerName}#assigned-${submissionName})`
+    )} Console](/group?id=${venueId}/${reviewerName}#assigned-${pluralizeString(
+      submissionName
+    ).toLowerCase()})`
   )
   const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
   const officialReviewInvitation = officialReviewInvitations?.find(
@@ -239,10 +243,11 @@ const AssignedPaperRow = ({
 }
 
 const ReviewerConsoleTasks = ({ venueId, reviewerName, submissionName, noteNumbers }) => {
+  const reviewerUrlFormat = getRoleHashFragment(reviewerName)
   const referrer = `${encodeURIComponent(
     `[${prettyField(
       reviewerName
-    )} Console](/group?id=${venueId}/${reviewerName}#${reviewerName}-tasks)`
+    )} Console](/group?id=${venueId}/${reviewerName}#${reviewerUrlFormat}-tasks)`
   )}`
 
   return (
@@ -283,6 +288,7 @@ const ReviewerConsole = ({ appContext }) => {
   const [enablePaperRanking, setEnablePaperRanking] = useState(true)
 
   const paperRankingId = `${venueId}/${reviewerName}/-/Paper_Ranking`
+  const reviewerUrlFormat = reviewerName ? getRoleHashFragment(reviewerName) : null
 
   const loadData = async () => {
     let anonGroups
@@ -577,16 +583,16 @@ const ReviewerConsole = ({ appContext }) => {
       />
       <Tabs>
         <TabList>
-          <Tab id="assigned-papers" active>
+          <Tab id={`assigned-${pluralizeString(submissionName).toLowerCase()}`} active>
             Assigned {pluralizeString(submissionName)}
           </Tab>
-          <Tab id="reviewer-tasks" onClick={() => setShowTasks(true)}>
-            {prettyField(reviewerName)} Tasks
+          <Tab id={`${reviewerUrlFormat}-tasks`} onClick={() => setShowTasks(true)}>
+            {getSingularRoleName(prettyField(reviewerName))} Tasks
           </Tab>
         </TabList>
 
         <TabPanels>
-          <TabPanel id="assigned-papers">
+          <TabPanel id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}>
             {reviewerConsoleData.notes?.length === 0 ? (
               <p className="empty-message">
                 You have no assigned papers. Please check again after the paper assignment
@@ -603,7 +609,11 @@ const ReviewerConsole = ({ appContext }) => {
                   headings={[
                     { id: 'number', content: '#', width: '55px' },
                     { id: 'summary', content: `${submissionName} Summary`, width: '46%' },
-                    { id: 'ratings', content: `Your ${prettyField(officialReviewName)} Ratings`, width: 'auto' },
+                    {
+                      id: 'ratings',
+                      content: `Your ${prettyField(officialReviewName)} Ratings`,
+                      width: 'auto',
+                    },
                   ]}
                 >
                   {reviewerConsoleData.notes?.map((note) => (
@@ -623,7 +633,7 @@ const ReviewerConsole = ({ appContext }) => {
             )}
           </TabPanel>
 
-          <TabPanel id="reviewer-tasks">
+          <TabPanel id={`${reviewerUrlFormat}-tasks`}>
             {showTasks && (
               <ReviewerConsoleTasks
                 venueId={venueId}
