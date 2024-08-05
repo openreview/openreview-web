@@ -379,29 +379,6 @@ export default function ProfileEditor({
     }
   }
 
-  const renderImportedPublications = () => {
-    if (publicationsCount > 0) {
-      return (
-        <ProfileSection
-          title="Imported Publications"
-          instructions="Below is a list of publications imported from DBLP and other sources that include you as an author. To remove any publications you are not actually an author of from your profile, click the minus sign next to the title."
-        >
-          <ImportedPublicationsSection
-            updatePublicationIdsToUnlink={(ids) => setPublicationIdsToUnlink(ids)}
-            publications={publications}
-            totalCount={publicationsCount}
-          />
-        </ProfileSection>
-      )
-    }
-    return (
-      <ProfileSection
-        title="Imported Publications"
-        instructions="No publications listing you as an author were found in DBLP and other sources."
-      ></ProfileSection>
-    )
-  }
-
   useEffect(() => {
     loadPublications()
   }, [renderPublicationEditor])
@@ -427,7 +404,6 @@ export default function ProfileEditor({
         setDropdownOptions({})
       }
     }
-    ProfileSection
     loadOptions()
   }, [])
 
@@ -591,12 +567,31 @@ export default function ProfileEditor({
                   const newReaders = e.target.checked ? ['everyone'] : ['~']
                   setProfile({ type: 'readers', data: newReaders })
                 }}
-              />{' '}
+              />
               Public profile page
             </label>
           </div>
         </ProfileSection>
-        {renderImportedPublications()}
+      )}
+
+      {!hidePublicationEditor && publicationsCount > 0 && (
+        <ProfileSection
+          title="Imported Publications"
+          instructions="Below is a list of publications imported from DBLP and other sources that include you as an author. To remove any publications you are not actually an author of from your profile, click the minus sign next to the title."
+        >
+          <ImportedPublicationsSection
+            updatePublicationIdsToUnlink={(ids) => setPublicationIdsToUnlink(ids)}
+            publications={publications}
+            totalCount={publicationsCount}
+          />
+        </ProfileSection>
+      )}
+
+      {!hidePublicationEditor && publicationsCount <= 0 && (
+        <ProfileSection
+          title="Imported Publications"
+          instructions="No publications listing you as an author were found in DBLP and other sources."
+        ></ProfileSection>
       )}
 
       <div className="buttons-row">
