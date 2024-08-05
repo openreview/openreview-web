@@ -6,7 +6,7 @@ import Icon from '../components/Icon'
 import LoadingSpinner from '../components/LoadingSpinner'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
-import { prettyId, formatTimestamp } from '../lib/utils'
+import { prettyId, deburrString, formatTimestamp } from '../lib/utils'
 import ErrorAlert from '../components/ErrorAlert'
 
 export default function Home() {
@@ -210,17 +210,22 @@ function VenueList({ name, venues, maxVisible = 14, listType = 'vertical' }) {
     )
   }
 
+  function deburrFirstLetter(venue) {
+    // return first letter of venue without accents and aumlats
+    if (!venue) {
+      return ''
+    }
+
+    return deburrString(prettyId(venue.groupId).charAt(0), true)
+  }
+
   return (
     <div>
       <ul className={`conferences list-${listType === 'vertical' ? 'unstyled' : 'inline'}`}>
         {venues.map((venue, i) => {
           const isLeadingVenue =
             name === 'all venues'
-              ? // eslint-disable-next-line max-len
-                prettyId(venue.groupId).charAt(0).toLowerCase() !==
-                prettyId(venues[i - 1]?.groupId)
-                  ?.charAt(0)
-                  ?.toLowerCase()
+              ? deburrFirstLetter(venue) > deburrFirstLetter(venues[i - 1])
               : false
           return (
             <VenueListItem
