@@ -5,6 +5,7 @@
 
 import { nanoid } from 'nanoid'
 import React, { useContext } from 'react'
+import copy from 'copy-to-clipboard'
 import api from '../../lib/api-client'
 import {
   getInterpolatedValues,
@@ -19,6 +20,7 @@ import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import ScoresList from './ScoresList'
+import useQuery from '../../hooks/useQuery'
 
 export default function ProfileEntity(props) {
   const {
@@ -30,6 +32,7 @@ export default function ProfileEntity(props) {
     version,
   } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
+  const query = useQuery()
 
   if (!props.profile || !props.profile.content) {
     return null
@@ -38,7 +41,6 @@ export default function ProfileEntity(props) {
   // Format profile data for rendering
   const {
     id,
-    email,
     content,
     editEdges,
     editEdgeTemplates,
@@ -139,6 +141,21 @@ export default function ProfileEntity(props) {
         props.updateChildColumn(props.columnIndex, null)
       }
       props.reloadColumnEntities()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const getEmail = async () => {
+    try {
+      const result = await api.get(`/edges`, {
+        invitation: query.preferredEmailInvitationId,
+        head: id,
+      })
+      const email = result.edges?.[0]?.tail
+      if (!email) throw new Error('Email is not available.')
+      copy(`${content.name.fullname} <${email}>`)
+      promptMessage(`${email} copied to clipboard`)
     } catch (error) {
       promptError(error.message)
     }
@@ -425,11 +442,22 @@ export default function ProfileEntity(props) {
             rel="noreferrer"
           >
             {content.name.fullname}
-          </a>{' '}
-          <span>({content.email})</span>
+          </a>
         </h3>
-
         <p>{content.title}</p>
+        <h3>
+          {!query.preferredEmailInvitationId && <span>({content.email})</span>}
+          {query.preferredEmailInvitationId && !content.isDummyProfile && (
+            <span
+              onClick={(e) => {
+                e.stopPropagation()
+                getEmail()
+              }}
+            >
+              Copy Email
+            </span>
+          )}
+        </h3>
       </div>
 
       {/* existing editEdges */}
