@@ -56,6 +56,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     deskRejectedVenueId,
     filterFunction,
     preferredEmailInvitationId,
+    ithenticateInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -159,12 +160,29 @@ const SeniorAreaChairConsole = ({ appContext }) => {
         : Promise.resolve([])
       // #endregion
 
-      const [notes, invitations, perPaperGroupResults, assignmentEdges] = await Promise.all([
-        notesP,
-        invitationsP,
-        perPaperGroupResultsP,
-        assignmentsP,
-      ])
+      // #region get ithenticate edges
+      const ithenticateEdgesP = ithenticateInvitationId
+        ? api
+            .getAll(
+              '/edges',
+              {
+                invitation: ithenticateInvitationId,
+                groupBy: 'id',
+              },
+              { accessToken, resultsKey: 'groupedEdges' }
+            )
+            .then((result) => result.map((p) => p.values[0]))
+        : Promise.resolve([])
+      // #endregion
+
+      const [notes, invitations, perPaperGroupResults, assignmentEdges, ithenticateEdges] =
+        await Promise.all([
+          notesP,
+          invitationsP,
+          perPaperGroupResultsP,
+          assignmentsP,
+          ithenticateEdgesP,
+        ])
       const assignedAreaChairIds = assignmentEdges.map((p) => p.head)
 
       // #region categorize result of per paper groups
@@ -525,7 +543,13 @@ const SeniorAreaChairConsole = ({ appContext }) => {
 
           return {
             noteNumber: note.number,
-            note,
+            note: {
+              ...note,
+              ...(ithenticateInvitationId && {
+                ithenticateWeight:
+                  ithenticateEdges.find((p) => p.head === note.id)?.weight ?? 'N/A',
+              }),
+            },
             reviewers: assignedReviewers?.map((reviewer) => {
               const profile = allProfilesMap.get(reviewer.reviewerProfileId)
               return {
@@ -594,6 +618,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             decision,
             preliminaryDecision,
             messageSignature: seniorAreaChairGroupByNumber[note.number],
+            ithenticateEdge: ithenticateEdges.find((p) => p.head === note.id),
           }
         }),
       })

@@ -53,7 +53,7 @@ const PaperRow = ({
     additionalMetaReviewFields = [],
     preferredEmailInvitationId,
   } = useContext(WebFieldContext)
-  const { note } = rowData
+  const { note, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
     `[${prettyField(
       seniorAreaChairName
@@ -63,8 +63,8 @@ const PaperRow = ({
     if (!assignmentUrls) return null
     const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
     // auto
-    const isAssignmentConfigDeployed = assignmentInvitations?.some(
-      (p) => p.id.startsWith(roleId)
+    const isAssignmentConfigDeployed = assignmentInvitations?.some((p) =>
+      p.id.startsWith(roleId)
     )
     // manual
     const isMatchingSetup = isAssignmentConfigDeployed
@@ -101,6 +101,7 @@ const PaperRow = ({
           referrerUrl={referrerUrl}
           showReaders={true}
           isV2Note={true}
+          ithenticateEdge={ithenticateEdge}
         />
       </td>
       <td>

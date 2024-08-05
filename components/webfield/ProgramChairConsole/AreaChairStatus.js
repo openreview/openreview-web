@@ -17,7 +17,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
   const { id, preferredName, registrationNotes, title } = rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
   const {
-    seniorAreaChairName,
+    seniorAreaChairName = 'Senior_Area_Chairs',
     areaChairsId,
     reviewersId,
     reviewerName,
@@ -297,7 +297,6 @@ const AreaChairStatusRow = ({
   bidEnabled,
   recommendationEnabled,
   invitations,
-  seniorAreaChairName,
   officialReviewName,
   officialMetaReviewName,
   metaReviewRecommendationName,
@@ -314,7 +313,6 @@ const AreaChairStatusRow = ({
         bidEnabled={bidEnabled}
         recommendationEnabled={recommendationEnabled}
         invitations={invitations}
-        seniorAreaChairName={seniorAreaChairName}
       />
     </td>
     <td>
@@ -347,7 +345,6 @@ const AreaChairStatus = ({
   const {
     shortPhrase,
     seniorAreaChairsId,
-    seniorAreaChairName,
     areaChairsId,
     areaChairName,
     reviewersId,
@@ -552,7 +549,6 @@ const AreaChairStatus = ({
             bidEnabled={bidEnabled}
             recommendationEnabled={recommendationEnabled}
             invitations={pcConsoleData.invitations}
-            seniorAreaChairName={seniorAreaChairName}
             officialReviewName={officialReviewName}
             officialMetaReviewName={officialMetaReviewName}
             metaReviewRecommendationName={metaReviewRecommendationName}

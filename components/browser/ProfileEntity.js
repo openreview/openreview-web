@@ -455,6 +455,19 @@ export default function ProfileEntity(props) {
           </p>
         )}
         <p>{content.title}</p>
+        <h3>
+          {!query.preferredEmailInvitationId && <span>({content.email})</span>}
+          {query.preferredEmailInvitationId && !content.isDummyProfile && (
+            <span
+              onClick={(e) => {
+                e.stopPropagation()
+                getEmail()
+              }}
+            >
+              Copy Email
+            </span>
+          )}
+        </h3>
       </div>
 
       {/* existing editEdges */}
