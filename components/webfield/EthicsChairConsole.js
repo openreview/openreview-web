@@ -11,6 +11,7 @@ import ErrorDisplay from '../ErrorDisplay'
 import EthicsChairOverview from './EthicsChairConsole/EthicsChairOverview'
 import PaperStatus from './EthicsChairConsole/EthicsChairPaperStatus'
 import EthicsChairTasks from './EthicsChairConsole/EthicsChairTasks'
+import { getRoleHashFragment } from '../../lib/utils'
 
 const EthicsChairConsole = ({ appContext }) => {
   const {
@@ -31,6 +32,8 @@ const EthicsChairConsole = ({ appContext }) => {
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(window.location.hash || '#overview')
   const { user, userLoading } = useUser()
+
+  const ethicsChairsUrlFormat = getRoleHashFragment(ethicsChairsName)
 
   useEffect(() => {
     if (!query) return
@@ -91,16 +94,18 @@ const EthicsChairConsole = ({ appContext }) => {
             Overview
           </Tab>
           <Tab
-            id="paper-status"
-            active={activeTabId === '#paper-status' ? true : undefined}
-            onClick={() => setActiveTabId('#paper-status')}
+            id={`${submissionName.toLowerCase()}-status`}
+            active={
+              activeTabId === `#${submissionName.toLowerCase()}-status` ? true : undefined
+            }
+            onClick={() => setActiveTabId(`#${submissionName.toLowerCase()}-status`)}
           >
             {submissionName} Status
           </Tab>
           <Tab
-            id="ethicschair-tasks"
-            active={activeTabId === '#ethicschair-tasks' ? true : undefined}
-            onClick={() => setActiveTabId('#ethicschair-tasks')}
+            id={`${ethicsChairsUrlFormat}-tasks`}
+            active={activeTabId === `#${ethicsChairsUrlFormat}-tasks` ? true : undefined}
+            onClick={() => setActiveTabId(`#${ethicsChairsUrlFormat}-tasks`)}
           >
             Ethics Chair Tasks
           </Tab>
@@ -110,11 +115,11 @@ const EthicsChairConsole = ({ appContext }) => {
           <TabPanel id="overview">
             <EthicsChairOverview />
           </TabPanel>
-          <TabPanel id="paper-status">
-            {activeTabId === '#paper-status' && <PaperStatus />}
+          <TabPanel id={`${submissionName.toLowerCase()}-status`}>
+            {activeTabId === `#${submissionName.toLowerCase()}-status` && <PaperStatus />}
           </TabPanel>
-          <TabPanel id="ethicschair-tasks">
-            {activeTabId === '#ethicschair-tasks' && <EthicsChairTasks />}
+          <TabPanel id={`${ethicsChairsUrlFormat}-tasks`}>
+            {activeTabId === `#${ethicsChairsUrlFormat}-tasks` && <EthicsChairTasks />}
           </TabPanel>
         </TabPanels>
       </Tabs>

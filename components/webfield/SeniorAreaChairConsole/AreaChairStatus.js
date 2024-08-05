@@ -8,7 +8,7 @@ import WebFieldContext from '../../WebFieldContext'
 import AreaChairStatusMenuBar from '../ProgramChairConsole/AreaChairStatusMenuBar'
 import { getProfileLink } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
-import { pluralizeString, prettyField } from '../../../lib/utils'
+import { pluralizeString, prettyField, getRoleHashFragment } from '../../../lib/utils'
 
 const CommitteeSummary = ({ rowData }) => {
   const { id, preferredName, preferredEmail } = rowData.areaChairProfile ?? {}
@@ -199,10 +199,11 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
     sacConsoleData.assignedAreaChairIds?.length ?? 0
   )
   const pageSize = 25
+  const areaChairUrlFormat = getRoleHashFragment(areaChairName)
   const referrerUrl = encodeURIComponent(
     `[${prettyField(
       seniorAreaChairName
-    )} Console](/group?id=${venueId}/${seniorAreaChairName}#${areaChairName}-status)`
+    )} Console](/group?id=${venueId}/${seniorAreaChairName}#${areaChairUrlFormat}-status)`
   )
 
   const calcACStatusTabData = () => {

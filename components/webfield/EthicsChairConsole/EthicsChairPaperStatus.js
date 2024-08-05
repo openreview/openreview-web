@@ -27,7 +27,7 @@ const EthicsSubmissionRow = ({ rowData }) => {
   } = useContext(WebFieldContext)
 
   const referrerUrl = encodeURIComponent(
-    `[Ethics Chair Console](/group?id=${venueId}/${ethicsChairsName}#paper-status)`
+    `[Ethics Chair Console](/group?id=${venueId}/${ethicsChairsName}#${submissionName.toLowerCase()}-status)`
   )
 
   return (
@@ -88,7 +88,10 @@ const EthicsChairPaperStatus = () => {
             domain: venueId,
           },
           { accessToken }
-        ).then((notes) => notes.filter((note) => note.content?.flagged_for_ethics_review?.value))
+        )
+        .then((notes) =>
+          notes.filter((note) => note.content?.flagged_for_ethics_review?.value)
+        )
 
       const perPaperGroupResultsP = api
         .get(

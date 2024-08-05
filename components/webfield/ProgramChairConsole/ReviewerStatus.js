@@ -3,7 +3,13 @@ import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
-import { getProfileName, inflect, pluralizeString, prettyField } from '../../../lib/utils'
+import {
+  getProfileName,
+  inflect,
+  pluralizeString,
+  prettyField,
+  getRoleHashFragment,
+} from '../../../lib/utils'
 import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
@@ -273,8 +279,9 @@ const ReviewerStatusTab = ({
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.reviewers?.length ?? 0)
   const pageSize = 25
+  const reviewerUrlFormat = getRoleHashFragment(reviewerName)
   const referrerUrl = encodeURIComponent(
-    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#reviewer-status)`
+    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#${reviewerUrlFormat}-status)`
   )
   const bidEnabled = bidName
     ? pcConsoleData.invitations?.find((p) => p.id === `${reviewersId}/-/${bidName}`)
