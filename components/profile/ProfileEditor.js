@@ -582,13 +582,6 @@ export default function ProfileEditor({
         />
       )}
 
-      {!hidePublicationEditor && publicationsCount <= 0 && (
-        <ProfileSection
-          title="Imported Publications"
-          instructions="No publications listing you as an author were found in DBLP and other sources."
-        ></ProfileSection>
-      )}
-
       <div className="buttons-row">
         <button
           type="button"
