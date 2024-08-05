@@ -276,6 +276,8 @@ describe('AreaChairConsole', () => {
               },
             ])
           return Promise.resolve([])
+        case '/edges': // ithenticate edges
+          return Promise.resolve([{ values: [{ head: 'note1Id', label: 'Created' }] }])
         default:
           return null
       }
@@ -322,6 +324,7 @@ describe('AreaChairConsole', () => {
         enableQuerySearch: true,
         emailReplyTo: 'pc@aaai.org',
         extraExportColumns: undefined,
+        ithenticateInvitationId: 'AAAI.org/2025/Conference/-/iThenticate_Plagiarism_Check',
       },
     }
 
@@ -341,7 +344,10 @@ describe('AreaChairConsole', () => {
       expect(screen.getByRole('button', { name: 'Export' })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Download PDFs' })).toBeInTheDocument()
       expect(noteSummaryProps).toHaveBeenCalledWith(
-        expect.objectContaining({ note: expect.objectContaining({ id: 'note1Id' }) })
+        expect.objectContaining({
+          note: expect.objectContaining({ id: 'note1Id' }),
+          ithenticateEdge: { head: 'note1Id', label: 'Created' },
+        })
       )
       expect(noteReviewStatusProps).toHaveBeenCalledWith(
         expect.objectContaining({
