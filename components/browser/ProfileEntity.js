@@ -444,16 +444,6 @@ export default function ProfileEntity(props) {
             {content.name.fullname}
           </a>
         </h3>
-        {query.preferredEmailInvitationId && !content.isDummyProfile && (
-          <p
-            onClick={(e) => {
-              e.stopPropagation()
-              getEmail()
-            }}
-          >
-            Copy Email
-          </p>
-        )}
         <p>{content.title}</p>
         <h3>
           {!query.preferredEmailInvitationId && <span>({content.email})</span>}
