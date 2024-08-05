@@ -134,6 +134,7 @@ const AssignedPaperRow = ({
   enablePaperRanking,
   setEnablePaperRanking,
   reviewDisplayFields,
+  activeTabId,
 }) => {
   const {
     officialReviewInvitations,
@@ -156,9 +157,7 @@ const AssignedPaperRow = ({
   const referrerUrl = encodeURIComponent(
     `[${prettyField(
       reviewerName
-    )} Console](/group?id=${venueId}/${reviewerName}#assigned-${pluralizeString(
-      submissionName
-    ).toLowerCase()})`
+    )} Console](/group?id=${venueId}/${reviewerName}${activeTabId})`
   )
   const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
   const officialReviewInvitation = officialReviewInvitations?.find(
@@ -283,9 +282,11 @@ const ReviewerConsole = ({ appContext }) => {
   const router = useRouter()
   const query = useQuery()
   const { setBannerContent } = appContext
-  const [showTasks, setShowTasks] = useState(false)
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
   const [enablePaperRanking, setEnablePaperRanking] = useState(true)
+  const [activeTabId, setActiveTabId] = useState(
+    window.location.hash || `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`
+  )
 
   const paperRankingId = `${venueId}/${reviewerName}/-/Paper_Ranking`
   const reviewerUrlFormat = reviewerName ? getRoleHashFragment(reviewerName) : null
@@ -507,6 +508,48 @@ const ReviewerConsole = ({ appContext }) => {
       })
   }
 
+  const renderTable = () => {
+    if (reviewerConsoleData.notes?.length === 0) {
+      return (
+        <p className="empty-message">
+          You have no assigned papers. Please check again after the paper assignment process is
+          complete.
+        </p>
+      )
+    }
+    return (
+      <div className="table-container">
+        <ReviewerConsoleMenuBar venueId={venueId} records={reviewerConsoleData.notes} />
+        <Table
+          className="console-table table-striped"
+          headings={[
+            { id: 'number', content: '#', width: '55px' },
+            { id: 'summary', content: `${submissionName} Summary`, width: '46%' },
+            {
+              id: 'ratings',
+              content: `Your ${prettyField(officialReviewName)} Ratings`,
+              width: 'auto',
+            },
+          ]}
+        >
+          {reviewerConsoleData.notes?.map((note) => (
+            <AssignedPaperRow
+              key={note.id}
+              note={note}
+              reviewerConsoleData={reviewerConsoleData}
+              paperRankingId={paperRankingId}
+              setReviewerConsoleData={setReviewerConsoleData}
+              enablePaperRanking={enablePaperRanking}
+              setEnablePaperRanking={setEnablePaperRanking}
+              reviewDisplayFields={reviewDisplayFields}
+              activeTabId={activeTabId}
+            />
+          ))}
+        </Table>
+      </div>
+    )
+  }
+
   useEffect(() => {
     if (!query) return
 
@@ -547,6 +590,20 @@ const ReviewerConsole = ({ appContext }) => {
     }
   }, [reviewerConsoleData.notes])
 
+  useEffect(() => {
+    if (user && !userLoading) {
+      const validTabIds = [
+        `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
+        `#${reviewerUrlFormat}-tasks`,
+      ]
+      if (!validTabIds.includes(activeTabId)) {
+        setActiveTabId(`#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`)
+        return
+      }
+      router.replace(activeTabId)
+    }
+  }, [activeTabId, user, userLoading])
+
   const missingConfig = Object.entries({
     header,
     group,
@@ -583,58 +640,36 @@ const ReviewerConsole = ({ appContext }) => {
       />
       <Tabs>
         <TabList>
-          <Tab id={`assigned-${pluralizeString(submissionName).toLowerCase()}`} active>
+          <Tab
+            id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}
+            active={
+              activeTabId === `#assigned-${pluralizeString(submissionName).toLowerCase()}`
+                ? true
+                : undefined
+            }
+            onClick={() =>
+              setActiveTabId(`#assigned-${pluralizeString(submissionName).toLowerCase()}`)
+            }
+          >
             Assigned {pluralizeString(submissionName)}
           </Tab>
-          <Tab id={`${reviewerUrlFormat}-tasks`} onClick={() => setShowTasks(true)}>
+          <Tab
+            id={`${reviewerUrlFormat}-tasks`}
+            active={activeTabId === `#${reviewerUrlFormat}-tasks` ? true : undefined}
+            onClick={() => setActiveTabId(`#${reviewerUrlFormat}-tasks`)}
+          >
             {getSingularRoleName(prettyField(reviewerName))} Tasks
           </Tab>
         </TabList>
 
         <TabPanels>
           <TabPanel id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}>
-            {reviewerConsoleData.notes?.length === 0 ? (
-              <p className="empty-message">
-                You have no assigned papers. Please check again after the paper assignment
-                process is complete.
-              </p>
-            ) : (
-              <div className="table-container">
-                <ReviewerConsoleMenuBar
-                  venueId={venueId}
-                  records={reviewerConsoleData.notes}
-                />
-                <Table
-                  className="console-table table-striped"
-                  headings={[
-                    { id: 'number', content: '#', width: '55px' },
-                    { id: 'summary', content: `${submissionName} Summary`, width: '46%' },
-                    {
-                      id: 'ratings',
-                      content: `Your ${prettyField(officialReviewName)} Ratings`,
-                      width: 'auto',
-                    },
-                  ]}
-                >
-                  {reviewerConsoleData.notes?.map((note) => (
-                    <AssignedPaperRow
-                      key={note.id}
-                      note={note}
-                      reviewerConsoleData={reviewerConsoleData}
-                      paperRankingId={paperRankingId}
-                      setReviewerConsoleData={setReviewerConsoleData}
-                      enablePaperRanking={enablePaperRanking}
-                      setEnablePaperRanking={setEnablePaperRanking}
-                      reviewDisplayFields={reviewDisplayFields}
-                    />
-                  ))}
-                </Table>
-              </div>
-            )}
+            {activeTabId === `#assigned-${pluralizeString(submissionName).toLowerCase()}` &&
+              renderTable()}
           </TabPanel>
 
           <TabPanel id={`${reviewerUrlFormat}-tasks`}>
-            {showTasks && (
+            {activeTabId === `#${reviewerUrlFormat}-tasks` && (
               <ReviewerConsoleTasks
                 venueId={venueId}
                 reviewerName={reviewerName}
