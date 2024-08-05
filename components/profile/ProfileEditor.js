@@ -14,7 +14,6 @@ import NamesSection from './NameSection'
 import PersonalLinksSection from './PersonalLinksSection'
 import ProfileSection from './ProfileSection'
 import RelationsSection from './RelationsSection'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
 import BirthDateSection from './BirthDateSection'
@@ -34,13 +33,10 @@ export default function ProfileEditor({
     ...state,
     [action.type]: action.data,
   })
-  const { accessToken } = useUser()
   const [profile, setProfile] = useReducer(profileReducer, loadedProfile)
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
   const [renderPublicationEditor, setRenderPublicationEditor] = useState(false)
-  const [publications, setPublications] = useState(null)
-  const [publicationsCount, setPublicationsCount] = useState(0)
 
   const prefixedRelations = dropdownOptions?.prefixedRelations
   const relationReaders = dropdownOptions?.relationReaders
@@ -354,35 +350,6 @@ export default function ProfileEditor({
     }
   }
 
-  const loadPublications = async () => {
-    try {
-      const result = await api.getCombined(
-        '/notes',
-        {
-          'content.authorids': profile?.id,
-          invitations: ['dblp.org/-/record'],
-        },
-        {
-          'content.authorids': profile?.id,
-          invitations: [
-            'DBLP.org/-/Record',
-            'OpenReview.net/Archive/-/Imported_Record',
-            'OpenReview.net/Archive/-/Direct_Upload',
-          ],
-        },
-        { accessToken, includeVersion: true, sort: 'tmdate:desc' }
-      )
-      setPublications(result.notes)
-      setPublicationsCount(result.count)
-    } catch (error) {
-      promptError(`${error.message} when loading your publications`)
-    }
-  }
-
-  useEffect(() => {
-    loadPublications()
-  }, [renderPublicationEditor])
-
   useEffect(() => {
     const loadOptions = async () => {
       try {
@@ -567,7 +534,7 @@ export default function ProfileEditor({
                   const newReaders = e.target.checked ? ['everyone'] : ['~']
                   setProfile({ type: 'readers', data: newReaders })
                 }}
-              />
+              />{' '}
               Public profile page
             </label>
           </div>
@@ -580,6 +547,16 @@ export default function ProfileEditor({
           updatePublicationIdsToUnlink={(ids) => setPublicationIdsToUnlink(ids)}
           reRender={renderPublicationEditor}
         />
+      )}
+
+      {hidePublicationEditor && (
+        <p className="help-block">
+          By registering, you agree to the{' '}
+          <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
+            <strong>Terms of Use</strong>
+          </a>
+          , last updated September 22, 2023.
+        </p>
       )}
 
       <div className="buttons-row">
