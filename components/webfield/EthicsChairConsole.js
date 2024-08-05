@@ -11,7 +11,7 @@ import ErrorDisplay from '../ErrorDisplay'
 import EthicsChairOverview from './EthicsChairConsole/EthicsChairOverview'
 import PaperStatus from './EthicsChairConsole/EthicsChairPaperStatus'
 import EthicsChairTasks from './EthicsChairConsole/EthicsChairTasks'
-import { getSingularRoleName } from '../../lib/utils'
+import { getRoleHashFragment } from '../../lib/utils'
 
 const EthicsChairConsole = ({ appContext }) => {
   const {
@@ -33,9 +33,7 @@ const EthicsChairConsole = ({ appContext }) => {
   const [activeTabId, setActiveTabId] = useState(window.location.hash || '#overview')
   const { user, userLoading } = useUser()
 
-  const ethicsChairsUrlFormat = getSingularRoleName(ethicsChairsName)
-    .toLowerCase()
-    .replaceAll('_', '-')
+  const ethicsChairsUrlFormat = getRoleHashFragment(ethicsChairsName)
 
   useEffect(() => {
     if (!query) return

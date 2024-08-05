@@ -20,6 +20,7 @@ import {
   parseNumberField,
   prettyField,
   getSingularRoleName,
+  getRoleHashFragment,
 } from '../../lib/utils'
 
 const SeniorAreaChairConsole = ({ appContext }) => {
@@ -67,12 +68,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     window.location.hash || `#${submissionName ?? ''.toLowerCase()}-status`
   )
 
-  const seniorAreaChairUrlFormat = getSingularRoleName(seniorAreaChairName)
-    .toLowerCase()
-    .replaceAll('_', '-')
-  const areaChairUrlFormat = getSingularRoleName(areaChairName)
-    .toLowerCase()
-    .replaceAll('_', '-')
+  const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
+  const areaChairUrlFormat = getRoleHashFragment(areaChairName)
 
   const loadData = async () => {
     if (isLoadingData) return

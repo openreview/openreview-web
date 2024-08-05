@@ -1,13 +1,11 @@
 import { useContext } from 'react'
 import ConsoleTaskList from '../ConsoleTaskList'
 import WebFieldContext from '../../WebFieldContext'
-import { getSingularRoleName } from '../../../lib/utils'
+import { getRoleHashFragment } from '../../../lib/utils'
 
 const EthicsChairTasks = () => {
   const { venueId, ethicsChairsName } = useContext(WebFieldContext)
-  const ethicsChairsUrlFormat = getSingularRoleName(ethicsChairsName)
-    .toLowerCase()
-    .replaceAll('_', '-')
+  const ethicsChairsUrlFormat = getRoleHashFragment(ethicsChairsName)
   const referrer = encodeURIComponent(
     `[Ethics Chair Console](/group?id=${venueId}/${ethicsChairsName}#${ethicsChairsUrlFormat}-tasks)`
   )

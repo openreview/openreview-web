@@ -8,7 +8,7 @@ import WebFieldContext from '../../WebFieldContext'
 import AreaChairStatusMenuBar from '../ProgramChairConsole/AreaChairStatusMenuBar'
 import { getProfileLink } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
-import { pluralizeString, prettyField, getSingularRoleName } from '../../../lib/utils'
+import { pluralizeString, prettyField, getRoleHashFragment } from '../../../lib/utils'
 
 const CommitteeSummary = ({ rowData }) => {
   const { id, preferredName, preferredEmail } = rowData.areaChairProfile ?? {}
@@ -199,7 +199,7 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
     sacConsoleData.assignedAreaChairIds?.length ?? 0
   )
   const pageSize = 25
-  const areaChairUrlFormat = getSingularRoleName(areaChairName).toLowerCase().replaceAll('_', '-')
+  const areaChairUrlFormat = getRoleHashFragment(areaChairName)
   const referrerUrl = encodeURIComponent(
     `[${prettyField(
       seniorAreaChairName

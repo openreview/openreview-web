@@ -18,6 +18,7 @@ import {
   prettyId,
   prettyInvitationId,
   getSingularRoleName,
+  getRoleHashFragment,
 } from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import useQuery from '../../hooks/useQuery'
@@ -242,9 +243,7 @@ const AssignedPaperRow = ({
 }
 
 const ReviewerConsoleTasks = ({ venueId, reviewerName, submissionName, noteNumbers }) => {
-  const reviewerUrlFormat = getSingularRoleName(reviewerName)
-    .toLowerCase()
-    .replaceAll('_', '-')
+  const reviewerUrlFormat = getRoleHashFragment(reviewerName)
   const referrer = `${encodeURIComponent(
     `[${prettyField(
       reviewerName
@@ -289,10 +288,7 @@ const ReviewerConsole = ({ appContext }) => {
   const [enablePaperRanking, setEnablePaperRanking] = useState(true)
 
   const paperRankingId = `${venueId}/${reviewerName}/-/Paper_Ranking`
-  const reviewerUrlFormat = reviewerName ? getSingularRoleName(reviewerName)
-    .toLowerCase()
-    .replaceAll('_', '-')
-    : null
+  const reviewerUrlFormat = reviewerName ? getRoleHashFragment(reviewerName) : null
 
   const loadData = async () => {
     let anonGroups

@@ -19,6 +19,7 @@ import {
   isValidEmail,
   getSingularRoleName,
   pluralizeString,
+  getRoleHashFragment,
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
@@ -92,15 +93,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
 
-  const seniorAreaChairUrlFormat = getSingularRoleName(seniorAreaChairName)
-    .toLowerCase()
-    .replaceAll('_', '-')
-  const areaChairUrlFormat = getSingularRoleName(areaChairName)
-    .toLowerCase()
-    .replaceAll('_', '-')
-  const reviewerUrlFormat = getSingularRoleName(reviewerName)
-    .toLowerCase()
-    .replaceAll('_', '-')
+  const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
+  const areaChairUrlFormat = getRoleHashFragment(areaChairName)
+  const reviewerUrlFormat = getRoleHashFragment(reviewerName)
 
   const loadData = async () => {
     if (isLoadingData) return

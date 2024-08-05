@@ -23,6 +23,7 @@ import {
   prettyField,
   pluralizeString,
   getSingularRoleName,
+  getRoleHashFragment,
 } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
@@ -122,10 +123,7 @@ const AssignedPaperRow = ({
 }
 
 const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
-  const areaChairUrlFormat = areaChairName ? getSingularRoleName(areaChairName)
-    .toLowerCase()
-    .replaceAll('_', '-')
-    : null
+  const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
   const referrer = encodeURIComponent(
     `[${prettyField(
       areaChairName
@@ -196,13 +194,9 @@ const AreaChairConsole = ({ appContext }) => {
       )} Assignments</a></p>`
     : header?.instructions
 
-  const areaChairUrlFormat = areaChairName ? getSingularRoleName(areaChairName)
-    .toLowerCase()
-    .replaceAll('_', '-')
-    : null
-  const secondaryAreaChairUrlFormat = secondaryAreaChairName ? getSingularRoleName(secondaryAreaChairName)
-    .toLowerCase()
-    .replaceAll('_', '-')
+  const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
+  const secondaryAreaChairUrlFormat = secondaryAreaChairName
+    ? getRoleHashFragment(secondaryAreaChairName)
     : null
 
   const getReviewerName = (reviewerProfile) => {

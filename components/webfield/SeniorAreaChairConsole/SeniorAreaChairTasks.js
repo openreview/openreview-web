@@ -2,11 +2,11 @@
 import { useContext } from 'react'
 import WebFieldContext from '../../WebFieldContext'
 import ConsoleTaskList from '../ConsoleTaskList'
-import { prettyField, getSingularRoleName } from '../../../lib/utils'
+import { prettyField, getRoleHashFragment } from '../../../lib/utils'
 
 const SeniorAreaChairTasks = () => {
   const { venueId, seniorAreaChairName } = useContext(WebFieldContext)
-  const seniorAreaChairUrlFormat = getSingularRoleName(seniorAreaChairName).toLowerCase().replaceAll('_', '-')
+  const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
   const referrer = encodeURIComponent(
     `[${prettyField(
       seniorAreaChairName
