@@ -56,7 +56,7 @@ const PaperRow = ({
   const referrerUrl = encodeURIComponent(
     `[${prettyField(
       seniorAreaChairName
-    )} Console](/group?id=${venueId}/${seniorAreaChairName}#${submissionName}-status)`
+    )} Console](/group?id=${venueId}/${seniorAreaChairName}#${submissionName.toLowerCase()}-status)`
   )
   const getManualAssignmentUrl = (role, roleId) => {
     if (!assignmentUrls) return null

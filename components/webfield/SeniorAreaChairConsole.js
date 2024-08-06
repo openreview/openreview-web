@@ -19,6 +19,8 @@ import {
   prettyId,
   parseNumberField,
   prettyField,
+  getSingularRoleName,
+  getRoleHashFragment,
 } from '../../lib/utils'
 
 const SeniorAreaChairConsole = ({ appContext }) => {
@@ -63,8 +65,11 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   const router = useRouter()
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || `#${submissionName}-status`
+    window.location.hash || `#${submissionName ?? ''.toLowerCase()}-status`
   )
+
+  const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
+  const areaChairUrlFormat = getRoleHashFragment(areaChairName)
 
   const loadData = async () => {
     if (isLoadingData) return
@@ -663,12 +668,12 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   useEffect(() => {
     // if (!activeTabId) return
     const validTabIds = [
-      `#${submissionName}-status`,
-      `#${areaChairName}-status`,
-      `#${seniorAreaChairName}-tasks`,
+      `#${(submissionName ?? '').toLowerCase()}-status`,
+      `#${areaChairUrlFormat}-status`,
+      `#${seniorAreaChairUrlFormat}-tasks`,
     ]
     if (!validTabIds.includes(activeTabId)) {
-      setActiveTabId(`#${submissionName}-status`)
+      setActiveTabId(`#${(submissionName ?? '').toLowerCase()}-status`)
       return
     }
     router.replace(activeTabId)
@@ -699,37 +704,39 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       <Tabs>
         <TabList>
           <Tab
-            id={`${submissionName}-status`}
-            active={activeTabId === `#${submissionName}-status` ? true : undefined}
-            onClick={() => setActiveTabId(`#${submissionName}-status`)}
+            id={`${submissionName.toLowerCase()}-status`}
+            active={
+              activeTabId === `#${submissionName.toLowerCase()}-status` ? true : undefined
+            }
+            onClick={() => setActiveTabId(`#${submissionName.toLowerCase()}-status`)}
           >
             {submissionName} Status
           </Tab>
           <Tab
-            id={`${areaChairName}-status`}
-            active={activeTabId === `#${areaChairName}-status` ? true : undefined}
-            onClick={() => setActiveTabId(`#${areaChairName}-status`)}
+            id={`${areaChairUrlFormat}-status`}
+            active={activeTabId === `#${areaChairUrlFormat}-status` ? true : undefined}
+            onClick={() => setActiveTabId(`#${areaChairUrlFormat}-status`)}
             hidden={!assignmentInvitation}
           >
-            {prettyField(areaChairName)} Status
+            {getSingularRoleName(prettyField(areaChairName))} Status
           </Tab>
           <Tab
-            id={`${seniorAreaChairName}-tasks`}
-            active={activeTabId === `#${seniorAreaChairName}-tasks` ? true : undefined}
-            onClick={() => setActiveTabId(`#${seniorAreaChairName}-tasks`)}
+            id={`${seniorAreaChairUrlFormat}-tasks`}
+            active={activeTabId === `#${seniorAreaChairUrlFormat}-tasks` ? true : undefined}
+            onClick={() => setActiveTabId(`#${seniorAreaChairUrlFormat}-tasks`)}
           >
-            {prettyField(seniorAreaChairName)} Tasks
+            {getSingularRoleName(prettyField(seniorAreaChairName))} Tasks
           </Tab>
         </TabList>
 
         <TabPanels>
-          <TabPanel id={`${submissionName}-status`}>
-            {activeTabId === `#${submissionName}-status` && (
+          <TabPanel id={`${submissionName.toLowerCase()}-status`}>
+            {activeTabId === `#${submissionName.toLowerCase()}-status` && (
               <PaperStatus sacConsoleData={sacConsoleData} />
             )}
           </TabPanel>
-          {activeTabId === `#${areaChairName}-status` && (
-            <TabPanel id={`${areaChairName}-status`}>
+          {activeTabId === `#${areaChairUrlFormat}-status` && (
+            <TabPanel id={`${areaChairUrlFormat}-status`}>
               <AreaChairStatus
                 sacConsoleData={sacConsoleData}
                 loadSacConsoleData={loadData}
@@ -737,8 +744,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               />
             </TabPanel>
           )}
-          {activeTabId === `#${seniorAreaChairName}-tasks` && (
-            <TabPanel id={`${seniorAreaChairName}-tasks`}>
+          {activeTabId === `#${seniorAreaChairUrlFormat}-tasks` && (
+            <TabPanel id={`${seniorAreaChairUrlFormat}-tasks`}>
               <SeniorAreaChairTasks />
             </TabPanel>
           )}
