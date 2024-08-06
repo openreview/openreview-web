@@ -12,6 +12,8 @@ import EthicsChairOverview from './EthicsChairConsole/EthicsChairOverview'
 import PaperStatus from './EthicsChairConsole/EthicsChairPaperStatus'
 import EthicsChairTasks from './EthicsChairConsole/EthicsChairTasks'
 
+const validTabIds = ['#overview', '#paper-status', '#ethicschair-tasks']
+
 const EthicsChairConsole = ({ appContext }) => {
   const {
     header,
@@ -43,7 +45,10 @@ const EthicsChairConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!activeTabId) return
+    if (!validTabIds.includes(activeTabId)) {
+      setActiveTabId(validTabIds[0])
+      return
+    }
     router.replace(activeTabId)
   }, [activeTabId])
 
