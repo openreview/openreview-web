@@ -89,6 +89,21 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const [activeTabId, setActiveTabId] = useState(
     window.location.hash || '#venue-configuration'
   )
+  const validTabIds = [
+    '#venue-configuration',
+    '#paper-status',
+    '#reviewer-status',
+    '#areachair-status',
+    '#seniorareachair-status',
+    '#deskrejectwithdrawn-status',
+  ]
+  if (submissionContentFields.length > 0)
+    submissionContentFields.map((fieldAttrs) => validTabIds.push(fieldAttrs.id))
+
+  if (extraTabs.length > 0) {
+    extraTabs.map((tabAttrs) => validTabIds.push(tabAttrs.tabId))
+  }
+
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
 
@@ -1009,7 +1024,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const registrationNoteMap = groupBy(registrationNotes.flat(), 'signatures[0]')
       setPcConsoleData((data) => ({ ...data, registrationNoteMap }))
     } catch (error) {
-      promptError(`Erro loading registration notes: ${error.message}`)
+      promptError(`Error loading registration notes: ${error.message}`)
     }
   }
 
@@ -1040,6 +1055,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   useEffect(() => {
     if (!activeTabId) return
+    if (!validTabIds.includes(activeTabId)) {
+      setActiveTabId(validTabIds[0])
+      return
+    }
     router.replace(activeTabId)
   }, [activeTabId])
 
