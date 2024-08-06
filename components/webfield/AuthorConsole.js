@@ -185,7 +185,9 @@ const AuthorSubmissionRow = ({
 }) => {
   const isV2Note = note.version === 2
   const referrerUrl = encodeURIComponent(
-    `[Author Console](/group?id=${venueId}/${authorName}#your-submissions)`
+    `[Author Console](/group?id=${venueId}/${authorName}#your-${pluralizeString(
+      submissionName
+    ).toLowerCase()})`
   )
   return (
     <tr>
@@ -237,7 +239,9 @@ const AuthorSubmissionRowMobile = ({
 }) => {
   const isV2Note = note.version === 2
   const referrerUrl = encodeURIComponent(
-    `[Author Console](/group?id=${venueId}/${authorName}#your-submissions)`
+    `[Author Console](/group?id=${venueId}/${authorName}#your-${pluralizeString(
+      submissionName
+    ).toLowerCase()})`
   )
   return (
     <div className="mobile-paper-container">
@@ -514,8 +518,8 @@ const AuthorConsole = ({ appContext }) => {
 
       <Tabs>
         <TabList>
-          <Tab id="your-submissions" active>
-            Your Submissions
+          <Tab id={`your-${pluralizeString(submissionName).toLowerCase()}`} active>
+            Your {`${pluralizeString(submissionName)}`}
           </Tab>
           <Tab id="author-tasks" onClick={() => setShowTasks(true)}>
             Author Tasks
@@ -523,7 +527,7 @@ const AuthorConsole = ({ appContext }) => {
         </TabList>
 
         <TabPanels>
-          <TabPanel id="your-submissions">
+          <TabPanel id={`your-${pluralizeString(submissionName).toLowerCase()}`}>
             {authorNotes?.length > 0 ? (
               <>
                 {!isMobile ? (

@@ -77,9 +77,7 @@ describe('MessageReviewersModal', () => {
       ).toEqual('Test Venue Reminder')
       expect(
         basicModalProps.children[1].props.children[1].props.children[3].props.value
-      ).toEqual(
-        expect.stringContaining('Your message...')
-      )
+      ).toEqual(expect.stringContaining('Your message...'))
     })
   })
 
@@ -122,11 +120,7 @@ describe('MessageReviewersModal', () => {
     await waitFor(() => {
       expect(
         basicModalProps.children[1].props.children[1].props.children[3].props.value
-      ).toEqual(
-        expect.stringContaining(
-          'Your message...'
-        )
-      )
+      ).toEqual(expect.stringContaining('Your message...'))
     })
   })
 
@@ -297,6 +291,48 @@ describe('MessageReviewersModal', () => {
         }),
         expect.anything()
       )
+    })
+  })
+
+  test('group note ids by batch size 1000', async () => {
+    api.post = jest.fn()
+    const providerProps = {
+      value: { officialReviewName: 'Official_Review', shortPhrase: 'Test Venue' },
+    }
+    const numberOfNotes = 10000
+    const componentProps = {
+      tableRowsDisplayed: Array.from({ length: numberOfNotes }, (_, i) => ({
+        note: { id: `noteId${i}`, number: i, forum: `noteId${i}` },
+        reviewers: [
+          {
+            reviewerProfileId: '~Reviewer_One1',
+            preferredId: '~Reviewer_One1',
+            preferredEmail: '****@test.com',
+            anonymizedGroup: `TestVenue/Submission${i}/Reviewer_ABCD`,
+            hasReview: true,
+            noteNumber: i,
+          },
+        ],
+      })),
+      messageModalId: 'message-reviewers',
+      messageOption: { value: 'allReviewers', label: 'All Reviewers of Selected Submission' },
+      selectedIds: Array.from({ length: numberOfNotes }, (_, i) => `noteId${i}`),
+    }
+
+    renderWithWebFieldContext(<MessageReviewersModal {...componentProps} />, providerProps)
+
+    await waitFor(async () => {
+      // go to step2
+      await basicModalProps.onPrimaryButtonClick()
+    })
+
+    await waitFor(async () => {
+      // send messages
+      await basicModalProps.onPrimaryButtonClick()
+    })
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledTimes(10000)
     })
   })
 })
