@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import { sortBy } from 'lodash'
 import { getProfileLink } from '../../../lib/webfield-utils'
-import { prettyField, pluralizeString } from '../../../lib/utils'
+import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -267,8 +267,9 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
     officialMetaReviewName,
   } = useContext(WebFieldContext)
 
+  const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
   const referrerUrl = encodeURIComponent(
-    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#seniorareachair-status)`
+    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#${seniorAreaChairUrlFormat}-status)`
   )
 
   const loadSacStatusTabData = async () => {

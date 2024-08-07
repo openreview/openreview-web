@@ -28,7 +28,7 @@ const EthicsSubmissionRow = ({ rowData }) => {
   } = useContext(WebFieldContext)
 
   const referrerUrl = encodeURIComponent(
-    `[Ethics Chair Console](/group?id=${venueId}/${ethicsChairsName}#paper-status)`
+    `[Ethics Chair Console](/group?id=${venueId}/${ethicsChairsName}#${submissionName.toLowerCase()}-status)`
   )
 
   return (

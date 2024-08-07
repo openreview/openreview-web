@@ -1,4 +1,4 @@
-/* globals $,promptMessage: false */
+/* globals $,promptMessage,promptError: false */
 import uniqBy from 'lodash/uniqBy'
 import { useContext, useEffect, useState } from 'react'
 import List from 'rc-virtual-list'
@@ -47,7 +47,10 @@ const MessageReviewersModal = ({
     }
     // send emails
     setIsSending(true)
-    const messageInvitation = messageOption.value === 'allAreaChairs' ? messageSubmissionAreaChairsInvitationId : messageSubmissionReviewersInvitationId
+    const messageInvitation =
+      messageOption.value === 'allAreaChairs'
+        ? messageSubmissionAreaChairsInvitationId
+        : messageSubmissionReviewersInvitationId
     const roleName = messageOption.value === 'allAreaChairs' ? areaChairName : reviewerName
     try {
       const simplifiedTableRowsDisplayed = tableRowsDisplayed.map((p) => ({
@@ -57,26 +60,39 @@ const MessageReviewersModal = ({
         messageSignature: p.messageSignature,
       }))
 
-      const sendEmailPs = selectedIds.map((noteId) => {
-        const rowData = simplifiedTableRowsDisplayed.find((row) => row.id === noteId)
-        const groupIds = allRecipients.get(rowData.number)
-        if (!groupIds?.length) return Promise.resolve()
-        const forumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialReviewName}`
-        return api.post(
-          '/messages',
-          {
-            invitation: messageInvitation?.replace('{number}', rowData.number),
-            signature: messageInvitation && rowData.messageSignature,
-            groups: groupIds,
-            subject,
-            message: message.replaceAll('{{submit_review_link}}', forumUrl),
-            parentGroup: `${venueId}/${submissionName}${rowData.number}/${roleName}`,
-            replyTo: emailReplyTo,
-          },
-          { accessToken }
-        )
-      })
-      await Promise.all(sendEmailPs)
+      const sendEmailBatchSize = 1000
+      const sendEmailBatchCount = Math.ceil(selectedIds.length / sendEmailBatchSize)
+      const sendEmailIdBatches = Array.from({ length: sendEmailBatchCount }, (_, i) =>
+        selectedIds.slice(i * sendEmailBatchSize, (i + 1) * sendEmailBatchSize)
+      )
+
+      const sendEmailBatchPromises = sendEmailIdBatches.reduce(
+        (pastBatches, currentIDsBatch) =>
+          pastBatches.then(() => {
+            const currentBatchSendEmailPs = currentIDsBatch.map((noteId) => {
+              const rowData = simplifiedTableRowsDisplayed.find((row) => row.id === noteId)
+              const groupIds = allRecipients.get(rowData.number)
+              if (!groupIds?.length) return Promise.resolve()
+              const forumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialReviewName}`
+              return api.post(
+                '/messages',
+                {
+                  invitation: messageInvitation?.replace('{number}', rowData.number),
+                  signature: messageInvitation && rowData.messageSignature,
+                  groups: groupIds,
+                  subject,
+                  message: message.replaceAll('{{submit_review_link}}', forumUrl),
+                  parentGroup: `${venueId}/${submissionName}${rowData.number}/${roleName}`,
+                  replyTo: emailReplyTo,
+                },
+                { accessToken }
+              )
+            })
+            return Promise.all(currentBatchSendEmailPs)
+          }),
+        Promise.resolve()
+      )
+      await sendEmailBatchPromises
 
       $(`#${messageModalId}`).modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
@@ -149,7 +165,8 @@ const MessageReviewersModal = ({
         setCurrentStep(1)
         setError(null)
       }}
-      options={{ extraClasses: 'message-reviewers-modal' }}
+      options={{ extraClasses: 'message-reviewers-modal', useSpinnerButton: true }}
+      isLoading={isSending}
     >
       {error && <div className="alert alert-danger">{error}</div>}
       {currentStep === 1 ? (
