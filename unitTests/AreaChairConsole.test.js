@@ -51,7 +51,7 @@ describe('AreaChairConsole', () => {
       <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
       providerProps
     )
-    expect(routerParams).toEqual('#assigned-Submissions')
+    expect(routerParams).toEqual('#assigned-submissions')
   })
 
   test('default to assigned papers tab when window.location.hash does not match any tab', async () => {
@@ -61,7 +61,7 @@ describe('AreaChairConsole', () => {
       <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
       providerProps
     )
-    expect(routerParams).toEqual('#assigned-Submissions')
+    expect(routerParams).toEqual('#assigned-submissions')
   })
 
   test('show error when config is not complete', async () => {
@@ -276,6 +276,8 @@ describe('AreaChairConsole', () => {
               },
             ])
           return Promise.resolve([])
+        case '/edges': // ithenticate edges
+          return Promise.resolve([{ values: [{ head: 'note1Id', label: 'Created' }] }])
         default:
           return null
       }
@@ -322,6 +324,7 @@ describe('AreaChairConsole', () => {
         enableQuerySearch: true,
         emailReplyTo: 'pc@aaai.org',
         extraExportColumns: undefined,
+        ithenticateInvitationId: 'AAAI.org/2025/Conference/-/iThenticate_Plagiarism_Check',
       },
     }
 
@@ -341,7 +344,10 @@ describe('AreaChairConsole', () => {
       expect(screen.getByRole('button', { name: 'Export' })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Download PDFs' })).toBeInTheDocument()
       expect(noteSummaryProps).toHaveBeenCalledWith(
-        expect.objectContaining({ note: expect.objectContaining({ id: 'note1Id' }) })
+        expect.objectContaining({
+          note: expect.objectContaining({ id: 'note1Id' }),
+          ithenticateEdge: { head: 'note1Id', label: 'Created' },
+        })
       )
       expect(noteReviewStatusProps).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -352,7 +358,7 @@ describe('AreaChairConsole', () => {
       )
       expect(noteReviewStatusProps).toHaveBeenCalledWith(
         expect.objectContaining({
-          referrerUrl: expect.stringContaining(encodeURIComponent('#assigned-Submissions')),
+          referrerUrl: expect.stringContaining(encodeURIComponent('#assigned-submissions')),
         })
       )
       expect(screen.getByText('No recommendation')).toBeInTheDocument() // meta review status column
@@ -665,7 +671,7 @@ describe('AreaChairConsole', () => {
       )
       expect(noteReviewStatusProps).toHaveBeenCalledWith(
         expect.objectContaining({
-          referrerUrl: expect.stringContaining(encodeURIComponent('#assigned-Submissions')),
+          referrerUrl: expect.stringContaining(encodeURIComponent('#assigned-submissions')),
         })
       )
       const paper1AvgConfidence = (0 + 10) / 2
@@ -690,7 +696,7 @@ describe('AreaChairConsole', () => {
       expect(screen.getByRole('link', { name: 'Read' })).toHaveAttribute(
         'href',
         `/forum?id=note1Id&noteId=metaReviewId&referrer=${encodeURIComponent(
-          '[Senior Program Committee Console](/group?id=AAAI.org/2025/Conference/Senior_Program_Committee#assigned-Submissions)'
+          '[Senior Program Committee Console](/group?id=AAAI.org/2025/Conference/Senior_Program_Committee#assigned-submissions)'
         )}`
       )
     })
@@ -1020,7 +1026,7 @@ describe('AreaChairConsole', () => {
       expect(noteReviewStatusProps).toHaveBeenLastCalledWith(
         expect.objectContaining({
           referrerUrl: expect.stringContaining(
-            encodeURIComponent('#Secondary_Senior_Program_Committee-assignments')
+            encodeURIComponent('#secondary-senior-program-committee-assignments')
           ),
         })
       )
@@ -1316,7 +1322,7 @@ describe('AreaChairConsole', () => {
       },
     }
 
-    window.location.hash = '#Senior_Program_Committee-tasks'
+    window.location.hash = '#senior-program-committee-tasks'
 
     renderWithWebFieldContext(
       <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
