@@ -386,18 +386,29 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     }${selectedMembers.length ? `, ${selectedMembers.length} selected` : ''})`
   }
 
-  const buildEdit = (action, members) => ({
-    group: {
-      id: group.id,
-      members: {
-        [action]: members,
+  const buildEdit = (action, members) => {
+    const userNameGroupInvitationId = `${process.env.SUPER_USER}/-/Username`
+    const emailGroupInvitationId = `${process.env.SUPER_USER}/-/Email`
+
+    let invitation = group.domain ? `${group.domain}/-/Edit` : group.invitations?.[0]
+    if (group.invitations?.includes(userNameGroupInvitationId))
+      invitation = userNameGroupInvitationId
+    if (group.invitations?.includes(emailGroupInvitationId))
+      invitation = emailGroupInvitationId
+
+    return {
+      group: {
+        id: group.id,
+        members: {
+          [action]: members,
+        },
       },
-    },
-    readers: [profileId],
-    writers: [profileId],
-    signatures: [profileId],
-    invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations?.[0],
-  })
+      readers: [profileId],
+      writers: [profileId],
+      signatures: [profileId],
+      invitation,
+    }
+  }
 
   const deleteMember = async (memberId) => {
     const confirmMessage =
