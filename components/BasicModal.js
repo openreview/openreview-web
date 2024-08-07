@@ -1,6 +1,7 @@
 /* globals $: false */
 
 import { useEffect, useRef } from 'react'
+import SpinnerButton from './SpinnerButton'
 
 export default function BasicModal({
   id,
@@ -12,6 +13,7 @@ export default function BasicModal({
   onPrimaryButtonClick,
   onClose,
   onOpen,
+  isLoading,
   options = {},
 }) {
   const modalRef = useRef(null)
@@ -53,16 +55,26 @@ export default function BasicModal({
               <button type="button" className="btn btn-default" data-dismiss="modal">
                 {cancelButtonText}
               </button>
-              {primaryButtonText && (
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={onPrimaryButtonClick}
-                  disabled={primaryButtonDisabled}
-                >
-                  {primaryButtonText}
-                </button>
-              )}
+              {primaryButtonText &&
+                (options.useSpinnerButton ? (
+                  <SpinnerButton
+                    type="primary"
+                    onClick={onPrimaryButtonClick}
+                    disabled={primaryButtonDisabled}
+                    loading={isLoading}
+                  >
+                    {primaryButtonText}
+                  </SpinnerButton>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={onPrimaryButtonClick}
+                    disabled={primaryButtonDisabled}
+                  >
+                    {primaryButtonText}
+                  </button>
+                ))}
             </div>
           )}
         </div>
