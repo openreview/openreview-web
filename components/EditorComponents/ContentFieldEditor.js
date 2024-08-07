@@ -136,10 +136,10 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
               value: 'boolean[]',
               description: 'Boolean Array  (Toggle Button, not implemented)',
             },
-            { value: 'integer', description: 'Integer (Textbox)' },
-            { value: 'float', description: 'Float (Textbox)' },
-            { value: 'integer[]', description: 'Integer Array (Textbox)' },
-            { value: 'float[]', description: 'Float Array (Textbox)' },
+            { value: 'integer', description: 'Integer (Dropdown or Textbox)' },
+            { value: 'float', description: 'Float (Dropdown or Textbox)' },
+            { value: 'integer[]', description: 'Integer Array (Dropdown or Textbox)' },
+            { value: 'float[]', description: 'Float Array (Dropdown or Textbox)' },
             { value: 'string', description: 'String (Dropdown or Textbox)' },
             { value: 'string[]', description: 'String Array (Dropdown or Textbox)' },
             { value: 'group', description: 'Group ID (Profile Search)' },
@@ -214,7 +214,10 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => formData.dataType === 'string',
+      shouldBeShown: (formData) =>
+        ['string', 'string[]', 'group', 'group[]', 'profile', 'profile[]'].includes(
+          formData.dataType
+        ),
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -263,7 +266,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => false,
+      shouldBeShown: (formData) => ['string', 'string[]'].includes(formData.dataType),
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -279,7 +282,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => false,
+      shouldBeShown: (formData) => ['string', 'string[]'].includes(formData.dataType),
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -295,7 +298,10 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => false,
+      shouldBeShown: (formData) =>
+        ['integer', 'integer[]', 'float', 'float[]', 'date', 'date[]'].includes(
+          formData.dataType
+        ),
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -311,7 +317,10 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => false,
+      shouldBeShown: (formData) =>
+        ['integer', 'integer[]', 'float', 'float[]', 'date', 'date[]'].includes(
+          formData.dataType
+        ),
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },

@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid'
 import styles from '../styles/components/Form.module.scss'
 import Icon from './Icon'
 import IconButton from './IconButton'
+import { convertToType } from '../lib/webfield-utils'
 
 const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) => {
   const [optionType, setOptionType] = useState(null)
@@ -83,7 +84,13 @@ const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) 
       })
     }
     if (updatedOptions) {
-      setOptions({ fieldName, value: updatedOptions })
+      setOptions({
+        fieldName,
+        value: updatedOptions.map((p) => ({
+          ...p,
+          value: convertToType(p.value, formData.dataType),
+        })),
+      })
     } else {
       // new field or type changed field
       setOptions({ fieldName, value: [] })
