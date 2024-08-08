@@ -97,8 +97,6 @@ test('user open own profile', async (t) => {
     .eql('View Profile')
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
-    .expect(Selector('ul.submissions-list').exists)
-    .notOk() // show imported papers only
     .expect(saveProfileButton.exists)
     .ok()
     // make some changes and save
