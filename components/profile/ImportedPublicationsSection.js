@@ -5,7 +5,6 @@ import NoteList from '../NoteList'
 import PaginationLinks from '../PaginationLinks'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import ProfileSection from './ProfileSection'
 
 const ImportedPublicationsSection = ({
   profileId,
@@ -79,33 +78,18 @@ const ImportedPublicationsSection = ({
     )
   }, [pageNumber, publications])
 
-  if (!publicationsToDisplay.length) {
-    return (
-      <ProfileSection
-        title="Imported Publications"
-        instructions="Did not find publications listing you as an author in DBLP and other sources."
-      />
-    )
-  }
-
+  if (!publicationsToDisplay.length) return null
   return (
-    <ProfileSection
-      title="Imported Publications"
-      instructions="Below is a list of publications imported from DBLP and other sources that
-        include you as an author. To remove any publications you are not actually an author of
-        from your profile, click the minus sign next to the title."
-    >
-      <div>
-        <NoteList notes={publicationsToDisplay} displayOptions={displayOptions} />
-        <PaginationLinks
-          currentPage={pageNumber}
-          itemsPerPage={pageSize}
-          totalCount={totalCount}
-          setCurrentPage={setPageNumber}
-          options={{ noScroll: true }}
-        />
-      </div>
-    </ProfileSection>
+    <div>
+      <NoteList notes={publicationsToDisplay} displayOptions={displayOptions} />
+      <PaginationLinks
+        currentPage={pageNumber}
+        itemsPerPage={pageSize}
+        totalCount={totalCount}
+        setCurrentPage={setPageNumber}
+        options={{ noScroll: true }}
+      />
+    </div>
   )
 }
 

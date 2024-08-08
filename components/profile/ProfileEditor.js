@@ -542,11 +542,18 @@ export default function ProfileEditor({
       )}
 
       {!hidePublicationEditor && (
-        <ImportedPublicationsSection
-          profileId={profile?.id}
-          updatePublicationIdsToUnlink={(ids) => setPublicationIdsToUnlink(ids)}
-          reRender={renderPublicationEditor}
-        />
+        <ProfileSection
+          title="Imported Publications"
+          instructions="Below is a list of publications imported from DBLP and other sources that
+            include you as an author. To remove any publications you are not actually an author of
+            from your profile, click the minus sign next to the title."
+        >
+          <ImportedPublicationsSection
+            profileId={profile?.id}
+            updatePublicationIdsToUnlink={(ids) => setPublicationIdsToUnlink(ids)}
+            reRender={renderPublicationEditor}
+          />
+        </ProfileSection>
       )}
 
       {hidePublicationEditor && (
