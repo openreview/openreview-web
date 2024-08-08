@@ -23,6 +23,7 @@ import {
   prettyField,
   pluralizeString,
   getSingularRoleName,
+  getRoleHashFragment,
 } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
@@ -122,10 +123,11 @@ const AssignedPaperRow = ({
 }
 
 const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
+  const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
   const referrer = encodeURIComponent(
     `[${prettyField(
       areaChairName
-    )} Console](/group?id=${venueId}/${areaChairName}#${areaChairName}-tasks)`
+    )} Console](/group?id=${venueId}/${areaChairName}#${areaChairUrlFormat}-tasks)`
   )
 
   return (
@@ -191,6 +193,11 @@ const AreaChairConsole = ({ appContext }) => {
         prettyField(reviewerName)
       )} Assignments</a></p>`
     : header?.instructions
+
+  const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
+  const secondaryAreaChairUrlFormat = secondaryAreaChairName
+    ? getRoleHashFragment(secondaryAreaChairName)
+    : null
 
   const getReviewerName = (reviewerProfile) => {
     const name =
@@ -765,12 +772,12 @@ const AreaChairConsole = ({ appContext }) => {
 
   useEffect(() => {
     const validTabIds = [
-      `#assigned-${pluralizeString(submissionName)}`,
-      ...(secondaryAreaChairName ? [`#${secondaryAreaChairName}-assignments`] : []),
-      `#${areaChairName}-tasks`,
+      `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
+      ...(secondaryAreaChairName ? [`#${secondaryAreaChairUrlFormat}-assignments`] : []),
+      `#${areaChairUrlFormat}-tasks`,
     ]
     if (!validTabIds.includes(activeTabId)) {
-      setActiveTabId(`#assigned-${pluralizeString(submissionName)}`)
+      setActiveTabId(`#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`)
       return
     }
     router.replace(activeTabId)
@@ -812,46 +819,53 @@ const AreaChairConsole = ({ appContext }) => {
       <Tabs>
         <TabList>
           <Tab
-            id={`assigned-${pluralizeString(submissionName)}`}
+            id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}
             active={
-              activeTabId === `#assigned-${pluralizeString(submissionName)}` ? true : undefined
+              activeTabId === `#assigned-${pluralizeString(submissionName).toLowerCase()}`
+                ? true
+                : undefined
             }
-            onClick={() => setActiveTabId(`#assigned-${pluralizeString(submissionName)}`)}
+            onClick={() =>
+              setActiveTabId(`#assigned-${pluralizeString(submissionName).toLowerCase()}`)
+            }
           >
             Assigned {pluralizeString(submissionName)}
           </Tab>
           {secondaryAreaChairName && (
             <Tab
-              id={`${secondaryAreaChairName}-assignments`}
+              id={`${secondaryAreaChairUrlFormat}-assignments`}
               active={
-                activeTabId === `#${secondaryAreaChairName}-assignments` ? true : undefined
+                activeTabId === `#${secondaryAreaChairUrlFormat}-assignments`
+                  ? true
+                  : undefined
               }
-              onClick={() => setActiveTabId(`#${secondaryAreaChairName}-assignments`)}
+              onClick={() => setActiveTabId(`#${secondaryAreaChairUrlFormat}-assignments`)}
             >
-              {prettyField(secondaryAreaChairName)} Assignments
+              {getSingularRoleName(prettyField(secondaryAreaChairName))} Assignments
             </Tab>
           )}
           <Tab
-            id={`${areaChairName}-tasks`}
-            active={activeTabId === `#${areaChairName}-tasks` ? true : undefined}
-            onClick={() => setActiveTabId(`#${areaChairName}-tasks`)}
+            id={`${areaChairUrlFormat}-tasks`}
+            active={activeTabId === `#${areaChairUrlFormat}-tasks` ? true : undefined}
+            onClick={() => setActiveTabId(`#${areaChairUrlFormat}-tasks`)}
           >
-            {prettyField(areaChairName)} Tasks
+            {getSingularRoleName(prettyField(areaChairName))} Tasks
           </Tab>
         </TabList>
 
         <TabPanels>
-          <TabPanel id={`assigned-${pluralizeString(submissionName)}`}>
-            {activeTabId === `#assigned-${pluralizeString(submissionName)}` && renderTable()}
+          <TabPanel id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}>
+            {activeTabId === `#assigned-${pluralizeString(submissionName).toLowerCase()}` &&
+              renderTable()}
           </TabPanel>
           {secondaryAreaChairName && (
-            <TabPanel id={`${secondaryAreaChairName}-assignments`}>
-              {activeTabId === `#${secondaryAreaChairName}-assignments` &&
+            <TabPanel id={`${secondaryAreaChairUrlFormat}-assignments`}>
+              {activeTabId === `#${secondaryAreaChairUrlFormat}-assignments` &&
                 renderTripletACTable()}
             </TabPanel>
           )}
-          <TabPanel id={`${areaChairName}-tasks`}>
-            {activeTabId === `#${areaChairName}-tasks` && (
+          <TabPanel id={`${areaChairUrlFormat}-tasks`}>
+            {activeTabId === `#${areaChairUrlFormat}-tasks` && (
               <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />
             )}
           </TabPanel>

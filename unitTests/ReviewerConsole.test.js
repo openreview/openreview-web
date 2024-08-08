@@ -338,7 +338,7 @@ describe('ReviewerConsole', () => {
         expect.objectContaining({
           invitationUrl: expect.stringContaining(
             encodeURIComponent(
-              '[Program Committee Console](/group?id=AAAI.org/2025/Conference/Program_Committee#assigned-Submission)'
+              '[Program Committee Console](/group?id=AAAI.org/2025/Conference/Program_Committee#assigned-submissions)'
             )
           ),
         })

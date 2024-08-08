@@ -19,6 +19,7 @@ import {
   isValidEmail,
   getSingularRoleName,
   pluralizeString,
+  getRoleHashFragment,
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
@@ -89,23 +90,12 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const [activeTabId, setActiveTabId] = useState(
     window.location.hash || '#venue-configuration'
   )
-  const validTabIds = [
-    '#venue-configuration',
-    '#paper-status',
-    '#reviewer-status',
-    '#areachair-status',
-    '#seniorareachair-status',
-    '#deskrejectwithdrawn-status',
-  ]
-  if (submissionContentFields.length > 0)
-    submissionContentFields.map((fieldAttrs) => validTabIds.push(fieldAttrs.id))
-
-  if (extraTabs.length > 0) {
-    extraTabs.map((tabAttrs) => validTabIds.push(tabAttrs.tabId))
-  }
-
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
+
+  const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
+  const areaChairUrlFormat = getRoleHashFragment(areaChairName)
+  const reviewerUrlFormat = getRoleHashFragment(reviewerName)
 
   const loadData = async () => {
     if (isLoadingData) return
@@ -1024,7 +1014,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const registrationNoteMap = groupBy(registrationNotes.flat(), 'signatures[0]')
       setPcConsoleData((data) => ({ ...data, registrationNoteMap }))
     } catch (error) {
-      promptError(`Error loading registration notes: ${error.message}`)
+      promptError(`Erro loading registration notes: ${error.message}`)
     }
   }
 
@@ -1054,9 +1044,25 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   }, [user, userLoading, group])
 
   useEffect(() => {
-    if (!activeTabId) return
+    const validTabIds = [
+      '#venue-configuration',
+      `#${submissionName.toLowerCase()}-status`,
+      `#${reviewerUrlFormat}-status`,
+      `#${areaChairUrlFormat}-status`,
+      `#${seniorAreaChairUrlFormat}-status`,
+      '#deskrejectwithdrawn-status',
+    ]
+
+    if (submissionContentFields.length > 0) {
+      submissionContentFields.forEach((fieldAttrs) => validTabIds.push(`#${fieldAttrs.field}`))
+    }
+
+    if (extraTabs.length > 0) {
+      extraTabs.forEach((tabAttrs) => validTabIds.push(`#${tabAttrs.tabId}`))
+    }
+
     if (!validTabIds.includes(activeTabId)) {
-      setActiveTabId(validTabIds[0])
+      setActiveTabId('#venue-configuration')
       return
     }
     router.replace(activeTabId)
@@ -1100,33 +1106,35 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             Overview
           </Tab>
           <Tab
-            id="paper-status"
-            active={activeTabId === '#paper-status' ? true : undefined}
-            onClick={() => setActiveTabId('#paper-status')}
+            id={`${submissionName.toLowerCase()}-status`}
+            active={
+              activeTabId === `#${submissionName.toLowerCase()}-status` ? true : undefined
+            }
+            onClick={() => setActiveTabId(`#${submissionName.toLowerCase()}-status`)}
           >
             {submissionName} Status
           </Tab>
           <Tab
-            id="reviewer-status"
-            active={activeTabId === '#reviewer-status' ? true : undefined}
-            onClick={() => setActiveTabId('#reviewer-status')}
+            id={`${reviewerUrlFormat}-status`}
+            active={activeTabId === `#${reviewerUrlFormat}-status` ? true : undefined}
+            onClick={() => setActiveTabId(`#${reviewerUrlFormat}-status`)}
           >
             {getSingularRoleName(prettyField(reviewerName))} Status
           </Tab>
           {areaChairsId && (
             <Tab
-              id="areachair-status"
-              active={activeTabId === '#areachair-status' ? true : undefined}
-              onClick={() => setActiveTabId('#areachair-status')}
+              id={`${areaChairUrlFormat}-status`}
+              active={activeTabId === `#${areaChairUrlFormat}-status` ? true : undefined}
+              onClick={() => setActiveTabId(`#${areaChairUrlFormat}-status`)}
             >
               {getSingularRoleName(prettyField(areaChairName))} Status
             </Tab>
           )}
           {seniorAreaChairsId && (
             <Tab
-              id="seniorareachair-status"
-              active={activeTabId === '#seniorareachair-status' ? true : undefined}
-              onClick={() => setActiveTabId('#seniorareachair-status')}
+              id={`${seniorAreaChairUrlFormat}-status`}
+              active={activeTabId === `#${seniorAreaChairUrlFormat}-status` ? true : undefined}
+              onClick={() => setActiveTabId(`#${seniorAreaChairUrlFormat}-status`)}
             >
               {getSingularRoleName(prettyField(seniorAreaChairName))} Status
             </Tab>
@@ -1145,7 +1153,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               <Tab
                 id={fieldAttrs.field}
                 key={fieldAttrs.field}
-                active={activeTabId === fieldAttrs.field ? true : undefined}
+                active={activeTabId === `#${fieldAttrs.field}` ? true : undefined}
                 onClick={() => setActiveTabId(`#${fieldAttrs.field}`)}
               >
                 {prettyField(fieldAttrs.field)}
@@ -1168,24 +1176,24 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           <TabPanel id="venue-configuration">
             <Overview pcConsoleData={pcConsoleData} />
           </TabPanel>
-          <TabPanel id="paper-status">
-            {activeTabId === '#paper-status' && (
+          <TabPanel id={`${submissionName.toLowerCase()}-status`}>
+            {activeTabId === `#${submissionName.toLowerCase()}-status` && (
               <PaperStatus
                 pcConsoleData={pcConsoleData}
                 loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
               />
             )}
           </TabPanel>
-          <TabPanel id="reviewer-status">
+          <TabPanel id={`${reviewerUrlFormat}-status`}>
             <ReviewerStatusTab
               pcConsoleData={pcConsoleData}
               loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
               loadRegistrationNoteMap={loadRegistrationNoteMap}
-              showContent={activeTabId === '#reviewer-status'}
+              showContent={activeTabId === `#${reviewerUrlFormat}-status`}
             />
           </TabPanel>
-          {areaChairsId && activeTabId === '#areachair-status' && (
-            <TabPanel id="areachair-status">
+          {areaChairsId && activeTabId === `#${areaChairUrlFormat}-status` && (
+            <TabPanel id={`${areaChairUrlFormat}-status`}>
               <AreaChairStatus
                 pcConsoleData={pcConsoleData}
                 loadSacAcInfo={loadSacAcInfo}
@@ -1194,8 +1202,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               />
             </TabPanel>
           )}
-          {seniorAreaChairsId && activeTabId === '#seniorareachair-status' && (
-            <TabPanel id="seniorareachair-status">
+          {seniorAreaChairsId && activeTabId === `#${seniorAreaChairUrlFormat}-status` && (
+            <TabPanel id={`${seniorAreaChairUrlFormat}-status`}>
               <SeniorAreaChairStatus
                 pcConsoleData={pcConsoleData}
                 loadSacAcInfo={loadSacAcInfo}

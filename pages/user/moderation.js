@@ -1588,19 +1588,10 @@ const Moderation = ({ appContext, accessToken, superUser }) => {
   const [profileMergeRequestCount, setProfileMergeRequestCount] = useState(null)
   const [pendingVenueRequestCount, setPendingVenueRequestCount] = useState(null)
   const [activeTabId, setActiveTabId] = useState('#profiles')
-  const validTabIds = ['#profiles', '#email', '#name', '#merge', '#institution', '#requests']
 
   useEffect(() => {
     setBannerHidden(true)
   }, [])
-
-  useEffect(() => {
-    if (!validTabIds.includes(activeTabId)) {
-      setActiveTabId(validTabIds[0])
-      return
-    }
-    router.replace(activeTabId)
-  }, [activeTabId])
 
   return (
     <>
