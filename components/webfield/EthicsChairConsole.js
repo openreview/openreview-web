@@ -13,8 +13,6 @@ import PaperStatus from './EthicsChairConsole/EthicsChairPaperStatus'
 import EthicsChairTasks from './EthicsChairConsole/EthicsChairTasks'
 import { getRoleHashFragment } from '../../lib/utils'
 
-const validTabIds = ['#overview', '#paper-status', '#ethicschair-tasks']
-
 const EthicsChairConsole = ({ appContext }) => {
   const {
     header,
@@ -36,6 +34,13 @@ const EthicsChairConsole = ({ appContext }) => {
   const { user, userLoading } = useUser()
 
   const ethicsChairsUrlFormat = getRoleHashFragment(ethicsChairsName)
+  const validTabIds = [
+    '#overview',
+    `#${submissionName.toLowerCase()}-status`,
+    `#${ethicsChairsUrlFormat}-tasks`,
+  ]
+
+  console.log(validTabIds)
 
   useEffect(() => {
     if (!query) return
