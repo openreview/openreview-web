@@ -40,8 +40,6 @@ const EthicsChairConsole = ({ appContext }) => {
     `#${ethicsChairsUrlFormat}-tasks`,
   ]
 
-  console.log(validTabIds)
-
   useEffect(() => {
     if (!query) return
 
