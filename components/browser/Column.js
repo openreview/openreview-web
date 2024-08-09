@@ -1117,7 +1117,7 @@ export default function Column(props) {
 
   // Render
   return (
-    <div className={`column ${props.finalColumn ? 'column-final' : ''}`} tabIndex="-1">
+    <div className="column" tabIndex="-1">
       <div className="head">
         {getColumnTitle()}
         {getColumnDescription()}
