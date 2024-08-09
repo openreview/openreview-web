@@ -34,6 +34,11 @@ const EthicsChairConsole = ({ appContext }) => {
   const { user, userLoading } = useUser()
 
   const ethicsChairsUrlFormat = getRoleHashFragment(ethicsChairsName)
+  const validTabIds = [
+    '#overview',
+    `#${submissionName.toLowerCase()}-status`,
+    `#${ethicsChairsUrlFormat}-tasks`,
+  ]
 
   useEffect(() => {
     if (!query) return
@@ -46,7 +51,10 @@ const EthicsChairConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!activeTabId) return
+    if (!validTabIds.includes(activeTabId)) {
+      setActiveTabId(validTabIds[0])
+      return
+    }
     router.replace(activeTabId)
   }, [activeTabId])
 
