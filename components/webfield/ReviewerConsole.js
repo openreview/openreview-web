@@ -561,16 +561,6 @@ const ReviewerConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!userLoading && !user) {
-      router.replace(
-        `/login?redirect=${encodeURIComponent(
-          `${window.location.pathname}${window.location.search}${window.location.hash}`
-        )}`
-      )
-    }
-  }, [user, userLoading])
-
-  useEffect(() => {
     if (
       userLoading ||
       !user ||
