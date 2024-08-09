@@ -24,6 +24,7 @@ const EthicsSubmissionRow = ({ rowData }) => {
     shortPhrase,
     submissionName,
     ethicsChairsName,
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
 
   const referrerUrl = encodeURIComponent(
@@ -53,6 +54,7 @@ const EthicsSubmissionRow = ({ rowData }) => {
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
+          preferredEmailInvitationId={preferredEmailInvitationId}
         />
       </td>
     </tr>
@@ -185,14 +187,12 @@ const EthicsChairPaperStatus = () => {
         .map((profile) => ({
           ...profile,
           preferredName: getProfileName(profile),
-          preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
         }))
 
       const allProfilesMap = new Map()
       allProfiles.forEach((profile) => {
         const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-        const profileEmails = profile.content.emails.filter((p) => p)
-        usernames.concat(profileEmails).forEach((key) => {
+        usernames.concat(profile.email ?? []).forEach((key) => {
           allProfilesMap.set(key, profile)
         })
       })
@@ -233,9 +233,6 @@ const EthicsChairPaperStatus = () => {
               anonymousId: reviewer.anonymousId,
               reviewerProfileId: reviewer.reviewerProfileId,
               preferredName: profile ? getProfileName(profile) : reviewer.reviewerProfileId,
-              preferredEmail: profile
-                ? profile.content.preferredEmail ?? profile.content.emails[0]
-                : reviewer.reviewerProfileId,
               type: 'profile',
             }
           }),

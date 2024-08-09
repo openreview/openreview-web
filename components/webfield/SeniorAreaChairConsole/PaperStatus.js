@@ -51,6 +51,7 @@ const PaperRow = ({
     assignmentUrls,
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const { note, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
@@ -121,6 +122,7 @@ const PaperRow = ({
           areaChairAssignmentUrl={getManualAssignmentUrl(areaChairName, areaChairsId)}
           metaReviewRecommendationName={metaReviewRecommendationName}
           additionalMetaReviewFields={additionalMetaReviewFields}
+          preferredEmailInvitationId={preferredEmailInvitationId}
         />
       </td>
       <td className="console-decision">
