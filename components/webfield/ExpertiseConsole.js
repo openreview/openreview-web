@@ -7,10 +7,11 @@ import WebFieldContext from '../WebFieldContext'
 import SubmissionButton from './SubmissionButton'
 import Markdown from '../EditorComponents/Markdown'
 import ExpertiseSelector from '../ExpertiseSelector'
+import ControllableExpertiseSelector from '../ControllableExpertiseSelector'
 import { prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
-export default function ExpertiseConsole({ appContext }) {
+export default function ExpertiseConsole({ appContext, useControllableExpertiseSelector = false }) {
   const {
     entity: invitation,
     venueId,
@@ -21,7 +22,6 @@ export default function ExpertiseConsole({ appContext }) {
   } = useContext(WebFieldContext)
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const router = useRouter()
-
   const { setBannerContent } = appContext
   const options =
     apiVersion === 2
@@ -44,6 +44,13 @@ Make sure that your email is part of the "authorids" field of the upload form, o
 though it will be included in the recommendations process. Only upload papers you are an author of.
 
 Please contact info@openreview.net with any questions or concerns about this interface, or about the expertise scoring process.`
+
+  const controllableExpertiseSelectorDescription = `Listed below are keyphrases representing your expertise and the potential paper assignments you will receive. Your expertise keyphrases are inferred from all the papers you have authored that exist in the OpenReview database.
+
+Use the keyphrases below to explore the potential assignments you will receive and save the profile that leads to your preferred reviewing assignments. The saved profile will be used to make actual paper assignments for the conference. Your previously authored papers from selected conferences were automatically imported from DBLP.org.
+
+Please contact info@openreview.net with any questions or concerns about this interface, or about the expertise scoring process.`
+
   const defaultUploadInvitationId = `${process.env.SUPER_USER}/Archive/-/Direct_Upload`
 
   useEffect(() => {
@@ -63,30 +70,44 @@ Please contact info@openreview.net with any questions or concerns about this int
         <h1>{title || prettyId(invitation.id)}</h1>
 
         <div className="description dark">
-          <Markdown text={description ?? defaultDescription} />
+          <Markdown
+            text={
+              description ?? useControllableExpertiseSelector
+                ? controllableExpertiseSelectorDescription
+                : defaultDescription
+            }
+          />
         </div>
       </header>
 
-      <div id="invitation">
-        <SubmissionButton
-          invitationId={uploadInvitationId ?? defaultUploadInvitationId}
-          apiVersion={2}
-          onNoteCreated={() => {
-            promptMessage('Your paper has been added to the OpenReview Archive')
-            reload()
-          }}
-          options={{ largeLabel: true }}
-        />
-      </div>
+      {useControllableExpertiseSelector ? (
+        <div id="notes">
+          <ControllableExpertiseSelector />
+        </div>
+      ) : (
+        <>
+          <div id="invitation">
+            <SubmissionButton
+              invitationId={uploadInvitationId ?? defaultUploadInvitationId}
+              apiVersion={2}
+              onNoteCreated={() => {
+                promptMessage('Your paper has been added to the OpenReview Archive')
+                reload()
+              }}
+              options={{ largeLabel: true }}
+            />
+          </div>
 
-      <div id="notes">
-        <ExpertiseSelector
-          invitation={invitation}
-          venueId={venueId}
-          apiVersion={apiVersion}
-          shouldReload={shouldReload}
-        />
-      </div>
+          <div id="notes">
+            <ExpertiseSelector
+              invitation={invitation}
+              venueId={venueId}
+              apiVersion={apiVersion}
+              shouldReload={shouldReload}
+            />
+          </div>
+        </>
+      )}
     </>
   )
 }
