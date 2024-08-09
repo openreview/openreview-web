@@ -30,6 +30,7 @@ import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
 import { getProfileLink } from '../../lib/webfield-utils'
+import { formatProfileContent } from '../../lib/edge-utils'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -428,9 +429,12 @@ const AreaChairConsole = ({ appContext }) => {
       // #region calculate reviewProgressData and metaReviewData
       const notes = result[0]
       const ithenticateEdges = result[3]
-      const allProfiles = (profileResults[0].profiles ?? []).concat(
-        profileResults[1].profiles ?? []
-      )
+      const allProfiles = (profileResults[0].profiles ?? [])
+        .concat(profileResults[1].profiles ?? [])
+        .map((profile) => ({
+          ...profile,
+          title: formatProfileContent(profile.content).title,
+        }))
       const tableRows = notes.map((note) => {
         const assignedReviewers =
           result[1].find((p) => p.number === note.number)?.reviewers ?? []
