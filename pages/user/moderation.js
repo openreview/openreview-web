@@ -1702,7 +1702,7 @@ const UserModerationQueue = ({
   const [totalCount, setTotalCount] = useState(0)
   const [pageNumber, setPageNumber] = useState(1)
   const [filters, setFilters] = useState({})
-  const [profileIdToReject, setProfileIdToReject] = useState(null)
+  const [profileToReject, setProfileToReject] = useState(null)
   const [signedNotes, setSignedNotes] = useState(0)
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
@@ -1818,12 +1818,12 @@ const UserModerationQueue = ({
     return uniqBy([...signedNotesResult.notes, ...authoredNotesResult.notes], 'id')
   }
 
-  const showRejectionModal = async (profileId) => {
+  const showRejectionModal = async (profile) => {
     if (!onlyModeration) {
-      const signedAuthoredNotes = await getSignedAuthoredNotesCount(profileId)
+      const signedAuthoredNotes = await getSignedAuthoredNotesCount(profile.id)
       setSignedNotes(signedAuthoredNotes)
     }
-    setProfileIdToReject(profileId)
+    setProfileToReject(profile)
 
     $(`#${modalId}`).modal('show')
   }
@@ -1833,7 +1833,7 @@ const UserModerationQueue = ({
       await api.post(
         '/profile/moderate',
         {
-          id: profileIdToReject,
+          id: profileToReject.id,
           decision: 'reject',
           reason: rejectionMessage,
         },
@@ -2062,7 +2062,7 @@ const UserModerationQueue = ({
                       <button
                         type="button"
                         className="btn btn-xs"
-                        onClick={() => showRejectionModal(profile.id)}
+                        onClick={() => showRejectionModal(profile)}
                       >
                         <Icon name="remove-circle" /> Reject
                       </button>{' '}
@@ -2095,7 +2095,7 @@ const UserModerationQueue = ({
                         <button
                           type="button"
                           className="btn btn-xs"
-                          onClick={() => showRejectionModal(profile.id)}
+                          onClick={() => showRejectionModal(profile)}
                         >
                           <Icon name="remove-circle" /> Reject
                         </button>
@@ -2174,7 +2174,7 @@ const UserModerationQueue = ({
 
       <RejectionModal
         id={modalId}
-        profileIdToReject={profileIdToReject}
+        profileToReject={profileToReject}
         rejectUser={rejectUser}
         signedNotes={signedNotes}
       />
@@ -2197,44 +2197,57 @@ const UserModerationQueue = ({
   )
 }
 
-const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
+const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
   const selectRef = useRef(null)
+
+  const currentInstitutionName = profileToReject?.content?.history?.find(
+    (p) => !p.end || p.end >= new Date().getFullYear()
+  )?.institution?.name
 
   const instructionText =
     'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and complete the missing data.'
   const rejectionReasons = [
     {
-      value: 'invalidEmail',
-      label: 'Missing Institution Email',
-      rejectionText: `An Institution email matching your latest career/education history is required.\n\n${instructionText}`,
+      value: 'requestEmailVerification',
+      label: 'Institution Email is missing',
+      rejectionText: `Please add and confirm an institutional email ${
+        currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
+      }to your profile. Please make sure the verficaition token is entered and verified.\n\n${instructionText}`,
+    },
+    {
+      value: 'requestEmailConfirmation',
+      label: 'Institution Email is added but not confirmed',
+      rejectionText: `Please confirm the institutional email in your profile by clicking "Confirm" button next to the email and enter the verification token received.\n\n${instructionText}`,
+    },
+    {
+      value: 'invalidDBLP',
+      label: 'DBLP is disambiguation page',
+      rejectionText: `The DBLP link you have provided is a disambiguation page and is not intended to be used as a bibliography. Please select the correct bibliography page listed under "Other persons with a similar name". If your page is not listed please contact the DBLP team so they can add your bibliography page. We recommend providing a different bibliography homepage when resubmitting to OpenReview moderation.\n\n${instructionText}`,
     },
     {
       value: 'imPersonalHomepage',
-      label: 'Impersonal Homepage',
+      label: 'Homepage is invalid',
       rejectionText: `The homepage url provided in your profile is invalid or does not display your name so your identity can't be determined.\n\n${instructionText}`,
     },
     {
       value: 'imPersonalHomepageAndEmail',
-      label: 'Impersonal Homepage + Missing Institution Email',
-      rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required.\n\n${instructionText}`,
+      label: 'Homepage is invalid + no institution email',
+      rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required. Please confirm the institution email by entering the verification token received after clicking confirm button next to the institutional email.\n\n${instructionText}`,
     },
     {
-      value: 'repeatedInvalidInfo',
-      label: 'Repeated Invalid Info',
-      rejectionText: `Submitting invalid info is a violation of OpenReview's Terms and Conditions which may result in terminating your access to the system.\n\n${instructionText}`,
-    },
-    {
-      value: 'requestEmailVerification',
-      label: 'Request Email Verification',
-      rejectionText: `Please add and confirm an institutional email to your profile.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidName',
-      label: 'Invalid Name',
-      rejectionText: `A valid name is required and must match the one listed on your provided personal homepages.\n\n${instructionText}`,
+      value: 'lastNotice',
+      label: 'Last notice before block',
+      rejectionText: `If invalid info is submitted again, your email will be blocked.\n\n${instructionText}`,
     },
   ]
+
+  const updateMessageForPastRejectProfile = () => {
+    setRejectionMessage(
+      (p) =>
+        `Submitting invalid info is a violation of OpenReview's Terms and Conditions which may result in terminating your access to the system.\n\n${p}`
+    )
+  }
 
   return (
     <BasicModal
@@ -2255,8 +2268,9 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
         >
           <div className="form-group form-rejection">
             <label htmlFor="message" className="mb-1">
-              Reason for rejecting {prettyId(profileIdToReject)}:
+              Reason for rejecting {prettyId(profileToReject?.id)}:
             </label>
+
             <Dropdown
               name="rejection-reason"
               instanceId="rejection-reason"
@@ -2268,10 +2282,15 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
               selectRef={selectRef}
               isClearable
             />
+
+            <button className="btn btn-xs" onClick={updateMessageForPastRejectProfile}>
+              Add Invalid Info Warning
+            </button>
+
             <textarea
               name="message"
               className="form-control mt-2"
-              rows="5"
+              rows="10"
               value={rejectionMessage}
               onChange={(e) => {
                 setRejectionMessage(e.target.value)

@@ -1,5 +1,6 @@
 import random from 'lodash/random'
 import Link from 'next/link'
+import copy from 'copy-to-clipboard'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 import { prettyList } from '../../lib/utils'
@@ -34,12 +35,18 @@ const ProfileName = ({ name }) => (
   </ProfileItem>
 )
 
-const ProfileEmail = ({ email, publicProfile }) => (
-  <ProfileItem itemMeta={email.meta}>
-    <span>{email.email}</span> {email.confirmed && <small>(Confirmed)</small>}{' '}
-    {!publicProfile && email.preferred && <small>(Preferred)</small>}
-  </ProfileItem>
-)
+const ProfileEmail = ({ email, publicProfile, allowCopyEmail }) => {
+  const copyEmailToClipboard = () => {
+    copy(`"${email.email}"`)
+  }
+  return (
+    <ProfileItem itemMeta={email.meta}>
+      <span {...(allowCopyEmail && { onClick: copyEmailToClipboard })}>{email.email}</span>{' '}
+      {email.confirmed && <small>(Confirmed)</small>}
+      {!publicProfile && email.preferred && <small>(Preferred)</small>}
+    </ProfileItem>
+  )
+}
 
 const ProfileLink = ({ link, showLinkText }) => {
   const linkUrlWithProtocol = link.url?.startsWith('http') ? link.url : `//${link.url}`
@@ -146,6 +153,7 @@ const BasicProfileView = ({
   profile,
   publicProfile,
   showLinkText = false,
+  allowCopyEmail = false,
   contentToShow = ['names', 'emails', 'links', 'history', 'relations', 'expertise'],
 }) => {
   const uniqueNames = profile.names.filter((name) => !name.duplicate)
@@ -178,6 +186,7 @@ const BasicProfileView = ({
                   key={`${email.email}-${i}`}
                   email={email}
                   publicProfile={publicProfile}
+                  allowCopyEmail={allowCopyEmail}
                 />,
               ])}
           </div>
