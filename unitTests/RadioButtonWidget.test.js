@@ -73,6 +73,27 @@ describe('RadioButtonWidget', () => {
     ).toHaveAttribute('type', 'radio')
   })
 
+  test('convert enum option to string', () => {
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitationId' },
+        field: {
+          agree_to_consent: {
+            value: {
+              param: {
+                input: 'radio',
+                enum: [true, false],
+              },
+            },
+          },
+        },
+      },
+    }
+    renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
+    expect(screen.getByText('true')).toBeInTheDocument()
+    expect(screen.getByText('false')).toBeInTheDocument()
+  })
+
   test('display description of enum options (object)', () => {
     const providerProps = {
       value: {

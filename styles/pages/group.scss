@@ -1237,11 +1237,50 @@ main.invitation {
     }
   }
 
+  .workflow {
+    em {
+      color: constants.$orRed;
+    }
+    .edit-invitation-container {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5rem;
+      margin-bottom: 0.25rem;
+
+      .invitation-info {
+        display: flex;
+        .cdate {
+          margin-right: 0.25rem;
+        }
+      }
+
+      .content-editor-container {
+        max-width: 80%;
+      }
+    }
+
+    .add-stage {
+      display: flex;
+      align-items: center;
+
+      .dropdown-select {
+        width: 50%;
+      }
+    }
+  }
+
   .spinner-small {
     width: 40px;
   }
 
   .save-button-wrapper {
     display: flex;
+  }
+
+  .groupEditorTabsContainer,
+  .groupInfoTabsContainer {
+    .tab-pane {
+      padding-left: 0;
+    }
   }
 }
