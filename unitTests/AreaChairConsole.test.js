@@ -286,6 +286,7 @@ describe('AreaChairConsole', () => {
                   id: '~Senior_AC1',
                   content: {
                     names: [{ username: '~Senior_AC1' }],
+                    emails: ['senior@AC.one'],
                   },
                 },
               ],
@@ -296,6 +297,7 @@ describe('AreaChairConsole', () => {
                   id: '~Senior_AC2',
                   content: {
                     names: [{ username: '~Senior_AC2' }],
+                    emails: ['senior@AC.two'],
                   },
                   email: 'senior@AC.two',
                 },
@@ -396,6 +398,7 @@ describe('AreaChairConsole', () => {
                   id: '~Senior_AC1',
                   content: {
                     names: [{ username: '~Senior_AC1' }],
+                    emails: ['senior@AC.one'],
                   },
                 },
               ],
@@ -406,6 +409,7 @@ describe('AreaChairConsole', () => {
                   id: '~Senior_AC2',
                   content: {
                     names: [{ username: '~Senior_AC2' }],
+                    emails: ['senior@AC.two'],
                   },
                   email: 'senior@AC.two',
                 },
@@ -814,11 +818,13 @@ describe('AreaChairConsole', () => {
           {
             content: {
               names: [{ username: '~Senior_AC1' }],
+              emails: ['senior@AC.one'],
             },
           },
           {
             content: {
               names: [{ username: '~Senior_AC2' }],
+              emails: ['senior@AC.two'],
             },
           },
         ],
@@ -1150,12 +1156,14 @@ describe('AreaChairConsole', () => {
             id: '~Senior_AC1',
             content: {
               names: [{ username: '~Senior_AC1' }],
+              emails: ['senior@AC.one'],
             },
           },
           {
             id: '~Senior_AC2',
             content: {
               names: [{ username: '~Senior_AC2' }],
+              emails: ['senior@AC.two'],
             },
           },
         ],
