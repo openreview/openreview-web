@@ -1018,16 +1018,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!userLoading && !user) {
-      router.replace(
-        `/login?redirect=${encodeURIComponent(
-          `${window.location.pathname}${window.location.search}${window.location.hash}`
-        )}`
-      )
-    }
-  }, [user, userLoading])
-
-  useEffect(() => {
     if (userLoading || !user || !group || !venueId || !reviewersId || !submissionId) return
     loadData()
   }, [user, userLoading, group])
