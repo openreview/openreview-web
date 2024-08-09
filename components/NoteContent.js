@@ -161,6 +161,8 @@ export const NoteContentV2 = ({
   include = [],
   isEdit = false,
 }) => {
+  if (!content) return null
+
   const contentKeys = Object.keys(content)
   const contentOrder =
     presentation?.length > 0
