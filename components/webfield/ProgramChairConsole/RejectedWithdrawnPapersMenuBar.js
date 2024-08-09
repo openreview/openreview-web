@@ -33,7 +33,7 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
     },
     {
       header: 'authors',
-      getValue: (p) => p.note?.content?.authors?.value?.join('|'),
+      getValue: (p) => p.note?.content?.authors?.value?.join('|') ?? 'N/A',
     },
     { header: 'reason', getValue: (p) => p.reason },
   ]

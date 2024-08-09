@@ -8,6 +8,7 @@ import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import NoteSummary from '../NoteSummary'
 import RejectedWithdrawnPapersMenuBar from './RejectedWithdrawnPapersMenuBar'
+import { getNumberFromGroup, prettyField } from '../../../lib/utils'
 
 const RejectedWithdrawnPaperRow = ({ rowData, referrerUrl }) => {
   const { number, note, reason } = rowData
@@ -26,16 +27,27 @@ const RejectedWithdrawnPaperRow = ({ rowData, referrerUrl }) => {
   )
 }
 
-const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
+const RejectedWithdrawnPapers = ({ consoleData, isSacConsole = false }) => {
   const [rejectedPaperTabData, setRejectedPaperTabData] = useState({})
-  const { withdrawnVenueId, deskRejectedVenueId, shortPhrase, enableQuerySearch, venueId, submissionName } =
-    useContext(WebFieldContext)
+  const {
+    withdrawnVenueId,
+    deskRejectedVenueId,
+    shortPhrase,
+    enableQuerySearch,
+    venueId,
+    submissionName,
+    seniorAreaChairName,
+  } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const { accessToken } = useUser()
   const pageSize = 25
   const referrerUrl = encodeURIComponent(
-    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#deskrejectwithdrawn-status)`
+    `[${
+      isSacConsole ? prettyField(seniorAreaChairName) : 'Program Chair'
+    } Console](/group?id=${venueId}/${
+      isSacConsole ? seniorAreaChairName : 'Program_Chairs'
+    }#deskrejectwithdrawn-status)`
   )
 
   const formatTableRows = (deskRejectedNotes, withdrawnNotes) =>
@@ -57,13 +69,43 @@ const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
     Promise.all(
       ids.map((id) => {
         if (!id) return Promise.resolve([])
-        return api.getAll('/notes', { 'content.venueid': id, domain: venueId }, { accessToken })
+        return api.getAll(
+          '/notes',
+          { 'content.venueid': id, domain: venueId },
+          { accessToken }
+        )
       })
     )
 
+  const filterAssignedNotes = async (results) => {
+    const assignedNoteNumbers = await api
+      .get(
+        '/groups',
+        {
+          prefix: `${venueId}/${submissionName}.*`,
+          stream: true,
+          select: 'id',
+          domain: venueId,
+        },
+        { accessToken }
+      )
+      .then((result) =>
+        result.groups.flatMap((group) => {
+          if (!group.id.endsWith(seniorAreaChairName)) return []
+          return getNumberFromGroup(group.id, submissionName)
+        })
+      )
+
+    return [
+      results[0].filter((note) => assignedNoteNumbers.includes(note.number)),
+      results[1].filter((note) => assignedNoteNumbers.includes(note.number)),
+    ]
+  }
+
   const loadRejectedWithdrawnPapers = async () => {
     try {
-      const results = await loadAllNotes([deskRejectedVenueId, withdrawnVenueId])
+      let results = await loadAllNotes([deskRejectedVenueId, withdrawnVenueId])
+      if (isSacConsole) results = await filterAssignedNotes(results)
       const tableRows = formatTableRows(results[0], results[1])
       setRejectedPaperTabData({
         tableRowsAll: tableRows,
@@ -75,10 +117,10 @@ const RejectedWithdrawnPapers = ({ pcConsoleData }) => {
   }
 
   useEffect(() => {
-    if (pcConsoleData.withdrawnNotes || pcConsoleData.deskRejectedNotes) {
+    if (consoleData.withdrawnNotes || consoleData.deskRejectedNotes) {
       const tableRows = formatTableRows(
-        pcConsoleData.deskRejectedNotes ?? [],
-        pcConsoleData.withdrawnNotes ?? []
+        consoleData.deskRejectedNotes ?? [],
+        consoleData.withdrawnNotes ?? []
       )
       setRejectedPaperTabData({
         tableRowsAll: tableRows,
