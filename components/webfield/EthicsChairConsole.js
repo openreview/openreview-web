@@ -26,6 +26,7 @@ const EthicsChairConsole = ({ appContext }) => {
     anonEthicsReviewerName,
     shortPhrase,
     ethicsMetaReviewName,
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const router = useRouter()
@@ -49,16 +50,6 @@ const EthicsChairConsole = ({ appContext }) => {
     if (!activeTabId) return
     router.replace(activeTabId)
   }, [activeTabId])
-
-  useEffect(() => {
-    if (!userLoading && !user) {
-      router.replace(
-        `/login?redirect=${encodeURIComponent(
-          `${window.location.pathname}${window.location.search}${window.location.hash}`
-        )}`
-      )
-    }
-  }, [user, userLoading])
 
   const missingConfig = Object.entries({
     header,
