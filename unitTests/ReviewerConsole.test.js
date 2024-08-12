@@ -45,14 +45,14 @@ beforeEach(() => {
 })
 
 describe('ReviewerConsole', () => {
-  test('redirect to login page when user has not logged in', () => {
+  test('redirect to home page when user has not logged in', () => {
     useUserReturnValue = { user: null, accessToken: null }
     const providerProps = { value: { reviewerName: undefined } }
     renderWithWebFieldContext(
       <ReviewerConsole appContext={{ setBannerContent: jest.fn() }} />,
       providerProps
     )
-    expect(routerParams).toContain('/login')
+    expect(routerParams).toBe(null)
   })
 
   test('show missing config error when config does not have reviewerName', () => {

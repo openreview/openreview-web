@@ -217,8 +217,8 @@ const MessageReviewersModal = ({
               {(recipientInfo) => (
                 <li>
                   {' '}
-                  {`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>${
-                    recipientInfo.count > 1 ? ` --- (×${recipientInfo.count})` : ''
+                  {`${recipientInfo.preferredName} ${
+                    recipientInfo.count > 1 ? ` × ${recipientInfo.count}` : ''
                   }`}
                 </li>
               )}
