@@ -249,7 +249,9 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           { accessToken }
         )
         setNotes(
-          notesResult.filter((p) => p.content[subjectAreasName]?.value === subjectAreaSelected)
+          notesResult.filter(
+            (p) => p.content?.[subjectAreasName]?.value === subjectAreaSelected
+          )
         )
       } else {
         const result = await api.get(
