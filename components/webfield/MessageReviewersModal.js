@@ -47,11 +47,22 @@ const MessageReviewersModal = ({
     }
     // send emails
     setIsSending(true)
-    const messageInvitation =
-      messageOption.value === 'allAreaChairs'
-        ? messageSubmissionAreaChairsInvitationId
-        : messageSubmissionReviewersInvitationId
-    const roleName = messageOption.value === 'allAreaChairs' ? areaChairName : reviewerName
+    let roleName
+    let messageInvitation
+
+    switch (messageOption.value) {
+      case 'allAreaChairs':
+        roleName = areaChairName
+        messageInvitation = messageSubmissionAreaChairsInvitationId
+        break
+      case 'allAuthors':
+        roleName = 'Authors'
+        break
+      default:
+        roleName = reviewerName
+        messageInvitation = messageSubmissionReviewersInvitationId
+        break
+    }
     try {
       const simplifiedTableRowsDisplayed = tableRowsDisplayed.map((p) => ({
         id: p.note.id,
@@ -77,7 +88,9 @@ const MessageReviewersModal = ({
               return api.post(
                 '/messages',
                 {
-                  invitation: messageInvitation?.replace('{number}', rowData.number),
+                  ...(messageInvitation && {
+                    invitation: messageInvitation.replace('{number}', rowData.number),
+                  }),
                   signature: messageInvitation && rowData.messageSignature,
                   groups: groupIds,
                   subject,
@@ -122,6 +135,8 @@ const MessageReviewersModal = ({
         return selectedRows
           .flatMap((row) => row.reviewers)
           .filter((reviewer) => !reviewer.hasReview)
+      case 'allAuthors':
+        return selectedRows.flatMap((row) => row.authors)
       default:
         return []
     }
@@ -171,15 +186,18 @@ const MessageReviewersModal = ({
       {error && <div className="alert alert-danger">{error}</div>}
       {currentStep === 1 ? (
         <>
-          <p>{`You may customize the message that will be sent to the ${prettyField(
-            reviewerName
-          ).toLowerCase()}. In the email
+          <p>
+            {messageOption?.value !== 'allAuthors' &&
+              `You may customize the message that will be sent to the ${prettyField(
+                reviewerName
+              ).toLowerCase()}. In the email
   body, the text {{submit_review_link}} will be replaced with a hyperlink to the
   form where the ${prettyField(
     reviewerName
   ).toLowerCase()} can fill out his or her ${prettyField(
     officialReviewName
-  ).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`}</p>
+  ).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`}
+          </p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
             <input
@@ -205,7 +223,7 @@ const MessageReviewersModal = ({
         <>
           <p>
             A total of <span className="num-reviewers">{totalMessagesCount}</span> reminder
-            emails will be sent to the following {prettyField(reviewerName).toLowerCase()}:
+            emails will be sent to the following users:
           </p>
           <div className="well reviewer-list">
             <List

@@ -795,6 +795,15 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             preferredName: profile ? getProfileName(profile) : reviewer.reviewerProfileId,
           }
         }),
+        authors: note.content.authorids?.value?.map((authorId, index) => {
+          const preferredName = note.content.authors?.value?.[index]
+          return {
+            preferredId: authorId,
+            preferredName,
+            noteNumber: note.number,
+            anonymizedGroup: authorId,
+          }
+        }),
         reviewerProfiles: assignedReviewerProfiles,
         officialReviews,
         reviewProgressData: {
