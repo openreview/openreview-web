@@ -19,6 +19,21 @@ describe('FormEnumItemsFieldEditor', () => {
     expect(screen.getByRole('button', { text: 'Add Option' })).toBeInTheDocument()
   })
 
+  test('render string options and remove option button', () => {
+    render(
+      <FormEnumItemsFieldEditor
+        fieldName="enum"
+        formData={{ dataType: 'string' }}
+        options={['value one', 'value two']}
+        setOptions={jest.fn()}
+      />
+    )
+
+    expect(screen.getByDisplayValue('value one')).toHaveAttribute('type', 'text')
+    expect(screen.getByDisplayValue('value two')).toHaveAttribute('type', 'text')
+    expect(screen.getAllByRole('button', { name: '' })).toHaveLength(2) // wrapper of minus icon
+  })
+
   test('render enum options and remove option button', () => {
     render(
       <FormEnumItemsFieldEditor

@@ -89,12 +89,8 @@ const InvitationContentEditor = ({
     )
   }
 
-  const constructInvitationEdit = async (formData, invitationObj) => {
-    const {
-      content: editContentFields,
-      group: groupFields,
-      ...otherFields
-    } = invitationObj.edit
+  const handleSubmitClick = async () => {
+    const { content: editContentFields, group: groupFields, ...otherFields } = invitation.edit
     const editToPost = {}
 
     const shouldSetValue = (fieldPath) => {
@@ -103,30 +99,31 @@ const InvitationContentEditor = ({
     }
 
     try {
+      setIsSubmitting(true)
       const editContent = {}
       Object.entries(otherFields).forEach(([field, value]) => {
         if (shouldSetValue(`edit/${field}`)) {
-          editToPost[field] = invitationObj.edit[field]
+          editToPost[field] = invitation.edit[field]
         }
         switch (field) {
           case 'signatures':
-            editToPost.signatures = formData.editSignatureInputValues
+            editToPost.signatures = invitationEditorData.editSignatureInputValues
             break
           default:
             break
         }
       })
       Object.entries(editContentFields).forEach(([field, value]) => {
-        editContent[field] = { value: formData[field] }
+        editContent[field] = { value: invitationEditorData[field] }
       })
       editToPost.content = editContent
 
       if (isGroupInvitation) {
         editToPost.invitations = undefined
-        editToPost.invitation = invitationObj.id
+        editToPost.invitation = invitation.id
       } else {
         // invitation edit invitation use invitations as invitation
-        editToPost.invitations = invitationObj.id
+        editToPost.invitations = invitation.id
         editToPost.invitation = undefined
       }
 
@@ -134,16 +131,11 @@ const InvitationContentEditor = ({
         accessToken,
       })
       onInvitationEditPosted?.()
+      closeInvitationEditor()
     } catch (error) {
       promptError(error.message)
     }
-  }
-
-  const handleSubmitClick = async () => {
-    setIsSubmitting(true)
-    const editToPost = constructInvitationEdit(invitationEditorData, invitation)
     setIsSubmitting(false)
-    closeInvitationEditor()
   }
 
   const handleCancelClick = () => {

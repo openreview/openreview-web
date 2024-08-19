@@ -59,6 +59,10 @@ const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) 
     },
     options
       ? options.map((option) => {
+          if (typeof option === 'string') {
+            if (!optionType) setOptionType('string')
+            return { value: option, key: nanoid() }
+          }
           if (fieldName === 'enum') {
             if (!optionType) setOptionType('enum')
             return { ...option, key: nanoid() }
@@ -71,7 +75,8 @@ const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) 
 
   useEffect(() => {
     let updatedOptions = null
-    if (optionType === 'enum') {
+
+    if (optionType === 'enum' || optionType === 'string') {
       updatedOptions = localOptions.map((option) => {
         const { key, optional, ...rest } = option
         return rest
@@ -86,10 +91,13 @@ const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) 
     if (updatedOptions) {
       setOptions({
         fieldName,
-        value: updatedOptions.map((p) => ({
-          ...p,
-          value: convertToType(p.value, formData.dataType),
-        })),
+        value:
+          optionType === 'string'
+            ? updatedOptions.map((p) => convertToType(p.value, formData.dataType))
+            : updatedOptions.map((p) => ({
+                ...p,
+                value: convertToType(p.value, formData.dataType),
+              })),
       })
     } else {
       // new field or type changed field
@@ -110,8 +118,8 @@ const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) 
           }}
         />
       </div>
-      <div className={styles.enumDescription}>
-        {(optionType === 'enum' || optionType === 'items') && (
+      {(optionType === 'enum' || optionType === 'items') && (
+        <div className={styles.enumDescription}>
           <input
             className="form-control"
             type="text"
@@ -124,10 +132,11 @@ const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) 
               })
             }}
           />
-        )}
-      </div>
-      <div className={styles.enumOptional}>
-        {optionType === 'items' && (
+        </div>
+      )}
+      {optionType === 'items' && (
+        <div className={styles.enumOptional}>
+          (
           <input
             type="checkbox"
             checked={option.optional}
@@ -139,8 +148,9 @@ const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) 
               })
             }}
           />
-        )}
-      </div>
+          )
+        </div>
+      )}
     </>
   )
 
@@ -148,7 +158,9 @@ const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) 
     <div className={styles.enumContainer}>
       <div className={styles.enumHeaderRow}>
         <div className={styles.valueHeader}>Value</div>
-        <div className={styles.descriptionHeader}>Description</div>
+        {(optionType === 'enum' || optionType === 'items') && (
+          <div className={styles.descriptionHeader}>Description</div>
+        )}
         {fieldName === 'items' && <div className={styles.optionalHeader}>Optional</div>}
       </div>
 
