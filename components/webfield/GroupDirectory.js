@@ -8,11 +8,13 @@ import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import useUser from '../../hooks/useUser'
+import LoadingSpinner from '../LoadingSpinner'
 
 export default function GroupDirectory({ appContext }) {
   const { entity: group, title, subtitle, description, links } = useContext(WebFieldContext)
   const [childGroupIds, setChildGroupIds] = useState(null)
   const [error, setError] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const { accessToken } = useUser()
   const { setBannerContent } = appContext
@@ -40,7 +42,7 @@ export default function GroupDirectory({ appContext }) {
                 // Sort by year in descending order, or if year is not present sort alphabetically
                 const yearA = a.match(/.*(\d{4})/)?.[1] ?? 0
                 const yearB = b.match(/.*(\d{4})/)?.[1] ?? 0
-                if ((!yearA && !yearB) || (yearA === yearB)) {
+                if ((!yearA && !yearB) || yearA === yearB) {
                   return prettyId(a).localeCompare(prettyId(b))
                 }
                 return yearA > yearB ? -1 : 1
@@ -60,6 +62,7 @@ export default function GroupDirectory({ appContext }) {
     } else {
       loadChildGroups()
     }
+    setIsLoading(false)
   }, [group.id])
 
   return (
@@ -69,6 +72,7 @@ export default function GroupDirectory({ appContext }) {
         {subtitle && <h3>{subtitle}</h3>}
         {description && <Markdown text={description} />}
       </div>
+      {isLoading && <LoadingSpinner />}
 
       <hr />
 
