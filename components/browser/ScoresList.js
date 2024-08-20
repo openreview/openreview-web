@@ -4,9 +4,7 @@ export default function ScoresList({ edges }) {
   if (!edges || !edges.length) {
     return null
   }
-  console.log(edges)
-  // PAM this is where Aggregate Score: reviewer-assignments is rendered.  Perhaps
-  // e.name + getEdgeValue needs to be chopped - wrap at 385 px
+
   return (
     <div className="scores-list">
       <ul className="list-unstyled">
