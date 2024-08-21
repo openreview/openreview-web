@@ -3,6 +3,7 @@
 
 import { useEffect, useReducer, useState } from 'react'
 import pick from 'lodash/pick'
+import Steps from 'rc-steps'
 import EducationHistorySection from './EducationHistorySection'
 import EmailsSection from './EmailsSection'
 import ExpertiseSection from './ExpertiseSection'
@@ -37,6 +38,7 @@ export default function ProfileEditor({
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
   const [renderPublicationEditor, setRenderPublicationEditor] = useState(false)
+  const [currentStep, setCurrentStep] = useState(0)
 
   const prefixedRelations = dropdownOptions?.prefixedRelations
   const relationReaders = dropdownOptions?.relationReaders
@@ -107,7 +109,7 @@ export default function ProfileEditor({
       history: profile.history.flatMap((p) =>
         p.position || p.institution?.domain || p.institution?.name ? p : []
       ),
-      expertise: profile.expertise.flatMap((p) => (p.keywords?.length ? p : [])),
+      expertise: profile.expertise?.flatMap((p) => (p.keywords?.length ? p : [])),
       relations: profile.relations.flatMap((p) => (p.relation || p.name || p.email ? p : [])),
       preferredEmail: profile.emails.find((p) => p.confirmed)?.email,
       preferredName: undefined,
@@ -283,7 +285,7 @@ export default function ProfileEditor({
 
     // #region validate expertise
     if (
-      (invalidRecord = profileContent.expertise.find((p) => p.start && !isValidYear(p.start)))
+      (invalidRecord = profileContent.expertise?.find((p) => p.start && !isValidYear(p.start)))
     ) {
       return promptInvalidValue(
         'expertise',
@@ -291,7 +293,9 @@ export default function ProfileEditor({
         'Start date should be a valid year'
       )
     }
-    if ((invalidRecord = profileContent.expertise.find((p) => p.end && !isValidYear(p.end)))) {
+    if (
+      (invalidRecord = profileContent.expertise?.find((p) => p.end && !isValidYear(p.end)))
+    ) {
       return promptInvalidValue(
         'expertise',
         invalidRecord.key,
@@ -299,7 +303,7 @@ export default function ProfileEditor({
       )
     }
     if (
-      (invalidRecord = profileContent.expertise.find(
+      (invalidRecord = profileContent.expertise?.find(
         (p) => p.start && p.end && p.start > p.end
       ))
     ) {
@@ -309,7 +313,7 @@ export default function ProfileEditor({
         'End date should be higher than start date'
       )
     }
-    if ((invalidRecord = profileContent.expertise.find((p) => !p.start && p.end))) {
+    if ((invalidRecord = profileContent.expertise?.find((p) => !p.start && p.end))) {
       return promptInvalidValue('expertise', invalidRecord.key, 'Start date can not be empty')
     }
     // #endregion
@@ -326,7 +330,7 @@ export default function ProfileEditor({
       history: profileContent.history.map((p) =>
         pick(p, ['position', 'start', 'end', 'institution'])
       ),
-      expertise: profileContent.expertise.map((p) => pick(p, ['keywords', 'start', 'end'])),
+      expertise: profileContent.expertise?.map((p) => pick(p, ['keywords', 'start', 'end'])),
       relations: profileContent.relations.map((p) =>
         pick(p, ['relation', 'username', 'name', 'email', 'start', 'end', 'readers'])
       ),
@@ -343,10 +347,221 @@ export default function ProfileEditor({
     return { isValid: true, profileContent, profileReaders: profile.readers }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const { isValid, profileContent, profileReaders } = validateCleanProfile()
     if (isValid) {
-      submitHandler(profileContent, profileReaders, publicationIdsToUnlink)
+      await submitHandler(profileContent, profileReaders, publicationIdsToUnlink)
+    }
+    if (currentStep === 3) {
+      setRenderPublicationEditor((current) => !current)
+    }
+  }
+
+  const renderStep = (step) => {
+    switch (step) {
+      case 0:
+        return (
+          <ProfileSection
+            title="Names"
+            instructions="Enter your full name. Also add any other names you have used in the past when authoring papers."
+          >
+            <NamesSection
+              profileNames={profile?.names}
+              updateNames={(names) => setProfile({ type: 'names', data: names })}
+              preferredUsername={loadedProfile?.names?.find((p) => p.preferred)?.username}
+            />
+          </ProfileSection>
+        )
+      case 1:
+        return (
+          <>
+            <ProfileSection
+              title="Gender"
+              instructions="This information helps conferences better understand their gender diversity. (Optional)"
+            >
+              <GenderSection
+                profileGender={profile?.gender}
+                updateGender={(gender) => setProfile({ type: 'gender', data: gender })}
+              />
+            </ProfileSection>
+            <ProfileSection
+              title="Pronouns"
+              instructions="This information helps conferences know how to refer to you. (Optional)"
+            >
+              <PronounSection
+                profilePronouns={profile?.pronouns}
+                updatePronoun={(pronouns) => setProfile({ type: 'pronouns', data: pronouns })}
+              />
+            </ProfileSection>
+            <ProfileSection
+              title="Year Of Birth"
+              instructions="This information is solely used by OpenReview to disambiguate user profiles. It will never be released publicly or shared with venue organizers. (Optional)"
+            >
+              <BirthDateSection
+                profileYearOfBirth={profile?.yearOfBirth}
+                updateYearOfBirth={(yearOfBirth) =>
+                  setProfile({ type: 'yearOfBirth', data: yearOfBirth })
+                }
+              />
+            </ProfileSection>
+            {!hidePublicationEditor && (
+              <ProfileSection
+                title="Profile Visibility"
+                instructions="Your OpenReview profile will be visible to the public by default. To hide your profile from unauthenticated users, uncheck the box below."
+              >
+                <div className="checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="profile-visibility"
+                      value="everyone"
+                      checked={profile?.readers?.includes('everyone')}
+                      onChange={(e) => {
+                        const newReaders = e.target.checked ? ['everyone'] : ['~']
+                        setProfile({ type: 'readers', data: newReaders })
+                      }}
+                    />{' '}
+                    Public profile page
+                  </label>
+                </div>
+              </ProfileSection>
+            )}
+          </>
+        )
+
+      case 2:
+        return (
+          <ProfileSection
+            title="Emails"
+            instructions={
+              <>
+                <div>
+                  Enter all email addresses associated with your current and historical
+                  institutional affiliations, your previous publications, and any other related
+                  systems, such as TPMS, CMT, and ArXiv.
+                </div>
+                <strong>
+                  Emails associated with former affiliations (including previous employers)
+                  should not be deleted.
+                </strong>{' '}
+                This information is crucial for deduplicating users and ensuring that you see
+                your reviewing assignments. OpenReview will only send messages to the address
+                marked as “Preferred”.
+              </>
+            }
+          >
+            <EmailsSection
+              profileEmails={profile?.emails}
+              profileId={profile?.id}
+              updateEmails={(emails) => setProfile({ type: 'emails', data: emails })}
+              institutionDomains={institutionDomains}
+              isNewProfile={isNewProfile}
+            />
+          </ProfileSection>
+        )
+      case 3:
+        return (
+          <>
+            <ProfileSection
+              title="Personal Links"
+              instructions="Enter full URLs of your public profiles on other sites. All URLs should begin
+          with http:// or https://"
+            >
+              <PersonalLinksSection
+                profileLinks={profile?.links}
+                profileId={profile?.id}
+                names={profile?.names}
+                renderPublicationsEditor={() =>
+                  setRenderPublicationEditor((current) => !current)
+                }
+                hideDblpButton={hideDblpButton}
+                updateLinks={(links) => setProfile({ type: 'links', data: links })}
+              />
+            </ProfileSection>
+            {!hidePublicationEditor && (
+              <ProfileSection
+                title="Imported Publications"
+                instructions="Below is a list of publications imported from DBLP and other sources that
+                include you as an author. To remove any publications you are not actually an author of
+                from your profile, click the minus sign next to the title."
+              >
+                <ImportedPublicationsSection
+                  profileId={profile?.id}
+                  updatePublicationIdsToUnlink={(ids) => setPublicationIdsToUnlink(ids)}
+                  reRender={renderPublicationEditor}
+                />
+              </ProfileSection>
+            )}
+          </>
+        )
+      case 4:
+        return (
+          <ProfileSection
+            title="Education &amp; Career History"
+            instructions="Enter your education and career history. The institution domain is used for
+          conflict of interest detection, author deduplication, analysis of career path history, and
+          tallies of institutional diversity. For ongoing positions, leave the End field blank."
+          >
+            <EducationHistorySection
+              profileHistory={profile?.history}
+              positions={positions}
+              institutionDomains={institutionDomains}
+              countries={countries}
+              updateHistory={(history) => setProfile({ type: 'history', data: history })}
+            />
+          </ProfileSection>
+        )
+      case 5:
+        return (
+          <ProfileSection
+            title="Advisors &amp; Other Relations"
+            instructions={
+              <>
+                Enter all advisors, co-workers, and other people that should be included when
+                detecting conflicts of interest.
+                <br />
+                For example, you can choose &lsquo;PhD advisor&rsquo; and enter the name of
+                your PhD advisor.
+              </>
+            }
+          >
+            <RelationsSection
+              profileRelation={profile?.relations}
+              prefixedRelations={prefixedRelations}
+              relationReaders={relationReaders}
+              updateRelations={(relations) =>
+                setProfile({ type: 'relations', data: relations })
+              }
+            />
+          </ProfileSection>
+        )
+      case 6:
+        return (
+          <ProfileSection
+            title="Expertise"
+            instructions={
+              <>
+                <div>
+                  For each line, enter comma-separated keyphrases representing an intersection
+                  of your interests. Think of each line as a query for papers in which you
+                  would have expertise and interest. For example:
+                </div>
+                <em>topic models, social network analysis, computational social science</em>
+                <br />
+                <em>deep learning, RNNs, dependency parsing</em>
+              </>
+            }
+          >
+            <ExpertiseSection
+              profileExpertises={profile?.expertise}
+              updateExpertise={(expertise) =>
+                setProfile({ type: 'expertise', data: expertise })
+              }
+            />
+          </ProfileSection>
+        )
+      default:
+        return null
     }
   }
 
@@ -376,185 +591,55 @@ export default function ProfileEditor({
 
   return (
     <div className="profile-edit-container">
-      <ProfileSection
-        title="Names"
-        instructions="Enter your full name. Also add any other names you have used in the past when authoring papers."
-      >
-        <NamesSection
-          profileNames={profile?.names}
-          updateNames={(names) => setProfile({ type: 'names', data: names })}
-          preferredUsername={loadedProfile?.names?.find((p) => p.preferred)?.username}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Pronouns"
-        instructions="This information helps conferences know how to refer to you. (Optional)"
-      >
-        <PronounSection
-          profilePronouns={profile?.pronouns}
-          updatePronoun={(pronouns) => setProfile({ type: 'pronouns', data: pronouns })}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Gender"
-        instructions="This information helps conferences better understand their gender diversity. (Optional)"
-      >
-        <GenderSection
-          profileGender={profile?.gender}
-          updateGender={(gender) => setProfile({ type: 'gender', data: gender })}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Year Of Birth"
-        instructions="This information is solely used by OpenReview to disambiguate user profiles. It will never be released publicly or shared with venue organizers. (Optional)"
-      >
-        <BirthDateSection
-          profileYearOfBirth={profile?.yearOfBirth}
-          updateYearOfBirth={(yearOfBirth) =>
-            setProfile({ type: 'yearOfBirth', data: yearOfBirth })
-          }
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Emails"
-        instructions={
-          <>
-            <div>
-              Enter all email addresses associated with your current and historical
-              institutional affiliations, your previous publications, and any other related
-              systems, such as TPMS, CMT, and ArXiv.
-            </div>
-            <strong>
-              Emails associated with former affiliations (including previous employers) should
-              not be deleted.
-            </strong>{' '}
-            This information is crucial for deduplicating users and ensuring that you see your
-            reviewing assignments. OpenReview will only send messages to the address marked as
-            “Preferred”.
-          </>
-        }
-      >
-        <EmailsSection
-          profileEmails={profile?.emails}
-          profileId={profile?.id}
-          updateEmails={(emails) => setProfile({ type: 'emails', data: emails })}
-          institutionDomains={institutionDomains}
-          isNewProfile={isNewProfile}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Personal Links"
-        instructions="Enter full URLs of your public profiles on other sites. All URLs should begin
-          with http:// or https://"
-      >
-        <PersonalLinksSection
-          profileLinks={profile?.links}
-          profileId={profile?.id}
-          names={profile?.names}
-          renderPublicationsEditor={() => setRenderPublicationEditor((current) => !current)}
-          hideDblpButton={hideDblpButton}
-          updateLinks={(links) => setProfile({ type: 'links', data: links })}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Education &amp; Career History"
-        instructions="Enter your education and career history. The institution domain is used for
-          conflict of interest detection, author deduplication, analysis of career path history, and
-          tallies of institutional diversity. For ongoing positions, leave the End field blank."
-      >
-        <EducationHistorySection
-          profileHistory={profile?.history}
-          positions={positions}
-          institutionDomains={institutionDomains}
-          countries={countries}
-          updateHistory={(history) => setProfile({ type: 'history', data: history })}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Advisors &amp; Other Relations"
-        instructions={
-          <>
-            Enter all advisors, co-workers, and other people that should be included when
-            detecting conflicts of interest.
-            <br />
-            For example, you can choose &lsquo;PhD advisor&rsquo; and enter the name of your
-            PhD advisor.
-          </>
-        }
-      >
-        <RelationsSection
-          profileRelation={profile?.relations}
-          prefixedRelations={prefixedRelations}
-          relationReaders={relationReaders}
-          updateRelations={(relations) => setProfile({ type: 'relations', data: relations })}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Expertise"
-        instructions={
-          <>
-            <div>
-              For each line, enter comma-separated keyphrases representing an intersection of
-              your interests. Think of each line as a query for papers in which you would have
-              expertise and interest. For example:
-            </div>
-            <em>topic models, social network analysis, computational social science</em>
-            <br />
-            <em>deep learning, RNNs, dependency parsing</em>
-          </>
-        }
-      >
-        <ExpertiseSection
-          profileExpertises={profile?.expertise}
-          updateExpertise={(expertise) => setProfile({ type: 'expertise', data: expertise })}
-        />
-      </ProfileSection>
-
-      {!hidePublicationEditor && (
-        <ProfileSection
-          title="Profile Visibility"
-          instructions="Your OpenReview profile will be visible to the public by default. To hide your profile from unauthenticated users, uncheck the box below."
-        >
-          <div className="checkbox">
-            <label>
-              <input
-                type="checkbox"
-                name="profile-visibility"
-                value="everyone"
-                checked={profile?.readers?.includes('everyone')}
-                onChange={(e) => {
-                  const newReaders = e.target.checked ? ['everyone'] : ['~']
-                  setProfile({ type: 'readers', data: newReaders })
-                }}
-              />{' '}
-              Public profile page
-            </label>
-          </div>
-        </ProfileSection>
-      )}
-
-      {!hidePublicationEditor && (
-        <ProfileSection
-          title="Imported Publications"
-          instructions="Below is a list of publications imported from DBLP and other sources that
-            include you as an author. To remove any publications you are not actually an author of
-            from your profile, click the minus sign next to the title."
-        >
-          <ImportedPublicationsSection
-            profileId={profile?.id}
-            updatePublicationIdsToUnlink={(ids) => setPublicationIdsToUnlink(ids)}
-            reRender={renderPublicationEditor}
-          />
-        </ProfileSection>
-      )}
+      <Steps
+        type="navigation"
+        current={currentStep}
+        onChange={(e) => {
+          setCurrentStep(e)
+        }}
+        items={[
+          {
+            step: 0,
+            title: 'Names',
+            status: currentStep === 0 ? 'process' : 'wait',
+          },
+          {
+            step: 1,
+            title: 'Gender',
+            description: 'Pronouns, Year of Birth and Profile Visibility',
+            status: currentStep === 1 ? 'process' : 'wait',
+          },
+          {
+            step: 2,
+            title: 'Emails',
+            status: currentStep === 2 ? 'process' : 'wait',
+          },
+          {
+            step: 3,
+            title: 'Personal Links',
+            ...(!hidePublicationEditor && { description: 'Imported DBLP publications' }),
+            status: currentStep === 3 ? 'process' : 'wait',
+          },
+          {
+            step: 4,
+            title: 'History',
+            description: 'Education & Career History',
+            status: currentStep === 4 ? 'process' : 'wait',
+          },
+          {
+            step: 5,
+            title: 'Relations',
+            description: 'Advisors & Other Relations',
+            status: currentStep === 5 ? 'process' : 'wait',
+          },
+          {
+            step: 6,
+            title: 'Expertise',
+            status: currentStep === 6 ? 'process' : 'wait',
+          },
+        ]}
+      />
+      {renderStep(currentStep)}
 
       {hidePublicationEditor && (
         <p className="help-block">

@@ -129,8 +129,9 @@ export default function ProfileEdit({ appContext }) {
           unlinkPublication(profile.id, publicationId)
         )
       )
-      promptMessage('Your profile information has been successfully updated')
-      router.push('/profile')
+      promptMessage('Your profile information has been successfully updated', {
+        timeout: 2000,
+      })
     } catch (apiError) {
       promptError(marked(`**Error:** ${apiError.message}`), { html: true })
     }
