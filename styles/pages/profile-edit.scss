@@ -135,6 +135,30 @@ main.profile-edit {
           }
         }
       }
+
+      .rc-steps-item-error {
+        .rc-steps-item-icon {
+          border-color: #f50;
+          background-color: #f50;
+          color: white;
+
+          .rc-steps-icon {
+            top: -2px;
+            &.rcicon-cross:before {
+              content: '✕';
+              display: block;
+            }
+          }
+        }
+        .rc-steps-item-container {
+          .rc-steps-item-content {
+            .rc-steps-item-title,
+            .rc-steps-item-description {
+              color: #f50;
+            }
+          }
+        }
+      }
     }
   }
 

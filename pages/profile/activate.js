@@ -38,6 +38,7 @@ const ActivateProfile = ({ appContext }) => {
   }
 
   const saveProfile = async (newProfileData) => {
+    setLoading(true)
     try {
       const { user, token } = await api.put(`/activate/${activateToken}`, {
         content: newProfileData,

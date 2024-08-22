@@ -29,16 +29,21 @@ export default function ProfileEditor({
   hidePublicationEditor,
   loading,
   isNewProfile,
+  saveProfileError,
 }) {
-  const profileReducer = (state, action) => ({
-    ...state,
-    [action.type]: action.data,
-  })
+  const profileReducer = (state, action) => {
+    if (action.type === 'reset') return action.data
+    return {
+      ...state,
+      [action.type]: action.data,
+    }
+  }
   const [profile, setProfile] = useReducer(profileReducer, loadedProfile)
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
   const [renderPublicationEditor, setRenderPublicationEditor] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+  const [invalidSteps, setInvalidSteps] = useState([])
 
   const prefixedRelations = dropdownOptions?.prefixedRelations
   const relationReaders = dropdownOptions?.relationReaders
@@ -61,7 +66,7 @@ export default function ProfileEditor({
     promptError(message)
     setProfile({
       type,
-      data: profile[type].map((p, index) => {
+      data: profile[type]?.map((p, index) => {
         if ((!invalidKey && index === 0) || (invalidKey && p.key === invalidKey))
           return { ...p, valid: false }
         return p
@@ -106,7 +111,7 @@ export default function ProfileEditor({
       emails: profile.emails.map((p) => (p.email ? p : null)).filter(Boolean),
       links: undefined,
       ...profile.links,
-      history: profile.history.flatMap((p) =>
+      history: profile.history?.flatMap((p) =>
         p.position || p.institution?.domain || p.institution?.name ? p : []
       ),
       expertise: profile.expertise?.flatMap((p) => (p.keywords?.length ? p : [])),
@@ -125,6 +130,7 @@ export default function ProfileEditor({
 
     // #region validate emails
     if ((invalidRecord = profileContent.emails.find((p) => !isValidEmail(p.email)))) {
+      setInvalidSteps((current) => [...current, 2])
       return promptInvalidValue(
         'emails',
         invalidRecord.key,
@@ -133,25 +139,28 @@ export default function ProfileEditor({
     }
     // #endregion
 
-    // #region validate personal links
-    // must have at least 1 link
-    if (!personalLinkNames.some((p) => profileContent[p]?.value?.trim())) {
-      return promptInvalidSection('You must enter at least one personal link')
-    }
-    // must not have any invalid links
-    const invalidLinkName = personalLinkNames.find(
-      (p) => profileContent[p]?.value && profileContent[p].valid === false
-    )
-    if (invalidLinkName) {
-      return promptInvalidLink(
-        invalidLinkName,
-        'One of your personal links is invalid. Please make sure all URLs start with http:// or https://'
-      )
-    }
-    // #endregion
+    // // #region validate personal links
+    // // must have at least 1 link
+    // if (!personalLinkNames.some((p) => profileContent[p]?.value?.trim())) {
+    //   setInvalidSteps((current) => [...current, 3])
+    //   return promptInvalidSection('You must enter at least one personal link')
+    // }
+    // // must not have any invalid links
+    // const invalidLinkName = personalLinkNames.find(
+    //   (p) => profileContent[p]?.value && profileContent[p].valid === false
+    // )
+    // if (invalidLinkName) {
+    //   setInvalidSteps((current) => [...current, 3])
+    //   return promptInvalidLink(
+    //     invalidLinkName,
+    //     'One of your personal links is invalid. Please make sure all URLs start with http:// or https://'
+    //   )
+    // }
+    // // #endregion
 
     // #region validate history
-    if ((invalidRecord = profileContent.history.find((p) => !p.institution?.domain))) {
+    if ((invalidRecord = profileContent.history?.find((p) => !p.institution?.domain))) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         invalidRecord.key,
@@ -159,10 +168,11 @@ export default function ProfileEditor({
       )
     }
     if (
-      (invalidRecord = profileContent.history.find(
+      (invalidRecord = profileContent.history?.find(
         (p) => p.institution.domain.startsWith('www') || !isValidDomain(p.institution.domain)
       ))
     ) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         invalidRecord.key,
@@ -170,15 +180,17 @@ export default function ProfileEditor({
       )
     }
     if (
-      (invalidRecord = profileContent.history.find((p) => p.start && !isValidYear(p.start)))
+      (invalidRecord = profileContent.history?.find((p) => p.start && !isValidYear(p.start)))
     ) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         invalidRecord.key,
         'Start date should be a valid year'
       )
     }
-    if ((invalidRecord = profileContent.history.find((p) => p.end && !isValidYear(p.end)))) {
+    if ((invalidRecord = profileContent.history?.find((p) => p.end && !isValidYear(p.end)))) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         invalidRecord.key,
@@ -186,18 +198,23 @@ export default function ProfileEditor({
       )
     }
     if (
-      (invalidRecord = profileContent.history.find((p) => p.start && p.end && p.start > p.end))
+      (invalidRecord = profileContent.history?.find(
+        (p) => p.start && p.end && p.start > p.end
+      ))
     ) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         invalidRecord.key,
         'End date should be higher than start date'
       )
     }
-    if ((invalidRecord = profileContent.history.find((p) => !p.start && p.end))) {
+    if ((invalidRecord = profileContent.history?.find((p) => !p.start && p.end))) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue('history', invalidRecord.key, 'Start date can not be empty')
     }
-    if (!profileContent.history.length) {
+    if (!profileContent.history?.length) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         null,
@@ -205,7 +222,7 @@ export default function ProfileEditor({
       )
     }
     if (
-      (invalidRecord = profileContent.history.find(
+      (invalidRecord = profileContent.history?.find(
         (p) =>
           !p.position ||
           !p.institution.name ||
@@ -213,6 +230,7 @@ export default function ProfileEditor({
           ((!p.end || p.end >= new Date().getFullYear()) && !p.institution.country)
       ))
     ) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         invalidRecord.key,
@@ -220,6 +238,7 @@ export default function ProfileEditor({
       )
     }
     if (!profileContent.history.some((p) => !p.end || p.end >= new Date().getFullYear())) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         profile.history?.[0]?.key,
@@ -234,6 +253,7 @@ export default function ProfileEditor({
         (p) => !p.relation || !p.name || (!p.email && !p.username)
       ))
     ) {
+      setInvalidSteps((current) => [...current, 5])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -245,6 +265,7 @@ export default function ProfileEditor({
         (p) => !p.username && !isValidEmail(p.email)
       ))
     ) {
+      setInvalidSteps((current) => [...current, 5])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -254,6 +275,7 @@ export default function ProfileEditor({
     if (
       (invalidRecord = profileContent.relations.find((p) => p.start && !isValidYear(p.start)))
     ) {
+      setInvalidSteps((current) => [...current, 5])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -261,6 +283,7 @@ export default function ProfileEditor({
       )
     }
     if ((invalidRecord = profileContent.relations.find((p) => p.end && !isValidYear(p.end)))) {
+      setInvalidSteps((current) => [...current, 5])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -272,6 +295,7 @@ export default function ProfileEditor({
         (p) => p.start && p.end && p.start > p.end
       ))
     ) {
+      setInvalidSteps((current) => [...current, 5])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -279,6 +303,7 @@ export default function ProfileEditor({
       )
     }
     if ((invalidRecord = profileContent.relations.find((p) => !p.start && p.end))) {
+      setInvalidSteps((current) => [...current, 5])
       return promptInvalidValue('relations', invalidRecord.key, 'Start date can not be empty')
     }
     // #endregion
@@ -287,6 +312,7 @@ export default function ProfileEditor({
     if (
       (invalidRecord = profileContent.expertise?.find((p) => p.start && !isValidYear(p.start)))
     ) {
+      setInvalidSteps((current) => [...current, 6])
       return promptInvalidValue(
         'expertise',
         invalidRecord.key,
@@ -296,6 +322,7 @@ export default function ProfileEditor({
     if (
       (invalidRecord = profileContent.expertise?.find((p) => p.end && !isValidYear(p.end)))
     ) {
+      setInvalidSteps((current) => [...current, 6])
       return promptInvalidValue(
         'expertise',
         invalidRecord.key,
@@ -307,6 +334,7 @@ export default function ProfileEditor({
         (p) => p.start && p.end && p.start > p.end
       ))
     ) {
+      setInvalidSteps((current) => [...current, 6])
       return promptInvalidValue(
         'expertise',
         invalidRecord.key,
@@ -314,6 +342,7 @@ export default function ProfileEditor({
       )
     }
     if ((invalidRecord = profileContent.expertise?.find((p) => !p.start && p.end))) {
+      setInvalidSteps((current) => [...current, 6])
       return promptInvalidValue('expertise', invalidRecord.key, 'Start date can not be empty')
     }
     // #endregion
@@ -348,6 +377,7 @@ export default function ProfileEditor({
   }
 
   const handleSubmit = async () => {
+    setInvalidSteps([])
     const { isValid, profileContent, profileReaders } = validateCleanProfile()
     if (isValid) {
       await submitHandler(profileContent, profileReaders, publicationIdsToUnlink)
@@ -565,6 +595,39 @@ export default function ProfileEditor({
     }
   }
 
+  const getStepStatus = (step) => {
+    if (invalidSteps.includes(step)) {
+      return 'error'
+    }
+    return currentStep === step ? 'process' : 'wait'
+  }
+
+  useEffect(() => {
+    if (!saveProfileError) return
+    if (saveProfileError.startsWith('content/names')) {
+      setInvalidSteps((current) => [...current, 0])
+    } else if (
+      saveProfileError.startsWith('content/pronouns') ||
+      saveProfileError.startsWith('content/gender') ||
+      saveProfileError.startsWith('content/yearOfBirth')
+    ) {
+      setInvalidSteps((current) => [...current, 1])
+    } else if (saveProfileError.startsWith('content/emails')) {
+      setInvalidSteps((current) => [...current, 2])
+    } else if (saveProfileError.startsWith('content/dblp')) {
+      setInvalidSteps((current) => [...current, 3])
+    } else if (saveProfileError.startsWith('content/history')) {
+      setInvalidSteps((current) => [...current, 4])
+    }
+  }, [saveProfileError])
+
+  useEffect(() => {
+    if (loadedProfile) {
+      setProfile({ type: 'reset', data: loadedProfile })
+      setInvalidSteps([])
+    }
+  }, [loadedProfile])
+
   useEffect(() => {
     const loadOptions = async () => {
       try {
@@ -601,41 +664,41 @@ export default function ProfileEditor({
           {
             step: 0,
             title: 'Names',
-            status: currentStep === 0 ? 'process' : 'wait',
+            status: getStepStatus(0),
           },
           {
             step: 1,
             title: 'Gender',
             description: 'Pronouns, Year of Birth and Profile Visibility',
-            status: currentStep === 1 ? 'process' : 'wait',
+            status: getStepStatus(1),
           },
           {
             step: 2,
             title: 'Emails',
-            status: currentStep === 2 ? 'process' : 'wait',
+            status: getStepStatus(2),
           },
           {
             step: 3,
             title: 'Personal Links',
             ...(!hidePublicationEditor && { description: 'Imported DBLP publications' }),
-            status: currentStep === 3 ? 'process' : 'wait',
+            status: getStepStatus(3),
           },
           {
             step: 4,
             title: 'History',
             description: 'Education & Career History',
-            status: currentStep === 4 ? 'process' : 'wait',
+            status: getStepStatus(4),
           },
           {
             step: 5,
             title: 'Relations',
             description: 'Advisors & Other Relations',
-            status: currentStep === 5 ? 'process' : 'wait',
+            status: getStepStatus(5),
           },
           {
             step: 6,
             title: 'Expertise',
-            status: currentStep === 6 ? 'process' : 'wait',
+            status: getStepStatus(6),
           },
         ]}
       />

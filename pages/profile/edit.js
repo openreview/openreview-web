@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import get from 'lodash/get'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ProfileEditor from '../../components/profile/ProfileEditor'
@@ -20,6 +19,7 @@ export default function ProfileEdit({ appContext }) {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [profile, setProfile] = useState(null)
+  const [saveProfileError, setSaveProfileError] = useState(null)
   const router = useRouter()
   const { setBannerHidden, setEditBanner } = appContext
 
@@ -111,6 +111,7 @@ export default function ProfileEdit({ appContext }) {
 
   const saveProfile = async (profileContent, profileReaders, publicationIdsToUnlink) => {
     setLoading(true)
+    setSaveProfileError(null)
     const dataToSubmit = {
       id: profile.id,
       content: profileContent,
@@ -132,8 +133,10 @@ export default function ProfileEdit({ appContext }) {
       promptMessage('Your profile information has been successfully updated', {
         timeout: 2000,
       })
+      loadProfile()
     } catch (apiError) {
       promptError(marked(`**Error:** ${apiError.message}`), { html: true })
+      setSaveProfileError(apiError?.details?.path)
     }
     setLoading(false)
   }
@@ -175,6 +178,7 @@ export default function ProfileEdit({ appContext }) {
         submitHandler={saveProfile}
         cancelHandler={() => router.push('/profile').then(() => window.scrollTo(0, 0))}
         loading={loading}
+        saveProfileError={saveProfileError}
       />
     </div>
   )
