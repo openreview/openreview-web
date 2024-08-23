@@ -139,24 +139,24 @@ export default function ProfileEditor({
     }
     // #endregion
 
-    // // #region validate personal links
-    // // must have at least 1 link
-    // if (!personalLinkNames.some((p) => profileContent[p]?.value?.trim())) {
-    //   setInvalidSteps((current) => [...current, 3])
-    //   return promptInvalidSection('You must enter at least one personal link')
-    // }
-    // // must not have any invalid links
-    // const invalidLinkName = personalLinkNames.find(
-    //   (p) => profileContent[p]?.value && profileContent[p].valid === false
-    // )
-    // if (invalidLinkName) {
-    //   setInvalidSteps((current) => [...current, 3])
-    //   return promptInvalidLink(
-    //     invalidLinkName,
-    //     'One of your personal links is invalid. Please make sure all URLs start with http:// or https://'
-    //   )
-    // }
-    // // #endregion
+    // #region validate personal links
+    // must have at least 1 link
+    if (!personalLinkNames.some((p) => profileContent[p]?.value?.trim())) {
+      setInvalidSteps((current) => [...current, 3])
+      return promptInvalidSection('You must enter at least one personal link')
+    }
+    // must not have any invalid links
+    const invalidLinkName = personalLinkNames.find(
+      (p) => profileContent[p]?.value && profileContent[p].valid === false
+    )
+    if (invalidLinkName) {
+      setInvalidSteps((current) => [...current, 3])
+      return promptInvalidLink(
+        invalidLinkName,
+        'One of your personal links is invalid. Please make sure all URLs start with http:// or https://'
+      )
+    }
+    // #endregion
 
     // #region validate history
     if ((invalidRecord = profileContent.history?.find((p) => !p.institution?.domain))) {
@@ -614,7 +614,10 @@ export default function ProfileEditor({
       setInvalidSteps((current) => [...current, 1])
     } else if (saveProfileError.startsWith('content/emails')) {
       setInvalidSteps((current) => [...current, 2])
-    } else if (saveProfileError.startsWith('content/dblp')) {
+    } else if (
+      saveProfileError.startsWith('content/homepage') ||
+      saveProfileError.startsWith('content/dblp')
+    ) {
       setInvalidSteps((current) => [...current, 3])
     } else if (saveProfileError.startsWith('content/history')) {
       setInvalidSteps((current) => [...current, 4])
