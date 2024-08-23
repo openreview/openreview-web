@@ -264,6 +264,7 @@ test('add and delete pronouns', async (t) => {
     .wait(1000)
     .click(Selector('div.pronouns-dropdown__option').nth(2))
     .click(saveProfileButton)
+    .wait(200)
     .click(cancelButton)
     .expect(Selector('h4').nth(0).textContent)
     .eql('Pronouns: he/him')
