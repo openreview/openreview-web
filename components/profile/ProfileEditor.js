@@ -704,7 +704,7 @@ export default function ProfileEditor({
       />
       {renderStep(currentStep)}
 
-      {hidePublicationEditor && (
+      {isNewProfile && currentStep === 6 && (
         <p className="help-block">
           By registering, you agree to the{' '}
           <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
@@ -714,22 +714,34 @@ export default function ProfileEditor({
         </p>
       )}
 
-      <div className="buttons-row">
-        <button
-          type="button"
-          className="btn submit-button"
-          disabled={loading}
-          onClick={handleSubmit}
-        >
-          {submitButtonText ?? 'Save Profile Changes'}
-          {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
-        </button>
-        {!hideCancelButton && (
-          <button type="button" className="btn btn-default" onClick={cancelHandler}>
-            Cancel
+      {isNewProfile && currentStep !== 6 ? (
+        <div className="buttons-row">
+          <button
+            type="button"
+            className="btn submit-button"
+            onClick={() => setCurrentStep(currentStep + 1)}
+          >
+            {'Next Section'}
           </button>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="buttons-row">
+          <button
+            type="button"
+            className="btn submit-button"
+            disabled={loading}
+            onClick={handleSubmit}
+          >
+            {submitButtonText ?? 'Save Profile Changes'}
+            {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
+          </button>
+          {!hideCancelButton && (
+            <button type="button" className="btn btn-default" onClick={cancelHandler}>
+              Cancel
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
