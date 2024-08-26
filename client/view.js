@@ -2567,7 +2567,7 @@ module.exports = (function () {
       note.tmdate,
       note.content.year,
       note.pdate,
-      note.id !== note.forum, // include time if this a reply
+      note.id !== note.forum // include time if this a reply
     )
     var $replyCountLabel =
       params.withReplyCount && details.replyCount
@@ -3649,9 +3649,11 @@ module.exports = (function () {
 
       $submitButton.click(function () {
         if ($submitButton.prop('disabled')) {
+          // double clicked, ignore
           return false
         }
 
+        // add spinner to indicate it is busy
         $submitButton
           .prop({ disabled: true })
           .append(
@@ -3679,12 +3681,12 @@ module.exports = (function () {
         )
         var writerValues = getWriters(invitation, signatureInputValues, user)
 
+        // check input is valid
         var errorList = content[2].concat(validate(invitation, content[0], readers))
         if (params.onValidate) {
           errorList = errorList.concat(params.onValidate(invitation, content[0]))
         }
-        var files = content[1]
-
+        // handle errors found in input
         if (!_.isEmpty(errorList)) {
           if (params.onError) {
             params.onError(errorList)
@@ -3707,11 +3709,13 @@ module.exports = (function () {
           replyto: replyto || invitation.reply.replyto,
         }
 
+        var files = content[1]
         if (_.isEmpty(files)) {
           return saveNote(note)
         }
 
         var onError = function (e) {
+          // didn't save, renable buttons for user to correct
           var errorMsg
           if (e.responseJSON && e.responseJSON.message) {
             errorMsg = e.responseJSON.message
@@ -4448,13 +4452,7 @@ module.exports = (function () {
             var clientUploadId = nanoid()
             var chunks = Array.from(new Array(chunkCount), function (e, chunkIndex) {
               return new File(
-                [
-                  file.slice(
-                    chunkIndex * chunkSize,
-                    (chunkIndex + 1) * chunkSize,
-                    file.type
-                  ),
-                ],
+                [file.slice(chunkIndex * chunkSize, (chunkIndex + 1) * chunkSize, file.type)],
                 file.name
               )
             })
@@ -4508,11 +4506,7 @@ module.exports = (function () {
               )
             }
             $progressBar.show()
-            var sendChunksPromiseRef = chunks.reduce(function (
-              oldPromises,
-              currentChunk,
-              i
-            ) {
+            var sendChunksPromiseRef = chunks.reduce(function (oldPromises, currentChunk, i) {
               return oldPromises.then(function (_) {
                 return sendSingleChunk(currentChunk, i)
               })
