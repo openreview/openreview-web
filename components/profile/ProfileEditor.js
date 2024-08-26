@@ -619,7 +619,13 @@ export default function ProfileEditor({
     }
     if (
       saveProfileErrors.some((errorPath) => errorPath.startsWith('content/homepage')) ||
-      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/dblp'))
+      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/dblp')) ||
+      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/gscholar')) ||
+      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/linkedin')) ||
+      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/orcid')) ||
+      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/semanticScholar')) ||
+      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/aclanthology')) ||
+      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/wikipedia'))
     ) {
       setInvalidSteps((current) => [...current, 3])
     }
