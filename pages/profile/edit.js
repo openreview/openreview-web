@@ -19,7 +19,7 @@ export default function ProfileEdit({ appContext }) {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [profile, setProfile] = useState(null)
-  const [saveProfileError, setSaveProfileError] = useState(null)
+  const [saveProfileErrors, setSaveProfileErrors] = useState(null)
   const router = useRouter()
   const { setBannerHidden, setEditBanner } = appContext
 
@@ -111,7 +111,7 @@ export default function ProfileEdit({ appContext }) {
 
   const saveProfile = async (profileContent, profileReaders, publicationIdsToUnlink) => {
     setLoading(true)
-    setSaveProfileError(null)
+    setSaveProfileErrors(null)
     const dataToSubmit = {
       id: profile.id,
       content: profileContent,
@@ -136,7 +136,9 @@ export default function ProfileEdit({ appContext }) {
       loadProfile()
     } catch (apiError) {
       promptError(marked(`**Error:** ${apiError.message}`), { html: true })
-      setSaveProfileError(apiError?.details?.path)
+      setSaveProfileErrors(
+        apiError.errors?.map((p) => p.details?.path) ?? [apiError?.details?.path]
+      )
     }
     setLoading(false)
   }
@@ -178,7 +180,7 @@ export default function ProfileEdit({ appContext }) {
         submitHandler={saveProfile}
         cancelHandler={() => router.push('/profile').then(() => window.scrollTo(0, 0))}
         loading={loading}
-        saveProfileError={saveProfileError}
+        saveProfileErrors={saveProfileErrors}
       />
     </div>
   )

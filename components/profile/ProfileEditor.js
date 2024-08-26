@@ -29,7 +29,7 @@ export default function ProfileEditor({
   hidePublicationEditor,
   loading,
   isNewProfile,
-  saveProfileError,
+  saveProfileErrors,
 }) {
   const profileReducer = (state, action) => {
     if (action.type === 'reset') return action.data
@@ -603,26 +603,30 @@ export default function ProfileEditor({
   }
 
   useEffect(() => {
-    if (!saveProfileError) return
-    if (saveProfileError.startsWith('content/names')) {
+    if (!saveProfileErrors?.length) return
+    if (saveProfileErrors.some((errorPath) => errorPath.startsWith('content/names'))) {
       setInvalidSteps((current) => [...current, 0])
-    } else if (
-      saveProfileError.startsWith('content/pronouns') ||
-      saveProfileError.startsWith('content/gender') ||
-      saveProfileError.startsWith('content/yearOfBirth')
+    }
+    if (
+      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/pronouns')) ||
+      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/gender')) ||
+      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/yearOfBirth'))
     ) {
       setInvalidSteps((current) => [...current, 1])
-    } else if (saveProfileError.startsWith('content/emails')) {
+    }
+    if (saveProfileErrors.some((errorPath) => errorPath.startsWith('content/emails'))) {
       setInvalidSteps((current) => [...current, 2])
-    } else if (
-      saveProfileError.startsWith('content/homepage') ||
-      saveProfileError.startsWith('content/dblp')
+    }
+    if (
+      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/homepage')) ||
+      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/dblp'))
     ) {
       setInvalidSteps((current) => [...current, 3])
-    } else if (saveProfileError.startsWith('content/history')) {
+    }
+    if (saveProfileErrors.some((errorPath) => errorPath.startsWith('content/history'))) {
       setInvalidSteps((current) => [...current, 4])
     }
-  }, [saveProfileError])
+  }, [saveProfileErrors])
 
   useEffect(() => {
     if (loadedProfile) {
