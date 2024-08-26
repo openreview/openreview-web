@@ -195,13 +195,13 @@ main.edge-browser {
         pointer-events: none;
       }
     }
-    .scores-list,
-    .action-links {
+    .scores-list {
       float: left;
-      width: 50%;
-    }
+      width: 66%;
+    }    
     .action-links {
       float: right;
+      width: 33%;
     }
     &.is-selected .action-links {
       ul li {
@@ -328,7 +328,6 @@ main.edge-browser {
       vertical-align: top;
       width: 385px;
       height: 100%;
-      text-wrap: wrap;
       background-color: #fff;
       border: 1px solid #ccc;
       border-bottom: 2px solid #ccc;
@@ -609,7 +608,7 @@ main.edge-browser {
     .action-links ul,
     .scores-list ul {
       li {
-        white-space: nowrap;
+        white-space: wrap;
       }
       li > a {
         font-size: 0.75rem;
