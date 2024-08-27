@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import get from 'lodash/get'
+import { upperFirst } from 'lodash'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ScalarStat from '../../components/assignments/ScalarStat'
@@ -10,7 +11,7 @@ import HistogramStat from '../../components/assignments/HistogramStat'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { prettyId, getGroupIdfromInvitation } from '../../lib/utils'
+import { prettyId, getGroupIdfromInvitation, getSingularRoleName } from '../../lib/utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import { getNoteContentValues } from '../../lib/forum-utils'
 import { referrerLink } from '../../lib/banner-links'
@@ -40,8 +41,12 @@ const AssignmentStats = ({ appContext }) => {
   const [values, setValues] = useState({})
   const [groupId, setGroupId] = useState(null)
   const [error, setError] = useState(null)
+  const [headName, setHeadName] = useState('papers')
   const query = useQuery()
   const { setBannerContent } = appContext
+
+  const upperHeadName = upperFirst(headName)
+  const upperSingularHeadName = getSingularRoleName(upperHeadName)
 
   let edgeBrowserUrlParams = {}
   if (assignmentConfigNote) {
@@ -71,6 +76,14 @@ const AssignmentStats = ({ appContext }) => {
       const note = await api.getNoteById(assignmentConfigId, accessToken)
       if (note) {
         if (note.apiVersion === 2) {
+          const assignmentInvitationId = note.content?.assignment_invitation?.value
+          const assignmentInvitation = assignmentInvitationId
+            ? await api.getInvitationById(assignmentInvitationId, accessToken)
+            : Promise.resolve(null)
+          const headNameInAssignmentInvitation = prettyId(
+            assignmentInvitation?.edge?.head?.param?.inGroup?.split('/').pop()
+          )
+          if (headNameInAssignmentInvitation) setHeadName(headNameInAssignmentInvitation)
           setAssignmentConfigNote({ ...note, content: getNoteContentValues(note.content) })
           setGroupId(getGroupIdfromInvitation(note.invitations[0]))
         } else {
@@ -260,16 +273,19 @@ const AssignmentStats = ({ appContext }) => {
       meanPaperCountPerGroup: getMeanPaperCountPerGroup(matchLists[0]),
       distributionPapersByUserCount: getDistributionPapersByUserCount(
         matchLists[0],
-        matchLists[1]
+        matchLists[1],
+        upperHeadName
       ),
       distributionUsersByPaperCount: getDistributionUsersByPaperCount(
         matchLists[0],
-        matchLists[2]
+        matchLists[2],
+        upperHeadName
       ),
       distributionAssignmentByScore: getDistributionAssignmentByScore(matchLists[0]),
       distributionPapersByMeanScore: getDistributionPapersByMeanScore(
         matchLists[0],
-        matchLists[1]
+        matchLists[1],
+        upperHeadName
       ),
       distributionUsersByMeanScore: getDistributionUsersByMeanScore(
         matchLists[0],
@@ -277,13 +293,15 @@ const AssignmentStats = ({ appContext }) => {
       ),
       ...(showRecommendationDistribution && {
         distributionRecomGroupCountPerPaper: getDistributionRecomGroupCountPerPaper(
-          matchLists[0]
+          matchLists[0],
+          upperHeadName,
+          upperSingularHeadName
         ),
         distributionRecomGroupCountPerWeight: getDistributionRecomGroupCountPerWeight(
           matchLists[0]
         ),
       }),
-      ...getNumDataPerGroupDataByBidScore(matchLists[0]),
+      ...getNumDataPerGroupDataByBidScore(matchLists[0], upperHeadName),
     })
   }, [matchLists])
 
@@ -355,7 +373,7 @@ const AssignmentStats = ({ appContext }) => {
       <div className="basic-stats">
         <ScalarStat
           value={values.paperCount}
-          name="Number of papers / Number of papers with assignments"
+          name={`Number of ${headName} / Number of ${headName} with assignments`}
         />
         <ScalarStat
           value={values.userCount}
@@ -364,11 +382,11 @@ const AssignmentStats = ({ appContext }) => {
         <ScalarStat value={values.meanFinalScore} name="Mean Final Score" />
         <ScalarStat
           value={values.meanGroupCountPerPaper}
-          name="Mean Number of Users per Paper"
+          name={`Mean Number of Users per ${upperSingularHeadName}`}
         />
         <ScalarStat
           value={values.meanPaperCountPerGroup}
-          name="Mean Number of Papers per User"
+          name={`Mean Number of ${upperHeadName} per User`}
         />
         {assignmentConfigNote?.content.randomized_fraction_of_opt && (
           <ScalarStat
