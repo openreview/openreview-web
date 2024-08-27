@@ -1921,14 +1921,24 @@ const UserModerationQueue = ({
   }
 
   const addSDNException = async (profileId) => {
+    const sdnExceptionGroupId = `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`
     try {
-      await api.put(
-        '/groups/members',
+      const sdnExceptionGroup = await api.getGroupById(sdnExceptionGroupId, accessToken)
+      await api.post(
+        '/groups/edits',
         {
-          id: `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`,
-          members: [profileId],
+          group: {
+            id: `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`,
+            members: {
+              append: [profileId],
+            },
+          },
+          readers: sdnExceptionGroup.signatures,
+          writers: sdnExceptionGroup.signatures,
+          signatures: sdnExceptionGroup.signatures,
+          invitation: sdnExceptionGroup.invitations?.[0],
         },
-        { accessToken, version: 1 }
+        { accessToken }
       )
       promptMessage(`${profileId} is added to SDN exception group`)
     } catch (error) {
