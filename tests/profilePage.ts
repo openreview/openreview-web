@@ -279,6 +279,7 @@ test('add and delete pronouns', async (t) => {
     .wait(500)
     .click(Selector('div.pronouns-dropdown__option').nth(0))
     .click(saveProfileButton)
+    .wait(200)
     .click(cancelButton) // to navigate to profile view
     .expect(Selector('h4').nth(0).textContent)
     .eql(`Pronouns: ${customPronouns}`)
