@@ -72,7 +72,7 @@ const firstHistoryEndInput = Selector('div.history')
 const messageSelector = Selector('span').withAttribute('class', 'important_message')
 const messagePanelSelector = Selector('#flash-message-container')
 const step0Names = Selector('div[step="0"]').find('div[role="button"]')
-const step1Gender = Selector('div[step="1"]').find('div[role="button"]')
+const step1PeronalInfo = Selector('div[step="1"]').find('div[role="button"]')
 const step2Emails = Selector('div[step="2"]').find('div[role="button"]')
 const step3Links = Selector('div[step="3"]').find('div[role="button"]')
 const step4History = Selector('div[step="4"]').find('div[role="button"]')
@@ -219,7 +219,7 @@ test('add and delete year of birth', async (t) => {
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     // add invalid year of birth
-    .click(step1Gender)
+    .click(step1PeronalInfo)
     .typeText(yearOfBirthInput, '0000')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
@@ -234,7 +234,7 @@ test('add and delete year of birth', async (t) => {
     // remove year of birth
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(step1Gender)
+    .click(step1PeronalInfo)
     .expect(yearOfBirthInput.value)
     .eql('2000')
     .selectText(yearOfBirthInput)
@@ -247,7 +247,7 @@ test('add and delete year of birth', async (t) => {
     // verify year of birth has been removed
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(step1Gender)
+    .click(step1PeronalInfo)
     .expect(yearOfBirthInput.value)
     .eql('')
 })
@@ -259,7 +259,7 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(step1Gender)
+    .click(step1PeronalInfo)
     .click(Selector('div.pronouns-dropdown__control'))
     .wait(1000)
     .click(Selector('div.pronouns-dropdown__option').nth(2))
@@ -274,7 +274,7 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(step1Gender)
+    .click(step1PeronalInfo)
     .typeText(Selector('div.pronouns'), customPronouns)
     .wait(500)
     .click(Selector('div.pronouns-dropdown__option').nth(0))
@@ -288,7 +288,7 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(step1Gender)
+    .click(step1PeronalInfo)
     .click(Selector('div.pronouns-dropdown__control'))
     .wait(500)
     .click(Selector('div.pronouns-dropdown__option').nth(3))
