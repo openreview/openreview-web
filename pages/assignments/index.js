@@ -88,7 +88,9 @@ const AssignmentRow = ({
       <td>{note.tmdate === note.tcdate ? null : formatDateTime(note.tmdate)}</td>
 
       <td>
-        {['Error', 'No Solution', 'Deployment Error', 'Undeployment Error'].includes(status) ? (
+        {['Error', 'No Solution', 'Deployment Error', 'Undeployment Error'].includes(
+          status
+        ) ? (
           <>
             <strong>{status}</strong>
             <br />
@@ -122,9 +124,15 @@ const AssignmentRow = ({
           iconName="pencil"
           onClick={() => handleEditConfiguration(note, apiVersion)}
           disabled={
-            ['Running', 'Complete', 'Deploying', 'Deployed', 'Deployment Error', 'Undeploying', 'Undeployment Error'].includes(
-              status
-            ) || !configInvitation
+            [
+              'Running',
+              'Complete',
+              'Deploying',
+              'Deployed',
+              'Deployment Error',
+              'Undeploying',
+              'Undeployment Error',
+            ].includes(status) || !configInvitation
           }
         />
         <ActionLink
@@ -272,7 +280,7 @@ const NewNoteEditorModal = ({
 }
 
 const Assignments = ({ appContext }) => {
-  const { accessToken } = useLoginRedirect()
+  const { accessToken, loginUser } = useLoginRedirect()
   const [configInvitation, setConfigInvitation] = useState(null)
   const [assignmentNotes, setAssignmentNotes] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
@@ -286,11 +294,13 @@ const Assignments = ({ appContext }) => {
   const newNoteEditor = configInvitation?.domain
   const pageSize = 25
 
-  const shouldShowDeployLink = configInvitation?.content?.multiple_deployments?.value || !assignmentNotes?.some((p) =>
-    apiVersion === 2
-      ? p?.content?.status?.value === 'Deployed'
-      : p?.content?.status === 'Deployed'
-  )
+  const shouldShowDeployLink =
+    configInvitation?.content?.multiple_deployments?.value ||
+    !assignmentNotes?.some((p) =>
+      apiVersion === 2
+        ? p?.content?.status?.value === 'Deployed'
+        : p?.content?.status === 'Deployed'
+    )
 
   // API functions
   const getConfigInvitation = async () => {
@@ -500,7 +510,9 @@ const Assignments = ({ appContext }) => {
 
   const handleRunMatcher = async (id) => {
     try {
-      await api.post('/match', { configNoteId: id }, { accessToken })
+      const { token, user } = await api.post('/refreshToken', { forceNewToken: true })
+      loginUser(user, token, null)
+      await api.post('/match', { configNoteId: id }, { token })
       promptMessage(
         'Matching started. The status of the assignments will be updated when the matching process is complete'
       )
