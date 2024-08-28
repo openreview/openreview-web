@@ -21,8 +21,10 @@ import {
   prettyField,
   getSingularRoleName,
   getRoleHashFragment,
+  pluralizeString,
 } from '../../lib/utils'
 import { formatProfileContent } from '../../lib/edge-utils'
+import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
 
 const SeniorAreaChairConsole = ({ appContext }) => {
   const {
@@ -111,15 +113,12 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                   { accessToken }
                 )
                 .then((notes) =>
-                  notes.filter((note) => {
-                    const noteVenueId = note.content?.venueid?.value
-                    return (
-                      noteVenueId !== withdrawnVenueId &&
-                      noteVenueId !== deskRejectedVenueId &&
-                      ((filterFunction && Function('note', filterFunction)(note)) ?? true) && // eslint-disable-line no-new-func
+                  notes.filter(
+                    (note) =>
+                      // eslint-disable-next-line no-new-func
+                      ((filterFunction && Function('note', filterFunction)(note)) ?? true) &&
                       noteNumbers.includes(note.number)
-                    )
-                  })
+                  )
                 )
             })
         : Promise.resolve([])
@@ -385,12 +384,13 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       )
 
       setSacConsoleData({
-        isSacConsole: true,
         assignedAreaChairIds,
         areaChairGroups,
         allProfilesMap,
         assignmentInvitations: invitations,
-        notes: assignedNotes.map((note) => {
+        notes: assignedNotes.flatMap((note) => {
+          if ([withdrawnVenueId, deskRejectedVenueId].includes(note.content?.venueid?.value))
+            return []
           const assignedReviewers =
             reviewerGroups?.find((p) => p.noteNumber === note.number)?.members ?? []
           const assignedAreaChairs =
@@ -626,6 +626,14 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             ithenticateEdge: ithenticateEdges.find((p) => p.head === note.id),
           }
         }),
+        withdrawnNotes: assignedNotes.flatMap((note) => {
+          if (note.content?.venueid?.value === withdrawnVenueId) return note
+          return []
+        }),
+        deskRejectedNotes: assignedNotes.flatMap((note) => {
+          if (note.content?.venueid?.value === deskRejectedVenueId) return note
+          return []
+        }),
       })
     } catch (error) {
       promptError(`loading data: ${error.message}`)
@@ -653,6 +661,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     const validTabIds = [
       `#${(submissionName ?? '').toLowerCase()}-status`,
       `#${areaChairUrlFormat}-status`,
+      '#deskrejectwithdrawn-status',
       `#${seniorAreaChairUrlFormat}-tasks`,
     ]
     if (!validTabIds.includes(activeTabId)) {
@@ -703,6 +712,15 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           >
             {getSingularRoleName(prettyField(areaChairName))} Status
           </Tab>
+          {(withdrawnVenueId || deskRejectedVenueId) && (
+            <Tab
+              id="deskrejectwithdrawn-status"
+              active={activeTabId === '#deskrejectwithdrawn-status' ? true : undefined}
+              onClick={() => setActiveTabId('#deskrejectwithdrawn-status')}
+            >
+              Desk Rejected/Withdrawn {pluralizeString(submissionName)}
+            </Tab>
+          )}
           <Tab
             id={`${seniorAreaChairUrlFormat}-tasks`}
             active={activeTabId === `#${seniorAreaChairUrlFormat}-tasks` ? true : undefined}
@@ -727,6 +745,12 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               />
             </TabPanel>
           )}
+          {activeTabId === '#deskrejectwithdrawn-status' && (
+            <TabPanel id="deskrejectwithdrawn-status">
+              <RejectedWithdrawnPapers consoleData={sacConsoleData} isSacConsole={true} />
+            </TabPanel>
+          )}
+
           {activeTabId === `#${seniorAreaChairUrlFormat}-tasks` && (
             <TabPanel id={`${seniorAreaChairUrlFormat}-tasks`}>
               <SeniorAreaChairTasks />
