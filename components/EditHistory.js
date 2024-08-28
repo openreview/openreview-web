@@ -67,19 +67,17 @@ export default function EditHistory({ group, invitation, accessToken, setError }
     <div className="row">
       <div className={`submissions-list col-xs-12 col-sm-9 ${styles.container}`}>
         {!edits && <LoadingSpinner inline />}
-
-        {edits?.length > 0
-          ? edits.map((edit) => (
-              <Edit
-                key={edit.id}
-                edit={edit}
-                type={group ? 'group' : 'invitation'}
-                className={edit.ddate ? 'edit-trashed' : ''}
-                showContents
-              />
-            ))
-          : null}
-        {edits?.length === 0 ? <EmptyMessage id={group?.id ?? invitation?.id} /> : null}
+        {edits?.length > 0 &&
+          edits.map((edit) => (
+            <Edit
+              key={edit.id}
+              edit={edit}
+              type={group ? 'group' : 'invitation'}
+              className={edit.ddate ? 'edit-trashed' : ''}
+              showContents
+            />
+          ))}
+        {edits?.length === 0 ?? <EmptyMessage id={group?.id ?? invitation?.id} />}
       </div>
 
       <div className="col-xs-12">
