@@ -1,7 +1,8 @@
-/* globals promptError: false */
+/* globals promptError,promptMessage: false */
 
 // modified from noteMetaReviewStatus.hbs handlebar template
 import { useContext, useEffect, useState } from 'react'
+import copy from 'copy-to-clipboard'
 import WebFieldContext from '../WebFieldContext'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -189,6 +190,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
   areaChairAssignmentUrl,
   metaReviewRecommendationName,
   additionalMetaReviewFields,
+  preferredEmailInvitationId,
 }) => {
   const { note, metaReviewData, preliminaryDecision } = rowData
   const {
@@ -209,6 +211,25 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
     seniorAreaChairName = 'Senior_Area_Chairs',
   } = useContext(WebFieldContext)
 
+  const getACSACEmail = async (preferredName, profileId) => {
+    if (!preferredEmailInvitationId) {
+      promptError('Email is not available.')
+      return
+    }
+    try {
+      const result = await api.get(`/edges`, {
+        invitation: preferredEmailInvitationId,
+        head: profileId,
+      })
+      const email = result.edges?.[0]?.tail
+      if (!email) throw new Error('Email is not available.')
+      copy(`${preferredName} <${email}>`)
+      promptMessage(`${email} copied to clipboard`)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   return (
     <div className="areachair-progress">
       <h4 className="title">{`${numMetaReviewsDone} of ${areaChairs.length} ${inflect(
@@ -217,10 +238,10 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
         pluralizeString(prettyField(officialMetaReviewName))
       )} Submitted`}</h4>
 
-      <strong>{prettyField(areaChairName)}:</strong>
-      <div>
-        {areaChairs.length !== 0 &&
-          areaChairs.map((areaChair) => {
+      {areaChairs.length > 0 && (
+        <div>
+          <strong>{prettyField(areaChairName)}:</strong>
+          {areaChairs.map((areaChair) => {
             const metaReview = metaReviews.find((p) => p.anonId === areaChair.anonymousId)
             const recommendation = metaReview?.[metaReviewRecommendationName]
             const { metaReviewAgreement } = metaReview ?? {}
@@ -234,8 +255,21 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                       rel="noreferrer"
                     >
                       {areaChair.preferredName}
-                    </a>{' '}
-                    <span className="text-muted">&lt;{areaChair.preferredEmail}&gt;</span>
+                    </a>
+                    <div>{areaChair.title}</div>
+                    {preferredEmailInvitationId && (
+                      // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                      <a
+                        href="#"
+                        className="text-muted"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          getACSACEmail(areaChair.preferredName, areaChair.areaChairProfileId)
+                        }}
+                      >
+                        Copy Email
+                      </a>
+                    )}
                   </span>
                 </div>
                 {metaReview && (
@@ -287,7 +321,8 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
               </div>
             )
           })}
-      </div>
+        </div>
+      )}
 
       {secondaryAreaChairs?.length > 0 && (
         <div>
@@ -303,8 +338,21 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                       rel="noreferrer"
                     >
                       {areaChair.preferredName}
-                    </a>{' '}
-                    <span className="text-muted">&lt;{areaChair.preferredEmail}&gt;</span>
+                    </a>
+                    <div>{areaChair.title}</div>
+                    {preferredEmailInvitationId && (
+                      // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                      <a
+                        href="#"
+                        className="text-muted"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          getACSACEmail(areaChair.preferredName, areaChair.areaChairProfileId)
+                        }}
+                      >
+                        Copy Email
+                      </a>
+                    )}
                   </span>
                 </div>
               </div>
@@ -326,8 +374,24 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                     rel="noreferrer"
                   >
                     {seniorAreaChair.preferredName}
-                  </a>{' '}
-                  <span className="text-muted">&lt;{seniorAreaChair.preferredEmail}&gt;</span>
+                  </a>
+                  <div>{seniorAreaChair.title}</div>
+                  {preferredEmailInvitationId && (
+                    // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                    <a
+                      href="#"
+                      className="text-muted"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        getACSACEmail(
+                          seniorAreaChair.preferredName,
+                          seniorAreaChair.preferredId
+                        )
+                      }}
+                    >
+                      Copy Email
+                    </a>
+                  )}
                 </span>
               </div>
             </div>

@@ -17,7 +17,7 @@ const ForumPage = ({ forumNote, query, appContext }) => {
   let content
   let noteInvitation
   if (forumNote.version === 2) {
-    content = Object.keys(forumNote.content).reduce((translatedContent, key) => {
+    content = Object.keys(forumNote.content ?? {}).reduce((translatedContent, key) => {
       // eslint-disable-next-line no-param-reassign
       translatedContent[key] = forumNote.content[key].value
       return translatedContent

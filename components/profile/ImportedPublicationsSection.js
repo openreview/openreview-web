@@ -78,7 +78,6 @@ const ImportedPublicationsSection = ({
     )
   }, [pageNumber, publications])
 
-  if (!publicationsToDisplay.length) return null
   return (
     <div>
       <NoteList notes={publicationsToDisplay} displayOptions={displayOptions} />

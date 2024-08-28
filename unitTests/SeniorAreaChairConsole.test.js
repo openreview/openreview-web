@@ -11,6 +11,7 @@ let paperStatusProps
 let acStatusProps
 let sacTasksProps
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('next/router', () => ({
   useRouter: () => ({
     replace: (params) => {
