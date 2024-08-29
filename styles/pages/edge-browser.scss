@@ -195,10 +195,8 @@ main.edge-browser {
         pointer-events: none;
       }
     }
-    .scores-list,
-    .action-links {
+    .scores-list {
       float: left;
-      width: 50%;
     }
     .action-links {
       float: right;
@@ -608,7 +606,7 @@ main.edge-browser {
     .action-links ul,
     .scores-list ul {
       li {
-        white-space: nowrap;
+        white-space: wrap;
       }
       li > a {
         font-size: 0.75rem;
