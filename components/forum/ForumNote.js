@@ -14,15 +14,15 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
 
   const pastDue = note.ddate && note.ddate < Date.now()
   // eslint-disable-next-line no-underscore-dangle
-  const texDisabled = !!content._disableTexRendering?.value
+  const texDisabled = !!content?._disableTexRendering?.value
 
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeNote, setActiveNote] = useState(null)
 
   const canShowIcon = (fieldName) => {
-    if (!content[fieldName]?.value) return null
+    if (!content?.[fieldName]?.value) return null
 
-    const fieldReaders = Array.isArray(content[fieldName].readers)
+    const fieldReaders = Array.isArray(content?.[fieldName].readers)
       ? content[fieldName].readers.sort()
       : null
     if (
@@ -86,7 +86,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
     >
       <ForumTitle
         id={id}
-        title={DOMPurify.sanitize(content.title?.value)}
+        title={DOMPurify.sanitize(content?.title?.value)}
         pdf={canShowIcon('pdf')}
         html={canShowIcon('html')}
       />
@@ -94,8 +94,8 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
       <div className="forum-authors mb-2">
         <h3>
           <NoteAuthorsV2
-            authors={content.authors}
-            authorIds={content.authorids}
+            authors={content?.authors}
+            authorIds={content?.authorids}
             signatures={signatures}
             noteReaders={note.readers}
           />
@@ -212,7 +212,7 @@ function ForumMeta({ note }) {
           note.tcdate,
           note.mdate,
           note.tmdate,
-          note.content.year?.value,
+          note.content?.year?.value,
           note.pdate,
           false
         )}
@@ -220,7 +220,7 @@ function ForumMeta({ note }) {
 
       <span className="item">
         <Icon name="folder-open" />
-        {note.content.venue?.value || prettyId(note.invitations[0])}
+        {note.content?.venue?.value || prettyId(note.invitations[0])}
       </span>
 
       {note.readers && (
@@ -245,7 +245,7 @@ function ForumMeta({ note }) {
       )}
 
       {/* eslint-disable-next-line no-underscore-dangle */}
-      {note.content._bibtex?.value && (
+      {note.content?._bibtex?.value && (
         <span className="item">
           <Icon name="bookmark" />
           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}

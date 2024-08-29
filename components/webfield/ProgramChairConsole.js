@@ -1201,7 +1201,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           )}
           <TabPanel id="deskrejectwithdrawn-status">
             {activeTabId === '#deskrejectwithdrawn-status' && (
-              <RejectedWithdrawnPapers pcConsoleData={pcConsoleData} />
+              <RejectedWithdrawnPapers consoleData={pcConsoleData} />
             )}
           </TabPanel>
           {submissionContentFields.length > 0 &&
