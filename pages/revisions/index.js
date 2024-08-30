@@ -497,7 +497,10 @@ const Revisions = ({ appContext }) => {
     const loadNote = async () => {
       let note
       try {
-        note = await api.getNoteById(noteId, accessToken, { details: 'writable,forumContent' })
+        note = await api.getNoteById(noteId, accessToken, {
+          details: 'writable,forumContent',
+          trash: true,
+        })
       } catch (apiError) {
         setBannerHidden(true)
         setError(apiError)
