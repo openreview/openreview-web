@@ -94,7 +94,6 @@ ${customLoadInvitation ? `;${customLoadInvitation},head:ignore` : ''}\
       .attr('y', 15)
       .attr('text-anchor', 'middle')
       .text(stats.name)
-      .style('font-size', '1rem')
     svg = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
     const binCount = stats.binCount ?? 20
     const xAxisBarLabelFontStyle =
