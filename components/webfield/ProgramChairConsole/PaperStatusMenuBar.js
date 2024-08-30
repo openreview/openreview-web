@@ -163,7 +163,7 @@ const PaperStatusMenuBar = ({
           },
         ]
       : []),
-    ...(tableRowsAll.length !== selectedNoteIds.length
+    ...(tableRowsAll?.length !== selectedNoteIds?.length
       ? [
           {
             label: `All Authors of selected ${pluralizeString(submissionName)}`,
