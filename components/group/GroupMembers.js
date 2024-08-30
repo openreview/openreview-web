@@ -2,7 +2,6 @@
 import React, { useEffect, useReducer, useRef, useState } from 'react'
 import Link from 'next/link'
 import get from 'lodash/get'
-import deburr from 'lodash/deburr'
 import copy from 'copy-to-clipboard'
 import BasicModal from '../BasicModal'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
@@ -472,21 +471,14 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
         return
       }
       // Could include new members, existing deleted members, or existing active member
-      const newIds = membersToAdd.filter((p) => !groupMembers.find((q) => q.id === p))
+      const newMembers = membersToAdd.filter((p) => !groupMembers.find((q) => q.id === p))
       const existingMembers = groupMembers.filter((m) => membersToAdd.find((n) => n === m.id))
-      const existingDeleted = existingMembers
-        .filter((m) => m.isDeleted)
-        .map((m) => {
-          return m.id
-        })
-      const existingActive = existingMembers
-        .filter((m) => !m.isDeleted)
-        .map((m) => {
-          return m.id
-        })
-      const addAll = [...newIds, ...existingDeleted]
-      const newMembersMessage = newIds.length
-        ? `${newIds.length} new member${newIds.length > 1 ? 's' : ''} added`
+      const existingDeleted = existingMembers.filter((m) => m.isDeleted).map((m) => m.id)
+      const existingActive = existingMembers.filter((m) => !m.isDeleted).map((m) => m.id)
+
+      const addAll = [...newMembers, ...existingDeleted]
+      const newMembersMessage = newMembers.length
+        ? `${newMembers.length} new member${newMembers.length > 1 ? 's' : ''} added`
         : 'No new member to add.'
       const existingDeletedMessage = existingDeleted.length
         ? `${existingDeleted.length} previously deleted member${
@@ -502,7 +494,6 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
         promptMessage(existingActiveMessage, { scrollToTop: false })
         return
       }
-
       try {
         await api.post('/groups/edits', buildEdit('append', addAll), {
           accessToken,
@@ -510,7 +501,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
         setSearchTerm('')
         setGroupMembers({
           type: 'ADD',
-          payload: { newIds, existingDeleted },
+          payload: { newMembers, existingDeleted },
         })
         getMemberAnonIds()
         promptMessage(
