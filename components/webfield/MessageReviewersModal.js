@@ -187,10 +187,11 @@ const MessageReviewersModal = ({
       {currentStep === 1 ? (
         <>
           <p>
-            {messageOption?.value !== 'allAuthors' &&
-              `You may customize the message that will be sent to the ${prettyField(
-                reviewerName
-              ).toLowerCase()}. In the email
+            {messageOption?.value === 'allAuthors'
+              ? 'You may customize the message that will be sent to authors. You can also use {{fullname}} to personalize the recipient full name.'
+              : `You may customize the message that will be sent to the ${prettyField(
+                  reviewerName
+                ).toLowerCase()}. In the email
   body, the text {{submit_review_link}} will be replaced with a hyperlink to the
   form where the ${prettyField(
     reviewerName
