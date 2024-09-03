@@ -41,12 +41,16 @@ const AssignmentStats = ({ appContext }) => {
   const [values, setValues] = useState({})
   const [groupId, setGroupId] = useState(null)
   const [error, setError] = useState(null)
-  const [headName, setHeadName] = useState('papers')
+  const [labelNames, setLabelNames] = useState({})
   const query = useQuery()
   const { setBannerContent } = appContext
 
+  const headName = labelNames.headName ?? 'papers'
+  const tailName = labelNames.tailName ?? 'users'
   const upperHeadName = upperFirst(headName)
+  const upperTailName = upperFirst(tailName)
   const upperSingularHeadName = getSingularRoleName(upperHeadName)
+  const upperSingularTailName = getSingularRoleName(upperTailName)
 
   let edgeBrowserUrlParams = {}
   if (assignmentConfigNote) {
@@ -83,7 +87,16 @@ const AssignmentStats = ({ appContext }) => {
           const headNameInAssignmentInvitation = prettyId(
             assignmentInvitation?.edge?.head?.param?.inGroup?.split('/').pop()
           )
-          if (headNameInAssignmentInvitation) setHeadName(headNameInAssignmentInvitation)
+          const tailNameInAssignmentInvitation = prettyId(
+            assignmentInvitation?.edge?.tail?.param?.options?.group?.split('/').pop()
+          )
+
+          if (headNameInAssignmentInvitation && tailNameInAssignmentInvitation) {
+            setLabelNames({
+              headName: headNameInAssignmentInvitation,
+              tailName: tailNameInAssignmentInvitation,
+            })
+          }
           setAssignmentConfigNote({ ...note, content: getNoteContentValues(note.content) })
           setGroupId(getGroupIdfromInvitation(note.invitations[0]))
         } else {
@@ -274,12 +287,14 @@ const AssignmentStats = ({ appContext }) => {
       distributionPapersByUserCount: getDistributionPapersByUserCount(
         matchLists[0],
         matchLists[1],
-        upperHeadName
+        upperHeadName,
+        upperTailName
       ),
       distributionUsersByPaperCount: getDistributionUsersByPaperCount(
         matchLists[0],
         matchLists[2],
-        upperHeadName
+        upperHeadName,
+        upperTailName
       ),
       distributionAssignmentByScore: getDistributionAssignmentByScore(matchLists[0]),
       distributionPapersByMeanScore: getDistributionPapersByMeanScore(
@@ -289,7 +304,8 @@ const AssignmentStats = ({ appContext }) => {
       ),
       distributionUsersByMeanScore: getDistributionUsersByMeanScore(
         matchLists[0],
-        matchLists[2]
+        matchLists[2],
+        upperTailName
       ),
       ...(showRecommendationDistribution && {
         distributionRecomGroupCountPerPaper: getDistributionRecomGroupCountPerPaper(
@@ -301,7 +317,12 @@ const AssignmentStats = ({ appContext }) => {
           matchLists[0]
         ),
       }),
-      ...getNumDataPerGroupDataByBidScore(matchLists[0], upperHeadName),
+      ...getNumDataPerGroupDataByBidScore(
+        matchLists[0],
+        upperHeadName,
+        upperTailName,
+        upperSingularTailName
+      ),
     })
   }, [matchLists])
 
@@ -377,16 +398,16 @@ const AssignmentStats = ({ appContext }) => {
         />
         <ScalarStat
           value={values.userCount}
-          name="Number of users / Number of users with assignments"
+          name={`Number of ${tailName} / Number of ${tailName} with assignments`}
         />
         <ScalarStat value={values.meanFinalScore} name="Mean Final Score" />
         <ScalarStat
           value={values.meanGroupCountPerPaper}
-          name={`Mean Number of Users per ${upperSingularHeadName}`}
+          name={`Mean Number of ${upperTailName} per ${upperSingularHeadName}`}
         />
         <ScalarStat
           value={values.meanPaperCountPerGroup}
-          name={`Mean Number of ${upperHeadName} per User`}
+          name={`Mean Number of ${upperHeadName} per ${upperSingularTailName}`}
         />
         {assignmentConfigNote?.content.randomized_fraction_of_opt && (
           <ScalarStat
