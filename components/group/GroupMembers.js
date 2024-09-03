@@ -12,6 +12,7 @@ import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
 import { isValidEmail, prettyId, urlFromGroupId } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
+import SpinnerButton from '../SpinnerButton'
 
 const MessageMemberModal = ({
   groupId,
@@ -453,72 +454,65 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     }
   }
 
-  useEffect(() => {
-    // add members to group
-    async function apiPostEdits() {
-      if (!searchTerm.trim()) {
-        promptError('No member to add')
-        return
-      }
-      // take the entire searchTerm, if there are commas -> split it into multiple terms
-      // for each term (member), remove spaces, if it is an email, change to lowercase
-      const membersToAdd = searchTerm.split(',').map((member) => {
+  const handleAddButtonClick = async (term) => {
+    setIsAdding(true)
+    const membersToAdd = term
+      .split(',')
+      .map((member) => {
         const trimmedMem = member.trim()
         return trimmedMem.includes('@') ? trimmedMem.toLowerCase() : trimmedMem
       })
-      if (!membersToAdd.length) {
-        promptError('No member to add')
-        return
-      }
-      // Could include new members, existing deleted members, or existing active member
-      const newMembers = membersToAdd.filter((p) => !groupMembers.find((q) => q.id === p))
-      const existingMembers = groupMembers.filter((m) => membersToAdd.find((n) => n === m.id))
-      const existingDeleted = existingMembers.filter((m) => m.isDeleted).map((m) => m.id)
-      const existingActive = existingMembers.filter((m) => !m.isDeleted).map((m) => m.id)
-
-      const addAll = [...newMembers, ...existingDeleted]
-      const newMembersMessage = newMembers.length
-        ? `${newMembers.length} new member${newMembers.length > 1 ? 's' : ''} added`
-        : 'No new member to add.'
-      const existingDeletedMessage = existingDeleted.length
-        ? `${existingDeleted.length} previously deleted member${
-            existingDeleted.length > 1 ? 's' : ''
-          } restored.`
-        : ''
-      const existingActiveMessage = existingActive.length
-        ? `${existingActive.length} member${
-            existingActive.length > 1 ? 's' : ''
-          } already exist.`
-        : ''
-      if (addAll.length === 0) {
-        promptMessage(existingActiveMessage, { scrollToTop: false })
-        return
-      }
-      try {
-        await api.post('/groups/edits', buildEdit('append', addAll), {
-          accessToken,
-        })
-        setSearchTerm('')
-        setGroupMembers({
-          type: 'ADD',
-          payload: { newMembers, existingDeleted },
-        })
-        getMemberAnonIds()
-        promptMessage(
-          `${newMembersMessage} ${existingDeletedMessage} ${existingActiveMessage}`,
-          { scrollToTop: false }
-        )
-        reloadGroup()
-      } catch (error) {
-        promptError(error.message)
-      }
-    }
-
-    if (isAdding === true) {
-      apiPostEdits()
+      .filter((member) => member)
+    if (!membersToAdd.length) {
+      promptError('No member to add')
       setIsAdding(false)
+      return
     }
-  }, [isAdding, searchTerm])
+
+    // Could include new members, existing deleted members, or existing active member
+    const newMembers = membersToAdd.filter((p) => !groupMembers.find((q) => q.id === p))
+    const existingDeleted = membersToAdd.filter(
+      (p) => groupMembers.find((q) => q.id === p)?.isDeleted
+    )
+    const existingActive = membersToAdd.filter(
+      (p) =>
+        groupMembers.find((q) => q.id === p) && !groupMembers.find((q) => q.id === p).isDeleted
+    )
+
+    const newMembersMessage = newMembers.length
+      ? `${newMembers.length} new member${newMembers.length > 1 ? 's' : ''} added`
+      : 'No new member to add.'
+    const existingDeletedMessage = existingDeleted.length
+      ? `${existingDeleted.length} previously deleted member${
+          existingDeleted.length > 1 ? 's' : ''
+        } restored.`
+      : ''
+    const existingActiveMessage = existingActive.length
+      ? `${existingActive.length} member${existingActive.length > 1 ? 's' : ''} already exist.`
+      : ''
+
+    try {
+      await api.post(
+        '/groups/edits',
+        buildEdit('append', [...newMembers, ...existingDeleted]),
+        { accessToken }
+      )
+      setSearchTerm('')
+      setGroupMembers({
+        type: 'ADD',
+        payload: { newMembers, existingDeleted },
+      })
+      getMemberAnonIds()
+      promptMessage(
+        `${newMembersMessage} ${existingDeletedMessage} ${existingActiveMessage}`,
+        { scrollToTop: false }
+      )
+      reloadGroup()
+    } catch (error) {
+      promptError(error.message)
+    }
+    setIsAdding(false)
+  }
 
   const handleRemoveSelectedButtonClick = async () => {
     const membersToRemove = groupMembers.filter((p) => p.isSelected).map((p) => p.id)
@@ -609,18 +603,20 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
                 className="form-control input-sm"
                 placeholder="e.g. ~Jane_Doe1, jane@example.com, abc.com/2018/Conf/Authors"
                 value={searchTerm}
-                disabled={isAdding}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button
-              type="button"
-              className="btn btn-sm btn-primary mr-3 search-button"
-              disabled={!searchTerm.trim() || groupMembers.find((p) => p.id === searchTerm)}
-              onClick={() => setIsAdding(true)}
+            <SpinnerButton
+              type="primary"
+              className="search-button"
+              disabled={
+                isAdding || !searchTerm.trim() || groupMembers.find((p) => p.id === searchTerm)
+              }
+              onClick={() => handleAddButtonClick(searchTerm)}
+              loading={isAdding}
             >
               Add to Group
-            </button>
+            </SpinnerButton>
             <div className="space-taker" />
             <button
               type="button"
