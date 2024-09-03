@@ -55,6 +55,7 @@ export default function GroupDirectory({ appContext }) {
         setError(apiError)
         setChildGroupIds([])
       }
+      setIsLoading(false)
     }
 
     if (links) {
@@ -62,7 +63,6 @@ export default function GroupDirectory({ appContext }) {
     } else {
       loadChildGroups()
     }
-    setIsLoading(false)
   }, [group.id])
 
   return (
