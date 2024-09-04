@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import get from 'lodash/get'
+import { upperFirst } from 'lodash'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ScalarStat from '../../components/assignments/ScalarStat'
@@ -10,7 +11,7 @@ import HistogramStat from '../../components/assignments/HistogramStat'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { prettyId, getGroupIdfromInvitation } from '../../lib/utils'
+import { prettyId, getGroupIdfromInvitation, getSingularRoleName } from '../../lib/utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import { getNoteContentValues } from '../../lib/forum-utils'
 import { referrerLink } from '../../lib/banner-links'
@@ -40,8 +41,16 @@ const AssignmentStats = ({ appContext }) => {
   const [values, setValues] = useState({})
   const [groupId, setGroupId] = useState(null)
   const [error, setError] = useState(null)
+  const [labelNames, setLabelNames] = useState({})
   const query = useQuery()
   const { setBannerContent } = appContext
+
+  const headName = labelNames.headName ?? 'papers'
+  const tailName = labelNames.tailName ?? 'users'
+  const upperHeadName = upperFirst(headName)
+  const upperTailName = upperFirst(tailName)
+  const upperSingularHeadName = getSingularRoleName(upperHeadName)
+  const upperSingularTailName = getSingularRoleName(upperTailName)
 
   let edgeBrowserUrlParams = {}
   if (assignmentConfigNote) {
@@ -71,6 +80,23 @@ const AssignmentStats = ({ appContext }) => {
       const note = await api.getNoteById(assignmentConfigId, accessToken)
       if (note) {
         if (note.apiVersion === 2) {
+          const assignmentInvitationId = note.content?.assignment_invitation?.value
+          const assignmentInvitation = assignmentInvitationId
+            ? await api.getInvitationById(assignmentInvitationId, accessToken)
+            : Promise.resolve(null)
+          const headNameInAssignmentInvitation = prettyId(
+            assignmentInvitation?.edge?.head?.param?.inGroup?.split('/').pop()
+          )
+          const tailNameInAssignmentInvitation = prettyId(
+            assignmentInvitation?.edge?.tail?.param?.options?.group?.split('/').pop()
+          )
+
+          if (headNameInAssignmentInvitation && tailNameInAssignmentInvitation) {
+            setLabelNames({
+              headName: headNameInAssignmentInvitation,
+              tailName: tailNameInAssignmentInvitation,
+            })
+          }
           setAssignmentConfigNote({ ...note, content: getNoteContentValues(note.content) })
           setGroupId(getGroupIdfromInvitation(note.invitations[0]))
         } else {
@@ -260,30 +286,43 @@ const AssignmentStats = ({ appContext }) => {
       meanPaperCountPerGroup: getMeanPaperCountPerGroup(matchLists[0]),
       distributionPapersByUserCount: getDistributionPapersByUserCount(
         matchLists[0],
-        matchLists[1]
+        matchLists[1],
+        upperHeadName,
+        upperTailName
       ),
       distributionUsersByPaperCount: getDistributionUsersByPaperCount(
         matchLists[0],
-        matchLists[2]
+        matchLists[2],
+        upperHeadName,
+        upperTailName
       ),
       distributionAssignmentByScore: getDistributionAssignmentByScore(matchLists[0]),
       distributionPapersByMeanScore: getDistributionPapersByMeanScore(
         matchLists[0],
-        matchLists[1]
+        matchLists[1],
+        upperHeadName
       ),
       distributionUsersByMeanScore: getDistributionUsersByMeanScore(
         matchLists[0],
-        matchLists[2]
+        matchLists[2],
+        upperTailName
       ),
       ...(showRecommendationDistribution && {
         distributionRecomGroupCountPerPaper: getDistributionRecomGroupCountPerPaper(
-          matchLists[0]
+          matchLists[0],
+          upperHeadName,
+          upperSingularHeadName
         ),
         distributionRecomGroupCountPerWeight: getDistributionRecomGroupCountPerWeight(
           matchLists[0]
         ),
       }),
-      ...getNumDataPerGroupDataByBidScore(matchLists[0]),
+      ...getNumDataPerGroupDataByBidScore(
+        matchLists[0],
+        upperHeadName,
+        upperTailName,
+        upperSingularTailName
+      ),
     })
   }, [matchLists])
 
@@ -355,20 +394,20 @@ const AssignmentStats = ({ appContext }) => {
       <div className="basic-stats">
         <ScalarStat
           value={values.paperCount}
-          name="Number of papers / Number of papers with assignments"
+          name={`Number of ${headName} / Number of ${headName} with assignments`}
         />
         <ScalarStat
           value={values.userCount}
-          name="Number of users / Number of users with assignments"
+          name={`Number of ${tailName} / Number of ${tailName} with assignments`}
         />
         <ScalarStat value={values.meanFinalScore} name="Mean Final Score" />
         <ScalarStat
           value={values.meanGroupCountPerPaper}
-          name="Mean Number of Users per Paper"
+          name={`Mean Number of ${upperTailName} per ${upperSingularHeadName}`}
         />
         <ScalarStat
           value={values.meanPaperCountPerGroup}
-          name="Mean Number of Papers per User"
+          name={`Mean Number of ${upperHeadName} per ${upperSingularTailName}`}
         />
         {assignmentConfigNote?.content.randomized_fraction_of_opt && (
           <ScalarStat
