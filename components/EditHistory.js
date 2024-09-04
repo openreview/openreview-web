@@ -53,6 +53,21 @@ export default function EditHistory({ group, invitation, accessToken, setError }
     loadEdits()
   }, [group, invitation, accessToken, page])
 
+  const renderEdits = () => {
+    if (!edits) return <LoadingSpinner inline />
+    if (edits.length === 0) return <EmptyMessage id={group?.id ?? invitation?.id} />
+
+    return edits.map((edit) => (
+      <Edit
+        key={edit.id}
+        edit={edit}
+        type={group ? 'group' : 'invitation'}
+        className={edit.ddate ? 'edit-trashed' : ''}
+        showContents
+      />
+    ))
+  }
+
   if (!group && !invitation) return null
 
   if ((group && !group.invitations) || (invitation && invitation.apiVersion === 1)) {
@@ -66,21 +81,7 @@ export default function EditHistory({ group, invitation, accessToken, setError }
   return (
     <div className="row">
       <div className={`submissions-list col-xs-12 col-sm-9 ${styles.container}`}>
-        {!edits && <LoadingSpinner inline />}
-
-        {edits?.length > 0 ? (
-          edits.map((edit) => (
-            <Edit
-              key={edit.id}
-              edit={edit}
-              type={group ? 'group' : 'invitation'}
-              className={edit.ddate ? 'edit-trashed' : ''}
-              showContents
-            />
-          ))
-        ) : (
-          <EmptyMessage id={group?.id ?? invitation?.id} />
-        )}
+        {renderEdits()}
       </div>
 
       <div className="col-xs-12">
