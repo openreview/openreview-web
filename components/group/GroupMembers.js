@@ -2,7 +2,6 @@
 import React, { useEffect, useReducer, useRef, useState } from 'react'
 import Link from 'next/link'
 import get from 'lodash/get'
-import deburr from 'lodash/deburr'
 import copy from 'copy-to-clipboard'
 import BasicModal from '../BasicModal'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
@@ -13,6 +12,7 @@ import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
 import { isValidEmail, prettyId, urlFromGroupId } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
+import SpinnerButton from '../SpinnerButton'
 
 const MessageMemberModal = ({
   groupId,
@@ -285,6 +285,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   const [memberAnonIds, setMemberAnonIds] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const [jobId, setJobId] = useState(null)
+  const [isAdding, setIsAdding] = useState(false)
   const defaultGroupMembers = group.members.map((p) => ({
     id: p,
     isDeleted: false,
@@ -454,10 +455,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   }
 
   const handleAddButtonClick = async (term) => {
-    if (!term.trim()) {
-      promptError('No member to add')
-      return
-    }
+    setIsAdding(true)
     const membersToAdd = term
       .split(',')
       .map((member) => {
@@ -467,6 +465,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       .filter((member) => member)
     if (!membersToAdd.length) {
       promptError('No member to add')
+      setIsAdding(false)
       return
     }
 
@@ -512,6 +511,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     } catch (error) {
       promptError(error.message)
     }
+    setIsAdding(false)
   }
 
   const handleRemoveSelectedButtonClick = async () => {
@@ -606,14 +606,17 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button
-              type="button"
-              className="btn btn-sm btn-primary mr-3 search-button"
-              disabled={!searchTerm.trim() || groupMembers.find((p) => p.id === searchTerm)}
+            <SpinnerButton
+              type="primary"
+              className="search-button"
+              disabled={
+                isAdding || !searchTerm.trim() || groupMembers.find((p) => p.id === searchTerm)
+              }
               onClick={() => handleAddButtonClick(searchTerm)}
+              loading={isAdding}
             >
               Add to Group
-            </button>
+            </SpinnerButton>
             <div className="space-taker" />
             <button
               type="button"
