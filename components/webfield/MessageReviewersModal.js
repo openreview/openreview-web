@@ -188,7 +188,7 @@ const MessageReviewersModal = ({
         <>
           <p>
             {messageOption?.value === 'allAuthors'
-              ? `You may customize the message that will be sent to authors. You can also use {{fullname}} to personalize the recipient full name. If your message is not specific to ${submissionName.toLowerCase()}, please email from the author group.`
+              ? `You may customize the message that will be sent to authors. You can also use {{fullname}} to personalize the recipient full name. If your message is not specific to a ${submissionName.toLowerCase()}, please email from the author group.`
               : `You may customize the message that will be sent to the ${prettyField(
                   reviewerName
                 ).toLowerCase()}. In the email
