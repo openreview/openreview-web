@@ -64,7 +64,6 @@ main.assignment-stats {
     background-color: constants.$sandyBrown;
     border: 1px solid constants.$backgroundGray;
     text-align: center;
-    height: 180px;
     padding: 1rem;
     margin-bottom: 1rem;
 
@@ -124,10 +123,7 @@ main.assignment-stats {
       margin: 0.5rem;
 
       .stat-name {
-        max-height: 60px;
         display: -webkit-box;
-        overflow: hidden;
-        -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
       }
     }
@@ -164,6 +160,7 @@ main.assignment-stats {
     }
     .stat-name {
       text-align: center;
+      font-size: clamp(0.25rem, 0.75rem, 0.8rem);
     }
   }
 
