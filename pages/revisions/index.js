@@ -457,6 +457,7 @@ const Revisions = ({ appContext }) => {
           sort: 'tcdate',
           details: 'writable,presentation,invitation',
           trash: true,
+          tauthor: true,
         },
         { accessToken }
       )
