@@ -11,6 +11,7 @@ const BaseMenuBar = ({
   tableRowsAll, // filter; export filename
   tableRows,
   selectedIds, // for messaging
+  setSelectedIds,
   setData,
   shortPhrase,
   enableQuerySearch,
@@ -78,6 +79,7 @@ const BaseMenuBar = ({
       ...tabData,
       tableRows: filteredRows,
     }))
+    setSelectedIds?.([])
   }
 
   const handleQuerySearchInfoClick = () => {
@@ -99,6 +101,7 @@ const BaseMenuBar = ({
         ...tabData,
         tableRows: [...tabData.tableRowsAll],
       }))
+      setSelectedIds?.([])
       return
     }
     const cleanSearchTerm = searchTerm.trim().toLowerCase()
@@ -109,6 +112,7 @@ const BaseMenuBar = ({
         basicSearchFunction(row, cleanSearchTerm)
       ),
     }))
+    setSelectedIds?.([])
   }, [searchTerm])
 
   useEffect(() => {

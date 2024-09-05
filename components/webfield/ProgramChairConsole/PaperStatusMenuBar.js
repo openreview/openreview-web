@@ -11,6 +11,7 @@ const PaperStatusMenuBar = ({
   tableRowsAll,
   tableRows,
   selectedNoteIds,
+  setSelectedNoteIds,
   setPaperStatusTabData,
   reviewRatingName,
   noteContentField,
@@ -425,6 +426,7 @@ const PaperStatusMenuBar = ({
       tableRowsAll={tableRowsAllWithFilterProperties}
       tableRows={tableRows}
       selectedIds={selectedNoteIds}
+      setSelectedIds={setSelectedNoteIds}
       setData={setPaperStatusTabData}
       shortPhrase={shortPhrase}
       enableQuerySearch={enableQuerySearch}
