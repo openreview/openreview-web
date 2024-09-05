@@ -95,8 +95,16 @@ $input-placeholder-color: hsv(0, 0, 75%);
 
 // Content
 .rc-picker-cell {
-  .rc-picker-cell-disabled {
+  &.rc-picker-cell-disabled {
     opacity: 0.2;
+    cursor: not-allowed;
+
+    .rc-picker-cell-inner {
+      cursor: not-allowed;
+      &:hover {
+        background: unset;
+      }
+    }
   }
 
   &.rc-picker-cell-selected {
@@ -152,27 +160,23 @@ $input-placeholder-color: hsv(0, 0, 75%);
   }
 }
 
-.rc-picker-now,
-.rc-picker-today-btn {
-  cursor: pointer;
-  background-color: constants.$mediumBlue;
-  border: 2px solid #3f6978;
-  font-weight: bold;
-  font-size: 0.75rem;
-  line-height: 1.125rem;
-  text-align: center;
-  min-width: 5rem;
-  border-radius: 3px;
-  padding: 1px 6px;
-
+.rc-picker-now {
   .rc-picker-now-btn {
     color: white;
-  }
-}
-.rc-picker-today-btn {
-  color: white;
-  &:hover {
-    color: white;
+    cursor: pointer;
+    background-color: constants.$mediumBlue;
+    border: 2px solid #3f6978;
+    font-weight: bold;
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+    text-align: center;
+    min-width: 5rem;
+    border-radius: 3px;
+    padding: 1px 6px;
+    &.rc-picker-now-btn-disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
   }
 }
 
@@ -189,6 +193,11 @@ $input-placeholder-color: hsv(0, 0, 75%);
     text-align: center;
     min-width: 5rem;
     border-radius: 3px;
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
   }
 }
 
