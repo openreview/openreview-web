@@ -202,7 +202,7 @@ test('user open own profile', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql(
-      'Error: dblp link is invalid. A valid link should include https://dblp.org, https://dblp.uni-trier.de, https://dblp2.uni-trier.de, https://dblp.dagstuhl.de, uni-trier.de'
+      'Error: dblp link is invalid. A valid link should include https://dblp.org/pid/'
     )
     .selectText(dblpUrlInput)
     .pressKey('delete')
