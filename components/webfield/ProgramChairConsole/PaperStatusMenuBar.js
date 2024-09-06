@@ -163,6 +163,14 @@ const PaperStatusMenuBar = ({
           },
         ]
       : []),
+    ...(tableRowsAll?.length !== selectedNoteIds?.length
+      ? [
+          {
+            label: `All Authors of selected ${pluralizeString(submissionName)}`,
+            value: 'allAuthors',
+          },
+        ]
+      : []),
   ]
   const exportColumns = [
     { header: 'number', getValue: (p) => p.note?.number },
@@ -328,8 +336,15 @@ const PaperStatusMenuBar = ({
       {
         label: `Average ${prettyField(ratingName)}`,
         value: `Average ${ratingName}`,
-        getValue: (p) =>
-          getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg),
+        getValue: (p) => {
+          const stringAvgRatingValue = getValueWithDefault(
+            p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg
+          )
+          const numberAvgRatingValue = Number(stringAvgRatingValue)
+          return Number.isNaN(numberAvgRatingValue)
+            ? stringAvgRatingValue
+            : numberAvgRatingValue
+        },
       },
       {
         label: `Max ${prettyField(ratingName)}`,
@@ -354,7 +369,15 @@ const PaperStatusMenuBar = ({
     {
       label: 'Average Confidence',
       value: 'Average Confidence',
-      getValue: (p) => getValueWithDefault(p.reviewProgressData?.confidenceAvg),
+      getValue: (p) => {
+        const stringAvgConfidenceValue = getValueWithDefault(
+          p.reviewProgressData?.confidenceAvg
+        )
+        const numberAvgConfidenceValue = Number(stringAvgConfidenceValue)
+        return Number.isNaN(numberAvgConfidenceValue)
+          ? stringAvgConfidenceValue
+          : numberAvgConfidenceValue
+      },
     },
     {
       label: 'Max Confidence',

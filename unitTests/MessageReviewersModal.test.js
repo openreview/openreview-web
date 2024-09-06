@@ -328,4 +328,100 @@ describe('MessageReviewersModal', () => {
       expect(api.post).toHaveBeenCalledTimes(10000)
     })
   })
+
+  test('allow sending email to authors', async () => {
+    api.post = jest.fn()
+    const providerProps = {
+      value: {
+        shortPhrase: 'Test Venue',
+        emailReplyTo: 'email@program.chairs',
+        venueId: 'testVenue',
+        submissionName: 'Paper',
+      },
+    }
+    const numberOfNotes = 10000
+    const componentProps = {
+      tableRowsDisplayed: [
+        {
+          note: { id: 'noteId1', number: 1 },
+          authors: [
+            {
+              preferredId: 'authorId1',
+              preferredName: 'Author One',
+              noteNumber: 1,
+              anonymizedGroup: 'authorId1',
+            },
+            {
+              preferredId: 'authorId2',
+              preferredName: 'Author Two',
+              noteNumber: 1,
+              anonymizedGroup: 'authorId2',
+            },
+            {
+              preferredId: 'author@three.email', // no profile
+              preferredName: 'Author Three',
+              noteNumber: 1,
+              anonymizedGroup: 'author@three.email',
+            },
+          ],
+        },
+        {
+          note: { id: 'noteId2', number: 2 },
+          authors: [
+            {
+              preferredId: 'authorId4',
+              preferredName: 'Author Four',
+              noteNumber: 2,
+              anonymizedGroup: 'authorId4',
+            },
+            {
+              preferredId: 'author@fiv.email', // no profile
+              preferredName: 'Author Five',
+              noteNumber: 2,
+              anonymizedGroup: 'author@five.email',
+            },
+          ],
+        },
+      ],
+      messageModalId: 'message-reviewers',
+      messageOption: { value: 'allAuthors', label: 'All Authors of Selected Submissions' },
+      selectedIds: ['noteId1', 'noteId2'],
+    }
+
+    renderWithWebFieldContext(<MessageReviewersModal {...componentProps} />, providerProps)
+
+    await waitFor(async () => {
+      // go to step2
+      await basicModalProps.onPrimaryButtonClick()
+    })
+
+    await waitFor(async () => {
+      // send messages
+      await basicModalProps.onPrimaryButtonClick()
+    })
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledTimes(2)
+      expect(api.post).toHaveBeenNthCalledWith(
+        1,
+        expect.anything(),
+        expect.objectContaining({
+          groups: ['authorId1', 'authorId2', 'author@three.email'],
+          replyTo: 'email@program.chairs',
+          parentGroup: 'testVenue/Paper1/Authors',
+        }),
+        expect.anything()
+      )
+      expect(api.post).toHaveBeenNthCalledWith(
+        2,
+        expect.anything(),
+        expect.objectContaining({
+          groups: ['authorId4', 'author@five.email'],
+          replyTo: 'email@program.chairs',
+          parentGroup: 'testVenue/Paper2/Authors',
+        }),
+        expect.anything()
+      )
+    })
+  })
 })
