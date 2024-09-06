@@ -2216,7 +2216,7 @@ const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
   )?.institution?.name
 
   const instructionText =
-    'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and complete the missing data.'
+    'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and follow the activation link to update your information.'
   const rejectionReasons = [
     {
       value: 'requestEmailVerification',
