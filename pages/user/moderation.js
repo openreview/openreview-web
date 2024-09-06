@@ -2238,7 +2238,7 @@ const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
     {
       value: 'imPersonalHomepage',
       label: 'Homepage is invalid',
-      rejectionText: `The homepage url provided in your profile is invalid or does not display your name so your identity can't be determined.\n\n${instructionText}`,
+      rejectionText: `The homepage url provided in your profile is invalid or does not display your name/email used to register so your identity can't be determined.\n\n${instructionText}`,
     },
     {
       value: 'imPersonalHomepageAndEmail',
