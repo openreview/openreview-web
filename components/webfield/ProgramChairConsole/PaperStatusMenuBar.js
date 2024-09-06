@@ -163,6 +163,14 @@ const PaperStatusMenuBar = ({
           },
         ]
       : []),
+    ...(tableRowsAll?.length !== selectedNoteIds?.length
+      ? [
+          {
+            label: `All Authors of selected ${pluralizeString(submissionName)}`,
+            value: 'allAuthors',
+          },
+        ]
+      : []),
   ]
   const exportColumns = [
     { header: 'number', getValue: (p) => p.note?.number },
