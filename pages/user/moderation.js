@@ -2220,19 +2220,19 @@ const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
   const rejectionReasons = [
     {
       value: 'requestEmailVerification',
-      label: 'Institution Email is missing',
+      label: 'Institutional Email is missing',
       rejectionText: `Please add and confirm an institutional email ${
         currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
-      }to your profile. Please make sure the verficaition token is entered and verified.\n\n${instructionText}`,
+      }to your profile. Please make sure the verification token is entered and verified.\n\n${instructionText}`,
     },
     {
       value: 'requestEmailConfirmation',
-      label: 'Institution Email is added but not confirmed',
-      rejectionText: `Please confirm the institutional email in your profile by clicking "Confirm" button next to the email and enter the verification token received.\n\n${instructionText}`,
+      label: 'Institutional Email is added but not confirmed',
+      rejectionText: `Please confirm the institutional email in your profile by clicking the "Confirm" button next to the email and enter the verification token received.\n\n${instructionText}`,
     },
     {
       value: 'invalidDBLP',
-      label: 'DBLP is disambiguation page',
+      label: 'DBLP link is a disambiguation page',
       rejectionText: `The DBLP link you have provided is a disambiguation page and is not intended to be used as a bibliography. Please select the correct bibliography page listed under "Other persons with a similar name". If your page is not listed please contact the DBLP team so they can add your bibliography page. We recommend providing a different bibliography homepage when resubmitting to OpenReview moderation.\n\n${instructionText}`,
     },
     {
@@ -2243,7 +2243,7 @@ const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
     {
       value: 'imPersonalHomepageAndEmail',
       label: 'Homepage is invalid + no institution email',
-      rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required. Please confirm the institution email by entering the verification token received after clicking confirm button next to the institutional email.\n\n${instructionText}`,
+      rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required. Please confirm the institutional email by entering the verification token received after clicking confirm button next to the institutional email.\n\n${instructionText}`,
     },
     {
       value: 'lastNotice',
@@ -2255,7 +2255,7 @@ const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
   const updateMessageForPastRejectProfile = () => {
     setRejectionMessage(
       (p) =>
-        `Submitting invalid info is a violation of OpenReview's Terms and Conditions which may result in terminating your access to the system.\n\n${p}`
+        `Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system.\n\n${p}`
     )
   }
 
