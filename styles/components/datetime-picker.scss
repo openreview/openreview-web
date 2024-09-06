@@ -27,6 +27,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
 
 .rc-picker-panel {
   border: 1px solid #666;
+  border-bottom: none;
   background: $background-color;
   display: inline-block;
   vertical-align: top;
@@ -144,8 +145,9 @@ $input-placeholder-color: hsv(0, 0, 75%);
   min-width: 100%;
   line-height: 38px;
   text-align: center;
+  border: 1px solid #666;
   border-top: 1px solid #aaa;
-  border-bottom: 1px solid transparent;
+  background: $background-color;
 }
 
 .rc-picker-ranges {
@@ -162,6 +164,7 @@ $input-placeholder-color: hsv(0, 0, 75%);
 
 .rc-picker-now {
   .rc-picker-now-btn {
+    display: block;
     color: white;
     cursor: pointer;
     background-color: constants.$mediumBlue;
