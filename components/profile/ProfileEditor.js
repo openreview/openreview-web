@@ -682,7 +682,9 @@ export default function ProfileEditor({
           {
             step: 1,
             title: 'Personal Info',
-            description: 'Gender, Pronouns, Birth Year and Profile Visibility',
+            description: isNewProfile
+              ? 'Gender, Pronouns and Birth Year'
+              : 'Gender, Pronouns, Birth Year and Profile Visibility',
             status: getStepStatus(1),
           },
           {

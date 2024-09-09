@@ -15,6 +15,7 @@ const ActivateProfile = ({ appContext }) => {
   const [activateToken, setActivateToken] = useState('')
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [activateProfileErrors, setActivateProfileErrors] = useState(null)
   const { loginUser } = useContext(UserContext)
   const query = useQuery()
   const router = useRouter()
@@ -39,6 +40,7 @@ const ActivateProfile = ({ appContext }) => {
 
   const saveProfile = async (newProfileData) => {
     setLoading(true)
+    setActivateProfileErrors(null)
     try {
       const { user, token } = await api.put(`/activate/${activateToken}`, {
         content: newProfileData,
@@ -57,6 +59,9 @@ const ActivateProfile = ({ appContext }) => {
       }
     } catch (error) {
       promptError(error.message)
+      setActivateProfileErrors(
+        error.errors?.map((p) => p.details?.path) ?? [error?.details?.path]
+      )
     }
     setLoading(false)
   }
@@ -100,6 +105,7 @@ const ActivateProfile = ({ appContext }) => {
           hidePublicationEditor
           loading={loading}
           isNewProfile={true}
+          saveProfileErrors={activateProfileErrors}
         />
       ) : (
         <LoadingSpinner inline />
