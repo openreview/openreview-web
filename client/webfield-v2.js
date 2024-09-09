@@ -700,7 +700,7 @@ module.exports = (function () {
         var name = $link.data('userName')
 
         if (!options.preferredEmailsInvitationId) {
-          promptError('Email is not available.')
+          promptError('Email is not available.', { scrollToTop: false })
           return
         }
 
@@ -709,14 +709,14 @@ module.exports = (function () {
             var email = result.edges?.[0]?.tail
 
             if (!email) {
-              promptError('Email is not available.')
+              promptError('Email is not available.', { scrollToTop: false })
               return
             }
             copy(`${name} <${email}>`)
-            promptMessage(`${email} copied to clipboard`)
+            promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
           },
           function () {
-            promptError('Email is not available.')
+            promptError('Email is not available.', { scrollToTop: false })
           }
         )
         return false

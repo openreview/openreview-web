@@ -213,7 +213,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
 
   const getACSACEmail = async (preferredName, profileId) => {
     if (!preferredEmailInvitationId) {
-      promptError('Email is not available.')
+      promptError('Email is not available.', { scrollToTop: false })
       return
     }
     try {
@@ -224,9 +224,9 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
       copy(`${preferredName} <${email}>`)
-      promptMessage(`${email} copied to clipboard`)
+      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
     } catch (error) {
-      promptError(error.message)
+      promptError(error.message, { scrollToTop: false })
     }
   }
 
