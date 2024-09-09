@@ -516,7 +516,6 @@ const AreaChairConsole = ({ appContext }) => {
             p.invitations.includes(metaReviewInvitationId) &&
             p.signatures[0] === anonymousAreaChairIdByNumber[note.number]
         )
-
         return {
           note,
           reviewers: result[1]
