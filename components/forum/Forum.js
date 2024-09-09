@@ -615,7 +615,11 @@ export default function Forum({
         note={replyNoteMap[reply.id]}
         replies={reply.replies}
         replyDepth={1}
-        parentNote={forumNote}
+        parentNote={
+          replyNoteMap[reply.id].replyto === forumNote?.id
+            ? forumNote
+            : replyNoteMap[reply.replyto]
+        }
         deleteOrRestoreNote={deleteOrRestoreNote}
         updateNote={updateNote}
         isDirectReplyToForum={true}

@@ -256,7 +256,7 @@ export const AcPcConsoleReviewerStatusRow = ({
   }
   const getReviewerEmail = async () => {
     if (!preferredEmailInvitationId) {
-      promptError('Email is not available.')
+      promptError('Email is not available.', { scrollToTop: false })
       return
     }
     try {
@@ -267,9 +267,9 @@ export const AcPcConsoleReviewerStatusRow = ({
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
       copy(`${reviewer.preferredName} <${email}>`)
-      promptMessage(`${email} copied to clipboard`)
+      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
     } catch (error) {
-      promptError(error.message)
+      promptError(error.message, { scrollToTop: false })
     }
   }
   return (
@@ -559,6 +559,7 @@ export const AcPcConsoleNoteReviewStatus = ({
                 submissionName={submissionName}
                 reviewRatingName={reviewRatingName}
                 messageSignature={rowData.messageSignature}
+                preferredEmailInvitationId={preferredEmailInvitationId}
               />
             ))}
           </div>
