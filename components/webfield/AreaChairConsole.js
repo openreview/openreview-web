@@ -511,9 +511,12 @@ const AreaChairConsole = ({ appContext }) => {
         const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
         const metaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
-        const metaReview = note.details.replies.find((p) =>
-          p.invitations.includes(metaReviewInvitationId)
+        const metaReview = note.details.replies.find(
+          (p) =>
+            p.invitations.includes(metaReviewInvitationId) &&
+            p.signatures[0] === anonymousAreaChairIdByNumber[note.number]
         )
+
         return {
           note,
           reviewers: result[1]
