@@ -288,12 +288,12 @@ export default function Column(props) {
     if (query.filter) {
       return (
         <>
-          {`Only show ${group} available for ${invitation} `}
+          {`Show ${group} available for ${invitation} `}
           <Icon name="info-sign" tooltip={query.filter} />
         </>
       )
     }
-    return `Only show ${group} with fewer than max assigned papers`
+    return `Show ${group} with fewer than max assigned papers`
   }
 
   // Adds either a new browse edge or an edit edge to an item
