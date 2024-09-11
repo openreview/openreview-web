@@ -1236,9 +1236,27 @@ main.invitation {
   }
 
   .workflow {
+    .group-workflow-container {
+      .group-workflow {
+        display: flex;
+        justify-content: left;
+
+        .group-cdate {
+          margin-right: 0.5rem;
+        }
+        .group-content {
+          max-width: 80%;
+          .member-count {
+            margin-left: 0.5rem;
+          }
+        }
+      }
+    }
+
     em {
       color: constants.$orRed;
     }
+
     .edit-invitation-container {
       display: flex;
       flex-direction: column;
@@ -1247,8 +1265,47 @@ main.invitation {
 
       .invitation-info {
         display: flex;
-        .cdate {
+
+        .glyphicon {
+          vertical-align: baseline;
           margin-right: 0.25rem;
+          cursor: pointer;
+        }
+
+        .invitation-cdate {
+          margin-right: 0.5rem;
+        }
+
+        .rc-picker-clear {
+          top: 0;
+        }
+
+        .invitation-content {
+          max-width: 80%;
+          flex-grow: 1;
+
+          .invitation-id {
+            display: flex;
+            justify-content: left;
+
+            a {
+              white-space: nowrap;
+            }
+
+            .invitation-invitee {
+              margin-left: 0.5rem;
+              display: inline-block;
+              white-space: nowrap;
+              vertical-align: bottom;
+              overflow-x: hidden;
+              text-overflow: ellipsis;
+              width: 50%;
+            }
+
+            .tooltip-inner {
+              max-width: unset;
+            }
+          }
         }
       }
 

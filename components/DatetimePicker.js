@@ -16,6 +16,8 @@ const DatetimePicker = ({
   timeZone,
   placeholder,
   autoFocus = true,
+  allowClear = true,
+  skipOkEvent = false,
   showTime = {
     showSecond: false,
   },
@@ -25,6 +27,7 @@ const DatetimePicker = ({
   )
 
   const handleOkClick = (e) => {
+    if (skipOkEvent) return
     onChange(e.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
   }
 
@@ -53,7 +56,7 @@ const DatetimePicker = ({
       placeholder={placeholder ?? 'Select datetime'}
       use12Hours
       autoFocus={autoFocus}
-      allowClear
+      allowClear={allowClear}
       showToday={true}
     />
   )
