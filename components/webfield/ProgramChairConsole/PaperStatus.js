@@ -349,6 +349,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
           tableRowsAll={paperStatusTabData.tableRowsAll}
           tableRows={paperStatusTabData.tableRows}
           selectedNoteIds={selectedNoteIds}
+          setSelectedNoteIds={setSelectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
           reviewRatingName={reviewRatingName}
         />
@@ -361,6 +362,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
         tableRowsAll={paperStatusTabData.tableRowsAll}
         tableRows={paperStatusTabData.tableRows}
         selectedNoteIds={selectedNoteIds}
+        setSelectedNoteIds={setSelectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
         reviewRatingName={reviewRatingName}
         noteContentField={noteContentField}
