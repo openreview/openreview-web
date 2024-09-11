@@ -277,7 +277,6 @@ const ReviewerStatusMenuBar = ({
     <BaseMenuBar
       tableRowsAll={tableRowsAll}
       tableRows={tableRows}
-      selectedIds={selectedNoteIds}
       setData={setReviewerStatusTabData}
       shortPhrase={shortPhrase}
       messageDropdownLabel="Message"
