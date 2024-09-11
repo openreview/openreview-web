@@ -269,9 +269,7 @@ const RevisionsList = ({
                 <div className="meta_actions">
                   {reference.ddate ? (
                     <RestoreButton
-                      onClick={() =>
-                        deleteOrRestoreNote(reference, invitation)
-                      }
+                      onClick={() => deleteOrRestoreNote(reference, invitation)}
                       disableButton={!isNoteWritable}
                       disableReason={
                         !isNoteWritable
@@ -297,9 +295,7 @@ const RevisionsList = ({
                         />
                         {invitation.edit.ddate && (
                           <TrashButton
-                            onClick={() =>
-                              deleteOrRestoreNote(reference, invitation)
-                            }
+                            onClick={() => deleteOrRestoreNote(reference, invitation)}
                             disableButton={!isNoteWritable}
                             disableReason={
                               !isNoteWritable
@@ -461,6 +457,7 @@ const Revisions = ({ appContext }) => {
           sort: 'tcdate',
           details: 'writable,presentation,invitation',
           trash: true,
+          tauthor: true,
         },
         { accessToken }
       )
@@ -500,7 +497,10 @@ const Revisions = ({ appContext }) => {
     const loadNote = async () => {
       let note
       try {
-        note = await api.getNoteById(noteId, accessToken, { details: 'writable,forumContent' })
+        note = await api.getNoteById(noteId, accessToken, {
+          details: 'writable,forumContent',
+          trash: true,
+        })
       } catch (apiError) {
         setBannerHidden(true)
         setError(apiError)

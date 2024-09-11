@@ -256,7 +256,7 @@ export const AcPcConsoleReviewerStatusRow = ({
   }
   const getReviewerEmail = async () => {
     if (!preferredEmailInvitationId) {
-      promptError('Email is not available.')
+      promptError('Email is not available.', { scrollToTop: false })
       return
     }
     try {
@@ -267,9 +267,9 @@ export const AcPcConsoleReviewerStatusRow = ({
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
       copy(`${reviewer.preferredName} <${email}>`)
-      promptMessage(`${email} copied to clipboard`)
+      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
     } catch (error) {
-      promptError(error.message)
+      promptError(error.message, { scrollToTop: false })
     }
   }
   return (
@@ -538,31 +538,33 @@ export const AcPcConsoleNoteReviewStatus = ({
         {numReviewsDone} of {numReviewersAssigned}{' '}
         {pluralizeString(prettyField(officialReviewName))} Submitted
       </h4>
-      <Collapse
-        showLabel={`Show ${prettyField(reviewerName)}`}
-        hideLabel={`Hide ${prettyField(reviewerName)}`}
-        className="assigned-reviewers"
-      >
-        <div>
-          {reviewers.map((reviewer) => (
-            <AcPcConsoleReviewerStatusRow
-              key={reviewer.anonymousId}
-              officialReviews={officialReviews}
-              reviewer={reviewer}
-              note={note}
-              venueId={venueId}
-              officialReviewName={officialReviewName}
-              reviewerName={reviewerName}
-              referrerUrl={referrerUrl}
-              shortPhrase={shortPhrase}
-              submissionName={submissionName}
-              reviewRatingName={reviewRatingName}
-              messageSignature={rowData.messageSignature}
-              preferredEmailInvitationId={preferredEmailInvitationId}
-            />
-          ))}
-        </div>
-      </Collapse>
+      {reviewers.length > 0 && (
+        <Collapse
+          showLabel={`Show ${prettyField(reviewerName)}`}
+          hideLabel={`Hide ${prettyField(reviewerName)}`}
+          className="assigned-reviewers"
+        >
+          <div>
+            {reviewers.map((reviewer) => (
+              <AcPcConsoleReviewerStatusRow
+                key={reviewer.anonymousId}
+                officialReviews={officialReviews}
+                reviewer={reviewer}
+                note={note}
+                venueId={venueId}
+                officialReviewName={officialReviewName}
+                reviewerName={reviewerName}
+                referrerUrl={referrerUrl}
+                shortPhrase={shortPhrase}
+                submissionName={submissionName}
+                reviewRatingName={reviewRatingName}
+                messageSignature={rowData.messageSignature}
+                preferredEmailInvitationId={preferredEmailInvitationId}
+              />
+            ))}
+          </div>
+        </Collapse>
+      )}
       {(Array.isArray(reviewRatingName)
         ? reviewRatingName.map((p) => (typeof p === 'object' ? Object.keys(p)[0] : p))
         : [reviewRatingName]

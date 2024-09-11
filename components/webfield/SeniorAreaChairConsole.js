@@ -21,8 +21,10 @@ import {
   prettyField,
   getSingularRoleName,
   getRoleHashFragment,
+  pluralizeString,
 } from '../../lib/utils'
 import { formatProfileContent } from '../../lib/edge-utils'
+import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
 
 const SeniorAreaChairConsole = ({ appContext }) => {
   const {
@@ -111,15 +113,12 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                   { accessToken }
                 )
                 .then((notes) =>
-                  notes.filter((note) => {
-                    const noteVenueId = note.content?.venueid?.value
-                    return (
-                      noteVenueId !== withdrawnVenueId &&
-                      noteVenueId !== deskRejectedVenueId &&
-                      ((filterFunction && Function('note', filterFunction)(note)) ?? true) && // eslint-disable-line no-new-func
+                  notes.filter(
+                    (note) =>
+                      // eslint-disable-next-line no-new-func
+                      ((filterFunction && Function('note', filterFunction)(note)) ?? true) &&
                       noteNumbers.includes(note.number)
-                    )
-                  })
+                  )
                 )
             })
         : Promise.resolve([])
@@ -385,12 +384,13 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       )
 
       setSacConsoleData({
-        isSacConsole: true,
         assignedAreaChairIds,
         areaChairGroups,
         allProfilesMap,
         assignmentInvitations: invitations,
-        notes: assignedNotes.map((note) => {
+        notes: assignedNotes.flatMap((note) => {
+          if ([withdrawnVenueId, deskRejectedVenueId].includes(note.content?.venueid?.value))
+            return []
           const assignedReviewers =
             reviewerGroups?.find((p) => p.noteNumber === note.number)?.members ?? []
           const assignedAreaChairs =
@@ -404,11 +404,11 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 return p.invitations.includes(officialReviewInvitationId)
               })
               ?.map((review) => {
-                const reviewValue = review.content.review?.value
+                const reviewValue = review.content?.review?.value
                 return {
                   ...review,
                   anonymousId: getIndentifierFromGroup(review.signatures[0], anonReviewerName),
-                  confidence: parseNumberField(review.content[reviewConfidenceName]?.value),
+                  confidence: parseNumberField(review.content?.[reviewConfidenceName]?.value),
                   ...Object.fromEntries(
                     (Array.isArray(reviewRatingName)
                       ? reviewRatingName
@@ -421,9 +421,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                       const ratingValue =
                         typeof ratingName === 'object'
                           ? Object.values(ratingName)[0]
-                              .map((r) => review.content[r]?.value)
+                              .map((r) => review.content?.[r]?.value)
                               .find((s) => s !== undefined)
-                          : review.content[ratingName]?.value
+                          : review.content?.[ratingName]?.value
                       return [[displayRatingName], parseNumberField(ratingValue)]
                     })
                   ),
@@ -457,7 +457,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             )
           )
 
-          const confidences = officialReviews.map((p) => p.confidence)
+          const confidences = officialReviews.map((p) => p?.confidence)
           const validConfidences = confidences.filter((p) => p !== null)
           const confidenceAvg = validConfidences.length
             ? (
@@ -496,10 +496,10 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 metaReviewAgreement?.content?.[metaReviewAgreementConfig?.displayField]?.value
               return {
                 [metaReviewRecommendationName]:
-                  metaReview?.content[metaReviewRecommendationName]?.value,
+                  metaReview?.content?.[metaReviewRecommendationName]?.value,
                 ...metaReview,
                 ...additionalMetaReviewFields?.reduce((prev, curr) => {
-                  const additionalMetaReviewFieldValue = metaReview?.content[curr]?.value
+                  const additionalMetaReviewFieldValue = metaReview?.content?.[curr]?.value
                   return {
                     ...prev,
                     [curr]: {
@@ -539,9 +539,10 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             if (prelimDecisionNote) {
               preliminaryDecision = {
                 id: prelimDecisionNote.id,
-                recommendation: prelimDecisionNote.content.recommendation?.value,
-                confidence: prelimDecisionNote.content.confidence?.value,
-                discussionNeeded: prelimDecisionNote.content.discussion_with_SAC_needed?.value,
+                recommendation: prelimDecisionNote.content?.recommendation?.value,
+                confidence: prelimDecisionNote.content?.confidence?.value,
+                discussionNeeded:
+                  prelimDecisionNote.content?.discussion_with_SAC_needed?.value,
               }
             }
           }
@@ -626,6 +627,14 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             ithenticateEdge: ithenticateEdges.find((p) => p.head === note.id),
           }
         }),
+        withdrawnNotes: assignedNotes.flatMap((note) => {
+          if (note.content?.venueid?.value === withdrawnVenueId) return note
+          return []
+        }),
+        deskRejectedNotes: assignedNotes.flatMap((note) => {
+          if (note.content?.venueid?.value === deskRejectedVenueId) return note
+          return []
+        }),
       })
     } catch (error) {
       promptError(`loading data: ${error.message}`)
@@ -653,6 +662,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     const validTabIds = [
       `#${(submissionName ?? '').toLowerCase()}-status`,
       `#${areaChairUrlFormat}-status`,
+      '#deskrejectwithdrawn-status',
       `#${seniorAreaChairUrlFormat}-tasks`,
     ]
     if (!validTabIds.includes(activeTabId)) {
@@ -703,6 +713,15 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           >
             {getSingularRoleName(prettyField(areaChairName))} Status
           </Tab>
+          {(withdrawnVenueId || deskRejectedVenueId) && (
+            <Tab
+              id="deskrejectwithdrawn-status"
+              active={activeTabId === '#deskrejectwithdrawn-status' ? true : undefined}
+              onClick={() => setActiveTabId('#deskrejectwithdrawn-status')}
+            >
+              Desk Rejected/Withdrawn {pluralizeString(submissionName)}
+            </Tab>
+          )}
           <Tab
             id={`${seniorAreaChairUrlFormat}-tasks`}
             active={activeTabId === `#${seniorAreaChairUrlFormat}-tasks` ? true : undefined}
@@ -727,6 +746,12 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               />
             </TabPanel>
           )}
+          {activeTabId === '#deskrejectwithdrawn-status' && (
+            <TabPanel id="deskrejectwithdrawn-status">
+              <RejectedWithdrawnPapers consoleData={sacConsoleData} isSacConsole={true} />
+            </TabPanel>
+          )}
+
           {activeTabId === `#${seniorAreaChairUrlFormat}-tasks` && (
             <TabPanel id={`${seniorAreaChairUrlFormat}-tasks`}>
               <SeniorAreaChairTasks />
