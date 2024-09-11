@@ -604,32 +604,34 @@ export default function ProfileEditor({
 
   useEffect(() => {
     if (!saveProfileErrors?.length) return
-    if (saveProfileErrors.some((errorPath) => errorPath.startsWith('content/names'))) {
+    if (saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/names'))) {
       setInvalidSteps((current) => [...current, 0])
     }
     if (
-      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/pronouns')) ||
-      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/gender')) ||
-      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/yearOfBirth'))
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/pronouns')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/gender')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/yearOfBirth'))
     ) {
       setInvalidSteps((current) => [...current, 1])
     }
-    if (saveProfileErrors.some((errorPath) => errorPath.startsWith('content/emails'))) {
+    if (saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/emails'))) {
       setInvalidSteps((current) => [...current, 2])
     }
     if (
-      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/homepage')) ||
-      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/dblp')) ||
-      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/gscholar')) ||
-      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/linkedin')) ||
-      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/orcid')) ||
-      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/semanticScholar')) ||
-      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/aclanthology')) ||
-      saveProfileErrors.some((errorPath) => errorPath.startsWith('content/wikipedia'))
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/homepage')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/dblp')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/gscholar')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/linkedin')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/orcid')) ||
+      saveProfileErrors.some((errorPath) =>
+        errorPath?.startsWith('content/semanticScholar')
+      ) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/aclanthology')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/wikipedia'))
     ) {
       setInvalidSteps((current) => [...current, 3])
     }
-    if (saveProfileErrors.some((errorPath) => errorPath.startsWith('content/history'))) {
+    if (saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/history'))) {
       setInvalidSteps((current) => [...current, 4])
     }
   }, [saveProfileErrors])
