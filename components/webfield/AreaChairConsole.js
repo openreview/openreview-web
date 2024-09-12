@@ -613,6 +613,7 @@ const AreaChairConsole = ({ appContext }) => {
             tableRowsAll={acConsoleData.tableRowsAll}
             tableRows={acConsoleData.tableRows}
             selectedNoteIds={selectedNoteIds}
+            setSelectedNoteIds={setSelectedNoteIds}
             setAcConsoleData={setAcConsoleData}
             shortPhrase={shortPhrase}
             enableQuerySearch={enableQuerySearch}
@@ -640,6 +641,7 @@ const AreaChairConsole = ({ appContext }) => {
           tableRowsAll={acConsoleData.tableRowsAll}
           tableRows={acConsoleData.tableRows}
           selectedNoteIds={selectedNoteIds}
+          setSelectedNoteIds={setSelectedNoteIds}
           setAcConsoleData={setAcConsoleData}
           shortPhrase={shortPhrase}
           enableQuerySearch={enableQuerySearch}
