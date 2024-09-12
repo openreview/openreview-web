@@ -758,7 +758,7 @@ export default function ProfileEditor({
           </button>
           {!hideCancelButton && (
             <button type="button" className="btn btn-default" onClick={cancelHandler}>
-              {isNewProfile ? 'Cancel' : 'Exist Edit Mode'}
+              {isNewProfile ? 'Cancel' : 'Exit Edit Mode'}
             </button>
           )}
         </div>
