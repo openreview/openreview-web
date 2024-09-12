@@ -18,6 +18,7 @@ const DatetimePicker = ({
   autoFocus = true,
   allowClear = true,
   skipOkEvent = false,
+  onBlur,
   showTime = {
     showSecond: false,
   },
@@ -53,6 +54,7 @@ const DatetimePicker = ({
       value={value}
       onOk={handleOkClick}
       onChange={handleChange}
+      onBlur={onBlur}
       placeholder={placeholder ?? 'Select datetime'}
       use12Hours
       autoFocus={autoFocus}

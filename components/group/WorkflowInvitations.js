@@ -235,6 +235,7 @@ const EditInvitationRow = ({ invitation, isDomainGroup, loadWorkflowInvitations 
             onChange={(e) => updateActivationDate(e)}
             allowClear={false}
             skipOkEvent={true}
+            onBlur={() => setIsEditingCdate(false)}
           />
         ) : (
           <>
