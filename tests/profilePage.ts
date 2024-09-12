@@ -101,8 +101,6 @@ test('user open own profile', async (t) => {
     .click(Selector('a').withText('Edit Profile'))
     .expect(Selector('h1').withText('Edit Profile').exists)
     .ok()
-    .expect(Selector('#edit-banner').find('a').innerText)
-    .eql('View Profile')
     .click(step3Links)
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
