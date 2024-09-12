@@ -191,6 +191,7 @@ const PaperStatus = ({ sacConsoleData }) => {
           tableRowsAll={paperStatusTabData.tableRowsAll}
           tableRows={paperStatusTabData.tableRows}
           selectedNoteIds={selectedNoteIds}
+          setSelectedNoteIds={setSelectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
           reviewRatingName={reviewRatingName}
         />
@@ -205,6 +206,7 @@ const PaperStatus = ({ sacConsoleData }) => {
         tableRowsAll={paperStatusTabData.tableRowsAll}
         tableRows={paperStatusTabData.tableRows}
         selectedNoteIds={selectedNoteIds}
+        setSelectedNoteIds={setSelectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
         reviewRatingName={reviewRatingName}
       />
