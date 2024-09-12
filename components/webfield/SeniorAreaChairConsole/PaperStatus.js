@@ -63,8 +63,8 @@ const PaperRow = ({
     if (!assignmentUrls) return null
     const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
     // auto
-    const isAssignmentConfigDeployed = assignmentInvitations?.some((p) =>
-      p.id.startsWith(roleId)
+    const isAssignmentConfigDeployed = assignmentInvitations?.some(
+      (p) => p.id.startsWith(roleId) && (!p.expdate || p.exdate > Date.now())
     )
     // manual
     const isMatchingSetup = isAssignmentConfigDeployed

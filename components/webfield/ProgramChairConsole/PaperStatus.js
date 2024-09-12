@@ -271,7 +271,8 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
     const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
     // auto
     const isAssignmentConfigDeployed = pcConsoleData.invitations?.some(
-      (p) => p.id === `${venueId}/${role}/-/Assignment`
+      (p) =>
+        p.id === `${venueId}/${role}/-/Assignment` && (!p.expdate || p.expdate > Date.now())
     )
     // manual
     const isMatchingSetup = isAssignmentConfigDeployed
