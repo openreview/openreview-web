@@ -56,6 +56,9 @@ main.profile-edit {
       width: 100%;
       font-size: 0;
       margin-bottom: 1.5rem;
+      @media #{constants.$phone-only} {
+        overflow: scroll;
+      }
 
       .rc-steps-item {
         position: relative;

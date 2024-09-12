@@ -1,7 +1,7 @@
 /* globals promptError: false */
 /* eslint-disable no-cond-assign */
 
-import { useEffect, useReducer, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import pick from 'lodash/pick'
 import Steps from 'rc-steps'
 import EducationHistorySection from './EducationHistorySection'
@@ -44,6 +44,7 @@ export default function ProfileEditor({
   const [renderPublicationEditor, setRenderPublicationEditor] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const [invalidSteps, setInvalidSteps] = useState([])
+  const stepRef = useRef(null)
 
   const prefixedRelations = dropdownOptions?.prefixedRelations
   const relationReaders = dropdownOptions?.relationReaders
@@ -607,6 +608,14 @@ export default function ProfileEditor({
   }
 
   useEffect(() => {
+    stepRef.current?.firstChild?.children?.[currentStep]?.scrollIntoView({
+      behavior: 'smooth',
+      inline: 'center',
+      block: 'nearest',
+    })
+  }, [currentStep])
+
+  useEffect(() => {
     if (!saveProfileErrors?.length) return
     if (saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/names'))) {
       setInvalidSteps((current) => [...current, 0])
@@ -672,7 +681,7 @@ export default function ProfileEditor({
   }, [])
 
   return (
-    <div className="profile-edit-container">
+    <div className="profile-edit-container" ref={stepRef}>
       <Steps
         type="navigation"
         current={currentStep}
