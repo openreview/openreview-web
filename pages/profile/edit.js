@@ -10,7 +10,6 @@ import LimitedStateAlert from '../../components/profile/LimitedStateAlert'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { profileModeToggle } from '../../lib/banner-links'
 import { formatProfileData } from '../../lib/profiles'
 
 export default function ProfileEdit({ appContext }) {
@@ -147,8 +146,6 @@ export default function ProfileEdit({ appContext }) {
     if (!accessToken) return
 
     setBannerHidden(true)
-    setEditBanner(profileModeToggle('edit'))
-
     loadProfile()
   }, [accessToken])
 

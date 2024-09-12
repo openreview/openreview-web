@@ -493,9 +493,13 @@ export default function ProfileEditor({
         return (
           <>
             <ProfileSection
-              title="Personal Links"
-              instructions="Enter full URLs of your public profiles on other sites. All URLs should begin
-          with http:// or https://"
+              title={`Personal Links${isNewProfile ? ' *' : ''}`}
+              instructions={`${
+                isNewProfile
+                  ? 'At least one URL is required that displays your name and email. '
+                  : ''
+              }Enter full URLs of your public profiles on other sites. All URLs should begin
+          with http:// or https://`}
             >
               <PersonalLinksSection
                 profileLinks={profile?.links}
@@ -527,7 +531,7 @@ export default function ProfileEditor({
       case 4:
         return (
           <ProfileSection
-            title="Education &amp; Career History"
+            title={`Education & Career History${isNewProfile ? ' *' : ''}`}
             instructions="Enter your education and career history. The institution domain is used for
           conflict of interest detection, author deduplication, analysis of career path history, and
           tallies of institutional diversity. For ongoing positions, leave the End field blank."
@@ -754,7 +758,7 @@ export default function ProfileEditor({
           </button>
           {!hideCancelButton && (
             <button type="button" className="btn btn-default" onClick={cancelHandler}>
-              Cancel
+              {isNewProfile ? 'Cancel' : 'Exist Edit Mode'}
             </button>
           )}
         </div>
