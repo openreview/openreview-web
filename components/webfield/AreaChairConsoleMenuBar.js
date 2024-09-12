@@ -8,6 +8,7 @@ const AreaChairConsoleMenuBar = ({
   tableRowsAll,
   tableRows,
   selectedNoteIds,
+  setSelectedNoteIds,
   setAcConsoleData,
   shortPhrase,
   enableQuerySearch,
@@ -270,6 +271,7 @@ const AreaChairConsoleMenuBar = ({
       tableRowsAll={tableRowsAll}
       tableRows={tableRows}
       selectedIds={selectedNoteIds}
+      setSelectedIds={setSelectedNoteIds}
       setData={setAcConsoleData}
       shortPhrase={shortPhrase}
       enableQuerySearch={enableQuerySearch}
