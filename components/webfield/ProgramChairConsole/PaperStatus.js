@@ -269,13 +269,15 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
   const getManualAssignmentUrl = (role) => {
     if (!assignmentUrls) return null
     const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
-    // auto
+    // auto - deployed and not expired
     const isAssignmentConfigDeployed = pcConsoleData.invitations?.some(
       (p) =>
         p.id === `${venueId}/${role}/-/Assignment` && (!p.expdate || p.expdate > Date.now())
     )
-    // manual
-    const isMatchingSetup = isAssignmentConfigDeployed
+    // manual - there's no undeploy
+    const isMatchingSetup = pcConsoleData.invitations?.some(
+      (p) => p.id === `${venueId}/${role}/-/Assignment`
+    )
 
     if (
       (assignmentUrls[role]?.automaticAssignment === false && isMatchingSetup) ||
