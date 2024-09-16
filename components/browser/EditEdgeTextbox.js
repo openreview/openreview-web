@@ -30,7 +30,11 @@ export default function EditEdgeTextbox(props) {
         <input
           type="text"
           className="form-control edit-edge-input"
-          value={props.selected}
+          value={
+            props.selected ??
+            props.editEdgeTemplate?.defaultWeight ??
+            props.editEdgeTemplate?.defaultLabel
+          }
           onClick={(e) => e.stopPropagation()}
           onChange={(e) => {
             e.stopPropagation()

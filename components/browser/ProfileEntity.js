@@ -139,7 +139,7 @@ export default function ProfileEntity(props) {
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
       } else if (isCustomLoadInvitation) {
-        props.updateChildColumn(props.columnIndex, null)
+        props.updateChildColumn(props.columnIndex, defaultWeight)
       }
       props.reloadColumnEntities()
     } catch (error) {
