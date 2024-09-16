@@ -62,7 +62,7 @@ const RevisionsList = ({
   const router = useRouter()
   const [editToChange, setEditToChange] = useState(null)
   const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
-  const newNoteEditor = revisions?.[0]?.[1]?.domain
+  const newNoteEditor = revisions?.some((p) => p?.[1]?.domain)
 
   const toggleSelected = (idx, checked) => {
     if (checked) {
@@ -457,7 +457,6 @@ const Revisions = ({ appContext }) => {
           sort: 'tcdate',
           details: 'writable,presentation,invitation',
           trash: true,
-          tauthor: true,
         },
         { accessToken }
       )
