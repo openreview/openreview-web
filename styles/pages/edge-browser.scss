@@ -191,6 +191,16 @@ main.edge-browser {
           cursor: no-drop;
         }
       }
+      .edit-edge-textbox {
+        width: 15%;
+        padding-left: 0.5rem;
+
+        .edit-edge-input {
+          font-size: 0.75rem;
+          padding: 3px 5px;
+          height: fit-content;
+        }
+      }
       .span-disabled {
         pointer-events: none;
       }

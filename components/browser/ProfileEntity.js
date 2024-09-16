@@ -21,6 +21,7 @@ import EditEdgeToggle from './EditEdgeToggle'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import ScoresList from './ScoresList'
 import useQuery from '../../hooks/useQuery'
+import EditEdgeTextbox from './EditEdgeTextbox'
 
 export default function ProfileEntity(props) {
   const {
@@ -312,10 +313,27 @@ export default function ProfileEntity(props) {
     if (!edge && content?.isInvitedProfile && isEmergencyReviewerStage && !isInviteInvitation)
       return null
 
+    const editEdgeTextbox = (type) => (
+      <>
+        <EditEdgeTextbox
+          existingEdge={edge}
+          canAddEdge={
+            editEdges?.filter((p) => p?.invitation === invitation.id).length === 0 ||
+            invitation.multiReply
+          }
+          label={invitation.name}
+          selected={edge?.[type]}
+          addEdge={addEdge}
+          removeEdge={() => removeEdge(edge)}
+          type={type} // label or weight
+          editEdgeTemplate={editEdgeTemplates?.find((p) => p?.invitation === invitation.id)}
+        />
+      </>
+    )
+
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown
         existingEdge={edge}
-        // eslint-disable-next-line max-len
         canAddEdge={
           editEdges?.filter((p) => p?.invitation === invitation.id).length === 0 ||
           invitation.multiReply
@@ -381,12 +399,14 @@ export default function ProfileEntity(props) {
     const shouldRenderWeightRadio = weightRadio && !invitation.label
     const shouldRenderLabelDropdown = labelDropdown && !invitation.weight
     const shouldRenderWeightDropdown = weightDropdown && !invitation.label
+    const shouldRenderWeightTextbox = invitation.weight?.['value-textbox']
 
     if (shouldRenderTwoRadio) return editEdgeTwoDropdowns('value-radio')
     if (shouldRenderTwoDropdown) return editEdgeTwoDropdowns('value-dropdown')
     if (shouldRenderLabelRadio) return editEdgeDropdown('label', 'value-radio') // for now treat radio the same as dropdown
     if (shouldRenderWeightRadio) return editEdgeDropdown('weight', 'value-radio') // for now treat radio the same as dropdown
     if (shouldRenderLabelDropdown) return editEdgeDropdown('label', 'value-dropdown')
+    if (shouldRenderWeightTextbox) return editEdgeTextbox('weight')
     if (shouldRenderWeightDropdown) return editEdgeDropdown('weight', 'value-dropdown')
     return editEdgeToggle()
   }
