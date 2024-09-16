@@ -31,11 +31,16 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
       label: 'Related Invitations',
       sections: ['groupRelatedInvitations'],
     },
-    {
-      id: 'workflowInvitations',
-      label: 'Workflow Step Timeline',
-      sections: ['workflowInvitations'],
-    },
+    ...(group.id === group.domain
+      ? [
+          {
+            id: 'workflowInvitations',
+            label: 'Workflow Step Timeline',
+            sections: ['workflowInvitations'],
+            default: true,
+          },
+        ]
+      : []),
   ]
   const renderSection = (sectionName) => {
     switch (sectionName) {

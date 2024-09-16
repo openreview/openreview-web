@@ -239,9 +239,6 @@ const EditInvitationRow = ({ invitation, isDomainGroup, loadWorkflowInvitations 
           />
         ) : (
           <>
-            <div onClick={() => setIsEditingCdate(true)}>
-              <Icon name="pencil" tooltip="Edit Activation Date" />
-            </div>
             <span
               className={
                 invitation.passed ? 'text-muted invitation-cdate' : 'invitation-cdate'
@@ -249,6 +246,9 @@ const EditInvitationRow = ({ invitation, isDomainGroup, loadWorkflowInvitations 
             >
               {invitation.formattedCDate}{' '}
             </span>
+            <div onClick={() => setIsEditingCdate(true)}>
+              <Icon name="pencil" tooltip="Edit Activation Date" />
+            </div>
           </>
         )}
         <div className="invitation-content">
