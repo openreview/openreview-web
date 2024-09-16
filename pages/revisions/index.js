@@ -62,7 +62,7 @@ const RevisionsList = ({
   const router = useRouter()
   const [editToChange, setEditToChange] = useState(null)
   const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
-  const newNoteEditor = revisions?.some((p) => p?.[1]?.domain)
+  const newNoteEditor = revisions?.some((p) => p?.[0]?.domain)
 
   const toggleSelected = (idx, checked) => {
     if (checked) {
