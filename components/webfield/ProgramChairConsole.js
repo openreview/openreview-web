@@ -79,6 +79,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     submissionContentFields = [],
     sacDirectPaperAssignment,
     propertiesAllowed,
+    areaChairStatusPropertiesAllowed,
     sacStatuspropertiesAllowed,
     messageAreaChairsInvitationId,
     messageSeniorAreaChairsInvitationId,
