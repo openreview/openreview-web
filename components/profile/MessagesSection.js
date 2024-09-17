@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import Table from '../Table'
 
-const MessagesSection = ({ email, accessToken }) => {
+const MessagesSection = ({ email, accessToken, rejectMessagesOnly }) => {
   const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -14,6 +14,7 @@ const MessagesSection = ({ email, accessToken }) => {
         '/messages',
         {
           to: email,
+          ...(rejectMessagesOnly && { subject: 'OpenReview profile activation status' }),
           limit: 5,
         },
         { accessToken }
@@ -38,7 +39,12 @@ const MessagesSection = ({ email, accessToken }) => {
     )
   }
 
-  if (!messages?.length) return null
+  if (!messages?.length)
+    return (
+      <p className="empty-message">
+        No {rejectMessagesOnly ? 'rejection' : ''} messages found
+      </p>
+    )
   return (
     <Table
       className="messages-table"
