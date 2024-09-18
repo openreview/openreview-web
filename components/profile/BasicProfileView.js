@@ -4,6 +4,8 @@ import copy from 'copy-to-clipboard'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 import { prettyList } from '../../lib/utils'
+import { useEffect, useState } from 'react'
+import LoadingSpinner from '../LoadingSpinner'
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -48,14 +50,39 @@ const ProfileEmail = ({ email, publicProfile, allowCopyEmail }) => {
   )
 }
 
-const ProfileLink = ({ link, showLinkText }) => {
+const ProfileLink = ({ link, showLinkText, fetchUrl }) => {
   const linkUrlWithProtocol = link.url?.startsWith('http') ? link.url : `//${link.url}`
+  const [isValidLink, setIsValidLink] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  const loadLinkUrl = async () => {
+    setIsLoading(true)
+    try {
+      await fetch(linkUrlWithProtocol, { mode: 'no-cors' })
+      setIsValidLink(true)
+    } catch (error) {
+      setIsValidLink(false)
+    }
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
+    if (!fetchUrl) return
+    loadLinkUrl()
+  }, [link])
+
   return (
     <ProfileItem itemMeta={link.meta}>
       <a href={linkUrlWithProtocol} target="_blank" rel="noopener noreferrer">
         {link.name}
       </a>
       {showLinkText && <span className="link-text">{`(${linkUrlWithProtocol})`}</span>}
+      {fetchUrl &&
+        (isLoading ? (
+          <LoadingSpinner inline text={null} />
+        ) : (
+          <Icon name={isValidLink ? 'ok' : 'remove'} extraClasses="url-status" />
+        ))}
     </ProfileItem>
   )
 }
@@ -153,7 +180,7 @@ const BasicProfileView = ({
   profile,
   publicProfile,
   showLinkText = false,
-  allowCopyEmail = false,
+  moderation = false,
   contentToShow = ['names', 'emails', 'links', 'history', 'relations', 'expertise'],
 }) => {
   const uniqueNames = profile.names.filter((name) => !name.duplicate)
@@ -186,7 +213,7 @@ const BasicProfileView = ({
                   key={`${email.email}-${i}`}
                   email={email}
                   publicProfile={publicProfile}
-                  allowCopyEmail={allowCopyEmail}
+                  allowCopyEmail={moderation}
                 />,
               ])}
           </div>
@@ -196,7 +223,12 @@ const BasicProfileView = ({
       {contentToShow.includes('links') && (
         <ProfileViewSection name="links" title="Personal Links" actionLink="Suggest URL">
           {profile.links.map((link) => (
-            <ProfileLink key={link.name} link={link} showLinkText={showLinkText} />
+            <ProfileLink
+              key={link.name}
+              link={link}
+              showLinkText={showLinkText}
+              fetchUrl={moderation}
+            />
           ))}
         </ProfileViewSection>
       )}
