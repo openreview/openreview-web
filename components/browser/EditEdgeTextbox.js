@@ -46,7 +46,7 @@ const EditEdgeTextbox = ({
 
   useEffect(() => {
     setIsLoading(false)
-    if (selected) {
+    if (selected !== null && selected !== undefined) {
       setImmediateValue(selected)
     } else {
       setImmediateValue(null)
