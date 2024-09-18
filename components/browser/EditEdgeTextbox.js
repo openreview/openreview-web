@@ -36,8 +36,8 @@ const EditEdgeTextbox = ({
       setIsLoading(true)
       addEdge({
         e,
-        existingEdge: existingEdge,
-        editEdgeTemplate: editEdgeTemplate,
+        existingEdge,
+        editEdgeTemplate,
         updatedEdgeFields: { [type]: Number(e.target.value) },
       })
     }, 500),
