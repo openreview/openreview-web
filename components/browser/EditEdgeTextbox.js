@@ -2,14 +2,28 @@
 /* eslint-disable react/destructuring-assignment */
 /* globals $: false */
 
+import { useCallback, useEffect, useState } from 'react'
+import { debounce } from 'lodash'
 import { getTooltipTitle } from '../../lib/edge-utils'
+import LoadingSpinner from '../LoadingSpinner'
 
-export default function EditEdgeTextbox(props) {
-  const showTrashButton = props.existingEdge?.writers?.length !== 0
+const EditEdgeTextbox = ({
+  existingEdge,
+  canAddEdge,
+  label,
+  selected,
+  addEdge,
+  removeEdge,
+  type,
+  editEdgeTemplate,
+}) => {
+  const showTrashButton = existingEdge?.writers?.length !== 0
+  const [isLoading, setIsLoading] = useState(false)
+  const [immediateValue, setImmediateValue] = useState(null)
 
   const handleHover = (target) => {
-    if (!props.existingEdge) return
-    const title = getTooltipTitle(props.existingEdge)
+    if (!existingEdge) return
+    const title = getTooltipTitle(existingEdge)
     $(target).tooltip({
       title,
       trigger: 'hover',
@@ -17,48 +31,72 @@ export default function EditEdgeTextbox(props) {
     })
   }
 
-  if (!props.existingEdge && !props.canAddEdge) return null
+  const delayedAddEdge = useCallback(
+    debounce((e) => {
+      setIsLoading(true)
+      addEdge({
+        e,
+        existingEdge: existingEdge,
+        editEdgeTemplate: editEdgeTemplate,
+        updatedEdgeFields: { [type]: Number(e.target.value) },
+      })
+    }, 500),
+    [existingEdge]
+  )
+
+  useEffect(() => {
+    setIsLoading(false)
+    if (selected) {
+      setImmediateValue(selected)
+    } else {
+      setImmediateValue(null)
+    }
+  }, [existingEdge, canAddEdge])
+
+  if (!existingEdge && !canAddEdge) return null
   return (
     <div
+      key={editEdgeTemplate?.tail}
       className="edit-controls full-width"
       onClick={(e) => {
         e.stopPropagation()
       }}
     >
-      <label onMouseEnter={(e) => handleHover(e.target)}>{props.label}:</label>
+      <label onMouseEnter={(e) => handleHover(e.target)}>{label}:</label>
       <div className="btn-group edit-edge-textbox">
         <input
           type="text"
           className="form-control edit-edge-input"
+          disabled={isLoading}
           value={
-            props.selected ??
-            props.editEdgeTemplate?.defaultWeight ??
-            props.editEdgeTemplate?.defaultLabel
+            immediateValue ?? editEdgeTemplate?.defaultWeight ?? editEdgeTemplate?.defaultLabel
           }
           onClick={(e) => e.stopPropagation()}
           onChange={(e) => {
             e.stopPropagation()
-            props.addEdge({
-              e,
-              existingEdge: props.existingEdge,
-              editEdgeTemplate: props.editEdgeTemplate,
-              updatedEdgeFields: { [props.type]: Number(e.target.value) },
-            })
+            setImmediateValue(e.target.value)
+            delayedAddEdge(e)
           }}
         />
       </div>
-      {props.existingEdge && showTrashButton && (
-        <a
-          href="#"
-          className="edit-edge-remove"
-          onClick={(e) => {
-            e.stopPropagation()
-            props.removeEdge()
-          }}
-        >
-          <span className="glyphicon glyphicon-trash" />
-        </a>
-      )}
+      <div className="edit-edge-spinner">
+        {isLoading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
+        {existingEdge && showTrashButton && (
+          <a
+            href="#"
+            className="edit-edge-remove"
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsLoading(true)
+              removeEdge()
+            }}
+          >
+            <span className="glyphicon glyphicon-trash" />
+          </a>
+        )}
+      </div>
     </div>
   )
 }
+
+export default EditEdgeTextbox
