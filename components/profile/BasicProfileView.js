@@ -1,10 +1,10 @@
 import random from 'lodash/random'
 import Link from 'next/link'
 import copy from 'copy-to-clipboard'
+import { useEffect, useState } from 'react'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 import { prettyList } from '../../lib/utils'
-import { useEffect, useState } from 'react'
 import LoadingSpinner from '../LoadingSpinner'
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
