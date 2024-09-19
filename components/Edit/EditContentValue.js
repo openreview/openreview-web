@@ -40,7 +40,11 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJso
   ) {
     return (
       <div className="note-content-value">
-        <pre>{fieldValue}</pre>
+        {fieldValue.length ? (
+          <pre>{fieldValue}</pre>
+        ) : (
+          <span className="empty-value">(empty)</span>
+        )}
       </div>
     )
   }
