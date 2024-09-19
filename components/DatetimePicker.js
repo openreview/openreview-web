@@ -19,6 +19,7 @@ const DatetimePicker = ({
   allowClear = true,
   skipOkEvent = false,
   onBlur,
+  disabledDate,
   showTime = {
     showSecond: false,
   },
@@ -59,7 +60,7 @@ const DatetimePicker = ({
       use12Hours
       autoFocus={autoFocus}
       allowClear={allowClear}
-      showToday={true}
+      disabledDate={disabledDate}
     />
   )
 }
