@@ -4,7 +4,14 @@ import Link from 'next/link'
 import { get, sortBy } from 'lodash'
 import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
-import { formatDateTime, getMetaInvitationId, prettyField, prettyId } from '../../lib/utils'
+import {
+  formatDateTime,
+  getMetaInvitationId,
+  getPath,
+  getSubInvitationContentFieldDisplayValue,
+  prettyField,
+  prettyId,
+} from '../../lib/utils'
 import InvitationContentEditor from './InvitationContentEditor'
 import Dropdown from '../Dropdown'
 import Icon from '../Icon'
@@ -19,59 +26,6 @@ const WorflowInvitationRow = ({
   const [showInvitationEditor, setShowInvitationEditor] = useState(false)
   const invitationName = prettyField(subInvitation.id.split('/').pop())
   const isGroupInvitation = subInvitation.edit?.group // sub invitation can be group invitation too
-
-  const getFieldDisplayValue = (invitation, path, type) => {
-    if (!path) return null
-    const fieldValue = get(invitation, path)
-    if (typeof fieldValue === 'object') {
-      if (Array.isArray(fieldValue)) {
-        if (typeof fieldValue[0] === 'object') {
-          // enum
-          return fieldValue.map((p) => p.description).join(', ')
-        }
-        const valueSegments = fieldValue.map((value) =>
-          prettyId(value).split(/\{(\S+\s*\S*)\}/g)
-        )
-        return valueSegments.map((segments) => (
-          <>
-            {segments.map((segment, index) =>
-              index % 2 !== 0 ? <em key={index}>{segment}</em> : segment
-            )}
-            {', '}
-          </>
-        ))
-      }
-      return Object.keys(fieldValue).join(', ')
-    }
-    if (type === 'date') {
-      return formatDateTime(fieldValue, { second: undefined })
-    }
-    return fieldValue?.toString()
-  }
-
-  const getPath = (object, value, path) => {
-    if (typeof object !== 'object') {
-      return null
-    }
-    const keys = Object.keys(object)
-    for (let i = 0; i < keys.length; i += 1) {
-      const key = keys[i]
-      if (typeof object[key] === 'string' && object[key].includes(value)) {
-        if (Number.isNaN(Number(key))) return path ? `${path}.${key}` : key
-        return path
-      }
-      if (Array.isArray(object[key]) && object[key].includes(value)) {
-        return path ? `${path}.${key}` : key
-      }
-      if (typeof object[key] === 'object') {
-        const result = getPath(object[key], value, path ? `${path}.${key}` : key)
-        if (result) {
-          return result
-        }
-      }
-    }
-    return null
-  }
 
   const existingValue = isGroupInvitation
     ? {}
@@ -118,7 +72,7 @@ const WorflowInvitationRow = ({
                 <li key={key}>
                   {prettyField(key)}:{' '}
                   <i>
-                    {getFieldDisplayValue(
+                    {getSubInvitationContentFieldDisplayValue(
                       workflowInvitation,
                       getPath(subInvitation.edit.invitation, key),
                       subInvitation.edit.content?.[key]?.value?.param?.type
