@@ -1,0 +1,50 @@
+@use '../utils/constants';
+
+.toggleButtonContainer {
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
+  }
+  display: flex;
+}
+
+.toggleButton {
+  padding: 0;
+  border: none;
+  min-width: 5rem;
+  font-size: 0.875rem;
+  font-weight: bold;
+  line-height: 1.125rem;
+
+  display: inline-block;
+  border: 2px solid transparent;
+  background-color: constants.$mediumBlue;
+}
+
+.toggleButtonInner {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.toggleButtonInnerChecked {
+  background-color: constants.$orRed;
+  flex-grow: 1;
+  padding: 5px 10px;
+  color: white;
+}
+
+.toggleButtonInnerSwitch {
+  background-color: white;
+  box-sizing: border-box;
+  flex-grow: 1;
+  width: calc(1.125rem + 10px);
+  padding: 5px 10px;
+}
+
+.toggleButtonInnerUnchecked {
+  background-color: constants.$subtleGray;
+  flex-grow: 1;
+  padding: 5px 10px;
+  color: white;
+}
