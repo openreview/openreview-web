@@ -1,5 +1,6 @@
 import ProgramChairConsole from './ProgramChairConsole'
 import TrackStatus from './ProgramChairConsole/TrackStatus'
+import FlagStatus from './ProgramChairConsole/FlagStatus'
 
 const ARRProgramChairConsole = (props) => (
   <ProgramChairConsole
@@ -9,6 +10,11 @@ const ARRProgramChairConsole = (props) => (
         tabId: 'track-status',
         tabName: 'Track Status',
         renderTab: () => <TrackStatus />,
+      },
+      {
+        tabId: 'desk-reject-status',
+        tabName: 'Flagged for Desk Reject Verification',
+        renderTab: () => <FlagStatus />,
       },
     ]}
   />
