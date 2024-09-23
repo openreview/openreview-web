@@ -496,8 +496,13 @@ describe('utils', () => {
       },
     }
     path = 'edit.invitation.expdate'
-    expectedValue = 'Sep 19, 2024, 9:21 AM'
-    resultValue = getSubInvitationContentFieldDisplayValue(workflowInvitation, path, 'date')
+    expectedValue = 'Sep 19, 2024, 1:21 PM'
+    resultValue = getSubInvitationContentFieldDisplayValue(
+      workflowInvitation,
+      path,
+      'date',
+      'UTC' // github ci timezone
+    )
     expect(expectedValue).toEqual(resultValue)
     // #endregion
 
