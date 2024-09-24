@@ -30,6 +30,7 @@ export default function ProfileEntity(props) {
     browseInvitations,
     ignoreHeadBrowseInvitations,
     version,
+    traverseGroup,
   } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useContext(UserContext)
   const query = useQuery()
@@ -281,6 +282,15 @@ export default function ProfileEntity(props) {
       isInviteInvitation
     ) {
       disableControlReason = 'The reviewer has already been invited'
+    }
+    // traverse invitation and use not in traverse group
+    const isTraverseInvitation = invitation.id === traverseInvitation.id
+    if (
+      isTraverseInvitation &&
+      traverseGroup?.members &&
+      !traverseGroup.members.includes(id)
+    ) {
+      disableControlReason = `${id} is not a member of ${traverseGroup.id}`
     }
 
     // show invite only at bottom of column
