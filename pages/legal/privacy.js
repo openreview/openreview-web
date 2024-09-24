@@ -104,9 +104,10 @@ const Privacy = () => (
         <strong>Information we gather from registered users and public sources</strong>
         <p>
           When you register as a user with OpenReview, we collect certain “Profile”
-          information. Name, email address, institution, and homepage URL are required for
+          information. Name, email address, current position (university, company, self-employed)
+          with its location, and a URL clearly showing your name are required for
           system registration. You may voluntarily provide other optional information, such as
-          past email addresses, affiliation history, demographic information, expertise
+          past email addresses, affiliation history, past demographic information, expertise
           description, education history, career history, additional contact information,
           additional homepages (such as those for DBLP, LinkedIn, Wikipedia, Semantic Scholar,
           Google Scholar, ORCHIDid other online identifiers), and conflicts-of-interest, such
