@@ -283,7 +283,7 @@ export default function ProfileEntity(props) {
     ) {
       disableControlReason = 'The reviewer has already been invited'
     }
-    // traverse invitation and use not in traverse group
+    // traverse invitation but user not in traverse group
     const isTraverseInvitation = invitation.id === traverseInvitation.id
     if (
       isTraverseInvitation &&
