@@ -15,7 +15,7 @@ const Privacy = () => (
 
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1">
-        <p className="text-muted">Last updated: September 22, 2023</p>
+        <p className="text-muted">Last updated: September 24, 2024</p>
         <p>
           This Privacy Policy describes the manner in which OpenReview collects, uses,
           maintains and discloses information collected from its users.
