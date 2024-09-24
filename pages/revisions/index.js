@@ -246,6 +246,7 @@ const RevisionsList = ({
       {revisions.map(([reference, invitation], index) => (
         <div key={reference.id} className="row">
           <div className="checkbox col-sm-1">
+            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
             <label>
               <input
                 type="checkbox"

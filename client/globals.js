@@ -163,7 +163,7 @@ window.generalPrompt = function (type, content, options) {
   if (!options.noTimeout) {
     flashMessageTimer = setTimeout(function () {
       $outer.slideUp()
-    }, 8000)
+    }, options.timeout ?? 8000)
   }
 }
 
