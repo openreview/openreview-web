@@ -898,7 +898,12 @@ export default function Column(props) {
     }
     // Reset column to show original items and no search heading
     if (!search.term && !hideQuotaReached) {
-      setFilteredItems(sortItems(filterQuotaReachedItems(items)))
+      const itemsAssociatedWithParent = parentId
+        ? items.filter(
+            (p) => p.traverseEdge || p.browseEdges.some((q) => q?.[otherType] === parentId)
+          )
+        : items
+      setFilteredItems(sortItems(filterQuotaReachedItems(itemsAssociatedWithParent)))
       setItemsHeading(null)
       return
     }
