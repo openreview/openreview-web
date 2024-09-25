@@ -75,7 +75,6 @@ const Tasks = ({ appContext }) => {
             .get('/edges', {
               invitation: `${p.domain}/Action_Editors/-/Recommendation`,
               groupBy: 'head',
-              domain: p.domain,
             })
             .then((result) => result.groupedEdges)
         )
