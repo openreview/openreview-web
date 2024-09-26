@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import get from 'lodash/get'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ProfileEditor from '../../components/profile/ProfileEditor'
@@ -11,7 +10,6 @@ import LimitedStateAlert from '../../components/profile/LimitedStateAlert'
 import useLoginRedirect from '../../hooks/useLoginRedirect'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { profileModeToggle } from '../../lib/banner-links'
 import { formatProfileData } from '../../lib/profiles'
 
 export default function ProfileEdit({ appContext }) {
@@ -20,6 +18,7 @@ export default function ProfileEdit({ appContext }) {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [profile, setProfile] = useState(null)
+  const [saveProfileErrors, setSaveProfileErrors] = useState(null)
   const router = useRouter()
   const { setBannerHidden, setEditBanner } = appContext
 
@@ -111,6 +110,7 @@ export default function ProfileEdit({ appContext }) {
 
   const saveProfile = async (profileContent, profileReaders, publicationIdsToUnlink) => {
     setLoading(true)
+    setSaveProfileErrors(null)
     const dataToSubmit = {
       id: profile.id,
       content: profileContent,
@@ -129,10 +129,15 @@ export default function ProfileEdit({ appContext }) {
           unlinkPublication(profile.id, publicationId)
         )
       )
-      promptMessage('Your profile information has been successfully updated')
-      router.push('/profile')
+      promptMessage('Your profile information has been successfully updated', {
+        timeout: 2000,
+      })
+      loadProfile()
     } catch (apiError) {
       promptError(marked(`**Error:** ${apiError.message}`), { html: true })
+      setSaveProfileErrors(
+        apiError.errors?.map((p) => p.details?.path) ?? [apiError?.details?.path]
+      )
     }
     setLoading(false)
   }
@@ -141,8 +146,6 @@ export default function ProfileEdit({ appContext }) {
     if (!accessToken) return
 
     setBannerHidden(true)
-    setEditBanner(profileModeToggle('edit'))
-
     loadProfile()
   }, [accessToken])
 
@@ -174,6 +177,7 @@ export default function ProfileEdit({ appContext }) {
         submitHandler={saveProfile}
         cancelHandler={() => router.push('/profile').then(() => window.scrollTo(0, 0))}
         loading={loading}
+        saveProfileErrors={saveProfileErrors}
       />
     </div>
   )

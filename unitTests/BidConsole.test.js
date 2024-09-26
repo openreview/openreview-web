@@ -184,6 +184,9 @@ describe('BidConsole', () => {
         // label is using custom name
         'Primary Keyword:'
       )
+      expect(
+        screen.queryByPlaceholderText('Search by paper title and metadata')
+      ).toBeInTheDocument()
     })
 
     await userEvent.click(screen.getByRole('combobox'))
@@ -203,6 +206,56 @@ describe('BidConsole', () => {
     await waitFor(() => {
       expect(screen.queryByText('Note one')).not.toBeInTheDocument()
       expect(screen.getByText('Note two')).toBeInTheDocument()
+    })
+  })
+
+  test('not to show search input when enableSearch is set to false', async () => {
+    const providerProps = {
+      value: {
+        header: {
+          title: 'Program Committee Bidding Console',
+          instructions: '** some instructions **',
+        },
+        venueId: 'AAAI.org/2025/Conference',
+        submissionVenueId: 'AAAI.org/2025/Conference/Submission',
+        entity: bidInvitation,
+        scoreIds: [],
+        enableSearch: false,
+      },
+    }
+
+    api.getAll = jest.fn((path) => {
+      switch (path) {
+        case '/edges':
+          return Promise.resolve([])
+        case '/notes':
+          return Promise.resolve([])
+        default:
+          return null
+      }
+    })
+
+    api.get = jest.fn((path) => {
+      switch (path) {
+        case '/notes':
+          return Promise.resolve({
+            notes: [],
+            count: 0,
+          })
+        default:
+          return null
+      }
+    })
+
+    renderWithWebFieldContext(
+      <BidConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.queryByPlaceholderText('Search by paper title and metadata')
+      ).not.toBeInTheDocument()
     })
   })
 })

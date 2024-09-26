@@ -40,6 +40,7 @@ const sendActivationLinkButtonSelector = Selector('button').withText('Send Activ
 const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
 const messageSelector = Selector('span').withAttribute('class', 'important_message')
 const messagePanelSelector = Selector('#flash-message-container')
+const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
@@ -369,6 +370,8 @@ fixture`Activate`
 
 test('update profile', async (t) => {
   await t
+    .click(nextSectiomButtonSelector)
+    .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
         'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
@@ -376,7 +379,7 @@ test('update profile', async (t) => {
     )
     .ok()
     // add alternate email while registering
-    .click(Selector('span.glyphicon.glyphicon-plus-sign').nth(1)) // add button
+    .click(Selector('span.glyphicon.glyphicon-plus-sign')) // add button
     .expect(Selector('div.container.emails').child('div.row').count)
     .eql(2)
     .typeText(
@@ -418,7 +421,9 @@ test('update profile', async (t) => {
     )
     .notOk()
 
+    .click(nextSectiomButtonSelector) // links
     .typeText(Selector('#homepage_url'), 'http://homepage.do', { paste: true })
+    .click(nextSectiomButtonSelector) // history
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .pressKey('M S space s t u d e n t tab')
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
@@ -428,6 +433,8 @@ test('update profile', async (t) => {
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__option').nth(3))
 
+    .click(nextSectiomButtonSelector) // relation
+    .click(nextSectiomButtonSelector) // last section expertise
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messagePanelSelector.exists)
     .ok()
@@ -444,6 +451,8 @@ fixture`Activate`
 
 test('do not allow merging from not registered profiles', async (t) => {
   await t
+    .click(nextSectiomButtonSelector)
+    .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
         'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
@@ -451,7 +460,7 @@ test('do not allow merging from not registered profiles', async (t) => {
     )
     .ok()
     // add alternate email while registering
-    .click(Selector('span.glyphicon.glyphicon-plus-sign').nth(1)) // add button
+    .click(Selector('span.glyphicon.glyphicon-plus-sign')) // add button
     .expect(Selector('div.container.emails').child('div.row').count)
     .eql(2)
     .typeText(
@@ -496,6 +505,8 @@ fixture`Activate`
 
 test('register a profile with an institutional email', async (t) => {
   await t
+    .click(nextSectiomButtonSelector)
+    .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
         'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
@@ -503,7 +514,7 @@ test('register a profile with an institutional email', async (t) => {
     )
     .notOk()
     // add alternate email while registering
-    .click(Selector('span.glyphicon.glyphicon-plus-sign').nth(1)) // add button
+    .click(Selector('span.glyphicon.glyphicon-plus-sign')) // add button
     .expect(Selector('div.container.emails').child('div.row').count)
     .eql(2)
     .typeText(
@@ -539,7 +550,9 @@ test('register a profile with an institutional email', async (t) => {
     .expect(Selector('button').withText('Make Preferred').nth(0).exists)
     .ok()
 
+    .click(nextSectiomButtonSelector) // links
     .typeText(Selector('#homepage_url'), 'http://kevinmalone.com', { paste: true })
+    .click(nextSectiomButtonSelector) // history
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .pressKey('M S space s t u d e n t tab')
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
@@ -549,6 +562,8 @@ test('register a profile with an institutional email', async (t) => {
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__option').nth(3))
 
+    .click(nextSectiomButtonSelector)
+    .click(nextSectiomButtonSelector)
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messagePanelSelector.exists)
     .ok()
@@ -633,15 +648,10 @@ test('add alternate email', async (t) => {
     .ok()
     .click(Selector('a').withText('Profile'))
     .click(Selector('a').withAttribute('href', '/profile/edit'))
+    .click(Selector('div[step="2"]').find('div[role="button"]')) // go to email section
     .expect(Selector('h4').withText('Emails').exists)
     .ok()
-    .click(
-      Selector('div')
-        .withAttribute('class', 'profile-edit-container')
-        .child('section')
-        .nth(4)
-        .find('span.glyphicon')
-    ) // add button
+    .click(Selector('section').find('.glyphicon-plus-sign')) // add button
     .expect(Selector('div.container.emails').child('div.row').count)
     .eql(3)
     .typeText(
