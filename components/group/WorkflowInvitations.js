@@ -22,6 +22,7 @@ const WorflowInvitationRow = ({
   subInvitation,
   workflowInvitation,
   loadWorkflowInvitations,
+  domainObject,
 }) => {
   const [showInvitationEditor, setShowInvitationEditor] = useState(false)
   const invitationName = prettyField(subInvitation.id.split('/').pop())
@@ -68,18 +69,21 @@ const WorflowInvitationRow = ({
 
           {!isGroupInvitation && (
             <ul>
-              {Object.keys(subInvitation.edit?.content ?? {}).map((key) => (
-                <li key={key}>
-                  {prettyField(key)}:{' '}
-                  <i>
-                    {getSubInvitationContentFieldDisplayValue(
-                      workflowInvitation,
-                      getPath(subInvitation.edit.invitation, key),
-                      subInvitation.edit.content?.[key]?.value?.param?.type
-                    )}
-                  </i>
-                </li>
-              ))}
+              {Object.keys(subInvitation.edit?.content ?? {}).map((key) => {
+                const fieldPath = getPath(subInvitation.edit.invitation, key)
+                return (
+                  <li key={key}>
+                    {prettyField(key)}:{' '}
+                    <i>
+                      {getSubInvitationContentFieldDisplayValue(
+                        fieldPath ? workflowInvitation : domainObject,
+                        fieldPath ?? `${key}.value`,
+                        subInvitation.edit.content?.[key]?.value?.param?.type
+                      )}
+                    </i>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </div>
@@ -144,7 +148,6 @@ const EditInvitationRow = ({ invitation, isDomainGroup, loadWorkflowInvitations 
   const invitees = innerInvitationInvitee ?? invitation.invitees
 
   const updateActivationDate = async (e) => {
-    const isMetaInvitation = invitation?.edit === true
     try {
       await api.post(
         '/invitations/edits',
@@ -161,12 +164,11 @@ const EditInvitationRow = ({ invitation, isDomainGroup, loadWorkflowInvitations 
             nonreaders: invitation.nonreaders,
             readers: invitation.readers,
             writers: invitation.writers,
-            ...(isMetaInvitation && { edit: true }),
           },
           readers: [profileId],
           writers: [profileId],
           signatures: [profileId],
-          ...(!isMetaInvitation && { invitations: getMetaInvitationId(invitation) }),
+          invitations: getMetaInvitationId(invitation),
         },
         { accessToken }
       )
@@ -270,7 +272,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       { accessToken }
     )
 
-    const getStageInvitationTemplatesP =
+    let getStageInvitationTemplatesP =
       group.id === group.domain
         ? api
             .getAll(
@@ -282,6 +284,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
             )
             .then((invitations) => invitations.filter((p) => p.id.endsWith('_Template')))
         : Promise.resolve([])
+    getStageInvitationTemplatesP = Promise.resolve([])
 
     try {
       // eslint-disable-next-line no-shadow
@@ -290,7 +293,9 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         getAllInvitationsP,
         getStageInvitationTemplatesP,
       ])
-      const workFlowInvitations = invitations.filter((p) => workflowInvitationRegex.test(p.id))
+      const workFlowInvitations = invitations.filter(
+        (p) => workflowInvitationRegex.test(p.id) && p.type !== 'meta'
+      )
       const currentTimeStamp = new Date()
       setWorkflowInvitations(
         sortBy(
@@ -383,6 +388,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                         subInvitation={subInvitation}
                         workflowInvitation={stepObj}
                         loadWorkflowInvitations={loadAllInvitations}
+                        domainObject={group.content}
                       />
                     ))}
                 </div>
