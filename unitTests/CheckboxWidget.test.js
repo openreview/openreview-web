@@ -4,6 +4,8 @@ import CheckboxWidget from '../components/EditorComponents/CheckboxWidget'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 describe('CheckboxWidget in context of note editor', () => {
   test('render nothing if field description does not have enum or items', () => {
     const providerProps = {

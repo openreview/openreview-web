@@ -4,6 +4,8 @@ import RadioButtonWidget from '../components/EditorComponents/RadioButtonWidget'
 import { renderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 describe('RadioButtonWidget', () => {
   test('render nothing if field description does not have options', () => {
     const providerProps = {

@@ -6,6 +6,8 @@ import {
   stringToObject,
 } from '../lib/utils'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 describe('utils', () => {
   test('convert string to object in stringToObject', () => {
     let prefilledValues = {}
@@ -625,10 +627,11 @@ describe('utils', () => {
       },
     }
     path = 'edit.note.content'
-    expectedValue =
-      'title, authors, authorids, TLDR, abstract, pdf, subject_area, venue, venueid'
+
     resultValue = getSubInvitationContentFieldDisplayValue(workflowInvitation, path, 'content')
-    expect(expectedValue).toEqual(resultValue)
+
+    expect(resultValue.props.children[0].length).toEqual(3) // 3 are displayed
+    expect(resultValue.props.children[1].props.children.length).toEqual(6) // 6 are hidden in collapse
     // #endregion
 
     // #region enum field show descriptions
@@ -673,14 +676,14 @@ describe('utils', () => {
       },
     }
     path = 'edit.invitation.edit.note.readers.param.items'
-    expectedValue =
-      'Program Chairs, Assigned Senior Area Chairs, Assigned Area Chairs, Assigned Reviewers who already submitted their review'
+
     resultValue = getSubInvitationContentFieldDisplayValue(
       workflowInvitation,
       path,
       'object[]'
     )
-    expect(expectedValue).toEqual(resultValue)
+    expect(resultValue.props.children[0].length).toEqual(3) // 3 are displayed
+    expect(resultValue.props.children[1].props.children.length).toEqual(1) // 1 in collapse
     // #endregion
 
     // #region reader field show value segments
@@ -707,21 +710,21 @@ describe('utils', () => {
       path,
       'string[]'
     )
-    expect(resultValue[0].props.children[0]).toEqual(['ICLR 2025 Conference Program Chairs'])
-    expect(resultValue[0].props.children[1]).toEqual(', ')
-    expect(resultValue[1].props.children[0]).toEqual([
+
+    expect(resultValue.props.children[0][0].props.children[0]).toEqual(
+      'ICLR 2025 Conference Program Chairs'
+    )
+    expect(resultValue.props.children[0][1].props.children).toEqual([
       'ICLR 2025 Conference Submission ',
       expect.objectContaining({ type: 'em', props: { children: 'noteNumber' } }),
       ' Senior Area Chairs',
     ])
-    expect(resultValue[1].props.children[1]).toEqual(', ')
-    expect(resultValue[2].props.children[0]).toEqual([
+    expect(resultValue.props.children[0][2].props.children).toEqual([
       'ICLR 2025 Conference Submission ',
       expect.objectContaining({ type: 'em', props: { children: 'noteNumber' } }),
       ' Area Chairs',
     ])
-    expect(resultValue[2].props.children[1]).toEqual(', ')
-    expect(resultValue[3].props.children[0]).toEqual([
+    expect(resultValue.props.children[1].props.children[0].props.children).toEqual([
       'ICLR 2025 Conference Submission ',
       expect.objectContaining({ type: 'em', props: { children: 'noteNumber' } }),
       ' Reviewers',

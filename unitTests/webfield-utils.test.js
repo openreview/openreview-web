@@ -9,6 +9,8 @@ import {
 const filterOperators = ['!=', '>=', '<=', '>', '<', '==', '=']
 const uniqueIdentifier = 'id'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 describe('webfield-utils', () => {
   test('return field name in getErrorFieldName', () => {
     let errorPath = 'note/content/pdf'

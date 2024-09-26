@@ -7,6 +7,7 @@ import ContentFieldEditor from '../components/EditorComponents/ContentFieldEdito
 let mockedFormProps
 let onFormChange
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/Form', () => (props) => {
   mockedFormProps(props)
   // eslint-disable-next-line prefer-destructuring

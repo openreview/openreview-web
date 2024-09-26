@@ -9,6 +9,8 @@ global.DOMPurify = {
   sanitize: jest.fn(),
 }
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 describe('EditorComponentHeader', () => {
   test('pretty display mandatory field name of single word', () => {
     const providerProps = {

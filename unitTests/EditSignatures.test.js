@@ -4,6 +4,7 @@ import EditSignatures from '../components/EditSignatures'
 
 let signatureProps
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/Signatures', () => (props) => {
   signatureProps(props)
   return <span>Signature Component</span>

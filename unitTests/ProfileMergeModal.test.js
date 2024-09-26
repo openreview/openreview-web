@@ -5,6 +5,7 @@ import api from '../lib/api-client'
 // eslint-disable-next-line import/order
 import userEvent from '@testing-library/user-event'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => ({
   user: {
     profile: {

@@ -8,6 +8,7 @@ jest.mock('../lib/api-client')
 
 let mockUseUserHookValue
 let tagProps
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => mockUseUserHookValue)
 
 jest.mock('../components/EditorComponents/TagsWidget', () => (props) => {
@@ -385,7 +386,9 @@ describe('Signatures', () => {
     })
     await user.click(screen.getByRole('combobox'))
     await waitFor(() => {
-      expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer abc')).toBeInTheDocument()
+      expect(
+        screen.getByText('ICML 2023 Conference Submission5 Reviewer abc')
+      ).toBeInTheDocument()
       expect(screen.getByText('ICML 2023 Conference Program Chairs')).toBeInTheDocument()
     })
   })
@@ -426,8 +429,12 @@ describe('Signatures', () => {
     })
     await user.click(screen.getByRole('combobox'))
     await waitFor(() => {
-      expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer abc')).toBeInTheDocument()
-      expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer xyz')).toBeInTheDocument()
+      expect(
+        screen.getByText('ICML 2023 Conference Submission5 Reviewer abc')
+      ).toBeInTheDocument()
+      expect(
+        screen.getByText('ICML 2023 Conference Submission5 Reviewer xyz')
+      ).toBeInTheDocument()
     })
   })
 
@@ -661,7 +668,9 @@ describe('Signatures', () => {
     await user.click(await screen.findByRole('combobox'))
     await waitFor(() => {
       expect(screen.getByText('some_test_group1')).toBeInTheDocument()
-      expect(screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)')).toBeInTheDocument()
+      expect(
+        screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)')
+      ).toBeInTheDocument()
     })
   })
 
@@ -698,7 +707,9 @@ describe('Signatures', () => {
     await user.click(await screen.findByRole('combobox'))
     await waitFor(() => {
       expect(screen.getByText('some_test_group1')).toBeInTheDocument()
-      expect(screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)')).toBeInTheDocument()
+      expect(
+        screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)')
+      ).toBeInTheDocument()
     })
   })
 

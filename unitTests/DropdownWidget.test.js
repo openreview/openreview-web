@@ -4,6 +4,7 @@ import DropdownWidget from '../components/EditorComponents/DropdownWidget'
 import { renderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 describe('DropdownWidget', () => {
   test('render nothing if field does not have enum or items (single select)', () => {
     const providerProps = {

@@ -4,6 +4,7 @@ import TextAreaWidget from '../components/EditorComponents/TextAreaWidget'
 import { renderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => ({ user: {} }))
 
 jest.mock('../components/MarkdownPreviewTab', () => () => 'markdown preview tab')

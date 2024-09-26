@@ -7,6 +7,7 @@ let mockedEditorWidgetProps
 let mockedEnumItemsEditorProps
 let setFormData
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/webfield/EditorWidget', () => (props) => {
   mockedEditorWidgetProps(props)
   return 'mocked EditorWidget'

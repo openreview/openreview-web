@@ -2,6 +2,8 @@ import { screen, render } from '@testing-library/react'
 import { groupModeToggle } from '../lib/banner-links'
 import '@testing-library/jest-dom'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 describe('banner-links', () => {
   test('show link to go to group info page from view page in groupModeToggle', () => {
     const mode = 'view'
