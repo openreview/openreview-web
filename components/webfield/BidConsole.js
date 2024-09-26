@@ -40,6 +40,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     submissionVenueId,
     subjectAreas,
     subjectAreasName,
+    enableSearch = true,
   } = useContext(WebFieldContext)
   const defaultSubjectArea = subjectAreasName
     ? `All ${prettyField(subjectAreasName)}`
@@ -343,21 +344,23 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           }
         }}
       >
-        <div className="form-group search-content has-feedback">
-          <input
-            id="paper-search-input"
-            type="text"
-            className="form-control"
-            placeholder="Search by paper title and metadata"
-            autoComplete="off"
-            value={searchState.immediateSearchTerm}
-            onChange={(e) => {
-              setSearchState({ type: 'immediateSearchTerm', payload: e.target.value })
-              if (e.target.value.trim().length >= 3) delaySearch(e.target.value)
-            }}
-          />
-          <Icon name="search" extraClasses="form-control-feedback" />
-        </div>
+        {enableSearch && (
+          <div className="form-group search-content has-feedback">
+            <input
+              id="paper-search-input"
+              type="text"
+              className="form-control"
+              placeholder="Search by paper title and metadata"
+              autoComplete="off"
+              value={searchState.immediateSearchTerm}
+              onChange={(e) => {
+                setSearchState({ type: 'immediateSearchTerm', payload: e.target.value })
+                if (e.target.value.trim().length >= 3) delaySearch(e.target.value)
+              }}
+            />
+            <Icon name="search" extraClasses="form-control-feedback" />
+          </div>
+        )}
         {scoreIds?.length > 0 && (
           <div className="form-group score">
             <label htmlFor="score-dropdown">Sort By:</label>
@@ -659,6 +662,7 @@ const BidConsole = ({ appContext }) => {
     subjectAreas,
     subjectAreasName,
     submissionName = 'Submission',
+    enableSearch = true,
   } = useContext(WebFieldContext)
 
   const bidOptions = invitation.edge?.label?.param?.enum

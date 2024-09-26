@@ -68,6 +68,7 @@ const ImportedPublicationsSection = ({
   }, [publicationIdsToUnlink])
 
   useEffect(() => {
+    setPublicationIdsToUnlink([])
     loadPublications()
   }, [reRender])
 
