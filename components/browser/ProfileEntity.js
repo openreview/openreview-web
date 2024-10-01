@@ -200,7 +200,7 @@ export default function ProfileEntity(props) {
     )
     if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
-      return
+      return false
     }
 
     const {
@@ -237,8 +237,10 @@ export default function ProfileEntity(props) {
         promptMessage(
           `Invitation has been sent to ${body.tail} and it's waiting for the response.`
         )
+      return true
     } catch (error) {
       promptError(error.message)
+      return false
     }
   }
 

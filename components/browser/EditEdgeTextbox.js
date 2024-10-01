@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { debounce } from 'lodash'
 import { getTooltipTitle } from '../../lib/edge-utils'
 import LoadingSpinner from '../LoadingSpinner'
+import Icon from '../Icon'
 
 const EditEdgeTextbox = ({
   existingEdge,
@@ -32,17 +33,26 @@ const EditEdgeTextbox = ({
   }
 
   const delayedAddEdge = useCallback(
-    debounce((e) => {
+    debounce(async (e) => {
       setIsLoading(true)
-      addEdge({
+      const result = await addEdge({
         e,
         existingEdge,
         editEdgeTemplate,
         updatedEdgeFields: { [type]: Number(e.target.value) },
       })
+      setIsLoading(false)
+      if (!result) setImmediateValue(selected)
     }, 500),
     [existingEdge]
   )
+
+  const handleRemoveEdge = async (e) => {
+    e.stopPropagation()
+    setIsLoading(true)
+    await removeEdge()
+    setIsLoading(false)
+  }
 
   useEffect(() => {
     setIsLoading(false)
@@ -69,7 +79,10 @@ const EditEdgeTextbox = ({
           className="form-control edit-edge-input"
           disabled={isLoading}
           value={
-            immediateValue ?? editEdgeTemplate?.defaultWeight ?? editEdgeTemplate?.defaultLabel
+            immediateValue ??
+            editEdgeTemplate?.defaultWeight ??
+            editEdgeTemplate?.defaultLabel ??
+            ''
           }
           onClick={(e) => e.stopPropagation()}
           onChange={(e) => {
@@ -82,17 +95,16 @@ const EditEdgeTextbox = ({
       <div className="edit-edge-spinner">
         {isLoading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
         {existingEdge && showTrashButton && (
-          <a
-            href="#"
-            className="edit-edge-remove"
-            onClick={(e) => {
-              e.stopPropagation()
-              setIsLoading(true)
-              removeEdge()
-            }}
+          <button
+            type="button"
+            className={`btn btn-xs btn-default ml-1 edit-edge-toggle-btn ${
+              isLoading ? 'disable' : ''
+            }`}
+            onClick={handleRemoveEdge}
+            autoComplete="off"
           >
-            <span className="glyphicon glyphicon-trash" />
-          </a>
+            <Icon name="trash" extraClasses={isLoading ? 'span-disabled' : null} />
+          </button>
         )}
       </div>
     </div>
