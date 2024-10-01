@@ -46,6 +46,26 @@ const ProfileEmail = ({ email, publicProfile, allowCopyEmail }) => {
       <span {...(allowCopyEmail && { onClick: copyEmailToClipboard })}>{email.email}</span>{' '}
       {email.confirmed && <small>(Confirmed)</small>}
       {!publicProfile && email.preferred && <small>(Preferred)</small>}
+      {allowCopyEmail && email.confirmed && (
+        <>
+          <a
+            href={`https://bing.com?q="${email.email}"`}
+            target="_blank"
+            rel="nofollow noreferrer"
+            className="ml-1"
+          >
+            Bing
+          </a>
+          <a
+            href={`https://google.com/search?q="${email.email}"`}
+            target="_blank"
+            rel="nofollow noreferrer"
+            className="ml-1"
+          >
+            Google
+          </a>
+        </>
+      )}
     </ProfileItem>
   )
 }
