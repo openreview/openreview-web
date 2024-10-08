@@ -647,7 +647,7 @@ describe('AreaChairConsole', () => {
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission1/-/Meta_Review'],
                     signatures: [
-                      `AAAI.org/2025/Conference/Submission1/Program_Committee_${acAnonId}`,
+                      `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
                     ],
                   },
                 ],
@@ -692,7 +692,7 @@ describe('AreaChairConsole', () => {
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission1/-/Meta_Review'],
                     signatures: [
-                      `AAAI.org/2025/Conference/Submission1/Program_Committee_${acAnonId}`,
+                      `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
                     ],
                   },
                 ],
@@ -1177,7 +1177,7 @@ describe('AreaChairConsole', () => {
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission1/-/Meta_Review'],
                     signatures: [
-                      `AAAI.org/2025/Conference/Submission1/Program_Committee_${acAnonId}`,
+                      `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
                     ],
                   },
                 ],
@@ -1222,7 +1222,7 @@ describe('AreaChairConsole', () => {
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission1/-/Meta_Review'],
                     signatures: [
-                      `AAAI.org/2025/Conference/Submission1/Program_Committee_${acAnonId}`,
+                      `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
                     ],
                   },
                 ],
@@ -1516,7 +1516,7 @@ describe('AreaChairConsole', () => {
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission1/-/Meta_Review'],
                     signatures: [
-                      `AAAI.org/2025/Conference/Submission1/Program_Committee_${acAnonId}`,
+                      `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
                     ],
                   },
                 ],
@@ -1561,7 +1561,7 @@ describe('AreaChairConsole', () => {
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission1/-/Meta_Review'],
                     signatures: [
-                      `AAAI.org/2025/Conference/Submission1/Program_Committee_${acAnonId}`,
+                      `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
                     ],
                   },
                 ],
@@ -1815,7 +1815,7 @@ describe('AreaChairConsole', () => {
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission1/-/Meta_Review'],
                     signatures: [
-                      `AAAI.org/2025/Conference/Submission1/Program_Committee_${acAnonId}`,
+                      `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
                     ],
                   },
                 ],
