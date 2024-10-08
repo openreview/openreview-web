@@ -1,6 +1,6 @@
 /* eslint-disable newline-per-chained-call */
 // note: existing es index may cause this test to fail. better to empty notes index
-import { Selector, Role } from 'testcafe'
+import { Selector, Role, RequestMock } from 'testcafe'
 import {
   hasTaskUser,
   mergeUser as userF,
@@ -30,6 +30,139 @@ const userARole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =>
 })
 
 const userBAlternateId = '~Di_Xu1'
+
+const responseDBLPXML = `<?xml version="1.0"?>
+<dblpperson name="Di Xu 0001" pid="95/7448-1" n="8">
+<person key="homepages/95/7448-1" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<note type="affiliation">University of British Columbia, Department of Electrical and Computer Engineering, Canada</note>
+</person>
+<homonyms n="1">
+<h f="x/Xu:Di"><person publtype="disambiguation" key="homepages/95/7448" mdate="2019-11-26">
+<author pid="95/7448">Di Xu</author>
+</person>
+</h>
+</homonyms>
+<r><inproceedings key="conf/3dtv/Coria-MendozaXN12" mdate="2019-11-26">
+<author pid="32/5783">Lino Coria-Mendoza</author>
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Automatic stereoscopic 3D video reframing.</title>
+<pages>1-4</pages>
+<year>2012</year>
+<booktitle>3DTV-Conference</booktitle>
+<ee>https://doi.org/10.1109/3DTV.2012.6365428</ee>
+<crossref>conf/3dtv/2012</crossref>
+<url>db/conf/3dtv/3dtv2012.html#Coria-MendozaXN12</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/iccel/XuCN12" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="161/3963">Lino E. Coria</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Quality of experience for the horizontal pixel parallax adjustment of stereoscopic 3D videos.</title>
+<pages>394-395</pages>
+<year>2012</year>
+<booktitle>ICCE</booktitle>
+<ee>https://doi.org/10.1109/ICCE.2012.6161918</ee>
+<crossref>conf/iccel/2012</crossref>
+<url>db/conf/iccel/icce2012.html#XuCN12</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/ictai/PourazadXN12" mdate="2023-03-24">
+<author pid="55/6295">Mahsa T. Pourazad</author>
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Random Forests Based View Generation for Multiview TV.</title>
+<pages>367-372</pages>
+<year>2012</year>
+<crossref>conf/ictai/2012</crossref>
+<booktitle>ICTAI</booktitle>
+<ee>https://doi.org/10.1109/ICTAI.2012.57</ee>
+<ee>https://doi.ieeecomputersociety.org/10.1109/ICTAI.2012.57</ee>
+<url>db/conf/ictai/ictai2012.html#PourazadXN12</url>
+</inproceedings>
+</r>
+<r><article key="journals/tvcg/XuDN11" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="58/3497">Colin Doutre</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Correction of Clipped Pixels in Color Images.</title>
+<pages>333-344</pages>
+<year>2011</year>
+<volume>17</volume>
+<journal>IEEE Trans. Vis. Comput. Graph.</journal>
+<number>3</number>
+<ee>https://doi.org/10.1109/TVCG.2010.63</ee>
+<ee>http://doi.ieeecomputersociety.org/10.1109/TVCG.2010.63</ee>
+<ee>https://www.wikidata.org/entity/Q51701964</ee>
+<url>db/journals/tvcg/tvcg17.html#XuDN11</url>
+</article>
+</r>
+<r><inproceedings key="conf/icecsys/XuCN10" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="32/5783">Lino Coria-Mendoza</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Guidelines for capturing high quality stereoscopic content based on a systematic subjective evaluation.</title>
+<pages>162-165</pages>
+<year>2010</year>
+<booktitle>ICECS</booktitle>
+<ee>https://doi.org/10.1109/ICECS.2010.5724479</ee>
+<crossref>conf/icecsys/2010</crossref>
+<url>db/conf/icecsys/icecsys2010.html#XuCN10</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/icip/XuDN10" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="58/3497">Colin Doutre</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>An improved Bayesian algorithm for color image desaturation.</title>
+<pages>1325-1328</pages>
+<year>2010</year>
+<booktitle>ICIP</booktitle>
+<ee>https://doi.org/10.1109/ICIP.2010.5649486</ee>
+<crossref>conf/icip/2010</crossref>
+<url>db/conf/icip/icip2010.html#XuDN10</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/iscas/XuDN10" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="58/3497">Colin Doutre</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Saturated-pixel enhancement for color images.</title>
+<pages>3377-3380</pages>
+<year>2010</year>
+<booktitle>ISCAS</booktitle>
+<ee>https://doi.org/10.1109/ISCAS.2010.5537871</ee>
+<crossref>conf/iscas/2010</crossref>
+<url>db/conf/iscas/iscas2010.html#XuDN10</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/icip/XuN09" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Logo insertion transcoding for H.264/AVC compressed video.</title>
+<pages>3693-3696</pages>
+<year>2009</year>
+<booktitle>ICIP</booktitle>
+<ee>https://doi.org/10.1109/ICIP.2009.5414225</ee>
+<crossref>conf/icip/2009</crossref>
+<url>db/conf/icip/icip2009.html#XuN09</url>
+</inproceedings>
+</r>
+<coauthors n="5" nc="1">
+<co c="0"><na f="c/Coria:Lino_E=" pid="161/3963">Lino E. Coria</na></co>
+<co c="0"><na f="c/Coria=Mendoza:Lino" pid="32/5783">Lino Coria-Mendoza</na></co>
+<co c="0"><na f="d/Doutre:Colin" pid="58/3497">Colin Doutre</na></co>
+<co c="0"><na f="n/Nasiopoulos:Panos" pid="55/3871">Panos Nasiopoulos</na></co>
+<co c="0"><na f="p/Pourazad:Mahsa_T=" pid="55/6295">Mahsa T. Pourazad</na></co>
+</coauthors>
+</dblpperson>
+`
+
+const dblpMock = RequestMock()
+  .onRequestTo('https://dblp.org/pid/95/7448-1.xml')
+  .respond(responseDBLPXML, 200, { 'access-control-allow-origin': '*', 'content-type': 'application/xml' })
 
 // #region long repeated selectors
 const errorMessageSelector = Selector('#flash-message-container', {
@@ -84,7 +217,7 @@ const step6Expertise = Selector('div[step="6"]').find('div[role="button"]')
 fixture`Profile page`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
   return ctx
-})
+}).requestHooks(dblpMock)
 
 test('user open own profile', async (t) => {
   await t
@@ -961,6 +1094,7 @@ test('#1011 remove space in personal links', async (t) => {
     })
     .pressKey('tab')
     .click(saveProfileButton)
+    .wait(200)
     .click(cancelButton)
     .expect(
       Selector('a')
