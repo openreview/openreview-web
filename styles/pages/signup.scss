@@ -111,21 +111,6 @@ main.sign-up {
       font-size: 0.875rem;
       font-weight: 700;
     }
-
-    #profile-merge-modal {
-      label {
-        color: unset;
-      }
-      form > .form-group {
-        margin-bottom: 0.5rem;
-        margin-left: 0;
-        margin-right: 0;
-
-        @media #{constants.$tablet} {
-          margin-bottom: 0.5rem;
-        }
-      }
-    }
   }
 
   .confirm-message {
