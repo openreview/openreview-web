@@ -4,6 +4,8 @@ import RadioButtonWidget from '../components/EditorComponents/RadioButtonWidget'
 import { renderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 describe('RadioButtonWidget', () => {
   test('render nothing if field description does not have options', () => {
     const providerProps = {
@@ -71,6 +73,27 @@ describe('RadioButtonWidget', () => {
     expect(
       screen.getByDisplayValue('Long submission (more than 12 pages of main content)')
     ).toHaveAttribute('type', 'radio')
+  })
+
+  test('convert enum option to string', () => {
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitationId' },
+        field: {
+          agree_to_consent: {
+            value: {
+              param: {
+                input: 'radio',
+                enum: [true, false],
+              },
+            },
+          },
+        },
+      },
+    }
+    renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
+    expect(screen.getByText('true')).toBeInTheDocument()
+    expect(screen.getByText('false')).toBeInTheDocument()
   })
 
   test('display description of enum options (object)', () => {
