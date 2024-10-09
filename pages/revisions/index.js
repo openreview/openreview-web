@@ -431,15 +431,17 @@ const Revisions = ({ appContext }) => {
 
       if (invitations?.length > 0) {
         setRevisions(
-          references.map((reference) => {
-            const invId = reference.details?.original
-              ? reference.details.original.invitation
-              : reference.invitation
-            const referenceInvitation = invitations.find(
-              (invitation) => invitation.id === invId
-            )
-            return [reference, referenceInvitation]
-          })
+          references
+            .map((reference) => {
+              const invId = reference.details?.original
+                ? reference.details.original.invitation
+                : reference.invitation
+              const referenceInvitation = invitations.find(
+                (invitation) => invitation.id === invId
+              )
+              return [reference, referenceInvitation]
+            })
+            .sort((p) => p[0].tcdate)
         )
       } else {
         setRevisions([])
@@ -472,10 +474,8 @@ const Revisions = ({ appContext }) => {
 
     let latestNoteTitle =
       referencesToLoad === 'revisions'
-        ? revisions.sort((p) => p[0].tcdate).find((q) => q[0]?.content?.title)?.[0]?.content
-            ?.title
-        : revisions.sort((p) => p[0].tcdate).find((q) => q[0].note?.content?.title)?.[0]?.note
-            ?.content?.title?.value
+        ? revisions.find((q) => q[0]?.content?.title)?.[0]?.content?.title
+        : revisions.find((q) => q[0].note?.content?.title)?.[0]?.note?.content?.title?.value
     latestNoteTitle = truncate(latestNoteTitle, {
       length: 40,
       omission: '...',
