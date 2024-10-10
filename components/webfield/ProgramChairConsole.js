@@ -917,7 +917,12 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const sac = edge.values[0].tail
       sacByAcMap.set(ac, sac)
       if (!acBySacMap.get(sac)) acBySacMap.set(sac, [])
-      acBySacMap.get(sac).push(ac)
+      if (sacDirectPaperAssignment) {
+        if (pcConsoleData.notes.map(note => note.id).includes(ac)) acBySacMap.get(sac).push(ac)
+      }
+      else {
+        acBySacMap.get(sac).push(ac)
+      }
     })
     // #endregion
 
