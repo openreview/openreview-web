@@ -171,6 +171,14 @@ const PaperStatusMenuBar = ({
             label: `All Authors of selected ${pluralizeString(submissionName)}`,
             value: 'allAuthors',
           },
+          ...(seniorAreaChairsId
+            ? [
+                {
+                  label: `All ${prettyField(seniorAreaChairName ?? 'Senior_Area_Chairs')} of selected ${pluralizeString(submissionName)}`,
+                  value: 'allSACs',
+                },
+              ]
+            : []),
         ]
       : []),
   ]
