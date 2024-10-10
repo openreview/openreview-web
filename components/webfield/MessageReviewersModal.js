@@ -14,7 +14,6 @@ const MessageReviewersModal = ({
   messageModalId,
   selectedIds,
 }) => {
-  console.log('tableRowsDisplayed', tableRowsDisplayed)
   const { accessToken } = useUser()
   const {
     shortPhrase,
