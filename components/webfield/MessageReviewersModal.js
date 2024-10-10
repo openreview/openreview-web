@@ -14,6 +14,7 @@ const MessageReviewersModal = ({
   messageModalId,
   selectedIds,
 }) => {
+  console.log('tableRowsDisplayed', tableRowsDisplayed)
   const { accessToken } = useUser()
   const {
     shortPhrase,
@@ -25,6 +26,7 @@ const MessageReviewersModal = ({
     messageSubmissionAreaChairsInvitationId,
     reviewerName = 'Reviewers',
     areaChairName = 'Area Chairs',
+    seniorAreaChairName = 'Senior_Area_Chairs',
   } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
@@ -57,6 +59,9 @@ const MessageReviewersModal = ({
         break
       case 'allAuthors':
         roleName = 'Authors'
+        break
+      case 'allSACs':
+        roleName = seniorAreaChairName
         break
       default:
         roleName = reviewerName
@@ -95,7 +100,7 @@ const MessageReviewersModal = ({
                   groups: groupIds,
                   subject,
                   message:
-                    messageOption.value === 'allAuthors'
+                    messageOption.value === 'allAuthors' || messageOption.value === 'allSACs'
                       ? message.replaceAll(
                           `{{${submissionName.toLowerCase()}_number}}`,
                           rowData.number
@@ -142,10 +147,22 @@ const MessageReviewersModal = ({
           .flatMap((row) => row.reviewers)
           .filter((reviewer) => !reviewer.hasReview)
       case 'allAuthors':
-        return selectedRows.flatMap((row) => row.authors)
+        return selectedRows.flatMap((row) => row.authors ?? [])
+      case 'allSACs':
+        return selectedRows.flatMap((row) => row.metaReviewData.seniorAreaChairs ?? [])
       default:
         return []
     }
+  }
+
+  const getInstruction = () => {
+    if (messageOption?.value === 'allAuthors') {
+      return `You may customize the message that will be sent to authors. You can also use {{fullname}} to replace the recipient full name and {{${submissionName.toLowerCase()}_number}} to replace the ${submissionName.toLowerCase()} number. If your message is not specific to a ${submissionName.toLowerCase()}, please email from the author group.`
+    }
+    if (messageOption?.value === 'allSACs') {
+      return `You may customize the message that will be sent to ${prettyField(seniorAreaChairName)}. You can also use {{fullname}} to replace the recipient full name and {{${submissionName.toLowerCase()}_number}} to replace the ${submissionName.toLowerCase()} number. If your message is not specific to a ${submissionName.toLowerCase()}, please email from the ${prettyField(seniorAreaChairName)} group.`
+    }
+    return `You may customize the message that will be sent to the ${prettyField(reviewerName).toLowerCase()}. In the email body, the text {{submit_review_link}} will be replaced with a hyperlink to the form where the ${prettyField(reviewerName).toLowerCase()} can fill out his or her ${prettyField(officialReviewName).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`
   }
 
   useEffect(() => {
@@ -192,19 +209,7 @@ const MessageReviewersModal = ({
       {error && <div className="alert alert-danger">{error}</div>}
       {currentStep === 1 ? (
         <>
-          <p>
-            {messageOption?.value === 'allAuthors'
-              ? `You may customize the message that will be sent to authors. You can also use {{fullname}} to replace the recipient full name and {{${submissionName.toLowerCase()}_number}} to replace the ${submissionName.toLowerCase()} number. If your message is not specific to a ${submissionName.toLowerCase()}, please email from the author group.`
-              : `You may customize the message that will be sent to the ${prettyField(
-                  reviewerName
-                ).toLowerCase()}. In the email
-  body, the text {{submit_review_link}} will be replaced with a hyperlink to the
-  form where the ${prettyField(
-    reviewerName
-  ).toLowerCase()} can fill out his or her ${prettyField(
-    officialReviewName
-  ).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`}
-          </p>
+          <p>{getInstruction()}</p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
             <input
