@@ -19,6 +19,7 @@ const MessageReviewersModal = ({
     shortPhrase,
     venueId,
     officialReviewName,
+    officialMetaReviewName,
     submissionName,
     emailReplyTo,
     messageSubmissionReviewersInvitationId,
@@ -40,6 +41,19 @@ const MessageReviewersModal = ({
   )
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
   const uniqueRecipientsInfo = uniqBy(recipientsInfo, (p) => p.preferredId)
+
+  const getMessage = (rowData) => {
+    if (messageOption.value === 'allAuthors' || messageOption.value === 'allSACs') {
+      return message.replaceAll(`{{${submissionName.toLowerCase()}_number}}`, rowData.number)
+    }
+    if (messageOption.value === 'allAreaChairs') {
+      const metaReviewForumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${rowData.id}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialMetaReviewName}`
+      return message.replaceAll('{{submit_review_link}}', metaReviewForumUrl)
+    }
+
+    const reviewForumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${rowData.id}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialReviewName}`
+    return message.replaceAll('{{submit_review_link}}', reviewForumUrl)
+  }
 
   const handlePrimaryButtonClick = async () => {
     if (currentStep === 1) {
@@ -88,7 +102,6 @@ const MessageReviewersModal = ({
               const rowData = simplifiedTableRowsDisplayed.find((row) => row.id === noteId)
               const groupIds = allRecipients.get(rowData?.number)
               if (!groupIds?.length) return Promise.resolve()
-              const forumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialReviewName}`
               return api.post(
                 '/messages',
                 {
@@ -98,13 +111,7 @@ const MessageReviewersModal = ({
                   signature: messageInvitation && rowData.messageSignature,
                   groups: groupIds,
                   subject,
-                  message:
-                    messageOption.value === 'allAuthors' || messageOption.value === 'allSACs'
-                      ? message.replaceAll(
-                          `{{${submissionName.toLowerCase()}_number}}`,
-                          rowData.number
-                        )
-                      : message.replaceAll('{{submit_review_link}}', forumUrl),
+                  message: getMessage(rowData),
                   parentGroup: `${venueId}/${submissionName}${rowData.number}/${roleName}`,
                   replyTo: emailReplyTo,
                 },
@@ -161,7 +168,8 @@ const MessageReviewersModal = ({
     if (messageOption?.value === 'allSACs') {
       return `You may customize the message that will be sent to ${prettyField(seniorAreaChairName)}. You can also use {{fullname}} to replace the recipient full name and {{${submissionName.toLowerCase()}_number}} to replace the ${submissionName.toLowerCase()} number. If your message is not specific to a ${submissionName.toLowerCase()}, please email from the ${prettyField(seniorAreaChairName)} group.`
     }
-    return `You may customize the message that will be sent to the ${prettyField(reviewerName).toLowerCase()}. In the email body, the text {{submit_review_link}} will be replaced with a hyperlink to the form where the ${prettyField(reviewerName).toLowerCase()} can fill out his or her ${prettyField(officialReviewName).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`
+    const roleName = messageOption?.value === 'allAreaChairs' ? areaChairName : reviewerName
+    return `You may customize the message that will be sent to the ${prettyField(roleName).toLowerCase()}. In the email body, the text {{submit_review_link}} will be replaced with a hyperlink to the form where the ${prettyField(roleName).toLowerCase()} can fill out his or her ${prettyField(officialReviewName).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`
   }
 
   useEffect(() => {
