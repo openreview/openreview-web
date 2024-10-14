@@ -133,7 +133,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
                       data-placement="top"
                       title={
                         expired
-                          ? `expired ${dayjs(invitation.expdate).fromNow()} but can still be used`
+                          ? `Expired ${dayjs(invitation.expdate).fromNow()}, only for Program Chairs use`
                           : ''
                       }
                     >
