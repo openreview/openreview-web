@@ -637,6 +637,7 @@ describe('utils', () => {
     // #region enum field show descriptions
     workflowInvitation = {
       id: 'ICLR.cc/2025/Conference/-/Confidential_Comment',
+      domain: 'ICLR.cc/2025/Conference',
       edit: {
         invitation: {
           edit: {
@@ -684,11 +685,71 @@ describe('utils', () => {
     )
     expect(resultValue.props.children[0].length).toEqual(3) // 3 are displayed
     expect(resultValue.props.children[1].props.children.length).toEqual(1) // 1 in collapse
+    expect(resultValue.props.children[0][0].props.children).toEqual('Program Chairs')
+    expect(resultValue.props.children[0][1].props.children).toEqual(
+      'Assigned Senior Area Chairs'
+    )
+    expect(resultValue.props.children[0][2].props.children).toEqual('Assigned Area Chairs')
+    expect(resultValue.props.children[1].props.children[0].props.children).toEqual(
+      'Assigned Reviewers who already submitted their review'
+    )
+    // #endregion
+
+    // #region enum field with no descriptions (show pretty value)
+    workflowInvitation = {
+      id: 'ABCD.cc/2025/Conference/-/Official_Comment',
+      domain: 'ABCD.cc/2025/Conference',
+      edit: {
+        invitation: {
+          edit: {
+            note: {
+              readers: {
+                param: {
+                  items: [
+                    // no description
+                    {
+                      value: 'ABCD.cc/2025/Conference/Program_Chairs',
+                      optional: false,
+                    },
+                    {
+                      value:
+                        'ABCD.cc/2025/Conference/Submission/${8/content/noteNumber/value}/Reviewers',
+                      optional: true,
+                    },
+                    {
+                      value:
+                        'ABCD.cc/2025/Conference/Submission/${8/content/noteNumber/value}/Authors',
+                      optional: true,
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    path = 'edit.invitation.edit.note.readers.param.items'
+
+    resultValue = getSubInvitationContentFieldDisplayValue(
+      workflowInvitation,
+      path,
+      'object[]'
+    )
+    expect(resultValue.props.children[0].length).toEqual(3) // 3 are displayed
+    expect(resultValue.props.children[0][0].props.children).toEqual('Program Chairs')
+    expect(resultValue.props.children[0][1].props.children).toEqual(
+      'Submission  {noteNumber} Reviewers'
+    )
+    expect(resultValue.props.children[0][2].props.children).toEqual(
+      'Submission  {noteNumber} Authors'
+    )
     // #endregion
 
     // #region reader field show value segments
     workflowInvitation = {
       id: 'ICLR.cc/2025/Conference/-/Official_Review',
+      domain: 'ICLR.cc/2025/Conference',
       edit: {
         invitation: {
           edit: {
@@ -711,21 +772,19 @@ describe('utils', () => {
       'string[]'
     )
 
-    expect(resultValue.props.children[0][0].props.children[0]).toEqual(
-      'ICLR 2025 Conference Program Chairs'
-    )
+    expect(resultValue.props.children[0][0].props.children[0]).toEqual('Program Chairs')
     expect(resultValue.props.children[0][1].props.children).toEqual([
-      'ICLR 2025 Conference Submission ',
+      'Submission ',
       expect.objectContaining({ type: 'em', props: { children: 'noteNumber' } }),
       ' Senior Area Chairs',
     ])
     expect(resultValue.props.children[0][2].props.children).toEqual([
-      'ICLR 2025 Conference Submission ',
+      'Submission ',
       expect.objectContaining({ type: 'em', props: { children: 'noteNumber' } }),
       ' Area Chairs',
     ])
     expect(resultValue.props.children[1].props.children[0].props.children).toEqual([
-      'ICLR 2025 Conference Submission ',
+      'Submission ',
       expect.objectContaining({ type: 'em', props: { children: 'noteNumber' } }),
       ' Reviewers',
     ])

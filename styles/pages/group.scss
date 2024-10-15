@@ -1299,7 +1299,7 @@ main.invitation {
               vertical-align: bottom;
               overflow-x: hidden;
               text-overflow: ellipsis;
-              width: 50%;
+              max-width: 50%;
             }
 
             .tooltip-inner {

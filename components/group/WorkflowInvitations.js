@@ -76,7 +76,9 @@ const WorflowInvitationRow = ({
                     {prettyField(key)}:{' '}
                     <i>
                       {getSubInvitationContentFieldDisplayValue(
-                        fieldPath ? workflowInvitation : domainObject,
+                        fieldPath
+                          ? workflowInvitation
+                          : { ...domainObject, domain: workflowInvitation.domain },
                         fieldPath ?? `${key}.value`,
                         subInvitation.edit.content?.[key]?.value?.param?.type
                       )}
@@ -191,7 +193,10 @@ const EditInvitationRow = ({ invitation, isDomainGroup, loadWorkflowInvitations 
             onChange={(e) => updateActivationDate(e)}
             allowClear={false}
             skipOkEvent={true}
-            onBlur={() => setIsEditingCdate(false)}
+            onBlur={(e) => {
+              if (e.relatedTarget) return
+              setIsEditingCdate(false)
+            }}
           />
         ) : (
           <>
@@ -210,7 +215,7 @@ const EditInvitationRow = ({ invitation, isDomainGroup, loadWorkflowInvitations 
         <div className="invitation-content">
           <div className="invitation-id">
             <Link href={`/invitation/edit?id=${invitation.id}`}>
-              {prettyId(invitation.id)}
+              {prettyId(invitation.id.replace(invitation.domain, ''), true)}
             </Link>
             {invitation.edit?.content && isDomainGroup && !showEditor && (
               <button className="btn btn-xs ml-2" onClick={() => setShowEditor(true)}>
@@ -223,7 +228,14 @@ const EditInvitationRow = ({ invitation, isDomainGroup, loadWorkflowInvitations 
               data-toggle="tooltip"
               title={invitees?.join('<br/>')}
             >
-              invitation to {invitees.join(', ')}
+              invitation to{' '}
+              {invitees
+                .map((p) =>
+                  p === invitation.domain
+                    ? 'Administrators'
+                    : prettyId(p.replace(invitation.domain, ''))
+                )
+                .join(', ')}
             </div>
           </div>
           <span>{invitation.description}</span>
@@ -350,7 +362,9 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                 </span>
                 <div className="group-content">
                   <div>
-                    <Link href={`/group/edit?id=${stepObj.id}`}>{prettyId(stepObj.id)}</Link>
+                    <Link href={`/group/edit?id=${stepObj.id}`}>
+                      {prettyId(stepObj.id, true)}
+                    </Link>
                     {stepObj.members?.length > 0 && (
                       <span className="member-count">Group of {stepObj.members?.length}</span>
                     )}
