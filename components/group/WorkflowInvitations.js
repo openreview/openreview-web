@@ -17,6 +17,7 @@ import Dropdown from '../Dropdown'
 import Icon from '../Icon'
 import DatetimePicker from '../DatetimePicker'
 import useUser from '../../hooks/useUser'
+import Markdown from '../EditorComponents/Markdown'
 
 const WorflowInvitationRow = ({
   subInvitation,
@@ -65,7 +66,7 @@ const WorflowInvitationRow = ({
               </a>
             )}
           </div>
-          <span>{subInvitation.description}</span>
+          <Markdown text={subInvitation.description} />
 
           {!isGroupInvitation && (
             <ul>
@@ -238,7 +239,7 @@ const EditInvitationRow = ({ invitation, isDomainGroup, loadWorkflowInvitations 
                 .join(', ')}
             </div>
           </div>
-          <span>{invitation.description}</span>
+          <Markdown text={invitation.description} />
         </div>
       </div>
       {showEditor && (
@@ -369,7 +370,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                       <span className="member-count">Group of {stepObj.members?.length}</span>
                     )}
                   </div>
-                  <span>{stepObj.description}</span>
+                  <Markdown text={stepObj.description} />
                 </div>
               </div>
             ))}
