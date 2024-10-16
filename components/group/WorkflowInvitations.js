@@ -230,13 +230,22 @@ const EditInvitationRow = ({ invitation, isDomainGroup, loadWorkflowInvitations 
               title={invitees?.join('<br/>')}
             >
               invitation to{' '}
-              {invitees
-                .map((p) =>
-                  p === invitation.domain
+              {invitees.map((p, index) => (
+                <>
+                  {p === invitation.domain
                     ? 'Administrators'
                     : prettyId(p.replace(invitation.domain, ''))
-                )
-                .join(', ')}
+                        .split(/\{(\S+\s*\S*)\}/g)
+                        .map((segment, segmentIndex) =>
+                          segmentIndex % 2 !== 0 ? (
+                            <em key={segmentIndex}>{segment}</em>
+                          ) : (
+                            segment
+                          )
+                        )}
+                  {index < invitees.length - 1 && ', '}
+                </>
+              ))}
             </div>
           </div>
           <Markdown text={invitation.description} />
