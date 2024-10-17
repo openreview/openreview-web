@@ -67,7 +67,7 @@ const ProfilePreviewModal = ({
       <BasicProfileView
         profile={profileToPreview}
         showLinkText={true}
-        allowCopyEmail={true}
+        moderation={true}
         contentToShow={contentToShow}
       />
       {contentToShow?.includes('publications') && (
