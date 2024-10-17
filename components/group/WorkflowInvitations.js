@@ -375,9 +375,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                     <Link href={`/group/edit?id=${stepObj.id}`}>
                       {prettyId(stepObj.id, true)}
                     </Link>
-                    {stepObj.members?.length > 0 && (
-                      <span className="member-count">Group of {stepObj.members?.length}</span>
-                    )}
+                    <span className="member-count">Group of {stepObj.members?.length}</span>
                   </div>
                   <Markdown text={stepObj.description} />
                 </div>
