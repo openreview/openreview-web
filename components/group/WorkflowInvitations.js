@@ -40,69 +40,71 @@ const WorflowInvitationRow = ({
       )
 
   return (
-    <ul>
-      <li>
-        <div>
+    <div className="sub-invitation-container">
+      <ul>
+        <li>
           <div>
-            <span>{invitationName}</span>
-            {isGroupInvitation ? (
-              <button
-                className="btn btn-xs ml-2"
-                onClick={() => setShowInvitationEditor(true)}
-              >
-                Add
-              </button>
-            ) : (
-              // eslint-disable-next-line jsx-a11y/anchor-is-valid
-              <a
-                href="#"
-                className="ml-2"
-                onClick={(e) => {
-                  e.preventDefault()
-                  setShowInvitationEditor((isOpen) => !isOpen)
-                }}
-              >
-                {showInvitationEditor ? 'Close' : 'Edit'}
-              </a>
+            <div>
+              <span>{invitationName}</span>
+              {isGroupInvitation ? (
+                <button
+                  className="btn btn-xs ml-2"
+                  onClick={() => setShowInvitationEditor(true)}
+                >
+                  Add
+                </button>
+              ) : (
+                // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                <a
+                  href="#"
+                  className="ml-2"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setShowInvitationEditor((isOpen) => !isOpen)
+                  }}
+                >
+                  {showInvitationEditor ? 'Close' : 'Edit'}
+                </a>
+              )}
+            </div>
+            <Markdown text={subInvitation.description} />
+
+            {!isGroupInvitation && (
+              <ul>
+                {Object.keys(subInvitation.edit?.content ?? {}).map((key) => {
+                  const fieldPath = getPath(subInvitation.edit.invitation, key)
+                  return (
+                    <li key={key}>
+                      {prettyField(key)}:{' '}
+                      <i>
+                        {getSubInvitationContentFieldDisplayValue(
+                          fieldPath
+                            ? workflowInvitation
+                            : { ...domainObject, domain: workflowInvitation.domain },
+                          fieldPath ?? `${key}.value`,
+                          subInvitation.edit.content?.[key]?.value?.param?.type
+                        )}
+                      </i>
+                    </li>
+                  )
+                })}
+              </ul>
             )}
           </div>
-          <Markdown text={subInvitation.description} />
-
-          {!isGroupInvitation && (
-            <ul>
-              {Object.keys(subInvitation.edit?.content ?? {}).map((key) => {
-                const fieldPath = getPath(subInvitation.edit.invitation, key)
-                return (
-                  <li key={key}>
-                    {prettyField(key)}:{' '}
-                    <i>
-                      {getSubInvitationContentFieldDisplayValue(
-                        fieldPath
-                          ? workflowInvitation
-                          : { ...domainObject, domain: workflowInvitation.domain },
-                        fieldPath ?? `${key}.value`,
-                        subInvitation.edit.content?.[key]?.value?.param?.type
-                      )}
-                    </i>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </div>
-        <div>
-          {showInvitationEditor && (
-            <InvitationContentEditor
-              invitation={subInvitation}
-              existingValue={existingValue}
-              closeInvitationEditor={() => setShowInvitationEditor(false)}
-              onInvitationEditPosted={() => loadWorkflowInvitations()}
-              isGroupInvitation={isGroupInvitation}
-            />
-          )}
-        </div>
-      </li>
-    </ul>
+          <div>
+            {showInvitationEditor && (
+              <InvitationContentEditor
+                invitation={subInvitation}
+                existingValue={existingValue}
+                closeInvitationEditor={() => setShowInvitationEditor(false)}
+                onInvitationEditPosted={() => loadWorkflowInvitations()}
+                isGroupInvitation={isGroupInvitation}
+              />
+            )}
+          </div>
+        </li>
+      </ul>
+    </div>
   )
 }
 
@@ -323,7 +325,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         sortBy(
           workFlowInvitations.map((p) => ({
             ...p,
-            formattedCDate: formatDateTime(p.cdate, { second: undefined }),
+            formattedCDate: formatDateTime(p.cdate, {
+              second: undefined,
+              minute: undefined,
+              hour: undefined,
+            }),
             passed: p.cdate < currentTimeStamp,
           })),
           'cdate'
@@ -333,7 +339,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         sortBy(
           groups.map((p) => ({
             ...p,
-            formattedCDate: formatDateTime(p.cdate, { second: undefined }),
+            formattedCDate: formatDateTime(p.cdate, {
+              second: undefined,
+              minute: undefined,
+              hour: undefined,
+            }),
             passed: p.cdate < currentTimeStamp,
           })),
           'cdate'
