@@ -796,7 +796,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             preferredName: profile ? getProfileName(profile) : reviewer.reviewerProfileId,
           }
         }),
-        authors: note.content.authorids?.value?.map((authorId, index) => {
+        authors: note.content?.authorids?.value?.map((authorId, index) => {
           const preferredName = note.content.authors?.value?.[index]
           return {
             preferredId: authorId,
@@ -850,6 +850,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               preferredId: seniorAreaChairProfileId,
               preferredName: profile ? getProfileName(profile) : seniorAreaChairProfileId,
               title: profile?.title,
+              noteNumber: note.number,
+              anonymizedGroup: seniorAreaChairProfileId,
             }
           }),
           numMetaReviewsDone: metaReviews.length,
