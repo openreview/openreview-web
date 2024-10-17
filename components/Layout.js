@@ -7,6 +7,7 @@ import Footer from './Footer'
 import FooterMinimal from './FooterMinimal'
 import FeedbackModal from './FeedbackModal'
 import BibtexModal from './BibtexModal'
+import usePrompt from '../hooks/usePrompt'
 
 export default function Layout({
   children,
@@ -17,6 +18,9 @@ export default function Layout({
   fullWidth,
   minimalFooter,
 }) {
+  const promptFunctions = usePrompt()
+  Object.assign(global, promptFunctions)
+
   return (
     <>
       <Head>
