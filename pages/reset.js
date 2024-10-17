@@ -78,10 +78,11 @@ function Reset() {
 
         {emailSent ? (
           <Alert color="success">
-            An email with the subject &quot;OpenReview Password Reset&quot; has been sent to
+            Your request has been received. If an account matches the email
             {'  '}
-            <strong>{emailSent}</strong>. Please follow the link in this email to reset your
-            password.
+            <strong>{emailSent}</strong>, you will receive an email with the subject
+            &quot;OpenReview Password Reset&quot;. Please follow the link in this email to
+            reset your password.
           </Alert>
         ) : (
           <>
