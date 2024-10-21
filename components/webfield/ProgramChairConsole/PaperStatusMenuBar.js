@@ -15,6 +15,7 @@ const PaperStatusMenuBar = ({
   setPaperStatusTabData,
   reviewRatingName,
   noteContentField,
+  defaultSeniorAreaChairName,
 }) => {
   const {
     metaReviewRecommendationName,
@@ -28,7 +29,7 @@ const PaperStatusMenuBar = ({
     customStageInvitations = [],
     additionalMetaReviewFields = [],
     reviewerName,
-    seniorAreaChairName = 'Senior_Area_Chairs',
+    seniorAreaChairName = defaultSeniorAreaChairName,
     officialReviewName,
     officialMetaReviewName = 'Meta_Review',
     areaChairName = 'Area_Chairs',
@@ -48,7 +49,7 @@ const PaperStatusMenuBar = ({
     author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords.value'],
     [formattedReviewerName]: ['reviewers'],
-    [formattedSACName]: ['metaReviewData.seniorAreaChairs'],
+    ...(formattedSACName && { [formattedSACName]: ['metaReviewData.seniorAreaChairs'] }),
     [`num${upperFirst(formattedReviewerName)}Assigned`]: [
       'reviewProgressData.numReviewersAssigned',
     ],
@@ -170,6 +171,14 @@ const PaperStatusMenuBar = ({
             label: `All Authors of selected ${pluralizeString(submissionName)}`,
             value: 'allAuthors',
           },
+          ...(seniorAreaChairsId
+            ? [
+                {
+                  label: `All ${prettyField(seniorAreaChairName ?? 'Senior_Area_Chairs')} of selected ${pluralizeString(submissionName)}`,
+                  value: 'allSACs',
+                },
+              ]
+            : []),
         ]
       : []),
   ]

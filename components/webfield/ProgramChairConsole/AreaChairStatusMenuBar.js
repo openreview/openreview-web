@@ -110,11 +110,11 @@ export const MessageACSACModal = ({
         return profile
           ? {
               id,
-              preferredName: profile.preferredName
+              preferredName: profile.preferredName,
             }
           : {
               id,
-              preferredName: id
+              preferredName: id,
             }
       })
     )
@@ -197,7 +197,7 @@ const AreaChairStatusMenuBar = ({
     acEmailFuncs,
     areaChairStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
-    propertiesAllowed: propertiesAllowedConfig,
+    areaChairStatusPropertiesAllowed,
     seniorAreaChairName = 'Senior_Area_Chairs',
     areaChairName = 'Area_Chairs',
     officialReviewName,
@@ -206,7 +206,7 @@ const AreaChairStatusMenuBar = ({
     reviewerName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
-  const propertiesAllowed = propertiesAllowedConfig ?? {
+  const propertiesAllowed = areaChairStatusPropertiesAllowed ?? {
     number: ['number'],
     name: ['areaChairProfile.preferredName'],
     [camelCase(seniorAreaChairName)]: ['seniorAreaChair.seniorAreaChairId'],
