@@ -58,13 +58,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: openreview/openreview-api-v1
-          token: ${{ secrets.OPENREVIEW_ACCESS_TOKEN }}
+          token: ${{ secrets.PAT_OPENREVIEW_IESL }}
           path: openreview-api-v1
       - name: Checkout openreview-api
         uses: actions/checkout@v4
         with:
           repository: openreview/openreview-api
-          token: ${{ secrets.OPENREVIEW_ACCESS_TOKEN }}
+          token: ${{ secrets.PAT_OPENREVIEW_IESL }}
           path: openreview-api
       - name: Checkout openreview-web
         uses: actions/checkout@v4
