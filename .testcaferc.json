@@ -1,6 +1,5 @@
 {
   "browsers": "chrome",
   "videoPath": "videos",
-  "stopOnFirstFail": true,
-  "disableNativeAutomation": "true"
+  "stopOnFirstFail": true
 }

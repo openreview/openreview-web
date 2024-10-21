@@ -69,6 +69,6 @@
     "jest-environment-jsdom": "^29.7.0",
     "node-fetch-cjs": "^3.3.2",
     "prettier": "^3.1.0",
-    "testcafe": "^3.4.0"
+    "testcafe": "^3.7.0-rc.1"
   }
 }
