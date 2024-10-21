@@ -340,7 +340,7 @@ const AreaChairConsole = ({ appContext }) => {
                     (t.id === r || t.members[0] === r)
                 )
                 return {
-                  anonymizedGroup: anonymousReviewerGroup?.id,
+                  anonymizedGroup: anonymousReviewerGroup?.id ?? r,
                   anonymousId: getIndentifierFromGroup(
                     anonymousReviewerGroup?.id || r,
                     anonReviewerName
