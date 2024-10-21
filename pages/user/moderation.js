@@ -1785,6 +1785,9 @@ const UserModerationQueue = ({
         { id: profileId, decision: 'accept' },
         { accessToken }
       )
+      if (profiles.length === 1) {
+        setPageNumber((p) => p - 1)
+      }
       reload()
       promptMessage(`${prettyId(profileId)} is now active`, { scrollToTop: false })
     } catch (error) {
@@ -1840,6 +1843,9 @@ const UserModerationQueue = ({
         { accessToken }
       )
       $(`#${modalId}`).modal('hide')
+      if (profiles.length === 1) {
+        setPageNumber((p) => p - 1)
+      }
       reload()
     } catch (error) {
       promptError(error.message, { scrollToTop: false })
@@ -1874,6 +1880,9 @@ const UserModerationQueue = ({
           { id: profile.id, decision: actionIsBlock ? 'block' : 'unblock' },
           { accessToken }
         )
+        if (onlyModeration && profiles.length === 1) {
+          setPageNumber((p) => p - 1)
+        }
       } catch (error) {
         promptError(error.message, { scrollToTop: false })
       }
