@@ -168,6 +168,7 @@ const AreaChairConsole = ({ appContext }) => {
     extraExportColumns,
     preferredEmailInvitationId,
     ithenticateInvitationId,
+    skipMetaReviewSignatureCheck = false,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
@@ -511,11 +512,14 @@ const AreaChairConsole = ({ appContext }) => {
         const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
         const metaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
-        const metaReview = note.details.replies.find(
-          (p) =>
+        const metaReview = note.details.replies.find((p) => {
+          if (skipMetaReviewSignatureCheck)
+            return p.invitations.includes(metaReviewInvitationId)
+          return (
             p.invitations.includes(metaReviewInvitationId) &&
             p.signatures[0] === anonymousAreaChairIdByNumber[note.number]
-        )
+          )
+        })
         return {
           note,
           reviewers: result[1]
