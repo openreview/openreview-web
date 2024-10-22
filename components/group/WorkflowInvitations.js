@@ -2,11 +2,14 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { get, sortBy } from 'lodash'
+import timezone from 'dayjs/plugin/timezone'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
 import {
   formatDateTime,
-  getMetaInvitationId,
   getPath,
   getSubInvitationContentFieldDisplayValue,
   prettyField,
@@ -14,10 +17,11 @@ import {
 } from '../../lib/utils'
 import InvitationContentEditor from './InvitationContentEditor'
 import Dropdown from '../Dropdown'
-import Icon from '../Icon'
-import DatetimePicker from '../DatetimePicker'
-import useUser from '../../hooks/useUser'
 import Markdown from '../EditorComponents/Markdown'
+
+dayjs.extend(isSameOrBefore)
+dayjs.extend(timezone)
+dayjs.extend(utc)
 
 const WorflowInvitationRow = ({
   subInvitation,
@@ -45,10 +49,9 @@ const WorflowInvitationRow = ({
         <li>
           <div>
             <div>
-              <span>{invitationName}</span>
               {isGroupInvitation ? (
                 <button
-                  className="btn btn-xs ml-2"
+                  className="btn btn-xs mr-2"
                   onClick={() => setShowInvitationEditor(true)}
                 >
                   Add
@@ -57,7 +60,7 @@ const WorflowInvitationRow = ({
                 // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a
                   href="#"
-                  className="ml-2"
+                  className="mr-2"
                   onClick={(e) => {
                     e.preventDefault()
                     setShowInvitationEditor((isOpen) => !isOpen)
@@ -66,6 +69,7 @@ const WorflowInvitationRow = ({
                   {showInvitationEditor ? 'Close' : 'Edit'}
                 </a>
               )}
+              <span>{invitationName}</span>
             </div>
             <Markdown text={subInvitation.description} />
 
@@ -75,8 +79,8 @@ const WorflowInvitationRow = ({
                   const fieldPath = getPath(subInvitation.edit.invitation, key)
                   return (
                     <li key={key}>
-                      {prettyField(key)}:{' '}
-                      <i>
+                      <span className="existing-value-field">{prettyField(key)}: </span>
+                      <span className="existing-value-field">
                         {getSubInvitationContentFieldDisplayValue(
                           fieldPath
                             ? workflowInvitation
@@ -84,7 +88,7 @@ const WorflowInvitationRow = ({
                           fieldPath ?? `${key}.value`,
                           subInvitation.edit.content?.[key]?.value?.param?.type
                         )}
-                      </i>
+                      </span>
                     </li>
                   )
                 })}
@@ -143,116 +147,58 @@ const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
   )
 }
 
-const EditInvitationRow = ({ invitation, isDomainGroup, loadWorkflowInvitations }) => {
+const EditInvitationRow = ({ invitation, isDomainGroup }) => {
   const [showEditor, setShowEditor] = useState(false)
-  const [isEditingCdate, setIsEditingCdate] = useState(false)
-  const { user, accessToken } = useUser()
-  const profileId = user?.profile?.id
 
   const innerInvitationInvitee = invitation.edit?.invitation?.invitees
   const invitees = innerInvitationInvitee ?? invitation.invitees
 
-  const updateActivationDate = async (e) => {
-    try {
-      await api.post(
-        '/invitations/edits',
-        {
-          invitation: {
-            cdate: Number.isNaN(parseInt(e, 10)) ? null : parseInt(e, 10),
-            id: invitation.id,
-            signatures: invitation.signatures,
-            bulk: invitation.bulk,
-            duedate: invitation.duedate,
-            expdate: invitation.expdate,
-            invitees: invitation.invitees,
-            noninvitees: invitation.noninvitees,
-            nonreaders: invitation.nonreaders,
-            readers: invitation.readers,
-            writers: invitation.writers,
-          },
-          readers: [profileId],
-          writers: [profileId],
-          signatures: [profileId],
-          invitations: getMetaInvitationId(invitation),
-        },
-        { accessToken }
-      )
-      setIsEditingCdate(false)
-      promptMessage(`Activation date of ${prettyId(invitation.id)} is updated`, {
-        scrollToTop: false,
-      })
-      loadWorkflowInvitations()
-    } catch (error) {
-      promptError(error.message, { scrollToTop: false })
-    }
-  }
-
   return (
     <div className="edit-invitation-container">
-      <div className="invitation-info">
-        {isEditingCdate ? (
-          <DatetimePicker
-            existingValue={invitation.cdate}
-            onChange={(e) => updateActivationDate(e)}
-            allowClear={false}
-            skipOkEvent={true}
-            onBlur={(e) => {
-              if (e.relatedTarget) return
-              setIsEditingCdate(false)
-            }}
-          />
-        ) : (
-          <>
-            <span
-              className={
-                invitation.passed ? 'text-muted invitation-cdate' : 'invitation-cdate'
-              }
-            >
-              {invitation.formattedCDate}{' '}
-            </span>
-            <div onClick={() => setIsEditingCdate(true)}>
-              <Icon name="pencil" tooltip="Edit Activation Date" />
-            </div>
-          </>
-        )}
-        <div className="invitation-content">
-          <div className="invitation-id">
-            <Link href={`/invitation/edit?id=${invitation.id}`}>
-              {prettyId(invitation.id.replace(invitation.domain, ''), true)}
-            </Link>
-            {invitation.edit?.content && isDomainGroup && !showEditor && (
-              <button className="btn btn-xs ml-2" onClick={() => setShowEditor(true)}>
-                Add
-              </button>
-            )}
-            {/* TODO: won't know inner invitation is per submission or per what */}
-            <div
-              className="invitation-invitee"
-              data-toggle="tooltip"
-              title={invitees?.join('<br/>')}
-            >
-              invitation to{' '}
-              {invitees.map((p, index) => (
-                <>
-                  {p === invitation.domain
-                    ? 'Administrators'
-                    : prettyId(p.replace(invitation.domain, ''))
-                        .split(/\{(\S+\s*\S*)\}/g)
-                        .map((segment, segmentIndex) =>
-                          segmentIndex % 2 !== 0 ? (
-                            <em key={segmentIndex}>{segment}</em>
-                          ) : (
-                            segment
-                          )
-                        )}
-                  {index < invitees.length - 1 && ', '}
-                </>
-              ))}
-            </div>
+      <div className="invitation-content">
+        <div className="invitation-id-container">
+          <Link
+            href={`/invitation/edit?id=${invitation.id}`}
+            className="workflow-invitation-id"
+          >
+            {prettyId(invitation.id.replace(invitation.domain, ''), true)}
+          </Link>
+          <a className="id-icon" href={`/invitation/edit?id=${invitation.id}`}>
+            ↗
+          </a>
+          {invitation.edit?.content && isDomainGroup && !showEditor && (
+            <button className="btn btn-xs ml-2" onClick={() => setShowEditor(true)}>
+              Add
+            </button>
+          )}
+          {/* TODO: won't know inner invitation is per submission or per what */}
+          <div
+            className="invitation-invitee"
+            data-toggle="tooltip"
+            title={invitees?.join('<br/>')}
+          >
+            invitation to{' '}
+            {invitees.map((p, index) => (
+              <>
+                {p === invitation.domain
+                  ? 'Administrators'
+                  : prettyId(p.replace(invitation.domain, ''))
+                      .split(/\{(\S+\s*\S*)\}/g)
+                      .map((segment, segmentIndex) =>
+                        segmentIndex % 2 !== 0 ? (
+                          <em key={segmentIndex}>{segment}</em>
+                        ) : (
+                          segment
+                        )
+                      )}
+                {index < invitees.length - 1 && ', '}
+              </>
+            ))}
           </div>
-          <Markdown text={invitation.description} />
         </div>
+        <Markdown text={invitation.description} />
       </div>
+
       {showEditor && (
         <div className="content-editor-container">
           <InvitationContentEditor
@@ -327,10 +273,9 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
             ...p,
             formattedCDate: formatDateTime(p.cdate, {
               second: undefined,
-              minute: undefined,
-              hour: undefined,
+              locale: 'en-GB',
+              timeZoneName: 'short',
             }),
-            passed: p.cdate < currentTimeStamp,
           })),
           'cdate'
         )
@@ -343,8 +288,8 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               second: undefined,
               minute: undefined,
               hour: undefined,
+              locale: 'en-GB',
             }),
-            passed: p.cdate < currentTimeStamp,
           })),
           'cdate'
         )
@@ -377,16 +322,15 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           <div className="container group-workflow-container">
             {workflowGroups.map((stepObj) => (
               <div key={stepObj.id} className="group-workflow">
-                <span className={stepObj.passed ? 'text-muted group-cdate' : 'group-cdate'}>
-                  {stepObj.formattedCDate}{' '}
-                </span>
+                <span className="group-cdate">{stepObj.formattedCDate} </span>
                 <div className="group-content">
-                  <div>
-                    <Link href={`/group/edit?id=${stepObj.id}`}>
-                      {prettyId(stepObj.id, true)}
-                    </Link>
-                    <span className="member-count">Group of {stepObj.members?.length}</span>
-                  </div>
+                  <Link href={`/group/edit?id=${stepObj.id}`} className="group-id">
+                    {prettyId(stepObj.id, true)}
+                  </Link>
+                  <a className="id-icon" href={`/group/edit?id=${stepObj.id}`}>
+                    ↗
+                  </a>
+                  <span className="member-count">Group of {stepObj.members?.length}</span>
                   <Markdown text={stepObj.description} />
                 </div>
               </div>
@@ -399,30 +343,62 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           title={`Workflow Invitations (${workflowInvitations.length})`}
           className="workflow"
         >
+          <div className="workflow-invitations-header">
+            <span className="cdate-header">Activation Dates</span>
+            <span className="invtations-header">Workflow Step Invitations</span>
+          </div>
+
+          <hr />
           <div className="container invitation-workflow-container">
-            {workflowInvitations.map((stepObj) => {
+            {workflowInvitations.map((stepObj, index) => {
               const invitationId = stepObj.id
               const subInvitations = allInvitations.filter((i) =>
                 i.id.startsWith(`${invitationId}/`)
               )
-              return (
-                <div key={invitationId}>
-                  <EditInvitationRow
-                    invitation={stepObj}
-                    isDomainGroup={group.id !== group.domain}
-                    loadWorkflowInvitations={loadAllInvitations}
-                  />
+              const isBeforeToday = dayjs(stepObj.cdate).isSameOrBefore(dayjs())
+              const isNextStepAfterToday = dayjs(
+                workflowInvitations[index + 1]?.cdate
+              ).isAfter(dayjs())
 
-                  {subInvitations.length > 0 &&
-                    subInvitations.map((subInvitation) => (
-                      <WorflowInvitationRow
-                        key={subInvitation.id}
-                        subInvitation={subInvitation}
-                        workflowInvitation={stepObj}
-                        loadWorkflowInvitations={loadAllInvitations}
-                        domainObject={group.content}
-                      />
-                    ))}
+              if (isBeforeToday && isNextStepAfterToday) {
+                return (
+                  <div key="today" className="workflow-invitation-container">
+                    <div className="invitation-cdate">
+                      {formatDateTime(dayjs().valueOf(), {
+                        second: undefined,
+                        minute: undefined,
+                        hour: undefined,
+                        locale: 'en-GB',
+                      })}{' '}
+                    </div>
+                    <span className="invitation-content today">
+                      TODAY
+                      {/* eslint-disable-next-line max-len */}
+                      --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                    </span>
+                  </div>
+                )
+              }
+              return (
+                <div key={invitationId} className="workflow-invitation-container">
+                  <div className="invitation-cdate">{stepObj.formattedCDate}</div>
+                  <div className="edit-invitation-info">
+                    <EditInvitationRow
+                      invitation={stepObj}
+                      isDomainGroup={group.id !== group.domain}
+                    />
+
+                    {subInvitations.length > 0 &&
+                      subInvitations.map((subInvitation) => (
+                        <WorflowInvitationRow
+                          key={subInvitation.id}
+                          subInvitation={subInvitation}
+                          workflowInvitation={stepObj}
+                          loadWorkflowInvitations={loadAllInvitations}
+                          domainObject={group.content}
+                        />
+                      ))}
+                  </div>
                 </div>
               )
             })}

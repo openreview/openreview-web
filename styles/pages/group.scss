@@ -1240,14 +1240,26 @@ main.invitation {
       .group-workflow {
         display: flex;
         justify-content: left;
+        align-items: baseline;
 
         .group-cdate {
           margin-right: 0.5rem;
+          color: black;
+          font-size: 0.65rem;
         }
         .group-content {
           max-width: 80%;
+          display: flex;
+
+          .group-id {
+            color: black;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-right: 0.25rem;
+          }
           .member-count {
             margin-left: 0.5rem;
+            color: #ff9900;
           }
         }
       }
@@ -1257,66 +1269,124 @@ main.invitation {
       color: constants.$orRed;
     }
 
-    .edit-invitation-container {
+    .id-icon {
+      color: #1155cc;
+      background-color: #c9daf8;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .workflow-invitations-header {
       display: flex;
-      flex-direction: column;
-      line-height: 1.5rem;
-      margin-bottom: 0.25rem;
+      color: #999999;
+      align-items: baseline;
+      margin-left: 15px;
 
-      .invitation-info {
-        display: flex;
+      .cdate-header {
+        width: 8%;
+        margin-right: 0.5rem;
+        font-size: 0.7rem;
+        font-style: italic;
+      }
+      .invtations-header {
+        font-size: 1rem;
+      }
+    }
 
-        .glyphicon {
-          vertical-align: baseline;
-          margin-right: 0.5rem;
+    .workflow-invitation-container {
+      display: flex;
+
+      .invitation-cdate {
+        width: 8%;
+        margin-right: 0.5rem;
+        color: #999999;
+        font-size: 0.7rem;
+        font-style: italic;
+
+        .edit-cdate-icon {
           cursor: pointer;
         }
+      }
 
-        .invitation-cdate {
-          width: 8%;
-          margin-right: 0.5rem;
+      .edit-invitation-info {
+        flex-grow: 1;
+        max-width: 80%;
+        .edit-invitation-container {
+          display: flex;
+          flex-direction: column;
+          line-height: 1.5rem;
+          margin-bottom: 0.25rem;
+
+          .glyphicon {
+            vertical-align: baseline;
+            margin-right: 0.5rem;
+            cursor: pointer;
+          }
+
+          .invitation-content {
+            max-width: 80%;
+            flex-grow: 1;
+
+            .invitation-id-container {
+              display: flex;
+              justify-content: left;
+              align-items: center;
+
+              .workflow-invitation-id {
+                white-space: nowrap;
+                color: black;
+                font-weight: 700;
+                font-size: 1rem;
+                margin-right: 0.25rem;
+              }
+
+              .invitation-invitee {
+                margin-left: 0.5rem;
+                display: inline-block;
+                white-space: nowrap;
+                vertical-align: bottom;
+                overflow-x: hidden;
+                text-overflow: ellipsis;
+                max-width: 50%;
+                color: #999999;
+                font-style: italic;
+                font-size: 0.75rem;
+              }
+
+              .tooltip-inner {
+                max-width: unset;
+              }
+            }
+          }
+
+          .content-editor-container {
+            max-width: 80%;
+          }
         }
 
-        .rc-picker-clear {
-          top: 0;
-        }
+        .sub-invitation-container {
+          margin-left: -2.5rem;
 
-        .invitation-content {
-          max-width: 80%;
-          flex-grow: 1;
+          ul {
+            list-style-type: none;
+          }
 
-          .invitation-id {
-            display: flex;
-            justify-content: left;
-
-            a {
-              white-space: nowrap;
-            }
-
-            .invitation-invitee {
-              margin-left: 0.5rem;
-              display: inline-block;
-              white-space: nowrap;
-              vertical-align: bottom;
-              overflow-x: hidden;
-              text-overflow: ellipsis;
-              max-width: 50%;
-            }
-
-            .tooltip-inner {
-              max-width: unset;
-            }
+          .existing-value-field {
+            font-size: 0.75rem;
           }
         }
       }
 
-      .content-editor-container {
-        max-width: 80%;
-      }
-    }
+      .today {
+        color: constants.$orRed;
+        font-size: 0.65rem;
+        white-space: nowrap;
+        overflow-x: hidden;
 
-    .sub-invitation-container {
-      margin-left: 8%;
+        .invitation-cdate {
+          color: constants.$orRed;
+        }
+      }
     }
 
     .add-stage {
