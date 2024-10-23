@@ -106,7 +106,11 @@ export function InvitationReplyV2({
   const [isSaving, setIsSaving] = useState(false)
   const [activeTabId, setActiveTabId] = useState('reply')
   const [replyPreview, setReplyPreview] = useState(null)
-  const showPreview = replyField === 'edit' && invitation.edit?.note && !readOnly
+  const showPreview =
+    replyField === 'edit' &&
+    (invitation.edit?.note || invitation.edit?.invitation?.edit?.note) &&
+    !readOnly
+  const isInvitaitonOfInvitation = invitation.edit?.invitation
 
   const titleMap = {
     edge: 'Edge',
@@ -186,7 +190,7 @@ export function InvitationReplyV2({
     if (activeTabId !== 'preview') return
     try {
       const parsedReply = JSON.parse(replyString)
-      setReplyPreview(parsedReply)
+      setReplyPreview(isInvitaitonOfInvitation ? parsedReply.invitation.edit : parsedReply)
     } catch (error) {
       promptError(`Reply is not valid JSON: ${error.message}.`, { scrollToTop: false })
       setActiveTabId('reply')
@@ -233,7 +237,7 @@ export function InvitationReplyV2({
                   setActiveTabId('preview')
                 }}
               >
-                Preview
+                {isInvitaitonOfInvitation ? 'Preview of Inner Invitation' : 'Preview'}
               </Tab>
             </TabList>
             <TabPanels>
