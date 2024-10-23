@@ -435,6 +435,7 @@ test('update profile', async (t) => {
 
     .click(nextSectiomButtonSelector) // relation
     .click(nextSectiomButtonSelector) // last section expertise
+    .expect(Selector('p').withText("last updated September 24, 2024").exists).ok()
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messagePanelSelector.exists)
     .ok()
