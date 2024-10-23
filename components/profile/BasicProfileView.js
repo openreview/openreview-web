@@ -1,9 +1,11 @@
 import random from 'lodash/random'
 import Link from 'next/link'
 import copy from 'copy-to-clipboard'
+import { useEffect, useState } from 'react'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 import { prettyList } from '../../lib/utils'
+import LoadingSpinner from '../LoadingSpinner'
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -44,18 +46,63 @@ const ProfileEmail = ({ email, publicProfile, allowCopyEmail }) => {
       <span {...(allowCopyEmail && { onClick: copyEmailToClipboard })}>{email.email}</span>{' '}
       {email.confirmed && <small>(Confirmed)</small>}
       {!publicProfile && email.preferred && <small>(Preferred)</small>}
+      {allowCopyEmail && email.confirmed && (
+        <>
+          <a
+            href={`https://bing.com?q="${email.email}"`}
+            target="_blank"
+            rel="nofollow noreferrer"
+            className="ml-1"
+          >
+            Bing
+          </a>
+          <a
+            href={`https://google.com/search?q="${email.email}"`}
+            target="_blank"
+            rel="nofollow noreferrer"
+            className="ml-1"
+          >
+            Google
+          </a>
+        </>
+      )}
     </ProfileItem>
   )
 }
 
-const ProfileLink = ({ link, showLinkText }) => {
+const ProfileLink = ({ link, showLinkText, fetchUrl }) => {
   const linkUrlWithProtocol = link.url?.startsWith('http') ? link.url : `//${link.url}`
+  const [isValidLink, setIsValidLink] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  const loadLinkUrl = async () => {
+    setIsLoading(true)
+    try {
+      await fetch(linkUrlWithProtocol, { mode: 'no-cors' })
+      setIsValidLink(true)
+    } catch (error) {
+      setIsValidLink(false)
+    }
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
+    if (!fetchUrl) return
+    loadLinkUrl()
+  }, [link])
+
   return (
     <ProfileItem itemMeta={link.meta}>
       <a href={linkUrlWithProtocol} target="_blank" rel="noopener noreferrer">
         {link.name}
       </a>
       {showLinkText && <span className="link-text">{`(${linkUrlWithProtocol})`}</span>}
+      {fetchUrl &&
+        (isLoading ? (
+          <LoadingSpinner inline text={null} />
+        ) : (
+          <Icon name={isValidLink ? 'ok' : 'remove'} extraClasses="url-status" />
+        ))}
     </ProfileItem>
   )
 }
@@ -153,7 +200,7 @@ const BasicProfileView = ({
   profile,
   publicProfile,
   showLinkText = false,
-  allowCopyEmail = false,
+  moderation = false,
   contentToShow = ['names', 'emails', 'links', 'history', 'relations', 'expertise'],
 }) => {
   const uniqueNames = profile.names.filter((name) => !name.duplicate)
@@ -186,7 +233,7 @@ const BasicProfileView = ({
                   key={`${email.email}-${i}`}
                   email={email}
                   publicProfile={publicProfile}
-                  allowCopyEmail={allowCopyEmail}
+                  allowCopyEmail={moderation}
                 />,
               ])}
           </div>
@@ -196,7 +243,12 @@ const BasicProfileView = ({
       {contentToShow.includes('links') && (
         <ProfileViewSection name="links" title="Personal Links" actionLink="Suggest URL">
           {profile.links.map((link) => (
-            <ProfileLink key={link.name} link={link} showLinkText={showLinkText} />
+            <ProfileLink
+              key={link.name}
+              link={link}
+              showLinkText={showLinkText}
+              fetchUrl={moderation}
+            />
           ))}
         </ProfileViewSection>
       )}
