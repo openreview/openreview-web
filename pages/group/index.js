@@ -116,14 +116,14 @@ Group.getInitialProps = async (ctx) => {
     return { statusCode: 400, message: 'Group ID is required' }
   }
 
-  const { token, user } = auth(ctx)
+  const { token: accessToken, user } = auth(ctx)
 
   let group
   try {
     const { groups } = await api.get(
       '/groups',
       { id: ctx.query.id },
-      { accessToken: token, remoteIpAddress: ctx.req?.headers['x-forwarded-for'] }
+      { accessToken, remoteIpAddress: ctx.req?.headers['x-forwarded-for'] }
     )
     group = groups?.length > 0 ? groups[0] : null
     if (!group) {
@@ -131,7 +131,7 @@ Group.getInitialProps = async (ctx) => {
     }
   } catch (error) {
     if (error.name === 'ForbiddenError') {
-      if (!token) {
+      if (!accessToken) {
         if (ctx.req) {
           ctx.res
             .writeHead(302, { Location: `/login?redirect=${encodeURIComponent(ctx.asPath)}` })
@@ -175,7 +175,7 @@ return {
       const apiRes = await api.get(
         '/groups',
         { id: group.domain },
-        { accessToken: token, remoteIpAddress: ctx.req?.headers['x-forwarded-for'] }
+        { accessToken, remoteIpAddress: ctx.req?.headers['x-forwarded-for'] }
       )
       domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
     } catch (error) {
@@ -188,7 +188,15 @@ return {
   return {
     groupId: group.id,
     ...(isWebfieldComponent
-      ? { componentObj: parseComponentCode(group, domainGroup, user, ctx.query) }
+      ? {
+          componentObj: await parseComponentCode(
+            group,
+            domainGroup,
+            user,
+            ctx.query,
+            accessToken
+          ),
+        }
       : { webfieldCode: generateGroupWebfieldCode(group, ctx.query) }),
     writable: group.details?.writable ?? false,
   }
