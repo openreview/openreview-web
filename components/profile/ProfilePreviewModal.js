@@ -5,7 +5,7 @@ import BasicModal from '../BasicModal'
 import BasicProfileView from './BasicProfileView'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import RecentPublications from './RecentPublications'
+import ProfilePublications from './ProfilePublications'
 import ProfileViewSection from './ProfileViewSection'
 import MessagesSection from './MessagesSection'
 
@@ -72,7 +72,7 @@ const ProfilePreviewModal = ({
       />
       {contentToShow?.includes('publications') && (
         <ProfileViewSection name="publications" title="Publications">
-          <RecentPublications publications={publications} numPublicationsToShow={3} />
+          <ProfilePublications publications={publications} numPublicationsToShow={3} />
         </ProfileViewSection>
       )}
       {contentToShow?.includes('messages') && (
