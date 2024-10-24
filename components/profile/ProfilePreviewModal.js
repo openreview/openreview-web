@@ -88,7 +88,11 @@ const ProfilePreviewModal = ({
             </a>
           }
         >
-          <MessagesSection email={profileToPreview.preferredEmail} accessToken={accessToken} />
+          <MessagesSection
+            email={profileToPreview.preferredEmail}
+            accessToken={accessToken}
+            rejectMessagesOnly
+          />
         </ProfileViewSection>
       )}
     </BasicModal>
