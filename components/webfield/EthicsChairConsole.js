@@ -31,7 +31,9 @@ const EthicsChairConsole = ({ appContext }) => {
   const { setBannerContent } = appContext
   const router = useRouter()
   const query = useQuery()
-  const [activeTabId, setActiveTabId] = useState(window.location.hash || '#overview')
+  const [activeTabId, setActiveTabId] = useState(
+    decodeURIComponent(window.location.hash) || '#overview'
+  )
   const { user, userLoading } = useUser()
 
   const ethicsChairsUrlFormat = getRoleHashFragment(ethicsChairsName)

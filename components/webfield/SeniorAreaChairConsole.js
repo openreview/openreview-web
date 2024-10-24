@@ -69,7 +69,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   const router = useRouter()
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || `#${submissionName ?? ''.toLowerCase()}-status`
+    decodeURIComponent(window.location.hash) || `#${submissionName ?? ''.toLowerCase()}-status`
   )
 
   const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)

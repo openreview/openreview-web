@@ -91,7 +91,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const router = useRouter()
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || '#venue-configuration'
+    decodeURIComponent(window.location.hash) || '#venue-configuration'
   )
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
