@@ -12,6 +12,7 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import { groupModeToggle } from '../../lib/banner-links'
+import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
 
 const GroupInfo = ({ appContext }) => {
   const { accessToken, userLoading } = useUser()
@@ -72,6 +73,42 @@ const GroupInfo = ({ appContext }) => {
     setBannerHidden(false)
   }, [error])
 
+  const groupTabsConfig = [
+    {
+      id: 'groupInfo',
+      label: 'Group Info',
+      sections: ['groupGeneral', 'groupMembers'],
+      default: true,
+    },
+    { id: 'signedNotes', label: 'Signed Notes', sections: ['groupSignedNotes'] },
+    { id: 'childGroups', label: 'Child Groups', sections: ['groupChildGroups'] },
+    {
+      id: 'relatedInvitations',
+      label: 'Related Invitations',
+      sections: ['groupRelatedInvitations'],
+    },
+  ]
+  const renderSection = (sectionName) => {
+    switch (sectionName) {
+      case 'groupGeneral':
+        return <GroupGeneralInfo group={group} />
+      case 'groupMembers':
+        return <GroupMembersInfo group={group} />
+      case 'groupSignedNotes':
+        return <GroupSignedNotes key={sectionName} group={group} accessToken={accessToken} />
+      case 'groupChildGroups':
+        return (
+          <GroupChildGroups key={sectionName} groupId={group.id} accessToken={accessToken} />
+        )
+      case 'groupRelatedInvitations':
+        return (
+          <GroupRelatedInvitations key={sectionName} group={group} accessToken={accessToken} />
+        )
+      default:
+        return null
+    }
+  }
+
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
 
   return (
@@ -85,16 +122,23 @@ const GroupInfo = ({ appContext }) => {
       </div>
 
       {group ? (
-        <div>
-          <GroupGeneralInfo group={group} />
-
-          <GroupMembersInfo group={group} />
-
-          <GroupSignedNotes group={group} accessToken={accessToken} />
-
-          <GroupChildGroups groupId={group.id} accessToken={accessToken} />
-
-          <GroupRelatedInvitations group={group} accessToken={accessToken} />
+        <div className="groupInfoTabsContainer">
+          <Tabs>
+            <TabList>
+              {groupTabsConfig.map((tabConfig) => (
+                <Tab key={tabConfig.id} id={tabConfig.id} active={tabConfig.default}>
+                  {tabConfig.label}
+                </Tab>
+              ))}
+            </TabList>
+            <TabPanels>
+              {groupTabsConfig.map((tabConfig) => (
+                <TabPanel key={tabConfig.id} id={tabConfig.id}>
+                  {tabConfig.sections.map((section) => renderSection(section))}
+                </TabPanel>
+              ))}
+            </TabPanels>
+          </Tabs>
         </div>
       ) : (
         <LoadingSpinner />
