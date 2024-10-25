@@ -6,6 +6,7 @@ import DOMPurify from 'isomorphic-dompurify'
 import { nanoid } from 'nanoid'
 import random from 'lodash/random'
 import { marked } from 'marked'
+/* eslint-disable camelcase */
 import { Noto_Sans } from 'next/font/google'
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
