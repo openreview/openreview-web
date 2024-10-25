@@ -6,8 +6,7 @@ import DOMPurify from 'isomorphic-dompurify'
 import { nanoid } from 'nanoid'
 import random from 'lodash/random'
 import { marked } from 'marked'
-/* eslint-disable camelcase */
-import { Noto_Sans } from 'next/font/google'
+
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import { auth, getTokenPayload, cookieExpiration, refreshExpiration } from '../lib/auth'
@@ -20,13 +19,6 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import '../styles/global.scss'
 import '../styles/components.scss'
 import '../styles/pages.scss'
-
-const notoSans = Noto_Sans({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  style: ['normal', 'italic'],
-  display: 'fallback',
-})
 
 export default class OpenReviewApp extends App {
   constructor(props) {
@@ -449,7 +441,6 @@ export default class OpenReviewApp extends App {
 
     return (
       <UserContext.Provider value={userContext}>
-        {console.log('notoSans', notoSans)}
         <Layout
           bodyClass={Component.bodyClass}
           bannerHidden={this.state.bannerHidden}
