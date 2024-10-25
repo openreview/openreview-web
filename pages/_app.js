@@ -25,7 +25,7 @@ const notoSans = Noto_Sans({
   subsets: ['latin'],
   weight: ['400', '700'],
   style: ['normal', 'italic'],
-  display: 'swap',
+  display: 'fallback',
 })
 
 export default class OpenReviewApp extends App {
