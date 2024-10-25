@@ -449,11 +449,7 @@ export default class OpenReviewApp extends App {
 
     return (
       <UserContext.Provider value={userContext}>
-        <style jsx global>{`
-          html {
-            font-family: ${notoSans.style.fontFamily};
-          }
-        `}</style>
+        {console.log('notoSans', notoSans)}
         <Layout
           bodyClass={Component.bodyClass}
           bannerHidden={this.state.bannerHidden}
