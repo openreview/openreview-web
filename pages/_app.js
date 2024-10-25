@@ -12,12 +12,20 @@ import { auth, getTokenPayload, cookieExpiration, refreshExpiration } from '../l
 import api from '../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 import mathjaxConfig from '../lib/mathjax-config'
+import { Noto_Sans } from 'next/font/google'
 
 // Global Styles
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '../styles/global.scss'
 import '../styles/components.scss'
 import '../styles/pages.scss'
+
+const notoSans = Noto_Sans({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+})
 
 export default class OpenReviewApp extends App {
   constructor(props) {
@@ -440,6 +448,11 @@ export default class OpenReviewApp extends App {
 
     return (
       <UserContext.Provider value={userContext}>
+        <style jsx global>{`
+          html {
+            font-family: ${notoSans.style.fontFamily};
+          }
+        `}</style>
         <Layout
           bodyClass={Component.bodyClass}
           bannerHidden={this.state.bannerHidden}
