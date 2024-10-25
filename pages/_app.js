@@ -6,7 +6,6 @@ import DOMPurify from 'isomorphic-dompurify'
 import { nanoid } from 'nanoid'
 import random from 'lodash/random'
 import { marked } from 'marked'
-
 import Layout from '../components/Layout'
 import UserContext from '../components/UserContext'
 import { auth, getTokenPayload, cookieExpiration, refreshExpiration } from '../lib/auth'
