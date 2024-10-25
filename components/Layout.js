@@ -15,7 +15,6 @@ const notoSans = Noto_Sans({
   weight: ['400', '700'],
   style: ['normal', 'italic'],
   display: 'fallback',
-  variable: 'test',
 })
 
 export default function Layout({
