@@ -1,5 +1,4 @@
-/* globals promptError: false */
-/* globals promptMessage: false */
+/* globals promptError, promptMessage: false */
 
 import { useState, useContext, useEffect, useReducer } from 'react'
 import Link from 'next/link'
@@ -17,6 +16,7 @@ import ErrorDisplay from '../ErrorDisplay'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
+import ArbitraryNoteList from './ArbitraryNoteList'
 
 function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload }) {
   const [userConsoles, setUserConsoles] = useState(null)
@@ -157,6 +157,23 @@ export default function VenueHomepage({ appContext }) {
       )
     }
 
+    if (tabConfig.type === 'arbitraryNoteList') {
+      return (
+        <ArbitraryNoteList
+          noteIds={tabConfig.noteIds}
+          setHidden={(newHidden) => {
+            if (newHidden !== tabConfig.hidden) {
+              setFormattedTabs((currentTabs) =>
+                currentTabs.map((t) =>
+                  t.id === tabConfig.id ? { ...t, hidden: newHidden } : t
+                )
+              )
+            }
+          }}
+        />
+      )
+    }
+
     if (tabConfig.type === 'markdown') {
       return <Markdown text={tabConfig.content} />
     }
@@ -246,7 +263,8 @@ export default function VenueHomepage({ appContext }) {
     // Currently only the consoles and submission list tabs are loaded asynchronously
     setTabsLoaded(
       tabs.map(
-        (tab) => tab.type === 'activity' || tab.type === 'activity' || tab.links?.length > 0
+        (tab) =>
+          tab.type === 'activity' || tab.type === 'arbitraryNoteList' || tab.links?.length > 0
       )
     )
   }, [tabs])
