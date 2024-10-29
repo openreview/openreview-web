@@ -1,6 +1,6 @@
 /* globals $, promptError, view2, DOMPurify: false */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import NoteEditor from '../NoteEditor'
 import { NoteAuthorsV2 } from '../NoteAuthors'
@@ -8,6 +8,7 @@ import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
+import usePdf from '../../hooks/usePdf'
 
 function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
   const { id, content, details, signatures, editInvitations, deleteInvitation } = note
@@ -172,21 +173,43 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
 }
 
 function ForumTitle({ id, title, pdf, html }) {
+  const { initialized, loadDocument, getPagesCount, getCoverImage } = usePdf()
+  const [pageCount, setPageCount] = useState(null)
+  const [coverImage, setCoverImage] = useState(null)
+
+  const loadPdf = async () => {
+    const result = await fetch(pdf.startsWith('http') ? pdf : `/pdf?id=${id}`)
+    await loadDocument(await result.arrayBuffer())
+    setPageCount(await getPagesCount())
+    const coverImageData = await getCoverImage()
+    if (coverImageData) {
+      setCoverImage(URL.createObjectURL(new Blob([coverImageData], { type: 'image/png' })))
+    }
+  }
+
+  useEffect(() => {
+    if (!initialized || !pdf) return
+    loadPdf()
+  }, [initialized])
+
   return (
     <div className="forum-title mt-2 mb-2">
       <h2 className="citation_title">{title}</h2>
 
       {pdf && (
-        <div className="forum-content-link">
-          <a
-            className={pdf.startsWith('http') ? null : 'citation_pdf_url'}
-            href={pdf.startsWith('http') ? pdf : `/pdf?id=${id}`}
-            title="Download PDF"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <img src="/images/pdf_icon_blue.svg" alt="Download PDF" />
-          </a>
+        <div className="d-flex">
+          <div className="forum-content-link">
+            <a
+              className={pdf.startsWith('http') ? null : 'citation_pdf_url'}
+              href={pdf.startsWith('http') ? pdf : `http://localhost:3001/pdf?id=${id}`}
+              title="Download PDF"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <img src={coverImage ?? '/images/pdf_icon_blue.svg'} alt="Download PDF" />
+            </a>
+          </div>
+          {pageCount && <div className="ml-2">{pageCount}</div>}
         </div>
       )}
       {html && (
