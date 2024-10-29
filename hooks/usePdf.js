@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import * as Comlink from 'comlink'
 
-export default function usePdf() {
+export default function usePdf(accessToken) {
   const [initialized, setInitialized] = useState(false)
   const mupdfWorker = useRef(null)
   const document = useRef(null)
@@ -40,6 +40,7 @@ export default function usePdf() {
   }
 
   useEffect(() => {
+    if (!accessToken) return
     initializeMuPdf()
   }, [])
   return { initialized, loadDocument, getMeta, getPagesCount, getCoverImage }

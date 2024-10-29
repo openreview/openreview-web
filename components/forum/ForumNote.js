@@ -9,6 +9,8 @@ import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
 import usePdf from '../../hooks/usePdf'
+import api from '../../lib/api-client'
+import useUser from '../../hooks/useUser'
 
 function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
   const { id, content, details, signatures, editInvitations, deleteInvitation } = note
@@ -173,17 +175,23 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
 }
 
 function ForumTitle({ id, title, pdf, html }) {
-  const { initialized, loadDocument, getPagesCount, getCoverImage } = usePdf()
+  const { accessToken } = useUser()
+  const { initialized, loadDocument, getPagesCount, getCoverImage } = usePdf(accessToken)
   const [pageCount, setPageCount] = useState(null)
   const [coverImage, setCoverImage] = useState(null)
 
   const loadPdf = async () => {
-    const result = await fetch(pdf.startsWith('http') ? pdf : `/pdf?id=${id}`)
-    await loadDocument(await result.arrayBuffer())
-    setPageCount(await getPagesCount())
-    const coverImageData = await getCoverImage()
-    if (coverImageData) {
-      setCoverImage(URL.createObjectURL(new Blob([coverImageData], { type: 'image/png' })))
+    if (pdf.startsWith('http') || !accessToken) return
+    try {
+      const result = await api.get('/pdf', { id }, { accessToken, contentType: 'blob' })
+      await loadDocument(await result.arrayBuffer())
+      setPageCount(await getPagesCount())
+      const coverImageData = await getCoverImage()
+      if (coverImageData) {
+        setCoverImage(URL.createObjectURL(new Blob([coverImageData], { type: 'image/png' })))
+      }
+    } catch (error) {
+      /* empty */
     }
   }
 
@@ -197,19 +205,17 @@ function ForumTitle({ id, title, pdf, html }) {
       <h2 className="citation_title">{title}</h2>
 
       {pdf && (
-        <div className="d-flex">
-          <div className="forum-content-link">
-            <a
-              className={pdf.startsWith('http') ? null : 'citation_pdf_url'}
-              href={pdf.startsWith('http') ? pdf : `/pdf?id=${id}`}
-              title="Download PDF"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <img src={coverImage ?? '/images/pdf_icon_blue.svg'} alt="Download PDF" />
-            </a>
-          </div>
-          {pageCount && <div className="ml-2">{pageCount}</div>}
+        <div className="forum-content-link">
+          <a
+            className={pdf.startsWith('http') ? null : 'citation_pdf_url'}
+            href={pdf.startsWith('http') ? pdf : `/pdf?id=${id}`}
+            title="Download PDF"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <img src={coverImage ?? '/images/pdf_icon_blue.svg'} alt="Download PDF" />
+          </a>
+          {pageCount && <span>{pageCount}</span>}
         </div>
       )}
       {html && (
