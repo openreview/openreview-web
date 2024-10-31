@@ -1270,8 +1270,7 @@ main.invitation {
     }
 
     .id-icon {
-      color: #1155cc;
-      background-color: #c9daf8;
+      color: black;
       font-weight: 700;
       font-size: 1rem;
     }
@@ -1295,6 +1294,7 @@ main.invitation {
 
     .workflow-invitation-container {
       display: flex;
+      margin-bottom: 0.5rem;
 
       .invitation-cdate {
         width: 8%;
@@ -1357,6 +1357,11 @@ main.invitation {
                 max-width: unset;
               }
             }
+
+            .spinner {
+              margin: 0;
+              height: 1rem;
+            }
           }
 
           .content-editor-container {
@@ -1373,6 +1378,10 @@ main.invitation {
 
           .existing-value-field {
             font-size: 0.75rem;
+          }
+          .existing-value-field-value {
+            font-size: 0.75rem;
+            font-style: italic;
           }
         }
       }

@@ -18,6 +18,9 @@ import {
 import InvitationContentEditor from './InvitationContentEditor'
 import Dropdown from '../Dropdown'
 import Markdown from '../EditorComponents/Markdown'
+import Icon from '../Icon'
+import useInterval from '../../hooks/useInterval'
+import LoadingSpinner from '../LoadingSpinner'
 
 dayjs.extend(isSameOrBefore)
 dayjs.extend(timezone)
@@ -80,7 +83,7 @@ const WorflowInvitationRow = ({
                   return (
                     <li key={key}>
                       <span className="existing-value-field">{prettyField(key)}: </span>
-                      <span className="existing-value-field">
+                      <span className="existing-value-field-value">
                         {getSubInvitationContentFieldDisplayValue(
                           fieldPath
                             ? workflowInvitation
@@ -147,7 +150,7 @@ const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
   )
 }
 
-const EditInvitationRow = ({ invitation, isDomainGroup }) => {
+const EditInvitationRow = ({ invitation, isDomainGroup, isRunningProcessFunctions }) => {
   const [showEditor, setShowEditor] = useState(false)
 
   const innerInvitationInvitee = invitation.edit?.invitation?.invitees
@@ -164,7 +167,7 @@ const EditInvitationRow = ({ invitation, isDomainGroup }) => {
             {prettyId(invitation.id.replace(invitation.domain, ''), true)}
           </Link>
           <a className="id-icon" href={`/invitation/edit?id=${invitation.id}`}>
-            ↗
+            <Icon name="new-window" />
           </a>
           {invitation.edit?.content && isDomainGroup && !showEditor && (
             <button className="btn btn-xs ml-2" onClick={() => setShowEditor(true)}>
@@ -179,7 +182,7 @@ const EditInvitationRow = ({ invitation, isDomainGroup }) => {
           >
             invitation to{' '}
             {invitees.map((p, index) => (
-              <>
+              <span key={index}>
                 {p === invitation.domain
                   ? 'Administrators'
                   : prettyId(p.replace(invitation.domain, ''))
@@ -192,11 +195,12 @@ const EditInvitationRow = ({ invitation, isDomainGroup }) => {
                         )
                       )}
                 {index < invitees.length - 1 && ', '}
-              </>
+              </span>
             ))}
           </div>
         </div>
-        <Markdown text={invitation.description} />
+        {invitation.description && <Markdown text={invitation.description} />}
+        {isRunningProcessFunctions && <LoadingSpinner inline text={null} />}
       </div>
 
       {showEditor && (
@@ -223,7 +227,25 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const [workflowGroups, setWorkflowGroups] = useState([])
   const [workflowInvitations, setWorkflowInvitations] = useState([])
   const [stageInvitations, setStageInvitations] = useState([])
+  const [runningInvitations, setRunningInvitations] = useState([])
   const workflowInvitationRegex = RegExp(`^${groupId}/-/[^/]+$`)
+
+  const loadProcessLogs = async () => {
+    try {
+      const processLogs = await api.getAll(
+        '/logs/process',
+        {
+          invitation: `${groupId}/-/.*`,
+          status: 'running',
+          select: 'invitation',
+        },
+        { accessToken, resultsKey: 'logs' }
+      )
+      setRunningInvitations(processLogs.map((p) => p.invitation))
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
 
   const loadAllInvitations = async () => {
     const getAllGroupsP = api
@@ -275,6 +297,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               second: undefined,
               locale: 'en-GB',
               timeZoneName: 'short',
+              hour12: false,
             }),
           })),
           'cdate'
@@ -296,6 +319,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       )
       setAllInvitations(invitations)
       setStageInvitations(stageInvitations)
+      loadProcessLogs()
     } catch (error) {
       promptError(error.message)
     }
@@ -311,6 +335,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
     if (!groupId) return
     loadAllInvitations()
   }, [groupId])
+
+  useInterval(() => {
+    if (!workflowInvitations.length) return
+    loadProcessLogs()
+  }, 5000)
 
   return (
     <>
@@ -328,7 +357,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                     {prettyId(stepObj.id, true)}
                   </Link>
                   <a className="id-icon" href={`/group/edit?id=${stepObj.id}`}>
-                    ↗
+                    <Icon name="new-window" />
                   </a>
                   <span className="member-count">Group of {stepObj.members?.length}</span>
                   <Markdown text={stepObj.description} />
@@ -386,6 +415,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                     <EditInvitationRow
                       invitation={stepObj}
                       isDomainGroup={group.id !== group.domain}
+                      isRunningProcessFunctions={runningInvitations.includes(invitationId)}
                     />
 
                     {subInvitations.length > 0 &&
