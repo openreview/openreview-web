@@ -1,7 +1,8 @@
 /* globals DOMPurify, marked: false */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import upperFirst from 'lodash/upperFirst'
+import { debounce } from 'lodash'
 import Table from './Table'
 import Collapse from './Collapse'
 import { formatDateTime, prettyId } from '../lib/utils'
@@ -11,12 +12,37 @@ export default function NotificationsTable({
   numUnviewed,
   markViewed,
   markAllViewed,
+  setSearchTerm,
+  searchTerm,
 }) {
+  const [immediateSearchTerm, setImmediateSearchTerm] = useState(null)
+
+  const delaySearch = useCallback(
+    debounce((term) => setSearchTerm(term), 300),
+    []
+  )
+
+  useEffect(() => {
+    if (searchTerm !== null) return
+    setImmediateSearchTerm(null)
+  }, [searchTerm])
+
   if (!messages) return null
 
   const headingContent = (
-    <>
-      <span className="pull-left">Message Details</span>
+    <div className="form-inline">
+      <div className="form-group">
+        <label htmlFor="message-subject-search">Search Subject:</label>
+        <input
+          id="message-subject-search"
+          className="form-control input-sm ml-2"
+          value={immediateSearchTerm ?? ''}
+          onChange={(e) => {
+            setImmediateSearchTerm(e.target.value)
+            delaySearch(e.target.value)
+          }}
+        />
+      </div>
       <span className="pull-right">
         <button
           className="btn btn-xs"
@@ -27,7 +53,7 @@ export default function NotificationsTable({
           Mark All as Read
         </button>
       </span>
-    </>
+    </div>
   )
 
   return (
