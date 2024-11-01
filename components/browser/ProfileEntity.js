@@ -6,6 +6,7 @@
 import { nanoid } from 'nanoid'
 import React, { useContext } from 'react'
 import copy from 'copy-to-clipboard'
+import { sortBy } from 'lodash'
 import api from '../../lib/api-client'
 import {
   getInterpolatedValues,
@@ -65,12 +66,16 @@ export default function ProfileEntity(props) {
       if (!browseEdges?.find((q) => q.invitation === p.id)) {
         browseEdges = browseEdges.concat({
           id: nanoid(),
+          invitation: p.id,
           name: p.name,
           label: p.defaultLabel,
           weight: p.defaultWeight,
         })
       }
     })
+    browseEdges = sortBy(browseEdges, (edge) =>
+      browseInvitations.findIndex((p) => p.id === edge.invitation)
+    )
   }
 
   const isInviteAcceptedProfile =
