@@ -251,7 +251,7 @@ export default function ForumReply({
           {prettyInvitationId(invitations[0], true)}
         </span>
         <span className="signatures">
-          <Icon name="pencil" tooltip="Reply Author" />
+          by{' '}
           {signatures
             .map((signature) => {
               const signatureLink = signature.startsWith('~') ? (

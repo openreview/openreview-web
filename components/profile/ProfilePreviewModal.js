@@ -67,7 +67,7 @@ const ProfilePreviewModal = ({
       <BasicProfileView
         profile={profileToPreview}
         showLinkText={true}
-        allowCopyEmail={true}
+        moderation={true}
         contentToShow={contentToShow}
       />
       {contentToShow?.includes('publications') && (
@@ -88,7 +88,11 @@ const ProfilePreviewModal = ({
             </a>
           }
         >
-          <MessagesSection email={profileToPreview.preferredEmail} accessToken={accessToken} />
+          <MessagesSection
+            email={profileToPreview.preferredEmail}
+            accessToken={accessToken}
+            rejectMessagesOnly
+          />
         </ProfileViewSection>
       )}
     </BasicModal>
