@@ -8,6 +8,7 @@ const AreaChairConsoleMenuBar = ({
   tableRowsAll,
   tableRows,
   selectedNoteIds,
+  setSelectedNoteIds,
   setAcConsoleData,
   shortPhrase,
   enableQuerySearch,
@@ -22,6 +23,7 @@ const AreaChairConsoleMenuBar = ({
   submissionName,
   officialMetaReviewName,
   areaChairName,
+  ithenticateInvitationId,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
   const formattedReviewerName = camelCase(reviewerName)
@@ -61,6 +63,9 @@ const AreaChairConsoleMenuBar = ({
         }),
         {}
       )),
+    ...(ithenticateInvitationId && {
+      duplication: ['ithenticateWeight'],
+    }),
     ...(typeof extraPropertiesAllowed === 'object' && extraPropertiesAllowed),
   }
   const messageReviewerOptions = [
@@ -180,10 +185,14 @@ const AreaChairConsoleMenuBar = ({
       {
         label: `Average ${prettyField(ratingName)}`,
         value: `Average ${ratingName}`,
-        getValue: (p) =>
-          p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg === 'N/A'
-            ? 0
-            : p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg,
+        getValue: (p) => {
+          const stringAvgRatingValue = p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg
+          if (stringAvgRatingValue === 'N/A') return 0
+          const numberAvgRatingValue = Number(stringAvgRatingValue)
+          return Number.isNaN(numberAvgRatingValue)
+            ? stringAvgRatingValue
+            : numberAvgRatingValue
+        },
       },
       {
         label: `Max ${prettyField(ratingName)}`,
@@ -205,10 +214,14 @@ const AreaChairConsoleMenuBar = ({
     {
       label: 'Average Confidence',
       value: 'Average Confidence',
-      getValue: (p) =>
-        p.reviewProgressData?.confidenceAvg === 'N/A'
-          ? 0
-          : p.reviewProgressData?.confidenceAvg,
+      getValue: (p) => {
+        const stringAvgConfidenceValue = p.reviewProgressData?.confidenceAvg
+        if (stringAvgConfidenceValue === 'N/A') return 0
+        const numberAvgConfidenceValue = Number(stringAvgConfidenceValue)
+        return Number.isNaN(numberAvgConfidenceValue)
+          ? stringAvgConfidenceValue
+          : numberAvgConfidenceValue
+      },
     },
     {
       label: 'Max Confidence',
@@ -236,6 +249,15 @@ const AreaChairConsoleMenuBar = ({
           ? null
           : p.metaReviewData?.[metaReviewRecommendationName],
     },
+    ...(ithenticateInvitationId
+      ? [
+          {
+            label: 'Duplication %',
+            value: 'ithenticateWeight',
+            getValue: (p) => p.note?.ithenticateWeight,
+          },
+        ]
+      : []),
   ]
   const basicSearchFunction = (row, term) => {
     const noteTitle = row.note.content?.title?.value
@@ -249,6 +271,7 @@ const AreaChairConsoleMenuBar = ({
       tableRowsAll={tableRowsAll}
       tableRows={tableRows}
       selectedIds={selectedNoteIds}
+      setSelectedIds={setSelectedNoteIds}
       setData={setAcConsoleData}
       shortPhrase={shortPhrase}
       enableQuerySearch={enableQuerySearch}

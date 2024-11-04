@@ -195,10 +195,8 @@ main.edge-browser {
         pointer-events: none;
       }
     }
-    .scores-list,
-    .action-links {
+    .scores-list {
       float: left;
-      width: 50%;
     }
     .action-links {
       float: right;
@@ -212,10 +210,6 @@ main.edge-browser {
       display: flex;
       align-items: baseline;
     }
-  }
-
-  .column-final .entry {
-    cursor: default;
   }
 
   .entry-note {
@@ -424,7 +418,9 @@ main.edge-browser {
 
       &:focus {
         border-color: constants.$mediumBlue;
-        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.01), 0 0 0 1px constants.$mediumBlue;
+        box-shadow:
+          inset 0 1px 1px rgba(0, 0, 0, 0.01),
+          0 0 0 1px constants.$mediumBlue;
       }
     }
 
@@ -610,7 +606,7 @@ main.edge-browser {
     .action-links ul,
     .scores-list ul {
       li {
-        white-space: nowrap;
+        white-space: wrap;
       }
       li > a {
         font-size: 0.75rem;

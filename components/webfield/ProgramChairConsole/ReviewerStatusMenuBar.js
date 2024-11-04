@@ -81,12 +81,10 @@ const MessageReviewersModal = ({
           ? {
               id: row.reviewerProfileId,
               preferredName: reviewerProfile.preferredName,
-              preferredEmail: reviewerProfile.preferredEmail,
             }
           : {
               id: row.reviewerProfileId,
               preferredName: row.reviewerProfileId,
-              preferredEmail: row.reviewerProfileId,
             }
       })
     )
@@ -142,9 +140,7 @@ const MessageReviewersModal = ({
           </p>
           <div className="well reviewer-list">
             {recipientsInfo.map((recipientInfo, index) => (
-              <li
-                key={index}
-              >{`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>`}</li>
+              <li key={index}>{`${recipientInfo.preferredName}`}</li>
             ))}
           </div>
         </>
@@ -196,10 +192,6 @@ const ReviewerStatusMenuBar = ({
     {
       header: 'name',
       getValue: (p) => p.reviewerProfile?.preferredName ?? p.reviewerProfileId,
-    },
-    {
-      header: 'email',
-      getValue: (p) => p.reviewerProfile?.preferredEmail ?? p.reviewerProfileId,
     },
     {
       header: 'institution name',
@@ -285,7 +277,6 @@ const ReviewerStatusMenuBar = ({
     <BaseMenuBar
       tableRowsAll={tableRowsAll}
       tableRows={tableRows}
-      selectedIds={selectedNoteIds}
       setData={setReviewerStatusTabData}
       shortPhrase={shortPhrase}
       messageDropdownLabel="Message"

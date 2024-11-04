@@ -51,19 +51,20 @@ const PaperRow = ({
     assignmentUrls,
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
-  const { note } = rowData
+  const { note, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
     `[${prettyField(
       seniorAreaChairName
-    )} Console](/group?id=${venueId}/${seniorAreaChairName}#${submissionName}-status)`
+    )} Console](/group?id=${venueId}/${seniorAreaChairName}#${submissionName.toLowerCase()}-status)`
   )
   const getManualAssignmentUrl = (role, roleId) => {
     if (!assignmentUrls) return null
     const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
     // auto
-    const isAssignmentConfigDeployed = assignmentInvitations?.some(
-      (p) => p.id.startsWith(roleId)
+    const isAssignmentConfigDeployed = assignmentInvitations?.some((p) =>
+      p.id.startsWith(roleId)
     )
     // manual
     const isMatchingSetup = isAssignmentConfigDeployed
@@ -100,6 +101,7 @@ const PaperRow = ({
           referrerUrl={referrerUrl}
           showReaders={true}
           isV2Note={true}
+          ithenticateEdge={ithenticateEdge}
         />
       </td>
       <td>
@@ -120,6 +122,7 @@ const PaperRow = ({
           areaChairAssignmentUrl={getManualAssignmentUrl(areaChairName, areaChairsId)}
           metaReviewRecommendationName={metaReviewRecommendationName}
           additionalMetaReviewFields={additionalMetaReviewFields}
+          preferredEmailInvitationId={preferredEmailInvitationId}
         />
       </td>
       <td className="console-decision">
@@ -188,8 +191,10 @@ const PaperStatus = ({ sacConsoleData }) => {
           tableRowsAll={paperStatusTabData.tableRowsAll}
           tableRows={paperStatusTabData.tableRows}
           selectedNoteIds={selectedNoteIds}
+          setSelectedNoteIds={setSelectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
           reviewRatingName={reviewRatingName}
+          defaultSeniorAreaChairName="Senior_Area_Chairs"
         />
         <p className="empty-message">
           No {pluralizeString(submissionName.toLowerCase())} matching search criteria.
@@ -202,8 +207,10 @@ const PaperStatus = ({ sacConsoleData }) => {
         tableRowsAll={paperStatusTabData.tableRowsAll}
         tableRows={paperStatusTabData.tableRows}
         selectedNoteIds={selectedNoteIds}
+        setSelectedNoteIds={setSelectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
         reviewRatingName={reviewRatingName}
+        defaultSeniorAreaChairName="Senior_Area_Chairs"
       />
 
       <Table

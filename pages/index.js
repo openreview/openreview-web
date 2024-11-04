@@ -6,7 +6,7 @@ import Icon from '../components/Icon'
 import LoadingSpinner from '../components/LoadingSpinner'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
-import { prettyId, formatTimestamp } from '../lib/utils'
+import { prettyId, deburrString, formatTimestamp } from '../lib/utils'
 import ErrorAlert from '../components/ErrorAlert'
 
 export default function Home() {
@@ -39,28 +39,34 @@ export default function Home() {
 
     const loadVenues = async () => {
       try {
-        const [userVenues, activeVenues, openVenues, allVenues] = await Promise.all([
+        const [userVenues, activeVenues, openVenues, allVenues] = await Promise.allSettled([
           user
             ? api
-                .get('/groups', { member: user.id, web: true })
+                .get('/groups', { member: user.id, web: true, select: 'id' })
                 .then((apiRes) => apiRes.groups || [])
             : Promise.resolve([]),
           api.get('/groups', { id: 'active_venues' }).then(formatGroupResults),
           api
-            .getCombined('/invitations', { invitee: '~', pastdue: false, type: 'notes' }, { invitee: '~', pastdue: false, type: 'note' })
+            .getCombined(
+              '/invitations',
+              { invitee: '~', pastdue: false, type: 'notes' },
+              { invitee: '~', pastdue: false, type: 'note' }
+            )
             .then(formatInvitationResults),
           api.get('/groups', { id: 'host' }).then(formatGroupResults).then(sortAlpha),
         ])
-        const activeAndOpenVenues = activeVenues.concat(openVenues)
-        const filteredUserVenues = userVenues
-          .filter((group) => activeAndOpenVenues.find((v) => group.id.startsWith(v.groupId)))
+        const activeAndOpenVenues = (activeVenues.value ?? []).concat(openVenues.value ?? [])
+        const filteredUserVenues = (userVenues.value ?? [])
+          .filter((group) =>
+            (activeAndOpenVenues ?? []).find((v) => group.id.startsWith(v.groupId))
+          )
           .map((group) => ({ groupId: group.id, dueDate: null }))
 
         setVenues({
           user: filteredUserVenues,
-          active: activeVenues,
-          open: openVenues,
-          all: allVenues,
+          active: activeVenues.value,
+          open: openVenues.value,
+          all: allVenues.value,
         })
       } catch (apiError) {
         setError(apiError)
@@ -204,17 +210,22 @@ function VenueList({ name, venues, maxVisible = 14, listType = 'vertical' }) {
     )
   }
 
+  function deburrFirstLetter(venue) {
+    // return first letter of venue without accents and aumlats
+    if (!venue) {
+      return ''
+    }
+
+    return deburrString(prettyId(venue.groupId).charAt(0), true)
+  }
+
   return (
     <div>
       <ul className={`conferences list-${listType === 'vertical' ? 'unstyled' : 'inline'}`}>
         {venues.map((venue, i) => {
           const isLeadingVenue =
             name === 'all venues'
-              ? // eslint-disable-next-line max-len
-                prettyId(venue.groupId).charAt(0).toLowerCase() !==
-                prettyId(venues[i - 1]?.groupId)
-                  ?.charAt(0)
-                  ?.toLowerCase()
+              ? deburrFirstLetter(venue) > deburrFirstLetter(venues[i - 1])
               : false
           return (
             <VenueListItem

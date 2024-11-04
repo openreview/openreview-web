@@ -111,12 +111,10 @@ export const MessageACSACModal = ({
           ? {
               id,
               preferredName: profile.preferredName,
-              preferredEmail: profile.preferredEmail,
             }
           : {
               id,
               preferredName: id,
-              preferredEmail: id,
             }
       })
     )
@@ -174,9 +172,7 @@ export const MessageACSACModal = ({
           </p>
           <div className="well reviewer-list">
             {recipientsInfo.map((recipientInfo, index) => (
-              <li
-                key={index}
-              >{`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>`}</li>
+              <li key={index}>{`${recipientInfo.preferredName}`}</li>
             ))}
           </div>
         </>
@@ -201,7 +197,7 @@ const AreaChairStatusMenuBar = ({
     acEmailFuncs,
     areaChairStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
-    propertiesAllowed: propertiesAllowedConfig,
+    areaChairStatusPropertiesAllowed,
     seniorAreaChairName = 'Senior_Area_Chairs',
     areaChairName = 'Area_Chairs',
     officialReviewName,
@@ -210,10 +206,9 @@ const AreaChairStatusMenuBar = ({
     reviewerName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
-  const propertiesAllowed = propertiesAllowedConfig ?? {
+  const propertiesAllowed = areaChairStatusPropertiesAllowed ?? {
     number: ['number'],
     name: ['areaChairProfile.preferredName'],
-    email: ['areaChairProfile.preferredEmail'],
     [camelCase(seniorAreaChairName)]: ['seniorAreaChair.seniorAreaChairId'],
   }
   const messageAreaChairOptions = [
@@ -263,10 +258,6 @@ const AreaChairStatusMenuBar = ({
       header: 'name',
       getValue: (p) => p.areaChairProfile?.preferredName ?? p.areaChairProfileId,
     },
-    {
-      header: 'email',
-      getValue: (p) => p.areaChairProfile?.preferredEmail ?? p.areaChairProfileId,
-    },
     { header: `assigned ${submissionName}`, getValue: (p) => p.notes?.length },
     {
       header: `${prettyField(officialReviewName)} completed`,
@@ -285,10 +276,6 @@ const AreaChairStatusMenuBar = ({
           {
             header: `${prettyField(seniorAreaChairName)} name`,
             getValue: (p) => p.seniorAreaChair?.sacProfile?.preferredName ?? 'N/A',
-          },
-          {
-            header: `${prettyField(seniorAreaChairName)} email`,
-            getValue: (p) => p.seniorAreaChair?.sacProfile?.preferredEmail ?? 'N/A',
           },
         ]
       : []),

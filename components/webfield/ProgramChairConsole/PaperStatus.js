@@ -9,6 +9,7 @@ import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from './PaperStatusMenuBar'
 import { prettyField } from '../../../lib/utils'
+import useUser from '../../../hooks/useUser'
 
 const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
   const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
@@ -38,6 +39,7 @@ const PaperRow = ({
   venue,
   getManualAssignmentUrl,
   noteContentField,
+  accessToken,
 }) => {
   const {
     reviewerName,
@@ -49,10 +51,11 @@ const PaperRow = ({
     submissionName,
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
-  const { note, metaReviewData } = rowData
+  const { note, metaReviewData, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
-    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#paper-status)`
+    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#${submissionName.toLowerCase()}-status)`
   )
 
   // Find note(s) that responds to the flag
@@ -109,6 +112,8 @@ const PaperRow = ({
           referrerUrl={referrerUrl}
           showReaders={true}
           isV2Note={true}
+          ithenticateEdge={ithenticateEdge}
+          accessToken={accessToken}
         />
       </td>
       <td>
@@ -130,6 +135,7 @@ const PaperRow = ({
             areaChairAssignmentUrl={getManualAssignmentUrl(areaChairName)}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
+            preferredEmailInvitationId={preferredEmailInvitationId}
           />
         </td>
       )}
@@ -141,10 +147,11 @@ const PaperRow = ({
             areaChairAssignmentUrl={getManualAssignmentUrl(areaChairName)}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
+            preferredEmailInvitationId={preferredEmailInvitationId}
           />
         </td>
       )}
-      {noteContentField && (
+      {noteContentField ? (
         <td className="console-decision">
           <h4 className="title">
             {prettyField(rowData.note?.content[noteContentField.field].value.toString()) ??
@@ -231,8 +238,7 @@ const PaperRow = ({
             </div>
           )}
         </td>
-      )}
-      {!noteContentField && (
+      ) : (
         <td className="console-decision">
           <h4 className="title">{decision}</h4>
           {venue && <span>{venue}</span>}
@@ -257,6 +263,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
+  const { accessToken } = useUser()
   const pageSize = 25
 
   const getManualAssignmentUrl = (role) => {
@@ -342,6 +349,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
           tableRowsAll={paperStatusTabData.tableRowsAll}
           tableRows={paperStatusTabData.tableRows}
           selectedNoteIds={selectedNoteIds}
+          setSelectedNoteIds={setSelectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
           reviewRatingName={reviewRatingName}
         />
@@ -354,6 +362,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
         tableRowsAll={paperStatusTabData.tableRowsAll}
         tableRows={paperStatusTabData.tableRows}
         selectedNoteIds={selectedNoteIds}
+        setSelectedNoteIds={setSelectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
         reviewRatingName={reviewRatingName}
         noteContentField={noteContentField}
@@ -397,6 +406,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
             venue={row.venue}
             getManualAssignmentUrl={getManualAssignmentUrl}
             noteContentField={noteContentField}
+            accessToken={accessToken}
           />
         ))}
       </Table>

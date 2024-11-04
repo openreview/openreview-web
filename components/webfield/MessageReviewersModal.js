@@ -1,4 +1,4 @@
-/* globals $,promptMessage: false */
+/* globals $,promptMessage,promptError: false */
 import uniqBy from 'lodash/uniqBy'
 import { useContext, useEffect, useState } from 'react'
 import List from 'rc-virtual-list'
@@ -19,12 +19,14 @@ const MessageReviewersModal = ({
     shortPhrase,
     venueId,
     officialReviewName,
+    officialMetaReviewName,
     submissionName,
     emailReplyTo,
     messageSubmissionReviewersInvitationId,
     messageSubmissionAreaChairsInvitationId,
     reviewerName = 'Reviewers',
     areaChairName = 'Area Chairs',
+    seniorAreaChairName = 'Senior_Area_Chairs',
   } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
@@ -40,6 +42,19 @@ const MessageReviewersModal = ({
   const primaryButtonText = currentStep === 1 ? 'Next' : 'Confirm & Send Messages'
   const uniqueRecipientsInfo = uniqBy(recipientsInfo, (p) => p.preferredId)
 
+  const getMessage = (rowData) => {
+    if (messageOption.value === 'allAuthors' || messageOption.value === 'allSACs') {
+      return message.replaceAll(`{{${submissionName.toLowerCase()}_number}}`, rowData.number)
+    }
+    if (messageOption.value === 'allAreaChairs') {
+      const metaReviewForumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${rowData.id}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialMetaReviewName}`
+      return message.replaceAll('{{submit_review_link}}', metaReviewForumUrl)
+    }
+
+    const reviewForumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${rowData.id}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialReviewName}`
+    return message.replaceAll('{{submit_review_link}}', reviewForumUrl)
+  }
+
   const handlePrimaryButtonClick = async () => {
     if (currentStep === 1) {
       setCurrentStep(2)
@@ -47,8 +62,25 @@ const MessageReviewersModal = ({
     }
     // send emails
     setIsSending(true)
-    const messageInvitation = messageOption.value === 'allAreaChairs' ? messageSubmissionAreaChairsInvitationId : messageSubmissionReviewersInvitationId
-    const roleName = messageOption.value === 'allAreaChairs' ? areaChairName : reviewerName
+    let roleName
+    let messageInvitation
+
+    switch (messageOption.value) {
+      case 'allAreaChairs':
+        roleName = areaChairName
+        messageInvitation = messageSubmissionAreaChairsInvitationId
+        break
+      case 'allAuthors':
+        roleName = 'Authors'
+        break
+      case 'allSACs':
+        roleName = seniorAreaChairName
+        break
+      default:
+        roleName = reviewerName
+        messageInvitation = messageSubmissionReviewersInvitationId
+        break
+    }
     try {
       const simplifiedTableRowsDisplayed = tableRowsDisplayed.map((p) => ({
         id: p.note.id,
@@ -57,26 +89,40 @@ const MessageReviewersModal = ({
         messageSignature: p.messageSignature,
       }))
 
-      const sendEmailPs = selectedIds.map((noteId) => {
-        const rowData = simplifiedTableRowsDisplayed.find((row) => row.id === noteId)
-        const groupIds = allRecipients.get(rowData.number)
-        if (!groupIds?.length) return Promise.resolve()
-        const forumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${noteId}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialReviewName}`
-        return api.post(
-          '/messages',
-          {
-            invitation: messageInvitation?.replace('{number}', rowData.number),
-            signature: messageInvitation && rowData.messageSignature,
-            groups: groupIds,
-            subject,
-            message: message.replaceAll('{{submit_review_link}}', forumUrl),
-            parentGroup: `${venueId}/${submissionName}${rowData.number}/${roleName}`,
-            replyTo: emailReplyTo,
-          },
-          { accessToken }
-        )
-      })
-      await Promise.all(sendEmailPs)
+      const sendEmailBatchSize = 1000
+      const sendEmailBatchCount = Math.ceil(selectedIds.length / sendEmailBatchSize)
+      const sendEmailIdBatches = Array.from({ length: sendEmailBatchCount }, (_, i) =>
+        selectedIds.slice(i * sendEmailBatchSize, (i + 1) * sendEmailBatchSize)
+      )
+
+      const sendEmailBatchPromises = sendEmailIdBatches.reduce(
+        (pastBatches, currentIDsBatch) =>
+          pastBatches.then(() => {
+            const currentBatchSendEmailPs = currentIDsBatch.map((noteId) => {
+              const rowData = simplifiedTableRowsDisplayed.find((row) => row.id === noteId)
+              const groupIds = allRecipients.get(rowData?.number)
+              if (!groupIds?.length) return Promise.resolve()
+              return api.post(
+                '/messages',
+                {
+                  ...(messageInvitation && {
+                    invitation: messageInvitation.replace('{number}', rowData.number),
+                  }),
+                  signature: messageInvitation && rowData.messageSignature,
+                  groups: groupIds,
+                  subject,
+                  message: getMessage(rowData),
+                  parentGroup: `${venueId}/${submissionName}${rowData.number}/${roleName}`,
+                  replyTo: emailReplyTo,
+                },
+                { accessToken }
+              )
+            })
+            return Promise.all(currentBatchSendEmailPs)
+          }),
+        Promise.resolve()
+      )
+      await sendEmailBatchPromises
 
       $(`#${messageModalId}`).modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
@@ -106,9 +152,24 @@ const MessageReviewersModal = ({
         return selectedRows
           .flatMap((row) => row.reviewers)
           .filter((reviewer) => !reviewer.hasReview)
+      case 'allAuthors':
+        return selectedRows.flatMap((row) => row.authors ?? [])
+      case 'allSACs':
+        return selectedRows.flatMap((row) => row.metaReviewData.seniorAreaChairs ?? [])
       default:
         return []
     }
+  }
+
+  const getInstruction = () => {
+    if (messageOption?.value === 'allAuthors') {
+      return `You may customize the message that will be sent to authors. You can also use {{fullname}} to replace the recipient full name and {{${submissionName.toLowerCase()}_number}} to replace the ${submissionName.toLowerCase()} number. If your message is not specific to a ${submissionName.toLowerCase()}, please email from the author group.`
+    }
+    if (messageOption?.value === 'allSACs') {
+      return `You may customize the message that will be sent to ${prettyField(seniorAreaChairName)}. You can also use {{fullname}} to replace the recipient full name and {{${submissionName.toLowerCase()}_number}} to replace the ${submissionName.toLowerCase()} number. If your message is not specific to a ${submissionName.toLowerCase()}, please email from the ${prettyField(seniorAreaChairName)} group.`
+    }
+    const roleName = messageOption?.value === 'allAreaChairs' ? areaChairName : reviewerName
+    return `You may customize the message that will be sent to the ${prettyField(roleName).toLowerCase()}. In the email body, the text {{submit_review_link}} will be replaced with a hyperlink to the form where the ${prettyField(roleName).toLowerCase()} can fill out his or her ${prettyField(officialReviewName).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`
   }
 
   useEffect(() => {
@@ -149,20 +210,13 @@ const MessageReviewersModal = ({
         setCurrentStep(1)
         setError(null)
       }}
-      options={{ extraClasses: 'message-reviewers-modal' }}
+      options={{ extraClasses: 'message-reviewers-modal', useSpinnerButton: true }}
+      isLoading={isSending}
     >
       {error && <div className="alert alert-danger">{error}</div>}
       {currentStep === 1 ? (
         <>
-          <p>{`You may customize the message that will be sent to the ${prettyField(
-            reviewerName
-          ).toLowerCase()}. In the email
-  body, the text {{submit_review_link}} will be replaced with a hyperlink to the
-  form where the ${prettyField(
-    reviewerName
-  ).toLowerCase()} can fill out his or her ${prettyField(
-    officialReviewName
-  ).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`}</p>
+          <p>{getInstruction()}</p>
           <div className="form-group">
             <label htmlFor="subject">Email Subject</label>
             <input
@@ -188,7 +242,7 @@ const MessageReviewersModal = ({
         <>
           <p>
             A total of <span className="num-reviewers">{totalMessagesCount}</span> reminder
-            emails will be sent to the following {prettyField(reviewerName).toLowerCase()}:
+            emails will be sent to the following users:
           </p>
           <div className="well reviewer-list">
             <List
@@ -200,8 +254,8 @@ const MessageReviewersModal = ({
               {(recipientInfo) => (
                 <li>
                   {' '}
-                  {`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>${
-                    recipientInfo.count > 1 ? ` --- (×${recipientInfo.count})` : ''
+                  {`${recipientInfo.preferredName} ${
+                    recipientInfo.count > 1 ? ` × ${recipientInfo.count}` : ''
                   }`}
                 </li>
               )}

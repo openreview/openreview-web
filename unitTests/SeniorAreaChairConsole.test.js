@@ -11,6 +11,7 @@ let paperStatusProps
 let acStatusProps
 let sacTasksProps
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('next/router', () => ({
   useRouter: () => ({
     replace: (params) => {
@@ -58,7 +59,7 @@ describe('SeniorAreaChairConsole', () => {
       <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
       providerProps
     )
-    expect(routerParams).toEqual('#Submission-status')
+    expect(routerParams).toEqual('#submission-status')
   })
 
   test('default to assigned papers tab when window.location.hash does not match any tab', async () => {
@@ -68,7 +69,7 @@ describe('SeniorAreaChairConsole', () => {
       <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
       providerProps
     )
-    expect(routerParams).toEqual('#Submission-status')
+    expect(routerParams).toEqual('#submission-status')
   })
 
   test('show error message based on sac name when config is not complete', async () => {

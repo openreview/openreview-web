@@ -1,9 +1,16 @@
-/* globals promptError: false */
+/* globals promptError, promptMessage: false */
 import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
+import copy from 'copy-to-clipboard'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
-import { getProfileName, inflect, pluralizeString, prettyField } from '../../../lib/utils'
+import {
+  getProfileName,
+  inflect,
+  pluralizeString,
+  prettyField,
+  getRoleHashFragment,
+} from '../../../lib/utils'
 import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
@@ -13,10 +20,9 @@ import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
-  const { id, preferredName, preferredEmail, registrationNotes } =
-    rowData.reviewerProfile ?? {}
+  const { id, preferredName, registrationNotes, title } = rowData.reviewerProfile ?? {}
   const { completedBids, reviewerProfileId } = rowData
-  const { reviewersId, bidName } = useContext(WebFieldContext)
+  const { reviewersId, bidName, preferredEmailInvitationId } = useContext(WebFieldContext)
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
     `tail:${id}`,
     invitations,
@@ -24,17 +30,48 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
     bidName,
     null
   )
+  const getReviewerEmail = async (name, profileId) => {
+    if (!preferredEmailInvitationId) {
+      promptError('Email is not available.', { scrollToTop: false })
+      return
+    }
+    try {
+      const result = await api.get(`/edges`, {
+        invitation: preferredEmailInvitationId,
+        head: profileId,
+      })
+      const email = result.edges?.[0]?.tail
+      if (!email) throw new Error('Email is not available.')
+      copy(`${name} <${email}>`)
+      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+    } catch (error) {
+      promptError(error.message, { scrollToTop: false })
+    }
+  }
   return (
-    <div className="note">
+    <div className="reviewer-summary">
       {preferredName ? (
-        <>
+        <div className="reviewer-info">
           <h4>
             <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">
               {preferredName}
             </a>
           </h4>
-          <p className="text-muted">({preferredEmail})</p>
-        </>
+          <div className="profile-title">{title}</div>
+          {preferredEmailInvitationId && (
+            // eslint-disable-next-line jsx-a11y/anchor-is-valid
+            <a
+              href="#"
+              className="copy-email-link"
+              onClick={(e) => {
+                e.preventDefault()
+                getReviewerEmail(preferredName, id ?? reviewerProfileId)
+              }}
+            >
+              Copy Email
+            </a>
+          )}
+        </div>
       ) : (
         <h4>
           <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">
@@ -273,8 +310,9 @@ const ReviewerStatusTab = ({
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.reviewers?.length ?? 0)
   const pageSize = 25
+  const reviewerUrlFormat = getRoleHashFragment(reviewerName)
   const referrerUrl = encodeURIComponent(
-    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#reviewer-status)`
+    `[Program Chair Console](/group?id=${venueId}/Program_Chairs#${reviewerUrlFormat}-status)`
   )
   const bidEnabled = bidName
     ? pcConsoleData.invitations?.find((p) => p.id === `${reviewersId}/-/${bidName}`)
@@ -320,12 +358,10 @@ const ReviewerStatusTab = ({
           .map((profile) => ({
             ...profile,
             preferredName: getProfileName(profile),
-            preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
           }))
         const reviewerProfileWithoutAssignmentMap = new Map()
         reviewerProfilesWithoutAssignment.forEach((profile) => {
           const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-          const profileEmails = profile.content.emails.filter((p) => p)
 
           let userRegNotes = []
           usernames.forEach((username) => {
@@ -339,7 +375,7 @@ const ReviewerStatusTab = ({
           // eslint-disable-next-line no-param-reassign
           profile.registrationNotes = userRegNotes
 
-          usernames.concat(profileEmails).forEach((key) => {
+          usernames.concat(profile.email ?? []).forEach((key) => {
             reviewerProfileWithoutAssignmentMap.set(key, profile)
           })
         })
@@ -495,7 +531,7 @@ const ReviewerStatusTab = ({
         className="console-table table-striped pc-console-reviewer-status"
         headings={[
           { id: 'number', content: '#', width: '55px' },
-          { id: 'reviewer', content: `${prettyField(reviewerName)}`, width: '10%' },
+          { id: 'reviewer', content: prettyField(reviewerName), width: '15%' },
           {
             id: 'reviewProgress',
             content: `${prettyField(officialReviewName)} Progress`,

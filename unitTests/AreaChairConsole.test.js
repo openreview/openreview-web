@@ -51,7 +51,7 @@ describe('AreaChairConsole', () => {
       <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
       providerProps
     )
-    expect(routerParams).toEqual('#assigned-Submissions')
+    expect(routerParams).toEqual('#assigned-submissions')
   })
 
   test('default to assigned papers tab when window.location.hash does not match any tab', async () => {
@@ -61,7 +61,7 @@ describe('AreaChairConsole', () => {
       <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
       providerProps
     )
-    expect(routerParams).toEqual('#assigned-Submissions')
+    expect(routerParams).toEqual('#assigned-submissions')
   })
 
   test('show error when config is not complete', async () => {
@@ -251,6 +251,224 @@ describe('AreaChairConsole', () => {
     })
   })
 
+  test('show assigned SACs in header instuction (No preferred email edge)', async () => {
+    api.getAll = jest.fn((path) => {
+      switch (path) {
+        case '/groups': // all groups
+          return Promise.resolve([])
+        case '/notes':
+          return Promise.resolve([])
+        default:
+          return null
+      }
+    })
+    api.get = jest.fn((path, param) => {
+      switch (path) {
+        case '/groups': // reviewer groups
+          return Promise.resolve({ groups: [] })
+        case '/edges': // sac assignments
+          if (!param.domain) {
+            return Promise.resolve({ edges: [] }) // call to get sac emails from edges
+          }
+          return Promise.resolve({
+            edges: [{ tail: '~Senior_AC1' }, { tail: 'senior@AC.two' }],
+          })
+        default:
+          return null
+      }
+    })
+    api.post = jest.fn((_, param) =>
+      Promise.resolve(
+        param.ids
+          ? {
+              profiles: [
+                {
+                  id: '~Senior_AC1',
+                  content: {
+                    names: [{ username: '~Senior_AC1' }],
+                    emails: ['senior@AC.one'],
+                  },
+                },
+              ],
+            }
+          : {
+              profiles: [
+                {
+                  id: '~Senior_AC2',
+                  content: {
+                    names: [{ username: '~Senior_AC2' }],
+                    emails: ['senior@AC.two'],
+                  },
+                  email: 'senior@AC.two',
+                },
+              ],
+            }
+      )
+    ) // profile search
+
+    const providerProps = {
+      value: {
+        header: { title: 'Senior Program Committee', instructions: 'some instructions' },
+        entity: {
+          id: 'AAAI.org/2025/Conference/Senior_Program_Committee',
+          domain: 'AAAI.org/2025/Conference',
+        },
+        venueId: 'AAAI.org/2025/Conference',
+        reviewerAssignment: {
+          showEdgeBrowserUrl: false,
+          proposedAssignmentTitle: '',
+          edgeBrowserProposedUrl: 'proposed edge browser url',
+          edgeBrowserDeployedUrl: 'deployed edge browser url',
+        },
+        submissionInvitationId: 'AAAI.org/2025/Conference/-/Submission',
+        seniorAreaChairsId: 'AAAI.org/2025/Conference/Area_Chairs',
+        areaChairName: 'Senior_Program_Committee',
+        secondaryAreaChairName: 'Secondary_Senior_Program_Committee',
+        submissionName: 'Submission',
+        officialReviewName: 'First_Round_Review',
+        reviewRatingName: 'rating',
+        reviewConfidenceName: 'confidence',
+        officialMetaReviewName: 'Meta_Review',
+        reviewerName: 'Program_Committee',
+        anonReviewerName: 'Program_Committee_',
+        metaReviewRecommendationName: undefined,
+        additionalMetaReviewFields: undefined,
+        shortPhrase: 'AAAI 2025',
+        filterOperators: undefined,
+        propertiesAllowed: undefined,
+        enableQuerySearch: true,
+        emailReplyTo: 'pc@aaai.org',
+        extraExportColumns: undefined,
+      },
+    }
+
+    renderWithWebFieldContext(
+      <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+
+    await waitFor(() => {
+      expect(global.marked).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" >Senior AC</a> and <a href="/profile?id=~Senior_AC2" >Senior AC</a>'
+        )
+      )
+    })
+  })
+
+  test('show assigned SACs in header instuction (With preferred email edge)', async () => {
+    api.getAll = jest.fn((path) => {
+      switch (path) {
+        case '/groups': // all groups
+          return Promise.resolve([])
+        case '/notes':
+          return Promise.resolve([])
+        default:
+          return null
+      }
+    })
+    api.get = jest.fn((path, param) => {
+      switch (path) {
+        case '/groups': // reviewer groups
+          return Promise.resolve({ groups: [] })
+        case '/edges': // sac assignments
+          if (param.head === '~Senior_AC1') {
+            return Promise.resolve({
+              edges: [{ head: '~Senior_AC1', tail: 'senior@ac.1' }],
+            }) // call to get sac emails from edges
+          }
+          if (param.head === '~Senior_AC2') {
+            return Promise.resolve({
+              edges: [{ head: '~Senior_AC2', tail: 'senior@ac.2' }],
+            }) // call to get sac emails from edges
+          }
+          return Promise.resolve({
+            edges: [{ tail: '~Senior_AC1' }, { tail: 'senior@AC.two' }],
+          })
+        default:
+          return null
+      }
+    })
+    api.post = jest.fn((_, param) =>
+      Promise.resolve(
+        param.ids
+          ? {
+              profiles: [
+                {
+                  id: '~Senior_AC1',
+                  content: {
+                    names: [{ username: '~Senior_AC1' }],
+                    emails: ['senior@AC.one'],
+                  },
+                },
+              ],
+            }
+          : {
+              profiles: [
+                {
+                  id: '~Senior_AC2',
+                  content: {
+                    names: [{ username: '~Senior_AC2' }],
+                    emails: ['senior@AC.two'],
+                  },
+                  email: 'senior@AC.two',
+                },
+              ],
+            }
+      )
+    ) // profile search
+
+    const providerProps = {
+      value: {
+        header: { title: 'Senior Program Committee', instructions: 'some instructions' },
+        entity: {
+          id: 'AAAI.org/2025/Conference/Senior_Program_Committee',
+          domain: 'AAAI.org/2025/Conference',
+        },
+        venueId: 'AAAI.org/2025/Conference',
+        reviewerAssignment: {
+          showEdgeBrowserUrl: false,
+          proposedAssignmentTitle: '',
+          edgeBrowserProposedUrl: 'proposed edge browser url',
+          edgeBrowserDeployedUrl: 'deployed edge browser url',
+        },
+        submissionInvitationId: 'AAAI.org/2025/Conference/-/Submission',
+        seniorAreaChairsId: 'AAAI.org/2025/Conference/Area_Chairs',
+        areaChairName: 'Senior_Program_Committee',
+        secondaryAreaChairName: 'Secondary_Senior_Program_Committee',
+        submissionName: 'Submission',
+        officialReviewName: 'First_Round_Review',
+        reviewRatingName: 'rating',
+        reviewConfidenceName: 'confidence',
+        officialMetaReviewName: 'Meta_Review',
+        reviewerName: 'Program_Committee',
+        anonReviewerName: 'Program_Committee_',
+        metaReviewRecommendationName: undefined,
+        additionalMetaReviewFields: undefined,
+        shortPhrase: 'AAAI 2025',
+        filterOperators: undefined,
+        propertiesAllowed: undefined,
+        enableQuerySearch: true,
+        emailReplyTo: 'pc@aaai.org',
+        extraExportColumns: undefined,
+        preferredEmailInvitationId: 'test_invitation',
+      },
+    }
+
+    renderWithWebFieldContext(
+      <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+
+    await waitFor(() => {
+      expect(global.marked).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" >Senior AC</a>(senior@ac.1) and <a href="/profile?id=~Senior_AC2" >Senior AC</a>(senior@ac.2)'
+        )
+      )
+    })
+  })
+
   test('show assigned papers (no review)', async () => {
     const acAnonId = Math.random().toString(36).substring(2, 6)
     api.getAll = jest.fn((path, param) => {
@@ -276,6 +494,8 @@ describe('AreaChairConsole', () => {
               },
             ])
           return Promise.resolve([])
+        case '/edges': // ithenticate edges
+          return Promise.resolve([{ values: [{ head: 'note1Id', label: 'Created' }] }])
         default:
           return null
       }
@@ -322,6 +542,7 @@ describe('AreaChairConsole', () => {
         enableQuerySearch: true,
         emailReplyTo: 'pc@aaai.org',
         extraExportColumns: undefined,
+        ithenticateInvitationId: 'AAAI.org/2025/Conference/-/iThenticate_Plagiarism_Check',
       },
     }
 
@@ -341,7 +562,10 @@ describe('AreaChairConsole', () => {
       expect(screen.getByRole('button', { name: 'Export' })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Download PDFs' })).toBeInTheDocument()
       expect(noteSummaryProps).toHaveBeenCalledWith(
-        expect.objectContaining({ note: expect.objectContaining({ id: 'note1Id' }) })
+        expect.objectContaining({
+          note: expect.objectContaining({ id: 'note1Id' }),
+          ithenticateEdge: { head: 'note1Id', label: 'Created' },
+        })
       )
       expect(noteReviewStatusProps).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -352,7 +576,7 @@ describe('AreaChairConsole', () => {
       )
       expect(noteReviewStatusProps).toHaveBeenCalledWith(
         expect.objectContaining({
-          referrerUrl: expect.stringContaining(encodeURIComponent('#assigned-Submissions')),
+          referrerUrl: expect.stringContaining(encodeURIComponent('#assigned-submissions')),
         })
       )
       expect(screen.getByText('No recommendation')).toBeInTheDocument() // meta review status column
@@ -594,13 +818,13 @@ describe('AreaChairConsole', () => {
           {
             content: {
               names: [{ username: '~Senior_AC1' }],
-              preferredEmail: 'senior@ac.1',
+              emails: ['senior@AC.one'],
             },
           },
           {
             content: {
               names: [{ username: '~Senior_AC2' }],
-              emails: ['senior@ac.2'],
+              emails: ['senior@AC.two'],
             },
           },
         ],
@@ -665,7 +889,7 @@ describe('AreaChairConsole', () => {
       )
       expect(noteReviewStatusProps).toHaveBeenCalledWith(
         expect.objectContaining({
-          referrerUrl: expect.stringContaining(encodeURIComponent('#assigned-Submissions')),
+          referrerUrl: expect.stringContaining(encodeURIComponent('#assigned-submissions')),
         })
       )
       const paper1AvgConfidence = (0 + 10) / 2
@@ -690,8 +914,201 @@ describe('AreaChairConsole', () => {
       expect(screen.getByRole('link', { name: 'Read' })).toHaveAttribute(
         'href',
         `/forum?id=note1Id&noteId=metaReviewId&referrer=${encodeURIComponent(
-          '[Senior Program Committee Console](/group?id=AAAI.org/2025/Conference/Senior_Program_Committee#assigned-Submissions)'
+          '[Senior Program Committee Console](/group?id=AAAI.org/2025/Conference/Senior_Program_Committee#assigned-submissions)'
         )}`
+      )
+    })
+  })
+
+  test('show assigned papers (with review which has invisible content)', async () => {
+    const acAnonId = Math.random().toString(36).substring(2, 6)
+    const paper1Reviewer1AnonId = Math.random().toString(36).substring(2, 6)
+    const paper1Reviewer2AnonId = Math.random().toString(36).substring(2, 6)
+    api.getAll = jest.fn((path, param) => {
+      switch (path) {
+        case '/groups': // all groups
+          return Promise.resolve([
+            {
+              id: 'AAAI.org/2025/Conference/Submission1/Senior_Program_Committee',
+            },
+            {
+              id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
+            },
+          ])
+        case '/notes':
+          return Promise.resolve([
+            {
+              id: 'note1Id',
+              forum: 'note1Id',
+              number: 1,
+              details: {
+                replies: [
+                  // reviewer 1 review
+                  {
+                    content: {
+                      review: { value: 'some review from reviewer1' },
+                      rating: { value: 5 },
+                      confidence: { value: 5 },
+                    },
+                    invitations: ['AAAI.org/2025/Conference/Submission1/-/First_Round_Review'],
+                    signatures: [
+                      `AAAI.org/2025/Conference/Submission1/Program_Committee_${paper1Reviewer1AnonId}`,
+                    ],
+                  },
+                  // reviewer 2 review
+                  {
+                    content: undefined, // content field readers do not contain AC
+                    invitations: ['AAAI.org/2025/Conference/Submission1/-/First_Round_Review'],
+                    signatures: [
+                      `AAAI.org/2025/Conference/Submission1/Program_Committee_${paper1Reviewer2AnonId}`,
+                    ],
+                  },
+                ],
+              },
+            },
+          ])
+        default:
+          return null
+      }
+    })
+    api.get = jest.fn((path) => {
+      switch (path) {
+        case '/groups': // reviewer groups
+          return Promise.resolve({
+            groups: [
+              // paper 1 all reviewers group
+              {
+                id: 'AAAI.org/2025/Conference/Submission1/Program_Committee',
+                members: [
+                  `AAAI.org/2025/Conference/Submission1/Program_Committee_${paper1Reviewer1AnonId}`,
+                  `AAAI.org/2025/Conference/Submission1/Program_Committee_${paper1Reviewer2AnonId}`,
+                ],
+              },
+              // paper 1 reviewer1 group
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Program_Committee_${paper1Reviewer1AnonId}`,
+                members: ['~PaperOne_Reviewer1'],
+              },
+              // paper 1 reviewer2 group
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Program_Committee_${paper1Reviewer2AnonId}`,
+                members: ['~PaperOne_Reviewer2'],
+              },
+              // paper 1 all ac group
+              {
+                id: 'AAAI.org/2025/Conference/Submission1/Senior_Program_Committee',
+                members: [
+                  `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
+                ],
+              },
+              // paper 1 ac group
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
+                members: ['~PaperOne_AC1'],
+              },
+            ],
+          })
+        case '/edges': // sac assignments
+          return Promise.resolve({ edges: [] })
+        default:
+          return null
+      }
+    })
+    api.post = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            content: {
+              names: [{ username: '~PaperOne_Reviewer1', fullname: 'PaperOne Reviewer1' }],
+              emails: [],
+            },
+          },
+          {
+            content: {
+              names: [{ username: '~PaperOne_Reviewer2', fullname: 'PaperOne Reviewer2' }],
+              emails: [],
+            },
+          },
+        ],
+      })
+    ) // profile search
+
+    const providerProps = {
+      value: {
+        header: { title: 'Senior Program Committee', instructions: 'some instructions' },
+        entity: { id: 'AAAI.org/2025/Conference/Senior_Program_Committee' },
+        venueId: 'AAAI.org/2025/Conference',
+        reviewerAssignment: {
+          showEdgeBrowserUrl: true,
+          proposedAssignmentTitle: 'Proposed Assignment',
+          edgeBrowserProposedUrl: 'proposed edge browser url',
+          edgeBrowserDeployedUrl: 'deployed edge browser url',
+        },
+        submissionInvitationId: 'AAAI.org/2025/Conference/-/Submission',
+        seniorAreaChairsId: 'AAAI.org/2025/Conference/Area_Chairs',
+        areaChairName: 'Senior_Program_Committee',
+        submissionName: 'Submission',
+        officialReviewName: 'First_Round_Review',
+        reviewRatingName: 'rating',
+        reviewConfidenceName: 'confidence',
+        officialMetaReviewName: 'Meta_Review',
+        reviewerName: 'Program_Committee',
+        anonReviewerName: 'Program_Committee_',
+        metaReviewRecommendationName: undefined,
+        additionalMetaReviewFields: ['final_recommendation'],
+        shortPhrase: 'AAAI 2025',
+        filterOperators: undefined,
+        propertiesAllowed: undefined,
+        enableQuerySearch: true,
+        emailReplyTo: 'pc@aaai.org',
+        extraExportColumns: undefined,
+      },
+    }
+
+    renderWithWebFieldContext(
+      <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+
+    await waitFor(() => {
+      expect(global.marked).toHaveBeenCalledWith(
+        expect.stringContaining('proposed edge browser url')
+      )
+      expect(screen.getByText('note summary')).toBeInTheDocument()
+      expect(screen.getByText('note review status')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Export' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Download PDFs' })).toBeInTheDocument()
+      expect(noteSummaryProps).toHaveBeenCalledWith(
+        expect.objectContaining({ note: expect.objectContaining({ id: 'note1Id' }) })
+      )
+      expect(noteReviewStatusProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          referrerUrl: expect.stringContaining(
+            encodeURIComponent('[Senior Program Committee Console]')
+          ),
+        })
+      )
+      expect(noteReviewStatusProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          referrerUrl: expect.stringContaining(encodeURIComponent('#assigned-submissions')),
+        })
+      )
+
+      expect(noteReviewStatusProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rowData: expect.objectContaining({
+            reviewProgressData: expect.objectContaining({
+              confidenceAvg: '5.00',
+              ratings: {
+                rating: {
+                  ratingAvg: '5.00',
+                  ratingMax: 5,
+                  ratingMin: 5,
+                },
+              },
+            }),
+          }),
+        })
       )
     })
   })
@@ -932,14 +1349,14 @@ describe('AreaChairConsole', () => {
             id: '~Senior_AC1',
             content: {
               names: [{ username: '~Senior_AC1' }],
-              preferredEmail: 'senior@ac.1',
+              emails: ['senior@AC.one'],
             },
           },
           {
             id: '~Senior_AC2',
             content: {
               names: [{ username: '~Senior_AC2' }],
-              emails: ['senior@ac.2'],
+              emails: ['senior@AC.two'],
             },
           },
         ],
@@ -987,7 +1404,7 @@ describe('AreaChairConsole', () => {
     await waitFor(() => {
       expect(global.marked).toHaveBeenCalledWith(
         expect.stringContaining(
-          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" >Senior AC</a> (senior@ac.1) and <a href="/profile?id=~Senior_AC2" >Senior AC</a> (senior@ac.2)'
+          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" >Senior AC</a> and <a href="/profile?id=~Senior_AC2" >Senior AC</a>'
         )
       )
       expect(screen.getByRole('button', { name: 'Export' })).toBeVisible()
@@ -1020,7 +1437,7 @@ describe('AreaChairConsole', () => {
       expect(noteReviewStatusProps).toHaveBeenLastCalledWith(
         expect.objectContaining({
           referrerUrl: expect.stringContaining(
-            encodeURIComponent('#Secondary_Senior_Program_Committee-assignments')
+            encodeURIComponent('#secondary-senior-program-committee-assignments')
           ),
         })
       )
@@ -1270,13 +1687,11 @@ describe('AreaChairConsole', () => {
           {
             content: {
               names: [{ username: '~Senior_AC1' }],
-              preferredEmail: 'senior@ac.1',
             },
           },
           {
             content: {
               names: [{ username: '~Senior_AC2' }],
-              emails: ['senior@ac.2'],
             },
           },
         ],
@@ -1316,7 +1731,7 @@ describe('AreaChairConsole', () => {
       },
     }
 
-    window.location.hash = '#Senior_Program_Committee-tasks'
+    window.location.hash = '#senior-program-committee-tasks'
 
     renderWithWebFieldContext(
       <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,

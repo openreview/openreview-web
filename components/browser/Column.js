@@ -288,12 +288,12 @@ export default function Column(props) {
     if (query.filter) {
       return (
         <>
-          {`Only show ${group} available for ${invitation} `}
+          {`Show ${group} available for ${invitation} `}
           <Icon name="info-sign" tooltip={query.filter} />
         </>
       )
     }
-    return `Only show ${group} with fewer than max assigned papers`
+    return `Show ${group} with fewer than max assigned papers`
   }
 
   // Adds either a new browse edge or an edit edge to an item
@@ -761,7 +761,7 @@ export default function Column(props) {
       )
       const colItems = []
       // if clicked on invite invitation profile entity
-      // dispay full list of notes with meta/browseEdges/editEdges/editEdgeTemplates
+      // display full list of notes with meta/browseEdges/editEdges/editEdgeTemplates
       if (parentColumnEntityType === 'profile' && !altGlobalEntityMap[parentId]) {
         const allItems = Object.values(globalEntityMap).map((p) =>
           appendEdgesInfo({
@@ -776,8 +776,8 @@ export default function Column(props) {
         return
       }
 
-      // sory by weight (in API) would fail when traverse edges has label instead of weight
-      // and traverse is the default sort so must sort.
+      // sort by weight (in API) would fail when traverse edges has label instead of weight
+      // and traverse is the default sort so must work.
       const traverseLabels = traverseInvitation.label?.['value-radio']
       if (traverseLabels) {
         const traverseLabelMap = _.fromPairs(
@@ -1117,7 +1117,7 @@ export default function Column(props) {
 
   // Render
   return (
-    <div className={`column ${props.finalColumn ? 'column-final' : ''}`} tabIndex="-1">
+    <div className="column" tabIndex="-1">
       <div className="head">
         {getColumnTitle()}
         {getColumnDescription()}

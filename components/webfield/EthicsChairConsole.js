@@ -11,6 +11,7 @@ import ErrorDisplay from '../ErrorDisplay'
 import EthicsChairOverview from './EthicsChairConsole/EthicsChairOverview'
 import PaperStatus from './EthicsChairConsole/EthicsChairPaperStatus'
 import EthicsChairTasks from './EthicsChairConsole/EthicsChairTasks'
+import { getRoleHashFragment } from '../../lib/utils'
 
 const EthicsChairConsole = ({ appContext }) => {
   const {
@@ -25,12 +26,20 @@ const EthicsChairConsole = ({ appContext }) => {
     anonEthicsReviewerName,
     shortPhrase,
     ethicsMetaReviewName,
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const router = useRouter()
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(window.location.hash || '#overview')
   const { user, userLoading } = useUser()
+
+  const ethicsChairsUrlFormat = getRoleHashFragment(ethicsChairsName)
+  const validTabIds = [
+    '#overview',
+    `#${submissionName.toLowerCase()}-status`,
+    `#${ethicsChairsUrlFormat}-tasks`,
+  ]
 
   useEffect(() => {
     if (!query) return
@@ -43,19 +52,12 @@ const EthicsChairConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!activeTabId) return
+    if (!validTabIds.includes(activeTabId)) {
+      setActiveTabId(validTabIds[0])
+      return
+    }
     router.replace(activeTabId)
   }, [activeTabId])
-
-  useEffect(() => {
-    if (!userLoading && !user) {
-      router.replace(
-        `/login?redirect=${encodeURIComponent(
-          `${window.location.pathname}${window.location.search}${window.location.hash}`
-        )}`
-      )
-    }
-  }, [user, userLoading])
 
   const missingConfig = Object.entries({
     header,
@@ -91,16 +93,18 @@ const EthicsChairConsole = ({ appContext }) => {
             Overview
           </Tab>
           <Tab
-            id="paper-status"
-            active={activeTabId === '#paper-status' ? true : undefined}
-            onClick={() => setActiveTabId('#paper-status')}
+            id={`${submissionName.toLowerCase()}-status`}
+            active={
+              activeTabId === `#${submissionName.toLowerCase()}-status` ? true : undefined
+            }
+            onClick={() => setActiveTabId(`#${submissionName.toLowerCase()}-status`)}
           >
             {submissionName} Status
           </Tab>
           <Tab
-            id="ethicschair-tasks"
-            active={activeTabId === '#ethicschair-tasks' ? true : undefined}
-            onClick={() => setActiveTabId('#ethicschair-tasks')}
+            id={`${ethicsChairsUrlFormat}-tasks`}
+            active={activeTabId === `#${ethicsChairsUrlFormat}-tasks` ? true : undefined}
+            onClick={() => setActiveTabId(`#${ethicsChairsUrlFormat}-tasks`)}
           >
             Ethics Chair Tasks
           </Tab>
@@ -110,11 +114,11 @@ const EthicsChairConsole = ({ appContext }) => {
           <TabPanel id="overview">
             <EthicsChairOverview />
           </TabPanel>
-          <TabPanel id="paper-status">
-            {activeTabId === '#paper-status' && <PaperStatus />}
+          <TabPanel id={`${submissionName.toLowerCase()}-status`}>
+            {activeTabId === `#${submissionName.toLowerCase()}-status` && <PaperStatus />}
           </TabPanel>
-          <TabPanel id="ethicschair-tasks">
-            {activeTabId === '#ethicschair-tasks' && <EthicsChairTasks />}
+          <TabPanel id={`${ethicsChairsUrlFormat}-tasks`}>
+            {activeTabId === `#${ethicsChairsUrlFormat}-tasks` && <EthicsChairTasks />}
           </TabPanel>
         </TabPanels>
       </Tabs>
