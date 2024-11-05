@@ -240,17 +240,17 @@ Profile.getInitialProps = async (ctx) => {
   if (!profile) {
     return {
       statusCode: 404,
-      message: `The user ${
+      message: `The profile ${
         profileQuery.id || profileQuery.email
-      } has not set up an OpenReview profile yet`,
+      } does not exist or it's not public`,
     }
   }
   if (!profile.active && !isSuperUser(user)) {
     return {
       statusCode: 400,
-      message: `The user ${
+      message: `The profile ${
         profileQuery.id || profileQuery.email
-      } does not have an active OpenReview profile`,
+      } is not active`,
     }
   }
 
