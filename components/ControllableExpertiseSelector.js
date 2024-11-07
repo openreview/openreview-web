@@ -1,9 +1,9 @@
 /* globals $, promptError: false */
 import { useState, useEffect } from 'react'
-import Icon from './Icon'
 import IconButton from './IconButton'
 import styles from '../styles/components/ControllableExpertiseSelector.module.scss'
 import { stringToColor } from '../lib/utils'
+import useUser from '../hooks/useUser'
 
 export default function ControllableExpertiseSelector() {
   const [keyphrases, setKeyphrases] = useState({ active: [], inactive: [] })
@@ -13,12 +13,13 @@ export default function ControllableExpertiseSelector() {
   const [activePapers, setActivePapers] = useState({})
   const [keyphraseColors, setKeyphraseColors] = useState({})
   const [paperWeights, setPaperWeights] = useState({})
+  const { user } = useUser()
 
   useEffect(() => {
     async function fetchKeyphrases() {
       try {
         const keyphraseResponse = await fetch(
-          'https://retrievalapp-zso5o2q47q-uc.a.run.app/get_recommendations/mccallum'
+          `https://lace-deployment-997553930042.us-central1.run.app/get_recommendations/${user.id}`
         )
         const jsonResponse = await keyphraseResponse.json()
         setKeyphrases({
@@ -71,7 +72,7 @@ export default function ControllableExpertiseSelector() {
     }
     async function fetchRecommendations() {
       const baseUrl =
-        'https://retrievalapp-zso5o2q47q-uc.a.run.app/get_recommendations/mccallum'
+        `https://lace-deployment-997553930042.us-central1.run.app/get_recommendations/${user.id}`
       // prepend selected_kps= to every kp in includedKeyphrases
       const url =
         includedKeyphrases.length === 0
