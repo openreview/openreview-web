@@ -578,13 +578,7 @@ export default function Forum({
         )
       }
       return (
-        <List
-          data={replies}
-          height={625}
-          itemHeight={1}
-          itemKey="id"
-          onScroll={chatListScrollHandler}
-        >
+        <List data={replies} height={625} itemKey="id" onScroll={chatListScrollHandler}>
           {(reply) => (
             <ChatReply
               note={replyNoteMap[reply.id]}

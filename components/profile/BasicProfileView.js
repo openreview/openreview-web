@@ -225,7 +225,7 @@ const BasicProfileView = ({
       {contentToShow.includes('history') && (
         <ProfileViewSection
           name="history"
-          title="Education &amp; Career History"
+          title="Career &amp; Education History"
           actionLink="Suggest Position"
         >
           {profile.history?.length > 0 ? (
