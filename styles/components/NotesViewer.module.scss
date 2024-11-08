@@ -1,0 +1,28 @@
+@use '../utils/constants';
+
+.jsonInput {
+  resize: vertical;
+}
+
+.notesViewerContainer {
+  .tab {
+    padding-top: 0;
+    padding-left: 0;
+  }
+}
+
+.optionContainer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.5rem;
+}
+
+.option {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  input {
+    margin-left: 0.5rem;
+    margin-top: 0;
+  }
+}
