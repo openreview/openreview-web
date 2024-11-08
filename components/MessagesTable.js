@@ -1,9 +1,11 @@
-/* globals DOMPurify, marked: false */
+/* globals DOMPurify, marked, promptError, promptMessage: false */
 
 import { useState, useEffect } from 'react'
 import upperFirst from 'lodash/upperFirst'
 import Table from './Table'
 import { formatTimestamp } from '../lib/utils'
+import SpinnerButton from './SpinnerButton'
+import api from '../lib/api-client'
 
 const MessageContent = ({ content = '' }) => {
   const [sanitizedHtml, setSanitizedHtml] = useState(null)
@@ -21,82 +23,106 @@ const MessageContent = ({ content = '' }) => {
   )
 }
 
-const MessageRow = ({ message }) => (
-  <tr>
-    <td>
-      <span
-        className={`status ${message.status === 'delivered' ? 'delivered' : 'not-delivered'}`}
-      >
-        {upperFirst(message.status)}
-      </span>
-    </td>
-
-    <td>
-      <div className="clearfix">
-        <div className="email-to pull-left mr-3">
-          To:{' '}
-          <a
-            href={`/profile?email=${encodeURIComponent(message.content?.to)}`}
-            className="profile-link"
-            target="_blank"
-            rel="noreferrer"
+const MessageRow = ({ message }) => {
+  const [isLoading, setIsLoading] = useState(false)
+  const resendEmail = async () => {
+    setIsLoading(true)
+    try {
+      await api.post('/messages/resend', { id: message.id })
+      promptMessage('Email is sent', { scrollToTop: false })
+    } catch (error) {
+      promptError(error.message, { scrollToTop: false })
+    }
+    setIsLoading(false)
+  }
+  return (
+    <tr>
+      <td>
+        <span
+          className={`status ${message.status === 'delivered' ? 'delivered' : 'not-delivered'}`}
+        >
+          {upperFirst(message.status)}
+        </span>
+        {['bounce', 'dropped'].includes(message.status) && (
+          <SpinnerButton
+            type="primary"
+            size="xs"
+            onClick={resendEmail}
+            disabled={isLoading}
+            loading={isLoading}
           >
-            {message.content?.to}
-          </a>
-        </div>
-        {message.referrer && (
-          <div className="email-parent pull-left mr-4">
-            Parent:{' '}
+            {isLoading ? '' : 'Resend'}
+          </SpinnerButton>
+        )}
+      </td>
+
+      <td>
+        <div className="clearfix">
+          <div className="email-to pull-left mr-3">
+            To:{' '}
             <a
-              href={`/group/edit?id=${encodeURIComponent(message.referrer)}`}
+              href={`/profile?email=${encodeURIComponent(message.content?.to)}`}
               className="profile-link"
               target="_blank"
               rel="noreferrer"
             >
-              {message.referrer}
+              {message.content?.to}
             </a>
           </div>
-        )}
-        <div className="email-sent pull-right">
-          {message.timestamp || message.cdate ? (
-            <>
-              Sent: <span>{formatTimestamp(message.timestamp * 1000 || message.cdate)}</span>
-            </>
-          ) : (
-            'Not Sent'
+          {message.referrer && (
+            <div className="email-parent pull-left mr-4">
+              Parent:{' '}
+              <a
+                href={`/group/edit?id=${encodeURIComponent(message.referrer)}`}
+                className="profile-link"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {message.referrer}
+              </a>
+            </div>
           )}
+          <div className="email-sent pull-right">
+            {message.timestamp || message.cdate ? (
+              <>
+                Sent: <span>{formatTimestamp(message.timestamp * 1000 || message.cdate)}</span>
+              </>
+            ) : (
+              'Not Sent'
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="email-title">
-        <strong>{message.content?.subject}</strong>
-      </div>
+        <div className="email-title">
+          <strong>{message.content?.subject}</strong>
+        </div>
 
-      <div
-        role="button"
-        tabIndex="0"
-        className={`email-content collapsed ${
-          message.content?.text?.startsWith('<p>') ? 'markdown-rendered' : ''
-        }`}
-        onClick={(e) => e.currentTarget.classList.toggle('collapsed')}
-      >
-        <MessageContent content={message.content?.text} />
-        <div className="gradient-overlay" />
-      </div>
-
-      <div>
-        <a
-          href={`${process.env.API_V2_URL}/messages?id=${message.id}`}
-          className="log-link"
-          target="_blank"
-          rel="noreferrer"
+        <div
+          role="button"
+          tabIndex="0"
+          className={`email-content collapsed ${
+            message.content?.text?.startsWith('<p>') ? 'markdown-rendered' : ''
+          }`}
+          onClick={(e) => e.currentTarget.classList.toggle('collapsed')}
         >
-          Message Log
-        </a>
-      </div>
-    </td>
-  </tr>
-)
+          <MessageContent content={message.content?.text} />
+          <div className="gradient-overlay" />
+        </div>
+
+        <div>
+          <a
+            href={`${process.env.API_V2_URL}/messages?id=${message.id}`}
+            className="log-link"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Message Log
+          </a>
+        </div>
+      </td>
+    </tr>
+  )
+}
 
 const MessagesTable = ({ messages }) => {
   if (!messages) return null
