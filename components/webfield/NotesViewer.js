@@ -96,7 +96,7 @@ const NotesViewer = () => {
           </TabPanel>
           <TabPanel id="notes" className={styles.tab}>
             {activeTabId === 'notes' && (
-              <>
+              <div className="submissions-list">
                 <List data={notes} itemHeight={20} itemKey="id">
                   {(note) => (
                     <NoteV2
@@ -120,7 +120,7 @@ const NotesViewer = () => {
                     options={{ showCount: true }}
                   />
                 )}
-              </>
+              </div>
             )}
           </TabPanel>
         </TabPanels>
