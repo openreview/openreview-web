@@ -5,10 +5,10 @@ import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import BasicHeader from './BasicHeader'
 import WebFieldContext from '../WebFieldContext'
 import CodeEditor from '../CodeEditor'
-
-import styles from '../../styles/components/NotesViewer.module.scss'
 import { NoteV2 } from '../Note'
 import PaginationLinks from '../PaginationLinks'
+
+import styles from '../../styles/components/NotesViewer.module.scss'
 
 const NotesViewer = () => {
   const { header } = useContext(WebFieldContext)
