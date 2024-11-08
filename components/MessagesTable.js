@@ -6,6 +6,8 @@ import Table from './Table'
 import { formatTimestamp } from '../lib/utils'
 import SpinnerButton from './SpinnerButton'
 import api from '../lib/api-client'
+import useUser from '../hooks/useUser'
+import { isSuperUser } from '../lib/auth'
 
 const MessageContent = ({ content = '' }) => {
   const [sanitizedHtml, setSanitizedHtml] = useState(null)
@@ -25,6 +27,8 @@ const MessageContent = ({ content = '' }) => {
 
 const MessageRow = ({ message }) => {
   const [isLoading, setIsLoading] = useState(false)
+  const { user } = useUser()
+  const showResendButton = isSuperUser(user) && ['bounce', 'dropped'].includes(message.status)
   const resendEmail = async () => {
     setIsLoading(true)
     try {
@@ -43,7 +47,7 @@ const MessageRow = ({ message }) => {
         >
           {upperFirst(message.status)}
         </span>
-        {['bounce', 'dropped'].includes(message.status) && (
+        {showResendButton && (
           <SpinnerButton
             type="primary"
             size="xs"
