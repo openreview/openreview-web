@@ -133,7 +133,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
                       data-placement="top"
                       title={
                         expired
-                          ? `Expired ${dayjs(invitation.expdate).fromNow()}, only for Program Chairs use`
+                          ? `${prettyInvitationId(invitation.id)} expired ${dayjs(invitation.expdate).fromNow()}`
                           : ''
                       }
                     >
@@ -146,7 +146,6 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
                           openNoteEditor(invitation)
                         }}
                       >
-                        {expired && <Icon name="calendar" extraClasses="expired-icon" />}
                         {prettyInvitationId(invitation.id)}
                       </a>
                     </li>

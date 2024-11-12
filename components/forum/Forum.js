@@ -1092,11 +1092,10 @@ export default function Forum({
                     data-placement="top"
                     title={
                       expired
-                        ? `Expired ${dayjs(invitation.expdate).fromNow()}, only for Program Chairs use`
+                        ? `${prettyInvitationId(invitation.id)} expired ${dayjs(invitation.expdate).fromNow()}`
                         : ''
                     }
                   >
-                    {expired && <Icon name="calendar" extraClasses="expired-icon" />}
                     {prettyInvitationId(invitation.id)}
                   </button>
                 )
