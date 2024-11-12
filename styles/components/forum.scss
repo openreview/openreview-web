@@ -155,7 +155,6 @@ main.forum {
       }
       .dropdown-select__value-container {
         max-height: 28px;
-        overflow: scroll;
       }
       .dropdown-select__menu {
         z-index: 10;
@@ -447,6 +446,9 @@ main.forum {
       }
       .invitation {
         padding-left: 0;
+      }
+      .signatures {
+        padding-left: 0.25rem;
       }
       .glyphicon {
         font-size: 13px;
