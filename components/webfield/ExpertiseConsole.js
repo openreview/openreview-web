@@ -11,7 +11,7 @@ import ControllableExpertiseSelector from '../ControllableExpertiseSelector'
 import { prettyId } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
-export default function ExpertiseConsole({ appContext, useControllableExpertiseSelector = false }) {
+export default function ExpertiseConsole({ appContext, useControllableExpertiseSelector = true }) {
   const {
     entity: invitation,
     venueId,

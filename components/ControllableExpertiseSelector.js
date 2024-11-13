@@ -4,6 +4,7 @@ import IconButton from './IconButton'
 import styles from '../styles/components/ControllableExpertiseSelector.module.scss'
 import { stringToColor } from '../lib/utils'
 import useUser from '../hooks/useUser'
+import api from '../lib/api-client'
 
 export default function ControllableExpertiseSelector() {
   const [keyphrases, setKeyphrases] = useState({ active: [], inactive: [] })
@@ -13,35 +14,34 @@ export default function ControllableExpertiseSelector() {
   const [activePapers, setActivePapers] = useState({})
   const [keyphraseColors, setKeyphraseColors] = useState({})
   const [paperWeights, setPaperWeights] = useState({})
-  const { user } = useUser()
+  const { user, accessToken } = useUser()
 
   useEffect(() => {
     async function fetchKeyphrases() {
       try {
-        const keyphraseResponse = await fetch(
-          `https://lace-deployment-997553930042.us-central1.run.app/get_recommendations/${user.id}`
+        const keyphraseResponse = await api.get(
+          "/expertise/controllable/get_recommendations/mccallum", {}, { accessToken }
         )
-        const jsonResponse = await keyphraseResponse.json()
         setKeyphrases({
-          active: Object.keys(jsonResponse.profilekp2selected),
+          active: Object.keys(keyphraseResponse.profilekp2selected),
           inactive: [],
         })
         // Compute colors after keyphrases are set
         // keyphrases state var might not be updated immediately
         setKeyphraseColors(
-          Object.keys(jsonResponse.profilekp2selected).reduce((acc, kp) => {
+          Object.keys(keyphraseResponse.profilekp2selected).reduce((acc, kp) => {
             acc[kp] = stringToColor(kp)
             return acc
           }, {})
         )
 
         setIncludedKeyphrases(
-          Object.keys(jsonResponse.profilekp2selected).filter(
-            (kp) => jsonResponse.profilekp2selected[kp]
+          Object.keys(keyphraseResponse.profilekp2selected).filter(
+            (kp) => keyphraseResponse.profilekp2selected[kp]
           )
         )
-        setRecommendedPapers(jsonResponse.recommendations)
-        setActivePapers(jsonResponse.profilekp2user_papers)
+        setRecommendedPapers(keyphraseResponse.recommendations)
+        setActivePapers(keyphraseResponse.profilekp2user_papers)
       } catch (error) {
         promptError(error.message)
       }
@@ -51,18 +51,18 @@ export default function ControllableExpertiseSelector() {
   }, [])
 
   useEffect(() => {
-    function buildPaperWeightDict(jsonResponse) {
+    function buildPaperWeightDict(keyphraseResponse) {
       const paperWeightDict = {}
-      Object.keys(jsonResponse.profilekp2user_papers).forEach((kp) => {
-        jsonResponse.profilekp2user_papers[kp].papers.forEach((paper, index) => {
+      Object.keys(keyphraseResponse.profilekp2user_papers).forEach((kp) => {
+        keyphraseResponse.profilekp2user_papers[kp].papers.forEach((paper, index) => {
           if (Object.prototype.hasOwnProperty.call(paperWeightDict, paper.title)) {
             paperWeightDict[paper.title] = {
               ...paperWeightDict[paper.title],
-              [kp]: jsonResponse.profilekp2user_papers[kp].kp2paper_wts[index],
+              [kp]: keyphraseResponse.profilekp2user_papers[kp].kp2paper_wts[index],
             }
           } else {
             paperWeightDict[paper.title] = {
-              [kp]: jsonResponse.profilekp2user_papers[kp].kp2paper_wts[index],
+              [kp]: keyphraseResponse.profilekp2user_papers[kp].kp2paper_wts[index],
             }
           }
         })
@@ -72,18 +72,17 @@ export default function ControllableExpertiseSelector() {
     }
     async function fetchRecommendations() {
       const baseUrl =
-        `https://lace-deployment-997553930042.us-central1.run.app/get_recommendations/${user.id}`
+        `/expertise/controllable/get_recommendations/mccallum`
       // prepend selected_kps= to every kp in includedKeyphrases
       const url =
         includedKeyphrases.length === 0
           ? baseUrl
           : `${baseUrl}?selected_kps=${includedKeyphrases.join('&selected_kps=')}`
-      const keyphraseResponse = await fetch(url)
-      const jsonResponse = await keyphraseResponse.json()
-      setRecommendedPapers(jsonResponse.recommendations)
-      setActivePapers(jsonResponse.profilekp2user_papers)
+      const keyphraseResponse = await api.get(url, {}, { accessToken })
+      setRecommendedPapers(keyphraseResponse.recommendations)
+      setActivePapers(keyphraseResponse.profilekp2user_papers)
       // in the future, paper weights should be set based on id instead of titles
-      setPaperWeights(buildPaperWeightDict(jsonResponse))
+      setPaperWeights(buildPaperWeightDict(keyphraseResponse))
     }
     fetchRecommendations()
   }, [includedKeyphrases])
