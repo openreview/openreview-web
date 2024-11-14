@@ -2,12 +2,16 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import NoteEditor from '../NoteEditor'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
+
+dayjs.extend(relativeTime)
 
 function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
   const { id, content, details, signatures, editInvitations, deleteInvitation } = note
@@ -119,21 +123,34 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
                 <span className="caret" />
               </button>
               <ul className="dropdown-menu">
-                {editInvitations?.map((invitation) => (
-                  <li key={invitation.id}>
-                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                    <a
-                      href="#"
-                      data-id={invitation.id}
-                      onClick={(e) => {
-                        e.preventDefault()
-                        openNoteEditor(invitation)
-                      }}
+                {editInvitations?.map((invitation) => {
+                  const expired = invitation.expdate < Date.now()
+                  return (
+                    <li
+                      key={invitation.id}
+                      className={expired ? 'expired' : ''}
+                      data-toggle="tooltip"
+                      data-placement="top"
+                      title={
+                        expired
+                          ? `${prettyInvitationId(invitation.id)} expired ${dayjs(invitation.expdate).fromNow()}`
+                          : ''
+                      }
                     >
-                      {prettyInvitationId(invitation.id)}
-                    </a>
-                  </li>
-                ))}
+                      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                      <a
+                        href="#"
+                        data-id={invitation.id}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          openNoteEditor(invitation)
+                        }}
+                      >
+                        {prettyInvitationId(invitation.id)}
+                      </a>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           )}
