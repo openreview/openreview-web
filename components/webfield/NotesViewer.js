@@ -1,6 +1,8 @@
 /* globals promptError,MathJax: false */
 import { useContext, useEffect, useState } from 'react'
 import List from 'rc-virtual-list'
+import { nanoid } from 'nanoid'
+import dayjs from 'dayjs'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import BasicHeader from './BasicHeader'
 import WebFieldContext from '../WebFieldContext'
@@ -9,6 +11,8 @@ import { NoteV2 } from '../Note'
 import PaginationLinks from '../PaginationLinks'
 
 import styles from '../../styles/components/NotesViewer.module.scss'
+import ExportFile from '../ExportFile'
+import { inflect } from '../../lib/utils'
 
 const NotesViewer = () => {
   const { header } = useContext(WebFieldContext)
@@ -19,13 +23,14 @@ const NotesViewer = () => {
   const [collapseContent, setCollapseContent] = useState(false)
   const [usePagination, setUsePagination] = useState(true)
   const [pageNumber, setPageNumber] = useState(1)
+  const [selectedIds, setSelectedIds] = useState([])
   const pageSize = 25
 
   const showNotes = () => {
     if (!value.trim()?.length) return
     try {
       const parsed = JSON.parse(value)
-      setAllNotes(parsed)
+      setAllNotes(parsed.map((note) => ({ ...note, uniqueId: nanoid() })))
       MathJax.typesetPromise()
     } catch (error) {
       promptError(error.message)
@@ -58,6 +63,7 @@ const NotesViewer = () => {
             id="notes"
             onClick={() => {
               setActiveTabId('notes')
+              setSelectedIds([])
               showNotes()
             }}
             active={activeTabId === 'notes' ? true : undefined}
@@ -97,29 +103,59 @@ const NotesViewer = () => {
           <TabPanel id="notes" className={styles.tab}>
             {activeTabId === 'notes' && (
               <div className="submissions-list">
-                <List data={notes} itemHeight={20} itemKey="id">
+                <List data={notes} itemHeight={20} itemKey="uniqueId">
                   {(note) => (
-                    <NoteV2
-                      note={note}
-                      options={{
-                        showContents: true,
-                        showPrivateIcon: true,
-                        collapse: collapseContent,
-                        replyCount: true,
-                        extraClasses: 'arbitrary-note-list',
-                      }}
-                    />
+                    <div className={styles.noteContainer}>
+                      <input
+                        type="checkbox"
+                        className={styles.noteSelectInput}
+                        checked={selectedIds.includes(note.uniqueId)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedIds((uniqueIds) => [...uniqueIds, note.uniqueId])
+                            return
+                          }
+                          setSelectedIds((uniqueIds) =>
+                            uniqueIds.filter((p) => p !== note.uniqueId)
+                          )
+                        }}
+                      />
+                      <NoteV2
+                        note={note}
+                        options={{
+                          showContents: true,
+                          showPrivateIcon: true,
+                          collapse: collapseContent,
+                          replyCount: true,
+                        }}
+                      />
+                    </div>
                   )}
                 </List>
-                {usePagination && (
-                  <PaginationLinks
-                    currentPage={pageNumber}
-                    itemsPerPage={pageSize}
-                    totalCount={allNotes.length}
-                    setCurrentPage={setPageNumber}
-                    options={{ showCount: true }}
-                  />
-                )}
+                <div className={styles.exportContainer}>
+                  {selectedIds.length > 0 && (
+                    <ExportFile
+                      fileName={`notes-${dayjs().format('YYYY-MM-DD-HH-mm-ss')}.json`}
+                      buttonText={`Export ${inflect(selectedIds.length, 'row', 'rows', true)}`}
+                      exportType="text/plain"
+                      records={allNotes.flatMap((p) => {
+                        if (!selectedIds.includes(p.uniqueId)) return []
+                        const { uniqueId, ...rest } = p
+                        return rest
+                      })}
+                      customTransformFn={(records) => [JSON.stringify(records, null, 2)]}
+                    />
+                  )}
+                  {usePagination && (
+                    <PaginationLinks
+                      currentPage={pageNumber}
+                      itemsPerPage={pageSize}
+                      totalCount={allNotes.length}
+                      setCurrentPage={setPageNumber}
+                      options={{ showCount: true }}
+                    />
+                  )}
+                </div>
               </div>
             )}
           </TabPanel>
