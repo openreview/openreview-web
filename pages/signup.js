@@ -339,7 +339,7 @@ const ExistingProfileForm = ({
               <span className="new-username hint">
                 {usernameLabel} <Link href={`/profile?id=${id}`}>{id}</Link>
               </span>
-              <div className="mt-1" ref={turnstileContainerRef} />
+              {isActive && <div className="mt-1" ref={turnstileContainerRef} />}
             </>
           )}
         </div>
