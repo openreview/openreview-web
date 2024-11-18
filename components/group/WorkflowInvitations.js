@@ -391,21 +391,44 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
               if (isBeforeToday && isNextStepAfterToday) {
                 return (
-                  <div key="today" className="workflow-invitation-container">
-                    <div className="invitation-cdate">
-                      {formatDateTime(dayjs().valueOf(), {
-                        second: undefined,
-                        minute: undefined,
-                        hour: undefined,
-                        locale: 'en-GB',
-                      })}{' '}
+                  <>
+                    <div key={invitationId} className="workflow-invitation-container">
+                      <div className="invitation-cdate">{stepObj.formattedCDate}</div>
+                      <div className="edit-invitation-info">
+                        <EditInvitationRow
+                          invitation={stepObj}
+                          isDomainGroup={group.id !== group.domain}
+                          isRunningProcessFunctions={runningInvitations.includes(invitationId)}
+                        />
+
+                        {subInvitations.length > 0 &&
+                          subInvitations.map((subInvitation) => (
+                            <WorflowInvitationRow
+                              key={subInvitation.id}
+                              subInvitation={subInvitation}
+                              workflowInvitation={stepObj}
+                              loadWorkflowInvitations={loadAllInvitations}
+                              domainObject={group.content}
+                            />
+                          ))}
+                      </div>
                     </div>
-                    <span className="invitation-content today">
-                      TODAY
-                      {/* eslint-disable-next-line max-len */}
-                      --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                    </span>
-                  </div>
+                    <div key="today" className="workflow-invitation-container">
+                      <div className="invitation-cdate">
+                        {formatDateTime(dayjs().valueOf(), {
+                          second: undefined,
+                          minute: undefined,
+                          hour: undefined,
+                          locale: 'en-GB',
+                        })}{' '}
+                      </div>
+                      <span className="invitation-content today">
+                        TODAY
+                        {/* eslint-disable-next-line max-len */}
+                        --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                      </span>
+                    </div>
+                  </>
                 )
               }
               return (
