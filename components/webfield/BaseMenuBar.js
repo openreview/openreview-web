@@ -116,6 +116,7 @@ const BaseMenuBar = ({
   }, [searchTerm])
 
   useEffect(() => {
+    if (!sortOption) return
     let getValueFn = sortOption.getValue
     if (typeof sortOption.getValue === 'string') {
       try {
