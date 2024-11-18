@@ -15,12 +15,20 @@ main.forum {
     .invitation-buttons {
       text-align: right;
       margin-bottom: 1rem;
+      line-height: 1.75rem;
       button {
         margin-left: 0.375rem;
       }
     }
     .top-level-invitations {
       margin-top: 1rem;
+
+      .btn.expired {
+        background-color: $gray3;
+        color: gray;
+        border-color: gray;
+        text-decoration: line-through;
+      }
     }
   }
 
