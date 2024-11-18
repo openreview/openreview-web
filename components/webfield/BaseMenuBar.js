@@ -116,13 +116,17 @@ const BaseMenuBar = ({
   }, [searchTerm])
 
   useEffect(() => {
+    let getValueFn = sortOption.getValue
+    if (typeof sortOption.getValue === 'string') {
+      try {
+        getValueFn = Function('row', sortOption.getValue) // eslint-disable-line no-new-func
+      } catch (error) {
+        return
+      }
+    }
     setData((data) => ({
       ...data,
-      tableRows: orderBy(
-        data.tableRowsAll,
-        sortOption.getValue,
-        sortOption.initialDirection ?? 'asc'
-      ),
+      tableRows: orderBy(data.tableRowsAll, getValueFn, sortOption.initialDirection ?? 'asc'),
     }))
   }, [sortOption])
 
