@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import BaseMenuBar from '../components/webfield/BaseMenuBar'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
-jest.mock('../components/ExportCSV', () => (props) => <span>CSV Export</span>)
+jest.mock('../components/ExportFile', () => (props) => <span>CSV Export</span>)
 jest.mock('../components/DownloadPDFButton', () => (props) => <span>PDF Download</span>)
 jest.mock('lodash', () => {
   const lodash = jest.requireActual('lodash')

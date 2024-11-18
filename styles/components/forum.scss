@@ -15,12 +15,20 @@ main.forum {
     .invitation-buttons {
       text-align: right;
       margin-bottom: 1rem;
+      line-height: 1.75rem;
       button {
         margin-left: 0.375rem;
       }
     }
     .top-level-invitations {
       margin-top: 1rem;
+
+      .btn.expired {
+        background-color: $gray3;
+        color: gray;
+        border-color: gray;
+        text-decoration: line-through;
+      }
     }
   }
 
@@ -47,7 +55,7 @@ main.forum {
     background-color: $gray1;
     border: 1px solid #eee;
     padding: 0.5rem;
-    padding-top: .625rem;
+    padding-top: 0.625rem;
 
     @media #{constants.$phone-only} {
       margin-left: -15px;
@@ -142,7 +150,6 @@ main.forum {
       }
       .dropdown-select__value-container {
         max-height: 28px;
-        overflow: scroll;
       }
       .dropdown-select__menu {
         z-index: 10;
@@ -150,7 +157,7 @@ main.forum {
     }
     .readers-filter-container .replies-filter {
       display: inline-block;
-      margin-right: .5rem;
+      margin-right: 0.5rem;
     }
     .invitations-filter {
       width: 250px;
@@ -319,7 +326,7 @@ main.forum {
       margin-bottom: 0;
     }
     .rc-virtual-list-holder-inner {
-      padding: .5rem;
+      padding: 0.5rem;
       padding-bottom: 0;
     }
     .empty-container {
@@ -335,7 +342,7 @@ main.forum {
 
   .note-editor-reply {
     border: 1px solid #eee;
-    margin-top: .5rem;
+    margin-top: 0.5rem;
     margin-bottom: 0;
   }
   .note-editor-reply.depth-odd {
@@ -400,7 +407,7 @@ main.forum {
       h5 {
         margin: 0;
         margin-bottom: 0.125rem;
-        font-size: .875rem;
+        font-size: 0.875rem;
         color: constants.$subtleGray;
         line-height: normal;
         font-style: italic;
@@ -434,6 +441,9 @@ main.forum {
       }
       .invitation {
         padding-left: 0;
+      }
+      .signatures {
+        padding-left: 0.25rem;
       }
       .glyphicon {
         font-size: 13px;
