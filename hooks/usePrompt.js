@@ -21,36 +21,24 @@ export default function usePrompt() {
     )
   }, [])
   return {
-    promptOk: (message) =>
-      notificationInstance?.notice({
-        content: (
-          <>
-            <Icon name="ok-sign" />
-            <Markdown text={message} />
-          </>
-        ),
-        duration: 2,
-      }),
     promptMessage: (message) =>
       notificationInstance?.notice({
         content: (
-          <>
-            <Icon name="info-sign" />
+          <div className="message">
             <Markdown text={message} />
-          </>
+          </div>
         ),
-        duration: 2,
+        duration: 3,
         closable: canClose,
       }),
     promptError: (message) =>
       notificationInstance?.notice({
         content: (
-          <>
-            <Icon name="remove-sign" />
-            <Markdown text={message} />
-          </>
+          <div className="error">
+            <Markdown text={`**Error:** ${message}`} />
+          </div>
         ),
-        duration: 4000,
+        duration: 4,
         closable: canClose,
       }),
     clearMessage: () => {
@@ -70,7 +58,6 @@ export default function usePrompt() {
       notificationInstance?.notice({
         content: (
           <>
-            <Icon name="remove-sign" />
             <span>Please&nbsp;</span>
             <a
               href={`/login?redirect=${encodeURIComponent(

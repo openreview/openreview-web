@@ -969,37 +969,42 @@ header {
       text-align: left;
       margin-right: -1.75rem;
       padding-right: 2.5rem;
+      line-height: 21px;
 
       @media #{constants.$phone-only} {
         margin: 0;
         padding-right: 0.5rem;
       }
-      font-size: 1rem;
-
-      .glyphicon {
-        margin-right: 0.5rem;
-      }
-      .glyphicon-ok-sign {
-        color: green;
-      }
-      .glyphicon-remove-sign {
-        color: red;
-      }
-      .glyphicon-info-sign {
-        color: yellowgreen;
-      }
+      font-size: 0.875rem;
 
       p {
         margin-bottom: 0;
+      }
+
+      &:has(.message) {
+        color: #3c763d;
+        background-color: #dff0d8;
+        border-color: #d6e9c6;
+      }
+
+      &:has(.error) {
+        background-color: #f2dede;
+        border-color: #ebccd1;
+        color: #a94442;
       }
     }
 
     .rc-notification-notice-close {
       pointer-events: all;
       margin-right: 0;
+      color: darkgray;
       cursor: pointer;
       &:focus {
         outline: none;
+      }
+
+      @media #{constants.$phone-only} {
+        margin-left: -1rem;
       }
     }
   }
