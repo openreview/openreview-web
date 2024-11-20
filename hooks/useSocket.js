@@ -10,7 +10,7 @@ export default function useSocket(namespace, eventNames, options) {
   const connectSocket = () => {
     socket.current = io(
       `${process.env.API_V2_URL}/${namespace}`,
-      options ? { query: { ...options, accessToken } } : { accessToken }
+      options ? { query: options, auth: { accessToken } } : { auth: { accessToken } }
     )
 
     socket.current.onAny((eventName, data) => {
@@ -19,7 +19,7 @@ export default function useSocket(namespace, eventNames, options) {
     })
   }
   useEffect(() => {
-    if (namespace) {
+    if (namespace && accessToken) {
       connectSocket(namespace)
     }
   }, [namespace])
