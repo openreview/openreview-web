@@ -8,12 +8,20 @@ export default function usePrompt() {
   const [notificationInstance, setNotificationInstance] = useState(null)
   const isMobile = !useBreakpoint('md')
   const canClose = !isMobile
+  const messageDuration = isMobile ? 2 : 3
+  const errorDuration = isMobile ? 2 : 4
 
   useEffect(() => {
     Notification.newInstance(
       {
         maxCount: 2,
-        ...(canClose && { closeIcon: <Icon name="remove" /> }),
+        ...(canClose && {
+          closeIcon: (
+            <button className="btn btn-xs" type="button">
+              close
+            </button>
+          ),
+        }),
       },
       (notification) => {
         setNotificationInstance(notification)
@@ -28,7 +36,7 @@ export default function usePrompt() {
             <Markdown text={message} />
           </div>
         ),
-        duration: 3,
+        duration: messageDuration,
         closable: canClose,
       }),
     promptError: (message) =>
@@ -38,26 +46,14 @@ export default function usePrompt() {
             <Markdown text={`**Error:** ${message}`} />
           </div>
         ),
-        duration: 4,
+        duration: errorDuration,
         closable: canClose,
       }),
-    clearMessage: () => {
-      notificationInstance?.destroy()
-      // new instance after destroy otherwise calling destroy again will fail
-      Notification.newInstance(
-        {
-          maxCount: 2,
-          ...(canClose && { closeIcon: <Icon name="remove" /> }),
-        },
-        (notification) => {
-          setNotificationInstance(notification)
-        }
-      )
-    },
+
     promptLogin: () =>
       notificationInstance?.notice({
         content: (
-          <>
+          <div className="login">
             <span>Please&nbsp;</span>
             <a
               href={`/login?redirect=${encodeURIComponent(
@@ -67,10 +63,29 @@ export default function usePrompt() {
               Login
             </a>
             <span>&nbsp;to proceed</span>
-          </>
+          </div>
         ),
-        duration: 4,
+        duration: errorDuration,
         closable: canClose,
       }),
+    clearMessage: () => {
+      notificationInstance?.destroy()
+      // new instance after destroy otherwise calling destroy again will fail
+      Notification.newInstance(
+        {
+          maxCount: 2,
+          ...(canClose && {
+            closeIcon: (
+              <button className="btn btn-xs" type="button">
+                close
+              </button>
+            ),
+          }),
+        },
+        (notification) => {
+          setNotificationInstance(notification)
+        }
+      )
+    },
   }
 }
