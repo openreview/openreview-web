@@ -24,6 +24,12 @@ export default function useSocket(namespace, eventNames, options) {
     }
   }, [namespace])
 
+  useEffect(() => {
+    if (!accessToken || !socket.current) return
+    socket.current.auth = { accessToken }
+    socket.current.connect()
+  }, [accessToken])
+
   useEffect(
     () => () => {
       if (socket.current) {
