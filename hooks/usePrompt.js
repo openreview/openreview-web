@@ -38,6 +38,7 @@ export default function usePrompt() {
         ),
         duration: messageDuration,
         closable: canClose,
+        pauseOnHover: true,
       }),
     promptError: (message) =>
       notificationInstance?.notice({
@@ -48,6 +49,7 @@ export default function usePrompt() {
         ),
         duration: errorDuration,
         closable: canClose,
+        pauseOnHover: true,
       }),
 
     promptLogin: () =>
@@ -67,6 +69,7 @@ export default function usePrompt() {
         ),
         duration: errorDuration,
         closable: canClose,
+        pauseOnHover: true,
       }),
     clearMessage: () => {
       notificationInstance?.destroy()

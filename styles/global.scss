@@ -957,14 +957,25 @@ header {
     margin: 1rem;
     text-align: center;
     right: 0 !important;
+    animation-duration: 0.3s;
+    animation-name: slidedown;
+
+    @keyframes slidedown {
+      0% {
+        transform: translateY(-100%);
+      }
+      100% {
+        transform: translateY(0);
+      }
+    }
 
     .rc-notification-notice-content {
       display: inline-flex;
       align-items: baseline;
       padding-top: 8px;
       padding-bottom: 8px;
-      padding-left: 1.5rem;
-      padding-right: 4.5rem;
+      padding-left: 5%;
+      padding-right: 10%;
       background-color: white;
       border-radius: 8px;
       box-shadow: rgba(0, 0, 0, 0.08) 0px 6px 16px 0px;
@@ -972,10 +983,11 @@ header {
       text-align: left;
       margin-right: -1.75rem;
       line-height: 21px;
+      width: 80%;
 
       @media #{constants.$phone-only} {
         margin: 0;
-        padding-right: 1.5rem;
+        padding-right: 5%;
       }
       font-size: 0.875rem;
 
