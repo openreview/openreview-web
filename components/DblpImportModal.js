@@ -1,4 +1,4 @@
-/* globals $: false */
+/* globals $,clearMessage: false */
 
 import { useState, useRef, useEffect, useContext } from 'react'
 import { nanoid } from 'nanoid'
@@ -231,6 +231,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
 
   useEffect(() => {
     $(modalEl.current).on('show.bs.modal', () => {
+      clearMessage()
       // read current dblp url from input
       let dblpInputVal = $('#dblp_url').val().trim()
       if (dblpInputVal.endsWith('.html')) dblpInputVal = dblpInputVal.slice(0, -5)

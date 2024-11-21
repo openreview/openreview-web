@@ -2,7 +2,6 @@ import Head from 'next/head'
 import Nav from './Nav'
 import Banner from './Banner'
 import EditBanner from './EditBanner'
-import FlashAlert from './FlashAlert'
 import Footer from './Footer'
 import FooterMinimal from './FooterMinimal'
 import FeedbackModal from './FeedbackModal'
@@ -74,7 +73,6 @@ gtag('config', '${process.env.GA_PROPERTY_ID}', {
 
       <Banner hidden={bannerHidden}>{bannerContent}</Banner>
       <EditBanner>{editBannerContent}</EditBanner>
-      <FlashAlert />
 
       <div className={`container${fullWidth ? '-fluid' : ''}`}>
         <div className="row">

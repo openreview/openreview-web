@@ -134,7 +134,7 @@ export default function ProfileEdit({ appContext }) {
       })
       loadProfile()
     } catch (apiError) {
-      promptError(marked(`**Error:** ${apiError.message}`), { html: true })
+      promptError(apiError.message)
       setSaveProfileErrors(
         apiError.errors?.map((p) => p.details?.path) ?? [apiError?.details?.path]
       )

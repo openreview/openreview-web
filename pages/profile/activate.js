@@ -72,8 +72,10 @@ const ActivateProfile = ({ appContext }) => {
     if (query.token) {
       loadActivatableProfile(query.token)
     } else {
-      promptError('Invalid profile activation link. Please check your email and try again.')
       router.replace('/')
+      setTimeout(() => {
+        promptError('Invalid profile activation link. Please check your email and try again.')
+      }, 0)
     }
   }, [query])
 
