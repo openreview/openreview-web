@@ -225,6 +225,15 @@ test('enter invalid name', async (t) => {
     .eql(
       'Error: The name 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
+    .typeText(fullNameInputSelector, 'abc')
+    .expect(messageSelector.exists).notOk() // page calls clearMessage
+    .typeText(fullNameInputSelector, 'abc `')
+    .expect(messageSelector.innerText)
+    .eql(
+      'Error: The name ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
+    )
+    .click(Selector('.rc-notification-notice-close')) // close message
+    .expect(messageSelector.exists).notOk()
 })
 
 test('enter valid name invalid email and change to valid email and register', async (t) => {
