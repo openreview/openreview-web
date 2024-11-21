@@ -1785,7 +1785,7 @@ const UserModerationQueue = ({
         { id: profileId, decision: 'accept' },
         { accessToken }
       )
-      if (profiles.length === 1) {
+      if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
       reload()
@@ -1843,7 +1843,7 @@ const UserModerationQueue = ({
         { accessToken }
       )
       $(`#${modalId}`).modal('hide')
-      if (profiles.length === 1) {
+      if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
       reload()
@@ -1880,7 +1880,7 @@ const UserModerationQueue = ({
           { id: profile.id, decision: actionIsBlock ? 'block' : 'unblock' },
           { accessToken }
         )
-        if (onlyModeration && profiles.length === 1) {
+        if (profiles.length === 1 && pageNumber !== 1) {
           setPageNumber((p) => p - 1)
         }
       } catch (error) {
