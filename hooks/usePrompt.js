@@ -16,11 +16,7 @@ export default function usePrompt() {
       {
         maxCount: 2,
         ...(canClose && {
-          closeIcon: (
-            <button className="btn btn-xs" type="button">
-              close
-            </button>
-          ),
+          closeIcon: <Icon name="remove" />,
         }),
       },
       (notification) => {
@@ -29,30 +25,30 @@ export default function usePrompt() {
     )
   }, [])
   return {
-    promptMessage: (message) =>
+    promptMessage: (message, customDuration) =>
       notificationInstance?.notice({
         content: (
           <div className="message">
             <Markdown text={message} />
           </div>
         ),
-        duration: messageDuration,
+        duration: customDuration ?? messageDuration,
         closable: canClose,
         pauseOnHover: true,
       }),
-    promptError: (message) =>
+    promptError: (message, customDuration) =>
       notificationInstance?.notice({
         content: (
           <div className="error">
             <Markdown text={`**Error:** ${message}`} />
           </div>
         ),
-        duration: errorDuration,
+        duration: customDuration ?? errorDuration,
         closable: canClose,
         pauseOnHover: true,
       }),
 
-    promptLogin: () =>
+    promptLogin: (customDuration) =>
       notificationInstance?.notice({
         content: (
           <div className="login">
@@ -64,10 +60,10 @@ export default function usePrompt() {
             >
               Login
             </a>
-            <span>&nbsp;to proceed</span>
+            <span> to proceed</span>
           </div>
         ),
-        duration: errorDuration,
+        duration: customDuration ?? errorDuration,
         closable: canClose,
         pauseOnHover: true,
       }),
@@ -78,11 +74,7 @@ export default function usePrompt() {
         {
           maxCount: 2,
           ...(canClose && {
-            closeIcon: (
-              <button className="btn btn-xs" type="button">
-                close
-              </button>
-            ),
+            closeIcon: <Icon name="remove" />,
           }),
         },
         (notification) => {

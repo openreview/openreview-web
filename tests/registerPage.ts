@@ -225,9 +225,9 @@ test('enter invalid name', async (t) => {
     .eql(
       'Error: The name 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
-    .typeText(fullNameInputSelector, 'abc')
+    .typeText(fullNameInputSelector, 'abc', { replace: true })
     .expect(messageSelector.exists).notOk() // page calls clearMessage
-    .typeText(fullNameInputSelector, 'abc `')
+    .typeText(fullNameInputSelector, 'abc `', { replace: true })
     .expect(messageSelector.innerText)
     .eql(
       'Error: The name ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'

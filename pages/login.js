@@ -37,7 +37,7 @@ const LoginForm = () => {
       promptMessage(
         `A confirmation email with the subject "OpenReview signup confirmation" has been sent to ${email}.
         Please click the link in this email to confirm your email address and complete registration.`,
-        { noTimeout: true }
+        8
       )
     } catch (error) {
       setLoginError(error)

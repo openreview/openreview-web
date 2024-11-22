@@ -457,7 +457,7 @@ function CopyLinkButton({ forumId, noteId }) {
     if (!window.location) return
 
     copy(`${window.location.origin}${window.location.pathname}?id=${forumId}&noteId=${noteId}`)
-    promptMessage('Reply URL copied to clipboard', { scrollToTop: false })
+    promptMessage('Reply URL copied to clipboard')
   }
 
   return (

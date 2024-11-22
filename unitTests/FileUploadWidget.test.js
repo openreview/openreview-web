@@ -120,10 +120,7 @@ describe('FileUploadWidget', () => {
     Object.defineProperty(file, 'size', { value: 1024 * 1000 * 10 + 1 })
     await userEvent.upload(fileInput, file)
 
-    expect(promptError).toHaveBeenCalledWith(
-      expect.stringContaining('File is too large.'),
-      expect.anything()
-    )
+    expect(promptError).toHaveBeenCalledWith(expect.stringContaining('File is too large.'))
   })
 
   test('clear value when user delete file', async () => {

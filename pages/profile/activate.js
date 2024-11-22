@@ -46,9 +46,7 @@ const ActivateProfile = ({ appContext }) => {
         content: newProfileData,
       })
       if (token) {
-        promptMessage('Your OpenReview profile has been successfully created', {
-          scrollToTop: false,
-        })
+        promptMessage('Your OpenReview profile has been successfully created')
         loginUser(user, token)
       } else {
         // If user moderation is enabled, PUT /activate/${token} will return an empty response

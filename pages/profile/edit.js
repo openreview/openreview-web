@@ -129,9 +129,7 @@ export default function ProfileEdit({ appContext }) {
           unlinkPublication(profile.id, publicationId)
         )
       )
-      promptMessage('Your profile information has been successfully updated', {
-        timeout: 2000,
-      })
+      promptMessage('Your profile information has been successfully updated', 2)
       loadProfile()
     } catch (apiError) {
       promptError(apiError.message)

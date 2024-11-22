@@ -1003,12 +1003,14 @@ header {
 
     .rc-notification-notice-close {
       pointer-events: all;
-      margin-left: -2.25rem;
       margin-right: 0;
       color: darkgray;
       cursor: pointer;
       &:focus {
         outline: none;
+      }
+      &:hover {
+        color: black;
       }
     }
   }
