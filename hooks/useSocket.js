@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
+import { nanoid } from 'nanoid'
 import useUser from './useUser'
 
 export default function useSocket(namespace, eventNames, options) {
@@ -16,7 +17,7 @@ export default function useSocket(namespace, eventNames, options) {
     )
     socket.current.onAny((eventName, data) => {
       if (!eventNames.includes(eventName)) return
-      setLatestEvent({ eventName, data })
+      setLatestEvent({ eventName, data, uniqueId: nanoid() })
     })
   }
   useEffect(() => {
