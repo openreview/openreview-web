@@ -40,6 +40,7 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJso
   }
   if (
     fieldName === 'web' ||
+    fieldName === 'preprocess' ||
     fieldName === 'process' ||
     fieldName === 'dateprocesses' ||
     fieldName.endsWith('_script') ||
