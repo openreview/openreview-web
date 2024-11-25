@@ -10,19 +10,24 @@ export default function useSocket(namespace, eventNames, options) {
   const connectSocket = () => {
     socket.current = io(
       `${process.env.API_V2_URL}/${namespace}`,
-      options ? { query: options, auth: { accessToken } } : { auth: { accessToken } }
+      options
+        ? { query: options, auth: { accessToken }, transports: ['websocket'] }
+        : { auth: { accessToken }, transports: ['websocket'] }
     )
-
     socket.current.onAny((eventName, data) => {
       if (!eventNames.includes(eventName)) return
       setLatestEvent({ eventName, data })
     })
   }
   useEffect(() => {
-    if (namespace && accessToken) {
+    if (!(namespace && accessToken)) return
+    if (!socket.current?.auth?.accessToken) {
       connectSocket(namespace)
+      return
     }
-  }, [namespace])
+    socket.current.auth = { accessToken }
+    socket.current.connect()
+  }, [namespace, accessToken])
 
   useEffect(
     () => () => {
