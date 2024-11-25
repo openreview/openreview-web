@@ -1,5 +1,5 @@
 /* globals promptError,promptMessage,$: false */
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { get, sortBy } from 'lodash'
 import timezone from 'dayjs/plugin/timezone'
@@ -19,7 +19,7 @@ import InvitationContentEditor from './InvitationContentEditor'
 import Dropdown from '../Dropdown'
 import Markdown from '../EditorComponents/Markdown'
 import Icon from '../Icon'
-import useInterval from '../../hooks/useInterval'
+import useSocket from '../../hooks/useSocket'
 import LoadingSpinner from '../LoadingSpinner'
 
 dayjs.extend(isSameOrBefore)
@@ -228,6 +228,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const [workflowInvitations, setWorkflowInvitations] = useState([])
   const [stageInvitations, setStageInvitations] = useState([])
   const [runningInvitations, setRunningInvitations] = useState([])
+  const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
   const workflowInvitationRegex = RegExp(`^${groupId}/-/[^/]+$`)
 
   const loadProcessLogs = async () => {
@@ -288,7 +289,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       const workFlowInvitations = invitations.filter(
         (p) => workflowInvitationRegex.test(p.id) && p.type !== 'meta'
       )
-      const currentTimeStamp = new Date()
       setWorkflowInvitations(
         sortBy(
           workFlowInvitations.map((p) => ({
@@ -336,10 +336,25 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
     loadAllInvitations()
   }, [groupId])
 
-  useInterval(() => {
-    if (!workflowInvitations.length) return
-    loadProcessLogs()
-  }, 5000)
+  useEffect(() => {
+    if (!events) return
+    if (events.status === 'ok') {
+      setRunningInvitations((invitations) =>
+        invitations.filter((p) => p !== events.invitation)
+      )
+    }
+    if (events.status === 'running') {
+      setRunningInvitations((invitations) => [...invitations, events.invitation])
+    }
+    const eventsHandler = setTimeout(() => {
+      loadProcessLogs()
+    }, 5000)
+
+    // eslint-disable-next-line consistent-return
+    return () => {
+      clearTimeout(eventsHandler)
+    }
+  }, [events?.uniqueId])
 
   return (
     <>
@@ -391,8 +406,8 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
               if (isBeforeToday && isNextStepAfterToday) {
                 return (
-                  <>
-                    <div key={invitationId} className="workflow-invitation-container">
+                  <React.Fragment key={invitationId}>
+                    <div className="workflow-invitation-container">
                       <div className="invitation-cdate">{stepObj.formattedCDate}</div>
                       <div className="edit-invitation-info">
                         <EditInvitationRow
@@ -428,7 +443,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                         --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                       </span>
                     </div>
-                  </>
+                  </React.Fragment>
                 )
               }
               return (
