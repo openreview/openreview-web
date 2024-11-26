@@ -81,6 +81,7 @@ const Tasks = ({ appContext }) => {
         const edgeResults = await Promise.all(aERecommendationEdgesP)
         // eslint-disable-next-line no-param-reassign
         allInvitations[2] = allInvitations[2].map((p, i) => {
+          if (!p.id.endsWith('/Action_Editors/-/Recommendation')) return p
           const submissionId = p.edge?.head?.param?.const
           const aERecommendationEdges = edgeResults.flatMap((q) => {
             const edges = q.find((r) => r.id?.head === submissionId)
