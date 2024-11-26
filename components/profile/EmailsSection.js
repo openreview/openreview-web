@@ -68,6 +68,7 @@ const EmailsSection = ({
   updateEmails,
   institutionDomains,
   isNewProfile,
+  loadProfile,
 }) => {
   const router = useRouter()
 
@@ -197,17 +198,12 @@ const EmailsSection = ({
         verifyResult = await api.put('/activatelink', payload, { accessToken })
       }
       if (verifyResult?.id) {
-        const { profiles } = await api.get('/profiles', {}, { accessToken })
-        const mergedProfile = profiles[0]
-        const prefEmail = mergedProfile.content.preferredEmail
-        const updatedEmails = mergedProfile.content.emails.map((email) => ({
-          email,
-          confirmed: mergedProfile.content.emailsConfirmed.includes(email),
-          preferred: email === prefEmail,
-          key: nanoid(),
-          isValid: true,
-        }))
-        setEmails({ reset: true, data: updatedEmails })
+        const updatedProfile = await loadProfile()
+        setEmails({
+          reset: true,
+          data:
+            updatedProfile?.emails?.map((p) => ({ ...p, key: nanoid(), isValid: true })) ?? [],
+        })
         return promptMessage(`${newEmail} has been verified`)
       }
       setEmails({
