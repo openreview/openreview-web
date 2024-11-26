@@ -79,6 +79,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     submissionContentFields = [],
     sacDirectPaperAssignment,
     propertiesAllowed,
+    areaChairStatusPropertiesAllowed,
     sacStatuspropertiesAllowed,
     messageAreaChairsInvitationId,
     messageSeniorAreaChairsInvitationId,
@@ -90,7 +91,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const router = useRouter()
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || '#venue-configuration'
+    decodeURIComponent(window.location.hash) || '#venue-configuration'
   )
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
@@ -795,6 +796,15 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             preferredName: profile ? getProfileName(profile) : reviewer.reviewerProfileId,
           }
         }),
+        authors: note.content?.authorids?.value?.map((authorId, index) => {
+          const preferredName = note.content.authors?.value?.[index]
+          return {
+            preferredId: authorId,
+            preferredName,
+            noteNumber: note.number,
+            anonymizedGroup: authorId,
+          }
+        }),
         reviewerProfiles: assignedReviewerProfiles,
         officialReviews,
         reviewProgressData: {
@@ -840,6 +850,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               preferredId: seniorAreaChairProfileId,
               preferredName: profile ? getProfileName(profile) : seniorAreaChairProfileId,
               title: profile?.title,
+              noteNumber: note.number,
+              anonymizedGroup: seniorAreaChairProfileId,
             }
           }),
           numMetaReviewsDone: metaReviews.length,

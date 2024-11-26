@@ -69,7 +69,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   const router = useRouter()
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || `#${submissionName ?? ''.toLowerCase()}-status`
+    decodeURIComponent(window.location.hash) || `#${submissionName ?? ''.toLowerCase()}-status`
   )
 
   const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
@@ -404,11 +404,11 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 return p.invitations.includes(officialReviewInvitationId)
               })
               ?.map((review) => {
-                const reviewValue = review.content.review?.value
+                const reviewValue = review.content?.review?.value
                 return {
                   ...review,
                   anonymousId: getIndentifierFromGroup(review.signatures[0], anonReviewerName),
-                  confidence: parseNumberField(review.content[reviewConfidenceName]?.value),
+                  confidence: parseNumberField(review.content?.[reviewConfidenceName]?.value),
                   ...Object.fromEntries(
                     (Array.isArray(reviewRatingName)
                       ? reviewRatingName
@@ -421,9 +421,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                       const ratingValue =
                         typeof ratingName === 'object'
                           ? Object.values(ratingName)[0]
-                              .map((r) => review.content[r]?.value)
+                              .map((r) => review.content?.[r]?.value)
                               .find((s) => s !== undefined)
-                          : review.content[ratingName]?.value
+                          : review.content?.[ratingName]?.value
                       return [[displayRatingName], parseNumberField(ratingValue)]
                     })
                   ),
@@ -457,7 +457,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             )
           )
 
-          const confidences = officialReviews.map((p) => p.confidence)
+          const confidences = officialReviews.map((p) => p?.confidence)
           const validConfidences = confidences.filter((p) => p !== null)
           const confidenceAvg = validConfidences.length
             ? (
@@ -496,10 +496,10 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 metaReviewAgreement?.content?.[metaReviewAgreementConfig?.displayField]?.value
               return {
                 [metaReviewRecommendationName]:
-                  metaReview?.content[metaReviewRecommendationName]?.value,
+                  metaReview?.content?.[metaReviewRecommendationName]?.value,
                 ...metaReview,
                 ...additionalMetaReviewFields?.reduce((prev, curr) => {
-                  const additionalMetaReviewFieldValue = metaReview?.content[curr]?.value
+                  const additionalMetaReviewFieldValue = metaReview?.content?.[curr]?.value
                   return {
                     ...prev,
                     [curr]: {
@@ -539,9 +539,10 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             if (prelimDecisionNote) {
               preliminaryDecision = {
                 id: prelimDecisionNote.id,
-                recommendation: prelimDecisionNote.content.recommendation?.value,
-                confidence: prelimDecisionNote.content.confidence?.value,
-                discussionNeeded: prelimDecisionNote.content.discussion_with_SAC_needed?.value,
+                recommendation: prelimDecisionNote.content?.recommendation?.value,
+                confidence: prelimDecisionNote.content?.confidence?.value,
+                discussionNeeded:
+                  prelimDecisionNote.content?.discussion_with_SAC_needed?.value,
               }
             }
           }

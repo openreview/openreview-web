@@ -191,8 +191,10 @@ const PaperStatus = ({ sacConsoleData }) => {
           tableRowsAll={paperStatusTabData.tableRowsAll}
           tableRows={paperStatusTabData.tableRows}
           selectedNoteIds={selectedNoteIds}
+          setSelectedNoteIds={setSelectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
           reviewRatingName={reviewRatingName}
+          defaultSeniorAreaChairName="Senior_Area_Chairs"
         />
         <p className="empty-message">
           No {pluralizeString(submissionName.toLowerCase())} matching search criteria.
@@ -205,8 +207,10 @@ const PaperStatus = ({ sacConsoleData }) => {
         tableRowsAll={paperStatusTabData.tableRowsAll}
         tableRows={paperStatusTabData.tableRows}
         selectedNoteIds={selectedNoteIds}
+        setSelectedNoteIds={setSelectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
         reviewRatingName={reviewRatingName}
+        defaultSeniorAreaChairName="Senior_Area_Chairs"
       />
 
       <Table

@@ -251,7 +251,7 @@ export default function ForumReply({
           {prettyInvitationId(invitations[0], true)}
         </span>
         <span className="signatures">
-          <Icon name="pencil" tooltip="Reply Author" />
+          by{' '}
           {signatures
             .map((signature) => {
               const signatureLink = signature.startsWith('~') ? (
@@ -490,6 +490,14 @@ function NoteContentCollapsible({
       </div>
     )
   }
+  if (!Object.keys(content ?? {}).length)
+    return (
+      <div className="note-content-container">
+        <div className="note-content">
+          <em>[empty]</em>
+        </div>
+      </div>
+    )
 
   return (
     <div className={`note-content-container ${contentExpanded ? '' : 'collapsed'}`}>

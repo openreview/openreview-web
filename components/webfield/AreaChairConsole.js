@@ -182,7 +182,7 @@ const AreaChairConsole = ({ appContext }) => {
   const [acConsoleData, setAcConsoleData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || `#assigned-${pluralizeString(submissionName)}`
+    decodeURIComponent(window.location.hash) || `#assigned-${pluralizeString(submissionName)}`
   )
   const [sacLinkText, setSacLinkText] = useState('')
 
@@ -340,7 +340,7 @@ const AreaChairConsole = ({ appContext }) => {
                     (t.id === r || t.members[0] === r)
                 )
                 return {
-                  anonymizedGroup: anonymousReviewerGroup?.id,
+                  anonymizedGroup: anonymousReviewerGroup?.id ?? r,
                   anonymousId: getIndentifierFromGroup(
                     anonymousReviewerGroup?.id || r,
                     anonReviewerName
@@ -452,11 +452,11 @@ const AreaChairConsole = ({ appContext }) => {
           })
           ?.map((q) => {
             const anonymousId = getIndentifierFromGroup(q.signatures[0], anonReviewerName)
-            const reviewValue = q.content.review?.value
+            const reviewValue = q.content?.review?.value
             return {
               ...q,
               anonymousId,
-              confidence: parseNumberField(q.content[reviewConfidenceName]?.value),
+              confidence: parseNumberField(q.content?.[reviewConfidenceName]?.value),
               ...Object.fromEntries(
                 (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
                   (ratingName) => {
@@ -465,9 +465,9 @@ const AreaChairConsole = ({ appContext }) => {
                     const ratingValue =
                       typeof ratingName === 'object'
                         ? Object.values(ratingName)[0]
-                            .map((r) => q.content[r]?.value)
+                            .map((r) => q.content?.[r]?.value)
                             .find((s) => s !== undefined)
-                        : q.content[ratingName]?.value
+                        : q.content?.[ratingName]?.value
                     return [[ratingDisplayName], parseNumberField(ratingValue)]
                   }
                 )
@@ -548,9 +548,10 @@ const AreaChairConsole = ({ appContext }) => {
           },
           metaReviewData: {
             [metaReviewRecommendationName]:
-              metaReview?.content[metaReviewRecommendationName]?.value ?? 'N/A',
+              metaReview?.content?.[metaReviewRecommendationName]?.value ?? 'N/A',
             ...additionalMetaReviewFields.reduce((prev, curr) => {
-              const additionalMetaReviewFieldValue = metaReview?.content[curr]?.value ?? 'N/A'
+              const additionalMetaReviewFieldValue =
+                metaReview?.content?.[curr]?.value ?? 'N/A'
               return { ...prev, [curr]: additionalMetaReviewFieldValue }
             }, {}),
             metaReviewInvitationId: `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`,
@@ -610,6 +611,7 @@ const AreaChairConsole = ({ appContext }) => {
             tableRowsAll={acConsoleData.tableRowsAll}
             tableRows={acConsoleData.tableRows}
             selectedNoteIds={selectedNoteIds}
+            setSelectedNoteIds={setSelectedNoteIds}
             setAcConsoleData={setAcConsoleData}
             shortPhrase={shortPhrase}
             enableQuerySearch={enableQuerySearch}
@@ -637,6 +639,7 @@ const AreaChairConsole = ({ appContext }) => {
           tableRowsAll={acConsoleData.tableRowsAll}
           tableRows={acConsoleData.tableRows}
           selectedNoteIds={selectedNoteIds}
+          setSelectedNoteIds={setSelectedNoteIds}
           setAcConsoleData={setAcConsoleData}
           shortPhrase={shortPhrase}
           enableQuerySearch={enableQuerySearch}

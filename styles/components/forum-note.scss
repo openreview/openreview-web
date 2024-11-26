@@ -90,6 +90,13 @@
         padding-right: 2px;
       }
     }
+    li.expired {
+      background-color: rgba(0, 0, 0, 0.05);
+      text-decoration: line-through;
+      > a {
+        color: gray;
+      }
+    }
   }
 
   ul.note-content {

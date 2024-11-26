@@ -14,7 +14,7 @@ const IEEECopyrightForm = ({ note, isV2Note }) => {
   const { showIEEECopyright, IEEEPublicationTitle, IEEEArtSourceCode } =
     useContext(WebFieldContext)
   const { user } = useUser()
-  const noteContent = isV2Note ? getNoteContentValues(note) : note.content
+  const noteContent = isV2Note ? getNoteContentValues(note.content) : note.content
 
   if (showIEEECopyright && IEEEPublicationTitle && IEEEArtSourceCode) {
     return (
@@ -55,7 +55,7 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
     ? decision?.content?.decision?.value
     : decision?.content?.decision
   const isAcceptedPaper = isV2Note
-    ? note.content?.venue?.value?.toLowerCase()?.includes('accept')
+    ? note.content?.venueid?.value === venueId
     : decisionContent?.toLowerCase()?.includes('accept')
 
   if (!decision) {
@@ -213,7 +213,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
 
   const getACSACEmail = async (preferredName, profileId) => {
     if (!preferredEmailInvitationId) {
-      promptError('Email is not available.')
+      promptError('Email is not available.', { scrollToTop: false })
       return
     }
     try {
@@ -224,9 +224,9 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
       copy(`${preferredName} <${email}>`)
-      promptMessage(`${email} copied to clipboard`)
+      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
     } catch (error) {
-      promptError(error.message)
+      promptError(error.message, { scrollToTop: false })
     }
   }
 

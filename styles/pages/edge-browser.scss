@@ -191,14 +191,39 @@ main.edge-browser {
           cursor: no-drop;
         }
       }
+      .edit-edge-textbox {
+        width: 15%;
+        padding-left: 0.5rem;
+
+        .edit-edge-input {
+          font-size: 0.75rem;
+          padding: 3px 5px;
+          height: fit-content;
+
+          &:disabled {
+            cursor: no-drop;
+          }
+        }
+      }
+      .edit-edge-spinner {
+        display: inline-flex;
+        vertical-align: middle;
+
+        .spinner-small {
+          height: 100%;
+          display: inline-block;
+          width: 40px;
+          & > div {
+            background-color: constants.$orRed;
+          }
+        }
+      }
       .span-disabled {
         pointer-events: none;
       }
     }
-    .scores-list,
-    .action-links {
+    .scores-list {
       float: left;
-      width: 50%;
     }
     .action-links {
       float: right;
@@ -608,7 +633,7 @@ main.edge-browser {
     .action-links ul,
     .scores-list ul {
       li {
-        white-space: nowrap;
+        white-space: wrap;
       }
       li > a {
         font-size: 0.75rem;

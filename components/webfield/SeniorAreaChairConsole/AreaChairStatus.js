@@ -12,6 +12,30 @@ import { getNoteContentValues } from '../../../lib/forum-utils'
 import { pluralizeString, prettyField, getRoleHashFragment } from '../../../lib/utils'
 import api from '../../../lib/api-client'
 
+const SelectAllCheckBox = ({
+  selectedAreaChairIds,
+  setSelectedAreaChairIds,
+  allAreaChairIds,
+}) => {
+  const allAreaChairsSelected = selectedAreaChairIds.length === allAreaChairIds?.length
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedAreaChairIds(allAreaChairIds)
+      return
+    }
+    setSelectedAreaChairIds([])
+  }
+  return (
+    <input
+      type="checkbox"
+      id="select-all-papers"
+      checked={allAreaChairsSelected}
+      onChange={handleSelectAll}
+    />
+  )
+}
+
 const CommitteeSummary = ({ rowData }) => {
   const { id, preferredName, title } = rowData.areaChairProfile ?? {}
   const { edgeBrowserDeployedUrl, reviewerName, preferredEmailInvitationId } =
@@ -20,7 +44,7 @@ const CommitteeSummary = ({ rowData }) => {
 
   const getACEmail = async () => {
     if (!preferredEmailInvitationId) {
-      promptError('Email is not available.')
+      promptError('Email is not available.', { scrollToTop: false })
       return
     }
     try {
@@ -31,9 +55,9 @@ const CommitteeSummary = ({ rowData }) => {
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
       copy(`${preferredName} <${email}>`)
-      promptMessage(`${email} copied to clipboard`)
+      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
     } catch (error) {
-      promptError(error.message)
+      promptError(error.message, { scrollToTop: false })
     }
   }
 
@@ -196,8 +220,28 @@ const AreaChairStatusRow = ({
   referrerUrl,
   submissionName,
   officialMetaReviewName,
+  selectedAreaChairIds,
+  setSelectedAreaChairIds,
 }) => (
   <tr>
+    <td>
+      <input
+        type="checkbox"
+        checked={selectedAreaChairIds.includes(rowData.areaChairProfileId)}
+        onChange={(e) => {
+          if (e.target.checked) {
+            setSelectedAreaChairIds((areaChairIds) => [
+              ...areaChairIds,
+              rowData.areaChairProfileId,
+            ])
+            return
+          }
+          setSelectedAreaChairIds((areaChairIds) =>
+            areaChairIds.filter((p) => p !== rowData.areaChairProfileId)
+          )
+        }}
+      />
+    </td>
     <td>
       <strong>{rowData.number}</strong>
     </td>
@@ -232,6 +276,7 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
   const [totalCount, setTotalCount] = useState(
     sacConsoleData.assignedAreaChairIds?.length ?? 0
   )
+  const [selectedAreaChairIds, setSelectedAreaChairIds] = useState([])
   const pageSize = 25
   const areaChairUrlFormat = getRoleHashFragment(areaChairName)
   const referrerUrl = encodeURIComponent(
@@ -349,10 +394,25 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
         recommendationEnabled={false}
         messageParentGroup={`${venueId}/${areaChairName}`}
         messageSignature={user?.profile?.id}
+        selectedAreaChairIds={selectedAreaChairIds}
+        setSelectedAreaChairIds={setSelectedAreaChairIds}
       />
       <Table
         className="console-table table-striped pc-console-ac-sac-status"
         headings={[
+          {
+            id: 'select-all',
+            content: (
+              <SelectAllCheckBox
+                selectedAreaChairIds={selectedAreaChairIds}
+                setSelectedAreaChairIds={setSelectedAreaChairIds}
+                allAreaChairIds={areaChairStatusTabData.tableRows?.map(
+                  (row) => row.areaChairProfileId
+                )}
+              />
+            ),
+            width: '35px',
+          },
           { id: 'number', content: '#', width: '55px' },
           { id: 'areachair', content: prettyField(areaChairName), width: '10%' },
           { id: 'reviewProgress', content: `${prettyField(officialReviewName)} Progress` },
@@ -366,6 +426,8 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
             referrerUrl={referrerUrl}
             submissionName={submissionName}
             officialMetaReviewName={officialMetaReviewName}
+            selectedAreaChairIds={selectedAreaChairIds}
+            setSelectedAreaChairIds={setSelectedAreaChairIds}
           />
         ))}
       </Table>
