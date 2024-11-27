@@ -9,7 +9,7 @@ import { upperFirst } from 'lodash'
 import ProfileViewSection from '../../components/profile/ProfileViewSection'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import LimitedStatusAlert from '../../components/profile/LimitedStateAlert'
-import RecentPublications from '../../components/profile/RecentPublications'
+import ProfilePublications from '../../components/profile/ProfilePublications'
 import Icon from '../../components/Icon'
 import withError from '../../components/withError'
 import useUser from '../../hooks/useUser'
@@ -180,8 +180,8 @@ const Profile = ({ profile, publicProfile, appContext }) => {
         </div>
 
         <aside className="col-md-12 col-lg-4">
-          <ProfileViewSection name="publications" title="Recent Publications">
-            <RecentPublications
+          <ProfileViewSection name="publications" title="Publications">
+            <ProfilePublications
               profileId={profile.preferredId}
               publications={publications}
               count={count}
@@ -240,17 +240,17 @@ Profile.getInitialProps = async (ctx) => {
   if (!profile) {
     return {
       statusCode: 404,
-      message: `The user ${
+      message: `The profile ${
         profileQuery.id || profileQuery.email
-      } has not set up an OpenReview profile yet`,
+      } does not exist or it's not public`,
     }
   }
   if (!profile.active && !isSuperUser(user)) {
     return {
       statusCode: 400,
-      message: `The user ${
+      message: `The profile ${
         profileQuery.id || profileQuery.email
-      } does not have an active OpenReview profile`,
+      } is not active`,
     }
   }
 
