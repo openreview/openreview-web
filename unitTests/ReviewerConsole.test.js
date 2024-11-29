@@ -11,10 +11,12 @@ let noteReviewStatusProps
 
 jest.mock('next/router', () => ({
   useRouter: () => ({
-    replace: (params) => {
+    replace: jest.fn((params) => {
       routerParams = params
-      return jest.fn()
-    },
+      return {
+        catch: jest.fn(),
+      }
+    }),
   }),
 }))
 jest.mock('../hooks/useUser', () => () => useUserReturnValue)
