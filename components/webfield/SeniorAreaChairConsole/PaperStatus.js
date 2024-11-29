@@ -62,12 +62,12 @@ const PaperRow = ({
   const getManualAssignmentUrl = (role, roleId) => {
     if (!assignmentUrls) return null
     const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
-    // auto
-    const isAssignmentConfigDeployed = assignmentInvitations?.some((p) =>
-      p.id.startsWith(roleId)
+    // auto - deployed and not expired
+    const isAssignmentConfigDeployed = assignmentInvitations?.some(
+      (p) => p.id.startsWith(roleId) && (!p.expdate || p.exdate > Date.now())
     )
-    // manual
-    const isMatchingSetup = isAssignmentConfigDeployed
+    // manual - there's no undeploy
+    const isMatchingSetup = assignmentInvitations?.some((p) => p.id.startsWith(roleId))
 
     if (
       (assignmentUrls[role]?.automaticAssignment === false && isMatchingSetup) ||
