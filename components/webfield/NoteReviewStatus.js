@@ -168,9 +168,7 @@ Click on the link below to go to the ${prettyField(
       localStorage.setItem(`${forumUrl}|${reviewer.reviewerProfileId}`, Date.now())
       setUpdateLastSent((p) => !p)
       $(`#reviewer-reminder-${reviewer.anonymousId}`).modal('hide')
-      promptMessage(`A reminder email has been sent to ${reviewer.preferredName}`, {
-        scrollToTop: false,
-      })
+      promptMessage(`A reminder email has been sent to ${reviewer.preferredName}`)
     } catch (apiError) {
       setError(apiError.message)
     }
@@ -256,7 +254,7 @@ export const AcPcConsoleReviewerStatusRow = ({
   }
   const getReviewerEmail = async () => {
     if (!preferredEmailInvitationId) {
-      promptError('Email is not available.', { scrollToTop: false })
+      promptError('Email is not available.')
       return
     }
     try {
@@ -267,9 +265,9 @@ export const AcPcConsoleReviewerStatusRow = ({
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
       copy(`${reviewer.preferredName} <${email}>`)
-      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+      promptMessage(`${email} copied to clipboard`)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
   }
   return (

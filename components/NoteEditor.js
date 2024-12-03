@@ -174,9 +174,7 @@ const NoteEditor = ({
   const useCheckboxWidget = true
 
   const displayError =
-    typeof setErrorAlertMessage === 'function'
-      ? setErrorAlertMessage
-      : (p) => promptError(p, { scrollToTop: false })
+    typeof setErrorAlertMessage === 'function' ? setErrorAlertMessage : (p) => promptError(p)
 
   const saveDraft = useCallback(
     throttle((fieldName, value) => {
@@ -457,7 +455,7 @@ const NoteEditor = ({
     const invitationEditReaderValues =
       invitation.edit.readers?.param?.enum ??
       invitation.edit.readers?.param?.items?.map((p) =>
-        p.value ?? p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
+        (p.value ?? p.prefix?.endsWith('*')) ? p.prefix : `${p.prefix}.*`
       )
 
     return addMissingReaders(
