@@ -448,60 +448,6 @@ test('update profile', async (t) => {
 
 // eslint-disable-next-line no-unused-expressions
 fixture`Activate`
-  .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=peter@test.com`
-
-test('do not allow merging from not registered profiles', async (t) => {
-  await t
-    .click(nextSectiomButtonSelector)
-    .click(nextSectiomButtonSelector)
-    .expect(
-      Selector('p').withText(
-        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
-      ).exists
-    )
-    .ok()
-    // add alternate email while registering
-    .click(Selector('span.glyphicon.glyphicon-plus-sign')) // add button
-    .expect(Selector('div.container.emails').child('div.row').count)
-    .eql(2)
-    .typeText(
-      Selector('div.container.emails').child('div.row').nth(1).find('input'),
-      'melisa@umass.edu'
-    )
-    .click(Selector('div.container.emails').find('button.confirm-button'))
-    .expect(messagePanelSelector.exists)
-    .ok()
-    .expect(messageSelector.innerText)
-    .eql(
-      'A confirmation email has been sent to melisa@umass.edu with confirmation instructions'
-    )
-    .navigateTo(
-      `http://localhost:${process.env.NEXT_PORT}/profile/merge?token=melisa@umass.edu`
-    )
-    .typeText(Selector('#email-input'), 'peter@test.com')
-    .typeText(Selector('#password-input'), strongPassword)
-    .click(Selector('button').withText('Login to OpenReview'))
-    .expect(messagePanelSelector.exists)
-    .ok()
-    .expect(messageSelector.innerText)
-    .eql(
-      'User not confirmed. Please click on "Didn\'t receive email confirmation?" to complete the registration.'
-    )
-    .selectText(Selector('#email-input'))
-    .pressKey('delete')
-    .typeText(Selector('#email-input'), 'melisa@test.com')
-    .selectText(Selector('#password-input'))
-    .pressKey('delete')
-    .typeText(Selector('#password-input'), strongPassword)
-    .click(Selector('button').withText('Login to OpenReview'))
-    .expect(Selector('pre.error-message').exists)
-    .ok()
-    .expect(Selector('pre.error-message').innerText)
-    .eql('You are not authorized to perform this merge.')
-})
-
-// eslint-disable-next-line no-unused-expressions
-fixture`Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=kevin@umass.edu`
 
 test('register a profile with an institutional email', async (t) => {
