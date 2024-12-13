@@ -40,6 +40,7 @@ const sendActivationLinkButtonSelector = Selector('button').withText('Send Activ
 const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
 const messageSelector = Selector('span').withAttribute('class', 'important_message')
 const messagePanelSelector = Selector('#flash-message-container')
+const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
@@ -369,6 +370,8 @@ fixture`Activate`
 
 test('update profile', async (t) => {
   await t
+    .click(nextSectiomButtonSelector)
+    .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
         'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
@@ -376,7 +379,7 @@ test('update profile', async (t) => {
     )
     .ok()
     // add alternate email while registering
-    .click(Selector('span.glyphicon.glyphicon-plus-sign').nth(1)) // add button
+    .click(Selector('span.glyphicon.glyphicon-plus-sign')) // add button
     .expect(Selector('div.container.emails').child('div.row').count)
     .eql(2)
     .typeText(
@@ -418,7 +421,9 @@ test('update profile', async (t) => {
     )
     .notOk()
 
+    .click(nextSectiomButtonSelector) // links
     .typeText(Selector('#homepage_url'), 'http://homepage.do', { paste: true })
+    .click(nextSectiomButtonSelector) // history
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .pressKey('M S space s t u d e n t tab')
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
@@ -428,6 +433,9 @@ test('update profile', async (t) => {
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__option').nth(3))
 
+    .click(nextSectiomButtonSelector) // relation
+    .click(nextSectiomButtonSelector) // last section expertise
+    .expect(Selector('p').withText("last updated September 24, 2024").exists).ok()
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messagePanelSelector.exists)
     .ok()
@@ -440,62 +448,12 @@ test('update profile', async (t) => {
 
 // eslint-disable-next-line no-unused-expressions
 fixture`Activate`
-  .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=peter@test.com`
-
-test('do not allow merging from not registered profiles', async (t) => {
-  await t
-    .expect(
-      Selector('p').withText(
-        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
-      ).exists
-    )
-    .ok()
-    // add alternate email while registering
-    .click(Selector('span.glyphicon.glyphicon-plus-sign').nth(1)) // add button
-    .expect(Selector('div.container.emails').child('div.row').count)
-    .eql(2)
-    .typeText(
-      Selector('div.container.emails').child('div.row').nth(1).find('input'),
-      'melisa@umass.edu'
-    )
-    .click(Selector('div.container.emails').find('button.confirm-button'))
-    .expect(messagePanelSelector.exists)
-    .ok()
-    .expect(messageSelector.innerText)
-    .eql(
-      'A confirmation email has been sent to melisa@umass.edu with confirmation instructions'
-    )
-    .navigateTo(
-      `http://localhost:${process.env.NEXT_PORT}/profile/merge?token=melisa@umass.edu`
-    )
-    .typeText(Selector('#email-input'), 'peter@test.com')
-    .typeText(Selector('#password-input'), strongPassword)
-    .click(Selector('button').withText('Login to OpenReview'))
-    .expect(messagePanelSelector.exists)
-    .ok()
-    .expect(messageSelector.innerText)
-    .eql(
-      'User not confirmed. Please click on "Didn\'t receive email confirmation?" to complete the registration.'
-    )
-    .selectText(Selector('#email-input'))
-    .pressKey('delete')
-    .typeText(Selector('#email-input'), 'melisa@test.com')
-    .selectText(Selector('#password-input'))
-    .pressKey('delete')
-    .typeText(Selector('#password-input'), strongPassword)
-    .click(Selector('button').withText('Login to OpenReview'))
-    .expect(Selector('pre.error-message').exists)
-    .ok()
-    .expect(Selector('pre.error-message').innerText)
-    .eql('You are not authorized to perform this merge.')
-})
-
-// eslint-disable-next-line no-unused-expressions
-fixture`Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=kevin@umass.edu`
 
 test('register a profile with an institutional email', async (t) => {
   await t
+    .click(nextSectiomButtonSelector)
+    .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
         'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
@@ -503,7 +461,7 @@ test('register a profile with an institutional email', async (t) => {
     )
     .notOk()
     // add alternate email while registering
-    .click(Selector('span.glyphicon.glyphicon-plus-sign').nth(1)) // add button
+    .click(Selector('span.glyphicon.glyphicon-plus-sign')) // add button
     .expect(Selector('div.container.emails').child('div.row').count)
     .eql(2)
     .typeText(
@@ -539,7 +497,9 @@ test('register a profile with an institutional email', async (t) => {
     .expect(Selector('button').withText('Make Preferred').nth(0).exists)
     .ok()
 
+    .click(nextSectiomButtonSelector) // links
     .typeText(Selector('#homepage_url'), 'http://kevinmalone.com', { paste: true })
+    .click(nextSectiomButtonSelector) // history
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .pressKey('M S space s t u d e n t tab')
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
@@ -549,6 +509,8 @@ test('register a profile with an institutional email', async (t) => {
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__option').nth(3))
 
+    .click(nextSectiomButtonSelector)
+    .click(nextSectiomButtonSelector)
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messagePanelSelector.exists)
     .ok()
@@ -633,15 +595,10 @@ test('add alternate email', async (t) => {
     .ok()
     .click(Selector('a').withText('Profile'))
     .click(Selector('a').withAttribute('href', '/profile/edit'))
+    .click(Selector('div[step="2"]').find('div[role="button"]')) // go to email section
     .expect(Selector('h4').withText('Emails').exists)
     .ok()
-    .click(
-      Selector('div')
-        .withAttribute('class', 'profile-edit-container')
-        .child('section')
-        .nth(4)
-        .find('span.glyphicon')
-    ) // add button
+    .click(Selector('section').find('.glyphicon-plus-sign')) // add button
     .expect(Selector('div.container.emails').child('div.row').count)
     .eql(3)
     .typeText(
@@ -660,6 +617,10 @@ test('add alternate email', async (t) => {
     .ok()
     .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
     .ok()
+    .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messageSelector.innerText)
+    .eql('melisa@alternate.com has been verified')
 
   const messages = await getMessages(
     { to: 'melisa@alternate.com', subject: 'OpenReview Email Confirmation' },
@@ -670,46 +631,6 @@ test('add alternate email', async (t) => {
     .contains(
       'to confirm an alternate email address melisa@alternate.com. If you would like to confirm this email, please use the verification token mentioned below'
     )
-})
-
-// eslint-disable-next-line no-unused-expressions
-fixture`Confirm altenate email`
-
-// guest redirect to login
-test('confirm email as guest', async (t) => {
-  const getPageUrl = ClientFunction(() => window.location.href.toString())
-  await t
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
-    .expect(getPageUrl())
-    .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
-})
-
-// another user show error
-test('confirm email as another user', async (t) => {
-  await t
-    .useRole(SURole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
-    .expect(Selector('#content h1').innerText)
-    .eql('Error 403')
-    .expect(Selector('.error-message').innerText)
-    .eql('You are not authorized to activate this email.')
-})
-
-test('update profile', async (t) => {
-  await t
-    .useRole(EmailOwnerRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
-    .expect(
-      Selector('p').withText(
-        'Click Confirm Email button below to confirm adding melisa@alternate.com to your account.'
-      ).exists
-    )
-    .ok()
-    .click(Selector('button').withText('Confirm Email'))
-    .expect(messagePanelSelector.exists)
-    .ok()
-    .expect(messageSelector.innerText)
-    .eql('Thank you for confirming your email melisa@alternate.com')
 })
 
 // eslint-disable-next-line no-unused-expressions

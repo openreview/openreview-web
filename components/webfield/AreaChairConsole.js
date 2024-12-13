@@ -182,7 +182,7 @@ const AreaChairConsole = ({ appContext }) => {
   const [acConsoleData, setAcConsoleData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || `#assigned-${pluralizeString(submissionName)}`
+    decodeURIComponent(window.location.hash) || `#assigned-${pluralizeString(submissionName)}`
   )
   const [sacLinkText, setSacLinkText] = useState('')
 
@@ -340,7 +340,7 @@ const AreaChairConsole = ({ appContext }) => {
                     (t.id === r || t.members[0] === r)
                 )
                 return {
-                  anonymizedGroup: anonymousReviewerGroup?.id,
+                  anonymizedGroup: anonymousReviewerGroup?.id ?? r,
                   anonymousId: getIndentifierFromGroup(
                     anonymousReviewerGroup?.id || r,
                     anonReviewerName
