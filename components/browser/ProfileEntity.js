@@ -33,7 +33,7 @@ export default function ProfileEntity(props) {
     ignoreHeadBrowseInvitations,
     version,
   } = useContext(EdgeBrowserContext)
-  const { user, accessToken } = useContext(UserContext)
+  const { user, accessToken } = useContext(UserContext) ?? {}
   const query = useQuery()
 
   if (!props.profile || !props.profile.content) {

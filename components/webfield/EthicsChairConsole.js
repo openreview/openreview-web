@@ -28,7 +28,7 @@ const EthicsChairConsole = ({ appContext }) => {
     ethicsMetaReviewName,
     preferredEmailInvitationId,
   } = useContext(WebFieldContext)
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
   const router = useRouter()
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(

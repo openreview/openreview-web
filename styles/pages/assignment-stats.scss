@@ -1,4 +1,5 @@
 @use '../utils/constants';
+@use 'sass:color';
 
 main.assignment-stats {
   header {
@@ -46,7 +47,7 @@ main.assignment-stats {
       cursor: pointer;
 
       &:hover {
-        fill: lighten(constants.$mediumBlue, 20%);
+        fill: color.adjust(constants.$mediumBlue, $lightness: 20%);
       }
     }
   }

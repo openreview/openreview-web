@@ -18,7 +18,7 @@ const GroupInfo = ({ appContext }) => {
   const [error, setError] = useState(null)
   const [group, setGroup] = useState(null)
   const router = useRouter()
-  const { setBannerHidden, setEditBanner } = appContext
+  const { setBannerHidden, setEditBanner } = appContext ?? {}
 
   const loadGroup = async (id) => {
     try {

@@ -17,7 +17,7 @@ export default function DblpPublicationTable({
   orPublicationsImportedByOtherProfile,
   maxNumberofPublicationsToImport,
 }) {
-  const { accessToken } = useContext(UserContext)
+  const { accessToken } = useContext(UserContext) ?? {}
   const [profileIdsRequested, setProfileIdsRequested] = useState([])
   const pubsCouldNotImport = [] // either existing or associated with other profile
   const pubsCouldImport = []
@@ -213,7 +213,7 @@ const DblpPublicationRow = ({
   profileIdsRequested,
   setProfileIdsRequested,
 }) => {
-  const { accessToken, user } = useContext(UserContext)
+  const { accessToken, user } = useContext(UserContext) ?? {}
   const [error, setError] = useState(null)
   const [profileMergeStatus, setProfileMergeStatus] = useState(null)
   const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`

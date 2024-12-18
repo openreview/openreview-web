@@ -7,7 +7,7 @@ import api from '../lib/api-client'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const Logout = () => {
-  const { user, userLoading, logoutUser } = useContext(UserContext)
+  const { user, userLoading, logoutUser } = useContext(UserContext) ?? {}
   const router = useRouter()
 
   const performLogout = async () => {

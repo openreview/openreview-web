@@ -320,7 +320,7 @@ const AuthorConsole = ({ appContext }) => {
   const { user, userLoading, accessToken } = useUser()
   const router = useRouter()
   const query = useQuery()
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
   const [showTasks, setShowTasks] = useState(false)
   const [authorNotes, setAuthorNotes] = useState(null)
   const [profileMap, setProfileMap] = useState(null)

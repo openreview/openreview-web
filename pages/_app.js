@@ -18,6 +18,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import '../styles/global.scss'
 import '../styles/components.scss'
 import '../styles/pages.scss'
+import { StoreProvider } from '../storeProvider'
 
 export default class OpenReviewApp extends App {
   constructor(props) {
@@ -25,10 +26,10 @@ export default class OpenReviewApp extends App {
 
     this.state = {
       user: null,
-      accessToken: null,
-      userLoading: true,
+      // accessToken: null,
+      userLoading: false, // true,
       unreadNotifications: 0,
-      clientJsLoading: true,
+      clientJsLoading: false, // true,
       logoutRedirect: false,
       bannerHidden: false,
       bannerContent: null,
@@ -40,11 +41,11 @@ export default class OpenReviewApp extends App {
     this.shouldResetLayout = false
     this.refreshTimer = null
 
-    this.loginUser = this.loginUser.bind(this)
-    this.loginUserWithToken = this.loginUserWithToken.bind(this)
-    this.logoutUser = this.logoutUser.bind(this)
+    // this.loginUser = this.loginUser.bind(this)
+    // this.loginUserWithToken = this.loginUserWithToken.bind(this)
+    // this.logoutUser = this.logoutUser.bind(this)
     this.updateUserName = this.updateUserName.bind(this)
-    this.setUnreadNotificationCount = this.setUnreadNotificationCount.bind(this)
+    // this.setUnreadNotificationCount = this.setUnreadNotificationCount.bind(this)
     this.decrementNotificationCount = this.decrementNotificationCount.bind(this)
     this.setBannerHidden = this.setBannerHidden.bind(this)
     this.setBannerContent = this.setBannerContent.bind(this)
@@ -54,105 +55,105 @@ export default class OpenReviewApp extends App {
     this.onRouteChangeComplete = this.onRouteChangeComplete.bind(this)
   }
 
-  loginUser(authenticatedUser, userAccessToken, redirectPath = '/') {
-    this.setState({
-      user: authenticatedUser,
-      accessToken: userAccessToken,
-      logoutRedirect: false,
-    })
+  // loginUser(authenticatedUser, userAccessToken, redirectPath = '/') {
+  //   this.setState({
+  //     user: authenticatedUser,
+  //     accessToken: userAccessToken,
+  //     logoutRedirect: false,
+  //   })
 
-    // Need pass new accessToken to Webfield so legacy ajax functions work
-    window.Webfield.setToken(userAccessToken)
-    window.Webfield2.setToken(userAccessToken)
+  //   // Need pass new accessToken to Webfield so legacy ajax functions work
+  //   window.Webfield.setToken(userAccessToken)
+  //   window.Webfield2.setToken(userAccessToken)
 
-    if (authenticatedUser.id !== process.env.SUPER_USER) {
-      this.loadUnreadNotificationCount(authenticatedUser.profile.emails?.[0], userAccessToken)
-    }
+  //   if (authenticatedUser.id !== process.env.SUPER_USER) {
+  //     this.loadUnreadNotificationCount(authenticatedUser.profile.emails?.[0], userAccessToken)
+  //   }
 
-    // Automatically refresh the accessToken 1m before it's set to expire.
-    // Add randomness to prevent all open tabs from refreshing at the same time.
-    const timeToExpiration = cookieExpiration - 60000 - random(0, 300) * 100
-    this.refreshTimer = setTimeout(() => {
-      this.refreshToken()
-    }, timeToExpiration)
+  //   // Automatically refresh the accessToken 1m before it's set to expire.
+  //   // Add randomness to prevent all open tabs from refreshing at the same time.
+  //   const timeToExpiration = cookieExpiration - 60000 - random(0, 300) * 100
+  //   this.refreshTimer = setTimeout(() => {
+  //     this.refreshToken()
+  //   }, timeToExpiration)
 
-    // Set flag for token refresh
-    window.localStorage.setItem('openreview.lastLogin', Date.now())
+  //   // Set flag for token refresh
+  //   window.localStorage.setItem('openreview.lastLogin', Date.now())
 
-    if (redirectPath) {
-      Router.push(redirectPath)
-    }
-  }
+  //   if (redirectPath) {
+  //     Router.push(redirectPath)
+  //   }
+  // }
 
-  loginUserWithToken(userAccessToken, setCookie = true) {
-    const { user: authenticatedUser, expiration: tokenExpiration } =
-      getTokenPayload(userAccessToken)
-    if (!authenticatedUser) return
+  // loginUserWithToken(userAccessToken, setCookie = true) {
+  //   const { user: authenticatedUser, expiration: tokenExpiration } =
+  //     getTokenPayload(userAccessToken)
+  //   if (!authenticatedUser) return
 
-    this.setState({
-      user: authenticatedUser,
-      accessToken: userAccessToken,
-      logoutRedirect: false,
-    })
+  //   this.setState({
+  //     user: authenticatedUser,
+  //     accessToken: userAccessToken,
+  //     logoutRedirect: false,
+  //   })
 
-    if (!setCookie) return
+  //   if (!setCookie) return
 
-    // Need pass new accessToken to Webfield so legacy ajax functions work
-    window.Webfield.setToken(userAccessToken)
-    window.Webfield2.setToken(userAccessToken)
+  //   // Need pass new accessToken to Webfield so legacy ajax functions work
+  //   window.Webfield.setToken(userAccessToken)
+  //   window.Webfield2.setToken(userAccessToken)
 
-    const timeToExpiration = tokenExpiration * 1000 - Date.now() - 60000
-    this.refreshTimer = setTimeout(() => {
-      this.refreshToken()
-    }, timeToExpiration)
-  }
+  //   const timeToExpiration = tokenExpiration * 1000 - Date.now() - 60000
+  //   this.refreshTimer = setTimeout(() => {
+  //     this.refreshToken()
+  //   }, timeToExpiration)
+  // }
 
-  logoutUser(redirectPath = '/') {
-    window.Webfield.setToken(null)
-    window.Webfield2.setToken(null)
+  // logoutUser(redirectPath = '/') {
+  //   window.Webfield.setToken(null)
+  //   window.Webfield2.setToken(null)
 
-    this.setState({
-      user: null,
-      accessToken: null,
-      logoutRedirect: !!redirectPath,
-    })
+  //   this.setState({
+  //     user: null,
+  //     accessToken: null,
+  //     logoutRedirect: !!redirectPath,
+  //   })
 
-    clearTimeout(this.refreshTimer)
+  //   clearTimeout(this.refreshTimer)
 
-    window.localStorage.removeItem('openreview.lastLogin')
+  //   window.localStorage.removeItem('openreview.lastLogin')
 
-    if (redirectPath) {
-      Router.push(redirectPath)
-    }
-  }
+  //   if (redirectPath) {
+  //     Router.push(redirectPath)
+  //   }
+  // }
 
-  async refreshToken() {
-    try {
-      const { token, user } = await api.post('/refreshToken')
-      this.loginUser(user, token, null)
-    } catch (error) {
-      if (error.name === 'TokenExpiredError' || error.name === 'MissingTokenError') {
-        this.logoutUser(null)
-      } else {
-        Router.reload()
-      }
-    }
-  }
+  // async refreshToken() {
+  //   try {
+  //     const { token, user } = await api.post('/refreshToken')
+  //     this.loginUser(user, token, null)
+  //   } catch (error) {
+  //     if (error.name === 'TokenExpiredError' || error.name === 'MissingTokenError') {
+  //       this.logoutUser(null)
+  //     } else {
+  //       Router.reload()
+  //     }
+  //   }
+  // }
 
-  static async attemptRefresh() {
-    try {
-      const { token, user } = await api.post('/refreshToken')
-      const expiration = Date.now() + cookieExpiration
-      return { user, token, expiration }
-    } catch (error) {
-      window.Webfield.setToken(null)
-      window.Webfield2.setToken(null)
-      window.localStorage.removeItem('openreview.lastLogin')
-      clearTimeout(this.refreshTimer)
+  // static async attemptRefresh() {
+  //   try {
+  //     const { token, user } = await api.post('/refreshToken')
+  //     const expiration = Date.now() + cookieExpiration
+  //     return { user, token, expiration }
+  //   } catch (error) {
+  //     window.Webfield.setToken(null)
+  //     window.Webfield2.setToken(null)
+  //     window.localStorage.removeItem('openreview.lastLogin')
+  //     clearTimeout(this.refreshTimer)
 
-      return { user: null, accessToken: null }
-    }
-  }
+  //     return { user: null, accessToken: null }
+  //   }
+  // }
 
   async loadUnreadNotificationCount(userEmail, accessToken) {
     if (!userEmail || !accessToken) return
@@ -169,9 +170,9 @@ export default class OpenReviewApp extends App {
     }
   }
 
-  setUnreadNotificationCount(count) {
-    this.setState({ unreadNotifications: count })
-  }
+  // setUnreadNotificationCount(count) {
+  //   this.setState({ unreadNotifications: count })
+  // }
 
   decrementNotificationCount(num = 1) {
     this.setState((state, props) => ({
@@ -318,64 +319,60 @@ export default class OpenReviewApp extends App {
     }
 
     const setUserState = ({ user, token, expiration }) => {
-      if (!user) {
-        this.setState({ userLoading: false })
-        return
-      }
-
-      this.setState({ user, accessToken: token, userLoading: false })
-
-      window.Webfield.setToken(token)
-      window.Webfield2.setToken(token)
-
-      if (user.id !== process.env.SUPER_USER) {
-        this.loadUnreadNotificationCount(user.profile.emails[0], token)
-      }
-
+      //   if (!user) {
+      //     this.setState({ userLoading: false })
+      //     return
+      //   }
+      //   this.setState({ user, accessToken: token, userLoading: false })
+      //   window.Webfield.setToken(token)
+      //   window.Webfield2.setToken(token)
+      //   if (user.id !== process.env.SUPER_USER) {
+      //     this.loadUnreadNotificationCount(user.profile.emails[0], token)
+      //   }
       // Automatically refresh the accessToken 1m before it's set to expire.
       // Add randomness to prevent all open tabs from refreshing at the same time.
-      const timeToExpiration = expiration - Date.now() - 60000 - random(0, 300) * 100
-      this.refreshTimer = setTimeout(() => {
-        this.refreshToken()
-      }, timeToExpiration)
+      // const timeToExpiration = expiration - Date.now() - 60000 - random(0, 300) * 100
+      // this.refreshTimer = setTimeout(() => {
+      //   this.refreshToken()
+      // }, timeToExpiration)
     }
 
     // Load user state from auth cookie
-    const authCookieData = auth()
+    // const authCookieData = auth()
 
-    // Access token may be expired, but refresh token is valid for 6 more days
-    const refreshFlag = Number(window.localStorage.getItem('openreview.lastLogin') || 0)
-    if (
-      (!authCookieData.user && refreshFlag && refreshFlag + refreshExpiration > Date.now()) ||
-      (authCookieData.expiration && authCookieData.expiration < Date.now() + 65000)
-    ) {
-      OpenReviewApp.attemptRefresh().then((refreshCookieData) => {
-        setUserState(refreshCookieData)
-        this.setState({ clientJsLoading: false })
-      })
-    } else {
-      setUserState(authCookieData)
-      this.setState({ clientJsLoading: false })
-    }
+    // // Access token may be expired, but refresh token is valid for 6 more days
+    // const refreshFlag = Number(window.localStorage.getItem('openreview.lastLogin') || 0)
+    // if (
+    //   (!authCookieData.user && refreshFlag && refreshFlag + refreshExpiration > Date.now()) ||
+    //   (authCookieData.expiration && authCookieData.expiration < Date.now() + 65000)
+    // ) {
+    //   OpenReviewApp.attemptRefresh().then((refreshCookieData) => {
+    //     setUserState(refreshCookieData)
+    //     this.setState({ clientJsLoading: false })
+    //   })
+    // } else {
+    //   setUserState(authCookieData)
+    //   this.setState({ clientJsLoading: false })
+    // }
 
-    // When the user logs out in another tab, trigger logout for this app
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'openreview.lastLogout') {
-        this.logoutUser(null)
-      }
-    })
+    // // When the user logs out in another tab, trigger logout for this app
+    // window.addEventListener('storage', (e) => {
+    //   if (e.key === 'openreview.lastLogout') {
+    //     this.logoutUser(null)
+    //   }
+    // })
 
     // Make sure that even if the timer is not triggered (for example if the computer was
     // in sleep mode), the token is refreshed
-    window.addEventListener('focus', () => {
-      const cookieData = auth()
-      if (
-        (this.state.user && !cookieData.user) ||
-        (cookieData.expiration && cookieData.expiration < Date.now() + 65000)
-      ) {
-        this.refreshToken()
-      }
-    })
+    // window.addEventListener('focus', () => {
+    //   const cookieData = auth()
+    //   if (
+    //     (this.state.user && !cookieData.user) ||
+    //     (cookieData.expiration && cookieData.expiration < Date.now() + 65000)
+    //   ) {
+    //     this.refreshToken()
+    //   }
+    // })
 
     // Track unhandled JavaScript errors
     const reportError = (errorDescription) => {
@@ -417,13 +414,13 @@ export default class OpenReviewApp extends App {
       user: this.state.user,
       unreadNotifications: this.state.unreadNotifications,
       userLoading: this.state.userLoading,
-      accessToken: this.state.accessToken,
-      loginUser: this.loginUser,
-      loginUserWithToken: this.loginUserWithToken,
-      logoutUser: this.logoutUser,
+      // accessToken: this.state.accessToken,
+      // loginUser: this.loginUser,
+      // loginUserWithToken: this.loginUserWithToken,
+      // logoutUser: this.logoutUser,
       logoutRedirect: this.state.logoutRedirect,
       updateUserName: this.updateUserName,
-      setUnreadNotificationCount: this.setUnreadNotificationCount,
+      // setUnreadNotificationCount: this.setUnreadNotificationCount,
       decrementNotificationCount: this.decrementNotificationCount,
     }
     const appContext = {
@@ -439,7 +436,8 @@ export default class OpenReviewApp extends App {
     }
 
     return (
-      <UserContext.Provider value={userContext}>
+      // <UserContext.Provider value={userContext}>
+      <StoreProvider>
         <Layout
           bodyClass={Component.bodyClass}
           bannerHidden={this.state.bannerHidden}
@@ -450,7 +448,8 @@ export default class OpenReviewApp extends App {
         >
           <Component {...pageProps} appContext={appContext} />
         </Layout>
-      </UserContext.Provider>
+      </StoreProvider>
+      // </UserContext.Provider>
     )
   }
 }

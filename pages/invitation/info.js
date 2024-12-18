@@ -21,7 +21,7 @@ const InvitationInfo = ({ appContext }) => {
   const [error, setError] = useState(null)
   const [invitation, setInvitation] = useState(null)
   const router = useRouter()
-  const { setBannerHidden, setEditBanner } = appContext
+  const { setBannerHidden, setEditBanner } = appContext ?? {}
 
   // eslint-disable-next-line no-shadow
   const getReplyFieldByInvitationType = (invitation) => {

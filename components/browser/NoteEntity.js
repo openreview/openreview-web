@@ -25,7 +25,7 @@ import {
 export default function NoteEntity(props) {
   const { editInvitations, traverseInvitation, availableSignaturesInvitationMap, version } =
     useContext(EdgeBrowserContext)
-  const { user, accessToken } = useContext(UserContext)
+  const { user, accessToken } = useContext(UserContext) ?? {}
 
   if (!props.note || !props.note.content) {
     return null

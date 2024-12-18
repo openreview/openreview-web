@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import { useDispatch } from 'react-redux'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import GroupEditor from '../../components/group/GroupEditor'
@@ -9,6 +10,7 @@ import { prettyId } from '../../lib/utils'
 import { isSuperUser } from '../../lib/auth'
 import { groupModeToggle } from '../../lib/banner-links'
 import useUser from '../../hooks/useUser'
+import { setUser } from '../../rootSlice'
 
 export default function GroupEdit({ appContext }) {
   const { accessToken, userLoading, user } = useUser()
@@ -16,11 +18,16 @@ export default function GroupEdit({ appContext }) {
   const [error, setError] = useState(null)
 
   const router = useRouter()
-  const { setBannerHidden, setEditBanner } = appContext
+  const { setBannerHidden, setEditBanner } = appContext ?? {}
+  const dispatch = useDispatch()
 
   const loadGroup = async (id) => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken })
+      const { groups } = await api.get(
+        '/groups',
+        { id },
+        { accessToken, dispatchUser: (e) => dispatch(setUser(e)) }
+      )
       if (groups?.length > 0) {
         if (groups[0].details?.writable) {
           // Get venue group to pass to pass to webfield component

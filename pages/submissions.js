@@ -18,7 +18,7 @@ const Submissions = ({ group, notes, pagination, appContext }) => {
     htmlLink: false,
     showContents: false,
   }
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
 
   useEffect(() => {
     if (userLoading || !group.host) return

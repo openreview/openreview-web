@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import NavUserLinks from './NavUserLinks'
+import dynamic from 'next/dynamic'
 import AutoCompleteInput from './AutoCompleteInput'
+
+const NavUserLinks = dynamic(() => import('./NavUserLinks'), { ssr: false })
 
 function Nav() {
   const router = useRouter()

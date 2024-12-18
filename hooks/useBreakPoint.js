@@ -18,13 +18,13 @@ const useBreakpoint = (breakpoint) => {
     if (mediaQueryList.addEventListener) {
       mediaQueryList.addEventListener('change', handleMediaChange)
     } else {
-      mediaQueryList.addListener(handleMediaChange)
+      mediaQueryList.addEventListener('change', handleMediaChange)
     }
     return () => {
       if (mediaQueryList.removeEventListener) {
         mediaQueryList.removeEventListener('change', handleMediaChange)
       } else {
-        mediaQueryList.removeListener(handleMediaChange)
+        mediaQueryList.addEventListener(handleMediaChange)
       }
     }
   }, [breakpoint])

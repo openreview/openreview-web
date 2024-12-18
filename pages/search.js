@@ -112,9 +112,9 @@ const Search = ({ appContext }) => {
   const [allSearchResults, setAllSearchResults] = useState(null)
   const [searchResults, setSearchResults] = useState(null)
   const [error, setError] = useState(null)
-  const { accessToken, userLoading } = useContext(UserContext)
+  const { accessToken, userLoading } = useContext(UserContext) ?? {}
   const currentQuery = useRef(null)
-  const { setBannerHidden } = appContext
+  const { setBannerHidden } = appContext ?? {}
   const page = parseInt(query?.page, 10) || 1
   const pageSize = 25
   const displayOptions = {

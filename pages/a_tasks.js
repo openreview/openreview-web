@@ -11,7 +11,7 @@ const Tasks = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
   const [groupedTasks, setGroupedTasks] = useState(null)
   const [error, setError] = useState(null)
-  const { setBannerHidden } = appContext
+  const { setBannerHidden } = appContext ?? {}
 
   useEffect(() => {
     if (!accessToken) return

@@ -1,4 +1,8 @@
 import Head from 'next/head'
+/* eslint-disable camelcase */
+import { Noto_Sans } from 'next/font/google'
+import { useDispatch, useSelector } from 'react-redux'
+import { useEffect } from 'react'
 import Nav from './Nav'
 import Banner from './Banner'
 import EditBanner from './EditBanner'
@@ -7,6 +11,14 @@ import Footer from './Footer'
 import FooterMinimal from './FooterMinimal'
 import FeedbackModal from './FeedbackModal'
 import BibtexModal from './BibtexModal'
+import { refreshToken } from '../rootSlice'
+
+const notoSans = Noto_Sans({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  style: ['normal', 'italic'],
+  display: 'fallback',
+})
 
 export default function Layout({
   children,
@@ -17,8 +29,16 @@ export default function Layout({
   fullWidth,
   minimalFooter,
 }) {
+  const dispatch = useDispatch()
+  const { user } = useSelector((state) => state.root)
+
+  useEffect(() => {
+    if (user || user === null) return
+    dispatch(refreshToken())
+  }, [user])
+
   return (
-    <>
+    <div className={notoSans.className}>
       <Head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -91,6 +111,6 @@ gtag('config', '${process.env.GA_PROPERTY_ID}', {
 
       <FeedbackModal />
       <BibtexModal />
-    </>
+    </div>
   )
 }

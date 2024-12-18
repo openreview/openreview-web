@@ -81,7 +81,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
   const [coAuthors, setCoAuthors] = useState([])
   const { user, userLoading, accessToken } = useUser()
   const router = useRouter()
-  const { setBannerHidden, setEditBanner } = appContext
+  const { setBannerHidden, setEditBanner } = appContext ?? {}
 
   const getCurrentInstitutionInfo = () => {
     const currentHistories = profile?.history?.filter(
@@ -248,9 +248,7 @@ Profile.getInitialProps = async (ctx) => {
   if (!profile.active && !isSuperUser(user)) {
     return {
       statusCode: 400,
-      message: `The profile ${
-        profileQuery.id || profileQuery.email
-      } is not active`,
+      message: `The profile ${profileQuery.id || profileQuery.email} is not active`,
     }
   }
 

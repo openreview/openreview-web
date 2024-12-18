@@ -249,7 +249,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   const [fields, setFields] = useState([])
   const [edgeCounts, setEdgeCounts] = useState(null)
   const [loading, setLoading] = useState(false)
-  const { setBannerHidden } = appContext
+  const { setBannerHidden } = appContext ?? {}
 
   const getPublications = async (profileId) => {
     if (!profileId) {

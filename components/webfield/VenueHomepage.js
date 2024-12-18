@@ -110,7 +110,7 @@ export default function VenueHomepage({ appContext }) {
   const [tabsDisabled, setTabsDisabled] = useState(false)
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const router = useRouter()
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
 
   const renderTab = (tabConfig, tabIndex) => {
     if (!tabConfig) return null

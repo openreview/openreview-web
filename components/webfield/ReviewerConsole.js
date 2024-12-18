@@ -281,7 +281,7 @@ const ReviewerConsole = ({ appContext }) => {
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
   const query = useQuery()
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
   const [enablePaperRanking, setEnablePaperRanking] = useState(true)
   const [activeTabId, setActiveTabId] = useState(

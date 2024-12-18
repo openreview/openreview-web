@@ -1,4 +1,5 @@
 @use '../utils/constants';
+@use 'sass:color';
 
 main.profile {
   width: calc(100% + 100px);
@@ -295,7 +296,7 @@ main.profile {
         }
       }
       .note-private > h4 > a {
-        color: mix(constants.$mediumBlue, gray, 20%);
+        color: color.mix(constants.$mediumBlue, gray, 20%);
       }
       .note-visible-icon {
         font-size: 0.75rem;

@@ -23,7 +23,7 @@ export default function NoteEditorForm({
 }) {
   const [loading, setLoading] = useState(true)
   const containerRef = useRef(null)
-  const { user } = useContext(UserContext)
+  const { user } = useContext(UserContext) ?? {}
 
   const handleEditor = ($editor) => {
     setLoading(false)

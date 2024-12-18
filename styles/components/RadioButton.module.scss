@@ -1,4 +1,5 @@
 @use '../utils/constants';
+@use 'sass:color';
 
 .radioButton {
   max-width: 80%;
@@ -21,7 +22,7 @@
         background-color: #eee;
         font-size: 0.875rem;
         padding: 0.375rem 0.75rem;
-        border: 2px solid lighten(constants.$mediumBlue, 10%);
+        border: 2px solid color.adjust(constants.$mediumBlue, $lightness: 10%);
         border-radius: 0;
         height: auto;
         resize: vertical;

@@ -18,7 +18,7 @@ const Invitation = ({ invitationId, webfieldCode, writable, componentObj, appCon
   const { user, userLoading } = useUser()
   const [WebComponent, setWebComponent] = useState(null)
   const [webComponentProps, setWebComponentProps] = useState({})
-  const { setBannerHidden, setEditBanner, clientJsLoading } = appContext
+  const { setBannerHidden, setEditBanner, clientJsLoading } = appContext ?? {}
   const invitationTitle = prettyId(invitationId)
 
   useEffect(() => {

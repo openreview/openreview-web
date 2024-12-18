@@ -43,7 +43,7 @@ const AssignmentStats = ({ appContext }) => {
   const [error, setError] = useState(null)
   const [labelNames, setLabelNames] = useState({})
   const query = useQuery()
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
 
   const headName = labelNames.headName ?? 'papers'
   const tailName = labelNames.tailName ?? 'users'
