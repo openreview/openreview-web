@@ -249,7 +249,6 @@ const AreaChairConsole = ({ appContext }) => {
   }
 
   const getSACSecondaryACLinkText = async () => {
-    if (!acConsoleData.sacProfiles?.length) return
     const sacRoleLinkText = await getRoleLinkText(
       acConsoleData.sacProfiles,
       prettyField(seniorAreaChairsId?.split('/')?.pop())
@@ -397,7 +396,7 @@ const AreaChairConsole = ({ appContext }) => {
               { accessToken }
             )
             .then((result) => result?.edges?.map((edge) => edge.tail) ?? [])
-        : Promise.resolve(null)
+        : Promise.resolve([])
       // #endregion
 
       // #region get ithenticate edges
