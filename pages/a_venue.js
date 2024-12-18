@@ -40,10 +40,10 @@ function GroupHeading({ year, count }) {
 }
 
 function Venue({ hostGroup, venuesByYear, appContext }) {
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
 
   const descriptionRe = /^ {2}title: ["'](.+)["'], *$/gm
-  const groupDescription = hostGroup.web ? descriptionRe.exec(hostGroup.web)?.[1] ?? '' : ''
+  const groupDescription = hostGroup.web ? (descriptionRe.exec(hostGroup.web)?.[1] ?? '') : ''
 
   useEffect(() => {
     setBannerContent(referrerLink('[All Venues](/venues)'))

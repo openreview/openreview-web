@@ -778,7 +778,7 @@ const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
 
 const SignUp = () => {
   const [signupConfirmation, setSignupConfirmation] = useState(null)
-  const { user, userLoading } = useContext(UserContext)
+  const { user, userLoading } = useContext(UserContext) ?? {}
   const router = useRouter()
 
   // Redirect user to the homepage if not logged in

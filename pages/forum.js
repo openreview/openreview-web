@@ -12,7 +12,7 @@ import { getConferenceName, getJournalName, getIssn } from '../lib/utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 const ForumPage = ({ forumNote, query, appContext }) => {
-  const { clientJsLoading, setBannerContent } = appContext
+  const { clientJsLoading, setBannerContent } = appContext ?? {}
 
   let content
   let noteInvitation

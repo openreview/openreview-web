@@ -14,6 +14,7 @@ import NotificationsTable from '../components/NotificationsTable'
 import PaginationLinks from '../components/PaginationLinks'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
+import useUser from '../hooks/useUser'
 
 export default function Notifications({ appContext }) {
   const { user, accessToken } = useLoginRedirect()
@@ -26,8 +27,8 @@ export default function Notifications({ appContext }) {
   const [error, setError] = useState(null)
   const [shouldRefresh, setShouldRefresh] = useState(false)
   const router = useRouter()
-  const { setUnreadNotificationCount, decrementNotificationCount } = useContext(UserContext)
-  const { setBannerHidden } = appContext
+  // const { decrementNotificationCount } = useContext(UserContext) ?? {}
+  const { setBannerHidden } = appContext ?? {}
   const pageSize = 25
 
   const markViewed = async (messageId) => {
@@ -43,7 +44,7 @@ export default function Notifications({ appContext }) {
         ...unviewedCounts,
         [toEmail]: unviewedCounts[toEmail] - 1,
       })
-      decrementNotificationCount()
+      // decrementNotificationCount()
     } catch (apiError) {
       promptError(apiError.message)
       setMessages(
@@ -69,7 +70,7 @@ export default function Notifications({ appContext }) {
       )
 
       // Decrement notification count
-      decrementNotificationCount(unreadMessageIds.length)
+      // decrementNotificationCount(unreadMessageIds.length)
       setUnviewedCounts({
         ...unviewedCounts,
         [toEmail]: unviewedCounts[toEmail] - unreadMessageIds.length,
@@ -135,7 +136,7 @@ export default function Notifications({ appContext }) {
     )
       .then((counts) => {
         setUnviewedCounts(Object.fromEntries(zip(confirmedEmails, counts)))
-        setUnreadNotificationCount(sum(counts))
+        // setUnreadNotificationCount(sum(counts))
       })
       .catch(() => {
         promptError('Could not load unviewed message count')
@@ -147,7 +148,6 @@ export default function Notifications({ appContext }) {
     if (!accessToken || !toEmail) return
 
     setError(null)
-
     api
       .get(
         '/messages',

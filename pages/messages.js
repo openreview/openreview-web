@@ -115,7 +115,7 @@ const Messages = ({ appContext }) => {
   const [error, setError] = useState(null)
   const page = parseInt(query?.page, 10) || 1
   const pageSize = 25
-  const { setBannerHidden } = appContext
+  const { setBannerHidden } = appContext ?? {}
 
   const loadMessages = async () => {
     let validStatus

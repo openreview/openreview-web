@@ -178,7 +178,7 @@ const AreaChairConsole = ({ appContext }) => {
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
   const query = useQuery()
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
   const [acConsoleData, setAcConsoleData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const [activeTabId, setActiveTabId] = useState(

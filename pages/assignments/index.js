@@ -88,7 +88,9 @@ const AssignmentRow = ({
       <td>{note.tmdate === note.tcdate ? null : formatDateTime(note.tmdate)}</td>
 
       <td>
-        {['Error', 'No Solution', 'Deployment Error', 'Undeployment Error'].includes(status) ? (
+        {['Error', 'No Solution', 'Deployment Error', 'Undeployment Error'].includes(
+          status
+        ) ? (
           <>
             <strong>{status}</strong>
             <br />
@@ -122,9 +124,15 @@ const AssignmentRow = ({
           iconName="pencil"
           onClick={() => handleEditConfiguration(note, apiVersion)}
           disabled={
-            ['Running', 'Complete', 'Deploying', 'Deployed', 'Deployment Error', 'Undeploying', 'Undeployment Error'].includes(
-              status
-            ) || !configInvitation
+            [
+              'Running',
+              'Complete',
+              'Deploying',
+              'Deployed',
+              'Deployment Error',
+              'Undeploying',
+              'Undeployment Error',
+            ].includes(status) || !configInvitation
           }
         />
         <ActionLink
@@ -282,15 +290,17 @@ const Assignments = ({ appContext }) => {
   const [viewModalContent, setViewModalContent] = useState(null)
   const [editorNote, setEditorNote] = useState(null)
   const query = useQuery()
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
   const newNoteEditor = configInvitation?.domain
   const pageSize = 25
 
-  const shouldShowDeployLink = configInvitation?.content?.multiple_deployments?.value || !assignmentNotes?.some((p) =>
-    apiVersion === 2
-      ? p?.content?.status?.value === 'Deployed'
-      : p?.content?.status === 'Deployed'
-  )
+  const shouldShowDeployLink =
+    configInvitation?.content?.multiple_deployments?.value ||
+    !assignmentNotes?.some((p) =>
+      apiVersion === 2
+        ? p?.content?.status?.value === 'Deployed'
+        : p?.content?.status === 'Deployed'
+    )
 
   // API functions
   const getConfigInvitation = async () => {

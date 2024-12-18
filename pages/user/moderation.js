@@ -1583,7 +1583,7 @@ const TabMessageCount = ({ count }) => {
 }
 
 const Moderation = ({ appContext, accessToken, superUser }) => {
-  const { setBannerHidden } = appContext
+  const { setBannerHidden } = appContext ?? {}
   const [nameDeletionRequestCount, setNameDeletionRequestCount] = useState(null)
   const [profileMergeRequestCount, setProfileMergeRequestCount] = useState(null)
   const [pendingVenueRequestCount, setPendingVenueRequestCount] = useState(null)

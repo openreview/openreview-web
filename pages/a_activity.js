@@ -13,7 +13,7 @@ const Activity = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
   const [activityNotes, setActivityNotes] = useState(null)
   const [error, setError] = useState(null)
-  const { setBannerHidden } = appContext
+  const { setBannerHidden } = appContext ?? {}
 
   const loadActivityData = async () => {
     const queryParamV1 = {

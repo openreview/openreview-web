@@ -16,11 +16,11 @@ const ActivateProfile = ({ appContext }) => {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(false)
   const [activateProfileErrors, setActivateProfileErrors] = useState(null)
-  const { loginUser } = useContext(UserContext)
+  const { loginUser } = useContext(UserContext) ?? {}
   const query = useQuery()
   const router = useRouter()
 
-  const { setBannerHidden } = appContext
+  const { setBannerHidden } = appContext ?? {}
 
   const loadActivatableProfile = async (token) => {
     try {

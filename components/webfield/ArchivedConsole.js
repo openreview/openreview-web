@@ -16,7 +16,7 @@ export default function ArchivedConsole({ appContext }) {
     message,
   } = useContext(WebFieldContext)
   const router = useRouter()
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
 
   useEffect(() => {
     // Set referrer banner

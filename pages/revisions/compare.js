@@ -24,7 +24,7 @@ const CompareRevisions = ({ appContext }) => {
   const [error, setError] = useState(null)
   const { accessToken, userLoading } = useLoginRedirect()
   const query = useQuery()
-  const { setBannerContent, setBannerHidden } = appContext
+  const { setBannerContent, setBannerHidden } = appContext ?? {}
 
   const setBanner = async () => {
     try {

@@ -14,7 +14,7 @@ import { prettyId } from '../../lib/utils'
 const InvitationEdit = ({ appContext }) => {
   const router = useRouter()
   const { user, accessToken, userLoading } = useUser()
-  const { setBannerHidden, setEditBanner } = appContext
+  const { setBannerHidden, setEditBanner } = appContext ?? {}
 
   const [error, setError] = useState(null)
   const [invitation, setInvitation] = useState(null)

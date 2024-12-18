@@ -12,7 +12,7 @@ import useTurnstileToken from '../hooks/useTurnstileToken'
 const ResetForm = ({ setEmailSent }) => {
   const [email, setEmail] = useState('')
   const [error, setError] = useState(null)
-  const { user } = useContext(UserContext)
+  const { user } = useContext(UserContext) ?? {}
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('reset')
 
   useEffect(() => {

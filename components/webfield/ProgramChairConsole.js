@@ -86,7 +86,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     preferredEmailInvitationId,
     ithenticateInvitationId,
   } = useContext(WebFieldContext)
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
   const query = useQuery()

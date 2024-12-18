@@ -26,7 +26,7 @@ const EditEdgeInviteEmail = ({
   const [loading, setLoading] = useState(false)
   const { editInvitations, availableSignaturesInvitationMap, version } =
     useContext(EdgeBrowserContext)
-  const { user, accessToken } = useContext(UserContext)
+  const { user, accessToken } = useContext(UserContext) ?? {}
 
   const inviteInvitation = editInvitations.find(
     (p) => isNotInGroupInvite(p, type) || isForBothGroupTypesInvite(p, type)

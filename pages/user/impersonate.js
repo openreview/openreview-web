@@ -16,7 +16,7 @@ const Impersonate = () => {
   const [previousImpersonations, setPreviousImpersonations] = useState(null)
   const [error, setError] = useState(null)
   const { userLoading, user, accessToken } = useLoginRedirect()
-  const { loginUser } = useContext(UserContext)
+  const { loginUser } = useContext(UserContext) ?? {}
 
   const impersonateUser = async (groupId, note) => {
     try {
