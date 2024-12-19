@@ -43,6 +43,7 @@
       margin: 0;
       a {
         color: constants.$darkBlue;
+        display: inline-block;
       }
       a.show-all {
         color: constants.$subtleGray;
