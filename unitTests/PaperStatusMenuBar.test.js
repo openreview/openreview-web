@@ -5,6 +5,7 @@ import { renderWithWebFieldContext } from './util'
 
 let baseMenuBarProps
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/webfield/BaseMenuBar', () => (props) => {
   baseMenuBarProps = props
   return <span>Base Menu Bar</span>
@@ -16,11 +17,13 @@ beforeEach(() => {
 
 describe('PaperStatusMenuBar', () => {
   test('display base menu bar', () => {
-    const providerProps = { value: {
-      reviewerName: 'Reviewers',
-      anonReviewerName: 'Reviewer_',
-      officialReviewName: 'Offical_Review'
-    } }
+    const providerProps = {
+      value: {
+        reviewerName: 'Reviewers',
+        anonReviewerName: 'Reviewer_',
+        officialReviewName: 'Offical_Review',
+      },
+    }
     const componentProps = { reviewRatingName: 'rating' }
     renderWithWebFieldContext(<PaperStatusMenuBar {...componentProps} />, providerProps)
     expect(screen.getByText('Base Menu Bar')).toBeInTheDocument()
@@ -29,9 +32,9 @@ describe('PaperStatusMenuBar', () => {
   test('add propertiesAllowd to query search filters', () => {
     const providerProps = {
       value: {
-      reviewerName: 'Reviewers',
-      anonReviewerName: 'Reviewer_',
-      officialReviewName: 'Offical_Review',
+        reviewerName: 'Reviewers',
+        anonReviewerName: 'Reviewer_',
+        officialReviewName: 'Offical_Review',
         propertiesAllowed: {
           testProperty: ['note.content.testProperty.value'],
         },
@@ -134,9 +137,9 @@ return officialReviews.length;
     console.error = jest.fn()
     const providerProps = {
       value: {
-      reviewerName: 'Reviewers',
-      anonReviewerName: 'Reviewer_',
-      officialReviewName: 'Offical_Review',
+        reviewerName: 'Reviewers',
+        anonReviewerName: 'Reviewer_',
+        officialReviewName: 'Offical_Review',
         propertiesAllowed: {
           testProperty: ['note.content.testProperty.value'],
           hasMetaReview: `
