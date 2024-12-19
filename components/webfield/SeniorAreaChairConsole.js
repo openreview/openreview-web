@@ -625,6 +625,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             preliminaryDecision,
             messageSignature: seniorAreaChairGroupByNumber[note.number],
             ithenticateEdge: ithenticateEdges.find((p) => p.head === note.id),
+            venue: note.content?.venue?.value,
           }
         }),
         withdrawnNotes: assignedNotes.flatMap((note) => {
