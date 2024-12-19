@@ -2232,7 +2232,9 @@ const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
       label: 'Institutional Email is missing',
       rejectionText: `Please add and confirm an institutional email ${
         currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
-      }to your profile. Please make sure the verification token is entered and verified.\n\n${instructionText}`,
+      }to your profile. Please make sure the verification token is entered and verified.\n\nIf your affiliation with ${
+        currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
+      } is not current, please update your profile with your current affiliation and associated institutional email. If you have no current affiliation, please complete registration as an Independent Researcher.\n\n${instructionText}`,
     },
     {
       value: 'requestEmailConfirmation',
@@ -2245,6 +2247,11 @@ const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
       rejectionText: `The DBLP link you have provided is a disambiguation page and is not intended to be used as a bibliography. Please select the correct bibliography page listed under "Other persons with a similar name". If your page is not listed please contact the DBLP team so they can add your bibliography page. We recommend providing a different bibliography homepage when resubmitting to OpenReview moderation.\n\n${instructionText}`,
     },
     {
+      value: 'invalidName',
+      label: 'Profile name is invalid',
+      rejectionText: `The name in your profile does not match the name listed in your homepage or is invalid.\n\n${instructionText}`,
+    },
+    {
       value: 'imPersonalHomepage',
       label: 'Homepage is invalid',
       rejectionText: `The homepage url provided in your profile is invalid or does not display your name/email used to register so your identity can't be determined.\n\n${instructionText}`,
@@ -2253,6 +2260,11 @@ const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
       value: 'imPersonalHomepageAndEmail',
       label: 'Homepage is invalid + no institution email',
       rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required. Please confirm the institutional email by entering the verification token received after clicking confirm button next to the institutional email.\n\n${instructionText}`,
+    },
+    {
+      value: 'invalidORCID',
+      label: 'ORCID profile is incomplete',
+      rejectionText: `The ORCID profile you've provided as a homepage is empty or does not match the Career & Education history you've provided.\n\n${instructionText}`,
     },
     {
       value: 'lastNotice',
