@@ -1,7 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { auth } from './lib/auth'
-import api from './lib/api-client'
 
 export const refreshToken = createAsyncThunk('tokenRefresh', async () => {
   try {

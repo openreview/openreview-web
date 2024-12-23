@@ -36,28 +36,27 @@
 // }
 //#endregion
 
+import { Suspense } from 'react'
 import api from '../../lib/api-client'
-import serverAuth from '../auth'
+import serverAuth, { isSuperUser } from '../auth'
+import NotificationCount from './NotificationCount'
 
 export const dynamic = 'force-dynamic'
 
 export default async function NavNotificationCount() {
   const { user, token } = await serverAuth()
-  let count = 0
-  if (!user) {
+  if (!user || isSuperUser(user)) {
     return null
   }
-  try {
-    const result = await api.get(
-      '/messages',
-      { to: user.profile.emails[0], viewed: false, transitiveMembers: true },
-      { accessToken: token }
-    )
-    count = result.count
-  } catch (error) {
-    console.log('error is', error)
-  }
+  const notificationCountP = api.get(
+    '/messages',
+    { to: user.profile.emails[0], viewed: false, transitiveMembers: true },
+    { accessToken: token }
+  )
 
-  if (count === 0) return null
-  return <span className="badge">{count}</span>
+  return (
+    <Suspense fallback={null}>
+      <NotificationCount notificationCountP={notificationCountP} />
+    </Suspense>
+  )
 }
