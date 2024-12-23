@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import AutoCompleteInput from '../../components/AutoCompleteInput'
+import { stringify } from 'query-string'
 
 export default function NavSearch() {
   const router = useRouter()
@@ -13,7 +14,7 @@ export default function NavSearch() {
     formData.forEach((value, name) => {
       query[name] = value
     })
-    router.push({ pathname: '/search', query })
+    router.push(`/search?${stringify(query)}`)
   }
 
   return (

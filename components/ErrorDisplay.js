@@ -8,7 +8,7 @@ const ErrorDisplay = ({ statusCode, message }) => (
     </Head>
 
     <header className="col-xs-12 col-md-10 col-md-offset-1 text-center">
-      <h1>{`Error ${statusCode}`}</h1>
+      <h1>{`Error${statusCode ? ` ${statusCode}` : ''}`}</h1>
       <hr />
     </header>
 

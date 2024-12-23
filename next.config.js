@@ -18,7 +18,7 @@ module.exports = {
   generateBuildId: () => nextBuildId({ dir: __dirname, describe: true }),
   poweredByHeader: false,
   transpilePackages: ['marked'],
-  reactStrictMode: true,
+  reactStrictMode: false,
   logging: {
     fetches: {
       fullUrl: true,

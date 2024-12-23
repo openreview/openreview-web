@@ -1,12 +1,15 @@
+'use client'
+
 /* globals promptError: false */
 
 // eslint-disable-next-line object-curly-newline
 import { useState, useEffect, useCallback, useRef } from 'react'
-import Router from 'next/router'
 import debounce from 'lodash/debounce'
 import Icon from './Icon'
 import api from '../lib/api-client'
 import { getTitleObjects, getTokenObjects } from '../lib/utils'
+import { useRouter } from 'next/navigation'
+import { stringify } from 'query-string'
 
 const AutoCompleteInput = () => {
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
@@ -15,6 +18,7 @@ const AutoCompleteInput = () => {
   const [cancelRequest, setCancelRequest] = useState(false)
   const [hoverIndex, setHoverIndex] = useState(null)
   const autoCompleteItemsRef = useRef([]) // for scrolling hover item into view
+  const router = useRouter()
 
   useEffect(() => {
     if (searchTerm.trim().length > 2) {
@@ -31,21 +35,21 @@ const AutoCompleteInput = () => {
     setCancelRequest(false)
   }, [immediateSearchTerm])
 
-  useEffect(() => {
-    const handleRouteChange = (url) => {
-      setCancelRequest(true)
-      setAutoCompleteItems([])
-      if (!url.startsWith('/search')) {
-        setSearchTerm('')
-        setImmediateSearchTerm('')
-      }
-    }
+  // useEffect(() => {
+  //   const handleRouteChange = (url) => {
+  //     setCancelRequest(true)
+  //     setAutoCompleteItems([])
+  //     if (!url.startsWith('/search')) {
+  //       setSearchTerm('')
+  //       setImmediateSearchTerm('')
+  //     }
+  //   }
 
-    Router.events.on('routeChangeStart', handleRouteChange)
-    return () => {
-      Router.events.off('routeChangeStart', handleRouteChange)
-    }
-  }, [])
+  //   router.events.on('routeChangeStart', handleRouteChange)
+  //   return () => {
+  //     router.events.off('routeChangeStart', handleRouteChange)
+  //   }
+  // }, [])
 
   const delaySearch = useCallback(
     debounce((term) => setSearchTerm(term), 300),
@@ -87,15 +91,14 @@ const AutoCompleteInput = () => {
     if (item.section === 'titles') {
       const query =
         item.forum === item.id ? { id: item.forum } : { id: item.forum, noteId: item.id }
-      Router.push({ pathname: '/forum', query })
+      router.push(`/forum?${stringify(query)}`)
     } else if (item.value.startsWith('~')) {
-      Router.push({ pathname: '/profile', query: { id: item.value } })
+      router.push(`/profile?${stringify({ id: item.value })}`)
     } else {
       // eslint-disable-next-line object-curly-newline
-      Router.push({
-        pathname: '/search',
-        query: { term: item.value, content: 'all', group: 'all', source: 'all' },
-      })
+      router.push(
+        `/search?${stringify({ term: item.value, content: 'all', group: 'all', source: 'all' })}`
+      )
     }
   }
 

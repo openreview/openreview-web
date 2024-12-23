@@ -122,6 +122,7 @@ Submissions.getInitialProps = async (ctx) => {
       remoteIpAddress: ctx.req?.headers['x-forwarded-for'],
     }
   )
+
   if (!notes) {
     return {
       statusCode: 400,
