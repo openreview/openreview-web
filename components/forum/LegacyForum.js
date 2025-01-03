@@ -12,7 +12,7 @@ export default function LegacyForum({
   selectedInvitationId,
   clientJsLoading,
 }) {
-  const { user, userLoading } = useContext(UserContext)
+  const { user, userLoading } = useContext(UserContext) ?? {}
   const { id, content, details } = forumNote
   const authors =
     Array.isArray(content.authors) || typeof content.authors === 'string'

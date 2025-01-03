@@ -22,7 +22,7 @@ export default function ExpertiseConsole({ appContext }) {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const router = useRouter()
 
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
   const options =
     apiVersion === 2
       ? invitation.edge?.label?.param?.enum

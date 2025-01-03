@@ -14,7 +14,7 @@ export default function FeedbackModal() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
-  const { accessToken } = useContext(UserContext)
+  const { accessToken } = useContext(UserContext) ?? {}
   const [formData, setFormData] = useReducer((state, action) => {
     if (action.type === 'reset') return {}
     if (action.type === 'prefill') return action.payload

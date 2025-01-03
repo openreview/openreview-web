@@ -682,7 +682,7 @@ const BidConsole = ({ appContext }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [bidEdges, setBidEdges] = useState([])
   const [conflictIds, setConflictIds] = useState([])
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
   const { accessToken, user } = useUser()
   const query = useQuery()
 
