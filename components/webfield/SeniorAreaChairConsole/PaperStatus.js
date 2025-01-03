@@ -227,7 +227,7 @@ const PaperStatus = ({ sacConsoleData }) => {
             selectedNoteIds={selectedNoteIds}
             setSelectedNoteIds={setSelectedNoteIds}
             decision={row.decision}
-            venue={row.note?.content?.venue?.value}
+            venue={row.venue}
           />
         ))}
       </Table>
