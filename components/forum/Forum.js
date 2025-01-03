@@ -339,6 +339,7 @@ export default function Forum({
 
   const delayedScroll = useCallback(
     debounce((layoutMode, isScrolled) => {
+      $('.forum-note [data-toggle="tooltip"]').tooltip({ html: true })
       $('#forum-replies [data-toggle="tooltip"]').tooltip({ html: true })
 
       // Scroll note and invitation specified in url
