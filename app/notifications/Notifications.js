@@ -1,9 +1,9 @@
 'use client'
 
 import { use, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import Table from '../../components/Table'
 import NotificationsTable from './NotificationsTable'
-import { useDispatch, useSelector } from 'react-redux'
 import api from '../../lib/api-client'
 import { decrementNotificationCount } from '../../notificationSlice'
 

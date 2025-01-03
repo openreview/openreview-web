@@ -5,11 +5,11 @@
 // eslint-disable-next-line object-curly-newline
 import { useState, useEffect, useCallback, useRef } from 'react'
 import debounce from 'lodash/debounce'
+import { usePathname, useRouter } from 'next/navigation'
+import { stringify } from 'query-string'
 import Icon from './Icon'
 import api from '../lib/api-client'
 import { getTitleObjects, getTokenObjects } from '../lib/utils'
-import { useRouter } from 'next/navigation'
-import { stringify } from 'query-string'
 
 const AutoCompleteInput = () => {
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
@@ -19,6 +19,7 @@ const AutoCompleteInput = () => {
   const [hoverIndex, setHoverIndex] = useState(null)
   const autoCompleteItemsRef = useRef([]) // for scrolling hover item into view
   const router = useRouter()
+  const pathName = usePathname()
 
   useEffect(() => {
     if (searchTerm.trim().length > 2) {
@@ -35,21 +36,12 @@ const AutoCompleteInput = () => {
     setCancelRequest(false)
   }, [immediateSearchTerm])
 
-  // useEffect(() => {
-  //   const handleRouteChange = (url) => {
-  //     setCancelRequest(true)
-  //     setAutoCompleteItems([])
-  //     if (!url.startsWith('/search')) {
-  //       setSearchTerm('')
-  //       setImmediateSearchTerm('')
-  //     }
-  //   }
-
-  //   router.events.on('routeChangeStart', handleRouteChange)
-  //   return () => {
-  //     router.events.off('routeChangeStart', handleRouteChange)
-  //   }
-  // }, [])
+  useEffect(() => {
+    if (pathName !== '/search') {
+      setSearchTerm('')
+      setImmediateSearchTerm('')
+    }
+  }, [pathName])
 
   const delaySearch = useCallback(
     debounce((term) => setSearchTerm(term), 300),
@@ -95,7 +87,7 @@ const AutoCompleteInput = () => {
     } else if (item.value.startsWith('~')) {
       router.push(`/profile?${stringify({ id: item.value })}`)
     } else {
-      // eslint-disable-next-line object-curly-newline
+      setImmediateSearchTerm('')
       router.push(
         `/search?${stringify({ term: item.value, content: 'all', group: 'all', source: 'all' })}`
       )
@@ -103,6 +95,11 @@ const AutoCompleteInput = () => {
   }
 
   const keyDownHandler = (e) => {
+    if (e.key === 'Enter') {
+      setCancelRequest(true)
+      setAutoCompleteItems([])
+      return
+    }
     if (!['ArrowDown', 'ArrowUp', 'Escape'].includes(e.key)) return
 
     if (e.key === 'Escape') {

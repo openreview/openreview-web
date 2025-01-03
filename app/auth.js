@@ -47,11 +47,11 @@ export async function serverRefreshToken() {
       },
     })
     const data = await response.json()
-    console.log('serverRefreshToken using fetch data:', data)
+    // console.log('serverRefreshToken using fetch data:', data)
     if (data.status === 401) return {}
     return data
   } catch (error) {
-    console.error('Error refreshing token in server:', error)
+    // console.error('Error refreshing token in server:', error)
     return {}
   }
 }

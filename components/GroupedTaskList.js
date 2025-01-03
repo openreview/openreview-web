@@ -32,7 +32,6 @@ const GroupedTaskList = ({ groupedTasks }) => (
       body: <TaskList invitations={groupedTasks[groupId].invitations} />,
     }))}
     options={{
-      id: 'tasks',
       collapsed: true,
       html: false,
       bodyContainer: '',

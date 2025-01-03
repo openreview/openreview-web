@@ -1,8 +1,9 @@
 'use client'
 
+/* globals promptMessage,promptError: false */
 import { useEffect, useState } from 'react'
-import Alert from '../../components/Alert'
 import { useSelector } from 'react-redux'
+import Alert from '../../components/Alert'
 import api from '../../lib/api-client'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
 import { isValidEmail } from '../../lib/utils'
@@ -11,7 +12,6 @@ const ResetForm = ({ setEmailSent }) => {
   const [email, setEmail] = useState('')
   const [error, setError] = useState(null)
   const { user } = useSelector((state) => state.root)
-  console.log('calling useTurnstileToken')
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('reset')
 
   useEffect(() => {
@@ -25,7 +25,7 @@ const ResetForm = ({ setEmailSent }) => {
     setError(null)
 
     try {
-      const apiRes = await api.post('/resettabled', { id: email, token: turnstileToken })
+      const apiRes = await api.post('/resettable', { id: email, token: turnstileToken })
       setEmailSent(apiRes.id)
     } catch (apiError) {
       setError(apiError)

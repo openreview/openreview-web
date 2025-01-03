@@ -18,7 +18,6 @@ export default async function page({ searchParams }) {
   const { token } = await serverAuth()
   const query = await searchParams
   const { term, content, group, source } = query
-  console.log('search page', query)
 
   if (!term) throw new Error('Missing search term or query')
 
@@ -38,7 +37,7 @@ export default async function page({ searchParams }) {
   )
 
   const groupOptions = await api.get('/groups', { id: 'host' }).then((response) => {
-    const groups = response.groups
+    const { groups } = response
     const members = groups?.[0]?.members?.map((groupId) => ({
       value: groupId,
       label: prettyId(groupId),

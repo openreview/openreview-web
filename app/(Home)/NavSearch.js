@@ -1,8 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import AutoCompleteInput from '../../components/AutoCompleteInput'
 import { stringify } from 'query-string'
+import AutoCompleteInput from '../../components/AutoCompleteInput'
 
 export default function NavSearch() {
   const router = useRouter()

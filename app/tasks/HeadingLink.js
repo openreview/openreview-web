@@ -1,19 +1,19 @@
-'use client'
-
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { inflect, prettyId } from '../../lib/utils'
 
 export default function HeadingLink({ groupId, groupInfo }) {
-  if (typeof window === 'undefined') throw new Error('client')
   const router = useRouter()
+  const handleClick = (e) => {
+    router.push(`/group?id=${groupId}`)
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
   return (
-    <div className="heading-link" onClick={(e) => e.stopPropagation()}>
-      <Link href={`/group?id=${groupId}`}>
-        <h2>
-          <span className="invitation-id">{prettyId(groupId)} </span>
-        </h2>
-      </Link>
+    <div className="heading-link">
+      <h2 data-toggle="collapse" data-target="#" onClick={handleClick}>
+        <span className="invitation-id">{prettyId(groupId)} </span>
+      </h2>
       <span className="task-count-message">{`Show ${inflect(
         groupInfo.numPending,
         'pending task',

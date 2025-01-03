@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import serverAuth from '../auth'
 import styles from './Notifications.module.scss'
-import { Suspense } from 'react'
 import Notifications from './Notifications'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import api from '../../lib/api-client'
@@ -27,12 +27,13 @@ export default async function page() {
         .get('/messages', { to: email, viewed: false }, { accessToken: token })
         .then((apiRes) => ({ email, count: apiRes.count ?? 0 }))
     )
-  ).then((results) => {
-    return results.reduce((prev, curr) => {
+  ).then((results) =>
+    results.reduce((prev, curr) => {
+      // eslint-disable-next-line no-param-reassign
       prev[curr.email] = curr.count
       return prev
     }, {})
-  })
+  )
 
   return (
     <div className={styles.notifications}>

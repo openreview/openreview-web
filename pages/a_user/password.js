@@ -1,5 +1,4 @@
 /* globals promptError: false */
-/* globals promptMessage: false */
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -31,9 +30,6 @@ const ResetForm = ({ resetToken }) => {
 
     try {
       const apiRes = await api.put(`/reset/${resetToken}`, { password })
-      promptMessage(
-        'Your password has been updated. Please log in with your new password to continue.'
-      )
       router.push('/login')
     } catch (apiError) {
       setError(apiError.message)
