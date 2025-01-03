@@ -17,7 +17,7 @@ const RadioButtonWidget = () => {
         enumValues.map((p) =>
           typeof p === 'object'
             ? { value: p.value, description: p.description }
-            : { value: p, description: p }
+            : { value: p, description: p.toString() }
         )
       )
       const defaultValue = field[fieldName].value?.param?.default
