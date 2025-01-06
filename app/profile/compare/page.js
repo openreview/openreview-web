@@ -4,6 +4,7 @@ import serverAuth, { isSuperUser } from '../../auth'
 import api from '../../../lib/api-client'
 import { prettyId } from '../../../lib/utils'
 import Compare from './Compare'
+import styles from './Compare.module.scss'
 
 export const metadata = {
   title: 'Compare Profiles | OpenReview',
@@ -186,7 +187,7 @@ export default async function page({ searchParams }) {
     .catch((error) => ({ error: error.message }))
 
   return (
-    <>
+    <div className={styles.compare}>
       <header>
         <h1>Merge Profiles</h1>
         <hr />
@@ -196,6 +197,6 @@ export default async function page({ searchParams }) {
           <Compare profilesP={profilesP} accessToken={accessToken} />
         </Suspense>
       </div>
-    </>
+    </div>
   )
 }

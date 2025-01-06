@@ -1,6 +1,6 @@
-/* eslint-disable no-undef */
 'use client'
 
+/* globals promptMessage: false */
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect } from 'react'
 import { useSelector } from 'react-redux'
