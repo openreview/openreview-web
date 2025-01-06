@@ -10,7 +10,7 @@ import CommonLayout from '../CommonLayout'
 import EditBanner from '../../components/EditBanner'
 import ProfileOwnerRedirect from './ProfileOwnerRedirect'
 
-export const revalidate = 1
+export const dynamic = 'force-dynamic'
 
 export default async function page({ searchParams }) {
   const { user, token } = await serverAuth()
