@@ -17,7 +17,7 @@ export default function GroupDirectory({ appContext }) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { accessToken } = useUser()
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
 
   useEffect(() => {
     // Set referrer banner

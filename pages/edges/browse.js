@@ -26,7 +26,7 @@ const Browse = ({ appContext }) => {
   const [showCounter, setShowCounter] = useState(true)
   const [error, setError] = useState(null)
   const { isReady, query } = useRouter()
-  const { setBannerHidden, setBannerContent, setLayoutOptions } = appContext
+  const { setBannerHidden, setBannerContent, setLayoutOptions } = appContext ?? {}
 
   const notFoundError = {
     name: 'Not Found',

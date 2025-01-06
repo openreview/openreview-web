@@ -62,7 +62,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     preferredEmailInvitationId,
     ithenticateInvitationId,
   } = useContext(WebFieldContext)
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
   const { user, accessToken, userLoading } = useUser()
   const [sacConsoleData, setSacConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)

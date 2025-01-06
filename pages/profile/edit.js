@@ -20,7 +20,7 @@ export default function ProfileEdit({ appContext }) {
   const [profile, setProfile] = useState(null)
   const [saveProfileErrors, setSaveProfileErrors] = useState(null)
   const router = useRouter()
-  const { setBannerHidden, setEditBanner } = appContext
+  const { setBannerHidden, setEditBanner } = appContext ?? {}
 
   const loadProfile = async () => {
     try {
@@ -122,7 +122,7 @@ export default function ProfileEdit({ appContext }) {
       const apiRes = await api.post('/profiles', dataToSubmit, { accessToken })
       const prefName = apiRes.content?.names?.find((name) => name.preferred === true)
       if (prefName) {
-        updateUserName(prefName.fullname) // update nav dropdown
+        // updateUserName(prefName.fullname) // update nav dropdown
       }
 
       await Promise.all(

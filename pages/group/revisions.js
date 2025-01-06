@@ -16,7 +16,7 @@ export default function GroupRevisions({ appContext }) {
   const [error, setError] = useState(null)
 
   const router = useRouter()
-  const { setBannerHidden, setEditBanner } = appContext
+  const { setBannerHidden, setEditBanner } = appContext ?? {}
 
   const loadGroup = async (id) => {
     try {

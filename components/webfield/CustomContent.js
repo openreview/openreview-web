@@ -10,10 +10,10 @@ export default function CustomContent({ appContext }) {
     header,
     HeaderComponent,
     content,
-    BodyComponent
+    BodyComponent,
   } = useContext(WebFieldContext)
   const router = useRouter()
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
 
   useEffect(() => {
     // Set referrer banner

@@ -353,10 +353,10 @@ const Revisions = ({ appContext }) => {
   const [selectedIndexes, setSelectedIndexes] = useState(null)
   const [referencesToLoad, setReferencesToLoad] = useState(null)
   const [isNoteWritable, setIsNoteWritable] = useState(false)
-  const { user, accessToken, userLoading } = useContext(UserContext)
+  const { user, accessToken, userLoading } = useContext(UserContext) ?? {}
   const router = useRouter()
   const query = useQuery()
-  const { setBannerContent, setBannerHidden } = appContext
+  const { setBannerContent, setBannerHidden } = appContext ?? {}
 
   const enterSelectMode = () => {
     if (!accessToken) {

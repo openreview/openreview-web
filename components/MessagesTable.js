@@ -1,6 +1,7 @@
+'use client'
 /* globals DOMPurify, marked: false */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import upperFirst from 'lodash/upperFirst'
 import Table from './Table'
 import { formatTimestamp } from '../lib/utils'

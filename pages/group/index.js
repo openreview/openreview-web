@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import Router from 'next/router'
 import dynamic from 'next/dynamic'
+import { useSelector } from 'react-redux'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import WebfieldContainer from '../../components/WebfieldContainer'
 import withError from '../../components/withError'
@@ -15,10 +16,12 @@ import { generateGroupWebfieldCode, parseComponentCode } from '../../lib/webfiel
 import WebFieldContext from '../../components/WebFieldContext'
 
 const Group = ({ groupId, webfieldCode, writable, componentObj, appContext }) => {
-  const { user, userLoading } = useUser()
+  // const { user, userLoading } = useUser()
+  const user = useSelector((state) => state.root.user)
   const [WebComponent, setWebComponent] = useState(null)
   const [webComponentProps, setWebComponentProps] = useState({})
-  const { setBannerHidden, setEditBanner, clientJsLoading, setLayoutOptions } = appContext
+  const { setBannerHidden, setEditBanner, clientJsLoading, setLayoutOptions } =
+    appContext ?? {}
   const groupTitle = prettyId(groupId)
 
   useEffect(() => {
@@ -34,7 +37,7 @@ const Group = ({ groupId, webfieldCode, writable, componentObj, appContext }) =>
   }, [groupId, writable])
 
   useEffect(() => {
-    if (clientJsLoading || userLoading || !webfieldCode) return
+    if (clientJsLoading || !webfieldCode) return
 
     window.user = user || {
       id: `guest_${Date.now()}`,
@@ -51,7 +54,7 @@ const Group = ({ groupId, webfieldCode, writable, componentObj, appContext }) =>
       document.body.removeChild(script)
       window.user = null
     }
-  }, [clientJsLoading, userLoading, user?.id, webfieldCode])
+  }, [clientJsLoading, user?.id, webfieldCode])
 
   useEffect(() => {
     if (!componentObj) return
