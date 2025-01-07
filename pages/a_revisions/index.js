@@ -127,6 +127,7 @@ const RevisionsList = ({
       // eslint-disable-next-line no-param-reassign
       note.details.originalWritable = false
     }
+    console.log('note', note.details)
     if (
       note.details &&
       typeof note.details.writable === 'undefined' &&

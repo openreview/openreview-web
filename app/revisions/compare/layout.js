@@ -1,5 +1,7 @@
+'use client'
+
 import CommonLayout from '../../CommonLayout'
 
 export default function Layout({ children }) {
-  return <CommonLayout banner={null}>{children}</CommonLayout>
+  return <CommonLayout>{children}</CommonLayout>
 }

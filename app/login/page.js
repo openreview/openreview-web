@@ -1,6 +1,6 @@
+import { redirect } from 'next/navigation'
 import serverAuth from '../auth'
 import LoginPage from './Login'
-import { redirect } from 'next/navigation'
 
 export const metadata = {
   title: 'Login | OpenReview',

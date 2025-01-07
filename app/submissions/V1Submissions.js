@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import NoteList from '../../components/NoteList'
 import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
-import { useSelector } from 'react-redux'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import { prettyId } from '../../lib/utils'
 

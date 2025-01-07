@@ -1,5 +1,5 @@
 import CommonLayout from '../../CommonLayout'
 
-export default function layout({ children }) {
+export default function Layout({ children }) {
   return <CommonLayout banner={null}>{children}</CommonLayout>
 }

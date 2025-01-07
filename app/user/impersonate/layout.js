@@ -1,6 +1,6 @@
 import CommonLayout from '../../CommonLayout'
 
-export default function layout({ children }) {
+export default function Layout({ children }) {
   return (
     <CommonLayout>
       <div className="col-sm-12 col-md-8 col-lg-6 col-md-offset-2 col-lg-offset-3">

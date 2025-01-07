@@ -51,6 +51,10 @@ export default function AppInit() {
     // Setup marked options and renderer overwrite
     window.view.setupMarked()
 
+    // Set required constants for api call in view
+    window.OR_API_URL = process.env.API_URL
+    window.OR_API_V2_URL = process.env.API_V2_URL
+
     // Register Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch((error) => {

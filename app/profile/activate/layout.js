@@ -1,7 +1,7 @@
 import CommonLayout from '../../CommonLayout'
 import styles from './Activate.module.scss'
 
-export default function layout({ children }) {
+export default function Layout({ children }) {
   return (
     <CommonLayout banner={null}>
       <div className={styles.activate}>
