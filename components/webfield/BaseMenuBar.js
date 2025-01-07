@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { filterCollections } from '../../lib/webfield-utils'
 import DownloadPDFButton from '../DownloadPDFButton'
 import Dropdown from '../Dropdown'
-import ExportCSV from '../ExportCSV'
+import ExportFile from '../ExportFile'
 import Icon from '../Icon'
 
 const BaseMenuBar = ({
@@ -150,7 +150,7 @@ const BaseMenuBar = ({
       )}
       {exportColumns && (
         <div className="btn-group">
-          <ExportCSV
+          <ExportFile
             records={tableRows}
             fileName={fullExportFileName}
             exportColumns={exportColumns}
