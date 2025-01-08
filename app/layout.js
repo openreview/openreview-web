@@ -48,7 +48,7 @@ export default function Layout({ children }) {
           defer
         ></script>
 
-        <title key="title">OpenReview</title>
+        {/* <title key="title">OpenReview</title> */}
         <link rel="icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
 
