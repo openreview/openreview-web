@@ -616,6 +616,10 @@ test('add alternate email', async (t) => {
     .ok()
     .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
     .ok()
+    .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messageSelector.innerText)
+    .eql('melisa@alternate.com has been verified')
 
   const messages = await getMessages(
     { to: 'melisa@alternate.com', subject: 'OpenReview Email Confirmation' },
@@ -626,44 +630,6 @@ test('add alternate email', async (t) => {
     .contains(
       'to confirm an alternate email address melisa@alternate.com. If you would like to confirm this email, please use the verification token mentioned below'
     )
-})
-
-// eslint-disable-next-line no-unused-expressions
-fixture`Confirm altenate email`
-
-// guest redirect to login
-test('confirm email as guest', async (t) => {
-  const getPageUrl = ClientFunction(() => window.location.href.toString())
-  await t
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
-    .expect(getPageUrl())
-    .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
-})
-
-// another user show error
-test('confirm email as another user', async (t) => {
-  await t
-    .useRole(SURole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
-    .expect(Selector('#content h1').innerText)
-    .eql('Error 403')
-    .expect(Selector('.error-message').innerText)
-    .eql('You are not authorized to activate this email.')
-})
-
-test('update profile', async (t) => {
-  await t
-    .useRole(EmailOwnerRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
-    .expect(
-      Selector('p').withText(
-        'Click Confirm Email button below to confirm adding melisa@alternate.com to your account.'
-      ).exists
-    )
-    .ok()
-    .click(Selector('button').withText('Confirm Email'))
-    .expect(messageSelector.innerText)
-    .eql('Thank you for confirming your email melisa@alternate.com')
 })
 
 // eslint-disable-next-line no-unused-expressions

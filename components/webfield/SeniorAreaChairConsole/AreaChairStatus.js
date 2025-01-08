@@ -11,30 +11,7 @@ import { getProfileLink } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
 import { pluralizeString, prettyField, getRoleHashFragment } from '../../../lib/utils'
 import api from '../../../lib/api-client'
-
-const SelectAllCheckBox = ({
-  selectedAreaChairIds,
-  setSelectedAreaChairIds,
-  allAreaChairIds,
-}) => {
-  const allAreaChairsSelected = selectedAreaChairIds.length === allAreaChairIds?.length
-
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedAreaChairIds(allAreaChairIds)
-      return
-    }
-    setSelectedAreaChairIds([])
-  }
-  return (
-    <input
-      type="checkbox"
-      id="select-all-papers"
-      checked={allAreaChairsSelected}
-      onChange={handleSelectAll}
-    />
-  )
-}
+import SelectAllCheckBox from '../SelectAllCheckbox'
 
 const CommitteeSummary = ({ rowData }) => {
   const { id, preferredName, title } = rowData.areaChairProfile ?? {}
@@ -404,11 +381,9 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
             id: 'select-all',
             content: (
               <SelectAllCheckBox
-                selectedAreaChairIds={selectedAreaChairIds}
-                setSelectedAreaChairIds={setSelectedAreaChairIds}
-                allAreaChairIds={areaChairStatusTabData.tableRows?.map(
-                  (row) => row.areaChairProfileId
-                )}
+                selectedIds={selectedAreaChairIds}
+                setSelectedIds={setSelectedAreaChairIds}
+                allIds={areaChairStatusTabData.tableRows?.map((row) => row.areaChairProfileId)}
               />
             ),
             width: '35px',

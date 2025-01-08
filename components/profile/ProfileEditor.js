@@ -30,6 +30,7 @@ export default function ProfileEditor({
   loading,
   isNewProfile,
   saveProfileErrors,
+  loadProfile,
 }) {
   const profileReducer = (state, action) => {
     if (action.type === 'reset') return action.data
@@ -487,6 +488,7 @@ export default function ProfileEditor({
               updateEmails={(emails) => setProfile({ type: 'emails', data: emails })}
               institutionDomains={institutionDomains}
               isNewProfile={isNewProfile}
+              loadProfile={loadProfile}
             />
           </ProfileSection>
         )

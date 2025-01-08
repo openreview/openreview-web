@@ -28,12 +28,13 @@ export default function ProfileEdit({ appContext }) {
       if (profiles?.length > 0) {
         const formattedProfile = formatProfileData(profiles[0], true)
         setProfile(formattedProfile)
-      } else {
-        setError({ statusCode: 404, message: 'Profile not found' })
+        return formattedProfile
       }
+      setError({ statusCode: 404, message: 'Profile not found' })
     } catch (apiError) {
       setError({ statusCode: apiError.status, message: apiError.message })
     }
+    return null
   }
 
   const unlinkPublication = async (profileId, noteId) => {
@@ -176,6 +177,7 @@ export default function ProfileEdit({ appContext }) {
         cancelHandler={() => router.push('/profile').then(() => window.scrollTo(0, 0))}
         loading={loading}
         saveProfileErrors={saveProfileErrors}
+        loadProfile={loadProfile}
       />
     </div>
   )
