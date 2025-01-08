@@ -2,12 +2,12 @@
 
 /* globals promptMessage: false */
 import { useSearchParams } from 'next/navigation'
-import { Suspense, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { truncate } from 'lodash'
 import CommonLayout from '../CommonLayout'
 
-function LoginLayout({ children }) {
+export default function Layout({ children }) {
   const { user } = useSelector((state) => state.root)
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect')
@@ -21,12 +21,4 @@ function LoginLayout({ children }) {
     }
   }, [user])
   return <CommonLayout>{children}</CommonLayout>
-}
-
-export default function SuspensedLoginLayout({ children }) {
-  return (
-    <Suspense fallback={<CommonLayout>{children}</CommonLayout>}>
-      <LoginLayout>{children}</LoginLayout>
-    </Suspense>
-  )
 }

@@ -4,7 +4,6 @@ import '../styles/components.scss'
 import '../styles/pages.scss'
 // eslint-disable-next-line camelcase
 import { Noto_Sans } from 'next/font/google'
-import Footer from './Footer'
 import FlashAlert from '../components/FlashAlert'
 import AppInit from './(Home)/appInit'
 import { StoreProvider } from '../storeProvider'
@@ -96,7 +95,6 @@ gtag('config', '${process.env.GA_PROPERTY_ID}', {
               </div>
             </div> */}
             {children}
-            <Footer />
           </div>
         </body>
       </StoreProvider>
