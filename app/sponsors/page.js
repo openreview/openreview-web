@@ -170,13 +170,6 @@ export default function page() {
       <div className="row mt-2 mb-4">
         <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
           <p>
-            <Link href="/donate" className="btn btn-lg btn-primary">
-              Donate to OpenReview
-            </Link>
-          </p>
-        </div>
-        <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
-          <p>
             <Link href="/sponsors/2019-2022">View past sponsors from 2019-2022 &raquo;</Link>
           </p>
         </div>
