@@ -1,4 +1,4 @@
-import { Selector, ClientFunction, Role } from 'testcafe'
+import { Selector, ClientFunction, Role, RequestLogger } from 'testcafe'
 import {
   inactiveUser,
   inActiveUserNoPassword,
@@ -490,6 +490,22 @@ test('do not allow merging from not registered profiles', async (t) => {
     .ok()
     .expect(Selector('pre.error-message').innerText)
     .eql('You are not authorized to perform this merge.')
+})
+
+const resetPasswordLogger = RequestLogger({ url: `${process.env.API_V2_URL}/resettable`, method: 'post' }, { logRequestBody: true })
+fixture`Sign up`.page`http://localhost:${process.env.NEXT_PORT}/signup`.requestHooks(resetPasswordLogger)
+test('reset password should have turnstile token', async (t) => {
+  await t
+    .typeText(fullNameInputSelector, "Melisa Bok")
+    .wait(500)
+    .click(Selector('label.name-confirmation'))
+    .click(Selector('button').withText('Reset Password'))
+    .expect(Selector('button').withText('Reset Password').hasAttribute('disabled')).ok()
+    .typeText(Selector('input').withAttribute('placeholder', 'Full email for ****@test.com'), 'melisa@test.com')
+    .expect(Selector('button').withText('Reset Password').hasAttribute('disabled')).notOk()
+    .click(Selector('button').withText('Reset Password'))
+  // token is passed to reset call
+  await t.expect(resetPasswordLogger.contains((record) => record.request.body.includes('token'))).ok()
 })
 
 // eslint-disable-next-line no-unused-expressions
