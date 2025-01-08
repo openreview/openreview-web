@@ -812,6 +812,7 @@ test('profile should be auto merged', async (t) => {
       'Verification Token'
     )
 
+
   // email should have been added to hasTaskUser's profile
   await t
     .useRole(userARole)
