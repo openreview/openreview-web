@@ -9,26 +9,7 @@ import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from '../ProgramChairConsole/PaperStatusMenuBar'
 import { pluralizeString, prettyField } from '../../../lib/utils'
-
-const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
-  const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
-
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedNoteIds(allNoteIds)
-      return
-    }
-    setSelectedNoteIds([])
-  }
-  return (
-    <input
-      type="checkbox"
-      id="select-all-papers"
-      checked={allNotesSelected}
-      onChange={handleSelectAll}
-    />
-  )
-}
+import SelectAllCheckBox from '../SelectAllCheckbox'
 
 const PaperRow = ({
   assignmentInvitations,
@@ -220,9 +201,9 @@ const PaperStatus = ({ sacConsoleData }) => {
             id: 'select-all',
             content: (
               <SelectAllCheckBox
-                selectedNoteIds={selectedNoteIds}
-                setSelectedNoteIds={setSelectedNoteIds}
-                allNoteIds={paperStatusTabData.tableRows?.map((row) => row.note.id)}
+                selectedIds={selectedNoteIds}
+                setSelectedIds={setSelectedNoteIds}
+                allIds={paperStatusTabData.tableRows?.map((row) => row.note.id)}
               />
             ),
             width: '35px',
@@ -246,7 +227,7 @@ const PaperStatus = ({ sacConsoleData }) => {
             selectedNoteIds={selectedNoteIds}
             setSelectedNoteIds={setSelectedNoteIds}
             decision={row.decision}
-            venue={row.note?.content?.venue?.value}
+            venue={row.venue}
           />
         ))}
       </Table>

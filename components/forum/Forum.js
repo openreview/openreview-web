@@ -134,9 +134,6 @@ export default function Forum({
 
   const { id, details } = parentNote
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
-  const domain = !parentNote.domain?.startsWith(process.env.SUPER_USER)
-    ? parentNote.domain
-    : undefined
 
   // Process forum views config
   let replyForumViews = null
@@ -168,7 +165,7 @@ export default function Forum({
     return api
       .get(
         '/invitations',
-        { replyForum: forumId, expired: true, domain, ...extraParams },
+        { replyForum: forumId, expired: true, ...extraParams },
         { accessToken }
       )
       .then(({ invitations }) => {
@@ -198,7 +195,6 @@ export default function Forum({
         forum: forumId,
         trash: true,
         details: 'writable,signatures,invitation,presentation,tags',
-        domain,
       },
       { accessToken }
     )
@@ -292,7 +288,6 @@ export default function Forum({
           sort: 'tmdate:asc',
           details: 'writable',
           trash: true,
-          domain,
         },
         { accessToken }
       )
@@ -339,6 +334,7 @@ export default function Forum({
 
   const delayedScroll = useCallback(
     debounce((layoutMode, isScrolled) => {
+      $('.forum-note [data-toggle="tooltip"]').tooltip({ html: true })
       $('#forum-replies [data-toggle="tooltip"]').tooltip({ html: true })
 
       // Scroll note and invitation specified in url
