@@ -10,6 +10,5 @@
 
 # THANKS
 
-  Code for Science and Society
   Information Extraction and Synthesis Laboratory, College of Information and
   Computer Science, UMass Amherst
