@@ -25,6 +25,6 @@ export default function CustomBanner({ banner = true }) {
       break
   }
 
-  if (banner === null) return <Banner>{storeBanner}</Banner>
+  if (banner === null) return storeBanner ? <Banner>{storeBanner}</Banner> : null
   return banner === true ? <Banner /> : banner
 }
