@@ -1,7 +1,7 @@
 /* globals promptError, promptMessage, $: false */
 import { useState, useContext, useEffect, useReducer } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useRouter, useSearchParams } from 'next/navigation'
 import uniq from 'lodash/uniq'
 import kebabCase from 'lodash/kebabCase'
 import WebFieldContext from '../WebFieldContext'
@@ -110,6 +110,7 @@ export default function VenueHomepage({ appContext }) {
   const [tabsDisabled, setTabsDisabled] = useState(false)
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const router = useRouter()
+  const queryParam = useSearchParams()
   const { setBannerContent } = appContext ?? {}
 
   const renderTab = (tabConfig, tabIndex) => {
@@ -209,27 +210,14 @@ export default function VenueHomepage({ appContext }) {
   }
 
   useEffect(() => {
-    const handleRouteChange = () => {
-      setTabsDisabled(false)
-    }
-
-    router.events.on('hashChangeComplete', handleRouteChange)
-    $('[data-toggle="tooltip"]').tooltip()
-    return () => {
-      router.events.off('hashChangeComplete', handleRouteChange)
-    }
-  }, [])
-
-  useEffect(() => {
-    // Set referrer banner
-    if (!router.isReady) return
-
-    if (router.query.referrer) {
-      setBannerContent(referrerLink(router.query.referrer))
+    if (queryParam.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: queryParam.get('referrer') })
     } else if (parentGroupId) {
-      setBannerContent(venueHomepageLink(parentGroupId))
+      setBannerContent({ type: 'venueHomepageLink', value: parentGroupId })
+    } else {
+      setBannerContent({ type: null, value: null })
     }
-  }, [router.isReady, router.query])
+  }, [queryParam])
 
   useEffect(() => {
     if (!tabs) return

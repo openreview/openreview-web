@@ -1,17 +1,17 @@
-import Banner from '../components/Banner'
+import CustomBanner from './CustomBanner'
 import FooterMinimal from '../components/FooterMinimal'
 import Footer from './Footer'
 
 export default function CommonLayout({
   children,
-  banner = true,
+  banner,
   editBanner,
   fullWidth,
   minimalFooter,
 }) {
   return (
     <>
-      {banner !== null && (banner === true ? <Banner /> : banner)}
+      <CustomBanner banner={banner} />
       {editBanner}
       <div className={fullWidth ? 'container-fluid' : 'container'}>
         <div className="row">

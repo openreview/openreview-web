@@ -42,11 +42,11 @@ export default function AppInit() {
     require('../../client/globals')
 
     // MathJax has to be loaded asynchronously from the CDN after the config file loads
-    // const script = document.createElement('script')
-    // script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml-full.js'
-    // script.async = true
-    // script.crossOrigin = 'anonymous'
-    // document.head.appendChild(script)
+    const script = document.createElement('script')
+    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml-full.js'
+    script.async = true
+    script.crossOrigin = 'anonymous'
+    document.head.appendChild(script)
 
     // Setup marked options and renderer overwrite
     window.view.setupMarked()
