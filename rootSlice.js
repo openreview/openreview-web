@@ -4,7 +4,7 @@ import { auth } from './lib/auth'
 
 export const refreshToken = createAsyncThunk('tokenRefresh', async () => {
   try {
-    console.log('refreshToken thunk')
+    // console.log('refreshToken thunk')
     const response = await fetch(`${process.env.API_V2_URL}/refreshToken`, {
       method: 'POST',
       credentials: 'include',
@@ -14,14 +14,14 @@ export const refreshToken = createAsyncThunk('tokenRefresh', async () => {
       },
     })
     const data = await response.json()
-    console.log('thunk refresh token data is', data)
+    // console.log('thunk refresh token data is', data)
     if (data.name === 'TokenExpiredError' || data.name === 'MissingTokenError') {
-      console.log('thunk refresh failed')
+      // console.log('thunk refresh failed')
       return { user: null, token: null }
     }
     return data
   } catch (error) {
-    console.error('Error refreshing token in thunk:', error)
+    // console.error('Error refreshing token in thunk:', error)
   }
 
   return { user: null, token: null }

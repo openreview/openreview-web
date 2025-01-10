@@ -109,7 +109,7 @@ gtag('config', '${process.env.GA_PROPERTY_ID}', {
 
       {minimalFooter ? <FooterMinimal /> : <Footer />}
 
-      <FeedbackModal />
+      {/* <FeedbackModal /> */}
       <BibtexModal />
     </div>
   )

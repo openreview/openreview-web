@@ -31,13 +31,6 @@ export const metadata = {
 }
 
 export default function Layout({ children }) {
-  const fullWidth = false
-  const bodyClass = false
-  const bannerHidden = false
-  const minimalFooter = false
-  const bannerContent = null
-  const editBannerContent = null
-
   return (
     <html lang="en">
       <head>
@@ -47,7 +40,6 @@ export default function Layout({ children }) {
           defer
         ></script>
 
-        {/* <title key="title">OpenReview</title> */}
         <link rel="icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
 
@@ -76,24 +68,8 @@ gtag('config', '${process.env.GA_PROPERTY_ID}', {
         <body className={notoSans.className}>
           <div id="__next">
             <Nav />
-            {/* <Banner hidden={bannerHidden}>{bannerContent}</Banner> */}
-            {/* <EditBanner>{editBannerContent}</EditBanner> */}
             <FlashAlert />
             <AppInit />
-            {/* <div className={`container${fullWidth ? '-fluid' : ''}`}>
-              <div className="row">
-                <div className="col-xs-12">
-                  <main
-                    id="content"
-                    className={`${bodyClass || ''} ${bannerHidden ? 'banner-hidden' : ''} ${
-                      minimalFooter ? 'minimal-footer' : ''
-                    }`}
-                  >
-                    {children}
-                  </main>
-                </div>
-              </div>
-            </div> */}
             {children}
           </div>
         </body>
