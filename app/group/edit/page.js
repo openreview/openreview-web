@@ -38,20 +38,20 @@ export default async function page({ searchParams }) {
         // Get venue group to pass to webfield component
         if (group.domain && group.domain !== group.id) {
           return api
-            .get('/groups', { id: groups[0].domain }, { accessToken })
+            .get('/groups', { id: groups.domain }, { accessToken })
             .then((domainApiRes) => {
               const domainGroup = domainApiRes.groups?.length > 0 ? apiRes.groups[0] : null
               return {
-                ...groups,
-                details: { ...groups.details, domain: domainGroup },
+                ...group,
+                details: { ...group.details, domain: domainGroup },
               }
             })
             .catch(() => group)
         }
-        if (groups.domain) {
+        if (group.domain) {
           return {
-            ...groups,
-            details: { ...groups.details, domain: group },
+            ...group,
+            details: { ...group.details, domain: group },
           }
         }
         return group

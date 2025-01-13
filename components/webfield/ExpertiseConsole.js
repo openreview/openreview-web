@@ -2,7 +2,7 @@
 /* globals promptMessage: false */
 
 import { useContext, useEffect, useReducer } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import WebFieldContext from '../WebFieldContext'
 import SubmissionButton from './SubmissionButton'
 import Markdown from '../EditorComponents/Markdown'

@@ -1,6 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import groupBy from 'lodash/groupBy'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'

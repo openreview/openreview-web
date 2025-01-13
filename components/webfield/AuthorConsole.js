@@ -2,7 +2,7 @@
 
 import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import sum from 'lodash/sum'
 import upperFirst from 'lodash/upperFirst'
 import WebFieldContext from '../WebFieldContext'

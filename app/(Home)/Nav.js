@@ -4,7 +4,7 @@ import NavSearch from './NavSearch'
 
 function Nav() {
   return (
-    <nav className="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <nav className="navbar navbar-inverse" role="navigation">
       <div className="container">
         <div className="navbar-header">
           <button

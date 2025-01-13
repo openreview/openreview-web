@@ -1,6 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'

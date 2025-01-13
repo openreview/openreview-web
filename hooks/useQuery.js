@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 
 // Returns the page query, or null if the page is not yet hydrated. This is useful
 // because router.query returns an empty object while the page is loading, making

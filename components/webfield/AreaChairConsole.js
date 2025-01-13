@@ -1,7 +1,7 @@
 /* globals $,promptMessage,promptError,typesetMathJax: false */
 
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'

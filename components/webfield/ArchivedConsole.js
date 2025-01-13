@@ -1,5 +1,5 @@
 import { useContext, useEffect } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import WebFieldContext from '../WebFieldContext'
 import VenueHeader from './VenueHeader'
