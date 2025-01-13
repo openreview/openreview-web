@@ -1,4 +1,5 @@
 'use client'
+
 /* globals DOMPurify, marked: false */
 
 import { useState, useEffect, Suspense } from 'react'
