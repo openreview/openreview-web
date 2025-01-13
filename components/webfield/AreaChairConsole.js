@@ -31,26 +31,7 @@ import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
 import { getProfileLink } from '../../lib/webfield-utils'
 import { formatProfileContent } from '../../lib/edge-utils'
-
-const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
-  const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
-
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedNoteIds(allNoteIds)
-      return
-    }
-    setSelectedNoteIds([])
-  }
-  return (
-    <input
-      type="checkbox"
-      id="select-all-papers"
-      checked={allNotesSelected}
-      onChange={handleSelectAll}
-    />
-  )
-}
+import SelectAllCheckBox from './SelectAllCheckbox'
 
 const AssignedPaperRow = ({
   rowData,
@@ -182,7 +163,7 @@ const AreaChairConsole = ({ appContext }) => {
   const [acConsoleData, setAcConsoleData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || `#assigned-${pluralizeString(submissionName)}`
+    decodeURIComponent(window.location.hash) || `#assigned-${pluralizeString(submissionName)}`
   )
   const [sacLinkText, setSacLinkText] = useState('')
 
@@ -663,9 +644,9 @@ const AreaChairConsole = ({ appContext }) => {
               id: 'select-all',
               content: (
                 <SelectAllCheckBox
-                  selectedNoteIds={selectedNoteIds}
-                  setSelectedNoteIds={setSelectedNoteIds}
-                  allNoteIds={acConsoleData.tableRows?.map((row) => row.note.id)}
+                  selectedIds={selectedNoteIds}
+                  setSelectedIds={setSelectedNoteIds}
+                  allIds={acConsoleData.tableRows?.map((row) => row.note.id)}
                 />
               ),
               width: '35px',
