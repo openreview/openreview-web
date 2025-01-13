@@ -57,7 +57,7 @@ export default async function page({ searchParams }) {
         return group
       }
       if (!accessToken) {
-        redirectPath = `/login?redirect=/group/edit${encodeURIComponent(stringify(query))}`
+        redirectPath = `/login?redirect=/group/edit?${encodeURIComponent(stringify(query))}`
       } else {
         // User is a reader, not a writer of the group, so redirect to info mode
         redirectPath = `/group/info?id=${id}`
@@ -66,7 +66,7 @@ export default async function page({ searchParams }) {
     .catch((apiError) => {
       if (apiError.name === 'ForbiddenError') {
         if (!accessToken) {
-          redirectPath = `/login?redirect=/group/edit${encodeURIComponent(stringify(query))}`
+          redirectPath = `/login?redirect=/group/edit?${encodeURIComponent(stringify(query))}`
         } else {
           throw new Error("You don't have permission to read this group")
         }
