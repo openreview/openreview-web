@@ -4,8 +4,8 @@ import { redirect } from 'next/navigation'
 import api from '../../../lib/api-client'
 import { prettyId } from '../../../lib/utils'
 import serverAuth from '../../auth'
-import GroupInfo from './GroupInfo'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import InvitationInfo from './InvitationInfo'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +13,7 @@ export async function generateMetadata({ searchParams }) {
   const { id } = await searchParams
 
   return {
-    title: `${prettyId(id)} Group Info | OpenReview`,
+    title: `${prettyId(id)} Invitation Info | OpenReview`,
   }
 }
 
@@ -24,20 +24,25 @@ export default async function page({ searchParams }) {
   if (!id) throw new Error('Missing required parameter id')
 
   let redirectPath = null
-  const loadGroupP = api
-    .get('/groups', { id }, { accessToken })
-    .then((apiRes) => {
-      if (apiRes.groups?.length > 0) {
-        return { ...apiRes.groups[0], web: null }
+  const loadInvitationP = api
+    .getInvitationById(id, accessToken)
+    .then((invitationObj) => {
+      if (invitationObj) {
+        return {
+          ...invitationObj,
+          web: null,
+          process: null,
+          preprocess: null,
+        }
       }
-      throw new Error('Group not found')
+      throw new Error('Invitation not found')
     })
     .catch((error) => {
       if (error.name === 'ForbiddenError') {
         if (!accessToken) {
-          redirectPath = `/login?redirect=/group/info?${encodeURIComponent(stringify(query))}}`
+          redirectPath = `/login?redirect=/invitation/info?${encodeURIComponent(stringify(query))}}`
         } else {
-          throw new Error("You don't have permission to read this group")
+          throw new Error("You don't have permission to read this invitation")
         }
       }
       throw new Error(error.message)
@@ -50,7 +55,7 @@ export default async function page({ searchParams }) {
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      <GroupInfo loadGroupP={loadGroupP} accessToken={accessToken} />
+      <InvitationInfo loadInvitationP={loadInvitationP} accessToken={accessToken} />
     </Suspense>
   )
 }

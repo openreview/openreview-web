@@ -34,11 +34,11 @@ export default function Layout({ children }) {
   return (
     <html lang="en">
       <head>
-        <script
+        {/* <script
           src="https://challenges.cloudflare.com/turnstile/v0/api.js"
           async
           defer
-        ></script>
+        ></script> */}
 
         <link rel="icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
