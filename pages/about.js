@@ -23,8 +23,7 @@ const About = () => (
         </p>
         <p>
           For inquiries, please contact{' '}
-          <a href="mailto:hello@openreview-foundation.org">hello@openreview-foundation.org</a>{' '}
-          or <a href="mailto:info@openreview.net">info@openreview.net</a>.
+          <a href="mailto:info@openreview.net">info@openreview.net</a>.
         </p>
         <p>
           OpenReview aims to promote openness in scientific communication, particularly the
