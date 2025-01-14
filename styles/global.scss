@@ -22,11 +22,16 @@ body {
   flex-direction: column;
   justify-content: space-between;
   min-height: 100vh;
-}
 
-.container,
-.container-fluid {
-  flex-grow: 1;
+  > .container,
+  > .container-fluid {
+    flex-grow: 1;
+    display: flex;
+
+    .row {
+      width: 100%;
+    }
+  }
 }
 
 h1,
@@ -438,32 +443,33 @@ $bannerHeight: 39px;
   position: relative;
   padding: 20px 0 30px 0;
   // min-height: calc(100vh - 243px);
+  height: 100%;
   @include mixins.clearfix;
 
-  &.banner-hidden {
-    min-height: calc(100vh - 204px);
-  }
+  // &.banner-hidden {
+  //   min-height: calc(100vh - 204px);
+  // }
   &.minimal-footer {
     padding-bottom: 0;
-    min-height: calc(100vh - 126px);
+    // min-height: calc(100vh - 126px);
   }
-  &.banner-hidden.minimal-footer {
-    min-height: calc(100vh - 88px);
-  }
+  // &.banner-hidden.minimal-footer {
+  //   min-height: calc(100vh - 88px);
+  // }
 
   @media #{constants.$phone-only} {
     padding: 15px 0 20px 0;
-    min-height: calc(100vh - 273px);
+    // min-height: calc(100vh - 273px);
 
-    &.banner-hidden {
-      min-height: calc(100vh - 239px);
-    }
-    &.minimal-footer {
-      min-height: calc(100vh - 120px);
-    }
-    &.minimal-footer.banner-hidden {
-      min-height: calc(100vh - 85px);
-    }
+    // &.banner-hidden {
+    //   min-height: calc(100vh - 239px);
+    // }
+    // &.minimal-footer {
+    //   min-height: calc(100vh - 120px);
+    // }
+    // &.minimal-footer.banner-hidden {
+    //   min-height: calc(100vh - 85px);
+    // }
   }
 }
 

@@ -20,6 +20,7 @@ export default function ComponentGroup({ componentObjP }) {
     setWebComponent(() =>
       dynamic(() =>
         import(`../../components/webfield/${componentObj.component}`, {
+          ssr: false,
           loading: () => <LoadingSpinner />,
         }).catch((e) => {
           promptError(`Error loading ${componentObj.component}: ${e.message}`)
