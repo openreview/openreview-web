@@ -1,6 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import WebFieldContext from '../WebFieldContext'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import BasicHeader from './BasicHeader'
@@ -61,10 +61,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     ithenticateInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
-  const { user, accessToken, userLoading } = useUser()
+  const { user, accessToken, isRefreshing } = useUser()
   const [sacConsoleData, setSacConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
-  const router = useRouter()
   const query = useSearchParams()
   const [activeTabId, setActiveTabId] = useState(
     decodeURIComponent(window.location.hash) || `#${submissionName ?? ''.toLowerCase()}-status`
@@ -651,9 +650,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (userLoading || !user || !group || !venueId) return
+    if (isRefreshing || !user || !group || !venueId) return
     loadData()
-  }, [user, userLoading, group])
+  }, [user, isRefreshing, group])
 
   useEffect(() => {
     // if (!activeTabId) return
@@ -667,7 +666,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       setActiveTabId(`#${(submissionName ?? '').toLowerCase()}-status`)
       return
     }
-    router.replace(activeTabId)
+    window.location.hash = activeTabId
   }, [activeTabId])
 
   const missingConfig = Object.entries({

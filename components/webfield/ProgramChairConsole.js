@@ -1,6 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import groupBy from 'lodash/groupBy'
 import useUser from '../../hooks/useUser'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -85,8 +85,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     ithenticateInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
-  const { user, accessToken, userLoading } = useUser()
-  const router = useRouter()
+  const { user, accessToken, isRefreshing } = useUser()
   const query = useSearchParams()
   const [activeTabId, setActiveTabId] = useState(
     decodeURIComponent(window.location.hash) || '#venue-configuration'
@@ -1028,9 +1027,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (userLoading || !user || !group || !venueId || !reviewersId || !submissionId) return
+    if (isRefreshing || !user || !group || !venueId || !reviewersId || !submissionId) return
     loadData()
-  }, [user, userLoading, group])
+  }, [user, isRefreshing, group])
 
   useEffect(() => {
     const validTabIds = [
@@ -1054,7 +1053,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       setActiveTabId('#venue-configuration')
       return
     }
-    router.replace(activeTabId)
+    window.location.hash = activeTabId
   }, [activeTabId])
 
   const missingConfig = Object.entries({
@@ -1082,6 +1081,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     }`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
+
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />

@@ -6,11 +6,6 @@ import NameDeletionCount from './(NameDeletion)/NameDeletionCount'
 import ProfileMergeCount from './(ProfileMerge)/ProfileMergeCount'
 import VenueRequestCount from './(VenueRequests)/VenueRequestCount'
 
-const TabMessageCount = ({ count }) => {
-  if (!count) return null
-  return (count > 0 || typeof count === 'string') && <span className="badge">{count}</span>
-}
-
 export default function Moderation({ children, accessToken }) {
   const [activeTabId, setActiveTabId] = useState('#profiles')
 

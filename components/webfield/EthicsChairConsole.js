@@ -1,7 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import useUser from '../../hooks/useUser'
+import { useSearchParams } from 'next/navigation'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
@@ -27,12 +26,10 @@ const EthicsChairConsole = ({ appContext }) => {
     preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
-  const router = useRouter()
   const query = useSearchParams()
   const [activeTabId, setActiveTabId] = useState(
     decodeURIComponent(window.location.hash) || '#overview'
   )
-  const { user, userLoading } = useUser()
 
   const ethicsChairsUrlFormat = getRoleHashFragment(ethicsChairsName)
   const validTabIds = [
@@ -56,7 +53,7 @@ const EthicsChairConsole = ({ appContext }) => {
       setActiveTabId(validTabIds[0])
       return
     }
-    router.replace(activeTabId)
+    window.location.hash = activeTabId
   }, [activeTabId])
 
   const missingConfig = Object.entries({

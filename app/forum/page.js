@@ -49,12 +49,13 @@ export default async function page({ searchParams }) {
     const noteIdParam = noteId ? `&noteId=${encodeURIComponent(noteId)}` : ''
     const invIdParam = invitationId ? `&invitationId=${encodeURIComponent(invitationId)}` : ''
     const referrerParam = referrer ? `&referrer=${encodeURIComponent(referrer)}` : ''
-    const redirectUrl = `/forum?id=${encodeURIComponent(
+
+    return `/forum?id=${encodeURIComponent(
       forumId
     )}${noteIdParam}${invIdParam}${referrerParam}`
-    redirect(redirectUrl)
   }
 
+  let redirectPath = null
   const getForumNote = async () => {
     try {
       const note = await api.getNoteById(
@@ -68,7 +69,8 @@ export default async function page({ searchParams }) {
       }
       // Allows the UI to link to forum pages just using a note ID, that may be a reply
       if (note && (note.id !== note.forum || !id)) {
-        redirectForum(note.forum)
+        redirectPath = redirectForum(note.forum)
+        return { redirectPath }
       }
       if (note?.version === 2) {
         return { forumNote: note, version: 2 }
@@ -80,7 +82,8 @@ export default async function page({ searchParams }) {
 
       const redirectNote = await shouldRedirect(queryId)
       if (redirectNote) {
-        redirectForum(redirectNote.id)
+        redirectPath = redirectForum(redirectNote.id)
+        return { redirectPath }
       }
       if (!note) {
         throw new Error(`The Note ${queryId} was not found`)
@@ -90,12 +93,14 @@ export default async function page({ searchParams }) {
       if (error.name === 'ForbiddenError') {
         const redirectNote = await shouldRedirect(queryId)
         if (redirectNote) {
-          redirectForum(redirectNote.id)
+          redirectPath = redirectForum(redirectNote.id)
+          return { redirectPath }
         }
 
         // Redirect to login, unless request is from a Google crawler
         if (!token && !userAgent.includes('Googlebot')) {
-          redirect(`/login?redirect=/forum?${encodeURIComponent(stringify(query))}`)
+          redirectPath = `/login?redirect=/forum?${encodeURIComponent(stringify(query))}`
+          return { redirectPath }
         }
         throw new Error("You don't have permission to read this forum")
       }
@@ -103,7 +108,8 @@ export default async function page({ searchParams }) {
     }
   }
 
-  const { forumNote, version } = await getForumNote()
+  const { forumNote, version, redirectPath: pathToRedirectTo } = await getForumNote()
+  if (pathToRedirectTo) redirect(pathToRedirectTo)
 
   // #region Metadata
   const content =

@@ -28,11 +28,13 @@ export async function generateMetadata({ searchParams }) {
 }
 
 export default async function page({ searchParams }) {
+  console.log('group page')
   const query = await searchParams
   const { id } = query
   if (!id) throw new Error('Group ID is required')
 
   const { token: accessToken, user } = await serverAuth()
+  console.log('group page serverAuth accessToken is:', accessToken?.slice(0, 10))
 
   let group
   try {

@@ -6,6 +6,7 @@ import Table from '../../components/Table'
 import NotificationsTable from './NotificationsTable'
 import api from '../../lib/api-client'
 import { decrementNotificationCount } from '../../notificationSlice'
+import useUser from '../../hooks/useUser'
 
 export default function Notifications({
   unviewedMessagesCountsP,
@@ -15,7 +16,8 @@ export default function Notifications({
   const [toEmail, setToEmail] = useState(defaultToEmail)
   const initialUnviewedCounts = use(unviewedMessagesCountsP)
   const [unviewedCounts, setUnviewedCounts] = useState(initialUnviewedCounts)
-  const { token } = useSelector((state) => state.root)
+  // const { token } = useSelector((state) => state.root)
+  const { token } = useUser()
   const dispatch = useDispatch()
 
   const markAllViewed = async () => {

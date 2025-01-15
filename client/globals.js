@@ -157,7 +157,7 @@ window.generalPrompt = function (type, content, options) {
   $outer.slideDown()
 
   if (options.scrollToTop && window.scrollY > 0) {
-    $('html, body').animate({ scrollTop: 0 }, 400)
+    // $('html, body').animate({ scrollTop: 0 }, 400)
   }
 
   if (!options.noTimeout) {

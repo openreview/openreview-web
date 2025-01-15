@@ -7,7 +7,7 @@ import bannerReducer from './bannerSlice'
 
 const store = configureStore({
   reducer: {
-    root: rootReducer,
+    // root: rootReducer,
     notification: notificationReducer,
     banner: bannerReducer,
   },

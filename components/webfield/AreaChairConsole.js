@@ -1,7 +1,7 @@
 /* globals $,promptMessage,promptError,typesetMathJax: false */
 
 import { useContext, useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -174,7 +174,6 @@ const AreaChairConsole = ({ appContext }) => {
     edgeBrowserDeployedUrl,
   } = reviewerAssignment ?? {}
   const { user, accessToken, isRefreshing } = useUser()
-  const router = useRouter()
   const query = useSearchParams()
   const { setBannerContent } = appContext ?? {}
   const [acConsoleData, setAcConsoleData] = useState({})
@@ -797,7 +796,7 @@ const AreaChairConsole = ({ appContext }) => {
       setActiveTabId(`#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`)
       return
     }
-    router.replace(activeTabId)
+    window.location.hash = activeTabId
   }, [activeTabId])
 
   const missingConfig = Object.entries({

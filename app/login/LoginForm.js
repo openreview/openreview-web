@@ -7,6 +7,7 @@ import { useDispatch } from 'react-redux'
 import api from '../../lib/api-client'
 import { isValidEmail } from '../../lib/utils'
 import { setUser } from '../../rootSlice'
+import { useRouter } from 'next/navigation'
 
 export default function LoginForm() {
   // eslint-disable-next-line no-use-before-define
@@ -16,7 +17,8 @@ export default function LoginForm() {
     loading: false,
     error: null,
   })
-  const dispatch = useDispatch()
+  // const dispatch = useDispatch()
+  const router = useRouter()
 
   function loginFormReducer(state, action) {
     switch (action.type) {
@@ -57,13 +59,14 @@ export default function LoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setFormState({ type: 'START_LOADING' })
-    await setTimeout(() => {}, 50000)
+    // await setTimeout(() => {}, 50000)
     try {
       const { user, token } = await api.post('/login', {
         id: formState.email,
         password: formState.password,
       })
-      dispatch(setUser({ user, token }))
+      // dispatch(setUser({ user, token }))
+      router.refresh()
     } catch (error) {
       setFormState({ type: 'HAS_ERROR' })
       promptError(error.message)

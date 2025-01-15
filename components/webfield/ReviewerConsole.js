@@ -1,6 +1,6 @@
 /* globals typesetMathJax,promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { chunk } from 'lodash'
 import api from '../../lib/api-client'
@@ -276,8 +276,7 @@ const ReviewerConsole = ({ appContext }) => {
     hasPaperRanking,
     reviewDisplayFields = ['review'],
   } = useContext(WebFieldContext)
-  const { user, accessToken, userLoading } = useUser()
-  const router = useRouter()
+  const { user, accessToken, isRefreshing } = useUser()
   const query = useSearchParams()
   const { setBannerContent } = appContext ?? {}
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
@@ -583,7 +582,7 @@ const ReviewerConsole = ({ appContext }) => {
 
   useEffect(() => {
     if (
-      userLoading ||
+      isRefreshing ||
       !user ||
       !group ||
       !submissionInvitationId ||
@@ -593,7 +592,7 @@ const ReviewerConsole = ({ appContext }) => {
     )
       return
     loadData()
-  }, [user, userLoading, group])
+  }, [user, isRefreshing, group])
 
   useEffect(() => {
     if (reviewerConsoleData.notes) {
@@ -602,7 +601,7 @@ const ReviewerConsole = ({ appContext }) => {
   }, [reviewerConsoleData.notes])
 
   useEffect(() => {
-    if (user && !userLoading) {
+    if (user && !isRefreshing) {
       const validTabIds = [
         `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
         `#${reviewerUrlFormat}-tasks`,
@@ -611,9 +610,9 @@ const ReviewerConsole = ({ appContext }) => {
         setActiveTabId(`#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`)
         return
       }
-      router.replace(activeTabId)
+      window.location.hash = activeTabId
     }
-  }, [activeTabId, user, userLoading])
+  }, [activeTabId, user, isRefreshing])
 
   const missingConfig = Object.entries({
     header,

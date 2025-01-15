@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux'
 import ProfileEditor from '../../../components/profile/ProfileEditor'
 import api from '../../../lib/api-client'
 import { formatProfileData } from '../../../lib/profiles'
+import useUser from '../../../hooks/useUser'
 
 export default function Edit({ loadProfileP, accessToken }) {
   const initialProfile = use(loadProfileP)
@@ -15,7 +16,8 @@ export default function Edit({ loadProfileP, accessToken }) {
   const [loading, setLoading] = useState(false)
   const [saveProfileErrors, setSaveProfileErrors] = useState(null)
   const router = useRouter()
-  const { user } = useSelector((state) => state.root)
+  // const { user } = useSelector((state) => state.root)
+  const { user } = useUser()
 
   const unlinkPublication = async (profileId, noteId) => {
     const note = await api.getNoteById(noteId, accessToken)

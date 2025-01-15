@@ -5,10 +5,12 @@ import NoteList from '../../components/NoteList'
 import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
 import { useSelector } from 'react-redux'
+import useUser from '../../hooks/useUser'
 
 export default function SubmissionList({ getFirstPageNotesP, notesPerPage, invitationId }) {
   const { notes: firstPageNotes, count } = use(getFirstPageNotesP)
-  const { token } = useSelector((state) => state.root)
+  // const { token } = useSelector((state) => state.root)
+  const { token } = useUser()
   const [currentPage, setCurrentPage] = useState(1)
   const [notes, setNotes] = useState(firstPageNotes)
 

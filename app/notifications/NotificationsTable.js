@@ -7,6 +7,7 @@ import { formatDateTime, prettyId } from '../../lib/utils'
 import Collapse from '../../components/Collapse'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import PaginationLinks from '../../components/PaginationLinks'
+import useUser from '../../hooks/useUser'
 
 function MessageRow({ message, markViewed }) {
   const [localMessage, setLocalMessage] = useState(message)
@@ -100,7 +101,8 @@ export default function NotificationsTable({
   const [count, setCount] = useState(0)
   const [page, setPage] = useState(1)
   const [messages, setMessages] = useState(null)
-  const { token } = useSelector((state) => state.root)
+  // const { token } = useSelector((state) => state.root)
+  const { token } = useUser()
   const pageSize = 25
 
   const headingContent = (

@@ -7,11 +7,13 @@ import Alert from '../../components/Alert'
 import api from '../../lib/api-client'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
 import { isValidEmail } from '../../lib/utils'
+import useUser from '../../hooks/useUser'
 
 const ResetForm = ({ setEmailSent }) => {
   const [email, setEmail] = useState('')
   const [error, setError] = useState(null)
-  const { user } = useSelector((state) => state.root)
+  // const { user } = useSelector((state) => state.root)
+  const { user } = useUser()
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('reset')
 
   useEffect(() => {

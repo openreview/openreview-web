@@ -15,8 +15,8 @@ import UserContext from '../../components/UserContext'
 import { refreshToken } from '../../rootSlice'
 
 export default function AppInit() {
-  const dispatch = useDispatch()
-  const user = useSelector((state) => state.root.user)
+  // const dispatch = useDispatch()
+  // const user = useSelector((state) => state.root.user)
 
   useEffect(() => {
     // Load required vendor libraries
@@ -64,9 +64,10 @@ export default function AppInit() {
     }
   }, [])
 
-  useEffect(() => {
-    if (user || user === null) return
-    dispatch(refreshToken())
-  }, [user])
+  // useEffect(() => {
+  //   if (user || user === null) return
+  //   dispatch(refreshToken())
+  // }, [user])
+
   return null
 }

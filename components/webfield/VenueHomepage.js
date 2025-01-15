@@ -1,7 +1,7 @@
 /* globals promptError, promptMessage, $: false */
 import { useState, useContext, useEffect, useReducer } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import uniq from 'lodash/uniq'
 import kebabCase from 'lodash/kebabCase'
 import WebFieldContext from '../WebFieldContext'
@@ -109,7 +109,6 @@ export default function VenueHomepage({ appContext }) {
   const [defaultActiveTab, setDefaultActiveTab] = useState(-1)
   const [tabsDisabled, setTabsDisabled] = useState(false)
   const [shouldReload, reload] = useReducer((p) => !p, true)
-  const router = useRouter()
   const queryParam = useSearchParams()
   const { setBannerContent } = appContext ?? {}
 
@@ -293,10 +292,7 @@ export default function VenueHomepage({ appContext }) {
                   const currentHash = window.location.hash.slice(5)
                   if (currentHash !== tabConfig.id) {
                     setTabsDisabled(true)
-                    router.replace(`#tab-${tabConfig.id}`, undefined, {
-                      scroll: false,
-                      shallow: true,
-                    })
+                    window.location.hash = `#tab-${tabConfig.id}`
                   }
                 }}
               >

@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic'
+import { Suspense } from 'react'
 import serverAuth, { isSuperUser } from '../../auth'
 import Moderation from './Moderation'
 import UserModerationTab from './UserModerationTab'
@@ -14,17 +15,19 @@ export default async function page() {
   if (!isSuperUser(user)) throw new Error('Forbidden. Access to this page is restricted.')
 
   return (
-    <Moderation
-      // eslint-disable-next-line react/no-children-prop
-      children={{
-        profiles: <UserModerationTab accessToken={token} />,
-        email: <EmailDeletionTab accessToken={token} />,
-        name: <NameDeletionTab accessToken={token} />,
-        merge: <ProfileMergeTab accessToken={token} />,
-        institution: <InstitutionTab accessToken={token} />,
-        requests: <VenueRequestTab accessToken={token} />,
-      }}
-      accessToken={token}
-    />
+    <Suspense fallback={<div>Loading...</div>}>
+      <Moderation
+        // eslint-disable-next-line react/no-children-prop
+        children={{
+          profiles: <UserModerationTab accessToken={token} />,
+          email: <EmailDeletionTab accessToken={token} />,
+          name: <NameDeletionTab accessToken={token} />,
+          merge: <ProfileMergeTab accessToken={token} />,
+          institution: <InstitutionTab accessToken={token} />,
+          requests: <VenueRequestTab accessToken={token} />,
+        }}
+        accessToken={token}
+      />
+    </Suspense>
   )
 }
