@@ -11,10 +11,10 @@ export default function BaseActivityList({
   showGroup,
 }) {
   const [formattedNotes, setFormattedNotes] = useState(null)
-  const { user, userLoading } = useUser()
+  const { user, isRefreshing } = useUser()
 
   useEffect(() => {
-    if (!notes || userLoading) return
+    if (!notes || isRefreshing) return
 
     const tempNotes = []
 

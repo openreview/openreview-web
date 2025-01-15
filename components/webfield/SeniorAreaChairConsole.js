@@ -1,6 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import WebFieldContext from '../WebFieldContext'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import BasicHeader from './BasicHeader'
@@ -9,9 +9,7 @@ import PaperStatus from './SeniorAreaChairConsole/PaperStatus'
 import SeniorAreaChairTasks from './SeniorAreaChairConsole/SeniorAreaChairTasks'
 import ErrorDisplay from '../ErrorDisplay'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import {
   getIndentifierFromGroup,
   getNumberFromGroup,
@@ -67,7 +65,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   const [sacConsoleData, setSacConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
   const router = useRouter()
-  const query = useQuery()
+  const query = useSearchParams()
   const [activeTabId, setActiveTabId] = useState(
     decodeURIComponent(window.location.hash) || `#${submissionName ?? ''.toLowerCase()}-status`
   )
@@ -645,10 +643,10 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 

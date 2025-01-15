@@ -18,10 +18,10 @@ import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload }) {
   const [userConsoles, setUserConsoles] = useState(null)
-  const { user, accessToken, userLoading } = useUser()
+  const { user, accessToken, isRefreshing } = useUser()
 
   useEffect(() => {
-    if (userLoading) return
+    if (isRefreshing) return
 
     if (!user) {
       setUserConsoles([])
@@ -47,7 +47,7 @@ function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload
         setUserConsoles([])
         promptError(error.message)
       })
-  }, [user, accessToken, userLoading, venueId, submissionInvitationId, shouldReload])
+  }, [user, accessToken, isRefreshing, venueId, submissionInvitationId, shouldReload])
 
   useEffect(() => {
     if (!userConsoles || typeof setHidden !== 'function') return

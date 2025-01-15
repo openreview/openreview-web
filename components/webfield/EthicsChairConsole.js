@@ -1,10 +1,8 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import ErrorDisplay from '../ErrorDisplay'
@@ -30,7 +28,7 @@ const EthicsChairConsole = ({ appContext }) => {
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
   const router = useRouter()
-  const query = useQuery()
+  const query = useSearchParams()
   const [activeTabId, setActiveTabId] = useState(
     decodeURIComponent(window.location.hash) || '#overview'
   )
@@ -46,10 +44,10 @@ const EthicsChairConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 

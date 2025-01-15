@@ -21,7 +21,6 @@ export async function middleware(request) {
 
     const data = await tokenRefreshResponse.json()
     if (data.status === 401 || data.status === 400) return response
-
     return NextResponse.redirect(request.nextUrl, {
       headers: {
         'Set-Cookie': tokenRefreshResponse.headers.get('set-cookie'),
@@ -39,6 +38,11 @@ export const config = {
     '/assignments',
     '/assignments/stats',
     '/edges/browse',
+    '/forum',
+    '/group',
+    '/group:path',
+    '/invitation',
+    '/invitation:path',
     '/messages',
     '/notifications',
     '/profile',

@@ -1,10 +1,13 @@
 /* globals promptError: false */
 
 import { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
 import NoteList from '../NoteList'
 import PaginationLinks from '../PaginationLinks'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
+import { setUser } from '../../rootSlice'
+// import useAPI from '../../hooks/useAPI'
 
 const ImportedPublicationsSection = ({
   profileId,
@@ -18,6 +21,9 @@ const ImportedPublicationsSection = ({
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const pageSize = 20
+  const dispatch = useDispatch()
+  // const api = useAPI()
+  // console.log('api', api)
 
   const handleLinkUnlinkPublication = (id, isunlink = false) => {
     if (isunlink) {
@@ -54,7 +60,11 @@ const ImportedPublicationsSection = ({
             'OpenReview.net/Archive/-/Direct_Upload',
           ],
         },
-        { accessToken, includeVersion: true, sort: 'tmdate:desc' }
+        {
+          accessToken,
+          includeVersion: true,
+          sort: 'tmdate:desc',
+        }
       )
       setPublications(result.notes)
       setTotalCount(result.count)

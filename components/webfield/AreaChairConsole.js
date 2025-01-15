@@ -1,7 +1,7 @@
 /* globals $,promptMessage,promptError,typesetMathJax: false */
 
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -11,7 +11,6 @@ import NoteSummary from './NoteSummary'
 import { AcPcConsoleNoteReviewStatus } from './NoteReviewStatus'
 import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import {
   getNumberFromGroup,
@@ -25,7 +24,6 @@ import {
   getSingularRoleName,
   getRoleHashFragment,
 } from '../../lib/utils'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
@@ -175,9 +173,9 @@ const AreaChairConsole = ({ appContext }) => {
     edgeBrowserProposedUrl,
     edgeBrowserDeployedUrl,
   } = reviewerAssignment ?? {}
-  const { user, accessToken, userLoading } = useUser()
+  const { user, accessToken, isRefreshing } = useUser()
   const router = useRouter()
-  const query = useQuery()
+  const query = useSearchParams()
   const { setBannerContent } = appContext ?? {}
   const [acConsoleData, setAcConsoleData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
@@ -758,16 +756,16 @@ const AreaChairConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
   useEffect(() => {
     if (
-      userLoading ||
+      isRefreshing ||
       !user ||
       !group ||
       !venueId ||
@@ -777,7 +775,7 @@ const AreaChairConsole = ({ appContext }) => {
     )
       return
     loadData()
-  }, [user, userLoading, group])
+  }, [user, isRefreshing, group])
 
   useEffect(() => {
     if (acConsoleData.notes) {
