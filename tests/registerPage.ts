@@ -226,7 +226,7 @@ test('enter invalid name', async (t) => {
     .ok()
     .expect(Selector('.important_message').textContent)
     .eql(
-      'The name 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
+      'The name Abc 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
 })
 
