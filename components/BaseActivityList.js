@@ -55,7 +55,7 @@ export default function BaseActivityList({
 
     // Filter out any notes that should not be displayed
     setFormattedNotes(tempNotes)
-  }, [notes])
+  }, [notes, isRefreshing])
 
   if (!formattedNotes) return null
 
