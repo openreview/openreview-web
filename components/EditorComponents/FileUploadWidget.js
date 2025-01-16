@@ -52,7 +52,7 @@ const FileUploadWidget = () => {
         )
       }
     } catch (apiError) {
-      promptError(apiError.message, { scrollToTop: false })
+      promptError(apiError.message)
       fileInputRef.current.value = ''
     }
   }
@@ -86,7 +86,7 @@ const FileUploadWidget = () => {
       await sendChunksPromises
       setFileName(file.name)
     } catch (apiError) {
-      promptError(apiError.message, { scrollToTop: false })
+      promptError(apiError.message)
       fileInputRef.current.value = ''
     }
 

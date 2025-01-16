@@ -36,10 +36,10 @@ const InvitationCode = ({ invitation, accessToken, loadInvitation, codeType }) =
         accessToken,
         version: 1,
       })
-      promptMessage(`Code for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      promptMessage(`Code for ${prettyId(invitation.id)} updated`)
       loadInvitation(invitation.id)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
 
     setIsSaving(false)
@@ -145,10 +145,10 @@ export const InvitationCodeV2 = ({
         ...(!isMetaInvitation && { invitations: metaInvitationId }),
       }
       await api.post('/invitations/edits', requestBody, { accessToken })
-      promptMessage(`Code for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      promptMessage(`Code for ${prettyId(invitation.id)} updated`)
       loadInvitation(invitation.id)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
 
     setIsSaving(false)

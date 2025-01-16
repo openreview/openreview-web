@@ -102,7 +102,7 @@ const ChatReply = ({
         setLoading(false)
       })
       .catch((err) => {
-        promptError(err.message, { scrollToTop: false })
+        promptError(err.message)
         setLoading(false)
       })
 
@@ -138,7 +138,7 @@ const ChatReply = ({
         setLoading(false)
       })
       .catch((err) => {
-        promptError(err.message, { scrollToTop: false })
+        promptError(err.message)
         setLoading(false)
       })
   }
@@ -149,7 +149,7 @@ const ChatReply = ({
     copy(
       `${window.location.origin}${window.location.pathname}?id=${note.forum}&noteId=${note.id}${window.location.hash}`
     )
-    promptMessage('Reply URL copied to clipboard', { scrollToTop: false })
+    promptMessage('Reply URL copied to clipboard')
   }
 
   useEffect(() => {

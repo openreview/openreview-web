@@ -281,7 +281,7 @@ const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup 
         }
         await api.post('/groups', resultToPost, { accessToken, version: 1 })
       }
-      promptMessage(`Settings for ${prettyId(group.id)} updated`, { scrollToTop: false })
+      promptMessage(`Settings for ${prettyId(group.id)} updated`)
       await reloadGroup()
       setEdit(false)
     } catch (error) {

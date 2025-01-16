@@ -73,7 +73,7 @@ export default function ChatEditorForm({
       setSignatureOptions(sigOptions)
       setSignature(sigOptions[0]?.value)
     } catch (err) {
-      promptError(err.message, { scrollToTop: false })
+      promptError(err.message)
     }
   }
 
@@ -134,7 +134,7 @@ export default function ChatEditorForm({
           })
       })
       .catch((err) => {
-        promptError(err.message, { scrollToTop: false })
+        promptError(err.message)
         setLoading(false)
       })
   }
@@ -175,9 +175,11 @@ export default function ChatEditorForm({
     >
       {replyToNote && (
         <div className="parent-info disable-tex-rendering">
-          <h5 onClick={() => {
-            scrollToNote(replyToNote.id)
-          }}>
+          <h5
+            onClick={() => {
+              scrollToNote(replyToNote.id)
+            }}
+          >
             {/* <Icon name="share-alt" />{' '} */}
             <span>Replying to {prettyId(replyToNote.signatures[0], true)}</span>
             {' – '}
@@ -341,8 +343,7 @@ export default function ChatEditorForm({
             className="btn btn-sm btn-primary"
             disabled={!message || !message.trim() || loading}
           >
-            Send{' '}
-            <Icon name="send" />
+            Send <Icon name="send" />
           </button>
         </div>
       </div>
