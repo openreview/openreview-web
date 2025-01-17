@@ -4,6 +4,7 @@ import api from '../lib/api-client'
 import { renderWithWebFieldContext } from './util'
 import GroupDirectory from '../components/webfield/GroupDirectory'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('next/router', () => ({
   useRouter: () => ({
     replace: () => jest.fn(),
