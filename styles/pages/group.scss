@@ -1310,6 +1310,10 @@ main.invitation {
         font-size: 0.7rem;
         font-style: italic;
 
+        &.missing-value {
+          color: red;
+        }
+
         .edit-cdate-icon {
           cursor: pointer;
         }
@@ -1401,10 +1405,6 @@ main.invitation {
         font-size: 0.65rem;
         white-space: nowrap;
         overflow-x: hidden;
-
-        .invitation-cdate {
-          color: constants.$orRed;
-        }
       }
     }
 

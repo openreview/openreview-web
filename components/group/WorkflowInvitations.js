@@ -1,7 +1,7 @@
 /* globals promptError,promptMessage,$: false */
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { get, sortBy } from 'lodash'
+import { get, set, sortBy } from 'lodash'
 import timezone from 'dayjs/plugin/timezone'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -31,10 +31,12 @@ const WorflowInvitationRow = ({
   workflowInvitation,
   loadWorkflowInvitations,
   domainObject,
+  setMissingValueInvitationIds,
 }) => {
   const [showInvitationEditor, setShowInvitationEditor] = useState(false)
   const invitationName = prettyField(subInvitation.id.split('/').pop())
   const isGroupInvitation = subInvitation.edit?.group // sub invitation can be group invitation too
+  const [subInvitationContentFieldValues, setSubInvitationContentFieldValues] = useState({})
 
   const existingValue = isGroupInvitation
     ? {}
@@ -45,6 +47,32 @@ const WorflowInvitationRow = ({
           return [key, existingFieldValue]
         })
       )
+  useEffect(() => {
+    let hasMissingValue = false
+    const contentFieldValueMap = {}
+    Object.keys(subInvitation.edit?.content ?? {}).forEach((key) => {
+      const fieldPath = getPath(subInvitation.edit.invitation, key)
+      let displayValue = getSubInvitationContentFieldDisplayValue(
+        fieldPath
+          ? workflowInvitation
+          : { ...domainObject, domain: workflowInvitation.domain },
+        fieldPath ?? `${key}.value`,
+        subInvitation.edit.content?.[key]?.value?.param?.type
+      )
+      if (displayValue === 'value missing') {
+        displayValue = <span className="missing-value">Missing</span>
+        hasMissingValue = true
+      }
+      contentFieldValueMap[key] = displayValue
+    })
+    if (hasMissingValue) {
+      setMissingValueInvitationIds((invitationIds) => [
+        ...invitationIds,
+        workflowInvitation.id,
+      ])
+    }
+    setSubInvitationContentFieldValues(contentFieldValueMap)
+  }, [subInvitation])
 
   return (
     <div className="sub-invitation-container">
@@ -78,23 +106,14 @@ const WorflowInvitationRow = ({
 
             {!isGroupInvitation && (
               <ul>
-                {Object.keys(subInvitation.edit?.content ?? {}).map((key) => {
-                  const fieldPath = getPath(subInvitation.edit.invitation, key)
-                  return (
-                    <li key={key}>
-                      <span className="existing-value-field">{prettyField(key)}: </span>
-                      <span className="existing-value-field-value">
-                        {getSubInvitationContentFieldDisplayValue(
-                          fieldPath
-                            ? workflowInvitation
-                            : { ...domainObject, domain: workflowInvitation.domain },
-                          fieldPath ?? `${key}.value`,
-                          subInvitation.edit.content?.[key]?.value?.param?.type
-                        )}
-                      </span>
-                    </li>
-                  )
-                })}
+                {Object.keys(subInvitationContentFieldValues ?? {}).map((key) => (
+                  <li key={key}>
+                    <span className="existing-value-field">{prettyField(key)}: </span>
+                    <span className="existing-value-field-value">
+                      {subInvitationContentFieldValues[key]}
+                    </span>
+                  </li>
+                ))}
               </ul>
             )}
           </div>
@@ -228,6 +247,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const [workflowInvitations, setWorkflowInvitations] = useState([])
   const [stageInvitations, setStageInvitations] = useState([])
   const [runningInvitations, setRunningInvitations] = useState([])
+  const [missingValueInvitationIds, setMissingValueInvitationIds] = useState([])
   const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
   const workflowInvitationRegex = RegExp(`^${groupId}/-/[^/]+$`)
 
@@ -249,6 +269,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   }
 
   const loadAllInvitations = async () => {
+    setMissingValueInvitationIds([])
     const getAllGroupsP = api
       .getAll(
         '/groups',
@@ -408,7 +429,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                 return (
                   <React.Fragment key={invitationId}>
                     <div className="workflow-invitation-container">
-                      <div className="invitation-cdate">{stepObj.formattedCDate}</div>
+                      <div
+                        className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
+                      >
+                        {stepObj.formattedCDate}
+                      </div>
                       <div className="edit-invitation-info">
                         <EditInvitationRow
                           invitation={stepObj}
@@ -424,12 +449,13 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                               workflowInvitation={stepObj}
                               loadWorkflowInvitations={loadAllInvitations}
                               domainObject={group.content}
+                              setMissingValueInvitationIds={setMissingValueInvitationIds}
                             />
                           ))}
                       </div>
                     </div>
                     <div key="today" className="workflow-invitation-container">
-                      <div className="invitation-cdate">
+                      <div className="invitation-cdate ">
                         {formatDateTime(dayjs().valueOf(), {
                           second: undefined,
                           minute: undefined,
@@ -448,7 +474,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               }
               return (
                 <div key={invitationId} className="workflow-invitation-container">
-                  <div className="invitation-cdate">{stepObj.formattedCDate}</div>
+                  <div
+                    className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
+                  >
+                    {stepObj.formattedCDate}
+                  </div>
                   <div className="edit-invitation-info">
                     <EditInvitationRow
                       invitation={stepObj}
@@ -464,6 +494,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                           workflowInvitation={stepObj}
                           loadWorkflowInvitations={loadAllInvitations}
                           domainObject={group.content}
+                          setMissingValueInvitationIds={setMissingValueInvitationIds}
                         />
                       ))}
                   </div>
