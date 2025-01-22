@@ -15,14 +15,18 @@ export default async function page({ searchParams }) {
   const { token } = await searchParams
   if (!token) redirect('/')
 
-  const loadActivatableProfileP = api.get(`/activatable/${token}`).then((apiRes) => {
-    if (apiRes.activatable?.action !== 'activate') {
-      throw new Error(
-        'Invalid profile activation link. Please check your email and try again.'
-      )
-    }
-    return formatProfileData(apiRes.profile, true)
-  })
+  const loadActivatableProfileP = api
+    .get(`/activatable/${token}`)
+    .then((apiRes) => {
+      if (apiRes.activatable?.action !== 'activate') {
+        throw new Error(
+          'Invalid profile activation link. Please check your email and try again.'
+        )
+      }
+      return { profile: formatProfileData(apiRes.profile, true) }
+    })
+    .catch((error) => ({ errorMessage: error.message }))
+
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <Activate loadActivatableProfileP={loadActivatableProfileP} activateToken={token} />

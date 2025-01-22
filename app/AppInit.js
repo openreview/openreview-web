@@ -9,14 +9,15 @@ import { nanoid } from 'nanoid'
 import random from 'lodash/random'
 import { useRouter } from 'next/navigation'
 import { useDispatch, useSelector } from 'react-redux'
-import { auth, getTokenPayload, cookieExpiration, refreshExpiration } from '../../lib/auth'
-import mathjaxConfig from '../../lib/mathjax-config'
-import UserContext from '../../components/UserContext'
-import { refreshToken } from '../../rootSlice'
+import { auth, getTokenPayload, cookieExpiration, refreshExpiration } from '../lib/auth'
+import mathjaxConfig from '../lib/mathjax-config'
+import UserContext from '../components/UserContext'
+import { refreshToken } from '../rootSlice'
 
 export default function AppInit() {
   // const dispatch = useDispatch()
   // const user = useSelector((state) => state.root.user)
+  // throw new Error('test')
 
   useEffect(() => {
     // Load required vendor libraries
@@ -31,15 +32,15 @@ export default function AppInit() {
     window.nanoid = nanoid
 
     // Load legacy JS code
-    window.mkStateManager = require('../../client/state-manager')
-    window.view = require('../../client/view')
-    window.view2 = require('../../client/view-v2')
-    window.Webfield = require('../../client/webfield')
-    window.Webfield2 = require('../../client/webfield-v2')
+    window.mkStateManager = require('../client/state-manager')
+    window.view = require('../client/view')
+    window.view2 = require('../client/view-v2')
+    window.Webfield = require('../client/webfield')
+    window.Webfield2 = require('../client/webfield-v2')
     // window.OpenBanner = this.getLegacyBannerObject()
-    require('../../client/templates')
-    require('../../client/template-helpers')
-    require('../../client/globals')
+    require('../client/templates')
+    require('../client/template-helpers')
+    require('../client/globals')
 
     // MathJax has to be loaded asynchronously from the CDN after the config file loads
     const script = document.createElement('script')

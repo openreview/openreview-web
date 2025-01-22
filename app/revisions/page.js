@@ -8,6 +8,7 @@ import styles from './Revisions.module.scss'
 import Banner from '../../components/Banner'
 import Revisions from './Revisions'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import ErrorDisplay from '../../components/ErrorDisplay'
 
 export const metadata = {
   title: 'Revisions | OpenReview',
@@ -18,13 +19,18 @@ export const dynamic = 'force-dynamic'
 export default async function page({ searchParams }) {
   const { id: noteId } = await searchParams
   const { user, token: accessToken } = await serverAuth()
-  if (!noteId) throw new Error('Missing id')
+  if (!noteId) return <ErrorDisplay message="Missing id" />
 
-  const note = await api.getNoteById(noteId, accessToken, {
-    details: 'writable,forumContent',
-    trash: true,
-  })
-  if (!note) throw new Error(`The note ${noteId} could not be found`)
+  let note
+  try {
+    note = await api.getNoteById(noteId, accessToken, {
+      details: 'writable,forumContent',
+      trash: true,
+    })
+    if (!note) throw new Error(`The note ${noteId} could not be found`)
+  } catch (error) {
+    return <ErrorDisplay message={error.message} />
+  }
 
   const loadEditsP =
     note.version === 2
@@ -39,9 +45,10 @@ export default async function page({ searchParams }) {
             },
             { accessToken }
           )
-          .then((response) =>
-            (response.edits ?? []).map((edit) => [edit, edit.details.invitation])
-          )
+          .then((response) => ({
+            revisions: (response.edits ?? []).map((edit) => [edit, edit.details.invitation]),
+          }))
+          .catch((error) => ({ errorMessage: error.message }))
       : Promise.resolve(null)
 
   return (

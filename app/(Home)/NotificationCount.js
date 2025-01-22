@@ -8,6 +8,7 @@ export default function NotificationCount({ notificationCountP }) {
   const { count: initialCount } = use(notificationCountP)
   const { count: storeCount } = useSelector((state) => state.notification)
   const [count, setCount] = useState(initialCount)
+
   const dispatch = useDispatch()
 
   useEffect(() => {

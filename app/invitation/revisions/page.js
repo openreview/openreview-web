@@ -29,7 +29,7 @@ export default async function page({ searchParams }) {
       if (apiRes.invitations?.length > 0) {
         if (apiRes.invitations[0].details?.writable) {
           const invitation = apiRes.invitations[0]
-          return invitation
+          return { invitation }
         }
         if (!accessToken) {
           redirectPath = `/login?redirect=/invitation/revisions?${encodeURIComponent(stringify(query))}`
@@ -46,10 +46,10 @@ export default async function page({ searchParams }) {
         if (!accessToken) {
           redirectPath = `/login?redirect=/invitation/revisions?${encodeURIComponent(stringify(query))}`
         } else {
-          throw new Error("You don't have permission to read this invitation")
+          return { errorMessage: "You don't have permission to read this invitation" }
         }
-        throw new Error(error.message)
       }
+      return { errorMessage: error.message }
     })
     .finally(() => {
       if (redirectPath) {

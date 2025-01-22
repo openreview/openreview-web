@@ -18,7 +18,7 @@ export default async function page() {
 
   const activityDataP = api
     .get(
-      '/notes/edits',
+      '/notes/editsd',
       {
         tauthor: true,
         trash: true,
@@ -35,6 +35,7 @@ export default async function page() {
         .sort((a, b) => b.tmdate - a.tmdate)
     })
     .then((edits) => edits.map((edit) => ({ ...edit, apiVersion: 2 })))
+    .catch((error) => ({ errorMessage: error.message }))
 
   return (
     <div className={styles.activity}>

@@ -4,19 +4,19 @@
 import { use, useState } from 'react'
 import { marked } from 'marked'
 import { useRouter } from 'next/navigation'
-import { useSelector } from 'react-redux'
 import ProfileEditor from '../../../components/profile/ProfileEditor'
 import api from '../../../lib/api-client'
 import { formatProfileData } from '../../../lib/profiles'
 import useUser from '../../../hooks/useUser'
 
 export default function Edit({ loadProfileP, accessToken }) {
-  const initialProfile = use(loadProfileP)
+  const { profile: initialProfile, errorMessage } = use(loadProfileP)
+  if (errorMessage) throw new Error(errorMessage)
+
   const [profile, setProfile] = useState(initialProfile)
   const [loading, setLoading] = useState(false)
   const [saveProfileErrors, setSaveProfileErrors] = useState(null)
   const router = useRouter()
-  // const { user } = useSelector((state) => state.root)
   const { user } = useUser()
 
   const unlinkPublication = async (profileId, noteId) => {

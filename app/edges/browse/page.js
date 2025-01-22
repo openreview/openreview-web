@@ -17,6 +17,7 @@ import EdgeBrowserHeader from '../../../components/browser/EdgeBrowserHeader'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import Browse from './Browse'
 import Banner from '../../../components/Banner'
+import ErrorDisplay from '../../../components/ErrorDisplay'
 
 export const metadata = {
   title: 'Edge Browser | OpenReview',
@@ -43,7 +44,7 @@ export default async function page({ searchParams }) {
     hideInvitations
   )
   if (allInvitations.length === 0) {
-    throw new Error('Could not load edge explorer. Invalid edge invitation.')
+    return <ErrorDisplay message="Could not load edge explorer. Invalid edge invitation." />
   }
   const apiVersion = Number.parseInt(query.version, 10)
   const idsToLoad = uniq(allInvitations.map((i) => i.id)).filter((id) => id !== 'staticList')
@@ -62,6 +63,7 @@ export default async function page({ searchParams }) {
       if (!apiRes.invitations?.length) {
         throw new Error('Could not load edge explorer. Invalid edge invitation.')
       }
+      let error
       allInvitations.forEach((invObj) => {
         const fullInvitation = apiRes.invitations.find((inv) => {
           // For static lists, use the properties of the first traverse invitation
@@ -112,14 +114,16 @@ export default async function page({ searchParams }) {
       )?.domain
       if (!domainGroupId) {
         return {
-          startInvitation: startInvitations[0],
-          traverseInvitations,
-          editInvitations: editInvitations
-            .filter((inv) => !inv.invalid)
-            .map((p) => ({ ...p })),
-          browseInvitations: browseInvitations.filter((inv) => !inv.invalid),
-          hideInvitations,
-          allInvitations: allInvitations.filter((inv) => !inv.invalid),
+          invitations: {
+            startInvitation: startInvitations[0],
+            traverseInvitations,
+            editInvitations: editInvitations
+              .filter((inv) => !inv.invalid)
+              .map((p) => ({ ...p })),
+            browseInvitations: browseInvitations.filter((inv) => !inv.invalid),
+            hideInvitations,
+            allInvitations: allInvitations.filter((inv) => !inv.invalid),
+          },
         }
       }
       return api
@@ -127,29 +131,33 @@ export default async function page({ searchParams }) {
         .then((response) => {
           const domainContent = response?.groups?.[0]?.content
           return {
-            startInvitation: startInvitations[0],
-            traverseInvitations,
-            editInvitations: editInvitations
-              .filter((inv) => !inv.invalid)
-              .map((p) => ({ ...p, submissionName: domainContent?.submission_name?.value })),
-            browseInvitations: browseInvitations.filter((inv) => !inv.invalid),
-            hideInvitations,
-            allInvitations: allInvitations.filter((inv) => !inv.invalid),
+            invitations: {
+              startInvitation: startInvitations[0],
+              traverseInvitations,
+              editInvitations: editInvitations
+                .filter((inv) => !inv.invalid)
+                .map((p) => ({ ...p, submissionName: domainContent?.submission_name?.value })),
+              browseInvitations: browseInvitations.filter((inv) => !inv.invalid),
+              hideInvitations,
+              allInvitations: allInvitations.filter((inv) => !inv.invalid),
+            },
           }
         })
     })
     .catch((error) => {
       if (typeof error === 'object' && error.name) {
         if (error.name === 'NotFoundError') {
-          throw new Error('Could not load edge explorer. Invitation not found.')
-        } else if (error.name === 'ForbiddenError') {
-          throw new Error('You do not have permission to view this invitation.')
+          return { errorMessage: 'Could not load edge explorer. Invitation not found.' }
+        }
+        if (error.name === 'ForbiddenError') {
+          return { errorMessage: 'You do not have permission to view this invitation.' }
         }
       } else if (typeof error === 'string' && error.startsWith('Invitation Not Found')) {
-        throw new Error('Could not load edge explorer. Invitation not found.')
+        return { errorMessage: 'Could not load edge explorer. Invitation not found.' }
       }
-      throw error
+      return { errorMessage: error.message }
     })
+
   return (
     <CommonLayout banner={<Banner>{banner}</Banner>} fullWidth minimalFooter>
       <div className={styles.browse}>

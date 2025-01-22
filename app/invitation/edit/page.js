@@ -3,9 +3,10 @@ import { stringify } from 'query-string'
 import { Suspense } from 'react'
 import api from '../../../lib/api-client'
 import { prettyId } from '../../../lib/utils'
-import serverAuth, { isSuperUser } from '../../auth'
+import serverAuth from '../../auth'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import InvitationEditor from './InvitationEditor'
+import ErrorDisplay from '../../../components/ErrorDisplay'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +22,7 @@ export default async function page({ searchParams }) {
   const query = await searchParams
   const { id } = query
 
-  if (!id) throw new Error('Missing required parameter id')
+  if (!id) return <ErrorDisplay error="Missing required parameter id" />
 
   const { token: accessToken, user } = await serverAuth()
 
@@ -38,7 +39,7 @@ export default async function page({ searchParams }) {
       if (!invitationObj) throw new Error('Invitation not found')
 
       if (invitationObj.details?.writable) {
-        return invitationObj
+        return { invitation: invitationObj }
       }
       if (!accessToken) {
         redirectPath = `/login?redirect=/invitation/edit?${encodeURIComponent(stringify(query))}`
@@ -52,10 +53,10 @@ export default async function page({ searchParams }) {
         if (!accessToken) {
           redirectPath = `/login?redirect=/invitation/edit?${encodeURIComponent(stringify(query))}`
         } else {
-          throw new Error("You don't have permission to read this invitation")
+          return { errorMessage: "You don't have permission to read this invitation" }
         }
       }
-      throw new Error(apiError.message)
+      return { errorMessage: apiError.message }
     })
     .finally(() => {
       if (redirectPath) {

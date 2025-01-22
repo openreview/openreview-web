@@ -29,7 +29,7 @@ export default async function page({ searchParams }) {
       if (apiRes.groups?.length > 0) {
         if (apiRes.groups[0].details?.writable) {
           const group = apiRes.groups[0]
-          return group
+          return { group }
         }
         if (!accessToken) {
           redirectPath = `/login?redirect=/group/revisions?${encodeURIComponent(stringify(query))}`
@@ -45,11 +45,11 @@ export default async function page({ searchParams }) {
       if (error.name === 'ForbiddenError') {
         if (!accessToken) {
           redirectPath = `/login?redirect=/group/revisions?${encodeURIComponent(stringify(query))}`
-        } else {
-          throw new Error("You don't have permission to read this group")
+          return null
         }
-        throw new Error(error.message)
+        return { errorMessage: "You don't have permission to read this group" }
       }
+      return { errorMessage: error.message }
     })
     .finally(() => {
       if (redirectPath) {

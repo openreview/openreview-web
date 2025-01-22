@@ -8,7 +8,9 @@ import HistogramStat from '../../../components/assignments/HistogramStat'
 import { prettyId } from '../../../lib/utils'
 
 export default function Stats({ valuesP, assignmentConfigNoteContent, names, configNoteId }) {
-  const values = use(valuesP)
+  const { values, errorMessage } = use(valuesP)
+  if (errorMessage) throw new Error(errorMessage)
+
   const {
     headName,
     tailName,

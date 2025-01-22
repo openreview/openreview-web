@@ -6,6 +6,7 @@ import { prettyId } from '../../../lib/utils'
 import serverAuth from '../../auth'
 import GroupInfo from './GroupInfo'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import ErrorDisplay from '../../../components/ErrorDisplay'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,14 +22,14 @@ export default async function page({ searchParams }) {
   const query = await searchParams
   const { token: accessToken } = await serverAuth()
   const { id } = query
-  if (!id) throw new Error('Missing required parameter id')
+  if (!id) return <ErrorDisplay message="Missing required parameter id" />
 
   let redirectPath = null
   const loadGroupP = api
     .get('/groups', { id }, { accessToken })
     .then((apiRes) => {
       if (apiRes.groups?.length > 0) {
-        return { ...apiRes.groups[0], web: null }
+        return { group: { ...apiRes.groups[0], web: null } }
       }
       throw new Error('Group not found')
     })
@@ -37,10 +38,10 @@ export default async function page({ searchParams }) {
         if (!accessToken) {
           redirectPath = `/login?redirect=/group/info?${encodeURIComponent(stringify(query))}}`
         } else {
-          throw new Error("You don't have permission to read this group")
+          return { errorMessage: "You don't have permission to read this group" }
         }
       }
-      throw new Error(error.message)
+      return { errorMessage: error.message }
     })
     .finally(() => {
       if (redirectPath) {

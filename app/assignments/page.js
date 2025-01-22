@@ -11,6 +11,7 @@ import Assignments from './Assignments'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import V1Assignments from './V1Assignments'
 import styles from './Assignments.module.scss'
+import ErrorDisplay from '../../components/ErrorDisplay'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +28,8 @@ export default async function page({ searchParams }) {
   const { group, referrer } = query
   const { token: accessToken } = await serverAuth()
   if (!accessToken) redirect(`/login?redirect=/assignments?${stringify(query)}`)
-  if (!group) throw new Error('Could not list assignments. Missing parameter group.')
+  if (!group)
+    return <ErrorDisplay message="Could not list assignments. Missing parameter group." />
 
   const banner = referrer ? referrerLink(referrer) : venueHomepageLink(group)
 
@@ -41,9 +43,9 @@ export default async function page({ searchParams }) {
       accessToken
     )
   } catch (error) {
-    throw new Error(notFoundMessage)
+    return <ErrorDisplay message={notFoundMessage} />
   }
-  if (!configInvitation) throw new Error(notFoundMessage)
+  if (!configInvitation) return <ErrorDisplay message={notFoundMessage} />
 
   const assignmentNotesP =
     configInvitation.apiVersion === 2
@@ -59,6 +61,7 @@ export default async function page({ searchParams }) {
             const { notes, count } = response
             return { notes, count }
           })
+          .catch((error) => ({ errorMessage: error.message }))
       : Promise.resolve(null)
 
   return (

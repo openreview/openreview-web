@@ -13,7 +13,9 @@ import GroupChildGroups from '../../../components/group/GroupChildGroups'
 import GroupRelatedInvitations from '../../../components/group/GroupRelatedInvitations'
 
 export default function GroupInfo({ loadGroupP, accessToken }) {
-  const group = use(loadGroupP)
+  const { group, errorMessage } = use(loadGroupP)
+  if (errorMessage) throw new Error(errorMessage)
+
   const editBanner = group.details?.writable ? (
     <EditBanner>{groupModeToggle('info', group.id)}</EditBanner>
   ) : null

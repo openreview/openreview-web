@@ -27,13 +27,15 @@ export default async function page() {
         .get('/messages', { to: email, viewed: false }, { accessToken: token })
         .then((apiRes) => ({ email, count: apiRes.count ?? 0 }))
     )
-  ).then((results) =>
-    results.reduce((prev, curr) => {
-      // eslint-disable-next-line no-param-reassign
-      prev[curr.email] = curr.count
-      return prev
-    }, {})
   )
+    .then((results) => ({
+      count: results.reduce((prev, curr) => {
+        // eslint-disable-next-line no-param-reassign
+        prev[curr.email] = curr.count
+        return prev
+      }, {}),
+    }))
+    .catch((error) => ({ errorMessage: error.message }))
 
   return (
     <div className={styles.notifications}>

@@ -48,11 +48,13 @@ export default async function NavNotificationCount() {
   if (!user || isSuperUser(user)) {
     return null
   }
-  const notificationCountP = api.get(
-    '/messages',
-    { to: user.profile.emails[0], viewed: false, transitiveMembers: true },
-    { accessToken: token }
-  )
+  const notificationCountP = api
+    .get(
+      '/messages',
+      { to: user.profile.emails[0], viewed: false, transitiveMembers: true },
+      { accessToken: token }
+    )
+    .catch(() => Promise.resolve({ count: 0 }))
 
   return (
     <Suspense fallback={null}>

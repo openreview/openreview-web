@@ -3,17 +3,16 @@
 /* globals promptMessage,promptError: false */
 import { use, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useDispatch } from 'react-redux'
 import ProfileEditor from '../../../components/profile/ProfileEditor'
 import api from '../../../lib/api-client'
-import { setUser } from '../../../rootSlice'
 
 export default function Activate({ loadActivatableProfileP, activateToken }) {
-  const profile = use(loadActivatableProfileP)
+  const { profile, errorMessage } = use(loadActivatableProfileP)
+  if (errorMessage) throw new Error(errorMessage)
+
   const [activateProfileErrors, setActivateProfileErrors] = useState(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const dispatch = useDispatch()
 
   const saveProfile = async (newProfileData) => {
     setLoading(true)
@@ -26,7 +25,7 @@ export default function Activate({ loadActivatableProfileP, activateToken }) {
         promptMessage('Your OpenReview profile has been successfully created', {
           scrollToTop: false,
         })
-        dispatch(setUser({ user, token }))
+        router.refresh()
       } else {
         // If user moderation is enabled, PUT /activate/${token} will return an empty response
         promptMessage(

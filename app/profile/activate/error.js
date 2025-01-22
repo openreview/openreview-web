@@ -9,6 +9,7 @@ export default function Error({ error }) {
 
   useEffect(() => {
     if (!error) return
+    console.log('error', error.message)
     promptError(error.message)
     router.replace('/')
   }, [error])

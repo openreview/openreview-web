@@ -6,6 +6,7 @@ import { prettyId } from '../../../lib/utils'
 import serverAuth from '../../auth'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import InvitationInfo from './InvitationInfo'
+import ErrorDisplay from '../../../components/ErrorDisplay'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +22,7 @@ export default async function page({ searchParams }) {
   const query = await searchParams
   const { token: accessToken } = await serverAuth()
   const { id } = query
-  if (!id) throw new Error('Missing required parameter id')
+  if (!id) return <ErrorDisplay message="Missing required parameter id" />
 
   let redirectPath = null
   const loadInvitationP = api
@@ -29,10 +30,12 @@ export default async function page({ searchParams }) {
     .then((invitationObj) => {
       if (invitationObj) {
         return {
-          ...invitationObj,
-          web: null,
-          process: null,
-          preprocess: null,
+          invitation: {
+            ...invitationObj,
+            web: null,
+            process: null,
+            preprocess: null,
+          },
         }
       }
       throw new Error('Invitation not found')
@@ -42,10 +45,10 @@ export default async function page({ searchParams }) {
         if (!accessToken) {
           redirectPath = `/login?redirect=/invitation/info?${encodeURIComponent(stringify(query))}}`
         } else {
-          throw new Error("You don't have permission to read this invitation")
+          return { errorMessage: "You don't have permission to read this invitation" }
         }
       }
-      throw new Error(error.message)
+      return { errorMessage: error.message }
     })
     .finally(() => {
       if (redirectPath) {

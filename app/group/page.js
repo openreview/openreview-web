@@ -11,46 +11,50 @@ import EditBanner from '../../components/EditBanner'
 import { generateGroupWebfieldCode, parseComponentCode } from '../../lib/webfield-utils'
 import ComponentGroup from './ComponentGroup'
 
+import ErrorDisplay from '../../components/ErrorDisplay'
+
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ searchParams }) {
   const { id } = await searchParams
   const groupTitle = prettyId(id)
-
-  return {
-    title: `${groupTitle} | OpenReview`,
-    description: `Welcome to the OpenReview homepage for ${groupTitle}`,
-    openGraph: {
-      title: groupTitle,
+  if (groupTitle)
+    return {
+      title: `${groupTitle} | OpenReview`,
       description: `Welcome to the OpenReview homepage for ${groupTitle}`,
-    },
+      openGraph: {
+        title: groupTitle,
+        description: `Welcome to the OpenReview homepage for ${groupTitle}`,
+      },
+    }
+  return {
+    title: `OpenReview`,
   }
 }
 
 export default async function page({ searchParams }) {
-  console.log('group page')
   const query = await searchParams
   const { id } = query
-  if (!id) throw new Error('Group ID is required')
+  if (!id) return <ErrorDisplay message="Group ID is required" />
 
   const { token: accessToken, user } = await serverAuth()
-  console.log('group page serverAuth accessToken is:', accessToken?.slice(0, 10))
 
   let group
+
   try {
     const { groups } = await api.get('/groups', { id }, { accessToken })
     group = groups?.length > 0 ? groups[0] : null
     if (!group) {
-      throw new Error(`The Group ${id} was not found`)
+      return <ErrorDisplay message={`The Group ${id} was not found`} />
     }
   } catch (error) {
     if (error.name === 'ForbiddenError') {
       if (!accessToken) {
         redirect(`/login?redirect=/group?${stringify(query)}`)
       }
-      throw new Error("You don't have permission to read this group")
+      return <ErrorDisplay message="You don't have permission to read this group" />
     }
-    throw new Error(error.message)
+    return <ErrorDisplay message={error.message} />
   }
 
   if (!group.web) {
@@ -65,8 +69,8 @@ return {
   }
 
   if (group.web.includes('<script type="text/javascript">')) {
-    throw new Error(
-      'This group is no longer accessible. Please contact info@openreview.net if you require access.'
+    return (
+      <ErrorDisplay message="This group is no longer accessible. Please contact info@openreview.net if you require access." />
     )
   }
 

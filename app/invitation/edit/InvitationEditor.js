@@ -12,7 +12,9 @@ import InvitationEditorV1, {
 } from '../../../components/invitation/InvitationEditor'
 
 export default function InvitationEditor({ loadInvitationP, user, accessToken }) {
-  const invitation = use(loadInvitationP)
+  const { invitation, errorMessage } = use(loadInvitationP)
+  if (errorMessage) throw new Error(errorMessage)
+
   const router = useRouter()
   const reloadInvitation = () => router.refresh()
   const isMetaInvitation = invitation?.edit === true

@@ -10,6 +10,7 @@ import styles from './Invitation.module.scss'
 import { generateInvitationWebfieldCode, parseComponentCode } from '../../lib/webfield-utils'
 import CustomInvitation from './CustomInvitation'
 import ComponentInvitation from './ComponentInvitation'
+import ErrorDisplay from '../../components/ErrorDisplay'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,7 +32,7 @@ export default async function page({ searchParams }) {
   const query = await searchParams
   const { id } = query
 
-  if (!id) throw new Error('Invitation ID is required')
+  if (!id) return <ErrorDisplay message="'Invitation ID is required'" />
   const { token: accessToken, user } = await serverAuth()
 
   let invitation
@@ -45,9 +46,9 @@ export default async function page({ searchParams }) {
       if (!accessToken) {
         redirect(`/login?redirect=/invitation?${stringify(query)}`)
       }
-      throw new Error("You don't have permission to read this invitation")
+      return <ErrorDisplay message="You don't have permission to read this invitation" />
     }
-    throw new Error(error.message)
+    return <ErrorDisplay message={error.message} />
   }
 
   const isWebfieldComponent = invitation.web?.startsWith('// Webfield component')

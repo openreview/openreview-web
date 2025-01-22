@@ -31,6 +31,7 @@ import {
 } from '../../../lib/assignment-stats-utils'
 import Stats from './Stats'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import ErrorDisplay from '../../../components/ErrorDisplay'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,10 +56,13 @@ export default async function page({ searchParams }) {
   const { id, referrer } = query
   const { token: accessToken } = await serverAuth()
   if (!accessToken) redirect(`/login?redirect=/assignments/stats?${stringify(query)}`)
-  if (!id) throw new Error('Could not load assignment statistics. Missing parameter id.')
+  if (!id)
+    return (
+      <ErrorDisplay message="Could not load assignment statistics. Missing parameter id." />
+    )
 
   const note = await api.getNoteById(id, accessToken)
-  if (!note) throw new Error(`No assignment note with the ID "${id}" found`)
+  if (!note) return <ErrorDisplay message={`No assignment note with the ID "${id}" found`} />
 
   const isV2Note = note.apiVersion === 2
   const groupId = isV2Note
@@ -182,8 +186,8 @@ export default async function page({ searchParams }) {
       )
     : Promise.resolve([])
 
-  const valuesP = Promise.all([papersP, usersP, assignmentsP, bidsP, recommendationsP]).then(
-    (results) => {
+  const valuesP = Promise.all([papersP, usersP, assignmentsP, bidsP, recommendationsP])
+    .then((results) => {
       let papers = []
       if (paperInvitationElements[0].includes('/-/')) {
         papers = results[0]
@@ -215,53 +219,55 @@ export default async function page({ searchParams }) {
           .filter(Number.isFinite)
           .reduce((a, b) => a + b, 0) > 0
       return {
-        paperCount: getPaperCount(matchLists[0], matchLists[1]),
-        userCount: getUserCount(matchLists[0], matchLists[2]),
-        meanFinalScore: getMeanFinalScore(matchLists[0]),
-        meanGroupCountPerPaper: getMeanGroupCountPerPaper(matchLists[0]),
-        meanPaperCountPerGroup: getMeanPaperCountPerGroup(matchLists[0]),
-        distributionPapersByUserCount: getDistributionPapersByUserCount(
-          matchLists[0],
-          matchLists[1],
-          upperHeadName,
-          upperTailName
-        ),
-        distributionUsersByPaperCount: getDistributionUsersByPaperCount(
-          matchLists[0],
-          matchLists[2],
-          upperHeadName,
-          upperTailName
-        ),
-        distributionAssignmentByScore: getDistributionAssignmentByScore(matchLists[0]),
-        distributionPapersByMeanScore: getDistributionPapersByMeanScore(
-          matchLists[0],
-          matchLists[1],
-          upperHeadName
-        ),
-        distributionUsersByMeanScore: getDistributionUsersByMeanScore(
-          matchLists[0],
-          matchLists[2],
-          upperTailName
-        ),
-        ...(showRecommendationDistribution && {
-          distributionRecomGroupCountPerPaper: getDistributionRecomGroupCountPerPaper(
+        values: {
+          paperCount: getPaperCount(matchLists[0], matchLists[1]),
+          userCount: getUserCount(matchLists[0], matchLists[2]),
+          meanFinalScore: getMeanFinalScore(matchLists[0]),
+          meanGroupCountPerPaper: getMeanGroupCountPerPaper(matchLists[0]),
+          meanPaperCountPerGroup: getMeanPaperCountPerGroup(matchLists[0]),
+          distributionPapersByUserCount: getDistributionPapersByUserCount(
+            matchLists[0],
+            matchLists[1],
+            upperHeadName,
+            upperTailName
+          ),
+          distributionUsersByPaperCount: getDistributionUsersByPaperCount(
+            matchLists[0],
+            matchLists[2],
+            upperHeadName,
+            upperTailName
+          ),
+          distributionAssignmentByScore: getDistributionAssignmentByScore(matchLists[0]),
+          distributionPapersByMeanScore: getDistributionPapersByMeanScore(
+            matchLists[0],
+            matchLists[1],
+            upperHeadName
+          ),
+          distributionUsersByMeanScore: getDistributionUsersByMeanScore(
+            matchLists[0],
+            matchLists[2],
+            upperTailName
+          ),
+          ...(showRecommendationDistribution && {
+            distributionRecomGroupCountPerPaper: getDistributionRecomGroupCountPerPaper(
+              matchLists[0],
+              upperHeadName,
+              upperSingularHeadName
+            ),
+            distributionRecomGroupCountPerWeight: getDistributionRecomGroupCountPerWeight(
+              matchLists[0]
+            ),
+          }),
+          ...getNumDataPerGroupDataByBidScore(
             matchLists[0],
             upperHeadName,
-            upperSingularHeadName
+            upperTailName,
+            upperSingularTailName
           ),
-          distributionRecomGroupCountPerWeight: getDistributionRecomGroupCountPerWeight(
-            matchLists[0]
-          ),
-        }),
-        ...getNumDataPerGroupDataByBidScore(
-          matchLists[0],
-          upperHeadName,
-          upperTailName,
-          upperSingularTailName
-        ),
+        },
       }
-    }
-  )
+    })
+    .catch((error) => ({ errorMessage: error.message }))
 
   return (
     <CommonLayout banner={<Banner>{banner}</Banner>}>

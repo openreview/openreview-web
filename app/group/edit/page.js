@@ -6,6 +6,7 @@ import { prettyId } from '../../../lib/utils'
 import serverAuth, { isSuperUser } from '../../auth'
 import GroupEditor from './GroupEditor'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import ErrorDisplay from '../../../components/ErrorDisplay'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +22,7 @@ export default async function page({ searchParams }) {
   const query = await searchParams
   const { id } = query
 
-  if (!id) throw new Error('Missing required parameter id')
+  if (!id) return <ErrorDisplay message="Missing required parameter id" />
 
   const { token: accessToken, user } = await serverAuth()
 
@@ -42,19 +43,23 @@ export default async function page({ searchParams }) {
             .then((domainApiRes) => {
               const domainGroup = domainApiRes.groups?.length > 0 ? apiRes.groups[0] : null
               return {
-                ...group,
-                details: { ...group.details, domain: domainGroup },
+                group: {
+                  ...group,
+                  details: { ...group.details, domain: domainGroup },
+                },
               }
             })
-            .catch(() => group)
+            .catch(() => ({ group }))
         }
         if (group.domain) {
           return {
-            ...group,
-            details: { ...group.details, domain: group },
+            group: {
+              ...group,
+              details: { ...group.details, domain: group },
+            },
           }
         }
-        return group
+        return { group }
       }
       if (!accessToken) {
         redirectPath = `/login?redirect=/group/edit?${encodeURIComponent(stringify(query))}`
@@ -68,10 +73,10 @@ export default async function page({ searchParams }) {
         if (!accessToken) {
           redirectPath = `/login?redirect=/group/edit?${encodeURIComponent(stringify(query))}`
         } else {
-          throw new Error("You don't have permission to read this group")
+          return { errorMessage: "You don't have permission to read this group" }
         }
       }
-      throw new Error(apiError.message)
+      return { errorMessage: apiError.message }
     })
     .finally(() => {
       if (redirectPath) {

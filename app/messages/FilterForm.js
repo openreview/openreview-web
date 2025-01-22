@@ -1,11 +1,12 @@
 'use client'
 
+/* globals $: false */
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import MultiSelectorDropdown from '../../components/MultiSelectorDropdown'
-import Icon from '../../components/Icon'
 import { stringify } from 'query-string'
 import { omit } from 'lodash'
+import MultiSelectorDropdown from '../../components/MultiSelectorDropdown'
+import Icon from '../../components/Icon'
 
 export default function FilterForm({ searchQuery, statusOptions }) {
   const queryStatus = searchQuery?.status ?? []

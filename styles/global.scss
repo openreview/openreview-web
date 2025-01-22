@@ -24,13 +24,25 @@ body {
   justify-content: space-between;
   min-height: 100vh;
 
-  > .container,
-  > .container-fluid {
+  > .container {
     flex-grow: 1;
     display: flex;
 
     .row {
       width: 100%;
+    }
+  }
+
+  > .container-fluid {
+    flex-grow: 1;
+    display: flex;
+    margin-left: 0;
+    margin-right: 0;
+
+    .row {
+      width: 100%;
+      margin-left: 0;
+      margin-right: 0;
     }
   }
 }

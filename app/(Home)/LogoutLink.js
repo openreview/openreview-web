@@ -1,20 +1,19 @@
 'use client'
 
-import { useDispatch } from 'react-redux'
+/* globals promptError: false */
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import api from '../../lib/api-client'
-import { setUser } from '../../rootSlice'
 
 export default function LogoutLink() {
-  const dispatch = useDispatch()
+  const router = useRouter()
 
   const handleLogout = async (e) => {
     e.preventDefault()
 
     try {
       await api.post('/logout')
-      dispatch(setUser({ user: null, token: null }))
-      window.location.reload()
+      router.refresh()
       window.localStorage.setItem('openreview.lastLogout', Date.now())
     } catch (error) {
       promptError(error.message)
@@ -22,7 +21,8 @@ export default function LogoutLink() {
   }
 
   return (
-    <Link href="/logout" onClick={handleLogout}>
+    // eslint-disable-next-line jsx-a11y/anchor-is-valid
+    <Link href="#" onClick={handleLogout}>
       Logout
     </Link>
   )

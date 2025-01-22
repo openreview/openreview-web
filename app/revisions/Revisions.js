@@ -9,10 +9,10 @@ import api from '../../lib/api-client'
 import ErrorAlert from '../../components/ErrorAlert'
 
 export default function Revisions({ parentNote, loadEditsP, accessToken }) {
-  const initialRevisions = use(loadEditsP)
+  const { revisions: initialRevisions, errorMessage } = use(loadEditsP)
   const [revisions, setRevisions] = useState(initialRevisions)
   const [selectedIndexes, setSelectedIndexes] = useState(null)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState(errorMessage ? { message: errorMessage } : null)
   const router = useRouter()
 
   const getPageTitle = () => {

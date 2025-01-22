@@ -318,7 +318,6 @@ const AuthorConsole = ({ appContext }) => {
 
   const { user, isRefreshing, accessToken } = useUser()
   const query = useSearchParams()
-  console.log('appContext', appContext)
   const { setBannerContent } = appContext
   const [showTasks, setShowTasks] = useState(false)
   const [authorNotes, setAuthorNotes] = useState(null)

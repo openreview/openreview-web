@@ -1,11 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '../styles/global.scss'
 import '../styles/components.scss'
-import '../styles/pages.scss'
 // eslint-disable-next-line camelcase
 import { Noto_Sans } from 'next/font/google'
 import FlashAlert from '../components/FlashAlert'
-import AppInit from './(Home)/appInit'
+import AppInit from './AppInit'
 import { StoreProvider } from '../storeProvider'
 import Nav from './(Home)/Nav'
 

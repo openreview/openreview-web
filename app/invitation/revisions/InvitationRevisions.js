@@ -9,7 +9,9 @@ import styles from '../Invitation.module.scss'
 import EditHistory from '../../../components/EditHistory'
 
 export default function InvitationRevisions({ loadInvitationP, accessToken, isSuperUser }) {
-  const invitation = use(loadInvitationP)
+  const { invitation, errorMessage } = use(loadInvitationP)
+  if (errorMessage) throw new Error(errorMessage)
+
   const [error, setError] = useState(null)
 
   useEffect(() => {

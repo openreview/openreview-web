@@ -250,7 +250,8 @@ export default function Assignments({
   configInvitation,
   accessToken,
 }) {
-  const { notes: allConfigNotes, count } = use(assignmentNotesP)
+  const { notes: allConfigNotes = [], count, errorMessage } = use(assignmentNotesP)
+  if (errorMessage) throw new Error(errorMessage)
   const [assignmentNotes, setAssignmentNotes] = useState(allConfigNotes.slice(0, pageSize))
   const [viewModalContent, setViewModalContent] = useState(null)
   const [editorNote, setEditorNote] = useState(null)

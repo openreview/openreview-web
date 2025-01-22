@@ -9,7 +9,9 @@ import styles from '../Group.module.scss'
 import EditHistory from '../../../components/EditHistory'
 
 export default function GroupRevisions({ loadGroupP, accessToken, isSuperUser }) {
-  const group = use(loadGroupP)
+  const { group, errorMessage } = use(loadGroupP)
+  if (errorMessage) throw new Error(errorMessage)
+
   const [error, setError] = useState(null)
 
   useEffect(() => {

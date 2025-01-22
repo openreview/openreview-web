@@ -24,7 +24,8 @@ const getReplyFieldByInvitationType = (invitation) => {
 }
 
 export default function InvitationInfo({ loadInvitationP }) {
-  const invitation = use(loadInvitationP)
+  const { invitation, errorMessage } = use(loadInvitationP)
+  if (errorMessage) throw new Error(errorMessage)
 
   const renderInvtationReply = () => {
     if (invitation?.edit === true) return null

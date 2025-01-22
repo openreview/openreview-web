@@ -9,6 +9,7 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import { setBannerContent } from '../../bannerSlice'
 
 export default function ComponentGroup({ componentObjP }) {
+  // throw new Error('use client is not supported in')
   const componentObj = use(componentObjP)
   const [WebComponent, setWebComponent] = useState(null)
   const [webComponentProps, setWebComponentProps] = useState({})

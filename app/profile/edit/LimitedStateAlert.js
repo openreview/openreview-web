@@ -5,9 +5,9 @@ import Alert from '../../../components/Alert'
 import Icon from '../../../components/Icon'
 
 export default function LimitedStateAlert({ loadProfileP }) {
-  const profile = use(loadProfileP)
+  const { profile } = use(loadProfileP)
 
-  if (profile.state !== 'Limited') return null
+  if (profile?.state !== 'Limited') return null
   return (
     <Alert color="warning">
       <Icon name="info-sign" extraClasses="pr-2" />

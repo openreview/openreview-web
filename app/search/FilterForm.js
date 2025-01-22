@@ -1,8 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import Dropdown from '../../components/Dropdown'
 import { stringify } from 'query-string'
+import Dropdown from '../../components/Dropdown'
 
 export default function FilterForm({ searchQuery, sourceOptions, groupOptions }) {
   const defaultOption = [{ value: 'all', label: 'all of OpenReview' }]

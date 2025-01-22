@@ -4,7 +4,8 @@ import { use } from 'react'
 import BaseActivityList from '../../components/BaseActivityList'
 
 export default function Activity({ activityDataP }) {
-  const activityNotes = use(activityDataP)
+  const { activityNotes, errorMessage } = use(activityDataP)
+  if (errorMessage) throw new Error(errorMessage)
 
   return (
     <BaseActivityList

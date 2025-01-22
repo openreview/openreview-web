@@ -17,7 +17,9 @@ import EditBanner from '../../../components/EditBanner'
 import { groupModeToggle } from '../../../lib/banner-links'
 
 export default function GroupEditor({ loadGroupP, profileId, accessToken, isSuperUser }) {
-  const group = use(loadGroupP)
+  const { group, errorMessage } = use(loadGroupP)
+  if (errorMessage) throw new Error(errorMessage)
+
   const router = useRouter()
   const reloadGroup = () => router.refresh()
   const editBanner = <EditBanner>{groupModeToggle('edit', group.id)}</EditBanner>

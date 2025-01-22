@@ -11,7 +11,8 @@ export default function Browse({
   user,
   accessToken,
 }) {
-  const invitations = use(loadAllInvitationsP)
+  const { invitations, errorMessage } = use(loadAllInvitationsP)
+  if (errorMessage) throw new Error(errorMessage)
 
   return (
     <EdgeBrowser

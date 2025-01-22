@@ -48,7 +48,9 @@ const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true
 }
 
 export default function Compare({ loadEditsP }) {
-  const { references, viewerUrl } = use(loadEditsP)
+  const { references, viewerUrl, errorMessage } = use(loadEditsP)
+  if (errorMessage) throw new Error(errorMessage)
+
   const [contentDiff, setContentDiff] = useState(null)
 
   useEffect(() => {

@@ -1,7 +1,8 @@
 'use client'
 
+/* globals promptError: false */
 import { use, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import Table from '../../components/Table'
 import NotificationsTable from './NotificationsTable'
 import api from '../../lib/api-client'
@@ -13,10 +14,11 @@ export default function Notifications({
   confirmedEmails,
   defaultToEmail,
 }) {
+  const { count: initialUnviewedCounts, errorMessage } = use(unviewedMessagesCountsP)
+  if (errorMessage) throw new Error(errorMessage)
+
   const [toEmail, setToEmail] = useState(defaultToEmail)
-  const initialUnviewedCounts = use(unviewedMessagesCountsP)
   const [unviewedCounts, setUnviewedCounts] = useState(initialUnviewedCounts)
-  // const { token } = useSelector((state) => state.root)
   const { token } = useUser()
   const dispatch = useDispatch()
 

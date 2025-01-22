@@ -5,6 +5,8 @@ import api from '../../../lib/api-client'
 import { prettyId } from '../../../lib/utils'
 import Compare from './Compare'
 import styles from './Compare.module.scss'
+import ErrorDisplay from '../../../components/ErrorDisplay'
+import CommonLayout from '../../CommonLayout'
 
 export const metadata = {
   title: 'Compare Profiles | OpenReview',
@@ -86,7 +88,8 @@ const addSignatureToProfile = (profile) => {
 
 export default async function page({ searchParams }) {
   const { user, token: accessToken } = await serverAuth()
-  if (!isSuperUser(user)) throw new Error('Forbidden. Access to this page is restricted.')
+  if (!isSuperUser(user))
+    return <ErrorDisplay message="Forbidden. Access to this page is restricted." />
 
   const { left, right } = await searchParams
 
@@ -187,16 +190,18 @@ export default async function page({ searchParams }) {
     .catch((error) => ({ error: error.message }))
 
   return (
-    <div className={styles.compare}>
-      <header>
-        <h1>Merge Profiles</h1>
-        <hr />
-      </header>
-      <div className="table-responsive">
-        <Suspense fallback={<LoadingSpinner />}>
-          <Compare profilesP={profilesP} accessToken={accessToken} />
-        </Suspense>
+    <CommonLayout banner={null}>
+      <div className={styles.compare}>
+        <header>
+          <h1>Merge Profiles</h1>
+          <hr />
+        </header>
+        <div className="table-responsive">
+          <Suspense fallback={<LoadingSpinner />}>
+            <Compare profilesP={profilesP} accessToken={accessToken} />
+          </Suspense>
+        </div>
       </div>
-    </div>
+    </CommonLayout>
   )
 }

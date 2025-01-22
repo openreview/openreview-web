@@ -2,7 +2,6 @@
 
 /* globals promptMessage,promptError: false */
 import { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
 import Alert from '../../components/Alert'
 import api from '../../lib/api-client'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
@@ -12,7 +11,6 @@ import useUser from '../../hooks/useUser'
 const ResetForm = ({ setEmailSent }) => {
   const [email, setEmail] = useState('')
   const [error, setError] = useState(null)
-  // const { user } = useSelector((state) => state.root)
   const { user } = useUser()
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('reset')
 

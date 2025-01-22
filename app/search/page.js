@@ -5,6 +5,7 @@ import api from '../../lib/api-client'
 import Search from './Search'
 import FilterForm from './FilterForm'
 import { prettyId } from '../../lib/utils'
+import CommonLayout from '../CommonLayout'
 
 export const metadata = {
   title: 'Search | OpenReview',
@@ -21,40 +22,49 @@ export default async function page({ searchParams }) {
 
   if (!term) throw new Error('Missing search term or query')
 
-  const loadSearchResultsP = api.getCombined(
-    '/notes/search',
-    {
-      term,
-      type: 'terms',
-      content: content || 'all',
-      group: group || 'all',
-      source: Object.keys(sourceOptions).includes(source) ? source : 'all',
-      sort: 'tmdate:desc',
-      limit: 1000,
-    },
-    null,
-    { accessToken: token, resultsKey: 'notes' }
-  )
+  const loadSearchResultsP = api
+    .getCombined(
+      '/notes/search',
+      {
+        term,
+        type: 'terms',
+        content: content || 'all',
+        group: group || 'all',
+        source: Object.keys(sourceOptions).includes(source) ? source : 'all',
+        sort: 'tmdate:desc',
+        limit: 1000,
+      },
+      null,
+      { accessToken: token, resultsKey: 'notes' }
+    )
+    .catch((error) => ({ errorMessage: error.message }))
 
-  const groupOptions = await api.get('/groups', { id: 'host' }).then((response) => {
-    const { groups } = response
-    const members = groups?.[0]?.members?.map((groupId) => ({
-      value: groupId,
-      label: prettyId(groupId),
-    }))
-    return members.sort((a, b) => a.label.localeCompare(b.label))
-  })
+  let groupOptions = []
+  try {
+    groupOptions = await api.get('/groups', { id: 'host' }).then((response) => {
+      const { groups } = response
+      const members = groups?.[0]?.members?.map((groupId) => ({
+        value: groupId,
+        label: prettyId(groupId),
+      }))
+      return members.sort((a, b) => a.label.localeCompare(b.label))
+    })
+  } catch (error) {
+    /* empty */
+  }
 
   return (
-    <div className={styles.search}>
-      <Suspense>
-        <FilterForm
-          searchQuery={query}
-          sourceOptions={sourceOptions}
-          groupOptions={groupOptions}
-        />
-        <Search loadSearchResultsP={loadSearchResultsP} />
-      </Suspense>
-    </div>
+    <CommonLayout banner={null}>
+      <div className={styles.search}>
+        <Suspense>
+          <FilterForm
+            searchQuery={query}
+            sourceOptions={sourceOptions}
+            groupOptions={groupOptions}
+          />
+          <Search loadSearchResultsP={loadSearchResultsP} />
+        </Suspense>
+      </div>
+    </CommonLayout>
   )
 }

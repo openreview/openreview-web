@@ -13,6 +13,7 @@ import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import Banner from '../../components/Banner'
 import legacyStyles from './LegacyForum.module.scss'
 import LegacyForum from '../../components/forum/LegacyForum'
+import ErrorDisplay from '../../components/ErrorDisplay'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,21 +26,25 @@ export default async function page({ searchParams }) {
 
   const { id, noteId, invitationId, referrer } = query
   const queryId = id || noteId
-  if (!queryId) throw new Error('Forum or note ID is required')
+  if (!queryId) return <ErrorDisplay message="Forum or note ID is required" />
 
   const { token } = await serverAuth()
 
   const shouldRedirect = async (noteIdParam) => {
-    // if it is the original of a blind submission, do redirection
-    const blindNotesResult = await api.get(
-      '/notes',
-      { original: noteIdParam },
-      { accessToken: token, version: 1 }
-    )
+    try {
+      // if it is the original of a blind submission, do redirection
+      const blindNotesResult = await api.get(
+        '/notes',
+        { original: noteIdParam },
+        { accessToken: token, version: 1 }
+      )
 
-    // if no blind submission found return the current forum
-    if (blindNotesResult.notes?.length) {
-      return blindNotesResult.notes[0]
+      // if no blind submission found return the current forum
+      if (blindNotesResult.notes?.length) {
+        return blindNotesResult.notes[0]
+      }
+    } catch (error) {
+      return false
     }
 
     return false
@@ -102,13 +107,19 @@ export default async function page({ searchParams }) {
           redirectPath = `/login?redirect=/forum?${encodeURIComponent(stringify(query))}`
           return { redirectPath }
         }
-        throw new Error("You don't have permission to read this forum")
+        return { errorMessage: 'You do not have permission to read this forum' }
       }
-      throw new Error(error.message)
+      return { errorMessage: error.message }
     }
   }
 
-  const { forumNote, version, redirectPath: pathToRedirectTo } = await getForumNote()
+  const {
+    forumNote,
+    version,
+    redirectPath: pathToRedirectTo,
+    errorMessage,
+  } = await getForumNote()
+  if (errorMessage) return <ErrorDisplay message={errorMessage} />
   if (pathToRedirectTo) redirect(pathToRedirectTo)
 
   // #region Metadata

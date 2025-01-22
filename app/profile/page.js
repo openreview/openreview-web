@@ -1,14 +1,12 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import serverAuth, { isSuperUser } from '../auth'
-import LoadingSpinner from '../../components/LoadingSpinner'
 import api from '../../lib/api-client'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import Profile from './Profile'
 import { formatProfileData } from '../../lib/profiles'
 import CommonLayout from '../CommonLayout'
 import EditBanner from '../../components/EditBanner'
-import ProfileOwnerRedirect from './ProfileOwnerRedirect'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,10 +14,10 @@ export default async function page({ searchParams }) {
   const { user, token } = await serverAuth()
   const { id, email } = await searchParams
   if (!user && !id && !email) redirect('/login')
-  // if (searchParams.id)
-  //   redirect(`/login?redirect=${encodeURIComponent(`/profile?id=${searchParams.id}`)}`)
-  // if (searchParams.email)
-  //   redirect(`/login?redirect=${encodeURIComponent(`/profile?email=${searchParams.email}`)}`)
+  if (!user && id) redirect(`/login?redirect=${encodeURIComponent(`/profile?id=${id}`)}`)
+  if (!user && email)
+    redirect(`/login?redirect=${encodeURIComponent(`/profile?email=${email}`)}`)
+
   const isProfileOwner =
     (id && user?.profile?.usernames?.includes(id)) ||
     (email && user?.profile?.emails?.includes(email)) ||
@@ -29,31 +27,21 @@ export default async function page({ searchParams }) {
 
   let profileResult
   try {
+    // eslint-disable-next-line no-nested-ternary
     profileResult = await api.get('/profiles', isProfileOwner ? {} : id ? { id } : { email }, {
       accessToken: token,
     })
   } catch (error) {
-    return (
-      <CommonLayout banner={null} editBanner={null}>
-        <ErrorDisplay statusCode={404} message="Profile not found" />
-      </CommonLayout>
-    )
+    return <ErrorDisplay message="Profile not found" />
   }
   const profile = profileResult?.profiles?.[0]
   if (!profile)
     return (
-      <CommonLayout banner={null} editBanner={null}>
-        <ErrorDisplay
-          statusCode={404}
-          message={`The profile ${id || email} does not exist or it's not public`}
-        />
-      </CommonLayout>
+      <ErrorDisplay message={`The profile ${id || email} does not exist or it's not public`} />
     )
   if (!profile.active && !isSuperUser(user)) {
     return (
-      <CommonLayout banner={null} editBanner={null}>
-        <ErrorDisplay statusCode={400} message={`The profile ${id || email} is not active`} />
-      </CommonLayout>
+      <ErrorDisplay statusCode={400} message={`The profile ${id || email} is not active`} />
     )
   }
 
@@ -68,12 +56,13 @@ export default async function page({ searchParams }) {
     </EditBanner>
   ) : null
 
-  const shouldRedirect = email || id !== profile.preferredId || (!email && !id)
   const formattedProfile = formatProfileData(profile)
-  const preferredId = formattedProfile.preferredId
+  const { preferredId } = formattedProfile
+  const shouldRedirect = email || id !== preferredId || (!email && !id)
+
+  if (shouldRedirect) redirect(`/profile?id=${preferredId}`)
   return (
     <CommonLayout banner={null} editBanner={editBanner}>
-      <ProfileOwnerRedirect shouldRedirect={shouldRedirect} preferredId={preferredId} />
       <Profile profile={formattedProfile} publicProfile={id || email} />
     </CommonLayout>
   )

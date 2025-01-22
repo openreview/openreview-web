@@ -13,7 +13,8 @@ const displayOptions = {
 const pageSize = 25
 
 export default function Search({ loadSearchResultsP }) {
-  const { notes: apiNotes, count: apiCount } = use(loadSearchResultsP)
+  const { notes: apiNotes, count: apiCount, errorMessage } = use(loadSearchResultsP)
+  if (errorMessage) throw new Error(errorMessage)
 
   const count = apiCount > 1000 ? 1000 : apiCount
   const allNotes = apiNotes.slice(0, 1000)
