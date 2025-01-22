@@ -1,7 +1,7 @@
 /* globals promptError,promptMessage,$: false */
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { get, set, sortBy } from 'lodash'
+import { get, orderBy, sortBy } from 'lodash'
 import timezone from 'dayjs/plugin/timezone'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -169,7 +169,45 @@ const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
   )
 }
 
-const EditInvitationRow = ({ invitation, isDomainGroup, isRunningProcessFunctions }) => {
+const EditInvitationProcessLogStatus = ({ processLogs }) => {
+  const runningProcessLog = processLogs.find((p) => p.status === 'running')
+  if (runningProcessLog) {
+    const formattedDate = runningProcessLog?.sdate
+      ? formatDateTime(runningProcessLog.sdate, {
+          second: undefined,
+          timeZoneName: 'short',
+          hour12: false,
+        })
+      : null
+    return <span className="log-status">Status: {formattedDate}. Running…</span>
+  }
+  const lastProcessLog = processLogs?.[0]
+  const lastLogMessage = lastProcessLog?.log?.length
+    ? lastProcessLog.log[lastProcessLog.log.length - 1]
+    : null
+  const formattedDate = lastProcessLog?.edate
+    ? formatDateTime(lastProcessLog.edate, {
+        second: undefined,
+        timeZoneName: 'short',
+        hour12: false,
+      })
+    : null
+  switch (lastProcessLog?.status) {
+    case 'ok':
+      return <span className="log-status">Status: {formattedDate}. OK.</span>
+    case 'error':
+      return (
+        <span className="log-status">
+          Status: {formattedDate}. ERROR
+          {lastLogMessage ? `: ${lastLogMessage}` : '.'}
+        </span>
+      )
+    default:
+      return null
+  }
+}
+
+const EditInvitationRow = ({ invitation, isDomainGroup, processLogs }) => {
   const [showEditor, setShowEditor] = useState(false)
 
   const innerInvitationInvitee = invitation.edit?.invitation?.invitees
@@ -219,7 +257,9 @@ const EditInvitationRow = ({ invitation, isDomainGroup, isRunningProcessFunction
           </div>
         </div>
         {invitation.description && <Markdown text={invitation.description} />}
-        {isRunningProcessFunctions && <LoadingSpinner inline text={null} />}
+        <EditInvitationProcessLogStatus
+          processLogs={processLogs.filter((p) => p.invitation === invitation.id)}
+        />
       </div>
 
       {showEditor && (
@@ -246,23 +286,23 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const [workflowGroups, setWorkflowGroups] = useState([])
   const [workflowInvitations, setWorkflowInvitations] = useState([])
   const [stageInvitations, setStageInvitations] = useState([])
-  const [runningInvitations, setRunningInvitations] = useState([])
+  const [processLogs, setProcessLogs] = useState([])
   const [missingValueInvitationIds, setMissingValueInvitationIds] = useState([])
   const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
   const workflowInvitationRegex = RegExp(`^${groupId}/-/[^/]+$`)
 
   const loadProcessLogs = async () => {
     try {
-      const processLogs = await api.getAll(
+      const response = await api.getAll(
         '/logs/process',
         {
           invitation: `${groupId}/-/.*`,
-          status: 'running',
-          select: 'invitation',
+          select: 'sdate,edate,invitation,status,log',
         },
         { accessToken, resultsKey: 'logs' }
       )
-      setRunningInvitations(processLogs.map((p) => p.invitation))
+
+      setProcessLogs(orderBy(response, ['edate'], ['desc']))
     } catch (error) {
       promptError(error.message)
     }
@@ -359,14 +399,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
   useEffect(() => {
     if (!events) return
-    if (events.status === 'ok') {
-      setRunningInvitations((invitations) =>
-        invitations.filter((p) => p !== events.invitation)
-      )
-    }
-    if (events.status === 'running') {
-      setRunningInvitations((invitations) => [...invitations, events.invitation])
-    }
     const eventsHandler = setTimeout(() => {
       loadProcessLogs()
     }, 5000)
@@ -438,7 +470,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                         <EditInvitationRow
                           invitation={stepObj}
                           isDomainGroup={group.id !== group.domain}
-                          isRunningProcessFunctions={runningInvitations.includes(invitationId)}
+                          processLogs={processLogs}
                         />
 
                         {subInvitations.length > 0 &&
@@ -483,7 +515,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                     <EditInvitationRow
                       invitation={stepObj}
                       isDomainGroup={group.id !== group.domain}
-                      isRunningProcessFunctions={runningInvitations.includes(invitationId)}
+                      processLogs={processLogs}
                     />
 
                     {subInvitations.length > 0 &&
