@@ -3,6 +3,7 @@ import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import styles from './Venues.module.scss'
+import CommonLayout from '../CommonLayout'
 
 export const metadata = {
   title: 'Venue Directory | OpenReview',
@@ -37,24 +38,26 @@ export default async function page() {
   try {
     venues = await getGroups()
   } catch (error) {
-    return <ErrorDisplay statusCode={404} message={error.message} />
+    return <ErrorDisplay message={error.message} />
   }
 
   return (
-    <div className={styles.venues}>
-      <header className="clearfix">
-        <h1>All Venues</h1>
-        <hr />
-      </header>
-      <div className="groups">
-        <ul className="list-unstyled venues-list">
-          {venues.map((group) => (
-            <li key={group.id}>
-              <VenueItem id={group.id} name={group.name} />
-            </li>
-          ))}
-        </ul>
+    <CommonLayout>
+      <div className={styles.venues}>
+        <header className="clearfix">
+          <h1>All Venues</h1>
+          <hr />
+        </header>
+        <div className="groups">
+          <ul className="list-unstyled venues-list">
+            {venues.map((group) => (
+              <li key={group.id}>
+                <VenueItem id={group.id} name={group.name} />
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-    </div>
+    </CommonLayout>
   )
 }

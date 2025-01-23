@@ -10,6 +10,7 @@ export const metadata = {
 export default async function page() {
   const { user } = await serverAuth()
   if (user) redirect('/')
+
   return (
     <div className={styles.signup}>
       <Signup />

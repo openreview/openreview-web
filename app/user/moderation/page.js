@@ -1,8 +1,9 @@
 import dynamic from 'next/dynamic'
-import { Suspense } from 'react'
 import serverAuth, { isSuperUser } from '../../auth'
 import Moderation from './Moderation'
 import UserModerationTab from './UserModerationTab'
+import CommonLayout from '../../CommonLayout'
+import ErrorDisplay from '../../../components/ErrorDisplay'
 
 const EmailDeletionTab = dynamic(() => import('./(EmailDeletion)/EmailDeletionTab'))
 const NameDeletionTab = dynamic(() => import('./(NameDeletion)/NameDeletionTab'))
@@ -12,10 +13,14 @@ const VenueRequestTab = dynamic(() => import('./(VenueRequests)/VenueRequestTab'
 
 export default async function page() {
   const { user, token } = await serverAuth()
-  if (!isSuperUser(user)) throw new Error('Forbidden. Access to this page is restricted.')
+  if (!isSuperUser(user))
+    return <ErrorDisplay message="Forbidden. Access to this page is restricted." />
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <CommonLayout banner={null}>
+      <header>
+        <h1>User Moderation</h1>
+      </header>
       <Moderation
         // eslint-disable-next-line react/no-children-prop
         children={{
@@ -28,6 +33,6 @@ export default async function page() {
         }}
         accessToken={token}
       />
-    </Suspense>
+    </CommonLayout>
   )
 }

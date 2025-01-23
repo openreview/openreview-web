@@ -6,7 +6,8 @@ import TaskList from '../../components/TaskList'
 import HeadingLink from './HeadingLink'
 
 export default function GroupedTaskList({ groupedTasksP }) {
-  const groupedTasks = use(groupedTasksP)
+  const { groupedTasks, errorMessage } = use(groupedTasksP)
+  if (errorMessage) throw new Error(errorMessage)
 
   if (!Object.keys(groupedTasks).length)
     return <p className="empty-message">No current pending or completed tasks</p>

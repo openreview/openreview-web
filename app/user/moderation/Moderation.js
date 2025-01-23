@@ -1,13 +1,40 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../../components/Tabs'
 import NameDeletionCount from './(NameDeletion)/NameDeletionCount'
 import ProfileMergeCount from './(ProfileMerge)/ProfileMergeCount'
 import VenueRequestCount from './(VenueRequests)/VenueRequestCount'
+import LoadingSpinner from '../../../components/LoadingSpinner'
 
 export default function Moderation({ children, accessToken }) {
   const [activeTabId, setActiveTabId] = useState('#profiles')
+  const [isClientRendering, setIsClientRendering] = useState(false)
+
+  useEffect(() => {
+    setIsClientRendering(true)
+  }, [])
+
+  if (!isClientRendering)
+    return (
+      <Tabs>
+        <TabList>
+          <Tab id="profiles" active={true}>
+            User Moderation
+          </Tab>
+          <Tab id="email">Email Delete Requests</Tab>
+          <Tab id="name">Name Delete Requests</Tab>
+          <Tab id="merge">Profile Merge Requests</Tab>
+          <Tab id="institution">Institution List</Tab>
+          <Tab id="requests">Venue Requests</Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel id="profiles">
+            <LoadingSpinner />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    )
 
   return (
     <Tabs>

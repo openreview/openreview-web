@@ -80,7 +80,8 @@ const ResetForm = ({ resetToken }) => {
 }
 
 export default function Password({ loadResetTokenP }) {
-  const { resettable } = use(loadResetTokenP)
+  const { resettable, errorMessage } = use(loadResetTokenP)
+  if (errorMessage) throw new Error(errorMessage)
   if (!resettable?.token) throw new Error('Token not found')
 
   return (

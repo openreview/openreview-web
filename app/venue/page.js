@@ -6,6 +6,9 @@ import serverAuth from '../auth'
 import { inflect, prettyId } from '../../lib/utils'
 import Accordion from '../../components/Accordion'
 import styles from './Venue.module.scss'
+import CommonLayout from '../CommonLayout'
+import Banner from '../../components/Banner'
+import { referrerLink } from '../../lib/banner-links'
 
 export const metadata = {
   title: 'Venues | OpenReview',
@@ -40,7 +43,7 @@ const VenuesList = ({ filteredVenues }) => (
 export default async function page({ searchParams }) {
   const { id } = await searchParams
   const { token } = await serverAuth()
-  if (!id) return <ErrorDisplay statusCode={400} message="Missing required parameter id" />
+  if (!id) return <ErrorDisplay message="Missing required parameter id" />
 
   let hostGroup
   let venues
@@ -81,9 +84,10 @@ export default async function page({ searchParams }) {
   } catch (error) {
     return (
       <ErrorDisplay
-        statusCode={400}
         message={
-          error.message ?? `Venues list for ${id} is unavailable. Please try again later`
+          error.message
+            ? error.message
+            : `Venues list for ${id} is unavailable. Please try again later`
         }
       />
     )
@@ -93,30 +97,35 @@ export default async function page({ searchParams }) {
   const groupDescription = hostGroup.web ? (descriptionRe.exec(hostGroup.web)?.[1] ?? '') : ''
 
   return (
-    <div className={styles.venue}>
-      <header className="clearfix">
-        <h1 className="mb-4">
-          {groupDescription
-            ? `${groupDescription} (${prettyId(hostGroup.id)})`
-            : prettyId(hostGroup.id)}
-        </h1>
-      </header>
-      <div className="row">
-        <div className="col-xs-12">
-          {venuesByYear?.length > 0 ? (
-            <Accordion
-              sections={venuesByYear.map((obj) => ({
-                id: obj.year,
-                heading: <GroupHeading year={obj.year} count={obj.venues.length} />,
-                body: <VenuesList filteredVenues={obj.venues} />,
-              }))}
-              options={{ id: 'venues', collapsed: true, bodyContainer: 'div' }}
-            />
-          ) : (
-            <p className="mt-2 empty-message">No venues found for group {hostGroup.id}</p>
-          )}
+    <CommonLayout
+      banner={<Banner>{referrerLink('[All Venues](/venues)')}</Banner>}
+      editBanner={null}
+    >
+      <div className={styles.venue}>
+        <header className="clearfix">
+          <h1 className="mb-4">
+            {groupDescription
+              ? `${groupDescription} (${prettyId(hostGroup.id)})`
+              : prettyId(hostGroup.id)}
+          </h1>
+        </header>
+        <div className="row">
+          <div className="col-xs-12">
+            {venuesByYear?.length > 0 ? (
+              <Accordion
+                sections={venuesByYear.map((obj) => ({
+                  id: obj.year,
+                  heading: <GroupHeading year={obj.year} count={obj.venues.length} />,
+                  body: <VenuesList filteredVenues={obj.venues} />,
+                }))}
+                options={{ id: 'venues', collapsed: true, bodyContainer: 'div' }}
+              />
+            ) : (
+              <p className="mt-2 empty-message">No venues found for group {hostGroup.id}</p>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </CommonLayout>
   )
 }

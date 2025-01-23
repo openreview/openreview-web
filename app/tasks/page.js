@@ -63,39 +63,41 @@ export default async function page() {
       .then(addPropertyToInvitations('tagInvitation')),
   ]
 
-  const groupedTasksP = Promise.all(invitationPromises).then((allInvitations) => {
-    const aERecommendationInvitations = allInvitations[2].filter((p) =>
-      p.id.endsWith('/Action_Editors/-/Recommendation')
-    )
-    const aERecommendationEdgesP = aERecommendationInvitations.map((p) =>
-      api
-        .get('/edges', {
-          invitation: `${p.domain}/Action_Editors/-/Recommendation`,
-          groupBy: 'head',
+  const groupedTasksP = Promise.all(invitationPromises)
+    .then((allInvitations) => {
+      const aERecommendationInvitations = allInvitations[2].filter((p) =>
+        p.id.endsWith('/Action_Editors/-/Recommendation')
+      )
+      const aERecommendationEdgesP = aERecommendationInvitations.map((p) =>
+        api
+          .get('/edges', {
+            invitation: `${p.domain}/Action_Editors/-/Recommendation`,
+            groupBy: 'head',
+          })
+          .then((result) => result.groupedEdges)
+      )
+      return Promise.all(aERecommendationEdgesP).then((edgeResults) => {
+        // eslint-disable-next-line no-param-reassign
+        allInvitations[2] = allInvitations[2].map((p, i) => {
+          if (!p.id.endsWith('/Action_Editors/-/Recommendation')) return p
+          const submissionId = p.edge?.head?.param?.const
+          const aERecommendationEdges = edgeResults.flatMap((q) => {
+            const edges = q.find((r) => r.id?.head === submissionId)
+            return edges ? edges.values : []
+          })
+          return {
+            ...p,
+            details: {
+              ...p.details,
+              repliedEdges: aERecommendationEdges,
+            },
+          }
         })
-        .then((result) => result.groupedEdges)
-    )
-    return Promise.all(aERecommendationEdgesP).then((edgeResults) => {
-      // eslint-disable-next-line no-param-reassign
-      allInvitations[2] = allInvitations[2].map((p, i) => {
-        if (!p.id.endsWith('/Action_Editors/-/Recommendation')) return p
-        const submissionId = p.edge?.head?.param?.const
-        const aERecommendationEdges = edgeResults.flatMap((q) => {
-          const edges = q.find((r) => r.id?.head === submissionId)
-          return edges ? edges.values : []
-        })
-        return {
-          ...p,
-          details: {
-            ...p.details,
-            repliedEdges: aERecommendationEdges,
-          },
-        }
-      })
 
-      return formatTasksData(allInvitations)
+        return { groupedTasks: formatTasksData(allInvitations) }
+      })
     })
-  })
+    .catch((error) => ({ errorMessage: error.message }))
 
   return (
     <div className={styles.tasks}>

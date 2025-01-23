@@ -7,6 +7,7 @@ import serverAuth from '../auth'
 import Submissions from './Submissions'
 import styles from './Submissions.module.scss'
 import V1Submissions from './V1Submissions'
+import ErrorDisplay from '../../components/ErrorDisplay'
 
 export const metadata = {
   title: 'Submissions | OpenReview',
@@ -19,14 +20,19 @@ export default async function page({ searchParams }) {
   const { token } = await serverAuth()
 
   if (!groupId) {
-    throw new Error('Missing required parameter venue')
+    return <ErrorDisplay message="Missing required parameter venue" />
   }
-  const group = await api
-    .get('/groups', { id: groupId }, { accessToken: token })
-    .then((result) => result.groups?.[0])
+  let group
+  try {
+    group = await api
+      .get('/groups', { id: groupId }, { accessToken: token })
+      .then((result) => result.groups?.[0])
+  } catch (error) {
+    return <ErrorDisplay message={error.message} />
+  }
 
   if (!group) {
-    throw new Error(`The venue ${groupId} could not be found`)
+    return <ErrorDisplay message={`The venue ${groupId} could not be found`} />
   }
 
   // #region v1 logic
@@ -48,7 +54,8 @@ export default async function page({ searchParams }) {
 
   const invitationId = group.content?.submission_id?.value
 
-  if (!invitationId) throw new Error(`No submission invitation found for venue ${groupId}`)
+  if (!invitationId)
+    return <ErrorDisplay message={`No submission invitation found for venue ${groupId}`} />
 
   const banner = (
     <Banner>{referrerLink(`[${prettyId(group.host)}](/venue?id=${group.host})`)}</Banner>

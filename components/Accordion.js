@@ -1,3 +1,5 @@
+'use client'
+
 import Icon from './Icon'
 
 const Accordion = ({ sections, options }) => (

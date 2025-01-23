@@ -2,23 +2,13 @@
 
 'use client'
 
-import { useContext, useEffect } from 'react'
+import { useEffect } from 'react'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
 import { nanoid } from 'nanoid'
-import random from 'lodash/random'
-import { useRouter } from 'next/navigation'
-import { useDispatch, useSelector } from 'react-redux'
-import { auth, getTokenPayload, cookieExpiration, refreshExpiration } from '../lib/auth'
 import mathjaxConfig from '../lib/mathjax-config'
-import UserContext from '../components/UserContext'
-import { refreshToken } from '../rootSlice'
 
 export default function AppInit() {
-  // const dispatch = useDispatch()
-  // const user = useSelector((state) => state.root.user)
-  // throw new Error('test')
-
   useEffect(() => {
     // Load required vendor libraries
     window.jQuery = require('jquery')
@@ -64,11 +54,6 @@ export default function AppInit() {
       })
     }
   }, [])
-
-  // useEffect(() => {
-  //   if (user || user === null) return
-  //   dispatch(refreshToken())
-  // }, [user])
 
   return null
 }
