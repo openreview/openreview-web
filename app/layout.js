@@ -7,6 +7,8 @@ import FlashAlert from '../components/FlashAlert'
 import AppInit from './AppInit'
 import { StoreProvider } from '../storeProvider'
 import Nav from './(Home)/Nav'
+import TurnstileScript from './TurnstileScript'
+import GoogleAnalyticsScript from './GoogleAnalyticsScript'
 
 const notoSans = Noto_Sans({
   subsets: ['latin'],
@@ -14,8 +16,6 @@ const notoSans = Noto_Sans({
   style: ['normal', 'italic'],
   display: 'fallback',
 })
-
-export const viewport = { width: 'device-width', initialScale: 1 }
 
 export const metadata = {
   charSet: 'utf-8',
@@ -29,39 +29,12 @@ export const metadata = {
   },
 }
 
-export default function Layout({ children }) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* <script
-          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-          async
-          defer
-        ></script> */}
-
         <link rel="icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
-
-        {/* Google Analytics */}
-        {process.env.SERVER_ENV === 'production' || process.env.SERVER_ENV === 'staging' ? (
-          <>
-            <script
-              async
-              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.GA_PROPERTY_ID}`}
-            />
-            <script
-              // eslint-disable-next-line react/no-danger
-              dangerouslySetInnerHTML={{
-                __html: `window.dataLayer = window.dataLayer || [];
-function gtag() { dataLayer.push(arguments); }
-gtag('js', new Date());
-gtag('config', '${process.env.GA_PROPERTY_ID}', {
-  page_location: location.origin + location.pathname + location.search,
-});`,
-              }}
-            />
-          </>
-        ) : null}
       </head>
       <StoreProvider>
         <body className={notoSans.className}>
@@ -73,6 +46,8 @@ gtag('config', '${process.env.GA_PROPERTY_ID}', {
           </div>
         </body>
       </StoreProvider>
+      <TurnstileScript />
+      <GoogleAnalyticsScript />
     </html>
   )
 }

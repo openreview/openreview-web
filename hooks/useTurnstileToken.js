@@ -24,9 +24,9 @@ export default function useTurnstileToken(key, renderWidget) {
       })
       setWidgetId(id)
     } else {
-      // promptError(
-      //   'Could not verify browser. Please make sure third-party scripts are not being blocked and try again.'
-      // )
+      promptError(
+        'Could not verify browser. Please make sure third-party scripts are not being blocked and try again.'
+      )
     }
   }, [key, renderWidget])
 

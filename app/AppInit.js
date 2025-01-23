@@ -7,6 +7,7 @@ import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
 import { nanoid } from 'nanoid'
 import mathjaxConfig from '../lib/mathjax-config'
+import MathjaxScript from './MathjaxScript'
 
 export default function AppInit() {
   useEffect(() => {
@@ -27,17 +28,9 @@ export default function AppInit() {
     window.view2 = require('../client/view-v2')
     window.Webfield = require('../client/webfield')
     window.Webfield2 = require('../client/webfield-v2')
-    // window.OpenBanner = this.getLegacyBannerObject()
     require('../client/templates')
     require('../client/template-helpers')
     require('../client/globals')
-
-    // MathJax has to be loaded asynchronously from the CDN after the config file loads
-    const script = document.createElement('script')
-    script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml-full.js'
-    script.async = true
-    script.crossOrigin = 'anonymous'
-    document.head.appendChild(script)
 
     // Setup marked options and renderer overwrite
     window.view.setupMarked()
@@ -55,5 +48,5 @@ export default function AppInit() {
     }
   }, [])
 
-  return null
+  return <MathjaxScript />
 }
