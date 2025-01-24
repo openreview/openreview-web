@@ -107,7 +107,7 @@ export default async function page({ searchParams }) {
           redirectPath = `/login?redirect=/forum?${encodeURIComponent(stringify(query))}`
           return { redirectPath }
         }
-        return { errorMessage: 'You do not have permission to read this forum' }
+        return { errorMessage: "You don't have permission to read this forum" }
       }
       return { errorMessage: error.message }
     }
@@ -132,6 +132,7 @@ export default async function page({ searchParams }) {
         }, {})
       : forumNote.content
   const noteInvitation = version === 2 ? forumNote.invitations[0] : forumNote.invitation
+  console.log('content', content)
 
   metadata.title = `${content.title || 'Forum'} | OpenReview`
   metadata.description = content['TL;DR'] || content.abstract || ''
@@ -189,6 +190,7 @@ export default async function page({ searchParams }) {
     }
   }
   // #endregion
+  console.log('metadata', metadata)
 
   let banner
   if (referrer) {
