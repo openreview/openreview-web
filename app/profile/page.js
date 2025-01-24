@@ -7,16 +7,15 @@ import Profile from './Profile'
 import { formatProfileData } from '../../lib/profiles'
 import CommonLayout from '../CommonLayout'
 import EditBanner from '../../components/EditBanner'
+import { stringify } from 'query-string'
 
 export const dynamic = 'force-dynamic'
 
 export default async function page({ searchParams }) {
   const { user, token } = await serverAuth()
-  const { id, email } = await searchParams
-  if (!user && !id && !email) redirect('/login')
-  if (!user && id) redirect(`/login?redirect=${encodeURIComponent(`/profile?id=${id}`)}`)
-  if (!user && email)
-    redirect(`/login?redirect=${encodeURIComponent(`/profile?email=${email}`)}`)
+  const query = await searchParams
+  const { id, email } = query
+  if (!user && !id && !email) redirect(`/login?redirect=/profile?${stringify(query)}`)
 
   const isProfileOwner =
     (id && user?.profile?.usernames?.includes(id)) ||

@@ -97,6 +97,7 @@ export default function Edit({ loadProfileP, accessToken }) {
       if (profiles?.length > 0) {
         const formattedProfile = formatProfileData(profiles[0], true)
         setProfile(formattedProfile)
+        return formattedProfile
       } else {
         promptError('Profile not found')
       }

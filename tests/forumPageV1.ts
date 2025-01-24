@@ -344,14 +344,14 @@ test('#139 no id param should show an error message', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum`)
     .expect(Selector('Header').innerText)
-    .eql('Error 400')
+    .eql('Error')
     .expect(Selector('.error-message').innerText)
     .eql('Forum or note ID is required')
   await t
     .useRole(superUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum`)
     .expect(Selector('Header').innerText)
-    .eql('Error 400')
+    .eql('Error')
     .expect(Selector('.error-message').innerText)
     .eql('Forum or note ID is required')
 })

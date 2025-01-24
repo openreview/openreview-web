@@ -210,6 +210,8 @@ test('user open own profile', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
+}).skipJsErrors({
+  message: "[Cloudflare Turnstile] Error: 300030."
 })
 
 test('add and delete year of birth', async (t) => {
@@ -1008,7 +1010,6 @@ test('confirm an email with a numeric token', async (t) => {
     )
     .ok()
 })
-
 test('check if a user can add multiple emails without entering verification token', async (t) => {
   await t
     .useRole(userBRole)

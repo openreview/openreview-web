@@ -139,7 +139,9 @@ export default function DblpPublicationTable({
                     <input
                       className="year-checkbox"
                       type="checkbox"
-                      onChange={(e) => toggleSelectYear(e, p)}
+                      onChange={(e) => {
+                        toggleSelectYear(e, p)
+                      }}
                       checked={
                         publicationsCouldImportOfYear.length &&
                         publicationsCouldImportOfYear.every((r) =>

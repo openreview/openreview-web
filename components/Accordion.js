@@ -28,29 +28,34 @@ const SectionHeading = ({ id, heading, options }) => (
       <SectionHeadingLink targetId={id} collapsed={options.collapsed}>
         <Icon name="triangle-bottom" />
       </SectionHeadingLink>{' '}
-      <SectionHeadingLink targetId={id} collapsed={options.collapsed}>
+      <SectionHeadingLink targetId={id} collapsed={options.collapsed} shouldCollapse={false}>
         {heading}
       </SectionHeadingLink>
     </h4>
   </div>
 )
 
-const SectionHeadingLink = ({ targetId, children, collapsed }) => (
+const SectionHeadingLink = ({ targetId, children, collapsed, shouldCollapse }) => {
+  if (shouldCollapse === false) {
+    return (
+      <a href={`#${targetId}`} className={`collapse-btn${collapsed ? ' collapsed' : ''}`}>
+        {children}
+      </a>
+    )
+  }
   // eslint-disable-next-line jsx-a11y/anchor-is-valid
-  <a
-    // href={`#${targetId}`}
-    className={`collapse-btn${collapsed ? ' collapsed' : ''}`}
-    role="button"
-    data-toggle="collapse"
-    data-target={`#${targetId}`}
-    aria-controls={targetId}
-    onClick={(e) => {
-      e.preventDefault()
-    }}
-  >
-    {children}
-  </a>
-)
+  return (
+    <a
+      className={`collapse-btn${collapsed ? ' collapsed' : ''}`}
+      role="button"
+      data-toggle="collapse"
+      data-target={`#${targetId}`}
+      aria-controls={targetId}
+    >
+      {children}
+    </a>
+  )
+}
 
 const SectionBody = ({ id, body, options }) => {
   const renderBody = () => {
