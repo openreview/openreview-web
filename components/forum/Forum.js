@@ -816,7 +816,7 @@ export default function Forum({
       }
     })
 
-    // Adjust visibilty of parent notes based on visibility of children and calculate where to cut
+    // Adjust visibility of parent notes based on visibility of children and calculate where to cut
     // of the list of replies, based on how many total notes are visible.
     let cutoff = 0
     let numVisible = 0

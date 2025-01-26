@@ -19,19 +19,19 @@ describe('PaperStatusMenuBar', () => {
     const providerProps = { value: {
       reviewerName: 'Reviewers',
       anonReviewerName: 'Reviewer_',
-      officialReviewName: 'Offical_Review'
+      officialReviewName: 'Official_Review'
     } }
     const componentProps = { reviewRatingName: 'rating' }
     renderWithWebFieldContext(<PaperStatusMenuBar {...componentProps} />, providerProps)
     expect(screen.getByText('Base Menu Bar')).toBeInTheDocument()
   })
 
-  test('add propertiesAllowd to query search filters', () => {
+  test('add propertiesAllowed to query search filters', () => {
     const providerProps = {
       value: {
       reviewerName: 'Reviewers',
       anonReviewerName: 'Reviewer_',
-      officialReviewName: 'Offical_Review',
+      officialReviewName: 'Official_Review',
         propertiesAllowed: {
           testProperty: ['note.content.testProperty.value'],
         },
@@ -44,12 +44,12 @@ describe('PaperStatusMenuBar', () => {
     ])
   })
 
-  test('support function in propertiesAllowd', () => {
+  test('support function in propertiesAllowed', () => {
     const providerProps = {
       value: {
         reviewerName: 'Reviewers',
         anonReviewerName: 'Reviewer_',
-        officialReviewName: 'Offical_Review',
+        officialReviewName: 'Official_Review',
         propertiesAllowed: {
           testProperty: ['note.content.testProperty.value'],
           hasMetaReview: `
@@ -136,7 +136,7 @@ return officialReviews.length;
       value: {
       reviewerName: 'Reviewers',
       anonReviewerName: 'Reviewer_',
-      officialReviewName: 'Offical_Review',
+      officialReviewName: 'Official_Review',
         propertiesAllowed: {
           testProperty: ['note.content.testProperty.value'],
           hasMetaReview: `

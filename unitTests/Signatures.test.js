@@ -549,7 +549,7 @@ describe('Signatures', () => {
     })
   })
 
-  test('throw error is error is encounterd getting enum groups', async () => {
+  test('throw error is error is encountered getting enum groups', async () => {
     const onChange = jest.fn()
     const onError = jest.fn()
     const enumFieldDescription = {
@@ -557,7 +557,7 @@ describe('Signatures', () => {
         enum: ['~.*'],
       },
     }
-    const apiGet = jest.fn(() => Promise.reject({ message: 'some api error occured' }))
+    const apiGet = jest.fn(() => Promise.reject({ message: 'some api error occurred' }))
     api.get = apiGet
 
     render(
@@ -569,7 +569,7 @@ describe('Signatures', () => {
     )
 
     await waitFor(() => {
-      expect(onError).toHaveBeenCalledWith('some api error occured')
+      expect(onError).toHaveBeenCalledWith('some api error occurred')
     })
   })
 
@@ -795,7 +795,7 @@ describe('Signatures', () => {
         items: [
           {
             prefix: 'ICML.cc/2023/Conference/Submission5/Reviewer_.*',
-            description: 'som reviewer',
+            description: 'some reviewer',
             optional: true,
           },
           {

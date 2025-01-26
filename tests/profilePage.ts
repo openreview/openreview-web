@@ -72,7 +72,7 @@ const firstHistoryEndInput = Selector('div.history')
 const messageSelector = Selector('span').withAttribute('class', 'important_message')
 const messagePanelSelector = Selector('#flash-message-container')
 const step0Names = Selector('div[step="0"]').find('div[role="button"]')
-const step1PeronalInfo = Selector('div[step="1"]').find('div[role="button"]')
+const step1PersonalInfo = Selector('div[step="1"]').find('div[role="button"]')
 const step2Emails = Selector('div[step="2"]').find('div[role="button"]')
 const step3Links = Selector('div[step="3"]').find('div[role="button"]')
 const step4History = Selector('div[step="4"]').find('div[role="button"]')
@@ -217,7 +217,7 @@ test('add and delete year of birth', async (t) => {
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     // add invalid year of birth
-    .click(step1PeronalInfo)
+    .click(step1PersonalInfo)
     .typeText(yearOfBirthInput, '0000')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
@@ -232,7 +232,7 @@ test('add and delete year of birth', async (t) => {
     // remove year of birth
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(step1PeronalInfo)
+    .click(step1PersonalInfo)
     .expect(yearOfBirthInput.value)
     .eql('2000')
     .selectText(yearOfBirthInput)
@@ -245,7 +245,7 @@ test('add and delete year of birth', async (t) => {
     // verify year of birth has been removed
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(step1PeronalInfo)
+    .click(step1PersonalInfo)
     .expect(yearOfBirthInput.value)
     .eql('')
 })
@@ -257,7 +257,7 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(step1PeronalInfo)
+    .click(step1PersonalInfo)
     .click(Selector('div.pronouns-dropdown__control'))
     .wait(1000)
     .click(Selector('div.pronouns-dropdown__option').nth(2))
@@ -272,7 +272,7 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(step1PeronalInfo)
+    .click(step1PersonalInfo)
     .typeText(Selector('div.pronouns'), customPronouns)
     .wait(500)
     .click(Selector('div.pronouns-dropdown__option').nth(0))
@@ -287,7 +287,7 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(step1PeronalInfo)
+    .click(step1PersonalInfo)
     .click(Selector('div.pronouns-dropdown__control'))
     .wait(500)
     .click(Selector('div.pronouns-dropdown__option').nth(3))
@@ -525,7 +525,7 @@ test('import paper from dblp', async (t) => {
     .click(step3Links)
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
-    // put incorrect persistant url
+    // put incorrect persistent url
     .typeText(dblpUrlInput, 'xxx', { paste: true })
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .notOk()
@@ -668,7 +668,7 @@ test('check import history', async (t) => {
   const notes = await getNotes({ 'content.authorids': userB.tildeId }, superUserToken, 2)
   await t.expect(notes.length).eql(1)
 
-  // shoud have 2 references: add paper and update authorid
+  // should have 2 references: add paper and update authorid
   const importedPaperId = notes[0].id
   const edits = await getNoteEdits(
     { 'note.id': importedPaperId, sort: 'tcdate' },

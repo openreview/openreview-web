@@ -341,16 +341,16 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
         )
       case 'SELECTDESELECTALL':
         // eslint-disable-next-line no-case-declarations
-        const filterdMembers = state.filter((p) =>
+        const filteredMembers = state.filter((p) =>
           p.id.toLowerCase().includes(searchTerm.trim().toLowerCase())
         )
         // eslint-disable-next-line no-case-declarations
-        const allSelected = filterdMembers
+        const allSelected = filteredMembers
           .filter((p) => !p.isDeleted)
           .every((p) => p.isSelected)
         return state.map((p) => {
           const isSelected =
-            filterdMembers.find((q) => q.id === p.id) && !p.isDeleted
+            filteredMembers.find((q) => q.id === p.id) && !p.isDeleted
               ? !allSelected
               : p.isSelected
           return {
@@ -371,7 +371,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       ? filteredMembers.slice(0, membersPerPage)
       : filteredMembers
   )
-  const isAllFilterdSelected =
+  const isAllFilteredSelected =
     filteredMembers.filter((p) => !p.isDeleted).length &&
     filteredMembers.filter((p) => !p.isDeleted).every((p) => p.isSelected)
   const isFilteredEmpty = filteredMembers.filter((p) => !p.isDeleted).length === 0
@@ -624,7 +624,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
               disabled={isFilteredEmpty}
               onClick={() => setGroupMembers({ type: 'SELECTDESELECTALL' })}
             >
-              {isAllFilterdSelected ? 'Deselect All' : 'Select All'}
+              {isAllFilteredSelected ? 'Deselect All' : 'Select All'}
             </button>
             <button
               type="button"

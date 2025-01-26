@@ -237,7 +237,7 @@ describe('TextboxWidget', () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
-  test('show value of differernt type correctly editing existing note (integer)', () => {
+  test('show value of different type correctly editing existing note (integer)', () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {
@@ -258,7 +258,7 @@ describe('TextboxWidget', () => {
     expect(screen.getByDisplayValue('2023')).toBeInTheDocument()
   })
 
-  test('show value of differernt type correctly editing existing note (integer[])', () => {
+  test('show value of different type correctly editing existing note (integer[])', () => {
     const onChange = jest.fn()
     const providerProps = {
       value: {

@@ -151,7 +151,7 @@ module.exports = (function () {
   const mkComposerContentInput = (fieldName, fieldDescription, valueInNote, params) => {
     let contentInputResult = null
 
-    const mkCharCouterWidget = ($input, minChars, maxChars) => {
+    const mkCharCounterWidget = ($input, minChars, maxChars) => {
       const $widget = $('<div>', { class: 'char-counter hint' }).append(
         '<div class="pull-left" style="display:none;">Additional characters required: <span class="min-count">' +
           minChars +
@@ -391,7 +391,7 @@ module.exports = (function () {
             minLen = isNaN(minLen) || minLen < 0 ? 0 : minLen
             maxLen = isNaN(maxLen) || maxLen < minLen ? 0 : maxLen
             if (minLen || maxLen) {
-              $inputGroup.append(mkCharCouterWidget($input, minLen, maxLen))
+              $inputGroup.append(mkCharCounterWidget($input, minLen, maxLen))
               if (fieldValue) {
                 $input.trigger('keyup')
               }
@@ -850,7 +850,7 @@ module.exports = (function () {
         })
       : null
 
-    // Display modal showing full BibTeX reference. Click handler is definied in public/index.js
+    // Display modal showing full BibTeX reference. Click handler is defined in public/index.js
     var $bibtexLink =
       note.content?._bibtex?.value && params.withBibtexLink
         ? $(
@@ -2496,7 +2496,7 @@ module.exports = (function () {
     var content = _.reduce(
       invitationContent,
       function (ret, contentObjInInvitation, k) {
-        // Let the widget handle it :D and extract the data when we encouter authorids
+        // Let the widget handle it :D and extract the data when we encounter authorids
         const contentObj = contentObjInInvitation.value
         if (!contentObj && contentObjInInvitation.readers) return ret
         const presentationObj = contentObjInInvitation.value.param || {}

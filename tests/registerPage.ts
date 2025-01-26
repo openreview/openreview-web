@@ -313,7 +313,7 @@ test('Send Activation Link', async (t) => {
   const newTildeId = await Selector('.new-username.hint').nth(1).innerText
   await t
     .expect(newTildeId.substring(2))
-    .notEql(existingTildeId.substring(3)) // new sign up shoud have different tildeid
+    .notEql(existingTildeId.substring(3)) // new sign up should have different tildeid
     .expect(sendActivationLinkButtonSelector.exists)
     .ok() // existing acct so should find associated email
     .click(sendActivationLinkButtonSelector)

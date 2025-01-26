@@ -55,7 +55,7 @@ module.exports = function (forumId, noteId, invitationId, user) {
   var getNoteRecsP = function () {
     var onError = function () {
       $childrenAnchor.find('.spinner-container').fadeOut('fast')
-      promptError('An error ocurred while loading the forum, please try again later')
+      promptError('An error occurred while loading the forum, please try again later')
     }
 
     var notesP

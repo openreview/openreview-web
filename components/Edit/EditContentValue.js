@@ -26,7 +26,7 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJso
           rel="noopener noreferrer"
           target="_blank"
         >
-          <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
+          <img src="/images/html_icon_blue.svg" alt="html icon" />
         </a>
       </span>
     )

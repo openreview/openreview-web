@@ -14,7 +14,7 @@ export default function withAdminAuth(Component) {
 
     if (hasGetInitialProps) {
       // withAdminAuth always passes the query params and access token as props to wrappen
-      // component, so need to warn the user if that component has getInitialProps definied
+      // component, so need to warn the user if that component has getInitialProps defined
       // eslint-disable-next-line no-console
       console.warn('Warning: withAdminAuth does not call getInitialProps of wrapped component')
     }

@@ -1272,7 +1272,7 @@ module.exports = (function () {
   var mkComposerContentInput = function (fieldName, fieldDescription, fieldValue, params) {
     var contentInputResult = null
 
-    var mkCharCouterWidget = function ($input, minChars, maxChars) {
+    var mkCharCounterWidget = function ($input, minChars, maxChars) {
       var $widget = $('<div>', { class: 'char-counter hint' }).append(
         '<div class="pull-left" style="display:none;">Additional characters required: <span class="min-count">' +
           minChars +
@@ -1370,7 +1370,7 @@ module.exports = (function () {
           minLen = isNaN(minLen) || minLen < 0 ? 0 : minLen
           maxLen = isNaN(maxLen) || maxLen < minLen ? 0 : maxLen
           if (minLen || maxLen) {
-            $inputGroup.append(mkCharCouterWidget($input, minLen, maxLen))
+            $inputGroup.append(mkCharCounterWidget($input, minLen, maxLen))
             if (fieldValue) {
               $input.trigger('keyup')
             }
@@ -2724,7 +2724,7 @@ module.exports = (function () {
       buildContent(note, params)
     )
 
-    // Add info from origial note below content
+    // Add info from original note below content
     if (details.original) {
       $note.append(buildOriginalNote(note, details.original, params))
     }
@@ -3073,7 +3073,7 @@ module.exports = (function () {
             .replace(/^\./g, '') // journal names start with '.'
             .replace(/\..+/g, '') // remove text after dots, ex: uai.org
             .replace(/^-$/g, '') // remove dashes
-            .replace(/_/g, ' ') // replace undescores with spaces
+            .replace(/_/g, ' ') // replace underscores with spaces
 
           // if the letters in the token are all lowercase, replace it with empty string
           var lettersOnly = token.replace(/\d|\W/g, '')
@@ -3112,7 +3112,7 @@ module.exports = (function () {
         }
         return token
           .replace(/^-$/g, '') // remove dashes
-          .replace(/_/g, ' ') // replace undescores with spaces
+          .replace(/_/g, ' ') // replace underscores with spaces
           .replace(/\.\*/g, '') // remove wildcards
           .replace(/^.*[0-9]$/g, '') // remove tokens ending with a digit
           .trim()
@@ -3390,7 +3390,7 @@ module.exports = (function () {
     var content = _.reduce(
       invitationContent,
       function (ret, contentObjInInvitation, k) {
-        // Let the widget handle it :D and extract the data when we encouter authorids
+        // Let the widget handle it :D and extract the data when we encounter authorids
         const contentObj = invitation.edit
           ? contentObjInInvitation.value
           : contentObjInInvitation

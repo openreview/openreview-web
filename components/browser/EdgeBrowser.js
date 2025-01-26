@@ -67,7 +67,7 @@ export default class EdgeBrowser extends React.Component {
 
   componentDidMount() {
     this.lookupSignatures()
-    // Create gloabl head and tail maps by querying all possible head and tail objects
+    // Create global head and tail maps by querying all possible head and tail objects
     // create global signature list
     Promise.all([
       this.buildEntityMapFromInvitation('head'),
@@ -330,7 +330,7 @@ export default class EdgeBrowser extends React.Component {
 
   // set the shouldUpdate property of column at index
   // and all other columns with same parent
-  // to trigger entites reload of those columns
+  // to trigger entities reload of those columns
   reloadColumnEntities(index) {
     this.setState((prevState) => {
       const parentIdOfColumn = prevState.columns[index].parentId

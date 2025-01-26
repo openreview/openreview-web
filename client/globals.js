@@ -30,7 +30,7 @@ window.parseUrlParams = function (urlStr) {
 
 window.translateErrorMessage = function (error) {
   var topic = error && error.path ? [view.iTerm(error.path)] : ''
-  var buildFeebackModalLink = function (linkText, formFields) {
+  var buildFeedbackModalLink = function (linkText, formFields) {
     // to remove when profile edit pr is ok
     return $('<a>', {
       href: '#',
@@ -85,7 +85,7 @@ window.translateErrorMessage = function (error) {
       view.iMess(
         '. To merge this profile with your account, please click here to submit a support request: '
       ),
-      buildFeebackModalLink('Merge Profiles', {
+      buildFeedbackModalLink('Merge Profiles', {
         from: error.user,
         subject: 'Merge Profiles',
         message:

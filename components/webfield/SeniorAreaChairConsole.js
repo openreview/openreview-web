@@ -13,7 +13,7 @@ import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import {
-  getIndentifierFromGroup,
+  getIdentifierFromGroup,
   getNumberFromGroup,
   getProfileName,
   prettyId,
@@ -275,7 +275,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             return {
               reviewerProfileId: deanonymizedGroup,
               anonymizedGroup,
-              anonymousId: getIndentifierFromGroup(anonymizedGroup, anonReviewerName),
+              anonymousId: getIdentifierFromGroup(anonymizedGroup, anonReviewerName),
             }
           }),
         }
@@ -301,7 +301,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               areaChairProfileId: deanonymizedGroup,
               anonymizedGroup,
               anonymousId: anonymizedGroup
-                ? getIndentifierFromGroup(anonymizedGroup, anonAreaChairName)
+                ? getIdentifierFromGroup(anonymizedGroup, anonAreaChairName)
                 : null,
             }
           }),
@@ -321,7 +321,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 secondaryAnonAreaChairGroups[acGroupNoteNum]?.[secondaryMember] ??
                 secondaryMember,
               anonymizedGroup: secondaryMember,
-              anonymousId: getIndentifierFromGroup(
+              anonymousId: getIdentifierFromGroup(
                 secondaryMember,
                 secondaryAnonAreaChairName
               ),
@@ -407,7 +407,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 const reviewValue = review.content?.review?.value
                 return {
                   ...review,
-                  anonymousId: getIndentifierFromGroup(review.signatures[0], anonReviewerName),
+                  anonymousId: getIdentifierFromGroup(review.signatures[0], anonReviewerName),
                   confidence: parseNumberField(review.content?.[reviewConfidenceName]?.value),
                   ...Object.fromEntries(
                     (Array.isArray(reviewRatingName)
@@ -481,7 +481,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             })
             .map((metaReview) => ({
               ...metaReview,
-              anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
+              anonId: getIdentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
             }))
             .map((metaReview) => {
               const metaReviewAgreement = customStageReviews.find(

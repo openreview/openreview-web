@@ -455,7 +455,7 @@ export default class OpenReviewApp extends App {
   }
 }
 
-// Send page page performace information to Google Analytics. For more info see:
+// Send page page performance information to Google Analytics. For more info see:
 // https://nextjs.org/docs/advanced-features/measuring-performance
 export function reportWebVitals({ id, name, label, value }) {
   if (process.env.SERVER_ENV === 'production' || process.env.SERVER_ENV === 'staging') {

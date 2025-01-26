@@ -923,7 +923,7 @@ describe('NewNoteReaders', () => {
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
         closeNoteEditor={jest.fn()}
-        value={['~Test_IdOne1']} // default has triggerd value change
+        value={['~Test_IdOne1']} // default has triggered value change
         onChange={onChange}
         setLoading={jest.fn()}
         useCheckboxWidget={undefined}
@@ -976,7 +976,7 @@ describe('NewNoteReaders', () => {
       <NewNoteReaders
         fieldDescription={invitation.edit.note.readers}
         closeNoteEditor={jest.fn()}
-        value={['~Test_IdOne1']} // default has triggerd value change
+        value={['~Test_IdOne1']} // default has triggered value change
         onChange={onChange}
         setLoading={jest.fn()}
         useCheckboxWidget={true}
