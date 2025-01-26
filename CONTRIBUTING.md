@@ -60,7 +60,7 @@ Please see the README file for step-by-step instructions on how to run openrevie
 
 ## Submitting Pull Requests
 
-Once your branch and code changes are working locally make sure to run `npm run lint`, `npm run unitTest`, and `npm run test` to make sure all tests are passing.
+Once your branch and code changes are working locally make sure to run `npm run lint`, `npm run unit-test`, and `npm run test` to make sure all tests are passing.
 
 Then open a PR against the master branch in this repo and the team will review your changes as soon as possible.
 
