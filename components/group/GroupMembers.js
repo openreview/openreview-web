@@ -341,16 +341,16 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
         )
       case 'SELECTDESELECTALL':
         // eslint-disable-next-line no-case-declarations
-        const filteredMembers = state.filter((p) =>
+        const membersMatchingSearch = state.filter((p) =>
           p.id.toLowerCase().includes(searchTerm.trim().toLowerCase())
         )
         // eslint-disable-next-line no-case-declarations
-        const allSelected = filteredMembers
+        const allSelected = membersMatchingSearch
           .filter((p) => !p.isDeleted)
           .every((p) => p.isSelected)
         return state.map((p) => {
           const isSelected =
-            filteredMembers.find((q) => q.id === p.id) && !p.isDeleted
+            membersMatchingSearch.find((q) => q.id === p.id) && !p.isDeleted
               ? !allSelected
               : p.isSelected
           return {
