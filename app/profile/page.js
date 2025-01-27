@@ -62,7 +62,7 @@ export default async function page({ searchParams }) {
   if (shouldRedirect) redirect(`/profile?id=${preferredId}`)
   return (
     <CommonLayout banner={null} editBanner={editBanner}>
-      <Profile profile={formattedProfile} publicProfile={id || email} />
+      <Profile profile={formattedProfile} publicProfile={!isProfileOwner} />
     </CommonLayout>
   )
 }
