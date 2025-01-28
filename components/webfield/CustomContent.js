@@ -23,12 +23,14 @@ export default function CustomContent({ appContext }) {
     }
   }, [query])
 
+  const DynamicHeaderComponent = HeaderComponent?.()
+  const DynamicBodyComponent = BodyComponent?.()
+
   return (
     <>
-      <HeaderComponent headerInfo={header} />
-
+      {HeaderComponent && <DynamicHeaderComponent headerInfo={header} />}
       <div id="notes">
-        <BodyComponent content={content} />
+        {DynamicBodyComponent && <DynamicBodyComponent content={content} />}
       </div>
     </>
   )
