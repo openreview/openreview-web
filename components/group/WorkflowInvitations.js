@@ -216,6 +216,13 @@ const EditInvitationProcessLogStatus = ({ processLogs }) => {
           {lastLogMessage ? `: ${lastLogMessage}` : '.'}
         </span>
       )
+    case 'queued':
+      return (
+        <span className="log-status">
+          <span className="fixed-text">Status:</span> {formattedDate}{' '}
+          <span className="fixed-text">. QUEUED</span>
+        </span>
+      )
     default:
       return null
   }
