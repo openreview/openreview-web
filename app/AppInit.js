@@ -8,6 +8,7 @@ import DOMPurify from 'isomorphic-dompurify'
 import { nanoid } from 'nanoid'
 import mathjaxConfig from '../lib/mathjax-config'
 import MathjaxScript from './MathjaxScript'
+import TurnstileScript from './TurnstileScript'
 
 export default function AppInit() {
   useEffect(() => {
@@ -48,5 +49,10 @@ export default function AppInit() {
     }
   }, [])
 
-  return <MathjaxScript />
+  return (
+    <>
+      <MathjaxScript />
+      <TurnstileScript />
+    </>
+  )
 }

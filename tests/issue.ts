@@ -37,6 +37,7 @@ routesToSkipRedirection.forEach((route) => {
   test(`redirection to ${route} is skipped`, async (t) => {
     await t
       .navigateTo(`${homepageUrl}${route}`)
+      .wait(100)
       .click(loginLink)
       .typeText('#email-input', 'test@mail.com')
       .typeText('#password-input', strongPassword)

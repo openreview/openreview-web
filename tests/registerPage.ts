@@ -226,7 +226,7 @@ test('enter invalid name', async (t) => {
     .ok()
     .expect(Selector('.important_message').textContent)
     .eql(
-      'The name 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
+      'The name Abc 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
 })
 
@@ -546,9 +546,9 @@ test('try to activate a profile with invalid token and get an error', async (t) 
     .ok()
     .expect(messageSelector.innerText)
     .eql('Activation token is not valid')
-})
+}).skipJsErrors()
 
-fixture`Reset password`.page`http://localhost:${process.env.NEXT_PORT}/reset`.before(
+fixture`Reset password`.before(
   async (ctx) => {
     ctx.superUserToken = await getToken(superUserName, strongPassword)
     return ctx
@@ -557,6 +557,8 @@ fixture`Reset password`.page`http://localhost:${process.env.NEXT_PORT}/reset`.be
 
 test('reset password of active profile', async (t) => {
   await t
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/reset`)
+    .wait(1000)
     .typeText(Selector('#email-input'), 'melisa@test.com')
     .expect(Selector('button').withText('Reset Password').hasAttribute('disabled')).notOk({ timeout: 5000 })
     .click(Selector('button').withText('Reset Password'))

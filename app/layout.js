@@ -46,7 +46,6 @@ export default function RootLayout({ children }) {
           </div>
         </body>
       </StoreProvider>
-      <TurnstileScript />
       <GoogleAnalyticsScript />
     </html>
   )

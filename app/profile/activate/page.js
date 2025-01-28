@@ -13,7 +13,8 @@ export const dynamic = 'force-dynamic'
 
 export default async function page({ searchParams }) {
   const { token } = await searchParams
-  if (!token) redirect('/')
+  if (!token)
+    throw new Error('Invalid profile activation link. Please check your email and try again.')
 
   const loadActivatableProfileP = api
     .get(`/activatable/${token}`)

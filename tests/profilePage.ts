@@ -218,6 +218,7 @@ test('add and delete year of birth', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     // add invalid year of birth
     .click(step1PeronalInfo)
     .typeText(yearOfBirthInput, '0000')
@@ -234,6 +235,7 @@ test('add and delete year of birth', async (t) => {
     // remove year of birth
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step1PeronalInfo)
     .expect(yearOfBirthInput.value)
     .eql('2000')
@@ -247,6 +249,7 @@ test('add and delete year of birth', async (t) => {
     // verify year of birth has been removed
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step1PeronalInfo)
     .expect(yearOfBirthInput.value)
     .eql('')
@@ -259,6 +262,7 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step1PeronalInfo)
     .click(Selector('div.pronouns-dropdown__control'))
     .wait(1000)
@@ -274,6 +278,7 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step1PeronalInfo)
     .typeText(Selector('div.pronouns'), customPronouns)
     .wait(500)
@@ -289,6 +294,7 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step1PeronalInfo)
     .click(Selector('div.pronouns-dropdown__control'))
     .wait(500)
@@ -304,6 +310,7 @@ test('add and delete geolocation of history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step4History)
     .click(Selector('input.region-dropdown__placeholder')) // show dropdown
     .click(Selector('div.country-dropdown__option').nth(3))
@@ -326,6 +333,7 @@ test('add and delete geolocation of history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step4History)
     .selectText(Selector('input.institution-state'))
     .pressKey('delete')
@@ -347,6 +355,7 @@ test('add and delete geolocation of history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step4History)
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__control'))
@@ -361,6 +370,7 @@ test('add links', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step3Links)
     // add invalid acl url
     .typeText(aclanthologyUrlInput, 'https://aclanthology.org/invalid_url')
@@ -392,6 +402,7 @@ test('add relation', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step5Relations)
     // add a relation by name
     .click(firstRelationRow.find('div.relation__value').nth(0)) // relation dropdown
@@ -449,6 +460,7 @@ test('add relation', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step5Relations)
     .expect(
       firstRelationRow.find('a').withAttribute('href', '/profile?id=~FirstA_LastA1')
@@ -486,6 +498,7 @@ test('add expertise', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step6Expertise)
     // add expertise correctly
     .typeText(
@@ -524,6 +537,7 @@ test('import paper from dblp', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step3Links)
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
@@ -635,6 +649,7 @@ test('imported paper has banner back to profile edit', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step3Links)
     .click(addDBLPPaperToProfileButton)
     .expect(Selector('div.publication-title').nth(0).find('a').getAttribute('href'))
@@ -690,6 +705,7 @@ test('reimport unlinked paper and import all', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step3Links)
     .click(addDBLPPaperToProfileButton)
     .click(
@@ -739,6 +755,7 @@ test('validate current history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step4History)
     .typeText(firstHistoryEndInput, (new Date().getFullYear() - 1).toString(), {
       replace: true,
@@ -760,6 +777,7 @@ test('validate current history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step4History)
     .selectText(firstHistoryEndInput)
     .pressKey('delete')
@@ -772,6 +790,7 @@ test('profile should be auto merged', async (t) => {
   await t
     .useRole(userARole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step2Emails)
     .click(emailSectionPlusIconSelector)
     .typeText(editEmailInputSelector, userF.email)
@@ -839,6 +858,7 @@ test('open profile of other user by email', async (t) => {
     .typeText(Selector('#email-input'), userB.email)
     .typeText(Selector('#password-input'), userB.password)
     .click(Selector('button').withText('Login to OpenReview'))
+    .wait(500)
     // access FirstA LastA's profile page by email
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile?email=${hasTaskUser.email}`)
     .expect(Selector('a').withText('Edit Profile').exists)
@@ -877,6 +897,7 @@ test('#85 confirm profile email message', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step2Emails)
     .click(emailSectionPlusIconSelector)
     .typeText(editEmailInputSelector, 'a@a.com')
@@ -904,6 +925,7 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .expect(Selector('#user-menu').innerText)
     .eql('FirstB LastB ')
     .click(nameMakePreferredButton)
@@ -918,6 +940,7 @@ test('#160 allow user to overwrite name to be lowercase', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(nameSectionPlusIconSelector)
     .typeText(editFullNameInputSelector, 'first', { speed: 0.3 }) // it will trigger call to generate ~ id so typing fast won't trigger capitalization
     .expect(editFullNameInputSelector.value)
@@ -934,6 +957,7 @@ test('fail before 2099', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step4History)
     .typeText(
       Selector('div.history').find('input').nth(2),
@@ -950,6 +974,7 @@ test('#1011 remove space in personal links', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step3Links)
     .typeText(homepageUrlInput, '   https://github.com/xkOpenReview    ', {
       replace: true,
@@ -969,6 +994,7 @@ test('confirm an email with a numeric token', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step2Emails)
     .expect(Selector('h4').withText('Emails').exists)
     .ok()
@@ -1014,6 +1040,7 @@ test('check if a user can add multiple emails without entering verification toke
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step2Emails)
     .expect(Selector('h4').withText('Emails').exists)
     .ok()

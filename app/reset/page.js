@@ -1,10 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import Reset from './Reset'
 import styles from './Reset.module.scss'
-
-export const metadata = {
-  title: 'Reset Password | OpenReview',
-}
 
 export default function page() {
   return (

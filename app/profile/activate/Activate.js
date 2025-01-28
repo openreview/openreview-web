@@ -25,7 +25,7 @@ export default function Activate({ loadActivatableProfileP, activateToken }) {
         promptMessage('Your OpenReview profile has been successfully created', {
           scrollToTop: false,
         })
-        router.refresh()
+        router.push('/')
       } else {
         // If user moderation is enabled, PUT /activate/${token} will return an empty response
         promptMessage(
