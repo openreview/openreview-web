@@ -177,9 +177,15 @@ const EditInvitationProcessLogStatus = ({ processLogs }) => {
           second: undefined,
           timeZoneName: 'short',
           hour12: false,
+          locale: 'en-GB',
         })
       : null
-    return <span className="log-status">Status: {formattedDate}. Running…</span>
+    return (
+      <span className="log-status">
+        <span className="fixed-text">Status:</span> {formattedDate}
+        <span className="fixed-text">. Running…</span>
+      </span>
+    )
   }
   const lastProcessLog = processLogs?.[0]
   const lastLogMessage = lastProcessLog?.log?.length
@@ -190,15 +196,23 @@ const EditInvitationProcessLogStatus = ({ processLogs }) => {
         second: undefined,
         timeZoneName: 'short',
         hour12: false,
+        locale: 'en-GB',
       })
     : null
   switch (lastProcessLog?.status) {
     case 'ok':
-      return <span className="log-status">Status: {formattedDate}. OK.</span>
+      return (
+        <span className="log-status">
+          {' '}
+          <span className="fixed-text">Status:</span> {formattedDate}{' '}
+          <span className="fixed-text">. OK.</span>
+        </span>
+      )
     case 'error':
       return (
         <span className="log-status">
-          Status: {formattedDate}. ERROR
+          <span className="fixed-text">Status:</span> {formattedDate}{' '}
+          <span className="fixed-text">. ERROR</span>
           {lastLogMessage ? `: ${lastLogMessage}` : '.'}
         </span>
       )
@@ -213,16 +227,23 @@ const EditInvitationRow = ({ invitation, isDomainGroup, processLogs }) => {
   const innerInvitationInvitee = invitation.edit?.invitation?.invitees
   const invitees = innerInvitationInvitee ?? invitation.invitees
 
+  const renderInvitee = (invitee) => {
+    if (invitee === invitation.domain) return 'Administrators'
+    if (invitee === '~') return 'Registered Users'
+    return prettyId(invitee.replace(invitation.domain, ''))
+      .split(/\{(\S+\s*\S*)\}/g)
+      .map((segment, segmentIndex) =>
+        segmentIndex % 2 !== 0 ? <em key={segmentIndex}>{segment}</em> : segment
+      )
+  }
+
   return (
     <div className="edit-invitation-container">
       <div className="invitation-content">
         <div className="invitation-id-container">
-          <Link
-            href={`/invitation/edit?id=${invitation.id}`}
-            className="workflow-invitation-id"
-          >
+          <span className="workflow-invitation-id">
             {prettyId(invitation.id.replace(invitation.domain, ''), true)}
-          </Link>
+          </span>
           <a className="id-icon" href={`/invitation/edit?id=${invitation.id}`}>
             <Icon name="new-window" />
           </a>
@@ -240,17 +261,7 @@ const EditInvitationRow = ({ invitation, isDomainGroup, processLogs }) => {
             invitation to{' '}
             {invitees.map((p, index) => (
               <span key={index}>
-                {p === invitation.domain
-                  ? 'Administrators'
-                  : prettyId(p.replace(invitation.domain, ''))
-                      .split(/\{(\S+\s*\S*)\}/g)
-                      .map((segment, segmentIndex) =>
-                        segmentIndex % 2 !== 0 ? (
-                          <em key={segmentIndex}>{segment}</em>
-                        ) : (
-                          segment
-                        )
-                      )}
+                {renderInvitee(p)}
                 {index < invitees.length - 1 && ', '}
               </span>
             ))}
@@ -421,9 +432,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               <div key={stepObj.id} className="group-workflow">
                 <span className="group-cdate">{stepObj.formattedCDate} </span>
                 <div className="group-content">
-                  <Link href={`/group/edit?id=${stepObj.id}`} className="group-id">
-                    {prettyId(stepObj.id, true)}
-                  </Link>
+                  <span className="group-id">{prettyId(stepObj.id, true)}</span>
                   <a className="id-icon" href={`/group/edit?id=${stepObj.id}`}>
                     <Icon name="new-window" />
                   </a>

@@ -1253,6 +1253,7 @@ main.invitation {
           margin-right: 0.5rem;
           color: black;
           font-size: 0.65rem;
+          align-self: center;
         }
         .group-content {
           max-width: 80%;
@@ -1277,9 +1278,9 @@ main.invitation {
     }
 
     .id-icon {
-      color: black;
-      font-weight: 700;
-      font-size: 1rem;
+      font-weight: 600;
+      font-size: 0.8rem;
+      align-self: center;
     }
 
     .workflow-invitations-header {
@@ -1377,6 +1378,11 @@ main.invitation {
             .log-status {
               color: #c27ba0;
               font-style: italic;
+              font-size: 0.7rem;
+
+              .fixed-text {
+                font-size: 0.875rem;
+              }
             }
           }
 
