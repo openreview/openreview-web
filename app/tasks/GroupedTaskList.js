@@ -23,6 +23,7 @@ export default function GroupedTaskList({ groupedTasksP }) {
         collapsed: true,
         html: false,
         bodyContainer: '',
+        shouldCollapse: true,
       }}
     />
   )

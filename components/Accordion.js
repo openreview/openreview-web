@@ -28,14 +28,18 @@ const SectionHeading = ({ id, heading, options }) => (
       <SectionHeadingLink targetId={id} collapsed={options.collapsed}>
         <Icon name="triangle-bottom" />
       </SectionHeadingLink>{' '}
-      <SectionHeadingLink targetId={id} collapsed={options.collapsed} shouldCollapse={false}>
+      <SectionHeadingLink
+        targetId={id}
+        collapsed={options.collapsed}
+        shouldCollapse={options.shouldCollapse}
+      >
         {heading}
       </SectionHeadingLink>
     </h4>
   </div>
 )
 
-const SectionHeadingLink = ({ targetId, children, collapsed, shouldCollapse }) => {
+const SectionHeadingLink = ({ targetId, children, collapsed, shouldCollapse = false }) => {
   if (shouldCollapse === false) {
     return (
       <a href={`#${targetId}`} className={`collapse-btn${collapsed ? ' collapsed' : ''}`}>
