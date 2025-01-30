@@ -132,11 +132,11 @@ const MessageReviewersModal = ({
     setIsSending(false)
   }
 
-  const getRecipients = (selecteNoteIds) => {
-    if (!selecteNoteIds.length) return []
+  const getRecipients = (selectedNoteIds) => {
+    if (!selectedNoteIds.length) return []
 
     const selectedRows = tableRowsDisplayed.filter((row) =>
-      selecteNoteIds.includes(row.note.id)
+      selectedNoteIds.includes(row.note.id)
     )
 
     switch (messageOption.value) {

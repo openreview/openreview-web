@@ -222,7 +222,7 @@ export function InvitationReplyWithPreview({ invitation, accessToken, loadInvita
     invitation.reply ? JSON.stringify(invitation.reply, undefined, 2) : '[]'
   )
   const [isSaving, setIsSaving] = useState(false)
-  const [previewContent, setPreivewContent] = useState(null)
+  const [previewContent, setPreviewContent] = useState(null)
   const { user } = useUser()
 
   const getRequestBody = () => {
@@ -264,13 +264,13 @@ export function InvitationReplyWithPreview({ invitation, accessToken, loadInvita
   const generateReplyPreview = () => {
     const invitationToPreview = getRequestBody()
     if (!invitationToPreview?.reply?.content) {
-      setPreivewContent('Nothing to preview')
+      setPreviewContent('Nothing to preview')
       return
     }
     view.mkNewNoteEditor(invitationToPreview, null, null, user, {
       isPreview: true,
       onCompleted: (editor) => {
-        setPreivewContent(editor.html())
+        setPreviewContent(editor.html())
       },
     })
   }

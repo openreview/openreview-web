@@ -10,7 +10,7 @@ import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import {
-  getIndentifierFromGroup,
+  getIdentifierFromGroup,
   getNumberFromGroup,
   getProfileName,
   prettyId,
@@ -496,7 +496,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
             return {
               ...review,
-              anonId: getIndentifierFromGroup(anonymousGroupId, anonReviewerName),
+              anonId: getIdentifierFromGroup(anonymousGroupId, anonReviewerName),
             }
           })
         const metaReviews = replies
@@ -506,7 +506,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           })
           .map((metaReview) => ({
             ...metaReview,
-            anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
+            anonId: getIdentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
           }))
 
         const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
@@ -571,7 +571,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                 return {
                   reviewerProfileId: deanonymizedGroup,
                   anonymizedGroup,
-                  anonymousId: getIndentifierFromGroup(anonymizedGroup, anonReviewerName),
+                  anonymousId: getIdentifierFromGroup(anonymizedGroup, anonReviewerName),
                 }
               }),
             }
@@ -596,7 +596,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                   areaChairProfileId: deanonymizedGroup,
                   anonymizedGroup,
                   anonymousId: anonymizedGroup
-                    ? getIndentifierFromGroup(anonymizedGroup, anonAreaChairName)
+                    ? getIdentifierFromGroup(anonymizedGroup, anonAreaChairName)
                     : null,
                 }
               }),
@@ -615,7 +615,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                     secondaryAnonAreaChairGroups[acGroupNoteNumber]?.[secondaryMember] ??
                     secondaryMember,
                   anonymizedGroup: secondaryMember,
-                  anonymousId: getIndentifierFromGroup(
+                  anonymousId: getIdentifierFromGroup(
                     secondaryMember,
                     secondaryAnonAreaChairName
                   ),
@@ -1015,7 +1015,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const registrationNoteMap = groupBy(registrationNotes.flat(), 'signatures[0]')
       setPcConsoleData((data) => ({ ...data, registrationNoteMap }))
     } catch (error) {
-      promptError(`Erro loading registration notes: ${error.message}`)
+      promptError(`Error loading registration notes: ${error.message}`)
     }
   }
 

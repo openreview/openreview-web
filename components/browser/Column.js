@@ -166,26 +166,26 @@ export default function Column(props) {
     if (!parentId && !startInvitation) {
       const columnType = traverseInvitation[type].type
       let entityInvitation = null
-      let defautEntityName = null
+      let defaultEntityName = null
       switch (columnType) {
         case 'note':
           entityInvitation = traverseInvitation[type].query.invitation
-          defautEntityName = 'note'
+          defaultEntityName = 'note'
           break
         case 'profile':
           entityInvitation = traverseInvitation[type].query.group
-          defautEntityName = 'user'
+          defaultEntityName = 'user'
           break
         case 'group':
           entityInvitation = traverseInvitation[type].query.group
-          defautEntityName = 'group'
+          defaultEntityName = 'group'
           break
         default:
           break
       }
       const entityInvitationName = entityInvitation
         ? prettyId(entityInvitation)
-        : pluralizeString(defautEntityName)
+        : pluralizeString(defaultEntityName)
       // eslint-disable-next-line react/jsx-one-expression-per-line
       return (
         <p>

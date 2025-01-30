@@ -15,7 +15,7 @@ import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import {
   getNumberFromGroup,
-  getIndentifierFromGroup,
+  getIdentifierFromGroup,
   prettyId,
   prettyList,
   inflect,
@@ -193,11 +193,11 @@ const AreaChairConsole = ({ appContext }) => {
   const getSACLinkText = async () => {
     if (!acConsoleData.sacProfiles?.length) return
     const sacName = prettyField(seniorAreaChairsId?.split('/')?.pop())
-    const singluarSACName = sacName.endsWith('s') ? sacName.slice(0, -1) : sacName
+    const singularSACName = sacName.endsWith('s') ? sacName.slice(0, -1) : sacName
     const sacText = `Your assigned ${inflect(
       acConsoleData.sacProfiles.length,
-      `${singluarSACName} is`,
-      `${singluarSACName}s are`
+      `${singularSACName} is`,
+      `${singularSACName}s are`
     )}`
 
     let sacEmails = []
@@ -322,7 +322,7 @@ const AreaChairConsole = ({ appContext }) => {
                 )
                 return {
                   anonymizedGroup: anonymousReviewerGroup?.id ?? r,
-                  anonymousId: getIndentifierFromGroup(
+                  anonymousId: getIdentifierFromGroup(
                     anonymousReviewerGroup?.id || r,
                     anonReviewerName
                   ),
@@ -428,11 +428,11 @@ const AreaChairConsole = ({ appContext }) => {
         )
         const officialReviews = note.details.replies
           .filter((p) => {
-            const officalReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
-            return p.invitations.includes(officalReviewInvitationId)
+            const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
+            return p.invitations.includes(officialReviewInvitationId)
           })
           ?.map((q) => {
-            const anonymousId = getIndentifierFromGroup(q.signatures[0], anonReviewerName)
+            const anonymousId = getIdentifierFromGroup(q.signatures[0], anonReviewerName)
             const reviewValue = q.content?.review?.value
             return {
               ...q,

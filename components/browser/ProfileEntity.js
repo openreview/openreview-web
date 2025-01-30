@@ -297,7 +297,7 @@ export default function ProfileEntity(props) {
     // not to show invite assignment when removed from reviewers group
     if (isInviteInvitation && !edge && content.isDummyProfile) return null
 
-    // reviewer assignmet stage (1st stage) don't show invite assignment except for invited (has editEdge)
+    // reviewer assignment stage (1st stage) don't show invite assignment except for invited (has editEdge)
     if (isReviewerAssignmentStage && isInviteInvitation && !edge) return null
 
     // can't be invited when assigned already(except to enable delete)

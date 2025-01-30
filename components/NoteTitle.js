@@ -41,7 +41,7 @@ const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} })
         rel="noopener noreferrer"
         target="_blank"
       >
-        <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
+        <img src="/images/html_icon_blue.svg" alt="html icon" />
       </a>
     )}
 
@@ -54,7 +54,7 @@ const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} })
         rel="noopener noreferrer"
         target="_blank"
       >
-        <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
+        <img src="/images/html_icon_blue.svg" alt="html icon" />
       </a>
     )}
 
@@ -114,7 +114,7 @@ export const NoteTitleV2 = ({
         rel="noopener noreferrer"
         target="_blank"
       >
-        <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
+        <img src="/images/html_icon_blue.svg" alt="html icon" />
       </a>
     )}
 
