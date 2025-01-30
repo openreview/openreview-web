@@ -127,7 +127,7 @@ test('user open own profile', async (t) => {
     .click(step2Emails)
     .expect(
       Selector('p').withText(
-        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
       ).exists
     )
     .notOk() // not activation
