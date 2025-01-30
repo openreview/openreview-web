@@ -14,7 +14,12 @@ jest.mock('../hooks/useUser', () => () => ({
   },
   accessToken: 'some token',
 }))
-jest.mock('../hooks/useQuery', () => () => ({}))
+jest.mock('../app/CustomBanner', () => () => <span>Custom Banner</span>)
+jest.mock('../components/ProfileListWithBidWidget', () => (props) => {
+  profileListProps(props)
+  return <span>profile list</span>
+})
+
 let bidInvitation
 let profileListProps
 
@@ -32,17 +37,13 @@ beforeEach(() => {
   profileListProps = jest.fn()
 })
 
-jest.mock('../components/ProfileListWithBidWidget', () => (props) => {
-  profileListProps(props)
-  return <span>profile list</span>
-})
-
 global.promptError = jest.fn()
 global.MathJax = jest.fn()
 global.marked = jest.fn()
 global.DOMPurify = {
   sanitize: jest.fn(),
 }
+global.$ = jest.fn(() => ({ on: jest.fn(), off: jest.fn(), modal: jest.fn() }))
 
 describe('ProfileBidConsole', () => {
   test('show error page if config is not complete', () => {
@@ -63,7 +64,9 @@ describe('ProfileBidConsole', () => {
       <ProfileBidConsole appContext={{ setBannerContent: jest.fn() }} />,
       providerProps
     )
-    expect(screen.getByText('Bidding Console is missing required properties: profileGroupId')).toBeInTheDocument()
+    expect(
+      screen.getByText('Bidding Console is missing required properties: profileGroupId')
+    ).toBeInTheDocument()
   })
 
   test('allow conflictInvitationId to be optional', async () => {
