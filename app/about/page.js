@@ -123,13 +123,9 @@ export default function page() {
           </p>
 
           <p>
-            OpenReview is a long-term project to advance science through improved peer review,
-            with legal nonprofit status through{' '}
-            <a href="https://codeforscience.org/" target="_blank" rel="noopener noreferrer">
-              Code for Science & Society
-            </a>
-            . We gratefully acknowledge the support of the great diversity of{' '}
-            <Link href="/sponsors">OpenReview Sponsors</Link>
+            OpenReview is a long-term project to advance science through improved peer review
+            with legal nonprofit status. We gratefully acknowledge the support of the great
+            diversity of <Link href="/sponsors">OpenReview Sponsors</Link>
             ––scientific peer review is sacrosanct, and should not be owned by any one sponsor.
           </p>
         </div>
