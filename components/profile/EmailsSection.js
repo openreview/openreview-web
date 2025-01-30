@@ -200,7 +200,6 @@ const EmailsSection = ({
       }
       if (verifyResult?.id) {
         const updatedProfile = await loadProfile()
-        console.log('updatedProfile', updatedProfile)
         setEmails({
           reset: true,
           data:

@@ -13,20 +13,23 @@ export const dynamic = 'force-dynamic'
 
 export default async function page({ searchParams }) {
   const { token } = await searchParams
-  if (!token)
-    throw new Error('Invalid profile activation link. Please check your email and try again.')
 
-  const loadActivatableProfileP = api
-    .get(`/activatable/${token}`)
-    .then((apiRes) => {
-      if (apiRes.activatable?.action !== 'activate') {
-        throw new Error(
-          'Invalid profile activation link. Please check your email and try again.'
-        )
-      }
-      return { profile: formatProfileData(apiRes.profile, true) }
-    })
-    .catch((error) => ({ errorMessage: error.message }))
+  const loadActivatableProfileP = token
+    ? api
+        .get(`/activatable/${token}`)
+        .then((apiRes) => {
+          if (apiRes.activatable?.action !== 'activate') {
+            throw new Error(
+              'Invalid profile activation link. Please check your email and try again.'
+            )
+          }
+          return { profile: formatProfileData(apiRes.profile, true) }
+        })
+        .catch((error) => ({ errorMessage: error.message }))
+    : Promise.resolve({
+        errorMessage:
+          'Invalid profile activation link. Please check your email and try again.',
+      })
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
