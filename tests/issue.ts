@@ -29,7 +29,6 @@ const routesToSkipRedirection = [
   '/logout',
   '/signup',
   '/404',
-  '/profile/activate',
   '/reset',
   '/user/password',
 ]
@@ -44,8 +43,20 @@ routesToSkipRedirection.forEach((route) => {
       .click(loginButton)
       .expect(getLocation())
       .eql(`${homepageUrl}/`)
-  }).skipJsErrors() // for profile/activate
+  })
 })
+
+test(`redirection to /profile/activate is skipped`, async (t) => {
+  await t
+    .navigateTo(`${homepageUrl}/profile/activate`)
+    .wait(100)
+    .click(loginLink)
+    .typeText('#email-input', 'test@mail.com')
+    .typeText('#password-input', strongPassword)
+    .click(loginButton)
+    .expect(getLocation())
+    .eql(`${homepageUrl}/`)
+}).skipJsErrors()
 
 fixture`miscellaneous issues`
 test('login button to show tooltip when email is invalid', async (t) => {
