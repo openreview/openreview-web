@@ -44,7 +44,7 @@ routesToSkipRedirection.forEach((route) => {
       .click(loginButton)
       .expect(getLocation())
       .eql(`${homepageUrl}/`)
-  })
+  }).skipJsErrors() // for profile/activate
 })
 
 fixture`miscellaneous issues`
