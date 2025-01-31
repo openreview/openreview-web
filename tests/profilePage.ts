@@ -813,6 +813,7 @@ test('unlink paper', async (t) => {
     // keep 1 publication to check history
     .click(Selector('ul.submissions-list').find('.glyphicon-minus-sign').nth(1)) // unlink 2nd paper
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
 })
 
 test('check import history', async (t) => {
