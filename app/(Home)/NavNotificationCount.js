@@ -54,6 +54,10 @@ export default async function NavNotificationCount() {
       { to: user.profile.emails[0], viewed: false, transitiveMembers: true },
       { accessToken: token }
     )
+    .then((response) => {
+      const count = response.messages?.length
+      return { count: count ?? 0 }
+    })
     .catch(() => Promise.resolve({ count: 0 }))
 
   return (

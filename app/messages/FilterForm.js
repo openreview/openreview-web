@@ -22,8 +22,8 @@ export default function FilterForm({ searchQuery, statusOptions }) {
 
   const onFiltersChange = (field, value) => {
     const newSearchQuery = value
-      ? { ...searchQuery, [field]: value, page: 1 }
-      : { ...omit(searchQuery, field), page: 1 }
+      ? { ...searchQuery, [field]: value }
+      : { ...omit(searchQuery, field) }
     router.push(`/messages?${stringify(newSearchQuery)}`)
   }
 

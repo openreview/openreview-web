@@ -4,8 +4,10 @@
 import Link from 'next/link'
 import { useReducer } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDispatch } from 'react-redux'
 import api from '../../lib/api-client'
 import { isValidEmail } from '../../lib/utils'
+import { setNotificationCount } from '../../notificationSlice'
 
 export default function LoginForm() {
   // eslint-disable-next-line no-use-before-define
@@ -16,6 +18,7 @@ export default function LoginForm() {
     error: null,
   })
   const router = useRouter()
+  const dispatch = useDispatch()
 
   function loginFormReducer(state, action) {
     switch (action.type) {
@@ -61,6 +64,7 @@ export default function LoginForm() {
         id: formState.email,
         password: formState.password,
       })
+      dispatch(setNotificationCount(null))
       router.refresh()
     } catch (error) {
       setFormState({ type: 'HAS_ERROR' })

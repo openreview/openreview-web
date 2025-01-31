@@ -32,9 +32,8 @@ export default async function page({ searchParams }) {
   const query = await searchParams
   if (!token) redirect(`/login?redirect=/messages?${stringify(query)}`)
 
-  const { to, page: pageParam, subject, status: statusParam, parentGroup } = query
+  const { to, subject, status: statusParam, parentGroup } = query
   const pageSize = 25
-  const parsedPageParam = parseInt(pageParam, 10) || 1
 
   let validStatus
   if (Array.isArray(statusParam)) {
@@ -49,8 +48,6 @@ export default async function page({ searchParams }) {
       {
         ...{ to, subject, status: statusParam, parentGroup },
         status: validStatus,
-        limit: pageSize,
-        offset: pageSize * (parsedPageParam - 1),
       },
       { accessToken: token }
     )
@@ -62,9 +59,10 @@ export default async function page({ searchParams }) {
       <Suspense fallback={<LoadingSpinner />}>
         <Messages
           loadMessagesP={loadMessagesP}
-          page={parsedPageParam}
           pageSize={pageSize}
           query={query}
+          statusOptionValues={statusOptionValues}
+          accessToken={token}
         />
       </Suspense>
     </div>

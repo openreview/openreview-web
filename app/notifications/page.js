@@ -25,7 +25,7 @@ export default async function page() {
     confirmedEmails.map((email) =>
       api
         .get('/messages', { to: email, viewed: false }, { accessToken: token })
-        .then((apiRes) => ({ email, count: apiRes.count ?? 0 }))
+        .then((apiRes) => ({ email, count: apiRes.messages?.length ?? 0 }))
     )
   )
     .then((results) => ({
