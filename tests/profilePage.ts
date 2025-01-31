@@ -341,6 +341,7 @@ test('user open own profile', async (t) => {
     .click(step6Expertise)
     .typeText(Selector('div.expertise').find('input').nth(0), '        ')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 }).skipJsErrors({
@@ -525,6 +526,7 @@ test('add links', async (t) => {
     .expect(aclanthologyUrlInput.hasClass('invalid-value'))
     .notOk()
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 })
@@ -907,6 +909,7 @@ test('validate current history', async (t) => {
       paste: true,
     })
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 
@@ -919,6 +922,7 @@ test('validate current history', async (t) => {
     .selectText(firstHistoryEndInput)
     .pressKey('delete')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 })
@@ -952,6 +956,7 @@ test('profile should be auto merged', async (t) => {
     .ok()
 
     .click(saveProfileButton) // save profile should success
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 
@@ -1102,6 +1107,7 @@ test('fail before 2099', async (t) => {
       { replace: true }
     ) // to fail in 2090, update validation regex
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated', undefined, {
       timeout: 5000,
