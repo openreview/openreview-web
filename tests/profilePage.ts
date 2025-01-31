@@ -711,8 +711,10 @@ test('import paper from dblp', async (t) => {
     .click(nameSectionPlusIconSelector)
     .typeText(editFullNameInputSelector, 'Di Xu')
     .click(saveProfileButton)
-    .wait(500)
-    .click(step3Links)
+    // wait until profile save complete
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+
+  await t.click(step3Links)
     .click(addDBLPPaperToProfileButton)
     .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText)
     .contains('Please select the new publications of which you are actually an author.')
