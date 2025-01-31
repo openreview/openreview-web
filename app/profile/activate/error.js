@@ -8,7 +8,6 @@ export default function Error({ error }) {
   const router = useRouter()
 
   useEffect(() => {
-    console.log('error is', error)
     if (!error) return
 
     promptError(error.message)

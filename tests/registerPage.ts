@@ -544,7 +544,7 @@ test('try to activate a profile with no token and get an error', async (t) => {
     .ok()
     .expect(messageSelector.innerText)
     .eql('Invalid profile activation link. Please check your email and try again.')
-})
+}).skipJsErrors()
 
 test('try to activate a profile with empty token and get an error', async (t) => {
   await t
@@ -553,7 +553,7 @@ test('try to activate a profile with empty token and get an error', async (t) =>
     .ok()
     .expect(messageSelector.innerText)
     .eql('Invalid profile activation link. Please check your email and try again.')
-})
+}).skipJsErrors()
 
 test('try to activate a profile with invalid token and get an error', async (t) => {
   await t

@@ -40,6 +40,35 @@ export default function AppInit() {
     window.OR_API_URL = process.env.API_URL
     window.OR_API_V2_URL = process.env.API_V2_URL
 
+    window.typesetMathJax = () => {
+      const runTypeset = () => {
+        // eslint-disable-next-line no-undef
+        MathJax.startup.promise.then(MathJax.typesetPromise).catch((error) => {
+          // eslint-disable-next-line no-console
+          console.warn('Could not typeset TeX content')
+        })
+      }
+      // eslint-disable-next-line no-undef
+      if (window.isMathJaxLoaded && MathJax.startup?.promise) {
+        runTypeset()
+      } else {
+        let tryCount = 0
+
+        const waitForMathJax = () => {
+          if (window.isMathJaxLoaded) {
+            runTypeset()
+          } else if (tryCount < 3) {
+            tryCount += 1
+            setTimeout(waitForMathJax, 500)
+          } else {
+            // eslint-disable-next-line no-console
+            console.warn('Could not typeset TeX content')
+          }
+        }
+        waitForMathJax()
+      }
+    }
+
     // Register Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch((error) => {
