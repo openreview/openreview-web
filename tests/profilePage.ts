@@ -711,6 +711,7 @@ test('import paper from dblp', async (t) => {
     .click(nameSectionPlusIconSelector)
     .typeText(editFullNameInputSelector, 'Di Xu')
     .click(saveProfileButton)
+    .wait(500)
     .click(step3Links)
     .click(addDBLPPaperToProfileButton)
     .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText)
