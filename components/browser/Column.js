@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useContext, useRef } from 'react'
 import _ from 'lodash'
+import { useSearchParams } from 'next/navigation'
 import Icon from '../Icon'
 import LoadingSpinner from '../LoadingSpinner'
 import EdgeBrowserContext from './EdgeBrowserContext'
@@ -17,7 +18,6 @@ import {
 } from '../../lib/edge-utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
 import { filterCollections, getEdgeValue } from '../../lib/webfield-utils'
 
 export default function Column(props) {
@@ -43,7 +43,7 @@ export default function Column(props) {
   const entityMap = useRef({ globalEntityMap, altGlobalEntityMap })
   const [entityMapChanged, setEntityMapChanged] = useState(false)
   const { accessToken, user } = useUser()
-  const query = useQuery()
+  const query = useSearchParams()
 
   const sortOptions = [
     {

@@ -3,11 +3,10 @@
 import { useCallback, useContext, useEffect, useReducer, useState } from 'react'
 import debounce from 'lodash/debounce'
 import kebabCase from 'lodash/kebabCase'
+import { useSearchParams } from 'next/navigation'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
-import useQuery from '../../hooks/useQuery'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import Icon from '../Icon'
@@ -682,9 +681,9 @@ const BidConsole = ({ appContext }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [bidEdges, setBidEdges] = useState([])
   const [conflictIds, setConflictIds] = useState([])
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
   const { accessToken, user } = useUser()
-  const query = useQuery()
+  const query = useSearchParams()
 
   const getBidAndConflictEdges = async () => {
     try {
@@ -710,10 +709,10 @@ const BidConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 

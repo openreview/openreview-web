@@ -17,7 +17,7 @@ export default function DblpPublicationTable({
   orPublicationsImportedByOtherProfile,
   maxNumberofPublicationsToImport,
 }) {
-  const { accessToken } = useContext(UserContext)
+  const { accessToken } = useContext(UserContext) ?? {}
   const [profileIdsRequested, setProfileIdsRequested] = useState([])
   const pubsCouldNotImport = [] // either existing or associated with other profile
   const pubsCouldImport = []
@@ -139,7 +139,9 @@ export default function DblpPublicationTable({
                     <input
                       className="year-checkbox"
                       type="checkbox"
-                      onChange={(e) => toggleSelectYear(e, p)}
+                      onChange={(e) => {
+                        toggleSelectYear(e, p)
+                      }}
                       checked={
                         publicationsCouldImportOfYear.length &&
                         publicationsCouldImportOfYear.every((r) =>
@@ -213,7 +215,7 @@ const DblpPublicationRow = ({
   profileIdsRequested,
   setProfileIdsRequested,
 }) => {
-  const { accessToken, user } = useContext(UserContext)
+  const { accessToken, user } = useContext(UserContext) ?? {}
   const [error, setError] = useState(null)
   const [profileMergeStatus, setProfileMergeStatus] = useState(null)
   const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`

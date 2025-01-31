@@ -11,6 +11,11 @@ jest.mock('next/router', () => ({
 }))
 jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
 jest.mock('../components/LoadingSpinner', () => () => <span>loading spinner</span>)
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: () => jest.fn(),
+  }),
+}))
 
 describe('GroupDirectory', () => {
   test('show loading spinner when loading child groups', async () => {

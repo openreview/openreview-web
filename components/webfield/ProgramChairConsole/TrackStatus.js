@@ -21,7 +21,7 @@ const TrackStatus = () => {
     customMaxPapersName,
     submissionName,
   } = useContext(WebFieldContext)
-  const { user, accessToken, userLoading } = useUser()
+  const { user, accessToken, isRefreshing } = useUser()
   const [trackStatusData, setTrackStatusData] = useState({})
 
   const loadTrackStatusData = async () => {
@@ -31,7 +31,7 @@ const TrackStatus = () => {
       const conferenceInvitationsP = api.get(
         '/invitations',
         {
-          id: submissionId
+          id: submissionId,
         },
         { accessToken }
       )
@@ -215,9 +215,9 @@ const TrackStatus = () => {
   }
 
   useEffect(() => {
-    if (userLoading || !user || !venueId || !reviewersId || !submissionId) return
+    if (isRefreshing || !user || !venueId || !reviewersId || !submissionId) return
     loadTrackStatusData()
-  }, [user, userLoading])
+  }, [user, isRefreshing])
 
   if (!trackStatusData || Object.keys(trackStatusData).length === 0) return <LoadingSpinner />
 
@@ -252,7 +252,7 @@ const TrackStatus = () => {
       acc[edgeGroup.id.tail] = edgeGroup.values[0].weight
       return acc
     }, {})
-    return {...cmp, [key]: edgeGroupRes}
+    return { ...cmp, [key]: edgeGroupRes }
   }, {})
 
   const reviewLoadData = tracks.reduce((acc, track) => {
@@ -261,7 +261,7 @@ const TrackStatus = () => {
         averageLoad: 0,
         maximumLoad: 0,
       }
-      return {...roleAcc, [role]: defaultValues}
+      return { ...roleAcc, [role]: defaultValues }
     }, {})
     return acc
   }, {})
@@ -304,31 +304,31 @@ const TrackStatus = () => {
   const rows = convertToTableRows(reviewLoadData)
 
   const LoadRow = ({ index, track, loadObj, rowSpan }) => (
-      <tr key={index}>
-        {index === 0 && (
-          <>
-            <td rowSpan={rowSpan}>{track}</td>
-            <td rowSpan={rowSpan}>{submissionCounts[track]}</td>
-          </>
-        )}
-        {loadObj.averageLoad < submissionCounts[track] ? (
-          <>
-            <td>
-              <strong>{prettyId(loadObj.Role)}</strong>
-            </td>
-            <td>
-              <strong>{loadObj.averageLoad.toFixed(1)}</strong>
-            </td>
-          </>
-        ) : (
-          <>
-            <td>{prettyId(loadObj.Role)}</td>
-            <td>{loadObj.averageLoad.toFixed(1)}</td>
-          </>
-        )}
-        <td>{loadObj.maximumLoad}</td>
-      </tr>
-    )
+    <tr key={index}>
+      {index === 0 && (
+        <>
+          <td rowSpan={rowSpan}>{track}</td>
+          <td rowSpan={rowSpan}>{submissionCounts[track]}</td>
+        </>
+      )}
+      {loadObj.averageLoad < submissionCounts[track] ? (
+        <>
+          <td>
+            <strong>{prettyId(loadObj.Role)}</strong>
+          </td>
+          <td>
+            <strong>{loadObj.averageLoad.toFixed(1)}</strong>
+          </td>
+        </>
+      ) : (
+        <>
+          <td>{prettyId(loadObj.Role)}</td>
+          <td>{loadObj.averageLoad.toFixed(1)}</td>
+        </>
+      )}
+      <td>{loadObj.maximumLoad}</td>
+    </tr>
+  )
 
   const TracksTable = ({ loadData }) => (
     <>

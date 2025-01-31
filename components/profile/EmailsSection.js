@@ -1,7 +1,7 @@
 /* globals promptError,promptMessage,$: false */
 
 import { useEffect, useReducer, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
@@ -70,7 +70,8 @@ const EmailsSection = ({
   isNewProfile,
   loadProfile,
 }) => {
-  const router = useRouter()
+  const searchParams = useSearchParams()
+  const tokenParam = searchParams.get('token')
 
   const emailsReducer = (state, action) => {
     if (action.addNewEmail) return [...state, action.data]
@@ -169,7 +170,7 @@ const EmailsSection = ({
       const linkData = { alternate: newEmail, username: profileId }
       try {
         if (isNewProfile) {
-          await api.post(`/user/confirm/${router.query.token}`, linkData, { accessToken })
+          await api.post(`/user/confirm/${tokenParam}`, linkData, { accessToken })
         } else {
           await api.post('/user/confirm', linkData, { accessToken })
         }
@@ -193,7 +194,7 @@ const EmailsSection = ({
     let verifyResult
     try {
       if (isNewProfile) {
-        await api.put(`/activatelink/${router.query.token}`, payload, { accessToken })
+        await api.put(`/activatelink/${tokenParam}`, payload, { accessToken })
       } else {
         verifyResult = await api.put('/activatelink', payload, { accessToken })
       }

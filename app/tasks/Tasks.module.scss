@@ -1,0 +1,82 @@
+@use '../../styles/utils/constants';
+
+.tasks {
+  :global {
+    header {
+      margin-bottom: 2rem;
+    }
+
+    .tasks-container {
+      .panel-body {
+        padding: 0 0 0 0.75rem;
+      }
+      .submissions-list {
+        margin-top: 0.375rem;
+        margin-bottom: 0;
+        max-width: 900px;
+      }
+
+      .empty-message {
+        font-style: italic;
+      }
+
+      h2 {
+        margin-bottom: 0.5rem;
+        margin-top: 0;
+
+        a:hover {
+          text-decoration: underline;
+        }
+        span.badge {
+          margin-left: 1rem;
+          padding: 4px 8px;
+          margin-top: -4px;
+          background-color: constants.$orRed;
+        }
+      }
+      h4 {
+        position: relative;
+
+        a.collapse-btn {
+          &.active span.glyphicon {
+            transform: rotate(90deg);
+          }
+
+          span.glyphicon {
+            position: absolute;
+            margin: 0;
+            top: 12px;
+            left: -20px;
+            font-size: 0.75rem;
+          }
+        }
+      }
+
+      hr {
+        margin-top: 0.75rem;
+        margin-bottom: 0.5rem;
+      }
+    }
+
+    // new-implementation
+    #tasks {
+      .heading-link {
+        display: inline-block;
+        vertical-align: middle;
+
+        .invitation-id {
+          color: constants.$mediumBlue;
+
+          &:hover {
+            color: constants.$mediumDarkBlue;
+            text-decoration: underline;
+          }
+        }
+
+        .task-count-message {
+          font-weight: normal;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+@use '../../../styles/utils/constants';
+@use '../../../styles/utils/mixins';
+
+.compare {
+  :global {
+    header {
+      @include mixins.clearfix;
+
+      h1 {
+        font-weight: normal;
+        float: left;
+        margin-top: 0.25rem;
+      }
+      .button-container {
+        margin-top: 0.5rem;
+        float: right;
+      }
+    }
+
+    .comparison-viewer-container {
+      min-height: 200px;
+
+      .table-responsive {
+        margin-top: 1.25rem;
+      }
+      table {
+        margin-bottom: 0;
+        th span {
+          font-weight: normal;
+          color: constants.$subtleGray;
+        }
+        td strong {
+          padding-right: 0.25rem;
+        }
+        th.section-title {
+          padding-top: 2rem;
+          color: constants.$orRed;
+        }
+      }
+      iframe {
+        margin: 1.5rem 0;
+        height: 800px;
+        width: 100%;
+        border: 1px solid constants.$backgroundGray;
+        box-sizing: border-box;
+      }
+    }
+  }
+}
