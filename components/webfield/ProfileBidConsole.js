@@ -55,7 +55,7 @@ const AllSubmissionsTab = ({
   profileGroupName,
 }) => {
   const { entity: invitation, scoreIds, profileGroupId } = useContext(WebFieldContext)
-  const { user, accessToken } = useUser()
+  const { user, accessToken, isRefreshing } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [scoreEdges, setScoreEdges] = useState([])
@@ -220,6 +220,7 @@ const AllSubmissionsTab = ({
   }, [pageNumber, profileState.profilesFiltered])
 
   useEffect(() => {
+    if (isRefreshing) return
     const cleanSearchTerm = searchTerm.trim().toLowerCase()
     if (cleanSearchTerm) {
       filterProfilesBySearchTerm(cleanSearchTerm)
@@ -227,7 +228,7 @@ const AllSubmissionsTab = ({
       getProfilesSortedByAffinity()
     }
     setImmediateSearchTerm(searchTerm)
-  }, [searchTerm])
+  }, [searchTerm, isRefreshing])
 
   useEffect(
     () => () => {
@@ -237,8 +238,9 @@ const AllSubmissionsTab = ({
   )
 
   useEffect(() => {
+    if (isRefreshing) return
     getProfilesSortedByAffinity()
-  }, [])
+  }, [isRefreshing])
 
   return (
     <>
@@ -417,7 +419,7 @@ const ProfileBidConsole = ({ appContext }) => {
   const [bidEdges, setBidEdges] = useState([])
   const [conflictIds, setConflictIds] = useState([])
   const { setBannerContent } = appContext ?? {}
-  const { accessToken, user } = useUser()
+  const { accessToken, user, isRefreshing } = useUser()
   const query = useSearchParams()
 
   const getBidAndConflictEdges = async () => {
@@ -454,8 +456,9 @@ const ProfileBidConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
+    if (isRefreshing) return
     getBidAndConflictEdges()
-  }, [])
+  }, [isRefreshing])
 
   const renderActiveTab = () => {
     const id = kebabCase(bidOptionsWithDefaultTabs[activeTabIndex])
