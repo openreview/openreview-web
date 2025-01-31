@@ -631,8 +631,8 @@ export default function Forum({
   useEffect(() => {
     if (!parentNote) return
 
-    const handleRouteChange = (url) => {
-      const [_, tabId] = url.split('#')
+    const handleRouteChange = () => {
+      const [_, tabId] = (window.location.hash || '').split('#')
       if (!tabId || !replyForumViews) return
 
       const tab = replyForumViews.find((view) => view.id === tabId)
@@ -691,13 +691,12 @@ export default function Forum({
       }, 200)
     }
 
-    // router.events.on('hashChangeComplete', handleRouteChange)
-    // router.events.on('routeChangeComplete', handleRouteChange)
-    // // eslint-disable-next-line consistent-return
-    // return () => {
-    //   router.events.off('hashChangeComplete', handleRouteChange)
-    //   router.events.on('routeChangeComplete', handleRouteChange)
-    // }
+    window.onhashchange = handleRouteChange
+
+    // eslint-disable-next-line consistent-return
+    return () => {
+      window.onhashchange = null
+    }
   }, [parentNote])
 
   // Load forum replies
