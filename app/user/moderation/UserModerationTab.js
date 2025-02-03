@@ -37,7 +37,7 @@ const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
         currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
       }to your profile. Please make sure the verification token is entered and verified.\n\nIf your affiliation ${
         currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
-      } is not current, please update your profile with your current affiliation and associated institutional email. If you have no current affiliation, please complete registration as an Independent Researcher.\n\n${instructionText}`,
+      } is not current, please update your profile with your current affiliation and associated institutional email.\n\n${instructionText}`,
     },
     {
       value: 'requestEmailConfirmation',
