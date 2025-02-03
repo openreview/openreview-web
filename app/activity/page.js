@@ -18,7 +18,7 @@ export default async function page() {
 
   const activityDataP = api
     .get(
-      '/notes/editsd',
+      '/notes/edits',
       {
         tauthor: true,
         trash: true,
