@@ -26,6 +26,7 @@ export default function Activate({ loadActivatableProfileP, activateToken }) {
           scrollToTop: false,
         })
         router.push('/')
+        router.refresh()
       } else {
         // If user moderation is enabled, PUT /activate/${token} will return an empty response
         promptMessage(

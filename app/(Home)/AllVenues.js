@@ -34,7 +34,7 @@ export default async function AllVenues() {
   }
 
   return (
-    <div className="row">
+    <>
       <section id="all-venues" className=" hidden-xs">
         <h1>All Venues</h1>
         <hr className="small" />
@@ -60,6 +60,6 @@ export default async function AllVenues() {
         <hr className="small" />
         <VenueList name="all venues" venues={venues} maxVisible={100} listType="horizontal" />
       </section>
-    </div>
+    </>
   )
 }
