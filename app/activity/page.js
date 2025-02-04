@@ -35,7 +35,23 @@ export default async function page() {
         .sort((a, b) => b.tmdate - a.tmdate)
     })
     .then((edits) => edits.map((edit) => ({ ...edit, apiVersion: 2 })))
-    .catch((error) => ({ errorMessage: error.message }))
+    .catch((error) => {
+      console.log('Error in activityDataP', {
+        page: 'activity',
+        apiError: error,
+        apiRequest: {
+          endpoint: '/notes/edits',
+          params: {
+            tauthor: true,
+            trash: true,
+            details: 'writable,invitation',
+            sort: 'tmdate:desc',
+            limit: 100,
+          },
+        },
+      })
+      return { errorMessage: error.message }
+    })
 
   return (
     <div className={styles.activity}>

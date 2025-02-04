@@ -58,7 +58,19 @@ export default async function NavNotificationCount() {
       const count = response.messages?.length
       return { count: count ?? 0 }
     })
-    .catch(() => Promise.resolve({ count: 0 }))
+    .catch((error) => {
+      console.log('Error in NavNotificationCount', {
+        page: 'Home',
+        component: 'NavNotificationCount',
+        user: user?.id,
+        apiError: error,
+        apiRequest: {
+          endpoint: '/messages',
+          params: { to: user?.profile?.emails?.[0], viewed: false, transitiveMembers: true },
+        },
+      })
+      Promise.resolve({ count: 0 })
+    })
 
   return (
     <Suspense fallback={null}>

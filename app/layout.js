@@ -1,3 +1,4 @@
+import '../lib/logger'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '../styles/global.scss'
 import '../styles/components.scss'
@@ -7,7 +8,6 @@ import FlashAlert from '../components/FlashAlert'
 import AppInit from './AppInit'
 import { StoreProvider } from '../storeProvider'
 import Nav from './(Home)/Nav'
-import TurnstileScript from './TurnstileScript'
 import GoogleAnalyticsScript from './GoogleAnalyticsScript'
 
 const notoSans = Noto_Sans({

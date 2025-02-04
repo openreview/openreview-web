@@ -63,7 +63,16 @@ export default async function ActiveConsoles({ activeVenues, openVenues }) {
       return { groupId: venue.id }
     })
   } catch (error) {
-    /* empty */
+    console.log('Error in ActiveConsoles', {
+      page: 'Home',
+      component: 'ActiveConsoles',
+      user: user?.id,
+      apiError: error,
+      apiRequest: {
+        endpoint: '/groups',
+        params: { member: user?.id, web: true, select: 'id' },
+      },
+    })
   }
 
   if (!venues?.length) return null

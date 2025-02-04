@@ -29,9 +29,27 @@ export default async function page() {
       )
       .then(formatInvitationResults),
   ])
-  const activeVenues =
-    activeVenuesResult.status === 'fulfilled' ? activeVenuesResult.value : []
-  const openVenues = openVenuesResult.status === 'fulfilled' ? openVenuesResult.value : []
+
+  let activeVenues
+  if (activeVenuesResult.status === 'fulfilled') {
+    activeVenues = activeVenuesResult.value
+  } else {
+    activeVenues = []
+    console.log('Error in page', {
+      page: 'Home',
+      activeVenuesResult,
+    })
+  }
+  let openVenues
+  if (openVenuesResult.status === 'fulfilled') {
+    openVenues = openVenuesResult.value
+  } else {
+    openVenues = []
+    console.log('Error in page', {
+      page: 'Home',
+      openVenuesResult,
+    })
+  }
 
   return (
     <div className={styles.home}>

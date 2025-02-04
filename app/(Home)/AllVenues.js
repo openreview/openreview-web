@@ -13,7 +13,15 @@ export default async function AllVenues() {
   try {
     venues = await api.get('/groups', { id: 'host' }).then(formatGroupResults).then(sortAlpha)
   } catch (error) {
-    console.log('error is', error)
+    console.log('Error in AllVenues', {
+      page: 'Home',
+      component: 'AllVenues',
+      apiError: error,
+      apiRequest: {
+        endpoint: '/groups',
+        params: { id: 'host' },
+      },
+    })
   }
 
   const deburrFirstLetter = (venue) => {

@@ -26,6 +26,7 @@
       }
     ],
     "@next/next/no-img-element": "off",
-    "import/no-extraneous-dependencies": "off"
+    "import/no-extraneous-dependencies": "off",
+    "no-console": "off"
   }
 }

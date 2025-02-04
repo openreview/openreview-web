@@ -16,6 +16,14 @@ export default function LogoutLink() {
       router.refresh()
       window.localStorage.setItem('openreview.lastLogout', Date.now())
     } catch (error) {
+      console.log('Error in LogoutLink', {
+        page: 'Home',
+        component: 'LogoutLink',
+        apiError: error,
+        apiRequest: {
+          endpoint: '/logout',
+        },
+      })
       promptError(error.message)
     }
   }
