@@ -20,7 +20,7 @@ export async function generateMetadata({ searchParams }) {
 
 export default async function page({ searchParams }) {
   const query = await searchParams
-  const { token: accessToken } = await serverAuth()
+  const { token: accessToken, user } = await serverAuth()
   const { id } = query
   if (!id) return <ErrorDisplay message="Missing required parameter id" />
 
@@ -41,6 +41,14 @@ export default async function page({ searchParams }) {
       throw new Error('Invitation not found')
     })
     .catch((error) => {
+      console.log('Error in get loadInvitationP', {
+        page: 'invitation/info',
+        user: user?.id,
+        apiError: error,
+        apiRequest: {
+          params: { id },
+        },
+      })
       if (error.name === 'ForbiddenError') {
         if (!accessToken) {
           redirectPath = `/login?redirect=/invitation/info?${encodeURIComponent(stringify(query))}}`

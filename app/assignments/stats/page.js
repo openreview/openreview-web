@@ -54,7 +54,7 @@ export async function generateMetadata({ searchParams }) {
 export default async function page({ searchParams }) {
   const query = await searchParams
   const { id, referrer } = query
-  const { token: accessToken } = await serverAuth()
+  const { token: accessToken, user } = await serverAuth()
   if (!accessToken) redirect(`/login?redirect=/assignments/stats?${stringify(query)}`)
   if (!id)
     return (
@@ -62,7 +62,14 @@ export default async function page({ searchParams }) {
     )
 
   const note = await api.getNoteById(id, accessToken)
-  if (!note) return <ErrorDisplay message={`No assignment note with the ID "${id}" found`} />
+  if (!note) {
+    console.log('Error in getNoteById', {
+      page: 'assignments/stats',
+      user: user?.id,
+      apiError: `No note of ${id}`,
+    })
+    return <ErrorDisplay message={`No assignment note with the ID "${id}" found`} />
+  }
 
   const isV2Note = note.apiVersion === 2
   const groupId = isV2Note
@@ -267,7 +274,14 @@ export default async function page({ searchParams }) {
         },
       }
     })
-    .catch((error) => ({ errorMessage: error.message }))
+    .catch((error) => {
+      console.log('Error in valuesP', {
+        page: 'assignments/stats',
+        user: user?.id,
+        apiError: error,
+      })
+      return { errorMessage: error.message }
+    })
 
   return (
     <CommonLayout banner={<Banner>{banner}</Banner>}>

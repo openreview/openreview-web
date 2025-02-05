@@ -49,7 +49,18 @@ export default async function page({ searchParams }) {
                 },
               }
             })
-            .catch(() => ({ group }))
+            .catch((error) => {
+              console.log('Error in get domain group', {
+                page: 'group/edit',
+                user: user?.id,
+                apiError: error,
+                apiRequest: {
+                  endpoint: '/groups',
+                  params: { id: group.domain },
+                },
+              })
+              return { group }
+            })
         }
         if (group.domain) {
           return {
@@ -69,6 +80,11 @@ export default async function page({ searchParams }) {
       }
     })
     .catch((apiError) => {
+      console.log('Error in loadGroupP', {
+        page: 'group/edit',
+        user: user?.id,
+        apiError,
+      })
       if (apiError.name === 'ForbiddenError') {
         if (!accessToken) {
           redirectPath = `/login?redirect=/group/edit?${encodeURIComponent(stringify(query))}`

@@ -5,6 +5,7 @@ import api from '../../../lib/api-client'
 import Password from './Password'
 import styles from './Password.module.scss'
 import CommonLayout from '../../CommonLayout'
+import serverAuth from '../../auth'
 
 export const metadata = {
   title: 'Change Password | OpenReview',
@@ -14,12 +15,21 @@ export const dynamic = 'force-dynamic'
 
 export default async function page({ searchParams }) {
   const { token } = await searchParams
+  const { user } = await serverAuth()
 
   if (!token) return <ErrorDisplay message="Page not found" />
 
-  const loadResetTokenP = api
-    .get(`/resettable/${token}`)
-    .catch((error) => ({ errorMessage: error.message }))
+  const loadResetTokenP = api.get(`/resettable/${token}`).catch((error) => {
+    console.log('Error in loadResetTokenP', {
+      page: 'user/password',
+      user: user?.id,
+      apiError: error,
+      apiRequest: {
+        endpoint: `/resettable/${token}`,
+      },
+    })
+    return { errorMessage: error.message }
+  })
 
   return (
     <CommonLayout>

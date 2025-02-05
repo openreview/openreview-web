@@ -18,9 +18,9 @@ export const metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function page({ searchParams }) {
-  const { token: accessToken } = await serverAuth()
+  const { token: accessToken, user } = await serverAuth()
   const query = await searchParams
-  const { id, left, right, pdf, version } = query
+  const { id, left, right, version } = query
   if (!accessToken) redirect(`/login?redirect=/revisions/compare?${stringify(query)}`)
   if (!(id && left && right)) return <ErrorDisplay message="Missing required parameter" />
 
@@ -50,7 +50,18 @@ export default async function page({ searchParams }) {
           }
           return { errorMessage: 'Reference not found' }
         })
-        .catch((error) => ({ errorMessage: error.message }))
+        .catch((error) => {
+          console.log('Error in loadEditsP', {
+            page: 'revisions/compare',
+            user: user.id,
+            apiError: error,
+            apiRequest: {
+              endpoint: '/notes/edits',
+              params: { 'note.id': id, trash: true },
+            },
+          })
+          return { errorMessage: error.message }
+        })
     )
 
   return (

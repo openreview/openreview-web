@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { stringify } from 'query-string'
 import serverAuth, { isSuperUser } from '../auth'
 import api from '../../lib/api-client'
 import ErrorDisplay from '../../components/ErrorDisplay'
@@ -7,7 +8,6 @@ import Profile from './Profile'
 import { formatProfileData } from '../../lib/profiles'
 import CommonLayout from '../CommonLayout'
 import EditBanner from '../../components/EditBanner'
-import { stringify } from 'query-string'
 
 export const dynamic = 'force-dynamic'
 

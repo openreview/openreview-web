@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic'
 const sourceOptions = { all: 'All', forum: 'Papers Only', reply: 'Replies Only' }
 
 export default async function page({ searchParams }) {
-  const { token } = await serverAuth()
+  const { token, user } = await serverAuth()
   const query = await searchParams
   const { term, content, group, source } = query
 
@@ -37,7 +37,26 @@ export default async function page({ searchParams }) {
       null,
       { accessToken: token, resultsKey: 'notes' }
     )
-    .catch((error) => ({ errorMessage: error.message }))
+    .catch((error) => {
+      console.log('Error in loadSearchResultsP', {
+        page: 'search',
+        user: user?.id,
+        apiError: error,
+        apiRequest: {
+          endpoint: '/notes/search',
+          params: {
+            term,
+            type: 'terms',
+            content: content || 'all',
+            group: group || 'all',
+            source: Object.keys(sourceOptions).includes(source) ? source : 'all',
+            sort: 'tmdate:desc',
+            limit: 1000,
+          },
+        },
+      })
+      return { errorMessage: error.message }
+    })
 
   let groupOptions = []
   try {
@@ -50,7 +69,15 @@ export default async function page({ searchParams }) {
       return members.sort((a, b) => a.label.localeCompare(b.label))
     })
   } catch (error) {
-    /* empty */
+    console.log('Error in groupOptions', {
+      page: 'search',
+      user: user?.id,
+      apiError: error,
+      apiRequest: {
+        endpoint: '/groups',
+        params: { id: 'host' },
+      },
+    })
   }
 
   return (

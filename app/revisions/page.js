@@ -48,7 +48,23 @@ export default async function page({ searchParams }) {
           .then((response) => ({
             revisions: (response.edits ?? []).map((edit) => [edit, edit.details.invitation]),
           }))
-          .catch((error) => ({ errorMessage: error.message }))
+          .catch((error) => {
+            console.log('Error in loadEditsP', {
+              page: 'revisions',
+              user: user.id,
+              apiError: error,
+              apiRequest: {
+                endpoint: '/notes/edits',
+                params: {
+                  'note.id': noteId,
+                  sort: 'tcdate',
+                  details: 'writable,presentation,invitation',
+                  trash: true,
+                },
+              },
+            })
+            return { errorMessage: error.message }
+          })
       : Promise.resolve(null)
 
   return (

@@ -13,7 +13,7 @@ export const metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function page() {
-  const { token } = await serverAuth()
+  const { token, user } = await serverAuth()
   if (!token) redirect('/login?redirect=/notifications')
 
   const profileResult = await api.get('/profiles', {}, { accessToken: token })
@@ -35,7 +35,20 @@ export default async function page() {
         return prev
       }, {}),
     }))
-    .catch((error) => ({ errorMessage: error.message }))
+    .catch((error) => {
+      console.log('Error in unviewedMessagesCountsP', {
+        page: 'notifications',
+        user: user?.id,
+        apiError: error,
+        apiRequest: {
+          endpoint: '/messages',
+          params: {
+            confirmedEmails,
+          },
+        },
+      })
+      return { errorMessage: error.message }
+    })
 
   return (
     <div className={styles.notifications}>

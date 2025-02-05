@@ -19,6 +19,93 @@ export const dynamic = 'force-dynamic'
 
 const fallbackMetadata = { title: 'Forum | OpenReview' }
 
+// #region data fetching
+const shouldRedirect = async (noteIdParam, accessToken) => {
+  try {
+    // if it is the original of a blind submission, do redirection
+    const blindNotesResult = await api.get(
+      '/notes',
+      { original: noteIdParam },
+      { accessToken, version: 1 }
+    )
+
+    // if no blind submission found return the current forum
+    if (blindNotesResult.notes?.length) {
+      return blindNotesResult.notes[0]
+    }
+  } catch (error) {
+    return false
+  }
+
+  return false
+}
+
+const redirectForum = (noteId, forumId, invitationId, referrer) => {
+  const noteIdParam = noteId ? `&noteId=${encodeURIComponent(noteId)}` : ''
+  const invIdParam = invitationId ? `&invitationId=${encodeURIComponent(invitationId)}` : ''
+  const referrerParam = referrer ? `&referrer=${encodeURIComponent(referrer)}` : ''
+
+  return `/forum?id=${encodeURIComponent(forumId)}${noteIdParam}${invIdParam}${referrerParam}`
+}
+const getForumNote = async (token, userAgent, queryId, invitationId, query) => {
+  let redirectPath = null
+  try {
+    const note = await api.getNoteById(
+      queryId,
+      token,
+      { trash: true, details: 'writable,presentation' },
+      { trash: true, details: 'original,replyCount,writable' }
+    )
+    if (note?.ddate && !note?.details?.writable) {
+      throw new Error('Not Found')
+    }
+    // Allows the UI to link to forum pages just using a note ID, that may be a reply
+    if (note && (note.id !== note.forum || !query.id)) {
+      redirectPath = redirectForum(query.noteId, note.forum, invitationId, query.referrer)
+      return { redirectPath }
+    }
+    if (note?.version === 2) {
+      return { forumNote: note, version: 2 }
+    }
+    // if blind submission return the forum
+    if (note?.original) {
+      return { forumNote: note, version: 1 }
+    }
+
+    const redirectNote = await shouldRedirect(queryId, token)
+    if (redirectNote) {
+      redirectPath = redirectForum(query.noteId, redirectNote.id, invitationId, query.referrer)
+      return { redirectPath }
+    }
+    if (!note) {
+      throw new Error(`The Note ${queryId} was not found`)
+    }
+    return { forumNote: note, version: 1 }
+  } catch (error) {
+    if (error.name === 'ForbiddenError') {
+      const redirectNote = await shouldRedirect(queryId, token)
+      if (redirectNote) {
+        redirectPath = redirectForum(
+          query.noteId,
+          redirectNote.id,
+          invitationId,
+          query.referrer
+        )
+        return { redirectPath }
+      }
+
+      // Redirect to login, unless request is from a Google crawler
+      if (!token && !userAgent.includes('Googlebot')) {
+        redirectPath = `/login?redirect=/forum?${encodeURIComponent(stringify(query))}`
+        return { redirectPath }
+      }
+      return { errorMessage: "You don't have permission to read this forum" }
+    }
+    return { errorMessage: error.message }
+  }
+}
+// #endregion
+
 export async function generateMetadata({ searchParams }) {
   const query = await searchParams
   const headersList = await headers()
@@ -122,93 +209,6 @@ export async function generateMetadata({ searchParams }) {
   }
 }
 
-// #region data fetching
-const shouldRedirect = async (noteIdParam, accessToken) => {
-  try {
-    // if it is the original of a blind submission, do redirection
-    const blindNotesResult = await api.get(
-      '/notes',
-      { original: noteIdParam },
-      { accessToken, version: 1 }
-    )
-
-    // if no blind submission found return the current forum
-    if (blindNotesResult.notes?.length) {
-      return blindNotesResult.notes[0]
-    }
-  } catch (error) {
-    return false
-  }
-
-  return false
-}
-
-const redirectForum = (noteId, forumId, invitationId, referrer) => {
-  const noteIdParam = noteId ? `&noteId=${encodeURIComponent(noteId)}` : ''
-  const invIdParam = invitationId ? `&invitationId=${encodeURIComponent(invitationId)}` : ''
-  const referrerParam = referrer ? `&referrer=${encodeURIComponent(referrer)}` : ''
-
-  return `/forum?id=${encodeURIComponent(forumId)}${noteIdParam}${invIdParam}${referrerParam}`
-}
-const getForumNote = async (token, userAgent, queryId, invitationId, query) => {
-  let redirectPath = null
-  try {
-    const note = await api.getNoteById(
-      queryId,
-      token,
-      { trash: true, details: 'writable,presentation' },
-      { trash: true, details: 'original,replyCount,writable' }
-    )
-    if (note?.ddate && !note?.details?.writable) {
-      throw new Error('Not Found')
-    }
-    // Allows the UI to link to forum pages just using a note ID, that may be a reply
-    if (note && (note.id !== note.forum || !query.id)) {
-      redirectPath = redirectForum(query.noteId, note.forum, invitationId, query.referrer)
-      return { redirectPath }
-    }
-    if (note?.version === 2) {
-      return { forumNote: note, version: 2 }
-    }
-    // if blind submission return the forum
-    if (note?.original) {
-      return { forumNote: note, version: 1 }
-    }
-
-    const redirectNote = await shouldRedirect(queryId, token)
-    if (redirectNote) {
-      redirectPath = redirectForum(query.noteId, redirectNote.id, invitationId, query.referrer)
-      return { redirectPath }
-    }
-    if (!note) {
-      throw new Error(`The Note ${queryId} was not found`)
-    }
-    return { forumNote: note, version: 1 }
-  } catch (error) {
-    if (error.name === 'ForbiddenError') {
-      const redirectNote = await shouldRedirect(queryId, token)
-      if (redirectNote) {
-        redirectPath = redirectForum(
-          query.noteId,
-          redirectNote.id,
-          invitationId,
-          query.referrer
-        )
-        return { redirectPath }
-      }
-
-      // Redirect to login, unless request is from a Google crawler
-      if (!token && !userAgent.includes('Googlebot')) {
-        redirectPath = `/login?redirect=/forum?${encodeURIComponent(stringify(query))}`
-        return { redirectPath }
-      }
-      return { errorMessage: "You don't have permission to read this forum" }
-    }
-    return { errorMessage: error.message }
-  }
-}
-// #endregion
-
 export default async function page({ searchParams }) {
   const query = await searchParams
   const headersList = await headers()
@@ -218,7 +218,7 @@ export default async function page({ searchParams }) {
   const queryId = id || noteId
   if (!queryId) return <ErrorDisplay message="Forum or note ID is required" />
 
-  const { token } = await serverAuth()
+  const { token, user } = await serverAuth()
 
   const {
     forumNote,

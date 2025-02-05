@@ -26,7 +26,7 @@ export async function generateMetadata({ searchParams }) {
 export default async function page({ searchParams }) {
   const query = await searchParams
   const { group, referrer } = query
-  const { token: accessToken } = await serverAuth()
+  const { token: accessToken, user } = await serverAuth()
   if (!accessToken) redirect(`/login?redirect=/assignments?${stringify(query)}`)
   if (!group)
     return <ErrorDisplay message="Could not list assignments. Missing parameter group." />
@@ -43,9 +43,25 @@ export default async function page({ searchParams }) {
       accessToken
     )
   } catch (error) {
+    console.log('Error in configInvitation', {
+      page: 'assignments',
+      user: user?.id,
+      apiError: error,
+      apiRequest: {
+        endpoint: 'getInvitationById',
+        params: { id: `${group}/-/Assignment_Configuration` },
+      },
+    })
     return <ErrorDisplay message={notFoundMessage} />
   }
-  if (!configInvitation) return <ErrorDisplay message={notFoundMessage} />
+  if (!configInvitation) {
+    console.log('Error in page', {
+      page: 'assignments',
+      user: user?.id,
+      apiError: 'No config invitation',
+    })
+    return <ErrorDisplay message={notFoundMessage} />
+  }
 
   const assignmentNotesP =
     configInvitation.apiVersion === 2
@@ -61,7 +77,18 @@ export default async function page({ searchParams }) {
             const { notes, count } = response
             return { notes, count }
           })
-          .catch((error) => ({ errorMessage: error.message }))
+          .catch((error) => {
+            console.log('Error in assignmentNotesP', {
+              page: 'assignments',
+              user: user?.id,
+              apiError: error,
+              apiRequest: {
+                endpoint: '/notes',
+                params: { invitation: `${query.group}/-/Assignment_Configuration` },
+              },
+            })
+            return { errorMessage: error.message }
+          })
       : Promise.resolve(null)
 
   return (

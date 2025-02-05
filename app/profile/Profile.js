@@ -10,7 +10,7 @@ import CoAuthorsList from './CoAuthorsList'
 import { getCoAuthorsFromPublications } from '../../lib/profiles'
 
 export default async function Profile({ profile, publicProfile }) {
-  const { token } = await serverAuth()
+  const { token, user } = await serverAuth()
   const getCurrentInstitutionInfo = () => {
     const currentHistories = profile?.history?.filter(
       (p) => !p.end || p.end >= new Date().getFullYear()
@@ -47,10 +47,20 @@ export default async function Profile({ profile, publicProfile }) {
       apiRes = await api.getCombined('/notes', queryParam, null, { accessToken: token })
     } catch (error) {
       apiRes = error
-      console.log('error:', error)
+      console.log('Error in loadPublications', {
+        page: 'profile',
+        component: 'Profile',
+        user: user?.id,
+        apiError: error,
+        apiRequest: {
+          endpoint: '/notes',
+          params: queryParam,
+        },
+      })
     }
     if (apiRes.notes) {
       publications = apiRes.notes
+      // eslint-disable-next-line prefer-destructuring
       count = apiRes.count
       coAuthors = getCoAuthorsFromPublications(profile, publications)
     }

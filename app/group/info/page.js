@@ -20,7 +20,7 @@ export async function generateMetadata({ searchParams }) {
 
 export default async function page({ searchParams }) {
   const query = await searchParams
-  const { token: accessToken } = await serverAuth()
+  const { token: accessToken, user } = await serverAuth()
   const { id } = query
   if (!id) return <ErrorDisplay message="Missing required parameter id" />
 
@@ -34,6 +34,15 @@ export default async function page({ searchParams }) {
       throw new Error('Group not found')
     })
     .catch((error) => {
+      console.log('Error in loadGroupP', {
+        page: 'group/info',
+        user: user?.id,
+        apiError: error,
+        apiRequest: {
+          endpoint: '/groups',
+          params: { id },
+        },
+      })
       if (error.name === 'ForbiddenError') {
         if (!accessToken) {
           redirectPath = `/login?redirect=/group/info?${encodeURIComponent(stringify(query))}}`

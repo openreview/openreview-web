@@ -28,7 +28,7 @@ const statusOptions = [
 const statusOptionValues = statusOptions.map((o) => o.value)
 
 export default async function page({ searchParams }) {
-  const { token } = await serverAuth()
+  const { token, user } = await serverAuth()
   const query = await searchParams
   if (!token) redirect(`/login?redirect=/messages?${stringify(query)}`)
 
@@ -51,7 +51,21 @@ export default async function page({ searchParams }) {
       },
       { accessToken: token }
     )
-    .catch((error) => ({ errorMessage: error.message }))
+    .catch((error) => {
+      console.log('Error in loadMessagesP', {
+        page: 'messages',
+        user: user?.id,
+        apiError: error,
+        apiRequest: {
+          endpoint: '/messages',
+          params: {
+            ...{ to, subject, status: statusParam, parentGroup },
+            status: validStatus,
+          },
+        },
+      })
+      return { errorMessage: error.message }
+    })
 
   return (
     <div className={styles.messages}>

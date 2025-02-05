@@ -63,7 +63,6 @@ export default async function page({ searchParams }) {
       if (!apiRes.invitations?.length) {
         throw new Error('Could not load edge explorer. Invalid edge invitation.')
       }
-      let error
       allInvitations.forEach((invObj) => {
         const fullInvitation = apiRes.invitations.find((inv) => {
           // For static lists, use the properties of the first traverse invitation
@@ -145,6 +144,11 @@ export default async function page({ searchParams }) {
         })
     })
     .catch((error) => {
+      console.log('Error in loadAllInvitationsP', {
+        page: 'edge/browse',
+        use: user?.id,
+        apiError: error,
+      })
       if (typeof error === 'object' && error.name) {
         if (error.name === 'NotFoundError') {
           return { errorMessage: 'Could not load edge explorer. Invitation not found.' }

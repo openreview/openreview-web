@@ -42,6 +42,15 @@ export default async function page({ searchParams }) {
       return null
     })
     .catch((error) => {
+      console.log('Error in loadGroupP', {
+        page: 'group/revisions',
+        user: user?.id,
+        apiError: error,
+        apiRequest: {
+          endpoint: '/groups',
+          params: { id },
+        },
+      })
       if (error.name === 'ForbiddenError') {
         if (!accessToken) {
           redirectPath = `/login?redirect=/group/revisions?${encodeURIComponent(stringify(query))}`

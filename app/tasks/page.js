@@ -14,7 +14,7 @@ export const metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function page() {
-  const { token } = await serverAuth()
+  const { token, user } = await serverAuth()
   if (!token) redirect('/login?redirect=/tasks')
 
   const commonParams = {
@@ -97,7 +97,14 @@ export default async function page() {
         return { groupedTasks: formatTasksData(allInvitations) }
       })
     })
-    .catch((error) => ({ errorMessage: error.message }))
+    .catch((error) => {
+      console.log('Error in groupedTasksP', {
+        page: 'tasks',
+        user: user?.id,
+        apiError: error,
+      })
+      return { errorMessage: error.message }
+    })
 
   return (
     <div className={styles.tasks}>

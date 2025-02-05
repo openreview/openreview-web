@@ -49,6 +49,14 @@ export default async function page({ searchParams }) {
       }
     })
     .catch((apiError) => {
+      console.log('Error in get loadInvitationP', {
+        page: 'invitation/edit',
+        user: user?.id,
+        apiError,
+        apiRequest: {
+          params: { id },
+        },
+      })
       if (apiError.name === 'ForbiddenError') {
         if (!accessToken) {
           redirectPath = `/login?redirect=/invitation/edit?${encodeURIComponent(stringify(query))}`

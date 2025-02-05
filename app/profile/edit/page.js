@@ -16,7 +16,7 @@ export const metadata = {
 export const dynamic = 'force-dynamic'
 
 export default async function page() {
-  const { token: accessToken } = await serverAuth()
+  const { token: accessToken, user } = await serverAuth()
   if (!accessToken) redirect('/login?redirect=/profile/edit')
 
   const loadProfileP = api
@@ -28,7 +28,17 @@ export default async function page() {
       }
       return { errorMessage: 'Profile not found' }
     })
-    .catch((error) => ({ errorMessage: error.message }))
+    .catch((error) => {
+      console.log('Error in loadProfileP', {
+        page: 'profile/edit',
+        user: user?.id,
+        apiError: error,
+        apiRequest: {
+          endpoint: '/profiles',
+        },
+      })
+      return { errorMessage: error.message }
+    })
 
   return (
     <CommonLayout banner={null}>

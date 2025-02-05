@@ -48,6 +48,14 @@ export default async function page({ searchParams }) {
       return <ErrorDisplay message={`The Group ${id} was not found`} />
     }
   } catch (error) {
+    console.log('Error in getGroups', {
+      page: 'group',
+      apiError: error,
+      apiRequest: {
+        endpoint: '/groups',
+        params: { id },
+      },
+    })
     if (error.name === 'ForbiddenError') {
       if (!accessToken) {
         redirect(`/login?redirect=/group?${stringify(query)}`)
