@@ -1,4 +1,5 @@
 @use '../utils/constants';
+@use 'sass:color';
 
 #content .dropdown-select {
   &__value-container {
@@ -14,14 +15,16 @@
   }
   &__control {
     border-width: 2px;
-    border-color: lighten(constants.$mediumBlue, 10%);
+    border-color: color.adjust(constants.$mediumBlue, $lightness: 10%);
     &:hover {
-      border-color: lighten(constants.$mediumBlue, 10%);
+      border-color: color.adjust(constants.$mediumBlue, $lightness: 10%);
     }
     &--is-focused {
       border-color: constants.$mediumDarkBlue;
       border-width: 2px;
-      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+      box-shadow:
+        inset 0 1px 1px rgba(0, 0, 0, 0.075),
+        0 0 8px rgba(102, 175, 233, 0.6);
       &:hover {
         border-color: constants.$mediumDarkBlue;
       }

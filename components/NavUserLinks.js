@@ -4,13 +4,31 @@ import { useState, useEffect, useContext } from 'react'
 import truncate from 'lodash/truncate'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { useSelector } from 'react-redux'
 import UserContext from './UserContext'
 import api from '../lib/api-client'
 
 const NavUserLinks = () => {
-  const { user, userLoading, logoutUser, unreadNotifications } = useContext(UserContext)
+  const { userLoading, logoutUser } = useContext(UserContext) ?? {}
+  const { user, token } = useSelector((state) => state.root)
   const router = useRouter()
   const [loginPath, setLoginPath] = useState('/login')
+  const [unreadNotifications, setUnreadNotifications] = useState(0)
+
+  async function loadUnreadNotificationCount(userEmail, accessToken) {
+    if (!userEmail || !accessToken) return
+
+    try {
+      const { count } = await api.get(
+        '/messages',
+        { to: userEmail, viewed: false, transitiveMembers: true },
+        { accessToken }
+      )
+      setUnreadNotifications(count)
+    } catch (error) {
+      /* empty */
+    }
+  }
 
   const handleLogout = async (e) => {
     e.preventDefault()
@@ -45,6 +63,11 @@ const NavUserLinks = () => {
 
     setLoginPath(`/login?redirect=${encodeURIComponent(router.asPath)}&noprompt=true`)
   }, [user, userLoading, router.asPath])
+
+  useEffect(() => {
+    if (!user) return
+    loadUnreadNotificationCount(user.profile.emails?.[0], token)
+  }, [user])
 
   if (!user) {
     return (
