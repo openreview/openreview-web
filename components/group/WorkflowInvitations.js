@@ -469,6 +469,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                 i.id.startsWith(`${invitationId}/`)
               )
               const isBeforeToday = dayjs(stepObj.cdate).isSameOrBefore(dayjs())
+              const isExpired = dayjs(stepObj.expdate).isBefore(dayjs())
               const isNextStepAfterToday = dayjs(
                 workflowInvitations[index + 1]?.cdate
               ).isAfter(dayjs())
@@ -476,7 +477,9 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               if (isBeforeToday && isNextStepAfterToday) {
                 return (
                   <React.Fragment key={invitationId}>
-                    <div className="workflow-invitation-container">
+                    <div
+                      className={`workflow-invitation-container${isExpired ? ' expired' : ''}`}
+                    >
                       <div
                         className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
                       >
@@ -506,13 +509,13 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                       <div className="invitation-cdate ">
                         {formatDateTime(dayjs().valueOf(), {
                           second: undefined,
-                          minute: undefined,
-                          hour: undefined,
                           locale: 'en-GB',
+                          timeZoneName: 'short',
+                          hour12: false,
                         })}{' '}
                       </div>
                       <span className="invitation-content today">
-                        TODAY
+                        Now
                         {/* eslint-disable-next-line max-len */}
                         --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                       </span>
@@ -521,7 +524,10 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                 )
               }
               return (
-                <div key={invitationId} className="workflow-invitation-container">
+                <div
+                  key={invitationId}
+                  className={`workflow-invitation-container${isExpired ? ' expired' : ''}`}
+                >
                   <div
                     className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
                   >

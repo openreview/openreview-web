@@ -1304,6 +1304,10 @@ main.invitation {
       display: flex;
       margin-bottom: 0.5rem;
 
+      &.expired {
+        opacity: 0.3;
+      }
+
       .invitation-cdate {
         width: 8%;
         margin-right: 0.5rem;
