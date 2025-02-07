@@ -69,7 +69,7 @@ export default async function NavNotificationCount() {
           params: { to: user?.profile?.emails?.[0], viewed: false, transitiveMembers: true },
         },
       })
-      Promise.resolve({ count: 0 })
+      return { count: 0 }
     })
 
   return (

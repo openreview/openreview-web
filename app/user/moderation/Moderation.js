@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../../components/Tabs'
 import NameDeletionCount from './(NameDeletion)/NameDeletionCount'
 import ProfileMergeCount from './(ProfileMerge)/ProfileMergeCount'
@@ -9,6 +9,7 @@ import LoadingSpinner from '../../../components/LoadingSpinner'
 
 export default function Moderation({ children, accessToken }) {
   const [activeTabId, setActiveTabId] = useState('#profiles')
+  const [isPending, startTransition] = useTransition()
   const [isClientRendering, setIsClientRendering] = useState(false)
 
   useEffect(() => {
@@ -42,19 +43,22 @@ export default function Moderation({ children, accessToken }) {
         <Tab id="profiles" active={true}>
           User Moderation
         </Tab>
-        <Tab id="email" onClick={() => setActiveTabId('#email')}>
+        <Tab id="email" onClick={() => startTransition(() => setActiveTabId('#email'))}>
           Email Delete Requests
         </Tab>
-        <Tab id="name" onClick={() => setActiveTabId('#name')}>
+        <Tab id="name" onClick={() => startTransition(() => setActiveTabId('#name'))}>
           Name Delete Requests <NameDeletionCount accessToken={accessToken} />
         </Tab>
-        <Tab id="merge" onClick={() => setActiveTabId('#merge')}>
+        <Tab id="merge" onClick={() => startTransition(() => setActiveTabId('#merge'))}>
           Profile Merge Requests <ProfileMergeCount accessToken={accessToken} />
         </Tab>
-        <Tab id="institution" onClick={() => setActiveTabId('#institution')}>
+        <Tab
+          id="institution"
+          onClick={() => startTransition(() => setActiveTabId('#institution'))}
+        >
           Institution List
         </Tab>
-        <Tab id="requests" onClick={() => setActiveTabId('#requests')}>
+        <Tab id="requests" onClick={() => startTransition(() => setActiveTabId('#requests'))}>
           Venue Requests <VenueRequestCount accessToken={accessToken} />
         </Tab>
       </TabList>

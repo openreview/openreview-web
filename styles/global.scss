@@ -15,6 +15,10 @@ html {
 body {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 0.875rem;
+
+  &.modal-open {
+    padding-right: 0 !important;
+  }
 }
 #__next {
   // padding-top: 50px;
