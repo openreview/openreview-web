@@ -1305,6 +1305,11 @@ main.invitation {
       margin-bottom: 0.5rem;
 
       &.expired {
+        color: gray;
+        text-decoration: line-through;
+      }
+
+      &.executed {
         opacity: 0.3;
       }
 

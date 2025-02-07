@@ -1,11 +1,12 @@
 /* globals promptError,promptMessage,$: false */
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { get, orderBy, sortBy } from 'lodash'
 import timezone from 'dayjs/plugin/timezone'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
+import { motion } from 'framer-motion'
 import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
 import {
@@ -32,6 +33,7 @@ const WorflowInvitationRow = ({
   loadWorkflowInvitations,
   domainObject,
   setMissingValueInvitationIds,
+  workflowInvitationsRef,
 }) => {
   const [showInvitationEditor, setShowInvitationEditor] = useState(false)
   const invitationName = prettyField(subInvitation.id.split('/').pop())
@@ -123,7 +125,17 @@ const WorflowInvitationRow = ({
                 invitation={subInvitation}
                 existingValue={existingValue}
                 closeInvitationEditor={() => setShowInvitationEditor(false)}
-                onInvitationEditPosted={() => loadWorkflowInvitations()}
+                onInvitationEditPosted={() => {
+                  loadWorkflowInvitations()
+                  setTimeout(() => {
+                    const ref = workflowInvitationsRef.current?.[workflowInvitation.id]
+                    if (ref) {
+                      const rect = ref.getBoundingClientRect()
+                      if (rect.top < 0 || rect.bottom > window.innerHeight)
+                        ref.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    }
+                  }, 500)
+                }}
                 isGroupInvitation={isGroupInvitation}
               />
             )}
@@ -205,7 +217,7 @@ const EditInvitationProcessLogStatus = ({ processLogs }) => {
         <span className="log-status">
           {' '}
           <span className="fixed-text">Status:</span> {formattedDate}{' '}
-          <span className="fixed-text">. OK.</span>
+          <span className="fixed-text">. {lastLogMessage ?? 'OK'}.</span>
         </span>
       )
     case 'error':
@@ -307,6 +319,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const [processLogs, setProcessLogs] = useState([])
   const [missingValueInvitationIds, setMissingValueInvitationIds] = useState([])
   const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
+  const workflowInvitationsRef = useRef({})
   const workflowInvitationRegex = RegExp(`^${groupId}/-/[^/]+$`)
 
   const loadProcessLogs = async () => {
@@ -439,7 +452,18 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               <div key={stepObj.id} className="group-workflow">
                 <span className="group-cdate">{stepObj.formattedCDate} </span>
                 <div className="group-content">
-                  <span className="group-id">{prettyId(stepObj.id, true)}</span>
+                  {stepObj.web ? (
+                    <a
+                      className="id-icon"
+                      href={`/group?id=${stepObj.id}&referrer=${encodeURIComponent(
+                        `[${stepObj.domain}](/group/edit?id=${stepObj.domain})`
+                      )}`}
+                    >
+                      <span className="group-id">{prettyId(stepObj.id, true)}</span>
+                    </a>
+                  ) : (
+                    <span className="group-id">{prettyId(stepObj.id, true)}</span>
+                  )}
                   <a className="id-icon" href={`/group/edit?id=${stepObj.id}`}>
                     <Icon name="new-window" />
                   </a>
@@ -470,92 +494,116 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               )
               const isBeforeToday = dayjs(stepObj.cdate).isSameOrBefore(dayjs())
               const isExpired = dayjs(stepObj.expdate).isBefore(dayjs())
+              const isExecuted =
+                dayjs(stepObj.cdate).isBefore(dayjs()) &&
+                dayjs(processLogs.find((p) => p.invitation === invitationId)?.edate).isBefore(
+                  dayjs()
+                )
               const isNextStepAfterToday = dayjs(
                 workflowInvitations[index + 1]?.cdate
               ).isAfter(dayjs())
 
               if (isBeforeToday && isNextStepAfterToday) {
                 return (
-                  <React.Fragment key={invitationId}>
-                    <div
-                      className={`workflow-invitation-container${isExpired ? ' expired' : ''}`}
-                    >
+                  <motion.div
+                    layout="position"
+                    key={invitationId}
+                    transition={{ duration: 0.5 }}
+                    ref={(el) => {
+                      workflowInvitationsRef.current[invitationId] = el
+                    }}
+                  >
+                    <React.Fragment key={invitationId}>
                       <div
-                        className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
+                        className={`workflow-invitation-container${isExpired ? ' expired' : ''}${isExecuted ? ' executed' : ''}`}
                       >
-                        {stepObj.formattedCDate}
-                      </div>
-                      <div className="edit-invitation-info">
-                        <EditInvitationRow
-                          invitation={stepObj}
-                          isDomainGroup={group.id !== group.domain}
-                          processLogs={processLogs}
-                        />
+                        <div
+                          className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
+                        >
+                          {stepObj.formattedCDate}
+                        </div>
+                        <div className="edit-invitation-info">
+                          <EditInvitationRow
+                            invitation={stepObj}
+                            isDomainGroup={group.id !== group.domain}
+                            processLogs={processLogs}
+                          />
 
-                        {subInvitations.length > 0 &&
-                          subInvitations.map((subInvitation) => (
-                            <WorflowInvitationRow
-                              key={subInvitation.id}
-                              subInvitation={subInvitation}
-                              workflowInvitation={stepObj}
-                              loadWorkflowInvitations={loadAllInvitations}
-                              domainObject={group.content}
-                              setMissingValueInvitationIds={setMissingValueInvitationIds}
-                            />
-                          ))}
+                          {subInvitations.length > 0 &&
+                            subInvitations.map((subInvitation) => (
+                              <WorflowInvitationRow
+                                key={subInvitation.id}
+                                subInvitation={subInvitation}
+                                workflowInvitation={stepObj}
+                                loadWorkflowInvitations={loadAllInvitations}
+                                domainObject={group.content}
+                                setMissingValueInvitationIds={setMissingValueInvitationIds}
+                                workflowInvitationsRef={workflowInvitationsRef}
+                              />
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                    <div key="today" className="workflow-invitation-container">
-                      <div className="invitation-cdate ">
-                        {formatDateTime(dayjs().valueOf(), {
-                          second: undefined,
-                          locale: 'en-GB',
-                          timeZoneName: 'short',
-                          hour12: false,
-                        })}{' '}
+                      <div key="today" className="workflow-invitation-container">
+                        <div className="invitation-cdate ">
+                          {formatDateTime(dayjs().valueOf(), {
+                            second: undefined,
+                            locale: 'en-GB',
+                            timeZoneName: 'short',
+                            hour12: false,
+                          })}{' '}
+                        </div>
+                        <span className="invitation-content today">
+                          Now
+                          {/* eslint-disable-next-line max-len */}
+                          --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                        </span>
                       </div>
-                      <span className="invitation-content today">
-                        Now
-                        {/* eslint-disable-next-line max-len */}
-                        --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                      </span>
-                    </div>
-                  </React.Fragment>
+                    </React.Fragment>
+                  </motion.div>
                 )
               }
               return (
-                <div
+                <motion.div
+                  layout="position"
                   key={invitationId}
-                  className={`workflow-invitation-container${isExpired ? ' expired' : ''}`}
+                  transition={{ duration: 0.5 }}
+                  ref={(el) => {
+                    workflowInvitationsRef.current[invitationId] = el
+                  }}
                 >
                   <div
-                    className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
+                    key={invitationId}
+                    className={`workflow-invitation-container${isExpired ? ' expired' : ''}${isExecuted ? ' executed' : ''}`}
                   >
-                    {stepObj.formattedCDate}
-                  </div>
-                  <div className="edit-invitation-info">
-                    <EditInvitationRow
-                      invitation={stepObj}
-                      isDomainGroup={group.id !== group.domain}
-                      processLogs={processLogs}
-                    />
+                    <div
+                      className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
+                    >
+                      {stepObj.formattedCDate}
+                    </div>
+                    <div className="edit-invitation-info">
+                      <EditInvitationRow
+                        invitation={stepObj}
+                        isDomainGroup={group.id !== group.domain}
+                        processLogs={processLogs}
+                      />
 
-                    {subInvitations.length > 0 &&
-                      subInvitations.map((subInvitation) => (
-                        <WorflowInvitationRow
-                          key={subInvitation.id}
-                          subInvitation={subInvitation}
-                          workflowInvitation={stepObj}
-                          loadWorkflowInvitations={loadAllInvitations}
-                          domainObject={group.content}
-                          setMissingValueInvitationIds={setMissingValueInvitationIds}
-                        />
-                      ))}
+                      {subInvitations.length > 0 &&
+                        subInvitations.map((subInvitation) => (
+                          <WorflowInvitationRow
+                            key={subInvitation.id}
+                            subInvitation={subInvitation}
+                            workflowInvitation={stepObj}
+                            loadWorkflowInvitations={loadAllInvitations}
+                            domainObject={group.content}
+                            setMissingValueInvitationIds={setMissingValueInvitationIds}
+                            workflowInvitationsRef={workflowInvitationsRef}
+                          />
+                        ))}
+                    </div>
                   </div>
-                </div>
+                </motion.div>
               )
             })}
-
             {stageInvitations.length > 0 && (
               <AddStageInvitationSection
                 stageInvitations={stageInvitations}
