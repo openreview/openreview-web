@@ -531,7 +531,10 @@ const NoteEditor = ({
         }
       }
 
-      const domainGroup = await api.get('/groups', { id: invitation.domain }, { accessToken })
+      const domainGroup =
+        invitation.domain === process.env.SUPER_USER
+          ? {}
+          : await api.get('/groups', { id: invitation.domain }, { accessToken })
       const {
         reviewers_name: { value: reviewerName } = {},
         reviewers_anon_name: { value: anonReviewerName } = {},
