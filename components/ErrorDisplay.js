@@ -1,7 +1,9 @@
 'use client'
+
+/* global promptError:false */
+import { useRouter } from 'next/navigation'
 import CommonLayout from '../app/CommonLayout'
 import api from '../lib/api-client'
-import { useRouter } from 'next/navigation'
 
 const ErrorDisplay = ({ statusCode, message }) => {
   const router = useRouter()
