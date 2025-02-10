@@ -113,15 +113,17 @@ const Messages = ({ appContext }) => {
   const [allMessages, setAllMessages] = useState([])
   const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
   const pageSize = 25
   const { setBannerHidden } = appContext
 
   const count = allMessages.length
   const messages = allMessages.length
     ? allMessages.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-    : null
+    : []
 
   const loadMessages = async (after) => {
+    setIsLoading(true)
     let validStatus
     if (Array.isArray(query.status)) {
       validStatus = query.status?.filter((status) => statusOptionValues.includes(status))
@@ -144,6 +146,7 @@ const Messages = ({ appContext }) => {
     } catch (apiError) {
       setError(apiError)
     }
+    setIsLoading(false)
   }
 
   useEffect(() => {
@@ -177,17 +180,18 @@ const Messages = ({ appContext }) => {
 
       {error && <ErrorAlert error={error} />}
 
-      {!messages && !error && <LoadingSpinner inline />}
-
-      {messages && <MessagesTable messages={messages} />}
-
-      {messages && (
-        <PaginationLinks
-          currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
-          itemsPerPage={pageSize}
-          totalCount={count}
-        />
+      {isLoading ? (
+        <LoadingSpinner inline />
+      ) : (
+        <>
+          <MessagesTable messages={messages} />
+          <PaginationLinks
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            itemsPerPage={pageSize}
+            totalCount={count}
+          />
+        </>
       )}
     </div>
   )
