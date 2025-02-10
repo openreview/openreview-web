@@ -1,7 +1,6 @@
 /* eslint-disable arrow-body-style */
 /* globals promptError,promptMessage,$: false */
 import React, { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
 import { get, orderBy, sortBy } from 'lodash'
 import timezone from 'dayjs/plugin/timezone'
 import dayjs from 'dayjs'
@@ -518,8 +517,8 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         >
           <div className="container group-workflow-container">
             {workflowGroups.map((stepObj) => {
-              const groupInvitationsForGroup = groupInvitations.filter((p) =>
-                p.id.startsWith(`${stepObj.id}/`)
+              const groupInvitationsForGroup = groupInvitations.filter(
+                (p) => p.edit.group.id === stepObj.id
               )
               return (
                 <WorkflowGroupRow
