@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use } from 'react'
 import { useRouter } from 'next/navigation'
 import CommonLayout from '../../CommonLayout'
 import styles from '../Invitation.module.scss'

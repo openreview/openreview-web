@@ -11,9 +11,9 @@ import InvitationCode, { InvitationCodeV2 } from './InvitationCode'
 import InvitationChildInvitations, {
   InvitationChildInvitationsV2,
 } from './InvitationChildInvitations'
-import { isSuperUser } from '../../lib/auth'
 import InvitationProcessFunctionsV2 from './InvitationProcessFunctions'
 import ContentProcessFunctions from './ContentProcessFunctions'
+import { isSuperUser } from '../../lib/clientAuth'
 
 const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => {
   const profileId = user?.profile?.id
