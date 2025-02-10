@@ -15,6 +15,12 @@ jest.mock('../hooks/useUser', () => () => ({
   accessToken: 'some token',
 }))
 jest.mock('../app/CustomBanner', () => () => <span>Custom Banner</span>)
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: () => jest.fn(),
+  }),
+  useRouter: jest.fn(),
+}))
 
 let bidInvitation
 

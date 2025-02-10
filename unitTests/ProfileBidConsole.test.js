@@ -14,6 +14,12 @@ jest.mock('../hooks/useUser', () => () => ({
   },
   accessToken: 'some token',
 }))
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: () => jest.fn(),
+  }),
+  useRouter: jest.fn(),
+}))
 jest.mock('../app/CustomBanner', () => () => <span>Custom Banner</span>)
 jest.mock('../components/ProfileListWithBidWidget', () => (props) => {
   profileListProps(props)

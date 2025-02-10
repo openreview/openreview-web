@@ -10,6 +10,17 @@ let sacTasksProps
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => useUserReturnValue)
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: () => jest.fn(),
+  }),
+  useRouter: () => ({
+    replace: (params) => {
+      routerParams = params
+      return jest.fn()
+    },
+  }),
+}))
 jest.mock('../components/webfield/SeniorAreaChairConsole/PaperStatus', () => (props) => {
   paperStatusProps(props)
   return <span>paper status</span>

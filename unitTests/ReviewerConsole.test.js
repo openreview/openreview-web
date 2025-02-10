@@ -9,7 +9,10 @@ let routerParams
 let noteSummaryProps
 let noteReviewStatusProps
 
-jest.mock('next/router', () => ({
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: () => jest.fn(),
+  }),
   useRouter: () => ({
     replace: (params) => {
       routerParams = params
