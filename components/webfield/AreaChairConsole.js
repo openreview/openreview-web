@@ -165,7 +165,7 @@ const AreaChairConsole = ({ appContext }) => {
   const [activeTabId, setActiveTabId] = useState(
     decodeURIComponent(window.location.hash) || `#assigned-${pluralizeString(submissionName)}`
   )
-  const [sacLinkText, setSacLinkText] = useState('')
+  const [sacSecondaryACLinkText, setSacSecondaryACLinkText] = useState('')
 
   const edgeBrowserUrl = proposedAssignmentTitle
     ? edgeBrowserProposedUrl
@@ -190,47 +190,55 @@ const AreaChairConsole = ({ appContext }) => {
     return name ? name.fullname : prettyId(reviewerProfile.id)
   }
 
-  const getSACLinkText = async () => {
-    if (!acConsoleData.sacProfiles?.length) return
-    const sacName = prettyField(seniorAreaChairsId?.split('/')?.pop())
-    const singluarSACName = sacName.endsWith('s') ? sacName.slice(0, -1) : sacName
-    const sacText = `Your assigned ${inflect(
-      acConsoleData.sacProfiles.length,
-      `${singluarSACName} is`,
-      `${singluarSACName}s are`
+  const getRoleLinkText = async (profiles, roleName) => {
+    if (!profiles?.length) return ''
+    const singluarRoleName = roleName.endsWith('s') ? roleName.slice(0, -1) : roleName
+    const text = `Your assigned ${inflect(
+      profiles.length,
+      `${singluarRoleName} is`,
+      `${singluarRoleName}s are`
     )}`
-
-    let sacEmails = []
+    let emails = []
     if (preferredEmailInvitationId) {
       try {
-        const sacEmailPs = acConsoleData.sacProfiles.map((sacProfile) =>
+        const emailPs = profiles.map((profile) =>
           api
             .get(
               '/edges',
-              { invitation: preferredEmailInvitationId, head: sacProfile.id },
+              { invitation: preferredEmailInvitationId, head: profile.id },
               { accessToken }
             )
             .then((result) => result.edges[0]?.tail)
         )
-        sacEmails = await Promise.all(sacEmailPs)
+        emails = await Promise.all(emailPs)
       } catch (error) {
         /* empty */
       }
     }
-    const sacProfileLinks = acConsoleData.sacProfiles.map(
-      (sacProfile, index) =>
-        `<a href="${getProfileLink(sacProfile.id)}" >${prettyId(sacProfile.id)}</a>${
-          sacEmails[index] ? `(${sacEmails[index]})` : ''
+    const profileLinks = profiles.map(
+      (profile, index) =>
+        `<a href="${getProfileLink(profile.id)}" >${prettyId(profile.id)}</a>${
+          emails[index] ? `(${emails[index]})` : ''
         }`
     )
-    setSacLinkText(
-      `<p class="dark">${sacText} ${prettyList(
-        sacProfileLinks,
-        'long',
-        'conjunction',
-        false
-      )}</p>`
+    return `<p class="dark">${text} ${prettyList(
+      profileLinks,
+      'long',
+      'conjunction',
+      false
+    )}</p>`
+  }
+
+  const getSACSecondaryACLinkText = async () => {
+    const sacRoleLinkText = await getRoleLinkText(
+      acConsoleData.sacProfiles,
+      prettyField(seniorAreaChairsId?.split('/')?.pop())
     )
+    const secondaryRoleLinkText = await getRoleLinkText(
+      acConsoleData.secondaryAreaChairsProfiles,
+      prettyField(secondaryAreaChairName)
+    )
+    setSacSecondaryACLinkText(`${sacRoleLinkText}${secondaryRoleLinkText}`)
   }
 
   const loadData = async () => {
@@ -356,6 +364,22 @@ const AreaChairConsole = ({ appContext }) => {
         : Promise.resolve([])
       // #endregion
 
+      // #region secondary ACs
+      const secondaryAreaChairsP = secondaryAreaChairName
+        ? api
+            .get(
+              '/edges',
+              {
+                invitation: `${venueId}/${secondaryAreaChairName}/-/Assignment`,
+                head: user.profile.id,
+                domain: group.domain,
+              },
+              { accessToken }
+            )
+            .then((result) => result?.edges?.map((edge) => edge.tail) ?? [])
+        : Promise.resolve([])
+      // #endregion
+
       // #region get ithenticate edges
       const ithenticateEdgesP = ithenticateInvitationId
         ? api
@@ -375,6 +399,7 @@ const AreaChairConsole = ({ appContext }) => {
         reviewerGroupsP,
         assignedSACsP,
         ithenticateEdgesP,
+        secondaryAreaChairsP,
       ])
 
       // #region get assigned reviewer , sac and all reviewer group members profiles
@@ -553,6 +578,12 @@ const AreaChairConsole = ({ appContext }) => {
           result[2].includes(p.email)
       )
 
+      const secondaryAreaChairsProfiles = allProfiles.filter(
+        (p) =>
+          p.content.names.some((q) => result[4].includes(q.username)) ||
+          result[4].includes(p.email)
+      )
+
       const assignedPaperRows = tableRows.filter((p) =>
         areaChairPaperNums.includes(p.note.number)
       )
@@ -569,6 +600,9 @@ const AreaChairConsole = ({ appContext }) => {
         allProfiles,
         sacProfiles: sacProfiles.map((sacProfile) => ({
           id: sacProfile.id,
+        })),
+        secondaryAreaChairsProfiles: secondaryAreaChairsProfiles.map((p) => ({
+          id: p.id,
         })),
       })
     } catch (error) {
@@ -767,8 +801,8 @@ const AreaChairConsole = ({ appContext }) => {
   }, [acConsoleData.notes])
 
   useEffect(() => {
-    getSACLinkText()
-  }, [acConsoleData.sacProfiles])
+    getSACSecondaryACLinkText()
+  }, [acConsoleData.sacProfiles, acConsoleData.secondaryAreaChairsProfiles])
 
   useEffect(() => {
     const validTabIds = [
@@ -813,7 +847,7 @@ const AreaChairConsole = ({ appContext }) => {
     <>
       <BasicHeader
         title={header?.title}
-        instructions={`${headerInstructions}${sacLinkText}`}
+        instructions={`${headerInstructions}${sacSecondaryACLinkText}`}
       />
 
       <Tabs>
