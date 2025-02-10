@@ -866,7 +866,7 @@ const DescriptionTimelineOtherConfigRow = ({
             </span>
             <br />
             <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
-              <strong>Full Venue Configuration</strong>
+              <strong>Venue Configuration Request</strong>
             </a>
             <br />
             <a href={`/group/edit?id=${venueId}&referrer=${referrerUrl}`}>
