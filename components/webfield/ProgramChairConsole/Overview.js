@@ -866,7 +866,7 @@ const DescriptionTimelineOtherConfigRow = ({
             </span>
             <br />
             <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
-              <strong>Full Venue Configuration</strong>npm i framer-motion
+              <strong>Full Venue Configuration</strong>
             </a>
             <br />
             <a href={`/group/edit?id=${venueId}&referrer=${referrerUrl}`}>
