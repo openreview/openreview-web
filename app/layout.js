@@ -6,7 +6,7 @@ import '../styles/components.scss'
 import { Noto_Sans } from 'next/font/google'
 import FlashAlert from '../components/FlashAlert'
 import AppInit from './AppInit'
-import { StoreProvider } from '../storeProvider'
+import StoreProvider from '../storeProvider'
 import Nav from './(Home)/Nav'
 import GoogleAnalyticsScript from './GoogleAnalyticsScript'
 

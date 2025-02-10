@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation'
 import Icon from '../../../components/Icon'
 import ErrorAlert from '../../../components/ErrorAlert'
 import api from '../../../lib/api-client'
-import { setUser } from '../../../rootSlice'
 
 const PreviousImpersonationList = ({
   previousImpersonations,
@@ -81,7 +80,6 @@ export default function Impersonate({ user, accessToken }) {
       )
 
       localStorage.setItem(`${user.profile.id}|impersonatedUsers`, JSON.stringify(trimmedList))
-      dispatch(setUser({ user: newUser, token: newToken }))
       router.replace('/profile')
       router.refresh()
     } catch (apiError) {

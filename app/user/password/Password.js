@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { use, useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import api from '../../../lib/api-client'
-import { setUser } from '../../../rootSlice'
 
 const ResetForm = ({ resetToken }) => {
   const [password, setPassword] = useState('')
@@ -33,7 +32,6 @@ const ResetForm = ({ resetToken }) => {
       promptMessage(
         'Your password has been updated. Please log in with your new password to continue.'
       )
-      dispatch(setUser(result))
       router.push('/login')
     } catch (apiError) {
       setError(apiError.message)

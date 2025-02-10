@@ -2,19 +2,19 @@
 
 import { useState, useContext, useReducer } from 'react'
 import BasicModal from './BasicModal'
-import UserContext from './UserContext'
 import ErrorAlert from './ErrorAlert'
 import api from '../lib/api-client'
 import { CreatableDropdown } from './Dropdown'
 import { ClearButton } from './IconButton'
 import useTurnstileToken from '../hooks/useTurnstileToken'
+import useUser from '../hooks/useUser'
 
 export default function FeedbackModal() {
   const [text, setText] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
-  const { accessToken } = useContext(UserContext) ?? {}
+  const { accessToken } = useUser()
   const [formData, setFormData] = useReducer((state, action) => {
     if (action.type === 'reset') return {}
     if (action.type === 'prefill') return action.payload
