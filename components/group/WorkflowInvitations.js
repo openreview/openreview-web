@@ -1,3 +1,4 @@
+/* eslint-disable arrow-body-style */
 /* globals promptError,promptMessage,$: false */
 import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
@@ -15,6 +16,7 @@ import {
   getSubInvitationContentFieldDisplayValue,
   prettyField,
   prettyId,
+  prettyInvitationId,
 } from '../../lib/utils'
 import InvitationContentEditor from './InvitationContentEditor'
 import Dropdown from '../Dropdown'
@@ -26,6 +28,61 @@ import LoadingSpinner from '../LoadingSpinner'
 dayjs.extend(isSameOrBefore)
 dayjs.extend(timezone)
 dayjs.extend(utc)
+
+const WorkflowGroupRow = ({ group, groupInvitations }) => {
+  const [activeGroupInvitation, setActivateGroupInvitation] = useState(null)
+  return (
+    <div className="group-workflow">
+      <span className="group-cdate">{group.formattedCDate} </span>
+      <div className="group-content">
+        <div>
+          {group.web ? (
+            <a
+              href={`/group?id=${group.id}&referrer=${encodeURIComponent(
+                `[${group.domain}](/group/edit?id=${group.domain})`
+              )}`}
+            >
+              <span className="group-id">{prettyId(group.id, true)}</span>
+            </a>
+          ) : (
+            <span className="group-id">{prettyId(group.id, true)}</span>
+          )}
+          <a className="id-icon" href={`/group/edit?id=${group.id}`}>
+            <Icon name="new-window" />
+          </a>
+          <span className="member-count">Group of {group.members?.length}</span>
+          <Markdown text={group.description} />
+        </div>
+        <div className="group-invitations">
+          {groupInvitations.map((groupInvitation) => {
+            return (
+              <button
+                key={groupInvitation.id}
+                className="btn btn-xs mr-2"
+                onClick={() => setActivateGroupInvitation(groupInvitation)}
+              >
+                Add {prettyInvitationId(groupInvitation.id)}
+              </button>
+            )
+          })}
+        </div>
+        <div>
+          {activeGroupInvitation && (
+            <InvitationContentEditor
+              invitation={activeGroupInvitation}
+              existingValue={{}}
+              closeInvitationEditor={() => setActivateGroupInvitation(null)}
+              onInvitationEditPosted={() => {
+                promptMessage('Edit is posted')
+              }}
+              isGroupInvitation={true}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const WorflowInvitationRow = ({
   subInvitation,
@@ -316,6 +373,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const [workflowGroups, setWorkflowGroups] = useState([])
   const [workflowInvitations, setWorkflowInvitations] = useState([])
   const [stageInvitations, setStageInvitations] = useState([])
+  const [groupInvitations, setGroupInvitations] = useState([])
   const [processLogs, setProcessLogs] = useState([])
   const [missingValueInvitationIds, setMissingValueInvitationIds] = useState([])
   const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
@@ -371,12 +429,22 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         : Promise.resolve([])
     getStageInvitationTemplatesP = Promise.resolve([])
 
+    const getGroupInvitationsP = api.getAll(
+      '/invitations',
+      {
+        prefix: groupId,
+        type: 'group',
+      },
+      { accessToken }
+    )
+
     try {
       // eslint-disable-next-line no-shadow
-      const [groups, invitations, stageInvitations] = await Promise.all([
+      const [groups, invitations, stageInvitations, groupInvitaitons] = await Promise.all([
         getAllGroupsP,
         getAllInvitationsP,
         getStageInvitationTemplatesP,
+        getGroupInvitationsP,
       ])
       const workFlowInvitations = invitations.filter(
         (p) => workflowInvitationRegex.test(p.id) && p.type !== 'meta'
@@ -411,6 +479,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       )
       setAllInvitations(invitations)
       setStageInvitations(stageInvitations)
+      setGroupInvitations(groupInvitaitons)
       loadProcessLogs()
     } catch (error) {
       promptError(error.message)
@@ -448,34 +517,22 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           className="workflow"
         >
           <div className="container group-workflow-container">
-            {workflowGroups.map((stepObj) => (
-              <div key={stepObj.id} className="group-workflow">
-                <span className="group-cdate">{stepObj.formattedCDate} </span>
-                <div className="group-content">
-                  {stepObj.web ? (
-                    <a
-                      className="id-icon"
-                      href={`/group?id=${stepObj.id}&referrer=${encodeURIComponent(
-                        `[${stepObj.domain}](/group/edit?id=${stepObj.domain})`
-                      )}`}
-                    >
-                      <span className="group-id">{prettyId(stepObj.id, true)}</span>
-                    </a>
-                  ) : (
-                    <span className="group-id">{prettyId(stepObj.id, true)}</span>
-                  )}
-                  <a className="id-icon" href={`/group/edit?id=${stepObj.id}`}>
-                    <Icon name="new-window" />
-                  </a>
-                  <span className="member-count">Group of {stepObj.members?.length}</span>
-                  <Markdown text={stepObj.description} />
-                </div>
-              </div>
-            ))}
+            {workflowGroups.map((stepObj) => {
+              const groupInvitationsForGroup = groupInvitations.filter((p) =>
+                p.id.startsWith(`${stepObj.id}/`)
+              )
+              return (
+                <WorkflowGroupRow
+                  key={stepObj.id}
+                  group={stepObj}
+                  groupInvitations={groupInvitationsForGroup}
+                />
+              )
+            })}
           </div>
         </EditorSection>
       )}
-      {workflowInvitations.length > 0 && (
+      {false && workflowInvitations.length > 0 && (
         <EditorSection
           title={`Workflow Invitations (${workflowInvitations.length})`}
           className="workflow"

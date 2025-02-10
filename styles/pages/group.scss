@@ -1253,11 +1253,12 @@ main.invitation {
           margin-right: 0.5rem;
           color: black;
           font-size: 0.65rem;
-          align-self: center;
         }
         .group-content {
           max-width: 80%;
           display: flex;
+          flex-direction: column;
+          flex-grow: 1;
 
           .group-id {
             color: black;
@@ -1268,6 +1269,10 @@ main.invitation {
           .member-count {
             margin-left: 0.5rem;
             color: #ff9900;
+          }
+
+          .group-invitations {
+            margin-bottom: 0.25rem;
           }
         }
       }
