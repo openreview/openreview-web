@@ -1,8 +1,6 @@
-/* globals promptMessage: false */
-/* globals promptError: false */
-/* globals view2: false */
+/* globals promptMessage,$: false */
 
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
 import copy from 'copy-to-clipboard'
 import truncate from 'lodash/truncate'
@@ -78,6 +76,10 @@ export default function ForumReply({
       setActiveEditInvitation(activeInvitation ? null : invitation)
     }
   }
+
+  useEffect(() => {
+    $('.forum-replies-container [data-toggle="tooltip"]').tooltip({ html: true })
+  }, [collapsed])
 
   if (collapsed) {
     // Collapsed reply
@@ -457,7 +459,7 @@ function CopyLinkButton({ forumId, noteId }) {
     if (!window.location) return
 
     copy(`${window.location.origin}${window.location.pathname}?id=${forumId}&noteId=${noteId}`)
-    promptMessage('Reply URL copied to clipboard', { scrollToTop: false })
+    promptMessage(`URL of note ${noteId} copied to clipboard`, { scrollToTop: false })
   }
 
   return (
@@ -466,7 +468,7 @@ function CopyLinkButton({ forumId, noteId }) {
         onClick={(e) => e.preventDefault()}
         href={`${window.location.origin}${window.location.pathname}?id=${forumId}&noteId=${noteId}`}
       >
-        <Icon name="link" tooltip="Copy reply URL" />
+        <Icon name="link" tooltip={`Copy URL of note ${noteId}`} />
       </a>
     </button>
   )
