@@ -532,7 +532,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           </div>
         </EditorSection>
       )}
-      {false && workflowInvitations.length > 0 && (
+      {workflowInvitations.length > 0 && (
         <EditorSection
           title={`Workflow Invitations (${workflowInvitations.length})`}
           className="workflow"
