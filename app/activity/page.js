@@ -30,11 +30,12 @@ export default async function page() {
     )
     .then((result) => {
       const edits = result.edits || []
-      return edits
-        .map((edit) => ({ ...edit, apiVersion: 2 }))
-        .sort((a, b) => b.tmdate - a.tmdate)
+      return {
+        activityNotes: edits
+          .map((edit) => ({ ...edit, apiVersion: 2 }))
+          .sort((a, b) => b.tmdate - a.tmdate),
+      }
     })
-    .then((edits) => edits.map((edit) => ({ ...edit, apiVersion: 2 })))
     .catch((error) => {
       console.log('Error in activityDataP', {
         page: 'activity',
