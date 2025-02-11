@@ -106,11 +106,19 @@ const AssignmentRow = ({
   handleUndeployMatcher,
   referrer,
   shouldShowDeployLink,
+  preferredEmailInvitationId,
 }) => {
   const [loading, setLoading] = useState(false)
   const noteContent = getNoteContentValues(note.content)
-  const edgeBrowserUrl = getEdgeBrowserUrl(noteContent, { version: 2 })
-  const edgeEditUrl = getEdgeBrowserUrl(noteContent, { editable: true, version: 2 })
+  const edgeBrowserUrl = getEdgeBrowserUrl(noteContent, {
+    version: 2,
+    preferredEmailInvitationId,
+  })
+  const edgeEditUrl = getEdgeBrowserUrl(noteContent, {
+    editable: true,
+    version: 2,
+    preferredEmailInvitationId,
+  })
   const { status, error_message: errorMessage } = noteContent
 
   return (
@@ -249,6 +257,7 @@ export default function Assignments({
   query,
   configInvitation,
   accessToken,
+  preferredEmailInvitationId,
 }) {
   const { notes: allConfigNotes = [], count, errorMessage } = use(assignmentNotesP)
   if (errorMessage) throw new Error(errorMessage)
@@ -380,6 +389,7 @@ export default function Assignments({
                   })`
                 )}
                 shouldShowDeployLink={shouldShowDeployLink}
+                preferredEmailInvitationId={preferredEmailInvitationId}
               />
             ))}
           </Table>

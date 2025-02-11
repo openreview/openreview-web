@@ -11,7 +11,7 @@ const ErrorDisplay = ({ statusCode, message }) => {
   const handleLogout = async () => {
     try {
       await api.post('/logout')
-      router.refresh()
+      router.replace('/')
       window.localStorage.setItem('openreview.lastLogout', Date.now())
     } catch (error) {
       console.log('Error in ErrorDisplay', {

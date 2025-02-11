@@ -35,6 +35,7 @@ export default function ProfileEntity(props) {
   } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useUser()
   const query = useSearchParams()
+  const preferredEmailInvitationId = query.get('preferredEmailInvitationId')
 
   if (!props.profile || !props.profile.content) {
     return null
@@ -155,7 +156,7 @@ export default function ProfileEntity(props) {
   const getEmail = async () => {
     try {
       const result = await api.get(`/edges`, {
-        invitation: query.preferredEmailInvitationId,
+        invitation: preferredEmailInvitationId,
         head: id,
       })
       const email = result.edges?.[0]?.tail
@@ -473,8 +474,8 @@ export default function ProfileEntity(props) {
         </h3>
         <p>{content.title}</p>
         <h3>
-          {!query.preferredEmailInvitationId && <span>({content.email})</span>}
-          {query.preferredEmailInvitationId && !content.isDummyProfile && (
+          {!preferredEmailInvitationId && <span>({content.email})</span>}
+          {preferredEmailInvitationId && !content.isDummyProfile && (
             <span
               onClick={(e) => {
                 e.stopPropagation()

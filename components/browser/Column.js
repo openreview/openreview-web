@@ -285,11 +285,11 @@ export default function Column(props) {
       editInvitations?.[0]?.id ?? traverseInvitation.id,
       true
     ).toLowerCase()
-    if (query.filter) {
+    if (query.get('filter')) {
       return (
         <>
           {`Show ${group} available for ${invitation} `}
-          <Icon name="info-sign" tooltip={query.filter} />
+          <Icon name="info-sign" tooltip={query.get('filter')} />
         </>
       )
     }
@@ -585,12 +585,14 @@ export default function Column(props) {
 
   const filterQuotaReachedItems = (colItems) => {
     if (!hideQuotaReached) return colItems
-    if (query.filter) {
+    if (query.get('filter')) {
       const { filteredRows, queryIsInvalid } = filterCollections(
         colItems.map((p) => {
           const customLoad = getQuota(p)
           const quotaNotReached =
-            query.check_quota === 'false' ? !p.traverseEdge : p.traverseEdgesCount < customLoad
+            query.get('check_quota') === 'false'
+              ? !p.traverseEdge
+              : p.traverseEdgesCount < customLoad
 
           return {
             ...p,
@@ -611,7 +613,7 @@ export default function Column(props) {
             ),
           }
         }),
-        `${query.filter} AND Quota=true`,
+        `${query.get('filter')} AND Quota=true`,
         ['!=', '>=', '<=', '>', '<', '==', '='],
         editAndBrowserInvitationsUnique.reduce(
           (prev, curr) => {

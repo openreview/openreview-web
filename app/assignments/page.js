@@ -37,11 +37,14 @@ export default async function page({ searchParams }) {
     'There is currently no assignment configuration ready for use. Please go to your venue request form and use the Paper Matching Setup to compute conflicts and/or affinity scores.'
 
   let configInvitation = null
+  let preferredEmailInvitationId = null
   try {
     configInvitation = await api.getInvitationById(
       `${group}/-/Assignment_Configuration`,
       accessToken
     )
+    const domainGroup = await api.getGroupById(configInvitation.domain, accessToken)
+    preferredEmailInvitationId = domainGroup?.content?.preferred_emails_id?.value
   } catch (error) {
     console.log('Error in configInvitation', {
       page: 'assignments',
@@ -101,6 +104,7 @@ export default async function page({ searchParams }) {
               query={query}
               configInvitation={configInvitation}
               accessToken={accessToken}
+              preferredEmailInvitationId={preferredEmailInvitationId}
             />
           ) : (
             <V1Assignments
