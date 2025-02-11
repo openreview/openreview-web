@@ -11,6 +11,7 @@ import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
 import {
   formatDateTime,
+  getMetaInvitationId,
   getPath,
   getSubInvitationContentFieldDisplayValue,
   prettyField,
@@ -23,6 +24,7 @@ import Markdown from '../EditorComponents/Markdown'
 import Icon from '../Icon'
 import useSocket from '../../hooks/useSocket'
 import LoadingSpinner from '../LoadingSpinner'
+import useUser from '../../hooks/useUser'
 
 dayjs.extend(isSameOrBefore)
 dayjs.extend(timezone)
@@ -93,8 +95,8 @@ const WorflowInvitationRow = ({
 }) => {
   const [showInvitationEditor, setShowInvitationEditor] = useState(false)
   const invitationName = prettyField(subInvitation.id.split('/').pop())
-  const isGroupInvitation = subInvitation.edit?.group // sub invitation can be group invitation too
   const [subInvitationContentFieldValues, setSubInvitationContentFieldValues] = useState({})
+  const isGroupInvitation = subInvitation.edit?.group // sub invitation can be group invitation too
 
   const existingValue = isGroupInvitation
     ? {}
@@ -296,11 +298,20 @@ const EditInvitationProcessLogStatus = ({ processLogs }) => {
   }
 }
 
-const EditInvitationRow = ({ invitation, isDomainGroup, processLogs }) => {
+const EditInvitationRow = ({
+  invitation,
+  isDomainGroup,
+  processLogs,
+  isExpired,
+  loadWorkflowInvitations,
+}) => {
   const [showEditor, setShowEditor] = useState(false)
+  const { user, accessToken } = useUser()
+  const profileId = user?.profile?.id
 
   const innerInvitationInvitee = invitation.edit?.invitation?.invitees
   const invitees = innerInvitationInvitee ?? invitation.invitees
+  const isStageInvitaiton = invitation.duedate || invitation.edit?.invitation
 
   const renderInvitee = (invitee) => {
     if (invitee === invitation.domain) return 'Administrators'
@@ -312,12 +323,48 @@ const EditInvitationRow = ({ invitation, isDomainGroup, processLogs }) => {
       )
   }
 
+  const expireRestoreInvitation = async () => {
+    try {
+      await api.post(
+        '/invitations/edits',
+        {
+          invitation: {
+            cdate: invitation.cdate,
+            id: invitation.id,
+            signatures: invitation.signatures,
+            bulk: invitation.bulk,
+            duedate: invitation.duedate,
+            expdate: isExpired ? { delete: true } : dayjs().valueOf(),
+            invitees: invitation.invitees,
+            noninvitees: invitation.noninvitees,
+            nonreaders: invitation.nonreaders,
+            readers: invitation.readers,
+            writers: invitation.writers,
+          },
+          readers: [profileId],
+          writers: [profileId],
+          signatures: [profileId],
+          invitations: getMetaInvitationId(invitation),
+        },
+        { accessToken }
+      )
+      promptMessage(
+        `${prettyId(invitation.id)} has been ${isExpired ? 'restored' : 'skipped'}.`,
+        { scrollToTop: false }
+      )
+      loadWorkflowInvitations()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   return (
     <div className="edit-invitation-container">
       <div className="invitation-content">
         <div className="invitation-id-container">
           <span className="workflow-invitation-id">
-            {prettyId(invitation.id.replace(invitation.domain, ''), true)}
+            {prettyId(invitation.id.replace(invitation.domain, ''), true)} (
+            {isStageInvitaiton ? 'Stage Invitation' : 'Run Invitation'})
           </span>
           <a className="id-icon" href={`/invitation/edit?id=${invitation.id}`}>
             <Icon name="new-window" />
@@ -340,6 +387,11 @@ const EditInvitationRow = ({ invitation, isDomainGroup, processLogs }) => {
                 {index < invitees.length - 1 && ', '}
               </span>
             ))}
+          </div>
+          <div className="expire-button">
+            <button className="btn btn-xs" onClick={expireRestoreInvitation}>
+              {isExpired ? 'Restore' : 'Skip'}
+            </button>
           </div>
         </div>
         {invitation.description && <Markdown text={invitation.description} />}
@@ -378,6 +430,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
   const workflowInvitationsRef = useRef({})
   const workflowInvitationRegex = RegExp(`^${groupId}/-/[^/]+$`)
+  const [collapsedWorkflowInvitationIds, setCollapsedWorkflowInvitationIds] = useState([])
 
   const loadProcessLogs = async () => {
     try {
@@ -553,6 +606,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               const isNextStepAfterToday = dayjs(
                 workflowInvitations[index + 1]?.cdate
               ).isAfter(dayjs())
+              const isCollapsed = collapsedWorkflowInvitationIds.includes(stepObj.id)
 
               if (isBeforeToday && isNextStepAfterToday) {
                 return (
@@ -571,6 +625,25 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                         <div
                           className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
                         >
+                          {subInvitations.length > 0 && (
+                            <div
+                              className="collapse-invitation"
+                              onClick={() => {
+                                if (isCollapsed) {
+                                  setCollapsedWorkflowInvitationIds((ids) =>
+                                    ids.filter((id) => id !== stepObj.id)
+                                  )
+                                } else {
+                                  setCollapsedWorkflowInvitationIds((ids) => [
+                                    ...ids,
+                                    stepObj.id,
+                                  ])
+                                }
+                              }}
+                            >
+                              <Icon name={isCollapsed ? 'collapse-down' : 'collapse-up'} />
+                            </div>
+                          )}
                           {stepObj.formattedCDate}
                         </div>
                         <div className="edit-invitation-info">
@@ -578,9 +651,12 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                             invitation={stepObj}
                             isDomainGroup={group.id !== group.domain}
                             processLogs={processLogs}
+                            isExpired={isExpired}
+                            loadWorkflowInvitations={loadAllInvitations}
                           />
 
-                          {subInvitations.length > 0 &&
+                          {!isCollapsed &&
+                            subInvitations.length > 0 &&
                             subInvitations.map((subInvitation) => (
                               <WorflowInvitationRow
                                 key={subInvitation.id}
@@ -629,6 +705,22 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                     <div
                       className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
                     >
+                      {subInvitations.length > 0 && (
+                        <div
+                          className="collapse-invitation"
+                          onClick={() => {
+                            if (isCollapsed) {
+                              setCollapsedWorkflowInvitationIds((ids) =>
+                                ids.filter((id) => id !== stepObj.id)
+                              )
+                            } else {
+                              setCollapsedWorkflowInvitationIds((ids) => [...ids, stepObj.id])
+                            }
+                          }}
+                        >
+                          <Icon name={isCollapsed ? 'collapse-down' : 'collapse-up'} />
+                        </div>
+                      )}
                       {stepObj.formattedCDate}
                     </div>
                     <div className="edit-invitation-info">
@@ -636,9 +728,12 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                         invitation={stepObj}
                         isDomainGroup={group.id !== group.domain}
                         processLogs={processLogs}
+                        isExpired={isExpired}
+                        loadWorkflowInvitations={loadAllInvitations}
                       />
 
-                      {subInvitations.length > 0 &&
+                      {!isCollapsed &&
+                        subInvitations.length > 0 &&
                         subInvitations.map((subInvitation) => (
                           <WorflowInvitationRow
                             key={subInvitation.id}
