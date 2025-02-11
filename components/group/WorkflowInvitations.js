@@ -498,9 +498,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         getStageInvitationTemplatesP,
         getGroupInvitationsP,
       ])
-      const workFlowInvitations = invitations.filter(
-        (p) => workflowInvitationRegex.test(p.id) && p.type !== 'meta'
-      )
+      const specifiedWorkflowInvitations = group.content?.workflow_invitations?.value
+      const workFlowInvitations = specifiedWorkflowInvitations?.length
+        ? invitations.filter((p) => specifiedWorkflowInvitations.includes(p.id))
+        : invitations.filter((p) => workflowInvitationRegex.test(p.id) && p.type !== 'meta')
+      setCollapsedWorkflowInvitationIds(workFlowInvitations.map((p) => p.id))
       setWorkflowInvitations(
         sortBy(
           workFlowInvitations.map((p) => ({
