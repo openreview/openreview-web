@@ -2,8 +2,6 @@ import Link from 'next/link'
 import Sponsor from '../sponsor'
 import styles from '../Sponsors.module.scss'
 
-export const dynamic = 'force-static'
-
 export const metadata = {
   title: 'Sponsors 2019-2022 | OpenReview',
 }

@@ -1,7 +1,5 @@
 import Link from 'next/link'
 
-export const dynamic = 'force-static'
-
 export const metadata = {
   title: 'Privacy Policy | OpenReview',
 }
