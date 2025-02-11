@@ -388,8 +388,8 @@ const EditInvitationRow = ({
               </span>
             ))}
           </div>
-          <div className="expire-link">
-            <a onClick={expireRestoreInvitation}>{isExpired ? 'Restore' : 'Skip'}</a>
+          <div className="expire-link" onClick={expireRestoreInvitation}>
+            <a>{isExpired ? 'Restore' : 'Skip'}</a>
           </div>
         </div>
         {invitation.description && <Markdown text={invitation.description} />}
