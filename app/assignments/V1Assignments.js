@@ -163,6 +163,7 @@ const AssignmentRow = ({
 
 export default function V1Assignments({ configInvitation, query, accessToken }) {
   const [assignmentNotes, setAssignmentNotes] = useState(null)
+  const [preferredEmailInvitationId, setPreferredEmailInvitationId] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [error, setError] = useState(null)
