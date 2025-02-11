@@ -550,11 +550,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               )
               const isBeforeToday = dayjs(stepObj.cdate).isSameOrBefore(dayjs())
               const isExpired = dayjs(stepObj.expdate).isBefore(dayjs())
-              const isExecuted =
-                dayjs(stepObj.cdate).isBefore(dayjs()) &&
-                dayjs(processLogs.find((p) => p.invitation === invitationId)?.edate).isBefore(
-                  dayjs()
-                )
               const isNextStepAfterToday = dayjs(
                 workflowInvitations[index + 1]?.cdate
               ).isAfter(dayjs())
@@ -571,7 +566,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                   >
                     <React.Fragment key={invitationId}>
                       <div
-                        className={`workflow-invitation-container${isExpired ? ' expired' : ''}${isExecuted ? ' executed' : ''}`}
+                        className={`workflow-invitation-container${isExpired ? ' expired' : ''}`}
                       >
                         <div
                           className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
@@ -629,7 +624,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                 >
                   <div
                     key={invitationId}
-                    className={`workflow-invitation-container${isExpired ? ' expired' : ''}${isExecuted ? ' executed' : ''}`}
+                    className={`workflow-invitation-container${isExpired ? ' expired' : ''}`}
                   >
                     <div
                       className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
