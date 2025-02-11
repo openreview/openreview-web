@@ -388,10 +388,8 @@ const EditInvitationRow = ({
               </span>
             ))}
           </div>
-          <div className="expire-button">
-            <button className="btn btn-xs" onClick={expireRestoreInvitation}>
-              {isExpired ? 'Restore' : 'Skip'}
-            </button>
+          <div className="expire-link">
+            <a onClick={expireRestoreInvitation}>{isExpired ? 'Restore' : 'Skip'}</a>
           </div>
         </div>
         {invitation.description && <Markdown text={invitation.description} />}
@@ -424,7 +422,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const [workflowGroups, setWorkflowGroups] = useState([])
   const [workflowInvitations, setWorkflowInvitations] = useState([])
   const [stageInvitations, setStageInvitations] = useState([])
-  const [groupInvitations, setGroupInvitations] = useState([])
   const [processLogs, setProcessLogs] = useState([])
   const [missingValueInvitationIds, setMissingValueInvitationIds] = useState([])
   const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
@@ -460,16 +457,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       )
       .then((groups) => groups.filter((p) => !p.id.includes(submissionName)))
 
-    const specifiedWorkflowInvitationIds = group.content?.workflow_invitations?.value
-    const getAllInvitationsP = specifiedWorkflowInvitationIds?.length
-      ? await api
-          .get(
-            '/invitations',
-            { ids: specifiedWorkflowInvitationIds, expired: true, details: 'writableWith' },
-            { accessToken }
-          )
-          .then((result) => result.invitations)
-      : []
+    const getAllInvitationsP = await api.getAll(
+      '/invitations',
+      { prefix: groupId, expired: true, type: 'all', details: 'writableWith' },
+      { accessToken }
+    )
 
     let getStageInvitationTemplatesP =
       group.id === group.domain
@@ -485,25 +477,19 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         : Promise.resolve([])
     getStageInvitationTemplatesP = Promise.resolve([])
 
-    const getGroupInvitationsP = api.getAll(
-      '/invitations',
-      {
-        prefix: groupId,
-        type: 'group',
-      },
-      { accessToken }
-    )
-
     try {
       // eslint-disable-next-line no-shadow
-      const [groups, invitations, stageInvitations, groupInvitaitons] = await Promise.all([
+      const [groups, invitations, stageInvitations] = await Promise.all([
         getAllGroupsP,
         getAllInvitationsP,
         getStageInvitationTemplatesP,
-        getGroupInvitationsP,
       ])
 
-      const workFlowInvitations = invitations
+      const specifiedWorkflowInvitations = group.content?.workflow_invitations?.value
+      const workFlowInvitations = specifiedWorkflowInvitations?.length
+        ? invitations.filter((p) => specifiedWorkflowInvitations.includes(p.id))
+        : []
+
       setCollapsedWorkflowInvitationIds(workFlowInvitations.map((p) => p.id))
       setWorkflowInvitations(
         sortBy(
@@ -535,7 +521,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       )
       setAllInvitations(invitations)
       setStageInvitations(stageInvitations)
-      setGroupInvitations(groupInvitaitons)
       loadProcessLogs()
     } catch (error) {
       promptError(error.message)
@@ -574,8 +559,8 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         >
           <div className="container group-workflow-container">
             {workflowGroups.map((stepObj) => {
-              const groupInvitationsForGroup = groupInvitations.filter(
-                (p) => p.edit.group.id === stepObj.id
+              const groupInvitationsForGroup = allInvitations.filter(
+                (p) => p.edit?.group?.id === stepObj.id
               )
               return (
                 <WorkflowGroupRow
@@ -602,8 +587,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           <div className="container invitation-workflow-container">
             {workflowInvitations.map((stepObj, index) => {
               const invitationId = stepObj.id
-              const subInvitations = allInvitations.filter((i) =>
-                i.id.startsWith(`${invitationId}/`)
+              // const subInvitations = allInvitations.filter((i) =>
+              //   i.id.startsWith(`${invitationId}/`)
+              // )
+              const subInvitations = allInvitations.filter(
+                (i) => i.edit?.invitation?.id === invitationId
               )
               const isBeforeToday = dayjs(stepObj.cdate).isSameOrBefore(dayjs())
               const isExpired = dayjs(stepObj.expdate).isBefore(dayjs())

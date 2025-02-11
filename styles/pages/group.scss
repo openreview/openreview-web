@@ -1387,8 +1387,13 @@ main.invitation {
                 max-width: unset;
               }
 
-              .expire-button {
+              .expire-link {
                 margin-left: 0.5rem;
+                text-decoration: none;
+                cursor: pointer;
+                a {
+                  display: inline-block;
+                }
               }
             }
 
