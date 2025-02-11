@@ -429,7 +429,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const [missingValueInvitationIds, setMissingValueInvitationIds] = useState([])
   const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
   const workflowInvitationsRef = useRef({})
-  const workflowInvitationRegex = RegExp(`^${groupId}/-/[^/]+$`)
   const [collapsedWorkflowInvitationIds, setCollapsedWorkflowInvitationIds] = useState([])
 
   const loadProcessLogs = async () => {
@@ -461,11 +460,16 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       )
       .then((groups) => groups.filter((p) => !p.id.includes(submissionName)))
 
-    const getAllInvitationsP = await api.getAll(
-      '/invitations',
-      { prefix: `${groupId}/-/.*`, expired: true, type: 'all', details: 'writableWith' },
-      { accessToken }
-    )
+    const specifiedWorkflowInvitationIds = group.content?.workflow_invitations?.value
+    const getAllInvitationsP = specifiedWorkflowInvitationIds?.length
+      ? await api
+          .get(
+            '/invitations',
+            { ids: specifiedWorkflowInvitationIds, expired: true, details: 'writableWith' },
+            { accessToken }
+          )
+          .then((result) => result.invitations)
+      : []
 
     let getStageInvitationTemplatesP =
       group.id === group.domain
@@ -498,10 +502,8 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         getStageInvitationTemplatesP,
         getGroupInvitationsP,
       ])
-      const specifiedWorkflowInvitations = group.content?.workflow_invitations?.value
-      const workFlowInvitations = specifiedWorkflowInvitations?.length
-        ? invitations.filter((p) => specifiedWorkflowInvitations.includes(p.id))
-        : invitations.filter((p) => workflowInvitationRegex.test(p.id) && p.type !== 'meta')
+
+      const workFlowInvitations = invitations
       setCollapsedWorkflowInvitationIds(workFlowInvitations.map((p) => p.id))
       setWorkflowInvitations(
         sortBy(
