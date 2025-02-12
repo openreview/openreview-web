@@ -1321,12 +1321,17 @@ main.invitation {
         font-size: 0.7rem;
         font-style: italic;
         display: flex;
+        justify-content: end;
 
         .collapse-invitation {
           color: constants.$subtleGray;
           margin-right: 0.25rem;
           cursor: pointer;
           font-size: 0.85rem;
+        }
+
+        .cdate {
+          max-width: 80%;
         }
 
         &.missing-value {
