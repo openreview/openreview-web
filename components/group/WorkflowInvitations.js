@@ -636,7 +636,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                               <Icon name={isCollapsed ? 'collapse-down' : 'collapse-up'} />
                             </div>
                           )}
-                          {stepObj.formattedCDate}
+                          <span className="cdate">{stepObj.formattedCDate}</span>
                         </div>
                         <div className="edit-invitation-info">
                           <EditInvitationRow
@@ -713,7 +713,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                           <Icon name={isCollapsed ? 'collapse-down' : 'collapse-up'} />
                         </div>
                       )}
-                      {stepObj.formattedCDate}
+                      <span className="cdate">{stepObj.formattedCDate}</span>
                     </div>
                     <div className="edit-invitation-info">
                       <EditInvitationRow
