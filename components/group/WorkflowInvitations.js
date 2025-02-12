@@ -247,7 +247,6 @@ const EditInvitationProcessLogStatus = ({ processLogs }) => {
           second: undefined,
           timeZoneName: 'short',
           hour12: false,
-          locale: 'en-GB',
         })
       : null
     return (
@@ -266,7 +265,6 @@ const EditInvitationProcessLogStatus = ({ processLogs }) => {
         second: undefined,
         timeZoneName: 'short',
         hour12: false,
-        locale: 'en-GB',
       })
     : null
   switch (lastProcessLog?.status) {
@@ -311,10 +309,7 @@ const EditInvitationRow = ({
 
   const innerInvitationInvitee = invitation.edit?.invitation?.invitees
   const invitees = innerInvitationInvitee ?? invitation.invitees
-  const isStageInvitaiton = invitation.duedate || invitation.edit?.invitation
-  const isCreatingSubInvitations = Object.entries(invitation.content ?? {}).some(
-    ([key, valueObj]) => key.endsWith('_script') && typeof valueObj.value === 'string'
-  )
+  const isCreatingSubInvitations = invitation.dateprocesses?.length > 0
 
   const renderInvitee = (invitee) => {
     if (invitee === invitation.domain) return 'Administrators'
@@ -366,8 +361,7 @@ const EditInvitationRow = ({
       <div className="invitation-content">
         <div className="invitation-id-container">
           <span className="workflow-invitation-id">
-            {prettyId(invitation.id.replace(invitation.domain, ''), true)} (
-            {isStageInvitaiton ? 'Stage Invitation' : 'Run Invitation'})
+            {prettyId(invitation.id.replace(invitation.domain, ''), true)}
           </span>
           <a className="id-icon" href={`/invitation/edit?id=${invitation.id}`}>
             <Icon name="new-window" />
@@ -496,20 +490,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         : []
 
       setCollapsedWorkflowInvitationIds(workFlowInvitations.map((p) => p.id))
-      setWorkflowInvitations(
-        sortBy(
-          workFlowInvitations.map((p) => ({
-            ...p,
-            formattedCDate: formatDateTime(p.cdate, {
-              second: undefined,
-              locale: 'en-GB',
-              timeZoneName: 'short',
-              hour12: false,
-            }),
-          })),
-          'cdate'
-        )
-      )
+      setWorkflowInvitations(sortBy(workFlowInvitations, 'cdate'))
       setWorkflowGroups(
         sortBy(
           groups.map((p) => ({
@@ -518,7 +499,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               second: undefined,
               minute: undefined,
               hour: undefined,
-              locale: 'en-GB',
             }),
           })),
           'cdate'
@@ -604,6 +584,41 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                 workflowInvitations[index + 1]?.cdate
               ).isAfter(dayjs())
               const isCollapsed = collapsedWorkflowInvitationIds.includes(stepObj.id)
+              const isStageInvitation = stepObj.duedate || stepObj.edit?.invitation
+              const formattedCDate = formatDateTime(stepObj.cdate, {
+                second: undefined,
+                minute: undefined,
+                hour: undefined,
+                year: undefined,
+                weekday: 'short',
+              })
+              const formattedDueDate = formatDateTime(
+                isStageInvitation
+                  ? (stepObj.duedate ?? stepObj.edit?.invitation?.duedate)
+                  : stepObj.duedate,
+                {
+                  second: undefined,
+                  minute: undefined,
+                  hour: undefined,
+                  year: undefined,
+                  weekday: 'short',
+                }
+              )
+              let formattedDate = null
+              if (isStageInvitation) {
+                formattedDate = (
+                  <div className="cdate">
+                    <span>{formattedCDate}</span>
+                    <span>{` - ${formattedDueDate ?? 'no deadline'}`}</span>
+                  </div>
+                )
+              } else {
+                formattedDate = (
+                  <div className="cdate">
+                    <span>{formattedCDate}</span>
+                  </div>
+                )
+              }
 
               if (isBeforeToday && isNextStepAfterToday) {
                 return (
@@ -641,7 +656,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                               <Icon name={isCollapsed ? 'collapse-down' : 'collapse-up'} />
                             </div>
                           )}
-                          <span className="cdate">{stepObj.formattedCDate}</span>
+                          {formattedDate}
                         </div>
                         <div className="edit-invitation-info">
                           <EditInvitationRow
@@ -702,23 +717,21 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                     <div
                       className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
                     >
-                      {subInvitations.length > 0 && (
-                        <div
-                          className="collapse-invitation"
-                          onClick={() => {
-                            if (isCollapsed) {
-                              setCollapsedWorkflowInvitationIds((ids) =>
-                                ids.filter((id) => id !== stepObj.id)
-                              )
-                            } else {
-                              setCollapsedWorkflowInvitationIds((ids) => [...ids, stepObj.id])
-                            }
-                          }}
-                        >
-                          <Icon name={isCollapsed ? 'collapse-down' : 'collapse-up'} />
-                        </div>
-                      )}
-                      <span className="cdate">{stepObj.formattedCDate}</span>
+                      <div
+                        className="collapse-invitation"
+                        onClick={() => {
+                          if (isCollapsed) {
+                            setCollapsedWorkflowInvitationIds((ids) =>
+                              ids.filter((id) => id !== stepObj.id)
+                            )
+                          } else {
+                            setCollapsedWorkflowInvitationIds((ids) => [...ids, stepObj.id])
+                          }
+                        }}
+                      >
+                        <Icon name={isCollapsed ? 'collapse-down' : 'collapse-up'} />
+                      </div>
+                      {formattedDate}
                     </div>
                     <div className="edit-invitation-info">
                       <EditInvitationRow

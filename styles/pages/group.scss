@@ -1308,6 +1308,7 @@ main.invitation {
     .workflow-invitation-container {
       display: flex;
       margin-bottom: 0.5rem;
+      align-items: baseline;
 
       &.expired {
         color: gray;
@@ -1315,10 +1316,10 @@ main.invitation {
       }
 
       .invitation-cdate {
-        width: 8%;
+        width: 18%;
         margin-right: 0.5rem;
         color: #999999;
-        font-size: 0.7rem;
+        font-size: 0.9rem;
         font-style: italic;
         display: flex;
         justify-content: flex-end;
@@ -1331,7 +1332,8 @@ main.invitation {
         }
 
         .cdate {
-          max-width: 80%;
+          width: 95%;
+          float: right;
         }
 
         &.missing-value {

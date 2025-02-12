@@ -499,7 +499,7 @@ describe('utils', () => {
       },
     }
     path = 'edit.invitation.expdate'
-    expectedValue = 'Sep 19, 2024, 13:21'
+    expectedValue = 'Sep 19, 2024, 13:21 UTC'
     resultValue = getSubInvitationContentFieldDisplayValue(
       workflowInvitation,
       path,
