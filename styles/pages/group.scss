@@ -1321,7 +1321,7 @@ main.invitation {
         font-size: 0.7rem;
         font-style: italic;
         display: flex;
-        justify-content: end;
+        justify-content: flex-end;
 
         .collapse-invitation {
           color: constants.$subtleGray;
