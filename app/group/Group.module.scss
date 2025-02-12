@@ -1325,6 +1325,7 @@
           justify-content: flex-end;
 
           .collapse-invitation {
+            width: 10%;
             color: constants.$subtleGray;
             margin-right: 0.25rem;
             cursor: pointer;
@@ -1332,7 +1333,7 @@
           }
 
           .cdate {
-            width: 95%;
+            width: 90%;
             float: right;
           }
 

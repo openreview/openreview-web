@@ -92,6 +92,7 @@ const WorflowInvitationRow = ({
   domainObject,
   setMissingValueInvitationIds,
   workflowInvitationsRef,
+  isCollapsed,
 }) => {
   const [showInvitationEditor, setShowInvitationEditor] = useState(false)
   const invitationName = prettyField(subInvitation.id.split('/').pop())
@@ -134,6 +135,7 @@ const WorflowInvitationRow = ({
     setSubInvitationContentFieldValues(contentFieldValueMap)
   }, [subInvitation])
 
+  if (isCollapsed) return <div className="sub-invitation-container" />
   return (
     <div className="sub-invitation-container">
       <ul>
@@ -667,8 +669,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                             loadWorkflowInvitations={loadAllInvitations}
                           />
 
-                          {!isCollapsed &&
-                            subInvitations.length > 0 &&
+                          {subInvitations.length > 0 &&
                             subInvitations.map((subInvitation) => (
                               <WorflowInvitationRow
                                 key={subInvitation.id}
@@ -678,18 +679,23 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                                 domainObject={group.content}
                                 setMissingValueInvitationIds={setMissingValueInvitationIds}
                                 workflowInvitationsRef={workflowInvitationsRef}
+                                isCollapsed={isCollapsed}
                               />
                             ))}
                         </div>
                       </div>
                       <div key="today" className="workflow-invitation-container">
                         <div className="invitation-cdate ">
-                          {formatDateTime(dayjs().valueOf(), {
-                            second: undefined,
-                            locale: 'en-GB',
-                            timeZoneName: 'short',
-                            hour12: false,
-                          })}{' '}
+                          <div className="collapse-invitation" />
+                          <div className="cdate">
+                            {formatDateTime(dayjs().valueOf(), {
+                              second: undefined,
+                              minute: undefined,
+                              hour: undefined,
+                              year: undefined,
+                              weekday: 'short',
+                            })}{' '}
+                          </div>
                         </div>
                         <span className="invitation-content today">
                           Now
@@ -742,8 +748,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                         loadWorkflowInvitations={loadAllInvitations}
                       />
 
-                      {!isCollapsed &&
-                        subInvitations.length > 0 &&
+                      {subInvitations.length > 0 &&
                         subInvitations.map((subInvitation) => (
                           <WorflowInvitationRow
                             key={subInvitation.id}
@@ -753,6 +758,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                             domainObject={group.content}
                             setMissingValueInvitationIds={setMissingValueInvitationIds}
                             workflowInvitationsRef={workflowInvitationsRef}
+                            isCollapsed={isCollapsed}
                           />
                         ))}
                     </div>
