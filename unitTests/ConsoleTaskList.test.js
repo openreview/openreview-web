@@ -6,6 +6,7 @@ import api from '../lib/api-client'
 
 jest.mock('../lib/api-client')
 jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 let venueId, submissionName
 let authorName, reviewerName, areaChairName, seniorAreaChairName

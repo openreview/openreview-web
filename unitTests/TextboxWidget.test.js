@@ -12,6 +12,7 @@ jest.mock('../lib/utils', () => {
     getAutoStorageKey: jest.fn(() => 'some key'),
   }
 })
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 describe('TextboxWidget', () => {
   test('render input as readonly when invitation field value is a const string/string[]', () => {

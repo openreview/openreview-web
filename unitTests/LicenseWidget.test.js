@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 import LicenseWidget from '../components/EditorComponents/LicenseWidget'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 global.$ = jest.fn(() => ({ tooltip: jest.fn() })) // for Tag
 
 describe('LicenseWidget', () => {

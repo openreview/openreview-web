@@ -27,6 +27,7 @@ jest.mock('next/navigation', () => ({
   }),
   useRouter: jest.fn(),
 }))
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 global.promptError = jest.fn()
 global.DOMPurify = {

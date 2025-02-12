@@ -25,6 +25,7 @@ jest.mock('next/dynamic', () => ({
     return () => <></>
   },
 }))
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 let inputProviderProps
 let typeProviderProps

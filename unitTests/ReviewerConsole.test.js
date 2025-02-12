@@ -32,6 +32,7 @@ jest.mock('../components/webfield/NoteReviewStatus', () => ({
   },
 }))
 jest.mock('../app/CustomBanner', () => () => <span>Custom Banner</span>)
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 global.promptError = jest.fn()
 global.typesetMathJax = jest.fn()

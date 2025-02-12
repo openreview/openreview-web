@@ -11,6 +11,7 @@ jest.mock('next/navigation', () => ({
     get: () => jest.fn(),
   }),
 }))
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 describe('GroupDirectory', () => {
   test('show loading spinner when loading child groups', async () => {

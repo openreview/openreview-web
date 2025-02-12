@@ -11,6 +11,7 @@ jest.mock('../components/BasicModal', () => (props) => {
   basicModalProps = props
   return <span>Basic Modal</span>
 })
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 beforeEach(() => {
   basicModalProps = jest.fn()

@@ -10,6 +10,7 @@ jest.mock('../hooks/useUser', () => () => ({
   user: { profile: { id: '~test_id1' } },
   accessToken: 'test token',
 }))
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 global.$ = jest.fn(() => ({
   tooltip: jest.fn(),

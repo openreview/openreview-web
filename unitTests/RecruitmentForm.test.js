@@ -24,6 +24,8 @@ jest.mock('../lib/utils', () => {
     }),
   }
 })
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 global.marked = jest.fn()
 global.promptError = jest.fn()
 global.DOMPurify = {

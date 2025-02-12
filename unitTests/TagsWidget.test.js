@@ -2,6 +2,8 @@ import { screen, render } from '@testing-library/react'
 import TagsWidget from '../components/EditorComponents/TagsWidget'
 import '@testing-library/jest-dom'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 global.$ = jest.fn(() => ({
   tooltip: jest.fn(),
 }))

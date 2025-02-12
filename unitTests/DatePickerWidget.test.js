@@ -35,6 +35,7 @@ jest.mock('dayjs', () =>
     valueOf: jest.fn(() => 1234567890),
   }))
 )
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 beforeEach(() => {
   dateTimePickerProps = jest.fn()
