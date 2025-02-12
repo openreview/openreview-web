@@ -312,6 +312,9 @@ const EditInvitationRow = ({
   const innerInvitationInvitee = invitation.edit?.invitation?.invitees
   const invitees = innerInvitationInvitee ?? invitation.invitees
   const isStageInvitaiton = invitation.duedate || invitation.edit?.invitation
+  const isCreatingSubInvitations = Object.entries(invitation.content ?? {}).some(
+    ([key, valueObj]) => key.endsWith('_script') && typeof valueObj.value === 'string'
+  )
 
   const renderInvitee = (invitee) => {
     if (invitee === invitation.domain) return 'Administrators'
@@ -393,9 +396,11 @@ const EditInvitationRow = ({
           </div>
         </div>
         {invitation.description && <Markdown text={invitation.description} />}
-        <EditInvitationProcessLogStatus
-          processLogs={processLogs.filter((p) => p.invitation === invitation.id)}
-        />
+        {isCreatingSubInvitations && (
+          <EditInvitationProcessLogStatus
+            processLogs={processLogs.filter((p) => p.invitation === invitation.id)}
+          />
+        )}
       </div>
 
       {showEditor && (
