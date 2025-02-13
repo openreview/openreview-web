@@ -16,6 +16,7 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJso
       </span>
     )
   }
+
   if (fieldName === 'html') {
     return (
       <span className="note-content-value">
@@ -31,6 +32,7 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJso
       </span>
     )
   }
+
   if (fieldName === '_bibtex') {
     return (
       <div className="note-content-value">
