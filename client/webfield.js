@@ -869,7 +869,7 @@ module.exports = (function () {
     })
   }
 
-  // combind two collections by operator AND(intersection) or OR(unique union)
+  // combined two collections by operator AND(intersection) or OR(unique union)
   const combineResults = (collection1, collection2, operator, uniqueIdentifier) => {
     if (!collection1) {
       if (!collection2) {

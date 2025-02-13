@@ -251,7 +251,7 @@ describe('AreaChairConsole', () => {
     })
   })
 
-  test('show assigned SACs in header instuction (No preferred email edge)', async () => {
+  test('show assigned SACs in header instruction (No preferred email edge)', async () => {
     api.getAll = jest.fn((path) => {
       switch (path) {
         case '/groups': // all groups
@@ -356,7 +356,7 @@ describe('AreaChairConsole', () => {
     })
   })
 
-  test('show assigned SACs in header instuction (With preferred email edge)', async () => {
+  test('show assigned SACs in header instruction (With preferred email edge)', async () => {
     api.getAll = jest.fn((path) => {
       switch (path) {
         case '/groups': // all groups

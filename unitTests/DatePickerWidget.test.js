@@ -147,7 +147,7 @@ describe('DatePickerWidget used by itself', () => {
     )
   })
 
-  test('call onChange pased to DatePickerWidget', () => {
+  test('call onChange passed to DatePickerWidget', () => {
     const onChange = jest.fn()
     const clearError = jest.fn()
 

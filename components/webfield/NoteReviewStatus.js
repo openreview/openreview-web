@@ -620,7 +620,7 @@ export const EthicsReviewStatus = ({
   } = rowData
 
   const ethicsReviewersId = `${venueId}/${ethicsReviewersName}`
-  const editAssigmentUrl = `/edges/browse?start=staticList,type:head,ids:${note.id}
+  const editAssignmenttUrl = `/edges/browse?start=staticList,type:head,ids:${note.id}
 &traverse=${ethicsReviewersId}/-/Assignment
 &edit=${ethicsReviewersId}/-/Assignment
 &browse=${ethicsReviewersId}/-/Affinity_Score;${ethicsReviewersId}/-/Conflict&version=2`
@@ -663,7 +663,7 @@ export const EthicsReviewStatus = ({
       </span>
       <div className="mt-3">
         <a
-          href={`${editAssigmentUrl}&referrer=${referrerUrl}`}
+          href={`${editAssignmenttUrl}&referrer=${referrerUrl}`}
           target="_blank"
           rel="noreferrer"
         >
