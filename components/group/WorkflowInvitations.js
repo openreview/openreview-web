@@ -573,7 +573,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           <hr />
           <div className="container invitation-workflow-container">
             {workflowInvitations.map((stepObj, index) => {
-              console.log(stepObj)
               const invitationId = stepObj.id
               // const subInvitations = allInvitations.filter((i) =>
               //   i.id.startsWith(`${invitationId}/`)
