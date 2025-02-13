@@ -363,7 +363,7 @@ const EditInvitationRow = ({
       <div className="invitation-content">
         <div className="invitation-id-container">
           <span className="workflow-invitation-id">
-            {prettyId(invitation.id.replace(invitation.domain, ''), true)}
+            {prettyId(invitation.id.replace(invitation.domain, ''))}
           </span>
           <a className="id-icon" href={`/invitation/edit?id=${invitation.id}`}>
             <Icon name="new-window" />
@@ -573,6 +573,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           <hr />
           <div className="container invitation-workflow-container">
             {workflowInvitations.map((stepObj, index) => {
+              console.log(stepObj)
               const invitationId = stepObj.id
               // const subInvitations = allInvitations.filter((i) =>
               //   i.id.startsWith(`${invitationId}/`)
