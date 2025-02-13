@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import ProfileListWithBidWidget from '../components/ProfileListWithBidWidget'
 import '@testing-library/jest-dom'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 describe('ProfileListWithBidWidget', () => {
   test('show only empty message if there are no profiles', () => {
     const props = {
@@ -43,10 +45,7 @@ describe('ProfileListWithBidWidget', () => {
 
     render(<ProfileListWithBidWidget {...props} />)
 
-    expect(screen.getByText('first last1')).toHaveAttribute(
-      'href',
-      '/profile?id=~first_last1'
-    )
+    expect(screen.getByText('first last1')).toHaveAttribute('href', '/profile?id=~first_last1')
     expect(screen.getByText('student at umass amherst (umass.edu)')).toBeInTheDocument()
     expect(screen.getByText('Expertise:').parentElement.textContent).toBe(
       'Expertise: nlp, machine learning, deep learning'
@@ -252,9 +251,7 @@ describe('ProfileListWithBidWidget', () => {
     const profiles = Array.from(new Array(5), (_, index) => ({
       id: `~first_last${index}`,
       content: {
-        names: [
-          { fullname: `first${index} last${index}`, username: `~first_last${index}` },
-        ],
+        names: [{ fullname: `first${index} last${index}`, username: `~first_last${index}` }],
         history: [
           {
             position: 'student',
@@ -280,9 +277,7 @@ describe('ProfileListWithBidWidget', () => {
     const profiles = Array.from(new Array(5), (_, index) => ({
       id: `~first_last${index}`,
       content: {
-        names: [
-          { fullname: `first${index} last${index}`, username: `~first_last${index}` },
-        ],
+        names: [{ fullname: `first${index} last${index}`, username: `~first_last${index}` }],
         history: [
           {
             position: 'student',
