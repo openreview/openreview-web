@@ -2,10 +2,11 @@
 
 .toggleButtonContainer {
   max-width: 100%;
+  display: flex;
+
   @media #{constants.$large} {
     max-width: 80%;
   }
-  display: flex;
 }
 
 .toggleButton {

@@ -24,7 +24,9 @@ const EditorComponentHeader = ({
   const { optional, deletable, scroll, hidden } = field[fieldName].value?.param ?? {}
 
   return (
-    <div className={classNames(hidden ? 'hidden' : '', inline ? styles.inline : '', className)}>
+    <div
+      className={classNames(hidden ? 'hidden' : '', inline ? styles.inline : '', className)}
+    >
       <h5 className={styles.title}>
         {fieldNameOverwrite ?? prettyField(fieldName)}
         {!optional && !deletable && <span className={styles.requiredField}>*</span>}

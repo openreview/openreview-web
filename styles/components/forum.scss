@@ -1,5 +1,6 @@
 @use '../utils/constants';
 @use '../utils/mixins';
+@use 'sass:color';
 
 $gray1: #f7f6f4;
 $gray2: rgba(0, 0, 0, 0.04);
@@ -213,7 +214,7 @@ main.forum {
     }
     .btn {
       background-color: #fff;
-      border-color: lighten(constants.$mediumBlue, 10%);
+      border-color: color.adjust(constants.$mediumBlue, $lightness: 10%);
       color: constants.$mediumDarkBlue;
     }
     .form-control {

@@ -54,7 +54,11 @@ const ImportedPublicationsSection = ({
             'OpenReview.net/Archive/-/Direct_Upload',
           ],
         },
-        { accessToken, includeVersion: true, sort: 'tmdate:desc' }
+        {
+          accessToken,
+          includeVersion: true,
+          sort: 'tmdate:desc',
+        }
       )
       setPublications(result.notes)
       setTotalCount(result.count)
