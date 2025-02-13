@@ -8,6 +8,7 @@ import Profile from './Profile'
 import { formatProfileData } from '../../lib/profiles'
 import CommonLayout from '../CommonLayout'
 import EditBanner from '../../components/EditBanner'
+import PreferredIdUpdater from './PreferredIdUpdater'
 
 export const dynamic = 'force-dynamic'
 
@@ -59,10 +60,11 @@ export default async function page({ searchParams }) {
   const { preferredId } = formattedProfile
   const shouldRedirect = email || id !== preferredId || (!email && !id)
 
-  if (shouldRedirect) redirect(`/profile?id=${preferredId}`)
   return (
     <CommonLayout banner={null} editBanner={editBanner}>
-      <Profile profile={formattedProfile} publicProfile={!isProfileOwner} />
+      <PreferredIdUpdater shouldRedirect={shouldRedirect} preferredId={preferredId}>
+        <Profile profile={formattedProfile} publicProfile={!isProfileOwner} />
+      </PreferredIdUpdater>
     </CommonLayout>
   )
 }
