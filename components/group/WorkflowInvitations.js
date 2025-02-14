@@ -34,7 +34,6 @@ const WorkflowGroupRow = ({ group, groupInvitations }) => {
   const [activeGroupInvitation, setActivateGroupInvitation] = useState(null)
   return (
     <div className="group-workflow">
-      <span className="group-cdate">{group.formattedCDate} </span>
       <div className="group-content">
         <div>
           {group.web ? (
@@ -57,13 +56,15 @@ const WorkflowGroupRow = ({ group, groupInvitations }) => {
         <div className="group-invitations">
           {groupInvitations.map((groupInvitation) => {
             return (
-              <button
-                key={groupInvitation.id}
-                className="btn btn-xs mr-2"
-                onClick={() => setActivateGroupInvitation(groupInvitation)}
-              >
-                Add {prettyInvitationId(groupInvitation.id)}
-              </button>
+              <div key={groupInvitation.id} className="mb-1">
+                <span className="item">Add:</span>
+                <button
+                  className="btn btn-xs mr-2"
+                  onClick={() => setActivateGroupInvitation(groupInvitation)}
+                >
+                  {prettyInvitationId(groupInvitation.id)}
+                </button>
+              </div>
             )
           })}
         </div>
@@ -108,6 +109,20 @@ const WorflowInvitationRow = ({
           return [key, existingFieldValue]
         })
       )
+  const handleHover = (fieldName, e) => {
+    if (fieldName !== 'activation_date') return
+    const container = e.target.closest('.workflow-invitation-container')
+    if (container) {
+      const cdateElement = container.querySelector('.cdate')
+      if (cdateElement) {
+        cdateElement.classList.add('highlight')
+        setTimeout(() => {
+          cdateElement.classList.remove('highlight')
+        }, 1000)
+      }
+    }
+  }
+
   useEffect(() => {
     let hasMissingValue = false
     const contentFieldValueMap = {}
@@ -170,7 +185,12 @@ const WorflowInvitationRow = ({
               <ul>
                 {Object.keys(subInvitationContentFieldValues ?? {}).map((key) => (
                   <li key={key}>
-                    <span className="existing-value-field">{prettyField(key)}: </span>
+                    <span
+                      className="existing-value-field"
+                      onMouseEnter={(e) => handleHover(key, e)}
+                    >
+                      {prettyField(key)}:{' '}
+                    </span>
                     <span className="existing-value-field-value">
                       {subInvitationContentFieldValues[key]}
                     </span>
@@ -241,7 +261,15 @@ const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
   )
 }
 
-const EditInvitationProcessLogStatus = ({ processLogs }) => {
+const EditInvitationProcessLogStatus = ({ processLogs, isMissingValue }) => {
+  if (isMissingValue) {
+    return (
+      <span className="log-status">
+        <span className="fixed-text">Status:</span>
+        <span className="fixed-text missing-value"> Missing data</span>
+      </span>
+    )
+  }
   const runningProcessLog = processLogs.find((p) => p.status === 'running')
   if (runningProcessLog) {
     const formattedDate = runningProcessLog?.sdate
@@ -269,13 +297,23 @@ const EditInvitationProcessLogStatus = ({ processLogs }) => {
         hour12: false,
       })
     : null
+
+  const lastLogUrl = `${process.env.API_V2_URL}/logs/process?id=${lastProcessLog?.id}`
   switch (lastProcessLog?.status) {
     case 'ok':
       return (
         <span className="log-status">
           {' '}
           <span className="fixed-text">Status:</span> {formattedDate}{' '}
-          <span className="fixed-text">. {lastLogMessage ?? 'OK'}.</span>
+          <span className="fixed-text">. {lastLogMessage ?? 'OK'}.</span>{' '}
+          <a
+            className="log-details"
+            href={lastLogUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            details
+          </a>
         </span>
       )
     case 'error':
@@ -283,14 +321,30 @@ const EditInvitationProcessLogStatus = ({ processLogs }) => {
         <span className="log-status">
           <span className="fixed-text">Status:</span> {formattedDate}{' '}
           <span className="fixed-text">. ERROR</span>
-          {lastLogMessage ? `: ${lastLogMessage}` : '.'}
+          {lastLogMessage ? `: ${lastLogMessage}` : '.'}{' '}
+          <a
+            className="log-details"
+            href={lastLogUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            details
+          </a>
         </span>
       )
     case 'queued':
       return (
         <span className="log-status">
           <span className="fixed-text">Status:</span> {formattedDate}{' '}
-          <span className="fixed-text">. QUEUED</span>
+          <span className="fixed-text">. QUEUED</span>{' '}
+          <a
+            className="log-details"
+            href={lastLogUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            details
+          </a>
         </span>
       )
     default:
@@ -304,6 +358,9 @@ const EditInvitationRow = ({
   processLogs,
   isExpired,
   loadWorkflowInvitations,
+  isCollapsed,
+  isMissingValue,
+  setCollapsedWorkflowInvitationIds,
 }) => {
   const [showEditor, setShowEditor] = useState(false)
   const { user, accessToken } = useUser()
@@ -362,6 +419,20 @@ const EditInvitationRow = ({
     <div className="edit-invitation-container">
       <div className="invitation-content">
         <div className="invitation-id-container">
+          <div
+            className="collapse-invitation"
+            onClick={() => {
+              if (isCollapsed) {
+                setCollapsedWorkflowInvitationIds((ids) =>
+                  ids.filter((id) => id !== invitation.id)
+                )
+              } else {
+                setCollapsedWorkflowInvitationIds((ids) => [...ids, invitation.id])
+              }
+            }}
+          >
+            <Icon name={isCollapsed ? 'triangle-bottom' : 'triangle-top'} />
+          </div>
           <span className="workflow-invitation-id">
             {prettyId(invitation.id.replace(invitation.domain, ''))}
           </span>
@@ -388,13 +459,14 @@ const EditInvitationRow = ({
             ))}
           </div>
           <div className="expire-link" onClick={expireRestoreInvitation}>
-            <a>{isExpired ? 'Restore' : 'Skip'}</a>
+            <a>{isExpired ? 'Enable' : 'Disable'}</a>
           </div>
         </div>
         {invitation.description && <Markdown text={invitation.description} />}
         {isCreatingSubInvitations && (
           <EditInvitationProcessLogStatus
             processLogs={processLogs.filter((p) => p.invitation === invitation.id)}
+            isMissingValue={isMissingValue}
           />
         )}
       </div>
@@ -434,8 +506,8 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       const response = await api.getAll(
         '/logs/process',
         {
-          invitation: `${groupId}/-/.*`,
-          select: 'sdate,edate,invitation,status,log',
+          invitation: `${groupId}.*`,
+          select: 'id,sdate,edate,invitation,status,log',
         },
         { accessToken, resultsKey: 'logs' }
       )
@@ -493,19 +565,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
       setCollapsedWorkflowInvitationIds(workFlowInvitations.map((p) => p.id))
       setWorkflowInvitations(sortBy(workFlowInvitations, 'cdate'))
-      setWorkflowGroups(
-        sortBy(
-          groups.map((p) => ({
-            ...p,
-            formattedCDate: formatDateTime(p.cdate, {
-              second: undefined,
-              minute: undefined,
-              hour: undefined,
-            }),
-          })),
-          'cdate'
-        )
-      )
+      setWorkflowGroups(sortBy(groups, 'cdate'))
       setAllInvitations(invitations)
       setStageInvitations(stageInvitations)
       loadProcessLogs()
@@ -517,6 +577,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   useEffect(() => {
     if (workflowInvitations?.length > 0) {
       $('[data-toggle="tooltip"]').tooltip({ html: true })
+      $('[data-toggle="tooltip"]').attr('data-tooltip-visible', 'true')
     }
   }, [workflowInvitations])
 
@@ -544,7 +605,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           title={`Workflow Groups (${workflowGroups.length})`}
           className="workflow"
         >
-          <div className="container group-workflow-container">
+          <div className=" group-workflow-container">
             {workflowGroups.map((stepObj) => {
               const groupInvitationsForGroup = allInvitations.filter(
                 (p) => p.edit?.group?.id === stepObj.id
@@ -566,17 +627,39 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           className="workflow"
         >
           <div className="workflow-invitations-header">
-            <span className="cdate-header">Activation Dates</span>
-            <span className="invtations-header">Workflow Step Invitations</span>
+            <div className="cdate-header">Activation Dates</div>
+            <div className="invtations-header">
+              <div
+                className="collapse-invitation"
+                onClick={() => {
+                  if (collapsedWorkflowInvitationIds.length) {
+                    setCollapsedWorkflowInvitationIds([])
+                  } else {
+                    setCollapsedWorkflowInvitationIds(workflowInvitations.map((p) => p.id))
+                  }
+                }}
+              >
+                <Icon
+                  name={
+                    collapsedWorkflowInvitationIds.length ? 'triangle-bottom' : 'triangle-top'
+                  }
+                />
+              </div>
+              <span>
+                Workflow Step Invitations
+                <span className="missing-value">
+                  {missingValueInvitationIds.length
+                    ? ` - ${missingValueInvitationIds.length} with missing values`
+                    : ''}
+                </span>
+              </span>
+            </div>
           </div>
 
           <hr />
           <div className="container invitation-workflow-container">
             {workflowInvitations.map((stepObj, index) => {
               const invitationId = stepObj.id
-              // const subInvitations = allInvitations.filter((i) =>
-              //   i.id.startsWith(`${invitationId}/`)
-              // )
               const subInvitations = allInvitations.filter(
                 (i) => i.edit?.invitation?.id === invitationId
               )
@@ -586,6 +669,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                 workflowInvitations[index + 1]?.cdate
               ).isAfter(dayjs())
               const isCollapsed = collapsedWorkflowInvitationIds.includes(stepObj.id)
+              const isMissingValue = missingValueInvitationIds.includes(invitationId)
               const isStageInvitation = stepObj.duedate || stepObj.edit?.invitation
               const formattedCDate = formatDateTime(stepObj.cdate, {
                 second: undefined,
@@ -606,17 +690,44 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                   weekday: 'short',
                 }
               )
+              const formattedCDateWithTime = formatDateTime(stepObj.cdate, {
+                second: undefined,
+                year: undefined,
+                weekday: 'short',
+              })
+              const formattedDueDateWithTime = formatDateTime(
+                isStageInvitation
+                  ? (stepObj.duedate ?? stepObj.edit?.invitation?.duedate)
+                  : stepObj.duedate,
+                {
+                  second: undefined,
+                  year: undefined,
+                  weekday: 'short',
+                }
+              )
+              const formattedExpDateWithTime = formatDateTime(
+                isStageInvitation
+                  ? (stepObj.expdate ?? stepObj.edit?.invitation?.expdate)
+                  : stepObj.expdate,
+                {
+                  second: undefined,
+                  year: undefined,
+                  weekday: 'short',
+                }
+              )
               let formattedDate = null
+              const formattedTooltip = `Activation date: ${formattedCDateWithTime}${formattedDueDateWithTime ? `<br/>due date: ${formattedDueDateWithTime}` : ''}${formattedExpDateWithTime ? `<br/>expiration date: ${formattedExpDateWithTime}` : ''}`
               if (isStageInvitation) {
                 formattedDate = (
-                  <div className="cdate">
+                  <div className="cdate" data-toggle="tooltip" title={formattedTooltip}>
                     <span>{formattedCDate}</span>
-                    <span>{` - ${formattedDueDate ?? 'no deadline'}`}</span>
+                    <br />
+                    <span>{`${formattedDueDate ?? 'no deadline'}`}</span>
                   </div>
                 )
               } else {
                 formattedDate = (
-                  <div className="cdate">
+                  <div className="cdate" data-toggle="tooltip" title={formattedTooltip}>
                     <span>{formattedCDate}</span>
                   </div>
                 )
@@ -634,30 +745,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                   >
                     <React.Fragment key={invitationId}>
                       <div
-                        className={`workflow-invitation-container${isExpired ? ' expired' : ''}`}
+                        className={`workflow-invitation-container date-passed${isExpired ? ' expired' : ''}`}
                       >
                         <div
-                          className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
+                          className={`invitation-cdate${isMissingValue ? ' missing-value' : ''}`}
                         >
-                          {subInvitations.length > 0 && (
-                            <div
-                              className="collapse-invitation"
-                              onClick={() => {
-                                if (isCollapsed) {
-                                  setCollapsedWorkflowInvitationIds((ids) =>
-                                    ids.filter((id) => id !== stepObj.id)
-                                  )
-                                } else {
-                                  setCollapsedWorkflowInvitationIds((ids) => [
-                                    ...ids,
-                                    stepObj.id,
-                                  ])
-                                }
-                              }}
-                            >
-                              <Icon name={isCollapsed ? 'collapse-down' : 'collapse-up'} />
-                            </div>
-                          )}
                           {formattedDate}
                         </div>
                         <div className="edit-invitation-info">
@@ -667,6 +759,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                             processLogs={processLogs}
                             isExpired={isExpired}
                             loadWorkflowInvitations={loadAllInvitations}
+                            isCollapsed={isCollapsed}
+                            isMissingValue={isMissingValue}
+                            setCollapsedWorkflowInvitationIds={
+                              setCollapsedWorkflowInvitationIds
+                            }
                           />
 
                           {subInvitations.length > 0 &&
@@ -718,25 +815,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                 >
                   <div
                     key={invitationId}
-                    className={`workflow-invitation-container${isExpired ? ' expired' : ''}`}
+                    className={`workflow-invitation-container${isExpired ? ' expired' : ''}${isBeforeToday ? ' date-passed' : ''}`}
                   >
                     <div
-                      className={`invitation-cdate${missingValueInvitationIds.includes(invitationId) ? ' missing-value' : ''}`}
+                      className={`invitation-cdate${isMissingValue ? ' missing-value' : ''}`}
                     >
-                      <div
-                        className="collapse-invitation"
-                        onClick={() => {
-                          if (isCollapsed) {
-                            setCollapsedWorkflowInvitationIds((ids) =>
-                              ids.filter((id) => id !== stepObj.id)
-                            )
-                          } else {
-                            setCollapsedWorkflowInvitationIds((ids) => [...ids, stepObj.id])
-                          }
-                        }}
-                      >
-                        <Icon name={isCollapsed ? 'collapse-down' : 'collapse-up'} />
-                      </div>
                       {formattedDate}
                     </div>
                     <div className="edit-invitation-info">
@@ -746,6 +829,9 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                         processLogs={processLogs}
                         isExpired={isExpired}
                         loadWorkflowInvitations={loadAllInvitations}
+                        isCollapsed={isCollapsed}
+                        isMissingValue={isMissingValue}
+                        setCollapsedWorkflowInvitationIds={setCollapsedWorkflowInvitationIds}
                       />
 
                       {subInvitations.length > 0 &&

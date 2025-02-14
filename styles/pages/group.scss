@@ -1273,6 +1273,8 @@ main.invitation {
 
           .group-invitations {
             margin-bottom: 0.25rem;
+            display: flex;
+            flex-wrap: wrap;
           }
         }
       }
@@ -1295,28 +1297,47 @@ main.invitation {
       margin-left: 15px;
 
       .cdate-header {
-        width: 8%;
+        width: 10%;
         margin-right: 0.5rem;
         font-size: 0.7rem;
         font-style: italic;
       }
       .invtations-header {
         font-size: 1rem;
+        display: flex;
+        align-items: center;
+
+        .collapse-invitation {
+          color: constants.$mediumBlue;
+          margin-right: 0.25rem;
+          cursor: pointer;
+          font-size: 0.85rem;
+        }
+
+        .missing-value {
+          color: red;
+        }
       }
     }
 
     .workflow-invitation-container {
       display: flex;
-      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
       align-items: baseline;
+
+      &.date-passed {
+        background: lighten(constants.$backgroundGray, 5%);
+      }
 
       &.expired {
         color: gray;
         text-decoration: line-through;
+        opacity: 0.8;
+        background: darken(constants.$backgroundGray, 5%);
       }
 
       .invitation-cdate {
-        width: 18%;
+        width: 10%;
         margin-right: 0.5rem;
         color: #999999;
         font-size: 0.9rem;
@@ -1324,17 +1345,16 @@ main.invitation {
         display: flex;
         justify-content: flex-end;
 
-        .collapse-invitation {
-          width: 10%;
-          color: constants.$subtleGray;
-          margin-right: 0.25rem;
-          cursor: pointer;
-          font-size: 0.85rem;
-        }
-
         .cdate {
           width: 90%;
           float: right;
+          &.highlight {
+            font-weight: 900;
+          }
+        }
+
+        .tooltip-inner {
+          max-width: unset;
         }
 
         &.missing-value {
@@ -1369,6 +1389,10 @@ main.invitation {
               display: flex;
               justify-content: left;
               align-items: center;
+
+              .collapse-invitation {
+                color: constants.$mediumBlue;
+              }
 
               .workflow-invitation-id {
                 white-space: nowrap;
@@ -1417,6 +1441,13 @@ main.invitation {
 
               .fixed-text {
                 font-size: 0.875rem;
+                &.missing-value {
+                  color: red;
+                }
+              }
+
+              .log-details {
+                cursor: pointer;
               }
             }
           }
@@ -1435,6 +1466,7 @@ main.invitation {
 
           .existing-value-field {
             font-size: 0.75rem;
+            display: inline-block;
           }
           .existing-value-field-value {
             font-size: 0.75rem;
