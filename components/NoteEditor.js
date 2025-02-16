@@ -224,15 +224,15 @@ const NoteEditor = ({
   })
 
   const shouldRenderField = (fieldName, fieldDescription) => {
-    const dependsOn = fieldDescription?.dependsOn;
-    if (!dependsOn) return true;
-    return Object.keys(dependsOn).every(depField => {
-      return noteEditorData[depField] === dependsOn[depField];
-    });
-  };
+    const dependsOn = fieldDescription?.dependsOn
+    if (!dependsOn) return true
+    return dependsOn.every(depField =>
+      Object.keys(noteEditorData).includes(depField) && noteEditorData[depField]
+    )
+  }
 
   const renderField = (fieldName, fieldDescription) => {
-    if (!shouldRenderField(fieldName, fieldDescription)) return null;
+    if (!shouldRenderField(fieldName, fieldDescription)) return null
     let fieldNameOverwrite = fieldDescription?.value?.param?.fieldName
     if (!fieldNameOverwrite) {
       fieldNameOverwrite = fieldName === 'authorids' ? 'Authors' : undefined
