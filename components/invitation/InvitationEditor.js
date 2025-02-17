@@ -14,6 +14,7 @@ import InvitationChildInvitations, {
 import { isSuperUser } from '../../lib/auth'
 import InvitationProcessFunctionsV2 from './InvitationProcessFunctions'
 import ContentProcessFunctions from './ContentProcessFunctions'
+import InvitationContentEditor from '../InvitationContentEditor'
 
 const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => {
   const profileId = user?.profile?.id
@@ -77,6 +78,8 @@ export const InvitationEditorV2 = ({
   loadInvitation,
 }) => {
   const profileId = user?.profile?.id
+  let contentFields = null
+  let isNested = false
 
   const getReplyFieldByInvitationType = () => {
     if (invitation.edge) return 'edge'
@@ -86,6 +89,12 @@ export const InvitationEditorV2 = ({
   }
 
   if (!invitation) return null
+
+  const nestedContent = invitation.edit.invitation?.edit?.note?.content
+  contentFields = invitation.edit.note?.content ?? nestedContent
+  isNested = !!nestedContent
+
+  console.log(invitation)
 
   return (
     <div>
@@ -117,15 +126,18 @@ export const InvitationEditorV2 = ({
           />
         </>
       )}
-      <InvitationReplyV2
-        key={`${invitation.id}-content`}
-        invitation={invitation}
-        profileId={profileId}
-        accessToken={accessToken}
-        loadInvitation={loadInvitation}
-        replyField="content"
-        isMetaInvitation={isMetaInvitation}
+
+      {(invitation?.edit?.note?.content ||
+       invitation?.edit?.invitation?.edit?.note.content) && (
+        <InvitationContentEditor
+        contentFields={contentFields} // Pass the actual content fields
+        isNested={isNested} // Set based on the context
+        onContentChange={(newContent) => {
+          // Handle content change
+          console.log('Content changed:', newContent)
+        }}
       />
+      )}
       <ContentProcessFunctions
         invitation={invitation}
         profileId={profileId}
