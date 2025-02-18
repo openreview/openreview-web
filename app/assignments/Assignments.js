@@ -17,6 +17,7 @@ import { getNoteContentValues } from '../../lib/forum-utils'
 import { getEdgeBrowserUrl } from '../../lib/edge-utils'
 import api from '../../lib/api-client'
 import PaginationLinks from '../../components/PaginationLinks'
+import useSocket from '../../hooks/useSocket'
 
 const NewNoteEditorModal = ({
   editorNote,
@@ -108,8 +109,17 @@ const AssignmentRow = ({
   shouldShowDeployLink,
   preferredEmailInvitationId,
 }) => {
+  const statusToCheck = ['Running', 'Queued', 'Deploying', 'Undeploying']
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
   const noteContent = getNoteContentValues(note.content)
+  const events = useSocket(
+    statusToCheck.includes(noteContent.status) ? 'note' : undefined,
+    ['edit-upserted'],
+    {
+      id: note.id,
+    }
+  )
   const edgeBrowserUrl = getEdgeBrowserUrl(noteContent, {
     version: 2,
     preferredEmailInvitationId,
@@ -120,6 +130,11 @@ const AssignmentRow = ({
     preferredEmailInvitationId,
   })
   const { status, error_message: errorMessage } = noteContent
+
+  useEffect(() => {
+    if (!events) return
+    router.refresh()
+  }, [events?.uniqueId])
 
   return (
     <tr>
@@ -269,10 +284,6 @@ export default function Assignments({
   const shouldShowDeployLink =
     configInvitation?.content?.multiple_deployments?.value ||
     !assignmentNotes?.some((p) => p?.content?.status?.value === 'Deployed')
-
-  const getAssignmentNotes = async () => {
-    // TODO: use socket to update notes instead of polling every 5 seconds
-  }
 
   const handleNewConfiguration = () => {
     setEditorNote(null)
