@@ -108,6 +108,7 @@ const AssignmentRow = ({
   referrer,
   shouldShowDeployLink,
   preferredEmailInvitationId,
+  handleConfigNoteUpdate,
 }) => {
   const statusToCheck = ['Running', 'Queued', 'Deploying', 'Undeploying']
   const [loading, setLoading] = useState(false)
@@ -133,7 +134,7 @@ const AssignmentRow = ({
 
   useEffect(() => {
     if (!events) return
-    router.refresh()
+    handleConfigNoteUpdate(events.data?.noteId)
   }, [events?.uniqueId])
 
   return (
@@ -342,6 +343,18 @@ export default function Assignments({
     }
   }
 
+  const handleConfigNoteUpdate = async (noteId) => {
+    if (!noteId) return
+    try {
+      const updatedConfigNote = await api.getNoteById(noteId, accessToken)
+      setAssignmentNotes((notes) =>
+        notes.map((note) => (note.id === noteId ? updatedConfigNote : note))
+      )
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   useEffect(() => {
     setAssignmentNotes(
       allConfigNotes.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -401,6 +414,7 @@ export default function Assignments({
                 )}
                 shouldShowDeployLink={shouldShowDeployLink}
                 preferredEmailInvitationId={preferredEmailInvitationId}
+                handleConfigNoteUpdate={handleConfigNoteUpdate}
               />
             ))}
           </Table>
