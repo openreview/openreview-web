@@ -45,6 +45,134 @@ const FIELD_CATEGORIES = {
   'Special Fields': ['File', 'Profile', 'Group', 'Date'],
 }
 
+const InsertFieldButton = ({
+  index,
+  isOpen,
+  selectedCategory,
+  onOpen,
+  onClose,
+  onSelectCategory,
+  onAddField
+}) => {
+
+  // Track whether the user is hovering over the insertion area
+  const [isHovered, setIsHovered] = React.useState(false)
+
+  // We want the line/plus to be visible if hovered OR if dropdown is open
+  const shouldShowLine = isHovered || isOpen
+
+  // Inline styles for the container holding the line & plus
+  const linePlusStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    cursor: 'pointer',
+    // Fade in/out
+    opacity: shouldShowLine ? 1 : 0.05,
+    transition: 'opacity 0.2s ease',
+  }
+
+  // Inline styles for the dropdown
+  const dropdownStyle = {
+    padding: '8px',
+    // Remove the white background:
+    background: 'transparent',
+    position: 'relative',
+    zIndex: 999,
+    // Simple fade-in animation:
+    animation: 'fadeIn 0.5s ease-out',
+  }
+
+  return (
+    <>
+      {/* Define fadeIn keyframes for the dropdown menu.
+          The line/plus uses the inline style above instead. */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(-5px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @keyframes fadeInButtons {
+            from {
+              opacity: 0;
+              transform: translateY(-5px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          .fade-in-list {
+            animation: fadeInButtons 0.3s ease-out;
+          }
+        `}
+      </style>
+
+      <div
+        style={{ margin: '8px 0' }}
+        // Hover tracking
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* The horizontal line + plus icon */}
+        <div
+          style={linePlusStyle}
+          onClick={() => (isOpen ? onClose() : onOpen(index))}
+        >
+          <div style={{ flex: 1, borderBottom: '1px solid #ccc' }}></div>
+          <span className='glyphicon glyphicon-plus' style={{ color: 'green', margin: '0 8px' }}></span>
+          <div style={{ flex: 1, borderBottom: '1px solid #ccc' }}></div>
+        </div>
+
+        {/* Dropdown (only visible if isOpen=true) */}
+        {isOpen && (
+          <div style={dropdownStyle}>
+            {/* If no category selected yet, list categories */}
+            {!selectedCategory && (
+              <ul className="fade-in-list" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                {Object.keys(FIELD_CATEGORIES).map((cat) => (
+                  <li key={cat} style={{ margin: '4px 0' }}>
+                    <button type="button" onClick={() => onSelectCategory(cat)}>
+                      {cat}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {/* If a category is selected, list field types */}
+            {selectedCategory && (
+              <ul className="fade-in-list" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                {FIELD_CATEGORIES[selectedCategory].map((fieldName) => (
+                  <li key={fieldName} style={{ margin: '4px 0' }}>
+                    <button type="button" onClick={() => onAddField(fieldName)}>
+                      {fieldName}
+                    </button>
+                  </li>
+                ))}
+                <li style={{ margin: '4px 0' }}>
+                  <button type="button" onClick={() => onSelectCategory(null)}>
+                    ← Back to Categories
+                  </button>
+                </li>
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
+    </>
+  )
+
+}
+
 const LiveContentFieldEditor = ({
   propInvitation,
   propExistingValues,
@@ -97,6 +225,59 @@ const LiveContentFieldEditor = ({
 
   const [errors, setErrors] = useState({})
   const [formData, setFormData] = useState({})
+
+  // Option adding logic
+  // Track which insertion point (if any) has the dropdown open
+  const [addFieldDropdownIndex, setAddFieldDropdownIndex] = useState(null)
+
+  // Track the currently selected category in the dropdown
+  const [selectedCategory, setSelectedCategory] = useState(null)
+
+  const handleOpenAddFieldDropdown = (index) => {
+    // If the user clicks the same insertion point again, close it
+    if (addFieldDropdownIndex === index) {
+      setAddFieldDropdownIndex(null)
+      setSelectedCategory(null)
+    } else {
+      setAddFieldDropdownIndex(index)
+      setSelectedCategory(null)
+    }
+  }
+
+  const handleSelectCategory = (categoryName) => {
+    setSelectedCategory(categoryName)
+  }
+
+  // Insert a new field at the specified index
+  const handleAddFieldAtIndex = (insertIndex, fieldType) => {
+    const newField = {
+      name: `newField${fields.length + 1}`,
+      config: FIELD_TEMPLATES[fieldType],
+      order: insertIndex + 1,
+      required: true,
+    }
+
+    // Insert the new field at 'insertIndex'
+    const updatedFields = [
+      ...fields.slice(0, insertIndex),
+      newField,
+      ...fields.slice(insertIndex),
+    ]
+
+    // Reassign 'order' for each field
+    for (let idx = 0; idx < updatedFields.length; idx += 1) {
+      updatedFields[idx].order = idx + 1
+    }
+
+    // Update the editor state using your existing hook’s updateField
+    updatedFields.forEach((fieldObj, i) => {
+      updateField(i, fieldObj)
+    })
+
+    // Close the dropdown
+    setAddFieldDropdownIndex(null)
+    setSelectedCategory(null)
+  }
 
   useEffect(() => {
     // Initialize form data based on field names
@@ -569,36 +750,6 @@ const LiveContentFieldEditor = ({
         }
       `}</style>
 
-        {/* Field Types Sidebar */}
-        {/* Left panel: available fields grouped by category */}
-        <div className="col-sm-2 fields-list" ref={leftPanelRef}>
-          {Object.entries(FIELD_CATEGORIES).map(([categoryName, fieldNames]) => (
-            <div className="panel panel-default" key={categoryName}>
-              <div className="panel-heading">
-                <strong>{categoryName}</strong>
-              </div>
-              <ul className="list-group">
-                {fieldNames.map((fieldName) => (
-                  <li
-                    className="list-group-item text-center"
-                    key={fieldName}
-                    style={{ padding: '0.5rem' }}
-                  >
-                    <button
-                      type="button"
-                      className="btn btn-link btn-block"
-                      onClick={() => handleAddField(fieldName)}
-                      style={{ margin: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}
-                    >
-                      {fieldName}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
         {/* Flex container for the field list and field editor */}
         <div style={{ display: 'flex', flex: 1 }}>
           <div
@@ -632,114 +783,140 @@ const LiveContentFieldEditor = ({
                   <TabPanel id="preview-fields">
                     <form onSubmit={(e) => e.preventDefault()}>
                       {fields.map((field, idx) => (
-                        <div
-                          key={idx}
-                          className={`field-row ${selectedIndex === idx ? 'selected' : ''}`}
-                          onClick={() => selectField(idx)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'stretch',
-                            marginBottom: '15px',
-                            marginRight: '2em',
-                          }}
-                        >
-                          {/* Field Controls */}
+                        <React.Fragment key={idx}>
+                          <InsertFieldButton
+                            index={idx}
+                            isOpen={addFieldDropdownIndex === idx}
+                            selectedCategory={selectedCategory}
+                            onOpen={handleOpenAddFieldDropdown}
+                            onClose={() => setAddFieldDropdownIndex(null)}
+                            onSelectCategory={handleSelectCategory}
+                            onAddField={(fieldType) => handleAddFieldAtIndex(idx, fieldType)}
+                          />
+
                           <div
-                            className="field-controls"
+                            key={idx}
+                            className={`field-row ${selectedIndex === idx ? 'selected' : ''}`}
+                            onClick={() => selectField(idx)}
                             style={{
-                              marginRight: '10px',
-                              textAlign: 'center',
-                              width: '50px',
                               display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center', // Center children horizontally
+                              alignItems: 'stretch',
+                              marginBottom: '15px',
+                              marginRight: '2em',
                             }}
                           >
-                            {/* Delete button at the top */}
+                            {/* Field Controls */}
                             <div
-                              className="delete-button"
+                              className="field-controls"
                               style={{
+                                marginRight: '10px',
+                                textAlign: 'center',
+                                width: '50px',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                justifyContent: 'center',
-                                alignItems: 'center',
+                                alignItems: 'center', // Center children horizontally
                               }}
                             >
-                              <button
-                                type="button"
-                                className="close"
-                                onClick={() => handleDeleteField(idx)}
-                                aria-label="Remove field"
+                              {/* Delete button at the top */}
+                              <div
+                                className="delete-button"
                                 style={{
                                   display: 'flex',
+                                  flexDirection: 'column',
                                   justifyContent: 'center',
                                   alignItems: 'center',
-                                  color: 'red',
                                 }}
                               >
-                                <span
-                                  className="glyphicon glyphicon-remove"
-                                  aria-hidden="true"
-                                ></span>
-                              </button>
-                            </div>
-                            {/* Index and Reorder Buttons Centered Vertically */}
-                            <div
-                              className="control-buttons"
-                              style={{
-                                flexGrow: 1,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                              }}
-                            >
-                              <button
-                                type="button"
-                                className="btn btn-default btn-xs"
-                                onClick={() => moveFieldUp(idx)}
-                                style={{
-                                  display: 'flex', // switch from block to flex
-                                  justifyContent: 'center', // center the icon horizontally
-                                  alignItems: 'center', // center the icon vertically
-                                  marginBottom: '2px',
-                                  marginLeft: '0.5rem',
-                                }}
-                                aria-label="Move field up"
-                              >
-                                <span
-                                  className="glyphicon glyphicon-chevron-up"
-                                  aria-hidden="true"
-                                ></span>
-                              </button>
-                              <div className="field-index" style={{ fontWeight: 'bold' }}>
-                                {idx + 1}
+                                <button
+                                  type="button"
+                                  className="close"
+                                  onClick={() => handleDeleteField(idx)}
+                                  aria-label="Remove field"
+                                  style={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    color: 'red',
+                                    fontSize: '0.75em'
+                                  }}
+                                >
+                                  <span
+                                    className="glyphicon glyphicon-remove"
+                                    aria-hidden="true"
+                                  ></span>
+                                </button>
                               </div>
-                              <button
-                                type="button"
-                                className="btn btn-default btn-xs"
-                                onClick={() => moveFieldDown(idx)}
+                              {/* Index and Reorder Buttons Centered Vertically */}
+                              <div
+                                className="control-buttons"
                                 style={{
-                                  display: 'flex', // switch from block to flex
-                                  justifyContent: 'center', // center the icon horizontally
-                                  alignItems: 'center', // center the icon vertically
-                                  marginLeft: '0.5rem',
-                                  marginTop: '2px',
+                                  flexGrow: 1,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
                                 }}
-                                aria-label="Move field down"
                               >
-                                <span
-                                  className="glyphicon glyphicon-chevron-down"
-                                  aria-hidden="true"
-                                ></span>
-                              </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-default btn-xs"
+                                  onClick={() => moveFieldUp(idx)}
+                                  style={{
+                                    display: 'flex', // switch from block to flex
+                                    justifyContent: 'center', // center the icon horizontally
+                                    alignItems: 'center', // center the icon vertically
+                                    marginBottom: '2px',
+                                    marginLeft: '0.5rem',
+                                    marginRight: '0.5rem',
+                                  }}
+                                  aria-label="Move field up"
+                                >
+                                  <span
+                                    className="glyphicon glyphicon-chevron-up"
+                                    aria-hidden="true"
+                                  ></span>
+                                </button>
+                                <div className="field-index" style={{ fontWeight: 'bold' }}>
+                                  {idx + 1}
+                                </div>
+                                <button
+                                  type="button"
+                                  className="btn btn-default btn-xs"
+                                  onClick={() => moveFieldDown(idx)}
+                                  style={{
+                                    display: 'flex', // switch from block to flex
+                                    justifyContent: 'center', // center the icon horizontally
+                                    alignItems: 'center', // center the icon vertically
+                                    marginLeft: '0.5rem',
+                                    marginRight: '0.5rem',
+                                    marginTop: '2px',
+                                  }}
+                                  aria-label="Move field down"
+                                >
+                                  <span
+                                    className="glyphicon glyphicon-chevron-down"
+                                    aria-hidden="true"
+                                  ></span>
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Field Preview */}
+                            <div style={{ flex: 1 }}>
+                              {renderField(field, idx)}
                             </div>
                           </div>
-
-                          {/* Field Preview */}
-                          {renderField(field, idx)}
-                        </div>
+                        </React.Fragment>
                       ))}
+                      <InsertFieldButton
+                        index={fields.length} // insertion after the last field
+                        isOpen={addFieldDropdownIndex === fields.length}
+                        selectedCategory={selectedCategory}
+                        onOpen={handleOpenAddFieldDropdown}
+                        onClose={() => setAddFieldDropdownIndex(null)}
+                        onSelectCategory={handleSelectCategory}
+                        onAddField={(fieldType) => handleAddFieldAtIndex(fields.length, fieldType)}
+                      />
                       <button type="button" className="btn btn-primary" onClick={saveChanges}>
                         Save Changes
                       </button>
@@ -884,7 +1061,7 @@ const LiveContentFieldEditor = ({
                             </button>
                           </div>
                         ))}
-                        <button type="button" onClick={addOption}>
+                        <button className="btn btn-link" type="button" onClick={addOption}>
                           Add Option
                         </button>
                       </>
