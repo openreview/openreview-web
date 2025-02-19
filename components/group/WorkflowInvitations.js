@@ -110,15 +110,29 @@ const WorflowInvitationRow = ({
         })
       )
   const handleHover = (fieldName, e) => {
-    if (fieldName !== 'activation_date') return
+    if (fieldName !== 'activation_date' && fieldName !== 'due_date') return
+    const isHoverActivationDate = fieldName === 'activation_date'
     const container = e.target.closest('.workflow-invitation-container')
     if (container) {
-      const cdateElement = container.querySelector('.cdate')
+      const cdateElement = container.querySelector(
+        `.cdate ${isHoverActivationDate ? '.activation-date' : '.due-date'}`
+      )
       if (cdateElement) {
         cdateElement.classList.add('highlight')
-        setTimeout(() => {
-          cdateElement.classList.remove('highlight')
-        }, 1000)
+      }
+    }
+  }
+
+  const handleHoverEnd = (fieldName, e) => {
+    if (fieldName !== 'activation_date' && fieldName !== 'due_date') return
+    const isHoverActivationDate = fieldName === 'activation_date'
+    const container = e.target.closest('.workflow-invitation-container')
+    if (container) {
+      const cdateElement = container.querySelector(
+        `.cdate ${isHoverActivationDate ? '.activation-date' : '.due-date'}`
+      )
+      if (cdateElement) {
+        cdateElement.classList.remove('highlight')
       }
     }
   }
@@ -188,6 +202,7 @@ const WorflowInvitationRow = ({
                     <span
                       className="existing-value-field"
                       onMouseEnter={(e) => handleHover(key, e)}
+                      onMouseLeave={(e) => handleHoverEnd(key, e)}
                     >
                       {prettyField(key)}:{' '}
                     </span>
@@ -266,7 +281,7 @@ const EditInvitationProcessLogStatus = ({ processLogs, isMissingValue }) => {
     return (
       <span className="log-status">
         <span className="fixed-text">Status:</span>
-        <span className="fixed-text missing-value"> Missing data</span>
+        <span className="fixed-text missing-value"> Missing value</span>
       </span>
     )
   }
@@ -647,11 +662,18 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               </div>
               <span>
                 Workflow Step Invitations
-                <span className="missing-value">
-                  {missingValueInvitationIds.length
-                    ? ` - ${missingValueInvitationIds.length} with missing values`
-                    : ''}
-                </span>
+                {missingValueInvitationIds.length ? (
+                  <>
+                    {' '}
+                    -
+                    <span className="missing-value">
+                      {`  ${missingValueInvitationIds.length} steps require to enter missing
+                    values in order to be ready to run`}
+                    </span>
+                  </>
+                ) : (
+                  ''
+                )}
               </span>
             </div>
           </div>
@@ -716,13 +738,13 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                 }
               )
               let formattedDate = null
-              const formattedTooltip = `Activation date: ${formattedCDateWithTime}${formattedDueDateWithTime ? `<br/>due date: ${formattedDueDateWithTime}` : ''}${formattedExpDateWithTime ? `<br/>expiration date: ${formattedExpDateWithTime}` : ''}`
+              const formattedTooltip = `Activation Date: ${formattedCDateWithTime}${formattedDueDateWithTime ? `<br/>Due Date: ${formattedDueDateWithTime}` : ''}${formattedExpDateWithTime ? `<br/>Expiration Date: ${formattedExpDateWithTime}` : ''}`
               if (isStageInvitation) {
                 formattedDate = (
                   <div className="cdate" data-toggle="tooltip" title={formattedTooltip}>
-                    <span>{formattedCDate}</span>
+                    <span className="activation-date">{formattedCDate}</span>
                     <br />
-                    <span>{`${formattedDueDate ?? 'no deadline'}`}</span>
+                    <span className="due-date">{`${formattedDueDate ?? 'no deadline'}`}</span>
                   </div>
                 )
               } else {

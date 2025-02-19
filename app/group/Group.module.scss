@@ -1326,14 +1326,14 @@
         align-items: baseline;
 
         &.date-passed {
-          background: lighten(constants.$backgroundGray, 5%);
+          background: lighten(constants.$backgroundGray, 12%);
         }
 
         &.expired {
           color: gray;
           text-decoration: line-through;
           opacity: 0.8;
-          background: darken(constants.$backgroundGray, 5%);
+          background: constants.$backgroundGray;
         }
 
         .invitation-cdate {
@@ -1347,7 +1347,8 @@
 
           .cdate {
             width: 90%;
-            &.highlight {
+            .activation-date.highlight,
+            .due-date.highlight {
               font-weight: 900;
             }
           }
@@ -1466,6 +1467,7 @@
             .existing-value-field {
               font-size: 0.75rem;
               display: inline-block;
+              margin-right: 0.25rem;
             }
             .existing-value-field-value {
               font-size: 0.75rem;
