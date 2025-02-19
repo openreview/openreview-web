@@ -733,6 +733,7 @@ const LiveContentFieldEditor = ({
           display: flex;
           align-items: stretch;
           cursor: pointer;
+          transition: background-color 0.2s ease-in-out;
         }
         .field-row:hover {
           background-color: #f9f9f9;
