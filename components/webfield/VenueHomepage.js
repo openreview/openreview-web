@@ -1,6 +1,4 @@
-/* globals promptError: false */
-/* globals promptMessage: false */
-
+/* globals promptError, promptMessage, $: false */
 import { useState, useContext, useEffect, useReducer } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -216,6 +214,7 @@ export default function VenueHomepage({ appContext }) {
     }
 
     router.events.on('hashChangeComplete', handleRouteChange)
+    $('[data-toggle="tooltip"]').tooltip()
     return () => {
       router.events.off('hashChangeComplete', handleRouteChange)
     }
