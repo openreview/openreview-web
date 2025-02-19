@@ -11,6 +11,7 @@ import useUser from '../../hooks/useUser'
 import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
 import ContentFieldEditor from '../EditorComponents/ContentFieldEditor'
+import LiveContentFieldEditor from '../EditorComponents/LiveContentFieldEditor'
 import EditSignatures from '../EditSignatures'
 
 // For editing invitation.edit.content
@@ -69,7 +70,7 @@ const InvitationContentEditor = ({
           }}
         >
           <EditorComponentHeader>
-            {isContentField ? <ContentFieldEditor /> : <EditorWidget />}
+            {isContentField ? <LiveContentFieldEditor /> : <EditorWidget />}
           </EditorComponentHeader>
         </EditorComponentContext.Provider>
 
