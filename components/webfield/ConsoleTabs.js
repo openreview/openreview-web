@@ -14,7 +14,6 @@ const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
   useEffect(() => {
     if (!validTabIds.includes(activeTabId)) {
       setActiveTabId(defaultActiveTabId)
-      updateActiveTabId?.(`#${defaultActiveTabId}`)
       return
     }
     updateActiveTabId?.(`#${activeTabId}`)
