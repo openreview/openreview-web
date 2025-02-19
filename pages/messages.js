@@ -37,9 +37,9 @@ const FilterForm = ({ searchQuery, loading }) => {
 
   const onFiltersChange = (field, value) => {
     const newSearchQuery = value
-      ? { ...searchQuery, [field]: value, page: 1 }
-      : { ...omit(searchQuery, field), page: 1 }
-    router.push({ pathname: '/messages', query: newSearchQuery }, undefined, { shallow: true })
+      ? { ...searchQuery, [field]: value }
+      : { ...omit(searchQuery, field) }
+    router.push({ pathname: '/messages', query: newSearchQuery })
   }
 
   return (
@@ -110,14 +110,18 @@ const FilterForm = ({ searchQuery, loading }) => {
 const Messages = ({ appContext }) => {
   const { accessToken, userLoading } = useLoginRedirect()
   const query = useQuery()
-  const [messages, setMessages] = useState(null)
-  const [count, setCount] = useState(0)
+  const [allMessages, setAllMessages] = useState([])
   const [error, setError] = useState(null)
-  const page = parseInt(query?.page, 10) || 1
+  const [currentPage, setCurrentPage] = useState(1)
   const pageSize = 25
   const { setBannerHidden } = appContext
 
-  const loadMessages = async () => {
+  const count = allMessages.length
+  const messages = allMessages.length
+    ? allMessages.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    : null
+
+  const loadMessages = async (after) => {
     let validStatus
     if (Array.isArray(query.status)) {
       validStatus = query.status?.filter((status) => statusOptionValues.includes(status))
@@ -129,29 +133,35 @@ const Messages = ({ appContext }) => {
       const apiRes = await api.get(
         '/messages',
         {
-          ...omit(query, 'page'),
+          ...query,
           status: validStatus,
-          limit: pageSize,
-          offset: pageSize * (page - 1),
+          after,
         },
         { accessToken }
       )
-
-      setMessages(apiRes.messages || [])
-      setCount(apiRes.count || 0)
+      setAllMessages((existingMessages) => existingMessages.concat(apiRes.messages || []))
       setError(null)
     } catch (apiError) {
       setError(apiError)
-      setMessages(null)
     }
   }
 
   useEffect(() => {
     if (userLoading || !query) return
     setBannerHidden(true)
+    setAllMessages([])
+    setCurrentPage(1)
 
     loadMessages()
   }, [userLoading, query])
+
+  useEffect(() => {
+    if (!allMessages.length || allMessages.length < 1000) return
+    const availablePages = Math.ceil(allMessages.length / pageSize)
+    if (currentPage >= availablePages - 5) {
+      loadMessages(allMessages[allMessages.length - 1].id)
+    }
+  }, [currentPage])
 
   return (
     <div>
@@ -173,12 +183,10 @@ const Messages = ({ appContext }) => {
 
       {messages && (
         <PaginationLinks
-          currentPage={page}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
           itemsPerPage={pageSize}
           totalCount={count}
-          baseUrl="/messages"
-          queryParams={query}
-          options={{ useShallowRouting: true }}
         />
       )}
     </div>
