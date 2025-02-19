@@ -1326,14 +1326,14 @@ main.invitation {
       align-items: baseline;
 
       &.date-passed {
-        background: lighten(constants.$backgroundGray, 12%);
+        background: lighten(constants.$backgroundGray, 5%);
       }
 
       &.expired {
         color: gray;
         text-decoration: line-through;
         opacity: 0.8;
-        background: constants.$backgroundGray;
+        background: darken(constants.$backgroundGray, 5%);
       }
 
       .invitation-cdate {

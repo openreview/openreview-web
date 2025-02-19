@@ -750,7 +750,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               } else {
                 formattedDate = (
                   <div className="cdate" data-toggle="tooltip" title={formattedTooltip}>
-                    <span>{formattedCDate}</span>
+                    <span className="activation-date">{formattedCDate}</span>
                   </div>
                 )
               }
