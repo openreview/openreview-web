@@ -18,12 +18,6 @@ const About = () => (
     <div className="row">
       <div className="col-xs-12 col-md-10 col-md-offset-1">
         <p>
-          OpenReview project is now a 501(c)(3) organization under the name OpenReview Foundation.
-        </p>
-        <p>
-          For inquiries, please contact <a href="mailto:hello@openreview-foundation.org">hello@openreview-foundation.org</a> or <a href="mailto:info@openreview.net">info@openreview.net</a>.
-        </p>
-        <p>
           OpenReview aims to promote openness in scientific communication, particularly the
           peer review process, by providing a flexible cloud-based web interface and underlying
           database API enabling the following:
@@ -97,8 +91,8 @@ const About = () => (
             .
           </li>
           <li>
-            Many other parts of the OpenReview platform are also open source, and are available in
-            the{' '}
+            Many other parts of the OpenReview platform are also open source, and are available
+            in the{' '}
             <a href="https://github.com/openreview" target="_blank" rel="noopener noreferrer">
               OpenReview organization on GitHub.
             </a>{' '}
@@ -126,13 +120,9 @@ const About = () => (
         </p>
 
         <p>
-          OpenReview is a long-term project to advance science through improved peer review,
-          with legal nonprofit status through{' '}
-          <a href="https://codeforscience.org/" target="_blank" rel="noopener noreferrer">
-            Code for Science & Society
-          </a>
-          . We gratefully acknowledge the support of the great diversity of{' '}
-          <Link href="/sponsors">OpenReview Sponsors</Link>
+          OpenReview is a long-term project to advance science through improved peer review
+          with legal nonprofit status. We gratefully acknowledge the support of the great
+          diversity of <Link href="/sponsors">OpenReview Sponsors</Link>
           ––scientific peer review is sacrosanct, and should not be owned by any one sponsor.
         </p>
       </div>

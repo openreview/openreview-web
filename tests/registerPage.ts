@@ -226,7 +226,7 @@ test('enter invalid name', async (t) => {
     .ok()
     .expect(Selector('.important_message').textContent)
     .eql(
-      'The name 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
+      'The name Abc 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
 })
 
@@ -374,7 +374,7 @@ test('update profile', async (t) => {
     .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
-        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
       ).exists
     )
     .ok()
@@ -416,7 +416,7 @@ test('update profile', async (t) => {
     .ok()
     .expect(
       Selector('p').withText(
-        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
       ).exists
     )
     .notOk()
@@ -472,7 +472,7 @@ test('register a profile with an institutional email', async (t) => {
     .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
-        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
       ).exists
     )
     .notOk()
