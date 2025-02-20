@@ -14,36 +14,103 @@ import Icon from '../Icon'
 import styles from '../../styles/components/NoteEditor.module.scss'
 import useFieldEditorState from '../../hooks/useFieldEditorState'
 
-const FIELD_TEMPLATES = {
-  'Short Text': { value: { param: { regex: '.*' } }, description: 'Short text field' },
-  'Long Text': { value: { param: { regex: '.*' } }, description: 'Long text field' },
-  'Single Choice': {
-    value: { param: { enum: [], input: 'radio', type: 'string' } },
-    description: 'Single choice field',
-  },
-  'Multiple Choice': {
-    value: { param: { enum: [], input: 'checkbox', type: 'string[]' } },
-    description: 'Multiple choice field',
-  },
-  Integer: {
-    value: { param: { input: 'text', type: 'integer' } },
-    description: 'Integer field',
-  },
-  Number: { value: { param: { input: 'text', type: 'float' } }, description: 'Number field' },
-  'Yes/No': { type: 'boolean', description: 'Yes/No field' },
-  File: { type: 'file', description: 'File upload field' },
-  Profile: { type: 'profile', description: 'Profile field' },
-  Group: { type: 'group', description: 'Group field' },
-  Date: { type: 'date', description: 'Date field' },
+// First-level data types (top-level)
+const DATA_TYPE_OPTIONS = {
+  TEXT: { label: 'Text', type: 'string' },
+  INTEGER: { label: 'Integer', type: 'integer' },
+  DECIMAL: { label: 'Decimal', type: 'float' },
+  BOOLEAN: { label: 'Boolean', type: 'boolean' },
+  SPECIAL: { label: 'Special', type: 'special' } // We'll handle "special" differently
 }
 
-// Map each category to the relevant keys from FIELD_TEMPLATES
-const FIELD_CATEGORIES = {
-  'Choices Fields': ['Single Choice', 'Multiple Choice', 'Yes/No'],
-  'Text Fields': ['Short Text', 'Long Text'],
-  'Number Fields': ['Integer', 'Number'],
-  'Special Fields': ['File', 'Profile', 'Group', 'Date'],
+// For all standard data types (string, integer, float, boolean),
+// we have sub-options: Single Choice, Multiple Choice, etc.
+const INPUT_TYPE_OPTIONS = [
+  { label: 'Single Choice', input: 'radio' },
+  { label: 'Multiple Choice', input: 'checkbox' },
+  { label: 'Small Textbox', input: 'text' },
+  { label: 'Large Textbox', input: 'textarea' }
+]
+
+// For “special” data type, we have sub-types that map 1:1 to param.type
+const SPECIAL_TYPE_OPTIONS = [
+  { label: 'Date', type: 'date' },
+  { label: 'File', type: 'file' },
+  { label: 'Profile', type: 'profile' },
+  { label: 'Group', type: 'group' }
+]
+
+/**
+ * Generate an initial field config object
+ * based on the top-level data type and second-level choice.
+ */
+const generateFieldConfig = (topLevelChoice, secondLevelChoice) => {
+  // If topLevelChoice is "SPECIAL",
+  // secondLevelChoice must be one of the special sub-types
+  if (topLevelChoice.type === 'special') {
+    // Find the special sub-type object (e.g. { label: 'Date', type: 'date' })
+    const special = SPECIAL_TYPE_OPTIONS.find(s => s.label === secondLevelChoice)
+    return {
+      description: '',
+      value: {
+        param: {
+          type: special.type,
+          // The rest of the defaults for these special fields:
+          optional: false
+        }
+      }
+    }
+  }
+
+  // Otherwise, topLevelChoice is string/integer/float/boolean,
+  // and secondLevelChoice is Single Choice / Multiple Choice /
+  // Small Textbox / Large Textbox.
+  // 1. dataType
+  const baseType = topLevelChoice.type // 'string' | 'integer' | 'float' | 'boolean'
+  // 2. input type
+  const inputChoice = INPUT_TYPE_OPTIONS.find(i => i.label === secondLevelChoice)
+
+  // Decide whether we store an array or not
+  let finalType = baseType
+  if (inputChoice.input === 'checkbox') {
+    // multiple choice => "integer[]" or "string[]", etc.
+    if (baseType === 'integer') finalType = 'integer[]'
+    else if (baseType === 'float') finalType = 'float[]'
+    else if (baseType === 'boolean') finalType = 'boolean[]'
+    else finalType = 'string[]'
+  }
+
+  // Decide if we use an enum array
+  let maybeEnum = null
+  // For single or multiple choice, we typically use an array in param.enum
+  if (inputChoice.input === 'radio' || inputChoice.input === 'checkbox') {
+    maybeEnum = []
+  }
+
+  const config = {
+    description: '',
+    value: {
+      param: {
+        type: finalType,
+        input: inputChoice.input,
+        optional: false
+      }
+    }
+  }
+
+  if (maybeEnum !== null) {
+    config.value.param.enum = maybeEnum
+  }
+
+  // Large textbox => we can enable markdown or set defaults
+  if (inputChoice.input === 'textarea') {
+    config.value.param.markdown = false
+    config.value.param.scroll = false
+  }
+
+  return config
 }
+
 
 const InsertFieldButton = ({
   index,
@@ -54,6 +121,33 @@ const InsertFieldButton = ({
   onSelectCategory,
   onAddField
 }) => {
+  // Are we in step 1 or step 2?
+  const [selectedTopLevel, setSelectedTopLevel] = React.useState(null)
+
+  // Step 2 choices are either input types or special sub-types
+  const getSecondLevelOptions = () => {
+    if (!selectedTopLevel) return []
+    if (selectedTopLevel.type === 'special') {
+      return SPECIAL_TYPE_OPTIONS.map(s => s.label)
+    }
+    return INPUT_TYPE_OPTIONS.map(i => i.label)
+  }
+
+  const secondLevelOptions = getSecondLevelOptions()
+
+  const handleSelectTopLevel = (key) => {
+    const topLevel = Object.values(DATA_TYPE_OPTIONS).find(t => t.label === key)
+    setSelectedTopLevel(topLevel)
+  }
+
+  const handleSelectSecondLevel = (label) => {
+    // We have top-level + second-level → generate a new field
+    const newConfig = generateFieldConfig(selectedTopLevel, label)
+    onAddField(index, newConfig)
+    // reset local state & close
+    setSelectedTopLevel(null)
+    onClose()
+  }
 
   // Track whether the user is hovering over the insertion area
   const [isHovered, setIsHovered] = React.useState(false)
@@ -136,12 +230,12 @@ const InsertFieldButton = ({
         {isOpen && (
           <div style={dropdownStyle}>
             {/* If no category selected yet, list categories */}
-            {!selectedCategory && (
+            {!selectedTopLevel && (
               <ul className="fade-in-list" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                {Object.keys(FIELD_CATEGORIES).map((cat) => (
-                  <li key={cat} style={{ margin: '4px 0' }}>
-                    <button type="button" onClick={() => onSelectCategory(cat)}>
-                      {cat}
+                {Object.values(DATA_TYPE_OPTIONS).map((top) => (
+                  <li key={top.label} style={{ margin: '4px 0' }}>
+                    <button type="button" onClick={() => handleSelectTopLevel(top.label)}>
+                      {top.label}
                     </button>
                   </li>
                 ))}
@@ -149,17 +243,17 @@ const InsertFieldButton = ({
             )}
 
             {/* If a category is selected, list field types */}
-            {selectedCategory && (
+            {selectedTopLevel && (
               <ul className="fade-in-list" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                {FIELD_CATEGORIES[selectedCategory].map((fieldName) => (
+                {secondLevelOptions.map((fieldName) => (
                   <li key={fieldName} style={{ margin: '4px 0' }}>
-                    <button type="button" onClick={() => onAddField(fieldName)}>
+                    <button type="button" onClick={() => handleSelectSecondLevel(fieldName)}>
                       {fieldName}
                     </button>
                   </li>
                 ))}
                 <li style={{ margin: '4px 0' }}>
-                  <button type="button" onClick={() => onSelectCategory(null)}>
+                  <button type="button" onClick={() => setSelectedTopLevel(null)}>
                     ← Back to Categories
                   </button>
                 </li>
@@ -249,10 +343,10 @@ const LiveContentFieldEditor = ({
   }
 
   // Insert a new field at the specified index
-  const handleAddFieldAtIndex = (insertIndex, fieldType) => {
+  const handleAddFieldAtIndex = (insertIndex, newConfig) => {
     const newField = {
       name: `newField${fields.length + 1}`,
-      config: FIELD_TEMPLATES[fieldType],
+      config: newConfig,
       order: insertIndex + 1,
       required: true,
     }
@@ -422,17 +516,6 @@ const LiveContentFieldEditor = ({
   // Replace direct updateField calls in handlers with updateNestedProperty where appropriate.
   const handleFieldPropertyChange = (property, value) => {
     updateNestedProperty(selectedIndex, property, value)
-  }
-
-  const handleAddField = (fieldType) => {
-    const newField = {
-      name: `newField${fields.length + 1}`,
-      config: FIELD_TEMPLATES[fieldType],
-      order: fields.length + 1,
-      required: true,
-    }
-    addField(newField)
-    selectField(fields.length) // select the new field (index equals previous fields.length)
   }
 
   const moveFieldUp = (index) => {
@@ -788,11 +871,9 @@ const LiveContentFieldEditor = ({
                           <InsertFieldButton
                             index={idx}
                             isOpen={addFieldDropdownIndex === idx}
-                            selectedCategory={selectedCategory}
                             onOpen={handleOpenAddFieldDropdown}
                             onClose={() => setAddFieldDropdownIndex(null)}
-                            onSelectCategory={handleSelectCategory}
-                            onAddField={(fieldType) => handleAddFieldAtIndex(idx, fieldType)}
+                            onAddField={handleAddFieldAtIndex}
                           />
 
                           <div
@@ -912,11 +993,9 @@ const LiveContentFieldEditor = ({
                       <InsertFieldButton
                         index={fields.length} // insertion after the last field
                         isOpen={addFieldDropdownIndex === fields.length}
-                        selectedCategory={selectedCategory}
                         onOpen={handleOpenAddFieldDropdown}
                         onClose={() => setAddFieldDropdownIndex(null)}
-                        onSelectCategory={handleSelectCategory}
-                        onAddField={(fieldType) => handleAddFieldAtIndex(fields.length, fieldType)}
+                        onAddField={handleAddFieldAtIndex}
                       />
                       <button type="button" className="btn btn-primary" onClick={saveChanges}>
                         Save Changes
