@@ -1,0 +1,102 @@
+@use '../../styles/utils/constants';
+
+.assignments {
+  :global {
+    header {
+      margin-top: 1rem;
+      margin-bottom: 2.5rem;
+
+      h1 {
+        font-size: 2rem;
+        font-weight: normal;
+        line-height: 34px;
+        margin: 0;
+      }
+    }
+
+    .empty-message {
+      color: constants.$subtleGray;
+      font-style: italic;
+      margin-top: 1rem;
+    }
+
+    .horizontal-scroll {
+      overflow-x: scroll;
+      overflow-y: visible;
+
+      .assignments-table {
+        min-width: 940px;
+      }
+      @media #{constants.$phone-only} {
+        padding-left: 0;
+        padding-right: 0;
+      }
+    }
+
+    .assignments-table {
+      margin-bottom: 2rem;
+      .assignment-label {
+        word-wrap: break-word;
+      }
+      .btn-link {
+        text-align: left;
+        font-weight: normal;
+        border: 0;
+        padding: 0;
+        .glyphicon {
+          color: constants.$mediumBlue;
+        }
+      }
+      .btn-link:hover {
+        background-color: transparent;
+        color: constants.$mediumDarkBlue;
+        text-decoration: none;
+        .glyphicon {
+          color: constants.$mediumDarkBlue;
+        }
+      }
+      a.action-link {
+        display: inline-block;
+      }
+      span.glyphicon {
+        padding-right: 0.5rem;
+      }
+      .assignment-status:focus {
+        outline: 0;
+      }
+    }
+
+    #note-editor-modal {
+      .modal-title {
+        margin: 0;
+      }
+      .modal-body {
+        h2 {
+          margin: 0;
+        }
+        .note_editor {
+          .note_content_title {
+            font-size: 1.25rem;
+            line-height: normal;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+          }
+        }
+
+        [class*='Container__'] {
+          max-width: 100%;
+        }
+
+        hr {
+          margin: 0.25rem 0;
+        }
+      }
+    }
+
+    #new-note-editor-modal .modal-body {
+      padding: 0;
+      margin-bottom: -1.875rem;
+      background-color: #f7f6f4;
+    }
+  }
+}
