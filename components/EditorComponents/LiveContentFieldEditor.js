@@ -14,13 +14,32 @@ import Icon from '../Icon'
 import styles from '../../styles/components/NoteEditor.module.scss'
 import useFieldEditorState from '../../hooks/useFieldEditorState'
 
-// First-level data types (top-level)
+// The top-level data types
 const DATA_TYPE_OPTIONS = {
-  TEXT: { label: 'Text', type: 'string' },
-  INTEGER: { label: 'Integer', type: 'integer' },
-  DECIMAL: { label: 'Decimal', type: 'float' },
-  BOOLEAN: { label: 'Boolean', type: 'boolean' },
-  SPECIAL: { label: 'Special', type: 'special' } // We'll handle "special" differently
+  TEXT: {
+    label: 'Text',
+    type: 'string',
+    allowedInputs: ['radio', 'checkbox', 'text', 'textarea'],
+  },
+  INTEGER: {
+    label: 'Integer',
+    type: 'integer',
+    allowedInputs: ['radio', 'checkbox', 'text', 'textarea'],
+  },
+  DECIMAL: {
+    label: 'Decimal',
+    type: 'float',
+    allowedInputs: ['radio', 'checkbox', 'text', 'textarea'],
+  },
+  BOOLEAN: {
+    label: 'Boolean',
+    type: 'boolean',
+    allowedInputs: ['radio', 'checkbox'],
+  },
+  SPECIAL: {
+    label: 'Special',
+    type: 'special', // We'll handle special sub-types differently
+  },
 }
 
 // For all standard data types (string, integer, float, boolean),
@@ -29,7 +48,7 @@ const INPUT_TYPE_OPTIONS = [
   { label: 'Single Choice', input: 'radio' },
   { label: 'Multiple Choice', input: 'checkbox' },
   { label: 'Small Textbox', input: 'text' },
-  { label: 'Large Textbox', input: 'textarea' }
+  { label: 'Large Textbox', input: 'textarea' },
 ]
 
 // For “special” data type, we have sub-types that map 1:1 to param.type
@@ -37,7 +56,7 @@ const SPECIAL_TYPE_OPTIONS = [
   { label: 'Date', type: 'date' },
   { label: 'File', type: 'file' },
   { label: 'Profile', type: 'profile' },
-  { label: 'Group', type: 'group' }
+  { label: 'Group', type: 'group' },
 ]
 
 /**
@@ -49,16 +68,16 @@ const generateFieldConfig = (topLevelChoice, secondLevelChoice) => {
   // secondLevelChoice must be one of the special sub-types
   if (topLevelChoice.type === 'special') {
     // Find the special sub-type object (e.g. { label: 'Date', type: 'date' })
-    const special = SPECIAL_TYPE_OPTIONS.find(s => s.label === secondLevelChoice)
+    const special = SPECIAL_TYPE_OPTIONS.find((s) => s.label === secondLevelChoice)
     return {
       description: '',
       value: {
         param: {
           type: special.type,
           // The rest of the defaults for these special fields:
-          optional: false
-        }
-      }
+          optional: false,
+        },
+      },
     }
   }
 
@@ -68,7 +87,7 @@ const generateFieldConfig = (topLevelChoice, secondLevelChoice) => {
   // 1. dataType
   const baseType = topLevelChoice.type // 'string' | 'integer' | 'float' | 'boolean'
   // 2. input type
-  const inputChoice = INPUT_TYPE_OPTIONS.find(i => i.label === secondLevelChoice)
+  const inputChoice = INPUT_TYPE_OPTIONS.find((i) => i.label === secondLevelChoice)
 
   // Decide whether we store an array or not
   let finalType = baseType
@@ -93,9 +112,9 @@ const generateFieldConfig = (topLevelChoice, secondLevelChoice) => {
       param: {
         type: finalType,
         input: inputChoice.input,
-        optional: false
-      }
-    }
+        optional: false,
+      },
+    },
   }
 
   if (maybeEnum !== null) {
@@ -111,7 +130,6 @@ const generateFieldConfig = (topLevelChoice, secondLevelChoice) => {
   return config
 }
 
-
 const InsertFieldButton = ({
   index,
   isOpen,
@@ -119,24 +137,33 @@ const InsertFieldButton = ({
   onOpen,
   onClose,
   onSelectCategory,
-  onAddField
+  onAddField,
 }) => {
   // Are we in step 1 or step 2?
   const [selectedTopLevel, setSelectedTopLevel] = React.useState(null)
 
   // Step 2 choices are either input types or special sub-types
+  // If top-level is "SPECIAL", we use the special sub-type array (e.g., Date, File, etc.).
+  // Otherwise, we filter the normal input types by allowedInputs.
   const getSecondLevelOptions = () => {
     if (!selectedTopLevel) return []
+
     if (selectedTopLevel.type === 'special') {
-      return SPECIAL_TYPE_OPTIONS.map(s => s.label)
+      // Return the special sub-type labels, e.g. ['Date', 'File', 'Profile', 'Group']
+      return SPECIAL_TYPE_OPTIONS.map((s) => s.label)
     }
-    return INPUT_TYPE_OPTIONS.map(i => i.label)
+
+    // For normal types (string, integer, float, boolean):
+    const allowed = selectedTopLevel.allowedInputs // e.g. ['radio', 'checkbox']
+    return INPUT_TYPE_OPTIONS.filter((opt) => allowed.includes(opt.input)).map(
+      (opt) => opt.label
+    )
   }
 
   const secondLevelOptions = getSecondLevelOptions()
 
   const handleSelectTopLevel = (key) => {
-    const topLevel = Object.values(DATA_TYPE_OPTIONS).find(t => t.label === key)
+    const topLevel = Object.values(DATA_TYPE_OPTIONS).find((t) => t.label === key)
     setSelectedTopLevel(topLevel)
   }
 
@@ -217,12 +244,12 @@ const InsertFieldButton = ({
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* The horizontal line + plus icon */}
-        <div
-          style={linePlusStyle}
-          onClick={() => (isOpen ? onClose() : onOpen(index))}
-        >
+        <div style={linePlusStyle} onClick={() => (isOpen ? onClose() : onOpen(index))}>
           <div style={{ flex: 1, borderBottom: '1px solid #ccc' }}></div>
-          <span className='glyphicon glyphicon-plus' style={{ color: 'green', margin: '0 8px' }}></span>
+          <span
+            className="glyphicon glyphicon-plus"
+            style={{ color: 'green', margin: '0 8px' }}
+          ></span>
           <div style={{ flex: 1, borderBottom: '1px solid #ccc' }}></div>
         </div>
 
@@ -231,10 +258,24 @@ const InsertFieldButton = ({
           <div style={dropdownStyle}>
             {/* If no category selected yet, list categories */}
             {!selectedTopLevel && (
-              <ul className="fade-in-list" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              <ul
+                className="fade-in-list"
+                style={{
+                  listStyle: 'none',
+                  margin: 0,
+                  padding: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center'
+                }}
+              >
                 {Object.values(DATA_TYPE_OPTIONS).map((top) => (
-                  <li key={top.label} style={{ margin: '4px 0' }}>
-                    <button type="button" onClick={() => handleSelectTopLevel(top.label)}>
+                  <li key={top.label} style={{ margin: '3px 0' }}>
+                    <button
+                      className="btn btn-default"
+                      type="button"
+                      onClick={() => handleSelectTopLevel(top.label)}
+                    >
                       {top.label}
                     </button>
                   </li>
@@ -244,16 +285,34 @@ const InsertFieldButton = ({
 
             {/* If a category is selected, list field types */}
             {selectedTopLevel && (
-              <ul className="fade-in-list" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              <ul
+                className="fade-in-list"
+                style={{
+                  listStyle: 'none',
+                  margin: 0,
+                  padding: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center'
+                }}
+              >
                 {secondLevelOptions.map((fieldName) => (
-                  <li key={fieldName} style={{ margin: '4px 0' }}>
-                    <button type="button" onClick={() => handleSelectSecondLevel(fieldName)}>
+                  <li key={fieldName} style={{ margin: '3px 0' }}>
+                    <button
+                      className="btn btn-default"
+                      type="button"
+                      onClick={() => handleSelectSecondLevel(fieldName)}
+                    >
                       {fieldName}
                     </button>
                   </li>
                 ))}
                 <li style={{ margin: '4px 0' }}>
-                  <button type="button" onClick={() => setSelectedTopLevel(null)}>
+                  <button
+                    className="btn btn-default"
+                    type="button"
+                    onClick={() => setSelectedTopLevel(null)}
+                  >
                     ← Back to Categories
                   </button>
                 </li>
@@ -264,14 +323,9 @@ const InsertFieldButton = ({
       </div>
     </>
   )
-
 }
 
-const LiveContentFieldEditor = ({
-  propInvitation,
-  propExistingValues,
-  onContentChange
-}) => {
+const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentChange }) => {
   // Use invitation from prop or context
   const context = useContext(EditorComponentContext)
   const invitation = context.invitation || propInvitation
@@ -885,6 +939,7 @@ const LiveContentFieldEditor = ({
                               alignItems: 'stretch',
                               marginBottom: '15px',
                               marginRight: '2em',
+                              borderRadius: '0.75em'
                             }}
                           >
                             {/* Field Controls */}
@@ -919,7 +974,7 @@ const LiveContentFieldEditor = ({
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     color: 'red',
-                                    fontSize: '0.75em'
+                                    fontSize: '0.75em',
                                   }}
                                 >
                                   <span
@@ -984,9 +1039,7 @@ const LiveContentFieldEditor = ({
                             </div>
 
                             {/* Field Preview */}
-                            <div style={{ flex: 1 }}>
-                              {renderField(field, idx)}
-                            </div>
+                            <div style={{ flex: 1 }}>{renderField(field, idx)}</div>
                           </div>
                         </React.Fragment>
                       ))}
@@ -1020,7 +1073,7 @@ const LiveContentFieldEditor = ({
                 <div>
                   <h3>Field Options</h3>
                   <div className="form-group">
-                    <label htmlFor='fieldName'>Field Name</label>
+                    <label htmlFor="fieldName">Field Name</label>
                     <input
                       type="text"
                       value={fields[selectedIndex].name}
@@ -1031,7 +1084,7 @@ const LiveContentFieldEditor = ({
                     />
                   </div>
                   <div className="form-group">
-                    <label htmlFor='descriptionField'>Description</label>
+                    <label htmlFor="descriptionField">Description</label>
                     <textarea
                       value={fields[selectedIndex].config.description || ''}
                       onChange={(e) =>
@@ -1065,7 +1118,7 @@ const LiveContentFieldEditor = ({
                     fields[selectedIndex].config.value.param.enum.length >= 0 && (
                       <>
                         <div className="form-group">
-                          <label htmlFor='inputType'>Input Type</label>
+                          <label htmlFor="inputType">Input Type</label>
                           <select
                             className="form-control"
                             value={fields[selectedIndex].config.value.param.input}
@@ -1151,7 +1204,9 @@ const LiveContentFieldEditor = ({
                   {fields[selectedIndex].config.value.param.type === 'string' && (
                     <>
                       <div className="form-group">
-                        <label htmlFor="regexInput" style={{ marginRight: '5px' }}>Regex Validation</label>
+                        <label htmlFor="regexInput" style={{ marginRight: '5px' }}>
+                          Regex Validation
+                        </label>
                         <input
                           type="text"
                           id="regexInput"
@@ -1165,7 +1220,7 @@ const LiveContentFieldEditor = ({
                       {fields[selectedIndex].config.value.param.input === 'textarea' && (
                         <>
                           <div className="form-group">
-                            <label htmlFor='textFieldOptions'>Text Field Options</label>
+                            <label htmlFor="textFieldOptions">Text Field Options</label>
                             <div>
                               <label style={{ marginRight: '5px' }}>
                                 <input
@@ -1213,7 +1268,7 @@ const LiveContentFieldEditor = ({
                     fields[selectedIndex].config.value.param.type === 'float') && (
                     <>
                       <div className="form-group">
-                        <label htmlFor='numMin'>Minimum</label>
+                        <label htmlFor="numMin">Minimum</label>
                         <input
                           type="number"
                           value={fields[selectedIndex].config.value.param.minimum || ''}
@@ -1224,7 +1279,7 @@ const LiveContentFieldEditor = ({
                         />
                       </div>
                       <div className="form-group">
-                        <label htmlFor='numMax'>Maximum</label>
+                        <label htmlFor="numMax">Maximum</label>
                         <input
                           type="number"
                           value={fields[selectedIndex].config.value.param.maximum || ''}
@@ -1241,7 +1296,7 @@ const LiveContentFieldEditor = ({
                   {fields[selectedIndex].config.value.param.type === 'file' && (
                     <>
                       <div className="form-group">
-                        <label htmlFor='allowedExt'>Allowed Extensions</label>
+                        <label htmlFor="allowedExt">Allowed Extensions</label>
                         <input
                           type="text"
                           value={
@@ -1257,7 +1312,7 @@ const LiveContentFieldEditor = ({
                         />
                       </div>
                       <div className="form-group">
-                        <label htmlFor='maxSize'>Max Size (MB)</label>
+                        <label htmlFor="maxSize">Max Size (MB)</label>
                         <input
                           type="number"
                           value={fields[selectedIndex].config.value.param.maxSize || ''}
@@ -1274,7 +1329,7 @@ const LiveContentFieldEditor = ({
                   {/* Profile Field Options */}
                   {fields[selectedIndex].config.value.param.type === 'profile' && (
                     <div className="form-group">
-                      <label htmlFor='allowedGroup'>Allowed Group ID for Profiles</label>
+                      <label htmlFor="allowedGroup">Allowed Group ID for Profiles</label>
                       <ProfileSearchWidget
                         onChange={(value) =>
                           updateNestedProperty(selectedIndex, 'inGroup', value)
@@ -1287,7 +1342,7 @@ const LiveContentFieldEditor = ({
                   {/* Group Field Options */}
                   {fields[selectedIndex].config.value.param.type === 'group' && (
                     <div className="form-group">
-                      <label htmlFor='allowedGroupId'>Allowed Group ID</label>
+                      <label htmlFor="allowedGroupId">Allowed Group ID</label>
                       <input
                         type="text"
                         value={fields[selectedIndex].config.value.param.inGroup || ''}
@@ -1302,7 +1357,7 @@ const LiveContentFieldEditor = ({
                   {/* Date Field Options */}
                   {fields[selectedIndex].config.value.param.type === 'date' && (
                     <div className="form-group">
-                      <label htmlFor='selectDate'>Select Date</label>
+                      <label htmlFor="selectDate">Select Date</label>
                       <DatePickerWidget
                         onChange={(date) => updateNestedProperty(selectedIndex, 'date', date)}
                         value={fields[selectedIndex].config.value.param.date || new Date()}
