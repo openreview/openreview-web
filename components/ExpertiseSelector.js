@@ -26,7 +26,7 @@ const paperDisplayOptions = {
 }
 
 export default function ExpertiseSelector({ invitation, venueId, apiVersion, shouldReload }) {
-  const { user, accessToken, userLoading } = useUser()
+  const { user, accessToken, isRefreshing } = useUser()
   const [edgesMap, setEdgesMap] = useState(null)
   const [userNotes, setUserNotes] = useState(null)
 
@@ -160,7 +160,7 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
   }
 
   useEffect(() => {
-    if (userLoading || !user) return
+    if (isRefreshing || !user) return
 
     const loadNotes = async () => {
       try {
@@ -206,7 +206,7 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
 
     loadNotes()
     loadEdges()
-  }, [userLoading, user, shouldReload])
+  }, [isRefreshing, user, shouldReload])
 
   useEffect(() => {
     // Mark task as complete if the invitation is an "Exclude" type and it's the
@@ -221,7 +221,7 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
     }
   }, [invitation.id, userNotes, edgesMap])
 
-  if (userLoading) return <LoadingSpinner />
+  if (isRefreshing) return <LoadingSpinner />
 
   if (!user) {
     return <ErrorAlert error={{ message: 'You must be logged in to select your expertise' }} />

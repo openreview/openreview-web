@@ -1,11 +1,14 @@
 @use '../utils/constants';
+@use 'sass:color';
 
 .textAreaContainer {
   max-width: 100%;
+  display: flex;
+
   @media #{constants.$large} {
     max-width: 80%;
   }
-  display: flex;
+
   :global {
     .markdown-preview {
       flex-grow: 1;
@@ -40,7 +43,7 @@
     font-weight: bold;
   }
   &.danger {
-    color: lighten(constants.$orRed, 20%);
+    color: color.adjust(constants.$orRed, $lightness: 20%);
     font-weight: bold;
   }
 }

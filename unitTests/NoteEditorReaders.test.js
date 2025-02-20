@@ -11,6 +11,7 @@ jest.mock('../components/EditorComponents/TagsWidget', () => (props) => {
   tagProps(props)
   return <span>tags</span>
 })
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 beforeEach(() => {
   mockUser = { user: { id: '~Test_User1' }, accessToken: 'some token' }

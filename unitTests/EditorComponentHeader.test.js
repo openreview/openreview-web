@@ -3,6 +3,8 @@ import { screen } from '@testing-library/react'
 import EditorComponentHeader from '../components/EditorComponents/EditorComponentHeader'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 global.MathJax = jest.fn()
 global.marked = jest.fn()
 global.DOMPurify = {
