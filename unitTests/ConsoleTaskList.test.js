@@ -8,7 +8,7 @@ jest.mock('../lib/api-client')
 jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
 
 let venueId, submissionName
-let authorName, reviewerName, areaChairName, seniorAreaChairName
+let authorName, reviewerName, areaChairName, seniorAreaChairName, secondaryAreaChairName
 let authorConsoleReferrer,
   reviewerConsoleReferrer,
   areaChairConsoleReferrer,
@@ -23,6 +23,7 @@ beforeAll(() => {
   reviewerName = 'Reviewers'
   areaChairName = 'Area_Chairs'
   seniorAreaChairName = 'Senior_Area_Chairs'
+  secondaryAreaChairName = 'Secondary_Area_Chairs'
   authorConsoleReferrer = encodeURIComponent(
     `[Author Console](/group?id=${venueId}/${authorName}#author-tasks)`
   )
@@ -2230,6 +2231,54 @@ describe('ConsoleTaskList', () => {
       expect(metaReviewAgreementLink).toBeInTheDocument()
       expect(metaReview5RevisionLink).not.toBeInTheDocument()
       expect(metaReview6RevisionLink).not.toBeInTheDocument()
+    })
+  })
+
+  test('show tasks of secondary area chairs (in AC Console) when extraRoleNames is provided', async () => {
+    const now = Date.now()
+    noteInvitations = [
+      {
+        id: `${venueId}/${submissionName}1/Official_Review1/-/Rating`,
+        domain: venueId,
+        duedate: now + oneDay,
+        invitees: [`${venueId}/${submissionName}1/${areaChairName}`],
+        edit: {
+          note: {
+            replyto: 'review1Id',
+          },
+        },
+      },
+      // invitations for secondary AC
+      {
+        id: `${venueId}/${submissionName}2/-/Meta_Review_Confirmation`,
+        domain: venueId,
+        duedate: now + oneDay,
+        invitees: [`${venueId}/${submissionName}2/${secondaryAreaChairName}`],
+        edit: {
+          note: {
+            replyto: 'metaReviewId',
+          },
+        },
+      },
+    ]
+    edgeInvitations = []
+    tagInvitations = []
+
+    render(
+      <ConsoleTaskList
+        venueId={venueId}
+        roleName={areaChairName}
+        extraRoleNames={[secondaryAreaChairName]}
+        referrer={areaChairConsoleReferrer}
+        filterAssignedInvitation={true}
+        submissionName={submissionName}
+        submissionNumbers={undefined}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Submission1 Official Review1 Rating')).toBeInTheDocument()
+      expect(screen.getByText('Submission2 Meta Review Confirmation')).toBeInTheDocument()
     })
   })
 })
