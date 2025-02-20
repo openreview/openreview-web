@@ -1,5 +1,6 @@
 /* globals promptError, promptMessage: false */
 import React, { useContext, useState, useEffect, useRef } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import api from '../../lib/api-client'
 import EditorSection from '../EditorSection'
 import CodeEditor from '../CodeEditor'
@@ -254,72 +255,83 @@ const InsertFieldButton = ({
         </div>
 
         {/* Dropdown (only visible if isOpen=true) */}
-        {isOpen && (
-          <div style={dropdownStyle}>
-            {/* If no category selected yet, list categories */}
-            {!selectedTopLevel && (
-              <ul
-                className="fade-in-list"
-                style={{
-                  listStyle: 'none',
-                  margin: 0,
-                  padding: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center'
-                }}
-              >
-                {Object.values(DATA_TYPE_OPTIONS).map((top) => (
-                  <li key={top.label} style={{ margin: '3px 0' }}>
-                    <button
-                      className="btn btn-default"
-                      type="button"
-                      onClick={() => handleSelectTopLevel(top.label)}
-                    >
-                      {top.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {/* If a category is selected, list field types */}
-            {selectedTopLevel && (
-              <ul
-                className="fade-in-list"
-                style={{
-                  listStyle: 'none',
-                  margin: 0,
-                  padding: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center'
-                }}
-              >
-                {secondLevelOptions.map((fieldName) => (
-                  <li key={fieldName} style={{ margin: '3px 0' }}>
-                    <button
-                      className="btn btn-default"
-                      type="button"
-                      onClick={() => handleSelectSecondLevel(fieldName)}
-                    >
-                      {fieldName}
-                    </button>
-                  </li>
-                ))}
-                <li style={{ margin: '4px 0' }}>
-                  <button
-                    className="btn btn-default"
-                    type="button"
-                    onClick={() => setSelectedTopLevel(null)}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              key="dropdown"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ overflow: 'hidden' }}
+            >
+              <div style={dropdownStyle}>
+                {/* If no category selected yet, list categories */}
+                {!selectedTopLevel && (
+                  <ul
+                    className="fade-in-list"
+                    style={{
+                      listStyle: 'none',
+                      margin: 0,
+                      padding: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center'
+                    }}
                   >
-                    ← Back to Categories
-                  </button>
-                </li>
-              </ul>
-            )}
-          </div>
-        )}
+                    {Object.values(DATA_TYPE_OPTIONS).map((top) => (
+                      <li key={top.label} style={{ margin: '3px 0' }}>
+                        <button
+                          className="btn btn-default"
+                          type="button"
+                          onClick={() => handleSelectTopLevel(top.label)}
+                        >
+                          {top.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {/* If a category is selected, list field types */}
+                {selectedTopLevel && (
+                  <ul
+                    className="fade-in-list"
+                    style={{
+                      listStyle: 'none',
+                      margin: 0,
+                      padding: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center'
+                    }}
+                  >
+                    {secondLevelOptions.map((fieldName) => (
+                      <li key={fieldName} style={{ margin: '3px 0' }}>
+                        <button
+                          className="btn btn-default"
+                          type="button"
+                          onClick={() => handleSelectSecondLevel(fieldName)}
+                        >
+                          {fieldName}
+                        </button>
+                      </li>
+                    ))}
+                    <li style={{ margin: '4px 0' }}>
+                      <button
+                        className="btn btn-default"
+                        type="button"
+                        onClick={() => setSelectedTopLevel(null)}
+                      >
+                        ← Back to Categories
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </>
   )
@@ -854,8 +866,11 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
   }
 
   return (
-    <EditorSection title="Invitation Content Editor" className="invitation-editor">
-      <div style={{ display: 'flex' }}>
+      <div style={{
+        display: 'flex',
+        paddingBottom: '3em',
+        paddingTop: '1em',
+      }}>
         <style>{`
         .invitation-content-editor {
           padding: 20px;
@@ -1373,7 +1388,6 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
           )}
         </div>
       </div>
-    </EditorSection>
   )
 }
 
