@@ -156,10 +156,10 @@ const WorflowInvitationRow = ({
       contentFieldValueMap[key] = displayValue
     })
     if (hasMissingValue) {
-      setMissingValueInvitationIds((invitationIds) => [
-        ...invitationIds,
-        workflowInvitation.id,
-      ])
+      setMissingValueInvitationIds((invitationIds) => {
+        if (invitationIds.includes(workflowInvitation.id)) return invitationIds
+        return [...invitationIds, workflowInvitation.id]
+      })
     }
     setSubInvitationContentFieldValues(contentFieldValueMap)
   }, [subInvitation])
