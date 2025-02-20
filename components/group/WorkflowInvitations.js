@@ -14,6 +14,7 @@ import {
   getMetaInvitationId,
   getPath,
   getSubInvitationContentFieldDisplayValue,
+  inflect,
   prettyField,
   prettyId,
   prettyInvitationId,
@@ -156,10 +157,10 @@ const WorflowInvitationRow = ({
       contentFieldValueMap[key] = displayValue
     })
     if (hasMissingValue) {
-      setMissingValueInvitationIds((invitationIds) => [
-        ...invitationIds,
-        workflowInvitation.id,
-      ])
+      setMissingValueInvitationIds((invitationIds) => {
+        if (invitationIds.includes(workflowInvitation.id)) return invitationIds
+        return [...invitationIds, workflowInvitation.id]
+      })
     }
     setSubInvitationContentFieldValues(contentFieldValueMap)
   }, [subInvitation])
@@ -667,8 +668,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                     {' '}
                     -
                     <span className="missing-value">
-                      {`  ${missingValueInvitationIds.length} steps require to enter missing
-                    values in order to be ready to run`}
+                      {`  You must enter missing values in ${inflect(missingValueInvitationIds.length, 'step', 'steps', true)} in order to be ready to run`}
                     </span>
                   </>
                 ) : (
