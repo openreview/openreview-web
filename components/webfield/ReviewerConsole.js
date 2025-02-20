@@ -285,7 +285,8 @@ const ReviewerConsole = ({ appContext }) => {
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
   const [enablePaperRanking, setEnablePaperRanking] = useState(true)
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`
+    decodeURIComponent(window.location.hash) ||
+      `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`
   )
 
   const paperRankingId = `${venueId}/${reviewerName}/-/Paper_Ranking`
@@ -499,6 +500,8 @@ const ReviewerConsole = ({ appContext }) => {
               noteNumbers,
               officialReviewInvitations,
               paperRankingInvitation,
+              tableRowsAll: notes.map((p) => ({ note: p })),
+              tableRows: notes.map((p) => ({ note: p })),
             })
           })
         }
@@ -517,9 +520,29 @@ const ReviewerConsole = ({ appContext }) => {
         </p>
       )
     }
+
+    if (reviewerConsoleData.tableRows?.length === 0)
+      return (
+        <div className="table-container empty-table-container">
+          <ReviewerConsoleMenuBar
+            venueId={venueId}
+            tableRowsAll={reviewerConsoleData.tableRowsAll}
+            tableRows={reviewerConsoleData.tableRows}
+            setReviewerConsoleData={setReviewerConsoleData}
+            submissionName={submissionName}
+          />
+          <p className="empty-message">No {submissionName} matching search criteria.</p>
+        </div>
+      )
     return (
       <div className="table-container">
-        <ReviewerConsoleMenuBar venueId={venueId} records={reviewerConsoleData.notes} />
+        <ReviewerConsoleMenuBar
+          venueId={venueId}
+          tableRowsAll={reviewerConsoleData.tableRowsAll}
+          tableRows={reviewerConsoleData.tableRows}
+          setReviewerConsoleData={setReviewerConsoleData}
+          submissionName={submissionName}
+        />
         <Table
           className="console-table table-striped"
           headings={[
@@ -532,10 +555,10 @@ const ReviewerConsole = ({ appContext }) => {
             },
           ]}
         >
-          {reviewerConsoleData.notes?.map((note) => (
+          {reviewerConsoleData.tableRows?.map((row) => (
             <AssignedPaperRow
-              key={note.id}
-              note={note}
+              key={row.note.id}
+              note={row.note}
               reviewerConsoleData={reviewerConsoleData}
               paperRankingId={paperRankingId}
               setReviewerConsoleData={setReviewerConsoleData}

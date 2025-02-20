@@ -1785,7 +1785,7 @@ const UserModerationQueue = ({
         { id: profileId, decision: 'accept' },
         { accessToken }
       )
-      if (profiles.length === 1) {
+      if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
       reload()
@@ -1843,7 +1843,7 @@ const UserModerationQueue = ({
         { accessToken }
       )
       $(`#${modalId}`).modal('hide')
-      if (profiles.length === 1) {
+      if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
       reload()
@@ -1880,7 +1880,7 @@ const UserModerationQueue = ({
           { id: profile.id, decision: actionIsBlock ? 'block' : 'unblock' },
           { accessToken }
         )
-        if (onlyModeration && profiles.length === 1) {
+        if (profiles.length === 1 && pageNumber !== 1) {
           setPageNumber((p) => p - 1)
         }
       } catch (error) {
@@ -2232,7 +2232,9 @@ const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
       label: 'Institutional Email is missing',
       rejectionText: `Please add and confirm an institutional email ${
         currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
-      }to your profile. Please make sure the verification token is entered and verified.\n\n${instructionText}`,
+      }to your profile. Please make sure the verification token is entered and verified.\n\nIf your affiliation ${
+        currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
+      } is not current, please update your profile with your current affiliation and associated institutional email.\n\n${instructionText}`,
     },
     {
       value: 'requestEmailConfirmation',
@@ -2253,6 +2255,16 @@ const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
       value: 'imPersonalHomepageAndEmail',
       label: 'Homepage is invalid + no institution email',
       rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required. Please confirm the institutional email by entering the verification token received after clicking confirm button next to the institutional email.\n\n${instructionText}`,
+    },
+    {
+      value: 'invalidName',
+      label: 'Profile name is invalid',
+      rejectionText: `The name in your profile does not match the name listed in your homepage or is invalid.\n\n${instructionText}`,
+    },
+    {
+      value: 'invalidORCID',
+      label: 'ORCID profile is incomplete',
+      rejectionText: `The ORCID profile you've provided as a homepage is empty or does not match the Career & Education history you've provided.\n\n${instructionText}`,
     },
     {
       value: 'lastNotice',
