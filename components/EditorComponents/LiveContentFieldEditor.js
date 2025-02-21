@@ -1283,7 +1283,8 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
           background-color: #f9f9f9;
         }
         .field-row.selected {
-          background-color: #eef;
+          border-left: 2px solid #1b8ceb; /* brand color */
+          background-color: #eef6fc;      /* pastel shade of the same color */
         }
         .field-controls {
           width: 50px;
