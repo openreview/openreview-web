@@ -313,10 +313,6 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
                 transform: translateY(0);
               }
             }
-
-            .fade-in-list {
-              animation: fadeInButtons 0.3s ease-out;
-            }
           `}
       </style>
 
@@ -344,7 +340,7 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.2 }}
               style={{ overflow: 'hidden' }}
             >
               <div style={dropdownStyle}>
