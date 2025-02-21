@@ -233,6 +233,7 @@ function ForumTitle({ id, title, pdf, html }) {
             <img src={coverImage ?? '/images/pdf_icon_blue.svg'} alt="Download PDF" />
           </a>
           {pageCount && <span>{pageCount}</span>}
+          <Link href={`/pdfviewer?id=${id}`}>Open PDF</Link>
         </div>
       )}
       {html && (

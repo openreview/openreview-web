@@ -39,9 +39,14 @@ export default function usePdf(accessToken) {
     return mupdfWorker.current.getDocumentCoverImage()
   }
 
+  const getPageContent = async (page, zoom) => {
+    if (!document.current) return null
+    return mupdfWorker.current.loadPageImageData(page, window.devicePixelRatio * zoom)
+  }
+
   useEffect(() => {
     if (!accessToken) return
     initializeMuPdf()
-  }, [])
-  return { initialized, loadDocument, getMeta, getPagesCount, getCoverImage }
+  }, [accessToken])
+  return { initialized, loadDocument, getMeta, getPagesCount, getCoverImage, getPageContent }
 }
