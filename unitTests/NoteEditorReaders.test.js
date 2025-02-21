@@ -6,6 +6,8 @@ import api from '../lib/api-client'
 
 let mockUser
 let tagProps
+
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => mockUser)
 jest.mock('../components/EditorComponents/TagsWidget', () => (props) => {
   tagProps(props)
