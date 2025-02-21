@@ -240,7 +240,7 @@ describe('filterCollections', () => {
     ])
   })
 
-  test('filter collection with multiple propertie fields', () => {
+  test('filter collection with multiple property fields', () => {
     const collections = [
       { id: 1, note: { content: { title: { value: 'some value' } } } },
       {

@@ -446,11 +446,11 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
     officialMetaReviewName,
   } = useContext(WebFieldContext)
   const singularAreaChairName = getSingularRoleName(areaChairName)
-  const metaReivews = [...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? [])].filter(
+  const metaReviews = [...(pcConsoleData.metaReviewsByPaperNumberMap?.values() ?? [])].filter(
     (p) => p.length
   )
-  const metaReviewsCount = metaReivews.length
-  const allMetaReviews = metaReivews
+  const metaReviewsCount = metaReviews.length
+  const allMetaReviews = metaReviews
     .flat()
     .flatMap((p) => p?.content?.[metaReviewRecommendationName]?.value ?? [])
 

@@ -4,7 +4,7 @@ import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import WebFieldContext from '../../WebFieldContext'
 import {
-  getIndentifierFromGroup,
+  getIdentifierFromGroup,
   getNumberFromGroup,
   getProfileName,
 } from '../../../lib/utils'
@@ -154,7 +154,7 @@ const EthicsChairPaperStatus = () => {
             return {
               reviewerProfileId: deanonymizedGroup,
               anonymizedGroup,
-              anonymousId: getIndentifierFromGroup(anonymizedGroup, anonEthicsReviewerName),
+              anonymousId: getIdentifierFromGroup(anonymizedGroup, anonEthicsReviewerName),
             }
           }),
         }
@@ -208,7 +208,7 @@ const EthicsChairPaperStatus = () => {
           })
           ?.map((review) => ({
             ...review,
-            anonymousId: getIndentifierFromGroup(review.signatures[0], anonEthicsReviewerName),
+            anonymousId: getIdentifierFromGroup(review.signatures[0], anonEthicsReviewerName),
           }))
         ethicsReviewsByPaperNumberMap.set(note.number, ethicsReviews)
       })

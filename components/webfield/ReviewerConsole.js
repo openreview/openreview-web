@@ -431,23 +431,23 @@ const ReviewerConsole = ({ appContext }) => {
     Promise.all([getNotesP, paperRankingInvitationP, getCustomLoadP, getAreaChairGroupsP])
       .then(([notes, paperRankingInvitation, customLoad, areaChairMap]) => {
         const noteChunks = chunk(notes, 50)
-        // get offical review invitations to show submit official review link
-        const officalReviewInvitationPs = noteChunks.map((noteChunk) => {
-          const officalReviewInvitationIds = noteChunk.map(
+        // get official review invitations to show submit official review link
+        const officialReviewInvitationPs = noteChunks.map((noteChunk) => {
+          const officialReviewInvitationIds = noteChunk.map(
             (note) => `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
           )
           return api
             .get(
               '/invitations',
               {
-                ids: officalReviewInvitationIds,
+                ids: officialReviewInvitationIds,
                 domain: group.domain,
               },
               { accessToken }
             )
             .then((result) => result.invitations)
         })
-        return Promise.all(officalReviewInvitationPs)
+        return Promise.all(officialReviewInvitationPs)
           .then((invitationChunks) => invitationChunks.flat())
           .then((officialReviewInvitationsResult) => [
             notes,
