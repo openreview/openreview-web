@@ -1279,35 +1279,33 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
             >
               <TabPanels>
                 <TabPanel id="preview-fields">
-                  <form onSubmit={(e) => e.preventDefault()}>
-                    {fields.map((field, idx) => (
-                      <FieldRow
-                        key={idx}
-                        index={idx}
-                        field={field}
-                        addFieldDropdownIndex={addFieldDropdownIndex}
-                        handleOpenAddFieldDropdown={handleOpenAddFieldDropdown}
-                        setAddFieldDropdownIndex={setAddFieldDropdownIndex}
-                        handleAddFieldAtIndex={handleAddFieldAtIndex}
-                        selectedIndex={selectedIndex}
-                        selectField={selectField}
-                        handleDeleteField={handleDeleteField}
-                        moveFieldUp={moveFieldUp}
-                        moveFieldDown={moveFieldDown}
-                        renderField={renderField}
-                      />
-                    ))}
-                    <InsertFieldButton
-                      index={fields.length} // insertion after the last field
-                      isOpen={addFieldDropdownIndex === fields.length}
-                      onOpen={handleOpenAddFieldDropdown}
-                      onClose={() => setAddFieldDropdownIndex(null)}
-                      onAddField={handleAddFieldAtIndex}
+                  {fields.map((field, idx) => (
+                    <FieldRow
+                      key={idx}
+                      index={idx}
+                      field={field}
+                      addFieldDropdownIndex={addFieldDropdownIndex}
+                      handleOpenAddFieldDropdown={handleOpenAddFieldDropdown}
+                      setAddFieldDropdownIndex={setAddFieldDropdownIndex}
+                      handleAddFieldAtIndex={handleAddFieldAtIndex}
+                      selectedIndex={selectedIndex}
+                      selectField={selectField}
+                      handleDeleteField={handleDeleteField}
+                      moveFieldUp={moveFieldUp}
+                      moveFieldDown={moveFieldDown}
+                      renderField={renderField}
                     />
-                    <button type="button" className="btn btn-primary" onClick={() => null}>
-                      Save Changes
-                    </button>
-                  </form>
+                  ))}
+                  <InsertFieldButton
+                    index={fields.length} // insertion after the last field
+                    isOpen={addFieldDropdownIndex === fields.length}
+                    onOpen={handleOpenAddFieldDropdown}
+                    onClose={() => setAddFieldDropdownIndex(null)}
+                    onAddField={handleAddFieldAtIndex}
+                  />
+                  <button type="button" className="btn btn-primary" onClick={() => null}>
+                    Save Changes
+                  </button>
                 </TabPanel>
                 <TabPanel id="json-fields">
                   <CodeEditor code={replyString} readOnly={false} isJson />
