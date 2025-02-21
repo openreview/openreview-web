@@ -567,62 +567,162 @@ const FieldPreview = ({ field, renderField, index }) => (
 
 // #region Shared Field Options
 
-const BasicFieldOptions = ({ field, selectedIndex, updateNestedProperty }) => (
-  <>
-    {/* Field Name */}
-    <div className="form-group">
-      <label htmlFor="fieldName">Field Name</label>
-      <input
-        type="text"
-        value={field.name}
-        onChange={(e) => updateNestedProperty(selectedIndex, 'name', e.target.value)}
-        className="form-control"
-      />
-    </div>
+const BasicFieldOptions = ({
+  field,
+  selectedIndex,
+  updateNestedProperty,
+  fieldReaderOptions,
+}) => {
+  const currentSelections = field.config.readers || []
 
-    {/* Description */}
-    <div className="form-group">
-      <label htmlFor="descriptionField">Description</label>
-      <textarea
-        value={field.config.description || ''}
-        onChange={(e) => updateNestedProperty(selectedIndex, 'description', e.target.value)}
-        className="form-control"
-        style={{
-          width: '100%',
-          boxSizing: 'border-box',
-          height: '20vh', // fixed height
-          resize: 'vertical', // allow user to resize only vertically
-        }}
-      />
-    </div>
+  // Handler when a new dropdown option is chosen
+  const handleDropdownChange = (e) => {
+    const selectedValue = e.target.value
+    // Avoid adding duplicates.
+    if (!currentSelections.includes(selectedValue)) {
+      const newSelections = [...currentSelections, selectedValue]
+      updateNestedProperty(selectedIndex, 'fieldReaders', newSelections)
+    }
+    // Set the dropdown back to the default value
+    e.target.value = ''
+  }
 
-    {/* Required Checkbox */}
-    <div className="form-group">
-      <label style={{ marginRight: '5px' }}>
+  // Handler to remove a selection (by its index)
+  const removeSelection = (idxToRemove) => {
+    const newSelections = currentSelections.filter((_, idx) => idx !== idxToRemove)
+    updateNestedProperty(selectedIndex, 'fieldReaders', newSelections)
+  }
+
+  // To display a friendly name, find the key that maps to the stored value.
+  const getDisplayName = (storedValue) =>
+    Object.keys(fieldReaderOptions).find(
+      (displayText) => fieldReaderOptions[displayText] === storedValue
+    )
+
+  return (
+    <>
+      {/* Field Name */}
+      <div className="form-group">
+        <label htmlFor="fieldName">Field Name</label>
         <input
-          type="checkbox"
-          checked={!field.config.value.param.optional}
-          onChange={(e) => updateNestedProperty(selectedIndex, 'required', e.target.checked)}
-          style={{ marginRight: '5px' }}
+          type="text"
+          value={field.name}
+          onChange={(e) => updateNestedProperty(selectedIndex, 'name', e.target.value)}
+          className="form-control"
         />
-        Required
-      </label>
-    </div>
+      </div>
 
-    {/* Hidden Checkbox */}
-    <div className="form-group">
-      <label style={{ marginRight: '5px' }}>
-        <input
-          type="checkbox"
-          checked={field.config.value.param.hidden || false}
-          onChange={(e) => updateNestedProperty(selectedIndex, 'hidden', e.target.checked)}
-          style={{ marginRight: '5px' }}
+      {/* Description */}
+      <div className="form-group">
+        <label htmlFor="descriptionField">Description</label>
+        <textarea
+          value={field.config.description || ''}
+          onChange={(e) => updateNestedProperty(selectedIndex, 'description', e.target.value)}
+          className="form-control"
+          style={{
+            width: '100%',
+            boxSizing: 'border-box',
+            height: '20vh', // fixed height
+            resize: 'vertical', // allow user to resize only vertically
+          }}
         />
-        Hidden Field
-      </label>
-    </div>
-  </>
-)
+      </div>
+
+      {/* Required Checkbox */}
+      <div className="form-group">
+        <label style={{ marginRight: '5px' }}>
+          <input
+            type="checkbox"
+            checked={!field.config.value.param.optional}
+            onChange={(e) => updateNestedProperty(selectedIndex, 'required', e.target.checked)}
+            style={{ marginRight: '5px' }}
+          />
+          Required
+        </label>
+      </div>
+
+      {/* Hidden Checkbox */}
+      <div className="form-group">
+        <label style={{ marginRight: '5px' }}>
+          <input
+            type="checkbox"
+            checked={field.config.value.param.hidden || false}
+            onChange={(e) => updateNestedProperty(selectedIndex, 'hidden', e.target.checked)}
+            style={{ marginRight: '5px' }}
+          />
+          Hide from Submitters
+        </label>
+      </div>
+
+      {/* New Section for Dropdown Selections */}
+      {currentSelections && currentSelections.length > 0 && (
+        <div className="form-group">
+          <style>
+            {`
+              .glyphicon-remove {
+                opacity: 0.3;
+                transition: opacity 0.2s;
+              }
+              .glyphicon-remove:hover {
+                opacity: 1;
+                color: red;
+              }
+            `}
+          </style>
+          <label htmlFor="selectedReaders">Selected Readers</label>
+          <div style={{ padding: '8px', minHeight: '2em' }}>
+            {currentSelections.map((sel, idx) => (
+              <span
+                key={idx}
+                style={{
+                  display: 'inline-block',
+                  backgroundColor: '#e0e0e0',
+                  borderRadius: '4px',
+                  padding: '2px 6px',
+                  margin: '2px',
+                  position: 'relative',
+                }}
+              >
+                {getDisplayName(sel)}
+                <span
+                  className="glyphicon glyphicon-remove"
+                  style={{
+                    marginLeft: '5px',
+                    opacity: 0.3,
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.opacity = 1
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = 0.3
+                  }}
+                  onClick={() => removeSelection(idx)}
+                ></span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Dropdown to Add New Option */}
+      <div className="form-group">
+        <label htmlFor="addReaderOption">Restrict Readers To</label>
+        <select className="form-control" onChange={handleDropdownChange} defaultValue="">
+          <option value="" disabled>
+            Select an option…
+          </option>
+          {Object.entries(fieldReaderOptions).map(([displayText, validValue]) => (
+            <option key={validValue} value={validValue}>
+              {displayText}
+            </option>
+          ))}
+        </select>
+      </div>
+    </>
+  )
+}
 
 // #endregion
 
@@ -928,6 +1028,18 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
     required: !config.value.param.optional,
   }))
 
+  // eslint-disable-next-line no-template-curly-in-string
+  const SUBMISSION_SUBSTRING = '${7/content/noteNumber/value}'
+  const FIELD_READER_OPTIONS = {
+    'Program Chairs': `${invitation.domain}/Program_Chairs`,
+    'All Senior Area Chairs': `${invitation.domain}/Senior_Area_Chairs`,
+    'Assigned Senior Area Chairs': `${invitation.domain}/Submission${SUBMISSION_SUBSTRING}/Senior_Area_Chairs`,
+    'All Area Chairs': `${invitation.domain}/Area_Chairs`,
+    'Assigned Area Chairs': `${invitation.domain}/Submission${SUBMISSION_SUBSTRING}/Area_Chairs`,
+    'All Reviewers': `${invitation.domain}/Reviewers`,
+    'Assigned Reviewers': `${invitation.domain}/Submission${SUBMISSION_SUBSTRING}/Reviewers`,
+  }
+
   // Use the custom hook for state management.
   const { fields, selectedIndex, selectField, updateField, deleteField, setAllFields } =
     useFieldEditorState(initialFields)
@@ -1053,6 +1165,10 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
           ...newConfig.value,
           param: { ...newConfig.value.param, hidden: value },
         }
+        break
+      case 'fieldReaders':
+        // If value is an empty array, remove the fieldReaders property
+        newConfig.readers = value.length ? value : undefined
         break
       default:
         break
@@ -1453,6 +1569,16 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
                   </button>
                 </TabPanel>
                 <TabPanel id="json-fields">
+                  {jsonSynced ? (
+                    <CodeEditor
+                      code={jsonString}
+                      readOnly={false}
+                      isJson
+                      onChange={handleJsonChange}
+                    />
+                  ) : (
+                    <LoadingSpinner inline text={null} extraClass="spinner-small" />
+                  )}
                   <AnimatePresence>
                     {jsonError && (
                       <motion.div
@@ -1480,16 +1606,6 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  {jsonSynced ? (
-                    <CodeEditor
-                      code={jsonString}
-                      readOnly={false}
-                      isJson
-                      onChange={handleJsonChange}
-                    />
-                  ) : (
-                    <LoadingSpinner inline text={null} extraClass="spinner-small" />
-                  )}
                 </TabPanel>
               </TabPanels>
             </div>
@@ -1509,6 +1625,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
                   field={fields[selectedIndex]}
                   selectedIndex={selectedIndex}
                   updateNestedProperty={updateNestedProperty}
+                  fieldReaderOptions={FIELD_READER_OPTIONS}
                 />
 
                 {/* Choice Fields */}
