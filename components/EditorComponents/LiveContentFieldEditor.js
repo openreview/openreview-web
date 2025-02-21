@@ -549,6 +549,21 @@ function BasicFieldOptions({ field, selectedIndex, updateNestedProperty }) {
           Required
         </label>
       </div>
+
+      {/* Hidden Checkbox */}
+      <div className="form-group">
+        <label style={{ marginRight: '5px' }}>
+          <input
+            type="checkbox"
+            checked={field.config.value.param.hidden || false}
+            onChange={(e) =>
+              updateNestedProperty(selectedIndex, 'hidden', e.target.checked)
+            }
+            style={{ marginRight: '5px' }}
+          />
+          Hidden Field
+        </label>
+      </div>
     </>
   )
 }
@@ -997,6 +1012,12 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
           param: { ...newConfig.value.param, enum: value },
         }
         break
+      case 'hidden':
+        newConfig.value = {
+          ...newConfig.value,
+          param: { ...newConfig.value.param, hidden: value },
+        }
+        break
       default:
         break
     }
@@ -1013,7 +1034,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
   const renderField = (field, index) => {
     console.log('Rendering field:', field)
     const fieldName = field.name
-    const fieldDescription = field.config
+    const fieldDescription = structuredClone(field.config)
     let fieldNameOverwrite = fieldDescription?.value?.param?.fieldName
     if (!fieldNameOverwrite) {
       fieldNameOverwrite = fieldName === 'authorids' ? 'Authors' : undefined
@@ -1038,11 +1059,30 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
       fieldValue = []
     }
 
+    // Reveal hidden field
+    if (isHiddenField) {
+      fieldDescription.value.param.hidden = false
+    }
+
     return (
       <div
         key={fieldName}
         className={`${isHiddenField ? '' : styles.fieldContainer} ${selectedIndex === index ? 'selected-field' : ''}`}
       >
+        {isHiddenField && (
+          <div
+            style={{
+              textAlign: 'left',
+              fontStyle: 'italic',
+              color: '#999',
+              marginBottom: '4px',
+            }}
+          >
+            <span className="glyphicon glyphicon-eye-close" style={{ marginRight: '4px' }}></span>
+            Hidden to Everyone
+          </div>
+        )}
+
         <EditorComponentContext.Provider
           value={{
             invitation,
