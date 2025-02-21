@@ -14,6 +14,44 @@ import Icon from '../Icon'
 import styles from '../../styles/components/NoteEditor.module.scss'
 import useFieldEditorState from '../../hooks/useFieldEditorState'
 
+/*
+Adding new options for a field:
+
+- Add a new div to one of the Field Options components
+<div className="form-group">
+  <label htmlFor="newFieldKey">New Field</label>
+  <input
+    type="number"
+    value={param.newField || ''}
+    onChange={(e) => updateNestedProperty(selectedIndex, 'newField', e.target.value)}
+    className="form-control"
+  />
+</div>
+- Add a new case to the LiveContentFieldEditor updateNestedProperty function
+case 'newField':
+  newConfig.value = {
+    ...newConfig.value,
+    param: { ...newConfig.value.param, newField: value },
+  }
+  break
+
+================================================================================================
+Adding a new category of options:
+- Create a new component that is a series of <div> elements in the form above
+- Accept the same props as the other Field Options components
+({ param, selectedIndex, updateNestedProperty })
+- Add a new conditionally rendered option to the LiveContentFieldEditor component
+{passesBooleanCondition(fields[selectedIndex].config.value.param.newField) && (
+<NewFieldOptions
+  param={fields[selectedIndex].config.value.param}
+  selectedIndex={selectedIndex}
+  updateNestedProperty={updateNestedProperty}
+/>
+)}
+
+*/
+
+
 // The top-level data types
 const DATA_TYPE_OPTIONS = {
   TEXT: {
@@ -36,10 +74,27 @@ const DATA_TYPE_OPTIONS = {
     type: 'boolean',
     allowedInputs: ['radio', 'checkbox'],
   },
-  SPECIAL: {
-    label: 'Special',
-    type: 'special', // We'll handle special sub-types differently
+  DATE: {
+    label: 'Date',
+    type: 'date',
+    allowedInputs: ['single'],
   },
+  FILE: {
+    label: 'File',
+    type: 'file',
+    allowedInputs: ['single'],
+  },
+  PROFILE: {
+    label: 'Profile',
+    type: 'profile',
+    allowedInputs: ['multiple'],
+  },
+  GROUP: {
+    label: 'Group',
+    type: 'group',
+    allowedInputs: ['multiple'],
+  },
+
 }
 
 // For all standard data types (string, integer, float, boolean),
@@ -49,30 +104,33 @@ const INPUT_TYPE_OPTIONS = [
   { label: 'Multiple Choice', input: 'checkbox' },
   { label: 'Small Textbox', input: 'text' },
   { label: 'Large Textbox', input: 'textarea' },
+  { label: 'Single Item', input: 'single' },
+  { label: 'Multiple Items', input: 'multiple' },
 ]
 
 // For “special” data type, we have sub-types that map 1:1 to param.type
-const SPECIAL_TYPE_OPTIONS = [
-  { label: 'Date', type: 'date' },
-  { label: 'File', type: 'file' },
-  { label: 'Profile', type: 'profile' },
-  { label: 'Group', type: 'group' },
-]
+const SPECIAL_TYPE_OPTIONS = {
+  Date: {},
+  File: {},
+  Profile: {
+    mismatchError:"must be a valid email or profile ID",
+    regex:"^~\\S+$|^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$"
+  },
+  Group: {}
+}
 
 // #region Helper Functions
 
 const generateFieldConfig = (topLevelChoice, secondLevelChoice) => {
   // If topLevelChoice is "SPECIAL",
   // secondLevelChoice must be one of the special sub-types
-  if (topLevelChoice.type === 'special') {
-    // Find the special sub-type object (e.g. { label: 'Date', type: 'date' })
-    const special = SPECIAL_TYPE_OPTIONS.find((s) => s.label === secondLevelChoice)
+  if (Object.keys(SPECIAL_TYPE_OPTIONS).includes(topLevelChoice.label)) {
     return {
       description: '',
       value: {
         param: {
-          type: special.type,
-          // The rest of the defaults for these special fields:
+          type: (secondLevelChoice === 'Multiple Items') ? `${topLevelChoice.type  }[]` : topLevelChoice.type,
+          ...SPECIAL_TYPE_OPTIONS[topLevelChoice.label],
           optional: false,
         },
       },
@@ -132,8 +190,8 @@ const generateFieldConfig = (topLevelChoice, secondLevelChoice) => {
 
 // #region Field Tabs
 
-function TabNavigation({ activeTab, onTabChange }) {
-  return (
+const TabNavigation = ({ activeTab, onTabChange }) =>
+  (
     <TabList>
       <Tab
         id="preview-fields"
@@ -151,7 +209,6 @@ function TabNavigation({ activeTab, onTabChange }) {
       </Tab>
     </TabList>
   )
-}
 
 // #endregion
 
@@ -355,7 +412,7 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
   )
 }
 
-function FieldRow({
+const FieldRow = ({
   index,
   field,
   addFieldDropdownIndex,
@@ -368,8 +425,8 @@ function FieldRow({
   moveFieldUp,
   moveFieldDown,
   renderField,
-}) {
-  return (
+}) =>
+  (
     <>
       <InsertFieldButton
         index={index}
@@ -403,14 +460,13 @@ function FieldRow({
       </div>
     </>
   )
-}
 
 // #endregion
 
 // #region Nested Level Field Components
 
-function FieldControls({ idx, onDelete, onMoveUp, onMoveDown }) {
-  return (
+const FieldControls = ({ idx, onDelete, onMoveUp, onMoveDown }) =>
+  (
     <div
       className="field-controls"
       style={{
@@ -497,18 +553,16 @@ function FieldControls({ idx, onDelete, onMoveUp, onMoveDown }) {
       </div>
     </div>
   )
-}
 
-function FieldPreview({ field, renderField, index }) {
-  return <div style={{ flex: 1 }}>{renderField(field, index)}</div>
-}
+const FieldPreview = ({ field, renderField, index }) =>
+  <div style={{ flex: 1 }}>{renderField(field, index)}</div>
 
 // #endregion
 
 // #region Shared Field Options
 
-function BasicFieldOptions({ field, selectedIndex, updateNestedProperty }) {
-  return (
+const BasicFieldOptions = ({ field, selectedIndex, updateNestedProperty }) =>
+  (
     <>
       {/* Field Name */}
       <div className="form-group">
@@ -566,20 +620,19 @@ function BasicFieldOptions({ field, selectedIndex, updateNestedProperty }) {
       </div>
     </>
   )
-}
 
 // #endregion
 
 // #region Multiple Choice Field Options
 
-function ChoiceFieldOptions({
+const ChoiceFieldOptions = ({
   param,
   selectedIndex,
   updateNestedProperty,
   removeOption,
   addOption,
-}) {
-  return (
+}) =>
+  (
     <>
       {/* Input Type Selector */}
       <div className="form-group">
@@ -656,14 +709,13 @@ function ChoiceFieldOptions({
       </button>
     </>
   )
-}
 
 // #endregion
 
 // #region String Field Options
 
-function StringFieldOptions({ param, selectedIndex, updateNestedProperty }) {
-  return (
+const StringFieldOptions = ({ param, selectedIndex, updateNestedProperty }) =>
+  (
     <>
       {/* Regex Validation */}
       <div className="form-group">
@@ -711,14 +763,13 @@ function StringFieldOptions({ param, selectedIndex, updateNestedProperty }) {
       )}
     </>
   )
-}
 
 // #endregion
 
 // #region Number Field Options
 
-function NumericFieldOptions({ param, selectedIndex, updateNestedProperty }) {
-  return (
+const NumericFieldOptions = ({ param, selectedIndex, updateNestedProperty }) =>
+  (
     <>
       <div className="form-group">
         <label htmlFor="numMin">Minimum</label>
@@ -740,13 +791,12 @@ function NumericFieldOptions({ param, selectedIndex, updateNestedProperty }) {
       </div>
     </>
   )
-}
 
 // #endregion
 
 // #region Special Field Options
 
-function SpecialFieldOptions({ param, selectedIndex, updateNestedProperty }) {
+const SpecialFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => {
   switch (param.type) {
     case 'file':
       return (
@@ -785,8 +835,8 @@ function SpecialFieldOptions({ param, selectedIndex, updateNestedProperty }) {
   }
 }
 
-function FileFieldOptions({ param, selectedIndex, updateNestedProperty }) {
-  return (
+const FileFieldOptions = ({ param, selectedIndex, updateNestedProperty }) =>
+  (
     <>
       <div className="form-group">
         <label htmlFor="allowedExt">Allowed Extensions</label>
@@ -810,10 +860,9 @@ function FileFieldOptions({ param, selectedIndex, updateNestedProperty }) {
       </div>
     </>
   )
-}
 
-function ProfileFieldOptions({ param, selectedIndex, updateNestedProperty }) {
-  return (
+const ProfileFieldOptions = ({ param, selectedIndex, updateNestedProperty }) =>
+  (
     <div className="form-group">
       <label htmlFor="allowedGroup">Allowed Group ID for Profiles</label>
       <ProfileSearchWidget
@@ -822,10 +871,9 @@ function ProfileFieldOptions({ param, selectedIndex, updateNestedProperty }) {
       />
     </div>
   )
-}
 
-function GroupFieldOptions({ param, selectedIndex, updateNestedProperty }) {
-  return (
+const GroupFieldOptions = ({ param, selectedIndex, updateNestedProperty }) =>
+  (
     <div className="form-group">
       <label htmlFor="allowedGroupId">Allowed Group ID</label>
       <input
@@ -836,10 +884,9 @@ function GroupFieldOptions({ param, selectedIndex, updateNestedProperty }) {
       />
     </div>
   )
-}
 
-function DateFieldOptions({ param, selectedIndex, updateNestedProperty }) {
-  return (
+const DateFieldOptions = ({ param, selectedIndex, updateNestedProperty }) =>
+  (
     <div className="form-group">
       <label htmlFor="selectDate">Select Date</label>
       <DatePickerWidget
@@ -849,7 +896,6 @@ function DateFieldOptions({ param, selectedIndex, updateNestedProperty }) {
       />
     </div>
   )
-}
 
 // #endregion
 
@@ -1356,7 +1402,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
           </Tabs>
         </div>
 
-        {/* Field Editor */}
+        {/* Options Editor */}
         {activeTab !== 'json-fields' && (
           <div
             className="col-sm-3 field-editor"
