@@ -24,6 +24,12 @@ const fieldEditorReducer = (state, action) => {
     }
     case 'REORDER_FIELDS':
       return { ...state, fields: action.payload }
+    case 'SET_ALL_FIELDS':
+      return {
+        ...state,
+        fields: action.payload,
+        selectedIndex: action.payload.length > 0 ? 0 : null,
+      }
     default:
       return state
   }
@@ -41,6 +47,7 @@ const useFieldEditorState = (initialFields) => {
   const updateField = (index, data) => dispatch({ type: 'UPDATE_FIELD', payload: { index, data } })
   const addField = (field) => dispatch({ type: 'ADD_FIELD', payload: field })
   const deleteField = (index) => dispatch({ type: 'DELETE_FIELD', payload: index })
+  const setAllFields = (newFields) => dispatch({ type: 'SET_ALL_FIELDS', payload: newFields })
 
   return {
     fields: state.fields,
@@ -50,6 +57,7 @@ const useFieldEditorState = (initialFields) => {
     updateField,
     addField,
     deleteField,
+    setAllFields,
   }
 }
 

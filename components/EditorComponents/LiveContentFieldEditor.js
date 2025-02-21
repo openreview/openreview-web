@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import api from '../../lib/api-client'
 import CodeEditor from '../CodeEditor'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
+import LoadingSpinner from '../LoadingSpinner'
 
 import ProfileSearchWidget from './ProfileSearchWidget'
 import DatePickerWidget from './DatePickerWidget'
@@ -51,7 +52,6 @@ Adding a new category of options:
 
 */
 
-
 // The top-level data types
 const DATA_TYPE_OPTIONS = {
   TEXT: {
@@ -94,7 +94,6 @@ const DATA_TYPE_OPTIONS = {
     type: 'group',
     allowedInputs: ['multiple'],
   },
-
 }
 
 // For all standard data types (string, integer, float, boolean),
@@ -113,10 +112,11 @@ const SPECIAL_TYPE_OPTIONS = {
   Date: {},
   File: {},
   Profile: {
-    mismatchError:"must be a valid email or profile ID",
-    regex:"^~\\S+$|^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$"
+    mismatchError: 'must be a valid email or profile ID',
+    regex:
+      "^~\\S+$|^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$",
   },
-  Group: {}
+  Group: {},
 }
 
 // #region Helper Functions
@@ -129,7 +129,10 @@ const generateFieldConfig = (topLevelChoice, secondLevelChoice) => {
       description: '',
       value: {
         param: {
-          type: (secondLevelChoice === 'Multiple Items') ? `${topLevelChoice.type  }[]` : topLevelChoice.type,
+          type:
+            secondLevelChoice === 'Multiple Items'
+              ? `${topLevelChoice.type}[]`
+              : topLevelChoice.type,
           ...SPECIAL_TYPE_OPTIONS[topLevelChoice.label],
           optional: false,
         },
@@ -190,25 +193,29 @@ const generateFieldConfig = (topLevelChoice, secondLevelChoice) => {
 
 // #region Field Tabs
 
-const TabNavigation = ({ activeTab, onTabChange }) =>
-  (
-    <TabList>
-      <Tab
-        id="preview-fields"
-        onClick={() => onTabChange('preview-fields')}
-        active={activeTab === 'preview-fields'}
-      >
-        Live Preview
-      </Tab>
-      <Tab
-        id="json-fields"
-        onClick={() => onTabChange('json-fields')}
-        active={activeTab === 'json-fields'}
-      >
-        Raw JSON
-      </Tab>
-    </TabList>
-  )
+const TabNavigation = ({ activeTab, onTabChange, isPreviewDisabled, previewErrorMessage }) => (
+  <TabList>
+    <Tab
+      id="preview-fields"
+      onClick={() => onTabChange('preview-fields')}
+      active={activeTab === 'preview-fields'}
+      // When disabled, change the cursor and opacity
+      style={isPreviewDisabled ? { cursor: 'not-allowed', opacity: 0.6 } : {}}
+      hidden={isPreviewDisabled}
+      // Tooltip for hover over error
+      title={isPreviewDisabled ? `Cannot preview: ${previewErrorMessage}` : ''}
+    >
+      Live Preview
+    </Tab>
+    <Tab
+      id="json-fields"
+      onClick={() => onTabChange('json-fields')}
+      active={activeTab === 'json-fields'}
+    >
+      Raw JSON
+    </Tab>
+  </TabList>
+)
 
 // #endregion
 
@@ -425,201 +432,197 @@ const FieldRow = ({
   moveFieldUp,
   moveFieldDown,
   renderField,
-}) =>
-  (
-    <>
-      <InsertFieldButton
-        index={index}
-        isOpen={addFieldDropdownIndex === index}
-        onOpen={handleOpenAddFieldDropdown}
-        onClose={() => setAddFieldDropdownIndex(null)}
-        onAddField={handleAddFieldAtIndex}
+}) => (
+  <>
+    <InsertFieldButton
+      index={index}
+      isOpen={addFieldDropdownIndex === index}
+      onOpen={handleOpenAddFieldDropdown}
+      onClose={() => setAddFieldDropdownIndex(null)}
+      onAddField={handleAddFieldAtIndex}
+    />
+
+    <div
+      className={`field-row ${selectedIndex === index ? 'selected' : ''}`}
+      onClick={() => selectField(index)}
+      style={{
+        display: 'flex',
+        alignItems: 'stretch',
+        marginBottom: '15px',
+        marginRight: '2em',
+        borderRadius: '0.75em',
+      }}
+    >
+      {/* Field Controls */}
+      <FieldControls
+        idx={index}
+        onDelete={handleDeleteField}
+        onMoveUp={moveFieldUp}
+        onMoveDown={moveFieldDown}
       />
 
-      <div
-        className={`field-row ${selectedIndex === index ? 'selected' : ''}`}
-        onClick={() => selectField(index)}
-        style={{
-          display: 'flex',
-          alignItems: 'stretch',
-          marginBottom: '15px',
-          marginRight: '2em',
-          borderRadius: '0.75em',
-        }}
-      >
-        {/* Field Controls */}
-        <FieldControls
-          idx={index}
-          onDelete={handleDeleteField}
-          onMoveUp={moveFieldUp}
-          onMoveDown={moveFieldDown}
-        />
-
-        {/* Field Preview */}
-        <FieldPreview field={field} renderField={renderField} index={index} />
-      </div>
-    </>
-  )
+      {/* Field Preview */}
+      <FieldPreview field={field} renderField={renderField} index={index} />
+    </div>
+  </>
+)
 
 // #endregion
 
 // #region Nested Level Field Components
 
-const FieldControls = ({ idx, onDelete, onMoveUp, onMoveDown }) =>
-  (
+const FieldControls = ({ idx, onDelete, onMoveUp, onMoveDown }) => (
+  <div
+    className="field-controls"
+    style={{
+      marginRight: '10px',
+      textAlign: 'center',
+      width: '50px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center', // Center children horizontally
+    }}
+  >
+    {/* Delete button at the top */}
     <div
-      className="field-controls"
+      className="delete-button"
       style={{
-        marginRight: '10px',
-        textAlign: 'center',
-        width: '50px',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center', // Center children horizontally
+        justifyContent: 'center',
+        alignItems: 'center',
       }}
     >
-      {/* Delete button at the top */}
-      <div
-        className="delete-button"
+      <button
+        type="button"
+        className="close"
+        onClick={() => onDelete(idx)}
+        aria-label="Remove field"
         style={{
           display: 'flex',
-          flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
+          color: 'red',
+          fontSize: '0.75em',
         }}
       >
-        <button
-          type="button"
-          className="close"
-          onClick={() => onDelete(idx)}
-          aria-label="Remove field"
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            color: 'red',
-            fontSize: '0.75em',
-          }}
-        >
-          <span className="glyphicon glyphicon-remove" aria-hidden="true"></span>
-        </button>
-      </div>
-      {/* Index and Reorder Buttons Centered Vertically */}
-      <div
-        className="control-buttons"
-        style={{
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <button
-          type="button"
-          className="btn btn-default btn-xs"
-          onClick={() => onMoveUp(idx)}
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: '2px',
-            marginLeft: '0.5rem',
-            marginRight: '0.5rem',
-          }}
-          aria-label="Move field up"
-        >
-          <span className="glyphicon glyphicon-chevron-up" aria-hidden="true"></span>
-        </button>
-        <div className="field-index" style={{ fontWeight: 'bold' }}>
-          {idx + 1}
-        </div>
-        <button
-          type="button"
-          className="btn btn-default btn-xs"
-          onClick={() => onMoveDown(idx)}
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginLeft: '0.5rem',
-            marginRight: '0.5rem',
-            marginTop: '2px',
-          }}
-          aria-label="Move field down"
-        >
-          <span className="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-        </button>
-      </div>
+        <span className="glyphicon glyphicon-remove" aria-hidden="true"></span>
+      </button>
     </div>
-  )
+    {/* Index and Reorder Buttons Centered Vertically */}
+    <div
+      className="control-buttons"
+      style={{
+        flexGrow: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <button
+        type="button"
+        className="btn btn-default btn-xs"
+        onClick={() => onMoveUp(idx)}
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginBottom: '2px',
+          marginLeft: '0.5rem',
+          marginRight: '0.5rem',
+        }}
+        aria-label="Move field up"
+      >
+        <span className="glyphicon glyphicon-chevron-up" aria-hidden="true"></span>
+      </button>
+      <div className="field-index" style={{ fontWeight: 'bold' }}>
+        {idx + 1}
+      </div>
+      <button
+        type="button"
+        className="btn btn-default btn-xs"
+        onClick={() => onMoveDown(idx)}
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginLeft: '0.5rem',
+          marginRight: '0.5rem',
+          marginTop: '2px',
+        }}
+        aria-label="Move field down"
+      >
+        <span className="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+)
 
-const FieldPreview = ({ field, renderField, index }) =>
+const FieldPreview = ({ field, renderField, index }) => (
   <div style={{ flex: 1 }}>{renderField(field, index)}</div>
+)
 
 // #endregion
 
 // #region Shared Field Options
 
-const BasicFieldOptions = ({ field, selectedIndex, updateNestedProperty }) =>
-  (
-    <>
-      {/* Field Name */}
-      <div className="form-group">
-        <label htmlFor="fieldName">Field Name</label>
+const BasicFieldOptions = ({ field, selectedIndex, updateNestedProperty }) => (
+  <>
+    {/* Field Name */}
+    <div className="form-group">
+      <label htmlFor="fieldName">Field Name</label>
+      <input
+        type="text"
+        value={field.name}
+        onChange={(e) => updateNestedProperty(selectedIndex, 'name', e.target.value)}
+        className="form-control"
+      />
+    </div>
+
+    {/* Description */}
+    <div className="form-group">
+      <label htmlFor="descriptionField">Description</label>
+      <textarea
+        value={field.config.description || ''}
+        onChange={(e) => updateNestedProperty(selectedIndex, 'description', e.target.value)}
+        className="form-control"
+        style={{
+          width: '100%',
+          boxSizing: 'border-box',
+          height: '20vh', // fixed height
+          resize: 'vertical', // allow user to resize only vertically
+        }}
+      />
+    </div>
+
+    {/* Required Checkbox */}
+    <div className="form-group">
+      <label style={{ marginRight: '5px' }}>
         <input
-          type="text"
-          value={field.name}
-          onChange={(e) => updateNestedProperty(selectedIndex, 'name', e.target.value)}
-          className="form-control"
+          type="checkbox"
+          checked={!field.config.value.param.optional}
+          onChange={(e) => updateNestedProperty(selectedIndex, 'required', e.target.checked)}
+          style={{ marginRight: '5px' }}
         />
-      </div>
+        Required
+      </label>
+    </div>
 
-      {/* Description */}
-      <div className="form-group">
-        <label htmlFor="descriptionField">Description</label>
-        <textarea
-          value={field.config.description || ''}
-          onChange={(e) => updateNestedProperty(selectedIndex, 'description', e.target.value)}
-          className="form-control"
-          style={{
-            width: '100%',
-            boxSizing: 'border-box',
-            height: '20vh', // fixed height
-            resize: 'vertical', // allow user to resize only vertically
-          }}
+    {/* Hidden Checkbox */}
+    <div className="form-group">
+      <label style={{ marginRight: '5px' }}>
+        <input
+          type="checkbox"
+          checked={field.config.value.param.hidden || false}
+          onChange={(e) => updateNestedProperty(selectedIndex, 'hidden', e.target.checked)}
+          style={{ marginRight: '5px' }}
         />
-      </div>
-
-      {/* Required Checkbox */}
-      <div className="form-group">
-        <label style={{ marginRight: '5px' }}>
-          <input
-            type="checkbox"
-            checked={!field.config.value.param.optional}
-            onChange={(e) => updateNestedProperty(selectedIndex, 'required', e.target.checked)}
-            style={{ marginRight: '5px' }}
-          />
-          Required
-        </label>
-      </div>
-
-      {/* Hidden Checkbox */}
-      <div className="form-group">
-        <label style={{ marginRight: '5px' }}>
-          <input
-            type="checkbox"
-            checked={field.config.value.param.hidden || false}
-            onChange={(e) =>
-              updateNestedProperty(selectedIndex, 'hidden', e.target.checked)
-            }
-            style={{ marginRight: '5px' }}
-          />
-          Hidden Field
-        </label>
-      </div>
-    </>
-  )
+        Hidden Field
+      </label>
+    </div>
+  </>
+)
 
 // #endregion
 
@@ -631,166 +634,161 @@ const ChoiceFieldOptions = ({
   updateNestedProperty,
   removeOption,
   addOption,
-}) =>
-  (
-    <>
-      {/* Input Type Selector */}
-      <div className="form-group">
-        <label htmlFor="inputType">Input Type</label>
-        <select
-          className="form-control"
-          value={param.input}
-          onChange={(e) => updateNestedProperty(selectedIndex, 'inputType', e.target.value)}
-        >
-          <option value="select">Dropdown</option>
-          <option value="radio">Radio Buttons</option>
-          <option value="checkbox">Checkboxes</option>
-        </select>
+}) => (
+  <>
+    {/* Input Type Selector */}
+    <div className="form-group">
+      <label htmlFor="inputType">Input Type</label>
+      <select
+        className="form-control"
+        value={param.input}
+        onChange={(e) => updateNestedProperty(selectedIndex, 'inputType', e.target.value)}
+      >
+        <option value="select">Dropdown</option>
+        <option value="radio">Radio Buttons</option>
+        <option value="checkbox">Checkboxes</option>
+      </select>
+    </div>
+
+    {/* Options Mapping */}
+    {param.enum.map((option, index) => (
+      <div key={index} className="form-group">
+        <label>Option {index + 1}</label>
+        {!(typeof option === 'object') && (
+          <input
+            type="text"
+            value={option}
+            onChange={(e) => {
+              const newOptions = [...param.enum]
+              newOptions[index] = e.target.value
+              updateNestedProperty(selectedIndex, 'options', newOptions)
+            }}
+            className="form-control"
+            placeholder="Value"
+          />
+        )}
+        {typeof option === 'object' && 'value' in option && (
+          <input
+            type="text"
+            value={option.value}
+            onChange={(e) => {
+              const newOptions = [...param.enum]
+              newOptions[index] = {
+                ...newOptions[index],
+                value: e.target.value,
+              }
+              updateNestedProperty(selectedIndex, 'options', newOptions)
+            }}
+            className="form-control"
+            placeholder="Value"
+          />
+        )}
+        {typeof option === 'object' && 'description' in option && (
+          <input
+            type="text"
+            value={option.description}
+            onChange={(e) => {
+              const newOptions = [...param.enum]
+              newOptions[index] = {
+                ...newOptions[index],
+                description: e.target.value,
+              }
+              updateNestedProperty(selectedIndex, 'options', newOptions)
+            }}
+            className="form-control"
+            placeholder="Description (optional)"
+          />
+        )}
+        <button className="btn btn-link" type="button" onClick={() => removeOption(index)}>
+          Remove
+        </button>
       </div>
+    ))}
 
-      {/* Options Mapping */}
-      {param.enum.map((option, index) => (
-        <div key={index} className="form-group">
-          <label>Option {index + 1}</label>
-          {!(typeof option === 'object') && (
-            <input
-              type="text"
-              value={option}
-              onChange={(e) => {
-                const newOptions = [...param.enum]
-                newOptions[index] = e.target.value
-                updateNestedProperty(selectedIndex, 'options', newOptions)
-              }}
-              className="form-control"
-              placeholder="Value"
-            />
-          )}
-          {typeof option === 'object' && 'value' in option && (
-            <input
-              type="text"
-              value={option.value}
-              onChange={(e) => {
-                const newOptions = [...param.enum]
-                newOptions[index] = {
-                  ...newOptions[index],
-                  value: e.target.value,
-                }
-                updateNestedProperty(selectedIndex, 'options', newOptions)
-              }}
-              className="form-control"
-              placeholder="Value"
-            />
-          )}
-          {typeof option === 'object' && 'description' in option && (
-            <input
-              type="text"
-              value={option.description}
-              onChange={(e) => {
-                const newOptions = [...param.enum]
-                newOptions[index] = {
-                  ...newOptions[index],
-                  description: e.target.value,
-                }
-                updateNestedProperty(selectedIndex, 'options', newOptions)
-              }}
-              className="form-control"
-              placeholder="Description (optional)"
-            />
-          )}
-          <button className="btn btn-link" type="button" onClick={() => removeOption(index)}>
-            Remove
-          </button>
-        </div>
-      ))}
-
-      {/* Add Option Button */}
-      <button className="btn btn-link" type="button" onClick={addOption}>
-        Add Option
-      </button>
-    </>
-  )
+    {/* Add Option Button */}
+    <button className="btn btn-link" type="button" onClick={addOption}>
+      Add Option
+    </button>
+  </>
+)
 
 // #endregion
 
 // #region String Field Options
 
-const StringFieldOptions = ({ param, selectedIndex, updateNestedProperty }) =>
-  (
-    <>
-      {/* Regex Validation */}
-      <div className="form-group">
-        <label htmlFor="regexInput" style={{ marginRight: '5px' }}>
-          Regex Validation
-        </label>
-        <input
-          type="text"
-          id="regexInput"
-          value={param.regex || ''}
-          onChange={(e) => updateNestedProperty(selectedIndex, 'regex', e.target.value)}
-          className="form-control"
-        />
-      </div>
+const StringFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
+  <>
+    {/* Regex Validation */}
+    <div className="form-group">
+      <label htmlFor="regexInput" style={{ marginRight: '5px' }}>
+        Regex Validation
+      </label>
+      <input
+        type="text"
+        id="regexInput"
+        value={param.regex || ''}
+        onChange={(e) => updateNestedProperty(selectedIndex, 'regex', e.target.value)}
+        className="form-control"
+      />
+    </div>
 
-      {/* Text Field Options (only if input type is textarea) */}
-      {param.input === 'textarea' && (
-        <div className="form-group">
-          <label htmlFor="textFieldOptions">Text Field Options</label>
-          <div>
-            <label style={{ marginRight: '5px' }}>
-              <input
-                type="checkbox"
-                checked={param.markdown || false}
-                onChange={(e) =>
-                  updateNestedProperty(selectedIndex, 'markdown', e.target.checked)
-                }
-                style={{ marginRight: '5px' }}
-              />
-              Enable Markdown
-            </label>
-            <label style={{ marginRight: '5px' }}>
-              <input
-                type="checkbox"
-                checked={param.scroll || false}
-                onChange={(e) =>
-                  updateNestedProperty(selectedIndex, 'scroll', e.target.checked)
-                }
-                style={{ marginRight: '5px' }}
-              />
-              Scrollable text box
-            </label>
-          </div>
+    {/* Text Field Options (only if input type is textarea) */}
+    {param.input === 'textarea' && (
+      <div className="form-group">
+        <label htmlFor="textFieldOptions">Text Field Options</label>
+        <div>
+          <label style={{ marginRight: '5px' }}>
+            <input
+              type="checkbox"
+              checked={param.markdown || false}
+              onChange={(e) =>
+                updateNestedProperty(selectedIndex, 'markdown', e.target.checked)
+              }
+              style={{ marginRight: '5px' }}
+            />
+            Enable Markdown
+          </label>
+          <label style={{ marginRight: '5px' }}>
+            <input
+              type="checkbox"
+              checked={param.scroll || false}
+              onChange={(e) => updateNestedProperty(selectedIndex, 'scroll', e.target.checked)}
+              style={{ marginRight: '5px' }}
+            />
+            Scrollable text box
+          </label>
         </div>
-      )}
-    </>
-  )
+      </div>
+    )}
+  </>
+)
 
 // #endregion
 
 // #region Number Field Options
 
-const NumericFieldOptions = ({ param, selectedIndex, updateNestedProperty }) =>
-  (
-    <>
-      <div className="form-group">
-        <label htmlFor="numMin">Minimum</label>
-        <input
-          type="number"
-          value={param.minimum || ''}
-          onChange={(e) => updateNestedProperty(selectedIndex, 'min', e.target.value)}
-          className="form-control"
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="numMax">Maximum</label>
-        <input
-          type="number"
-          value={param.maximum || ''}
-          onChange={(e) => updateNestedProperty(selectedIndex, 'max', e.target.value)}
-          className="form-control"
-        />
-      </div>
-    </>
-  )
+const NumericFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
+  <>
+    <div className="form-group">
+      <label htmlFor="numMin">Minimum</label>
+      <input
+        type="number"
+        value={param.minimum || ''}
+        onChange={(e) => updateNestedProperty(selectedIndex, 'min', e.target.value)}
+        className="form-control"
+      />
+    </div>
+    <div className="form-group">
+      <label htmlFor="numMax">Maximum</label>
+      <input
+        type="number"
+        value={param.maximum || ''}
+        onChange={(e) => updateNestedProperty(selectedIndex, 'max', e.target.value)}
+        className="form-control"
+      />
+    </div>
+  </>
+)
 
 // #endregion
 
@@ -835,67 +833,63 @@ const SpecialFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => 
   }
 }
 
-const FileFieldOptions = ({ param, selectedIndex, updateNestedProperty }) =>
-  (
-    <>
-      <div className="form-group">
-        <label htmlFor="allowedExt">Allowed Extensions</label>
-        <input
-          type="text"
-          value={(param.extensions || []).join(', ') || ''}
-          onChange={(e) => updateNestedProperty(selectedIndex, 'extensions', e.target.value)}
-          className="form-control"
-          placeholder="e.g., pdf, zip"
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="maxSize">Max Size (MB)</label>
-        <input
-          type="number"
-          value={param.maxSize || ''}
-          onChange={(e) => updateNestedProperty(selectedIndex, 'maxSize', e.target.value)}
-          className="form-control"
-          placeholder="e.g., 50"
-        />
-      </div>
-    </>
-  )
-
-const ProfileFieldOptions = ({ param, selectedIndex, updateNestedProperty }) =>
-  (
+const FileFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
+  <>
     <div className="form-group">
-      <label htmlFor="allowedGroup">Allowed Group ID for Profiles</label>
-      <ProfileSearchWidget
-        onChange={(value) => updateNestedProperty(selectedIndex, 'inGroup', value)}
-        value={param.inGroup || []}
-      />
-    </div>
-  )
-
-const GroupFieldOptions = ({ param, selectedIndex, updateNestedProperty }) =>
-  (
-    <div className="form-group">
-      <label htmlFor="allowedGroupId">Allowed Group ID</label>
+      <label htmlFor="allowedExt">Allowed Extensions</label>
       <input
         type="text"
-        value={param.inGroup || ''}
-        onChange={(e) => updateNestedProperty(selectedIndex, 'inGroup', e.target.value)}
+        value={(param.extensions || []).join(', ') || ''}
+        onChange={(e) => updateNestedProperty(selectedIndex, 'extensions', e.target.value)}
         className="form-control"
+        placeholder="e.g., pdf, zip"
       />
     </div>
-  )
-
-const DateFieldOptions = ({ param, selectedIndex, updateNestedProperty }) =>
-  (
     <div className="form-group">
-      <label htmlFor="selectDate">Select Date</label>
-      <DatePickerWidget
-        onChange={(date) => updateNestedProperty(selectedIndex, 'date', date)}
-        value={param.date || new Date()}
-        showTime={true}
+      <label htmlFor="maxSize">Max Size (MB)</label>
+      <input
+        type="number"
+        value={param.maxSize || ''}
+        onChange={(e) => updateNestedProperty(selectedIndex, 'maxSize', e.target.value)}
+        className="form-control"
+        placeholder="e.g., 50"
       />
     </div>
-  )
+  </>
+)
+
+const ProfileFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
+  <div className="form-group">
+    <label htmlFor="allowedGroup">Allowed Group ID for Profiles</label>
+    <ProfileSearchWidget
+      onChange={(value) => updateNestedProperty(selectedIndex, 'inGroup', value)}
+      value={param.inGroup || []}
+    />
+  </div>
+)
+
+const GroupFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
+  <div className="form-group">
+    <label htmlFor="allowedGroupId">Allowed Group ID</label>
+    <input
+      type="text"
+      value={param.inGroup || ''}
+      onChange={(e) => updateNestedProperty(selectedIndex, 'inGroup', e.target.value)}
+      className="form-control"
+    />
+  </div>
+)
+
+const DateFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
+  <div className="form-group">
+    <label htmlFor="selectDate">Select Date</label>
+    <DatePickerWidget
+      onChange={(date) => updateNestedProperty(selectedIndex, 'date', date)}
+      value={param.date || new Date()}
+      showTime={true}
+    />
+  </div>
+)
 
 // #endregion
 
@@ -910,6 +904,11 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
   const [addFieldDropdownIndex, setAddFieldDropdownIndex] = useState(null)
   // Track the currently selected category in the dropdown
   const [selectedCategory, setSelectedCategory] = useState(null)
+  // Holds the JSON text in the editor.
+  const [jsonString, setJsonString] = useState('')
+  // Holds any JSON validation error message.
+  const [jsonError, setJsonError] = useState(null)
+  const [jsonSynced, setJsonSynced] = useState(false)
 
   // Use invitation from prop or context
   const context = useContext(EditorComponentContext)
@@ -930,7 +929,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
   }))
 
   // Use the custom hook for state management.
-  const { fields, selectedIndex, selectField, updateField, deleteField } =
+  const { fields, selectedIndex, selectField, updateField, deleteField, setAllFields } =
     useFieldEditorState(initialFields)
 
   // #region Hooks
@@ -963,15 +962,6 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
     })
     setFormData(initialData)
   }, [fields])
-
-  useEffect(() => {
-    const fieldsObj = fields.reduce((acc, field) => {
-      acc[field.name] = field.config
-      return acc
-    }, {})
-    setReplyString(JSON.stringify(fieldsObj, null, 2))
-  }, [fields])
-
   // #endregion
 
   // #region Main Component Helpers
@@ -1078,7 +1068,6 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
 
   // Render a preview of the field using the appropriate widget.
   const renderField = (field, index) => {
-    console.log('Rendering field:', field)
     const fieldName = field.name
     const fieldDescription = structuredClone(field.config)
     let fieldNameOverwrite = fieldDescription?.value?.param?.fieldName
@@ -1124,7 +1113,10 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
               marginBottom: '4px',
             }}
           >
-            <span className="glyphicon glyphicon-eye-close" style={{ marginRight: '4px' }}></span>
+            <span
+              className="glyphicon glyphicon-eye-close"
+              style={{ marginRight: '4px' }}
+            ></span>
             Hidden to Everyone
           </div>
         )}
@@ -1211,6 +1203,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
     // Reassign 'order' for each field
     for (let idx = 0; idx < updatedFields.length; idx += 1) {
       updatedFields[idx].order = idx + 1
+      updatedFields[idx].config.order = idx + 1
     }
 
     // Update the editor state using your existing hook’s updateField
@@ -1231,6 +1224,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
     newFields[index] = temp
     for (let idx = 0; idx < newFields.length; idx += 1) {
       newFields[idx].order = idx + 1
+      newFields[idx].config.order = idx + 1
     }
     // Update both swapped fields using updateField via the hook
     updateField(index, newFields[index])
@@ -1250,6 +1244,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
     newFields[index] = temp
     for (let idx = 0; idx < newFields.length; idx += 1) {
       newFields[idx].order = idx + 1
+      newFields[idx].config.order = idx + 1
     }
     updateField(index, newFields[index])
     updateField(index + 1, newFields[index + 1])
@@ -1299,7 +1294,65 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
     }
   }
 
+  const handleJsonChange = (newJson) => {
+    if (newJson.trim().length === 0) {
+      setJsonError(null)
+      return
+    }
+    try {
+      JSON.parse(newJson)
+      setJsonError(null)
+      setJsonString(newJson)
+    } catch (e) {
+      setJsonError(e.message)
+    }
+  }
+
+  const handleTabChange = (newTab) => {
+    if (newTab === 'json-fields') {
+      // Rebuild the JSON string from the current fields state.
+      const fieldsObj = fields.reduce((acc, field) => {
+        acc[field.name] = field.config
+        return acc
+      }, {})
+      setJsonString(JSON.stringify(fieldsObj, null, 2))
+      setJsonSynced(true)
+      setJsonError(null)
+      console.log('Setting JSON string:', jsonString)
+    }
+    // If the JSON string is empty, treat it as valid (or show a custom message)
+    if (newTab === 'preview-fields') {
+      if (jsonString.trim().length === 0) {
+        setJsonError(null)
+      } else {
+        try {
+          const parsed = JSON.parse(jsonString)
+          // Example: convert parsed JSON into your fields array.
+          const newFields = Object.entries(parsed).map(([name, config]) => ({
+            name,
+            config,
+            order: 0,
+            required: !config.value.param?.optional ?? false,
+          }))
+          // Reassign order if needed
+          setAllFields(newFields)
+          setJsonError(null)
+          setJsonSynced(false)
+        } catch (e) {
+          setJsonError(e.message)
+          return
+        }
+      }
+    }
+
+    setActiveTab(newTab)
+  }
+
   // #endregion
+  console.log('activeTab:', activeTab)
+  console.log('jsonError:', jsonError)
+  console.log('current Fields:', fields)
+  console.log(`jsonString: |${jsonString}|`)
 
   return (
     <div
@@ -1353,7 +1406,12 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
           }}
         >
           <Tabs>
-            <TabNavigation activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab)} />
+            <TabNavigation
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              isPreviewDisabled={jsonError !== null}
+              previewErrorMessage={jsonError}
+            />
             {/* Field List */}
             <div
               className="form-preview"
@@ -1395,7 +1453,43 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
                   </button>
                 </TabPanel>
                 <TabPanel id="json-fields">
-                  <CodeEditor code={replyString} readOnly={false} isJson />
+                  <AnimatePresence>
+                    {jsonError && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        style={{
+                          backgroundColor: '#ffe6e6', // light pastel red
+                          color: '#cc0000',
+                          padding: '10px',
+                          borderRadius: '5px',
+                          textAlign: 'center',
+                          marginTop: '0.5em',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <span
+                          className="glyphicon glyphicon-warning-sign"
+                          style={{ marginRight: '5px' }}
+                        ></span>
+                        <span>JSON Error: {jsonError}</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  {jsonSynced ? (
+                    <CodeEditor
+                      code={jsonString}
+                      readOnly={false}
+                      isJson
+                      onChange={handleJsonChange}
+                    />
+                  ) : (
+                    <LoadingSpinner inline text={null} extraClass="spinner-small" />
+                  )}
                 </TabPanel>
               </TabPanels>
             </div>
