@@ -7,7 +7,7 @@
  */
 
 /* ============================================= */
-/* 1) Root/Global Variables & Mixins             */
+/* Root/Global Variables & Mixins             */
 /* ============================================= */
 
 /*
@@ -46,45 +46,99 @@
 }
 
 /* ============================================= */
-/* 2) Editor Container Layout                    */
+/* Editor Container Layout                    */
 /* ============================================= */
 
-/*
-  Top-level container for the entire editor.
-  For example, the display: flex container
-  that holds the preview panel on the left
-  and the options panel on the right.
-*/
+/* Outer container for the entire editor */
 .editorContainer {
-  // Example:
-  // display: flex;
-  // padding: 1em;
-  // etc.
+  display: flex;
+  flex-direction: column;
+  height: 90vh;
+  margin: 1em 0;      /* Adjust vertical margin as needed */
+  padding-top: 1em;   /* Provide separation from elements above */
+  overflow: hidden;   /* Prevents horizontal scrollbars */
+}
+
+/* Container for the field list & field editor plus options panel */
+.fieldsContainer {
+  display: flex;
+  flex: 1;         /* Fills available vertical space */
+  min-height: 0;   /* Allow children to shrink if needed */
+}
+/* Left panel which holds the preview and field list */
+.fieldsPreviewPanel {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Fill available vertical space */
+  min-height: 0; /* Allow children to shrink if needed */
+  overflow-y: scroll; /* Scroll within the left panel if content is tall */
+}
+/* Use a different flex value based on active tab */
+.leftPanelFull {
+  flex: 3;
+}
+.leftPanelCondensed {
+  flex: 1;
 }
 
 /*
-  Panel for the "preview-fields" or "json-fields".
+  1) Header (Tabs, HiddenFieldsToggle)
+  - We want this to remain at the top, so no flex growth.
 */
-.previewPanel {
-  // Example:
-  // flex: 3;
-  // overflow-y: auto;
-  // max-height: 90vh;
+.scrollableArea {
+  min-height: 0;
+  overflow-y: auto;
+}
+/* The preview area inside the left panel */
+.formPreview {
+  flex: 1;
+  overflow-y: scroll; /* Scroll within the left panel if content is tall */
+  min-height: 0;    /* So it doesn't expand beyond its container */
+  padding-right: 1rem; /* Optional: add some padding to avoid clipping */
+}
+/* This container sits below the scrollable area of the left panel */
+.saveButtonWrapper {
+  padding: 0.75em 1em;
+  text-align: center;
+  border-top: 1px solid #ccc;  /* Optional visual separator */
+  background-color: transparent;
 }
 
 /*
   Panel for the Field Options editor on the right.
 */
 .optionsPanel {
-  // Example:
-  // flex: 2;
-  // border-left: 1px solid #ccc;
-  // padding: 1em;
-  // overflow-y: auto;
+  flex: 2;
+  padding: 10px;
+  border-left: 1px solid #ccc;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.disabledTab {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* JSON Error Message styling */
+.jsonErrorMessage {
+  background-color: #ffe6e6;
+  color: #cc0000;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  margin-top: 0.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jsonErrorIcon {
+  margin-right: 5px;
 }
 
 /* ============================================= */
-/* 3) InsertFieldButton                          */
+/* InsertFieldButton                          */
 /* ============================================= */
 
 .insertFieldButtonWrapper {
@@ -138,11 +192,6 @@
   animation: fadeIn 0.5s ease-out;
 }
 
-
-/* New inner wrapper to isolate horizontal animations */
-.dropdownContent {
-}
-
 /* Basic fadeIn keyframes for the dropdown.
    Framer Motion will handle the main transitions,
    but these can supplement the effect.
@@ -184,76 +233,212 @@
 }
 
 /* ============================================= */
-/* 4) HiddenFieldsToggle                         */
+/* HiddenFieldsToggle                         */
 /* ============================================= */
 
-/*
-  Styles for the hidden-fields toggle link/button,
-  including hover states, icon color, etc.
-*/
 .hiddenFieldsToggle {
-  // base styles for the toggle container
-}
-.hiddenFieldsToggle:hover {
-  // hover styles
-}
-.hiddenFieldsToggleIcon {
-  // styles for the eye-open / eye-close icon
-}
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
+  background-color: transparent;
+  transform: scale(1);
 
-/* ============================================= */
-/* 5) FieldRow, FieldControls & FieldPreview     */
-/* ============================================= */
+  &:hover {
+    background-color: #f5f5f5;
+    transform: scale(1.02);
+  }
 
-/*
-  Each field row in the list on the left side.
-  Incorporates hover highlight, selected styling, etc.
-*/
-.fieldRow {
-  // e.g. display: flex; align-items: stretch; margin-bottom: 15px;
+  /* Target the icon within the toggle */
+  .icon {
+    margin-right: 5px;
+    color: #666;
+    transition: color 0.2s;
+  }
 
-  &.selected {
-    // e.g. border-left: 2px solid var(--brand-color);
-    // background-color: var(--selected-bg);
+  &:hover .icon {
+    color: #333;
+  }
+
+  /* Target the text within the toggle */
+  .text {
+    color: #666;
+    transition: color 0.2s;
+  }
+
+  &:hover .text {
+    color: #333;
   }
 }
 
-/*
-  Sidebar buttons for moving fields up/down, delete, etc.
-*/
-.fieldControls {
-  // e.g. text-align: center; width: 50px;
-}
+/* ============================================= */
+/* FieldRow, FieldControls & FieldPreview     */
+/* ============================================= */
 
-.controlButtons {
-  // e.g. display: flex; flex-direction: column;
-  // justify-content: center; align-items: center;
-}
+/* ============================================= */
+/* FieldRow Styles                             */
+/* ============================================= */
 
-/*
-  Main area that renders the preview of each field component.
-*/
-.fieldPreview {
-  // e.g. flex: 1;
+.fieldRow {
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 15px;
+  margin-right: 2em;
+  border-radius: 0.75em;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+
+  &.selected {
+    /* Optional: add styling to visually indicate selection */
+    background-color: #eef6fc;
+    border-left: 2px solid #1b8ceb;
+
+    /* Optional: add hover effect when selected*/
+    &:hover {
+      background-color: #eef6fc;
+    }
+
+  }
+
+  /* Optional: add hover effect */
+  &:hover {
+    background-color: #f9f9f9;
+  }
 }
 
 /* ============================================= */
-/* 6) FieldOptionsPanel & Sub-Components         */
+/* FieldControls Styles                        */
+/* ============================================= */
+
+.fieldControls {
+  margin-right: 10px;
+  text-align: center;
+  width: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .deleteButton {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    .close {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: red;
+      font-size: 0.75em;
+    }
+  }
+
+  .controlButtons {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    button {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-left: 0.5rem;
+      margin-right: 0.5rem;
+    }
+
+    /* Up button gets a bottom margin; down button gets a top margin.
+       Using :first-of-type and :last-of-type selectors works if the buttons are the only children.
+    */
+    button:first-of-type {
+      margin-bottom: 2px;
+    }
+    button:last-of-type {
+      margin-top: 2px;
+    }
+  }
+}
+
+/* ============================================= */
+/* FieldPreview Styles                         */
+/* ============================================= */
+
+.fieldPreview {
+  flex: 1;
+}
+
+/* ============================================= */
+/* FieldOptionsPanel & Sub-Components         */
 /* ============================================= */
 
 /*
   Wrapper for the entire "Field Options" side panel.
 */
-.fieldOptionsPanel {
-  // e.g. padding: 1em;
+/* Optional: Override default Bootstrap form-group styles if needed */
+.formGroupOverride {
+  /* For example, you could adjust bottom margin */
+  margin-bottom: 1em;
+  label {
+    margin-right: 5px;
+    margin-bottom: 0.5em;
+  }
+  input {
+    margin-right: 5px;
+  }
 }
 
-/*
-  Common styling for "form-group", "form-control", etc.
-  Usually these come from Bootstrap, but if you need overrides, do them here.
-*/
-.formGroupOverride {
-  // optional overrides for .form-group
+/* ============================================= */
+/* BasicFieldOptions Styling
+/* ============================================= */
+
+/* Style for the description textarea */
+.descriptionTextarea {
+  width: 100%;
+  box-sizing: border-box;
+  height: 20vh !important;
+  resize: vertical;
+}
+
+/* Checkbox groups (e.g. for "Required" and "Hide from Submitters") */
+.checkboxGroup {
+  margin-right: 5px;
+  margin-bottom: 0;
+
+  input {
+    margin-right: 5px;
+  }
+}
+
+/* Styles for the Selected Readers section */
+.selectedReadersContainer {
+  padding: 8px;
+  min-height: 2em;
+}
+
+/* Style for each selected reader option */
+.selectedReaderOption {
+  display: inline-block;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin: 2px;
+  position: relative;
+
+  .removeIcon {
+    margin-left: 5px;
+    opacity: 0.3;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .removeIcon:hover {
+    opacity: 1;
+    color: red;
+  }
 }
 
 /*
@@ -274,30 +459,42 @@
 }
 
 /* ============================================= */
-/* 7) CollapsibleSection                         */
+/* CollapsibleSection                         */
 /* ============================================= */
 
-/*
-  Header styling, hover states, arrow icons, etc.
-*/
+.collapsibleSection {
+  border-radius: 4px;
+  margin-bottom: 1em;
+}
+
 .collapsibleHeader {
-  // e.g. display: flex; align-items: center; cursor: pointer;
-}
-.collapsibleHeader:hover {
-  // background-color: #f1f1f1;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.25em;
+  background-color: #f9f9f9;
+  transition: background-color 0.2s ease-in-out;
+
+  &:hover {
+    background-color: #f1f1f1;
+  }
+
+  .collapsibleIcon {
+    margin-right: 0.5em;
+  }
 }
 
-/*
-  The content area that animates open/closed.
-  For Framer Motion, you can keep transitions in code,
-  but you can define static styles here.
-*/
-.collapsibleContent {
-  // e.g. padding: 0.5em 1em; border-left: 2px solid var(--brand-color);
+.collapsibleContentContainer {
+  overflow: hidden;
+  /* The height and opacity animation is handled by Framer Motion */
 }
 
+.collapsibleContentInner {
+  padding: 0.5em 1em;
+  border-left: 2px solid #1b8ceb;
+}
 /* ============================================= */
-/* 8) JSON Editor & Error Messages               */
+/* JSON Editor & Error Messages               */
 /* ============================================= */
 
 /*
@@ -313,19 +510,4 @@
 .jsonErrorMessage {
   // e.g. background-color: #ffe6e6; color: #cc0000;
   // padding: 10px; border-radius: 5px; text-align: center;
-}
-
-/* ============================================= */
-/* 9) Additional Classes / Utilities             */
-/* ============================================= */
-
-/*
-  Add any leftover utility classes or special animations here.
-*/
-.fadeInList {
-  // e.g. @include fadeIn(0.5s);
-}
-
-.linePlusTransition {
-  // e.g. transition: opacity var(--transition-duration) ease;
 }

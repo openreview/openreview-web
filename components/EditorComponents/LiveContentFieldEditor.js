@@ -202,7 +202,7 @@ const TabNavigation = ({ activeTab, onTabChange, isPreviewDisabled, previewError
       onClick={() => onTabChange('preview-fields')}
       active={activeTab === 'preview-fields'}
       // When disabled, change the cursor and opacity
-      style={isPreviewDisabled ? { cursor: 'not-allowed', opacity: 0.6 } : {}}
+      className={isPreviewDisabled ? styles.disabledTab : ''}
       hidden={isPreviewDisabled}
       // Tooltip for hover over error
       title={isPreviewDisabled ? `Cannot preview: ${previewErrorMessage}` : ''}
@@ -403,25 +403,14 @@ const HiddenFieldsToggle = ({ renderHiddenFields, onToggle }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onToggle}
-      style={{
-        cursor: 'pointer',
-        display: 'inline-flex',
-        alignItems: 'center',
-        padding: '4px 8px',
-        borderRadius: '4px',
-        marginTop: '0.5rem',
-        transition: 'background-color 0.2s, color 0.2s, transform 0.2s',
-        backgroundColor: isHovered ? '#f5f5f5' : 'transparent',
-        transform: isHovered ? 'scale(1.02)' : 'scale(1)',
-      }}
+      className={styles.hiddenFieldsToggle}
     >
       <span
         className={`glyphicon ${
           renderHiddenFields ? 'glyphicon-eye-open' : 'glyphicon-eye-close'
-        }`}
-        style={{ marginRight: '5px', color: isHovered ? '#333' : '#666' }}
+        } ${styles.icon}`}
       />
-      <span style={{ color: isHovered ? '#333' : '#666' }}>
+      <span className={styles.text}>
         {renderHiddenFields ? 'Showing Hidden Fields' : 'Hiding Hidden Fields'}
       </span>
     </div>
@@ -452,15 +441,8 @@ const FieldRow = ({
     />
 
     <div
-      className={`field-row ${selectedIndex === index ? 'selected' : ''}`}
+      className={`${styles.fieldRow} ${selectedIndex === index ? styles.selected : ''}`}
       onClick={() => selectField(index)}
-      style={{
-        display: 'flex',
-        alignItems: 'stretch',
-        marginBottom: '15px',
-        marginRight: '2em',
-        borderRadius: '0.75em',
-      }}
     >
       {/* Field Controls */}
       <FieldControls
@@ -482,65 +464,29 @@ const FieldRow = ({
 
 const FieldControls = ({ idx, onDelete, onMoveUp, onMoveDown }) => (
   <div
-    className="field-controls"
-    style={{
-      marginRight: '10px',
-      textAlign: 'center',
-      width: '50px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center', // Center children horizontally
-    }}
+    className={styles.fieldControls}
   >
     {/* Delete button at the top */}
     <div
-      className="delete-button"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
+      className={styles.deleteButton}
     >
       <button
         type="button"
-        className="close"
+        className={`close ${styles.close}`}
         onClick={() => onDelete(idx)}
         aria-label="Remove field"
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          color: 'red',
-          fontSize: '0.75em',
-        }}
       >
         <span className="glyphicon glyphicon-remove" aria-hidden="true"></span>
       </button>
     </div>
     {/* Index and Reorder Buttons Centered Vertically */}
     <div
-      className="control-buttons"
-      style={{
-        flexGrow: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
+      className={styles.controlButtons}
     >
       <button
         type="button"
         className="btn btn-default btn-xs"
         onClick={() => onMoveUp(idx)}
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginBottom: '2px',
-          marginLeft: '0.5rem',
-          marginRight: '0.5rem',
-        }}
         aria-label="Move field up"
       >
         <span className="glyphicon glyphicon-chevron-up" aria-hidden="true"></span>
@@ -552,14 +498,6 @@ const FieldControls = ({ idx, onDelete, onMoveUp, onMoveDown }) => (
         type="button"
         className="btn btn-default btn-xs"
         onClick={() => onMoveDown(idx)}
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginLeft: '0.5rem',
-          marginRight: '0.5rem',
-          marginTop: '2px',
-        }}
         aria-label="Move field down"
       >
         <span className="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
@@ -656,30 +594,15 @@ const CollapsibleSection = ({ title, children }) => {
   const iconClass = expanded ? 'glyphicon-menu-down' : 'glyphicon-menu-right'
 
   return (
-    <div
-      style={{
-        borderRadius: '4px',
-        marginBottom: '1em',
-      }}
-    >
+    <div className={styles.collapsibleSection}>
       {/* Header */}
       <div
         onClick={() => setExpanded(prev => !prev)}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          cursor: 'pointer',
-          padding: '0.25em 0.25em',
-          backgroundColor: hovered ? '#f1f1f1' : '#f9f9f9',
-          transition: 'background-color 0.2s ease-in-out',
-        }}
+        className={styles.collapsibleHeader}
       >
-        <span
-          className={`glyphicon ${iconClass}`}
-          style={{ marginRight: '0.5em' }}
-        />
+        <span className={`glyphicon ${iconClass} ${styles.collapsibleIcon}`} />
         {title}
       </div>
 
@@ -694,7 +617,7 @@ const CollapsibleSection = ({ title, children }) => {
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             style={{ overflow: 'hidden' }}
           >
-            <div style={{ padding: '0.5em 1em', borderLeft: '2px solid #1b8ceb', }}>{children}</div>
+            <div className={styles.collapsibleContentInner}>{children}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -737,7 +660,7 @@ const BasicFieldOptions = ({
   return (
     <>
       {/* Field Name */}
-      <div className="form-group">
+      <div className={styles.formGroupOverride}>
         <label htmlFor="fieldName">Field Name</label>
         <input
           type="text"
@@ -748,29 +671,22 @@ const BasicFieldOptions = ({
       </div>
 
       {/* Description */}
-      <div className="form-group">
+      <div className={styles.formGroupOverride}>
         <label htmlFor="descriptionField">Description</label>
         <textarea
           value={field.config.description || ''}
           onChange={(e) => updateNestedProperty(selectedIndex, 'description', e.target.value)}
-          className="form-control"
-          style={{
-            width: '100%',
-            boxSizing: 'border-box',
-            height: '20vh', // fixed height
-            resize: 'vertical', // allow user to resize only vertically
-          }}
+          className={`form-control ${styles.descriptionTextarea}`}
         />
       </div>
 
       {/* Required Checkbox */}
-      <div className="form-group" style={{ marginRight: '5px', marginBottom: '0' }}>
-        <label style={{ marginRight: '5px' }} >
+      <div className={`${styles.formGroupOverride} ${styles.checkboxGroup}`}>
+        <label>
           <input
             type="checkbox"
             checked={!field.config.value.param.optional}
             onChange={(e) => updateNestedProperty(selectedIndex, 'required', e.target.checked)}
-            style={{ marginRight: '5px', marginBottom: '0' }}
           />
           Required
         </label>
@@ -778,62 +694,32 @@ const BasicFieldOptions = ({
 
       <CollapsibleSection title="Advanced Field Options">
       {/* Hidden Checkbox */}
-      <div className="form-group">
-        <label style={{ marginRight: '5px' }}>
+      <div className={`${styles.formGroupOverride} ${styles.checkboxGroup}`}>
+        <label>
           <input
             type="checkbox"
             checked={field.config.value.param.hidden || false}
             onChange={(e) => updateNestedProperty(selectedIndex, 'hidden', e.target.checked)}
-            style={{ marginRight: '5px' }}
           />
           Hide from Submitters
         </label>
       </div>
 
+      <hr></hr>
+
       {/* New Section for Dropdown Selections */}
       {currentSelections && currentSelections.length > 0 && (
-        <div className="form-group">
-          <style>
-            {`
-              .glyphicon-remove {
-                opacity: 0.3;
-                transition: opacity 0.2s;
-              }
-              .glyphicon-remove:hover {
-                opacity: 1;
-                color: red;
-              }
-            `}
-          </style>
+        <div className={styles.formGroupOverride}>
           <label htmlFor="selectedReaders">Selected Readers</label>
-          <div style={{ padding: '8px', minHeight: '2em' }}>
+          <div className={styles.selectedReadersContainer}>
             {currentSelections.map((sel, idx) => (
               <span
                 key={idx}
-                style={{
-                  display: 'inline-block',
-                  backgroundColor: '#e0e0e0',
-                  borderRadius: '4px',
-                  padding: '2px 6px',
-                  margin: '2px',
-                  position: 'relative',
-                }}
+                className={styles.selectedReaderOption}
               >
                 {getDisplayName(sel)}
                 <span
-                  className="glyphicon glyphicon-remove"
-                  style={{
-                    marginLeft: '5px',
-                    opacity: 0.3,
-                    cursor: 'pointer',
-                    transition: 'opacity 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = 1
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = 0.3
-                  }}
+                  className={`glyphicon glyphicon-remove ${styles.removeIcon}`}
                   onClick={() => removeSelection(idx)}
                 ></span>
               </span>
@@ -844,7 +730,7 @@ const BasicFieldOptions = ({
 
 
       {/* Dropdown to Add New Option */}
-      <div className="form-group">
+      <div className={styles.formGroupOverride}>
         <label htmlFor="addReaderOption">Restrict Readers To</label>
         <select className="form-control" onChange={handleDropdownChange} defaultValue="">
           <option value="" disabled>
@@ -875,7 +761,7 @@ const ChoiceFieldOptions = ({
 }) => (
   <>
     {/* Input Type Selector */}
-    <div className="form-group">
+    <div className={styles.formGroupOverride}>
       <label htmlFor="inputType">Input Type</label>
       <select
         className="form-control"
@@ -890,7 +776,7 @@ const ChoiceFieldOptions = ({
 
     {/* Options Mapping */}
     {param.enum.map((option, index) => (
-      <div key={index} className="form-group">
+      <div key={index} className={styles.formGroupOverride}>
         <label>Option {index + 1}</label>
         {!(typeof option === 'object') && (
           <input
@@ -957,8 +843,8 @@ const ChoiceFieldOptions = ({
 const StringFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
   <>
     {/* Regex Validation */}
-    <div className="form-group">
-      <label htmlFor="regexInput" style={{ marginRight: '5px' }}>
+    <div className={styles.formGroupOverride}>
+      <label htmlFor="regexInput">
         Regex Validation
       </label>
       <input
@@ -972,26 +858,24 @@ const StringFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
 
     {/* Text Field Options (only if input type is textarea) */}
     {param.input === 'textarea' && (
-      <div className="form-group">
+      <div className={styles.formGroupOverride}>
         <label htmlFor="textFieldOptions">Text Field Options</label>
         <div>
-          <label style={{ marginRight: '5px' }}>
+          <label>
             <input
               type="checkbox"
               checked={param.markdown || false}
               onChange={(e) =>
                 updateNestedProperty(selectedIndex, 'markdown', e.target.checked)
               }
-              style={{ marginRight: '5px' }}
             />
             Enable Markdown
           </label>
-          <label style={{ marginRight: '5px' }}>
+          <label>
             <input
               type="checkbox"
               checked={param.scroll || false}
               onChange={(e) => updateNestedProperty(selectedIndex, 'scroll', e.target.checked)}
-              style={{ marginRight: '5px' }}
             />
             Scrollable text box
           </label>
@@ -1007,7 +891,7 @@ const StringFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
 
 const NumericFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
   <>
-    <div className="form-group">
+    <div className={styles.formGroupOverride}>
       <label htmlFor="numMin">Minimum</label>
       <input
         type="number"
@@ -1016,7 +900,7 @@ const NumericFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => 
         className="form-control"
       />
     </div>
-    <div className="form-group">
+    <div className={styles.formGroupOverride}>
       <label htmlFor="numMax">Maximum</label>
       <input
         type="number"
@@ -1083,7 +967,7 @@ const SpecialFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => 
 
 const FileFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
   <>
-    <div className="form-group">
+    <div className={styles.formGroupOverride}>
       <label htmlFor="allowedExt">Allowed Extensions</label>
       <input
         type="text"
@@ -1093,7 +977,7 @@ const FileFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
         placeholder="e.g., pdf, zip"
       />
     </div>
-    <div className="form-group">
+    <div className={styles.formGroupOverride}>
       <label htmlFor="maxSize">Max Size (MB)</label>
       <input
         type="number"
@@ -1107,7 +991,7 @@ const FileFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
 )
 
 const ProfileFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
-  <div className="form-group">
+  <div className={styles.formGroupOverride}>
     <label htmlFor="allowedGroup">Allowed Group ID for Profiles</label>
     <ProfileSearchWidget
       onChange={(value) => updateNestedProperty(selectedIndex, 'inGroup', value)}
@@ -1117,7 +1001,7 @@ const ProfileFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => 
 )
 
 const GroupFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
-  <div className="form-group">
+  <div className={styles.formGroupOverride}>
     <label htmlFor="allowedGroupId">Allowed Group ID</label>
     <input
       type="text"
@@ -1129,7 +1013,7 @@ const GroupFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
 )
 
 const DateFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
-  <div className="form-group">
+  <div className={styles.formGroupOverride}>
     <label htmlFor="selectDate">Select Date</label>
     <DatePickerWidget
       onChange={(date) => updateNestedProperty(selectedIndex, 'date', date)}
@@ -1635,55 +1519,14 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
   // #region Main Component Render
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        paddingBottom: '3em',
-        paddingTop: '1em',
-      }}
-    >
-      <style>{`
-        .invitation-content-editor {
-          padding: 20px;
-        }
-        .fields-list .panel {
-          margin-bottom: 20px;
-        }
-        .fields-list .list-group-item {
-          cursor: pointer;
-        }
-        .field-row {
-          display: flex;
-          align-items: stretch;
-          cursor: pointer;
-          transition: background-color 0.2s ease-in-out;
-        }
-        .field-row:hover {
-          background-color: #f9f9f9;
-        }
-        .field-row.selected {
-          border-left: 2px solid #1b8ceb; /* brand color */
-          background-color: #eef6fc;      /* pastel shade of the same color */
-        }
-        .field-controls {
-          width: 50px;
-          display: flex;
-          flex-direction: column;
-        }
-        .control-buttons button {
-          margin: 2px 0;
-        }
-      `}</style>
-
+    <div id="editor-container" className={styles.editorContainer}>
       {/* Flex container for the field list and field editor */}
-      <div style={{ display: 'flex', flex: 1 }}>
+      <div id="fields-container" className={styles.fieldsContainer}>
         <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            flex: activeTab === 'json-fields' ? 1 : 3,
-            maxHeight: '90vh', // overall max height for the entire column
-          }}
+          id="fields-preview"
+          className={`${styles.fieldsPreviewPanel} ${
+            activeTab === 'json-fields' ? styles.leftPanelCondensed : styles.leftPanelFull
+          }`}
         >
           <Tabs>
             <TabNavigation
@@ -1697,104 +1540,74 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
               renderHiddenFields={renderHiddenFields}
               onToggle={handleToggleHiddenFields}
             />
-            <div
-              className="form-preview"
-              style={{
-                flex: 1,
-                overflowY: 'auto',
-                resize: 'vertical',
-                maxHeight: '90vh', // overall max height for the entire column
-              }}
-            >
-              <TabPanels>
+            <TabPanels>
                 <TabPanel id="preview-fields">
-                  {fields.map((field, idx) => (
+                  <div id="form-preview" className={styles.formPreview}>
+                    {fields.map((field, idx) =>
                       (field.config.value.param.hidden && renderHiddenFields) ||
-                      !field.config.value.param.hidden ?
-                      <FieldRow
-                        key={idx}
-                        index={idx}
-                        field={field}
-                        addFieldDropdownIndex={addFieldDropdownIndex}
-                        handleOpenAddFieldDropdown={handleOpenAddFieldDropdown}
-                        setAddFieldDropdownIndex={setAddFieldDropdownIndex}
-                        handleAddFieldAtIndex={handleAddFieldAtIndex}
-                        selectedIndex={selectedIndex}
-                        selectField={selectField}
-                        handleDeleteField={handleDeleteField}
-                        moveFieldUp={moveFieldUp}
-                        moveFieldDown={moveFieldDown}
-                        renderField={renderField}
-                      /> : null
-                  ))}
-                  <InsertFieldButton
-                    index={fields.length} // insertion after the last field
-                    isOpen={addFieldDropdownIndex === fields.length}
-                    onOpen={handleOpenAddFieldDropdown}
-                    onClose={() => setAddFieldDropdownIndex(null)}
-                    onAddField={handleAddFieldAtIndex}
-                  />
-                  <button type="button" className="btn btn-primary" onClick={() => null}>
-                    Save Changes
-                  </button>
-                </TabPanel>
-                <TabPanel id="json-fields">
-                  {jsonSynced ? (
-                    <CodeEditor
-                      code={jsonString}
-                      readOnly={false}
-                      isJson
-                      onChange={handleJsonChange}
-                    />
-                  ) : (
-                    <LoadingSpinner inline text={null} extraClass="spinner-small" />
-                  )}
-                  <AnimatePresence>
-                    {jsonError && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        style={{
-                          backgroundColor: '#ffe6e6', // light pastel red
-                          color: '#cc0000',
-                          padding: '10px',
-                          borderRadius: '5px',
-                          textAlign: 'center',
-                          marginTop: '0.5em',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <span
-                          className="glyphicon glyphicon-warning-sign"
-                          style={{ marginRight: '5px' }}
-                        ></span>
-                        <span>JSON Error: {jsonError}</span>
-                      </motion.div>
+                      !field.config.value.param.hidden ? (
+                        <FieldRow
+                          key={idx}
+                          index={idx}
+                          field={field}
+                          addFieldDropdownIndex={addFieldDropdownIndex}
+                          handleOpenAddFieldDropdown={handleOpenAddFieldDropdown}
+                          setAddFieldDropdownIndex={setAddFieldDropdownIndex}
+                          handleAddFieldAtIndex={handleAddFieldAtIndex}
+                          selectedIndex={selectedIndex}
+                          selectField={selectField}
+                          handleDeleteField={handleDeleteField}
+                          moveFieldUp={moveFieldUp}
+                          moveFieldDown={moveFieldDown}
+                          renderField={renderField}
+                        />
+                      ) : null
                     )}
-                  </AnimatePresence>
+                    <InsertFieldButton
+                      index={fields.length} // insertion after the last field
+                      isOpen={addFieldDropdownIndex === fields.length}
+                      onOpen={handleOpenAddFieldDropdown}
+                      onClose={() => setAddFieldDropdownIndex(null)}
+                      onAddField={handleAddFieldAtIndex}
+                    />
+                  </div>
                 </TabPanel>
-              </TabPanels>
-            </div>
+              <TabPanel id="json-fields">
+                {jsonSynced ? (
+                  <CodeEditor
+                    code={jsonString}
+                    readOnly={false}
+                    isJson
+                    onChange={handleJsonChange}
+                  />
+                ) : (
+                  <LoadingSpinner inline text={null} extraClass="spinner-small" />
+                )}
+                <AnimatePresence>
+                  {jsonError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className={styles.jsonErrorMessage}
+                    >
+                      <span
+                        className={`glyphicon glyphicon-warning-sign ${styles.jsonErrorIcon}`}
+                      ></span>
+                      <span>JSON Error: {jsonError}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </TabPanel>
+            </TabPanels>
           </Tabs>
+
         </div>
 
         {/* Options Editor */}
         {activeTab !== 'json-fields' && (
-          <div
-            className="col-sm-3 field-editor"
-            style={{
-              flex: 2,
-              padding: '10px',
-              borderLeft: '1px solid #ccc',
-              overflowY: 'auto',
-              resize: 'vertical',
-              maxHeight: '90vh' // overall max height for the entire column
-            }}
-          >
+          <div className={`col-sm-3 ${styles.optionsPanel}`}>
             <h3>Field Options</h3>
             {selectedIndex !== null ? (
               <FieldOptionsPanel
@@ -1811,6 +1624,11 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
           </div>
         )}
       </div>
+      <div className={styles.saveButtonWrapper}>
+            <button type="button" className="btn btn-primary" onClick={() => null}>
+              Save Invitation
+            </button>
+          </div>
     </div>
   )
 }
