@@ -12,7 +12,8 @@ import EditorComponentContext from '../EditorComponentContext'
 import EditorComponentHeader from './EditorComponentHeader'
 import EditorWidget from '../webfield/EditorWidget'
 import Icon from '../Icon'
-import styles from '../../styles/components/NoteEditor.module.scss'
+import noteEditorStyles from '../../styles/components/NoteEditor.module.scss'
+import styles from '../../styles/components/LiveContentFieldEditor.module.scss'
 import useFieldEditorState from '../../hooks/useFieldEditorState'
 
 /*
@@ -225,6 +226,9 @@ const TabNavigation = ({ activeTab, onTabChange, isPreviewDisabled, previewError
 const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
   // Are we in step 1 or step 2?
   const [selectedTopLevel, setSelectedTopLevel] = React.useState(null)
+  // "forward" means transitioning from top-level -> second-level,
+  // "backward" means transitioning from second-level -> top-level.
+  const [animationDirection, setAnimationDirection] = useState("backward")
 
   // Step 2 choices are either input types or special sub-types
   // If top-level is "SPECIAL", we use the special sub-type array (e.g., Date, File, etc.).
@@ -248,6 +252,7 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
 
   const handleSelectTopLevel = (key) => {
     const topLevel = Object.values(DATA_TYPE_OPTIONS).find((t) => t.label === key)
+    setAnimationDirection("backward")
     setSelectedTopLevel(topLevel)
   }
 
@@ -256,6 +261,7 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
     const newConfig = generateFieldConfig(selectedTopLevel, label)
     onAddField(index, newConfig)
     // reset local state & close
+    setAnimationDirection("forward")
     setSelectedTopLevel(null)
     onClose()
   }
@@ -265,72 +271,45 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
 
   // We want the line/plus to be visible if hovered OR if dropdown is open
   const shouldShowLine = isHovered || isOpen
+  const linePlusContainerClass = `
+    ${styles.linePlusContainer} ${shouldShowLine ? styles.showLine : styles.hideLine}
+  `
 
-  // Inline styles for the container holding the line & plus
-  const linePlusStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    cursor: 'pointer',
-    // Fade in/out
-    opacity: shouldShowLine ? 1 : 0.05,
-    transition: 'opacity 0.2s ease',
-  }
-
-  // Inline styles for the dropdown
-  const dropdownStyle = {
-    padding: '8px',
-    // Remove the white background:
-    background: 'transparent',
-    position: 'relative',
-    zIndex: 999,
-    // Simple fade-in animation:
-    animation: 'fadeIn 0.5s ease-out',
+  // Motion variants for the list transitions. The custom prop "direction" controls:
+  // - When "forward": entering list starts from right (x:20) and exiting list moves left (x:-20).
+  // - When "backward": entering list starts from left (x:-20) and exiting list moves right (x:20).
+  const listVariants = {
+    initial: (direction) => ({
+      x: direction === "forward" ? 20 : -20,
+      opacity: 0,
+    }),
+    animate: {
+      x: 0,
+      opacity: 1,
+      transition: { duration: 0.2 },
+    },
+    exit: (direction) => ({
+      x: direction === "forward" ? -20 : 20,
+      opacity: 0,
+      transition: { duration: 0.2 },
+    }),
   }
 
   return (
     <>
-      {/* Define fadeIn keyframes for the dropdown menu.
-            The line/plus uses the inline style above instead. */}
-      <style>
-        {`
-            @keyframes fadeIn {
-              from {
-                opacity: 0;
-                transform: translateY(-5px);
-              }
-              to {
-                opacity: 1;
-                transform: translateY(0);
-              }
-            }
-
-            @keyframes fadeInButtons {
-              from {
-                opacity: 0;
-                transform: translateY(-5px);
-              }
-              to {
-                opacity: 1;
-                transform: translateY(0);
-              }
-            }
-          `}
-      </style>
-
       <div
-        style={{ margin: '8px 0' }}
+        className={styles.insertFieldButtonWrapper}
         // Hover tracking
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* The horizontal line + plus icon */}
-        <div style={linePlusStyle} onClick={() => (isOpen ? onClose() : onOpen(index))}>
-          <div style={{ flex: 1, borderBottom: '1px solid #ccc' }}></div>
+        <div className={linePlusContainerClass} onClick={() => (isOpen ? onClose() : onOpen(index))}>
+          <div className={styles.flexLine}></div>
           <span
-            className="glyphicon glyphicon-plus"
-            style={{ color: 'green', margin: '0 8px' }}
+            className={`glyphicon glyphicon-plus ${styles.plusIcon}`}
           ></span>
-          <div style={{ flex: 1, borderBottom: '1px solid #ccc' }}></div>
+          <div className={styles.flexLine}></div>
         </div>
 
         {/* Dropdown (only visible if isOpen=true) */}
@@ -344,22 +323,20 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
               transition={{ duration: 0.2 }}
               style={{ overflow: 'hidden' }}
             >
-              <div style={dropdownStyle}>
+              <div className={styles.dropdownContainer}>
                 {/* If no category selected yet, list categories */}
                 {!selectedTopLevel && (
-                  <ul
-                    className="fade-in-list"
-                    style={{
-                      listStyle: 'none',
-                      margin: 0,
-                      padding: 0,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                    }}
+                  <motion.ul
+                    key="topList"
+                    custom={animationDirection}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    variants={listVariants}
+                    className={styles.fadeInList}
                   >
                     {Object.values(DATA_TYPE_OPTIONS).map((top) => (
-                      <li key={top.label} style={{ margin: '3px 0' }}>
+                      <li key={top.label}>
                         <button
                           className="btn btn-default"
                           type="button"
@@ -369,24 +346,22 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
                         </button>
                       </li>
                     ))}
-                  </ul>
+                  </motion.ul>
                 )}
 
                 {/* If a category is selected, list field types */}
                 {selectedTopLevel && (
-                  <ul
-                    className="fade-in-list"
-                    style={{
-                      listStyle: 'none',
-                      margin: 0,
-                      padding: 0,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                    }}
+                  <motion.ul
+                    key="secondList"
+                    custom={animationDirection}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    variants={listVariants}
+                    className={styles.fadeInList}
                   >
                     {secondLevelOptions.map((fieldName) => (
-                      <li key={fieldName} style={{ margin: '3px 0' }}>
+                      <li key={fieldName}>
                         <button
                           className="btn btn-default"
                           type="button"
@@ -396,16 +371,20 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
                         </button>
                       </li>
                     ))}
-                    <li style={{ margin: '4px 0' }}>
+                    <li>
                       <button
                         className="btn btn-default"
                         type="button"
-                        onClick={() => setSelectedTopLevel(null)}
+                        onClick={() => {
+                          // Set animation direction for "back" transition.
+                          setAnimationDirection("forward")
+                          setSelectedTopLevel(null)
+                        }}
                       >
                         ← Back to Categories
                       </button>
                     </li>
-                  </ul>
+                  </motion.ul>
                 )}
               </div>
             </motion.div>
@@ -1397,7 +1376,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
     return (
       <div
         key={fieldName}
-        className={`${isHiddenField ? '' : styles.fieldContainer} ${selectedIndex === index ? 'selected-field' : ''}`}
+        className={`${isHiddenField ? '' : noteEditorStyles.fieldContainer} ${selectedIndex === index ? 'selected-field' : ''}`}
       >
         {isHiddenField && (
           <div
@@ -1454,7 +1433,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
               field: { [fieldName]: fieldDescription.readers },
             }}
           >
-            <div className={styles.fieldReaders}>
+            <div className={noteEditorStyles.fieldReaders}>
               <Icon name="eye-open" />
               <span>Visible only to:</span> <EditorWidget />
             </div>

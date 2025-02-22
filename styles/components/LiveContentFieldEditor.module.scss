@@ -1,0 +1,331 @@
+@use '../utils/constants';
+/**
+ * LiveContentFieldEditor.module.scss
+ *
+ * This file will house all custom module-scoped styles
+ * for the LiveContentFieldEditor component and its sub-components.
+ */
+
+/* ============================================= */
+/* 1) Root/Global Variables & Mixins             */
+/* ============================================= */
+
+/*
+  Place any global SCSS variables, color definitions, or mixins here.
+  For example:
+*/
+/*
+:root {
+  --brand-color: #1b8ceb;
+  --hover-bg: #f9f9f9;
+  --selected-bg: #eef6fc;
+  --transition-duration: 0.2s;
+}
+*/
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInButtons {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================= */
+/* 2) Editor Container Layout                    */
+/* ============================================= */
+
+/*
+  Top-level container for the entire editor.
+  For example, the display: flex container
+  that holds the preview panel on the left
+  and the options panel on the right.
+*/
+.editorContainer {
+  // Example:
+  // display: flex;
+  // padding: 1em;
+  // etc.
+}
+
+/*
+  Panel for the "preview-fields" or "json-fields".
+*/
+.previewPanel {
+  // Example:
+  // flex: 3;
+  // overflow-y: auto;
+  // max-height: 90vh;
+}
+
+/*
+  Panel for the Field Options editor on the right.
+*/
+.optionsPanel {
+  // Example:
+  // flex: 2;
+  // border-left: 1px solid #ccc;
+  // padding: 1em;
+  // overflow-y: auto;
+}
+
+/* ============================================= */
+/* 3) InsertFieldButton                          */
+/* ============================================= */
+
+.insertFieldButtonWrapper {
+  /* Replace the inline margin: 8px 0 */
+  margin: 8px 0;
+}
+
+/*
+   Container for the horizontal line and plus icon:
+   - We keep the fade in/out of opacity via CSS transitions.
+   - We create two modifiers for showing vs. hiding the line.
+*/
+.linePlusContainer {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &.showLine {
+    opacity: 1;
+  }
+
+  &.hideLine {
+    opacity: 0.05;
+  }
+
+  /* The horizontal lines on the left & right of the plus icon */
+  .flexLine {
+    flex: 1;
+    border-bottom: 1px solid #ccc;
+  }
+
+  /* The plus icon itself */
+  .plusIcon {
+    color: green;
+    margin: 0 8px;
+  }
+}
+
+/*
+  Dropdown container that appears when isOpen=true:
+  We apply a fadeIn animation that we define below.
+  The rest of the show/hide animation is handled by Framer Motion,
+  but the "fadeIn" keyframe can still add a small fade effect.
+*/
+.dropdownContainer {
+  padding: 8px;
+  background: transparent;
+  position: relative;
+  z-index: 999; /* keep it above other elements */
+  animation: fadeIn 0.5s ease-out;
+}
+
+
+/* New inner wrapper to isolate horizontal animations */
+.dropdownContent {
+}
+
+/* Basic fadeIn keyframes for the dropdown.
+   Framer Motion will handle the main transitions,
+   but these can supplement the effect.
+*/
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+  List container for top-level or second-level options:
+  replaces inline listStyle, margin, padding, flex layout, etc.
+*/
+.fadeInList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* Example li spacing */
+  li {
+    margin: 3px 0;
+
+    /* If you need special spacing for the last element,
+       you can override it here, e.g.:
+    &:last-child {
+      margin: 4px 0;
+    }
+    */
+  }
+}
+
+/* ============================================= */
+/* 4) HiddenFieldsToggle                         */
+/* ============================================= */
+
+/*
+  Styles for the hidden-fields toggle link/button,
+  including hover states, icon color, etc.
+*/
+.hiddenFieldsToggle {
+  // base styles for the toggle container
+}
+.hiddenFieldsToggle:hover {
+  // hover styles
+}
+.hiddenFieldsToggleIcon {
+  // styles for the eye-open / eye-close icon
+}
+
+/* ============================================= */
+/* 5) FieldRow, FieldControls & FieldPreview     */
+/* ============================================= */
+
+/*
+  Each field row in the list on the left side.
+  Incorporates hover highlight, selected styling, etc.
+*/
+.fieldRow {
+  // e.g. display: flex; align-items: stretch; margin-bottom: 15px;
+
+  &.selected {
+    // e.g. border-left: 2px solid var(--brand-color);
+    // background-color: var(--selected-bg);
+  }
+}
+
+/*
+  Sidebar buttons for moving fields up/down, delete, etc.
+*/
+.fieldControls {
+  // e.g. text-align: center; width: 50px;
+}
+
+.controlButtons {
+  // e.g. display: flex; flex-direction: column;
+  // justify-content: center; align-items: center;
+}
+
+/*
+  Main area that renders the preview of each field component.
+*/
+.fieldPreview {
+  // e.g. flex: 1;
+}
+
+/* ============================================= */
+/* 6) FieldOptionsPanel & Sub-Components         */
+/* ============================================= */
+
+/*
+  Wrapper for the entire "Field Options" side panel.
+*/
+.fieldOptionsPanel {
+  // e.g. padding: 1em;
+}
+
+/*
+  Common styling for "form-group", "form-control", etc.
+  Usually these come from Bootstrap, but if you need overrides, do them here.
+*/
+.formGroupOverride {
+  // optional overrides for .form-group
+}
+
+/*
+  Each sub-panel (e.g. BasicFieldOptions, ChoiceFieldOptions, etc.)
+  can get its own class if needed.
+*/
+.choiceFieldOptions {
+  // e.g. margin-top: 1em;
+}
+.stringFieldOptions {
+  // ...
+}
+.numericFieldOptions {
+  // ...
+}
+.specialFieldOptions {
+  // ...
+}
+
+/* ============================================= */
+/* 7) CollapsibleSection                         */
+/* ============================================= */
+
+/*
+  Header styling, hover states, arrow icons, etc.
+*/
+.collapsibleHeader {
+  // e.g. display: flex; align-items: center; cursor: pointer;
+}
+.collapsibleHeader:hover {
+  // background-color: #f1f1f1;
+}
+
+/*
+  The content area that animates open/closed.
+  For Framer Motion, you can keep transitions in code,
+  but you can define static styles here.
+*/
+.collapsibleContent {
+  // e.g. padding: 0.5em 1em; border-left: 2px solid var(--brand-color);
+}
+
+/* ============================================= */
+/* 8) JSON Editor & Error Messages               */
+/* ============================================= */
+
+/*
+  Code editor wrapper.
+*/
+.jsonEditorWrapper {
+  // e.g. width: 100%; height: 400px; etc.
+}
+
+/*
+  Error message styling for invalid JSON warnings.
+*/
+.jsonErrorMessage {
+  // e.g. background-color: #ffe6e6; color: #cc0000;
+  // padding: 10px; border-radius: 5px; text-align: center;
+}
+
+/* ============================================= */
+/* 9) Additional Classes / Utilities             */
+/* ============================================= */
+
+/*
+  Add any leftover utility classes or special animations here.
+*/
+.fadeInList {
+  // e.g. @include fadeIn(0.5s);
+}
+
+.linePlusTransition {
+  // e.g. transition: opacity var(--transition-duration) ease;
+}
