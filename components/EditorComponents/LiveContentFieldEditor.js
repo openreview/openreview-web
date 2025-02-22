@@ -229,6 +229,36 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
   // "forward" means transitioning from top-level -> second-level,
   // "backward" means transitioning from second-level -> top-level.
   const [animationDirection, setAnimationDirection] = useState("backward")
+  const dropdownRef = useRef(null)
+
+  // Track whether the user is hovering over the insertion area
+  const [isHovered, setIsHovered] = React.useState(false)
+
+  // We want the line/plus to be visible if hovered OR if dropdown is open
+  const shouldShowLine = isHovered || isOpen
+  const linePlusContainerClass = `
+    ${styles.linePlusContainer} ${shouldShowLine ? styles.showLine : styles.hideLine}
+  `
+
+  // Motion variants for the list transitions. The custom prop "direction" controls:
+  // - When "forward": entering list starts from right (x:20) and exiting list moves left (x:-20).
+  // - When "backward": entering list starts from left (x:-20) and exiting list moves right (x:20).
+  const listVariants = {
+    initial: (direction) => ({
+      x: direction === "forward" ? 20 : -20,
+      opacity: 0,
+    }),
+    animate: {
+      x: 0,
+      opacity: 1,
+      transition: { duration: 0.2 },
+    },
+    exit: (direction) => ({
+      x: direction === "forward" ? -20 : 20,
+      opacity: 0,
+      transition: { duration: 0.2 },
+    }),
+  }
 
   // Step 2 choices are either input types or special sub-types
   // If top-level is "SPECIAL", we use the special sub-type array (e.g., Date, File, etc.).
@@ -266,34 +296,17 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
     onClose()
   }
 
-  // Track whether the user is hovering over the insertion area
-  const [isHovered, setIsHovered] = React.useState(false)
+  useEffect(() => {
+    if (isOpen && dropdownRef.current) {
+      requestAnimationFrame(() => {
+        dropdownRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        })
+      })
+    }
+  }, [isOpen])
 
-  // We want the line/plus to be visible if hovered OR if dropdown is open
-  const shouldShowLine = isHovered || isOpen
-  const linePlusContainerClass = `
-    ${styles.linePlusContainer} ${shouldShowLine ? styles.showLine : styles.hideLine}
-  `
-
-  // Motion variants for the list transitions. The custom prop "direction" controls:
-  // - When "forward": entering list starts from right (x:20) and exiting list moves left (x:-20).
-  // - When "backward": entering list starts from left (x:-20) and exiting list moves right (x:20).
-  const listVariants = {
-    initial: (direction) => ({
-      x: direction === "forward" ? 20 : -20,
-      opacity: 0,
-    }),
-    animate: {
-      x: 0,
-      opacity: 1,
-      transition: { duration: 0.2 },
-    },
-    exit: (direction) => ({
-      x: direction === "forward" ? -20 : 20,
-      opacity: 0,
-      transition: { duration: 0.2 },
-    }),
-  }
 
   return (
     <>
@@ -335,17 +348,21 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
                     variants={listVariants}
                     className={styles.fadeInList}
                   >
-                    {Object.values(DATA_TYPE_OPTIONS).map((top) => (
-                      <li key={top.label}>
-                        <button
-                          className="btn btn-default"
-                          type="button"
-                          onClick={() => handleSelectTopLevel(top.label)}
-                        >
-                          {top.label}
-                        </button>
-                      </li>
-                    ))}
+                    {Object.values(DATA_TYPE_OPTIONS).map((top, idx, arr) => {
+                      const isLast = idx === arr.length - 1
+                      return (
+                        <li key={top.label}>
+                          <button
+                            className="btn btn-default"
+                            type="button"
+                            ref={isLast ? dropdownRef : null}
+                            onClick={() => handleSelectTopLevel(top.label)}
+                          >
+                            {top.label}
+                          </button>
+                        </li>
+                      )
+                    })}
                   </motion.ul>
                 )}
 

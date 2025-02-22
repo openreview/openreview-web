@@ -56,7 +56,7 @@
   height: 90vh;
   margin: 1em 0;      /* Adjust vertical margin as needed */
   padding-top: 1em;   /* Provide separation from elements above */
-  overflow: hidden;   /* Prevents horizontal scrollbars */
+  overflow-y: auto;   /* Prevents horizontal scrollbars */
 }
 
 /* Container for the field list & field editor plus options panel */
@@ -71,7 +71,7 @@
   flex-direction: column;
   height: 100%; /* Fill available vertical space */
   min-height: 0; /* Allow children to shrink if needed */
-  overflow-y: scroll; /* Scroll within the left panel if content is tall */
+  overflow-y: auto; /* Scroll within the left panel if content is tall */
 }
 /* Use a different flex value based on active tab */
 .leftPanelFull {
@@ -85,14 +85,10 @@
   1) Header (Tabs, HiddenFieldsToggle)
   - We want this to remain at the top, so no flex growth.
 */
-.scrollableArea {
-  min-height: 0;
-  overflow-y: auto;
-}
 /* The preview area inside the left panel */
 .formPreview {
   flex: 1;
-  overflow-y: scroll; /* Scroll within the left panel if content is tall */
+  //overflow-y: auto; /* Scroll within the left panel if content is tall */
   min-height: 0;    /* So it doesn't expand beyond its container */
   padding-right: 1rem; /* Optional: add some padding to avoid clipping */
 }
