@@ -108,6 +108,7 @@ const INPUT_TYPE_OPTIONS = [
 ]
 
 // For “special” data type, we have sub-types that map 1:1 to param.type
+const SPECIAL_TYPE_ARRAY = ['date', 'file', 'profile', 'group']
 const SPECIAL_TYPE_OPTIONS = {
   Date: {},
   File: {},
@@ -592,9 +593,135 @@ const FieldPreview = ({ field, renderField, index }) => (
   <div style={{ flex: 1 }}>{renderField(field, index)}</div>
 )
 
+
+const FieldOptionsPanel = ({
+  field,
+  selectedIndex,
+  updateNestedProperty,
+  fieldReaderOptions,
+  removeOption,
+  addOption
+}) => {
+  if (!field) return null
+
+  const {param} = field.config.value
+  const type = param.type || ''
+
+  return (
+    <div>
+      {/* Basic Field Options */}
+
+      <BasicFieldOptions
+        field={field}
+        selectedIndex={selectedIndex}
+        updateNestedProperty={updateNestedProperty}
+        fieldReaderOptions={fieldReaderOptions}
+      />
+
+      {/* Choice Fields */}
+      {param.enum && param.enum.length >= 0 && (
+        <CollapsibleSection title="Choice Field Options">
+          <ChoiceFieldOptions
+            param={param}
+            selectedIndex={selectedIndex}
+            updateNestedProperty={updateNestedProperty}
+            removeOption={removeOption}
+            addOption={addOption}
+          />
+        </CollapsibleSection>
+      )}
+
+      {/* String Field Options */}
+      {type === 'string' && (
+        <CollapsibleSection title="String Field Options">
+          <StringFieldOptions
+            param={param}
+            selectedIndex={selectedIndex}
+            updateNestedProperty={updateNestedProperty}
+          />
+        </CollapsibleSection>
+      )}
+
+      {/* Numeric Fields */}
+      {(type === 'integer' || type === 'float') && (
+        <CollapsibleSection title="Numeric Field Options">
+          <NumericFieldOptions
+            param={param}
+            selectedIndex={selectedIndex}
+            updateNestedProperty={updateNestedProperty}
+          />
+        </CollapsibleSection>
+      )}
+
+      {/* Special Field Options */}
+      {(SPECIAL_TYPE_ARRAY.includes(type)) && (
+        <SpecialFieldOptions
+          param={param}
+          selectedIndex={selectedIndex}
+          updateNestedProperty={updateNestedProperty}
+        />
+      )}
+    </div>
+  )
+}
+
 // #endregion
 
 // #region Shared Field Options
+
+const CollapsibleSection = ({ title, children }) => {
+  const [expanded, setExpanded] = useState(false)
+  const [hovered, setHovered] = useState(false)
+
+  // Use different glyphicon icons for collapsed vs. expanded
+  const iconClass = expanded ? 'glyphicon-menu-down' : 'glyphicon-menu-right'
+
+  return (
+    <div
+      style={{
+        borderRadius: '4px',
+        marginBottom: '1em',
+      }}
+    >
+      {/* Header */}
+      <div
+        onClick={() => setExpanded(prev => !prev)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          cursor: 'pointer',
+          padding: '0.25em 0.25em',
+          backgroundColor: hovered ? '#f1f1f1' : '#f9f9f9',
+          transition: 'background-color 0.2s ease-in-out',
+        }}
+      >
+        <span
+          className={`glyphicon ${iconClass}`}
+          style={{ marginRight: '0.5em' }}
+        />
+        {title}
+      </div>
+
+      {/* Collapsible Content with Framer Motion */}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ padding: '0.5em 1em', borderLeft: '2px solid #1b8ceb', }}>{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 const BasicFieldOptions = ({
   field,
@@ -658,18 +785,19 @@ const BasicFieldOptions = ({
       </div>
 
       {/* Required Checkbox */}
-      <div className="form-group">
-        <label style={{ marginRight: '5px' }}>
+      <div className="form-group" style={{ marginRight: '5px', marginBottom: '0' }}>
+        <label style={{ marginRight: '5px' }} >
           <input
             type="checkbox"
             checked={!field.config.value.param.optional}
             onChange={(e) => updateNestedProperty(selectedIndex, 'required', e.target.checked)}
-            style={{ marginRight: '5px' }}
+            style={{ marginRight: '5px', marginBottom: '0' }}
           />
           Required
         </label>
       </div>
 
+      <CollapsibleSection title="Advanced Field Options">
       {/* Hidden Checkbox */}
       <div className="form-group">
         <label style={{ marginRight: '5px' }}>
@@ -735,6 +863,7 @@ const BasicFieldOptions = ({
         </div>
       )}
 
+
       {/* Dropdown to Add New Option */}
       <div className="form-group">
         <label htmlFor="addReaderOption">Restrict Readers To</label>
@@ -749,6 +878,7 @@ const BasicFieldOptions = ({
           ))}
         </select>
       </div>
+      </CollapsibleSection>
     </>
   )
 }
@@ -828,7 +958,7 @@ const ChoiceFieldOptions = ({
             placeholder="Description (optional)"
           />
         )}
-        <button className="btn btn-link" type="button" onClick={() => removeOption(index)}>
+        <button className="btn btn-link" type="button" onClick={() => removeOption(index)} style={{marginTop: '0.25em'}}>
           Remove
         </button>
       </div>
@@ -924,38 +1054,48 @@ const NumericFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => 
 // #region Special Field Options
 
 const SpecialFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => {
+  const type = (param.type || '').replace('[]', '')
+
   switch (param.type) {
     case 'file':
       return (
-        <FileFieldOptions
-          param={param}
-          selectedIndex={selectedIndex}
-          updateNestedProperty={updateNestedProperty}
-        />
+        <CollapsibleSection title="File Field Options">
+          <FileFieldOptions
+            param={param}
+            selectedIndex={selectedIndex}
+            updateNestedProperty={updateNestedProperty}
+          />
+        </CollapsibleSection>
       )
     case 'profile':
       return (
-        <ProfileFieldOptions
-          param={param}
-          selectedIndex={selectedIndex}
-          updateNestedProperty={updateNestedProperty}
-        />
+        <CollapsibleSection title="Profile Field Options">
+          <ProfileFieldOptions
+            param={param}
+            selectedIndex={selectedIndex}
+            updateNestedProperty={updateNestedProperty}
+          />
+        </CollapsibleSection>
       )
     case 'group':
       return (
-        <GroupFieldOptions
-          param={param}
-          selectedIndex={selectedIndex}
-          updateNestedProperty={updateNestedProperty}
-        />
+        <CollapsibleSection title="Group Field Options">
+          <GroupFieldOptions
+            param={param}
+            selectedIndex={selectedIndex}
+            updateNestedProperty={updateNestedProperty}
+          />
+        </CollapsibleSection>
       )
     case 'date':
       return (
-        <DateFieldOptions
-          param={param}
-          selectedIndex={selectedIndex}
-          updateNestedProperty={updateNestedProperty}
-        />
+        <CollapsibleSection title="Date Field Options">
+          <DateFieldOptions
+            param={param}
+            selectedIndex={selectedIndex}
+            updateNestedProperty={updateNestedProperty}
+          />
+        </CollapsibleSection>
       )
     default:
       return null
@@ -1676,54 +1816,16 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
               maxHeight: '90vh' // overall max height for the entire column
             }}
           >
+            <h3>Field Options</h3>
             {selectedIndex !== null ? (
-              <div>
-                <h3>Field Options</h3>
-                <BasicFieldOptions
-                  field={fields[selectedIndex]}
-                  selectedIndex={selectedIndex}
-                  updateNestedProperty={updateNestedProperty}
-                  fieldReaderOptions={FIELD_READER_OPTIONS}
-                />
-
-                {/* Choice Fields */}
-                {fields[selectedIndex].config.value.param.enum &&
-                  fields[selectedIndex].config.value.param.enum.length >= 0 && (
-                    <ChoiceFieldOptions
-                      param={fields[selectedIndex].config.value.param}
-                      selectedIndex={selectedIndex}
-                      updateNestedProperty={updateNestedProperty}
-                      removeOption={removeOption}
-                      addOption={addOption}
-                    />
-                  )}
-
-                {/* String Field Options */}
-                {fields[selectedIndex].config.value.param.type === 'string' && (
-                  <StringFieldOptions
-                    param={fields[selectedIndex].config.value.param}
-                    selectedIndex={selectedIndex}
-                    updateNestedProperty={updateNestedProperty}
-                  />
-                )}
-
-                {/* Numeric Fields */}
-                {(fields[selectedIndex].config.value.param.type === 'integer' ||
-                  fields[selectedIndex].config.value.param.type === 'float') && (
-                  <NumericFieldOptions
-                    param={fields[selectedIndex].config.value.param}
-                    selectedIndex={selectedIndex}
-                    updateNestedProperty={updateNestedProperty}
-                  />
-                )}
-
-                {/* Special Field Options */}
-                <SpecialFieldOptions
-                  param={fields[selectedIndex].config.value.param}
-                  selectedIndex={selectedIndex}
-                  updateNestedProperty={updateNestedProperty}
-                />
-              </div>
+              <FieldOptionsPanel
+                field={fields[selectedIndex]}
+                selectedIndex={selectedIndex}
+                updateNestedProperty={updateNestedProperty}
+                fieldReaderOptions={FIELD_READER_OPTIONS}
+                removeOption={removeOption}
+                addOption={addOption}
+              />
             ) : (
               <p>Select a field to edit its properties</p>
             )}
