@@ -415,6 +415,39 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
   )
 }
 
+const HiddenFieldsToggle = ({ renderHiddenFields, onToggle }) => {
+  const [isHovered, setIsHovered] = useState(false)
+
+  return (
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onToggle}
+      style={{
+        cursor: 'pointer',
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '4px 8px',
+        borderRadius: '4px',
+        marginTop: '0.5rem',
+        transition: 'background-color 0.2s, color 0.2s, transform 0.2s',
+        backgroundColor: isHovered ? '#f5f5f5' : 'transparent',
+        transform: isHovered ? 'scale(1.02)' : 'scale(1)',
+      }}
+    >
+      <span
+        className={`glyphicon ${
+          renderHiddenFields ? 'glyphicon-eye-open' : 'glyphicon-eye-close'
+        }`}
+        style={{ marginRight: '5px', color: isHovered ? '#333' : '#666' }}
+      />
+      <span style={{ color: isHovered ? '#333' : '#666' }}>
+        {renderHiddenFields ? 'Showing Hidden Fields' : 'Hiding Hidden Fields'}
+      </span>
+    </div>
+  )
+}
+
 const FieldRow = ({
   index,
   field,
@@ -990,10 +1023,13 @@ const DateFieldOptions = ({ param, selectedIndex, updateNestedProperty }) => (
 // #endregion
 
 const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentChange }) => {
+
+  // #region State and Variable Management
+
   const leftPanelRef = useRef(null)
   const [leftHeight, setLeftHeight] = useState(null)
   const [activeTab, setActiveTab] = useState('preview-fields')
-  const [replyString, setReplyString] = useState('')
+  const [renderHiddenFields, setRenderHiddenFields] = useState(false)
   const [errors, setErrors] = useState({})
   const [formData, setFormData] = useState({})
   // Track which insertion point (if any) has the dropdown open
@@ -1039,6 +1075,8 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
   // Use the custom hook for state management.
   const { fields, selectedIndex, selectField, updateField, deleteField, setAllFields } =
     useFieldEditorState(initialFields)
+
+  // #endregion
 
   // #region Hooks
 
@@ -1187,6 +1225,11 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
       fieldNameOverwrite = fieldName === 'authorids' ? 'Authors' : undefined
     }
     const isHiddenField = fieldDescription?.value?.param?.hidden
+
+    // If this field is hidden and the user isn't showing hidden fields, skip it
+    if (isHiddenField && !renderHiddenFields) {
+      return null
+    }
 
     const error = errors[fieldName]
 
@@ -1460,11 +1503,17 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
     setActiveTab(newTab)
   }
 
+  const handleToggleHiddenFields = () => {
+    setRenderHiddenFields(prev => !prev)
+  }
+
   // #endregion
   console.log('activeTab:', activeTab)
   console.log('jsonError:', jsonError)
   console.log('current Fields:', fields)
   console.log(`jsonString: |${jsonString}|`)
+
+  // #region Main Component Render
 
   return (
     <div
@@ -1524,7 +1573,11 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
               isPreviewDisabled={jsonError !== null}
               previewErrorMessage={jsonError}
             />
-            {/* Field List */}
+            {/* Our new toggle component */}
+            <HiddenFieldsToggle
+              renderHiddenFields={renderHiddenFields}
+              onToggle={handleToggleHiddenFields}
+            />
             <div
               className="form-preview"
               style={{
@@ -1537,21 +1590,23 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
               <TabPanels>
                 <TabPanel id="preview-fields">
                   {fields.map((field, idx) => (
-                    <FieldRow
-                      key={idx}
-                      index={idx}
-                      field={field}
-                      addFieldDropdownIndex={addFieldDropdownIndex}
-                      handleOpenAddFieldDropdown={handleOpenAddFieldDropdown}
-                      setAddFieldDropdownIndex={setAddFieldDropdownIndex}
-                      handleAddFieldAtIndex={handleAddFieldAtIndex}
-                      selectedIndex={selectedIndex}
-                      selectField={selectField}
-                      handleDeleteField={handleDeleteField}
-                      moveFieldUp={moveFieldUp}
-                      moveFieldDown={moveFieldDown}
-                      renderField={renderField}
-                    />
+                      (field.config.value.param.hidden && renderHiddenFields) ||
+                      !field.config.value.param.hidden ?
+                      <FieldRow
+                        key={idx}
+                        index={idx}
+                        field={field}
+                        addFieldDropdownIndex={addFieldDropdownIndex}
+                        handleOpenAddFieldDropdown={handleOpenAddFieldDropdown}
+                        setAddFieldDropdownIndex={setAddFieldDropdownIndex}
+                        handleAddFieldAtIndex={handleAddFieldAtIndex}
+                        selectedIndex={selectedIndex}
+                        selectField={selectField}
+                        handleDeleteField={handleDeleteField}
+                        moveFieldUp={moveFieldUp}
+                        moveFieldDown={moveFieldDown}
+                        renderField={renderField}
+                      /> : null
                   ))}
                   <InsertFieldButton
                     index={fields.length} // insertion after the last field
@@ -1612,7 +1667,14 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
         {activeTab !== 'json-fields' && (
           <div
             className="col-sm-3 field-editor"
-            style={{ flex: 2, padding: '10px', borderLeft: '1px solid #ccc' }}
+            style={{
+              flex: 2,
+              padding: '10px',
+              borderLeft: '1px solid #ccc',
+              overflowY: 'auto',
+              resize: 'vertical',
+              maxHeight: '90vh' // overall max height for the entire column
+            }}
           >
             {selectedIndex !== null ? (
               <div>
