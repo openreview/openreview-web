@@ -223,7 +223,7 @@ const TabNavigation = ({ activeTab, onTabChange, isPreviewDisabled, previewError
 
 // #region Top Level Field Components
 
-const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
+const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField, containerRef, isLast }) => {
   // Are we in step 1 or step 2?
   const [selectedTopLevel, setSelectedTopLevel] = React.useState(null)
   // "forward" means transitioning from top-level -> second-level,
@@ -296,17 +296,27 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
     onClose()
   }
 
+  // When the dropdown opens, scroll the container so that the dropdown is centered.
   useEffect(() => {
-    if (isOpen && dropdownRef.current) {
-      requestAnimationFrame(() => {
-        dropdownRef.current.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        })
-      })
+    if (isOpen && dropdownRef.current && containerRef && containerRef.current) {
+      if (isLast) {
+        // For the last button, scroll to the bottom of the container.
+        setTimeout(() => {
+          containerRef.current.scrollTo({ top: containerRef.current.scrollHeight, behavior: 'smooth' })
+        }, 200)
+      } else {
+        // Otherwise, center the dropdown within the container.
+        setTimeout(() => {
+          const containerRect = containerRef.current.getBoundingClientRect()
+          const dropdownRect = dropdownRef.current.getBoundingClientRect()
+          const dropdownCenter = dropdownRect.top + dropdownRect.height / 2
+          const containerCenter = containerRect.top + containerRect.height / 2
+          const scrollDelta = dropdownCenter - containerCenter
+          containerRef.current.scrollBy({ top: scrollDelta, behavior: 'smooth' })
+        }, 100)
+      }
     }
-  }, [isOpen])
-
+  }, [isOpen, containerRef, isLast])
 
   return (
     <>
@@ -336,7 +346,7 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
               transition={{ duration: 0.2 }}
               style={{ overflow: 'hidden' }}
             >
-              <div className={styles.dropdownContainer}>
+              <div ref={dropdownRef} className={styles.dropdownContainer}>
                 {/* If no category selected yet, list categories */}
                 {!selectedTopLevel && (
                   <motion.ul
@@ -348,21 +358,17 @@ const InsertFieldButton = ({ index, isOpen, onOpen, onClose, onAddField }) => {
                     variants={listVariants}
                     className={styles.fadeInList}
                   >
-                    {Object.values(DATA_TYPE_OPTIONS).map((top, idx, arr) => {
-                      const isLast = idx === arr.length - 1
-                      return (
-                        <li key={top.label}>
-                          <button
-                            className="btn btn-default"
-                            type="button"
-                            ref={isLast ? dropdownRef : null}
-                            onClick={() => handleSelectTopLevel(top.label)}
-                          >
-                            {top.label}
-                          </button>
-                        </li>
-                      )
-                    })}
+                    {Object.values(DATA_TYPE_OPTIONS).map((top, idx, arr) => (
+                      <li key={top.label}>
+                        <button
+                          className="btn btn-default"
+                          type="button"
+                          onClick={() => handleSelectTopLevel(top.label)}
+                        >
+                          {top.label}
+                        </button>
+                      </li>
+                    ))}
                   </motion.ul>
                 )}
 
@@ -447,6 +453,7 @@ const FieldRow = ({
   moveFieldUp,
   moveFieldDown,
   renderField,
+  containerRef,
 }) => (
   <>
     <InsertFieldButton
@@ -455,6 +462,8 @@ const FieldRow = ({
       onOpen={handleOpenAddFieldDropdown}
       onClose={() => setAddFieldDropdownIndex(null)}
       onAddField={handleAddFieldAtIndex}
+      containerRef={containerRef}
+      isLast={false}
     />
 
     <div
@@ -1142,6 +1151,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
     })
     setFormData(initialData)
   }, [fields])
+
   // #endregion
 
   // #region Main Component Helpers
@@ -1561,6 +1571,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
       <div id="fields-container" className={styles.fieldsContainer}>
         <div
           id="fields-preview"
+          ref={leftPanelRef}
           className={`${styles.fieldsPreviewPanel} ${
             activeTab === 'json-fields' ? styles.leftPanelCondensed : styles.leftPanelFull
           }`}
@@ -1573,10 +1584,12 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
               previewErrorMessage={jsonError}
             />
             {/* Our new toggle component */}
-            <HiddenFieldsToggle
-              renderHiddenFields={renderHiddenFields}
-              onToggle={handleToggleHiddenFields}
-            />
+            {activeTab !== 'json-fields' && (
+              <HiddenFieldsToggle
+                renderHiddenFields={renderHiddenFields}
+                onToggle={handleToggleHiddenFields}
+              />
+            )}
             <TabPanels>
                 <TabPanel id="preview-fields">
                   <div id="form-preview" className={styles.formPreview}>
@@ -1597,6 +1610,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
                           moveFieldUp={moveFieldUp}
                           moveFieldDown={moveFieldDown}
                           renderField={renderField}
+                          containerRef={leftPanelRef}
                         />
                       ) : null
                     )}
@@ -1606,6 +1620,8 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
                       onOpen={handleOpenAddFieldDropdown}
                       onClose={() => setAddFieldDropdownIndex(null)}
                       onAddField={handleAddFieldAtIndex}
+                      containerRef={leftPanelRef}
+                      isLast={true}
                     />
                   </div>
                 </TabPanel>

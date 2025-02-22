@@ -56,7 +56,7 @@
   height: 90vh;
   margin: 1em 0;      /* Adjust vertical margin as needed */
   padding-top: 1em;   /* Provide separation from elements above */
-  overflow-y: auto;   /* Prevents horizontal scrollbars */
+  overflow-y: hidden;   /* Prevents horizontal scrollbars */
 }
 
 /* Container for the field list & field editor plus options panel */
