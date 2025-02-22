@@ -722,6 +722,20 @@ const BasicFieldOptions = ({
         </label>
       </div>
 
+      {/* Deletable Checkbox */}
+      {(field.config.value.param.optional) && (
+        <div className={`${styles.formGroupOverride} ${styles.checkboxGroup}`}>
+          <label>
+            <input
+              type="checkbox"
+              checked={field.config.value.param.deletable || false}
+              onChange={(e) => updateNestedProperty(selectedIndex, 'deletable', e.target.checked)}
+            />
+            Allow users to clear this field
+          </label>
+        </div>
+      )}
+
       <hr></hr>
 
       {/* New Section for Dropdown Selections */}
@@ -1218,6 +1232,12 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
         newConfig.value = {
           ...newConfig.value,
           param: { ...newConfig.value.param, hidden: value },
+        }
+        break
+      case 'deletable':
+        newConfig.value = {
+          ...newConfig.value,
+          param: { ...newConfig.value.param, deletable: value },
         }
         break
       case 'fieldReaders':
