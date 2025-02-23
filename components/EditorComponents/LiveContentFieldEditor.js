@@ -107,6 +107,7 @@ const INPUT_TYPE_OPTIONS = [
   { label: 'Single Item', input: 'single' },
   { label: 'Multiple Items', input: 'multiple' },
 ]
+const ACCEPTS_MULTIPLE_VALUES = ['checkbox', 'multiple']
 
 // For “special” data type, we have sub-types that map 1:1 to param.type
 const SPECIAL_TYPE_ARRAY = ['date', 'file', 'profile', 'group']
@@ -660,7 +661,7 @@ const BasicFieldOptions = ({
   const currentSelections = field.config.readers || []
 
   // Handler when a new dropdown option is chosen
-  const handleDropdownChange = (e) => {
+  const handleFieldReaderChange = (e) => {
     const selectedValue = e.target.value
     // Avoid adding duplicates.
     if (!currentSelections.includes(selectedValue)) {
@@ -669,6 +670,16 @@ const BasicFieldOptions = ({
     }
     // Set the dropdown back to the default value
     e.target.value = ''
+  }
+
+  // Handler when a new input type option is chosen
+  const handleInputTypeChange = (e) => {
+    updateNestedProperty(selectedIndex, 'inputType', e.target.value)
+  }
+
+  // Handler when a new data type option is chosen
+  const handleDataTypeChange = (e) => {
+    updateNestedProperty(selectedIndex, 'dataType', e.target.value)
   }
 
   // Handler to remove a selection (by its index)
@@ -719,70 +730,121 @@ const BasicFieldOptions = ({
       </div>
 
       <CollapsibleSection title="Advanced Field Options">
-      {/* Hidden Checkbox */}
-      <div className={`${styles.formGroupOverride} ${styles.checkboxGroup}`}>
-        <label>
-          <input
-            type="checkbox"
-            checked={field.config.value.param.hidden || false}
-            onChange={(e) => updateNestedProperty(selectedIndex, 'hidden', e.target.checked)}
-          />
-          Hide from Submitters
-        </label>
-      </div>
+        {/* Dropdown to Select Data Type */}
+        <div className={styles.formGroupOverride}>
+          <label htmlFor="setDataType">Data Type</label>
+          <select
+            className="form-control"
+            onChange={handleDataTypeChange}
+            defaultValue={field.config.value.param.type}
+          >
+            {Object.entries(DATA_TYPE_OPTIONS).map(([dataKey, typeInfo]) => (
+              <option key={typeInfo.type} value={typeInfo.type}>
+                {typeInfo.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        {/* Dropdown to Conditionally Render Allowing Array value */}
+        {/* If any of the allowed inputs allows acceptance of multiple values */}
+        {ACCEPTS_MULTIPLE_VALUES.includes(field.config.value.param.input) && (
+          <div className={`${styles.formGroupOverride} ${styles.checkboxGroup}`}>
+            <label>
+              <input
+                type="checkbox"
+                checked={field.config.value.param.type.endsWith('[]') || false}
+                onChange={(e) =>
+                  updateNestedProperty(selectedIndex, 'arrayType', e.target.checked)
+                }
+              />
+              Accept multiple values
+            </label>
+          </div>
+        )}
+        {/* Dropdown to Select Data Type */}
+        <div className={styles.formGroupOverride}>
+          <label htmlFor="setInputType">Input Type</label>
+          <select
+            className="form-control"
+            onChange={handleInputTypeChange}
+            defaultValue={field.config.value.param.input}
+          >
+            {Object.entries(INPUT_TYPE_OPTIONS).map(
+              ([inputKey, inputInfo]) =>
+                // only show input types that are allowed for the selected data type
+                Object.values(DATA_TYPE_OPTIONS)
+                  .find((typeInfo) => field.config.value.param.type.includes(typeInfo.type))
+                  .allowedInputs.includes(inputInfo.input) && (
+                  <option key={inputInfo.input} value={inputInfo.input}>
+                    {inputInfo.label}
+                  </option>
+                )
+            )}
+          </select>
+        </div>
 
-      {/* Deletable Checkbox */}
-      {(field.config.value.param.optional) && (
+        {/* Hidden Checkbox */}
         <div className={`${styles.formGroupOverride} ${styles.checkboxGroup}`}>
           <label>
             <input
               type="checkbox"
-              checked={field.config.value.param.deletable || false}
-              onChange={(e) => updateNestedProperty(selectedIndex, 'deletable', e.target.checked)}
+              checked={field.config.value.param.hidden || false}
+              onChange={(e) => updateNestedProperty(selectedIndex, 'hidden', e.target.checked)}
             />
-            Allow users to clear this field
+            Hide from Submitters
           </label>
         </div>
-      )}
 
-      <hr></hr>
-
-      {/* New Section for Dropdown Selections */}
-      {currentSelections && currentSelections.length > 0 && (
-        <div className={styles.formGroupOverride}>
-          <label htmlFor="selectedReaders">Selected Readers</label>
-          <div className={styles.selectedReadersContainer}>
-            {currentSelections.map((sel, idx) => (
-              <span
-                key={idx}
-                className={styles.selectedReaderOption}
-              >
-                {getDisplayName(sel)}
-                <span
-                  className={`glyphicon glyphicon-remove ${styles.removeIcon}`}
-                  onClick={() => removeSelection(idx)}
-                ></span>
-              </span>
-            ))}
+        {/* Deletable Checkbox */}
+        {field.config.value.param.optional && (
+          <div className={`${styles.formGroupOverride} ${styles.checkboxGroup}`}>
+            <label>
+              <input
+                type="checkbox"
+                checked={field.config.value.param.deletable || false}
+                onChange={(e) =>
+                  updateNestedProperty(selectedIndex, 'deletable', e.target.checked)
+                }
+              />
+              Allow users to clear this field
+            </label>
           </div>
-        </div>
-      )}
+        )}
 
+        <hr className={styles.hrOverride}></hr>
 
-      {/* Dropdown to Add New Option */}
-      <div className={styles.formGroupOverride}>
-        <label htmlFor="addReaderOption">Restrict Readers To</label>
-        <select className="form-control" onChange={handleDropdownChange} defaultValue="">
-          <option value="" disabled>
-            Select an option…
-          </option>
-          {Object.entries(fieldReaderOptions).map(([displayText, validValue]) => (
-            <option key={validValue} value={validValue}>
-              {displayText}
+        {/* New Section for Field Reader Selections */}
+        {currentSelections && currentSelections.length > 0 && (
+          <div className={styles.formGroupOverride}>
+            <label htmlFor="selectedReaders">Selected Readers</label>
+            <div className={styles.selectedReadersContainer}>
+              {currentSelections.map((sel, idx) => (
+                <span key={idx} className={styles.selectedReaderOption}>
+                  {getDisplayName(sel)}
+                  <span
+                    className={`glyphicon glyphicon-remove ${styles.removeIcon}`}
+                    onClick={() => removeSelection(idx)}
+                  ></span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Dropdown to Add New Option */}
+        <div className={styles.formGroupOverride}>
+          <label htmlFor="addReaderOption">Restrict Readers To</label>
+          <select className="form-control" onChange={handleFieldReaderChange} defaultValue="">
+            <option value="" disabled>
+              Select an option…
             </option>
-          ))}
-        </select>
-      </div>
+            {Object.entries(fieldReaderOptions).map(([displayText, validValue]) => (
+              <option key={validValue} value={validValue}>
+                {displayText}
+              </option>
+            ))}
+          </select>
+        </div>
       </CollapsibleSection>
     </>
   )
@@ -1184,6 +1246,24 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
         newConfig.value = {
           ...newConfig.value,
           param: { ...newConfig.value.param, input: value },
+        }
+        break
+      case 'dataType':
+        // Update the widget type; note: this should update config.value.param.type
+        newConfig.value = {
+          ...newConfig.value,
+          param: { ...newConfig.value.param, type: value },
+        }
+        break
+      case 'arrayType':
+        // Set extra default value for array type
+        newConfig.value = {
+          ...newConfig.value,
+          param: {
+            ...newConfig.value.param,
+            type: value ? `${newConfig.value.param.type}[]` : newConfig.value.param.type.replace('[]', ''),
+            enum: value ? [] : undefined,
+          },
         }
         break
       case 'min':
