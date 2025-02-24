@@ -1,3 +1,5 @@
+/* globals promptError: false */
+
 import { useEffect, useState } from 'react'
 import uniqBy from 'lodash/uniqBy'
 import flatten from 'lodash/flatten'
