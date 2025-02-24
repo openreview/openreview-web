@@ -1324,9 +1324,37 @@ main.invitation {
       display: flex;
       padding-bottom: 0.5rem;
       align-items: baseline;
+      position: relative;
 
-      &.date-passed {
+      &.date-passed-1 {
+        background: lighten(constants.$backgroundGray, 10%);
+      }
+      &.date-passed-2 {
+        background: lighten(constants.$backgroundGray, 9%);
+      }
+      &.date-passed-3 {
+        background: lighten(constants.$backgroundGray, 8%);
+      }
+      &.date-passed-4 {
+        background: lighten(constants.$backgroundGray, 47%);
+      }
+      &.date-passed-5 {
+        background: lighten(constants.$backgroundGray, 6%);
+      }
+      &.date-passed-6 {
         background: lighten(constants.$backgroundGray, 5%);
+      }
+      &.date-passed-7 {
+        background: lighten(constants.$backgroundGray, 4%);
+      }
+      &.date-passed-8 {
+        background: lighten(constants.$backgroundGray, 3%);
+      }
+      &.date-passed-9 {
+        background: lighten(constants.$backgroundGray, 2%);
+      }
+      &.date-passed-10 {
+        background: lighten(constants.$backgroundGray, 1%);
       }
 
       &.expired {
@@ -1469,6 +1497,9 @@ main.invitation {
             font-size: 0.75rem;
             display: inline-block;
             margin-right: 0.25rem;
+            &.highlight {
+              font-weight: 900;
+            }
           }
           .existing-value-field-value {
             font-size: 0.75rem;
@@ -1480,11 +1511,12 @@ main.invitation {
         }
       }
 
-      .today {
-        color: constants.$orRed;
-        font-size: 0.65rem;
-        white-space: nowrap;
-        overflow-x: hidden;
+      .start-end-date {
+        position: absolute;
+        top: 0;
+        right: 0;
+        font-style: italic;
+        color: #999999;
       }
     }
 
