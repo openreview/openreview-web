@@ -550,7 +550,19 @@ const WorkflowInvitation = ({
     )
   }
   const expdate = stepObj.expdate ?? stepObj.edit?.invitation?.expdate
-  const isAfterNow = dayjs(expdate).isAfter(dayjs())
+  const isExpDateAfterNow = dayjs(expdate).isAfter(dayjs())
+  const isCdateAfterNow = dayjs(stepObj.cdate).isAfter(dayjs())
+
+  const getStartEndDateContent = () => {
+    if (isStageInvitation) {
+      return expdate
+        ? `${isCdateAfterNow ? 'Starting' : 'Started'} ${dayjs(stepObj.cdate).fromNow()} ,${isExpDateAfterNow ? 'expiring' : 'expired'} ${dayjs(expdate).fromNow()}`
+        : `${isCdateAfterNow ? 'Starting' : 'Started'} ${dayjs(stepObj.cdate).fromNow()}`
+    }
+    return isCdateAfterNow
+      ? `Scheduled to run in ${dayjs(stepObj.cdate).fromNow()}`
+      : `Executed ${dayjs(stepObj.cdate).fromNow()}`
+  }
 
   return (
     <motion.div
@@ -601,9 +613,7 @@ const WorkflowInvitation = ({
               />
             ))}
         </div>
-        {isHovered && (
-          <div className="start-end-date">{`Started ${dayjs(stepObj.cdate).fromNow()}${isAfterNow ? ` , expiring in ${dayjs(expdate).fromNow()}` : ''}`}</div>
-        )}
+        {isHovered && <div className="start-end-date">{getStartEndDateContent()}</div>}
       </div>
     </motion.div>
   )
