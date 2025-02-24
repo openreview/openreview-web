@@ -19,14 +19,24 @@ import {
   trueFalseOptions,
   urlFromGroupId,
 } from '../../lib/utils'
+import LoadingSpinner from '../LoadingSpinner'
 
 dayjs.extend(timezone)
 dayjs.extend(utc)
 
-const DatetimePicker = dynamic(() => import('../DatetimePicker'))
-const Dropdown = dynamic(() => import('../Dropdown'))
-const TimezoneDropdown = dynamic(() =>
-  import('../Dropdown').then((mod) => mod.TimezoneDropdown)
+const DatetimePicker = dynamic(() => import('../DatetimePicker'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const Dropdown = dynamic(() => import('../Dropdown'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const TimezoneDropdown = dynamic(
+  () => import('../Dropdown').then((mod) => mod.TimezoneDropdown),
+  {
+    ssr: false,
+  }
 )
 
 export const InvitationGeneralView = ({
@@ -260,7 +270,7 @@ export const InvitationGeneralViewV2 = ({
         {formatDateTime(invitation.mdate, { month: 'long', timeZoneName: 'short' }) ??
           formatDateTime(invitation.tmdate, { month: 'long', timeZoneName: 'short' })}
       </div>
-      {showEditButton && (
+      {/* {showEditButton && (
         <button type="button" className="btn btn-sm btn-primary" onClick={setIsEditMode}>
           Edit General Info
         </button>
@@ -273,7 +283,7 @@ export const InvitationGeneralViewV2 = ({
         >
           View Invitation Revisions
         </Link>
-      )}
+      )} */}
     </div>
   )
 }
@@ -674,7 +684,7 @@ const InvitationGeneralEditV2 = ({
       await api.post('/invitations/edits', requestBody, { accessToken })
       promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       setIsEditMode(false)
-      loadInvitation(invitation.id)
+      await loadInvitation(invitation.id)
     } catch (error) {
       promptError(error.message, { scrollToTop: false })
     }
@@ -906,11 +916,23 @@ export const InvitationGeneralV2 = ({
           isMetaInvitation={isMetaInvitation}
         />
       ) : (
-        <InvitationGeneralViewV2
-          invitation={invitation}
-          setIsEditMode={() => setIsEditMode(true)}
-          isMetaInvitation={isMetaInvitation}
-        />
+        <>
+          <InvitationGeneralViewV2
+            invitation={invitation}
+            // setIsEditMode={() => setIsEditMode(true)}
+            isMetaInvitation={isMetaInvitation}
+          />
+          <button type="button" className="btn btn-sm btn-primary" onClick={setIsEditMode}>
+            Edit General Info
+          </button>
+          <Link
+            href={`/invitation/revisions?id=${invitation.id}`}
+            role="button"
+            className="btn btn-sm btn-default edit-group-info"
+          >
+            View Invitation Revisions
+          </Link>
+        </>
       )}
     </EditorSection>
   )

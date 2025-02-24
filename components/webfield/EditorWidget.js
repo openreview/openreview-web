@@ -2,19 +2,53 @@ import dynamic from 'next/dynamic'
 import { useContext } from 'react'
 import { getFieldConstValue } from '../../lib/webfield-utils'
 import EditorComponentContext from '../EditorComponentContext'
+import LoadingSpinner from '../LoadingSpinner'
 
 // #region lazy load widgets
-const TagsWidget = dynamic(() => import('../EditorComponents/TagsWidget'))
-const TextboxWidget = dynamic(() => import('../EditorComponents/TextboxWidget'))
-const TextAreaWidget = dynamic(() => import('../EditorComponents/TextAreaWidget'))
-const RadioButtonWidget = dynamic(() => import('../EditorComponents/RadioButtonWidget'))
-const CheckboxWidget = dynamic(() => import('../EditorComponents/CheckboxWidget'))
-const DropdownWidget = dynamic(() => import('../EditorComponents/DropdownWidget'))
-const CodeEditorWidget = dynamic(() => import('../EditorComponents/CodeEditorWidget'))
-const FileUploadWidget = dynamic(() => import('../EditorComponents/FileUploadWidget'))
-const DatePickerWidget = dynamic(() => import('../EditorComponents/DatePickerWidget'))
-const ToggleButtonWidget = dynamic(() => import('../EditorComponents/ToggleButtonWidget'))
-const ProfileSearchWidget = dynamic(() => import('../EditorComponents/ProfileSearchWidget'))
+const TagsWidget = dynamic(() => import('../EditorComponents/TagsWidget'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const TextboxWidget = dynamic(() => import('../EditorComponents/TextboxWidget'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const TextAreaWidget = dynamic(() => import('../EditorComponents/TextAreaWidget'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const RadioButtonWidget = dynamic(() => import('../EditorComponents/RadioButtonWidget'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const CheckboxWidget = dynamic(() => import('../EditorComponents/CheckboxWidget'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const DropdownWidget = dynamic(() => import('../EditorComponents/DropdownWidget'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const CodeEditorWidget = dynamic(() => import('../EditorComponents/CodeEditorWidget'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const FileUploadWidget = dynamic(() => import('../EditorComponents/FileUploadWidget'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const DatePickerWidget = dynamic(() => import('../EditorComponents/DatePickerWidget'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const ToggleButtonWidget = dynamic(() => import('../EditorComponents/ToggleButtonWidget'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const ProfileSearchWidget = dynamic(() => import('../EditorComponents/ProfileSearchWidget'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
 
 // #endregion
 

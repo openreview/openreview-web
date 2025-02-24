@@ -16,7 +16,11 @@ export default function InvitationProcessFunctionsV2({
     (key) => key.endsWith('_script') && typeof invitation.content[key].value === 'string'
   )
   if (contentScripts.length === 0) {
-    return null
+    return (
+      <EditorSection title="Content Process Functions" className="process-functions">
+        <p className="empty-message">No Content Process Functions</p>
+      </EditorSection>
+    )
   }
 
   return (

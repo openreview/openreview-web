@@ -2,6 +2,8 @@ import { render } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { NoteContentV2 } from '../components/NoteContent'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 beforeEach(() => {
   global.DOMPurify = {
     sanitize: jest.fn(),
