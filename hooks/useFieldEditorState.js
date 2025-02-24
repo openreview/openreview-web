@@ -3,6 +3,8 @@ import { useReducer } from 'react'
 const fieldEditorReducer = (state, action) => {
   switch (action.type) {
     case 'SELECT_FIELD':
+      console.log('SELECT_FIELD', action)
+      console.log('SELECT_FIELD STATE', state)
       return { ...state, selectedIndex: action.payload }
     case 'UPDATE_FIELD': {
       const updatedFields = [...state.fields]
@@ -28,7 +30,11 @@ const fieldEditorReducer = (state, action) => {
       return {
         ...state,
         fields: action.payload,
-        selectedIndex: action.payload.length > 0 ? 0 : null,
+        // Preserve the existing selectedIndex if it’s within bounds; otherwise leave it as null.
+        selectedIndex:
+        state.selectedIndex !== null && state.selectedIndex < action.payload.length
+          ? state.selectedIndex
+          : null,
       }
     default:
       return state
@@ -48,6 +54,7 @@ const useFieldEditorState = (initialFields) => {
   const addField = (field) => dispatch({ type: 'ADD_FIELD', payload: field })
   const deleteField = (index) => dispatch({ type: 'DELETE_FIELD', payload: index })
   const setAllFields = (newFields) => dispatch({ type: 'SET_ALL_FIELDS', payload: newFields })
+  const reorderFields = (newFields) => dispatch({ type: 'REORDER_FIELDS', payload: newFields })
 
   return {
     fields: state.fields,
@@ -58,6 +65,7 @@ const useFieldEditorState = (initialFields) => {
     addField,
     deleteField,
     setAllFields,
+    reorderFields
   }
 }
 
