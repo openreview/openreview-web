@@ -147,6 +147,7 @@ const AreaChairConsole = ({ appContext }) => {
     extraExportColumns,
     preferredEmailInvitationId,
     ithenticateInvitationId,
+    sortOptions,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
@@ -605,6 +606,7 @@ const AreaChairConsole = ({ appContext }) => {
             officialMetaReviewName={officialMetaReviewName}
             areaChairName={areaChairName}
             ithenticateInvitationId={ithenticateInvitationId}
+            sortOptions={sortOptions}
           />
           <p className="empty-message">
             No assigned {submissionName.toLowerCase()} matching search criteria.
@@ -633,6 +635,7 @@ const AreaChairConsole = ({ appContext }) => {
           officialMetaReviewName={officialMetaReviewName}
           areaChairName={areaChairName}
           ithenticateInvitationId={ithenticateInvitationId}
+          sortOptions={sortOptions}
         />
         <Table
           className="console-table table-striped areachair-console-table"
