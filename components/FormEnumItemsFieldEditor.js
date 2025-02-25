@@ -136,7 +136,6 @@ const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) 
       )}
       {optionType === 'items' && (
         <div className={styles.enumOptional}>
-          (
           <input
             type="checkbox"
             checked={option.optional}
@@ -148,7 +147,6 @@ const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) 
               })
             }}
           />
-          )
         </div>
       )}
     </>

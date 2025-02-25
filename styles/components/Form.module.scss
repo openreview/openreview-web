@@ -32,6 +32,10 @@
   .descriptionHeader {
     margin-left: 3.75rem;
   }
+
+  @media #{constants.$large} {
+    max-width: 85%;
+  }
 }
 
 .enumRow {
