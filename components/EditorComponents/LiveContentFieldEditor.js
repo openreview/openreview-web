@@ -100,8 +100,8 @@ const DATA_TYPE_OPTIONS = {
 // For all standard data types (string, integer, float, boolean),
 // we have sub-options: Single Choice, Multiple Choice, etc.
 const INPUT_TYPE_OPTIONS = [
-  { label: 'Single Choice', input: 'radio' },
-  { label: 'Multiple Choice', input: 'checkbox' },
+  { label: 'Single Value', input: 'radio' },
+  { label: 'Multiple Values', input: 'checkbox' },
   { label: 'Small Textbox', input: 'text' },
   { label: 'Large Textbox', input: 'textarea' },
   { label: 'Single Item', input: 'single' },
