@@ -208,7 +208,14 @@ const TabNavigation = ({ activeTab, onTabChange, isPreviewDisabled, previewError
       // Tooltip for hover over error
       title={isPreviewDisabled ? `Cannot preview: ${previewErrorMessage}` : ''}
     >
-      Live Preview
+      Live Editor
+    </Tab>
+    <Tab
+      id="final-preview"
+      onClick={() => onTabChange('final-preview')}
+      active={activeTab === 'final-preview'}
+    >
+      Form Preview
     </Tab>
     <Tab
       id="json-fields"
@@ -455,35 +462,46 @@ const FieldRow = ({
   moveFieldDown,
   renderField,
   containerRef,
-}) => (
-  <>
-    <InsertFieldButton
-      index={index}
-      isOpen={addFieldDropdownIndex === index}
-      onOpen={handleOpenAddFieldDropdown}
-      onClose={() => setAddFieldDropdownIndex(null)}
-      onAddField={handleAddFieldAtIndex}
-      containerRef={containerRef}
-      isLast={false}
-    />
+  inFinalPreview
+}) => {
+  const rowClassName = !inFinalPreview ?
+  `${styles.fieldRow} ${selectedIndex === index ? styles.selected : ''}`
+    : styles.fieldRow
 
-    <div
-      className={`${styles.fieldRow} ${selectedIndex === index ? styles.selected : ''}`}
-      onClick={() => selectField(index)}
-    >
-      {/* Field Controls */}
-      <FieldControls
-        idx={index}
-        onDelete={handleDeleteField}
-        onMoveUp={moveFieldUp}
-        onMoveDown={moveFieldDown}
-      />
+  return (
+    <>
+      {!inFinalPreview && (
+        <InsertFieldButton
+          index={index}
+          isOpen={addFieldDropdownIndex === index}
+          onOpen={handleOpenAddFieldDropdown}
+          onClose={() => setAddFieldDropdownIndex(null)}
+          onAddField={handleAddFieldAtIndex}
+          containerRef={containerRef}
+          isLast={false}
+        />
+      )}
 
-      {/* Field Preview */}
-      <FieldPreview field={field} renderField={renderField} index={index} />
-    </div>
-  </>
-)
+      <div
+        className={rowClassName}
+        onClick={() => selectField(index)}
+      >
+        {/* Field Controls */}
+        {!inFinalPreview && (
+          <FieldControls
+            idx={index}
+            onDelete={handleDeleteField}
+            onMoveUp={moveFieldUp}
+            onMoveDown={moveFieldDown}
+          />
+        )}
+
+        {/* Field Preview */}
+        <FieldPreview field={field} renderField={renderField} index={index} />
+      </div>
+    </>
+  )
+}
 
 // #endregion
 
@@ -1691,6 +1709,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
                           moveFieldDown={moveFieldDown}
                           renderField={renderField}
                           containerRef={leftPanelRef}
+                          inFinalPreview={false}
                         />
                       ) : null
                     )}
@@ -1705,6 +1724,32 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
                     />
                   </div>
                 </TabPanel>
+              <TabPanel id="final-preview">
+                <div id="final-form-preview" className={styles.formPreview}>
+                    {fields.map((field, idx) =>
+                      (field.config.value.param.hidden && renderHiddenFields) ||
+                      !field.config.value.param.hidden ? (
+                        <FieldRow
+                          key={idx}
+                          index={idx}
+                          field={field}
+                          addFieldDropdownIndex={addFieldDropdownIndex}
+                          handleOpenAddFieldDropdown={handleOpenAddFieldDropdown}
+                          setAddFieldDropdownIndex={setAddFieldDropdownIndex}
+                          handleAddFieldAtIndex={handleAddFieldAtIndex}
+                          selectedIndex={selectedIndex}
+                          selectField={selectField}
+                          handleDeleteField={handleDeleteField}
+                          moveFieldUp={moveFieldUp}
+                          moveFieldDown={moveFieldDown}
+                          renderField={renderField}
+                          containerRef={leftPanelRef}
+                          inFinalPreview={true}
+                        />
+                      ) : null
+                    )}
+                  </div>
+              </TabPanel>
               <TabPanel id="json-fields">
                 {jsonSynced ? (
                   <CodeEditor
@@ -1739,7 +1784,7 @@ const LiveContentFieldEditor = ({ propInvitation, propExistingValues, onContentC
         </div>
 
         {/* Options Editor */}
-        {activeTab !== 'json-fields' && (
+        {activeTab !== 'json-fields' && activeTab !== 'final-preview' && (
           <div className={`col-sm-3 ${styles.optionsPanel}`}>
             <h3>Field Options</h3>
             {selectedIndex !== null ? (
