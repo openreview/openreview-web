@@ -26,6 +26,8 @@ import LoadingSpinner from '../LoadingSpinner'
 import ForumReplyContext from './ForumReplyContext'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 
+import Timeline from './Timeline';
+
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
@@ -95,6 +97,8 @@ export default function Forum({
   const [displayOptionsMap, setDisplayOptionsMap] = useState(null)
   const [orderedReplies, setOrderedReplies] = useState(null)
   const [allInvitations, setAllInvitations] = useState(null)
+  const [selectedRange, setSelectedRange] = useState([null, null]);
+
   const [signature, setSignature] = useState(null)
   const [expandedInvitations, setExpandedInvitations] = useState(null)
   const [nesting, setNesting] = useState(2)
@@ -570,8 +574,14 @@ export default function Forum({
 
     const replies =
       layout === 'chat' || cutoffIndex.current >= orderedReplies.length
-        ? orderedReplies
-        : orderedReplies.slice(0, cutoffIndex.current)
+        ? orderedReplies.filter(reply => {
+            const cdate = replyNoteMap[reply.id].cdate;
+            return selectedRange[0] <= cdate && cdate <= selectedRange[1];
+          })
+        : orderedReplies.slice(0, cutoffIndex.current).filter(reply => {
+            const cdate = replyNoteMap[reply.id].cdate;
+            return selectedRange[0] <= cdate && cdate <= selectedRange[1];
+          })
 
     if (layout === 'chat') {
       if (replies.length === numRepliesHidden || replies.length === 0) {
@@ -1022,6 +1032,7 @@ export default function Forum({
         updateNote={updateParentNote}
         deleteOrRestoreNote={deleteOrRestoreNote}
       />
+      <Timeline replies={replyNoteMap ? Object.values(replyNoteMap) : []} onRangeChange={setSelectedRange} />
 
       {repliesLoaded && orderedReplies.length > 0 && (
         <div className="filters-container mt-4">
