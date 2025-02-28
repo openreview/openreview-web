@@ -1364,6 +1364,10 @@ main.invitation {
         background: darken(constants.$backgroundGray, 5%);
       }
 
+      &.hovered {
+        border: dashed 2px transparent;
+      }
+
       .invitation-cdate {
         width: 10%;
         margin-right: 0.5rem;
