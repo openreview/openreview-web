@@ -5,9 +5,7 @@ import { renderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
 jest.mock('../hooks/useUser', () => () => ({ user: {} }))
-
 jest.mock('../components/MarkdownPreviewTab', () => () => 'markdown preview tab')
-
 jest.mock('../lib/utils', () => {
   const original = jest.requireActual('../lib/utils')
   return {
@@ -15,6 +13,7 @@ jest.mock('../lib/utils', () => {
     getAutoStorageKey: jest.fn(() => 'some key'),
   }
 })
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 describe('TextAreaWidget', () => {
   test('display textarea', () => {
