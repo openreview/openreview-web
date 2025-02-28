@@ -129,6 +129,7 @@ const PaperRow = ({
               <div>
                 <strong>{prettyInvitationId(reply.invitationId)}</strong>
                 {reply.values.map((value) => {
+                  if (!value.value) return null
                   return (
                     <div>
                       <strong>{value.field}</strong>:<Markdown text={value.value} />
