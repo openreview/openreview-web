@@ -124,30 +124,28 @@ const PaperRow = ({
       )}
       {displayReplyInvitations?.length && (
         <td>
-          {rowData.displayReplies?.map((reply) => {
-            return (
+          {rowData.displayReplies?.map((reply) => (
+            <div key={reply.id}>
+              <strong>{prettyInvitationId(reply.invitationId)}</strong>
+              {reply.values.map((value) => {
+                if (!value.value) return null
+                return (
+                  <div key={value.field}>
+                    <strong>{value.field}</strong>:<Markdown text={value.value} />
+                  </div>
+                )
+              })}
               <div>
-                <strong>{prettyInvitationId(reply.invitationId)}</strong>
-                {reply.values.map((value) => {
-                  if (!value.value) return null
-                  return (
-                    <div>
-                      <strong>{value.field}</strong>:<Markdown text={value.value} />
-                    </div>
-                  )
-                })}
-                <div>
-                  <a
-                    href={`/forum?id=${note.id}&noteId=${reply.id}&referrer=${referrerUrl}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Read {prettyInvitationId(reply.invitationId)}
-                  </a>
-                </div>
+                <a
+                  href={`/forum?id=${note.id}&noteId=${reply.id}&referrer=${referrerUrl}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Read {prettyInvitationId(reply.invitationId)}
+                </a>
               </div>
-            )
-          })}
+            </div>
+          ))}
         </td>
       )}
       {noteContentField && (
