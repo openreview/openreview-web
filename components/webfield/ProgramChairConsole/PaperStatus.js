@@ -8,9 +8,10 @@ import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStat
 import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from './PaperStatusMenuBar'
-import { prettyField } from '../../../lib/utils'
+import { prettyField, prettyInvitationId } from '../../../lib/utils'
 import useUser from '../../../hooks/useUser'
 import SelectAllCheckBox from '../SelectAllCheckbox'
+import Markdown from '../../EditorComponents/Markdown'
 
 const PaperRow = ({
   rowData,
@@ -33,6 +34,7 @@ const PaperRow = ({
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
     preferredEmailInvitationId,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const { note, metaReviewData, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
@@ -118,6 +120,33 @@ const PaperRow = ({
             additionalMetaReviewFields={additionalMetaReviewFields}
             preferredEmailInvitationId={preferredEmailInvitationId}
           />
+        </td>
+      )}
+      {displayReplyInvitations?.length && (
+        <td>
+          {rowData.displayReplies?.map((reply) => {
+            return (
+              <div>
+                <strong>{prettyInvitationId(reply.invitationId)}</strong>
+                {reply.values.map((value) => {
+                  return (
+                    <div>
+                      <strong>{value.field}</strong>:<Markdown text={value.value} />
+                    </div>
+                  )
+                })}
+                <div>
+                  <a
+                    href={`/forum?id=${note.id}&noteId=${reply.id}&referrer=${referrerUrl}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Read {prettyInvitationId(reply.invitationId)}
+                  </a>
+                </div>
+              </div>
+            )
+          })}
         </td>
       )}
       {noteContentField && (
@@ -241,6 +270,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
     officialReviewName,
     officialMetaReviewName = 'Meta_Review',
     submissionName,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
@@ -373,6 +403,15 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
             width: '30%',
           },
           ...(areaChairsId ? [{ id: 'status', content: 'Status' }] : []),
+          ...(displayReplyInvitations?.length
+            ? [
+                {
+                  id: 'latestReplies',
+                  content: 'Latest Replies',
+                  width: '35%',
+                },
+              ]
+            : []),
           {
             id: noteContentField?.field ?? 'decision',
             content: noteContentField ? prettyField(noteContentField.field) : 'Decision',
