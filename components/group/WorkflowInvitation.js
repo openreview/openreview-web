@@ -573,11 +573,10 @@ const WorkflowInvitation = ({
         // eslint-disable-next-line no-param-reassign
         workflowInvitationsRef.current[invitationId] = el
       }}
-      whileHover={{ scale: 1.02 }}
     >
       <div
         key={invitationId}
-        className={`workflow-invitation-container${isExpired ? ' expired' : ''}${getDatePassedClass()}`}
+        className={`workflow-invitation-container${isExpired ? ' expired' : ''}${getDatePassedClass()}${isHovered ? ' hovered' : ''}`}
       >
         <div className={`invitation-cdate${isMissingValue ? ' missing-value' : ''}`}>
           {formattedDate}
