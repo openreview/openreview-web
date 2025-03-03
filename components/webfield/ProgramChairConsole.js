@@ -528,7 +528,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             'desc'
           )?.[0]
           return {
-            id: latestReply.id,
+            id: latestReply?.id,
             invitationId: displayInvitaitonId,
             values: p.fields.map((field) => {
               const value = latestReply?.content?.[field]?.value?.toString()

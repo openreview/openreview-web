@@ -5,7 +5,7 @@ import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStatus'
-import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
+import { AcPcConsoleNoteReviewStatus, LatestReplies } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from './PaperStatusMenuBar'
 import { prettyField, prettyInvitationId } from '../../../lib/utils'
@@ -124,28 +124,7 @@ const PaperRow = ({
       )}
       {displayReplyInvitations?.length && (
         <td>
-          {rowData.displayReplies?.map((reply) => (
-            <div key={reply.id}>
-              <strong>{prettyInvitationId(reply.invitationId)}</strong>
-              {reply.values.map((value) => {
-                if (!value.value) return null
-                return (
-                  <div key={value.field}>
-                    <strong>{value.field}</strong>:<Markdown text={value.value} />
-                  </div>
-                )
-              })}
-              <div>
-                <a
-                  href={`/forum?id=${note.id}&noteId=${reply.id}&referrer=${referrerUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Read {prettyInvitationId(reply.invitationId)}
-                </a>
-              </div>
-            </div>
-          ))}
+          <LatestReplies rowData={rowData} referrerUrl={referrerUrl} />
         </td>
       )}
       {noteContentField && (
@@ -395,11 +374,15 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
             width: '35px',
           },
           { id: 'number', content: '#', width: '55px' },
-          { id: 'summary', content: `${submissionName} Summary`, width: '30%' },
+          {
+            id: 'summary',
+            content: `${submissionName} Summary`,
+            width: displayReplyInvitations?.length ? '20%' : '30%',
+          },
           {
             id: 'reviewProgress',
             content: `${prettyField(officialReviewName)} Progress`,
-            width: '30%',
+            width: displayReplyInvitations?.length ? '15%' : '30%',
           },
           ...(areaChairsId ? [{ id: 'status', content: 'Status' }] : []),
           ...(displayReplyInvitations?.length
@@ -407,7 +390,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
                 {
                   id: 'latestReplies',
                   content: 'Latest Replies',
-                  width: '35%',
+                  width: '45%',
                 },
               ]
             : []),

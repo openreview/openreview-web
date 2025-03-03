@@ -13,8 +13,9 @@ import ErrorAlert from '../ErrorAlert'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
 import WebFieldContext from '../WebFieldContext'
-import { pluralizeString, prettyField } from '../../lib/utils'
+import { pluralizeString, prettyField, prettyInvitationId } from '../../lib/utils'
 import { getProfileLink } from '../../lib/webfield-utils'
+import Markdown from '../EditorComponents/Markdown'
 
 // modified from noteReviewStatus.hbs handlebar template
 export const ReviewerConsoleNoteReviewStatus = ({
@@ -672,4 +673,30 @@ export const EthicsReviewStatus = ({
       </div>
     </div>
   )
+}
+
+export const LatestReplies = ({ rowData, referrerUrl }) => {
+  const { note, displayReplies } = rowData
+  return displayReplies?.map((reply) => (
+    <div key={reply.id}>
+      <strong>{prettyInvitationId(reply.invitationId)}</strong>
+      {reply.values.map((value) => {
+        if (!value.value) return null
+        return (
+          <div key={value.field}>
+            <strong>{value.field}</strong>:<Markdown text={value.value} />
+          </div>
+        )
+      })}
+      <div>
+        <a
+          href={`/forum?id=${note.id}&noteId=${reply.id}&referrer=${referrerUrl}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Read {prettyInvitationId(reply.invitationId)}
+        </a>
+      </div>
+    </div>
+  ))
 }
