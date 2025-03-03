@@ -1,5 +1,5 @@
 /* globals promptError,$: false */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import BasicModal from '../BasicModal'
 import BasicProfileView from './BasicProfileView'
@@ -8,8 +8,8 @@ import api from '../../lib/api-client'
 import ProfilePublications from './ProfilePublications'
 import ProfileViewSection from './ProfileViewSection'
 import MessagesSection from './MessagesSection'
-import { getRejectionReasons } from '../../pages/user/moderation'
 import Dropdown from '../Dropdown'
+import { getRejectionReasons } from '../../lib/utils'
 
 const ProfilePreviewModal = ({
   profileToPreview,
