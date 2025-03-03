@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { filterCollections } from '../../lib/webfield-utils'
 import DownloadPDFButton from '../DownloadPDFButton'
 import Dropdown from '../Dropdown'
-import ExportCSV from '../ExportCSV'
+import ExportFile from '../ExportFile'
 import Icon from '../Icon'
 
 const BaseMenuBar = ({
@@ -116,13 +116,18 @@ const BaseMenuBar = ({
   }, [searchTerm])
 
   useEffect(() => {
+    if (!sortOption) return
+    let getValueFn = sortOption.getValue
+    if (typeof sortOption.getValue === 'string') {
+      try {
+        getValueFn = Function('row', sortOption.getValue) // eslint-disable-line no-new-func
+      } catch (error) {
+        return
+      }
+    }
     setData((data) => ({
       ...data,
-      tableRows: orderBy(
-        data.tableRowsAll,
-        sortOption.getValue,
-        sortOption.initialDirection ?? 'asc'
-      ),
+      tableRows: orderBy(data.tableRowsAll, getValueFn, sortOption.initialDirection ?? 'asc'),
     }))
   }, [sortOption])
 
@@ -150,7 +155,7 @@ const BaseMenuBar = ({
       )}
       {exportColumns && (
         <div className="btn-group">
-          <ExportCSV
+          <ExportFile
             records={tableRows}
             fileName={fullExportFileName}
             exportColumns={exportColumns}

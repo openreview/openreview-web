@@ -260,7 +260,7 @@ test('user open own profile', async (t) => {
     .click(step2Emails)
     .expect(
       Selector('p').withText(
-        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
       ).exists
     )
     .notOk() // not activation
@@ -485,7 +485,7 @@ test('add and delete geolocation of history', async (t) => {
     .click(step4History) // to collapse dropdown
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('Error: You must enter position, institution, domain and country/region information for each entry in your education and career history')
+    .eql('Error: You must enter position, institution, domain and country/region information for each entry in your career and education history')
 })
 
 test('add links', async (t) => {
@@ -877,7 +877,7 @@ test('validate current history', async (t) => {
     })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('Error: Your Education & Career History must include at least one current position.')
+    .eql('Error: Your Career & Education History must include at least one current position.')
     // add current end date
     .typeText(firstHistoryEndInput, new Date().getFullYear().toString(), {
       replace: true,
@@ -912,11 +912,24 @@ test('profile should be auto merged', async (t) => {
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
     .contains(`A confirmation email has been sent to ${userF.email}`)
 
-    // text box to enter code should be displayed
+    // enter code to merge profile
     .expect(Selector('button').withText('Verify').nth(0).visible)
     .ok()
     .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
     .ok()
+    .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messageSelector.innerText)
+    .eql('alternate@a.com has been verified')
+    .expect(Selector('div.emails__confirmed-text').withText('(Confirmed)').count).eql(2, { timeout: 2000 }) // email section is updated
+    .expect(Selector('div.emails__preferred-text').withText('(Preferred Email)').count).eql(1) // userA's existing email
+    .expect(Selector('button').withText('Make Preferred').exists)// userF's email
+    .ok()
+
+    .click(saveProfileButton) // save profile should success
+    .expect(errorMessageSelector.innerText)
+    .eql('Your profile information has been successfully updated')
+
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
     { to: userF.email, subject: 'OpenReview Account Linking - Duplicate Profile Found' },
@@ -927,31 +940,12 @@ test('profile should be auto merged', async (t) => {
     .contains(
       'This alternate email address is already associated with the user [~FirstF_LastF1]'
     )
-
-  // access merge link as non-related user
   await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/merge?token=${userF.email}`)
-    .expect(Selector('h1').withText('Error 403').exists)
-    .ok()
-    .expect(Selector('pre.error-message').textContent)
-    .eql('You are not authorized to perform this merge.')
-
-  // access merge link as user which initiated the merge
-  await t
-    .useRole(userARole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/merge?token=${userF.email}`)
-    .expect(
-      Selector('p').withText(
-        'Click the confirm button below to merge ~FirstF_LastF1<alternate@a.com> into your user profile.'
-      ).exists
+    .expect(messages[0].content.text)
+    .contains(
+      'Verification Token'
     )
-    .ok()
-    .expect(Selector('button').withText('Confirm Profile Merge').exists)
-    .ok()
-    .click(Selector('button').withText('Confirm Profile Merge'))
-    .expect(Selector('div.alert-content').innerText)
-    .contains('Thank you for confirming the profile merge.')
+
 
   // email should have been added to hasTaskUser's profile
   await t
