@@ -37,7 +37,7 @@ const ProfileName = ({ name }) => (
 
 const ProfileEmail = ({ email, publicProfile, allowCopyEmail }) => {
   const copyEmailToClipboard = () => {
-    copy(`"${email.email}"`)
+    copy(`${email.email}`)
   }
   return (
     <ProfileItem itemMeta={email.meta}>
