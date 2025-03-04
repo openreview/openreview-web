@@ -33,6 +33,7 @@ const PaperStatusMenuBar = ({
     officialReviewName,
     officialMetaReviewName = 'Meta_Review',
     areaChairName = 'Area_Chairs',
+    secondaryAreaChairName,
     submissionName,
     ithenticateInvitationId,
   } = useContext(WebFieldContext)
@@ -162,6 +163,16 @@ const PaperStatusMenuBar = ({
               prettyField(areaChairName)
             )} of selected ${pluralizeString(submissionName)}`,
             value: 'allAreaChairs',
+          },
+        ]
+      : []),
+    ...(secondaryAreaChairName
+      ? [
+          {
+            label: `All ${pluralizeString(
+              prettyField(secondaryAreaChairName)
+            )} of selected ${pluralizeString(submissionName)}`,
+            value: 'allSecondaryAreaChairs',
           },
         ]
       : []),
