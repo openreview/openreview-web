@@ -2,6 +2,7 @@ import { stringify } from 'query-string'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import serverAuth from '../../auth'
 import V1Compare from './V1Compare'
 import Compare from './Compare'
@@ -24,6 +25,9 @@ export default async function page({ searchParams }) {
   if (!accessToken) redirect(`/login?redirect=/revisions/compare?${stringify(query)}`)
   if (!(id && left && right)) return <ErrorDisplay message="Missing required parameter" />
 
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   const loadEditsP = api
     .get(
       '/pdf/compare',
@@ -32,7 +36,7 @@ export default async function page({ searchParams }) {
         leftId: left,
         rightId: right,
       },
-      { accessToken, version: 2 }
+      { accessToken, version: 2, remoteIpAddress }
     )
     .then((result) => {
       const { leftNote, rightNote, viewerUrl } = result
@@ -40,7 +44,7 @@ export default async function page({ searchParams }) {
     })
     .catch((apiError) =>
       api
-        .get('/notes/edits', { 'note.id': id, trash: true }, { accessToken })
+        .get('/notes/edits', { 'note.id': id, trash: true }, { accessToken, remoteIpAddress })
         .then((editsResponse) => {
           if (editsResponse.edits?.length <= 1) throw new Error('Reference not found')
           const leftEdit = editsResponse.edits.find((edit) => edit.id === query.left)

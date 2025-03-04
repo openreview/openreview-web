@@ -1,6 +1,7 @@
 import { stringify } from 'query-string'
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import api from '../../../lib/api-client'
 import { prettyId } from '../../../lib/utils'
 import serverAuth from '../../auth'
@@ -24,9 +25,12 @@ export default async function page({ searchParams }) {
   const { id } = query
   if (!id) return <ErrorDisplay message="Missing required parameter id" />
 
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   let redirectPath = null
   const loadGroupP = api
-    .get('/groups', { id }, { accessToken })
+    .get('/groups', { id }, { accessToken, remoteIpAddress })
     .then((apiRes) => {
       if (apiRes.groups?.length > 0) {
         return { group: { ...apiRes.groups[0], web: null } }

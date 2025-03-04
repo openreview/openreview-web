@@ -1,5 +1,6 @@
 import { groupBy } from 'lodash'
 import Link from 'next/link'
+import { headers } from 'next/headers'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
 import serverAuth from '../auth'
@@ -45,16 +46,19 @@ export default async function page({ searchParams }) {
   const { token } = await serverAuth()
   if (!id) return <ErrorDisplay message="Missing required parameter id" />
 
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   let hostGroup
   let venues
   let venuesByYear
   try {
     hostGroup = await api
-      .get('/groups', { id, limit: 1 }, { accessToken: token })
+      .get('/groups', { id, limit: 1 }, { accessToken: token, remoteIpAddress })
       .then((res) => res.groups?.[0] ?? null)
     if (!hostGroup) throw new Error()
     venues = await api
-      .get('/groups', { host: id }, { accessToken: token })
+      .get('/groups', { host: id }, { accessToken: token, remoteIpAddress })
       .then((res) => res.groups ?? [])
     if (venues.length === 0) {
       venuesByYear = []

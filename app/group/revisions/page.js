@@ -1,6 +1,7 @@
 import { stringify } from 'query-string'
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import api from '../../../lib/api-client'
 import { prettyId } from '../../../lib/utils'
 import serverAuth, { isSuperUser } from '../../auth'
@@ -21,10 +22,12 @@ export default async function page({ searchParams }) {
   const query = await searchParams
   const { user, token: accessToken } = await serverAuth()
   const { id } = query
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
 
   let redirectPath = null
   const loadGroupP = api
-    .get('/groups', { id }, { accessToken })
+    .get('/groups', { id }, { accessToken, remoteIpAddress })
     .then((apiRes) => {
       if (apiRes.groups?.length > 0) {
         if (apiRes.groups[0].details?.writable) {

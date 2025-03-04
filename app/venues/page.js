@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { headers } from 'next/headers'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
@@ -20,7 +21,10 @@ const VenueItem = ({ id, name }) => (
 )
 
 const getGroups = async () => {
-  const { groups } = await api.get('/groups', { id: 'host' })
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
+  const { groups } = await api.get('/groups', { id: 'host' }, { remoteIpAddress })
   const group = groups?.length > 0 ? groups[0] : null
   if (!group) {
     throw new Error('Venues list unavailable. Please try again later')

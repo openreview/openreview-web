@@ -1,3 +1,4 @@
+import { headers } from 'next/headers'
 import api from '../../lib/api-client'
 import { deburrString, formatGroupResults, prettyId } from '../../lib/utils'
 import VenueList from './VenueList'
@@ -6,12 +7,18 @@ import VenueListItem from './VenueListItem'
 export const revalidate = 3600
 
 export default async function AllVenues() {
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   const sortAlpha = (arr) =>
     arr.sort((a, b) => prettyId(a.groupId).localeCompare(prettyId(b.groupId)))
 
   let venues = []
   try {
-    venues = await api.get('/groups', { id: 'host' }).then(formatGroupResults).then(sortAlpha)
+    venues = await api
+      .get('/groups', { id: 'host' }, { remoteIpAddress })
+      .then(formatGroupResults)
+      .then(sortAlpha)
   } catch (error) {
     console.log('Error in AllVenues', {
       page: 'Home',

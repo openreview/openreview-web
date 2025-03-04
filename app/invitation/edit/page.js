@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { stringify } from 'query-string'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import api from '../../../lib/api-client'
 import { prettyId } from '../../../lib/utils'
 import serverAuth from '../../auth'
@@ -26,13 +27,17 @@ export default async function page({ searchParams }) {
 
   const { token: accessToken, user } = await serverAuth()
 
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   let redirectPath = null
   const loadInvitationP = api
     .getInvitationById(
       id,
       accessToken,
       { details: 'writable,writableWith', expired: true },
-      { details: 'writable', expired: true }
+      { details: 'writable', expired: true },
+      remoteIpAddress
     )
     // eslint-disable-next-line consistent-return
     .then((invitationObj) => {

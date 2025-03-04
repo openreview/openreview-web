@@ -1,10 +1,9 @@
 import { redirect } from 'next/navigation'
 import { stringify } from 'query-string'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import serverAuth from '../auth'
 import api from '../../lib/api-client'
-import MessagesTable from '../../components/MessagesTable'
-import PaginationLinks from '../../components/PaginationLinks'
 import FilterForm from './FilterForm'
 import styles from './Messages.module.scss'
 import Messages from './Messages'
@@ -42,6 +41,9 @@ export default async function page({ searchParams }) {
     validStatus = statusParam
   }
 
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   const loadMessagesP = api
     .get(
       '/messages',
@@ -49,7 +51,7 @@ export default async function page({ searchParams }) {
         ...{ to, subject, status: statusParam, parentGroup },
         status: validStatus,
       },
-      { accessToken: token }
+      { accessToken: token, remoteIpAddress }
     )
     .catch((error) => {
       console.log('Error in loadMessagesP', {

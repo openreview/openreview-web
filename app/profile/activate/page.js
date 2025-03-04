@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
 import Activate from './Activate'
@@ -15,10 +15,12 @@ export const dynamic = 'force-dynamic'
 export default async function page({ searchParams }) {
   const { token } = await searchParams
   const { user } = await serverAuth()
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
 
   const loadActivatableProfileP = token
     ? api
-        .get(`/activatable/${token}`)
+        .get(`/activatable/${token}`, null, { remoteIpAddress })
         .then((apiRes) => {
           if (apiRes.activatable?.action !== 'activate') {
             throw new Error(

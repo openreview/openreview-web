@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
 import ProfileMergeList from './ProfileMergeList'
 import api from '../../../../lib/api-client'
@@ -7,24 +8,27 @@ const profileMergeDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Pr
 const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
 
 export default async function ProfileMergeTab({ accessToken }) {
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   const profileMergeNotesP = api.get(
     '/notes',
     {
       invitation: profileMergeInvitationId,
     },
-    { accessToken }
+    { accessToken, remoteIpAddress }
   )
   const decisionResultsP = api.getAll(
     '/notes/edits',
     {
       invitation: profileMergeDecisionInvitationId,
     },
-    { accessToken, resultsKey: 'edits' }
+    { accessToken, resultsKey: 'edits', remoteIpAddress }
   )
   const processLogsP = api.getAll(
     '/logs/process',
     { invitation: profileMergeDecisionInvitationId },
-    { accessToken, resultsKey: 'logs' }
+    { accessToken, resultsKey: 'logs', remoteIpAddress }
   )
 
   const profileMergeRequestsP = Promise.all([

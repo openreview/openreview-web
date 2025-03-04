@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { stringify } from 'query-string'
+import { headers } from 'next/headers'
 import serverAuth, { isSuperUser } from '../auth'
 import api from '../../lib/api-client'
 import ErrorDisplay from '../../components/ErrorDisplay'
@@ -18,6 +19,9 @@ export default async function page({ searchParams }) {
   const { id, email } = query
   if (!user && !id && !email) redirect(`/login?redirect=/profile?${stringify(query)}`)
 
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   const isProfileOwner =
     (id && user?.profile?.usernames?.includes(id)) ||
     (email && user?.profile?.emails?.includes(email)) ||
@@ -30,6 +34,7 @@ export default async function page({ searchParams }) {
     // eslint-disable-next-line no-nested-ternary
     profileResult = await api.get('/profiles', isProfileOwner ? {} : id ? { id } : { email }, {
       accessToken: token,
+      remoteIpAddress,
     })
   } catch (error) {
     return <ErrorDisplay message="Profile not found" />

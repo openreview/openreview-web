@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { stringify } from 'query-string'
 import { uniq } from 'lodash'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import serverAuth from '../../auth'
 import styles from './Browse.module.scss'
 import CommonLayout from '../../CommonLayout'
@@ -49,6 +50,9 @@ export default async function page({ searchParams }) {
   const apiVersion = Number.parseInt(query.version, 10)
   const idsToLoad = uniq(allInvitations.map((i) => i.id)).filter((id) => id !== 'staticList')
 
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   const loadAllInvitationsP = api
     .get(
       '/invitations',
@@ -57,7 +61,7 @@ export default async function page({ searchParams }) {
         expired: true,
         type: apiVersion === 2 ? 'edge' : 'edges',
       },
-      { accessToken, version: apiVersion }
+      { accessToken, version: apiVersion, remoteIpAddress }
     )
     .then((apiRes) => {
       if (!apiRes.invitations?.length) {
@@ -126,7 +130,11 @@ export default async function page({ searchParams }) {
         }
       }
       return api
-        .get('/groups', { id: domainGroupId, select: 'content' }, { accessToken })
+        .get(
+          '/groups',
+          { id: domainGroupId, select: 'content' },
+          { accessToken, remoteIpAddress }
+        )
         .then((response) => {
           const domainContent = response?.groups?.[0]?.content
           return {
