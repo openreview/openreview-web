@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { stringify } from 'query-string'
+import { headers } from 'next/headers'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import serverAuth from '../auth'
@@ -10,7 +11,6 @@ import { groupModeToggle } from '../../lib/banner-links'
 import EditBanner from '../../components/EditBanner'
 import { generateGroupWebfieldCode, parseComponentCode } from '../../lib/webfield-utils'
 import ComponentGroup from './ComponentGroup'
-
 import ErrorDisplay from '../../components/ErrorDisplay'
 
 export const dynamic = 'force-dynamic'
@@ -41,8 +41,11 @@ export default async function page({ searchParams }) {
 
   let group
 
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   try {
-    const { groups } = await api.get('/groups', { id }, { accessToken })
+    const { groups } = await api.get('/groups', { id }, { accessToken, remoteIpAddress })
     group = groups?.length > 0 ? groups[0] : null
     if (!group) {
       return <ErrorDisplay message={`The Group ${id} was not found`} />
@@ -105,7 +108,7 @@ return {
   const componentObjP =
     group.domain !== group.id
       ? api
-          .get('/groups', { id: group.domain }, { accessToken })
+          .get('/groups', { id: group.domain }, { accessToken, remoteIpAddress })
           .then((apiRes) => {
             const domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
             return parseComponentCode(group, domainGroup, user, query, accessToken)

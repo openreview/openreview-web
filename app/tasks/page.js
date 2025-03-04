@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import serverAuth from '../auth'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import api from '../../lib/api-client'
@@ -17,12 +18,15 @@ export default async function page() {
   const { token, user } = await serverAuth()
   if (!token) redirect('/login?redirect=/tasks')
 
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   const commonParams = {
     invitee: true,
     duedate: true,
     details: 'repliedTags',
   }
-  const commonOptions = { accessToken: token, includeVersion: true }
+  const commonOptions = { accessToken: token, includeVersion: true, remoteIpAddress }
   const addPropertyToInvitations = (propertyName) => (apiRes) =>
     apiRes.invitations.map((inv) => ({ ...inv, [propertyName]: true }))
 
@@ -70,10 +74,14 @@ export default async function page() {
       )
       const aERecommendationEdgesP = aERecommendationInvitations.map((p) =>
         api
-          .get('/edges', {
-            invitation: `${p.domain}/Action_Editors/-/Recommendation`,
-            groupBy: 'head',
-          })
+          .get(
+            '/edges',
+            {
+              invitation: `${p.domain}/Action_Editors/-/Recommendation`,
+              groupBy: 'head',
+            },
+            { accessToken: token, remoteIpAddress }
+          )
           .then((result) => result.groupedEdges)
       )
       return Promise.all(aERecommendationEdgesP).then((edgeResults) => {

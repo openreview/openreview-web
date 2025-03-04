@@ -1,3 +1,4 @@
+import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 // eslint-disable-next-line import/prefer-default-export
@@ -20,6 +21,7 @@ export async function middleware(request) {
         Accept: 'application/json,text/*;q=0.99',
         Cookie: `${process.env.REFRESH_TOKEN_NAME}=${refreshToken?.value}`,
         'Content-Type': 'application/json; charset=UTF-8',
+        'X-Forwarded-For': request.headers.get('x-forwarded-for'),
       },
     })
 

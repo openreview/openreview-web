@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { stringify } from 'query-string'
+import { headers } from 'next/headers'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import serverAuth from '../auth'
@@ -35,9 +36,12 @@ export default async function page({ searchParams }) {
   if (!id) return <ErrorDisplay message="'Invitation ID is required'" />
   const { token: accessToken, user } = await serverAuth()
 
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   let invitation
   try {
-    invitation = await api.getInvitationById(id, accessToken, null, null)
+    invitation = await api.getInvitationById(id, accessToken, null, null, remoteIpAddress)
     if (!invitation) {
       throw new Error(`The Invitation ${id} was not found`)
     }
@@ -78,7 +82,7 @@ export default async function page({ searchParams }) {
 
   const componentObjP = invitation.domain
     ? api
-        .get('/groups', { id: invitation.domain }, { accessToken })
+        .get('/groups', { id: invitation.domain }, { accessToken, remoteIpAddress })
         .then((apiRes) => {
           const domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
           return parseComponentCode(invitation, domainGroup, user, query, accessToken)

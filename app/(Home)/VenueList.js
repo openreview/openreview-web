@@ -1,11 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { deburrString, prettyId } from '../../lib/utils'
 import VenueListItem from './VenueListItem'
+import LoadingSpinner from '../../components/LoadingSpinner'
 
 export default function VenueList({ name, venues, maxVisible = 14, listType = 'vertical' }) {
   const [expanded, setExpanded] = useState(false)
+  const [isClientRendering, setIsClientRendering] = useState(false)
+
+  useEffect(() => {
+    setIsClientRendering(true)
+  }, [])
+
+  if (!isClientRendering) return <LoadingSpinner inline />
 
   if (!venues) {
     return null

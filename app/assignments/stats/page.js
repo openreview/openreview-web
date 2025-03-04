@@ -2,6 +2,7 @@ import { stringify } from 'query-string'
 import { redirect } from 'next/navigation'
 import { get, upperFirst } from 'lodash'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import serverAuth from '../../auth'
 import api from '../../../lib/api-client'
 import CommonLayout from '../../CommonLayout'
@@ -38,8 +39,10 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ searchParams }) {
   const { id } = await searchParams
   const { token: accessToken } = await serverAuth()
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
   try {
-    const note = await api.getNoteById(id, accessToken)
+    const note = await api.getNoteById(id, accessToken, null, null, remoteIpAddress)
     const title = note.apiVersion === 2 ? note.content.title.value : note.content.title
     return {
       title: `${title} Stats | OpenReview`,
@@ -61,7 +64,9 @@ export default async function page({ searchParams }) {
       <ErrorDisplay message="Could not load assignment statistics. Missing parameter id." />
     )
 
-  const note = await api.getNoteById(id, accessToken)
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+  const note = await api.getNoteById(id, accessToken, null, null, remoteIpAddress)
   if (!note) {
     console.log('Error in getNoteById', {
       page: 'assignments/stats',
@@ -92,7 +97,13 @@ export default async function page({ searchParams }) {
   let labelNames = {}
   const assignmentInvitationId = note.content?.assignment_invitation?.value
   const assignmentInvitation = assignmentInvitationId
-    ? await api.getInvitationById(assignmentInvitationId, accessToken)
+    ? await api.getInvitationById(
+        assignmentInvitationId,
+        accessToken,
+        null,
+        null,
+        remoteIpAddress
+      )
     : Promise.resolve(null)
   const headNameInAssignmentInvitation = prettyId(
     assignmentInvitation?.edge?.head?.param?.inGroup?.split('/').pop()
@@ -139,7 +150,7 @@ export default async function page({ searchParams }) {
       }
     })
     papersP = api
-      .getAll('/notes', getNotesArgs, { accessToken, version: 2 })
+      .getAll('/notes', getNotesArgs, { accessToken, version: 2, remoteIpAddress })
       .then((results) =>
         results.filter((p) =>
           Object.keys(localFilterContentFields).every(
@@ -148,10 +159,18 @@ export default async function page({ searchParams }) {
         )
       )
   } else {
-    papersP = api.get('/groups', { id: paperInvitationElements[0] }, { accessToken })
+    papersP = api.get(
+      '/groups',
+      { id: paperInvitationElements[0] },
+      { accessToken, remoteIpAddress }
+    )
   }
 
-  const usersP = api.get('/groups', { id: noteContent.match_group }, { accessToken })
+  const usersP = api.get(
+    '/groups',
+    { id: noteContent.match_group },
+    { accessToken, remoteIpAddress }
+  )
 
   const queryParams =
     noteContent.status === 'Deployed' && noteContent.deployed_assignment_invitation
@@ -169,6 +188,7 @@ export default async function page({ searchParams }) {
   const assignmentsP = api.getAll('/edges', queryParams, {
     accessToken,
     resultsKey: 'groupedEdges',
+    remoteIpAddress,
   })
 
   const bidInvitation = Object.keys(noteContent.scores_specification ?? {}).find((p) =>
@@ -178,7 +198,7 @@ export default async function page({ searchParams }) {
     ? api.getAll(
         '/edges',
         { invitation: bidInvitation, groupBy: 'head', select: 'tail,label' },
-        { accessToken, resultsKey: 'groupedEdges' }
+        { accessToken, resultsKey: 'groupedEdges', remoteIpAddress }
       )
     : Promise.resolve([])
 
@@ -189,7 +209,7 @@ export default async function page({ searchParams }) {
     ? api.getAll(
         '/edges',
         { invitation: recommendationInvitation, groupBy: 'head', select: 'tail,weight' },
-        { accessToken, resultsKey: 'groupedEdges' }
+        { accessToken, resultsKey: 'groupedEdges', remoteIpAddress }
       )
     : Promise.resolve([])
 

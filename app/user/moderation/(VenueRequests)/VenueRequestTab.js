@@ -1,11 +1,15 @@
 import { Suspense } from 'react'
+import { orderBy, sortBy } from 'lodash'
+import dayjs from 'dayjs'
+import { headers } from 'next/headers'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
 import VenueRequestList from './VenueRequestList'
 import api from '../../../../lib/api-client'
-import { orderBy, sortBy } from 'lodash'
-import dayjs from 'dayjs'
 
 export default async function VenueRequestTab({ accessToken }) {
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   const hasBeenReplied = (comment, allReplies) => {
     // checks the reply itself or its replies have been replied by support
     const replies = allReplies.filter((p) => p.replyto === comment.id)
@@ -28,7 +32,7 @@ export default async function VenueRequestTab({ accessToken }) {
         details: 'replies',
         select: `id,forum,tcdate,content['Abbreviated Venue Name'],content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
       },
-      { accessToken, version: 1 }
+      { accessToken, version: 1, remoteIpAddress }
     )
     .then((response) => {
       const allVenueRequests = response?.notes?.map((p) => ({

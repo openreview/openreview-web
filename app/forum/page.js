@@ -20,13 +20,13 @@ export const dynamic = 'force-dynamic'
 const fallbackMetadata = { title: 'Forum | OpenReview' }
 
 // #region data fetching
-const shouldRedirect = async (noteIdParam, accessToken) => {
+const shouldRedirect = async (noteIdParam, accessToken, remoteIpAddress) => {
   try {
     // if it is the original of a blind submission, do redirection
     const blindNotesResult = await api.get(
       '/notes',
       { original: noteIdParam },
-      { accessToken, version: 1 }
+      { accessToken, version: 1, remoteIpAddress }
     )
 
     // if no blind submission found return the current forum
@@ -47,14 +47,22 @@ const redirectForum = (noteId, forumId, invitationId, referrer) => {
 
   return `/forum?id=${encodeURIComponent(forumId)}${noteIdParam}${invIdParam}${referrerParam}`
 }
-const getForumNote = async (token, userAgent, queryId, invitationId, query) => {
+const getForumNote = async (
+  token,
+  userAgent,
+  queryId,
+  invitationId,
+  query,
+  remoteIpAddress
+) => {
   let redirectPath = null
   try {
     const note = await api.getNoteById(
       queryId,
       token,
       { trash: true, details: 'writable,presentation' },
-      { trash: true, details: 'original,replyCount,writable' }
+      { trash: true, details: 'original,replyCount,writable' },
+      remoteIpAddress
     )
     if (note?.ddate && !note?.details?.writable) {
       throw new Error('Not Found')
@@ -72,7 +80,7 @@ const getForumNote = async (token, userAgent, queryId, invitationId, query) => {
       return { forumNote: note, version: 1 }
     }
 
-    const redirectNote = await shouldRedirect(queryId, token)
+    const redirectNote = await shouldRedirect(queryId, token, remoteIpAddress)
     if (redirectNote) {
       redirectPath = redirectForum(query.noteId, redirectNote.id, invitationId, query.referrer)
       return { redirectPath }
@@ -83,7 +91,7 @@ const getForumNote = async (token, userAgent, queryId, invitationId, query) => {
     return { forumNote: note, version: 1 }
   } catch (error) {
     if (error.name === 'ForbiddenError') {
-      const redirectNote = await shouldRedirect(queryId, token)
+      const redirectNote = await shouldRedirect(queryId, token, remoteIpAddress)
       if (redirectNote) {
         redirectPath = redirectForum(
           query.noteId,
@@ -110,6 +118,7 @@ export async function generateMetadata({ searchParams }) {
   const query = await searchParams
   const headersList = await headers()
   const userAgent = headersList.get('user-agent')
+  const remoteIpAddress = headersList.get('x-forwarded-for')
   const { id, noteId, invitationId } = query
 
   const queryId = id || noteId
@@ -123,7 +132,7 @@ export async function generateMetadata({ searchParams }) {
       version,
       redirectPath: pathToRedirectTo,
       errorMessage,
-    } = await getForumNote(token, userAgent, queryId, invitationId, query)
+    } = await getForumNote(token, userAgent, queryId, invitationId, query, remoteIpAddress)
     if (errorMessage) return fallbackMetadata
     if (pathToRedirectTo) return {}
 
@@ -213,6 +222,7 @@ export default async function page({ searchParams }) {
   const query = await searchParams
   const headersList = await headers()
   const userAgent = headersList.get('user-agent')
+  const remoteIpAddress = headersList.get('x-forwarded-for')
 
   const { id, noteId, invitationId, referrer } = query
   const queryId = id || noteId
@@ -225,7 +235,7 @@ export default async function page({ searchParams }) {
     version,
     redirectPath: pathToRedirectTo,
     errorMessage,
-  } = await getForumNote(token, userAgent, queryId, invitationId, query)
+  } = await getForumNote(token, userAgent, queryId, invitationId, query, remoteIpAddress)
   if (errorMessage) return <ErrorDisplay message={errorMessage} />
   if (pathToRedirectTo) redirect(pathToRedirectTo)
 

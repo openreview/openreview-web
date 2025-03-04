@@ -4,7 +4,6 @@ import { use, useEffect, useState } from 'react'
 import NoteList from '../../components/NoteList'
 import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
-import { useSelector } from 'react-redux'
 import useUser from '../../hooks/useUser'
 
 export default function SubmissionList({ getFirstPageNotesP, notesPerPage, invitationId }) {

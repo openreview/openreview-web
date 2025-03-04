@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import styles from './Search.module.scss'
 import serverAuth from '../auth'
 import api from '../../lib/api-client'
@@ -22,6 +23,9 @@ export default async function page({ searchParams }) {
 
   if (!term) throw new Error('Missing search term or query')
 
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   const loadSearchResultsP = api
     .getCombined(
       '/notes/search',
@@ -35,7 +39,7 @@ export default async function page({ searchParams }) {
         limit: 1000,
       },
       null,
-      { accessToken: token, resultsKey: 'notes' }
+      { accessToken: token, resultsKey: 'notes', remoteIpAddress }
     )
     .catch((error) => {
       console.log('Error in loadSearchResultsP', {
@@ -60,14 +64,16 @@ export default async function page({ searchParams }) {
 
   let groupOptions = []
   try {
-    groupOptions = await api.get('/groups', { id: 'host' }).then((response) => {
-      const { groups } = response
-      const members = groups?.[0]?.members?.map((groupId) => ({
-        value: groupId,
-        label: prettyId(groupId),
-      }))
-      return members.sort((a, b) => a.label.localeCompare(b.label))
-    })
+    groupOptions = await api
+      .get('/groups', { id: 'host' }, { remoteIpAddress })
+      .then((response) => {
+        const { groups } = response
+        const members = groups?.[0]?.members?.map((groupId) => ({
+          value: groupId,
+          label: prettyId(groupId),
+        }))
+        return members.sort((a, b) => a.label.localeCompare(b.label))
+      })
   } catch (error) {
     console.log('Error in groupOptions', {
       page: 'search',

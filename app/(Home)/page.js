@@ -1,3 +1,4 @@
+import { headers } from 'next/headers'
 import AllVenues from './AllVenues'
 import ActiveVenues from './ActiveVenues'
 import styles from './Home.module.scss'
@@ -19,13 +20,16 @@ const formatInvitationResults = (apiRes) =>
     .sort((a, b) => a.dueDate - b.dueDate)
 
 export default async function page() {
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
   const [activeVenuesResult, openVenuesResult] = await Promise.allSettled([
-    api.get('groups', { id: 'active_venues' }).then(formatGroupResults),
+    api.get('groups', { id: 'active_venues' }, { remoteIpAddress }).then(formatGroupResults),
     api
       .getCombined(
         '/invitations',
         { invitee: '~', pastdue: false, type: 'notes' },
-        { invitee: '~', pastdue: false, type: 'note' }
+        { invitee: '~', pastdue: false, type: 'note' },
+        { remoteIpAddress }
       )
       .then(formatInvitationResults),
   ])
