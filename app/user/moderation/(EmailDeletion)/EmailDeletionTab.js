@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import api from '../../../../lib/api-client'
 import EmailDeletionList from './EmailDeletionList'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
@@ -6,20 +7,23 @@ import LoadingSpinner from '../../../../components/LoadingSpinner'
 const emailRemovalInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Email_Removal`
 
 export default async function EmailDeletionTab({ accessToken }) {
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   const notesResultP = api.getAll(
     '/notes',
     { invitation: emailRemovalInvitationId, sort: 'tcdate' },
-    { accessToken }
+    { accessToken, remoteIpAddress }
   )
   const editResultsP = api.getAll(
     '/notes/edits',
     { invitation: emailRemovalInvitationId },
-    { accessToken, resultsKey: 'edits' }
+    { accessToken, resultsKey: 'edits', remoteIpAddress }
   )
   const processLogsP = api.getAll(
     '/logs/process',
     { invitation: emailRemovalInvitationId },
-    { accessToken, resultsKey: 'logs' }
+    { accessToken, resultsKey: 'logs', remoteIpAddress }
   )
 
   const emailDeletionNotesP = Promise.all([notesResultP, editResultsP, processLogsP]).then(

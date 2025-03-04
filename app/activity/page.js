@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import serverAuth from '../auth'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import api from '../../lib/api-client'
@@ -15,6 +16,8 @@ export const dynamic = 'force-dynamic'
 export default async function page() {
   const { token } = await serverAuth()
   if (!token) redirect('/login?redirect=/activity')
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
 
   const activityDataP = api
     .get(
@@ -26,7 +29,7 @@ export default async function page() {
         sort: 'tmdate:desc',
         limit: 100,
       },
-      { accessToken: token }
+      { accessToken: token, remoteIpAddress }
     )
     .then((result) => {
       const edits = result.edits || []

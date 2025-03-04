@@ -1,3 +1,4 @@
+import { headers } from 'next/headers'
 import api from '../../lib/api-client'
 import VenueList from './VenueList'
 import serverAuth from '../auth'
@@ -11,11 +12,13 @@ export default async function ActiveConsoles({ activeVenues, openVenues }) {
   if (!user) return null
 
   let venues = null
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
   try {
     const result = await api.get(
       '/groups',
       { member: user.id, web: true, select: 'id' },
-      { accessToken: token }
+      { accessToken: token, remoteIpAddress }
     )
     venues = result.groups.flatMap((venue) => {
       if (!activeAndOpenVenues.find((p) => venue.id.startsWith(p.groupId))) return []

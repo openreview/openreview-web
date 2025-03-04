@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { stringify } from 'query-string'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import { prettyId } from '../../lib/utils'
 import serverAuth from '../auth'
 import CommonLayout from '../CommonLayout'
@@ -38,10 +39,15 @@ export default async function page({ searchParams }) {
 
   let configInvitation = null
   let preferredEmailInvitationId = null
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
   try {
     configInvitation = await api.getInvitationById(
       `${group}/-/Assignment_Configuration`,
-      accessToken
+      accessToken,
+      null,
+      null,
+      remoteIpAddress
     )
     const domainGroup = await api.getGroupById(configInvitation.domain, accessToken)
     preferredEmailInvitationId = domainGroup?.content?.preferred_emails_id?.value
@@ -74,7 +80,7 @@ export default async function page({ searchParams }) {
             {
               invitation: `${query.group}/-/Assignment_Configuration`,
             },
-            { accessToken, version: 2 }
+            { accessToken, version: 2, remoteIpAddress }
           )
           .then((response) => {
             const { notes, count } = response

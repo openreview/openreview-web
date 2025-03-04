@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { stringify } from 'query-string'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import api from '../../../lib/api-client'
 import { prettyId } from '../../../lib/utils'
 import serverAuth, { isSuperUser } from '../../auth'
@@ -25,10 +26,12 @@ export default async function page({ searchParams }) {
   if (!id) return <ErrorDisplay message="Missing required parameter id" />
 
   const { token: accessToken, user } = await serverAuth()
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
 
   let redirectPath = null
   const loadGroupP = api
-    .get('/groups', { id }, { accessToken })
+    .get('/groups', { id }, { accessToken, remoteIpAddress })
     // eslint-disable-next-line consistent-return
     .then((apiRes) => {
       const { groups } = apiRes
@@ -39,7 +42,7 @@ export default async function page({ searchParams }) {
         // Get venue group to pass to webfield component
         if (group.domain && group.domain !== group.id) {
           return api
-            .get('/groups', { id: group.domain }, { accessToken })
+            .get('/groups', { id: group.domain }, { accessToken, remoteIpAddress })
             .then((domainApiRes) => {
               const domainGroup = domainApiRes.groups?.length > 0 ? apiRes.groups[0] : null
               return {

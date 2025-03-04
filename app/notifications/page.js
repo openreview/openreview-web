@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import serverAuth from '../auth'
 import styles from './Notifications.module.scss'
 import Notifications from './Notifications'
@@ -15,8 +16,10 @@ export const dynamic = 'force-dynamic'
 export default async function page() {
   const { token, user } = await serverAuth()
   if (!token) redirect('/login?redirect=/notifications')
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
 
-  const profileResult = await api.get('/profiles', {}, { accessToken: token })
+  const profileResult = await api.get('/profiles', {}, { accessToken: token, remoteIpAddress })
   const { preferredEmail, emailsConfirmed } = profileResult?.profiles?.[0]?.content ?? {}
   const confirmedEmails = preferredEmail
     ? [preferredEmail, ...emailsConfirmed.filter((email) => email !== preferredEmail)]
@@ -24,7 +27,11 @@ export default async function page() {
   const unviewedMessagesCountsP = Promise.all(
     confirmedEmails.map((email) =>
       api
-        .get('/messages', { to: email, viewed: false }, { accessToken: token })
+        .get(
+          '/messages',
+          { to: email, viewed: false },
+          { accessToken: token, remoteIpAddress }
+        )
         .then((apiRes) => ({ email, count: apiRes.messages?.length ?? 0 }))
     )
   )
