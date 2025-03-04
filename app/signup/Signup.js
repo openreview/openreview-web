@@ -10,6 +10,7 @@ import BasicModal from '../../components/BasicModal'
 import { isInstitutionEmail, isValidEmail, isValidPassword } from '../../lib/utils'
 import Icon from '../../components/Icon'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
+import useBreakpoint from '../../hooks/useBreakPoint'
 
 const LoadingContext = createContext()
 
@@ -536,6 +537,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [institutionDomains, setInstitutionDomains] = useState([])
   const [nonInstitutionEmail, setNonInstitutionEmail] = useState(null)
+  const isMobile = !useBreakpoint('lg')
 
   const InstitutionErrorMessage = ({ email: invalidEmail }) => (
     <span>
@@ -548,7 +550,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
       <a
         href="#"
         data-toggle="modal"
-        data-target="#feedback-modal"
+        data-target={isMobile ? '#feedback-modal-mobile' : '#feedback-modal'}
         data-from={email}
         data-subject="Please add my domain to your list of publishing institutions"
       >

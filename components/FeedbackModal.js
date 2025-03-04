@@ -9,7 +9,7 @@ import { ClearButton } from './IconButton'
 import useTurnstileToken from '../hooks/useTurnstileToken'
 import useUser from '../hooks/useUser'
 
-export default function FeedbackModal() {
+export default function FeedbackModal({ modalId }) {
   const [text, setText] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
@@ -159,7 +159,7 @@ export default function FeedbackModal() {
       setText('Your feedback has been submitted. Thank you.')
       setTimeout(() => {
         setIsOpen(false)
-        $('#feedback-modal').modal('hide')
+        $(`#${modalId}`).modal('hide')
         setSubmitting(false)
       }, 2500)
     } catch (apiError) {
@@ -236,7 +236,7 @@ export default function FeedbackModal() {
 
   return (
     <BasicModal
-      id="feedback-modal"
+      id={modalId}
       title="Send Feedback"
       primaryButtonText="Send"
       onPrimaryButtonClick={sendFeedback}
