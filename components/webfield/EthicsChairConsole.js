@@ -64,7 +64,6 @@ const EthicsChairConsole = ({ appContext }) => {
     ethicsReviewersName,
     submissionId,
     submissionName,
-    ethicsReviewName,
     anonEthicsReviewerName,
     shortPhrase,
   })
