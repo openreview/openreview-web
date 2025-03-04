@@ -8,6 +8,7 @@ import LoadingSpinner from '../LoadingSpinner'
 import SpinnerButton from '../SpinnerButton'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'), {
+  ssr: false,
   loading: () => <LoadingSpinner inline />,
 })
 

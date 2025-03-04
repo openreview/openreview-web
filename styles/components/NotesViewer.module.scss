@@ -13,7 +13,7 @@
 
 .noteContainer {
   display: flex;
-  align-items: start;
+  align-items: flex-start;
 
   .noteSelectInput {
     margin-top: 0.65rem;
@@ -29,7 +29,7 @@
 
 .option {
   display: flex;
-  justify-content: start;
+  justify-content: flex-start;
   align-items: center;
   input {
     margin-left: 0.5rem;

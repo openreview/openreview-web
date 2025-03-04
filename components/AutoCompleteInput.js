@@ -1,9 +1,12 @@
+'use client'
+
 /* globals promptError: false */
 
 // eslint-disable-next-line object-curly-newline
 import { useState, useEffect, useCallback, useRef } from 'react'
-import Router from 'next/router'
 import debounce from 'lodash/debounce'
+import { usePathname, useRouter } from 'next/navigation'
+import { stringify } from 'query-string'
 import Icon from './Icon'
 import api from '../lib/api-client'
 import { getTitleObjects, getTokenObjects } from '../lib/utils'
@@ -15,6 +18,8 @@ const AutoCompleteInput = () => {
   const [cancelRequest, setCancelRequest] = useState(false)
   const [hoverIndex, setHoverIndex] = useState(null)
   const autoCompleteItemsRef = useRef([]) // for scrolling hover item into view
+  const router = useRouter()
+  const pathName = usePathname()
 
   useEffect(() => {
     if (searchTerm.trim().length > 2) {
@@ -32,20 +37,11 @@ const AutoCompleteInput = () => {
   }, [immediateSearchTerm])
 
   useEffect(() => {
-    const handleRouteChange = (url) => {
-      setCancelRequest(true)
-      setAutoCompleteItems([])
-      if (!url.startsWith('/search')) {
-        setSearchTerm('')
-        setImmediateSearchTerm('')
-      }
+    if (pathName !== '/search') {
+      setSearchTerm('')
+      setImmediateSearchTerm('')
     }
-
-    Router.events.on('routeChangeStart', handleRouteChange)
-    return () => {
-      Router.events.off('routeChangeStart', handleRouteChange)
-    }
-  }, [])
+  }, [pathName])
 
   const delaySearch = useCallback(
     debounce((term) => setSearchTerm(term), 300),
@@ -87,19 +83,23 @@ const AutoCompleteInput = () => {
     if (item.section === 'titles') {
       const query =
         item.forum === item.id ? { id: item.forum } : { id: item.forum, noteId: item.id }
-      Router.push({ pathname: '/forum', query })
+      router.push(`/forum?${stringify(query)}`)
     } else if (item.value.startsWith('~')) {
-      Router.push({ pathname: '/profile', query: { id: item.value } })
+      router.push(`/profile?${stringify({ id: item.value })}`)
     } else {
-      // eslint-disable-next-line object-curly-newline
-      Router.push({
-        pathname: '/search',
-        query: { term: item.value, content: 'all', group: 'all', source: 'all' },
-      })
+      setImmediateSearchTerm('')
+      router.push(
+        `/search?${stringify({ term: item.value, content: 'all', group: 'all', source: 'all' })}`
+      )
     }
   }
 
   const keyDownHandler = (e) => {
+    if (e.key === 'Enter') {
+      setCancelRequest(true)
+      setAutoCompleteItems([])
+      return
+    }
     if (!['ArrowDown', 'ArrowUp', 'Escape'].includes(e.key)) return
 
     if (e.key === 'Escape') {

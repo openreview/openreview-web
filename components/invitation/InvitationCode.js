@@ -8,7 +8,7 @@ import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
 import { getMetaInvitationId, prettyId } from '../../lib/utils'
 
-const CodeEditor = dynamic(() => import('../CodeEditor'))
+const CodeEditor = dynamic(() => import('../CodeEditor'), { ssr: false })
 
 const InvitationCode = ({ invitation, accessToken, loadInvitation, codeType }) => {
   const [code, setCode] = useState(invitation[codeType])
