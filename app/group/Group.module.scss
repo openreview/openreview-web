@@ -1243,289 +1243,426 @@
     }
 
     .workflow {
-      .group-workflow-container {
-        .group-workflow {
-          display: flex;
-          justify-content: left;
-          align-items: baseline;
-
-          .group-cdate {
-            margin-right: 0.5rem;
-            color: black;
-            font-size: 0.65rem;
-          }
-          .group-content {
-            max-width: 80%;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-
-            .group-id {
-              color: black;
-              font-weight: 700;
-              font-size: 1rem;
-              margin-right: 0.25rem;
-            }
-            .member-count {
-              margin-left: 0.5rem;
-              color: #ff9900;
-            }
-
-            .group-invitations {
-              margin-bottom: 0.25rem;
-              display: flex;
-              flex-wrap: wrap;
-            }
-          }
-        }
+      // Modern card-based design styles
+      .workflow-card-container {
+        width: 100%;
+        margin-bottom: 1rem;
       }
 
-      em {
-        color: constants.$orRed;
-      }
+      .workflow-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        width: 100%;
+        border: 1px solid #e5e7eb;
 
-      .id-icon {
-        font-weight: 600;
-        font-size: 0.8rem;
-        align-self: center;
-      }
-
-      .workflow-invitations-header {
-        display: flex;
-        color: #999999;
-        align-items: baseline;
-        margin-left: 15px;
-
-        .cdate-header {
-          width: 10%;
-          margin-right: 0.5rem;
-          font-size: 0.7rem;
-          font-style: italic;
-        }
-        .invtations-header {
-          font-size: 1rem;
-          display: flex;
-          align-items: center;
-
-          .collapse-invitation {
-            color: constants.$mediumBlue;
-            margin-right: 0.25rem;
-            cursor: pointer;
-            font-size: 0.85rem;
-          }
-
-          .missing-value {
-            color: red;
-          }
-        }
-      }
-
-      .workflow-invitation-container {
-        display: flex;
-        padding-bottom: 0.5rem;
-        align-items: baseline;
-        position: relative;
-
-        &.date-passed-1 {
-          background: lighten(constants.$backgroundGray, 10%);
-        }
-        &.date-passed-2 {
-          background: lighten(constants.$backgroundGray, 9%);
-        }
-        &.date-passed-3 {
-          background: lighten(constants.$backgroundGray, 8%);
-        }
-        &.date-passed-4 {
-          background: lighten(constants.$backgroundGray, 47%);
-        }
-        &.date-passed-5 {
-          background: lighten(constants.$backgroundGray, 6%);
-        }
-        &.date-passed-6 {
-          background: lighten(constants.$backgroundGray, 5%);
-        }
-        &.date-passed-7 {
-          background: lighten(constants.$backgroundGray, 4%);
-        }
-        &.date-passed-8 {
-          background: lighten(constants.$backgroundGray, 3%);
-        }
-        &.date-passed-9 {
-          background: lighten(constants.$backgroundGray, 2%);
-        }
-        &.date-passed-10 {
-          background: lighten(constants.$backgroundGray, 1%);
+        &:hover {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          transform: translateY(-1px);
         }
 
         &.expired {
-          color: gray;
-          text-decoration: line-through;
-          opacity: 0.8;
-          background: darken(constants.$backgroundGray, 5%);
-        }
+          opacity: 0.75;
+          background-color: #f9fafb;
 
-        .invitation-cdate {
-          width: 10%;
-          margin-right: 0.5rem;
-          color: #999999;
-          font-size: 0.9rem;
-          font-style: italic;
-          display: flex;
-          justify-content: flex-end;
-
-          .cdate {
-            width: 90%;
-            .activation-date.highlight,
-            .due-date.highlight {
-              font-weight: 900;
-            }
+          .workflow-card-header {
+            background-color: #f3f4f6;
           }
-
-          .tooltip-inner {
-            max-width: unset;
-          }
-
-          &.missing-value {
-            color: red;
-          }
-
-          .edit-cdate-icon {
-            cursor: pointer;
-          }
-        }
-
-        .edit-invitation-info {
-          flex-grow: 1;
-          max-width: 80%;
-          .edit-invitation-container {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.5rem;
-            margin-bottom: 0.25rem;
-
-            .glyphicon {
-              vertical-align: baseline;
-              margin-right: 0.5rem;
-              cursor: pointer;
-            }
-
-            .invitation-content {
-              max-width: 80%;
-              flex-grow: 1;
-
-              .invitation-id-container {
-                display: flex;
-                justify-content: left;
-                align-items: center;
-
-                .collapse-invitation {
-                  color: constants.$mediumBlue;
-                }
-
-                .workflow-invitation-id {
-                  white-space: nowrap;
-                  color: black;
-                  font-weight: 700;
-                  font-size: 1rem;
-                  margin-right: 0.25rem;
-                }
-
-                .invitation-invitee {
-                  margin-left: 0.5rem;
-                  display: inline-block;
-                  white-space: nowrap;
-                  vertical-align: bottom;
-                  overflow-x: hidden;
-                  text-overflow: ellipsis;
-                  max-width: 50%;
-                  color: #999999;
-                  font-style: italic;
-                  font-size: 0.75rem;
-                }
-
-                .tooltip-inner {
-                  max-width: unset;
-                }
-
-                .expire-link {
-                  margin-left: 0.5rem;
-                  text-decoration: none;
-                  cursor: pointer;
-                  a {
-                    display: inline-block;
-                  }
-                }
-              }
-
-              .spinner {
-                margin: 0;
-                height: 1rem;
-              }
-
-              .log-status {
-                color: #c27ba0;
-                font-style: italic;
-                font-size: 0.7rem;
-
-                .fixed-text {
-                  font-size: 0.875rem;
-                  &.missing-value {
-                    color: red;
-                  }
-                }
-
-                .log-details {
-                  cursor: pointer;
-                }
-              }
-            }
-
-            .content-editor-container {
-              max-width: 80%;
-            }
-          }
-
-          .sub-invitation-container {
-            margin-left: -2.5rem;
-
-            ul {
-              list-style-type: none;
-            }
-
-            .existing-value-field {
-              font-size: 0.75rem;
-              display: inline-block;
-              margin-right: 0.25rem;
-              &.highlight {
-                font-weight: 900;
-              }
-            }
-            .existing-value-field-value {
-              font-size: 0.75rem;
-              font-style: italic;
-            }
-            .missing-value {
-              color: red;
-            }
-          }
-        }
-
-        .start-end-date {
-          position: absolute;
-          top: 0;
-          right: 0;
-          font-style: italic;
-          color: #999999;
         }
       }
 
-      .add-stage {
+      .workflow-card-header {
         display: flex;
         align-items: center;
+        padding: 0.75rem 1rem;
+        background-color: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        justify-content: space-between;
+        cursor: pointer;
+      }
 
-        .dropdown-select {
-          width: 50%;
+      .workflow-card-title {
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+        margin: 0 1rem;
+
+        .workflow-card-title-content {
+          h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #111827;
+          }
+
+          .workflow-card-dates {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+          }
         }
+      }
+
+      .workflow-card-status {
+        display: flex;
+        align-items: center;
+        margin-right: 1rem;
+
+        &.missing-value {
+          .wf-status-icon.warning {
+            color: #f59e0b;
+          }
+        }
+
+        .wf-status-indicator {
+          margin-right: 0.5rem;
+        }
+
+        .wf-status-icon {
+          font-size: 1.25rem;
+
+          &.expired {
+            color: #6b7280;
+          }
+
+          &.warning {
+            color: #f59e0b;
+          }
+
+          &.active {
+            color: #10b981;
+          }
+        }
+
+        .workflow-card-status-content {
+          display: flex;
+          flex-direction: column;
+
+          .workflow-card-status-text {
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+          }
+
+          .workflow-card-status-time {
+            font-size: 0.7rem;
+            color: #6b7280;
+            white-space: nowrap;
+
+            .workflow-card-status-result {
+              margin-left: 0.25rem;
+
+              &.ok {
+                color: #10b981;
+              }
+
+              &.error {
+                color: constants.$orRed;
+              }
+
+              &.running {
+                color: constants.$mediumBlue;
+              }
+
+              &.warning {
+                color: #f59e0b;
+              }
+            }
+          }
+        }
+      }
+
+      .workflow-card-actions {
+        display: flex;
+        gap: 0.5rem;
+
+        .wf-action-icon, .wf-collapse-icon {
+          color: #6b7280;
+          font-size: 1rem;
+          padding: 0.25rem;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          &:hover {
+            color: constants.$mediumBlue;
+            background-color: rgba(0, 0, 150, 0.05);
+          }
+        }
+      }
+
+      // Preview section for hover state
+      .workflow-card-preview {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        background-color: #f9fafb;
+        transition: all 0.2s ease;
+        animation: slideDown 0.2s ease forwards;
+
+        @keyframes slideDown {
+          from {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+          }
+          to {
+            max-height: 500px;
+            opacity: 1;
+            padding: 0.75rem 1rem;
+          }
+        }
+      }
+
+      // Content section (expanded)
+      .workflow-card-content {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+
+        &.expanded {
+          max-height: 2000px;
+          opacity: 1;
+          padding: 1rem;
+          border-top: 1px solid #e5e7eb;
+        }
+      }
+
+      // Sub-invitation styles
+      .wf-sub-invitation-container {
+        margin-top: 0.75rem;
+        margin-left: 1.5rem;
+      }
+
+      .wf-sub-invitation-content {
+        background-color: #f9fafb;
+        border-radius: 6px;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .wf-sub-invitation-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+
+        h5 {
+          margin: 0;
+          font-size: 0.85rem;
+          font-weight: 500;
+          color: #4b5563;
+        }
+      }
+
+      .wf-existing-values-container {
+        margin-bottom: 0.75rem;
+      }
+
+      .wf-existing-value-field-row {
+        margin-bottom: 0.3rem;
+        padding: 0.2rem 0;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background-color: rgba(0, 0, 150, 0.03);
+        }
+      }
+
+      .wf-existing-value-field {
+        font-size: 0.75rem;
+        margin-right: 0.5rem;
+        font-weight: 500;
+        color: #4b5563;
+
+        &.highlight {
+          font-weight: 700;
+          color: constants.$mediumBlue;
+        }
+      }
+
+      .wf-existing-value-field-value {
+        font-size: 0.75rem;
+        color: #6b7280;
+        font-style: italic;
+      }
+
+      .wf-editor-container {
+        margin-top: 0.75rem;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 0.75rem;
+      }
+
+      // Action button styles
+      .wf-action-button {
+        background: none;
+        border: none;
+        color: #6b7280;
+        cursor: pointer;
+        font-size: 0.9rem;
+        padding: 0.25rem;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background-color: rgba(0, 0, 150, 0.05);
+        }
+
+        &.primary {
+          color: constants.$mediumBlue;
+
+          &:hover {
+            color: constants.$darkBlue;
+          }
+        }
+
+        &.success {
+          color: #10b981;
+
+          &:hover {
+            color: #047857;
+          }
+        }
+
+        &.danger {
+          color: constants.$orRed;
+
+          &:hover {
+            color: #dc2626;
+          }
+        }
+      }
+
+      // Description and invitee styles
+      .wf-invitee-section {
+        margin-bottom: 0.75rem;
+      }
+
+      .wf-invitee-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #4b5563;
+        margin-right: 0.5rem;
+      }
+
+      .wf-invitee-list {
+        display: inline;
+      }
+
+      .wf-invitee-tag {
+        font-size: 0.75rem;
+        color: #6b7280;
+      }
+
+      .wf-invitation-description {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-bottom: 0.75rem;
+      }
+
+      .wf-missing-value {
+        color: #f59e0b;
+        font-weight: 500;
+      }
+
+      .wf-edit-invitation-section {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      // Tooltip styles
+      .tooltip-wrapper {
+        position: relative;
+
+        &[data-tooltip]:hover::after {
+          content: attr(data-tooltip);
+          position: absolute;
+          bottom: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: #374151;
+          color: white;
+          text-align: center;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          white-space: nowrap;
+          z-index: 100;
+          margin-bottom: 0.25rem;
+        }
+      }
+
+      // Header styles
+      .workflow-invitations-header {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background-color: #f3f4f6;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+
+        .wf-cdate-header {
+          width: 10rem;
+          font-weight: 600;
+          color: #4b5563;
+        }
+
+        .wf-invitations-header {
+          flex: 1;
+          display: flex;
+          align-items: center;
+
+          span {
+            margin-left: 0.5rem;
+            font-weight: 600;
+            color: #4b5563;
+
+            .wf-missing-value {
+              color: #f59e0b;
+              font-weight: 600;
+            }
+          }
+
+          .wf-collapse-invitation {
+            cursor: pointer;
+            width: 1.5rem;
+            height: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+
+            &:hover {
+              background-color: #d1d5db;
+            }
+          }
+        }
+      }
+
+      // Container styles
+      .wf-group-workflow-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .wf-invitation-workflow-container {
+        position: relative;
       }
     }
 
@@ -1545,3 +1682,4 @@
     }
   }
 }
+

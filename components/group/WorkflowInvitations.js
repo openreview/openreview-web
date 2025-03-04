@@ -231,7 +231,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           title={`Workflow Groups (${workflowGroups.length})`}
           className="workflow"
         >
-          <div className=" group-workflow-container">
+          <div className="wf-group-workflow-container">
             {workflowGroups.map((stepObj) => {
               const groupInvitationsForGroup = allInvitations.filter(
                 (p) => p.edit?.group?.id === stepObj.id
@@ -253,10 +253,10 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           className="workflow"
         >
           <div className="workflow-invitations-header">
-            <div className="cdate-header">Activation Dates</div>
-            <div className="invtations-header">
+            <div className="wf-cdate-header">Activation Dates</div>
+            <div className="wf-invitations-header">
               <div
-                className="collapse-invitation"
+                className="wf-collapse-invitation"
                 onClick={() => {
                   if (collapsedWorkflowInvitationIds.length) {
                     setCollapsedWorkflowInvitationIds([])
@@ -277,7 +277,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                   <>
                     {' '}
                     -
-                    <span className="missing-value">
+                    <span className="wf-missing-value">
                       {`  You must enter missing values in ${inflect(missingValueInvitationIds.length, 'step', 'steps', true)} in order to be ready to run`}
                     </span>
                   </>
@@ -289,7 +289,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           </div>
 
           <hr />
-          <div className="container invitation-workflow-container">
+          <div className="container wf-invitation-workflow-container">
             {workflowInvitations.map((stepObj, index) => {
               return (
                 <WorkflowInvitation
