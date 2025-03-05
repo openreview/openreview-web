@@ -102,7 +102,7 @@ const AssignedPaperRow = ({
   )
 }
 
-const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
+const AreaChairConsoleTasks = ({ venueId, areaChairName, extraRoleNames }) => {
   const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
   const referrer = encodeURIComponent(
     `[${prettyField(
@@ -114,6 +114,7 @@ const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
     <ConsoleTaskList
       venueId={venueId}
       roleName={areaChairName}
+      extraRoleNames={extraRoleNames}
       filterAssignedInvitation={true}
       referrer={referrer}
     />
@@ -147,6 +148,7 @@ const AreaChairConsole = ({ appContext }) => {
     extraExportColumns,
     preferredEmailInvitationId,
     ithenticateInvitationId,
+    extraRoleNames,
     sortOptions,
   } = useContext(WebFieldContext)
   const {
@@ -866,7 +868,11 @@ const AreaChairConsole = ({ appContext }) => {
           )}
           <TabPanel id={`${areaChairUrlFormat}-tasks`}>
             {activeTabId === `#${areaChairUrlFormat}-tasks` && (
-              <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />
+              <AreaChairConsoleTasks
+                venueId={venueId}
+                areaChairName={areaChairName}
+                extraRoleNames={extraRoleNames}
+              />
             )}
           </TabPanel>
         </TabPanels>
