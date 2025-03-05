@@ -4,11 +4,11 @@
 import { useEffect, useState } from 'react'
 import FeedbackModal from '../components/FeedbackModal'
 
-export default function FeedbackLink() {
+export default function FeedbackLink({ modalId = 'feedback-modal' }) {
   const [isClientRendering, setIsClientRendering] = useState(false)
   const onFeedbackLinkClick = (e) => {
     e.preventDefault()
-    $('#feedback-modal').modal('show')
+    $(`#${modalId}`).modal('show')
   }
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function FeedbackLink() {
       <a href="#" onClick={onFeedbackLinkClick}>
         Feedback
       </a>
-      <FeedbackModal />
+      <FeedbackModal modalId={modalId} />
     </>
   )
 }
