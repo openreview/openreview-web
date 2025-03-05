@@ -249,7 +249,7 @@ describe('AreaChairConsole', () => {
     })
   })
 
-  test('show assigned SACs in header instuction (No preferred email edge)', async () => {
+  test('show assigned SACs and assigned Secondary Area Chairs in header instuction (No preferred email edge)', async () => {
     api.getAll = jest.fn((path) => {
       switch (path) {
         case '/groups': // all groups
@@ -267,6 +267,14 @@ describe('AreaChairConsole', () => {
         case '/edges': // sac assignments
           if (!param.domain) {
             return Promise.resolve({ edges: [] }) // call to get sac emails from edges
+          }
+          if (param.invitation.includes('Secondary_Senior_Program_Committee')) {
+            return Promise.resolve({
+              edges: [
+                { tail: '~Secondary_Senior_Program_Committee1' },
+                { tail: 'secondary@seniorprogramcommittee.two' },
+              ],
+            })
           }
           return Promise.resolve({
             edges: [{ tail: '~Senior_AC1' }, { tail: 'senior@AC.two' }],
@@ -287,6 +295,13 @@ describe('AreaChairConsole', () => {
                     emails: ['senior@AC.one'],
                   },
                 },
+                {
+                  id: '~Secondary_Senior_Program_Committee1',
+                  content: {
+                    names: [{ username: '~Secondary_Senior_Program_Committee1' }],
+                    emails: ['secondary@seniorprogramcommittee.one'],
+                  },
+                },
               ],
             }
           : {
@@ -298,6 +313,14 @@ describe('AreaChairConsole', () => {
                     emails: ['senior@AC.two'],
                   },
                   email: 'senior@AC.two',
+                },
+                {
+                  id: '~Secondary_Senior_Program_Committee2',
+                  content: {
+                    names: [{ username: '~Secondary_Senior_Program_Committee2' }],
+                    emails: ['secondary@seniorprogramcommittee.two'],
+                  },
+                  email: 'secondary@seniorprogramcommittee.two',
                 },
               ],
             }
@@ -351,10 +374,15 @@ describe('AreaChairConsole', () => {
           'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" >Senior AC</a> and <a href="/profile?id=~Senior_AC2" >Senior AC</a>'
         )
       )
+      expect(global.marked).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Your assigned Secondary Senior Program Committees are <a href="/profile?id=~Secondary_Senior_Program_Committee1" >Secondary Senior Program Committee</a> and <a href="/profile?id=~Secondary_Senior_Program_Committee2" >Secondary Senior Program Committee</a>'
+        )
+      )
     })
   })
 
-  test('show assigned SACs in header instuction (With preferred email edge)', async () => {
+  test('show assigned SACs and assigned Secondary Area Chair in header instuction (With preferred email edge)', async () => {
     api.getAll = jest.fn((path) => {
       switch (path) {
         case '/groups': // all groups
@@ -369,7 +397,7 @@ describe('AreaChairConsole', () => {
       switch (path) {
         case '/groups': // reviewer groups
           return Promise.resolve({ groups: [] })
-        case '/edges': // sac assignments
+        case '/edges': // sac and secondary ac assignments
           if (param.head === '~Senior_AC1') {
             return Promise.resolve({
               edges: [{ head: '~Senior_AC1', tail: 'senior@ac.1' }],
@@ -379,6 +407,22 @@ describe('AreaChairConsole', () => {
             return Promise.resolve({
               edges: [{ head: '~Senior_AC2', tail: 'senior@ac.2' }],
             }) // call to get sac emails from edges
+          }
+          if (param.head === '~Secondary_Senior_Program_Committee1') {
+            return Promise.resolve({
+              edges: [
+                {
+                  head: '~Secondary_Senior_Program_Committee1',
+                  tail: 'secondary@seniorprogramcommittee.one',
+                },
+              ],
+            }) // call to get sac emails from edges
+          }
+          if (param.invitation.includes('Secondary_Senior_Program_Committee')) {
+            // secondary ac assignments
+            return Promise.resolve({
+              edges: [{ tail: '~Secondary_Senior_Program_Committee1' }],
+            })
           }
           return Promise.resolve({
             edges: [{ tail: '~Senior_AC1' }, { tail: 'senior@AC.two' }],
@@ -397,6 +441,13 @@ describe('AreaChairConsole', () => {
                   content: {
                     names: [{ username: '~Senior_AC1' }],
                     emails: ['senior@AC.one'],
+                  },
+                },
+                {
+                  id: '~Secondary_Senior_Program_Committee1',
+                  content: {
+                    names: [{ username: '~Secondary_Senior_Program_Committee1' }],
+                    emails: ['secondary@seniorprogramcommittee.one'],
                   },
                 },
               ],
@@ -462,6 +513,11 @@ describe('AreaChairConsole', () => {
       expect(global.marked).toHaveBeenCalledWith(
         expect.stringContaining(
           'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" >Senior AC</a>(senior@ac.1) and <a href="/profile?id=~Senior_AC2" >Senior AC</a>(senior@ac.2)'
+        )
+      )
+      expect(global.marked).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Your assigned Secondary Senior Program Committee is <a href="/profile?id=~Secondary_Senior_Program_Committee1" >Secondary Senior Program Committee</a>(secondary@seniorprogramcommittee.one)'
         )
       )
     })
