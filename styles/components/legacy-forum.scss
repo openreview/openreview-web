@@ -1,6 +1,5 @@
 @use '../utils/constants';
 @use '../utils/mixins';
-@use 'sass:color';
 
 main.legacy-forum {
   .note {
@@ -88,7 +87,7 @@ main.legacy-forum {
       font-weight: bold;
       text-decoration: none;
       text-shadow: none;
-      background-color: color.adjust(constants.$mediumBlue, $lightness: 10%);
+      background-color: lighten(constants.$mediumBlue, 10%);
     }
   }
 

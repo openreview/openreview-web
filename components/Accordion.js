@@ -1,5 +1,3 @@
-'use client'
-
 import Icon from './Icon'
 
 const Accordion = ({ sections, options }) => (
@@ -25,41 +23,28 @@ const Accordion = ({ sections, options }) => (
 const SectionHeading = ({ id, heading, options }) => (
   <div className="panel-heading" role="tab">
     <h4 className="panel-title">
-      <SectionHeadingLink targetId={id} collapsed={options.collapsed}>
+      <SectionHeadingLink targetId={id} parentId={options.id} collapsed={options.collapsed}>
         <Icon name="triangle-bottom" />
       </SectionHeadingLink>{' '}
-      <SectionHeadingLink
-        targetId={id}
-        collapsed={options.collapsed}
-        shouldCollapse={options.shouldCollapse}
-      >
+      <SectionHeadingLink targetId={id} parentId={options.id} collapsed={options.collapsed}>
         {heading}
       </SectionHeadingLink>
     </h4>
   </div>
 )
 
-const SectionHeadingLink = ({ targetId, children, collapsed, shouldCollapse = false }) => {
-  if (shouldCollapse === false) {
-    return (
-      <a href={`#${targetId}`} className={`collapse-btn${collapsed ? ' collapsed' : ''}`}>
-        {children}
-      </a>
-    )
-  }
-  // eslint-disable-next-line jsx-a11y/anchor-is-valid
-  return (
-    <a
-      className={`collapse-btn${collapsed ? ' collapsed' : ''}`}
-      role="button"
-      data-toggle="collapse"
-      data-target={`#${targetId}`}
-      aria-controls={targetId}
-    >
-      {children}
-    </a>
-  )
-}
+const SectionHeadingLink = ({ targetId, parentId, children, collapsed }) => (
+  <a
+    href={`#${targetId}`}
+    className={`collapse-btn${collapsed ? ' collapsed' : ''}`}
+    role="button"
+    data-toggle="collapse"
+    data-parent={parentId}
+    aria-controls={targetId}
+  >
+    {children}
+  </a>
+)
 
 const SectionBody = ({ id, body, options }) => {
   const renderBody = () => {

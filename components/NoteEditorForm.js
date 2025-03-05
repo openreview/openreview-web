@@ -4,9 +4,9 @@
 /* globals promptError: false */
 /* globals promptLogin: false */
 
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import LoadingSpinner from './LoadingSpinner'
-import useUser from '../hooks/useUser'
+import UserContext from './UserContext'
 
 export default function NoteEditorForm({
   invitation,
@@ -23,7 +23,7 @@ export default function NoteEditorForm({
 }) {
   const [loading, setLoading] = useState(true)
   const containerRef = useRef(null)
-  const { user, isRefreshing } = useUser()
+  const { user } = useContext(UserContext)
 
   const handleEditor = ($editor) => {
     setLoading(false)
@@ -75,7 +75,7 @@ export default function NoteEditorForm({
   }
 
   useEffect(() => {
-    if (!invitation || isRefreshing || typeof view === 'undefined') return
+    if (!invitation || typeof view === 'undefined') return
 
     if (!user) {
       promptLogin()
@@ -102,7 +102,7 @@ export default function NoteEditorForm({
         onError: handleError,
       })
     }
-  }, [invitation, forumId, replyToId, containerRef, isRefreshing])
+  }, [invitation, forumId, replyToId, containerRef])
 
   if (!invitation || !user) return null
 

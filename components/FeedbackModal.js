@@ -2,25 +2,25 @@
 
 import { useState, useContext, useReducer } from 'react'
 import BasicModal from './BasicModal'
+import UserContext from './UserContext'
 import ErrorAlert from './ErrorAlert'
 import api from '../lib/api-client'
 import { CreatableDropdown } from './Dropdown'
 import { ClearButton } from './IconButton'
 import useTurnstileToken from '../hooks/useTurnstileToken'
-import useUser from '../hooks/useUser'
 
-export default function FeedbackModal({ modalId }) {
+export default function FeedbackModal() {
   const [text, setText] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
-  const { accessToken } = useUser()
+  const { accessToken } = useContext(UserContext)
   const [formData, setFormData] = useReducer((state, action) => {
     if (action.type === 'reset') return {}
     if (action.type === 'prefill') return action.payload
     return { ...state, [action.type]: action.payload }
   }, {})
-  const { turnstileToken, turnstileContainerRef } = useTurnstileToken('feedback', isOpen)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken('feedback')
 
   const profileSubject = 'My OpenReview profile'
   const submissionSubject = 'A conference I submitted to'
@@ -159,7 +159,7 @@ export default function FeedbackModal({ modalId }) {
       setText('Your feedback has been submitted. Thank you.')
       setTimeout(() => {
         setIsOpen(false)
-        $(`#${modalId}`).modal('hide')
+        $('#feedback-modal').modal('hide')
         setSubmitting(false)
       }, 2500)
     } catch (apiError) {
@@ -236,7 +236,7 @@ export default function FeedbackModal({ modalId }) {
 
   return (
     <BasicModal
-      id={modalId}
+      id="feedback-modal"
       title="Send Feedback"
       primaryButtonText="Send"
       onPrimaryButtonClick={sendFeedback}

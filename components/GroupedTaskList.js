@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { inflect, prettyId } from '../lib/utils'
 import Accordion from './Accordion'
@@ -7,7 +5,7 @@ import TaskList from './TaskList'
 
 const HeadingLink = ({ groupId, groupInfo }) => (
   <div className="heading-link">
-    <Link href={`/group?id=${groupId}`}>
+    <Link href={`/group?id=${groupId}`} passHref legacyBehavior>
       <h2 onClick={(e) => e.stopPropagation()}>
         <span className="invitation-id">{prettyId(groupId)} </span>
       </h2>
@@ -32,6 +30,7 @@ const GroupedTaskList = ({ groupedTasks }) => (
       body: <TaskList invitations={groupedTasks[groupId].invitations} />,
     }))}
     options={{
+      id: 'tasks',
       collapsed: true,
       html: false,
       bodyContainer: '',

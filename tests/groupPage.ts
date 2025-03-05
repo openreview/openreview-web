@@ -5,6 +5,7 @@ const emailInput = Selector('#email-input')
 const passwordInput = Selector('#password-input')
 const loginButton = Selector('button').withText('Login to OpenReview')
 const content = Selector('#content')
+const errorCodeLabel = Selector('#content h1')
 const errorMessageLabel = Selector('.error-message')
 
 const johnRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
@@ -53,6 +54,8 @@ test('guest user should be redirected to login page and get a forbidden', async 
     .click(loginButton)
     .expect(content.exists)
     .ok()
+    .expect(errorCodeLabel.innerText)
+    .eql('Error 403')
     .expect(errorMessageLabel.innerText)
     .eql("You don't have permission to read this group")
 })
@@ -79,6 +82,8 @@ test('logged user should get a forbidden error', async (t) => {
     )
     .expect(content.exists)
     .ok()
+    .expect(errorCodeLabel.innerText)
+    .eql('Error 403')
     .expect(errorMessageLabel.innerText)
     .eql("You don't have permission to read this group")
 })
@@ -89,6 +94,8 @@ fixture`Group page`.page`http://localhost:${process.env.NEXT_PORT}`
 test('try to access to an invalid group and get a not found error', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/group?id=dslkjf`)
+    .expect(errorCodeLabel.innerText)
+    .eql('Error 404')
     .expect(errorMessageLabel.innerText)
     .eql('Group Not Found: dslkjf')
 })

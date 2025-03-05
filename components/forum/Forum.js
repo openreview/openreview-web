@@ -1,12 +1,10 @@
-'use client'
-
 /* globals $: false */
 /* globals typesetMathJax: false */
 /* globals promptError: false */
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/router'
 import isEmpty from 'lodash/isEmpty'
 import truncate from 'lodash/truncate'
 import debounce from 'lodash/debounce'
@@ -29,6 +27,7 @@ import ForumReplyContext from './ForumReplyContext'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 
 import useUser from '../../hooks/useUser'
+import useQuery from '../../hooks/useQuery'
 import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
@@ -87,9 +86,9 @@ export default function Forum({
   selectedNoteId,
   selectedInvitationId,
   prefilledValues,
-  query,
+  clientJsLoading,
 }) {
-  const { isRefreshing, accessToken } = useUser()
+  const { userLoading, accessToken } = useUser()
   const [parentNote, setParentNote] = useState(forumNote)
   const [replyNoteMap, setReplyNoteMap] = useState(null)
   const [parentMap, setParentMap] = useState(null)
@@ -131,6 +130,7 @@ export default function Forum({
   const cutoffIndex = useRef(0)
   const attachedToBottom = useRef(false)
   const router = useRouter()
+  const query = useQuery()
 
   const { id, details } = parentNote
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
@@ -631,8 +631,8 @@ export default function Forum({
   useEffect(() => {
     if (!parentNote) return
 
-    const handleRouteChange = () => {
-      const [_, tabId] = (window.location.hash || '').split('#')
+    const handleRouteChange = (url) => {
+      const [_, tabId] = url.split('#')
       if (!tabId || !replyForumViews) return
 
       const tab = replyForumViews.find((view) => view.id === tabId)
@@ -691,17 +691,18 @@ export default function Forum({
       }, 200)
     }
 
-    window.onhashchange = handleRouteChange
-
+    router.events.on('hashChangeComplete', handleRouteChange)
+    router.events.on('routeChangeComplete', handleRouteChange)
     // eslint-disable-next-line consistent-return
     return () => {
-      window.onhashchange = null
+      router.events.off('hashChangeComplete', handleRouteChange)
+      router.events.on('routeChangeComplete', handleRouteChange)
     }
   }, [parentNote])
 
   // Load forum replies
   useEffect(() => {
-    if (isRefreshing) return
+    if (userLoading || clientJsLoading) return
 
     // Initialize latest mdate to be 1 second before the current time
     setLatestMdate(Date.now() - 1000)
@@ -711,7 +712,7 @@ export default function Forum({
       // Can be 'granted', 'denied', or 'prompt'
       setNotificationPermissions(state)
     })
-  }, [isRefreshing])
+  }, [userLoading])
 
   // Update forum nesting level
   useEffect(() => {
