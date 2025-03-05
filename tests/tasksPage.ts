@@ -46,6 +46,4 @@ test('task should change when note is deleted and restored', async (t) => {
     .click(Selector('a').withText('Tasks'))
     .expect(Selector('span.task-count-message').innerText)
     .eql('Show 0 pending tasks and 1 completed task')
-}).skipJsErrors({
-  message: "[Cloudflare Turnstile] Error: 300030."
 })

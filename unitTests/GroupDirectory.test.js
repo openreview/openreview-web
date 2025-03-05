@@ -4,13 +4,13 @@ import api from '../lib/api-client'
 import { renderWithWebFieldContext } from './util'
 import GroupDirectory from '../components/webfield/GroupDirectory'
 
-jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
-jest.mock('../components/LoadingSpinner', () => () => <span>loading spinner</span>)
-jest.mock('next/navigation', () => ({
-  useSearchParams: () => ({
-    get: () => jest.fn(),
+jest.mock('next/router', () => ({
+  useRouter: () => ({
+    replace: () => jest.fn(),
   }),
 }))
+jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
+jest.mock('../components/LoadingSpinner', () => () => <span>loading spinner</span>)
 
 describe('GroupDirectory', () => {
   test('show loading spinner when loading child groups', async () => {

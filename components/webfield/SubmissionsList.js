@@ -26,7 +26,7 @@ export default function SubmissionsList({
   useCredentials,
   paperDisplayOptions,
 }) {
-  const { accessToken, isRefreshing } = useUser()
+  const { accessToken, userLoading } = useUser()
 
   const [combinedDisplayOptions, setCombinedDisplayOptions] = useState(defaultDisplayOptions)
   const details = 'replyCount,presentation'
@@ -87,7 +87,7 @@ export default function SubmissionsList({
     }
   }, [paperDisplayOptions])
 
-  if (isRefreshing) return null
+  if (userLoading) return null
 
   return (
     <PaginatedList

@@ -1,7 +1,7 @@
 /* globals promptMessage: false */
 /* globals promptError: false */
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import InvitationGeneral, { InvitationGeneralV2 } from './InvitationGeneral'
 import InvitationReply, {
   InvitationReplyWithPreview,
@@ -11,9 +11,9 @@ import InvitationCode, { InvitationCodeV2 } from './InvitationCode'
 import InvitationChildInvitations, {
   InvitationChildInvitationsV2,
 } from './InvitationChildInvitations'
+import { isSuperUser } from '../../lib/auth'
 import InvitationProcessFunctionsV2 from './InvitationProcessFunctions'
 import ContentProcessFunctions from './ContentProcessFunctions'
-import { isSuperUser } from '../../lib/clientAuth'
 
 const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => {
   const profileId = user?.profile?.id
@@ -76,7 +76,6 @@ export const InvitationEditorV2 = ({
   accessToken,
   loadInvitation,
 }) => {
-  const [isClientRendering, setIsClientRendering] = useState(false)
   const profileId = user?.profile?.id
 
   const getReplyFieldByInvitationType = () => {
@@ -86,11 +85,7 @@ export const InvitationEditorV2 = ({
     return 'edit'
   }
 
-  useEffect(() => {
-    setIsClientRendering(true)
-  }, [])
-
-  if (!invitation || !isClientRendering) return null
+  if (!invitation) return null
 
   return (
     <div>

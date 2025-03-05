@@ -1,9 +1,10 @@
 import { useContext, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/router'
 import Link from 'next/link'
 import WebFieldContext from '../WebFieldContext'
 import VenueHeader from './VenueHeader'
 import MarkdownContent from './MarkdownContent'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import { prettyId } from '../../lib/utils'
 
 export default function ArchivedConsole({ appContext }) {
@@ -14,19 +15,19 @@ export default function ArchivedConsole({ appContext }) {
     header,
     message,
   } = useContext(WebFieldContext)
-  const query = useSearchParams()
+  const router = useRouter()
   const { setBannerContent } = appContext
 
   useEffect(() => {
     // Set referrer banner
-    if (query.get('referrer')) {
-      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
+    if (!router.isReady) return
+
+    if (router.query.referrer) {
+      setBannerContent(referrerLink(router.query.referrer))
     } else if (parentGroupId) {
-      setBannerContent({ type: 'venueHomepageLink', value: parentGroupId })
-    } else {
-      setBannerContent({ type: null, value: null })
+      setBannerContent(venueHomepageLink(parentGroupId))
     }
-  }, [query])
+  }, [router.isReady, router.query])
 
   return (
     <div className="text-center row">

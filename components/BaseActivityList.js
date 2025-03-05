@@ -11,10 +11,10 @@ export default function BaseActivityList({
   showGroup,
 }) {
   const [formattedNotes, setFormattedNotes] = useState(null)
-  const { user, isRefreshing } = useUser()
+  const { user, userLoading } = useUser()
 
   useEffect(() => {
-    if (!notes || isRefreshing) return
+    if (!notes || userLoading) return
 
     const tempNotes = []
 
@@ -55,7 +55,7 @@ export default function BaseActivityList({
 
     // Filter out any notes that should not be displayed
     setFormattedNotes(tempNotes)
-  }, [notes, isRefreshing])
+  }, [notes])
 
   if (!formattedNotes) return null
 

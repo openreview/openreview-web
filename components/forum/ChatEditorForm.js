@@ -32,7 +32,7 @@ export default function ChatEditorForm({
   const [notificationPermissions, setNotificationPermissions] = useState('loading')
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const [loading, setLoading] = useState(false)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, accessToken } = useUser()
   const inputRef = useRef(null)
 
   const tabName = document.querySelector('.filter-tabs > li.active > a')?.text
@@ -152,14 +152,14 @@ export default function ChatEditorForm({
   }
 
   useEffect(() => {
-    if (!invitation || isRefreshing) return
+    if (!invitation) return
 
     loadSignatureOptions()
     getNotificationState().then((state) => {
       // Can be 'granted', 'denied', or 'prompt'
       setNotificationPermissions(state)
     })
-  }, [invitation, isRefreshing])
+  }, [invitation])
 
   useEffect(() => {
     if (replyToNote && inputRef.current) {
@@ -175,11 +175,9 @@ export default function ChatEditorForm({
     >
       {replyToNote && (
         <div className="parent-info disable-tex-rendering">
-          <h5
-            onClick={() => {
-              scrollToNote(replyToNote.id)
-            }}
-          >
+          <h5 onClick={() => {
+            scrollToNote(replyToNote.id)
+          }}>
             {/* <Icon name="share-alt" />{' '} */}
             <span>Replying to {prettyId(replyToNote.signatures[0], true)}</span>
             {' – '}
@@ -343,7 +341,8 @@ export default function ChatEditorForm({
             className="btn btn-sm btn-primary"
             disabled={!message || !message.trim() || loading}
           >
-            Send <Icon name="send" />
+            Send{' '}
+            <Icon name="send" />
           </button>
         </div>
       </div>
