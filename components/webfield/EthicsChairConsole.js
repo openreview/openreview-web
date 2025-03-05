@@ -1,10 +1,7 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
-import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
+import { useSearchParams } from 'next/navigation'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import ErrorDisplay from '../ErrorDisplay'
@@ -28,13 +25,11 @@ const EthicsChairConsole = ({ appContext }) => {
     ethicsMetaReviewName,
     preferredEmailInvitationId,
   } = useContext(WebFieldContext)
-  const { setBannerContent } = appContext
-  const router = useRouter()
-  const query = useQuery()
+  const { setBannerContent } = appContext ?? {}
+  const query = useSearchParams()
   const [activeTabId, setActiveTabId] = useState(
     decodeURIComponent(window.location.hash) || '#overview'
   )
-  const { user, userLoading } = useUser()
 
   const ethicsChairsUrlFormat = getRoleHashFragment(ethicsChairsName)
   const validTabIds = [
@@ -46,10 +41,10 @@ const EthicsChairConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
@@ -58,7 +53,7 @@ const EthicsChairConsole = ({ appContext }) => {
       setActiveTabId(validTabIds[0])
       return
     }
-    router.replace(activeTabId)
+    window.location.hash = activeTabId
   }, [activeTabId])
 
   const missingConfig = Object.entries({

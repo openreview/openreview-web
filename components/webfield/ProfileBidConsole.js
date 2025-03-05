@@ -3,11 +3,10 @@
 import { useCallback, useContext, useEffect, useState } from 'react'
 import debounce from 'lodash/debounce'
 import kebabCase from 'lodash/kebabCase'
+import { useSearchParams } from 'next/navigation'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
-import useQuery from '../../hooks/useQuery'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import Icon from '../Icon'
@@ -56,7 +55,7 @@ const AllSubmissionsTab = ({
   profileGroupName,
 }) => {
   const { entity: invitation, scoreIds, profileGroupId } = useContext(WebFieldContext)
-  const { user, accessToken } = useUser()
+  const { user, accessToken, isRefreshing } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [scoreEdges, setScoreEdges] = useState([])
@@ -221,6 +220,7 @@ const AllSubmissionsTab = ({
   }, [pageNumber, profileState.profilesFiltered])
 
   useEffect(() => {
+    if (isRefreshing) return
     const cleanSearchTerm = searchTerm.trim().toLowerCase()
     if (cleanSearchTerm) {
       filterProfilesBySearchTerm(cleanSearchTerm)
@@ -228,7 +228,7 @@ const AllSubmissionsTab = ({
       getProfilesSortedByAffinity()
     }
     setImmediateSearchTerm(searchTerm)
-  }, [searchTerm])
+  }, [searchTerm, isRefreshing])
 
   useEffect(
     () => () => {
@@ -238,8 +238,9 @@ const AllSubmissionsTab = ({
   )
 
   useEffect(() => {
+    if (isRefreshing) return
     getProfilesSortedByAffinity()
-  }, [])
+  }, [isRefreshing])
 
   return (
     <>
@@ -417,9 +418,9 @@ const ProfileBidConsole = ({ appContext }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [bidEdges, setBidEdges] = useState([])
   const [conflictIds, setConflictIds] = useState([])
-  const { setBannerContent } = appContext
-  const { accessToken, user } = useUser()
-  const query = useQuery()
+  const { setBannerContent } = appContext ?? {}
+  const { accessToken, user, isRefreshing } = useUser()
+  const query = useSearchParams()
 
   const getBidAndConflictEdges = async () => {
     try {
@@ -447,16 +448,17 @@ const ProfileBidConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
   useEffect(() => {
+    if (isRefreshing) return
     getBidAndConflictEdges()
-  }, [])
+  }, [isRefreshing])
 
   const renderActiveTab = () => {
     const id = kebabCase(bidOptionsWithDefaultTabs[activeTabIndex])

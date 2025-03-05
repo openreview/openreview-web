@@ -7,10 +7,14 @@ import { getStartEndYear } from '../../lib/utils'
 import ProfileSearchWidget from '../EditorComponents/ProfileSearchWidget'
 import { EditButton, SearchButton } from '../IconButton'
 
-const CreatableDropdown = dynamic(() =>
-  import('../Dropdown').then((mod) => mod.CreatableDropdown)
+const CreatableDropdown = dynamic(
+  () => import('../Dropdown').then((mod) => mod.CreatableDropdown),
+  {
+    ssr: false,
+    loading: () => <input className="form-control relation__placeholder" value="loading..." />,
+  }
 )
-const MultiSelectorDropdown = dynamic(() => import('../MultiSelectorDropdown'))
+const MultiSelectorDropdown = dynamic(() => import('../MultiSelectorDropdown'), { ssr: false })
 // #region action type constants
 const relationType = 'updateRelation'
 const readersType = 'updateReaders'
