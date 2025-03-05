@@ -107,10 +107,7 @@ export default function Footer() {
                   <Link href="/contact">Contact</Link>
                 </li>
                 <li>
-                  {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                  <a href="#" data-toggle="modal" data-target="#feedback-modal">
-                    Feedback
-                  </a>
+                  <FeedbackLink modalId="feedback-modal-mobile" />
                 </li>
                 <li>
                   <Link href="/legal/terms">Terms of Use</Link>
