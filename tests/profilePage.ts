@@ -895,6 +895,7 @@ test('validate current history', async (t) => {
     .selectText(firstHistoryEndInput)
     .pressKey('delete')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 })
