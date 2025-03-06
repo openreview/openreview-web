@@ -8,6 +8,7 @@ jest.mock('../components/webfield/BaseMenuBar', () => (props) => {
   baseMenuBarProps = props
   return <span>Base Menu Bar</span>
 })
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 beforeEach(() => {
   baseMenuBarProps = null

@@ -15,6 +15,7 @@ jest.mock('react', () => {
   react.useCallback = (fn) => fn
   return react
 })
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 describe('BaseMenuBar', () => {
   test('show search and sort by default', () => {
