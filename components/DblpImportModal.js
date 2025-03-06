@@ -10,8 +10,8 @@ import {
   postOrUpdatePaper,
   getAllPapersImportedByOtherProfiles,
 } from '../lib/profiles'
-import UserContext from './UserContext'
 import { deburrString, getNameString, inflect } from '../lib/utils'
+import useUser from '../hooks/useUser'
 
 const ErrorMessage = ({ message, dblpNames, profileNames }) => {
   if (!dblpNames?.length) return <p>{message}</p>
@@ -63,7 +63,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
   const publicationsImportedByOtherProfiles = useRef([])
   const modalEl = useRef(null)
   const dblpNames = useRef(null)
-  const { accessToken } = useContext(UserContext)
+  const { accessToken } = useUser()
   const maxNumberofPublicationsToImport = 500
 
   const getExistingFromDblpPubs = (allDblpPubs) => {
