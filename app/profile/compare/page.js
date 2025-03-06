@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import serverAuth, { isSuperUser } from '../../auth'
 import api from '../../../lib/api-client'
@@ -92,6 +93,8 @@ export default async function page({ searchParams }) {
     return <ErrorDisplay message="Forbidden. Access to this page is restricted." />
 
   const { left, right } = await searchParams
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
 
   const getPublications = async (profileId) => {
     if (!profileId) {
@@ -104,7 +107,7 @@ export default async function page({ searchParams }) {
         sort: 'cdate:desc',
       },
       null,
-      { accessToken, includeVersion: true }
+      { accessToken, includeVersion: true, remoteIpAddress }
     )
     if (notes?.length > 0) {
       return notes.map((publication) => ({
@@ -131,7 +134,10 @@ export default async function page({ searchParams }) {
       return {}
     }
     const queryParams = id.includes('@') ? { email: id } : { id }
-    const { profiles } = await api.get('/profiles', queryParams, { accessToken })
+    const { profiles } = await api.get('/profiles', queryParams, {
+      accessToken,
+      remoteIpAddress,
+    })
     if (profiles?.length > 0) {
       const publications = await getPublications(profiles[0].id)
       return { ...profiles[0], publications }
@@ -149,22 +155,22 @@ export default async function page({ searchParams }) {
     const leftHeadP = api.get(
       '/edges',
       { head: withSignatureProfiles.left.id },
-      { accessToken }
+      { accessToken, remoteIpAddress }
     )
     const leftTailP = api.get(
       '/edges',
       { tail: withSignatureProfiles.left.id },
-      { accessToken }
+      { accessToken, remoteIpAddress }
     )
     const rightHeadP = api.get(
       '/edges',
       { head: withSignatureProfiles.right.id },
-      { accessToken }
+      { accessToken, remoteIpAddress }
     )
     const rightTailP = api.get(
       '/edges',
       { tail: withSignatureProfiles.right.id },
-      { accessToken }
+      { accessToken, remoteIpAddress }
     )
     return Promise.all([leftHeadP, leftTailP, rightHeadP, rightTailP]).then((results) => ({
       leftHead: results[0].count,

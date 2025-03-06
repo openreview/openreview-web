@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import serverAuth from '../auth'
@@ -7,6 +8,8 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 
 export default async function Submissions({ groupId, invitationId }) {
   const { token } = await serverAuth()
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
   const notesPerPage = 25
 
   const getFirstPageNotesP = api.get(
@@ -17,6 +20,7 @@ export default async function Submissions({ groupId, invitationId }) {
     },
     {
       accessToken: token,
+      remoteIpAddress,
     }
   )
 

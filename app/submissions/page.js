@@ -1,3 +1,4 @@
+import { headers } from 'next/headers'
 import Banner from '../../components/Banner'
 import api from '../../lib/api-client'
 import { referrerLink } from '../../lib/banner-links'
@@ -22,10 +23,14 @@ export default async function page({ searchParams }) {
   if (!groupId) {
     return <ErrorDisplay message="Missing required parameter venue" />
   }
+
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   let group
   try {
     group = await api
-      .get('/groups', { id: groupId }, { accessToken: token })
+      .get('/groups', { id: groupId }, { accessToken: token, remoteIpAddress })
       .then((result) => result.groups?.[0])
   } catch (error) {
     return <ErrorDisplay message={error.message} />

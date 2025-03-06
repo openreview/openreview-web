@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import LimitedStateAlert from './LimitedStateAlert'
 import serverAuth from '../../auth'
 import api from '../../../lib/api-client'
@@ -19,8 +20,11 @@ export default async function page() {
   const { token: accessToken, user } = await serverAuth()
   if (!accessToken) redirect('/login?redirect=/profile/edit')
 
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   const loadProfileP = api
-    .get('/profiles', {}, { accessToken })
+    .get('/profiles', {}, { accessToken, remoteIpAddress })
     .then(({ profiles }) => {
       if (profiles?.length > 0) {
         const formattedProfile = formatProfileData(profiles[0], true)

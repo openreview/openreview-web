@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import ErrorDisplay from '../../../components/ErrorDisplay'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
@@ -19,17 +20,22 @@ export default async function page({ searchParams }) {
 
   if (!token) return <ErrorDisplay message="Page not found" />
 
-  const loadResetTokenP = api.get(`/resettable/${token}`).catch((error) => {
-    console.log('Error in loadResetTokenP', {
-      page: 'user/password',
-      user: user?.id,
-      apiError: error,
-      apiRequest: {
-        endpoint: `/resettable/${token}`,
-      },
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
+  const loadResetTokenP = api
+    .get(`/resettable/${token}`, null, { remoteIpAddress })
+    .catch((error) => {
+      console.log('Error in loadResetTokenP', {
+        page: 'user/password',
+        user: user?.id,
+        apiError: error,
+        apiRequest: {
+          endpoint: `/resettable/${token}`,
+        },
+      })
+      return { errorMessage: error.message }
     })
-    return { errorMessage: error.message }
-  })
 
   return (
     <CommonLayout>

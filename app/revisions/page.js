@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { headers } from 'next/headers'
 import api from '../../lib/api-client'
 import { forumLink } from '../../lib/banner-links'
 import serverAuth from '../auth'
@@ -21,12 +22,21 @@ export default async function page({ searchParams }) {
   const { user, token: accessToken } = await serverAuth()
   if (!noteId) return <ErrorDisplay message="Missing id" />
 
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   let note
   try {
-    note = await api.getNoteById(noteId, accessToken, {
-      details: 'writable,forumContent',
-      trash: true,
-    })
+    note = await api.getNoteById(
+      noteId,
+      accessToken,
+      {
+        details: 'writable,forumContent',
+        trash: true,
+      },
+      null,
+      remoteIpAddress
+    )
     if (!note) throw new Error(`The note ${noteId} could not be found`)
   } catch (error) {
     return <ErrorDisplay message={error.message} />
@@ -43,7 +53,7 @@ export default async function page({ searchParams }) {
               details: 'writable,presentation,invitation',
               trash: true,
             },
-            { accessToken }
+            { accessToken, remoteIpAddress }
           )
           .then((response) => ({
             revisions: (response.edits ?? []).map((edit) => [edit, edit.details.invitation]),

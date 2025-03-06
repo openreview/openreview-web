@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import api from '../../lib/api-client'
 import serverAuth, { isSuperUser } from '../auth'
 import NotificationCount from './NotificationCount'
+import { headers } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,11 +11,14 @@ export default async function NavNotificationCount() {
   if (!user || isSuperUser(user)) {
     return null
   }
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
   const notificationCountP = api
     .get(
       '/messages',
       { to: user.profile.emails[0], viewed: false, transitiveMembers: true },
-      { accessToken: token }
+      { accessToken: token, remoteIpAddress }
     )
     .then((response) => {
       const count = response.messages?.length
