@@ -16,6 +16,7 @@ import {
   inflect,
   getProfileStateLabelClass,
   getVenueTabCountMessage,
+  getRejectionReasons,
 } from '../../lib/utils'
 import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
@@ -1706,11 +1707,11 @@ const UserModerationQueue = ({
   const [signedNotes, setSignedNotes] = useState(0)
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
-  const [pageSize, setPageSize] = useState(15)
+  const [pageSize, setPageSize] = useState(onlyModeration ? 200 : 15)
   const [profileToPreview, setProfileToPreview] = useState(null)
   const [lastPreviewedProfileId, setLastPreviewedProfileId] = useState(null)
   const modalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
-  const pageSizeOptions = [15, 30, 50, 100].map((p) => ({
+  const pageSizeOptions = [15, 30, 50, 100, 200].map((p) => ({
     label: `${p} items`,
     value: p,
   }))
@@ -1952,6 +1953,14 @@ const UserModerationQueue = ({
       promptMessage(`${profileId} is added to SDN exception group`)
     } catch (error) {
       promptError(error.message)
+    }
+  }
+
+  const showNextProfile = (currentProfileId) => {
+    const nextProfile = profiles[profiles.findIndex((p) => p.id === currentProfileId) + 1]
+    if (nextProfile) {
+      setProfileToPreview(formatProfileData(cloneDeep(nextProfile)))
+      setLastPreviewedProfileId(nextProfile.id)
     }
   }
 
@@ -2211,12 +2220,17 @@ const UserModerationQueue = ({
           'publications',
           'messages',
         ]}
+        showNextProfile={showNextProfile}
+        acceptUser={acceptUser}
+        blockUser={blockUnblockUser}
+        setProfileToReject={setProfileToReject}
+        rejectUser={rejectUser}
       />
     </div>
   )
 }
 
-const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
+export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
   const selectRef = useRef(null)
 
@@ -2224,54 +2238,7 @@ const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
     (p) => !p.end || p.end >= new Date().getFullYear()
   )?.institution?.name
 
-  const instructionText =
-    'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and follow the activation link to update your information.'
-  const rejectionReasons = [
-    {
-      value: 'requestEmailVerification',
-      label: 'Institutional Email is missing',
-      rejectionText: `Please add and confirm an institutional email ${
-        currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
-      }to your profile. Please make sure the verification token is entered and verified.\n\nIf your affiliation ${
-        currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
-      } is not current, please update your profile with your current affiliation and associated institutional email.\n\n${instructionText}`,
-    },
-    {
-      value: 'requestEmailConfirmation',
-      label: 'Institutional Email is added but not confirmed',
-      rejectionText: `Please confirm the institutional email in your profile by clicking the "Confirm" button next to the email and enter the verification token received.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidDBLP',
-      label: 'DBLP link is a disambiguation page',
-      rejectionText: `The DBLP link you have provided is a disambiguation page and is not intended to be used as a bibliography. Please select the correct bibliography page listed under "Other persons with a similar name". If your page is not listed please contact the DBLP team so they can add your bibliography page. We recommend providing a different bibliography homepage when resubmitting to OpenReview moderation.\n\n${instructionText}`,
-    },
-    {
-      value: 'imPersonalHomepage',
-      label: 'Homepage is invalid',
-      rejectionText: `The homepage url provided in your profile is invalid or does not display your name/email used to register so your identity can't be determined.\n\n${instructionText}`,
-    },
-    {
-      value: 'imPersonalHomepageAndEmail',
-      label: 'Homepage is invalid + no institution email',
-      rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required. Please confirm the institutional email by entering the verification token received after clicking confirm button next to the institutional email.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidName',
-      label: 'Profile name is invalid',
-      rejectionText: `The name in your profile does not match the name listed in your homepage or is invalid.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidORCID',
-      label: 'ORCID profile is incomplete',
-      rejectionText: `The ORCID profile you've provided as a homepage is empty or does not match the Career & Education history you've provided.\n\n${instructionText}`,
-    },
-    {
-      value: 'lastNotice',
-      label: 'Last notice before block',
-      rejectionText: `If invalid info is submitted again, your email will be blocked.\n\n${instructionText}`,
-    },
-  ]
+  const rejectionReasons = getRejectionReasons(currentInstitutionName)
 
   const updateMessageForPastRejectProfile = () => {
     setRejectionMessage(
