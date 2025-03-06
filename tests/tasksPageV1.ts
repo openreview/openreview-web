@@ -17,9 +17,8 @@ test('should open tasks page and complete pending task', async (t) => {
     .useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
     .click(Selector('a').withText('Tasks'))
-    .click(Selector('span.task-count-message'))
     // should see 1 task in testvenue 2020 conference
-    .expect(Selector('div#tasks').find('ul.list-unstyled').nth(0).childElementCount)
+    .expect(Selector('div.tasks-container').find('ul.list-unstyled').nth(0).childElementCount)
     .eql(1)
     .click(Selector('span.task-count-message')) // perform the task
     .click(Selector('a').withText('Paper1 Official Review'))

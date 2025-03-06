@@ -17,7 +17,7 @@ export default function SubmissionButton({
 }) {
   const [invitation, setInvitation] = useState(null)
   const [noteEditorOpen, setNoteEditorOpen] = useState(false)
-  const { accessToken, isRefreshing } = useUser()
+  const { accessToken, userLoading } = useUser()
   const newNoteEditor = invitation?.domain
 
   const invitationPastDue = invitation?.duedate && invitation.duedate < Date.now()
@@ -44,10 +44,10 @@ export default function SubmissionButton({
   }
 
   useEffect(() => {
-    if (isRefreshing) return
+    if (userLoading) return
 
     loadInvitation()
-  }, [isRefreshing, invitationId])
+  }, [userLoading, invitationId])
 
   if (!invitation || invitationNotAvailable) return null
 

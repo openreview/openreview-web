@@ -1,6 +1,6 @@
 /* globals typesetMathJax,promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { chunk } from 'lodash'
 import api from '../../lib/api-client'
@@ -21,6 +21,8 @@ import {
   getRoleHashFragment,
 } from '../../lib/utils'
 import Dropdown from '../Dropdown'
+import useQuery from '../../hooks/useQuery'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import ErrorDisplay from '../ErrorDisplay'
 import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
@@ -276,9 +278,10 @@ const ReviewerConsole = ({ appContext }) => {
     hasPaperRanking,
     reviewDisplayFields = ['review'],
   } = useContext(WebFieldContext)
-  const { user, accessToken, isRefreshing } = useUser()
-  const query = useSearchParams()
-  const { setBannerContent } = appContext ?? {}
+  const { user, accessToken, userLoading } = useUser()
+  const router = useRouter()
+  const query = useQuery()
+  const { setBannerContent } = appContext
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
   const [enablePaperRanking, setEnablePaperRanking] = useState(true)
   const [activeTabId, setActiveTabId] = useState(
@@ -573,16 +576,16 @@ const ReviewerConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (query.get('referrer')) {
-      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
+    if (query.referrer) {
+      setBannerContent(referrerLink(query.referrer))
     } else {
-      setBannerContent({ type: 'venueHomepageLink', value: venueId })
+      setBannerContent(venueHomepageLink(venueId))
     }
   }, [query, venueId])
 
   useEffect(() => {
     if (
-      isRefreshing ||
+      userLoading ||
       !user ||
       !group ||
       !submissionInvitationId ||
@@ -592,7 +595,7 @@ const ReviewerConsole = ({ appContext }) => {
     )
       return
     loadData()
-  }, [user, isRefreshing, group])
+  }, [user, userLoading, group])
 
   useEffect(() => {
     if (reviewerConsoleData.notes) {
@@ -601,7 +604,7 @@ const ReviewerConsole = ({ appContext }) => {
   }, [reviewerConsoleData.notes])
 
   useEffect(() => {
-    if (user && !isRefreshing) {
+    if (user && !userLoading) {
       const validTabIds = [
         `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
         `#${reviewerUrlFormat}-tasks`,
@@ -610,9 +613,9 @@ const ReviewerConsole = ({ appContext }) => {
         setActiveTabId(`#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`)
         return
       }
-      window.location.hash = activeTabId
+      router.replace(activeTabId)
     }
-  }, [activeTabId, user, isRefreshing])
+  }, [activeTabId, user, userLoading])
 
   const missingConfig = Object.entries({
     header,

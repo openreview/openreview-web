@@ -1,9 +1,11 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/router'
 import groupBy from 'lodash/groupBy'
 import useUser from '../../hooks/useUser'
+import useQuery from '../../hooks/useQuery'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
@@ -84,9 +86,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     preferredEmailInvitationId,
     ithenticateInvitationId,
   } = useContext(WebFieldContext)
-  const { setBannerContent } = appContext ?? {}
-  const { user, accessToken, isRefreshing } = useUser()
-  const query = useSearchParams()
+  const { setBannerContent } = appContext
+  const { user, accessToken, userLoading } = useUser()
+  const router = useRouter()
+  const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(
     decodeURIComponent(window.location.hash) || '#venue-configuration'
   )
@@ -1019,17 +1022,17 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   useEffect(() => {
     if (!query) return
 
-    if (query.get('referrer')) {
-      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
+    if (query.referrer) {
+      setBannerContent(referrerLink(query.referrer))
     } else {
-      setBannerContent({ type: 'venueHomepageLink', value: venueId })
+      setBannerContent(venueHomepageLink(venueId))
     }
   }, [query, venueId])
 
   useEffect(() => {
-    if (isRefreshing || !user || !group || !venueId || !reviewersId || !submissionId) return
+    if (userLoading || !user || !group || !venueId || !reviewersId || !submissionId) return
     loadData()
-  }, [user, isRefreshing, group])
+  }, [user, userLoading, group])
 
   useEffect(() => {
     const validTabIds = [
@@ -1053,7 +1056,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       setActiveTabId('#venue-configuration')
       return
     }
-    window.location.hash = activeTabId
+    router.replace(activeTabId)
   }, [activeTabId])
 
   const missingConfig = Object.entries({
@@ -1081,7 +1084,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     }`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
-
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />

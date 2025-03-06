@@ -1,5 +1,3 @@
-'use client'
-
 /* globals DOMPurify, marked: false */
 
 import { useState, useEffect } from 'react'
