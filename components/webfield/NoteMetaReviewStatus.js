@@ -272,7 +272,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                     )}
                   </span>
                 </div>
-                {metaReview && (
+                {metaReview && recommendation && (
                   <div>
                     <span className="recommendation">
                       {prettyField(metaReviewRecommendationName)}: {recommendation}
