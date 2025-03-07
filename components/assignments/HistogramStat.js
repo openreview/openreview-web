@@ -7,7 +7,7 @@ import { bin } from 'd3-array'
 import { axisBottom, axisLeft } from 'd3-axis'
 import { format } from 'd3-format'
 import floor from 'lodash/floor'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/router'
 import LoadingSpinner from '../LoadingSpinner'
 
 const HistogramStat = ({ id, stats, edgeBrowserUrlParams }) => {

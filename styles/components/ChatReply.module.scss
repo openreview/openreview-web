@@ -1,6 +1,5 @@
 @use '../utils/constants';
 @use '../utils/mixins';
-@use 'sass:color';
 
 $gray1: #f7f6f4;
 $gray2: #f0f0f0;
@@ -13,14 +12,14 @@ $gray2: #f0f0f0;
 
   :global {
     .chat-body {
-      padding: 0.5rem;
+      padding: .5rem;
       border: 1px solid constants.$borderGray;
       border-radius: 2px;
 
       &.deleted {
         background-color: #eee;
         & > div {
-          opacity: 0.5;
+          opacity: .5;
         }
       }
     }
@@ -28,8 +27,8 @@ $gray2: #f0f0f0;
     .parent-info {
       h5 {
         margin-top: 0;
-        margin-bottom: 0.375rem;
-        font-size: 0.75rem;
+        margin-bottom: .375rem;
+        font-size: .75rem;
         color: constants.$subtleGray;
         cursor: pointer;
         span {
@@ -41,7 +40,7 @@ $gray2: #f0f0f0;
 
     .header {
       position: relative;
-      margin-bottom: 0.25rem;
+      margin-bottom: .25rem;
       span.indicator {
         position: absolute;
         width: 0.875rem;
@@ -58,20 +57,20 @@ $gray2: #f0f0f0;
         padding-left: 1.25rem;
       }
       .members-list {
-        font-size: 0.75rem;
-        padding-left: 0.5rem;
+        font-size: .75rem;
+        padding-left: .5rem;
         color: constants.$subtleGray;
         font-weight: normal;
       }
       .glyphicon {
-        margin-right: 0.25rem;
+        margin-right: .25rem;
       }
       .tooltip .tooltip-inner {
         max-width: 250px;
       }
       small {
         color: constants.$subtleGray;
-        padding-left: 0.75rem;
+        padding-left: .75rem;
       }
     }
 
@@ -80,7 +79,7 @@ $gray2: #f0f0f0;
       color: #fff;
       padding: 0 4px;
       border-radius: 2px;
-      font-size: 0.75rem;
+      font-size: .75rem;
       vertical-align: 1px;
       margin-left: 0.75rem;
     }
@@ -94,11 +93,11 @@ $gray2: #f0f0f0;
     }
 
     .note-content {
-      font-size: 0.875rem;
+      font-size: .875rem;
       margin: 0;
       // margin-bottom: .25rem;
       & > div + div {
-        margin-top: 0.25rem;
+        margin-top: .25rem;
       }
     }
     .note-content-value {
@@ -106,7 +105,7 @@ $gray2: #f0f0f0;
 
       mjx-container[jax='CHTML'][display='true'] {
         margin-top: 0;
-        margin-bottom: 0.5rem;
+        margin-bottom: .5rem;
         &:last-child {
           margin-bottom: 0;
         }
@@ -114,20 +113,17 @@ $gray2: #f0f0f0;
     }
     .note-content-value.markdown-rendered {
       @include mixins.markdown-content-styles;
-      ol > li,
-      ul > li {
-        padding-bottom: 0.25rem;
+      ol > li, ul > li {
+        padding-bottom: .25rem;
       }
       line-height: normal;
-      p:last-child,
-      ul:last-child,
-      ol:last-child {
+      p:last-child, ul:last-child, ol:last-child {
         margin-bottom: 0;
       }
     }
 
     .chat-reactions {
-      margin-top: 0.5rem;
+      margin-top: .5rem;
       margin-left: 0;
       margin-bottom: 0;
 
@@ -136,7 +132,7 @@ $gray2: #f0f0f0;
       }
       button {
         border-width: 1px;
-        padding: 1px 0.5rem;
+        padding: 1px .5rem;
         border-color: constants.$mediumBlue;
         background-color: $gray1;
         &:hover {
@@ -146,18 +142,18 @@ $gray2: #f0f0f0;
           opacity: 1;
         }
         &.selected {
-          background-color: color.adjust(constants.$mediumDarkBlue, $lightness: 56%);
+          background-color: lighten(constants.$mediumDarkBlue, 56%);
           border-color: constants.$mediumDarkBlue;
         }
         span {
-          padding-right: 0.125rem;
+          padding-right: .125rem;
           font-size: 12px;
         }
       }
       .add-reaction {
         border-color: constants.$subtleGray;
         color: constants.$subtleGray;
-        opacity: 0.75;
+        opacity: .75;
         svg {
           position: relative;
           display: inline-block;
@@ -199,7 +195,7 @@ $gray2: #f0f0f0;
 
   :global {
     button {
-      padding: 0.25rem 0.75rem;
+      padding: .25rem .75rem;
       border: 1px solid constants.$borderGray;
       border-radius: 0;
       font-weight: normal;
@@ -216,7 +212,7 @@ $gray2: #f0f0f0;
         border-color: constants.$mediumDarkBlue;
       }
       span {
-        padding-right: 0.125rem;
+        padding-right: .125rem;
       }
     }
     .btn-add-reaction {
@@ -228,7 +224,7 @@ $gray2: #f0f0f0;
         width: 1rem;
         height: 1rem;
         margin-top: -2px;
-        padding: 0 0.125rem 0 0;
+        padding: 0 .125rem 0 0;
         fill: constants.$mediumBlue;
       }
       &:hover svg,
@@ -305,7 +301,7 @@ $gray2: #f0f0f0;
         opacity: 1;
       }
       span {
-        padding-right: 0.125rem;
+        padding-right: .125rem;
       }
     }
   }

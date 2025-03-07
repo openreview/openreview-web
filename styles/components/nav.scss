@@ -4,7 +4,6 @@ nav.navbar {
   background-color: constants.$orRed;
   border-color: constants.$orRedDark;
   z-index: 1031;
-  margin-bottom: 0;
 
   .navbar-brand {
     font-size: 1.375rem;
@@ -38,8 +37,8 @@ nav.navbar {
 
     @media #{constants.$desktop-only} {
       > li > a {
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
+        padding-left: .5rem;
+        padding-right: .5rem;
       }
     }
     @media #{constants.$phone-only} {
@@ -101,9 +100,7 @@ nav.navbar {
       border-radius: 0;
       padding-top: 4px;
       padding-bottom: 4px;
-      transition:
-        background-color 0.5s linear,
-        box-shadow 0.4s 0.2s ease;
+      transition: background-color 0.5s linear, box-shadow 0.4s 0.2s ease;
 
       @media #{constants.$desktop-only} {
         width: 250px;

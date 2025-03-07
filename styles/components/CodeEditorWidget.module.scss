@@ -2,13 +2,12 @@
 
 .codeEditorContainer {
   max-width: 100%;
-  background-color: #fffaf4;
-  border: 2px solid #659aae;
-  min-height: 200px;
-
   @media #{constants.$large} {
     max-width: 80%;
   }
+  background-color: #fffaf4;
+  border: 2px solid #659aae;
+  min-height: 200px;
 
   &.invalidValue {
     border-color: constants.$orRed;

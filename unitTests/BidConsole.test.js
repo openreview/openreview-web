@@ -14,14 +14,7 @@ jest.mock('../hooks/useUser', () => () => ({
   },
   accessToken: 'some token',
 }))
-jest.mock('../app/CustomBanner', () => () => <span>Custom Banner</span>)
-jest.mock('next/navigation', () => ({
-  useSearchParams: () => ({
-    get: () => jest.fn(),
-  }),
-  useRouter: jest.fn(),
-}))
-
+jest.mock('../hooks/useQuery', () => () => ({}))
 let bidInvitation
 
 global.promptError = jest.fn()
@@ -30,7 +23,6 @@ global.marked = jest.fn()
 global.DOMPurify = {
   sanitize: jest.fn(),
 }
-global.$ = jest.fn(() => ({ on: jest.fn(), off: jest.fn(), modal: jest.fn() }))
 
 beforeEach(() => {
   bidInvitation = {

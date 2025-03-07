@@ -161,7 +161,7 @@ const NoteEditor = ({
   customValidator,
   className,
 }) => {
-  const { user, isRefreshing, accessToken } = useUser()
+  const { user, userLoading, accessToken } = useUser()
   const [fields, setFields] = useState([])
   const [loading, setLoading] = useState({
     noteReaders: false,
@@ -458,7 +458,7 @@ const NoteEditor = ({
     const invitationEditReaderValues =
       invitation.edit.readers?.param?.enum ??
       invitation.edit.readers?.param?.items?.map((p) =>
-        (p.value ?? p.prefix?.endsWith('*')) ? p.prefix : `${p.prefix}.*`
+        p.value ?? p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
       )
 
     return addMissingReaders(
@@ -638,7 +638,7 @@ const NoteEditor = ({
   }
 
   useEffect(() => {
-    if (isRefreshing || !invitation?.edit?.note?.content) return
+    if (userLoading || !invitation?.edit?.note?.content) return
 
     if (!user) {
       promptLogin()
@@ -650,7 +650,7 @@ const NoteEditor = ({
         (a, b) => (a[1].order ?? 100) - (b[1].order ?? 100)
       )
     )
-  }, [invitation, user, isRefreshing])
+  }, [invitation, user, userLoading])
 
   if (!invitation?.edit?.note?.content || !user) return null
 

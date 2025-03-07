@@ -1,11 +1,12 @@
 import { useState, useContext, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/router'
 import Link from 'next/link'
 import WebFieldContext from '../WebFieldContext'
 import ErrorAlert from '../ErrorAlert'
 import Markdown from '../EditorComponents/Markdown'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import useUser from '../../hooks/useUser'
 import LoadingSpinner from '../LoadingSpinner'
 
@@ -14,19 +15,20 @@ export default function GroupDirectory({ appContext }) {
   const [childGroupIds, setChildGroupIds] = useState(null)
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
   const { accessToken } = useUser()
-  const { setBannerContent } = appContext ?? {}
-  const query = useSearchParams()
+  const { setBannerContent } = appContext
 
   useEffect(() => {
-    if (query.get('referrer')) {
-      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
+    // Set referrer banner
+    if (!router.isReady) return
+
+    if (router.query.referrer) {
+      setBannerContent(referrerLink(router.query.referrer))
     } else if (group.parent) {
-      setBannerContent({ type: 'venueHomepageLink', value: group.parent })
-    } else {
-      setBannerContent({ type: null, value: null })
+      setBannerContent(venueHomepageLink(group.parent))
     }
-  }, [query])
+  }, [router.isReady, router.query])
 
   useEffect(() => {
     const loadChildGroups = async () => {
