@@ -224,7 +224,7 @@ describe('Form', () => {
     })
   })
 
-  // if datatype has [](multi select) then enum field should be removed and vice versa
+  // if datatype change then keep only name, order, description and datatype
   test('remove enum based on datatype', async () => {
     const onFormChange = jest.fn()
     const formFields = {
@@ -300,11 +300,16 @@ describe('Form', () => {
     })
 
     await waitFor(() => {
-      expect(onFormChange).toHaveBeenCalledWith(expect.objectContaining({ enum: undefined }))
+      expect(onFormChange).toHaveBeenCalledWith({
+        dataType: 'string[]',
+        description: undefined,
+        name: 'test_field',
+        order: undefined,
+      })
     })
   })
 
-  test('remove items based on datatype', async () => {
+  test('remove items when datatype change', async () => {
     const onFormChange = jest.fn()
     const formFields = {
       ['name']: {
@@ -386,7 +391,12 @@ describe('Form', () => {
       setFormData({ fieldName: 'dataType', value: 'string' }) // items should be dropped
     })
     await waitFor(() => {
-      expect(onFormChange).toHaveBeenCalledWith(expect.objectContaining({ items: undefined }))
+      expect(onFormChange).toHaveBeenCalledWith({
+        dataType: 'string',
+        description: undefined,
+        name: 'test_field',
+        order: undefined,
+      })
     })
   })
 })

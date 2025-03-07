@@ -1284,17 +1284,23 @@ main.invitation {
       color: constants.$orRed;
     }
 
-    .id-icon {
-      font-weight: 600;
-      font-size: 0.8rem;
-      align-self: center;
-    }
+    // .id-icon {
+    //   font-weight: 600;
+    //   font-size: 0.8rem;
+    //   align-self: center;
+    // }
 
     .workflow-invitations-header {
       display: flex;
       color: #999999;
       align-items: baseline;
-      margin-left: 15px;
+
+      // margin-left: 30px;
+
+      .tasks-header {
+        width: 15%;
+        margin-right: 0.5rem;
+      }
 
       .cdate-header {
         width: 10%;
@@ -1303,6 +1309,7 @@ main.invitation {
         font-style: italic;
       }
       .invtations-header {
+        width: 75%;
         font-size: 1rem;
         display: flex;
         align-items: center;
@@ -1326,36 +1333,46 @@ main.invitation {
       align-items: baseline;
       position: relative;
 
-      &.date-passed-1 {
-        background: lighten(constants.$backgroundGray, 10%);
+      &.section-passed {
+        background-color: lighten(#c8e6c9, 10%);
       }
-      &.date-passed-2 {
-        background: lighten(constants.$backgroundGray, 9%);
+      &.section-active {
+        background-color: lighten(#bbdefb, 10%);
       }
-      &.date-passed-3 {
-        background: lighten(constants.$backgroundGray, 8%);
+      &.section-scheduled {
+        background-color: #eeeeee;
       }
-      &.date-passed-4 {
-        background: lighten(constants.$backgroundGray, 47%);
-      }
-      &.date-passed-5 {
-        background: lighten(constants.$backgroundGray, 6%);
-      }
-      &.date-passed-6 {
-        background: lighten(constants.$backgroundGray, 5%);
-      }
-      &.date-passed-7 {
-        background: lighten(constants.$backgroundGray, 4%);
-      }
-      &.date-passed-8 {
-        background: lighten(constants.$backgroundGray, 3%);
-      }
-      &.date-passed-9 {
-        background: lighten(constants.$backgroundGray, 2%);
-      }
-      &.date-passed-10 {
-        background: lighten(constants.$backgroundGray, 1%);
-      }
+
+      // &.date-passed-1 {
+      //   background: lighten(constants.$backgroundGray, 10%);
+      // }
+      // &.date-passed-2 {
+      //   background: lighten(constants.$backgroundGray, 9%);
+      // }
+      // &.date-passed-3 {
+      //   background: lighten(constants.$backgroundGray, 8%);
+      // }
+      // &.date-passed-4 {
+      //   background: lighten(constants.$backgroundGray, 47%);
+      // }
+      // &.date-passed-5 {
+      //   background: lighten(constants.$backgroundGray, 6%);
+      // }
+      // &.date-passed-6 {
+      //   background: lighten(constants.$backgroundGray, 5%);
+      // }
+      // &.date-passed-7 {
+      //   background: lighten(constants.$backgroundGray, 4%);
+      // }
+      // &.date-passed-8 {
+      //   background: lighten(constants.$backgroundGray, 3%);
+      // }
+      // &.date-passed-9 {
+      //   background: lighten(constants.$backgroundGray, 2%);
+      // }
+      // &.date-passed-10 {
+      //   background: lighten(constants.$backgroundGray, 1%);
+      // }
 
       &.expired {
         color: gray;
@@ -1364,8 +1381,44 @@ main.invitation {
         background: darken(constants.$backgroundGray, 5%);
       }
 
-      &.hovered {
-        border: dashed 2px transparent;
+      // &.hovered {
+      //   border: dashed 2px transparent;
+      // }
+
+      .timeline-marker {
+        position: absolute;
+        left: -20px; /* Adjust based on your layout */
+        top: 5px; /* Adjust based on your layout */
+      }
+
+      .timeline-dot {
+        width: 12px;
+        height: 12px;
+        background-color: #3498db; /* Choose your color */
+        border-radius: 50%;
+      }
+
+      // &::before {
+      //   content: '';
+      //   position: absolute;
+      //   top: 0;
+      //   bottom: 0;
+      //   left: -15px; /* Align with the center of the dots */
+      //   width: 2px;
+      //   background-color: #e0e0e0; /* Line color */
+      // }
+
+      .invitation-tasks {
+        width: 15%;
+        margin-right: 0.5rem;
+        display: flex;
+        flex-direction: column;
+
+        .no-tasks {
+          color: #999999;
+          font-size: 0.9rem;
+          font-style: italic;
+        }
       }
 
       .invitation-cdate {
@@ -1375,7 +1428,7 @@ main.invitation {
         font-size: 0.9rem;
         font-style: italic;
         display: flex;
-        justify-content: flex-end;
+        justify-content: flex-start;
 
         .cdate {
           width: 90%;
@@ -1401,7 +1454,7 @@ main.invitation {
 
       .edit-invitation-info {
         flex-grow: 1;
-        max-width: 80%;
+        width: 75%;
         .edit-invitation-container {
           display: flex;
           flex-direction: column;
@@ -1523,6 +1576,18 @@ main.invitation {
         color: #999999;
       }
     }
+
+    // .motion-div:last-child {
+    //   .workflow-invitation-container::before {
+    //     bottom: 90%;
+    //   }
+    // }
+
+    // .motion-div:first-child {
+    //   .workflow-invitation-container::before {
+    //     top: 10%;
+    //   }
+    // }
 
     .add-stage {
       display: flex;

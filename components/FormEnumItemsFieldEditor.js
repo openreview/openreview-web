@@ -116,6 +116,7 @@ const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) 
           onChange={(e) => {
             setLocalOptions({ type: 'UPDATEVALUE', value: e.target.value, key: option.key })
           }}
+          placeholder="the value of the option when it is selected"
         />
       </div>
       {(optionType === 'enum' || optionType === 'items') && (
@@ -131,6 +132,7 @@ const FormEnumItemsFieldEditor = ({ options, setOptions, fieldName, formData }) 
                 key: option.key,
               })
             }}
+            placeholder="the text to display in form"
           />
         </div>
       )}

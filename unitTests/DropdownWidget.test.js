@@ -1349,4 +1349,80 @@ describe('DropdownWidget', () => {
       optionThree.compareDocumentPosition(optionOne) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
   })
+
+  // existing value is an object because the invitation is editing an invitation
+  test('show existing value when value is an object (items)', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          license: {
+            value: {
+              param: {
+                input: 'select',
+                type: 'object[]',
+                items: [
+                  {
+                    value: { value: 'CC BY 4.0', optional: true, description: 'CC BY 4.0' },
+                    description: 'CC BY 4.0',
+                    optional: true,
+                  },
+                  {
+                    value: {
+                      value: 'CC BY-SA 4.0',
+                      optional: true,
+                      description: 'CC BY-SA 4.0',
+                    },
+                    optional: true,
+                    description: 'CC BY-SA 4.0',
+                  },
+                  {
+                    value: {
+                      value: 'CC BY-NC 4.0',
+                      optional: true,
+                      description: 'CC BY-NC 4.0',
+                    },
+                    optional: true,
+                    description: 'CC BY-NC 4.0',
+                  },
+                ],
+              },
+            },
+          },
+        },
+        onChange,
+        value: [
+          // existing value is an object array instead of string array
+          {
+            value: 'CC BY-SA 4.0',
+            optional: true,
+            description: 'CC BY-SA 4.0',
+          },
+          {
+            value: 'CC BY-NC 4.0',
+            optional: true,
+            description: 'CC BY-NC 4.0',
+          },
+        ],
+      },
+    }
+
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+    expect(onChange).toHaveBeenCalledTimes(1) // only the call to filter out non existing value
+    expect(onChange).toHaveBeenCalledWith({
+      fieldName: 'license',
+      value: [
+        {
+          value: 'CC BY-SA 4.0',
+          optional: true,
+          description: 'CC BY-SA 4.0',
+        },
+        {
+          value: 'CC BY-NC 4.0',
+          optional: true,
+          description: 'CC BY-NC 4.0',
+        },
+      ],
+    })
+  })
 })

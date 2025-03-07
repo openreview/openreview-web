@@ -9,11 +9,14 @@ import Form from '../Form'
 import NoteEditor from '../NoteEditor'
 import EditorComponentHeader from './EditorComponentHeader'
 import styles from '../../styles/components/ContentFieldEditor.module.scss'
+import Icon from '../Icon'
+import { convertToType } from '../../lib/webfield-utils'
 
 const JsonEditor = ({ existingFields, onFieldChange }) => {
   const [mode, setMode] = useState('empty')
   const [nameOfFieldToEdit, setNameOfFieldToEdit] = useState(null)
   const [nameOfNewField, setNameOfNewField] = useState(null)
+  const [selectedValue, setSelectedValue] = useState(null)
   const widgetOptions = [
     { value: 'addANewField', label: 'Add a new field' },
     ...Object.keys(existingFields ?? {}).map((p) => ({ value: p, label: p })),
@@ -63,23 +66,23 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       },
       valuePath: 'description',
     },
-    hidden: {
-      order: 4,
-      description: 'Check if the field should have hidden set to true',
-      value: {
-        param: {
-          input: 'checkbox',
-          type: 'boolean',
-          enum: [{ value: true, description: 'The field should be hidden' }],
-          optional: true,
-        },
-      },
-      shouldBeShown: (formData) => true,
-      getValue: function (existingValue) {
-        return get(existingValue, this.valuePath)
-      },
-      valuePath: 'value.param.hidden',
-    },
+    // hidden: {
+    //   order: 4,
+    //   description: 'Check if the field should have hidden set to true',
+    //   value: {
+    //     param: {
+    //       input: 'checkbox',
+    //       type: 'boolean',
+    //       enum: [{ value: true, description: 'The field should be hidden' }],
+    //       optional: true,
+    //     },
+    //   },
+    //   shouldBeShown: (formData) => true,
+    //   getValue: function (existingValue) {
+    //     return get(existingValue, this.valuePath)
+    //   },
+    //   valuePath: 'value.param.hidden',
+    // },
     optional: {
       order: 5,
       description: 'Check if the field is optional',
@@ -123,37 +126,40 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           type: 'string',
           enum: [
             { value: 'const', description: 'Constant' },
-            { value: 'json', description: 'JSON (Code Editor)' },
-            { value: 'script', description: 'Script (Code Editor)' },
-            { value: 'json[]', description: 'JSON Array (Code Editor)' },
-            { value: 'script[]', description: 'Script Array (Code Editor)' },
-            { value: 'file', description: 'File (File Upload)' },
-            { value: 'file[]', description: 'File Array (File Upload)' },
-            { value: 'date', description: 'Date (Date Picker)' },
-            { value: 'date[]', description: 'Date Array (Date Picker)' },
-            { value: 'boolean', description: 'Boolean (Toggle Button, not implemented)' },
+            { value: 'string', description: 'String (Dropdown/Textbox/Checkbox/Radio)' },
             {
-              value: 'boolean[]',
-              description: 'Boolean Array  (Toggle Button, not implemented)',
+              value: 'string[]',
+              description: 'String Array (Multi Select Dropdown/Textbox/Checkbox/Radio)',
             },
-            { value: 'integer', description: 'Integer (Dropdown or Textbox)' },
-            { value: 'float', description: 'Float (Dropdown or Textbox)' },
-            { value: 'integer[]', description: 'Integer Array (Dropdown or Textbox)' },
-            { value: 'float[]', description: 'Float Array (Dropdown or Textbox)' },
-            { value: 'string', description: 'String (Dropdown or Textbox)' },
-            { value: 'string[]', description: 'String Array (Dropdown or Textbox)' },
-            { value: 'group', description: 'Group ID (Profile Search)' },
-            { value: 'profile', description: 'Profile ID (Profile Search)' },
-            { value: 'group[]', description: 'Group ID Array (Profile Search)' },
-            { value: 'profile[]', description: 'Profile ID Array (Profile Search)' },
-            { value: 'note', description: 'Note ID (Not implemented)' },
-            { value: 'note[]', description: 'Note ID Array (Not implemented)' },
-            { value: 'edit', description: 'Edit ID (Not implemented)' },
-            { value: 'edit[]', description: 'Edit ID Array (Not implemented)' },
-            { value: 'edge', description: 'Edge ID (Not implemented)' },
-            { value: 'edge[]', description: 'Edge ID Array (Not implemented)' },
-            { value: 'tag', description: 'Tag ID (Not implemented)' },
-            { value: 'tag[]', description: 'Tag ID Array (Not implemented)' },
+            { value: 'json', description: 'JSON (Code Editor)' },
+            // { value: 'script', description: 'Script (Code Editor)' },
+            // { value: 'json[]', description: 'JSON Array (Code Editor)' },
+            // { value: 'script[]', description: 'Script Array (Code Editor)' },
+            { value: 'file', description: 'File (File Upload)' },
+            // { value: 'file[]', description: 'File Array (File Upload)' },
+            { value: 'date', description: 'Date (Date Picker)' },
+            // { value: 'date[]', description: 'Date Array (Date Picker)' },
+            { value: 'boolean', description: 'Boolean (Toggle Button)' },
+            // {
+            //   value: 'boolean[]',
+            //   description: 'Boolean Array  (Toggle Button, not implemented)',
+            // },
+            { value: 'integer', description: 'Integer (Dropdown/Textbox/Checkbox/Radio)' },
+            { value: 'float', description: 'Float (Dropdown/Textbox/Checkbox/Radio)' },
+            // { value: 'integer[]', description: 'Integer Array (Dropdown or Textbox)' },
+            // { value: 'float[]', description: 'Float Array (Dropdown or Textbox)' },
+            // { value: 'group', description: 'Group ID (Profile Search)' },
+            // { value: 'profile', description: 'Profile ID (Profile Search)' },
+            // { value: 'group[]', description: 'Group ID Array (Profile Search)' },
+            // { value: 'profile[]', description: 'Profile ID Array (Profile Search)' },
+            // { value: 'note', description: 'Note ID (Not implemented)' },
+            // { value: 'note[]', description: 'Note ID Array (Not implemented)' },
+            // { value: 'edit', description: 'Edit ID (Not implemented)' },
+            // { value: 'edit[]', description: 'Edit ID Array (Not implemented)' },
+            // { value: 'edge', description: 'Edge ID (Not implemented)' },
+            // { value: 'edge[]', description: 'Edge ID Array (Not implemented)' },
+            // { value: 'tag', description: 'Tag ID (Not implemented)' },
+            // { value: 'tag[]', description: 'Tag ID Array (Not implemented)' },
           ],
           optional: true,
         },
@@ -181,7 +187,8 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
           optional: true,
         },
       },
-      shouldBeShown: (formData) => true,
+      shouldBeShown: (formData) =>
+        !['const', 'file', 'date', 'boolean', 'json'].includes(formData.dataType),
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -388,6 +395,8 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       shouldBeShown: (formData) => formData.dataType === 'file',
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
+          ? convertToType(get(existingValue, this.valuePath), 'integer')
+          : null
       },
       valuePath: 'value.param.maxSize',
     },
@@ -441,12 +450,44 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
     onFieldChange(updatedField)
   }
 
+  const deleteField = (fieldName, e) => {
+    e.stopPropagation()
+    setMode('empty')
+    setSelectedValue(null)
+    onFieldChange({ name: fieldName, delete: true })
+  }
+
+  const formatOptionLabel = (option, { context }) => {
+    if (option.value === 'addANewField' || context === 'value') {
+      return option.label
+    }
+    return (
+      <div>
+        {option.label}
+        <div className={styles.deleteFieldButton}>
+          <button
+            type="button"
+            className="btn btn-xs"
+            onClick={(e) => {
+              deleteField(option.value, e)
+            }}
+          >
+            <Icon name="trash" />
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={styles.jsonEditorContainer}>
       <Dropdown
         options={widgetOptions}
+        value={selectedValue}
         placeholder="Add a field or Select a field to edit"
+        formatOptionLabel={formatOptionLabel}
         onChange={(e) => {
+          setSelectedValue(widgetOptions.find((p) => p.value === e.value))
           setNameOfFieldToEdit(e.value)
           if (e.value === 'addANewField') {
             setMode('newField')
@@ -470,6 +511,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
             className={`btn btn-sm ${styles.addFieldButton}`}
             onClick={() => {
               setNameOfFieldToEdit(nameOfNewField)
+              setSelectedValue({ value: nameOfNewField, label: nameOfNewField })
               setMode('editField')
             }}
           >
@@ -492,6 +534,13 @@ const ContentFieldEditor = () => {
   const { field, onChange, value, error } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const [activeTabId, setActiveTabId] = useState(`widgets${fieldName}`)
+
+  const valueWithoutDeletedFields = Object.keys(value ?? {}).reduce((prev, curr) => {
+    if (value[curr]?.delete) return prev
+    // eslint-disable-next-line no-param-reassign
+    prev[curr] = value[curr]
+    return prev
+  }, {})
 
   const onFieldChange = (updatedField) => {
     const updatedJson = { ...value, [updatedField.name]: { ...updatedField, name: undefined } }
@@ -532,7 +581,10 @@ const ContentFieldEditor = () => {
 
       <TabPanels>
         <TabPanel id={`widgets${fieldName}`}>
-          <JsonEditor existingFields={value} onFieldChange={onFieldChange} />
+          <JsonEditor
+            existingFields={valueWithoutDeletedFields}
+            onFieldChange={onFieldChange}
+          />
         </TabPanel>
         <TabPanel id={`result${fieldName}`}>
           {activeTabId === `result${fieldName}` && <CodeEditorWidget />}
@@ -540,7 +592,7 @@ const ContentFieldEditor = () => {
         <TabPanel id={`preview${fieldName}`}>
           {activeTabId === `preview${fieldName}` && (
             <NoteEditor
-              invitation={{ edit: { note: { content: value } } }}
+              invitation={{ edit: { note: { content: valueWithoutDeletedFields } } }}
               closeNoteEditor={() => {}}
               className={styles.contentPreview}
               customValidator={() => ({

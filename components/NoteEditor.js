@@ -415,7 +415,7 @@ const NoteEditor = ({
     const invitationEditReaderValues =
       invitation.edit.readers?.param?.enum ??
       invitation.edit.readers?.param?.items?.map((p) =>
-        p.value ?? p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
+        (p.value ?? p.prefix?.endsWith('*')) ? p.prefix : `${p.prefix}.*`
       )
 
     return addMissingReaders(
@@ -490,7 +490,7 @@ const NoteEditor = ({
       }
 
       const domainGroup =
-        (!invitation.domain || invitation.domain === process.env.SUPER_USER)
+        !invitation.domain || invitation.domain === process.env.SUPER_USER
           ? {}
           : await api.get('/groups', { id: invitation.domain }, { accessToken })
       const {

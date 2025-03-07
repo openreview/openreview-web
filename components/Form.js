@@ -21,19 +21,25 @@ const Form = ({ fields, existingFieldsValue, onFormChange }) => {
         }, {})
       default:
         if (action.fieldName === 'dataType') {
-          if (action.value.endsWith('[]')) {
-            debouncedOnFormChange({
-              ...state,
-              [action.fieldName]: action.value,
-              enum: undefined,
-            })
-          } else {
-            debouncedOnFormChange({
-              ...state,
-              [action.fieldName]: action.value,
-              items: undefined,
-            })
-          }
+          debouncedOnFormChange({
+            name: state.name,
+            order: state.order,
+            description: state.description,
+            [action.fieldName]: action.value,
+          })
+          // if (action.value.endsWith('[]')) {
+          //   debouncedOnFormChange({
+          //     ...state,
+          //     [action.fieldName]: action.value,
+          //     enum: undefined,
+          //   })
+          // } else {
+          //   debouncedOnFormChange({
+          //     ...state,
+          //     [action.fieldName]: action.value,
+          //     items: undefined,
+          //   })
+          // }
         } else {
           debouncedOnFormChange({
             ...state,
@@ -60,14 +66,20 @@ const Form = ({ fields, existingFieldsValue, onFormChange }) => {
     if (fieldName === 'enum' || fieldName === 'items')
       return (
         <div key={fieldName} className={styles.fieldContainer}>
-          <EditorComponentHeader fieldNameOverwrite={prettyField(fieldName)}>
-            <FormEnumItemsFieldEditor
-              options={fieldValue}
-              fieldName={fieldName}
-              formData={formData}
-              setOptions={setFormData}
-            />
-          </EditorComponentHeader>
+          <EditorComponentContext.Provider // only to show description in header
+            value={{
+              field: { [fieldName]: fieldDescription },
+            }}
+          >
+            <EditorComponentHeader fieldNameOverwrite={prettyField(fieldName)}>
+              <FormEnumItemsFieldEditor
+                options={fieldValue}
+                fieldName={fieldName}
+                formData={formData}
+                setOptions={setFormData}
+              />
+            </EditorComponentHeader>
+          </EditorComponentContext.Provider>
 
           {fieldDescription.readers && (
             <EditorComponentContext.Provider

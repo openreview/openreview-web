@@ -32,6 +32,13 @@
       margin-top: 0.25rem;
     }
   }
+
+  .deleteFieldButton {
+    float: right;
+    button {
+      padding: 1px 5px;
+    }
+  }
 }
 
 .contentPreview {
