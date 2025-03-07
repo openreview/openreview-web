@@ -303,7 +303,9 @@ export default function Column(props) {
       const headOrTailId = edge[type]
       const edgeFormatted = formatEdge(edge)
       const existingItem = _.find(colItems, ['id', headOrTailId])
-      const hasConflict = edgeFormatted.name === 'Conflict' && edgeFormatted.weight === -1
+      const hasConflict =
+        (edgeFormatted.name === 'Conflict' || edgeFormatted.label === 'Conflict') &&
+        edgeFormatted.weight === -1
 
       if (existingItem) {
         if (isHidden) {
