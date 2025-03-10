@@ -5,12 +5,13 @@ import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStatus'
-import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
+import { AcPcConsoleNoteReviewStatus, LatestReplies } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from './PaperStatusMenuBar'
-import { prettyField } from '../../../lib/utils'
+import { prettyField, prettyInvitationId } from '../../../lib/utils'
 import useUser from '../../../hooks/useUser'
 import SelectAllCheckBox from '../SelectAllCheckbox'
+import Markdown from '../../EditorComponents/Markdown'
 
 const PaperRow = ({
   rowData,
@@ -33,6 +34,7 @@ const PaperRow = ({
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
     preferredEmailInvitationId,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const { note, metaReviewData, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
@@ -118,6 +120,11 @@ const PaperRow = ({
             additionalMetaReviewFields={additionalMetaReviewFields}
             preferredEmailInvitationId={preferredEmailInvitationId}
           />
+        </td>
+      )}
+      {displayReplyInvitations?.length && (
+        <td>
+          <LatestReplies rowData={rowData} referrerUrl={referrerUrl} />
         </td>
       )}
       {noteContentField && (
@@ -241,6 +248,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
     officialReviewName,
     officialMetaReviewName = 'Meta_Review',
     submissionName,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
@@ -366,13 +374,26 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
             width: '35px',
           },
           { id: 'number', content: '#', width: '55px' },
-          { id: 'summary', content: `${submissionName} Summary`, width: '30%' },
+          {
+            id: 'summary',
+            content: `${submissionName} Summary`,
+            width: displayReplyInvitations?.length ? '20%' : '30%',
+          },
           {
             id: 'reviewProgress',
             content: `${prettyField(officialReviewName)} Progress`,
-            width: '30%',
+            width: displayReplyInvitations?.length ? '15%' : '30%',
           },
           ...(areaChairsId ? [{ id: 'status', content: 'Status' }] : []),
+          ...(displayReplyInvitations?.length
+            ? [
+                {
+                  id: 'latestReplies',
+                  content: 'Latest Replies',
+                  width: '45%',
+                },
+              ]
+            : []),
           {
             id: noteContentField?.field ?? 'decision',
             content: noteContentField ? prettyField(noteContentField.field) : 'Decision',
