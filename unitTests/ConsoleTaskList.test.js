@@ -8,7 +8,7 @@ jest.mock('../lib/api-client')
 jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
 
 let venueId, submissionName
-let authorName, reviewerName, areaChairName, seniorAreaChairName, secondaryAreaChairName
+let authorName, reviewerName, areaChairName, seniorAreaChairName
 let authorConsoleReferrer,
   reviewerConsoleReferrer,
   areaChairConsoleReferrer,
@@ -23,7 +23,6 @@ beforeAll(() => {
   reviewerName = 'Reviewers'
   areaChairName = 'Area_Chairs'
   seniorAreaChairName = 'Senior_Area_Chairs'
-  secondaryAreaChairName = 'Secondary_Area_Chairs'
   authorConsoleReferrer = encodeURIComponent(
     `[Author Console](/group?id=${venueId}/${authorName}#author-tasks)`
   )
