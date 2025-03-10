@@ -5,6 +5,8 @@ import Link from 'next/link'
 import React, { useContext, useState } from 'react'
 import upperFirst from 'lodash/upperFirst'
 import copy from 'copy-to-clipboard'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import dayjs from 'dayjs'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import BasicModal from '../BasicModal'
@@ -16,6 +18,8 @@ import WebFieldContext from '../WebFieldContext'
 import { pluralizeString, prettyField, prettyInvitationId } from '../../lib/utils'
 import { getProfileLink } from '../../lib/webfield-utils'
 import Markdown from '../EditorComponents/Markdown'
+
+dayjs.extend(relativeTime)
 
 // modified from noteReviewStatus.hbs handlebar template
 export const ReviewerConsoleNoteReviewStatus = ({
@@ -677,26 +681,29 @@ export const EthicsReviewStatus = ({
 
 export const LatestReplies = ({ rowData, referrerUrl }) => {
   const { note, displayReplies } = rowData
-  return displayReplies?.map((reply) => (
-    <div key={reply.id}>
-      <strong>{prettyInvitationId(reply.invitationId)}</strong>
-      {reply.values.map((value) => {
-        if (!value.value) return null
-        return (
-          <div key={value.field}>
-            <strong>{value.field}</strong>:<Markdown text={value.value} />
-          </div>
-        )
-      })}
-      <div>
-        <a
-          href={`/forum?id=${note.id}&noteId=${reply.id}&referrer=${referrerUrl}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Read {prettyInvitationId(reply.invitationId)}
-        </a>
+  return displayReplies?.map((reply) => {
+    if (!reply.id) return null
+    return (
+      <div key={reply.id}>
+        <strong>
+          <a
+            href={`/forum?id=${note.id}&noteId=${reply.id}&referrer=${referrerUrl}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {prettyInvitationId(reply.invitationId)}
+          </a>
+        </strong>{' '}
+        {reply.date && `created ${dayjs(reply.date).fromNow()}`}
+        {reply.values.map((value) => {
+          if (!value.value) return null
+          return (
+            <div key={value.field}>
+              <strong>{value.field}</strong>:<Markdown text={value.value} />
+            </div>
+          )
+        })}
       </div>
-    </div>
-  ))
+    )
+  })
 }

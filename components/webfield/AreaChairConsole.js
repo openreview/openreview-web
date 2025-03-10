@@ -562,6 +562,7 @@ const AreaChairConsole = ({ appContext }) => {
             )?.[0]
             return {
               id: latestReply?.id,
+              date: latestReply?.mdate,
               invitationId: displayInvitaitonId,
               values: p.fields.map((field) => {
                 const value = latestReply?.content?.[field]?.value?.toString()
