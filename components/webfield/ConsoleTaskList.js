@@ -10,7 +10,6 @@ import LoadingSpinner from '../LoadingSpinner'
 const ConsoleTaskList = ({
   venueId,
   roleName,
-  extraRoleNames,
   referrer,
   filterAssignedInvitation = false,
   submissionName,
@@ -68,13 +67,7 @@ const ConsoleTaskList = ({
 
       allInvitations = allInvitations.filter((p) =>
         filterAssignedInvitation
-          ? filterAssignedInvitations(
-              p,
-              roleName,
-              submissionName,
-              submissionNumbers,
-              extraRoleNames
-            )
+          ? filterAssignedInvitations(p, roleName, submissionName, submissionNumbers)
           : p.invitees.some((q) => q.includes(`/${roleName}`))
       )
 
