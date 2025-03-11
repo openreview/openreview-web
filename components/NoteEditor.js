@@ -20,6 +20,7 @@ import { getNoteContentValues } from '../lib/forum-utils'
 import styles from '../styles/components/NoteEditor.module.scss'
 import LicenseWidget from './EditorComponents/LicenseWidget'
 import DatePickerWidget from './EditorComponents/DatePickerWidget'
+import Markdown from './EditorComponents/Markdown'
 
 const ExistingNoteReaders = NewReplyEditNoteReaders
 
@@ -661,6 +662,7 @@ const NoteEditor = ({
         </h2>
       )}
 
+      <Markdown text={invitation.description} />
       {(note?.id || replyToNote) && <hr className={styles.titleSeparator} />}
 
       <div className={styles.requiredField}>
