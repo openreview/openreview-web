@@ -1060,6 +1060,13 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     loadData()
   }, [user, userLoading, group])
 
+  useEffect(
+    () => () => {
+      setLayoutOptions({ fullWidth: false, minimalFooter: false })
+    },
+    []
+  )
+
   useEffect(() => {
     const validTabIds = [
       '#venue-configuration',

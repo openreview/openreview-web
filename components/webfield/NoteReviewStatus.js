@@ -17,7 +17,6 @@ import NoteList from '../NoteList'
 import WebFieldContext from '../WebFieldContext'
 import { pluralizeString, prettyField, prettyInvitationId } from '../../lib/utils'
 import { getProfileLink } from '../../lib/webfield-utils'
-import Markdown from '../EditorComponents/Markdown'
 
 dayjs.extend(relativeTime)
 
@@ -698,8 +697,9 @@ export const LatestReplies = ({ rowData, referrerUrl }) => {
         {reply.values.map((value) => {
           if (!value.value) return null
           return (
-            <div key={value.field}>
-              <strong>{value.field}</strong>:<Markdown text={value.value} />
+            <div key={value.field} className="mb-2">
+              <strong className="mr-1">{prettyField(value.field)}:</strong>
+              <span>{value.value}</span>
             </div>
           )
         })}

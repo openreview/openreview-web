@@ -680,6 +680,13 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     }
   }, [query, venueId])
 
+  useEffect(
+    () => () => {
+      setLayoutOptions({ fullWidth: false, minimalFooter: false })
+    },
+    []
+  )
+
   useEffect(() => {
     if (userLoading || !user || !group || !venueId) return
     loadData()
