@@ -118,7 +118,7 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
     try {
       const result = await api.get(
         '/invitations',
-        { prefix: group.id, details: 'writable' },
+        { 'edit.group.id': group.id, details: 'writable' },
         { accessToken }
       )
       const writableInvitations = (result.invitations ?? []).filter(
