@@ -15,7 +15,7 @@ import ErrorAlert from '../ErrorAlert'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
 import WebFieldContext from '../WebFieldContext'
-import { pluralizeString, prettyField, prettyInvitationId } from '../../lib/utils'
+import { pluralizeString, prettyField, prettyId, prettyInvitationId } from '../../lib/utils'
 import { getProfileLink } from '../../lib/webfield-utils'
 
 dayjs.extend(relativeTime)
@@ -682,22 +682,23 @@ export const LatestReplies = ({ rowData, referrerUrl }) => {
   const { note, displayReplies } = rowData
   return displayReplies?.map((reply) => {
     if (!reply.id) return null
+    const { id, invitationId, date, values, signature } = reply
     return (
-      <div key={reply.id}>
+      <div key={id}>
         <strong>
           <a
-            href={`/forum?id=${note.id}&noteId=${reply.id}&referrer=${referrerUrl}`}
+            href={`/forum?id=${note.id}&noteId=${id}&referrer=${referrerUrl}`}
             target="_blank"
             rel="noreferrer"
           >
-            {prettyInvitationId(reply.invitationId)}
+            {prettyInvitationId(invitationId)}
           </a>
         </strong>{' '}
-        {reply.date && `created ${dayjs(reply.date).fromNow()}`}
-        {reply.values.map((value) => {
+        {signature && `by ${prettyId(signature, true)}`} {date && ` ${dayjs(date).fromNow()}`}
+        {values.map((value) => {
           if (!value.value) return null
           return (
-            <div key={value.field} className="mb-2">
+            <div key={value.field} className="mb-2 note-content">
               <strong className="mr-1">{prettyField(value.field)}:</strong>
               <span>{value.value}</span>
             </div>

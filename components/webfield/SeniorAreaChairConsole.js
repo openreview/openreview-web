@@ -567,6 +567,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                   value,
                 }
               }),
+              signature: latestReply?.signatures?.[0],
             }
           })
 

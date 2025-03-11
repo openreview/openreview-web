@@ -25,6 +25,7 @@ import {
   pluralizeString,
   getSingularRoleName,
   getRoleHashFragment,
+  buildNoteTitle,
 } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
@@ -571,6 +572,7 @@ const AreaChairConsole = ({ appContext }) => {
                   value,
                 }
               }),
+              signature: latestReply?.signatures?.[0],
             }
           }),
         }

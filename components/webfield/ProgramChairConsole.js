@@ -538,6 +538,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                 value,
               }
             }),
+            signature: latestReply?.signatures?.[0],
           }
         })
         officialReviewsByPaperNumberMap.set(note.number, officialReviews)
