@@ -225,7 +225,7 @@ const NameDeletionTab = ({ accessToken, setNameDeletionRequestCount, isActive })
             {
               ...nameRemovalNotes.notes[0],
               processLogStatus: 'running',
-              processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
+              processLogUrl: `${process.env.API_V2_URL}/logs/process?id=${decisionResults[0].id}`,
             },
             ...nameDeletionNotes.filter((p) => p.content.status.value !== 'Pending'),
           ]
@@ -242,7 +242,7 @@ const NameDeletionTab = ({ accessToken, setNameDeletionRequestCount, isActive })
               ...p,
               processLogStatus,
               processLogUrl: decisionEdit
-                ? `${process.env.API_URL}/logs/process?id=${decisionEdit.id}`
+                ? `${process.env.API_V2_URL}/logs/process?id=${decisionEdit.id}`
                 : null,
             }
           })
@@ -518,7 +518,7 @@ const ProfileMergeTab = ({
             {
               ...profileMergeNotesResults.notes[0],
               processLogStatus: 'running',
-              processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
+              processLogUrl: `${process.env.API_V2_URL}/logs/process?id=${decisionResults[0].id}`,
             },
             ...profileMergeNotes.filter((p) => p.content.status.value !== 'Pending'),
           ]
@@ -539,7 +539,7 @@ const ProfileMergeTab = ({
               ...p,
               processLogStatus,
               processLogUrl: decisionEdit
-                ? `${process.env.API_URL}/logs/process?id=${decisionEdit.id}`
+                ? `${process.env.API_V2_URL}/logs/process?id=${decisionEdit.id}`
                 : null,
             }
           })
@@ -948,7 +948,7 @@ const EmailDeletionTab = ({ accessToken, isActive }) => {
           ...p,
           processLogStatus: processLog?.status ?? 'running',
           processLogUrl: processLog
-            ? `${process.env.API_URL}/logs/process?id=${processLog.id}`
+            ? `${process.env.API_V2_URL}/logs/process?id=${processLog.id}`
             : null,
         }
       })
