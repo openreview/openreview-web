@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { get } from 'lodash'
 import api from '../../../lib/api-client'
 import useUser from '../../../hooks/useUser'
 import {
@@ -17,7 +18,6 @@ import Icon from '../../Icon'
 import styles from '../../../styles/components/GroupWithInvitation.module.scss'
 import GroupMembersInfo from './GroupMembersInfo'
 import { Tab, TabList, TabPanel, TabPanels } from '../../Tabs'
-import GroupUICode from '../GroupUICode'
 import CodeEditor from '../../CodeEditor'
 
 const groupTabsConfig = [
@@ -99,16 +99,7 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
       case 'groupMembers':
         return <GroupMembersInfo group={group} />
       case 'groupUICode':
-        return group.details.writable ? (
-          <GroupUICode
-            group={group}
-            profileId={user?.profile?.id}
-            accessToken={accessToken}
-            reloadGroup={reloadGroup}
-          />
-        ) : (
-          <CodeEditor code={group.web} readOnly />
-        )
+        return <CodeEditor code={group.web} readOnly />
       default:
         return null
     }
@@ -138,6 +129,9 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
 
   return (
     <div className={styles.groupWithInvitation}>
+      <div className={styles.groupDescription}>
+        <Markdown text={group.description} />
+      </div>
       <div className={styles.invitationMeta}>
         <span className="date item">
           <Icon name="calendar" />
@@ -165,12 +159,10 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
         )}
         <span className="item">
           <Icon name="duplicate" />
-          <Link href={`/group/revisions?id=${group.id}`}>View Group Revisions</Link>
+          <Link href={`/group/revisions?id=${group.id}`}>Revisions</Link>
         </span>
       </div>
-      <div className={styles.groupDescription}>
-        <Markdown text={group.description} />
-      </div>
+
       <div className={styles.groupContent}>
         <GroupContent
           groupContent={group.content}
@@ -202,10 +194,16 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
             <>
               <InvitationContentEditor
                 invitation={activeGroupInvitation}
-                existingValue={{}}
+                existingValue={Object.fromEntries(
+                  Object.keys(activeGroupInvitation.edit?.content ?? {}).map((key) => {
+                    const existingFieldValue = get(group, ['content', key, 'value'])
+                    return [key, existingFieldValue]
+                  })
+                )}
                 closeInvitationEditor={() => setActivateGroupInvitation(null)}
                 onInvitationEditPosted={() => {
                   promptMessage('Edit is posted')
+                  reloadGroup()
                 }}
                 isGroupInvitation={true}
               />

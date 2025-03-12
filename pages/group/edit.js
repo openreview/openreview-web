@@ -37,12 +37,13 @@ export default function GroupEdit({ appContext }) {
               domainGroup = null
             }
           } else if (groups[0].domain) {
-            domainGroup = group
+            domainGroup = groups[0]
           }
-          setGroup({
+          const groupToSet = {
             ...groups[0],
             details: { ...groups[0].details, domain: domainGroup },
-          })
+          }
+          setGroup(groupToSet)
         } else if (!accessToken) {
           router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
