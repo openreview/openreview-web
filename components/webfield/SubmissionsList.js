@@ -29,7 +29,7 @@ export default function SubmissionsList({
   const { accessToken, userLoading } = useUser()
 
   const [combinedDisplayOptions, setCombinedDisplayOptions] = useState(defaultDisplayOptions)
-  const details = 'replyCount,presentation'
+  const details = 'replyCount,presentation,writable'
 
   const loadNotes = useCallback(
     async (limit, offset) => {
