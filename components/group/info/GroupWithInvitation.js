@@ -166,7 +166,7 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
       <div className={styles.groupContent}>
         <GroupContent
           groupContent={group.content}
-          presentation={group.presentation}
+          presentation={group.details?.presentation}
           groupReaders={group.readers}
         />
       </div>

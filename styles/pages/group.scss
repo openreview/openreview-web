@@ -1294,6 +1294,7 @@ main.invitation {
       display: flex;
       color: #999999;
       align-items: baseline;
+      width: 110%;
 
       // margin-left: 30px;
 
@@ -1332,6 +1333,7 @@ main.invitation {
       padding-bottom: 0.5rem;
       align-items: baseline;
       position: relative;
+      width: 110%;
 
       &.section-passed {
         background-color: lighten(#c8e6c9, 10%);
@@ -1343,37 +1345,6 @@ main.invitation {
         background-color: #eeeeee;
       }
 
-      // &.date-passed-1 {
-      //   background: lighten(constants.$backgroundGray, 10%);
-      // }
-      // &.date-passed-2 {
-      //   background: lighten(constants.$backgroundGray, 9%);
-      // }
-      // &.date-passed-3 {
-      //   background: lighten(constants.$backgroundGray, 8%);
-      // }
-      // &.date-passed-4 {
-      //   background: lighten(constants.$backgroundGray, 47%);
-      // }
-      // &.date-passed-5 {
-      //   background: lighten(constants.$backgroundGray, 6%);
-      // }
-      // &.date-passed-6 {
-      //   background: lighten(constants.$backgroundGray, 5%);
-      // }
-      // &.date-passed-7 {
-      //   background: lighten(constants.$backgroundGray, 4%);
-      // }
-      // &.date-passed-8 {
-      //   background: lighten(constants.$backgroundGray, 3%);
-      // }
-      // &.date-passed-9 {
-      //   background: lighten(constants.$backgroundGray, 2%);
-      // }
-      // &.date-passed-10 {
-      //   background: lighten(constants.$backgroundGray, 1%);
-      // }
-
       &.expired {
         color: gray;
         text-decoration: line-through;
@@ -1383,29 +1354,6 @@ main.invitation {
 
       // &.hovered {
       //   border: dashed 2px transparent;
-      // }
-
-      .timeline-marker {
-        position: absolute;
-        left: -20px; /* Adjust based on your layout */
-        top: 5px; /* Adjust based on your layout */
-      }
-
-      .timeline-dot {
-        width: 12px;
-        height: 12px;
-        background-color: #3498db; /* Choose your color */
-        border-radius: 50%;
-      }
-
-      // &::before {
-      //   content: '';
-      //   position: absolute;
-      //   top: 0;
-      //   bottom: 0;
-      //   left: -15px; /* Align with the center of the dots */
-      //   width: 2px;
-      //   background-color: #e0e0e0; /* Line color */
       // }
 
       .invitation-tasks {
@@ -1574,6 +1522,7 @@ main.invitation {
         right: 0;
         font-style: italic;
         color: #999999;
+        flex-grow: 1;
       }
     }
 

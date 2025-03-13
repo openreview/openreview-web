@@ -18,7 +18,11 @@ const GroupInfo = ({ appContext }) => {
 
   const loadGroup = async (id) => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken })
+      const { groups } = await api.get(
+        '/groups',
+        { id, details: 'writable,presentation' },
+        { accessToken }
+      )
       if (groups?.length > 0) {
         setGroup(groups[0])
       } else {

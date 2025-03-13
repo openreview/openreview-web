@@ -130,8 +130,8 @@ const EditInvitationRow = ({
   processLogs,
   isExpired,
   loadWorkflowInvitations,
-  isCollapsed,
   isMissingValue,
+  collapsedWorkflowInvitationIds,
   handleExpandCollapseSubInvitations,
 }) => {
   const [showEditor, setShowEditor] = useState(false)
@@ -141,6 +141,7 @@ const EditInvitationRow = ({
   const innerInvitationInvitee = invitation.edit?.invitation?.invitees
   const invitees = innerInvitationInvitee ?? invitation.invitees
   const isCreatingSubInvitations = invitation.dateprocesses?.length > 0
+  const isCollapsed = collapsedWorkflowInvitationIds.includes(invitation.id)
 
   const renderInvitee = (invitee) => {
     if (invitee === invitation.domain) return 'Administrators'
@@ -196,12 +197,15 @@ const EditInvitationRow = ({
       <div className="edit-invitation-container">
         <div className="invitation-content">
           <div className="invitation-id-container">
-            <div className="collapse-invitation" onClick={handleExpandCollapseSubInvitations}>
+            <div
+              className="collapse-invitation"
+              onClick={() => handleExpandCollapseSubInvitations(invitation.id)}
+            >
               <Icon name={isCollapsed ? 'triangle-bottom' : 'triangle-top'} />
             </div>
             <span
               className="workflow-invitation-id"
-              onClick={handleExpandCollapseSubInvitations}
+              onClick={() => handleExpandCollapseSubInvitations(invitation.id)}
             >
               {prettyId(invitation.id.replace(invitation.domain, ''))}
             </span>
@@ -265,12 +269,13 @@ const WorkflowInvitationRow = ({
   domainObject,
   setMissingValueInvitationIds,
   workflowInvitationsRef,
-  isCollapsed,
+  collapsedWorkflowInvitationIds,
 }) => {
   const [showInvitationEditor, setShowInvitationEditor] = useState(false)
   const invitationName = prettyField(subInvitation.id.split('/').pop())
   const [subInvitationContentFieldValues, setSubInvitationContentFieldValues] = useState({})
   const isGroupInvitation = subInvitation.edit?.group // sub invitation can be group invitation too
+  const isCollapsed = collapsedWorkflowInvitationIds.includes(workflowInvitation.id)
 
   const existingValue = isGroupInvitation
     ? {}
@@ -522,6 +527,204 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const workflowInvitationsRef = useRef({})
   const [collapsedWorkflowInvitationIds, setCollapsedWorkflowInvitationIds] = useState([])
 
+  const sortWorkflowInvitations = (invitations) => {
+    // return sortBy(invitations, 'cdate')
+    const passedInvitations = invitations.filter((p) =>
+      p.sectionClass.includes('section-passed')
+    )
+    const activeInvitations = invitations.filter((p) =>
+      p.sectionClass.includes('section-active')
+    )
+    const scheduledInvitations = invitations.filter((p) =>
+      p.sectionClass.includes('section-scheduled')
+    )
+    const noSectionInvitations = invitations.filter((p) => !p.sectionClass)
+    return [
+      ...sortBy(passedInvitations, 'expdate'),
+      ...sortBy(activeInvitations, 'cdate'),
+      ...sortBy(scheduledInvitations, 'cdate'),
+      ...sortBy(noSectionInvitations, 'cdate'),
+    ]
+  }
+
+  const handleExpandCollapseSubInvitations = (invitationId) => {
+    if (collapsedWorkflowInvitationIds.includes(invitationId)) {
+      setCollapsedWorkflowInvitationIds((ids) => ids.filter((id) => id !== invitationId))
+    } else {
+      setCollapsedWorkflowInvitationIds((ids) => [...ids, invitationId])
+    }
+  }
+
+  const formatWorkflowInvitation = (stepObj, invitations, logs) => {
+    const invitationId = stepObj.id
+    const isStageInvitation = stepObj.duedate || stepObj.edit?.invitation
+    const subInvitations = invitations.filter((i) => i.edit?.invitation?.id === invitationId)
+    const invitationTasks = subInvitations.filter((i) => i.duedate)
+    const isExpired = stepObj.ddate
+
+    // const isCollapsed = collapsedWorkflowInvitationIds.includes(stepObj.id)
+    const isMissingValue = missingValueInvitationIds.includes(invitationId)
+
+    const formattedCDate = formatDateTime(stepObj.cdate, {
+      second: undefined,
+      minute: undefined,
+      hour: undefined,
+      year: undefined,
+      weekday: 'short',
+    })
+    const formattedDueDate = formatDateTime(
+      isStageInvitation
+        ? (stepObj.duedate ?? stepObj.edit?.invitation?.duedate)
+        : stepObj.duedate,
+      {
+        second: undefined,
+        minute: undefined,
+        hour: undefined,
+        year: undefined,
+        weekday: 'short',
+      }
+    )
+    const formattedCDateWithTime = formatDateTime(stepObj.cdate, {
+      second: undefined,
+      year: undefined,
+      weekday: 'short',
+    })
+    const formattedDueDateWithTime = formatDateTime(
+      isStageInvitation
+        ? (stepObj.duedate ?? stepObj.edit?.invitation?.duedate)
+        : stepObj.duedate,
+      {
+        second: undefined,
+        year: undefined,
+        weekday: 'short',
+      }
+    )
+    const formattedExpDateWithTime = formatDateTime(
+      isStageInvitation
+        ? (stepObj.expdate ?? stepObj.edit?.invitation?.expdate)
+        : stepObj.expdate,
+      {
+        second: undefined,
+        year: undefined,
+        weekday: 'short',
+      }
+    )
+    let formattedDate = null
+    const formattedTooltip = `Activation Date: ${formattedCDateWithTime}${formattedDueDateWithTime ? `<br/>Due Date: ${formattedDueDateWithTime}` : ''}${formattedExpDateWithTime ? `<br/>Expiration Date: ${formattedExpDateWithTime}` : ''}`
+    const handleHover = (fieldName, e) => {
+      const container = e.target.closest('.workflow-invitation-container')
+      if (container) {
+        const subInvitationContentValueFields =
+          container.querySelectorAll('.existing-value-field')
+        const matchingElement = [...subInvitationContentValueFields]?.find((node) =>
+          node.textContent.startsWith(prettyField(fieldName))
+        )
+        if (matchingElement) {
+          matchingElement.classList.add('highlight')
+        }
+      }
+    }
+
+    const handleHoverEnd = (fieldName, e) => {
+      const container = e.target.closest('.workflow-invitation-container')
+      if (container) {
+        const subInvitationContentValueFields =
+          container.querySelectorAll('.existing-value-field')
+        const matchingElement = [...subInvitationContentValueFields]?.find((node) =>
+          node.textContent.startsWith(prettyField(fieldName))
+        )
+        if (matchingElement) {
+          matchingElement.classList.remove('highlight')
+        }
+      }
+    }
+
+    if (isStageInvitation) {
+      formattedDate = (
+        <div
+          className="cdate"
+          data-toggle="tooltip"
+          title={formattedTooltip}
+          onClick={() => handleExpandCollapseSubInvitations(invitationId)}
+        >
+          <span
+            className="activation-date"
+            onMouseEnter={(e) => handleHover('activation_date', e)}
+            onMouseLeave={(e) => handleHoverEnd('activation_date', e)}
+          >
+            {formattedCDate}
+          </span>
+          <br />
+          <span
+            className="due-date"
+            onMouseEnter={(e) => handleHover('due_date', e)}
+            onMouseLeave={(e) => handleHoverEnd('due_date', e)}
+          >{`${formattedDueDate ?? 'no deadline'}`}</span>
+        </div>
+      )
+    } else {
+      formattedDate = (
+        <div
+          className="cdate"
+          data-toggle="tooltip"
+          title={formattedTooltip}
+          onClick={() => handleExpandCollapseSubInvitations(invitationId)}
+        >
+          <span className="activation-date">{formattedCDate}</span>
+        </div>
+      )
+    }
+    const expdate = stepObj.expdate ?? stepObj.edit?.invitation?.expdate
+    const isExpDateAfterNow = dayjs(expdate).isAfter(dayjs())
+    const isCDateAfterNow = dayjs(stepObj.cdate).isAfter(dayjs())
+    const isMDateAfterCDate = dayjs(stepObj.mdate).isAfter(dayjs(stepObj.cdate))
+    const getStartEndDateContent = () => {
+      if (isStageInvitation) {
+        return expdate
+          ? `${isCDateAfterNow ? 'Starting' : 'Started'} ${dayjs(stepObj.cdate).fromNow()} ,${isExpDateAfterNow ? 'expiring' : 'expired'} ${dayjs(expdate).fromNow()}`
+          : `${isCDateAfterNow ? 'Starting' : 'Started'} ${dayjs(stepObj.cdate).fromNow()}`
+      }
+      const isInvitationModified = !isCDateAfterNow && isMDateAfterCDate
+      return isCDateAfterNow
+        ? `Scheduled to run in ${dayjs(stepObj.cdate).fromNow()}`
+        : `Executed ${dayjs(isInvitationModified ? stepObj.mdate : stepObj.cdate).fromNow()}`
+    }
+    const getSectionClass = () => {
+      const isCDateInThePast = dayjs(stepObj.cdate).isSameOrBefore(dayjs())
+      const isExpDateInThePast = dayjs(expdate).isSameOrBefore(dayjs())
+      const hasRunningProcess = logs.find(
+        (p) => p.invitation === stepObj.id && p.status === 'running'
+      )
+
+      if (isStageInvitation) {
+        if (isCDateInThePast && isExpDateInThePast) return ' section-passed'
+        if (isCDateInThePast && isExpDateAfterNow) return ' section-active'
+        if (isCDateAfterNow && isExpDateAfterNow) return ' section-scheduled'
+      } else {
+        if (isCDateInThePast) return ' section-passed'
+        if (hasRunningProcess) return ' section-active'
+        if (isCDateAfterNow) return ' section-scheduled'
+      }
+      return ''
+      // const isBeforeToday = dayjs(stepObj.cdate).isSameOrBefore(dayjs())
+      // if (!isBeforeToday) return ''
+      // const oldestSecondsAwayFromNow = dayjs().diff(dayjs(oldestCDate))
+      // const secondsAwayFromNow = dayjs().diff(dayjs(stepObj.cdate))
+      // const part = Math.ceil(secondsAwayFromNow / (oldestSecondsAwayFromNow / 10))
+      // return ` date-passed-${part}`
+    }
+    return {
+      ...stepObj,
+      isExpired,
+      sectionClass: getSectionClass(),
+      invitationTasks,
+      isMissingValue,
+      formattedDate,
+      subInvitations,
+      startEndDateContent: getStartEndDateContent(),
+    }
+  }
+
   const loadProcessLogs = async () => {
     try {
       const response = await api.getAll(
@@ -532,10 +735,12 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         },
         { accessToken, resultsKey: 'logs' }
       )
-
-      setProcessLogs(orderBy(response, ['edate'], ['desc']))
+      const logs = orderBy(response, ['edate'], ['desc'])
+      setProcessLogs(logs)
+      return logs
     } catch (error) {
       promptError(error.message)
+      return []
     }
   }
 
@@ -573,23 +778,27 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
     try {
       // eslint-disable-next-line no-shadow
-      const [groups, invitations, stageInvitations] = await Promise.all([
+      const [groups, invitations, stageInvitations, logs] = await Promise.all([
         getAllGroupsP,
         getAllInvitationsP,
         getStageInvitationTemplatesP,
+        loadProcessLogs(),
       ])
 
       const specifiedWorkflowInvitations = group.content?.workflow_invitations?.value
       const workFlowInvitations = specifiedWorkflowInvitations?.length
-        ? invitations.filter((p) => specifiedWorkflowInvitations.includes(p.id))
+        ? invitations.flatMap((stepObj) => {
+            if (!specifiedWorkflowInvitations.includes(stepObj.id)) return []
+            return formatWorkflowInvitation(stepObj, invitations, logs)
+          })
         : []
 
       setCollapsedWorkflowInvitationIds(workFlowInvitations.map((p) => p.id))
-      setWorkflowInvitations(sortBy(workFlowInvitations, 'cdate'))
+      setWorkflowInvitations(sortWorkflowInvitations(workFlowInvitations))
       setWorkflowGroups(sortBy(groups, 'cdate'))
       setAllInvitations(invitations)
       setStageInvitations(stageInvitations)
-      loadProcessLogs()
+      // loadProcessLogs()
     } catch (error) {
       promptError(error.message)
     }
@@ -686,197 +895,31 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
           <hr />
           <div className=" invitation-workflow-container">
-            {workflowInvitations.map((stepObj, index) => {
-              const invitationId = stepObj.id
-              const subInvitations = allInvitations.filter(
-                (i) => i.edit?.invitation?.id === invitationId
-              )
-              const invitationTasks = subInvitations.filter((i) => i.duedate)
-
-              const isExpired = stepObj.ddate
-
-              const isCollapsed = collapsedWorkflowInvitationIds.includes(stepObj.id)
-              const isMissingValue = missingValueInvitationIds.includes(invitationId)
-              const isStageInvitation = stepObj.duedate || stepObj.edit?.invitation
-
-              const handleExpandCollapseSubInvitations = () => {
-                if (isCollapsed) {
-                  setCollapsedWorkflowInvitationIds((ids) =>
-                    ids.filter((id) => id !== invitationId)
-                  )
-                } else {
-                  setCollapsedWorkflowInvitationIds((ids) => [...ids, invitationId])
-                }
-              }
-
-              const handleHover = (fieldName, e) => {
-                const container = e.target.closest('.workflow-invitation-container')
-                if (container) {
-                  const subInvitationContentValueFields =
-                    container.querySelectorAll('.existing-value-field')
-                  const matchingElement = [...subInvitationContentValueFields]?.find((node) =>
-                    node.textContent.startsWith(prettyField(fieldName))
-                  )
-                  if (matchingElement) {
-                    matchingElement.classList.add('highlight')
-                  }
-                }
-              }
-
-              const handleHoverEnd = (fieldName, e) => {
-                const container = e.target.closest('.workflow-invitation-container')
-                if (container) {
-                  const subInvitationContentValueFields =
-                    container.querySelectorAll('.existing-value-field')
-                  const matchingElement = [...subInvitationContentValueFields]?.find((node) =>
-                    node.textContent.startsWith(prettyField(fieldName))
-                  )
-                  if (matchingElement) {
-                    matchingElement.classList.remove('highlight')
-                  }
-                }
-              }
-
-              const formattedCDate = formatDateTime(stepObj.cdate, {
-                second: undefined,
-                minute: undefined,
-                hour: undefined,
-                year: undefined,
-                weekday: 'short',
-              })
-              const formattedDueDate = formatDateTime(
-                isStageInvitation
-                  ? (stepObj.duedate ?? stepObj.edit?.invitation?.duedate)
-                  : stepObj.duedate,
-                {
-                  second: undefined,
-                  minute: undefined,
-                  hour: undefined,
-                  year: undefined,
-                  weekday: 'short',
-                }
-              )
-              const formattedCDateWithTime = formatDateTime(stepObj.cdate, {
-                second: undefined,
-                year: undefined,
-                weekday: 'short',
-              })
-              const formattedDueDateWithTime = formatDateTime(
-                isStageInvitation
-                  ? (stepObj.duedate ?? stepObj.edit?.invitation?.duedate)
-                  : stepObj.duedate,
-                {
-                  second: undefined,
-                  year: undefined,
-                  weekday: 'short',
-                }
-              )
-              const formattedExpDateWithTime = formatDateTime(
-                isStageInvitation
-                  ? (stepObj.expdate ?? stepObj.edit?.invitation?.expdate)
-                  : stepObj.expdate,
-                {
-                  second: undefined,
-                  year: undefined,
-                  weekday: 'short',
-                }
-              )
-              let formattedDate = null
-              const formattedTooltip = `Activation Date: ${formattedCDateWithTime}${formattedDueDateWithTime ? `<br/>Due Date: ${formattedDueDateWithTime}` : ''}${formattedExpDateWithTime ? `<br/>Expiration Date: ${formattedExpDateWithTime}` : ''}`
-              if (isStageInvitation) {
-                formattedDate = (
-                  <div
-                    className="cdate"
-                    data-toggle="tooltip"
-                    title={formattedTooltip}
-                    onClick={handleExpandCollapseSubInvitations}
-                  >
-                    <span
-                      className="activation-date"
-                      onMouseEnter={(e) => handleHover('activation_date', e)}
-                      onMouseLeave={(e) => handleHoverEnd('activation_date', e)}
-                    >
-                      {formattedCDate}
-                    </span>
-                    <br />
-                    <span
-                      className="due-date"
-                      onMouseEnter={(e) => handleHover('due_date', e)}
-                      onMouseLeave={(e) => handleHoverEnd('due_date', e)}
-                    >{`${formattedDueDate ?? 'no deadline'}`}</span>
-                  </div>
-                )
-              } else {
-                formattedDate = (
-                  <div
-                    className="cdate"
-                    data-toggle="tooltip"
-                    title={formattedTooltip}
-                    onClick={handleExpandCollapseSubInvitations}
-                  >
-                    <span className="activation-date">{formattedCDate}</span>
-                  </div>
-                )
-              }
-              const expdate = stepObj.expdate ?? stepObj.edit?.invitation?.expdate
-              const isExpDateAfterNow = dayjs(expdate).isAfter(dayjs())
-              const isCDateAfterNow = dayjs(stepObj.cdate).isAfter(dayjs())
-              const isMDateAfterCDate = dayjs(stepObj.mdate).isAfter(dayjs(stepObj.cdate))
-
-              const getSectionClass = () => {
-                const isCDateInThePast = dayjs(stepObj.cdate).isSameOrBefore(dayjs())
-                const isExpDateInThePast = dayjs(expdate).isSameOrBefore(dayjs())
-                const hasRunningProcess = processLogs.find(
-                  (p) => p.invitation === stepObj.id && p.status === 'running'
-                )
-
-                if (isStageInvitation) {
-                  if (isCDateInThePast && isExpDateInThePast) return ' section-passed'
-                  if (isCDateInThePast && isExpDateAfterNow) return ' section-active'
-                  if (isCDateAfterNow && isExpDateAfterNow) return ' section-scheduled'
-                } else {
-                  if (isCDateInThePast) return ' section-passed'
-                  if (hasRunningProcess) return ' section-active'
-                  if (isCDateAfterNow) return ' section-scheduled'
-                }
-                return ''
-                // const isBeforeToday = dayjs(stepObj.cdate).isSameOrBefore(dayjs())
-                // if (!isBeforeToday) return ''
-                // const oldestSecondsAwayFromNow = dayjs().diff(dayjs(oldestCDate))
-                // const secondsAwayFromNow = dayjs().diff(dayjs(stepObj.cdate))
-                // const part = Math.ceil(secondsAwayFromNow / (oldestSecondsAwayFromNow / 10))
-                // return ` date-passed-${part}`
-              }
-
-              const getStartEndDateContent = () => {
-                if (isStageInvitation) {
-                  return expdate
-                    ? `${isCDateAfterNow ? 'Starting' : 'Started'} ${dayjs(stepObj.cdate).fromNow()} ,${isExpDateAfterNow ? 'expiring' : 'expired'} ${dayjs(expdate).fromNow()}`
-                    : `${isCDateAfterNow ? 'Starting' : 'Started'} ${dayjs(stepObj.cdate).fromNow()}`
-                }
-                const isInvitationModified = !isCDateAfterNow && isMDateAfterCDate
-                return isCDateAfterNow
-                  ? `Scheduled to run in ${dayjs(stepObj.cdate).fromNow()}`
-                  : `Executed ${dayjs(isInvitationModified ? stepObj.mdate : stepObj.cdate).fromNow()}`
-              }
+            {workflowInvitations.map((stepObj) => {
+              const {
+                id,
+                isExpired,
+                sectionClass,
+                invitationTasks,
+                isMissingValue,
+                formattedDate,
+                subInvitations,
+                startEndDateContent,
+              } = stepObj
               return (
                 <motion.div
                   layout="position"
-                  key={invitationId}
+                  key={id}
                   transition={{ duration: 0.5 }}
                   ref={(el) => {
                     // eslint-disable-next-line no-param-reassign
-                    workflowInvitationsRef.current[invitationId] = el
+                    workflowInvitationsRef.current[id] = el
                   }}
                   className="motion-div"
                 >
                   <div
-                    key={invitationId}
-                    className={`workflow-invitation-container${isExpired ? ' expired' : ''}${getSectionClass()}`}
+                    className={`workflow-invitation-container${isExpired ? ' expired' : ''}${sectionClass}`}
                   >
-                    {/* <div className="timeline-marker">
-                      <div className="timeline-dot"></div>
-                    </div> */}
                     <div className="invitation-tasks">
                       {invitationTasks?.length > 0 ? (
                         <>
@@ -901,8 +944,8 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                         processLogs={processLogs}
                         isExpired={isExpired}
                         loadWorkflowInvitations={loadAllInvitations}
-                        isCollapsed={isCollapsed}
                         isMissingValue={isMissingValue}
+                        collapsedWorkflowInvitationIds={collapsedWorkflowInvitationIds}
                         handleExpandCollapseSubInvitations={handleExpandCollapseSubInvitations}
                       />
 
@@ -916,11 +959,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                             domainObject={group.content}
                             setMissingValueInvitationIds={setMissingValueInvitationIds}
                             workflowInvitationsRef={workflowInvitationsRef}
-                            isCollapsed={isCollapsed}
+                            collapsedWorkflowInvitationIds={collapsedWorkflowInvitationIds}
                           />
                         ))}
                     </div>
-                    <div className="start-end-date">{getStartEndDateContent()}</div>
+                    <div className="start-end-date">{startEndDateContent}</div>
                   </div>
                 </motion.div>
               )
