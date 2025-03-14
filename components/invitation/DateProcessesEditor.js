@@ -407,7 +407,7 @@ const DateProcessesEditor = ({
         invitation: {
           id: invitation.id,
           signatures: invitation.signatures,
-          dateprocesses: processesToPost.length ? processesToPost : null,
+          dateprocesses: processesToPost.length ? processesToPost : { delete: true },
           ...(isMetaInvitation && { edit: true }),
         },
         readers: [profileId],

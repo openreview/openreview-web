@@ -1,11 +1,10 @@
-/* globals promptError: false */
-/* globals promptMessage: false */
-
+/* globals promptError, promptMessage, $: false */
 import { useState, useContext, useEffect, useReducer } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import uniq from 'lodash/uniq'
 import kebabCase from 'lodash/kebabCase'
+import { get } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import VenueHeader from './VenueHeader'
@@ -177,7 +176,7 @@ export default function VenueHomepage({ appContext }) {
           Object.keys(postQuery).every((key) => {
             const value = key.startsWith('content.')
               ? note.content[key.slice(8)]?.value
-              : note[key]
+              : get(note, key)
             if (typeof value === 'undefined' || value === null) return false
             return Array.isArray(value)
               ? value.includes(postQuery[key])
@@ -216,6 +215,7 @@ export default function VenueHomepage({ appContext }) {
     }
 
     router.events.on('hashChangeComplete', handleRouteChange)
+    $('[data-toggle="tooltip"]').tooltip()
     return () => {
       router.events.off('hashChangeComplete', handleRouteChange)
     }

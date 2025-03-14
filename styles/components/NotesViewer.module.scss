@@ -1,0 +1,58 @@
+@use '../utils/constants';
+
+.jsonInput {
+  resize: vertical;
+}
+
+.notesViewerContainer {
+  .tab {
+    padding-top: 0;
+    padding-left: 0;
+  }
+}
+
+.noteContainer {
+  display: flex;
+  align-items: start;
+
+  .noteSelectInput {
+    margin-top: 0.65rem;
+    margin-right: 0.5rem;
+  }
+}
+
+.optionContainer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.5rem;
+}
+
+.option {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  input {
+    margin-left: 0.5rem;
+    margin-top: 0;
+  }
+}
+
+.exportContainer {
+  display: flex;
+  align-items: flex-start;
+
+  button {
+    height: fit-content;
+    margin-top: 20px;
+    margin-right: 0.5rem;
+    a {
+      color: white;
+    }
+  }
+
+  :global {
+    .pagination-container {
+      flex-grow: 1;
+    }
+  }
+}
