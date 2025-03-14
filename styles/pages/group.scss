@@ -1284,24 +1284,49 @@ main.invitation {
       color: constants.$orRed;
     }
 
-    // .id-icon {
-    //   font-weight: 600;
-    //   font-size: 0.8rem;
-    //   align-self: center;
-    // }
+    .task-header {
+      display: flex;
+      align-items: baseline;
+
+      .task-title {
+        margin-right: 0.25rem;
+      }
+    }
+    .tasks-list {
+      display: flex;
+      flex-direction: column;
+
+      .task-container {
+        display: flex;
+        justify-content: start;
+        margin-bottom: 0.25rem;
+
+        &.completed {
+          opacity: 0.6;
+          background-color: #eee;
+          padding: 0.25rem 0.5rem;
+          margin: 0.25rem -0.5rem;
+        }
+
+        .task-name {
+          margin-right: 0.5rem;
+          cursor: pointer;
+        }
+        .task-due-date {
+          background-color: constants.$sandyBrown;
+          border: 1px solid darken(constants.$sandyBrown, 5%);
+          font-size: 0.75rem;
+          font-weight: normal;
+          color: constants.$orRed;
+        }
+      }
+    }
 
     .workflow-invitations-header {
       display: flex;
       color: #999999;
       align-items: baseline;
       width: 110%;
-
-      // margin-left: 30px;
-
-      .tasks-header {
-        width: 15%;
-        margin-right: 0.5rem;
-      }
 
       .cdate-header {
         width: 10%;
@@ -1350,23 +1375,6 @@ main.invitation {
         text-decoration: line-through;
         opacity: 0.8;
         background: darken(constants.$backgroundGray, 5%);
-      }
-
-      // &.hovered {
-      //   border: dashed 2px transparent;
-      // }
-
-      .invitation-tasks {
-        width: 15%;
-        margin-right: 0.5rem;
-        display: flex;
-        flex-direction: column;
-
-        .no-tasks {
-          color: #999999;
-          font-size: 0.9rem;
-          font-style: italic;
-        }
       }
 
       .invitation-cdate {
@@ -1493,6 +1501,12 @@ main.invitation {
 
         .sub-invitation-container {
           margin-left: -2.5rem;
+
+          .sub-invitation-due-date {
+            margin-left: 0.25rem;
+            font-size: 0.75rem;
+            font-style: italic;
+          }
 
           ul {
             list-style-type: none;

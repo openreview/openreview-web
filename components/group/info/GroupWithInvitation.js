@@ -19,6 +19,9 @@ import styles from '../../../styles/components/GroupWithInvitation.module.scss'
 import GroupMembersInfo from './GroupMembersInfo'
 import { Tab, TabList, TabPanel, TabPanels } from '../../Tabs'
 import CodeEditor from '../../CodeEditor'
+import GroupSignedNotes from '../GroupSignedNotes'
+import GroupChildGroups from '../GroupChildGroups'
+import GroupRelatedInvitations from '../GroupRelatedInvitations'
 
 const groupTabsConfig = [
   {
@@ -31,6 +34,18 @@ const groupTabsConfig = [
     id: 'groupUICode',
     label: 'UI Code',
     sections: ['groupUICode'],
+  },
+  {
+    id: 'groupUICode',
+    label: 'UI Code',
+    sections: ['groupUICode'],
+  },
+  { id: 'signedNotes', label: 'Signed Notes', sections: ['groupSignedNotes'] },
+  { id: 'childGroups', label: 'Child Groups', sections: ['groupChildGroups'] },
+  {
+    id: 'relatedInvitations',
+    label: 'Related Invitations',
+    sections: ['groupRelatedInvitations'],
   },
 ]
 
@@ -100,6 +115,12 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
         return <GroupMembersInfo group={group} />
       case 'groupUICode':
         return <CodeEditor code={group.web} readOnly />
+      case 'groupSignedNotes':
+        return <GroupSignedNotes group={group} accessToken={accessToken} />
+      case 'groupChildGroups':
+        return <GroupChildGroups groupId={group.id} accessToken={accessToken} />
+      case 'groupRelatedInvitations':
+        return <GroupRelatedInvitations group={group} accessToken={accessToken} />
       default:
         return null
     }

@@ -1,7 +1,7 @@
 /* eslint-disable arrow-body-style */
 /* globals promptError,promptMessage,$: false */
 import React, { useEffect, useRef, useState } from 'react'
-import { orderBy, sortBy, get } from 'lodash'
+import { orderBy, sortBy, get, set } from 'lodash'
 import timezone from 'dayjs/plugin/timezone'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import dayjs from 'dayjs'
@@ -37,7 +37,7 @@ const EditInvitationProcessLogStatus = ({ processLogs, isMissingValue }) => {
     return (
       <span className="log-status">
         <span className="fixed-text">Status:</span>
-        <span className="fixed-text missing-value"> Missing value</span>
+        <span className="fixed-text missing-value"> Configuration tasks are pending</span>
       </span>
     )
   }
@@ -123,7 +123,75 @@ const EditInvitationProcessLogStatus = ({ processLogs, isMissingValue }) => {
   }
 }
 
-const EditInvitationRow = ({
+const WorkflowTasks = ({ workflowTasks, setCollapsedWorkflowInvitationIds }) => {
+  const [isCollapsed, setIsCollapsed] = useState(true)
+  const numPending = workflowTasks.filter((p) => !p.isCompleted).length
+  const numCompleted = workflowTasks.filter((p) => p.isCompleted).length
+
+  const openSubInvitation = (task) => {
+    setCollapsedWorkflowInvitationIds((ids) =>
+      ids.filter((id) => id !== task.workflowInvitation.id)
+    )
+
+    setTimeout(() => {
+      const element = $(`.sub-invitation-container[data-invitation-id="${task.id}"]`)
+      if (element.length > 0) {
+        element[0].scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        })
+      }
+    }, 100)
+  }
+  if (!workflowTasks.length) return null
+
+  return (
+    <div className="workflow">
+      <div
+        className="collapse-invitation"
+        onClick={() => {
+          setIsCollapsed((collapse) => !collapse)
+        }}
+      >
+        <div className="task-header">
+          <h4 className="task-title">{`Tasks List (${inflect(
+            numPending,
+            'pending task',
+            'pending tasks',
+            true
+          )}${
+            numCompleted
+              ? ` and ${inflect(numCompleted, 'completed task', 'completed tasks', true)}`
+              : ''
+          })`}</h4>
+          <Icon name={isCollapsed ? 'triangle-bottom' : 'triangle-top'} />
+        </div>
+      </div>
+      {!isCollapsed && (
+        <div className="tasks-list">
+          {workflowTasks.map((task) => {
+            return (
+              <div
+                className={`task-container${task.isCompleted ? ' completed' : ''}`}
+                key={task.id}
+              >
+                <div className="task-name" onClick={() => openSubInvitation(task)}>
+                  {prettyInvitationId(task.id)}
+                </div>
+                <div className={`task-due-date`}>{`Due: ${formatDateTime(task.duedate, {
+                  month: 'long',
+                  timeZoneName: 'short',
+                })}`}</div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const WorkflowInvitationRow = ({
   invitation,
   subInvitations,
   isDomainGroup,
@@ -262,7 +330,7 @@ const EditInvitationRow = ({
   )
 }
 
-const WorkflowInvitationRow = ({
+const SubInvitationRow = ({
   subInvitation,
   workflowInvitation,
   loadWorkflowInvitations,
@@ -327,7 +395,7 @@ const WorkflowInvitationRow = ({
         subInvitation.edit.content?.[key]?.value?.param?.type
       )
       if (displayValue === 'value missing') {
-        displayValue = <span className="missing-value">Missing</span>
+        displayValue = <span className="missing-value">Configuration tasks are pending</span>
         hasMissingValue = true
       }
       contentFieldValueMap[key] = displayValue
@@ -343,7 +411,7 @@ const WorkflowInvitationRow = ({
 
   if (isCollapsed) return <div className="sub-invitation-container" />
   return (
-    <div className="sub-invitation-container">
+    <div className="sub-invitation-container" data-invitation-id={subInvitation.id}>
       <ul>
         <li>
           <div>
@@ -369,6 +437,15 @@ const WorkflowInvitationRow = ({
                 </a>
               )}
               <span>{invitationName}</span>
+              {subInvitation.duedate && (
+                <span className="sub-invitation-due-date">
+                  Due:{' '}
+                  {formatDateTime(subInvitation.duedate, {
+                    month: 'long',
+                    timeZoneName: 'short',
+                  })}
+                </span>
+              )}
             </div>
             <Markdown text={subInvitation.description} />
 
@@ -526,6 +603,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
   const workflowInvitationsRef = useRef({})
   const [collapsedWorkflowInvitationIds, setCollapsedWorkflowInvitationIds] = useState([])
+  const [workflowTasks, setWorkflowTasks] = useState([])
 
   const sortWorkflowInvitations = (invitations) => {
     // return sortBy(invitations, 'cdate')
@@ -559,7 +637,13 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
     const invitationId = stepObj.id
     const isStageInvitation = stepObj.duedate || stepObj.edit?.invitation
     const subInvitations = invitations.filter((i) => i.edit?.invitation?.id === invitationId)
-    const invitationTasks = subInvitations.filter((i) => i.duedate)
+    const invitationTasks = subInvitations.flatMap((p) => {
+      if (!p.duedate) return []
+      return {
+        ...p,
+        isCompleted: stepObj.invitations?.includes(p.id),
+      }
+    })
     const isExpired = stepObj.ddate
 
     // const isCollapsed = collapsedWorkflowInvitationIds.includes(stepObj.id)
@@ -786,15 +870,32 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       ])
 
       const specifiedWorkflowInvitations = group.content?.workflow_invitations?.value
-      const workFlowInvitations = specifiedWorkflowInvitations?.length
+      const invitationsToShowInWorkflow = specifiedWorkflowInvitations?.length
         ? invitations.flatMap((stepObj) => {
             if (!specifiedWorkflowInvitations.includes(stepObj.id)) return []
             return formatWorkflowInvitation(stepObj, invitations, logs)
           })
         : []
 
-      setCollapsedWorkflowInvitationIds(workFlowInvitations.map((p) => p.id))
-      setWorkflowInvitations(sortWorkflowInvitations(workFlowInvitations))
+      setWorkflowTasks(
+        sortBy(
+          invitationsToShowInWorkflow.reduce(
+            (prev, curr) => [
+              ...prev,
+              ...curr.invitationTasks.map((taskSubInvitation) => {
+                return {
+                  ...taskSubInvitation,
+                  workflowInvitation: curr,
+                }
+              }),
+            ],
+            []
+          ),
+          'duedate'
+        )
+      )
+      setCollapsedWorkflowInvitationIds(invitationsToShowInWorkflow.map((p) => p.id))
+      setWorkflowInvitations(sortWorkflowInvitations(invitationsToShowInWorkflow))
       setWorkflowGroups(sortBy(groups, 'cdate'))
       setAllInvitations(invitations)
       setStageInvitations(stageInvitations)
@@ -851,13 +952,18 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           </div>
         </EditorSection>
       )}
+
+      <WorkflowTasks
+        workflowTasks={workflowTasks}
+        setCollapsedWorkflowInvitationIds={setCollapsedWorkflowInvitationIds}
+      />
+
       {workflowInvitations.length > 0 && (
         <EditorSection
           title={`Workflow Configurations (${workflowInvitations.length})`}
           className="workflow"
         >
           <div className="workflow-invitations-header">
-            <div className="tasks-header">PC Tasks</div>
             <div className="cdate-header">Activation Dates</div>
             <div className="invtations-header">
               <div
@@ -894,7 +1000,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           </div>
 
           <hr />
-          <div className=" invitation-workflow-container">
+          <div className="invitation-workflow-container">
             {workflowInvitations.map((stepObj) => {
               const {
                 id,
@@ -920,24 +1026,13 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                   <div
                     className={`workflow-invitation-container${isExpired ? ' expired' : ''}${sectionClass}`}
                   >
-                    <div className="invitation-tasks">
-                      {invitationTasks?.length > 0 ? (
-                        <>
-                          {invitationTasks.map((task) => {
-                            return <span key={task.id}>{prettyId(task.id, true)}</span>
-                          })}
-                        </>
-                      ) : (
-                        <span className="no-tasks">N/A</span>
-                      )}
-                    </div>
                     <div
                       className={`invitation-cdate${isMissingValue ? ' missing-value' : ''}`}
                     >
                       {formattedDate}
                     </div>
                     <div className="edit-invitation-info">
-                      <EditInvitationRow
+                      <WorkflowInvitationRow
                         invitation={stepObj}
                         subInvitations={subInvitations}
                         isDomainGroup={group.id !== group.domain}
@@ -951,7 +1046,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
                       {subInvitations.length > 0 &&
                         subInvitations.map((subInvitation) => (
-                          <WorkflowInvitationRow
+                          <SubInvitationRow
                             key={subInvitation.id}
                             subInvitation={subInvitation}
                             workflowInvitation={stepObj}
