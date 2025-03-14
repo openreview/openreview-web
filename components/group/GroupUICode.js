@@ -6,6 +6,11 @@ import api from '../../lib/api-client'
 import EditorSection from '../EditorSection'
 import LoadingSpinner from '../LoadingSpinner'
 import SpinnerButton from '../SpinnerButton'
+import WebFieldContext from '../WebFieldContext'
+import { parseComponentCode } from '../../lib/webfield-utils'
+import useUser from '../../hooks/useUser'
+import useQuery from '../../hooks/useQuery'
+import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'), {
   loading: () => <LoadingSpinner inline />,
@@ -15,6 +20,11 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
   const [showCodeEditor, setShowCodeEditor] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [modifiedWebCode, setModifiedWebCode] = useState(group.web)
+  const [showWebfieldPreview, setShowWebfieldPreview] = useState(false)
+  const [webComponentProps, setWebComponentProps] = useState({})
+  const [WebComponent, setWebComponent] = useState(null)
+  const { user } = useUser
+  const query = useQuery()
 
   const handleUpdateCodeClick = async () => {
     setIsSaving(true)
@@ -47,15 +57,94 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
     setIsSaving(false)
   }
 
+  const renderWebFieldPreview = async () => {
+    let componentObj
+    try {
+      componentObj = await parseComponentCode(
+        { ...group, web: modifiedWebCode },
+        group.details.domain,
+        user,
+        query,
+        accessToken
+      )
+    } catch (error) {
+      promptError(`Error parsing component code: ${error.message}`)
+      return
+    }
+    setWebComponent(
+      dynamic(() =>
+        import(`../webfield/${componentObj.component}`).catch((e) => {
+          promptError(`Error loading ${componentObj.component}: ${e.message}`)
+        })
+      )
+    )
+    const componentProps = {}
+    Object.keys(componentObj.properties).forEach((propName) => {
+      const prop = componentObj.properties[propName]
+      if (prop?.component) {
+        componentProps[propName] = dynamic(() => import(`../webfield/${prop.component}`))
+      } else {
+        componentProps[propName] = prop
+      }
+    })
+    setWebComponentProps(componentProps)
+  }
+
   useEffect(() => {
     // Close code editor when changing groups
     setShowCodeEditor(false)
   }, [group.id])
 
+  useEffect(() => {
+    if (!showWebfieldPreview) return
+    renderWebFieldPreview()
+  }, [showWebfieldPreview])
+
   return (
     <EditorSection title="Group UI Code">
       {showCodeEditor && (
-        <CodeEditor code={group.web} onChange={setModifiedWebCode} scrollIntoView />
+        <Tabs>
+          <TabList>
+            <Tab
+              id="ui-code"
+              active
+              onClick={() => {
+                setShowWebfieldPreview(false)
+                setWebComponentProps({})
+                setWebComponent(null)
+              }}
+            >
+              Code
+            </Tab>
+            <Tab id="ui-code-preview" onClick={() => setShowWebfieldPreview(true)}>
+              Preview
+            </Tab>
+          </TabList>
+
+          <TabPanels>
+            <TabPanel id="ui-code">
+              <CodeEditor code={group.web} onChange={setModifiedWebCode} scrollIntoView />
+            </TabPanel>
+            <TabPanel id="ui-code-preview">
+              <WebFieldContext.Provider value={webComponentProps}>
+                <div id="group-container">
+                  {WebComponent && webComponentProps ? (
+                    <WebComponent
+                      appContext={{
+                        setBannerHidden: () => {},
+                        setBannerContent: () => {},
+                        setEditBanner: () => {},
+                        setLayoutOptions: () => {},
+                      }}
+                    />
+                  ) : (
+                    <LoadingSpinner />
+                  )}
+                </div>
+              </WebFieldContext.Provider>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       )}
 
       {showCodeEditor ? (

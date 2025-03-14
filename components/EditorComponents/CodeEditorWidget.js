@@ -9,7 +9,7 @@ const CodeEditorWidget = () => {
     useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldType = field[fieldName]?.value?.param?.type
-  const isJsonType = fieldType === 'json'
+  const isJsonType = fieldType === 'json' || fieldType === 'content'
   const defaultValue = field[fieldName]?.value?.param?.default
 
   const [formattedCode, setFormattedCode] = useState(
