@@ -3,11 +3,10 @@ import Link from 'next/link'
 import LogoutLink from './LogoutLink'
 import NavNotificationCount from './NavNotificationCount'
 import serverAuth from '../auth'
-
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
+import { cookies } from 'next/headers'
 
 export default async function NavUserLinks() {
+  await cookies()
   const { user } = await serverAuth()
 
   if (!user) {

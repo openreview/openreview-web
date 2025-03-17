@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import serverAuth from '../auth'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import api from '../../lib/api-client'
@@ -11,10 +11,8 @@ export const metadata = {
   title: 'Activity | OpenReview',
 }
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-
 export default async function page() {
+  await cookies()
   const { token } = await serverAuth()
   if (!token) redirect('/login?redirect=/activity')
   const headersList = await headers()
