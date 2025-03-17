@@ -13,7 +13,7 @@ import {
   prettyInvitationId,
 } from '../../../lib/utils'
 import Markdown from '../../EditorComponents/Markdown'
-import InvitationContentEditor from '../InvitationContentEditor'
+import InvitationEditor from '../InvitationEditor'
 import Icon from '../../Icon'
 import styles from '../../../styles/components/GroupWithInvitation.module.scss'
 import GroupMembersInfo from './GroupMembersInfo'
@@ -29,11 +29,6 @@ const groupTabsConfig = [
     label: ' Members',
     sections: ['groupMembers'],
     default: true,
-  },
-  {
-    id: 'groupUICode',
-    label: 'UI Code',
-    sections: ['groupUICode'],
   },
   {
     id: 'groupUICode',
@@ -112,15 +107,19 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
   const renderSection = (sectionName) => {
     switch (sectionName) {
       case 'groupMembers':
-        return <GroupMembersInfo group={group} />
+        return <GroupMembersInfo key={sectionName} group={group} />
       case 'groupUICode':
-        return <CodeEditor code={group.web} readOnly />
+        return <CodeEditor key={sectionName} code={group.web} readOnly />
       case 'groupSignedNotes':
-        return <GroupSignedNotes group={group} accessToken={accessToken} />
+        return <GroupSignedNotes key={sectionName} group={group} accessToken={accessToken} />
       case 'groupChildGroups':
-        return <GroupChildGroups groupId={group.id} accessToken={accessToken} />
+        return (
+          <GroupChildGroups key={sectionName} groupId={group.id} accessToken={accessToken} />
+        )
       case 'groupRelatedInvitations':
-        return <GroupRelatedInvitations group={group} accessToken={accessToken} />
+        return (
+          <GroupRelatedInvitations key={sectionName} group={group} accessToken={accessToken} />
+        )
       default:
         return null
     }
@@ -213,11 +212,16 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
         <div>
           {activeGroupInvitation && (
             <>
-              <InvitationContentEditor
+              <InvitationEditor
                 invitation={activeGroupInvitation}
                 existingValue={Object.fromEntries(
                   Object.keys(activeGroupInvitation.edit?.content ?? {}).map((key) => {
-                    const existingFieldValue = get(group, ['content', key, 'value'])
+                    const existingFieldValue = get(
+                      group,
+                      activeGroupInvitation?.edit?.group?.content
+                        ? ['content', key, 'value'] // editing group content
+                        : [key] // editing other group info
+                    )
                     return [key, existingFieldValue]
                   })
                 )}
@@ -227,6 +231,7 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
                   reloadGroup()
                 }}
                 isGroupInvitation={true}
+                group={group}
               />
             </>
           )}

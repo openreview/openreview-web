@@ -20,7 +20,7 @@ import {
   getSubInvitationContentFieldDisplayValue,
   getMetaInvitationId,
 } from '../../lib/utils'
-import InvitationContentEditor from './InvitationContentEditor'
+import InvitationEditor from './InvitationEditor'
 import Dropdown from '../Dropdown'
 import Markdown from '../EditorComponents/Markdown'
 import Icon from '../Icon'
@@ -314,7 +314,7 @@ const WorkflowInvitationRow = ({
 
         {showEditor && (
           <div className="content-editor-container">
-            <InvitationContentEditor
+            <InvitationEditor
               invitation={invitation}
               existingValue={{}}
               isGroupInvitation={true}
@@ -470,7 +470,7 @@ const SubInvitationRow = ({
           </div>
           <div>
             {showInvitationEditor && (
-              <InvitationContentEditor
+              <InvitationEditor
                 invitation={subInvitation}
                 existingValue={existingValue}
                 closeInvitationEditor={() => setShowInvitationEditor(false)}
@@ -539,7 +539,7 @@ const WorkflowGroupRow = ({ group, groupInvitations }) => {
         <div>
           {activeGroupInvitation && (
             <>
-              <InvitationContentEditor
+              <InvitationEditor
                 invitation={activeGroupInvitation}
                 existingValue={{}}
                 closeInvitationEditor={() => setActivateGroupInvitation(null)}
@@ -577,7 +577,7 @@ const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
         />
       </div>
       {stageToAdd && (
-        <InvitationContentEditor
+        <InvitationEditor
           invitation={stageToAdd}
           existingValue={existingValue}
           className="panel"

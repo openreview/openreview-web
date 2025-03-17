@@ -13,14 +13,15 @@ import api from '../../lib/api-client'
 import ContentFieldEditor from '../EditorComponents/ContentFieldEditor'
 import EditSignatures from '../EditSignatures'
 
-// For editing invitation.edit.content
-const InvitationContentEditor = ({
+// For editing invitation
+const InvitationEditor = ({
   invitation,
   className,
   existingValue,
   closeInvitationEditor,
   onInvitationEditPosted,
   isGroupInvitation = false,
+  group,
 }) => {
   const { user, userLoading, accessToken } = useUser()
   const [errors, setErrors] = useState([])
@@ -55,6 +56,7 @@ const InvitationContentEditor = ({
         <EditorComponentContext.Provider
           value={{
             invitation,
+            group,
             field: { [fieldName]: fieldDescription },
             onChange: setInvitationEditorData,
             value: fieldValue,
@@ -194,4 +196,4 @@ const InvitationContentEditor = ({
   )
 }
 
-export default InvitationContentEditor
+export default InvitationEditor

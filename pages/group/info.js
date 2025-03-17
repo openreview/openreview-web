@@ -24,7 +24,31 @@ const GroupInfo = ({ appContext }) => {
         { accessToken }
       )
       if (groups?.length > 0) {
-        setGroup(groups[0])
+        if (groups[0].details?.writable) {
+          // required to preview web
+          let domainGroup = null
+          if (groups[0].domain && groups[0].domain !== groups[0].id) {
+            try {
+              const apiRes = await api.get(
+                '/groups',
+                { id: groups[0].domain },
+                { accessToken }
+              )
+              domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
+            } catch (e) {
+              domainGroup = null
+            }
+          } else if (groups[0].domain) {
+            domainGroup = groups[0]
+          }
+          const groupToSet = {
+            ...groups[0],
+            details: { ...groups[0].details, domain: domainGroup },
+          }
+          setGroup(groupToSet)
+        } else {
+          setGroup(groups[0])
+        }
       } else {
         setError({ statusCode: 404, message: 'Group not found' })
       }

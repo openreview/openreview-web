@@ -75,6 +75,9 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
       dynamic(() =>
         import(`../webfield/${componentObj.component}`).catch((e) => {
           promptError(`Error loading ${componentObj.component}: ${e.message}`)
+          return {
+            default: () => <em>Nothing to preview</em>,
+          }
         })
       )
     )
