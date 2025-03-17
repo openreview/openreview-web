@@ -12,6 +12,10 @@ jest.mock('../components/CodeEditor', () => (props) => {
   return <span>code editor</span>
 })
 
+jest.mock('../components/EditorComponents/CodeEditorPreviewWidget', () => (props) => (
+  <span>CodeEditorPreviewWidget</span>
+))
+
 jest.mock('next/dynamic', () => ({
   __esModule: true,
   default: (...props) => {
@@ -304,6 +308,27 @@ describe('CodeEditorWidget', () => {
     renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
     await waitFor(() => {
       expect(onChange).not.toHaveBeenCalled()
+    })
+  })
+
+  test('render code editor with preview widget when field is web', async () => {
+    const providerProps = {
+      value: {
+        field: {
+          web: {
+            value: {
+              param: {
+                type: 'script',
+              },
+            },
+          },
+        },
+      },
+    }
+
+    renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
+    await waitFor(() => {
+      expect(screen.getByText('CodeEditorPreviewWidget')).toBeInTheDocument()
     })
   })
 })
