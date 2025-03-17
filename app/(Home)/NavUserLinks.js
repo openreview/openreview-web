@@ -5,6 +5,7 @@ import NavNotificationCount from './NavNotificationCount'
 import serverAuth from '../auth'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 export default async function NavUserLinks() {
   const { user } = await serverAuth()

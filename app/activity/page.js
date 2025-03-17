@@ -12,6 +12,7 @@ export const metadata = {
 }
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 export default async function page() {
   const { token } = await serverAuth()
