@@ -1,12 +1,10 @@
 import truncate from 'lodash/truncate'
 import Link from 'next/link'
-import { connection } from 'next/server'
 import LogoutLink from './LogoutLink'
 import NavNotificationCount from './NavNotificationCount'
 import serverAuth from '../auth'
 
 export default async function NavUserLinks() {
-  await connection()
   const { user } = await serverAuth()
 
   if (!user) {

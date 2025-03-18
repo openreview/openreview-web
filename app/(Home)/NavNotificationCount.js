@@ -1,12 +1,10 @@
 import { Suspense } from 'react'
 import { headers } from 'next/headers'
-import { connection } from 'next/server'
 import api from '../../lib/api-client'
 import serverAuth, { isSuperUser } from '../auth'
 import NotificationCount from './NotificationCount'
 
 export default async function NavNotificationCount() {
-  await connection()
   const { user, token } = await serverAuth()
   if (!user || isSuperUser(user)) {
     return null
