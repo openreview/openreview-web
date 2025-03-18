@@ -20,16 +20,20 @@ export default async function NavUserLinks() {
   return (
     <ul className="nav navbar-nav navbar-right">
       <li className="hidden-sm">
-        <Link href="/notifications">
+        <Link href="/notifications" prefetch={false}>
           Notifications
           <NavNotificationCount />
         </Link>
       </li>
       <li className="hidden-sm">
-        <Link href="/activity">Activity</Link>
+        <Link href="/activity" prefetch={false}>
+          Activity
+        </Link>
       </li>
       <li className="hidden-sm">
-        <Link href="/tasks">Tasks</Link>
+        <Link href="/tasks" prefetch={false}>
+          Tasks
+        </Link>
       </li>
       <li id="user-menu" className="dropdown">
         <a
@@ -51,16 +55,20 @@ export default async function NavUserLinks() {
             <Link href="/profile">Profile</Link>
           </li>
           <li className="visible-sm-block">
-            <Link href="/notifications">
+            <Link href="/notifications" prefetch={false}>
               Notifications
               <NavNotificationCount />
             </Link>
           </li>
           <li className="visible-sm-block">
-            <Link href="/activity">Activity</Link>
+            <Link href="/activity" prefetch={false}>
+              Activity
+            </Link>
           </li>
           <li className="visible-sm-block">
-            <Link href="/tasks">Tasks</Link>
+            <Link href="/tasks" prefetch={false}>
+              Tasks
+            </Link>
           </li>
           <li role="separator" className="divider hidden-xs" />
           <li>
