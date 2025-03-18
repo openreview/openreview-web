@@ -30,11 +30,9 @@ export async function middleware(request) {
       console.error('middleware.js refresh token failed', data)
       return response
     }
-    return NextResponse.redirect(request.nextUrl, {
-      headers: {
-        'Set-Cookie': tokenRefreshResponse.headers.get('set-cookie'),
-      },
-    })
+    const newResponse = NextResponse.redirect(request.nextUrl.clone())
+    newResponse.headers.set('Set-Cookie', tokenRefreshResponse.headers.get('set-cookie'))
+    return newResponse
   } catch (error) {
     return response
   }
