@@ -9,7 +9,6 @@ import CommonLayout from '../CommonLayout'
 import useUser from '../../hooks/useUser'
 
 export default function Layout({ children }) {
-  // const { user } = useSelector((state) => state.root)
   const { user } = useUser()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect')

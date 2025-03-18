@@ -65,7 +65,7 @@ export default function LoginForm() {
         password: formState.password,
       })
       dispatch(setNotificationCount(null))
-      router.refresh()
+      window.location.reload()
     } catch (error) {
       setFormState({ type: 'HAS_ERROR' })
       promptError(error.message)

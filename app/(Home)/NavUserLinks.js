@@ -1,14 +1,20 @@
+'use client'
+
 import truncate from 'lodash/truncate'
 import Link from 'next/link'
 import LogoutLink from './LogoutLink'
 import NavNotificationCount from './NavNotificationCount'
-import serverAuth from '../auth'
-import { cookies } from 'next/headers'
+import useBreakpoint from '../../hooks/useBreakPoint'
+import useUser from '../../hooks/useUser'
 
-export default async function NavUserLinks() {
-  const { user } = await serverAuth()
+export default function NavUserLinks() {
+  const { user, isRefreshing } = useUser()
+  const isMobile = !useBreakpoint('lg')
+  const isNotXS = useBreakpoint('md')
 
-  if (!user) {
+  const showMDLayout = isMobile && isNotXS
+
+  if (!user || isRefreshing) {
     return (
       <ul className="nav navbar-nav navbar-right">
         <li id="user-menu">
@@ -20,18 +26,22 @@ export default async function NavUserLinks() {
 
   return (
     <ul className="nav navbar-nav navbar-right">
-      <li className="hidden-sm">
-        <Link href="/notifications">
-          Notifications
-          <NavNotificationCount />
-        </Link>
-      </li>
-      <li className="hidden-sm">
-        <Link href="/activity">Activity</Link>
-      </li>
-      <li className="hidden-sm">
-        <Link href="/tasks">Tasks</Link>
-      </li>
+      {!showMDLayout && (
+        <>
+          <li>
+            <Link href="/notifications">
+              Notifications
+              <NavNotificationCount />
+            </Link>
+          </li>
+          <li>
+            <Link href="/activity">Activity</Link>
+          </li>
+          <li>
+            <Link href="/tasks">Tasks</Link>
+          </li>
+        </>
+      )}
       <li id="user-menu" className="dropdown">
         <a
           className="dropdown-toggle"
@@ -51,18 +61,22 @@ export default async function NavUserLinks() {
           <li>
             <Link href="/profile">Profile</Link>
           </li>
-          <li className="visible-sm-block">
-            <Link href="/notifications">
-              Notifications
-              <NavNotificationCount />
-            </Link>
-          </li>
-          <li className="visible-sm-block">
-            <Link href="/activity">Activity</Link>
-          </li>
-          <li className="visible-sm-block">
-            <Link href="/tasks">Tasks</Link>
-          </li>
+          {showMDLayout && (
+            <>
+              <li>
+                <Link href="/notifications">
+                  Notifications
+                  <NavNotificationCount />
+                </Link>
+              </li>
+              <li>
+                <Link href="/activity">Activity</Link>
+              </li>
+              <li className="visible-sm-block">
+                <Link href="/tasks">Tasks</Link>
+              </li>
+            </>
+          )}
           <li role="separator" className="divider hidden-xs" />
           <li>
             <LogoutLink />

@@ -6,14 +6,12 @@ import { useRouter } from 'next/navigation'
 import api from '../../lib/api-client'
 
 export default function LogoutLink() {
-  const router = useRouter()
-
   const handleLogout = async (e) => {
     e.preventDefault()
 
     try {
       await api.post('/logout')
-      router.refresh()
+      window.location.reload()
       window.localStorage.setItem('openreview.lastLogout', Date.now())
     } catch (error) {
       console.log('Error in LogoutLink', {

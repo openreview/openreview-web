@@ -101,7 +101,6 @@ export default function NotificationsTable({
   const [count, setCount] = useState(0)
   const [page, setPage] = useState(1)
   const [messages, setMessages] = useState(null)
-  // const { token } = useSelector((state) => state.root)
   const { token } = useUser()
   const pageSize = 25
 

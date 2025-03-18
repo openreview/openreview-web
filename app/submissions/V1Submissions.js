@@ -10,7 +10,6 @@ import { prettyId } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 
 export default function V1Submissions({ groupId }) {
-  // const { token } = useSelector((state) => state.root)
   const { token } = useUser()
   const [currentPage, setCurrentPage] = useState(1)
   const [notes, setNotes] = useState([])

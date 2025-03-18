@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import LoginForm from './LoginForm'
 import styles from './Login.module.scss'
