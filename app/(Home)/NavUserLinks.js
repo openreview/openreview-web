@@ -6,7 +6,6 @@ import serverAuth from '../auth'
 import { cookies } from 'next/headers'
 
 export default async function NavUserLinks() {
-  await cookies()
   const { user } = await serverAuth()
 
   if (!user) {

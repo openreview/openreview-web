@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
-import { cookies, headers } from 'next/headers'
+import { headers } from 'next/headers'
 import serverAuth from '../auth'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import api from '../../lib/api-client'
@@ -12,7 +12,6 @@ export const metadata = {
 }
 
 export default async function page() {
-  await cookies()
   const { token } = await serverAuth()
   if (!token) redirect('/login?redirect=/activity')
   const headersList = await headers()
