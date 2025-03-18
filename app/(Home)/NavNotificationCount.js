@@ -1,35 +1,46 @@
-'use client'
-
-import { useEffect, useState } from 'react'
+import { Suspense } from 'react'
+import { headers } from 'next/headers'
+import { connection } from 'next/server'
 import api from '../../lib/api-client'
-import useUser from '../../hooks/useUser'
+import serverAuth, { isSuperUser } from '../auth'
+import NotificationCount from './NotificationCount'
 
-export default function NavNotificationCount() {
-  const { token, user } = useUser()
-  const [count, setCount] = useState(0)
-
-  const getMessages = async (userEmail, accessToken) => {
-    try {
-      const result = await api.get(
-        '/messages',
-        { to: userEmail, viewed: false, transitiveMembers: true },
-        { accessToken }
-      )
-      setCount(result.count)
-    } catch (error) {
-      console.log('error is', error)
-    }
-  }
-
-  useEffect(() => {
-    if (!user) return
-    getMessages(user.profile.emails[0], token)
-  }, [user])
-
-  if (!user) {
+export default async function NavNotificationCount() {
+  await connection()
+  const { user, token } = await serverAuth()
+  if (!user || isSuperUser(user)) {
     return null
   }
+  const headersList = await headers()
+  const remoteIpAddress = headersList.get('x-forwarded-for')
 
-  if (count === 0) return null
-  return <span className="badge">{count}</span>
+  const notificationCountP = api
+    .get(
+      '/messages',
+      { to: user.profile.emails[0], viewed: false, transitiveMembers: true },
+      { accessToken: token, remoteIpAddress }
+    )
+    .then((response) => {
+      const count = response.messages?.length
+      return { count: count ?? 0 }
+    })
+    .catch((error) => {
+      console.log('Error in NavNotificationCount', {
+        page: 'Home',
+        component: 'NavNotificationCount',
+        user: user?.id,
+        apiError: error,
+        apiRequest: {
+          endpoint: '/messages',
+          params: { to: user?.profile?.emails?.[0], viewed: false, transitiveMembers: true },
+        },
+      })
+      return { count: 0 }
+    })
+
+  return (
+    <Suspense fallback={null}>
+      <NotificationCount notificationCountP={notificationCountP} />
+    </Suspense>
+  )
 }

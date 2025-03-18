@@ -1,20 +1,15 @@
-'use client'
-
 import truncate from 'lodash/truncate'
 import Link from 'next/link'
+import { connection } from 'next/server'
 import LogoutLink from './LogoutLink'
 import NavNotificationCount from './NavNotificationCount'
-import useBreakpoint from '../../hooks/useBreakPoint'
-import useUser from '../../hooks/useUser'
+import serverAuth from '../auth'
 
-export default function NavUserLinks() {
-  const { user, isRefreshing } = useUser()
-  const isMobile = !useBreakpoint('lg')
-  const isNotXS = useBreakpoint('md')
+export default async function NavUserLinks() {
+  await connection()
+  const { user } = await serverAuth()
 
-  const showMDLayout = isMobile && isNotXS
-
-  if (!user || isRefreshing) {
+  if (!user) {
     return (
       <ul className="nav navbar-nav navbar-right">
         <li id="user-menu">
@@ -26,22 +21,18 @@ export default function NavUserLinks() {
 
   return (
     <ul className="nav navbar-nav navbar-right">
-      {!showMDLayout && (
-        <>
-          <li>
-            <Link href="/notifications">
-              Notifications
-              <NavNotificationCount />
-            </Link>
-          </li>
-          <li>
-            <Link href="/activity">Activity</Link>
-          </li>
-          <li>
-            <Link href="/tasks">Tasks</Link>
-          </li>
-        </>
-      )}
+      <li className="hidden-sm">
+        <Link href="/notifications">
+          Notifications
+          <NavNotificationCount />
+        </Link>
+      </li>
+      <li className="hidden-sm">
+        <Link href="/activity">Activity</Link>
+      </li>
+      <li className="hidden-sm">
+        <Link href="/tasks">Tasks</Link>
+      </li>
       <li id="user-menu" className="dropdown">
         <a
           className="dropdown-toggle"
@@ -61,22 +52,18 @@ export default function NavUserLinks() {
           <li>
             <Link href="/profile">Profile</Link>
           </li>
-          {showMDLayout && (
-            <>
-              <li>
-                <Link href="/notifications">
-                  Notifications
-                  <NavNotificationCount />
-                </Link>
-              </li>
-              <li>
-                <Link href="/activity">Activity</Link>
-              </li>
-              <li className="visible-sm-block">
-                <Link href="/tasks">Tasks</Link>
-              </li>
-            </>
-          )}
+          <li className="visible-sm-block">
+            <Link href="/notifications">
+              Notifications
+              <NavNotificationCount />
+            </Link>
+          </li>
+          <li className="visible-sm-block">
+            <Link href="/activity">Activity</Link>
+          </li>
+          <li className="visible-sm-block">
+            <Link href="/tasks">Tasks</Link>
+          </li>
           <li role="separator" className="divider hidden-xs" />
           <li>
             <LogoutLink />
