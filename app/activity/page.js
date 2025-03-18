@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { connection } from 'next/server'
 import serverAuth from '../auth'
 import Activity from './Activity'
 import styles from './Activity.module.scss'
@@ -8,8 +9,8 @@ export const metadata = {
 }
 
 export default async function page() {
+  await connection()
   const { token } = await serverAuth()
-  console.log(token)
   if (!token) redirect('/login?redirect=/activity')
 
   return (
