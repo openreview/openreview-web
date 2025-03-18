@@ -142,7 +142,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
                   {sacProfile.preferredName}
                 </a>
               </h4>
-              <div className="profile-title">{title}</div>
+              <div className="profile-title">{sacProfile.title}</div>
               {preferredEmailInvitationId && (
                 // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a
