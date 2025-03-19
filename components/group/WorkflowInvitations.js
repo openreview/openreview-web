@@ -986,20 +986,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                   }
                 />
               </div>
-              <span>
-                Workflow Step Invitations
-                {missingValueInvitationIds.length ? (
-                  <>
-                    {' '}
-                    -
-                    <span className="missing-value">
-                      {`  You must enter missing values in ${inflect(missingValueInvitationIds.length, 'step', 'steps', true)} in order to be ready to run`}
-                    </span>
-                  </>
-                ) : (
-                  ''
-                )}
-              </span>
+              <span>Workflow Step Invitations</span>
             </div>
           </div>
 
