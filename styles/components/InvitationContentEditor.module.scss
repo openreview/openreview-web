@@ -10,6 +10,15 @@
     .tabs-container {
       margin-bottom: 0;
     }
+
+    #web-ui-code-preview {
+      #group-container {
+        min-height: 600px;
+        em.preview-error {
+          color: constants.$orRed;
+        }
+      }
+    }
   }
 }
 

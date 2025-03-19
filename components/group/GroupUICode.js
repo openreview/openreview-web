@@ -68,17 +68,20 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
         accessToken
       )
     } catch (error) {
-      promptError(`Error parsing component code: ${error.message}`)
+      // eslint-disable-next-line react/display-name
+      setWebComponent(() => () => (
+        <em className="preview-error">{`Error parsing component code: ${error.message}`}</em>
+      ))
+      setWebComponentProps({})
       return
     }
     setWebComponent(
       dynamic(() =>
-        import(`../webfield/${componentObj.component}`).catch((e) => {
-          promptError(`Error loading ${componentObj.component}: ${e.message}`)
-          return {
-            default: () => <em>Nothing to preview</em>,
-          }
-        })
+        import(`../webfield/${componentObj.component}`).catch((e) => ({
+          default: () => (
+            <em className="preview-error">{`Error loading ${componentObj.component}: ${e.message}`}</em>
+          ),
+        }))
       )
     )
     const componentProps = {}
