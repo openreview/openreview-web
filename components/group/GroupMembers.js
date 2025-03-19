@@ -21,9 +21,12 @@ const MessageMemberModal = ({
   membersToMessage,
   accessToken,
   setJobId,
+  messageMemberInvitation,
 }) => {
   const [subject, setSubject] = useState(`Message to ${prettyId(groupId)}`)
-  const [replyToEmail, setReplyToEmail] = useState(groupDomainContent?.contact?.value ?? '')
+  const [replyToEmail, setReplyToEmail] = useState(
+    messageMemberInvitation?.message.replyTo ?? groupDomainContent?.contact?.value ?? ''
+  )
   const [message, setMessage] = useState('')
   const [error, setError] = useState(null)
 
@@ -62,21 +65,27 @@ const MessageMemberModal = ({
     try {
       const result = await api.post(
         '/messages',
-        {
-          invitation: `${domainId}/-/Edit`,
-          signature: domainId,
-          groups: membersToMessage,
-          subject,
-          message: sanitizedMessage,
-          parentGroup: groupId,
-          ...(cleanReplytoEmail && { replyTo: cleanReplytoEmail }),
-          useJob: true,
-          fromName: groupDomainContent?.message_sender?.value?.fromName,
-          fromEmail: groupDomainContent?.message_sender?.value?.fromEmail,
-        },
+        messageMemberInvitation
+          ? { subject, message: sanitizedMessage, groups: membersToMessage }
+          : {
+              invitation: `${domainId}/-/Edit`,
+              signature: domainId,
+              groups: membersToMessage,
+              subject,
+              message: sanitizedMessage,
+              parentGroup: groupId,
+              ...(cleanReplytoEmail && { replyTo: cleanReplytoEmail }),
+              useJob: true,
+              fromName: groupDomainContent?.message_sender?.value?.fromName,
+              fromEmail: groupDomainContent?.message_sender?.value?.fromEmail,
+            },
         { accessToken }
       )
-      setJobId(result.jobId)
+      if (result.jobId) {
+        setJobId(result.jobId)
+      } else {
+        promptMessage('Message sent successfully')
+      }
       setSubject(`Message to ${prettyId(groupId)}`)
       setMessage('')
       // Save the timestamp in the local storage (used in PC console)
@@ -279,7 +288,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   )
 }
 
-const GroupMembers = ({ group, accessToken, reloadGroup }) => {
+const GroupMembers = ({ group, accessToken, reloadGroup, messageMemberInvitation }) => {
   const membersPerPage = 15
   const [searchTerm, setSearchTerm] = useState('')
   const [memberAnonIds, setMemberAnonIds] = useState([])
@@ -592,6 +601,126 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   useEffect(() => {
     $('[data-toggle="tooltip"]').tooltip()
   }, [])
+
+  if (messageMemberInvitation)
+    return (
+      <>
+        <EditorSection title={getTitle()} className="members">
+          <div className="container members-container">
+            <div className="search-row">
+              <div className="input-group">
+                <input
+                  className="form-control input-sm"
+                  placeholder="Search group members e.g. ~Jane_Doe1, jane@example.com, abc.com/2018/Conf/Authors"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="space-taker" />
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                disabled={isFilteredEmpty}
+                onClick={() => setGroupMembers({ type: 'SELECTDESELECTALL' })}
+              >
+                {isAllFilterdSelected ? 'Deselect All' : 'Select All'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                disabled={!groupMembers.some((p) => p.isSelected)}
+                onClick={() =>
+                  messageMember(groupMembers.filter((p) => p.isSelected)?.map((q) => q.id))
+                }
+              >
+                Message Selected
+              </button>
+            </div>
+
+            {filteredMembers?.length > 0 ? (
+              displayedMembers.map((member) => {
+                const hasAnonId = memberAnonIds.find((p) => p.member.includes(member.id))
+                return (
+                  <div
+                    key={member.id}
+                    className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={member.isSelected}
+                      disabled={member.isDeleted}
+                      onChange={(e) => {
+                        setGroupMembers({
+                          type: e.target.checked ? 'SELECT' : 'UNSELECT',
+                          payload: member.id,
+                        })
+                      }}
+                    />
+                    <span
+                      className="member-id"
+                      onClick={(e) => {
+                        if (e.currentTarget !== e.target) return
+                        setGroupMembers({
+                          type: 'INVERTSELECTION',
+                          payload: member.id,
+                        })
+                      }}
+                    >
+                      <Link href={urlFromGroupId(member.id)}>{member.id}</Link>
+                      {hasAnonId && (
+                        <>
+                          {' | '}
+                          <Link href={urlFromGroupId(hasAnonId.anonId, true)}>
+                            {prettyId(hasAnonId.anonId)}
+                          </Link>
+                        </>
+                      )}
+                      {member.isDeleted && <> {'(Deleted)'}</>}
+                    </span>
+
+                    <>
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-primary"
+                        onClick={() => messageMember([member.id])}
+                      >
+                        <Icon name="envelope" />
+                        Message
+                      </button>
+                    </>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="empty-message-row">
+                {searchTerm
+                  ? `No members matching the search "${searchTerm}" found.`
+                  : 'No members to display'}
+              </div>
+            )}
+            <PaginationLinks
+              setCurrentPage={(e) => setCurrentPage(e)}
+              totalCount={filteredMembers.length}
+              itemsPerPage={membersPerPage}
+              currentPage={currentPage}
+              options={{ noScroll: true }}
+            />
+          </div>
+        </EditorSection>
+
+        <MessageMemberModal
+          groupId={group.id}
+          domainId={group.domain}
+          groupDomainContent={group.details.domain?.content}
+          membersToMessage={memberToMessage}
+          accessToken={accessToken}
+          setJobId={(id) => setJobId(id)}
+          messageMemberInvitation={messageMemberInvitation}
+        />
+
+        <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
+      </>
+    )
 
   return (
     <>

@@ -141,6 +141,10 @@ const WorkflowTasks = ({ workflowTasks, setCollapsedWorkflowInvitationIds }) => 
           block: 'center',
         })
       }
+      const editButton = element.find('a:contains("Edit")')
+      if (editButton.length > 0) {
+        editButton[0].click()
+      }
     }, 100)
   }
   if (!workflowTasks.length) return null
@@ -512,7 +516,7 @@ const WorkflowGroupRow = ({ group, groupInvitations }) => {
           ) : (
             <span className="group-id">{prettyId(group.id, true)}</span>
           )}
-          <a className="id-icon" href={`/group/edit?id=${group.id}`}>
+          <a className="id-icon" href={`/group/info?id=${group.id}`}>
             <Icon name="new-window" />
           </a>
           <span className="member-count">Group of {group.members?.length}</span>

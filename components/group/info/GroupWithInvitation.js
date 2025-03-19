@@ -22,6 +22,7 @@ import CodeEditor from '../../CodeEditor'
 import GroupSignedNotes from '../GroupSignedNotes'
 import GroupChildGroups from '../GroupChildGroups'
 import GroupRelatedInvitations from '../GroupRelatedInvitations'
+import GroupMembers from '../GroupMembers'
 
 const groupTabsConfig = [
   {
@@ -102,12 +103,17 @@ const GroupContent = ({ groupContent, presentation, groupReaders }) => {
 const GroupWithInvitation = ({ group, reloadGroup }) => {
   const [editGroupInvitations, setEditGroupInvitations] = useState([])
   const [activeGroupInvitation, setActivateGroupInvitation] = useState(null)
+  const [messageMemberInvitation, setMessageMemberInvitation] = useState(null)
   const { user, accessToken } = useUser()
 
   const renderSection = (sectionName) => {
     switch (sectionName) {
       case 'groupMembers':
-        return <GroupMembersInfo key={sectionName} group={group} />
+        return messageMemberInvitation ? (
+          <GroupMembers group={group} messageMemberInvitation={messageMemberInvitation} />
+        ) : (
+          <GroupMembersInfo key={sectionName} group={group} />
+        )
       case 'groupUICode':
         return <CodeEditor key={sectionName} code={group.web} readOnly />
       case 'groupSignedNotes':
@@ -122,6 +128,18 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
         )
       default:
         return null
+    }
+  }
+
+  const getMessageMemberInvitation = async () => {
+    try {
+      const messageMemberInvitationId = `${group.id}/-/Message`
+      const result = await api.getInvitationById(messageMemberInvitationId, accessToken)
+      if (result) {
+        setMessageMemberInvitation(result)
+      }
+    } catch (error) {
+      /* empty */
     }
   }
 
@@ -143,6 +161,7 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
 
   useEffect(() => {
     if (!group) return
+    getMessageMemberInvitation()
     getInvitationsByReplyGroup()
     $('[data-toggle="tooltip"]').tooltip({ html: true })
   }, [group])
