@@ -66,7 +66,14 @@ const MessageMemberModal = ({
       const result = await api.post(
         '/messages',
         messageMemberInvitation
-          ? { subject, message: sanitizedMessage, groups: membersToMessage }
+          ? {
+              subject,
+              message: sanitizedMessage,
+              groups: membersToMessage,
+              invitation: messageMemberInvitation.id,
+              signature: messageMemberInvitation.message.signature,
+              ...(cleanReplytoEmail && { replyTo: cleanReplytoEmail }),
+            }
           : {
               invitation: `${domainId}/-/Edit`,
               signature: domainId,
