@@ -10,8 +10,6 @@ export const metadata = {
   title: 'Venue Directory | OpenReview',
 }
 
-export const revalidate = 3600
-
 const VenueItem = ({ id, name }) => (
   <h3>
     <Link href={`/venue?id=${id}`} title={`View venues of ${name}`}>

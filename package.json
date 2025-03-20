@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port $NEXT_PORT",
+    "prod": "next build && next start --port $NEXT_PORT",
     "lint": "next lint",
     "build": "next build",
     "start": "next start --port $NEXT_PORT",

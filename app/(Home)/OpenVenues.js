@@ -1,8 +1,6 @@
 import api from '../../lib/api-client'
 import VenueList from './VenueList'
 
-export const revalidate = 600
-
 export default async function OpenVenues({ venues }) {
   return (
     <section id="open-venues">

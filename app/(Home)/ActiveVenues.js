@@ -1,7 +1,5 @@
 import VenueList from './VenueList'
 
-export const revalidate = 600
-
 export default async function ActiveVenues({ venues }) {
   return (
     <section id="active-venues">

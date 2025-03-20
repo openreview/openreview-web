@@ -12,8 +12,6 @@ export const metadata = {
   title: 'Activity | OpenReview',
 }
 
-export const revalidate = 0
-
 export default async function page() {
   await connection()
   const { token } = await serverAuth()

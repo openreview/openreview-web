@@ -11,8 +11,6 @@ export const metadata = {
   title: 'Venues | OpenReview',
 }
 
-export const revalidate = 600
-
 const formatInvitationResults = (apiRes) =>
   apiRes.invitations
     .map((inv) => ({ groupId: inv.id.split('/-/')[0], dueDate: inv.duedate }))
