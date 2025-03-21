@@ -4,7 +4,7 @@ import { nanoid } from 'nanoid'
 import Link from 'next/link'
 import NoteList from '../NoteList'
 
-const RecentPublications = ({
+const ProfilePublications = ({
   profileId,
   publications,
   count,
@@ -57,8 +57,8 @@ const RecentPublications = ({
       )}
     </>
   ) : (
-    <p className="empty-message">No recent publications</p>
+    <p className="empty-message">No publications</p>
   )
 }
 
-export default RecentPublications
+export default ProfilePublications

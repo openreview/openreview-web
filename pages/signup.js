@@ -89,11 +89,11 @@ const SignupForm = ({ setSignupConfirmation }) => {
     setLoading(false)
   }
 
-  const resetPassword = async (username, email) => {
+  const resetPassword = async (username, email, token) => {
     setLoading(true)
 
     try {
-      const { id: registeredEmail } = await api.post('/resettable', { id: email })
+      const { id: registeredEmail } = await api.post('/resettable', { id: email, token })
       setSignupConfirmation({ type: 'reset', registeredEmail: registeredEmail || email })
     } catch (apiError) {
       if (apiError.message === 'User not found') {
@@ -269,6 +269,10 @@ const ExistingProfileForm = ({
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken(
+    'reset',
+    passwordVisible && isValidEmail(email)
+  )
 
   let buttonLabel
   let usernameLabel
@@ -289,7 +293,7 @@ const ExistingProfileForm = ({
     }
 
     if (hasPassword && isActive) {
-      resetPassword(id, email)
+      resetPassword(id, email, turnstileToken)
     } else if (hasPassword && !isActive) {
       sendActivationLink(email)
     } else {
@@ -335,6 +339,7 @@ const ExistingProfileForm = ({
               <span className="new-username hint">
                 {usernameLabel} <Link href={`/profile?id=${id}`}>{id}</Link>
               </span>
+              {isActive && <div className="mt-1" ref={turnstileContainerRef} />}
             </>
           )}
         </div>
