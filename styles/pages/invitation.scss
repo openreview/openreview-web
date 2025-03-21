@@ -102,7 +102,7 @@ main.invitation {
   .save-button-wrapper {
     display: flex;
   }
-  section button {
+  section:not(.reply-preview) button {
     margin-top: 0.75rem;
     margin-right: 0.5rem;
   }
