@@ -226,7 +226,7 @@ const NameDeletionTab = ({ accessToken, setNameDeletionRequestCount, isActive })
             {
               ...nameRemovalNotes.notes[0],
               processLogStatus: 'running',
-              processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
+              processLogUrl: `${process.env.API_V2_URL}/logs/process?id=${decisionResults[0].id}`,
             },
             ...nameDeletionNotes.filter((p) => p.content.status.value !== 'Pending'),
           ]
@@ -243,7 +243,7 @@ const NameDeletionTab = ({ accessToken, setNameDeletionRequestCount, isActive })
               ...p,
               processLogStatus,
               processLogUrl: decisionEdit
-                ? `${process.env.API_URL}/logs/process?id=${decisionEdit.id}`
+                ? `${process.env.API_V2_URL}/logs/process?id=${decisionEdit.id}`
                 : null,
             }
           })
@@ -519,7 +519,7 @@ const ProfileMergeTab = ({
             {
               ...profileMergeNotesResults.notes[0],
               processLogStatus: 'running',
-              processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
+              processLogUrl: `${process.env.API_V2_URL}/logs/process?id=${decisionResults[0].id}`,
             },
             ...profileMergeNotes.filter((p) => p.content.status.value !== 'Pending'),
           ]
@@ -540,7 +540,7 @@ const ProfileMergeTab = ({
               ...p,
               processLogStatus,
               processLogUrl: decisionEdit
-                ? `${process.env.API_URL}/logs/process?id=${decisionEdit.id}`
+                ? `${process.env.API_V2_URL}/logs/process?id=${decisionEdit.id}`
                 : null,
             }
           })
@@ -944,9 +944,13 @@ const EmailDeletionTab = ({ accessToken, isActive }) => {
 
       const notesWithStatus = notes.map((p) => {
         const edit = edits.find((q) => q.note.id === p.id)
+        const processLog = processLogs.find((q) => q.id === edit?.id)
         return {
           ...p,
-          processLogStatus: processLogs.find((q) => q.id === edit?.id)?.status ?? 'running',
+          processLogStatus: processLog?.status ?? 'running',
+          processLogUrl: processLog
+            ? `${process.env.API_V2_URL}/logs/process?id=${processLog.id}`
+            : null,
         }
       })
 
@@ -1053,11 +1057,7 @@ const EmailDeletionTab = ({ accessToken, isActive }) => {
               {emailDeletionNotesToShow.map((note) => (
                 <div className="email-deletion-row" key={note.id}>
                   <span className="col-status">
-                    <a
-                      href={`${process.env.API_URL}/logs/process?id=${note.id}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <a href={note.processLogUrl} target="_blank" rel="noreferrer">
                       <span
                         className={`label label-${
                           note.processLogStatus === 'ok' ? 'success' : 'default'
