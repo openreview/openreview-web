@@ -3,15 +3,11 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import GroupGeneralInfo from '../../components/group/info/GroupGeneralInfo'
-import GroupMembersInfo from '../../components/group/info/GroupMembersInfo'
-import GroupSignedNotes from '../../components/group/GroupSignedNotes'
-import GroupChildGroups from '../../components/group/GroupChildGroups'
-import GroupRelatedInvitations from '../../components/group/GroupRelatedInvitations'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import { groupModeToggle } from '../../lib/banner-links'
+import GroupWithInvitation from '../../components/group/info/GroupWithInvitation'
 
 const GroupInfo = ({ appContext }) => {
   const { accessToken, userLoading } = useUser()
@@ -22,9 +18,37 @@ const GroupInfo = ({ appContext }) => {
 
   const loadGroup = async (id) => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken })
+      const { groups } = await api.get(
+        '/groups',
+        { id, details: 'writable,presentation' },
+        { accessToken }
+      )
       if (groups?.length > 0) {
-        setGroup({ ...groups[0], web: null })
+        if (groups[0].details?.writable) {
+          // required to preview web
+          let domainGroup = null
+          if (groups[0].domain && groups[0].domain !== groups[0].id) {
+            try {
+              const apiRes = await api.get(
+                '/groups',
+                { id: groups[0].domain },
+                { accessToken }
+              )
+              domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
+            } catch (e) {
+              domainGroup = null
+            }
+          } else if (groups[0].domain) {
+            domainGroup = groups[0]
+          }
+          const groupToSet = {
+            ...groups[0],
+            details: { ...groups[0].details, domain: domainGroup },
+          }
+          setGroup(groupToSet)
+        } else {
+          setGroup(groups[0])
+        }
       } else {
         setError({ statusCode: 404, message: 'Group not found' })
       }
@@ -85,16 +109,8 @@ const GroupInfo = ({ appContext }) => {
       </div>
 
       {group ? (
-        <div>
-          <GroupGeneralInfo group={group} />
-
-          <GroupMembersInfo group={group} />
-
-          <GroupSignedNotes group={group} accessToken={accessToken} />
-
-          <GroupChildGroups groupId={group.id} accessToken={accessToken} />
-
-          <GroupRelatedInvitations group={group} accessToken={accessToken} />
+        <div className="groupInfoTabsContainer">
+          <GroupWithInvitation group={group} reloadGroup={() => loadGroup(group.id)} />
         </div>
       ) : (
         <LoadingSpinner />
