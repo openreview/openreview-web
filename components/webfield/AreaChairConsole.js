@@ -31,26 +31,7 @@ import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
 import { getProfileLink } from '../../lib/webfield-utils'
 import { formatProfileContent } from '../../lib/edge-utils'
-
-const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
-  const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
-
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedNoteIds(allNoteIds)
-      return
-    }
-    setSelectedNoteIds([])
-  }
-  return (
-    <input
-      type="checkbox"
-      id="select-all-papers"
-      checked={allNotesSelected}
-      onChange={handleSelectAll}
-    />
-  )
-}
+import SelectAllCheckBox from './SelectAllCheckbox'
 
 const AssignedPaperRow = ({
   rowData,
@@ -168,6 +149,7 @@ const AreaChairConsole = ({ appContext }) => {
     extraExportColumns,
     preferredEmailInvitationId,
     ithenticateInvitationId,
+    sortOptions,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
@@ -627,6 +609,7 @@ const AreaChairConsole = ({ appContext }) => {
             officialMetaReviewName={officialMetaReviewName}
             areaChairName={areaChairName}
             ithenticateInvitationId={ithenticateInvitationId}
+            sortOptions={sortOptions}
           />
           <p className="empty-message">
             No assigned {submissionName.toLowerCase()} matching search criteria.
@@ -655,6 +638,7 @@ const AreaChairConsole = ({ appContext }) => {
           officialMetaReviewName={officialMetaReviewName}
           areaChairName={areaChairName}
           ithenticateInvitationId={ithenticateInvitationId}
+          sortOptions={sortOptions}
         />
         <Table
           className="console-table table-striped areachair-console-table"
@@ -663,9 +647,9 @@ const AreaChairConsole = ({ appContext }) => {
               id: 'select-all',
               content: (
                 <SelectAllCheckBox
-                  selectedNoteIds={selectedNoteIds}
-                  setSelectedNoteIds={setSelectedNoteIds}
-                  allNoteIds={acConsoleData.tableRows?.map((row) => row.note.id)}
+                  selectedIds={selectedNoteIds}
+                  setSelectedIds={setSelectedNoteIds}
+                  allIds={acConsoleData.tableRows?.map((row) => row.note.id)}
                 />
               ),
               width: '35px',

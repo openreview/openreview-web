@@ -78,6 +78,10 @@ jobs:
           cache-dependency-path: |
             openreview-api/package-lock.json
             openreview-web/package-lock.json
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
       - name: Setup openreview-py
         run: |
           cd openreview-py

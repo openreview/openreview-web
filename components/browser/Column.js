@@ -731,7 +731,7 @@ export default function Column(props) {
     editInvitations.forEach((editInvitation) =>
       addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true, false)
     )
-    addToEdgesPromiseMap(hideInvitation, 'hide', edgesPromiseMap, false, true)
+    addToEdgesPromiseMap(hideInvitation, 'hide', edgesPromiseMap, false, false)
     browseInvitations.forEach((browseInvitation) =>
       addToEdgesPromiseMap(browseInvitation, 'browse', edgesPromiseMap, false, false)
     )
