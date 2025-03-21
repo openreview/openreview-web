@@ -1,0 +1,36 @@
+.search {
+  :global {
+    .filter-form {
+      .form-group {
+        margin-left: 0.625rem;
+        &:first-child {
+          margin-left: 0.25rem;
+        }
+      }
+      label:not(.radio-inline) {
+        vertical-align: bottom;
+        margin-right: 0.625rem;
+        margin-bottom: 6px;
+      }
+      .radio-inline {
+        font-weight: bold;
+      }
+      select {
+        line-height: 1.125rem;
+        width: 180px;
+      }
+      .search-content {
+        width: 180px;
+      }
+      .search-group {
+        width: 320px;
+      }
+    }
+
+    .search-results > h3 {
+      font-size: 1.375rem;
+      overflow: hidden;
+      line-height: 1.75rem;
+    }
+  }
+}

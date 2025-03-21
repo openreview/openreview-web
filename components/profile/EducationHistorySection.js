@@ -7,9 +7,16 @@ import useBreakpoint from '../../hooks/useBreakPoint'
 import { getStartEndYear, isValidCountryCode } from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import api from '../../lib/api-client'
+import LoadingSpinner from '../LoadingSpinner'
 
-const CreatableDropdown = dynamic(() =>
-  import('../Dropdown').then((mod) => mod.CreatableDropdown)
+const CreatableDropdown = dynamic(
+  () => import('../Dropdown').then((mod) => mod.CreatableDropdown),
+  {
+    ssr: false,
+    loading: () => (
+      <input className="form-control position-dropdown__placeholder" value="loading..." />
+    ),
+  }
 )
 
 const positionPlaceholder = 'Choose or type a position'
