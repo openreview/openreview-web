@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { chunk } from 'lodash'
 import api from '../../lib/api-client'
 import Table from '../Table'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { ReviewerConsoleNoteReviewStatus } from './NoteReviewStatus'
@@ -28,6 +27,7 @@ import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
 import { getProfileLink } from '../../lib/webfield-utils'
+import ConsoleTabs from './ConsoleTabs'
 
 const AreaChairInfo = ({ areaChairName, areaChairIds }) => (
   <div className="note-area-chairs">
@@ -284,10 +284,7 @@ const ReviewerConsole = ({ appContext }) => {
   const { setBannerContent } = appContext
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
   const [enablePaperRanking, setEnablePaperRanking] = useState(true)
-  const [activeTabId, setActiveTabId] = useState(
-    decodeURIComponent(window.location.hash) ||
-      `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`
-  )
+  const [activeTabId, setActiveTabId] = useState(null)
 
   const paperRankingId = `${venueId}/${reviewerName}/-/Paper_Ranking`
   const reviewerUrlFormat = reviewerName ? getRoleHashFragment(reviewerName) : null
@@ -603,20 +600,6 @@ const ReviewerConsole = ({ appContext }) => {
     }
   }, [reviewerConsoleData.notes])
 
-  useEffect(() => {
-    if (user && !userLoading) {
-      const validTabIds = [
-        `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
-        `#${reviewerUrlFormat}-tasks`,
-      ]
-      if (!validTabIds.includes(activeTabId)) {
-        setActiveTabId(`#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`)
-        return
-      }
-      router.replace(activeTabId)
-    }
-  }, [activeTabId, user, userLoading])
-
   const missingConfig = Object.entries({
     header,
     group,
@@ -651,48 +634,31 @@ const ReviewerConsole = ({ appContext }) => {
         customLoad={reviewerConsoleData.customLoad}
         submissionName={submissionName}
       />
-      <Tabs>
-        <TabList>
-          <Tab
-            id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}
-            active={
-              activeTabId === `#assigned-${pluralizeString(submissionName).toLowerCase()}`
-                ? true
-                : undefined
-            }
-            onClick={() =>
-              setActiveTabId(`#assigned-${pluralizeString(submissionName).toLowerCase()}`)
-            }
-          >
-            Assigned {pluralizeString(submissionName)}
-          </Tab>
-          <Tab
-            id={`${reviewerUrlFormat}-tasks`}
-            active={activeTabId === `#${reviewerUrlFormat}-tasks` ? true : undefined}
-            onClick={() => setActiveTabId(`#${reviewerUrlFormat}-tasks`)}
-          >
-            {getSingularRoleName(prettyField(reviewerName))} Tasks
-          </Tab>
-        </TabList>
-
-        <TabPanels>
-          <TabPanel id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}>
-            {activeTabId === `#assigned-${pluralizeString(submissionName).toLowerCase()}` &&
-              renderTable()}
-          </TabPanel>
-
-          <TabPanel id={`${reviewerUrlFormat}-tasks`}>
-            {activeTabId === `#${reviewerUrlFormat}-tasks` && (
+      <ConsoleTabs
+        defaultActiveTabId={`assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`}
+        tabs={[
+          {
+            id: `assigned-${pluralizeString(submissionName).toLowerCase()}`,
+            label: `Assigned ${pluralizeString(submissionName)}`,
+            content: renderTable(),
+            visible: true,
+          },
+          {
+            id: `${reviewerUrlFormat}-tasks`,
+            label: `${getSingularRoleName(prettyField(reviewerName))} Tasks`,
+            content: (
               <ReviewerConsoleTasks
                 venueId={venueId}
                 reviewerName={reviewerName}
                 submissionName={submissionName}
                 noteNumbers={reviewerConsoleData.noteNumbers}
               />
-            )}
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
+            ),
+            visible: true,
+          },
+        ]}
+        updateActiveTabId={setActiveTabId}
+      />
     </>
   )
 }
