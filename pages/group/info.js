@@ -20,7 +20,7 @@ const GroupInfo = ({ appContext }) => {
     try {
       const { groups } = await api.get(
         '/groups',
-        { id, details: 'writable,presentation' },
+        { id, details: 'writable' },
         { accessToken }
       )
       if (groups?.length > 0) {
