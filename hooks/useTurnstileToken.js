@@ -15,19 +15,14 @@ export default function useTurnstileToken(key, renderWidget) {
       return
     }
     if (window.turnstile) {
-      try {
-        const id = window.turnstile.render(turnstileContainerRef.current, {
-          sitekey: process.env.TURNSTILE_SITEKEY,
-          action: key,
-          callback: (token) => {
-            setTurnstileToken(token)
-          },
-        })
-        setWidgetId(id)
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log('Error rendering Turnstile widget:', error)
-      }
+      const id = window.turnstile.render(turnstileContainerRef.current, {
+        sitekey: process.env.TURNSTILE_SITEKEY,
+        action: key,
+        callback: (token) => {
+          setTurnstileToken(token)
+        },
+      })
+      setWidgetId(id)
     } else {
       promptError(
         'Could not verify browser. Please make sure third-party scripts are not being blocked and try again.'

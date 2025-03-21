@@ -8,7 +8,7 @@ module.exports = function (forumId, noteId, invitationId, user) {
     noteId = forumId
   }
 
-  var $content = $('#content  .forum-container')
+  var $content = $('#content > .forum-container')
   var $childrenAnchor = $('#note_children')
   var sm = mkStateManager()
 

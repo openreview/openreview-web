@@ -564,7 +564,7 @@ const ProfileSearchWidget = ({
   className,
   CustomProfileSearchForm,
 }) => {
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, accessToken } = useUser()
   const editorComponentContext = useContext(EditorComponentContext) ?? {}
   const { field, onChange, value, error, clearError } = isEditor
     ? editorComponentContext
@@ -653,7 +653,6 @@ const ProfileSearchWidget = ({
   }
 
   useEffect(() => {
-    if (isRefreshing) return
     if (!isAuthoridsField) {
       if (!isEditor) {
         setDisplayAuthors([])
@@ -669,7 +668,7 @@ const ProfileSearchWidget = ({
     }
     onChange({ fieldName, value: displayAuthors }) // update the value in the editor context to contain both id and name
     if (allowAddRemove) getProfiles(multiple ? value.map((p) => p.authorId) : [value.authorId])
-  }, [isRefreshing])
+  }, [])
 
   useEffect(() => {
     if (!value?.length) return

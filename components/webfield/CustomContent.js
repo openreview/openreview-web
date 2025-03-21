@@ -1,6 +1,7 @@
 import { useContext, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/router'
 import WebFieldContext from '../WebFieldContext'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 export default function CustomContent({ appContext }) {
   const {
@@ -9,28 +10,28 @@ export default function CustomContent({ appContext }) {
     header,
     HeaderComponent,
     content,
-    BodyComponent,
+    BodyComponent
   } = useContext(WebFieldContext)
-  const query = useSearchParams()
-  const { setBannerContent } = appContext ?? {}
+  const router = useRouter()
+  const { setBannerContent } = appContext
 
   useEffect(() => {
     // Set referrer banner
-    if (query.get('referrer')) {
-      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
-    } else if (parentGroupId) {
-      setBannerContent({ type: 'venueHomepageLink', value: parentGroupId })
-    }
-  }, [query])
+    if (!router.isReady) return
 
-  const DynamicHeaderComponent = HeaderComponent?.()
-  const DynamicBodyComponent = BodyComponent?.()
+    if (router.query.referrer) {
+      setBannerContent(referrerLink(router.query.referrer))
+    } else if (parentGroupId) {
+      setBannerContent(venueHomepageLink(parentGroupId))
+    }
+  }, [router.isReady, router.query])
 
   return (
     <>
-      {HeaderComponent && <DynamicHeaderComponent headerInfo={header} />}
+      <HeaderComponent headerInfo={header} />
+
       <div id="notes">
-        {DynamicBodyComponent && <DynamicBodyComponent content={content} />}
+        <BodyComponent content={content} />
       </div>
     </>
   )

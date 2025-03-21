@@ -1,12 +1,11 @@
 @use '../utils/constants';
-@use 'sass:color';
 
 .title {
   font-size: 1rem;
   font-weight: bold;
   color: constants.$orRed;
   margin-top: 0;
-  margin-bottom: 0.25rem;
+  margin-bottom: .25rem;
 }
 
 .requiredField {
@@ -42,7 +41,7 @@
   background-color: #eee;
   font-size: 0.875rem;
   padding: 0.375rem 0.75rem;
-  border: 2px solid color.adjust(constants.$mediumBlue, $lightness: 10%);
+  border: 2px solid lighten(constants.$mediumBlue, 10%);
   border-radius: 0;
   height: auto;
   resize: vertical;
@@ -59,7 +58,7 @@
 
 .error {
   color: constants.$orRed;
-  margin-top: 0.125rem;
+  margin-top: .125rem;
 
   .errorMessage {
     margin-left: 0.25rem;

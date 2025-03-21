@@ -1494,13 +1494,13 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
 
-    // if (options.showBanner) {
-    //   if (options.referrer) {
-    //     OpenBanner.referrerLink(options.referrer)
-    //   } else {
-    //     OpenBanner.venueHomepageLink(venueId)
-    //   }
-    // }
+    if (options.showBanner) {
+      if (options.referrer) {
+        OpenBanner.referrerLink(options.referrer)
+      } else {
+        OpenBanner.venueHomepageLink(venueId)
+      }
+    }
 
     Webfield.ui.setup(container, venueId)
     Webfield.ui.header(options.title, options.instructions, { fullWidth: options.fullWidth })

@@ -2,12 +2,13 @@
 /* globals promptMessage: false */
 
 import { useContext, useEffect, useReducer } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/router'
 import WebFieldContext from '../WebFieldContext'
 import SubmissionButton from './SubmissionButton'
 import Markdown from '../EditorComponents/Markdown'
 import ExpertiseSelector from '../ExpertiseSelector'
 import { prettyId } from '../../lib/utils'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 export default function ExpertiseConsole({ appContext }) {
   const {
@@ -19,9 +20,9 @@ export default function ExpertiseConsole({ appContext }) {
     apiVersion,
   } = useContext(WebFieldContext)
   const [shouldReload, reload] = useReducer((p) => !p, true)
-  const query = useSearchParams()
+  const router = useRouter()
 
-  const { setBannerContent } = appContext ?? {}
+  const { setBannerContent } = appContext
   const options =
     apiVersion === 2
       ? invitation.edge?.label?.param?.enum
@@ -47,13 +48,14 @@ Please contact info@openreview.net with any questions or concerns about this int
 
   useEffect(() => {
     // Set referrer banner
+    if (!router.isReady) return
 
-    if (query.get('referrer')) {
-      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
-    } else {
-      setBannerContent({ type: 'venueHomepageLink', value: venueId })
+    if (router.query.referrer) {
+      setBannerContent(referrerLink(router.query.referrer))
+    } else if (venueId) {
+      setBannerContent(venueHomepageLink(venueId))
     }
-  }, [query])
+  }, [router.isReady, router.query])
 
   return (
     <>

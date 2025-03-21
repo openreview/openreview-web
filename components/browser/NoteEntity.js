@@ -13,7 +13,7 @@ import NoteContent from './NoteContent'
 import ScoresList from './ScoresList'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import api from '../../lib/api-client'
-
+import UserContext from '../UserContext'
 import {
   getInterpolatedValues,
   getSignatures,
@@ -21,12 +21,11 @@ import {
   isInGroupInvite,
   isNotInGroupInvite,
 } from '../../lib/edge-utils'
-import useUser from '../../hooks/useUser'
 
 export default function NoteEntity(props) {
   const { editInvitations, traverseInvitation, availableSignaturesInvitationMap, version } =
     useContext(EdgeBrowserContext)
-  const { user, accessToken } = useUser()
+  const { user, accessToken } = useContext(UserContext)
 
   if (!props.note || !props.note.content) {
     return null

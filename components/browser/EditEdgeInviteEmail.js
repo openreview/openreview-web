@@ -11,8 +11,8 @@ import {
 } from '../../lib/edge-utils'
 import { isValidEmail, prettyInvitationId } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
+import UserContext from '../UserContext'
 import EdgeBrowserContext from './EdgeBrowserContext'
-import useUser from '../../hooks/useUser'
 
 const EditEdgeInviteEmail = ({
   type,
@@ -26,7 +26,7 @@ const EditEdgeInviteEmail = ({
   const [loading, setLoading] = useState(false)
   const { editInvitations, availableSignaturesInvitationMap, version } =
     useContext(EdgeBrowserContext)
-  const { user, accessToken } = useUser()
+  const { user, accessToken } = useContext(UserContext)
 
   const inviteInvitation = editInvitations.find(
     (p) => isNotInGroupInvite(p, type) || isForBothGroupTypesInvite(p, type)

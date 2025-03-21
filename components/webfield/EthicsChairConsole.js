@@ -1,7 +1,10 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/router'
+import useUser from '../../hooks/useUser'
+import useQuery from '../../hooks/useQuery'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import ErrorDisplay from '../ErrorDisplay'
@@ -25,11 +28,13 @@ const EthicsChairConsole = ({ appContext }) => {
     ethicsMetaReviewName,
     preferredEmailInvitationId,
   } = useContext(WebFieldContext)
-  const { setBannerContent } = appContext ?? {}
-  const query = useSearchParams()
+  const { setBannerContent } = appContext
+  const router = useRouter()
+  const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(
     decodeURIComponent(window.location.hash) || '#overview'
   )
+  const { user, userLoading } = useUser()
 
   const ethicsChairsUrlFormat = getRoleHashFragment(ethicsChairsName)
   const validTabIds = [
@@ -41,10 +46,10 @@ const EthicsChairConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (query.get('referrer')) {
-      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
+    if (query.referrer) {
+      setBannerContent(referrerLink(query.referrer))
     } else {
-      setBannerContent({ type: 'venueHomepageLink', value: venueId })
+      setBannerContent(venueHomepageLink(venueId))
     }
   }, [query, venueId])
 
@@ -53,7 +58,7 @@ const EthicsChairConsole = ({ appContext }) => {
       setActiveTabId(validTabIds[0])
       return
     }
-    window.location.hash = activeTabId
+    router.replace(activeTabId)
   }, [activeTabId])
 
   const missingConfig = Object.entries({
@@ -64,7 +69,6 @@ const EthicsChairConsole = ({ appContext }) => {
     ethicsReviewersName,
     submissionId,
     submissionName,
-    ethicsReviewName,
     anonEthicsReviewerName,
     shortPhrase,
   })
