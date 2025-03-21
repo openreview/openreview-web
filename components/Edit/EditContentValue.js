@@ -1,5 +1,6 @@
 import { DownloadLink, NoteContentValue } from '../NoteContent'
 import { formatTimestamp } from '../../lib/utils'
+import CodeEditor from '../CodeEditor'
 
 const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJsonValue }) => {
   if (fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/')) {
@@ -30,17 +31,25 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJso
       </span>
     )
   }
+  if (fieldName === '_bibtex') {
+    return (
+      <div className="note-content-value">
+        <pre>{fieldValue}</pre>
+      </div>
+    )
+  }
   if (
-    fieldName === '_bibtex' ||
     fieldName === 'web' ||
+    fieldName === 'preprocess' ||
     fieldName === 'process' ||
+    fieldName === 'dateprocesses' ||
     fieldName.endsWith('_script') ||
     fieldName.endsWith('_process') ||
     isJsonValue
   ) {
     return (
       <div className="note-content-value">
-        <pre>{fieldValue}</pre>
+        <CodeEditor code={fieldValue} readOnly isJson={isJsonValue} defaultToMinHeight />
       </div>
     )
   }

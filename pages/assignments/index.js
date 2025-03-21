@@ -66,11 +66,19 @@ const AssignmentRow = ({
   handleUndeployMatcher,
   referrer,
   shouldShowDeployLink,
+  preferredEmailInvitationId,
 }) => {
   const [loading, setLoading] = useState(false)
   const noteContent = apiVersion === 2 ? getNoteContentValues(note.content) : note.content
-  const edgeBrowserUrl = getEdgeBrowserUrl(noteContent, { version: apiVersion })
-  const edgeEditUrl = getEdgeBrowserUrl(noteContent, { editable: true, version: apiVersion })
+  const edgeBrowserUrl = getEdgeBrowserUrl(noteContent, {
+    version: apiVersion,
+    preferredEmailInvitationId,
+  })
+  const edgeEditUrl = getEdgeBrowserUrl(noteContent, {
+    editable: true,
+    version: apiVersion,
+    preferredEmailInvitationId,
+  })
   const { status, error_message: errorMessage } = noteContent
 
   return (
@@ -88,7 +96,9 @@ const AssignmentRow = ({
       <td>{note.tmdate === note.tcdate ? null : formatDateTime(note.tmdate)}</td>
 
       <td>
-        {['Error', 'No Solution', 'Deployment Error', 'Undeployment Error'].includes(status) ? (
+        {['Error', 'No Solution', 'Deployment Error', 'Undeployment Error'].includes(
+          status
+        ) ? (
           <>
             <strong>{status}</strong>
             <br />
@@ -122,9 +132,15 @@ const AssignmentRow = ({
           iconName="pencil"
           onClick={() => handleEditConfiguration(note, apiVersion)}
           disabled={
-            ['Running', 'Complete', 'Deploying', 'Deployed', 'Deployment Error', 'Undeploying', 'Undeployment Error'].includes(
-              status
-            ) || !configInvitation
+            [
+              'Running',
+              'Complete',
+              'Deploying',
+              'Deployed',
+              'Deployment Error',
+              'Undeploying',
+              'Undeployment Error',
+            ].includes(status) || !configInvitation
           }
         />
         <ActionLink
@@ -275,6 +291,7 @@ const Assignments = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
   const [configInvitation, setConfigInvitation] = useState(null)
   const [assignmentNotes, setAssignmentNotes] = useState(null)
+  const [preferredEmailInvitationId, setPreferredEmailInvitationId] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [apiVersion, setApiVersion] = useState(null)
@@ -286,13 +303,24 @@ const Assignments = ({ appContext }) => {
   const newNoteEditor = configInvitation?.domain
   const pageSize = 25
 
-  const shouldShowDeployLink = configInvitation?.content?.multiple_deployments?.value || !assignmentNotes?.some((p) =>
-    apiVersion === 2
-      ? p?.content?.status?.value === 'Deployed'
-      : p?.content?.status === 'Deployed'
-  )
+  const shouldShowDeployLink =
+    configInvitation?.content?.multiple_deployments?.value ||
+    !assignmentNotes?.some((p) =>
+      apiVersion === 2
+        ? p?.content?.status?.value === 'Deployed'
+        : p?.content?.status === 'Deployed'
+    )
 
   // API functions
+  const getPreferredEmailInvitationId = async (invitation) => {
+    try {
+      const domainGroup = await api.getGroupById(invitation.domain, accessToken)
+      setPreferredEmailInvitationId(domainGroup?.content?.preferred_emails_id?.value)
+    } catch (_) {
+      /* empty */
+    }
+  }
+
   const getConfigInvitation = async () => {
     const notFoundMessage =
       'There is currently no assignment configuration ready for use. Please go to your venue request form and use the Paper Matching Setup to compute conflicts and/or affinity scores.'
@@ -305,6 +333,7 @@ const Assignments = ({ appContext }) => {
       if (invitation) {
         setConfigInvitation(invitation)
         setApiVersion(invitation.apiVersion)
+        getPreferredEmailInvitationId(invitation)
       } else {
         setError({
           statusCode: 404,
@@ -620,6 +649,7 @@ const Assignments = ({ appContext }) => {
                     })`
                   )}
                   shouldShowDeployLink={shouldShowDeployLink}
+                  preferredEmailInvitationId={preferredEmailInvitationId}
                 />
               ))}
             </Table>
