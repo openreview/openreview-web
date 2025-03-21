@@ -69,7 +69,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   const router = useRouter()
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || `#${submissionName ?? ''.toLowerCase()}-status`
+    decodeURIComponent(window.location.hash) || `#${submissionName ?? ''.toLowerCase()}-status`
   )
 
   const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
@@ -625,6 +625,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             preliminaryDecision,
             messageSignature: seniorAreaChairGroupByNumber[note.number],
             ithenticateEdge: ithenticateEdges.find((p) => p.head === note.id),
+            venue: note.content?.venue?.value,
           }
         }),
         withdrawnNotes: assignedNotes.flatMap((note) => {

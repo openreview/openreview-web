@@ -14,7 +14,7 @@ export default function GroupDirectory({ appContext }) {
   const { entity: group, title, subtitle, description, links } = useContext(WebFieldContext)
   const [childGroupIds, setChildGroupIds] = useState(null)
   const [error, setError] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { accessToken } = useUser()
   const { setBannerContent } = appContext
@@ -32,6 +32,7 @@ export default function GroupDirectory({ appContext }) {
 
   useEffect(() => {
     const loadChildGroups = async () => {
+      setIsLoading(true)
       try {
         const { groups } = await api.get('/groups', { parent: group.id }, { accessToken })
         if (groups?.length > 0) {
