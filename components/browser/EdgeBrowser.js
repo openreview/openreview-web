@@ -306,37 +306,42 @@ export default class EdgeBrowser extends React.Component {
   // index is index of the column where the custom load of an entity is changed
   // also update if there's column with same parent
   updateChildColumn(index, customLoad) {
-    if (index + 1 >= this.state.columns.length) return
-    const parentIdOfColumn = this.state.columns[index].parentId
-    const resultColumns = []
-    resultColumns.push(this.state.columns[0])
-    for (let i = 1; i < this.state.columns.length; i += 1) {
-      const parentColumn = this.state.columns[i - 1]
-      const column = this.state.columns[i]
-      if (parentColumn.parentId === parentIdOfColumn) {
-        resultColumns.push({ ...column, parentCustomLoad: customLoad })
-      } else {
-        resultColumns.push(column)
+    this.setState((prevState) => {
+      if (index + 1 >= prevState.columns.length) return null
+      const parentIdOfColumn = prevState.columns[index].parentId
+      const resultColumns = []
+      resultColumns.push(prevState.columns[0])
+      for (let i = 1; i < prevState.columns.length; i += 1) {
+        const parentColumn = prevState.columns[i - 1]
+        const column = prevState.columns[i]
+        if (parentColumn.parentId === parentIdOfColumn) {
+          const updatedColumn = {
+            ...column,
+            parentCustomLoad: customLoad,
+          }
+          resultColumns.push(updatedColumn)
+        } else {
+          resultColumns.push(column)
+        }
       }
-    }
-    this.setState({ columns: resultColumns })
+      return { columns: resultColumns }
+    })
   }
 
   // set the shouldUpdate property of column at index
   // and all other columns with same parent
   // to trigger entites reload of those columns
   reloadColumnEntities(index) {
-    const parentIdOfColumn = this.state.columns[index].parentId
-    const resultColumns = []
-    for (let i = 0; i < this.state.columns.length; i += 1) {
-      const column = this.state.columns[i]
-      if (column?.parentId === parentIdOfColumn) {
-        resultColumns.push({ ...column, shouldReloadEntities: !column.shouldReloadEntities })
-      } else {
-        resultColumns.push(column)
-      }
-    }
-    this.setState({ columns: resultColumns })
+    this.setState((prevState) => {
+      const parentIdOfColumn = prevState.columns[index].parentId
+      const resultColumns = prevState.columns.map((column) => {
+        if (column?.parentId === parentIdOfColumn) {
+          return { ...column, shouldReloadEntities: !column.shouldReloadEntities }
+        }
+        return column
+      })
+      return { columns: resultColumns }
+    })
   }
 
   async lookupSignatures() {

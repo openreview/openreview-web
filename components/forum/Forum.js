@@ -12,6 +12,8 @@ import groupBy from 'lodash/groupBy'
 import escapeRegExp from 'lodash/escapeRegExp'
 import List from 'rc-virtual-list'
 
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import ForumNote from './ForumNote'
 import NoteEditor from '../NoteEditor'
 import ChatEditorForm from './ChatEditorForm'
@@ -36,6 +38,9 @@ import {
   replaceFilterWildcards,
 } from '../../lib/forum-utils'
 import useLocalStorage from '../../hooks/useLocalStorage'
+import Icon from '../Icon'
+
+dayjs.extend(relativeTime)
 
 const checkGroupMatch = (groupId, replyGroup) => {
   if (groupId.includes('.*')) {
@@ -334,6 +339,7 @@ export default function Forum({
 
   const delayedScroll = useCallback(
     debounce((layoutMode, isScrolled) => {
+      $('.forum-note [data-toggle="tooltip"]').tooltip({ html: true })
       $('#forum-replies [data-toggle="tooltip"]').tooltip({ html: true })
 
       // Scroll note and invitation specified in url
@@ -843,7 +849,9 @@ export default function Forum({
     numRepliesVisible.current = numVisible
 
     typesetMathJax()
-    $('.forum-note [data-toggle="tooltip"]').tooltip({ html: true })
+    $(
+      '.forum-note [data-toggle="tooltip"], .invitation-buttons [data-toggle="tooltip"]'
+    ).tooltip({ html: true })
     delayedScroll(layout, scrolled)
   }, [replyNoteMap, orderedReplies, selectedFilters, expandedInvitations, maxLength])
 
@@ -1070,6 +1078,7 @@ export default function Forum({
               <span className="hint">Add:</span>
               {parentNote.replyInvitations.map((invitation) => {
                 if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
+                const expired = invitation.expdate < Date.now()
 
                 return (
                   <button
@@ -1077,9 +1086,16 @@ export default function Forum({
                     type="button"
                     className={`btn btn-xs ${
                       activeInvitation?.id === invitation.id ? 'active' : ''
-                    }`}
+                    } ${expired ? 'expired' : ''}`}
                     data-id={invitation.id}
                     onClick={() => setActiveInvitation(activeInvitation ? null : invitation)}
+                    data-toggle="tooltip"
+                    data-placement="top"
+                    title={
+                      expired
+                        ? `${prettyInvitationId(invitation.id)} expired ${dayjs(invitation.expdate).fromNow()}`
+                        : ''
+                    }
                   >
                     {prettyInvitationId(invitation.id)}
                   </button>

@@ -43,6 +43,7 @@
       margin: 0;
       a {
         color: constants.$darkBlue;
+        display: inline-block;
       }
       a.show-all {
         color: constants.$subtleGray;
@@ -88,6 +89,13 @@
       margin-left: 0.375rem;
       .glyphicon {
         padding-right: 2px;
+      }
+    }
+    li.expired {
+      background-color: rgba(0, 0, 0, 0.05);
+      text-decoration: line-through;
+      > a {
+        color: gray;
       }
     }
   }
