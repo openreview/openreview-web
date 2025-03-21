@@ -398,6 +398,7 @@ const ReviewerStatusTab = ({
                 officialReview: reviewMetaReviewInfo.officialReviews?.find(
                   (p) => p.anonymousId === reviewerAnonIdOfNote
                 ),
+                anonymousId: reviewerAnonIdOfNote,
                 numOfReviews: reviewMetaReviewInfo.officialReviews?.length ?? 0,
                 numOfReviewers: reviewMetaReviewInfo.reviewers?.length ?? 0,
                 ratingAvg: reviewMetaReviewInfo.reviewProgressData?.ratingAvg,
@@ -412,6 +413,7 @@ const ReviewerStatusTab = ({
                   officialReview: reviewMetaReviewInfo.officialReviews?.find(
                     (p) => p.anonymousId === reviewerAnonIdOfNote
                   ),
+                  anonymousId: reviewerAnonIdOfNote,
                   numOfReviews: reviewMetaReviewInfo.officialReviews?.length ?? 0,
                   numOfReviewers: reviewMetaReviewInfo.reviewers?.length ?? 0,
                   ratingAvg: reviewMetaReviewInfo.reviewProgressData?.ratingAvg,
