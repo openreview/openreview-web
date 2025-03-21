@@ -9,26 +9,7 @@ import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from '../ProgramChairConsole/PaperStatusMenuBar'
 import { pluralizeString, prettyField } from '../../../lib/utils'
-
-const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
-  const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
-
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedNoteIds(allNoteIds)
-      return
-    }
-    setSelectedNoteIds([])
-  }
-  return (
-    <input
-      type="checkbox"
-      id="select-all-papers"
-      checked={allNotesSelected}
-      onChange={handleSelectAll}
-    />
-  )
-}
+import SelectAllCheckBox from '../SelectAllCheckbox'
 
 const PaperRow = ({
   assignmentInvitations,
@@ -62,12 +43,12 @@ const PaperRow = ({
   const getManualAssignmentUrl = (role, roleId) => {
     if (!assignmentUrls) return null
     const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
-    // auto
-    const isAssignmentConfigDeployed = assignmentInvitations?.some((p) =>
-      p.id.startsWith(roleId)
+    // auto - deployed and not expired
+    const isAssignmentConfigDeployed = assignmentInvitations?.some(
+      (p) => p.id.startsWith(roleId) && (!p.expdate || p.exdate > Date.now())
     )
-    // manual
-    const isMatchingSetup = isAssignmentConfigDeployed
+    // manual - there's no undeploy
+    const isMatchingSetup = assignmentInvitations?.some((p) => p.id.startsWith(roleId))
 
     if (
       (assignmentUrls[role]?.automaticAssignment === false && isMatchingSetup) ||
@@ -194,6 +175,7 @@ const PaperStatus = ({ sacConsoleData }) => {
           setSelectedNoteIds={setSelectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
           reviewRatingName={reviewRatingName}
+          defaultSeniorAreaChairName="Senior_Area_Chairs"
         />
         <p className="empty-message">
           No {pluralizeString(submissionName.toLowerCase())} matching search criteria.
@@ -209,6 +191,7 @@ const PaperStatus = ({ sacConsoleData }) => {
         setSelectedNoteIds={setSelectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
         reviewRatingName={reviewRatingName}
+        defaultSeniorAreaChairName="Senior_Area_Chairs"
       />
 
       <Table
@@ -218,9 +201,9 @@ const PaperStatus = ({ sacConsoleData }) => {
             id: 'select-all',
             content: (
               <SelectAllCheckBox
-                selectedNoteIds={selectedNoteIds}
-                setSelectedNoteIds={setSelectedNoteIds}
-                allNoteIds={paperStatusTabData.tableRows?.map((row) => row.note.id)}
+                selectedIds={selectedNoteIds}
+                setSelectedIds={setSelectedNoteIds}
+                allIds={paperStatusTabData.tableRows?.map((row) => row.note.id)}
               />
             ),
             width: '35px',
@@ -244,7 +227,7 @@ const PaperStatus = ({ sacConsoleData }) => {
             selectedNoteIds={selectedNoteIds}
             setSelectedNoteIds={setSelectedNoteIds}
             decision={row.decision}
-            venue={row.note?.content?.venue?.value}
+            venue={row.venue}
           />
         ))}
       </Table>

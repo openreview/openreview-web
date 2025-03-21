@@ -1207,6 +1207,7 @@ table.table-minimal {
   .form-rejection {
     display: flex;
     flex-flow: column;
+    text-align: left;
 
     .btn {
       align-self: flex-start;
@@ -1232,6 +1233,16 @@ table.table-minimal {
       .instructions,
       .glyphicon {
         display: none;
+
+        &.url-status {
+          display: inline-block;
+          color: #5cb85c;
+          margin-left: 0.25rem;
+
+          &.glyphicon-remove {
+            color: constants.$orRed;
+          }
+        }
       }
       .list-compact > div {
         display: inline-block;
@@ -1272,6 +1283,22 @@ table.table-minimal {
           display: inline-block;
           vertical-align: bottom;
           margin-left: 0.25rem;
+        }
+      }
+    }
+
+    section.links {
+      .section-content {
+        .spinner-container {
+          display: inline-block;
+          margin: 0 0.25rem;
+
+          .spinner {
+            height: 15px;
+            margin: 0;
+            display: inline-block;
+            vertical-align: middle;
+          }
         }
       }
     }

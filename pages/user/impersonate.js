@@ -1,8 +1,8 @@
 /* globals promptError: false */
 
 import { useContext, useState, useEffect } from 'react'
-import uniq from 'lodash/uniq'
 import Head from 'next/head'
+import { uniqBy } from 'lodash'
 import Icon from '../../components/Icon'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorAlert from '../../components/ErrorAlert'
@@ -12,19 +12,27 @@ import api from '../../lib/api-client'
 
 const Impersonate = () => {
   const [userId, setUserId] = useState('')
+  const [impersonateNote, setImpersonateNote] = useState('')
   const [previousImpersonations, setPreviousImpersonations] = useState(null)
   const [error, setError] = useState(null)
   const { userLoading, user, accessToken } = useLoginRedirect()
   const { loginUser } = useContext(UserContext)
 
-  const impersonateUser = async (groupId) => {
+  const impersonateUser = async (groupId, note) => {
     try {
       const { user: newUser, token } = await api.post(
         '/impersonate',
         { groupId },
         { accessToken }
       )
-      const trimmedList = uniq([groupId, ...previousImpersonations].slice(0, 10))
+      const trimmedList = uniqBy(
+        [
+          { groupId, note },
+          ...previousImpersonations.map((p) => (typeof p === 'string' ? { groupId: p } : p)),
+        ].slice(0, 10),
+        'groupId'
+      )
+
       localStorage.setItem(`${user.profile.id}|impersonatedUsers`, JSON.stringify(trimmedList))
       loginUser(newUser, token, '/profile')
     } catch (apiError) {
@@ -41,7 +49,7 @@ const Impersonate = () => {
       return
     }
 
-    impersonateUser(userId)
+    impersonateUser(userId, impersonateNote.trim())
   }
 
   useEffect(() => {
@@ -95,6 +103,16 @@ const Impersonate = () => {
           >
             Impersonate
           </button>
+          <div className="input-group mt-2" style={{ width: 'calc(100% - 128px)' }}>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="user role or purpose of impersonation"
+              maxLength={45}
+              value={impersonateNote}
+              onChange={(e) => setImpersonateNote(e.target.value)}
+            />
+          </div>
         </form>
 
         {previousImpersonations?.length > 0 && (
@@ -102,22 +120,29 @@ const Impersonate = () => {
             <hr />
             <h4>Previous Impersonations</h4>
             <ul className="list-unstyled">
-              {previousImpersonations.map((id) => (
-                <li key={id}>
-                  {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                  <a
-                    href="#"
-                    role="button"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setError(null)
-                      impersonateUser(id)
-                    }}
-                  >
-                    {id}
-                  </a>
-                </li>
-              ))}
+              {previousImpersonations.map((impersonation) => {
+                const { groupId, note } =
+                  typeof impersonation === 'string'
+                    ? { groupId: impersonation }
+                    : impersonation
+                return (
+                  <li key={groupId}>
+                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                    <a
+                      href="#"
+                      role="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setError(null)
+                        impersonateUser(groupId, note)
+                      }}
+                    >
+                      {groupId}
+                    </a>
+                    {note && ` - ${note}`}
+                  </li>
+                )
+              })}
             </ul>
           </div>
         )}
