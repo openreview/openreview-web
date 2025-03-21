@@ -285,7 +285,8 @@ const ReviewerConsole = ({ appContext }) => {
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
   const [enablePaperRanking, setEnablePaperRanking] = useState(true)
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`
+    decodeURIComponent(window.location.hash) ||
+      `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`
   )
 
   const paperRankingId = `${venueId}/${reviewerName}/-/Paper_Ranking`

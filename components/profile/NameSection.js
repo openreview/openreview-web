@@ -156,6 +156,9 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
         return nameCopy
       })
     }
+    if (action.reset) {
+      return action.body.value.map((p) => ({ ...p, key: nanoid() }))
+    }
     return names
   }
   const [names, setNames] = useReducer(
@@ -266,6 +269,14 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
     }
     $('#name-delete').modal('hide')
   }, [nameToRequestDelete])
+
+  useEffect(() => {
+    if (profileNames.some((p) => p.key)) return
+    setNames({
+      reset: true,
+      body: { value: profileNames },
+    })
+  }, [profileNames])
 
   return (
     <div className="container names">

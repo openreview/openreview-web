@@ -14,7 +14,7 @@ const IEEECopyrightForm = ({ note, isV2Note }) => {
   const { showIEEECopyright, IEEEPublicationTitle, IEEEArtSourceCode } =
     useContext(WebFieldContext)
   const { user } = useUser()
-  const noteContent = isV2Note ? getNoteContentValues(note) : note.content
+  const noteContent = isV2Note ? getNoteContentValues(note.content) : note.content
 
   if (showIEEECopyright && IEEEPublicationTitle && IEEEArtSourceCode) {
     return (
@@ -55,7 +55,7 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
     ? decision?.content?.decision?.value
     : decision?.content?.decision
   const isAcceptedPaper = isV2Note
-    ? note.content?.venue?.value?.toLowerCase()?.includes('accept')
+    ? note.content?.venueid?.value === venueId
     : decisionContent?.toLowerCase()?.includes('accept')
 
   if (!decision) {
@@ -272,7 +272,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                     )}
                   </span>
                 </div>
-                {metaReview && (
+                {metaReview && recommendation && (
                   <div>
                     <span className="recommendation">
                       {prettyField(metaReviewRecommendationName)}: {recommendation}

@@ -1,11 +1,9 @@
 import random from 'lodash/random'
 import Link from 'next/link'
 import copy from 'copy-to-clipboard'
-import { useEffect, useState } from 'react'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 import { prettyList } from '../../lib/utils'
-import LoadingSpinner from '../LoadingSpinner'
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -39,7 +37,7 @@ const ProfileName = ({ name }) => (
 
 const ProfileEmail = ({ email, publicProfile, allowCopyEmail }) => {
   const copyEmailToClipboard = () => {
-    copy(`"${email.email}"`)
+    copy(`${email.email}`)
   }
   return (
     <ProfileItem itemMeta={email.meta}>
@@ -70,26 +68,8 @@ const ProfileEmail = ({ email, publicProfile, allowCopyEmail }) => {
   )
 }
 
-const ProfileLink = ({ link, showLinkText, fetchUrl }) => {
+const ProfileLink = ({ link, showLinkText }) => {
   const linkUrlWithProtocol = link.url?.startsWith('http') ? link.url : `//${link.url}`
-  const [isValidLink, setIsValidLink] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  const loadLinkUrl = async () => {
-    setIsLoading(true)
-    try {
-      await fetch(linkUrlWithProtocol, { mode: 'no-cors' })
-      setIsValidLink(true)
-    } catch (error) {
-      setIsValidLink(false)
-    }
-    setIsLoading(false)
-  }
-
-  useEffect(() => {
-    if (!fetchUrl) return
-    loadLinkUrl()
-  }, [link])
 
   return (
     <ProfileItem itemMeta={link.meta}>
@@ -97,12 +77,6 @@ const ProfileLink = ({ link, showLinkText, fetchUrl }) => {
         {link.name}
       </a>
       {showLinkText && <span className="link-text">{`(${linkUrlWithProtocol})`}</span>}
-      {fetchUrl &&
-        (isLoading ? (
-          <LoadingSpinner inline text={null} />
-        ) : (
-          <Icon name={isValidLink ? 'ok' : 'remove'} extraClasses="url-status" />
-        ))}
     </ProfileItem>
   )
 }
@@ -243,12 +217,7 @@ const BasicProfileView = ({
       {contentToShow.includes('links') && (
         <ProfileViewSection name="links" title="Personal Links" actionLink="Suggest URL">
           {profile.links.map((link) => (
-            <ProfileLink
-              key={link.name}
-              link={link}
-              showLinkText={showLinkText}
-              fetchUrl={moderation}
-            />
+            <ProfileLink key={link.name} link={link} showLinkText={showLinkText} />
           ))}
         </ProfileViewSection>
       )}

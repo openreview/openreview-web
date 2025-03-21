@@ -158,11 +158,12 @@ export default class OpenReviewApp extends App {
     if (!userEmail || !accessToken) return
 
     try {
-      const { count } = await api.get(
+      const response = await api.get(
         '/messages',
         { to: userEmail, viewed: false, transitiveMembers: true },
         { accessToken }
       )
+      const count = response.messages?.length
       this.setState({ unreadNotifications: count ?? 0 })
     } catch (error) {
       this.setState({ unreadNotifications: 0 })

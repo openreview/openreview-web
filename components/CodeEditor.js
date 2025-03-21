@@ -26,6 +26,7 @@ const CodeEditor = ({
   const containerRef = useRef(null)
   const editorRef = useRef(null)
   const [extensions, setExtensions] = useState(null)
+  const [isVisible, setIsVisible] = useState(false)
 
   const languageSupports = {
     json: [new LanguageSupport(jsonLanguage), linter(jsonParseLinter())],
@@ -46,6 +47,25 @@ const CodeEditor = ({
     if (scrollIntoView) {
       containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting)
+      },
+      {
+        rootMargin: '0px',
+        threshold: 0.1,
+      }
+    )
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current)
+    }
+
+    return () => {
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current)
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -65,29 +85,34 @@ const CodeEditor = ({
   }, [extensions])
 
   useEffect(() => {
+    if (readOnly && !isVisible) return
+
     setExtensions([
       basicSetup,
       keymap.of([indentWithTab]),
       ...languageSupports[language],
       ...(wrap ? [EditorView.lineWrapping] : []),
-      ...(readOnly ? [EditorView.editable.of(false)] : []),
-      EditorView.updateListener.of((view) => {
-        const value = view.state.doc.toString()
+      ...(readOnly
+        ? [EditorView.editable.of(false)]
+        : [
+            EditorView.updateListener.of((view) => {
+              const value = view.state.doc.toString()
 
-        // Detect if the user starts typing a process function, and if so change language  to python
-        if (language !== 'json' && language !== 'text') {
-          if (value.startsWith('def process') && language !== 'python') {
-            setLanguage('python')
-          }
-          if (!value.startsWith('def process') && language !== 'javascript') {
-            setLanguage('javascript')
-          }
-        }
+              // Detect if the user starts typing a process function, and if so change language  to python
+              if (language !== 'json' && language !== 'text') {
+                if (value.startsWith('def process') && language !== 'python') {
+                  setLanguage('python')
+                }
+                if (!value.startsWith('def process') && language !== 'javascript') {
+                  setLanguage('javascript')
+                }
+              }
 
-        if (typeof onChange === 'function') {
-          onChange(value)
-        }
-      }),
+              if (typeof onChange === 'function') {
+                onChange(value)
+              }
+            }),
+          ]),
       EditorView.theme({
         '&': {
           minHeight,
@@ -95,11 +120,11 @@ const CodeEditor = ({
           ...(defaultToMinHeight && { height: minHeight }),
           border: '1px solid #eee',
           fontFamily: 'Monaco, Menlo, "Ubuntu Mono", Consolas',
-          fontSize: '13px',
+          ...(!readOnly && { fontSize: '13px' }),
         },
       }),
     ])
-  }, [language])
+  }, [language, isVisible])
 
   return <div className="code-editor" ref={containerRef} />
 }
