@@ -24,6 +24,7 @@ const AreaChairConsoleMenuBar = ({
   officialMetaReviewName,
   areaChairName,
   ithenticateInvitationId,
+  sortOptions: sortOptionsConfig,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
   const formattedReviewerName = camelCase(reviewerName)
@@ -268,6 +269,7 @@ const AreaChairConsoleMenuBar = ({
           },
         ]
       : []),
+    ...(sortOptionsConfig ?? []),
   ]
   const basicSearchFunction = (row, term) => {
     const noteTitle = row.note.content?.title?.value
