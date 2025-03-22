@@ -19,7 +19,7 @@ import PaginationLinks from '../../../components/PaginationLinks'
 import BasicModal from '../../../components/BasicModal'
 import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 
-const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
+export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
   const selectRef = useRef(null)
 
@@ -176,11 +176,11 @@ const UserModerationQueue = ({
   const [signedNotes, setSignedNotes] = useState(0)
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
-  const [pageSize, setPageSize] = useState(15)
+  const [pageSize, setPageSize] = useState(onlyModeration ? 200 : 15)
   const [profileToPreview, setProfileToPreview] = useState(null)
   const [lastPreviewedProfileId, setLastPreviewedProfileId] = useState(null)
   const modalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
-  const pageSizeOptions = [15, 30, 50, 100].map((p) => ({
+  const pageSizeOptions = [15, 30, 50, 100, 200].map((p) => ({
     label: `${p} items`,
     value: p,
   }))
@@ -422,6 +422,14 @@ const UserModerationQueue = ({
       promptMessage(`${profileId} is added to SDN exception group`)
     } catch (error) {
       promptError(error.message)
+    }
+  }
+
+  const showNextProfile = (currentProfileId) => {
+    const nextProfile = profiles[profiles.findIndex((p) => p.id === currentProfileId) + 1]
+    if (nextProfile) {
+      setProfileToPreview(formatProfileData(cloneDeep(nextProfile)))
+      setLastPreviewedProfileId(nextProfile.id)
     }
   }
 
@@ -682,6 +690,11 @@ const UserModerationQueue = ({
           'publications',
           'messages',
         ]}
+        showNextProfile={showNextProfile}
+        acceptUser={acceptUser}
+        blockUser={blockUnblockUser}
+        setProfileToReject={setProfileToReject}
+        rejectUser={rejectUser}
       />
     </div>
   )

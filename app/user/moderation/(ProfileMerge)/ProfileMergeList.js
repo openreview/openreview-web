@@ -67,7 +67,7 @@ export default function ProfileMergeList({ accessToken, profileMergeRequestsP })
         {
           ...profileMergeNotesResults.notes[0],
           processLogStatus: 'running',
-          processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
+          processLogUrl: `${process.env.API_V2_URL}/logs/process?id=${decisionResults[0].id}`,
         },
         ...notes.filter((p) => p.content.status.value !== 'Pending'),
       ])

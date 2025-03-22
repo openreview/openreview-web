@@ -30,9 +30,13 @@ export default async function EmailDeletionTab({ accessToken }) {
     ([notes, edits, processLogs]) => {
       const notesWithStatus = notes.map((p) => {
         const edit = edits.find((q) => q.note.id === p.id)
+        const processLog = processLogs.find((q) => q.id === edit?.id)
         return {
           ...p,
           processLogStatus: processLogs.find((q) => q.id === edit?.id)?.status ?? 'running',
+          processLogUrl: processLog
+            ? `${process.env.API_V2_URL}/logs/process?id=${processLog.id}`
+            : null,
         }
       })
       return notesWithStatus

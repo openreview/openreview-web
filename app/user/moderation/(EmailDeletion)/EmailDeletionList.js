@@ -47,11 +47,7 @@ export default function EmailDeletionList({
         {emailDeletionNotesToShow.map((note) => (
           <div className="email-deletion-row" key={note.id}>
             <span className="col-status">
-              <a
-                href={`${process.env.API_URL}/logs/process?id=${note.id}`}
-                target="_blank"
-                rel="noreferrer"
-              >
+              <a href={note.processLogUrl} target="_blank" rel="noreferrer">
                 <span
                   className={`label label-${
                     note.processLogStatus === 'ok' ? 'success' : 'default'

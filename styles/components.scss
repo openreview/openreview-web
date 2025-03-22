@@ -1208,6 +1208,7 @@ table.table-minimal {
   .form-rejection {
     display: flex;
     flex-flow: column;
+    text-align: left;
 
     .btn {
       align-self: flex-start;

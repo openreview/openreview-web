@@ -49,7 +49,7 @@ export default async function ProfileMergeTab({ accessToken }) {
         ...p,
         processLogStatus,
         processLogUrl: decisionEdit
-          ? `${process.env.API_URL}/logs/process?id=${decisionEdit.id}`
+          ? `${process.env.API_V2_URL}/logs/process?id=${decisionEdit.id}`
           : null,
       }
     })

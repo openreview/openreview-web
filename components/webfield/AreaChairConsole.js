@@ -102,12 +102,16 @@ const AssignedPaperRow = ({
   )
 }
 
-const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
+const AreaChairConsoleTasks = ({
+  venueId,
+  areaChairName,
+  defaultAreaChairName = areaChairName,
+}) => {
   const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
   const referrer = encodeURIComponent(
     `[${prettyField(
-      areaChairName
-    )} Console](/group?id=${venueId}/${areaChairName}#${areaChairUrlFormat}-tasks)`
+      defaultAreaChairName
+    )} Console](/group?id=${venueId}/${defaultAreaChairName}#${areaChairUrlFormat}-tasks)`
   )
 
   return (
@@ -147,6 +151,7 @@ const AreaChairConsole = ({ appContext }) => {
     extraExportColumns,
     preferredEmailInvitationId,
     ithenticateInvitationId,
+    extraRoleNames,
     sortOptions,
   } = useContext(WebFieldContext)
   const {
@@ -177,6 +182,10 @@ const AreaChairConsole = ({ appContext }) => {
     : header?.instructions
 
   const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
+  const extraRoleNamesWithUrlFormat = extraRoleNames?.map((roleName) => ({
+    name: roleName,
+    urlFormat: getRoleHashFragment(roleName),
+  }))
   const secondaryAreaChairUrlFormat = secondaryAreaChairName
     ? getRoleHashFragment(secondaryAreaChairName)
     : null
@@ -775,6 +784,9 @@ const AreaChairConsole = ({ appContext }) => {
       `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
       ...(secondaryAreaChairName ? [`#${secondaryAreaChairUrlFormat}-assignments`] : []),
       `#${areaChairUrlFormat}-tasks`,
+      ...(extraRoleNamesWithUrlFormat?.length
+        ? extraRoleNamesWithUrlFormat.map((role) => `#${role.urlFormat}-tasks`)
+        : []),
     ]
     if (!validTabIds.includes(activeTabId)) {
       setActiveTabId(`#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`)
@@ -851,8 +863,17 @@ const AreaChairConsole = ({ appContext }) => {
           >
             {getSingularRoleName(prettyField(areaChairName))} Tasks
           </Tab>
+          {extraRoleNamesWithUrlFormat?.map((role) => (
+            <Tab
+              key={role.name}
+              id={`${role.urlFormat}-tasks`}
+              active={activeTabId === `#${role.urlFormat}-tasks` ? true : undefined}
+              onClick={() => setActiveTabId(`#${role.urlFormat}-tasks`)}
+            >
+              {getSingularRoleName(prettyField(role.name))} Tasks
+            </Tab>
+          ))}
         </TabList>
-
         <TabPanels>
           <TabPanel id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}>
             {activeTabId === `#assigned-${pluralizeString(submissionName).toLowerCase()}` &&
@@ -869,6 +890,17 @@ const AreaChairConsole = ({ appContext }) => {
               <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />
             )}
           </TabPanel>
+          {extraRoleNamesWithUrlFormat?.map((role) => (
+            <TabPanel key={role.name} id={`${role.urlFormat}-tasks`}>
+              {activeTabId === `#${role.urlFormat}-tasks` && (
+                <AreaChairConsoleTasks
+                  venueId={venueId}
+                  areaChairName={role.name}
+                  defaultAreaChairName={areaChairName}
+                />
+              )}
+            </TabPanel>
+          ))}
         </TabPanels>
       </Tabs>
     </>
