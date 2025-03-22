@@ -1,34 +1,31 @@
-import { redirect } from 'next/navigation'
-import { Suspense } from 'react'
-import { headers } from 'next/headers'
-import serverAuth from '../auth'
+'use client'
+
+import { useEffect, useState } from 'react'
+
+import { useRouter } from 'next/navigation'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import api from '../../lib/api-client'
 import styles from './Tasks.module.scss'
 import { formatTasksData } from '../../lib/utils'
 import GroupedTaskList from './GroupedTaskList'
+import useUser from '../../hooks/useUser'
+import ErrorAlert from '../../components/ErrorAlert'
 
-export const metadata = {
-  title: 'Tasks | OpenReview',
-}
+export default function Page() {
+  const { accessToken, isRefreshing } = useUser()
+  const router = useRouter()
+  const [groupedTasks, setGroupedTasks] = useState(null)
+  const [error, setError] = useState(null)
 
-export const dynamic = 'force-dynamic'
-
-export default async function page() {
-  const { token, user } = await serverAuth()
-  if (!token) redirect('/login?redirect=/tasks')
-
-  const headersList = await headers()
-  const remoteIpAddress = headersList.get('x-forwarded-for')
+  const addPropertyToInvitations = (propertyName) => (apiRes) =>
+    apiRes.invitations.map((inv) => ({ ...inv, [propertyName]: true }))
 
   const commonParams = {
     invitee: true,
     duedate: true,
     details: 'repliedTags',
   }
-  const commonOptions = { accessToken: token, includeVersion: true, remoteIpAddress }
-  const addPropertyToInvitations = (propertyName) => (apiRes) =>
-    apiRes.invitations.map((inv) => ({ ...inv, [propertyName]: true }))
+  const commonOptions = { accessToken, includeVersion: true }
 
   const invitationPromises = [
     api
@@ -67,24 +64,21 @@ export default async function page() {
       .then(addPropertyToInvitations('tagInvitation')),
   ]
 
-  const groupedTasksP = Promise.all(invitationPromises)
-    .then((allInvitations) => {
-      const aERecommendationInvitations = allInvitations[2].filter((p) =>
-        p.id.endsWith('/Action_Editors/-/Recommendation')
-      )
-      const aERecommendationEdgesP = aERecommendationInvitations.map((p) =>
-        api
-          .get(
-            '/edges',
-            {
+  const loadGroupTasks = async () => {
+    await Promise.all(invitationPromises)
+      .then(async (allInvitations) => {
+        const aERecommendationInvitations = allInvitations[2].filter((p) =>
+          p.id.endsWith('/Action_Editors/-/Recommendation')
+        )
+        const aERecommendationEdgesP = aERecommendationInvitations.map((p) =>
+          api
+            .get('/edges', {
               invitation: `${p.domain}/Action_Editors/-/Recommendation`,
               groupBy: 'head',
-            },
-            { accessToken: token, remoteIpAddress }
-          )
-          .then((result) => result.groupedEdges)
-      )
-      return Promise.all(aERecommendationEdgesP).then((edgeResults) => {
+            })
+            .then((result) => result.groupedEdges)
+        )
+        const edgeResults = await Promise.all(aERecommendationEdgesP)
         // eslint-disable-next-line no-param-reassign
         allInvitations[2] = allInvitations[2].map((p, i) => {
           if (!p.id.endsWith('/Action_Editors/-/Recommendation')) return p
@@ -101,24 +95,26 @@ export default async function page() {
             },
           }
         })
+        setGroupedTasks(formatTasksData(allInvitations))
+      })
+      .catch((apiError) => setError(apiError))
+  }
 
-        return { groupedTasks: formatTasksData(allInvitations) }
-      })
-    })
-    .catch((error) => {
-      console.log('Error in groupedTasksP', {
-        page: 'tasks',
-        user: user?.id,
-        apiError: error,
-      })
-      return { errorMessage: error.message }
-    })
+  useEffect(() => {
+    if (isRefreshing) return
+    if (!accessToken) {
+      router.push('/login?redirect=/tasks')
+      return
+    }
+    loadGroupTasks()
+  }, [isRefreshing])
+
+  if (!groupedTasks) return <LoadingSpinner />
+  if (error) return <ErrorAlert error={error} />
 
   return (
     <div className={styles.tasks}>
-      <Suspense fallback={<LoadingSpinner />}>
-        <GroupedTaskList groupedTasksP={groupedTasksP} />
-      </Suspense>
+      <GroupedTaskList groupedTasks={groupedTasks} />
     </div>
   )
 }

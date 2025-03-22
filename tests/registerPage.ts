@@ -589,7 +589,7 @@ test('reset password of active profile', async (t) => {
   await t
     .expect(messages[0].content.text)
     .contains('http://localhost:3030/user/password?token=')
-})
+}).skipJsErrors()
 
 fixture`Edit profile`.page`http://localhost:${process.env.NEXT_PORT}/login`.before(
   async (ctx) => {

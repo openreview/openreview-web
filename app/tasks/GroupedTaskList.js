@@ -1,14 +1,10 @@
 'use client'
 
-import { use } from 'react'
 import Accordion from '../../components/Accordion'
 import TaskList from '../../components/TaskList'
 import HeadingLink from './HeadingLink'
 
-export default function GroupedTaskList({ groupedTasksP }) {
-  const { groupedTasks, errorMessage } = use(groupedTasksP)
-  if (errorMessage) throw new Error(errorMessage)
-
+export default function GroupedTaskList({ groupedTasks }) {
   if (!Object.keys(groupedTasks).length)
     return <p className="empty-message">No current pending or completed tasks</p>
 
