@@ -1305,12 +1305,13 @@ main.invitation {
           opacity: 0.6;
           background-color: #eee;
           padding: 0.25rem 0.5rem;
-          margin: 0.25rem -0.5rem;
         }
 
         .task-name {
           margin-right: 0.5rem;
           cursor: pointer;
+          font-size: 1rem;
+          font-weight: bold;
         }
         .task-due-date {
           background-color: constants.$sandyBrown;
@@ -1399,10 +1400,6 @@ main.invitation {
           max-width: unset;
         }
 
-        &.missing-value {
-          color: red;
-        }
-
         .edit-cdate-icon {
           cursor: pointer;
         }
@@ -1471,6 +1468,10 @@ main.invitation {
               }
             }
 
+            .missing-value {
+              color: red;
+            }
+
             .spinner {
               margin: 0;
               height: 1rem;
@@ -1502,10 +1503,21 @@ main.invitation {
         .sub-invitation-container {
           margin-left: -2.5rem;
 
+          &.completed {
+            opacity: 0.6;
+            background-color: #eee;
+            // padding: 0.25rem 0.5rem;
+            // margin: 0.25rem -0.5rem;
+            margin-left: 0.25rem;
+          }
+
           .sub-invitation-due-date {
             margin-left: 0.25rem;
+            background-color: constants.$sandyBrown;
+            border: 1px solid darken(constants.$sandyBrown, 5%);
             font-size: 0.75rem;
-            font-style: italic;
+            font-weight: normal;
+            color: constants.$orRed;
           }
 
           ul {

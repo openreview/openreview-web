@@ -23,11 +23,32 @@ import GroupSignedNotes from '../GroupSignedNotes'
 import GroupChildGroups from '../GroupChildGroups'
 import GroupRelatedInvitations from '../GroupRelatedInvitations'
 import GroupMembers from '../GroupMembers'
+import WorkFlowInvitations from '../WorkflowInvitations'
 
-const groupTabsConfig = [
+const groupTabsConfig = (group) => [
+  ...(group.id === group.domain && group.details.writable
+    ? [
+        {
+          id: 'groupContent',
+          label: 'Content',
+          sections: ['groupContent'],
+          default: true,
+        },
+      ]
+    : []),
+  ...(group.id === group.domain && group.details.writable
+    ? [
+        {
+          id: 'workflowInvitations',
+          label: 'Workflow Step Timeline',
+          sections: ['workflowInvitations'],
+          default: true,
+        },
+      ]
+    : []),
   {
     id: 'groupMembers',
-    label: ' Members',
+    label: 'Members',
     sections: ['groupMembers'],
     default: true,
   },
@@ -47,6 +68,7 @@ const groupTabsConfig = [
 
 const GroupContent = ({ groupContent, presentation, groupReaders }) => {
   if (!groupContent) return null
+  console.log('groupContent', groupContent)
 
   const contentKeys = Object.keys(groupContent)
   const contentOrder =
@@ -58,6 +80,7 @@ const GroupContent = ({ groupContent, presentation, groupReaders }) => {
     <div className={styles.groupContents}>
       {contentOrder.map((fieldName, i) => {
         let rawFieldValue = presentation?.[i]?.description
+
         if (Array.isArray(rawFieldValue)) {
           rawFieldValue = rawFieldValue.filter(Boolean)
           if (rawFieldValue.length === 0) rawFieldValue = null
@@ -66,7 +89,14 @@ const GroupContent = ({ groupContent, presentation, groupReaders }) => {
         if (!rawFieldValue) {
           rawFieldValue = groupContent[fieldName]?.value
         }
-        const fieldValue = prettyContentValue(rawFieldValue, presentation?.[i]?.type)
+
+        const isDateField = fieldName.endsWith('date')
+        let fieldValue
+        if (isDateField && !presentation?.[i]?.type) {
+          fieldValue = prettyContentValue(rawFieldValue, 'date')
+        } else {
+          fieldValue = prettyContentValue(rawFieldValue, presentation?.[i]?.type)
+        }
 
         if (!fieldValue) return null
 
@@ -103,14 +133,34 @@ const GroupContent = ({ groupContent, presentation, groupReaders }) => {
 const GroupWithInvitation = ({ group, reloadGroup }) => {
   const [editGroupInvitations, setEditGroupInvitations] = useState([])
   const [activeGroupInvitation, setActivateGroupInvitation] = useState(null)
-  const [messageMemberInvitation, setMessageMemberInvitation] = useState(null)
+  const [messageAllMembersInvitation, setMessageAllMembersInvitation] = useState(null)
+  const [messageSingleMemberInvitation, setMessageSingleMemberInvitation] = useState(null)
   const { user, accessToken } = useUser()
+  console.log(messageAllMembersInvitation, messageSingleMemberInvitation)
 
   const renderSection = (sectionName) => {
     switch (sectionName) {
+      case 'workflowInvitations':
+        return (
+          <WorkFlowInvitations key={sectionName} group={group} accessToken={accessToken} />
+        )
+      case 'groupContent':
+        return (
+          <GroupContent
+            key={sectionName}
+            groupContent={group.content}
+            presentation={group.details?.presentation}
+            groupReaders={group.readers}
+          />
+        )
       case 'groupMembers':
-        return messageMemberInvitation ? (
-          <GroupMembers group={group} messageMemberInvitation={messageMemberInvitation} />
+        return messageAllMembersInvitation || messageSingleMemberInvitation ? (
+          <GroupMembers
+            key={sectionName}
+            group={group}
+            messageAllMembersInvitation={messageAllMembersInvitation}
+            messageSingleMemberInvitation={messageSingleMemberInvitation}
+          />
         ) : (
           <GroupMembersInfo key={sectionName} group={group} />
         )
@@ -131,12 +181,19 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
     }
   }
 
-  const getMessageMemberInvitation = async () => {
+  const getMessageMemberInvitations = async () => {
     try {
-      const messageMemberInvitationId = `${group.id}/-/Message`
-      const result = await api.getInvitationById(messageMemberInvitationId, accessToken)
-      if (result) {
-        setMessageMemberInvitation(result)
+      const messageAllMembersInvitationId = `${group.domain}/-/Message`
+      const messageSingleMemberInvitationId = `${group.id}/-/Message`
+      const result = await Promise.all([
+        api.getInvitationById(messageAllMembersInvitationId, accessToken, { invitee: true }),
+        api.getInvitationById(messageSingleMemberInvitationId, accessToken, {
+          invitee: true,
+        }),
+      ])
+      if (result?.length) {
+        setMessageAllMembersInvitation(result[0])
+        setMessageSingleMemberInvitation(result[1])
       }
     } catch (error) {
       /* empty */
@@ -161,7 +218,7 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
 
   useEffect(() => {
     if (!group) return
-    getMessageMemberInvitation()
+    getMessageMemberInvitations()
     getInvitationsByReplyGroup()
     $('[data-toggle="tooltip"]').tooltip({ html: true })
   }, [group])
@@ -202,13 +259,7 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
         </span>
       </div>
 
-      <div className={styles.groupContent}>
-        <GroupContent
-          groupContent={group.content}
-          presentation={group.details?.presentation}
-          groupReaders={group.readers}
-        />
-      </div>
+      {/* <div className={styles.groupContent}></div> */}
       <div className={styles.groupInvitations}>
         <div className={styles.groupInvitationButtons}>
           {editGroupInvitations.length > 0 && <span className="item">Add:</span>}
@@ -258,14 +309,14 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
       </div>
 
       <TabList>
-        {groupTabsConfig.map((tabConfig) => (
+        {groupTabsConfig(group).map((tabConfig) => (
           <Tab key={tabConfig.id} id={tabConfig.id} active={tabConfig.default}>
             {tabConfig.label}
           </Tab>
         ))}
       </TabList>
       <TabPanels>
-        {groupTabsConfig.map((tabConfig) => (
+        {groupTabsConfig(group).map((tabConfig) => (
           <TabPanel key={tabConfig.id} id={tabConfig.id}>
             {tabConfig.sections.map((section) => renderSection(section))}
           </TabPanel>

@@ -49,23 +49,27 @@ const MessageMemberModal = ({
       return
     }
 
+    const skipCheckNewMembers =
+      membersToMessage.length === 1 && membersToMessage[0] === groupId
     // Reload group to make sure members haven't been removed since the modal was opened
-    try {
-      const apiRes = await api.get(
-        '/groups',
-        { id: groupId, select: 'members' },
-        { accessToken }
-      )
-      const newMembers = get(apiRes, 'groups.0.members', [])
-      if (!membersToMessage.every((p) => newMembers.includes(p))) {
-        throw new Error(
-          'The members of this group, including members selected below, have changed since the page was opened. Please reload the page and try again.'
+    if (!skipCheckNewMembers) {
+      try {
+        const apiRes = await api.get(
+          '/groups',
+          { id: groupId, select: 'members' },
+          { accessToken }
         )
+        const newMembers = get(apiRes, 'groups.0.members', [])
+        if (!membersToMessage.every((p) => newMembers.includes(p))) {
+          throw new Error(
+            'The members of this group, including members selected below, have changed since the page was opened. Please reload the page and try again.'
+          )
+        }
+      } catch (e) {
+        setError(e.message)
+        setSubmitting(false)
+        return
       }
-    } catch (e) {
-      setError(e.message)
-      setSubmitting(false)
-      return
     }
 
     try {
@@ -306,7 +310,13 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   )
 }
 
-const GroupMembers = ({ group, accessToken, reloadGroup, messageMemberInvitation }) => {
+const GroupMembers = ({
+  group,
+  accessToken,
+  reloadGroup,
+  messageAllMembersInvitation,
+  messageSingleMemberInvitation,
+}) => {
   const membersPerPage = 15
   const [searchTerm, setSearchTerm] = useState('')
   const [memberAnonIds, setMemberAnonIds] = useState([])
@@ -393,11 +403,13 @@ const GroupMembers = ({ group, accessToken, reloadGroup, messageMemberInvitation
   }
 
   const [memberToMessage, setMemberToMessage] = useState([])
+  const [messageInvitation, setMessageInvitation] = useState(null)
   const [displayedMembers, setDisplayedMembers] = useState(
     filteredMembers.length > membersPerPage
       ? filteredMembers.slice(0, membersPerPage)
       : filteredMembers
   )
+
   const isAllFilterdSelected =
     filteredMembers.filter((p) => !p.isDeleted).length &&
     filteredMembers.filter((p) => !p.isDeleted).every((p) => p.isSelected)
@@ -620,7 +632,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup, messageMemberInvitation
     $('[data-toggle="tooltip"]').tooltip()
   }, [])
 
-  if (messageMemberInvitation)
+  if (messageAllMembersInvitation && messageSingleMemberInvitation)
     return (
       <>
         <EditorSection title={getTitle()} className="members">
@@ -647,9 +659,224 @@ const GroupMembers = ({ group, accessToken, reloadGroup, messageMemberInvitation
                 type="button"
                 className="btn btn-sm btn-primary"
                 disabled={!groupMembers.some((p) => p.isSelected)}
-                onClick={() =>
+                onClick={() => {
+                  setMessageInvitation(messageSingleMemberInvitation)
                   messageMember(groupMembers.filter((p) => p.isSelected)?.map((q) => q.id))
-                }
+                }}
+              >
+                Message Selected
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                onClick={() => {
+                  setMessageInvitation(messageAllMembersInvitation)
+                  messageMember([group.id])
+                }}
+              >
+                Message All
+              </button>
+            </div>
+
+            {filteredMembers?.length > 0 ? (
+              displayedMembers.map((member) => {
+                const hasAnonId = memberAnonIds.find((p) => p.member.includes(member.id))
+                return (
+                  <div
+                    key={member.id}
+                    className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={member.isSelected}
+                      disabled={member.isDeleted}
+                      onChange={(e) => {
+                        setGroupMembers({
+                          type: e.target.checked ? 'SELECT' : 'UNSELECT',
+                          payload: member.id,
+                        })
+                      }}
+                    />
+                    <span
+                      className="member-id"
+                      onClick={(e) => {
+                        if (e.currentTarget !== e.target) return
+                        setGroupMembers({
+                          type: 'INVERTSELECTION',
+                          payload: member.id,
+                        })
+                      }}
+                    >
+                      <Link href={urlFromGroupId(member.id)}>{member.id}</Link>
+                      {hasAnonId && (
+                        <>
+                          {' | '}
+                          <Link href={urlFromGroupId(hasAnonId.anonId, true)}>
+                            {prettyId(hasAnonId.anonId)}
+                          </Link>
+                        </>
+                      )}
+                    </span>
+
+                    <>
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-primary"
+                        onClick={() => {
+                          setMessageInvitation(messageSingleMemberInvitation)
+                          messageMember([member.id])
+                        }}
+                      >
+                        <Icon name="envelope" />
+                        Message
+                      </button>
+                    </>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="empty-message-row">
+                {searchTerm
+                  ? `No members matching the search "${searchTerm}" found.`
+                  : 'No members to display'}
+              </div>
+            )}
+            <PaginationLinks
+              setCurrentPage={(e) => setCurrentPage(e)}
+              totalCount={filteredMembers.length}
+              itemsPerPage={membersPerPage}
+              currentPage={currentPage}
+              options={{ noScroll: true }}
+            />
+          </div>
+        </EditorSection>
+
+        <MessageMemberModal
+          groupId={group.id}
+          domainId={group.domain}
+          groupDomainContent={group.details.domain?.content}
+          membersToMessage={memberToMessage}
+          accessToken={accessToken}
+          setJobId={(id) => setJobId(id)}
+          messageMemberInvitation={messageInvitation}
+        />
+
+        <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
+      </>
+    )
+
+  if (messageAllMembersInvitation)
+    return (
+      <>
+        <EditorSection title={getTitle()} className="members">
+          <div className="container members-container">
+            <div className="search-row">
+              <div className="input-group">
+                <input
+                  className="form-control input-sm"
+                  placeholder="Search group members e.g. ~Jane_Doe1, jane@example.com, abc.com/2018/Conf/Authors"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="space-taker" />
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                onClick={() => {
+                  setMessageInvitation(messageAllMembersInvitation)
+                  messageMember([group.id])
+                }}
+              >
+                Message All
+              </button>
+            </div>
+
+            {filteredMembers?.length > 0 ? (
+              displayedMembers.map((member) => {
+                const hasAnonId = memberAnonIds.find((p) => p.member.includes(member.id))
+                return (
+                  <div
+                    key={member.id}
+                    className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
+                  >
+                    <span
+                      className="member-id"
+                      onClick={(e) => {
+                        if (e.currentTarget !== e.target) return
+                        setGroupMembers({
+                          type: 'INVERTSELECTION',
+                          payload: member.id,
+                        })
+                      }}
+                    >
+                      <Link href={urlFromGroupId(member.id)}>{member.id}</Link>
+                      {hasAnonId && (
+                        <>
+                          {' | '}
+                          <Link href={urlFromGroupId(hasAnonId.anonId, true)}>
+                            {prettyId(hasAnonId.anonId)}
+                          </Link>
+                        </>
+                      )}
+                    </span>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="empty-message-row">
+                {searchTerm
+                  ? `No members matching the search "${searchTerm}" found.`
+                  : 'No members to display'}
+              </div>
+            )}
+            <PaginationLinks
+              setCurrentPage={(e) => setCurrentPage(e)}
+              totalCount={filteredMembers.length}
+              itemsPerPage={membersPerPage}
+              currentPage={currentPage}
+              options={{ noScroll: true }}
+            />
+          </div>
+        </EditorSection>
+
+        <MessageMemberModal
+          groupId={group.id}
+          domainId={group.domain}
+          groupDomainContent={group.details.domain?.content}
+          membersToMessage={memberToMessage}
+          accessToken={accessToken}
+          setJobId={(id) => setJobId(id)}
+          messageMemberInvitation={messageInvitation}
+        />
+
+        <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
+      </>
+    )
+
+  if (messageSingleMemberInvitation)
+    return (
+      <>
+        <EditorSection title={getTitle()} className="members">
+          <div className="container members-container">
+            <div className="search-row">
+              <div className="input-group">
+                <input
+                  className="form-control input-sm"
+                  placeholder="Search group members e.g. ~Jane_Doe1, jane@example.com, abc.com/2018/Conf/Authors"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="space-taker" />
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                disabled={!groupMembers.some((p) => p.isSelected)}
+                onClick={() => {
+                  setMessageInvitation(messageSingleMemberInvitation)
+                  messageMember(groupMembers.filter((p) => p.isSelected)?.map((q) => q.id))
+                }}
               >
                 Message Selected
               </button>
@@ -693,14 +920,16 @@ const GroupMembers = ({ group, accessToken, reloadGroup, messageMemberInvitation
                           </Link>
                         </>
                       )}
-                      {member.isDeleted && <> {'(Deleted)'}</>}
                     </span>
 
                     <>
                       <button
                         type="button"
                         className="btn btn-xs btn-primary"
-                        onClick={() => messageMember([member.id])}
+                        onClick={() => {
+                          setMessageInvitation(messageSingleMemberInvitation)
+                          messageMember([member.id])
+                        }}
                       >
                         <Icon name="envelope" />
                         Message
@@ -733,7 +962,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup, messageMemberInvitation
           membersToMessage={memberToMessage}
           accessToken={accessToken}
           setJobId={(id) => setJobId(id)}
-          messageMemberInvitation={messageMemberInvitation}
+          messageMemberInvitation={messageInvitation}
         />
 
         <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
