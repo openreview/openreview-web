@@ -16,7 +16,6 @@ import ErrorDisplay from '../ErrorDisplay'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
-import { prettyId } from '../../lib/utils'
 
 function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload }) {
   const [userConsoles, setUserConsoles] = useState(null)
@@ -236,22 +235,8 @@ export default function VenueHomepage({ appContext }) {
   useEffect(() => {
     if (!tabs) return
 
-    const showVenueConfig = group.details?.writable && group.id === group.domain
-
-    const tabsWithVenueConfig = showVenueConfig
-      ? tabs.concat({
-          name: 'Venue Configuration',
-          links: [
-            {
-              name: 'Workflow Step Timeline',
-              url: `/group/edit?id=${group.id}`,
-            },
-          ],
-        })
-      : tabs
-
     setFormattedTabs(
-      tabsWithVenueConfig.map((tab) => ({
+      tabs.map((tab) => ({
         id: kebabCase(tab.name),
         hidden: tab.type === 'consoles' || tab.options?.hideWhenEmpty === true,
         options: {},

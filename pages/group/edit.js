@@ -77,6 +77,11 @@ export default function GroupEdit({ appContext }) {
       return
     }
 
+    if (!isSuperUser(user)) {
+      setError({ statusCode: 403, message: 'Forbidden. Access to this page is restricted.' })
+      return
+    }
+
     loadGroup(router.query.id)
   }, [router.isReady, router.query, userLoading, accessToken])
 

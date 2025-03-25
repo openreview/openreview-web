@@ -8,7 +8,6 @@ import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import { groupModeToggle } from '../../lib/banner-links'
 import GroupWithInvitation from '../../components/group/info/GroupWithInvitation'
-import { isSuperUser } from '../../lib/auth'
 
 const GroupInfo = ({ appContext }) => {
   const { accessToken, userLoading, user } = useUser()
@@ -20,6 +19,7 @@ const GroupInfo = ({ appContext }) => {
   const loadGroup = async (id) => {
     try {
       const { groups } = await api.get('/groups', { id, details: 'writable' }, { accessToken })
+
       if (groups?.length > 0) {
         if (groups[0].details?.writable) {
           // required to preview web
@@ -83,7 +83,7 @@ const GroupInfo = ({ appContext }) => {
 
     // Show edit mode banner
     if (group.details?.writable) {
-      setEditBanner(groupModeToggle('info', group.id, isSuperUser(user)))
+      setEditBanner(groupModeToggle('info', group.id))
     }
   }, [group])
 

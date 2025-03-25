@@ -12,48 +12,28 @@ import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }) => {
   if (!group) return null
   let groupTabsConfig = []
-  if (isSuperUser) {
-    groupTabsConfig = [
-      {
-        id: 'groupInfo',
-        label: 'Group Info',
-        sections: [
-          'groupGeneral',
-          'groupMembers',
-          'groupContent',
-          'groupContentScripts',
-          'groupUICode',
-        ],
-        default: true,
-      },
-      { id: 'signedNotes', label: 'Signed Notes', sections: ['groupSignedNotes'] },
-      { id: 'childGroups', label: 'Child Groups', sections: ['groupChildGroups'] },
-      {
-        id: 'relatedInvitations',
-        label: 'Related Invitations',
-        sections: ['groupRelatedInvitations'],
-      },
-      ...(group.id === group.domain
-        ? [
-            {
-              id: 'workflowInvitations',
-              label: 'Workflow Step Timeline',
-              sections: ['workflowInvitations'],
-              default: true,
-            },
-          ]
-        : []),
-    ]
-  } else if (group.id === group.domain) {
-    groupTabsConfig = [
-      {
-        id: 'workflowInvitations',
-        label: 'Workflow Step Timeline',
-        sections: ['workflowInvitations'],
-        default: true,
-      },
-    ]
-  }
+  groupTabsConfig = [
+    {
+      id: 'groupInfo',
+      label: 'Group Info',
+      sections: [
+        'groupGeneral',
+        'groupMembers',
+        'groupContent',
+        'groupContentScripts',
+        'groupUICode',
+      ],
+      default: true,
+    },
+    { id: 'signedNotes', label: 'Signed Notes', sections: ['groupSignedNotes'] },
+    { id: 'childGroups', label: 'Child Groups', sections: ['groupChildGroups'] },
+    {
+      id: 'relatedInvitations',
+      label: 'Related Invitations',
+      sections: ['groupRelatedInvitations'],
+    },
+  ]
+
   const renderSection = (sectionName) => {
     switch (sectionName) {
       case 'groupGeneral':

@@ -1586,6 +1586,10 @@ main.invitation {
   .groupInfoTabsContainer {
     .tab-pane {
       padding-left: 0;
+      padding-top: 0;
+    }
+    .code-editor {
+      margin-top: 0;
     }
   }
 }

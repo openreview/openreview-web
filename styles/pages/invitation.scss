@@ -257,4 +257,14 @@ main.invitation {
       color: constants.$subtleGray;
     }
   }
+
+  .invitationInfoTabsContainer {
+    .tab-pane {
+      padding-left: 0;
+      padding-top: 0;
+    }
+    .code-editor {
+      margin-top: 0;
+    }
+  }
 }

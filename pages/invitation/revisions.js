@@ -20,11 +20,7 @@ export default function InvitationRevisions({ appContext }) {
 
   const loadInvitation = async (id) => {
     try {
-      const { invitations } = await api.get(
-        '/invitations',
-        { id },
-        { accessToken }
-      )
+      const { invitations } = await api.get('/invitations', { id }, { accessToken })
       if (invitations?.length > 0) {
         if (invitations[0].details?.writable) {
           setInvitation(invitations[0])

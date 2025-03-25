@@ -32,7 +32,7 @@ const groupTabsConfig = (group) => [
           id: 'groupContent',
           label: 'Content',
           sections: ['groupContent'],
-          default: true,
+          default: group.id === group.domain && group.details.writable && group.content,
         },
       ]
     : []),
@@ -42,7 +42,7 @@ const groupTabsConfig = (group) => [
           id: 'workflowInvitations',
           label: 'Workflow Step Timeline',
           sections: ['workflowInvitations'],
-          default: true,
+          default: group.id === group.domain && group.details.writable && !group.content,
         },
       ]
     : []),
@@ -50,7 +50,7 @@ const groupTabsConfig = (group) => [
     id: 'groupMembers',
     label: 'Members',
     sections: ['groupMembers'],
-    default: true,
+    default: (group.id !== group.domain || group.details.writable) && !group.content,
   },
   {
     id: 'groupUICode',

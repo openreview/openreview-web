@@ -889,9 +889,9 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         ? invitations.flatMap((stepObj) => {
             if (
               exclusionWorkflowInvitations.find((p) => {
-                const isRegex = p.endsWith('.*')
+                const isRegex = /^\/.*\/$/.test(p)
                 if (isRegex) {
-                  return new RegExp(p).test(stepObj.id)
+                  return new RegExp(p.slice(1, -1)).test(stepObj.id)
                 }
                 return p === stepObj.id
               })
