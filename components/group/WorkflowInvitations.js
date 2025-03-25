@@ -884,10 +884,19 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         loadProcessLogs(),
       ])
 
-      const specifiedWorkflowInvitations = group.content?.workflow_invitations?.value
-      const invitationsToShowInWorkflow = specifiedWorkflowInvitations?.length
+      const exclusionWorkflowInvitations = group.content?.exclusion_workflow_invitations?.value
+      const invitationsToShowInWorkflow = exclusionWorkflowInvitations?.length
         ? invitations.flatMap((stepObj) => {
-            if (!specifiedWorkflowInvitations.includes(stepObj.id)) return []
+            if (
+              exclusionWorkflowInvitations.find((p) => {
+                const isRegex = p.endsWith('.*')
+                if (isRegex) {
+                  return new RegExp(p).test(stepObj.id)
+                }
+                return p === stepObj.id
+              })
+            )
+              return []
             return formatWorkflowInvitation(stepObj, invitations, logs)
           })
         : []

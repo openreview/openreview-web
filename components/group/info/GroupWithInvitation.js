@@ -68,7 +68,6 @@ const groupTabsConfig = (group) => [
 
 const GroupContent = ({ groupContent, presentation, groupReaders }) => {
   if (!groupContent) return null
-  console.log('groupContent', groupContent)
 
   const contentKeys = Object.keys(groupContent)
   const contentOrder =
@@ -136,7 +135,6 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
   const [messageAllMembersInvitation, setMessageAllMembersInvitation] = useState(null)
   const [messageSingleMemberInvitation, setMessageSingleMemberInvitation] = useState(null)
   const { user, accessToken } = useUser()
-  console.log(messageAllMembersInvitation, messageSingleMemberInvitation)
 
   const renderSection = (sectionName) => {
     switch (sectionName) {

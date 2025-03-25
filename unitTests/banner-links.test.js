@@ -57,6 +57,19 @@ describe('banner-links', () => {
     expect(screen.getByRole('link').textContent).toEqual('Edit Group Info')
   })
 
+  test('show link to go to group edit page from info page in groupModeToggle', () => {
+    const mode = 'info'
+    const groupId = 'ICML.cc/2024/Conference'
+
+    render(groupModeToggle(mode, groupId, true))
+    expect(screen.getByText('Currently showing group in Info mode')).toBeInTheDocument()
+    expect(screen.getByRole('link')).toHaveAttribute(
+      'href',
+      '/group/edit?id=ICML.cc/2024/Conference'
+    )
+    expect(screen.getByRole('link').textContent).toEqual('Edit Group')
+  })
+
   test('not to show anything when mode is invalid in groupModeToggle', () => {
     const mode = 'invalidMode'
     const groupId = 'ICML.cc/2024/Conference'
