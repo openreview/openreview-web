@@ -885,10 +885,8 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       const exclusionWorkflowInvitations = group.content?.exclusion_workflow_invitations?.value
       const invitationsToShowInWorkflow = exclusionWorkflowInvitations?.length
         ? invitations.flatMap((stepObj) => {
-            const isSubInvitaiton =
-              stepObj.edit?.invitation?.id &&
-              invitations.find((p) => p.id === stepObj.edit.invitation.id)
-            if (isSubInvitaiton) return []
+            const isStepInvitation = invitations.find((p) => p.edit?.invitation?.id === stepObj.id)
+            if (!isStepInvitation) return []
             if (
               exclusionWorkflowInvitations.find((p) => {
                 const isRegex = /^\/.*\/$/.test(p)
