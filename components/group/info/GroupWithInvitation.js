@@ -29,20 +29,20 @@ const groupTabsConfig = (group) => [
   ...(group.id === group.domain && group.details.writable
     ? [
         {
-          id: 'groupContent',
-          label: 'Content',
-          sections: ['groupContent'],
-          default: group.id === group.domain && group.details.writable && group.content,
+          id: 'workflowInvitations',
+          label: 'Workflow Step Timeline',
+          sections: ['workflowInvitations'],
+          default: group.id === group.domain && group.details.writable && !group.content,
         },
       ]
     : []),
   ...(group.id === group.domain && group.details.writable
     ? [
         {
-          id: 'workflowInvitations',
-          label: 'Workflow Step Timeline',
-          sections: ['workflowInvitations'],
-          default: group.id === group.domain && group.details.writable && !group.content,
+          id: 'groupContent',
+          label: 'Content',
+          sections: ['groupContent'],
+          default: group.id === group.domain && group.details.writable && group.content,
         },
       ]
     : []),

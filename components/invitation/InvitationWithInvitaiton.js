@@ -18,6 +18,7 @@ import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
 import { Tab, TabList, TabPanel, TabPanels } from '../Tabs'
 import { InvitationReplyV2 } from './InvitationReply'
+import CodeEditor from '../CodeEditor'
 
 const getReplyFieldByInvitationType = (invitation) => {
   if (!invitation) return 'edit'
@@ -42,6 +43,11 @@ const invitationTabsConfig = (invitation) =>
           label: 'Reply Forum View',
           sections: ['invitationReplyForumView'],
         },
+        {
+          id: 'invitationCode',
+          label: 'Code',
+          sections: ['invitationCode'],
+        },
       ]
 
 const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
@@ -49,11 +55,12 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
   const [activeInvitationInvitation, setActivateInvitationInvitation] = useState(null)
   const { accessToken } = useUser()
 
-  const renderSection = (section) => {
-    switch (section) {
+  const renderSection = (sectionName) => {
+    switch (sectionName) {
       case 'invitationReply':
         return (
           <InvitationReplyV2
+            key={sectionName}
             invitation={invitation}
             replyField={getReplyFieldByInvitationType(invitation)}
             readOnly={true}
@@ -63,12 +70,15 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
       case 'invitationReplyForumView':
         return (
           <InvitationReplyV2
+            key={sectionName}
             invitation={invitation}
             replyField="replyForumViews"
             readOnly={true}
             noTitle
           />
         )
+      case 'invitationCode':
+        return <CodeEditor key={sectionName} code={invitation.web} readOnly />
       default:
         return null
     }
