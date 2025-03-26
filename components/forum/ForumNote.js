@@ -1,6 +1,6 @@
 /* globals $, promptError, view2, DOMPurify: false */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -10,6 +10,9 @@ import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
+import usePdf from '../../hooks/usePdf'
+import api from '../../lib/api-client'
+import useUser from '../../hooks/useUser'
 
 dayjs.extend(relativeTime)
 
@@ -189,6 +192,31 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
 }
 
 function ForumTitle({ id, title, pdf, html }) {
+  const { accessToken } = useUser()
+  const { initialized, loadDocument, getPagesCount, getCoverImage } = usePdf(accessToken)
+  const [pageCount, setPageCount] = useState(null)
+  const [coverImage, setCoverImage] = useState(null)
+
+  const loadPdf = async () => {
+    if (pdf.startsWith('http') || !accessToken) return
+    try {
+      const result = await api.get('/pdf', { id }, { accessToken, contentType: 'blob' })
+      await loadDocument(await result.arrayBuffer())
+      setPageCount(await getPagesCount())
+      const coverImageData = await getCoverImage()
+      if (coverImageData) {
+        setCoverImage(URL.createObjectURL(new Blob([coverImageData], { type: 'image/png' })))
+      }
+    } catch (error) {
+      /* empty */
+    }
+  }
+
+  useEffect(() => {
+    if (!initialized || !pdf) return
+    loadPdf()
+  }, [initialized])
+
   return (
     <div className="forum-title mt-2 mb-2">
       <h2 className="citation_title">{title}</h2>
@@ -202,8 +230,10 @@ function ForumTitle({ id, title, pdf, html }) {
             target="_blank"
             rel="noreferrer"
           >
-            <img src="/images/pdf_icon_blue.svg" alt="Download PDF" />
+            <img src={coverImage ?? '/images/pdf_icon_blue.svg'} alt="Download PDF" />
           </a>
+          {pageCount && <span>{pageCount}</span>}
+          <Link href={`/pdfviewer?id=${id}`}>Open PDF</Link>
         </div>
       )}
       {html && (
