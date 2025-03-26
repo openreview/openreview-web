@@ -644,6 +644,8 @@ describe('MessageReviewersModal', () => {
         secondaryAreaChairName: 'Secondary_Senior_Program_Committee',
         officialReviewName: 'Official_Review',
         officialMetaReviewName: 'Official_Meta_Review',
+        messageSubmissionSecondaryAreaChairsInvitationId:
+          'TestVenue/Paper{number}/Secondary_Area_Chairs/-/Message',
       },
     }
     const componentProps = {
@@ -721,7 +723,8 @@ describe('MessageReviewersModal', () => {
         expect.objectContaining({
           groups: ['~Test_AC1', '~Test_AC2'],
           replyTo: 'email@program.chairs',
-          parentGroup: 'testVenue/Paper1/Senior_Program_Committee', // Secondary AC does not have a separate group
+          parentGroup: 'testVenue/Paper1/Senior_Program_Committee',
+          invitation: 'TestVenue/Paper1/Secondary_Area_Chairs/-/Message',
         }),
         expect.anything()
       )
@@ -732,6 +735,7 @@ describe('MessageReviewersModal', () => {
           groups: ['~Test_AC1', '~Test_AC3'],
           replyTo: 'email@program.chairs',
           parentGroup: 'testVenue/Paper2/Senior_Program_Committee',
+          invitation: 'TestVenue/Paper2/Secondary_Area_Chairs/-/Message',
         }),
         expect.anything()
       )
