@@ -899,7 +899,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               return []
             return formatWorkflowInvitation(stepObj, invitations, logs)
           })
-        : []
+        : invitations.map((stepObj) => formatWorkflowInvitation(stepObj, invitations, logs))
 
       setWorkflowTasks(
         sortBy(
