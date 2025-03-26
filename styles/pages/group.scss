@@ -1286,30 +1286,24 @@ main.invitation {
 
     .task-header {
       display: flex;
-      flex-direction: column;
-      color: constants.$mediumBlue;
-      margin-bottom: 0.5rem;
+      align-items: baseline;
 
-      .task-header-title {
-        display: flex;
-        align-items: center;
+      .task-title {
+        margin-right: 0.25rem;
         margin-bottom: 0.25rem;
-
-        .task-title {
-          margin-left: 0.25rem;
-          color: constants.$mediumBlue;
+        h4 {
           margin-top: 0;
-          margin-bottom: 0;
+          margin-bottom: 0.25rem;
         }
       }
-      .task-subtitle {
-        margin-left: 1rem;
+
+      .task-count {
+        display: block;
       }
     }
     .tasks-list {
       display: flex;
       flex-direction: column;
-      margin-left: 1rem;
 
       .task-container {
         display: flex;

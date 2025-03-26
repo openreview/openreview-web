@@ -158,15 +158,15 @@ const WorkflowTasks = ({ workflowTasks, setCollapsedWorkflowInvitationIds }) => 
         }}
       >
         <div className="task-header">
-          <div className="task-header-title">
-            <Icon name={isCollapsed ? 'triangle-right' : 'triangle-bottom'} />
-            <h2 className="task-title">Program Chairs Configuration Tasks</h2>
+          <div className="task-title">
+            <h4>Program Chairs Configuration Tasks</h4>
+            <span>{`Show ${inflect(numPending, 'pending task', 'pending tasks', true)}${
+              numCompleted
+                ? ` and ${inflect(numCompleted, 'completed task', 'completed tasks', true)}`
+                : ''
+            }`}</span>
           </div>
-          <span className="task-subtitle">{`Show ${inflect(numPending, 'pending task', 'pending tasks', true)}${
-            numCompleted
-              ? ` and ${inflect(numCompleted, 'completed task', 'completed tasks', true)}`
-              : ''
-          }`}</span>
+          <Icon name={isCollapsed ? 'triangle-bottom' : 'triangle-top'} />
         </div>
       </div>
       {!isCollapsed && (
