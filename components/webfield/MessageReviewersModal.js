@@ -24,6 +24,7 @@ const MessageReviewersModal = ({
     emailReplyTo,
     messageSubmissionReviewersInvitationId,
     messageSubmissionAreaChairsInvitationId,
+    messageSubmissionSecondaryAreaChairsInvitationId,
     reviewerName = 'Reviewers',
     areaChairName = 'Area Chairs',
     secondaryAreaChairName,
@@ -76,7 +77,7 @@ const MessageReviewersModal = ({
         break
       case 'allSecondaryAreaChairs':
         roleName = areaChairName
-        messageInvitation = messageSubmissionAreaChairsInvitationId
+        messageInvitation = messageSubmissionSecondaryAreaChairsInvitationId
         break
       case 'allAuthors':
         roleName = 'Authors'

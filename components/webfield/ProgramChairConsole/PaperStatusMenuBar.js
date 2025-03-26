@@ -36,6 +36,7 @@ const PaperStatusMenuBar = ({
     secondaryAreaChairName,
     submissionName,
     ithenticateInvitationId,
+    messageSubmissionSecondaryAreaChairsInvitationId,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const formattedReviewerName = camelCase(reviewerName)
@@ -166,7 +167,7 @@ const PaperStatusMenuBar = ({
           },
         ]
       : []),
-    ...(secondaryAreaChairName
+    ...(secondaryAreaChairName && messageSubmissionSecondaryAreaChairsInvitationId
       ? [
           {
             label: `All ${pluralizeString(
