@@ -236,7 +236,7 @@ const AreaChairConsole = ({ appContext }) => {
     }
     const profileLinks = profiles.map(
       (profile, index) =>
-        `<a href="${getProfileLink(profile.id)}" >${prettyId(profile.id)}</a>${
+        `<a href="${getProfileLink(profile.id)}" >${prettyId(profile.id)}</a> ${
           emails[index] ? `(${emails[index]})` : ''
         }`
     )
@@ -426,6 +426,7 @@ const AreaChairConsole = ({ appContext }) => {
         ...new Set([
           ...result[1].flatMap((p) => p.reviewers ?? []).map((p) => p.reviewerProfileId),
           ...result[2],
+          ...result[4],
         ]),
       ]
       const ids = allIds.filter((p) => p.startsWith('~'))
