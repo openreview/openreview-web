@@ -158,17 +158,15 @@ const WorkflowTasks = ({ workflowTasks, setCollapsedWorkflowInvitationIds }) => 
         }}
       >
         <div className="task-header">
-          <h4 className="task-title">{`Program Chairs Configuration Tasks (${inflect(
-            numPending,
-            'pending task',
-            'pending tasks',
-            true
-          )}${
+          <div className="task-header-title">
+            <Icon name={isCollapsed ? 'triangle-right' : 'triangle-bottom'} />
+            <h2 className="task-title">Program Chairs Configuration Tasks</h2>
+          </div>
+          <span className="task-subtitle">{`Show ${inflect(numPending, 'pending task', 'pending tasks', true)}${
             numCompleted
               ? ` and ${inflect(numCompleted, 'completed task', 'completed tasks', true)}`
               : ''
-          })`}</h4>
-          <Icon name={isCollapsed ? 'triangle-bottom' : 'triangle-top'} />
+          }`}</span>
         </div>
       </div>
       {!isCollapsed && (
@@ -887,6 +885,8 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       const exclusionWorkflowInvitations = group.content?.exclusion_workflow_invitations?.value
       const invitationsToShowInWorkflow = exclusionWorkflowInvitations?.length
         ? invitations.flatMap((stepObj) => {
+            const isSubInvitaiton = stepObj.edit?.invitation?.id
+            if (isSubInvitaiton) return []
             if (
               exclusionWorkflowInvitations.find((p) => {
                 const isRegex = /^\/.*\/$/.test(p)
@@ -899,7 +899,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
               return []
             return formatWorkflowInvitation(stepObj, invitations, logs)
           })
-        : invitations.map((stepObj) => formatWorkflowInvitation(stepObj, invitations, logs))
+        : invitations.flatMap((stepObj) => {
+            const isSubInvitaiton = stepObj.edit?.invitation?.id
+            if (isSubInvitaiton) return []
+            return formatWorkflowInvitation(stepObj, invitations, logs)
+          })
 
       setWorkflowTasks(
         sortBy(

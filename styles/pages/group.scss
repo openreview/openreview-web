@@ -1286,15 +1286,30 @@ main.invitation {
 
     .task-header {
       display: flex;
-      align-items: baseline;
+      flex-direction: column;
+      color: constants.$mediumBlue;
+      margin-bottom: 0.5rem;
 
-      .task-title {
-        margin-right: 0.25rem;
+      .task-header-title {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.25rem;
+
+        .task-title {
+          margin-left: 0.25rem;
+          color: constants.$mediumBlue;
+          margin-top: 0;
+          margin-bottom: 0;
+        }
+      }
+      .task-subtitle {
+        margin-left: 1rem;
       }
     }
     .tasks-list {
       display: flex;
       flex-direction: column;
+      margin-left: 1rem;
 
       .task-container {
         display: flex;
@@ -1319,6 +1334,7 @@ main.invitation {
           font-size: 0.75rem;
           font-weight: normal;
           color: constants.$orRed;
+          padding: 0 4px;
         }
       }
     }

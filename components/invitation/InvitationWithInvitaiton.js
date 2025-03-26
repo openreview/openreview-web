@@ -19,6 +19,8 @@ import useUser from '../../hooks/useUser'
 import { Tab, TabList, TabPanel, TabPanels } from '../Tabs'
 import { InvitationReplyV2 } from './InvitationReply'
 import CodeEditor from '../CodeEditor'
+import EditorSection from '../EditorSection'
+import { InvitationChildInvitationsV2 } from './InvitationChildInvitations'
 
 const getReplyFieldByInvitationType = (invitation) => {
   if (!invitation) return 'edit'
@@ -39,9 +41,29 @@ const invitationTabsConfig = (invitation) =>
           default: true,
         },
         {
+          id: 'childInvitations',
+          label: 'Child Invitations',
+          sections: ['invitationChildInvitations'],
+        },
+        {
           id: 'invitationReplyForumView',
           label: 'Reply Forum View',
           sections: ['invitationReplyForumView'],
+        },
+        {
+          id: 'invitationContent',
+          label: 'Content',
+          sections: ['invitationContent'],
+        },
+        {
+          id: 'contentProcessFunctions',
+          label: 'Content Process Functions',
+          sections: ['contentProcessFunctions'],
+        },
+        {
+          id: 'processFunctions',
+          label: 'Process Functions',
+          sections: ['invitationProcessFunctions'],
         },
         {
           id: 'invitationCode',
@@ -67,6 +89,8 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
             noTitle
           />
         )
+      case 'invitationChildInvitations':
+        return <InvitationChildInvitationsV2 key={sectionName} invitation={invitation} />
       case 'invitationReplyForumView':
         return (
           <InvitationReplyV2
@@ -76,6 +100,57 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
             readOnly={true}
             noTitle
           />
+        )
+      case 'invitationContent':
+        return (
+          <InvitationReplyV2
+            key={sectionName}
+            invitation={invitation}
+            replyField="content"
+            readOnly={true}
+            noTitle
+          />
+        )
+      case 'contentProcessFunctions':
+        // eslint-disable-next-line no-case-declarations
+        const contentScripts = Object.keys(invitation.content ?? {}).filter(
+          (key) => key.endsWith('_script') && typeof invitation.content[key].value === 'string'
+        )
+        if (!contentScripts.length)
+          return <p className="empty-message">No content process functions</p>
+        return contentScripts.map((contentScript) => (
+          <>
+            <EditorSection title={prettyField(contentScript)} />
+            <CodeEditor code={invitation.content[contentScript].value} readOnly />
+          </>
+        ))
+      case 'invitationProcessFunctions':
+        return (
+          <>
+            <EditorSection title="Pre Process">
+              <CodeEditor code={invitation.preprocess} readOnly />
+            </EditorSection>
+            <EditorSection title="Process">
+              <CodeEditor code={invitation.process} readOnly />
+            </EditorSection>
+            <EditorSection title="Date Process">
+              {invitation.dateprocesses?.map((dateProcess, index) => {
+                const { dates, cron, startDate, endDate, delay, script } = dateProcess
+                return (
+                  <>
+                    {delay && <div>Delay: {delay}</div>}
+                    {cron && (
+                      <div>
+                        Cron: {cron}, Start date: {startDate}, End date: {endDate}
+                      </div>
+                    )}
+                    {dates && <div>Dates: {dates.join(', ')}</div>}
+                    <CodeEditor key={index} code={script} readOnly />
+                  </>
+                )
+              })}
+            </EditorSection>
+          </>
         )
       case 'invitationCode':
         return <CodeEditor key={sectionName} code={invitation.web} readOnly />
@@ -110,7 +185,7 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
         <Markdown text={invitation.description} />
       </div>
       <div className={styles.invitationMeta}>
-        <span className="date item">
+        <span className="item">
           <Icon name="calendar" />
           <span>
             Created:{' '}
@@ -137,6 +212,35 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
         <span className="item">
           <Icon name="duplicate" />
           <Link href={`/invitation/revisions?id=${invitation.id}`}>Revisions</Link>
+        </span>
+      </div>
+      <div className={styles.invitationMeta}>
+        {invitation.duedate && (
+          <span className="item">
+            <Icon name="calendar" />
+            <span>
+              Due:{' '}
+              <span data-toggle="tooltip" data-placement="top" title={invitation.duedate}>
+                {formatDateTime(invitation.duedate)}
+              </span>
+            </span>
+          </span>
+        )}
+        {invitation.expdate && (
+          <span className="item">
+            <Icon name="calendar" />
+            <span>
+              Expiration:{' '}
+              <span data-toggle="tooltip" data-placement="top" title={invitation.expdate}>
+                {formatDateTime(invitation.expdate)}
+              </span>
+            </span>
+          </span>
+        )}
+      </div>
+      <div className={styles.invitationMeta}>
+        <span>
+          Invitees: <span>{invitation.invitees.map((p) => prettyId(p)).join(', ')}</span>
         </span>
       </div>
       <div className={styles.groupInvitations}>
