@@ -236,7 +236,7 @@ const AreaChairConsole = ({ appContext }) => {
     }
     const profileLinks = profiles.map(
       (profile, index) =>
-        `<a href="${getProfileLink(profile.id)}" >${prettyId(profile.id)}</a> ${
+        `<a href="${getProfileLink(profile.id)}" >${prettyId(profile.id)}</a>${
           emails[index] ? `(${emails[index]})` : ''
         }`
     )
