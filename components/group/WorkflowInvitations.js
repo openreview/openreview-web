@@ -885,8 +885,10 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       const exclusionWorkflowInvitations = group.content?.exclusion_workflow_invitations?.value
       const invitationsToShowInWorkflow = exclusionWorkflowInvitations?.length
         ? invitations.flatMap((stepObj) => {
-            const isStepInvitation = invitations.find((p) => p.edit?.invitation?.id === stepObj.id)
-            if (!isStepInvitation) return []
+            const isWorkflowInvitation = invitations.find(
+              (p) => p.edit?.invitation?.id === stepObj.id
+            )
+            if (!isWorkflowInvitation) return []
             if (
               exclusionWorkflowInvitations.find((p) => {
                 const isRegex = /^\/.*\/$/.test(p)
@@ -900,10 +902,10 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
             return formatWorkflowInvitation(stepObj, invitations, logs)
           })
         : invitations.flatMap((stepObj) => {
-            const isSubInvitaiton =
-              stepObj.edit?.invitation?.id &&
-              invitations.find((p) => p.id === stepObj.edit.invitation.id)
-            if (isSubInvitaiton) return []
+            const isWorkflowInvitation = invitations.find(
+              (p) => p.edit?.invitation?.id === stepObj.id
+            )
+            if (!isWorkflowInvitation) return []
             return formatWorkflowInvitation(stepObj, invitations, logs)
           })
 
