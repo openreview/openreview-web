@@ -5,6 +5,8 @@ import Link from 'next/link'
 import React, { useContext, useState } from 'react'
 import upperFirst from 'lodash/upperFirst'
 import copy from 'copy-to-clipboard'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import dayjs from 'dayjs'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import BasicModal from '../BasicModal'
@@ -13,8 +15,10 @@ import ErrorAlert from '../ErrorAlert'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
 import WebFieldContext from '../WebFieldContext'
-import { pluralizeString, prettyField } from '../../lib/utils'
+import { pluralizeString, prettyField, prettyId, prettyInvitationId } from '../../lib/utils'
 import { getProfileLink } from '../../lib/webfield-utils'
+
+dayjs.extend(relativeTime)
 
 // modified from noteReviewStatus.hbs handlebar template
 export const ReviewerConsoleNoteReviewStatus = ({
@@ -672,4 +676,35 @@ export const EthicsReviewStatus = ({
       </div>
     </div>
   )
+}
+
+export const LatestReplies = ({ rowData, referrerUrl }) => {
+  const { note, displayReplies } = rowData
+  return displayReplies?.map((reply) => {
+    if (!reply.id) return null
+    const { id, invitationId, date, values, signature } = reply
+    return (
+      <div key={id}>
+        <strong>
+          <a
+            href={`/forum?id=${note.id}&noteId=${id}&referrer=${referrerUrl}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {prettyInvitationId(invitationId)}
+          </a>
+        </strong>{' '}
+        {signature && `by ${prettyId(signature, true)}`} {date && ` ${dayjs(date).fromNow()}`}
+        {values.map((value) => {
+          if (!value.value) return null
+          return (
+            <div key={value.field} className="mb-2 note-content">
+              <strong className="mr-1">{prettyField(value.field)}:</strong>
+              <span>{value.value}</span>
+            </div>
+          )
+        })}
+      </div>
+    )
+  })
 }
