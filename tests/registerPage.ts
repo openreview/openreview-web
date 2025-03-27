@@ -230,7 +230,7 @@ test('enter invalid name', async (t) => {
     .typeText(fullNameInputSelector, 'abc `', { replace: true })
     .expect(messageSelector.innerText)
     .eql(
-      'The name Abc ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
+      'Error: The name Abc ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
     .click(Selector('.rc-notification-notice-close')) // close message
     .expect(messageSelector.exists).notOk()
