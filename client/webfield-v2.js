@@ -668,9 +668,7 @@ module.exports = (function () {
           }
 
           $('#message-reviewers-modal').modal('hide')
-          promptMessage('A reminder email has been sent to ' + view.prettyId(userId), {
-            overlay: true,
-          })
+          promptMessage('A reminder email has been sent to ' + view.prettyId(userId))
           postReviewerEmails(postData)
           $link.after(' (Last sent: ' + new Date().toLocaleDateString() + ')')
 
@@ -700,7 +698,7 @@ module.exports = (function () {
         var name = $link.data('userName')
 
         if (!options.preferredEmailsInvitationId) {
-          promptError('Email is not available.', { scrollToTop: false })
+          promptError('Email is not available.')
           return
         }
 
@@ -709,14 +707,14 @@ module.exports = (function () {
             var email = result.edges?.[0]?.tail
 
             if (!email) {
-              promptError('Email is not available.', { scrollToTop: false })
+              promptError('Email is not available.')
               return
             }
             copy(`${name} <${email}>`)
-            promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+            promptMessage(`${email} copied to clipboard`)
           },
           function () {
-            promptError('Email is not available.', { scrollToTop: false })
+            promptError('Email is not available.')
           }
         )
         return false

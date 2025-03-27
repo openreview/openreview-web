@@ -14,7 +14,7 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
       case 'gscholar': {
         const isValid = value.startsWith('https://scholar.google')
         if (!isValid) {
-          promptError(`${value} is not a valid Google Scholar URL`, { scrollToTop: false })
+          promptError(`${value} is not a valid Google Scholar URL`)
         }
         setLinks({ type, data: { value, valid: isValid } })
         break
@@ -22,7 +22,7 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
       case 'semanticScholar': {
         const isValid = /^https:\/\/www\.semanticscholar\.org/.test(value)
         if (!isValid) {
-          promptError(`${value} is not a valid Semantic Scholar URL`, { scrollToTop: false })
+          promptError(`${value} is not a valid Semantic Scholar URL`)
         }
         setLinks({ type, data: { value, valid: isValid } })
         break
@@ -30,7 +30,7 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
       case 'aclanthology': {
         const isValid = /^https:\/\/aclanthology\.org\/people\/.+$/.test(value)
         if (!isValid) {
-          promptError(`${value} is not a valid ACL Anthology URL`, { scrollToTop: false })
+          promptError(`${value} is not a valid ACL Anthology URL`)
         }
         setLinks({ type, data: { value, valid: isValid } })
         break
@@ -38,7 +38,7 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
       default: {
         const isValid = isValidURL(value)
         if (!isValid) {
-          promptError(`${value} is not a valid ${type} URL`, { scrollToTop: false })
+          promptError(`${value} is not a valid ${type} URL`)
         }
         setLinks({ type, data: { value, valid: isValid } })
       }
