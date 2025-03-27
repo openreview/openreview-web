@@ -5,7 +5,7 @@ import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStatus'
-import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
+import { AcPcConsoleNoteReviewStatus, LatestReplies } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from '../ProgramChairConsole/PaperStatusMenuBar'
 import { pluralizeString, prettyField } from '../../../lib/utils'
@@ -33,6 +33,7 @@ const PaperRow = ({
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
     preferredEmailInvitationId,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const { note, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
@@ -106,6 +107,11 @@ const PaperRow = ({
           preferredEmailInvitationId={preferredEmailInvitationId}
         />
       </td>
+      {displayReplyInvitations?.length && (
+        <td>
+          <LatestReplies rowData={rowData} referrerUrl={referrerUrl} />
+        </td>
+      )}
       <td className="console-decision">
         <h4 className="title">{decision}</h4>
         {venue && <span>{venue}</span>}
@@ -125,6 +131,7 @@ const PaperStatus = ({ sacConsoleData }) => {
     officialReviewName,
     areaChairName = 'Area_Chairs',
     officialMetaReviewName = 'Meta_Review',
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const pageSize = 25
 
@@ -213,9 +220,18 @@ const PaperStatus = ({ sacConsoleData }) => {
           {
             id: 'reviewProgress',
             content: `${prettyField(officialReviewName)} Progress`,
-            width: '30%',
+            width: displayReplyInvitations?.length ? '20%' : '30%',
           },
           { id: 'status', content: 'Status' },
+          ...(displayReplyInvitations?.length
+            ? [
+                {
+                  id: 'latestReplies',
+                  content: 'Latest Replies',
+                  width: '35%',
+                },
+              ]
+            : []),
           { id: 'decision', content: 'Decision' },
         ]}
       >
