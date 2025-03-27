@@ -30,47 +30,52 @@ const getReplyFieldByInvitationType = (invitation) => {
   return 'edit'
 }
 
-const invitationTabsConfig = (invitation) =>
-  invitation?.edit === true
-    ? []
-    : [
-        {
-          id: 'invitationReply',
-          label: prettyField(getReplyFieldByInvitationType(invitation)),
-          sections: ['invitationReply'],
-          default: true,
-        },
-        {
-          id: 'childInvitations',
-          label: 'Child Invitations',
-          sections: ['invitationChildInvitations'],
-        },
-        {
-          id: 'invitationReplyForumView',
-          label: 'Reply Forum View',
-          sections: ['invitationReplyForumView'],
-        },
-        {
-          id: 'invitationContent',
-          label: 'Content',
-          sections: ['invitationContent'],
-        },
-        {
-          id: 'contentProcessFunctions',
-          label: 'Content Process Functions',
-          sections: ['contentProcessFunctions'],
-        },
-        {
-          id: 'processFunctions',
-          label: 'Process Functions',
-          sections: ['invitationProcessFunctions'],
-        },
-        {
-          id: 'invitationCode',
-          label: 'Code',
-          sections: ['invitationCode'],
-        },
-      ]
+const invitationTabsConfig = (invitation) => {
+  const isMetaInvitation = invitation?.edit === true
+  const tabs = [
+    {
+      id: 'invitationReply',
+      label: prettyField(getReplyFieldByInvitationType(invitation)),
+      sections: ['invitationReply'],
+    },
+    ...(isMetaInvitation
+      ? []
+      : [
+          {
+            id: 'childInvitations',
+            label: 'Child Invitations',
+            sections: ['invitationChildInvitations'],
+          },
+        ]),
+    {
+      id: 'invitationReplyForumView',
+      label: 'Reply Forum View',
+      sections: ['invitationReplyForumView'],
+    },
+    {
+      id: 'invitationContent',
+      label: 'Content',
+      sections: ['invitationContent'],
+    },
+    {
+      id: 'contentProcessFunctions',
+      label: 'Content Process Functions',
+      sections: ['contentProcessFunctions'],
+    },
+    {
+      id: 'processFunctions',
+      label: 'Process Functions',
+      sections: ['invitationProcessFunctions'],
+    },
+    {
+      id: 'invitationCode',
+      label: 'Code',
+      sections: ['invitationCode'],
+    },
+  ]
+  tabs[0].default = true
+  return tabs
+}
 
 const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
   const [editInvitationInvitations, setEditInvitationInvitations] = useState([])

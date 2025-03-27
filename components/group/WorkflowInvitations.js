@@ -150,7 +150,7 @@ const WorkflowTasks = ({ workflowTasks, setCollapsedWorkflowInvitationIds }) => 
   if (!workflowTasks.length) return null
 
   return (
-    <div className="workflow">
+    <section className="workflow">
       <div
         className="collapse-invitation"
         onClick={() => {
@@ -160,7 +160,7 @@ const WorkflowTasks = ({ workflowTasks, setCollapsedWorkflowInvitationIds }) => 
         <div className="task-header">
           <div className="task-title">
             <h4>Program Chairs Configuration Tasks</h4>
-            <span>{`Show ${inflect(numPending, 'pending task', 'pending tasks', true)}${
+            <span className="text-muted">{`Show ${inflect(numPending, 'pending task', 'pending tasks', true)}${
               numCompleted
                 ? ` and ${inflect(numCompleted, 'completed task', 'completed tasks', true)}`
                 : ''
@@ -190,7 +190,7 @@ const WorkflowTasks = ({ workflowTasks, setCollapsedWorkflowInvitationIds }) => 
           })}
         </div>
       )}
-    </div>
+    </section>
   )
 }
 
@@ -310,7 +310,11 @@ const WorkflowInvitationRow = ({
               <a>{isExpired ? 'Enable' : 'Disable'}</a>
             </div>
           </div>
-          {invitation.description && <Markdown text={invitation.description} />}
+          {invitation.description && (
+            <div className="invitation-description">
+              <Markdown text={invitation.description} />
+            </div>
+          )}
           {hasPendingTasks && <p className="missing-value">Configuration tasks due below</p>}
           {isCreatingSubInvitations && (
             <EditInvitationProcessLogStatus
@@ -460,7 +464,9 @@ const SubInvitationRow = ({
                 </span>
               )}
             </div>
-            <Markdown text={subInvitation.description} />
+            <div className="sub-invitation-description">
+              <Markdown text={subInvitation.description} />
+            </div>
 
             {!isGroupInvitation && (
               <ul>
@@ -529,7 +535,9 @@ const WorkflowGroupRow = ({ group, groupInvitations }) => {
             <Icon name="new-window" />
           </a>
           <span className="member-count">Group of {group.members?.length}</span>
-          <Markdown text={group.description} />
+          <div className="group-description">
+            <Markdown text={group.description} />
+          </div>
         </div>
         <div className="group-invitations">
           {groupInvitations.map((groupInvitation) => {
@@ -548,7 +556,9 @@ const WorkflowGroupRow = ({ group, groupInvitations }) => {
             )
           })}
         </div>
-        <Markdown text={activeGroupInvitation?.description} />
+        <div className="group-description">
+          <Markdown text={activeGroupInvitation?.description} />
+        </div>
         <div>
           {activeGroupInvitation && (
             <>

@@ -1271,6 +1271,13 @@ main.invitation {
             color: #ff9900;
           }
 
+          .group-description {
+            color: constants.$subtleGray;
+            p {
+              margin-bottom: 0;
+            }
+          }
+
           .group-invitations {
             margin-bottom: 0.25rem;
             display: flex;
@@ -1308,7 +1315,7 @@ main.invitation {
       .task-container {
         display: flex;
         justify-content: start;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.5rem;
 
         &.completed {
           opacity: 0.6;
@@ -1478,6 +1485,13 @@ main.invitation {
               }
             }
 
+            .invitation-description {
+              color: constants.$subtleGray;
+              p {
+                margin-bottom: 0;
+              }
+            }
+
             .missing-value {
               color: red;
             }
@@ -1519,6 +1533,13 @@ main.invitation {
             // padding: 0.25rem 0.5rem;
             // margin: 0.25rem -0.5rem;
             margin-left: 0.25rem;
+          }
+
+          .sub-invitation-description {
+            color: constants.$subtleGray;
+            p {
+              margin-bottom: 0;
+            }
           }
 
           .sub-invitation-due-date {

@@ -25,46 +25,47 @@ import GroupRelatedInvitations from '../GroupRelatedInvitations'
 import GroupMembers from '../GroupMembers'
 import WorkFlowInvitations from '../WorkflowInvitations'
 
-const groupTabsConfig = (group) => [
-  ...(group.id === group.domain && group.details.writable
-    ? [
-        {
-          id: 'workflowInvitations',
-          label: 'Workflow Step Timeline',
-          sections: ['workflowInvitations'],
-          default: group.id === group.domain && group.details.writable,
-        },
-      ]
-    : []),
-  ...(group.id === group.domain && group.details.writable
-    ? [
-        {
-          id: 'groupContent',
-          label: 'Content',
-          sections: ['groupContent'],
-          default: (group.id !== group.domain || !group.details.writable) && group.content,
-        },
-      ]
-    : []),
-  {
-    id: 'groupMembers',
-    label: 'Members',
-    sections: ['groupMembers'],
-    default: (group.id !== group.domain || !group.details.writable) && !group.content,
-  },
-  {
-    id: 'groupUICode',
-    label: 'UI Code',
-    sections: ['groupUICode'],
-  },
-  { id: 'signedNotes', label: 'Signed Notes', sections: ['groupSignedNotes'] },
-  { id: 'childGroups', label: 'Child Groups', sections: ['groupChildGroups'] },
-  {
-    id: 'relatedInvitations',
-    label: 'Related Invitations',
-    sections: ['groupRelatedInvitations'],
-  },
-]
+const groupTabsConfig = (group) => {
+  const tabs = [
+    ...(group.id === group.domain && group.details.writable
+      ? [
+          {
+            id: 'workflowInvitations',
+            label: 'Workflow Step Timeline',
+            sections: ['workflowInvitations'],
+          },
+        ]
+      : []),
+    ...(group.id === group.domain && group.details.writable
+      ? [
+          {
+            id: 'groupContent',
+            label: 'Content',
+            sections: ['groupContent'],
+          },
+        ]
+      : []),
+    {
+      id: 'groupMembers',
+      label: 'Members',
+      sections: ['groupMembers'],
+    },
+    {
+      id: 'groupUICode',
+      label: 'UI Code',
+      sections: ['groupUICode'],
+    },
+    { id: 'signedNotes', label: 'Signed Notes', sections: ['groupSignedNotes'] },
+    { id: 'childGroups', label: 'Child Groups', sections: ['groupChildGroups'] },
+    {
+      id: 'relatedInvitations',
+      label: 'Related Invitations',
+      sections: ['groupRelatedInvitations'],
+    },
+  ]
+  tabs[0].default = true
+  return tabs
+}
 
 const GroupContent = ({ groupContent, presentation, groupReaders }) => {
   if (!groupContent) return null
