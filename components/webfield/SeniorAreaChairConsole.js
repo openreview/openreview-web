@@ -1,6 +1,7 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import { orderBy } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import BasicHeader from './BasicHeader'
@@ -61,15 +62,16 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     filterFunction,
     preferredEmailInvitationId,
     ithenticateInvitationId,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
-  const { setBannerContent } = appContext
+  const { setBannerContent, setLayoutOptions } = appContext
   const { user, accessToken, userLoading } = useUser()
   const [sacConsoleData, setSacConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
   const router = useRouter()
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || `#${submissionName ?? ''.toLowerCase()}-status`
+    decodeURIComponent(window.location.hash) || `#${submissionName ?? ''.toLowerCase()}-status`
   )
 
   const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
@@ -547,6 +549,28 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             }
           }
 
+          const displayReplies = displayReplyInvitations?.map((p) => {
+            const displayInvitaitonId = p.id.replaceAll('{number}', note.number)
+            const latestReply = orderBy(
+              note.details.replies.filter((q) => q.invitations.includes(displayInvitaitonId)),
+              ['mdate'],
+              'desc'
+            )?.[0]
+            return {
+              id: latestReply?.id,
+              date: latestReply?.mdate,
+              invitationId: displayInvitaitonId,
+              values: p.fields.map((field) => {
+                const value = latestReply?.content?.[field]?.value?.toString()
+                return {
+                  field,
+                  value,
+                }
+              }),
+              signature: latestReply?.signatures?.[0],
+            }
+          })
+
           return {
             noteNumber: note.number,
             note: {
@@ -625,6 +649,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             preliminaryDecision,
             messageSignature: seniorAreaChairGroupByNumber[note.number],
             ithenticateEdge: ithenticateEdges.find((p) => p.head === note.id),
+            venue: note.content?.venue?.value,
+            displayReplies,
           }
         }),
         withdrawnNotes: assignedNotes.flatMap((note) => {
@@ -645,12 +671,22 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
+    if (displayReplyInvitations?.length)
+      setLayoutOptions({ fullWidth: true, minimalFooter: true })
+
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
     } else {
       setBannerContent(venueHomepageLink(venueId))
     }
   }, [query, venueId])
+
+  useEffect(
+    () => () => {
+      setLayoutOptions({ fullWidth: false, minimalFooter: false })
+    },
+    []
+  )
 
   useEffect(() => {
     if (userLoading || !user || !group || !venueId) return

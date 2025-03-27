@@ -79,6 +79,13 @@ main.invitation {
     div.panel {
       @include mixins.well;
       margin-bottom: 0;
+
+      .btn.expired {
+        background-color: rgba(0, 0, 0, 0.05);
+        color: gray;
+        border-color: gray;
+        text-decoration: line-through;
+      }
     }
     .note_editor {
       margin-top: -1px;
@@ -403,6 +410,10 @@ main.invitation {
 
     .download-pdf-link {
       margin-bottom: 0.5rem;
+    }
+
+    th {
+      white-space: nowrap;
     }
   }
 

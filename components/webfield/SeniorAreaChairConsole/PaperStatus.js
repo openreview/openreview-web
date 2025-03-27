@@ -5,30 +5,11 @@ import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStatus'
-import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
+import { AcPcConsoleNoteReviewStatus, LatestReplies } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from '../ProgramChairConsole/PaperStatusMenuBar'
 import { pluralizeString, prettyField } from '../../../lib/utils'
-
-const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
-  const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
-
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedNoteIds(allNoteIds)
-      return
-    }
-    setSelectedNoteIds([])
-  }
-  return (
-    <input
-      type="checkbox"
-      id="select-all-papers"
-      checked={allNotesSelected}
-      onChange={handleSelectAll}
-    />
-  )
-}
+import SelectAllCheckBox from '../SelectAllCheckbox'
 
 const PaperRow = ({
   assignmentInvitations,
@@ -52,6 +33,7 @@ const PaperRow = ({
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
     preferredEmailInvitationId,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const { note, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
@@ -62,12 +44,12 @@ const PaperRow = ({
   const getManualAssignmentUrl = (role, roleId) => {
     if (!assignmentUrls) return null
     const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
-    // auto
-    const isAssignmentConfigDeployed = assignmentInvitations?.some((p) =>
-      p.id.startsWith(roleId)
+    // auto - deployed and not expired
+    const isAssignmentConfigDeployed = assignmentInvitations?.some(
+      (p) => p.id.startsWith(roleId) && (!p.expdate || p.exdate > Date.now())
     )
-    // manual
-    const isMatchingSetup = isAssignmentConfigDeployed
+    // manual - there's no undeploy
+    const isMatchingSetup = assignmentInvitations?.some((p) => p.id.startsWith(roleId))
 
     if (
       (assignmentUrls[role]?.automaticAssignment === false && isMatchingSetup) ||
@@ -125,6 +107,11 @@ const PaperRow = ({
           preferredEmailInvitationId={preferredEmailInvitationId}
         />
       </td>
+      {displayReplyInvitations?.length && (
+        <td>
+          <LatestReplies rowData={rowData} referrerUrl={referrerUrl} />
+        </td>
+      )}
       <td className="console-decision">
         <h4 className="title">{decision}</h4>
         {venue && <span>{venue}</span>}
@@ -144,6 +131,7 @@ const PaperStatus = ({ sacConsoleData }) => {
     officialReviewName,
     areaChairName = 'Area_Chairs',
     officialMetaReviewName = 'Meta_Review',
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const pageSize = 25
 
@@ -220,9 +208,9 @@ const PaperStatus = ({ sacConsoleData }) => {
             id: 'select-all',
             content: (
               <SelectAllCheckBox
-                selectedNoteIds={selectedNoteIds}
-                setSelectedNoteIds={setSelectedNoteIds}
-                allNoteIds={paperStatusTabData.tableRows?.map((row) => row.note.id)}
+                selectedIds={selectedNoteIds}
+                setSelectedIds={setSelectedNoteIds}
+                allIds={paperStatusTabData.tableRows?.map((row) => row.note.id)}
               />
             ),
             width: '35px',
@@ -232,9 +220,18 @@ const PaperStatus = ({ sacConsoleData }) => {
           {
             id: 'reviewProgress',
             content: `${prettyField(officialReviewName)} Progress`,
-            width: '30%',
+            width: displayReplyInvitations?.length ? '20%' : '30%',
           },
           { id: 'status', content: 'Status' },
+          ...(displayReplyInvitations?.length
+            ? [
+                {
+                  id: 'latestReplies',
+                  content: 'Latest Replies',
+                  width: '35%',
+                },
+              ]
+            : []),
           { id: 'decision', content: 'Decision' },
         ]}
       >
@@ -246,7 +243,7 @@ const PaperStatus = ({ sacConsoleData }) => {
             selectedNoteIds={selectedNoteIds}
             setSelectedNoteIds={setSelectedNoteIds}
             decision={row.decision}
-            venue={row.note?.content?.venue?.value}
+            venue={row.venue}
           />
         ))}
       </Table>
