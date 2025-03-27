@@ -47,11 +47,11 @@ const invitationTabsConfig = (invitation) => {
             sections: ['invitationChildInvitations'],
           },
         ]),
-    {
-      id: 'invitationReplyForumView',
-      label: 'Reply Forum View',
-      sections: ['invitationReplyForumView'],
-    },
+    // {
+    //   id: 'invitationReplyForumView',
+    //   label: 'Reply Forum View',
+    //   sections: ['invitationReplyForumView'],
+    // },
     {
       id: 'invitationContent',
       label: 'Content',

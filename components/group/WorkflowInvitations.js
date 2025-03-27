@@ -214,9 +214,11 @@ const WorkflowInvitationRow = ({
   const invitees = innerInvitationInvitee ?? invitation.invitees
   const isCreatingSubInvitations = invitation.dateprocesses?.length > 0
   const isCollapsed = collapsedWorkflowInvitationIds.includes(invitation.id)
-  const hasPendingTasks = workflowTasks.find(
+  const pendingTasks = workflowTasks.filter(
     (p) => p.workflowInvitation.id === invitation.id && !p.isCompleted
   )
+  const earliestDueDate =
+    pendingTasks.length > 0 ? Math.min(...pendingTasks.map((p) => p.duedate)) : null
 
   const renderInvitee = (invitee) => {
     if (invitee === invitation.domain) return 'Administrators'
@@ -315,7 +317,11 @@ const WorkflowInvitationRow = ({
               <Markdown text={invitation.description} />
             </div>
           )}
-          {hasPendingTasks && <p className="missing-value">Configuration tasks due below</p>}
+          {earliestDueDate && (
+            <span className="missing-value">
+              Configuration tasks due {dayjs(earliestDueDate).fromNow()}
+            </span>
+          )}
           {isCreatingSubInvitations && (
             <EditInvitationProcessLogStatus
               processLogs={processLogs.filter((p) => p.invitation === invitation.id)}
@@ -425,10 +431,7 @@ const SubInvitationRow = ({
 
   if (isCollapsed) return <div className="sub-invitation-container" />
   return (
-    <div
-      className={`sub-invitation-container${isTaskCompleted ? ' completed' : ''}`}
-      data-invitation-id={subInvitation.id}
-    >
+    <div className="sub-invitation-container" data-invitation-id={subInvitation.id}>
       <ul>
         <li>
           <div>
@@ -454,7 +457,7 @@ const SubInvitationRow = ({
                 </a>
               )}
               <span>{invitationName}</span>
-              {subInvitation.duedate && (
+              {subInvitation.duedate && !isTaskCompleted && (
                 <span className="sub-invitation-due-date">
                   Configure by{' '}
                   {formatDateTime(subInvitation.duedate, {
@@ -973,6 +976,10 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
   return (
     <>
+      <div className="workflow-instruction">
+        Add members of the Program Chairs and to the Reviewers invited group, then start
+        configuring pending tasks
+      </div>
       {workflowGroups.length > 0 && (
         <EditorSection
           title={`Workflow Groups (${workflowGroups.length})`}
