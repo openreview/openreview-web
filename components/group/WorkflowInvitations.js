@@ -523,7 +523,7 @@ const WorkflowGroupRow = ({ group, groupInvitations }) => {
           {group.web ? (
             <a
               href={`/group?id=${group.id}&referrer=${encodeURIComponent(
-                `[${prettyId(group.domain)} Workflow Step Timeline](/group/edit?id=${group.domain})`
+                `[${prettyId(group.domain)} Workflow Step Timeline](/group/info?id=${group.domain})`
               )}`}
             >
               <span className="group-id">{prettyId(group.id, true)}</span>
