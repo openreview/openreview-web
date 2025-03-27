@@ -869,7 +869,7 @@ const DescriptionTimelineOtherConfigRow = ({
               <strong>Venue Configuration Request</strong>
             </a>
             <br />
-            <a href={`/group/edit?id=${venueId}&referrer=${referrerUrl}`}>
+            <a href={`/group/info?id=${venueId}&referrer=${referrerUrl}`}>
               <strong>Workflow Configuration</strong>
             </a>
           </p>
