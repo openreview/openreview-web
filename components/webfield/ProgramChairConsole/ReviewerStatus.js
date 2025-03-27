@@ -18,6 +18,7 @@ import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
+import { formatProfileContent } from '../../../lib/edge-utils'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.reviewerProfile ?? {}
@@ -374,6 +375,8 @@ const ReviewerStatusTab = ({
           })
           // eslint-disable-next-line no-param-reassign
           profile.registrationNotes = userRegNotes
+          // eslint-disable-next-line no-param-reassign
+          profile.title = formatProfileContent(profile.content).title
 
           usernames.concat(profile.email ?? []).forEach((key) => {
             reviewerProfileWithoutAssignmentMap.set(key, profile)
@@ -399,6 +402,7 @@ const ReviewerStatusTab = ({
                 officialReview: reviewMetaReviewInfo.officialReviews?.find(
                   (p) => p.anonymousId === reviewerAnonIdOfNote
                 ),
+                anonymousId: reviewerAnonIdOfNote,
                 numOfReviews: reviewMetaReviewInfo.officialReviews?.length ?? 0,
                 numOfReviewers: reviewMetaReviewInfo.reviewers?.length ?? 0,
                 ratingAvg: reviewMetaReviewInfo.reviewProgressData?.ratingAvg,
@@ -413,6 +417,7 @@ const ReviewerStatusTab = ({
                   officialReview: reviewMetaReviewInfo.officialReviews?.find(
                     (p) => p.anonymousId === reviewerAnonIdOfNote
                   ),
+                  anonymousId: reviewerAnonIdOfNote,
                   numOfReviews: reviewMetaReviewInfo.officialReviews?.length ?? 0,
                   numOfReviewers: reviewMetaReviewInfo.reviewers?.length ?? 0,
                   ratingAvg: reviewMetaReviewInfo.reviewProgressData?.ratingAvg,

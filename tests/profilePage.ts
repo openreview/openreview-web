@@ -1,6 +1,6 @@
 /* eslint-disable newline-per-chained-call */
 // note: existing es index may cause this test to fail. better to empty notes index
-import { Selector, Role } from 'testcafe'
+import { Selector, Role, RequestMock } from 'testcafe'
 import {
   hasTaskUser,
   mergeUser as userF,
@@ -30,6 +30,139 @@ const userARole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =>
 })
 
 const userBAlternateId = '~Di_Xu1'
+
+const responseDBLPXML = `<?xml version="1.0"?>
+<dblpperson name="Di Xu 0001" pid="95/7448-1" n="8">
+<person key="homepages/95/7448-1" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<note type="affiliation">University of British Columbia, Department of Electrical and Computer Engineering, Canada</note>
+</person>
+<homonyms n="1">
+<h f="x/Xu:Di"><person publtype="disambiguation" key="homepages/95/7448" mdate="2019-11-26">
+<author pid="95/7448">Di Xu</author>
+</person>
+</h>
+</homonyms>
+<r><inproceedings key="conf/3dtv/Coria-MendozaXN12" mdate="2019-11-26">
+<author pid="32/5783">Lino Coria-Mendoza</author>
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Automatic stereoscopic 3D video reframing.</title>
+<pages>1-4</pages>
+<year>2012</year>
+<booktitle>3DTV-Conference</booktitle>
+<ee>https://doi.org/10.1109/3DTV.2012.6365428</ee>
+<crossref>conf/3dtv/2012</crossref>
+<url>db/conf/3dtv/3dtv2012.html#Coria-MendozaXN12</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/iccel/XuCN12" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="161/3963">Lino E. Coria</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Quality of experience for the horizontal pixel parallax adjustment of stereoscopic 3D videos.</title>
+<pages>394-395</pages>
+<year>2012</year>
+<booktitle>ICCE</booktitle>
+<ee>https://doi.org/10.1109/ICCE.2012.6161918</ee>
+<crossref>conf/iccel/2012</crossref>
+<url>db/conf/iccel/icce2012.html#XuCN12</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/ictai/PourazadXN12" mdate="2023-03-24">
+<author pid="55/6295">Mahsa T. Pourazad</author>
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Random Forests Based View Generation for Multiview TV.</title>
+<pages>367-372</pages>
+<year>2012</year>
+<crossref>conf/ictai/2012</crossref>
+<booktitle>ICTAI</booktitle>
+<ee>https://doi.org/10.1109/ICTAI.2012.57</ee>
+<ee>https://doi.ieeecomputersociety.org/10.1109/ICTAI.2012.57</ee>
+<url>db/conf/ictai/ictai2012.html#PourazadXN12</url>
+</inproceedings>
+</r>
+<r><article key="journals/tvcg/XuDN11" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="58/3497">Colin Doutre</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Correction of Clipped Pixels in Color Images.</title>
+<pages>333-344</pages>
+<year>2011</year>
+<volume>17</volume>
+<journal>IEEE Trans. Vis. Comput. Graph.</journal>
+<number>3</number>
+<ee>https://doi.org/10.1109/TVCG.2010.63</ee>
+<ee>http://doi.ieeecomputersociety.org/10.1109/TVCG.2010.63</ee>
+<ee>https://www.wikidata.org/entity/Q51701964</ee>
+<url>db/journals/tvcg/tvcg17.html#XuDN11</url>
+</article>
+</r>
+<r><inproceedings key="conf/icecsys/XuCN10" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="32/5783">Lino Coria-Mendoza</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Guidelines for capturing high quality stereoscopic content based on a systematic subjective evaluation.</title>
+<pages>162-165</pages>
+<year>2010</year>
+<booktitle>ICECS</booktitle>
+<ee>https://doi.org/10.1109/ICECS.2010.5724479</ee>
+<crossref>conf/icecsys/2010</crossref>
+<url>db/conf/icecsys/icecsys2010.html#XuCN10</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/icip/XuDN10" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="58/3497">Colin Doutre</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>An improved Bayesian algorithm for color image desaturation.</title>
+<pages>1325-1328</pages>
+<year>2010</year>
+<booktitle>ICIP</booktitle>
+<ee>https://doi.org/10.1109/ICIP.2010.5649486</ee>
+<crossref>conf/icip/2010</crossref>
+<url>db/conf/icip/icip2010.html#XuDN10</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/iscas/XuDN10" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="58/3497">Colin Doutre</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Saturated-pixel enhancement for color images.</title>
+<pages>3377-3380</pages>
+<year>2010</year>
+<booktitle>ISCAS</booktitle>
+<ee>https://doi.org/10.1109/ISCAS.2010.5537871</ee>
+<crossref>conf/iscas/2010</crossref>
+<url>db/conf/iscas/iscas2010.html#XuDN10</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/icip/XuN09" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Logo insertion transcoding for H.264/AVC compressed video.</title>
+<pages>3693-3696</pages>
+<year>2009</year>
+<booktitle>ICIP</booktitle>
+<ee>https://doi.org/10.1109/ICIP.2009.5414225</ee>
+<crossref>conf/icip/2009</crossref>
+<url>db/conf/icip/icip2009.html#XuN09</url>
+</inproceedings>
+</r>
+<coauthors n="5" nc="1">
+<co c="0"><na f="c/Coria:Lino_E=" pid="161/3963">Lino E. Coria</na></co>
+<co c="0"><na f="c/Coria=Mendoza:Lino" pid="32/5783">Lino Coria-Mendoza</na></co>
+<co c="0"><na f="d/Doutre:Colin" pid="58/3497">Colin Doutre</na></co>
+<co c="0"><na f="n/Nasiopoulos:Panos" pid="55/3871">Panos Nasiopoulos</na></co>
+<co c="0"><na f="p/Pourazad:Mahsa_T=" pid="55/6295">Mahsa T. Pourazad</na></co>
+</coauthors>
+</dblpperson>
+`
+
+const dblpMock = RequestMock()
+  .onRequestTo('https://dblp.org/pid/95/7448-1.xml')
+  .respond(responseDBLPXML, 200, { 'access-control-allow-origin': '*', 'content-type': 'application/xml' })
 
 // #region long repeated selectors
 const errorMessageSelector = Selector('.rc-notification-notice-content', {
@@ -83,7 +216,7 @@ const step6Expertise = Selector('div[step="6"]').find('div[role="button"]')
 fixture`Profile page`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
   return ctx
-})
+}).requestHooks(dblpMock)
 
 test('user open own profile', async (t) => {
   await t
@@ -126,7 +259,7 @@ test('user open own profile', async (t) => {
     .click(step2Emails)
     .expect(
       Selector('p').withText(
-        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
       ).exists
     )
     .notOk() // not activation
@@ -207,6 +340,7 @@ test('user open own profile', async (t) => {
     .click(step6Expertise)
     .typeText(Selector('div.expertise').find('input').nth(0), '        ')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 })
@@ -215,6 +349,7 @@ test('add and delete year of birth', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     // add invalid year of birth
     .click(step1PeronalInfo)
     .typeText(yearOfBirthInput, '0000')
@@ -231,6 +366,7 @@ test('add and delete year of birth', async (t) => {
     // remove year of birth
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step1PeronalInfo)
     .expect(yearOfBirthInput.value)
     .eql('2000')
@@ -244,6 +380,7 @@ test('add and delete year of birth', async (t) => {
     // verify year of birth has been removed
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step1PeronalInfo)
     .expect(yearOfBirthInput.value)
     .eql('')
@@ -256,6 +393,7 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step1PeronalInfo)
     .click(Selector('div.pronouns-dropdown__control'))
     .wait(1000)
@@ -271,6 +409,7 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step1PeronalInfo)
     .typeText(Selector('div.pronouns'), customPronouns)
     .wait(500)
@@ -286,11 +425,13 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step1PeronalInfo)
     .click(Selector('div.pronouns-dropdown__control'))
     .wait(500)
     .click(Selector('div.pronouns-dropdown__option').nth(3))
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('h4').nth(0).textContent)
     .notEql('Pronouns: he/him')
@@ -301,6 +442,7 @@ test('add and delete geolocation of history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step4History)
     .click(Selector('input.region-dropdown__placeholder')) // show dropdown
     .click(Selector('div.country-dropdown__option').nth(3))
@@ -308,6 +450,7 @@ test('add and delete geolocation of history', async (t) => {
     .typeText(Selector('input.institution-state'), 'test state', { replace: true })
     .typeText(Selector('input.institution-department'), 'test department')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('.glyphicon-map-marker').exists)
     .ok()
@@ -323,12 +466,14 @@ test('add and delete geolocation of history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step4History)
     .selectText(Selector('input.institution-state'))
     .pressKey('delete')
     .selectText(Selector('input.institution-city'))
     .pressKey('delete')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('.glyphicon-map-marker').exists)
     .ok()
@@ -344,6 +489,7 @@ test('add and delete geolocation of history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step4History)
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__control'))
@@ -358,6 +504,7 @@ test('add links', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step3Links)
     // add invalid acl url
     .typeText(aclanthologyUrlInput, 'https://aclanthology.org/invalid_url')
@@ -379,6 +526,7 @@ test('add links', async (t) => {
     .expect(aclanthologyUrlInput.hasClass('invalid-value'))
     .notOk()
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 })
@@ -389,6 +537,7 @@ test('add relation', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step5Relations)
     // add a relation by name
     .click(firstRelationRow.find('div.relation__value').nth(0)) // relation dropdown
@@ -436,6 +585,7 @@ test('add relation', async (t) => {
       '2023'
     )
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .click(cancelButton)
     // verify relation is added
     .expect(Selector('span').withText('Some Relation Name').exists)
@@ -446,6 +596,7 @@ test('add relation', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step5Relations)
     .expect(
       firstRelationRow.find('a').withAttribute('href', '/profile?id=~FirstA_LastA1')
@@ -483,6 +634,7 @@ test('add expertise', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step6Expertise)
     // add expertise correctly
     .typeText(
@@ -504,6 +656,7 @@ test('add expertise', async (t) => {
     )
     .typeText(thirdExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .click(cancelButton)
     // verify relation is added
     .expect(Selector('span').withText('other expertise').exists)
@@ -521,6 +674,7 @@ test('import paper from dblp', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step3Links)
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
@@ -561,7 +715,10 @@ test('import paper from dblp', async (t) => {
     .click(nameSectionPlusIconSelector)
     .typeText(editFullNameInputSelector, 'Di Xu')
     .click(saveProfileButton)
-    .click(step3Links)
+    // wait until profile save complete
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+
+  await t.click(step3Links)
     .click(addDBLPPaperToProfileButton)
     .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText)
     .contains('Please select the new publications of which you are actually an author.')
@@ -632,6 +789,7 @@ test('imported paper has banner back to profile edit', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step3Links)
     .click(addDBLPPaperToProfileButton)
     .expect(Selector('div.publication-title').nth(0).find('a').getAttribute('href'))
@@ -659,6 +817,7 @@ test('unlink paper', async (t) => {
     // keep 1 publication to check history
     .click(Selector('ul.submissions-list').find('.glyphicon-minus-sign').nth(1)) // unlink 2nd paper
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
 })
 
 test('check import history', async (t) => {
@@ -687,6 +846,7 @@ test('reimport unlinked paper and import all', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step3Links)
     .click(addDBLPPaperToProfileButton)
     .click(
@@ -736,6 +896,7 @@ test('validate current history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step4History)
     .typeText(firstHistoryEndInput, (new Date().getFullYear() - 1).toString(), {
       replace: true,
@@ -750,6 +911,7 @@ test('validate current history', async (t) => {
       paste: true,
     })
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 
@@ -757,10 +919,12 @@ test('validate current history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step4History)
     .selectText(firstHistoryEndInput)
     .pressKey('delete')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 })
@@ -769,6 +933,7 @@ test('profile should be auto merged', async (t) => {
   await t
     .useRole(userARole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step2Emails)
     .click(emailSectionPlusIconSelector)
     .typeText(editEmailInputSelector, userF.email)
@@ -793,6 +958,7 @@ test('profile should be auto merged', async (t) => {
     .ok()
 
     .click(saveProfileButton) // save profile should success
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 
@@ -836,6 +1002,7 @@ test('open profile of other user by email', async (t) => {
     .typeText(Selector('#email-input'), userB.email)
     .typeText(Selector('#password-input'), userB.password)
     .click(Selector('button').withText('Login to OpenReview'))
+    .wait(500)
     // access FirstA LastA's profile page by email
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile?email=${hasTaskUser.email}`)
     .expect(Selector('a').withText('Edit Profile').exists)
@@ -874,6 +1041,7 @@ test('#85 confirm profile email message', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step2Emails)
     .click(emailSectionPlusIconSelector)
     .typeText(editEmailInputSelector, 'a@a.com')
@@ -901,10 +1069,12 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .expect(Selector('#user-menu').innerText)
     .eql('FirstB LastB ')
     .click(nameMakePreferredButton)
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('#user-menu').innerText)
     .eql('Di Xu ')
@@ -915,6 +1085,7 @@ test('#160 allow user to overwrite name to be lowercase', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(nameSectionPlusIconSelector)
     .typeText(editFullNameInputSelector, 'first', { speed: 0.3 }) // it will trigger call to generate ~ id so typing fast won't trigger capitalization
     .expect(editFullNameInputSelector.value)
@@ -923,6 +1094,7 @@ test('#160 allow user to overwrite name to be lowercase', async (t) => {
     .expect(editFullNameInputSelector.value)
     .eql('first')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('span').withText('first').exists)
     .ok()
@@ -931,6 +1103,7 @@ test('fail before 2099', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step4History)
     .typeText(
       Selector('div.history').find('input').nth(2),
@@ -938,6 +1111,7 @@ test('fail before 2099', async (t) => {
       { replace: true }
     ) // to fail in 2090, update validation regex
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated', undefined, {
       timeout: 5000,
@@ -947,6 +1121,7 @@ test('#1011 remove space in personal links', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step3Links)
     .typeText(homepageUrlInput, '   https://github.com/xkOpenReview    ', {
       replace: true,
@@ -954,6 +1129,7 @@ test('#1011 remove space in personal links', async (t) => {
     })
     .pressKey('tab')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(
       Selector('a')
@@ -966,6 +1142,7 @@ test('confirm an email with a numeric token', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step2Emails)
     .expect(Selector('h4').withText('Emails').exists)
     .ok()
@@ -995,6 +1172,7 @@ test('confirm an email with a numeric token', async (t) => {
     .expect(Selector('button').withText('Make Preferred').nth(0).exists)
     .ok()
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('span').withText('aaa@alternate.com').exists)
     .ok()
@@ -1012,6 +1190,7 @@ test('check if a user can add multiple emails without entering verification toke
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(step2Emails)
     .expect(Selector('h4').withText('Emails').exists)
     .ok()
@@ -1049,6 +1228,7 @@ test('check if a user can add multiple emails without entering verification toke
     .eql('Error: token must NOT have fewer than 1 characters')
 
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('span').withText('aab@alternate.com').exists)
     .ok()
