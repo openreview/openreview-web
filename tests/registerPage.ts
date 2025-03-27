@@ -220,7 +220,7 @@ test('create a new profile with an institutional email', async (t) => {
 
 test('enter invalid name', async (t) => {
   await t
-    .typeText(fullNameInputSelector, 'abc 1')
+    .typeText(fullNameInputSelector, '1')
     .expect(messageSelector.innerText)
     .eql(
       'Error: The name 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
@@ -230,7 +230,7 @@ test('enter invalid name', async (t) => {
     .typeText(fullNameInputSelector, 'abc `', { replace: true })
     .expect(messageSelector.innerText)
     .eql(
-      'The name Abc 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
+      'The name Abc ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
     .click(Selector('.rc-notification-notice-close')) // close message
     .expect(messageSelector.exists).notOk()
