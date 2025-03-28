@@ -135,6 +135,7 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
   const [activeGroupInvitation, setActivateGroupInvitation] = useState(null)
   const [messageAllMembersInvitation, setMessageAllMembersInvitation] = useState(null)
   const [messageSingleMemberInvitation, setMessageSingleMemberInvitation] = useState(null)
+  const [addRemoveMembersInvitaiton, setAddRemoveMembersInvitaiton] = useState(null)
   const { user, accessToken } = useUser()
 
   const renderSection = (sectionName) => {
@@ -153,12 +154,15 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
           />
         )
       case 'groupMembers':
-        return messageAllMembersInvitation || messageSingleMemberInvitation ? (
+        return messageAllMembersInvitation ||
+          messageSingleMemberInvitation ||
+          addRemoveMembersInvitaiton ? (
           <GroupMembers
             key={sectionName}
             group={group}
             messageAllMembersInvitation={messageAllMembersInvitation}
             messageSingleMemberInvitation={messageSingleMemberInvitation}
+            addRemoveMembersInvitaiton={addRemoveMembersInvitaiton}
           />
         ) : (
           <GroupMembersInfo key={sectionName} group={group} />
@@ -184,15 +188,19 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
     try {
       const messageAllMembersInvitationId = `${group.domain}/-/Message`
       const messageSingleMemberInvitationId = `${group.id}/-/Message`
+      const addRemoveMembersInvitationId = `${group.domain}/Program_Chairs/-/Members`
+
       const result = await Promise.all([
         api.getInvitationById(messageAllMembersInvitationId, accessToken, { invitee: true }),
         api.getInvitationById(messageSingleMemberInvitationId, accessToken, {
           invitee: true,
         }),
+        api.getInvitationById(addRemoveMembersInvitationId, accessToken, { invitee: true }),
       ])
       if (result?.length) {
         setMessageAllMembersInvitation(result[0])
         setMessageSingleMemberInvitation(result[1])
+        setAddRemoveMembersInvitaiton(result[2])
       }
     } catch (error) {
       /* empty */
