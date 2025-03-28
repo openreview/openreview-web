@@ -3,34 +3,18 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import EditorSection from '../../components/EditorSection'
-import {
-  InvitationGeneralView,
-  InvitationGeneralViewV2,
-} from '../../components/invitation/InvitationGeneral'
-import InvitationReply, {
-  InvitationReplyV2,
-} from '../../components/invitation/InvitationReply'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import { invitationModeToggle } from '../../lib/banner-links'
+import InvitationWithInvitation from '../../components/invitation/InvitationWithInvitaiton'
 
 const InvitationInfo = ({ appContext }) => {
-  const { accessToken, userLoading } = useUser()
+  const { accessToken, userLoading, user } = useUser()
   const [error, setError] = useState(null)
   const [invitation, setInvitation] = useState(null)
   const router = useRouter()
   const { setBannerHidden, setEditBanner } = appContext
-
-  // eslint-disable-next-line no-shadow
-  const getReplyFieldByInvitationType = (invitation) => {
-    if (!invitation) return 'edit'
-    if (invitation.edge) return 'edge'
-    if (invitation.tag) return 'tag'
-    if (invitation.message) return 'message'
-    return 'edit'
-  }
 
   // Try loading invitation from v1 API first and if not found load from v2
   const loadInvitation = async (invitationId) => {
@@ -60,39 +44,6 @@ const InvitationInfo = ({ appContext }) => {
         setError({ statusCode: apiError.status, message: apiError.message })
       }
     }
-  }
-
-  const renderInvtationReply = () => {
-    if (invitation?.edit === true) return null
-
-    if (invitation?.apiVersion === 1) {
-      return (
-        <>
-          <InvitationReply invitation={invitation} replyField="reply" readOnly={true} />
-
-          <InvitationReply
-            invitation={invitation}
-            replyField="replyForumViews"
-            readOnly={true}
-          />
-        </>
-      )
-    }
-    return (
-      <>
-        <InvitationReplyV2
-          invitation={invitation}
-          replyField={getReplyFieldByInvitationType(invitation)}
-          readOnly={true}
-        />
-
-        <InvitationReplyV2
-          invitation={invitation}
-          replyField="replyForumViews"
-          readOnly={true}
-        />
-      </>
-    )
   }
 
   useEffect(() => {
@@ -138,16 +89,11 @@ const InvitationInfo = ({ appContext }) => {
       </div>
 
       {invitation ? (
-        <div>
-          <EditorSection title="General Info" className="general">
-            {invitation?.apiVersion === 1 ? (
-              <InvitationGeneralView invitation={invitation} showEditButton={false} />
-            ) : (
-              <InvitationGeneralViewV2 invitation={invitation} showEditButton={false} />
-            )}
-          </EditorSection>
-
-          {renderInvtationReply()}
+        <div className="invitationInfoTabsContainer">
+          <InvitationWithInvitation
+            invitation={invitation}
+            reloadInvitation={() => loadInvitation(invitation.id)}
+          />
         </div>
       ) : (
         <LoadingSpinner />

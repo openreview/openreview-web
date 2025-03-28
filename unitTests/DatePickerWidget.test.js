@@ -6,6 +6,8 @@ import DatePickerWidget from '../components/EditorComponents/DatePickerWidget'
 let dateTimePickerProps
 let dropdownProps
 let mockedOnDateTimeChange
+
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/DatetimePicker', () => (props) => {
   dateTimePickerProps(props)
   mockedOnDateTimeChange = props.onChange
