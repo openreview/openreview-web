@@ -10,3 +10,7 @@ export default function Layout({ children }) {
     </CommonLayout>
   )
 }
+
+export const metadata = {
+  title: 'Notifications | OpenReview',
+}

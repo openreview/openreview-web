@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { upperFirst } from 'lodash'
 import Table from '../../components/Table'
 import api from '../../lib/api-client'
-import { upperFirst } from 'lodash'
 import { formatDateTime, prettyId } from '../../lib/utils'
 import Collapse from '../../components/Collapse'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -98,11 +97,15 @@ export default function NotificationsTable({
   numUnviewed,
   markAllViewed,
 }) {
-  const [count, setCount] = useState(0)
-  const [page, setPage] = useState(1)
-  const [messages, setMessages] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [allMessages, setAllMessages] = useState([])
   const { token } = useUser()
   const pageSize = 25
+
+  const count = allMessages.length
+  const messages = allMessages.length
+    ? allMessages.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    : null
 
   const headingContent = (
     <>
@@ -120,24 +123,31 @@ export default function NotificationsTable({
     </>
   )
 
-  const getMessages = async () => {
+  const getMessages = async (after) => {
     const result = await api.get(
       '/messages',
       {
         to: toEmail,
-        limit: pageSize,
-        offset: pageSize * (page - 1),
+        after,
       },
       { accessToken: token }
     )
-    setMessages(result.messages)
-    setCount(result.count)
+    setAllMessages((existingMessages) => existingMessages.concat(result.messages || []))
   }
 
   useEffect(() => {
     if (!toEmail) return
+    setAllMessages([])
     getMessages()
-  }, [page, toEmail])
+  }, [toEmail])
+
+  useEffect(() => {
+    if (!allMessages.length || allMessages.length < 1000) return
+    const availablePages = Math.ceil(allMessages.length / pageSize)
+    if (currentPage >= availablePages - 5) {
+      getMessages(allMessages[allMessages.length - 1].id)
+    }
+  }, [currentPage])
 
   if (!messages)
     return (
@@ -147,7 +157,11 @@ export default function NotificationsTable({
           { id: 'details', content: <span className="pull-left">Message Details</span> },
         ]}
       >
-        <LoadingSpinner />
+        <tr>
+          <td>
+            <LoadingSpinner />
+          </td>
+        </tr>
       </Table>
     )
 
@@ -168,8 +182,8 @@ export default function NotificationsTable({
         )}
       </Table>
       <PaginationLinks
-        currentPage={page}
-        setCurrentPage={setPage}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
         itemsPerPage={pageSize}
         totalCount={count}
       />
