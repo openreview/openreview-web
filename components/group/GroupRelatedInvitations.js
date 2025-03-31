@@ -28,6 +28,7 @@ const GroupRelatedInvitations = ({ group, accessToken }) => {
       : {
           prefix: groupId.includes(submissionName) ? `${groupId}/.*` : `${groupId}/-/.*`,
           expired: true,
+          trash: true,
           type: 'all',
           limit,
           offset,
