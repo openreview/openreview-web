@@ -237,10 +237,6 @@ export const InvitationGeneralViewV2 = ({
           formatDateTime(invitation.tcdate, { month: 'long', timeZoneName: 'short' })}
       </div>
       <div className="row d-flex">
-        <span className="info-title">Deletion Date:</span>
-        {formatDateTime(invitation.ddate, { month: 'long', timeZoneName: 'short' })}
-      </div>
-      <div className="row d-flex">
         <span className="info-title">Modified Date:</span>
         {formatDateTime(invitation.mdate, { month: 'long', timeZoneName: 'short' }) ??
           formatDateTime(invitation.tmdate, { month: 'long', timeZoneName: 'short' })}
@@ -253,17 +249,17 @@ export const InvitationGeneralViewV2 = ({
         <span className="info-title">Expiration Date:</span>
         {formatDateTime(invitation.expdate, { month: 'long', timeZoneName: 'short' })}
       </div>
+      <div className="row d-flex">
+        <span className="info-title">Last Modified:</span>
+        {formatDateTime(invitation.mdate, { month: 'long', timeZoneName: 'short' }) ??
+          formatDateTime(invitation.tmdate, { month: 'long', timeZoneName: 'short' })}
+      </div>
       {invitation.ddate && (
         <div className="row d-flex">
           <span className="info-title">Deleted:</span>
           {formatDateTime(invitation.ddate, { month: 'long', timeZoneName: 'short' })}
         </div>
       )}
-      <div className="row d-flex">
-        <span className="info-title">Last Modified:</span>
-        {formatDateTime(invitation.mdate, { month: 'long', timeZoneName: 'short' }) ??
-          formatDateTime(invitation.tmdate, { month: 'long', timeZoneName: 'short' })}
-      </div>
       {showEditButton && (
         <button type="button" className="btn btn-sm btn-primary" onClick={setIsEditMode}>
           Edit General Info
@@ -812,25 +808,6 @@ const InvitationGeneralEditV2 = ({
         </div>
       </div>
       <div className="row d-flex">
-        <span className="info-title edit-title">Deletion Date:</span>
-        <div className="info-edit-control">
-          <div className="d-flex">
-            <DatetimePicker
-              existingValue={generalInfo.ddate}
-              timeZone={generalInfo.deletionDateTimezone}
-              onChange={(e) => setGeneralInfo({ type: 'ddate', payload: e })}
-            />
-            <TimezoneDropdown
-              className="timezone-dropdown dropdown-sm"
-              value={generalInfo.deletionDateTimezone}
-              onChange={(e) =>
-                setGeneralInfo({ type: 'deletionDateTimezone', payload: e.value })
-              }
-            />
-          </div>
-        </div>
-      </div>
-      <div className="row d-flex">
         <span className="info-title edit-title">Due Date:</span>
         <div className="info-edit-control">
           <div className="d-flex">
@@ -860,6 +837,25 @@ const InvitationGeneralEditV2 = ({
               className="timezone-dropdown dropdown-sm"
               value={generalInfo.expDateTimezone}
               onChange={(e) => setGeneralInfo({ type: 'expDateTimezone', payload: e.value })}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="row d-flex">
+        <span className="info-title edit-title">Deletion Date:</span>
+        <div className="info-edit-control">
+          <div className="d-flex">
+            <DatetimePicker
+              existingValue={generalInfo.ddate}
+              timeZone={generalInfo.deletionDateTimezone}
+              onChange={(e) => setGeneralInfo({ type: 'ddate', payload: e })}
+            />
+            <TimezoneDropdown
+              className="timezone-dropdown dropdown-sm"
+              value={generalInfo.deletionDateTimezone}
+              onChange={(e) =>
+                setGeneralInfo({ type: 'deletionDateTimezone', payload: e.value })
+              }
             />
           </div>
         </div>
