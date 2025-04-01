@@ -6,7 +6,12 @@ import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
 const RelatedInvitationRow = ({ item }) => (
-  <Link href={`/invitation/edit?id=${item.id}`}>{prettyId(item.id)}</Link>
+  <Link
+    href={`/invitation/edit?id=${item.id}`}
+    className={item.ddate ? 'invitation-deleted' : ''}
+  >
+    {prettyId(item.id)}
+  </Link>
 )
 
 const GroupRelatedInvitations = ({ group, accessToken }) => {
