@@ -76,7 +76,12 @@ export default function Assignments({ accessToken }) {
   }, [])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
-  if (!configInvitation) return <LoadingSpinner />
+  if (!configInvitation)
+    return (
+      <CommonLayout>
+        <LoadingSpinner />
+      </CommonLayout>
+    )
 
   const banner = referrer ? referrerLink(referrer) : venueHomepageLink(group)
   return (

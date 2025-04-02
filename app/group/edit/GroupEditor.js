@@ -1,7 +1,8 @@
 'use client'
 
-import { use } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { stringify } from 'query-string'
 import GroupGeneral from '../../../components/group/GroupGeneral'
 import GroupMembers from '../../../components/group/GroupMembers'
 import GroupContent from '../../../components/group/GroupContent'
@@ -15,15 +16,78 @@ import styles from '../Group.module.scss'
 import { prettyId } from '../../../lib/utils'
 import EditBanner from '../../../components/EditBanner'
 import { groupModeToggle } from '../../../lib/banner-links'
+import useUser from '../../../hooks/useUser'
+import LoadingSpinner from '../../../components/LoadingSpinner'
+import ErrorDisplay from '../../../components/ErrorDisplay'
+import api from '../../../lib/api-client'
+import { isSuperUser } from '../../../lib/clientAuth'
 
-export default function GroupEditor({ loadGroupP, profileId, accessToken, isSuperUser }) {
-  const { group, errorMessage } = use(loadGroupP)
-  if (errorMessage) throw new Error(errorMessage)
-
+export default function GroupEditor({ id, query }) {
+  const [group, setGroup] = useState(null)
+  const [error, setError] = useState(null)
+  const { user, accessToken, isRefreshing } = useUser()
   const router = useRouter()
   const reloadGroup = () => router.refresh()
-  const editBanner = <EditBanner>{groupModeToggle('edit', group.id)}</EditBanner>
+  const profileId = user?.profile?.id
 
+  const loadGroup = async () => {
+    try {
+      const { groups } = await api.get('/groups', { id }, { accessToken })
+      if (!groups?.length) throw new Error('Group not found')
+      // eslint-disable-next-line no-shadow
+      const group = groups[0]
+      if (group.details?.writable) {
+        // Get venue group to pass to webfield component
+        if (group.domain && group.domain !== group.id) {
+          const domainResult = await api.get('/groups', { id: group.domain }, { accessToken })
+          const domainGroup = domainResult.groups?.length > 0 ? domainResult.groups[0] : null
+          setGroup({
+            ...group,
+            details: { ...group.details, domain: domainGroup },
+          })
+          return
+        }
+        if (group.domain) {
+          setGroup({
+            ...group,
+            details: { ...group.details, domain: group },
+          })
+          return
+        }
+        setGroup(group)
+      } else {
+        const redirectPath = accessToken
+          ? `/group/info?id=${id}`
+          : `/login?redirect=/group/edit?${encodeURIComponent(stringify(query))}`
+        router.replace(redirectPath)
+      }
+    } catch (apiError) {
+      if (apiError.name === 'ForbiddenError') {
+        if (!accessToken) {
+          router.replace(`/login?redirect=${encodeURIComponent(stringify(query))}`)
+        } else {
+          setError("You don't have permission to read this group")
+        }
+        return
+      }
+      setError(apiError.message)
+    }
+  }
+
+  useEffect(() => {
+    if (isRefreshing) return
+    loadGroup()
+  }, [isRefreshing])
+
+  if (error) return <ErrorDisplay message={error} />
+  if (!group)
+    return (
+      <CommonLayout>
+        <LoadingSpinner />
+      </CommonLayout>
+    )
+
+  const editBanner = <EditBanner>{groupModeToggle('edit', group.id)}</EditBanner>
   return (
     <CommonLayout banner={null} editBanner={editBanner}>
       <div className={styles.group}>
@@ -34,7 +98,7 @@ export default function GroupEditor({ loadGroupP, profileId, accessToken, isSupe
           <GroupGeneral
             group={group}
             profileId={profileId}
-            isSuperUser={isSuperUser}
+            isSuperUser={isSuperUser(user)}
             accessToken={accessToken}
             reloadGroup={reloadGroup}
           />

@@ -15,8 +15,6 @@ import legacyStyles from './LegacyForum.module.scss'
 import LegacyForum from '../../components/forum/LegacyForum'
 import ErrorDisplay from '../../components/ErrorDisplay'
 
-export const dynamic = 'force-dynamic'
-
 const fallbackMetadata = { title: 'Forum | OpenReview' }
 
 // #region data fetching
