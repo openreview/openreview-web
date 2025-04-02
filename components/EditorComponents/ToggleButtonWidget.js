@@ -1,6 +1,6 @@
 import { useContext, useEffect } from 'react'
 import EditorComponentContext from '../EditorComponentContext'
-import styles from '../../styles/components/ToggleButtonWidget.module.scss'
+import ToggleButton from './ToggleButton'
 
 const ToggleButtonWidget = () => {
   const { field, onChange, value, note } = useContext(EditorComponentContext)
@@ -13,26 +13,10 @@ const ToggleButtonWidget = () => {
   }, [])
 
   return (
-    <div className={styles.toggleButtonContainer}>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={value}
-        className={`${styles.toggleButton} ${value ? styles.toggleButtonChecked : ''}`}
-        onClick={() =>
-          onChange({
-            fieldName,
-            value: !value,
-          })
-        }
-      >
-        <div className={styles.toggleButtonInner}>
-          {value && <div className={styles.toggleButtonInnerChecked}>True</div>}
-          <div className={styles.toggleButtonInnerSwitch} />
-          {!value && <div className={styles.toggleButtonInnerUnchecked}>False</div>}
-        </div>
-      </button>
-    </div>
+    <ToggleButton
+      value={value}
+      onChange={(newValue) => onChange({ fieldName, value: newValue })}
+    />
   )
 }
 

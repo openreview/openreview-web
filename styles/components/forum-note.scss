@@ -79,6 +79,17 @@
     }
   }
 
+  .forum-tags {
+    .glyphicon {
+      color: constants.$orRed;
+    }
+
+    .forum-tag-stats {
+      margin-top: 0.25rem;
+      display: flex;
+    }
+  }
+
   .invitation-buttons {
     float: right;
     text-align: right;

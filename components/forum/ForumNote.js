@@ -1,6 +1,6 @@
 /* globals $, promptError, view2, DOMPurify: false */
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -10,11 +10,23 @@ import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
+import ToggleButton from '../EditorComponents/ToggleButton'
+import api from '../../lib/api-client'
+import useUser from '../../hooks/useUser'
+import { isSuperUser } from '../../lib/auth'
 
 dayjs.extend(relativeTime)
 
 function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
-  const { id, content, details, signatures, editInvitations, deleteInvitation } = note
+  const {
+    id,
+    content,
+    details,
+    signatures,
+    editInvitations,
+    deleteInvitation,
+    tagInvitations,
+  } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
   // eslint-disable-next-line no-underscore-dangle
@@ -184,6 +196,97 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
           Boolean
         )}
       />
+      <ForumTags
+        loadedTags={note.details?.tags}
+        tagInvitations={tagInvitations}
+        forumId={note.id}
+      />
+    </div>
+  )
+}
+
+function ForumTag({ tagInvitation, tag, forumId, profileId }) {
+  const { enum: enumValues } = tagInvitation.tag?.label?.param ?? {}
+  const [existingTag, setExistingTag] = useState(tag)
+  const [isLoading, setIsLoading] = useState(false)
+
+  function mapLabelToValue(label) {
+    if (!label) return false
+    if (label === enumValues[0]) return true
+    if (label === enumValues[1]) return false
+    return false
+  }
+
+  const tagValue = mapLabelToValue(existingTag?.label)
+
+  const handleTagChange = async (value) => {
+    setIsLoading(true)
+    const newLabel = value ? enumValues[0] : enumValues[1]
+    try {
+      const result = await api.post('/tags', {
+        id: existingTag ? existingTag.id : undefined,
+        forum: forumId,
+        note: forumId,
+        signature: existingTag ? existingTag.signature : profileId,
+        invitation: tagInvitation.id,
+        label: newLabel,
+      })
+      setExistingTag(result)
+    } catch (error) {
+      promptError(error.message)
+    }
+    setIsLoading(false)
+  }
+
+  return (
+    <ToggleButton
+      value={tagValue}
+      trueLabel={enumValues[0]}
+      falseLabel={enumValues[1]}
+      onChange={handleTagChange}
+      isLoading={isLoading}
+    />
+  )
+}
+
+const ForumTags = ({ loadedTags, tagInvitations, forumId }) => {
+  const { user } = useUser()
+  if (!tagInvitations?.length) return null
+  return (
+    <div className="forum-tags">
+      {tagInvitations.map((p) => {
+        const tagsOfInvitation = loadedTags?.filter((q) => q.invitation === p.id)
+        const { enum: enumValues } = p.tag?.label?.param ?? {}
+        return (
+          <React.Fragment key={p.id}>
+            <ForumTag
+              key={p.id}
+              tagInvitation={p}
+              tag={tagsOfInvitation?.[0]}
+              forumId={forumId}
+              profileId={user?.profile?.id}
+            />
+            {isSuperUser(user) && (
+              <div className="forum-tag-stats">
+                <Icon name="stats" extraClasses="mr-2" />
+                {enumValues.map((label) => {
+                  const count = tagsOfInvitation?.filter((q) => q.label === label).length
+                  return (
+                    <a
+                      href={`${process.env.API_V2_URL}/tags?invitation=${p.id}&label=${label}`}
+                      target="_blank"
+                      key={label}
+                      className="mr-2"
+                    >
+                      {label} {count}
+                    </a>
+                  )
+                })}
+              </div>
+            )}
+          </React.Fragment>
+        )
+      })}
     </div>
   )
 }
