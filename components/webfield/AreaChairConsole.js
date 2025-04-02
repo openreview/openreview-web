@@ -2,13 +2,14 @@
 
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import { orderBy } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import Table from '../Table'
 import ErrorDisplay from '../ErrorDisplay'
 import NoteSummary from './NoteSummary'
-import { AcPcConsoleNoteReviewStatus } from './NoteReviewStatus'
+import { AcPcConsoleNoteReviewStatus, LatestReplies } from './NoteReviewStatus'
 import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
@@ -24,6 +25,7 @@ import {
   pluralizeString,
   getSingularRoleName,
   getRoleHashFragment,
+  buildNoteTitle,
 } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
@@ -46,6 +48,7 @@ const AssignedPaperRow = ({
   showCheckbox = true,
   additionalMetaReviewFields,
   activeTabId,
+  displayReplyInvitations,
 }) => {
   const { note, metaReviewData, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
@@ -91,6 +94,11 @@ const AssignedPaperRow = ({
           submissionName={submissionName}
         />
       </td>
+      {displayReplyInvitations?.length && (
+        <td>
+          <LatestReplies rowData={rowData} referrerUrl={referrerUrl} />
+        </td>
+      )}
       <td>
         <AreaChairConsoleNoteMetaReviewStatus
           note={note}
@@ -104,12 +112,16 @@ const AssignedPaperRow = ({
   )
 }
 
-const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
+const AreaChairConsoleTasks = ({
+  venueId,
+  areaChairName,
+  defaultAreaChairName = areaChairName,
+}) => {
   const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
   const referrer = encodeURIComponent(
     `[${prettyField(
-      areaChairName
-    )} Console](/group?id=${venueId}/${areaChairName}#${areaChairUrlFormat}-tasks)`
+      defaultAreaChairName
+    )} Console](/group?id=${venueId}/${defaultAreaChairName}#${areaChairUrlFormat}-tasks)`
   )
 
   return (
@@ -149,6 +161,9 @@ const AreaChairConsole = ({ appContext }) => {
     extraExportColumns,
     preferredEmailInvitationId,
     ithenticateInvitationId,
+    extraRoleNames,
+    sortOptions,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
@@ -179,6 +194,10 @@ const AreaChairConsole = ({ appContext }) => {
     : header?.instructions
 
   const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
+  const extraRoleNamesWithUrlFormat = extraRoleNames?.map((roleName) => ({
+    name: roleName,
+    urlFormat: getRoleHashFragment(roleName),
+  }))
   const secondaryAreaChairUrlFormat = secondaryAreaChairName
     ? getRoleHashFragment(secondaryAreaChairName)
     : null
@@ -544,6 +563,27 @@ const AreaChairConsole = ({ appContext }) => {
             ithenticateWeight:
               ithenticateEdges.find((p) => p.head === note.id)?.weight ?? 'N/A',
           }),
+          displayReplies: displayReplyInvitations?.map((p) => {
+            const displayInvitaitonId = p.id.replaceAll('{number}', note.number)
+            const latestReply = orderBy(
+              note.details.replies.filter((q) => q.invitations.includes(displayInvitaitonId)),
+              ['mdate'],
+              'desc'
+            )?.[0]
+            return {
+              id: latestReply?.id,
+              date: latestReply?.mdate,
+              invitationId: displayInvitaitonId,
+              values: p.fields.map((field) => {
+                const value = latestReply?.content?.[field]?.value?.toString()
+                return {
+                  field,
+                  value,
+                }
+              }),
+              signature: latestReply?.signatures?.[0],
+            }
+          }),
         }
       })
 
@@ -608,6 +648,7 @@ const AreaChairConsole = ({ appContext }) => {
             officialMetaReviewName={officialMetaReviewName}
             areaChairName={areaChairName}
             ithenticateInvitationId={ithenticateInvitationId}
+            sortOptions={sortOptions}
           />
           <p className="empty-message">
             No assigned {submissionName.toLowerCase()} matching search criteria.
@@ -636,6 +677,7 @@ const AreaChairConsole = ({ appContext }) => {
           officialMetaReviewName={officialMetaReviewName}
           areaChairName={areaChairName}
           ithenticateInvitationId={ithenticateInvitationId}
+          sortOptions={sortOptions}
         />
         <Table
           className="console-table table-striped areachair-console-table"
@@ -658,6 +700,15 @@ const AreaChairConsole = ({ appContext }) => {
               content: `${prettyField(officialReviewName)} Progress`,
               width: '34%',
             },
+            ...(displayReplyInvitations?.length
+              ? [
+                  {
+                    id: 'latestReplies',
+                    content: 'Latest Replies',
+                    width: '50%',
+                  },
+                ]
+              : []),
             {
               id: 'metaReviewStatus',
               content: `${prettyField(officialMetaReviewName)} Status`,
@@ -680,6 +731,7 @@ const AreaChairConsole = ({ appContext }) => {
               shortPhrase={shortPhrase}
               additionalMetaReviewFields={additionalMetaReviewFields}
               activeTabId={activeTabId}
+              displayReplyInvitations={displayReplyInvitations}
             />
           ))}
         </Table>
@@ -708,6 +760,15 @@ const AreaChairConsole = ({ appContext }) => {
               content: `${prettyField(officialReviewName)} Progress`,
               width: '34%',
             },
+            ...(displayReplyInvitations?.length
+              ? [
+                  {
+                    id: 'latestReplies',
+                    content: 'Latest Replies',
+                    width: '50%',
+                  },
+                ]
+              : []),
             {
               id: 'metaReviewStatus',
               content: `${prettyField(officialMetaReviewName)} Status`,
@@ -729,6 +790,7 @@ const AreaChairConsole = ({ appContext }) => {
               showCheckbox={false}
               additionalMetaReviewFields={additionalMetaReviewFields}
               activeTabId={activeTabId}
+              displayReplyInvitations={displayReplyInvitations}
             />
           ))}
         </Table>
@@ -775,6 +837,9 @@ const AreaChairConsole = ({ appContext }) => {
       `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
       ...(secondaryAreaChairName ? [`#${secondaryAreaChairUrlFormat}-assignments`] : []),
       `#${areaChairUrlFormat}-tasks`,
+      ...(extraRoleNamesWithUrlFormat?.length
+        ? extraRoleNamesWithUrlFormat.map((role) => `#${role.urlFormat}-tasks`)
+        : []),
     ]
     if (!validTabIds.includes(activeTabId)) {
       setActiveTabId(`#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`)
@@ -851,8 +916,17 @@ const AreaChairConsole = ({ appContext }) => {
           >
             {getSingularRoleName(prettyField(areaChairName))} Tasks
           </Tab>
+          {extraRoleNamesWithUrlFormat?.map((role) => (
+            <Tab
+              key={role.name}
+              id={`${role.urlFormat}-tasks`}
+              active={activeTabId === `#${role.urlFormat}-tasks` ? true : undefined}
+              onClick={() => setActiveTabId(`#${role.urlFormat}-tasks`)}
+            >
+              {getSingularRoleName(prettyField(role.name))} Tasks
+            </Tab>
+          ))}
         </TabList>
-
         <TabPanels>
           <TabPanel id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}>
             {activeTabId === `#assigned-${pluralizeString(submissionName).toLowerCase()}` &&
@@ -869,6 +943,17 @@ const AreaChairConsole = ({ appContext }) => {
               <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />
             )}
           </TabPanel>
+          {extraRoleNamesWithUrlFormat?.map((role) => (
+            <TabPanel key={role.name} id={`${role.urlFormat}-tasks`}>
+              {activeTabId === `#${role.urlFormat}-tasks` && (
+                <AreaChairConsoleTasks
+                  venueId={venueId}
+                  areaChairName={role.name}
+                  defaultAreaChairName={areaChairName}
+                />
+              )}
+            </TabPanel>
+          ))}
         </TabPanels>
       </Tabs>
     </>
