@@ -12,7 +12,9 @@ const Footer = () => (
                 <Link href="/about">About OpenReview</Link>
               </li>
               <li>
-                <Link href="/group?id=venues">Hosting a Venue</Link>
+                <Link href={`/group?id=${process.env.SUPER_USER}/Support`}>
+                  Hosting a Venue
+                </Link>
               </li>
               <li>
                 <Link href="/venues">All Venues</Link>
@@ -72,7 +74,9 @@ const Footer = () => (
                 <Link href="/about">About OpenReview</Link>
               </li>
               <li>
-                <Link href="/group?id=venues">Hosting a Venue</Link>
+                <Link href={`/group?id=${process.env.SUPER_USER}/Support`}>
+                  Hosting a Venue
+                </Link>
               </li>
               <li>
                 <Link href="/venues">All Venues</Link>

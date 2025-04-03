@@ -24,6 +24,7 @@ import GroupChildGroups from '../GroupChildGroups'
 import GroupRelatedInvitations from '../GroupRelatedInvitations'
 import GroupMembers from '../GroupMembers'
 import WorkFlowInvitations from '../WorkflowInvitations'
+import ConsoleTabs from '../../webfield/ConsoleTabs'
 
 const groupTabsConfig = (group) => {
   const tabs = [
@@ -36,7 +37,7 @@ const groupTabsConfig = (group) => {
           },
         ]
       : []),
-    ...(group.id === group.domain && group.details.writable
+    ...(group.content && group.details.writable
       ? [
           {
             id: 'groupContent',
@@ -163,6 +164,7 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
             messageAllMembersInvitation={messageAllMembersInvitation}
             messageSingleMemberInvitation={messageSingleMemberInvitation}
             addRemoveMembersInvitaiton={addRemoveMembersInvitaiton}
+            reloadGroup={reloadGroup}
           />
         ) : (
           <GroupMembersInfo key={sectionName} group={group} />
@@ -188,7 +190,7 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
     try {
       const messageAllMembersInvitationId = `${group.domain}/-/Message`
       const messageSingleMemberInvitationId = `${group.id}/-/Message`
-      const addRemoveMembersInvitationId = `${group.domain}/Program_Chairs/-/Members`
+      const addRemoveMembersInvitationId = `${group.id}/-/Members`
 
       const result = await Promise.all([
         api.getInvitationById(messageAllMembersInvitationId, accessToken, { invitee: true }),
@@ -315,20 +317,14 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
         </div>
       </div>
 
-      <TabList>
-        {groupTabsConfig(group).map((tabConfig) => (
-          <Tab key={tabConfig.id} id={tabConfig.id} active={tabConfig.default}>
-            {tabConfig.label}
-          </Tab>
-        ))}
-      </TabList>
-      <TabPanels>
-        {groupTabsConfig(group).map((tabConfig) => (
-          <TabPanel key={tabConfig.id} id={tabConfig.id}>
-            {tabConfig.sections.map((section) => renderSection(section))}
-          </TabPanel>
-        ))}
-      </TabPanels>
+      <ConsoleTabs
+        defaultActiveTabId={groupTabsConfig(group)[0].id}
+        tabs={groupTabsConfig(group).map((tabConfig) => ({
+          ...tabConfig,
+          content: tabConfig.sections.map((section) => renderSection(section)),
+          visible: true,
+        }))}
+      />
     </div>
   )
 }

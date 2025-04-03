@@ -246,19 +246,24 @@ const GroupMembers = ({
   }
 
   const buildEdit = (action, members) => {
+    if (addRemoveMembersInvitaiton)
+      return {
+        group: {
+          id: group.id,
+          members: {
+            [action]: members,
+          },
+        },
+        invitation: addRemoveMembersInvitaiton.id,
+      }
     const userNameGroupInvitationId = `${process.env.SUPER_USER}/-/Username`
     const emailGroupInvitationId = `${process.env.SUPER_USER}/-/Email`
 
-    let invitation
-    if (addRemoveMembersInvitaiton) {
-      invitation = addRemoveMembersInvitaiton.id
-    } else {
-      invitation = group.domain ? `${group.domain}/-/Edit` : group.invitations?.[0]
-      if (group.invitations?.includes(userNameGroupInvitationId))
-        invitation = userNameGroupInvitationId
-      if (group.invitations?.includes(emailGroupInvitationId))
-        invitation = emailGroupInvitationId
-    }
+    let invitation = group.domain ? `${group.domain}/-/Edit` : group.invitations?.[0]
+    if (group.invitations?.includes(userNameGroupInvitationId))
+      invitation = userNameGroupInvitationId
+    if (group.invitations?.includes(emailGroupInvitationId))
+      invitation = emailGroupInvitationId
 
     return {
       group: {

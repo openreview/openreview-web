@@ -21,12 +21,7 @@ const InvitationInfo = ({ appContext }) => {
     try {
       const invitationObj = await api.getInvitationById(invitationId, accessToken)
       if (invitationObj) {
-        setInvitation({
-          ...invitationObj,
-          web: null,
-          process: null,
-          preprocess: null,
-        })
+        setInvitation(invitationObj)
       } else {
         setError({ statusCode: 404, message: 'Invitation not found' })
       }

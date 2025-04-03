@@ -21,6 +21,7 @@ import { InvitationReplyV2 } from './InvitationReply'
 import CodeEditor from '../CodeEditor'
 import EditorSection from '../EditorSection'
 import { InvitationChildInvitationsV2 } from './InvitationChildInvitations'
+import ConsoleTabs from '../webfield/ConsoleTabs'
 
 const getReplyFieldByInvitationType = (invitation) => {
   if (!invitation) return 'edit'
@@ -47,11 +48,6 @@ const invitationTabsConfig = (invitation) => {
             sections: ['invitationChildInvitations'],
           },
         ]),
-    // {
-    //   id: 'invitationReplyForumView',
-    //   label: 'Reply Forum View',
-    //   sections: ['invitationReplyForumView'],
-    // },
     {
       id: 'invitationContent',
       label: 'Content',
@@ -139,21 +135,27 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
               <CodeEditor code={invitation.process} readOnly />
             </EditorSection>
             <EditorSection title="Date Process">
-              {invitation.dateprocesses?.map((dateProcess, index) => {
-                const { dates, cron, startDate, endDate, delay, script } = dateProcess
-                return (
-                  <>
-                    {delay && <div>Delay: {delay}</div>}
-                    {cron && (
-                      <div>
-                        Cron: {cron}, Start date: {startDate}, End date: {endDate}
-                      </div>
-                    )}
-                    {dates && <div>Dates: {dates.join(', ')}</div>}
-                    <CodeEditor key={index} code={script} readOnly />
-                  </>
-                )
-              })}
+              {invitation.dateprocesses?.length > 0 ? (
+                <>
+                  {invitation.dateprocesses.map((dateProcess, index) => {
+                    const { dates, cron, startDate, endDate, delay, script } = dateProcess
+                    return (
+                      <>
+                        {delay && <div>Delay: {delay}</div>}
+                        {cron && (
+                          <div>
+                            Cron: {cron}, Start date: {startDate}, End date: {endDate}
+                          </div>
+                        )}
+                        {dates && <div>Dates: {dates.join(', ')}</div>}
+                        <CodeEditor key={index} code={script} readOnly />
+                      </>
+                    )
+                  })}
+                </>
+              ) : (
+                <p className="empty-message">No Date Process to display</p>
+              )}
             </EditorSection>
           </>
         )
@@ -290,20 +292,15 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
           )}
         </div>
       </div>
-      <TabList>
-        {invitationTabsConfig(invitation).map((tabConfig) => (
-          <Tab key={tabConfig.id} id={tabConfig.id} active={tabConfig.default}>
-            {tabConfig.label}
-          </Tab>
-        ))}
-      </TabList>
-      <TabPanels>
-        {invitationTabsConfig(invitation).map((tabConfig) => (
-          <TabPanel key={tabConfig.id} id={tabConfig.id}>
-            {tabConfig.sections.map((section) => renderSection(section))}
-          </TabPanel>
-        ))}
-      </TabPanels>
+
+      <ConsoleTabs
+        defaultActiveTabId={invitationTabsConfig(invitation)[0].id}
+        tabs={invitationTabsConfig(invitation).map((tabConfig) => ({
+          ...tabConfig,
+          content: tabConfig.sections.map((section) => renderSection(section)),
+          visible: true,
+        }))}
+      />
     </>
   )
 }
