@@ -8,6 +8,8 @@ import RecruitmentForm from '../components/webfield/RecruitmentForm'
 let markdownProps
 let responseEditMock
 let responseUpdateEditMock
+
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/EditorComponents/Markdown', () => (props) => {
   markdownProps(props)
   return <span>{props.text}</span>

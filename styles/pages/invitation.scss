@@ -166,6 +166,12 @@ main.invitation {
     }
   }
 
+  .invitationEditorTabsContainer {
+    .tab-pane {
+      padding-left: 0;
+    }
+  }
+
   .dateprocess-editor {
     .glyphicon-minus-sign,
     .glyphicon-plus-sign {
@@ -249,6 +255,16 @@ main.invitation {
     }
     .empty-message {
       color: constants.$subtleGray;
+    }
+  }
+
+  .invitationInfoTabsContainer {
+    .tab-pane {
+      padding-left: 0;
+      padding-top: 0;
+    }
+    .code-editor {
+      margin-top: 0;
     }
   }
 }
