@@ -278,7 +278,7 @@ const ForumTags = ({ loadedTags, tagInvitations, forumId }) => {
                       key={label}
                       className="mr-2"
                     >
-                      {label} {count}
+                      {label} ({count})
                     </a>
                   )
                 })}
