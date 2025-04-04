@@ -1,4 +1,4 @@
-/* globals $, promptError, view2, DOMPurify: false */
+/* globals $, promptLogin, promptError, view2, DOMPurify: false */
 
 import React, { useState } from 'react'
 import Link from 'next/link'
@@ -213,7 +213,12 @@ function ForumTag({ label, tagInvitation, hasTag, count, forumId, profileId, acc
   const isDeletedTag = existingTag?.ddate
 
   const handleTagClick = async () => {
+    if (!accessToken) {
+      promptLogin()
+      return
+    }
     if (isLoading) return
+
     setIsLoading(true)
     try {
       const result = await api.post(
