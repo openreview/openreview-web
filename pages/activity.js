@@ -8,6 +8,8 @@ import ErrorAlert from '../components/ErrorAlert'
 import BaseActivityList from '../components/BaseActivityList'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import api from '../lib/api-client'
+import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../components/Tabs'
+import TagsList from '../components/TagsList'
 
 const Activity = ({ appContext }) => {
   const { accessToken } = useLoginRedirect()
@@ -83,12 +85,28 @@ const Activity = ({ appContext }) => {
 
       {error && <ErrorAlert error={error} />}
 
-      <BaseActivityList
-        notes={activityNotes}
-        emptyMessage="No recent activity to display."
-        showActionButtons
-        showGroup
-      />
+      <Tabs>
+        <TabList>
+          <Tab id="activity" active>
+            Recent Activity
+          </Tab>
+          <Tab id="tags">Tagged Publications</Tab>
+        </TabList>
+
+        <TabPanels>
+          <TabPanel id="activity">
+            <BaseActivityList
+              notes={activityNotes}
+              emptyMessage="No recent activity to display."
+              showActionButtons
+              showGroup
+            />
+          </TabPanel>
+          <TabPanel id="tags">
+            <TagsList />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     </div>
   )
 }
