@@ -4,16 +4,16 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { countBy } from 'lodash'
 import NoteEditor from '../NoteEditor'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
-import ToggleButton from '../EditorComponents/ToggleButton'
 import api from '../../lib/api-client'
+import CheckableTag from '../CheckableTag'
 import useUser from '../../hooks/useUser'
-import { isSuperUser } from '../../lib/auth'
 
 dayjs.extend(relativeTime)
 
@@ -198,39 +198,39 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
       />
       <ForumTags
         loadedTags={note.details?.tags}
-        tagInvitations={tagInvitations}
+        tagInvitations={tagInvitations?.filter((p) => !p.id.endsWith('/Chat_Reaction'))}
         forumId={note.id}
       />
     </div>
   )
 }
 
-function ForumTag({ tagInvitation, tag, forumId, profileId }) {
-  const { enum: enumValues } = tagInvitation.tag?.label?.param ?? {}
-  const [existingTag, setExistingTag] = useState(tag)
+function ForumTag({ label, tagInvitation, hasTag, count, forumId, profileId, accessToken }) {
+  const [existingTag, setExistingTag] = useState(hasTag)
+  const [rawCount, setRawCount] = useState(count ?? 0)
   const [isLoading, setIsLoading] = useState(false)
+  const { tag: tagText, noTag: noTagText } = tagInvitation?.content?.presentation?.value ?? {}
+  const isDeletedTag = existingTag?.ddate
 
-  function mapLabelToValue(label) {
-    if (!label) return false
-    if (label === enumValues[0]) return true
-    if (label === enumValues[1]) return false
-    return false
-  }
-
-  const tagValue = mapLabelToValue(existingTag?.label)
-
-  const handleTagChange = async (value) => {
+  const handleTagClick = async () => {
+    if (isLoading) return
     setIsLoading(true)
-    const newLabel = value ? enumValues[0] : enumValues[1]
     try {
-      const result = await api.post('/tags', {
-        id: existingTag ? existingTag.id : undefined,
-        forum: forumId,
-        note: forumId,
-        signature: existingTag ? existingTag.signature : profileId,
-        invitation: tagInvitation.id,
-        label: newLabel,
-      })
+      const result = await api.post(
+        '/tags',
+        {
+          id: existingTag ? existingTag.id : undefined,
+          ...(existingTag && { ddate: isDeletedTag ? { delete: true } : Date.now() }),
+          forum: forumId,
+          note: forumId,
+          signature: profileId,
+          invitation: tagInvitation.id,
+        },
+        { accessToken }
+      )
+      setRawCount((prevCount) =>
+        existingTag && !isDeletedTag ? prevCount - 1 : prevCount + 1
+      )
       setExistingTag(result)
     } catch (error) {
       promptError(error.message)
@@ -238,53 +238,47 @@ function ForumTag({ tagInvitation, tag, forumId, profileId }) {
     setIsLoading(false)
   }
 
+  if (!label) return null
+
   return (
-    <ToggleButton
-      value={tagValue}
-      trueLabel={enumValues[0]}
-      falseLabel={enumValues[1]}
-      onChange={handleTagChange}
-      isLoading={isLoading}
-    />
+    <>
+      <CheckableTag
+        label={label}
+        tagText={tagText}
+        noTagText={noTagText}
+        rawCount={rawCount}
+        checked={existingTag && !isDeletedTag}
+        onChange={handleTagClick}
+      />
+    </>
   )
 }
 
 const ForumTags = ({ loadedTags, tagInvitations, forumId }) => {
-  const { user } = useUser()
+  const { user, accessToken } = useUser()
   if (!tagInvitations?.length) return null
+
+  const tagsCountByLabel = countBy(loadedTags, (p) => p.label)
   return (
     <div className="forum-tags">
       {tagInvitations.map((p) => {
-        const tagsOfInvitation = loadedTags?.filter((q) => q.invitation === p.id)
-        const { enum: enumValues } = p.tag?.label?.param ?? {}
+        const tagInvitationLabel = p.tag?.label
+        const count = tagsCountByLabel[tagInvitationLabel]
+        const tagsOfInvitation = loadedTags?.filter(
+          (q) => q.invitation === p.id && q.signature === user?.profile?.id
+        )
+
         return (
-          <React.Fragment key={p.id}>
-            <ForumTag
-              key={p.id}
-              tagInvitation={p}
-              tag={tagsOfInvitation?.[0]}
-              forumId={forumId}
-              profileId={user?.profile?.id}
-            />
-            {isSuperUser(user) && (
-              <div className="forum-tag-stats">
-                <Icon name="stats" extraClasses="mr-2" />
-                {enumValues.map((label) => {
-                  const count = tagsOfInvitation?.filter((q) => q.label === label).length
-                  return (
-                    <a
-                      href={`${process.env.API_V2_URL}/tags?invitation=${p.id}&label=${label}`}
-                      target="_blank"
-                      key={label}
-                      className="mr-2"
-                    >
-                      {label} ({count})
-                    </a>
-                  )
-                })}
-              </div>
-            )}
-          </React.Fragment>
+          <ForumTag
+            key={p.id}
+            label={tagInvitationLabel}
+            tagInvitation={p}
+            hasTag={tagsOfInvitation?.[0]}
+            count={count}
+            forumId={forumId}
+            profileId={user?.profile?.id}
+            accessToken={accessToken}
+          />
         )
       })}
     </div>

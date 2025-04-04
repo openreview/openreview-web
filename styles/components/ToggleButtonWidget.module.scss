@@ -6,10 +6,6 @@
     max-width: 80%;
   }
   display: flex;
-
-  &.loading {
-    pointer-events: none;
-  }
 }
 
 .toggleButton {
@@ -23,11 +19,6 @@
   display: inline-block;
   border: 2px solid transparent;
   background-color: constants.$mediumBlue;
-
-  &.toggleButtonLoading {
-    opacity: 0.8;
-    cursor: not-allowed;
-  }
 }
 
 .toggleButtonInner {
