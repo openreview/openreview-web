@@ -24,8 +24,10 @@ const MessageReviewersModal = ({
     emailReplyTo,
     messageSubmissionReviewersInvitationId,
     messageSubmissionAreaChairsInvitationId,
+    messageSubmissionSecondaryAreaChairsInvitationId,
     reviewerName = 'Reviewers',
     areaChairName = 'Area Chairs',
+    secondaryAreaChairName,
     seniorAreaChairName = 'Senior_Area_Chairs',
   } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
@@ -46,7 +48,10 @@ const MessageReviewersModal = ({
     if (messageOption.value === 'allAuthors' || messageOption.value === 'allSACs') {
       return message.replaceAll(`{{${submissionName.toLowerCase()}_number}}`, rowData.number)
     }
-    if (messageOption.value === 'allAreaChairs') {
+    if (
+      messageOption.value === 'allAreaChairs' ||
+      messageOption.value === 'allSecondaryAreaChairs'
+    ) {
       const metaReviewForumUrl = `https://openreview.net/forum?id=${rowData.forum}&noteId=${rowData.id}&invitationId=${venueId}/${submissionName}${rowData.number}/-/${officialMetaReviewName}`
       return message.replaceAll('{{submit_review_link}}', metaReviewForumUrl)
     }
@@ -69,6 +74,10 @@ const MessageReviewersModal = ({
       case 'allAreaChairs':
         roleName = areaChairName
         messageInvitation = messageSubmissionAreaChairsInvitationId
+        break
+      case 'allSecondaryAreaChairs':
+        roleName = areaChairName
+        messageInvitation = messageSubmissionSecondaryAreaChairsInvitationId
         break
       case 'allAuthors':
         roleName = 'Authors'
@@ -144,6 +153,8 @@ const MessageReviewersModal = ({
         return selectedRows.flatMap((row) => row.reviewers)
       case 'allAreaChairs':
         return selectedRows.flatMap((row) => row.metaReviewData.areaChairs)
+      case 'allSecondaryAreaChairs':
+        return selectedRows.flatMap((row) => row.metaReviewData.secondaryAreaChairs)
       case 'withReviews':
         return selectedRows
           .flatMap((row) => row.reviewers)
@@ -162,14 +173,19 @@ const MessageReviewersModal = ({
   }
 
   const getInstruction = () => {
-    if (messageOption?.value === 'allAuthors') {
-      return `You may customize the message that will be sent to authors. You can also use {{fullname}} to replace the recipient full name and {{${submissionName.toLowerCase()}_number}} to replace the ${submissionName.toLowerCase()} number. If your message is not specific to a ${submissionName.toLowerCase()}, please email from the author group.`
+    switch (messageOption?.value) {
+      case 'allAuthors':
+        return `You may customize the message that will be sent to authors. You can also use {{fullname}} to replace the recipient full name and {{${submissionName.toLowerCase()}_number}} to replace the ${submissionName.toLowerCase()} number. If your message is not specific to a ${submissionName.toLowerCase()}, please email from the author group.`
+      case 'allSACs':
+        return `You may customize the message that will be sent to ${prettyField(seniorAreaChairName)}. You can also use {{fullname}} to replace the recipient full name and {{${submissionName.toLowerCase()}_number}} to replace the ${submissionName.toLowerCase()} number. If your message is not specific to a ${submissionName.toLowerCase()}, please email from the ${prettyField(seniorAreaChairName)} group.`
+      case 'allAreaChairs':
+        return `You may customize the message that will be sent to the ${prettyField(areaChairName).toLowerCase()}. In the email body, the text {{submit_review_link}} will be replaced with a hyperlink to the form where the ${prettyField(areaChairName).toLowerCase()} can fill out his or her ${prettyField(officialMetaReviewName).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`
+      case 'allSecondaryAreaChairs':
+        return `You may customize the message that will be sent to the ${prettyField(secondaryAreaChairName)?.toLowerCase()}. In the email body, the text {{submit_review_link}} will be replaced with a hyperlink to the form where the ${prettyField(secondaryAreaChairName)?.toLowerCase()} can fill out his or her ${prettyField(officialMetaReviewName).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`
+      // allReviewers
+      default:
+        return `You may customize the message that will be sent to the ${prettyField(reviewerName).toLowerCase()}. In the email body, the text {{submit_review_link}} will be replaced with a hyperlink to the form where the ${prettyField(reviewerName).toLowerCase()} can fill out his or her ${prettyField(officialReviewName).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`
     }
-    if (messageOption?.value === 'allSACs') {
-      return `You may customize the message that will be sent to ${prettyField(seniorAreaChairName)}. You can also use {{fullname}} to replace the recipient full name and {{${submissionName.toLowerCase()}_number}} to replace the ${submissionName.toLowerCase()} number. If your message is not specific to a ${submissionName.toLowerCase()}, please email from the ${prettyField(seniorAreaChairName)} group.`
-    }
-    const roleName = messageOption?.value === 'allAreaChairs' ? areaChairName : reviewerName
-    return `You may customize the message that will be sent to the ${prettyField(roleName).toLowerCase()}. In the email body, the text {{submit_review_link}} will be replaced with a hyperlink to the form where the ${prettyField(roleName).toLowerCase()} can fill out his or her ${prettyField(officialReviewName).toLowerCase()}. You can also use {{fullname}} to personalize the recipient full name.`
   }
 
   useEffect(() => {
