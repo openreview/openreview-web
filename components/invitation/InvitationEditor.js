@@ -93,7 +93,7 @@ export const InvitationEditorV2 = ({
   if (!invitation || !isClientRendering) return null
 
   return (
-    <div>
+    <div className={invitation.ddate ? 'deleted' : ''}>
       <InvitationGeneralV2
         invitation={invitation}
         profileId={profileId}

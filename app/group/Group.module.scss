@@ -886,6 +886,12 @@
       }
     }
 
+    section.invitations {
+      a.invitation-deleted {
+        opacity: 0.3;
+      }
+    }
+
     .group-members-table {
       margin-top: -1rem;
       margin-bottom: 0.25rem;

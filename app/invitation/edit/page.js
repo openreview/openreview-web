@@ -35,7 +35,7 @@ export default async function page({ searchParams }) {
     .getInvitationById(
       id,
       accessToken,
-      { details: 'writable,writableWith', expired: true },
+      { details: 'writable,writableWith', expired: true, trash: true },
       { details: 'writable', expired: true },
       remoteIpAddress
     )
