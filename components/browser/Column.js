@@ -616,9 +616,10 @@ export default function Column(props) {
         ['!=', '>=', '<=', '>', '<', '==', '='],
         editAndBrowserInvitationsUnique.reduce(
           (prev, curr) => {
+            // eslint-disable-next-line no-param-reassign
             prev[curr.id.replaceAll('.', '_')] = [
               `filterProperties.${curr.id.replaceAll('.', '_')}`,
-            ] // eslint-disable-line no-param-reassign
+            ]
             return prev
           },
           {
