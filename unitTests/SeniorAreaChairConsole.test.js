@@ -57,7 +57,9 @@ describe('SeniorAreaChairConsole', () => {
   test('default to paper status tab when window.location does not contain any hash', async () => {
     const providerProps = { value: { submissionName: 'Submission' } }
     renderWithWebFieldContext(
-      <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      <SeniorAreaChairConsole
+        appContext={{ setBannerContent: jest.fn(), setLayoutOptions: jest.fn() }}
+      />,
       providerProps
     )
     expect(window.location.hash).toEqual('#submission-status')
@@ -67,7 +69,9 @@ describe('SeniorAreaChairConsole', () => {
     window.location.hash = '#some-unknown-tab'
     const providerProps = { value: { submissionName: 'Submission' } }
     renderWithWebFieldContext(
-      <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      <SeniorAreaChairConsole
+        appContext={{ setBannerContent: jest.fn(), setLayoutOptions: jest.fn() }}
+      />,
       providerProps
     )
     expect(window.location.hash).toEqual('#submission-status')
@@ -76,7 +80,9 @@ describe('SeniorAreaChairConsole', () => {
   test('show error message based on sac name when config is not complete', async () => {
     const providerProps = { value: { seniorAreaChairName: undefined } }
     const { rerender } = renderWithWebFieldContext(
-      <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      <SeniorAreaChairConsole
+        appContext={{ setBannerContent: jest.fn(), setLayoutOptions: jest.fn() }}
+      />,
       providerProps
     )
     expect(
@@ -86,7 +92,9 @@ describe('SeniorAreaChairConsole', () => {
     providerProps.value.seniorAreaChairName = 'Area_Chairs'
     reRenderWithWebFieldContext(
       rerender,
-      <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      <SeniorAreaChairConsole
+        appContext={{ setBannerContent: jest.fn(), setLayoutOptions: jest.fn() }}
+      />,
       providerProps
     )
     expect(
@@ -103,7 +111,9 @@ describe('SeniorAreaChairConsole', () => {
       },
     }
     const { rerender } = renderWithWebFieldContext(
-      <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      <SeniorAreaChairConsole
+        appContext={{ setBannerContent: jest.fn(), setLayoutOptions: jest.fn() }}
+      />,
       providerProps
     )
     expect(
@@ -113,7 +123,9 @@ describe('SeniorAreaChairConsole', () => {
     providerProps.value.seniorAreaChairName = 'Area_Chairs'
     reRenderWithWebFieldContext(
       rerender,
-      <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      <SeniorAreaChairConsole
+        appContext={{ setBannerContent: jest.fn(), setLayoutOptions: jest.fn() }}
+      />,
       providerProps
     )
     expect(

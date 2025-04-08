@@ -517,6 +517,7 @@ test('Set up TestVenue using API 2', async (t) => {
       program_chair_emails: ['john@mail.com', 'tom@mail.com', 'program_chair@mail.com'],
       contact_email: 'testvenue@mail.com',
       'Venue Start Date': '2021/11/01',
+      'Submission Start Date': '2021/11/01',
       'Submission Deadline': submissionCloseDateString,
       Location: 'Virtual',
       submission_reviewer_assignment: 'Automatic',

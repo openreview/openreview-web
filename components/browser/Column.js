@@ -598,14 +598,15 @@ export default function Column(props) {
             ...p,
             filterProperties: editAndBrowserInvitationsUnique.reduce(
               (prev, curr) => {
+                const invitaitonId = curr.id.replaceAll('.', '_')
                 const edge = [...p.browseEdges, ...p.editEdges].find(
                   (q) => q.invitation === curr.id
                 )
 
                 if (edge) {
-                  prev[curr.id] = getEdgeValue(edge) // eslint-disable-line no-param-reassign
+                  prev[invitaitonId] = getEdgeValue(edge) // eslint-disable-line no-param-reassign
                 } else {
-                  prev[curr.id] = curr.defaultWeight ?? curr.defaultLabel // eslint-disable-line no-param-reassign
+                  prev[invitaitonId] = curr.defaultWeight ?? curr.defaultLabel // eslint-disable-line no-param-reassign
                 }
                 return prev
               },
@@ -613,11 +614,14 @@ export default function Column(props) {
             ),
           }
         }),
-        `${query.get('filter')} AND Quota=true`,
+        `${query.get('filter').replaceAll('.', '_')} AND Quota=true`,
         ['!=', '>=', '<=', '>', '<', '==', '='],
         editAndBrowserInvitationsUnique.reduce(
           (prev, curr) => {
-            prev[curr.id] = [`filterProperties.${curr.id}`] // eslint-disable-line no-param-reassign
+            // eslint-disable-next-line no-param-reassign
+            prev[curr.id.replaceAll('.', '_')] = [
+              `filterProperties.${curr.id.replaceAll('.', '_')}`,
+            ]
             return prev
           },
           {

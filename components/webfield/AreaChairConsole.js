@@ -24,6 +24,7 @@ import {
   pluralizeString,
   getSingularRoleName,
   getRoleHashFragment,
+  buildNoteTitle,
 } from '../../lib/utils'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
