@@ -36,9 +36,10 @@ export default function GroupInfo({ id, query }) {
       if (apiError.name === 'ForbiddenError') {
         if (!accessToken) {
           router.replace(`/login?redirect=/group/info?${encodeURIComponent(stringify(query))}`)
-          return
+        } else {
+          setError("You don't have permission to read this group")
         }
-        setError("You don't have permission to read this group")
+        return
       }
       setError(apiError.message)
     }
