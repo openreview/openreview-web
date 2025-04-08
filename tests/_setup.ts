@@ -502,11 +502,11 @@ test('Set up TestVenue using API 2', async (t) => {
 
   // close deadline
   const submissionCloseDate = new Date(Date.now() - (28 * 60 * 1000)) // 28 minutes ago
-  const year = submissionCloseDate.getUTCFullYear()
-  const month = `0${submissionCloseDate.getUTCMonth() + 1}`.slice(-2)
-  const day = `0${submissionCloseDate.getUTCDate()}`.slice(-2)
-  const hours = `0${submissionCloseDate.getUTCHours()}`.slice(-2)
-  const minutes = `0${submissionCloseDate.getUTCMinutes()}`.slice(-2)
+  const year = submissionCloseDate.getFullYear()
+  const month = `0${submissionCloseDate.getMonth() + 1}`.slice(-2)
+  const day = `0${submissionCloseDate.getDate()}`.slice(-2)
+  const hours = `0${submissionCloseDate.getHours()}`.slice(-2)
+  const minutes = `0${submissionCloseDate.getMinutes()}`.slice(-2)
   const submissionCloseDateString = `${year}/${month}/${day} ${hours}:${minutes}`
   const editVenueJson = {
     content: {
@@ -517,6 +517,7 @@ test('Set up TestVenue using API 2', async (t) => {
       program_chair_emails: ['john@mail.com', 'tom@mail.com', 'program_chair@mail.com'],
       contact_email: 'testvenue@mail.com',
       'Venue Start Date': '2021/11/01',
+      'Submission Start Date': '2021/11/01',
       'Submission Deadline': submissionCloseDateString,
       Location: 'Virtual',
       submission_reviewer_assignment: 'Automatic',
