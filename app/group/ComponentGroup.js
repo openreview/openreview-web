@@ -7,12 +7,16 @@ import { useDispatch } from 'react-redux'
 import WebFieldContext from '../../components/WebFieldContext'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import { setBannerContent } from '../../bannerSlice'
+import CommonLayout from '../CommonLayout'
+import styles from './Group.module.scss'
 
-export default function ComponentGroup({ componentObjP }) {
-  // throw new Error('use client is not supported in')
+export default function ComponentGroup({ componentObjP, editBanner }) {
   const componentObj = use(componentObjP)
   const [WebComponent, setWebComponent] = useState(null)
   const [webComponentProps, setWebComponentProps] = useState({})
+  const isFullWidth =
+    ['ProgramChairConsole', 'SeniorAreaChairConsole'].includes(componentObj?.component) &&
+    webComponentProps.displayReplyInvitations?.length
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -45,17 +49,23 @@ export default function ComponentGroup({ componentObjP }) {
     setWebComponentProps(componentProps)
   }, [componentObj])
 
+  if (!(WebComponent && webComponentProps)) return <LoadingSpinner />
   return (
-    <WebFieldContext.Provider value={webComponentProps}>
-      <div id="group-container">
-        {WebComponent && webComponentProps ? (
-          <WebComponent
-            appContext={{ setBannerContent: (e) => dispatch(setBannerContent(e)) }}
-          />
-        ) : (
-          <LoadingSpinner />
-        )}
+    <CommonLayout
+      banner={null}
+      editBanner={editBanner}
+      fullWidth={isFullWidth}
+      minimalFooter={isFullWidth}
+    >
+      <div className={styles.group}>
+        <WebFieldContext.Provider value={webComponentProps}>
+          <div id="group-container">
+            <WebComponent
+              appContext={{ setBannerContent: (e) => dispatch(setBannerContent(e)) }}
+            />
+          </div>
+        </WebFieldContext.Provider>
       </div>
-    </WebFieldContext.Provider>
+    </CommonLayout>
   )
 }

@@ -1,6 +1,7 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { orderBy } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import BasicHeader from './BasicHeader'
@@ -59,6 +60,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     filterFunction,
     preferredEmailInvitationId,
     ithenticateInvitationId,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
   const { user, accessToken, isRefreshing } = useUser()
@@ -544,6 +546,28 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             }
           }
 
+          const displayReplies = displayReplyInvitations?.map((p) => {
+            const displayInvitaitonId = p.id.replaceAll('{number}', note.number)
+            const latestReply = orderBy(
+              note.details.replies.filter((q) => q.invitations.includes(displayInvitaitonId)),
+              ['mdate'],
+              'desc'
+            )?.[0]
+            return {
+              id: latestReply?.id,
+              date: latestReply?.mdate,
+              invitationId: displayInvitaitonId,
+              values: p.fields.map((field) => {
+                const value = latestReply?.content?.[field]?.value?.toString()
+                return {
+                  field,
+                  value,
+                }
+              }),
+              signature: latestReply?.signatures?.[0],
+            }
+          })
+
           return {
             noteNumber: note.number,
             note: {
@@ -623,6 +647,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             messageSignature: seniorAreaChairGroupByNumber[note.number],
             ithenticateEdge: ithenticateEdges.find((p) => p.head === note.id),
             venue: note.content?.venue?.value,
+            displayReplies,
           }
         }),
         withdrawnNotes: assignedNotes.flatMap((note) => {

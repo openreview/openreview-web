@@ -2,13 +2,14 @@
 
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { orderBy } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import Table from '../Table'
 import ErrorDisplay from '../ErrorDisplay'
 import NoteSummary from './NoteSummary'
-import { AcPcConsoleNoteReviewStatus } from './NoteReviewStatus'
+import { AcPcConsoleNoteReviewStatus, LatestReplies } from './NoteReviewStatus'
 import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -44,6 +45,7 @@ const AssignedPaperRow = ({
   showCheckbox = true,
   additionalMetaReviewFields,
   activeTabId,
+  displayReplyInvitations,
 }) => {
   const { note, metaReviewData, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
@@ -89,6 +91,11 @@ const AssignedPaperRow = ({
           submissionName={submissionName}
         />
       </td>
+      {displayReplyInvitations?.length && (
+        <td>
+          <LatestReplies rowData={rowData} referrerUrl={referrerUrl} />
+        </td>
+      )}
       <td>
         <AreaChairConsoleNoteMetaReviewStatus
           note={note}
@@ -153,6 +160,7 @@ const AreaChairConsole = ({ appContext }) => {
     ithenticateInvitationId,
     extraRoleNames,
     sortOptions,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
@@ -551,6 +559,27 @@ const AreaChairConsole = ({ appContext }) => {
             ithenticateWeight:
               ithenticateEdges.find((p) => p.head === note.id)?.weight ?? 'N/A',
           }),
+          displayReplies: displayReplyInvitations?.map((p) => {
+            const displayInvitaitonId = p.id.replaceAll('{number}', note.number)
+            const latestReply = orderBy(
+              note.details.replies.filter((q) => q.invitations.includes(displayInvitaitonId)),
+              ['mdate'],
+              'desc'
+            )?.[0]
+            return {
+              id: latestReply?.id,
+              date: latestReply?.mdate,
+              invitationId: displayInvitaitonId,
+              values: p.fields.map((field) => {
+                const value = latestReply?.content?.[field]?.value?.toString()
+                return {
+                  field,
+                  value,
+                }
+              }),
+              signature: latestReply?.signatures?.[0],
+            }
+          }),
         }
       })
 
@@ -667,6 +696,15 @@ const AreaChairConsole = ({ appContext }) => {
               content: `${prettyField(officialReviewName)} Progress`,
               width: '34%',
             },
+            ...(displayReplyInvitations?.length
+              ? [
+                  {
+                    id: 'latestReplies',
+                    content: 'Latest Replies',
+                    width: '50%',
+                  },
+                ]
+              : []),
             {
               id: 'metaReviewStatus',
               content: `${prettyField(officialMetaReviewName)} Status`,
@@ -689,6 +727,7 @@ const AreaChairConsole = ({ appContext }) => {
               shortPhrase={shortPhrase}
               additionalMetaReviewFields={additionalMetaReviewFields}
               activeTabId={activeTabId}
+              displayReplyInvitations={displayReplyInvitations}
             />
           ))}
         </Table>
@@ -717,6 +756,15 @@ const AreaChairConsole = ({ appContext }) => {
               content: `${prettyField(officialReviewName)} Progress`,
               width: '34%',
             },
+            ...(displayReplyInvitations?.length
+              ? [
+                  {
+                    id: 'latestReplies',
+                    content: 'Latest Replies',
+                    width: '50%',
+                  },
+                ]
+              : []),
             {
               id: 'metaReviewStatus',
               content: `${prettyField(officialMetaReviewName)} Status`,
@@ -738,6 +786,7 @@ const AreaChairConsole = ({ appContext }) => {
               showCheckbox={false}
               additionalMetaReviewFields={additionalMetaReviewFields}
               activeTabId={activeTabId}
+              displayReplyInvitations={displayReplyInvitations}
             />
           ))}
         </Table>

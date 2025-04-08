@@ -116,11 +116,5 @@ return {
           .catch((error) => parseComponentCode(group, null, user, query, accessToken))
       : parseComponentCode(group, group, user, query, accessToken)
 
-  return (
-    <CommonLayout banner={null} editBanner={editBanner}>
-      <div className={styles.group}>
-        <ComponentGroup componentObjP={componentObjP} />
-      </div>
-    </CommonLayout>
-  )
+  return <ComponentGroup componentObjP={componentObjP} editBanner={editBanner} />
 }

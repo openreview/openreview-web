@@ -77,7 +77,7 @@ export default function GroupEditor({ id, query }) {
   useEffect(() => {
     if (isRefreshing) return
     loadGroup()
-  }, [isRefreshing])
+  }, [isRefreshing, id])
 
   if (error) return <ErrorDisplay message={error} />
   if (!group)
