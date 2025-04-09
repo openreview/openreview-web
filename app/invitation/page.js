@@ -13,8 +13,6 @@ import CustomInvitation from './CustomInvitation'
 import ComponentInvitation from './ComponentInvitation'
 import ErrorDisplay from '../../components/ErrorDisplay'
 
-export const dynamic = 'force-dynamic'
-
 export async function generateMetadata({ searchParams }) {
   const { id } = await searchParams
   const invitationTitle = prettyId(id)
