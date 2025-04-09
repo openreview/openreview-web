@@ -1,6 +1,8 @@
 'use client'
 
-import { use } from 'react'
+import { useEffect, useState } from 'react'
+import { stringify } from 'query-string'
+import { useRouter } from 'next/navigation'
 import EditorSection from '../../../components/EditorSection'
 import {
   InvitationGeneralView,
@@ -14,6 +16,10 @@ import styles from '../Invitation.module.scss'
 import { prettyId } from '../../../lib/utils'
 import { invitationModeToggle } from '../../../lib/banner-links'
 import EditBanner from '../../../components/EditBanner'
+import useUser from '../../../hooks/useUser'
+import api from '../../../lib/api-client'
+import ErrorDisplay from '../../../components/ErrorDisplay'
+import LoadingSpinner from '../../../components/LoadingSpinner'
 
 const getReplyFieldByInvitationType = (invitation) => {
   if (!invitation) return 'edit'
@@ -23,9 +29,11 @@ const getReplyFieldByInvitationType = (invitation) => {
   return 'edit'
 }
 
-export default function InvitationInfo({ loadInvitationP }) {
-  const { invitation, errorMessage } = use(loadInvitationP)
-  if (errorMessage) throw new Error(errorMessage)
+export default function InvitationInfo({ id, query }) {
+  const [invitation, setInvitation] = useState(null)
+  const [error, setError] = useState(null)
+  const { user, accessToken, isRefreshing } = useUser()
+  const router = useRouter()
 
   const renderInvtationReply = () => {
     if (invitation?.edit === true) return null
@@ -59,6 +67,47 @@ export default function InvitationInfo({ loadInvitationP }) {
       </>
     )
   }
+
+  const loadInvitation = async () => {
+    try {
+      const invitationObj = await api.getInvitationById(id, accessToken, null, null)
+      if (invitationObj) {
+        setInvitation({
+          ...invitationObj,
+          web: null,
+          process: null,
+          preprocess: null,
+        })
+      } else {
+        setError('Invitation not found')
+      }
+    } catch (apiError) {
+      if (apiError.name === 'ForbiddenError') {
+        if (!accessToken) {
+          router.replace(
+            `/login?redirect=/invitation/info?${encodeURIComponent(stringify(query))}}`
+          )
+        } else {
+          setError("You don't have permission to read this invitation")
+        }
+      } else {
+        setError(apiError.message)
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (isRefreshing) return
+    loadInvitation()
+  }, [id, isRefreshing])
+
+  if (error) return <ErrorDisplay message={error} />
+  if (!invitation)
+    return (
+      <CommonLayout>
+        <LoadingSpinner />
+      </CommonLayout>
+    )
 
   const editBanner = invitation.details?.writable ? (
     <EditBanner>{invitationModeToggle('info', invitation.id)}</EditBanner>

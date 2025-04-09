@@ -24,7 +24,6 @@ export default function InvitationEditor({ id, query }) {
   const reloadInvitation = () => router.refresh()
   const isMetaInvitation = invitation?.edit === true
 
-  const editBanner = <EditBanner>{invitationModeToggle('edit', invitation.id)}</EditBanner>
   const getHeaderText = () => {
     if (!invitation) return ''
     let type = ''
@@ -93,6 +92,7 @@ export default function InvitationEditor({ id, query }) {
       </CommonLayout>
     )
 
+  const editBanner = <EditBanner>{invitationModeToggle('edit', invitation.id)}</EditBanner>
   return (
     <CommonLayout banner={null} editBanner={editBanner}>
       <div className={styles.invitation}>
