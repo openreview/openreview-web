@@ -621,6 +621,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 const profile = allProfilesMap.get(areaChair.areaChairProfileId)
                 return {
                   ...areaChair,
+                  noteNumber: note.number,
+                  preferredId: profile ? profile.id : areaChair.areaChairProfileId,
                   preferredName: profile
                     ? getProfileName(profile)
                     : areaChair.areaChairProfileId,
