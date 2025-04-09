@@ -54,12 +54,13 @@ export default function NoteEditorForm({
 
   const handleError = (errors) => {
     setLoading(false)
+    console.log('errors is ', errors)
 
     const err = errors?.[0]
     if (err === 'You do not have permission to create a note' || !user) {
       promptLogin(user)
     } else if (err) {
-      promptError(err, { scrollToTop: false })
+      promptError(err)
     } else {
       promptError('An unknown error occurred. Please refresh the page and try again.')
     }
