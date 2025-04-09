@@ -5,23 +5,17 @@ import MessagesTable from '../../components/MessagesTable'
 import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
 import ErrorAlert from '../../components/ErrorAlert'
+import LoadingSpinner from '../../components/LoadingSpinner'
 
-export default function Messages({
-  loadMessagesP,
-  pageSize,
-  query,
-  statusOptionValues,
-  accessToken,
-}) {
-  const { messages: initialMessages, errorMessage } = use(loadMessagesP)
-  if (errorMessage) throw new Error(errorMessage)
+const pageSize = 25
 
+export default function Messages({ query, statusOptionValues, accessToken }) {
   const [currentPage, setCurrentPage] = useState(1)
-  const [allMessages, setAllMessages] = useState(initialMessages)
+  const [allMessages, setAllMessages] = useState(null)
   const [error, setError] = useState(null)
 
-  const count = allMessages.length
-  const messages = allMessages.length
+  const count = allMessages?.length
+  const messages = allMessages?.length
     ? allMessages.slice((currentPage - 1) * pageSize, currentPage * pageSize)
     : []
 
@@ -43,7 +37,13 @@ export default function Messages({
         },
         { accessToken }
       )
-      setAllMessages((existingMessages) => existingMessages.concat(apiRes.messages || []))
+      if (after) {
+        setAllMessages((existingMessages) =>
+          (existingMessages ?? []).concat(apiRes.messages || [])
+        )
+      } else {
+        setAllMessages(apiRes.messages || [])
+      }
       setError(null)
     } catch (apiError) {
       setError(apiError)
@@ -51,7 +51,7 @@ export default function Messages({
   }
 
   useEffect(() => {
-    if (!allMessages.length || allMessages.length < 1000) return
+    if (!allMessages?.length || allMessages.length < 1000) return
     const availablePages = Math.ceil(allMessages.length / pageSize)
     if (currentPage >= availablePages - 5) {
       loadMessages(allMessages[allMessages.length - 1].id)
@@ -60,9 +60,12 @@ export default function Messages({
 
   useEffect(() => {
     if (!query) return
-    setAllMessages(initialMessages)
+    // setAllMessages(null)
+    loadMessages()
     setCurrentPage(1)
-  }, [query, initialMessages])
+  }, [query])
+
+  if (!allMessages) return <LoadingSpinner />
 
   return (
     <>

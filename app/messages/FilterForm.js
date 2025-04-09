@@ -2,9 +2,9 @@
 
 /* globals $: false */
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { stringify } from 'query-string'
-import { omit } from 'lodash'
+import { debounce, omit } from 'lodash'
 import MultiSelectorDropdown from '../../components/MultiSelectorDropdown'
 import Icon from '../../components/Icon'
 
@@ -20,12 +20,14 @@ export default function FilterForm({ searchQuery, statusOptions }) {
     $('[data-toggle="tooltip"]').tooltip({ container: 'body' })
   }, [])
 
-  const onFiltersChange = (field, value) => {
-    const newSearchQuery = value
-      ? { ...searchQuery, [field]: value }
-      : { ...omit(searchQuery, field) }
-    router.push(`/messages?${stringify(newSearchQuery)}`)
-  }
+  const onFiltersChange = useCallback(
+    debounce((field, value) => {
+      const newSearchQuery = value
+        ? { ...searchQuery, [field]: value }
+        : { ...omit(searchQuery, field) }
+      router.push(`/messages?${stringify(newSearchQuery)}`)
+    }, 500)
+  )
 
   return (
     <form className="filter-controls form-inline well" onSubmit={(e) => e.preventDefault()}>
