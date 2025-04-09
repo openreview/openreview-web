@@ -30,9 +30,10 @@ const DropdownWidget = () => {
         })
         break
       case 'remove-value': // only applicable for multiselect
-        updatedValue = value.filter(
-          (p) => p !== convertToType(actionMeta.removedValue.value, dataType)
-        )
+        updatedValue = value.filter((p) => {
+          if (typeof p === 'object') return !isEqual(p, actionMeta.removedValue.value)
+          return p !== convertToType(actionMeta.removedValue.value, dataType)
+        })
         onChange({
           fieldName,
           value: updatedValue.length ? updatedValue : undefined,

@@ -1425,4 +1425,73 @@ describe('DropdownWidget', () => {
       ],
     })
   })
+
+  test('call update when an object option is removed', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          license: {
+            value: {
+              param: {
+                input: 'select',
+                type: 'object[]',
+                items: [
+                  {
+                    value: { value: 'CC BY 4.0', optional: true, description: 'CC BY 4.0' },
+                    description: 'CC BY 4.0',
+                    optional: true,
+                  },
+                  {
+                    value: {
+                      value: 'CC BY-SA 4.0',
+                      optional: true,
+                      description: 'CC BY-SA 4.0',
+                    },
+                    optional: true,
+                    description: 'CC BY-SA 4.0',
+                  },
+                  {
+                    value: {
+                      value: 'CC BY-NC 4.0',
+                      optional: true,
+                      description: 'CC BY-NC 4.0',
+                    },
+                    optional: true,
+                    description: 'CC BY-NC 4.0',
+                  },
+                ],
+              },
+            },
+          },
+        },
+        onChange,
+        value: [
+          {
+            value: 'CC BY-SA 4.0',
+            optional: true,
+            description: 'CC BY-SA 4.0',
+          },
+          {
+            value: 'CC BY-NC 4.0',
+            optional: true,
+            description: 'CC BY-NC 4.0',
+          },
+        ],
+      },
+    }
+
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+
+    const optionRemoveButton = screen.getByRole('button', {
+      name: 'Remove CC BY-SA 4.0',
+    })
+
+    await userEvent.click(optionRemoveButton)
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        value: [{ description: 'CC BY-NC 4.0', optional: true, value: 'CC BY-NC 4.0' }],
+      })
+    )
+  })
 })
