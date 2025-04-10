@@ -1,20 +1,32 @@
-/* globals $, promptError, view2, DOMPurify: false */
+/* globals $, promptLogin, promptError, view2, DOMPurify: false */
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { countBy } from 'lodash'
 import NoteEditor from '../NoteEditor'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
+import api from '../../lib/api-client'
+import CheckableTag from '../CheckableTag'
+import useUser from '../../hooks/useUser'
 
 dayjs.extend(relativeTime)
 
 function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
-  const { id, content, details, signatures, editInvitations, deleteInvitation } = note
+  const {
+    id,
+    content,
+    details,
+    signatures,
+    editInvitations,
+    deleteInvitation,
+    tagInvitations,
+  } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
   // eslint-disable-next-line no-underscore-dangle
@@ -184,6 +196,96 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
           Boolean
         )}
       />
+      <ForumTags
+        loadedTags={note.details?.tags}
+        tagInvitations={tagInvitations?.filter((p) => !p.id.endsWith('/Chat_Reaction'))}
+        forumId={note.id}
+      />
+    </div>
+  )
+}
+
+function ForumTag({ label, tagInvitation, hasTag, count, forumId, profileId, accessToken }) {
+  const [existingTag, setExistingTag] = useState(hasTag)
+  const [rawCount, setRawCount] = useState(count ?? 0)
+  const [isLoading, setIsLoading] = useState(false)
+  const { tag: tagText, noTag: noTagText } = tagInvitation?.content?.presentation?.value ?? {}
+  const isDeletedTag = existingTag?.ddate
+
+  const handleTagClick = async () => {
+    if (!accessToken) {
+      promptLogin()
+      return
+    }
+    if (isLoading) return
+
+    setIsLoading(true)
+    try {
+      const result = await api.post(
+        '/tags',
+        {
+          id: existingTag ? existingTag.id : undefined,
+          ...(existingTag && { ddate: isDeletedTag ? { delete: true } : Date.now() }),
+          forum: forumId,
+          note: forumId,
+          signature: profileId,
+          invitation: tagInvitation.id,
+        },
+        { accessToken }
+      )
+      setRawCount((prevCount) =>
+        existingTag && !isDeletedTag ? prevCount - 1 : prevCount + 1
+      )
+      setExistingTag(result)
+    } catch (error) {
+      promptError(error.message)
+    }
+    setIsLoading(false)
+  }
+
+  if (!label) return null
+
+  return (
+    <>
+      <CheckableTag
+        label={label}
+        tagText={tagText}
+        noTagText={noTagText}
+        rawCount={rawCount}
+        checked={existingTag && !isDeletedTag}
+        onChange={handleTagClick}
+      />
+    </>
+  )
+}
+
+const ForumTags = ({ loadedTags, tagInvitations, forumId }) => {
+  const { user, accessToken } = useUser()
+  if (!tagInvitations?.length) return null
+
+  const tagsCountByLabel = countBy(loadedTags, (p) => p.label)
+  return (
+    <div className="forum-tags">
+      {tagInvitations.map((p) => {
+        const tagInvitationLabel = p.tag?.label
+        const count = tagsCountByLabel[tagInvitationLabel]
+        const tagsOfInvitation = loadedTags?.filter(
+          (q) => q.invitation === p.id && q.signature === user?.profile?.id
+        )
+
+        return (
+          <ForumTag
+            key={p.id}
+            label={tagInvitationLabel}
+            tagInvitation={p}
+            hasTag={tagsOfInvitation?.[0]}
+            count={count}
+            forumId={forumId}
+            profileId={user?.profile?.id}
+            accessToken={accessToken}
+          />
+        )
+      })}
     </div>
   )
 }
