@@ -90,7 +90,7 @@ const Activity = ({ appContext }) => {
           <Tab id="activity" active>
             Recent Activity
           </Tab>
-          <Tab id="tags">Tagged Publications</Tab>
+          <Tab id="tags">My tags</Tab>
         </TabList>
 
         <TabPanels>
