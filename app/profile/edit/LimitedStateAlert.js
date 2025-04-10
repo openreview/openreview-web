@@ -1,13 +1,10 @@
-'use client'
-
-import { use } from 'react'
 import Alert from '../../../components/Alert'
 import Icon from '../../../components/Icon'
 
-export default function LimitedStateAlert({ loadProfileP }) {
-  const { profile } = use(loadProfileP)
-
+export default function LimitedStateAlert({ profile }) {
+  console.log('LimitedStateAlert', profile)
   if (profile?.state !== 'Limited') return null
+
   return (
     <Alert color="warning">
       <Icon name="info-sign" extraClasses="pr-2" />
