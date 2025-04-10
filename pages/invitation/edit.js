@@ -10,6 +10,7 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { invitationModeToggle } from '../../lib/banner-links'
 import { prettyId } from '../../lib/utils'
+import { isSuperUser } from '../../lib/auth'
 
 const InvitationEdit = ({ appContext }) => {
   const router = useRouter()
@@ -81,6 +82,11 @@ const InvitationEdit = ({ appContext }) => {
 
     if (!router.query.id) {
       setError({ statusCode: 400, message: 'Missing required parameter id' })
+      return
+    }
+
+    if (!isSuperUser(user)) {
+      setError({ statusCode: 403, message: 'Forbidden. Access to this page is restricted.' })
       return
     }
 

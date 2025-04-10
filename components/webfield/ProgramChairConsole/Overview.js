@@ -14,6 +14,7 @@ import {
   pluralizeString,
 } from '../../../lib/utils'
 import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
+import { getNoteContentValues } from '../../../lib/forum-utils'
 
 const StatContainer = ({ title, hint, value }) => (
   <div className="col-md-4 col-xs-6">
@@ -712,7 +713,7 @@ const DescriptionTimelineOtherConfigRow = ({
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
   )
-  const requestFormContent = requestForm?.content
+  const requestFormContent = getNoteContentValues(requestForm?.content)
   const sacRoles = requestFormContent?.senior_area_chair_roles ?? ['Senior_Area_Chairs']
   const acRoles = requestFormContent?.area_chair_roles ?? ['Area_Chairs']
   const hasEthicsChairs = requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes')
@@ -865,7 +866,11 @@ const DescriptionTimelineOtherConfigRow = ({
             </span>
             <br />
             <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
-              <strong>Full Venue Configuration</strong>
+              <strong>Venue Configuration Request</strong>
+            </a>
+            <br />
+            <a href={`/group/info?id=${venueId}&referrer=${referrerUrl}`}>
+              <strong>Workflow Configuration</strong>
             </a>
           </p>
         </div>
@@ -942,50 +947,50 @@ const DescriptionTimelineOtherConfigRow = ({
           <h4>Venue Roles:</h4>
           <ul className="overview-list">
             <li>
-              <Link href={`/group/edit?id=${programChairsId}`}>Program Chairs</Link>
+              <Link href={`/group/info?id=${programChairsId}`}>Program Chairs</Link>
             </li>
             {seniorAreaChairsId &&
               sacRoles.map((role) => (
                 <li key={role}>
-                  <Link href={`/group/edit?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
-                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>Invited</Link>,
-                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>Declined</Link>)
+                  <Link href={`/group/info?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
+                  <Link href={`/group/info?id=${venueId}/${role}/Invited`}>Invited</Link>,
+                  <Link href={`/group/info?id=${venueId}/${role}/Declined`}>Declined</Link>)
                 </li>
               ))}
             {areaChairsId &&
               acRoles.map((role) => (
                 <li key={role}>
-                  <Link href={`/group/edit?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
-                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>Invited</Link>,
-                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>Declined</Link>)
+                  <Link href={`/group/info?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
+                  <Link href={`/group/info?id=${venueId}/${role}/Invited`}>Invited</Link>,
+                  <Link href={`/group/info?id=${venueId}/${role}/Declined`}>Declined</Link>)
                 </li>
               ))}
             {hasEthicsChairs && (
               <>
                 <li>
-                  <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}`}>
+                  <Link href={`/group/info?id=${venueId}/${ethicsChairsName}`}>
                     {prettyField(ethicsChairsName)}
                   </Link>{' '}
                   (
-                  <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}/Invited`}>
+                  <Link href={`/group/info?id=${venueId}/${ethicsChairsName}/Invited`}>
                     Invited
                   </Link>
                   ,
-                  <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}/Declined`}>
+                  <Link href={`/group/info?id=${venueId}/${ethicsChairsName}/Declined`}>
                     Declined
                   </Link>
                   )
                 </li>
                 <li>
-                  <Link href={`/group/edit?id=${venueId}/${ethicsReviewersName}`}>
+                  <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}`}>
                     {prettyField(ethicsReviewersName)}
                   </Link>{' '}
                   (
-                  <Link href={`/group/edit?id=${venueId}/${ethicsReviewersName}/Invited`}>
+                  <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}/Invited`}>
                     Invited
                   </Link>
                   ,
-                  <Link href={`/group/edit?id=${venueId}/${ethicsReviewersName}/Declined`}>
+                  <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}/Declined`}>
                     Declined
                   </Link>
                   )
@@ -994,14 +999,14 @@ const DescriptionTimelineOtherConfigRow = ({
             )}
             {reviewerRoles.map((role) => (
               <li key={role}>
-                <Link href={`/group/edit?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
-                <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>Invited</Link>,
-                <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>Declined</Link>)
+                <Link href={`/group/info?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
+                <Link href={`/group/info?id=${venueId}/${role}/Invited`}>Invited</Link>,
+                <Link href={`/group/info?id=${venueId}/${role}/Declined`}>Declined</Link>)
               </li>
             ))}
             <li>
-              <Link href={`/group/edit?id=${authorsId}`}>Authors</Link> (
-              <Link href={`/group/edit?id=${authorsId}/Accepted`}>Accepted</Link>)
+              <Link href={`/group/info?id=${authorsId}`}>Authors</Link> (
+              <Link href={`/group/info?id=${authorsId}/Accepted`}>Accepted</Link>)
             </li>
           </ul>
         </div>

@@ -48,7 +48,7 @@ const MessageRow = ({ message }) => (
           <div className="email-parent pull-left mr-4">
             Parent:{' '}
             <a
-              href={`/group/edit?id=${encodeURIComponent(message.referrer)}`}
+              href={`/group/info?id=${encodeURIComponent(message.referrer)}`}
               className="profile-link"
               target="_blank"
               rel="noreferrer"
