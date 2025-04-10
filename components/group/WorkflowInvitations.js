@@ -988,7 +988,9 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           <div className=" group-workflow-container">
             {workflowGroups.map((stepObj) => {
               const groupInvitationsForGroup = allInvitations.filter(
-                (p) => p.edit?.group?.id === stepObj.id
+                (p) =>
+                  p.edit?.group?.id === stepObj.id &&
+                  Object.values(p.edit?.content ?? {}).some((q) => q.value?.param)
               )
               return (
                 <WorkflowGroupRow

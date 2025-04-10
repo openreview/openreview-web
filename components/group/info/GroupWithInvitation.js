@@ -217,7 +217,9 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
         { accessToken }
       )
       const writableInvitations = (result.invitations ?? []).filter(
-        (invitation) => invitation.details?.writable
+        (invitation) =>
+          invitation.details?.writable &&
+          Object.values(invitation.edit?.content ?? {}).some((p) => p.value?.param)
       )
       setEditGroupInvitations(writableInvitations)
     } catch (error) {
