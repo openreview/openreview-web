@@ -187,7 +187,7 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
   }, [invitation])
 
   return (
-    <>
+    <div className={invitation.ddate ? styles.deleted : ''}>
       <div className={styles.invitationDescription}>
         <Markdown text={invitation.description} />
       </div>
@@ -240,6 +240,17 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
               Expiration:{' '}
               <span data-toggle="tooltip" data-placement="top" title={invitation.expdate}>
                 {formatDateTime(invitation.expdate)}
+              </span>
+            </span>
+          </span>
+        )}
+        {invitation.ddate && (
+          <span className="item">
+            <Icon name="calendar" />
+            <span>
+              Deleted:{' '}
+              <span data-toggle="tooltip" data-placement="top" title={invitation.ddate}>
+                {formatDateTime(invitation.ddate)}
               </span>
             </span>
           </span>
@@ -301,7 +312,7 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
           visible: true,
         }))}
       />
-    </>
+    </div>
   )
 }
 

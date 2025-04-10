@@ -167,6 +167,9 @@ main.invitation {
   }
 
   .invitationEditorTabsContainer {
+    &.deleted {
+      opacity: 0.5;
+    }
     .tab-pane {
       padding-left: 0;
     }

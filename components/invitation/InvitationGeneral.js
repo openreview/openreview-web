@@ -249,17 +249,17 @@ export const InvitationGeneralViewV2 = ({
         <span className="info-title">Expiration Date:</span>
         {formatDateTime(invitation.expdate, { month: 'long', timeZoneName: 'short' })}
       </div>
+      <div className="row d-flex">
+        <span className="info-title">Last Modified:</span>
+        {formatDateTime(invitation.mdate, { month: 'long', timeZoneName: 'short' }) ??
+          formatDateTime(invitation.tmdate, { month: 'long', timeZoneName: 'short' })}
+      </div>
       {invitation.ddate && (
         <div className="row d-flex">
           <span className="info-title">Deleted:</span>
           {formatDateTime(invitation.ddate, { month: 'long', timeZoneName: 'short' })}
         </div>
       )}
-      <div className="row d-flex">
-        <span className="info-title">Last Modified:</span>
-        {formatDateTime(invitation.mdate, { month: 'long', timeZoneName: 'short' }) ??
-          formatDateTime(invitation.tmdate, { month: 'long', timeZoneName: 'short' })}
-      </div>
       {showEditButton && (
         <button type="button" className="btn btn-sm btn-primary" onClick={setIsEditMode}>
           Edit General Info
@@ -581,6 +581,12 @@ const InvitationGeneralEditV2 = ({
           cdate: dayjs(state.cdate).tz(action.payload, true).valueOf(),
           activationDateTimezone: action.payload,
         }
+      case 'deletionDateTimezone':
+        return {
+          ...state,
+          ddate: dayjs(state.ddate).tz(action.payload, true).valueOf(),
+          deletionDateTimezone: action.payload,
+        }
       case 'duedateTimezone':
         return {
           ...state,
@@ -610,10 +616,15 @@ const InvitationGeneralEditV2 = ({
     activationDateTimezone: getDefaultTimezone()?.value,
     duedateTimezone: getDefaultTimezone()?.value,
     expDateTimezone: getDefaultTimezone()?.value,
+    deletionDateTimezone: getDefaultTimezone()?.value,
     signatures: invitation.signatures?.join(', '),
   })
 
   const constructInvitationEditToPost = () => {
+    const ddate =
+      !generalInfo.ddate || Number.isNaN(parseInt(generalInfo.ddate, 10))
+        ? { delete: true }
+        : parseInt(generalInfo.ddate, 10)
     const duedate =
       !generalInfo.duedate || Number.isNaN(parseInt(generalInfo.duedate, 10))
         ? { delete: true }
@@ -639,6 +650,7 @@ const InvitationGeneralEditV2 = ({
         cdate: Number.isNaN(parseInt(generalInfo.cdate, 10))
           ? null
           : parseInt(generalInfo.cdate, 10),
+        ddate,
         duedate,
         expdate,
         invitees: stringToArray(generalInfo.invitees),
@@ -824,6 +836,25 @@ const InvitationGeneralEditV2 = ({
               className="timezone-dropdown dropdown-sm"
               value={generalInfo.expDateTimezone}
               onChange={(e) => setGeneralInfo({ type: 'expDateTimezone', payload: e.value })}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="row d-flex">
+        <span className="info-title edit-title">Deletion Date:</span>
+        <div className="info-edit-control">
+          <div className="d-flex">
+            <DatetimePicker
+              existingValue={generalInfo.ddate}
+              timeZone={generalInfo.deletionDateTimezone}
+              onChange={(e) => setGeneralInfo({ type: 'ddate', payload: e })}
+            />
+            <TimezoneDropdown
+              className="timezone-dropdown dropdown-sm"
+              value={generalInfo.deletionDateTimezone}
+              onChange={(e) =>
+                setGeneralInfo({ type: 'deletionDateTimezone', payload: e.value })
+              }
             />
           </div>
         </div>

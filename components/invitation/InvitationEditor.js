@@ -222,7 +222,7 @@ export const InvitationEditorV2 = ({
   if (!invitation) return null
 
   return (
-    <div className="invitationEditorTabsContainer">
+    <div className={`invitationEditorTabsContainer${invitation.ddate ? ' deleted' : ''}`}>
       <Tabs>
         <TabList>
           {invitationTabsConfig.map((tabConfig) => (

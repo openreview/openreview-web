@@ -1,5 +1,9 @@
 @use '../utils/constants';
 
+.deleted {
+  opacity: 0.5;
+}
+
 .invitationDescription {
   margin-bottom: 0.5rem;
 }
