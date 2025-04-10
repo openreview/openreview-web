@@ -112,6 +112,9 @@ export default function VenueHomepage({ appContext }) {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const router = useRouter()
   const { setBannerContent } = appContext
+  const submissionIds = typeof submissionId === 'string' ? [submissionId] : submissionId
+  const defaultConfirmationMessage =
+    'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
 
   const renderTab = (tabConfig, tabIndex) => {
     if (!tabConfig) return null
@@ -274,21 +277,19 @@ export default function VenueHomepage({ appContext }) {
     <>
       <VenueHeader headerInfo={header} />
 
-      {submissionId && (
-        <div id="invitation">
+      {submissionIds?.map((id, index) => (
+        <div id="invitation" key={index}>
           <SubmissionButton
-            invitationId={submissionId}
+            invitationId={id}
             apiVersion={2}
             onNoteCreated={() => {
-              const defaultConfirmationMessage =
-                'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
               promptMessage(submissionConfirmationMessage || defaultConfirmationMessage)
               reload()
             }}
             options={{ largeLabel: true }}
           />
         </div>
-      )}
+      ))}
 
       <div id="notes">
         <Tabs>
