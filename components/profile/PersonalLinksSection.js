@@ -96,6 +96,7 @@ const PersonalLinksSection = ({
 
   useEffect(() => {
     updateLinks(links)
+    if ($('#dblp-import-modal').data('bs.modal')) return
     $('#dblp-import-modal').on('hidden.bs.modal', () => {
       renderPublicationsEditor()
     })
