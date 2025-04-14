@@ -208,7 +208,7 @@ ForumPage.getInitialProps = async (ctx) => {
       } else {
         return {
           isArxivForum: true,
-          forumNote: { content: {}, invitation: '' },
+          forumNote: { content: {}, invitations: [''], version: 2 },
           query: ctx.query,
         }
       }
