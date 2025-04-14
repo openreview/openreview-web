@@ -1,15 +1,22 @@
 /* globals $, promptLogin, promptError, view2, DOMPurify: false */
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { countBy } from 'lodash'
+import { countBy, orderBy } from 'lodash'
 import NoteEditor from '../NoteEditor'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
-import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
+import {
+  prettyId,
+  prettyInvitationId,
+  forumDate,
+  classNames,
+  formatDateTime,
+  inflect,
+} from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
 import api from '../../lib/api-client'
 import CheckableTag from '../CheckableTag'
@@ -117,6 +124,8 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
           />
         </h3>
       </div>
+
+      <ForumOtherVersions paperHash={content?.paperhash?.value} forumId={id} />
 
       <div className="clearfix mb-1">
         <ForumMeta note={note} />
@@ -286,6 +295,56 @@ const ForumTags = ({ loadedTags, tagInvitations, forumId }) => {
           />
         )
       })}
+    </div>
+  )
+}
+
+const ForumOtherVersions = ({ paperHash, forumId }) => {
+  const [otherVersionNotes, setOtherVersionNotes] = useState([])
+  const [showLinks, setShowLinks] = useState(false)
+  const { accessToken } = useUser()
+
+  const loadNotesByPaperHash = async () => {
+    try {
+      const { notes } = await api.get('/notes', { paperhash: paperHash }, { accessToken })
+
+      if (notes.length > 1) {
+        setOtherVersionNotes(
+          orderBy(
+            notes.filter((p) => p.id !== forumId),
+            'mdate',
+            'desc'
+          )
+        )
+      }
+    } catch (error) {
+      /* empty */
+    }
+  }
+  useEffect(() => {
+    if (!paperHash) return
+    loadNotesByPaperHash()
+  }, [forumId])
+
+  if (!otherVersionNotes?.length) return null
+
+  return (
+    <div className="forum-other-versions">
+      <span className="view-versions-link" onClick={() => setShowLinks(!showLinks)}>
+        View other {inflect(otherVersionNotes.length, 'version', 'versions', true)}
+      </span>
+      {showLinks &&
+        otherVersionNotes.map((note) => {
+          const lastModifiedDate = formatDateTime(note.mdate)
+          return (
+            <div key={note.id}>
+              <a href={`/forum?id=${note.id}`} target="_blank" rel="noopener noreferrer">
+                <span>{prettyId(note.id)} </span>
+              </a>
+              <span>last modified: {lastModifiedDate}</span>
+            </div>
+          )
+        })}
     </div>
   )
 }
