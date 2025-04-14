@@ -18,6 +18,7 @@ const subjectAreasSelector = '//atom:feed/atom:entry/atom:category/@term'
 const pdateSelector = '//atom:feed/atom:entry/atom:published/text()'
 const mdateSelector = '//atom:feed/atom:entry/atom:updated/text()'
 const pdfSelector = '//atom:feed/atom:entry/atom:link[@title="pdf"]/@href'
+const idSelector = '//atom:feed/atom:entry/atom:id/text()'
 
 const ArvixForum = ({ id }) => {
   const { user, accessToken, userLoading } = useUser()
@@ -41,6 +42,20 @@ const ArvixForum = ({ id }) => {
     try {
       const arxivUrl = `https://export.arxiv.org/api/query?id_list=${id}`
       const xmlDoc = await $.ajax(arxivUrl)
+      const arxivIdWithVersion = xpathSelect(idSelector, xmlDoc, true)?.[0]
+        ?.nodeValue?.split('/')
+        ?.pop()
+      const { notes } = await api.get(
+        '/notes',
+        { externalId: arxivIdWithVersion, trash: true, details: 'writable,presentation' },
+        { accessToken }
+      )
+      if (notes.length) {
+        setArvixNote(notes[0])
+        router.replace(`/forum?id=${notes[0].externalId}`)
+        return
+      }
+
       const title = xpathSelect(titleSelector, xmlDoc, true)?.[0]
         ?.nodeValue?.trim()
         ?.replace(/\n/g, ' ')
@@ -57,6 +72,7 @@ const ArvixForum = ({ id }) => {
       )
       const pdate = dayjs(xpathSelect(pdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
       const mdate = dayjs(xpathSelect(mdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
+
       const notePostResult = await api.post(
         '/notes/edits',
         {
@@ -82,7 +98,7 @@ const ArvixForum = ({ id }) => {
             },
             pdate,
             mdate,
-            externalId: id,
+            externalId: arxivIdWithVersion,
           },
         },
         { accessToken }
@@ -90,7 +106,7 @@ const ArvixForum = ({ id }) => {
       const noteId = notePostResult.note.id
       const noteResult = await api.getNoteById(noteId, accessToken, null, {
         trash: true,
-        details: 'original,replyCount,writable',
+        details: 'writable,presentation',
       })
       setArvixNote(noteResult)
     } catch (apiError) {

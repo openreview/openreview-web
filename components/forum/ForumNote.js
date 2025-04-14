@@ -204,6 +204,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
         omit={[canShowIcon('pdf') ? 'pdf' : null, canShowIcon('html') ? 'html' : null].filter(
           Boolean
         )}
+        externalID={note.externalId}
       />
       <ForumTags
         loadedTags={note.details?.tags}

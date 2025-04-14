@@ -160,6 +160,7 @@ export const NoteContentV2 = ({
   omit = [],
   include = [],
   isEdit = false,
+  externalID,
 }) => {
   if (!content) return null
 
@@ -242,6 +243,18 @@ export const NoteContentV2 = ({
           </div>
         )
       })}
+      {externalID && (
+        <div>
+          <NoteContentField name="External ID" />
+          <a
+            href={`https://arxiv.org/abs/${externalID}`}
+            target="_blank"
+            rel="noreferrer nofollow"
+          >
+            {externalID}
+          </a>
+        </div>
+      )}
     </div>
   )
 }
