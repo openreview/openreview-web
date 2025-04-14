@@ -10,8 +10,9 @@ import api from '../lib/api-client'
 import { auth } from '../lib/auth'
 import { getConferenceName, getJournalName, getIssn } from '../lib/utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
+import ArvixForum from '../components/forum/ArxivForum'
 
-const ForumPage = ({ forumNote, query, appContext }) => {
+const ForumPage = ({ forumNote, query, isArxivForum, appContext }) => {
   const { clientJsLoading, setBannerContent } = appContext
 
   let content
@@ -77,6 +78,8 @@ const ForumPage = ({ forumNote, query, appContext }) => {
       }, 100)
     }
   }, [forumNote.version])
+
+  if (isArxivForum) return <ArvixForum id={query.id} />
 
   return (
     <>
@@ -184,13 +187,32 @@ ForumPage.getInitialProps = async (ctx) => {
   }
 
   try {
-    const note = await api.getNoteById(
+    let note
+    note = await api.getNoteById(
       queryId,
       token,
       { trash: true, details: 'writable,presentation' },
       { trash: true, details: 'original,replyCount,writable' },
       ctx.req?.headers['x-forwarded-for']
     )
+
+    // get by externalId
+    if (!note && /^\d{4}\.\d{4,}(?:v\d+)?$/.test(queryId)) {
+      const externalIdResult = await api.get(
+        '/notes',
+        { externalId: queryId, trash: true, details: 'writable,presentation' },
+        { accessToken: token, remoteIpAddress: ctx.req?.headers['x-forwarded-for'] }
+      )
+      if (externalIdResult.notes?.length) {
+        note = externalIdResult.notes[0]
+      } else {
+        return {
+          isArxivForum: true,
+          forumNote: { content: {}, invitation: '' },
+          query: ctx.query,
+        }
+      }
+    }
 
     // Only super user can see deleted forums
     if (note?.ddate && !note?.details?.writable) {

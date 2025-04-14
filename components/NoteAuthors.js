@@ -126,7 +126,10 @@ export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) =
       param = 'id'
     } else if (authorId.includes('@')) {
       param = 'email'
-    } else if (authorId.startsWith('https://dblp.org')) {
+    } else if (
+      authorId.startsWith('https://dblp.org') ||
+      authorId.startsWith('https://arxiv.org')
+    ) {
       return (
         <a
           key={`${author} ${authorId}`}
