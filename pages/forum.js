@@ -198,13 +198,13 @@ ForumPage.getInitialProps = async (ctx) => {
 
     // get by externalId
     if (!note) {
-      const exterIdResult = await api.get(
+      const externalIdResult = await api.get(
         '/notes',
-        { externalId: queryId },
+        { externalId: queryId, trash: true, details: 'writable,presentation' },
         { accessToken: token, remoteIpAddress: ctx.req?.headers['x-forwarded-for'] }
       )
-      if (exterIdResult.notes?.length) {
-        note = exterIdResult.notes[0]
+      if (externalIdResult.notes?.length) {
+        note = externalIdResult.notes[0]
       }
     }
 

@@ -76,6 +76,7 @@ const ArvixForum = ({ id }) => {
             },
             pdate,
             mdate,
+            externalId: id,
           },
         },
         { accessToken }
