@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
 import Head from 'next/head'
 import { truncate } from 'lodash'
+import { useRouter } from 'next/router'
 import useUser from '../../hooks/useUser'
 import { xpathSelect } from '../../lib/profiles'
 import api from '../../lib/api-client'
@@ -19,6 +20,7 @@ const mdateSelector = '//atom:feed/atom:entry/atom:updated/text()'
 const ArvixForum = ({ id }) => {
   const { user, accessToken, userLoading } = useUser()
   const [arxivNote, setArvixNote] = useState(null)
+  const router = useRouter()
 
   const content = Object.keys(arxivNote?.content ?? {}).reduce((translatedContent, key) => {
     // eslint-disable-next-line no-param-reassign
@@ -94,6 +96,10 @@ const ArvixForum = ({ id }) => {
 
   useEffect(() => {
     if (userLoading) return
+    if (!user) {
+      router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
+      return
+    }
     loadArvixNote()
   }, [id, userLoading])
 
