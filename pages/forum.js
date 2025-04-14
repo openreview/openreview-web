@@ -197,7 +197,7 @@ ForumPage.getInitialProps = async (ctx) => {
     )
 
     // get by externalId
-    if (!note) {
+    if (!note && /^\d{4}\.\d{4,}(?:v\d+)?$/.test(queryId)) {
       const externalIdResult = await api.get(
         '/notes',
         { externalId: queryId, trash: true, details: 'writable,presentation' },
@@ -205,14 +205,12 @@ ForumPage.getInitialProps = async (ctx) => {
       )
       if (externalIdResult.notes?.length) {
         note = externalIdResult.notes[0]
-      }
-    }
-
-    if (!note && /^\d{4}\.\d{4,}(?:v\d+)?$/.test(queryId)) {
-      return {
-        isArxivForum: true,
-        forumNote: { content: {}, invitation: '' },
-        query: ctx.query,
+      } else {
+        return {
+          isArxivForum: true,
+          forumNote: { content: {}, invitation: '' },
+          query: ctx.query,
+        }
       }
     }
 

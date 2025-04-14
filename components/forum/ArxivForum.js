@@ -9,6 +9,7 @@ import { xpathSelect } from '../../lib/profiles'
 import api from '../../lib/api-client'
 import Forum from './Forum'
 import LoadingSpinner from '../LoadingSpinner'
+import ErrorDisplay from '../ErrorDisplay'
 
 const titleSelector = '//atom:feed/atom:entry/atom:title/text()'
 const abstractSelector = '//atom:feed/atom:entry/atom:summary/text()'
@@ -16,10 +17,12 @@ const authorsSelector = '//atom:feed/atom:entry/atom:author/atom:name/text()'
 const subjectAreasSelector = '//atom:feed/atom:entry/atom:category/@term'
 const pdateSelector = '//atom:feed/atom:entry/atom:published/text()'
 const mdateSelector = '//atom:feed/atom:entry/atom:updated/text()'
+const pdfSelector = '//atom:feed/atom:entry/atom:link[@title="pdf"]/@href'
 
 const ArvixForum = ({ id }) => {
   const { user, accessToken, userLoading } = useUser()
   const [arxivNote, setArvixNote] = useState(null)
+  const [error, setError] = useState(null)
   const router = useRouter()
 
   const content = Object.keys(arxivNote?.content ?? {}).reduce((translatedContent, key) => {
@@ -41,6 +44,7 @@ const ArvixForum = ({ id }) => {
       const title = xpathSelect(titleSelector, xmlDoc, true)?.[0]
         ?.nodeValue?.trim()
         ?.replace(/\n/g, ' ')
+      if (!title) throw new Error(`The Note ${id} was not found`)
       const abstract = xpathSelect(abstractSelector, xmlDoc, true)?.[0]?.nodeValue?.trim()
       const authorNames = xpathSelect(authorsSelector, xmlDoc, true)?.map((author) =>
         author.nodeValue.trim()
@@ -89,8 +93,8 @@ const ArvixForum = ({ id }) => {
         details: 'original,replyCount,writable',
       })
       setArvixNote(noteResult)
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      setError(apiError.message)
     }
   }
 
@@ -103,6 +107,7 @@ const ArvixForum = ({ id }) => {
     loadArvixNote()
   }, [id, userLoading])
 
+  if (error) return <ErrorDisplay message={error} />
   if (!arxivNote) return <LoadingSpinner />
 
   return (
