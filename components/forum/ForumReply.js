@@ -286,7 +286,7 @@ export default function ForumReply({
                         signatureGroup.members.length > 4 ? (
                           <a
                             key="others"
-                            href={`/group/info?id=${signatureGroup.id}`}
+                            href={`/group/edit?id=${signatureGroup.id}`}
                             target="_blank"
                             rel="noreferrer"
                           >

@@ -3,27 +3,26 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import GroupEditor from '../../components/group/GroupEditor'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
-import { isSuperUser } from '../../lib/auth'
 import { groupModeToggle } from '../../lib/banner-links'
-import useUser from '../../hooks/useUser'
+import GroupWithInvitation from '../../components/group/info/GroupWithInvitation'
 
-export default function GroupEdit({ appContext }) {
+const GroupInfo = ({ appContext }) => {
   const { accessToken, userLoading, user } = useUser()
-  const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
-
+  const [group, setGroup] = useState(null)
   const router = useRouter()
   const { setBannerHidden, setEditBanner } = appContext
 
   const loadGroup = async (id) => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken })
+      const { groups } = await api.get('/groups', { id, details: 'writable' }, { accessToken })
+
       if (groups?.length > 0) {
         if (groups[0].details?.writable) {
-          // Get venue group to pass to pass to webfield component
+          // required to preview web
           let domainGroup = null
           if (groups[0].domain && groups[0].domain !== groups[0].id) {
             try {
@@ -44,11 +43,8 @@ export default function GroupEdit({ appContext }) {
             details: { ...groups[0].details, domain: domainGroup },
           }
           setGroup(groupToSet)
-        } else if (!accessToken) {
-          router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
-          // User is a reader, not a writer of the group, so redirect to info mode
-          router.replace(`/group/info?id=${id}`)
+          setGroup(groups[0])
         }
       } else {
         setError({ statusCode: 404, message: 'Group not found' })
@@ -77,10 +73,7 @@ export default function GroupEdit({ appContext }) {
       return
     }
 
-    if (!isSuperUser(user)) {
-      setError({ statusCode: 403, message: 'Forbidden. Access to this page is restricted.' })
-      return
-    }
+    setBannerHidden(true)
 
     loadGroup(router.query.id)
   }, [router.isReady, router.query, userLoading, accessToken])
@@ -89,15 +82,15 @@ export default function GroupEdit({ appContext }) {
     if (!group) return
 
     // Show edit mode banner
-    setBannerHidden(true)
-    setEditBanner(groupModeToggle('edit', group.id))
+    if (group.details?.writable) {
+      setEditBanner(groupModeToggle('edit', group.id))
+    }
   }, [group])
 
   useEffect(() => {
     if (!error) return
 
     setBannerHidden(false)
-    setEditBanner(null)
   }, [error])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
@@ -105,24 +98,23 @@ export default function GroupEdit({ appContext }) {
   return (
     <>
       <Head>
-        <title key="title">{`Edit ${prettyId(router.query.id)} Group | OpenReview`}</title>
+        <title key="title">{`${prettyId(router.query.id)} Group Info | OpenReview`}</title>
       </Head>
 
       <div id="header">
         <h1>{prettyId(router.query.id)}</h1>
       </div>
 
-      {!group && <LoadingSpinner />}
-
-      <GroupEditor
-        group={group}
-        profileId={user?.profile?.id}
-        accessToken={accessToken}
-        isSuperUser={isSuperUser(user)}
-        reloadGroup={() => loadGroup(group.id)}
-      />
+      {group ? (
+        <div className="groupInfoTabsContainer">
+          <GroupWithInvitation group={group} reloadGroup={() => loadGroup(group.id)} />
+        </div>
+      ) : (
+        <LoadingSpinner />
+      )}
     </>
   )
 }
+GroupInfo.bodyClass = 'group'
 
-GroupEdit.bodyClass = 'group'
+export default GroupInfo

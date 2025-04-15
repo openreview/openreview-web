@@ -27,8 +27,8 @@ export default function InvitationRevisions({ appContext }) {
         } else if (!accessToken) {
           router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
-          // User is a reader, not a writer of the invitation, so redirect to info mode
-          router.replace(`/invitation/info?id=${id}`)
+          // User is a reader, not a writer of the invitation, so redirect to edit mode
+          router.replace(`/invitation/edit?id=${id}`)
         }
       } else {
         setError({ statusCode: 404, message: 'Invitation not found' })

@@ -869,7 +869,7 @@ const DescriptionTimelineOtherConfigRow = ({
               <strong>Venue Configuration Request</strong>
             </a>
             <br />
-            <a href={`/group/info?id=${venueId}&referrer=${referrerUrl}`}>
+            <a href={`/group/edit?id=${venueId}&referrer=${referrerUrl}`}>
               <strong>Workflow Configuration</strong>
             </a>
           </p>
@@ -947,50 +947,50 @@ const DescriptionTimelineOtherConfigRow = ({
           <h4>Venue Roles:</h4>
           <ul className="overview-list">
             <li>
-              <Link href={`/group/info?id=${programChairsId}`}>Program Chairs</Link>
+              <Link href={`/group/edit?id=${programChairsId}`}>Program Chairs</Link>
             </li>
             {seniorAreaChairsId &&
               sacRoles.map((role) => (
                 <li key={role}>
-                  <Link href={`/group/info?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
-                  <Link href={`/group/info?id=${venueId}/${role}/Invited`}>Invited</Link>,
-                  <Link href={`/group/info?id=${venueId}/${role}/Declined`}>Declined</Link>)
+                  <Link href={`/group/edit?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
+                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>Invited</Link>,
+                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>Declined</Link>)
                 </li>
               ))}
             {areaChairsId &&
               acRoles.map((role) => (
                 <li key={role}>
-                  <Link href={`/group/info?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
-                  <Link href={`/group/info?id=${venueId}/${role}/Invited`}>Invited</Link>,
-                  <Link href={`/group/info?id=${venueId}/${role}/Declined`}>Declined</Link>)
+                  <Link href={`/group/edit?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
+                  <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>Invited</Link>,
+                  <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>Declined</Link>)
                 </li>
               ))}
             {hasEthicsChairs && (
               <>
                 <li>
-                  <Link href={`/group/info?id=${venueId}/${ethicsChairsName}`}>
+                  <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}`}>
                     {prettyField(ethicsChairsName)}
                   </Link>{' '}
                   (
-                  <Link href={`/group/info?id=${venueId}/${ethicsChairsName}/Invited`}>
+                  <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}/Invited`}>
                     Invited
                   </Link>
                   ,
-                  <Link href={`/group/info?id=${venueId}/${ethicsChairsName}/Declined`}>
+                  <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}/Declined`}>
                     Declined
                   </Link>
                   )
                 </li>
                 <li>
-                  <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}`}>
+                  <Link href={`/group/edit?id=${venueId}/${ethicsReviewersName}`}>
                     {prettyField(ethicsReviewersName)}
                   </Link>{' '}
                   (
-                  <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}/Invited`}>
+                  <Link href={`/group/edit?id=${venueId}/${ethicsReviewersName}/Invited`}>
                     Invited
                   </Link>
                   ,
-                  <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}/Declined`}>
+                  <Link href={`/group/edit?id=${venueId}/${ethicsReviewersName}/Declined`}>
                     Declined
                   </Link>
                   )
@@ -999,14 +999,14 @@ const DescriptionTimelineOtherConfigRow = ({
             )}
             {reviewerRoles.map((role) => (
               <li key={role}>
-                <Link href={`/group/info?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
-                <Link href={`/group/info?id=${venueId}/${role}/Invited`}>Invited</Link>,
-                <Link href={`/group/info?id=${venueId}/${role}/Declined`}>Declined</Link>)
+                <Link href={`/group/edit?id=${venueId}/${role}`}>{prettyId(role)}</Link> (
+                <Link href={`/group/edit?id=${venueId}/${role}/Invited`}>Invited</Link>,
+                <Link href={`/group/edit?id=${venueId}/${role}/Declined`}>Declined</Link>)
               </li>
             ))}
             <li>
-              <Link href={`/group/info?id=${authorsId}`}>Authors</Link> (
-              <Link href={`/group/info?id=${authorsId}/Accepted`}>Accepted</Link>)
+              <Link href={`/group/edit?id=${authorsId}`}>Authors</Link> (
+              <Link href={`/group/edit?id=${authorsId}/Accepted`}>Accepted</Link>)
             </li>
           </ul>
         </div>

@@ -76,7 +76,7 @@ export const InvitationChildInvitationsV2 = ({ invitation, accessToken }) => {
       translatedInvitations = invitations.map((inv) => ({
         id: inv.id,
         title: prettyId(inv.id),
-        href: `/invitation/info?id=${inv.id}`,
+        href: `/invitation/edit?id=${inv.id}`,
       }))
     }
     if (count !== totalCount) {

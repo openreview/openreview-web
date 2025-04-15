@@ -17,11 +17,7 @@ const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
       return
     }
     updateActiveTabId?.(`#${activeTabId}`)
-    router.replace(`#${activeTabId}`).catch((e) => {
-      if (!e.cancelled) {
-        throw e
-      }
-    })
+    window.history.replaceState(null, '', `#${activeTabId}`)
   }, [activeTabId])
 
   return (

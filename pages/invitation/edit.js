@@ -1,63 +1,27 @@
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
 import ErrorDisplay from '../../components/ErrorDisplay'
-import InvitationEditor, {
-  InvitationEditorV2,
-} from '../../components/invitation/InvitationEditor'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { invitationModeToggle } from '../../lib/banner-links'
 import { prettyId } from '../../lib/utils'
-import { isSuperUser } from '../../lib/auth'
+import { invitationModeToggle } from '../../lib/banner-links'
+import InvitationWithInvitation from '../../components/invitation/InvitationWithInvitaiton'
 
-const InvitationEdit = ({ appContext }) => {
-  const router = useRouter()
-  const { user, accessToken, userLoading } = useUser()
-  const { setBannerHidden, setEditBanner } = appContext
-
+const InvitationInfo = ({ appContext }) => {
+  const { accessToken, userLoading, user } = useUser()
   const [error, setError] = useState(null)
   const [invitation, setInvitation] = useState(null)
+  const router = useRouter()
+  const { setBannerHidden, setEditBanner } = appContext
 
-  const isMetaInvitation = invitation?.edit === true
-
-  const getHeaderText = () => {
-    if (!invitation) return ''
-    let type = ''
-    if (isMetaInvitation) {
-      type = '(Meta Invitation)'
-    } else if (invitation.edit?.invitation) {
-      type = '(Invitation of Invitation)'
-    } else if (invitation.edit?.note) {
-      type = '(Invitation of Note)'
-    } else if (invitation.edit?.edge) {
-      type = '(Invitation of Edge)'
-    } else if (invitation.edit?.tag) {
-      type = '(Invitation of Tag)'
-    }
-
-    return `${prettyId(invitation?.id)} ${type}`
-  }
-
-  // Try loading invitation from API v2 first and if not found load from v1
+  // Try loading invitation from v1 API first and if not found load from v2
   const loadInvitation = async (invitationId) => {
     try {
-      const invitationObj = await api.getInvitationById(
-        invitationId,
-        accessToken,
-        { details: 'writable,writableWith', expired: true, trash: true },
-        { details: 'writable', expired: true }
-      )
+      const invitationObj = await api.getInvitationById(invitationId, accessToken)
       if (invitationObj) {
-        if (invitationObj.details?.writable) {
-          setInvitation(invitationObj)
-        } else if (!accessToken) {
-          router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
-        } else {
-          // User is a reader, not a writer of the invitation, so redirect to info mode
-          router.replace(`/invitation/info?id=${invitationObj.id}`)
-        }
+        setInvitation(invitationObj)
       } else {
         setError({ statusCode: 404, message: 'Invitation not found' })
       }
@@ -85,10 +49,7 @@ const InvitationEdit = ({ appContext }) => {
       return
     }
 
-    if (!isSuperUser(user)) {
-      setError({ statusCode: 403, message: 'Forbidden. Access to this page is restricted.' })
-      return
-    }
+    setBannerHidden(true)
 
     loadInvitation(router.query.id)
   }, [router.isReady, router.query, userLoading, accessToken])
@@ -97,15 +58,15 @@ const InvitationEdit = ({ appContext }) => {
     if (!invitation) return
 
     // Show edit mode banner
-    setBannerHidden(true)
-    setEditBanner(invitationModeToggle('edit', invitation.id))
+    if (invitation.details?.writable) {
+      setEditBanner(invitationModeToggle('edit', invitation.id))
+    }
   }, [invitation])
 
   useEffect(() => {
     if (!error) return
 
     setBannerHidden(false)
-    setEditBanner(null)
   }, [error])
 
   if (error) return <ErrorDisplay statusCode={error.statusCode} message={error.message} />
@@ -113,35 +74,29 @@ const InvitationEdit = ({ appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">{`Edit ${prettyId(router.query.id)} Invitation | OpenReview`}</title>
+        <title key="title">{`${prettyId(
+          router.query.id
+        )} Invitation Info | OpenReview`}</title>
       </Head>
 
       <div id="header">
-        <h1>{getHeaderText()}</h1>
+        <h1>{prettyId(invitation?.id)}</h1>
       </div>
 
-      {!invitation && <LoadingSpinner />}
-
-      {invitation?.apiVersion === 1 ? (
-        <InvitationEditor
-          invitation={invitation}
-          user={user}
-          accessToken={accessToken}
-          loadInvitation={loadInvitation}
-        />
+      {invitation ? (
+        <div className="invitationInfoTabsContainer">
+          <InvitationWithInvitation
+            invitation={invitation}
+            reloadInvitation={() => loadInvitation(invitation.id)}
+          />
+        </div>
       ) : (
-        <InvitationEditorV2
-          invitation={invitation}
-          isMetaInvitation={isMetaInvitation}
-          user={user}
-          accessToken={accessToken}
-          loadInvitation={loadInvitation}
-        />
+        <LoadingSpinner />
       )}
     </>
   )
 }
 
-InvitationEdit.bodyClass = 'invitation'
+InvitationInfo.bodyClass = 'invitation'
 
-export default InvitationEdit
+export default InvitationInfo
