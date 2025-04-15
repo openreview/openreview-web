@@ -83,7 +83,7 @@ const ArvixForum = ({ id }) => {
         author.nodeValue.trim()
       )
       const authorIds = authorNames.map(
-        (p) => `https://arxiv.org/search/?query=${p}&searchtype=all`
+        (p) => `https://arxiv.org/search/?query=${encodeURIComponent(p)}&searchtype=all`
       )
       const subjectAreas = xpathSelect(subjectAreasSelector, xmlDoc, true)?.map((subject) =>
         subject.nodeValue.trim()
