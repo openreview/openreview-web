@@ -187,32 +187,22 @@ ForumPage.getInitialProps = async (ctx) => {
   }
 
   try {
-    let note
-    note = await api.getNoteById(
+    // get by externalId
+    if (/^\d{4}\.\d{4,}(?:v\d+)?$/.test(queryId)) {
+      return {
+        isArxivForum: true,
+        forumNote: { content: {}, invitations: [''], version: 2 },
+        query: ctx.query,
+      }
+    }
+
+    const note = await api.getNoteById(
       queryId,
       token,
       { trash: true, details: 'writable,presentation' },
       { trash: true, details: 'original,replyCount,writable' },
       ctx.req?.headers['x-forwarded-for']
     )
-
-    // get by externalId
-    if (!note && /^\d{4}\.\d{4,}(?:v\d+)?$/.test(queryId)) {
-      const externalIdResult = await api.get(
-        '/notes',
-        { externalId: queryId, trash: true, details: 'writable,presentation' },
-        { accessToken: token, remoteIpAddress: ctx.req?.headers['x-forwarded-for'] }
-      )
-      if (externalIdResult.notes?.length) {
-        note = externalIdResult.notes[0]
-      } else {
-        return {
-          isArxivForum: true,
-          forumNote: { content: {}, invitations: [''], version: 2 },
-          query: ctx.query,
-        }
-      }
-    }
 
     // Only super user can see deleted forums
     if (note?.ddate && !note?.details?.writable) {

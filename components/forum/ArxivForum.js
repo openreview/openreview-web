@@ -40,19 +40,37 @@ const ArvixForum = ({ id }) => {
 
   const loadArvixNote = async () => {
     try {
-      const arxivUrl = `https://export.arxiv.org/api/query?id_list=${id}`
+      const arxivUrl = `https://export.arxiv.org/api/query?id_list=${id.split('v')[0]}`
       const xmlDoc = await $.ajax(arxivUrl)
-      const arxivIdWithVersion = xpathSelect(idSelector, xmlDoc, true)?.[0]
+      const arxivIdWithLatestVersion = xpathSelect(idSelector, xmlDoc, true)?.[0]
         ?.nodeValue?.split('/')
         ?.pop()
-      const { notes } = await api.get(
-        '/notes',
-        { externalId: arxivIdWithVersion, trash: true, details: 'writable,presentation' },
-        { accessToken }
+
+      // get all past versions of the note below arxivIdWithLatestVersion
+      const arxivIdWithVersion = arxivIdWithLatestVersion.split('v')[0]
+      const arxivVersion = Number(arxivIdWithLatestVersion.split('v')[1])
+      const allVersionIds = [...Array(arxivVersion).keys()].map(
+        (i) => `arxiv:${arxivIdWithVersion}v${arxivVersion - i}`
       )
-      if (notes.length) {
-        setArvixNote(notes[0])
-        router.replace(`/forum?id=${notes[0].externalId}`)
+
+      const notesResult = await Promise.all(
+        allVersionIds.map((arxivId) =>
+          api
+            .get('/notes', {
+              externalId: arxivId,
+              details: 'writable,presentation',
+            })
+            .then((result) => result.notes?.[0])
+        )
+      )
+
+      const latestExistingVersionNote = notesResult.find((note) => note)
+      if (
+        latestExistingVersionNote &&
+        latestExistingVersionNote.externalId === `arxiv:${arxivIdWithLatestVersion}`
+      ) {
+        // already the latest version
+        setArvixNote(latestExistingVersionNote)
         return
       }
 
@@ -72,6 +90,7 @@ const ArvixForum = ({ id }) => {
       )
       const pdate = dayjs(xpathSelect(pdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
       const mdate = dayjs(xpathSelect(mdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
+      const pdfUrl = xpathSelect(pdfSelector, xmlDoc, true)?.[0]?.nodeValue
 
       const notePostResult = await api.post(
         '/notes/edits',
@@ -79,6 +98,7 @@ const ArvixForum = ({ id }) => {
           invitation: 'arXiv.org/-/Record',
           signatures: [user.profile.id],
           note: {
+            id: latestExistingVersionNote?.id,
             content: {
               title: {
                 value: title,
@@ -95,10 +115,13 @@ const ArvixForum = ({ id }) => {
               subject_areas: {
                 value: subjectAreas,
               },
+              pdf: {
+                value: pdfUrl,
+              },
             },
             pdate,
             mdate,
-            externalId: arxivIdWithVersion,
+            externalId: `arxiv:${arxivIdWithLatestVersion}`,
           },
         },
         { accessToken }

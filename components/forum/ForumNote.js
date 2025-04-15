@@ -333,14 +333,15 @@ const ForumOtherVersions = ({ paperHash, forumId }) => {
       <span className="mr-2">
         View other {inflect(otherVersionNotes.length, 'version', 'versions', true)}:
       </span>
-      {otherVersionNotes.map((note) => (
+      {otherVersionNotes.map((note, index) => (
         <a
           key={note.id}
           href={`/forum?id=${note.id}`}
           target="_blank"
           rel="noopener noreferrer"
         >
-          <span>{prettyId(note.content.venue.value)} </span>
+          <span>{prettyId(note.content.venue.value)}</span>
+          {index < otherVersionNotes.length - 1 && <span>{', '}</span>}
         </a>
       ))}
     </div>

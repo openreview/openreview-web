@@ -188,6 +188,21 @@ export const NoteContentV2 = ({
     .concat(omit)
     .filter((field) => !include.includes(field))
 
+  const getExternalLink = () => {
+    const colonIndex = externalID?.indexOf(':')
+    if (!colonIndex) return null
+
+    const prefix = externalID.slice(0, colonIndex)
+    const externalIDWithoutPrefix = externalID.slice(colonIndex + 1)
+
+    switch (prefix) {
+      case 'arxiv':
+        return `https://arxiv.org/abs/${externalIDWithoutPrefix}`
+      default:
+        return null
+    }
+  }
+
   return (
     <div className="note-content">
       {contentOrder.map((fieldName, i) => {
@@ -246,11 +261,7 @@ export const NoteContentV2 = ({
       {externalID && (
         <div>
           <NoteContentField name="External ID" />
-          <a
-            href={`https://arxiv.org/abs/${externalID}`}
-            target="_blank"
-            rel="noreferrer nofollow"
-          >
+          <a href={getExternalLink()} target="_blank" rel="noreferrer nofollow">
             {externalID}
           </a>
         </div>
