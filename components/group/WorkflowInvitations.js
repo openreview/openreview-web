@@ -854,6 +854,53 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
     }
   }
 
+  const filterWorkflowInvitations = (
+    exclusionWorkflowInvitations,
+    workflowAndSubInvitations,
+    skipWorkflowInvitationCheck = false
+  ) => {
+    if (!workflowAndSubInvitations?.length) return []
+    if (!exclusionWorkflowInvitations?.length) {
+      const tempFilterResult = workflowAndSubInvitations.flatMap((stepObj) => {
+        const isWorkflowInvitation = skipWorkflowInvitationCheck
+          ? true
+          : workflowAndSubInvitations.find((p) => p.edit?.invitation?.id === stepObj.id)
+        if (!isWorkflowInvitation) return []
+        return stepObj
+      })
+      if (!tempFilterResult.length) {
+        return workflowAndSubInvitations
+      }
+      return tempFilterResult
+    }
+    const tempFilterResult = workflowAndSubInvitations.flatMap((stepObj) => {
+      const isWorkflowInvitation = skipWorkflowInvitationCheck
+        ? true
+        : workflowAndSubInvitations.find((p) => p.edit?.invitation?.id === stepObj.id)
+      if (!isWorkflowInvitation) return []
+      if (
+        exclusionWorkflowInvitations.find((p) => {
+          const isRegex = /^\/.*\/$/.test(p)
+          if (isRegex) {
+            return new RegExp(p.slice(1, -1)).test(stepObj.id)
+          }
+          return p === stepObj.id
+        })
+      )
+        return []
+      return stepObj
+    })
+    if (!tempFilterResult.length) {
+      // skip workflow invitation check
+      return filterWorkflowInvitations(
+        exclusionWorkflowInvitations,
+        workflowAndSubInvitations,
+        true
+      )
+    }
+    return tempFilterResult
+  }
+
   const loadAllInvitations = async () => {
     setMissingValueInvitationIds([])
     const getAllGroupsP = api
@@ -896,31 +943,12 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       ])
 
       const exclusionWorkflowInvitations = group.content?.exclusion_workflow_invitations?.value
-      const invitationsToShowInWorkflow = exclusionWorkflowInvitations?.length
-        ? invitations.flatMap((stepObj) => {
-            const isWorkflowInvitation = invitations.find(
-              (p) => p.edit?.invitation?.id === stepObj.id
-            )
-            if (!isWorkflowInvitation) return []
-            if (
-              exclusionWorkflowInvitations.find((p) => {
-                const isRegex = /^\/.*\/$/.test(p)
-                if (isRegex) {
-                  return new RegExp(p.slice(1, -1)).test(stepObj.id)
-                }
-                return p === stepObj.id
-              })
-            )
-              return []
-            return formatWorkflowInvitation(stepObj, invitations, logs)
-          })
-        : invitations.flatMap((stepObj) => {
-            const isWorkflowInvitation = invitations.find(
-              (p) => p.edit?.invitation?.id === stepObj.id
-            )
-            if (!isWorkflowInvitation) return []
-            return formatWorkflowInvitation(stepObj, invitations, logs)
-          })
+      const invitationsToShowInWorkflow = filterWorkflowInvitations(
+        exclusionWorkflowInvitations,
+        invitations
+      ).map((stepObj) => {
+        return formatWorkflowInvitation(stepObj, invitations, logs)
+      })
 
       setWorkflowTasks(
         sortBy(
