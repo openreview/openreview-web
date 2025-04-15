@@ -20,19 +20,15 @@ export default function InvitationRevisions({ appContext }) {
 
   const loadInvitation = async (id) => {
     try {
-      const { invitations } = await api.get(
-        '/invitations',
-        { id },
-        { accessToken }
-      )
+      const { invitations } = await api.get('/invitations', { id }, { accessToken })
       if (invitations?.length > 0) {
         if (invitations[0].details?.writable) {
           setInvitation(invitations[0])
         } else if (!accessToken) {
           router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
         } else {
-          // User is a reader, not a writer of the invitation, so redirect to info mode
-          router.replace(`/invitation/info?id=${id}`)
+          // User is a reader, not a writer of the invitation, so redirect to edit mode
+          router.replace(`/invitation/edit?id=${id}`)
         }
       } else {
         setError({ statusCode: 404, message: 'Invitation not found' })

@@ -581,7 +581,6 @@ const InvitationGeneralEditV2 = ({
           cdate: dayjs(state.cdate).tz(action.payload, true).valueOf(),
           activationDateTimezone: action.payload,
         }
-
       case 'deletionDateTimezone':
         return {
           ...state,
