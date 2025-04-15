@@ -302,7 +302,6 @@ const ForumTags = ({ loadedTags, tagInvitations, forumId }) => {
 
 const ForumOtherVersions = ({ paperHash, forumId }) => {
   const [otherVersionNotes, setOtherVersionNotes] = useState([])
-  const [showLinks, setShowLinks] = useState(false)
   const { accessToken } = useUser()
 
   const loadNotesByPaperHash = async () => {
@@ -312,8 +311,8 @@ const ForumOtherVersions = ({ paperHash, forumId }) => {
       if (notes.length > 1) {
         setOtherVersionNotes(
           orderBy(
-            notes.filter((p) => p.id !== forumId),
-            'mdate',
+            notes.filter((p) => p.id !== forumId && p.content?.venue?.value),
+            'pdate',
             'desc'
           )
         )
@@ -331,21 +330,19 @@ const ForumOtherVersions = ({ paperHash, forumId }) => {
 
   return (
     <div className="forum-other-versions">
-      <span className="view-versions-link" onClick={() => setShowLinks(!showLinks)}>
-        View other {inflect(otherVersionNotes.length, 'version', 'versions', true)}
+      <span className="mr-2">
+        View other {inflect(otherVersionNotes.length, 'version', 'versions', true)}:
       </span>
-      {showLinks &&
-        otherVersionNotes.map((note) => {
-          const lastModifiedDate = formatDateTime(note.mdate)
-          return (
-            <div key={note.id}>
-              <a href={`/forum?id=${note.id}`} target="_blank" rel="noopener noreferrer">
-                <span>{prettyId(note.id)} </span>
-              </a>
-              <span>last modified: {lastModifiedDate}</span>
-            </div>
-          )
-        })}
+      {otherVersionNotes.map((note) => (
+        <a
+          key={note.id}
+          href={`/forum?id=${note.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span>{prettyId(note.content.venue.value)} </span>
+        </a>
+      ))}
     </div>
   )
 }
