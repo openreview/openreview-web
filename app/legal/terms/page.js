@@ -1,10 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 
-export const metadata = {
-  title: 'Terms of Use | OpenReview',
-}
-
-export default function page() {
+export default function Page() {
   return (
     <>
       <div className="row">
