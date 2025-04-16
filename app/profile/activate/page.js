@@ -1,53 +1,103 @@
-import { Suspense } from 'react'
-import { headers } from 'next/headers'
-import LoadingSpinner from '../../../components/LoadingSpinner'
+'use client'
+
+/* globals promptMessage,promptError: false */
+import { useSearchParams, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import ErrorDisplay from '../../../components/ErrorDisplay'
 import api from '../../../lib/api-client'
-import Activate from './Activate'
+import ProfileEditor from '../../../components/profile/ProfileEditor'
 import { formatProfileData } from '../../../lib/profiles'
-import serverAuth from '../../auth'
+import LoadingSpinner from '../../../components/LoadingSpinner'
+import styles from './Activate.module.scss'
+import CommonLayout from '../../CommonLayout'
 
-export const metadata = {
-  title: 'Complete Registration | OpenReview',
-}
+export default function Page() {
+  const searchParams = useSearchParams()
+  const [profile, setProfile] = useState(null)
+  const [activateProfileErrors, setActivateProfileErrors] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const router = useRouter()
 
-export const dynamic = 'force-dynamic'
+  const loadActivatableProfile = async (token) => {
+    try {
+      const apiRes = await api.get(`/activatable/${token}`)
+      if (apiRes.activatable?.action !== 'activate') {
+        setError('Invalid profile activation link. Please check your email and try again.')
+        return
+      }
 
-export default async function page({ searchParams }) {
-  const { token } = await searchParams
-  const { user } = await serverAuth()
-  const headersList = await headers()
-  const remoteIpAddress = headersList.get('x-forwarded-for')
+      setProfile(formatProfileData(apiRes.profile, true))
+    } catch (apiError) {
+      setError(apiError.message)
+    }
+  }
 
-  const loadActivatableProfileP = token
-    ? api
-        .get(`/activatable/${token}`, null, { remoteIpAddress })
-        .then((apiRes) => {
-          if (apiRes.activatable?.action !== 'activate') {
-            throw new Error(
-              'Invalid profile activation link. Please check your email and try again.'
-            )
-          }
-          return { profile: formatProfileData(apiRes.profile, true) }
-        })
-        .catch((error) => {
-          console.log('Error in loadActivatableProfileP', {
-            page: 'profile/activate',
-            user: user?.id,
-            apiError: error,
-            apiRequest: {
-              endpoint: `/activatable/${token}`,
-            },
-          })
-          return { errorMessage: error.message }
-        })
-    : Promise.resolve({
-        errorMessage:
-          'Invalid profile activation link. Please check your email and try again.',
+  const saveProfile = async (newProfileData) => {
+    setLoading(true)
+    setActivateProfileErrors(null)
+    try {
+      const { user, token } = await api.put(`/activate/${searchParams.get('token')}`, {
+        content: newProfileData,
       })
+      if (token) {
+        promptMessage('Your OpenReview profile has been successfully created', {
+          scrollToTop: false,
+        })
+        router.replace('/')
+        router.refresh()
+      } else {
+        // If user moderation is enabled, PUT /activate/${token} will return an empty response
+        promptMessage(
+          'Your OpenReview profile has been created. Please allow up to two weeks for your profile to be processed.'
+        )
+        router.push('/')
+      }
+    } catch (apiError) {
+      promptError(apiError.message)
+      setActivateProfileErrors(
+        apiError.errors?.map((p) => p.details?.path) ?? [apiError?.details?.path]
+      )
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    const token = searchParams.get('token')
+
+    if (!token) {
+      setError('Invalid profile activation link. Please check your email and try again.')
+      return
+    }
+    loadActivatableProfile(token)
+  }, [searchParams])
+
+  if (!profile && !error) return <LoadingSpinner />
+
+  if (error) return <ErrorDisplay message={error} />
 
   return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <Activate loadActivatableProfileP={loadActivatableProfileP} activateToken={token} />
-    </Suspense>
+    <CommonLayout banner={null}>
+      <div className={styles.activate}>
+        <header></header>
+        <h1>Complete Registration</h1>
+        <h5>
+          {' '}
+          Enter your current institution and at least one web URL to complete your
+          registration. All other fields are optional.
+        </h5>
+        <ProfileEditor
+          loadedProfile={profile}
+          submitButtonText="Register for OpenReview"
+          submitHandler={saveProfile}
+          hideCancelButton
+          hideDblpButton
+          hidePublicationEditor
+          loading={loading}
+          isNewProfile={true}
+          saveProfileErrors={activateProfileErrors}
+        />
+      </div>
+    </CommonLayout>
   )
 }
