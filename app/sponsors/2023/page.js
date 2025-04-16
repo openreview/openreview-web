@@ -1,14 +1,14 @@
 import Link from 'next/link'
-import Sponsor from '../sponsor'
 import styles from '../Sponsors.module.scss'
+import Sponsor from '../sponsor'
 
 export const metadata = {
-  title: 'Sponsors 2019-2022 | OpenReview',
+  title: 'Sponsors 2023 | OpenReview',
 }
 
 const sponsors = {
   gold: [
-    { name: 'Facebook', image: 'facebook.png', link: 'https://research.facebook.com/' },
+    { name: 'Google', image: 'google.png', link: 'https://research.google/' },
     { name: 'UMass IESL', image: 'umass.png', link: 'http://www.iesl.cs.umass.edu/' },
     {
       name: 'Alfred P. Sloan Foundation',
@@ -16,14 +16,11 @@ const sponsors = {
       link: 'https://sloan.org/',
     },
   ],
-  silver: [
-    { name: 'Amazon', image: 'amazon.png', link: 'https://www.amazon.science/' },
-    { name: 'CZI', image: 'czi.png', link: 'https://chanzuckerberg.com/' },
-    { name: 'Google', image: 'google.png', link: 'https://research.google/' },
-  ],
+  silver: [{ name: 'Amazon', image: 'amazon.png', link: 'https://www.amazon.science/' }],
   bronze: [
-    { name: 'Bloomberg', image: 'bloomberg.png', link: 'https://www.bloomberg.org' },
+    { name: 'Apple', image: 'apple.png', link: 'https://apple.com/' },
     { name: 'IBM', image: 'ibm.png', link: 'https://research.ibm.com/' },
+    { name: 'Bloomberg', image: 'bloomberg.png', link: 'https://www.bloomberg.org' },
   ],
   benefactors: [
     { name: 'CDS', image: 'cds.png', link: 'http://ds.cs.umass.edu/' },
@@ -32,18 +29,22 @@ const sponsors = {
   large_patrons: [
     { name: 'NeurIPS', image: 'neurips.png', link: 'https://nips.cc/' },
     { name: 'ICLR', image: 'iclr.png', link: 'https://iclr.cc/' },
+    { name: 'CVF', image: 'cvf.png', link: 'https://www.thecvf.com/' },
+    { name: 'ARR', image: 'arr.png', link: 'https://aclrollingreview.org/' },
   ],
   medium_patrons: [
     { name: 'MILA', image: 'mila.png', link: 'https://mila.quebec/en/' },
     { name: 'ICML', image: 'icml.png', link: 'https://icml.cc/' },
-    { name: 'CVF', image: 'cvf.png', link: 'https://www.thecvf.com/' },
   ],
   small_patrons: [
     { name: 'MIDL', image: 'midl.png', link: 'https://www.midl.io/' },
     { name: 'AKBC', image: 'akbc.png', link: 'https://www.akbc.ws/2021/' },
   ],
   supporters: [{ name: 'AIR', image: 'air.png', link: 'https://www.air.org/' }],
-  friends: [{ name: 'ESWC', image: 'eswc.png', link: 'https://2021.eswc-conferences.org/' }],
+  friends: [
+    { name: 'ESWC', image: 'eswc.png', link: 'https://2021.eswc-conferences.org/' },
+    { name: 'GitBook', image: 'gitbook.svg', link: 'https://www.gitbook.com/' },
+  ],
 }
 
 export default function page() {
@@ -51,11 +52,10 @@ export default function page() {
     <div className={styles.sponsors}>
       <div className="row">
         <div className="col-xs-12 col-md-10 col-md-offset-1 mb-3 text-center">
-          <h1>OpenReview Sponsors 2019–2022</h1>
-          <h5>We gratefully acknowledge the support of all our sponsors from 2019-2022:</h5>
+          <h1>OpenReview Sponsors 2023</h1>
+          <h5>We gratefully acknowledge the support of all our sponsors from 2023:</h5>
         </div>
       </div>
-
       <div className="row">
         <div className="col-xs-12 sponsors-container">
           <h2>Gold</h2>
@@ -167,7 +167,6 @@ export default function page() {
           </div>
         </div>
       </div>
-
       <div className="row mt-2 mb-4">
         <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
           <p>
