@@ -142,29 +142,37 @@ export default function page() {
             ))}
           </div>
 
-          <h2>Supporters</h2>
-          <div className="width-1 height-1">
-            {sponsors.supporters.map((sponsor) => (
-              <Sponsor
-                key={sponsor.name}
-                name={sponsor.name}
-                image={sponsor.image}
-                link={sponsor.link}
-              />
-            ))}
-          </div>
+          {sponsors.supporters.length > 0 && (
+            <>
+              <h2>Supporters</h2>
+              <div className="width-1 height-1">
+                {sponsors.supporters.map((sponsor) => (
+                  <Sponsor
+                    key={sponsor.name}
+                    name={sponsor.name}
+                    image={sponsor.image}
+                    link={sponsor.link}
+                  />
+                ))}
+              </div>
+            </>
+          )}
 
-          <h2>Friends</h2>
-          <div className="width-1 height-1">
-            {sponsors.friends.map((sponsor) => (
-              <Sponsor
-                key={sponsor.name}
-                name={sponsor.name}
-                image={sponsor.image}
-                link={sponsor.link}
-              />
-            ))}
-          </div>
+          {sponsors.friends.length > 0 && (
+            <>
+              <h2>Friends</h2>
+              <div className="width-1 height-1">
+                {sponsors.friends.map((sponsor) => (
+                  <Sponsor
+                    key={sponsor.name}
+                    name={sponsor.name}
+                    image={sponsor.image}
+                    link={sponsor.link}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
       <div className="row mt-2 mb-4">
