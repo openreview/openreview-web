@@ -1,3 +1,5 @@
+/* globals DOMPurify, marked: false */
+
 import { useEffect, useState } from 'react'
 import { upperFirst } from 'lodash'
 import Table from '../../components/Table'
@@ -98,12 +100,12 @@ export default function NotificationsTable({
   markAllViewed,
 }) {
   const [currentPage, setCurrentPage] = useState(1)
-  const [allMessages, setAllMessages] = useState([])
+  const [allMessages, setAllMessages] = useState(null)
   const { token } = useUser()
   const pageSize = 25
 
-  const count = allMessages.length
-  const messages = allMessages.length
+  const count = allMessages?.length
+  const messages = allMessages?.length
     ? allMessages.slice((currentPage - 1) * pageSize, currentPage * pageSize)
     : null
 
@@ -142,14 +144,14 @@ export default function NotificationsTable({
   }, [toEmail])
 
   useEffect(() => {
-    if (!allMessages.length || allMessages.length < 1000) return
+    if (!allMessages?.length || allMessages.length < 1000) return
     const availablePages = Math.ceil(allMessages.length / pageSize)
     if (currentPage >= availablePages - 5) {
       getMessages(allMessages[allMessages.length - 1].id)
     }
   }, [currentPage])
 
-  if (!messages)
+  if (!allMessages)
     return (
       <Table
         className="messages-table"
@@ -171,7 +173,7 @@ export default function NotificationsTable({
         className="messages-table"
         headings={[{ id: 'details', content: headingContent }]}
       >
-        {messages.length > 0 ? (
+        {messages?.length > 0 ? (
           messages.map((m) => <MessageRow key={m.id} message={m} markViewed={markViewed} />)
         ) : (
           <tr>
