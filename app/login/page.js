@@ -27,6 +27,9 @@ function Page() {
     } else if (redirect) {
       promptMessage(`Please login to access ${truncate(redirect, { length: 100 })}`)
       setLoading(false)
+    } else {
+      // no redirect show login
+      setLoading(false)
     }
   }, [user, isRefreshing])
 
