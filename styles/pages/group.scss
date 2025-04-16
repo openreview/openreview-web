@@ -411,6 +411,10 @@ main.invitation {
     .download-pdf-link {
       margin-bottom: 0.5rem;
     }
+
+    th {
+      white-space: nowrap;
+    }
   }
 
   .author-console-mobile {
@@ -883,6 +887,12 @@ main.invitation {
     }
     ul.nav-tabs > li.active {
       z-index: 10;
+    }
+  }
+
+  section.invitations {
+    a.invitation-deleted {
+      opacity: 0.3;
     }
   }
 
