@@ -1,10 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import styles from '../Sponsors.module.scss'
 import Sponsor from '../sponsor'
-
-export const metadata = {
-  title: 'Sponsors 2023 | OpenReview',
-}
 
 const sponsors = {
   gold: [
@@ -47,7 +45,7 @@ const sponsors = {
   ],
 }
 
-export default function page() {
+export default function Page() {
   return (
     <div className={styles.sponsors}>
       <div className="row">
