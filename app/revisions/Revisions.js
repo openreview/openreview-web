@@ -2,17 +2,16 @@
 
 /* globals promptLogin: false */
 import { truncate } from 'lodash'
-import { use, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import RevisionsList from './RevisionsList'
 import api from '../../lib/api-client'
 import ErrorAlert from '../../components/ErrorAlert'
 
-export default function Revisions({ parentNote, loadEditsP, accessToken }) {
-  const { revisions: initialRevisions, errorMessage } = use(loadEditsP)
-  const [revisions, setRevisions] = useState(initialRevisions)
+export default function Revisions({ parentNote, accessToken }) {
+  const [revisions, setRevisions] = useState(null)
   const [selectedIndexes, setSelectedIndexes] = useState(null)
-  const [error, setError] = useState(errorMessage ? { message: errorMessage } : null)
+  const [error, setError] = useState(null)
   const router = useRouter()
 
   const getPageTitle = () => {
@@ -70,6 +69,10 @@ export default function Revisions({ parentNote, loadEditsP, accessToken }) {
     }
     setSelectedIndexes([])
   }
+
+  useEffect(() => {
+    loadEdits()
+  }, [parentNote])
 
   return (
     <>

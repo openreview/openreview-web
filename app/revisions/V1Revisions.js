@@ -1,17 +1,14 @@
-'use client'
-
 /* globals promptLogin: false */
 import { truncate } from 'lodash'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ErrorAlert from '../../components/ErrorAlert'
-import RevisionsList, { V1RevisionsList } from './RevisionsList'
+import { V1RevisionsList } from './RevisionsList'
 import api from '../../lib/api-client'
 
 export default function V1Revisions({ parentNoteId, user, accessToken }) {
   const [revisions, setRevisions] = useState(null)
   const [selectedIndexes, setSelectedIndexes] = useState(null)
-  const [referencesToLoad, setReferencesToLoad] = useState(null)
   const [error, setError] = useState(null)
   const router = useRouter()
 
