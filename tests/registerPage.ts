@@ -559,9 +559,9 @@ test('try to activate a profile with empty token and get an error', async (t) =>
 test('try to activate a profile with invalid token and get an error', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=fhtbsk`)
-    .expect(messagePanelSelector.exists)
+    .expect(errorMessageLabel.exists)
     .ok()
-    .expect(messageSelector.innerText)
+    .expect(errorMessageLabel.innerText)
     .eql('Activation token is not valid')
 }).skipJsErrors()
 
