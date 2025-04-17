@@ -3,7 +3,7 @@
 /* globals promptError,promptMessage,$: false */
 import Link from 'next/link'
 import { useReducer } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useDispatch } from 'react-redux'
 import api from '../../lib/api-client'
 import { isValidEmail } from '../../lib/utils'
@@ -19,6 +19,8 @@ export default function LoginForm() {
   })
   const router = useRouter()
   const dispatch = useDispatch()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect')
 
   function loginFormReducer(state, action) {
     switch (action.type) {
@@ -65,7 +67,7 @@ export default function LoginForm() {
         password: formState.password,
       })
       dispatch(setNotificationCount(null))
-      window.location.reload()
+      window.location.replace(redirect ?? '/')
     } catch (error) {
       setFormState({ type: 'HAS_ERROR' })
       promptError(error.message)
