@@ -41,6 +41,7 @@ const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
 const messageSelector = Selector('span').withAttribute('class', 'important_message')
 const messagePanelSelector = Selector('#flash-message-container')
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
+const errorMessageLabel = Selector('.error-message')
 
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
@@ -540,18 +541,18 @@ fixture`Activate with errors`
 test('try to activate a profile with no token and get an error', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate`)
-    .expect(messagePanelSelector.exists)
+    .expect(errorMessageLabel.exists)
     .ok()
-    .expect(messageSelector.innerText)
+    .expect(errorMessageLabel.innerText)
     .eql('Invalid profile activation link. Please check your email and try again.')
 }).skipJsErrors()
 
 test('try to activate a profile with empty token and get an error', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=`)
-    .expect(messagePanelSelector.exists)
+    .expect(errorMessageLabel.exists)
     .ok()
-    .expect(messageSelector.innerText)
+    .expect(errorMessageLabel.innerText)
     .eql('Invalid profile activation link. Please check your email and try again.')
 }).skipJsErrors()
 
