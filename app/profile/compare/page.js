@@ -1,19 +1,18 @@
-import { Suspense } from 'react'
-import { headers } from 'next/headers'
-import LoadingSpinner from '../../../components/LoadingSpinner'
-import serverAuth, { isSuperUser } from '../../auth'
+'use client'
+
+/* globals promptError: false */
+
+import { useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
 import api from '../../../lib/api-client'
 import { prettyId } from '../../../lib/utils'
 import Compare from './Compare'
 import styles from './Compare.module.scss'
 import ErrorDisplay from '../../../components/ErrorDisplay'
 import CommonLayout from '../../CommonLayout'
-
-export const metadata = {
-  title: 'Compare Profiles | OpenReview',
-}
-
-export const dynamic = 'force-dynamic'
+import useUser from '../../../hooks/useUser'
+import { isSuperUser } from '../../../lib/clientAuth'
+import LoadingSpinner from '../../../components/LoadingSpinner'
 
 const addMetadata = (profile, fieldName) => {
   const localProfile = { ...profile }
@@ -87,14 +86,13 @@ const addSignatureToProfile = (profile) => {
   }
 }
 
-export default async function page({ searchParams }) {
-  const { user, token: accessToken } = await serverAuth()
-  if (!isSuperUser(user))
-    return <ErrorDisplay message="Forbidden. Access to this page is restricted." />
-
-  const { left, right } = await searchParams
-  const headersList = await headers()
-  const remoteIpAddress = headersList.get('x-forwarded-for')
+function Page() {
+  const { user, accessToken, isRefreshing } = useUser()
+  const [profilesWithEdgeCounts, setProfilesWithEdgeCounts] = useState(null)
+  const [error, setError] = useState(null)
+  const query = useSearchParams()
+  const left = query.get('left')
+  const right = query.get('right')
 
   const getPublications = async (profileId) => {
     if (!profileId) {
@@ -107,7 +105,7 @@ export default async function page({ searchParams }) {
         sort: 'cdate:desc',
       },
       null,
-      { accessToken, includeVersion: true, remoteIpAddress }
+      { accessToken, includeVersion: true }
     )
     if (notes?.length > 0) {
       return notes.map((publication) => ({
@@ -136,7 +134,6 @@ export default async function page({ searchParams }) {
     const queryParams = id.includes('@') ? { email: id } : { id }
     const { profiles } = await api.get('/profiles', queryParams, {
       accessToken,
-      remoteIpAddress,
     })
     if (profiles?.length > 0) {
       const publications = await getPublications(profiles[0].id)
@@ -155,22 +152,22 @@ export default async function page({ searchParams }) {
     const leftHeadP = api.get(
       '/edges',
       { head: withSignatureProfiles.left.id },
-      { accessToken, remoteIpAddress }
+      { accessToken }
     )
     const leftTailP = api.get(
       '/edges',
       { tail: withSignatureProfiles.left.id },
-      { accessToken, remoteIpAddress }
+      { accessToken }
     )
     const rightHeadP = api.get(
       '/edges',
       { head: withSignatureProfiles.right.id },
-      { accessToken, remoteIpAddress }
+      { accessToken }
     )
     const rightTailP = api.get(
       '/edges',
       { tail: withSignatureProfiles.right.id },
-      { accessToken, remoteIpAddress }
+      { accessToken }
     )
     return Promise.all([leftHeadP, leftTailP, rightHeadP, rightTailP]).then((results) => ({
       leftHead: results[0].count,
@@ -180,20 +177,42 @@ export default async function page({ searchParams }) {
     }))
   }
 
-  const profilesP = Promise.all([getBasicProfile(left), getBasicProfile(right)])
-    .then(([basicProfileLeft, basicProfileRight]) => ({
-      left: addSignatureToProfile(basicProfileLeft),
-      right: addSignatureToProfile(basicProfileRight),
-    }))
-    .then((withSignatureProfiles) =>
-      getEdges(withSignatureProfiles)
-        .then((edgeCounts) => ({
-          withSignatureProfiles,
-          edgeCounts,
+  const loadProfiles = async () => {
+    try {
+      await Promise.all([getBasicProfile(left), getBasicProfile(right)])
+        .then(([basicProfileLeft, basicProfileRight]) => ({
+          left: addSignatureToProfile(basicProfileLeft),
+          right: addSignatureToProfile(basicProfileRight),
         }))
-        .catch((error) => ({ withSignatureProfiles, error: error.message }))
-    )
-    .catch((error) => ({ error: error.message }))
+        .then((withSignatureProfiles) =>
+          getEdges(withSignatureProfiles)
+            .then((edgeCounts) =>
+              setProfilesWithEdgeCounts({
+                withSignatureProfiles,
+                edgeCounts,
+              })
+            )
+            .catch((edgeError) => {
+              promptError(edgeError.message)
+              return { withSignatureProfiles }
+            })
+        )
+    } catch (apiError) {
+      setError(apiError.message)
+    }
+  }
+
+  useEffect(() => {
+    if (isRefreshing) return
+    if (!isSuperUser(user)) {
+      setError('Forbidden. Access to this page is restricted.')
+      return
+    }
+    loadProfiles()
+  }, [isRefreshing])
+
+  if (!profilesWithEdgeCounts && !error) return <LoadingSpinner />
+  if (error) return <ErrorDisplay message={error} />
 
   return (
     <CommonLayout banner={null}>
@@ -203,11 +222,17 @@ export default async function page({ searchParams }) {
           <hr />
         </header>
         <div className="table-responsive">
-          <Suspense fallback={<LoadingSpinner />}>
-            <Compare profilesP={profilesP} accessToken={accessToken} />
-          </Suspense>
+          <Compare profilesWithEdgeCounts={profilesWithEdgeCounts} accessToken={accessToken} />
         </div>
       </div>
     </CommonLayout>
+  )
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <Page />
+    </Suspense>
   )
 }

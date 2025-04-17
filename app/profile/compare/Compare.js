@@ -1,7 +1,7 @@
 'use client'
 
 /* globals promptError: false */
-import React, { use, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { isEmpty } from 'lodash'
 import { useRouter } from 'next/navigation'
 import SpinnerButton from '../../../components/SpinnerButton'
@@ -342,8 +342,8 @@ const getHighlightValue = (withSignatureProfile) => {
   return compareFields.filter((p) => p)
 }
 
-export default function Compare({ profilesP, accessToken }) {
-  const { withSignatureProfiles, edgeCounts, error } = use(profilesP)
+export default function Compare({ profilesWithEdgeCounts, accessToken }) {
+  const { withSignatureProfiles, edgeCounts } = profilesWithEdgeCounts
   const [highlightValues, setHighlightValues] = useState(null)
   const [fields, setFields] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -403,11 +403,6 @@ export default function Compare({ profilesP, accessToken }) {
     }
     setLoading(false)
   }
-
-  useEffect(() => {
-    if (!error) return
-    promptError(error)
-  }, [error])
 
   useEffect(() => {
     if (!withSignatureProfiles) return
@@ -496,7 +491,11 @@ export default function Compare({ profilesP, accessToken }) {
             </tr>
           ))
         ) : (
-          <LoadingSpinner />
+          <tr>
+            <td>
+              <LoadingSpinner />
+            </td>
+          </tr>
         )}
         {edgeCounts && (
           <tr>
