@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { stringify } from 'query-string'
 import V1Compare from './V1Compare'
@@ -15,7 +15,7 @@ import api from '../../../lib/api-client'
 import Banner from '../../../components/Banner'
 import { forumLink } from '../../../lib/banner-links'
 
-export default function Page() {
+function Page() {
   const searchParams = useSearchParams()
   const { accessToken, isRefreshing } = useUser()
   const router = useRouter()
@@ -71,5 +71,13 @@ export default function Page() {
         )}
       </div>
     </CommonLayout>
+  )
+}
+
+export default function RevisionsComparePage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <Page />
+    </Suspense>
   )
 }
