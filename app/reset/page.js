@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Reset from './Reset'
 import styles from './Reset.module.scss'
 
-export default function page() {
+export default function Page() {
   return (
     <div className={styles.reset}>
       <div className="reset-container col-sm-12 col-md-8 col-lg-6 col-md-offset-2 col-lg-offset-3">

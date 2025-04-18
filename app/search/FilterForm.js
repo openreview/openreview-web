@@ -1,15 +1,17 @@
-'use client'
-
 import { useRouter } from 'next/navigation'
 import { stringify } from 'query-string'
+import { useEffect, useState } from 'react'
 import Dropdown from '../../components/Dropdown'
+import api from '../../lib/api-client'
+import { prettyId } from '../../lib/utils'
 
-export default function FilterForm({ searchQuery, sourceOptions, groupOptions }) {
+export default function FilterForm({ searchQuery, sourceOptions }) {
   const defaultOption = [{ value: 'all', label: 'all of OpenReview' }]
-  const fullGroupOptions = defaultOption.concat(groupOptions)
+  const [groupOptions, setGroupOptions] = useState([])
+  const [isClientRendering, setIsClientRendering] = useState(false)
 
   const selectedGroupOption =
-    fullGroupOptions.find((option) => option.value === searchQuery.group) || defaultOption[0]
+    groupOptions.find((option) => option.value === searchQuery.group) || defaultOption[0]
 
   const contentOptions = [
     { value: 'all', label: 'All Content' },
@@ -21,11 +23,36 @@ export default function FilterForm({ searchQuery, sourceOptions, groupOptions })
     contentOptions.find((option) => option.value === searchQuery.content) || contentOptions[0]
   const router = useRouter()
 
+  useEffect(() => {
+    setIsClientRendering(true)
+    const getGroupOptions = async () => {
+      try {
+        const { groups } = await api.get('/groups', { id: 'host' })
+        if (groups?.length > 0) {
+          const members = groups[0].members.map((groupId) => ({
+            value: groupId,
+            label: prettyId(groupId),
+          }))
+          setGroupOptions(
+            [defaultOption].concat(members.sort((a, b) => a.label.localeCompare(b.label)))
+          )
+        } else {
+          setGroupOptions([defaultOption])
+        }
+      } catch (error) {
+        setGroupOptions([defaultOption])
+      }
+    }
+
+    getGroupOptions()
+  }, [])
+
   const updateQuery = (field, value) => {
     const newSearchQuery = { ...searchQuery, [field]: value }
     router.push(`/search?${stringify(newSearchQuery)}`)
   }
 
+  if (!isClientRendering) return null
   return (
     <form className="filter-form form-inline well" onSubmit={(e) => e.preventDefault()}>
       <div className="form-group">
@@ -43,7 +70,7 @@ export default function FilterForm({ searchQuery, sourceOptions, groupOptions })
         <Dropdown
           name="group"
           className="search-group dropdown-select"
-          options={fullGroupOptions}
+          options={groupOptions}
           value={selectedGroupOption}
           onChange={(selectedOption) => updateQuery('group', selectedOption.value)}
           isSearchable
