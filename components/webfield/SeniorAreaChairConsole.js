@@ -1,6 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import { orderBy } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -10,9 +10,7 @@ import PaperStatus from './SeniorAreaChairConsole/PaperStatus'
 import SeniorAreaChairTasks from './SeniorAreaChairConsole/SeniorAreaChairTasks'
 import ErrorDisplay from '../ErrorDisplay'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import {
   getIndentifierFromGroup,
   getNumberFromGroup,
@@ -64,12 +62,11 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     ithenticateInvitationId,
     displayReplyInvitations,
   } = useContext(WebFieldContext)
-  const { setBannerContent, setLayoutOptions } = appContext
-  const { user, accessToken, userLoading } = useUser()
+  const { setBannerContent } = appContext ?? {}
+  const { user, accessToken, isRefreshing } = useUser()
   const [sacConsoleData, setSacConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
-  const router = useRouter()
-  const query = useQuery()
+  const query = useSearchParams()
   const [activeTabId, setActiveTabId] = useState(
     decodeURIComponent(window.location.hash) || `#${submissionName ?? ''.toLowerCase()}-status`
   )
@@ -673,27 +670,17 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (displayReplyInvitations?.length)
-      setLayoutOptions({ fullWidth: true, minimalFooter: true })
-
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
-  useEffect(
-    () => () => {
-      setLayoutOptions({ fullWidth: false, minimalFooter: false })
-    },
-    []
-  )
-
   useEffect(() => {
-    if (userLoading || !user || !group || !venueId) return
+    if (isRefreshing || !user || !group || !venueId) return
     loadData()
-  }, [user, userLoading, group])
+  }, [user, isRefreshing, group])
 
   useEffect(() => {
     // if (!activeTabId) return
@@ -707,7 +694,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       setActiveTabId(`#${(submissionName ?? '').toLowerCase()}-status`)
       return
     }
-    router.replace(activeTabId)
+    window.location.hash = activeTabId
   }, [activeTabId])
 
   const missingConfig = Object.entries({
