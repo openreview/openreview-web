@@ -10,8 +10,9 @@ import api from '../lib/api-client'
 import { auth } from '../lib/auth'
 import { getConferenceName, getJournalName, getIssn } from '../lib/utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
+import ArvixForum from '../components/forum/ArxivForum'
 
-const ForumPage = ({ forumNote, query, appContext }) => {
+const ForumPage = ({ forumNote, query, isArxivForum, appContext }) => {
   const { clientJsLoading, setBannerContent } = appContext
 
   let content
@@ -77,6 +78,8 @@ const ForumPage = ({ forumNote, query, appContext }) => {
       }, 100)
     }
   }, [forumNote.version])
+
+  if (isArxivForum) return <ArvixForum id={query.id} />
 
   return (
     <>
@@ -184,6 +187,15 @@ ForumPage.getInitialProps = async (ctx) => {
   }
 
   try {
+    // get by externalId
+    if (/^\d{4}\.\d{4,}(?:v\d+)?$/.test(queryId)) {
+      return {
+        isArxivForum: true,
+        forumNote: { content: {}, invitations: [''], version: 2 },
+        query: ctx.query,
+      }
+    }
+
     const note = await api.getNoteById(
       queryId,
       token,

@@ -160,6 +160,7 @@ export const NoteContentV2 = ({
   omit = [],
   include = [],
   isEdit = false,
+  externalID,
 }) => {
   if (!content) return null
 
@@ -186,6 +187,23 @@ export const NoteContentV2 = ({
   ]
     .concat(omit)
     .filter((field) => !include.includes(field))
+
+  const getExternalLink = () => {
+    const colonIndex = externalID?.indexOf(':')
+    if (!colonIndex) return null
+
+    const prefix = externalID.slice(0, colonIndex)
+    const externalIDWithoutPrefix = externalID.slice(colonIndex + 1)
+
+    switch (prefix) {
+      case 'arxiv':
+        return `https://arxiv.org/abs/${externalIDWithoutPrefix}`
+      case 'dblp':
+        return `https://dblp.org/rec/${externalIDWithoutPrefix}`
+      default:
+        return null
+    }
+  }
 
   return (
     <div className="note-content">
@@ -242,6 +260,14 @@ export const NoteContentV2 = ({
           </div>
         )
       })}
+      {externalID && (
+        <div>
+          <NoteContentField name="External ID" />
+          <a href={getExternalLink()} target="_blank" rel="noreferrer nofollow">
+            {externalID}
+          </a>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,20 +1,39 @@
-/* globals $, promptError, view2, DOMPurify: false */
+/* globals $, promptLogin, promptError, view2, DOMPurify: false */
 
-import { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { countBy, orderBy } from 'lodash'
 import NoteEditor from '../NoteEditor'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
-import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
+import {
+  prettyId,
+  prettyInvitationId,
+  forumDate,
+  classNames,
+  formatDateTime,
+  inflect,
+} from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
+import api from '../../lib/api-client'
+import CheckableTag from '../CheckableTag'
+import useUser from '../../hooks/useUser'
 
 dayjs.extend(relativeTime)
 
 function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
-  const { id, content, details, signatures, editInvitations, deleteInvitation } = note
+  const {
+    id,
+    content,
+    details,
+    signatures,
+    editInvitations,
+    deleteInvitation,
+    tagInvitations,
+  } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
   // eslint-disable-next-line no-underscore-dangle
@@ -106,6 +125,8 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
         </h3>
       </div>
 
+      <ForumOtherVersions paperHash={content?.paperhash?.value} forumId={id} />
+
       <div className="clearfix mb-1">
         <ForumMeta note={note} />
 
@@ -183,7 +204,146 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
         omit={[canShowIcon('pdf') ? 'pdf' : null, canShowIcon('html') ? 'html' : null].filter(
           Boolean
         )}
+        externalID={note.externalId}
       />
+      <ForumTags
+        loadedTags={note.details?.tags}
+        tagInvitations={tagInvitations?.filter((p) => !p.id.endsWith('/Chat_Reaction'))}
+        forumId={note.id}
+      />
+    </div>
+  )
+}
+
+function ForumTag({ label, tagInvitation, hasTag, count, forumId, profileId, accessToken }) {
+  const [existingTag, setExistingTag] = useState(hasTag)
+  const [rawCount, setRawCount] = useState(count ?? 0)
+  const [isLoading, setIsLoading] = useState(false)
+  const { tag: tagText, noTag: noTagText } = tagInvitation?.content?.presentation?.value ?? {}
+  const isDeletedTag = existingTag?.ddate
+
+  const handleTagClick = async () => {
+    if (!accessToken) {
+      promptLogin()
+      return
+    }
+    if (isLoading) return
+
+    setIsLoading(true)
+    try {
+      const result = await api.post(
+        '/tags',
+        {
+          id: existingTag ? existingTag.id : undefined,
+          ...(existingTag && { ddate: isDeletedTag ? { delete: true } : Date.now() }),
+          forum: forumId,
+          note: forumId,
+          signature: profileId,
+          invitation: tagInvitation.id,
+        },
+        { accessToken }
+      )
+      setRawCount((prevCount) =>
+        existingTag && !isDeletedTag ? prevCount - 1 : prevCount + 1
+      )
+      setExistingTag(result)
+    } catch (error) {
+      promptError(error.message)
+    }
+    setIsLoading(false)
+  }
+
+  if (!label) return null
+
+  return (
+    <>
+      <CheckableTag
+        label={label}
+        tagText={tagText}
+        noTagText={noTagText}
+        rawCount={rawCount}
+        checked={existingTag && !isDeletedTag}
+        onChange={handleTagClick}
+      />
+    </>
+  )
+}
+
+const ForumTags = ({ loadedTags, tagInvitations, forumId }) => {
+  const { user, accessToken } = useUser()
+  if (!tagInvitations?.length) return null
+
+  const tagsCountByLabel = countBy(loadedTags, (p) => p.label)
+  return (
+    <div className="forum-tags">
+      {tagInvitations.map((p) => {
+        const tagInvitationLabel = p.tag?.label
+        const count = tagsCountByLabel[tagInvitationLabel]
+        const tagsOfInvitation = loadedTags?.filter(
+          (q) => q.invitation === p.id && q.signature === user?.profile?.id
+        )
+
+        return (
+          <ForumTag
+            key={p.id}
+            label={tagInvitationLabel}
+            tagInvitation={p}
+            hasTag={tagsOfInvitation?.[0]}
+            count={count}
+            forumId={forumId}
+            profileId={user?.profile?.id}
+            accessToken={accessToken}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+const ForumOtherVersions = ({ paperHash, forumId }) => {
+  const [otherVersionNotes, setOtherVersionNotes] = useState([])
+  const { accessToken } = useUser()
+
+  const loadNotesByPaperHash = async () => {
+    try {
+      const { notes } = await api.get('/notes', { paperhash: paperHash }, { accessToken })
+
+      if (notes.length > 1) {
+        setOtherVersionNotes(
+          orderBy(
+            notes.filter((p) => p.id !== forumId && p.content?.venue?.value),
+            'pdate',
+            'desc'
+          )
+        )
+      }
+    } catch (error) {
+      /* empty */
+    }
+  }
+  useEffect(() => {
+    if (!paperHash) return
+    loadNotesByPaperHash()
+  }, [forumId])
+
+  if (!otherVersionNotes?.length) return null
+
+  return (
+    <div className="forum-other-versions">
+      <span className="mr-2">
+        View other {inflect(otherVersionNotes.length, 'version', 'versions', true)}:
+      </span>
+      {otherVersionNotes.map((note, index) => (
+        <a
+          key={note.id}
+          href={`/forum?id=${note.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span>{prettyId(note.content.venue.value)}</span>
+          {index < otherVersionNotes.length - 1 && <span>{', '}</span>}
+        </a>
+      ))}
     </div>
   )
 }
