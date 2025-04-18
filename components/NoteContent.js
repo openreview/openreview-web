@@ -198,6 +198,8 @@ export const NoteContentV2 = ({
     switch (prefix) {
       case 'arxiv':
         return `https://arxiv.org/abs/${externalIDWithoutPrefix}`
+      case 'dblp':
+        return `https://dblp.org/rec/${externalIDWithoutPrefix}`
       default:
         return null
     }
