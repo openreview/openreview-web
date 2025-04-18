@@ -181,7 +181,7 @@ const ReviewerProgress = ({
                             ratingDisplayName = ratingName
                             ratingValue = officialReview[ratingName]
                           }
-                          if (!ratingValue) return null
+                          if (ratingValue === undefined) return null
                           return (
                             <span key={ratingName}>
                               {prettyField(ratingDisplayName)}: {ratingValue}{' '}
