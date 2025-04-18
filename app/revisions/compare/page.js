@@ -1,89 +1,71 @@
-import { stringify } from 'query-string'
-import { redirect } from 'next/navigation'
+'use client'
+
 import Link from 'next/link'
-import { Suspense } from 'react'
-import { headers } from 'next/headers'
-import serverAuth from '../../auth'
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { stringify } from 'query-string'
 import V1Compare from './V1Compare'
 import Compare from './Compare'
 import LoadingSpinner from '../../../components/LoadingSpinner'
-import api from '../../../lib/api-client'
 import styles from './Compare.module.scss'
 import CommonLayout from '../../CommonLayout'
 import ErrorDisplay from '../../../components/ErrorDisplay'
+import useUser from '../../../hooks/useUser'
+import api from '../../../lib/api-client'
+import Banner from '../../../components/Banner'
+import { forumLink } from '../../../lib/banner-links'
 
-export const metadata = {
-  title: 'Compare Revisions | OpenReview',
-}
+export default function Page() {
+  const searchParams = useSearchParams()
+  const { accessToken, isRefreshing } = useUser()
+  const router = useRouter()
+  const [error, setError] = useState(null)
+  const [banner, setBanner] = useState(null)
 
-export const dynamic = 'force-dynamic'
+  const query = {
+    id: searchParams.get('id'),
+    left: searchParams.get('left'),
+    right: searchParams.get('right'),
+    version: searchParams.get('version'),
+  }
 
-export default async function page({ searchParams }) {
-  const { token: accessToken, user } = await serverAuth()
-  const query = await searchParams
-  const { id, left, right, version } = query
-  if (!accessToken) redirect(`/login?redirect=/revisions/compare?${stringify(query)}`)
-  if (!(id && left && right)) return <ErrorDisplay message="Missing required parameter" />
+  const getNote = async () => {
+    try {
+      const note = await api.getNoteById(query.id, accessToken)
+      if (note) {
+        setBanner(<Banner>{forumLink(note)}</Banner>)
+      }
+    } catch (_) {
+      /* empty */
+    }
+  }
 
-  const headersList = await headers()
-  const remoteIpAddress = headersList.get('x-forwarded-for')
+  useEffect(() => {
+    if (isRefreshing) return
+    if (!accessToken)
+      router.replace(
+        `/login?redirect=${encodeURIComponent(`/revisions/compare?${stringify(query)}`)}`
+      )
+    if (!(query.id && query.left && query.right)) setError('Missing required parameter')
+    getNote()
+  }, [isRefreshing])
 
-  const loadEditsP = api
-    .get(
-      '/pdf/compare',
-      {
-        noteId: id,
-        leftId: left,
-        rightId: right,
-      },
-      { accessToken, version: 2, remoteIpAddress }
-    )
-    .then((result) => {
-      const { leftNote, rightNote, viewerUrl } = result
-      return { references: [leftNote, rightNote], viewerUrl }
-    })
-    .catch((apiError) =>
-      api
-        .get('/notes/edits', { 'note.id': id, trash: true }, { accessToken, remoteIpAddress })
-        .then((editsResponse) => {
-          if (editsResponse.edits?.length <= 1) throw new Error('Reference not found')
-          const leftEdit = editsResponse.edits.find((edit) => edit.id === query.left)
-          const rightEdit = editsResponse.edits.find((edit) => edit.id === query.right)
-          if (leftEdit && rightEdit) {
-            return { references: [leftEdit, rightEdit] }
-          }
-          return { errorMessage: 'Reference not found' }
-        })
-        .catch((error) => {
-          console.log('Error in loadEditsP', {
-            page: 'revisions/compare',
-            user: user.id,
-            apiError: error,
-            apiRequest: {
-              endpoint: '/notes/edits',
-              params: { 'note.id': id, trash: true },
-            },
-          })
-          return { errorMessage: error.message }
-        })
-    )
+  if (error) return <ErrorDisplay message={error} />
 
   return (
-    <CommonLayout>
+    <CommonLayout banner={banner}>
       <div className={styles.compare}>
         <header>
           <h1>Revision Comparison</h1>
           <div className="button-container">
-            <Link href={`/revisions?id=${id}`} className="btn btn-primary">
+            <Link href={`/revisions?id=${query.id}`} className="btn btn-primary">
               Show Revisions List
             </Link>
           </div>
         </header>
         {/* eslint-disable-next-line eqeqeq */}
-        {version == 2 ? (
-          <Suspense fallback={<LoadingSpinner />}>
-            <Compare loadEditsP={loadEditsP} />
-          </Suspense>
+        {query.version == 2 ? (
+          <Compare query={query} accessToken={accessToken} />
         ) : (
           <V1Compare query={query} accessToken={accessToken} />
         )}

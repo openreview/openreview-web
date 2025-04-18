@@ -1,12 +1,14 @@
-'use client'
-
-import { use, useEffect, useState } from 'react'
+/* globals promptError: false */
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import {
   editNoteContentDiff,
   formatTimestamp,
   prettyContentValue,
   prettyField,
 } from '../../../lib/utils'
+import LoadingSpinner from '../../../components/LoadingSpinner'
+import api from '../../../lib/api-client'
 
 const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true) => {
   if (!diff) return null
@@ -47,11 +49,50 @@ const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true
   })
 }
 
-export default function Compare({ loadEditsP }) {
-  const { references, viewerUrl, errorMessage } = use(loadEditsP)
-  if (errorMessage) throw new Error(errorMessage)
+export default function Compare({ query, accessToken }) {
+  const [references, setReferences] = useState(null)
+  const [viewerUrl, setViewerUrl] = useState(null)
+  const { id, left, right } = query
 
   const [contentDiff, setContentDiff] = useState(null)
+
+  const loadEdits = async () => {
+    try {
+      await api
+        .get(
+          '/pdf/compare',
+          {
+            noteId: id,
+            leftId: left,
+            rightId: right,
+          },
+          { accessToken, version: 2 }
+        )
+        .then((result) => {
+          const { leftNote, rightNote } = result
+          setReferences([leftNote, rightNote])
+          setViewerUrl(result.viewerUrl)
+        })
+        .catch(async (_) => {
+          const editsResponse = await api.get(
+            '/notes/edits',
+            { 'note.id': id, trash: true },
+            { accessToken }
+          )
+
+          if (editsResponse.edits?.length <= 1) throw new Error('Reference not found')
+          const leftEdit = editsResponse.edits.find((edit) => edit.id === query.left)
+          const rightEdit = editsResponse.edits.find((edit) => edit.id === query.right)
+          if (leftEdit && rightEdit) {
+            setReferences([leftEdit, rightEdit])
+            return
+          }
+          throw new Error('Reference not found')
+        })
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
 
   useEffect(() => {
     if (!references) return
@@ -61,6 +102,13 @@ export default function Compare({ loadEditsP }) {
       setContentDiff(diff)
     }
   }, [references])
+
+  useEffect(() => {
+    if (!(query.id && query.left && query.right)) return
+    loadEdits()
+  }, [query])
+
+  if (!references) return <LoadingSpinner />
 
   return (
     <div className="comparison-viewer-container">

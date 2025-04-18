@@ -1,5 +1,6 @@
 'use client'
 
+/* globals promptError: false */
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import api from '../../lib/api-client'

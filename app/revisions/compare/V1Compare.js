@@ -1,5 +1,4 @@
-'use client'
-
+/* globals promptError: false */
 import { useEffect, useState } from 'react'
 import api from '../../../lib/api-client'
 import LoadingSpinner from '../../../components/LoadingSpinner'
@@ -9,13 +8,11 @@ import {
   prettyContentValue,
   prettyField,
 } from '../../../lib/utils'
-import ErrorDisplay from '../../../components/ErrorDisplay'
 
 export default function V1Compare({ query, accessToken }) {
   const [references, setReferences] = useState(null)
   const [draftableUrl, setDraftableUrl] = useState('')
   const [contentDiff, setContentDiff] = useState(null)
-  const [error, setError] = useState(null)
 
   const loadReferences = async () => {
     try {
@@ -37,9 +34,9 @@ export default function V1Compare({ query, accessToken }) {
           return
         }
       }
-      setError({ statusCode: 404, message: 'Reference not found' })
-    } catch (apiError) {
-      setError(apiError)
+      throw new Error('Reference not found')
+    } catch (error) {
+      promptError(error.message)
     }
   }
 
@@ -101,6 +98,9 @@ export default function V1Compare({ query, accessToken }) {
   }
 
   useEffect(() => {
+    if (!(query.id && query.left && query.right)) {
+      return
+    }
     if (!query?.id) return
     if (query.pdf) {
       loadComparison()
@@ -117,8 +117,6 @@ export default function V1Compare({ query, accessToken }) {
       setContentDiff(diff)
     }
   }, [references])
-
-  if (error) return <ErrorDisplay statusCode={error.status} message={error.message} />
 
   return references ? (
     <div className="comparison-viewer-container">
