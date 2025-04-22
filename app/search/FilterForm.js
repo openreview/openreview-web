@@ -49,7 +49,7 @@ export default function FilterForm({ searchQuery, sourceOptions }) {
 
   const updateQuery = (field, value) => {
     const newSearchQuery = { ...searchQuery, [field]: value }
-    router.push(`/search?${stringify(newSearchQuery)}`)
+    router.push(`/search?${encodeURIComponent(stringify(newSearchQuery))}`)
   }
 
   if (!isClientRendering) return null
