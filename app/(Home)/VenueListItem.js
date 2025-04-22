@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { formatTimestamp, prettyId } from '../../lib/utils'
 import Icon from '../../components/Icon'

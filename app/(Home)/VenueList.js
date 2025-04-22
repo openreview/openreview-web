@@ -1,20 +1,8 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import { deburrString, prettyId } from '../../lib/utils'
 import VenueListItem from './VenueListItem'
-import LoadingSpinner from '../../components/LoadingSpinner'
+import VenueListWithExpandButton from './VenueListWithExpandButton'
 
 export default function VenueList({ name, venues, maxVisible = 14, listType = 'vertical' }) {
-  const [expanded, setExpanded] = useState(false)
-  const [isClientRendering, setIsClientRendering] = useState(false)
-
-  useEffect(() => {
-    setIsClientRendering(true)
-  }, [])
-
-  if (!isClientRendering) return <LoadingSpinner inline />
-
   if (!venues) {
     return null
   }
@@ -35,6 +23,15 @@ export default function VenueList({ name, venues, maxVisible = 14, listType = 'v
     return deburrString(prettyId(venue.groupId).charAt(0), true)
   }
 
+  if (venues.length > maxVisible)
+    return (
+      <VenueListWithExpandButton
+        name={name}
+        venues={venues}
+        maxVisible={maxVisible}
+        listType={listType}
+      />
+    )
   return (
     <div>
       <ul className={`conferences list-${listType === 'vertical' ? 'unstyled' : 'inline'}`}>
@@ -48,24 +45,12 @@ export default function VenueList({ name, venues, maxVisible = 14, listType = 'v
               key={`${name}-${venue.groupId}`}
               groupId={venue.groupId}
               dueDate={venue.dueDate}
-              hidden={!expanded && i > maxVisible}
+              hidden={false}
               isLeadingVenue={isLeadingVenue}
             />
           )
         })}
       </ul>
-
-      {venues.length > maxVisible && (
-        <button
-          type="button"
-          className="btn-link"
-          onClick={() => {
-            setExpanded(!expanded)
-          }}
-        >
-          {expanded ? 'Show fewer venues' : `Show all ${venues.length} venues`}
-        </button>
-      )}
     </div>
   )
 }

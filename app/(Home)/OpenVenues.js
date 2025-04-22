@@ -1,4 +1,3 @@
-import api from '../../lib/api-client'
 import VenueList from './VenueList'
 
 export default async function OpenVenues({ venues }) {

@@ -3,8 +3,6 @@ import api from '../../lib/api-client'
 import VenueList from './VenueList'
 import serverAuth from '../auth'
 
-export const dynamic = 'force-dynamic'
-
 export default async function ActiveConsoles({ activeVenues, openVenues }) {
   const { user, token } = await serverAuth()
   const activeAndOpenVenues = activeVenues.concat(openVenues)
