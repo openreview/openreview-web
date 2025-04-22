@@ -1,18 +1,14 @@
-'use client'
-
 /* globals promptMessage,promptError: false */
-import Link from 'next/link'
+
 import { useRouter } from 'next/navigation'
-import { use, useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useEffect, useState } from 'react'
 import api from '../../../lib/api-client'
 
-const ResetForm = ({ resetToken }) => {
+export default function ResetForm({ resetToken }) {
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
   const [error, setError] = useState(null)
   const router = useRouter()
-  const dispatch = useDispatch()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -28,7 +24,7 @@ const ResetForm = ({ resetToken }) => {
     }
 
     try {
-      const result = await api.put(`/reset/${resetToken}`, { password })
+      await api.put(`/reset/${resetToken}`, { password })
       promptMessage(
         'Your password has been updated. Please log in with your new password to continue.'
       )
@@ -39,9 +35,11 @@ const ResetForm = ({ resetToken }) => {
   }
 
   useEffect(() => {
+    if (!error) return
     if (error) {
       promptError(error)
     }
+    setError(null)
   }, [error])
 
   return (
@@ -74,22 +72,5 @@ const ResetForm = ({ resetToken }) => {
         Reset Password
       </button>
     </form>
-  )
-}
-
-export default function Password({ loadResetTokenP }) {
-  const { resettable, errorMessage } = use(loadResetTokenP)
-  if (errorMessage) throw new Error(errorMessage)
-  if (!resettable?.token) throw new Error('Token not found')
-
-  return (
-    <>
-      <p className="text-muted">Enter your new password below.</p>
-      <ResetForm resetToken={resettable.token} />
-
-      <p className="help-block">
-        <Link href="/login">Back to Login</Link>
-      </p>
-    </>
   )
 }

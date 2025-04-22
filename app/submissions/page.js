@@ -14,8 +14,6 @@ export const metadata = {
   title: 'Submissions | OpenReview',
 }
 
-export const dynamic = 'force-dynamic'
-
 export default async function page({ searchParams }) {
   const { venue: groupId } = await searchParams
   const { token } = await serverAuth()

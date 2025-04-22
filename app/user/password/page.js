@@ -1,52 +1,68 @@
-import { Suspense } from 'react'
-import { headers } from 'next/headers'
+'use client'
+
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import ErrorDisplay from '../../../components/ErrorDisplay'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
-import Password from './Password'
 import styles from './Password.module.scss'
 import CommonLayout from '../../CommonLayout'
-import serverAuth from '../../auth'
+import ResetForm from './ResetForm'
 
-export const metadata = {
-  title: 'Change Password | OpenReview',
-}
+function Page() {
+  const searchParams = useSearchParams()
+  const [error, setError] = useState(null)
+  const [resetToken, setResetToken] = useState(null)
 
-export const dynamic = 'force-dynamic'
+  const loadResetToken = async (token) => {
+    try {
+      const { resettable } = await api.get(`/resettable/${token}`)
+      if (resettable?.token) {
+        setResetToken(resettable.token)
+      } else {
+        setError('Token not found')
+      }
+    } catch (apiError) {
+      setError(apiError.message)
+    }
+  }
+  useEffect(() => {
+    const token = searchParams.get('token')
 
-export default async function page({ searchParams }) {
-  const { token } = await searchParams
-  const { user } = await serverAuth()
+    if (!token) {
+      setError('Page not found')
+      return
+    }
+    loadResetToken(token)
+  }, [searchParams])
 
-  if (!token) return <ErrorDisplay message="Page not found" />
-
-  const headersList = await headers()
-  const remoteIpAddress = headersList.get('x-forwarded-for')
-
-  const loadResetTokenP = api
-    .get(`/resettable/${token}`, null, { remoteIpAddress })
-    .catch((error) => {
-      console.log('Error in loadResetTokenP', {
-        page: 'user/password',
-        user: user?.id,
-        apiError: error,
-        apiRequest: {
-          endpoint: `/resettable/${token}`,
-        },
-      })
-      return { errorMessage: error.message }
-    })
+  if (!resetToken && !error) return <LoadingSpinner />
+  if (error) return <ErrorDisplay message={error} />
 
   return (
     <CommonLayout>
       <div className={`row ${styles.password}`}>
         <div className="reset-container col-sm-12 col-md-8 col-lg-6 col-md-offset-2 col-lg-offset-3">
           <h1>Reset Password</h1>
-          <Suspense fallback={<LoadingSpinner inline />}>
-            <Password loadResetTokenP={loadResetTokenP} />
-          </Suspense>
+          <p className="text-muted">Enter your new password below.</p>
+          <ResetForm resetToken={resetToken} />
+
+          <p className="help-block">
+            <Link href="/login" prefetch={false}>
+              Back to Login
+            </Link>
+          </p>
         </div>
       </div>
     </CommonLayout>
+  )
+}
+
+export default function PasswordPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <Page />
+    </Suspense>
   )
 }
