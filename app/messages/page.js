@@ -23,7 +23,7 @@ const statusOptionValues = statusOptions.map((o) => o.value)
 export default async function page({ searchParams }) {
   const { token } = await serverAuth()
   const query = await searchParams
-  if (!token) redirect(`/login?redirect=/messages?${stringify(query)}`)
+  if (!token) redirect(`/login?redirect=/messages?${encodeURIComponent(stringify(query))}`)
 
   return (
     <div className={styles.messages}>

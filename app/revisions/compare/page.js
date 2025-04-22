@@ -44,7 +44,7 @@ function Page() {
     if (isRefreshing) return
     if (!accessToken)
       router.replace(
-        `/login?redirect=${encodeURIComponent(`/revisions/compare?${stringify(query)}`)}`
+        `/login?redirect=/revisions/compare?${encodeURIComponent(stringify(query))}`
       )
     if (!(query.id && query.left && query.right)) setError('Missing required parameter')
     getNote()
@@ -74,7 +74,7 @@ function Page() {
   )
 }
 
-export default function RevisionsComparePage() {
+export default function RevisionsPage() {
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <Page />

@@ -37,7 +37,8 @@ export default async function page({ searchParams }) {
   const query = await searchParams
   const { id, referrer } = query
   const { token: accessToken, user } = await serverAuth()
-  if (!accessToken) redirect(`/login?redirect=/assignments/stats?${stringify(query)}`)
+  if (!accessToken)
+    redirect(`/login?redirect=/assignments/stats?${encodeURIComponent(stringify(query))}`)
   if (!id)
     return (
       <ErrorDisplay message="Could not load assignment statistics. Missing parameter id." />

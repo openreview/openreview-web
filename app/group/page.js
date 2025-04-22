@@ -61,7 +61,7 @@ export default async function page({ searchParams }) {
     })
     if (error.name === 'ForbiddenError') {
       if (!accessToken) {
-        redirect(`/login?redirect=/group?${stringify(query)}`)
+        redirect(`/login?redirect=/group?${encodeURIComponent(stringify(query))}`)
       }
       return <ErrorDisplay message="You don't have permission to read this group" />
     }

@@ -15,7 +15,8 @@ export const metadata = {
 export default async function page({ searchParams }) {
   const query = await searchParams
   const { user, token: accessToken } = await serverAuth()
-  if (!accessToken) redirect(`/login?redirect=/edge/browse?${stringify(query)}`)
+  if (!accessToken)
+    redirect(`/login?redirect=/edge/browse?${encodeURIComponent(stringify(query))}`)
 
   const banner = query.referrer ? referrerLink(query.referrer) : null
 

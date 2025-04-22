@@ -54,7 +54,7 @@ export default async function page({ searchParams }) {
     })
     if (error.name === 'ForbiddenError') {
       if (!accessToken) {
-        redirect(`/login?redirect=/invitation?${stringify(query)}`)
+        redirect(`/login?redirect=/invitation?${encodeURIComponent(stringify(query))}`)
       }
       return <ErrorDisplay message="You don't have permission to read this invitation" />
     }
