@@ -1,13 +1,21 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
+import dynamic from 'next/dynamic'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../../components/Tabs'
 import NameDeletionCount from './(NameDeletion)/NameDeletionCount'
 import ProfileMergeCount from './(ProfileMerge)/ProfileMergeCount'
 import VenueRequestCount from './(VenueRequests)/VenueRequestCount'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import UserModerationTab from './UserModerationTab'
 
-export default function Moderation({ children, accessToken }) {
+const EmailDeletionTab = dynamic(() => import('./(EmailDeletion)/EmailDeletionTab'))
+const NameDeletionTab = dynamic(() => import('./(NameDeletion)/NameDeletionTab'))
+const ProfileMergeTab = dynamic(() => import('./(ProfileMerge)/ProfileMergeTab'))
+const InstitutionTab = dynamic(() => import('./(Institution)/InstitutionTab'))
+const VenueRequestTab = dynamic(() => import('./(VenueRequests)/VenueRequestTab'))
+
+export default function Moderation({ accessToken }) {
   const [activeTabId, setActiveTabId] = useState('#profiles')
   const [isPending, startTransition] = useTransition()
   const [isClientRendering, setIsClientRendering] = useState(false)
@@ -63,14 +71,24 @@ export default function Moderation({ children, accessToken }) {
         </Tab>
       </TabList>
       <TabPanels>
-        <TabPanel id="profiles">{children.profiles}</TabPanel>
-        <TabPanel id="email">{activeTabId === '#email' && children.email}</TabPanel>
-        <TabPanel id="name">{activeTabId === '#name' && children.name}</TabPanel>
-        <TabPanel id="merge">{activeTabId === '#merge' && children.merge}</TabPanel>
-        <TabPanel id="institution">
-          {activeTabId === '#institution' && children.institution}
+        <TabPanel id="profiles">
+          <UserModerationTab accessToken={accessToken} />
         </TabPanel>
-        <TabPanel id="requests">{activeTabId === '#requests' && children.requests}</TabPanel>
+        <TabPanel id="email">
+          {activeTabId === '#email' && <EmailDeletionTab accessToken={accessToken} />}
+        </TabPanel>
+        <TabPanel id="name">
+          {activeTabId === '#name' && <NameDeletionTab accessToken={accessToken} />}
+        </TabPanel>
+        <TabPanel id="merge">
+          {activeTabId === '#merge' && <ProfileMergeTab accessToken={accessToken} />}
+        </TabPanel>
+        <TabPanel id="institution">
+          {activeTabId === '#institution' && <InstitutionTab accessToken={accessToken} />}
+        </TabPanel>
+        <TabPanel id="requests">
+          {activeTabId === '#requests' && <VenueRequestTab accessToken={accessToken} />}
+        </TabPanel>
       </TabPanels>
     </Tabs>
   )

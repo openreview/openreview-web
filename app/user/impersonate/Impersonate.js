@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { uniqBy } from 'lodash'
-import { useDispatch } from 'react-redux'
 import { useRouter } from 'next/navigation'
 import Icon from '../../../components/Icon'
 import ErrorAlert from '../../../components/ErrorAlert'
@@ -61,16 +60,11 @@ export default function Impersonate({ user, accessToken }) {
   const [userId, setUserId] = useState('')
   const [impersonateNote, setImpersonateNote] = useState('')
   const [previousImpersonations, setPreviousImpersonations] = useState([])
-  const dispatch = useDispatch()
   const router = useRouter()
 
   const impersonateUser = async (groupId, note) => {
     try {
-      const { user: newUser, token: newToken } = await api.post(
-        '/impersonate',
-        { groupId },
-        { accessToken }
-      )
+      await api.post('/impersonate', { groupId }, { accessToken })
       const trimmedList = uniqBy(
         [
           { groupId, note },
