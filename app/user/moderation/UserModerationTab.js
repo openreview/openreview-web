@@ -1,5 +1,3 @@
-'use client'
-
 /* globals promptMessage,promptError,view2,$: false */
 import { useEffect, useReducer, useRef, useState } from 'react'
 import dayjs from 'dayjs'

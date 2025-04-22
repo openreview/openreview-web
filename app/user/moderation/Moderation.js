@@ -28,27 +28,21 @@ export default function Moderation({ accessToken }) {
     return (
       <Tabs>
         <TabList>
-          <Tab id="profiles" active={true}>
-            User Moderation
-          </Tab>
-          <Tab id="email">Email Delete Requests</Tab>
-          <Tab id="name">Name Delete Requests</Tab>
-          <Tab id="merge">Profile Merge Requests</Tab>
-          <Tab id="institution">Institution List</Tab>
-          <Tab id="requests">Venue Requests</Tab>
+          <Tab>User Moderation</Tab>
+          <Tab>Email Delete Requests</Tab>
+          <Tab>Name Delete Requests</Tab>
+          <Tab>Profile Merge Requests</Tab>
+          <Tab>Institution List</Tab>
+          <Tab>Venue Requests</Tab>
         </TabList>
-        <TabPanels>
-          <TabPanel id="profiles">
-            <LoadingSpinner />
-          </TabPanel>
-        </TabPanels>
+        <LoadingSpinner />
       </Tabs>
     )
 
   return (
     <Tabs>
       <TabList>
-        <Tab id="profiles" active={true}>
+        <Tab id="profiles" active>
           User Moderation
         </Tab>
         <Tab id="email" onClick={() => startTransition(() => setActiveTabId('#email'))}>
