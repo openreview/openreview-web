@@ -98,7 +98,7 @@ const GroupInfo = ({ appContext }) => {
   return (
     <>
       <Head>
-        <title key="title">{`${prettyId(router.query.id)} Group Info | OpenReview`}</title>
+        <title key="title">{`Edit ${prettyId(router.query.id)} Group | OpenReview`}</title>
       </Head>
 
       <div id="header">
