@@ -83,13 +83,13 @@ const AutoCompleteInput = () => {
     if (item.section === 'titles') {
       const query =
         item.forum === item.id ? { id: item.forum } : { id: item.forum, noteId: item.id }
-      router.push(`/forum?${encodeURIComponent(stringify(query))}`)
+      router.push(`/forum?${stringify(query)}`)
     } else if (item.value.startsWith('~')) {
-      router.push(`/profile?${encodeURIComponent(stringify({ id: item.value }))}`)
+      router.push(`/profile?${stringify({ id: item.value })}`)
     } else {
       setImmediateSearchTerm('')
       router.push(
-        `/search?${encodeURIComponent(stringify({ term: item.value, content: 'all', group: 'all', source: 'all' }))}`
+        `/search?${stringify({ term: item.value, content: 'all', group: 'all', source: 'all' })}`
       )
     }
   }

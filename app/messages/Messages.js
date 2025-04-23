@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import MessagesTable from '../../components/MessagesTable'
 import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
@@ -47,6 +47,7 @@ export default function Messages({ query, statusOptionValues, accessToken }) {
       setError(null)
     } catch (apiError) {
       setError(apiError)
+      setAllMessages([])
     }
   }
 
@@ -60,7 +61,6 @@ export default function Messages({ query, statusOptionValues, accessToken }) {
 
   useEffect(() => {
     if (!query) return
-    // setAllMessages(null)
     loadMessages()
     setCurrentPage(1)
   }, [query])

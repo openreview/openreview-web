@@ -25,7 +25,8 @@ export default function FilterForm({ searchQuery, statusOptions }) {
       const newSearchQuery = value
         ? { ...searchQuery, [field]: value }
         : { ...omit(searchQuery, field) }
-      router.push(`/messages?${encodeURIComponent(stringify(newSearchQuery))}`)
+
+      router.push(`/messages?${stringify(newSearchQuery)}`)
     }, 500)
   )
 
