@@ -27,7 +27,6 @@ export default function GroupEditor({ id, query }) {
   const [error, setError] = useState(null)
   const { user, accessToken, isRefreshing } = useUser()
   const router = useRouter()
-  const reloadGroup = () => router.refresh()
   const profileId = user?.profile?.id
 
   const loadGroup = async () => {
@@ -100,15 +99,15 @@ export default function GroupEditor({ id, query }) {
             profileId={profileId}
             isSuperUser={isSuperUser(user)}
             accessToken={accessToken}
-            reloadGroup={reloadGroup}
+            reloadGroup={loadGroup}
           />
-          <GroupMembers group={group} accessToken={accessToken} reloadGroup={reloadGroup} />
+          <GroupMembers group={group} accessToken={accessToken} reloadGroup={loadGroup} />
           {group.invitations && (
             <GroupContent
               group={group}
               profileId={profileId}
               accessToken={accessToken}
-              reloadGroup={reloadGroup}
+              reloadGroup={loadGroup}
             />
           )}
           {group.invitations && (
@@ -117,7 +116,7 @@ export default function GroupEditor({ id, query }) {
               group={group}
               profileId={profileId}
               accessToken={accessToken}
-              reloadGroup={reloadGroup}
+              reloadGroup={loadGroup}
             />
           )}
           <GroupSignedNotes group={group} accessToken={accessToken} />
@@ -127,7 +126,7 @@ export default function GroupEditor({ id, query }) {
             group={group}
             profileId={profileId}
             accessToken={accessToken}
-            reloadGroup={reloadGroup}
+            reloadGroup={loadGroup}
           />
         </div>
       </div>

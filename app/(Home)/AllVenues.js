@@ -4,6 +4,8 @@ import { deburrString, formatGroupResults, prettyId } from '../../lib/utils'
 import VenueList from './VenueList'
 import VenueListItem from './VenueListItem'
 
+export const revalidate = 600
+
 export default async function AllVenues() {
   const headersList = await headers()
   const remoteIpAddress = headersList.get('x-forwarded-for')

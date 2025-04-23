@@ -21,7 +21,6 @@ export default function InvitationEditor({ id, query }) {
   const [error, setError] = useState(null)
   const { user, accessToken, isRefreshing } = useUser()
   const router = useRouter()
-  const reloadInvitation = () => router.refresh()
   const isMetaInvitation = invitation?.edit === true
 
   const getHeaderText = () => {
@@ -104,7 +103,7 @@ export default function InvitationEditor({ id, query }) {
             invitation={invitation}
             user={user}
             accessToken={accessToken}
-            loadInvitation={reloadInvitation}
+            loadInvitation={loadInvitation}
           />
         ) : (
           <InvitationEditorV2
@@ -112,7 +111,7 @@ export default function InvitationEditor({ id, query }) {
             isMetaInvitation={isMetaInvitation}
             user={user}
             accessToken={accessToken}
-            loadInvitation={reloadInvitation}
+            loadInvitation={loadInvitation}
           />
         )}{' '}
       </div>
