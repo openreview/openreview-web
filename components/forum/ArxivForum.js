@@ -143,6 +143,10 @@ const ArvixForum = ({ id }) => {
       router.replace(`/login?redirect=${encodeURIComponent(router.asPath)}`)
       return
     }
+    if (!/^\d{4}\.\d{4,}(?:v\d+)?$/.test(id)) {
+      setError(`The Note ${id} was not found`)
+      return
+    }
     loadArvixNote()
   }, [id, userLoading])
 

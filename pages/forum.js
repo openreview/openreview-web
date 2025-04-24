@@ -79,7 +79,7 @@ const ForumPage = ({ forumNote, query, isArxivForum, appContext }) => {
     }
   }, [forumNote.version])
 
-  if (isArxivForum) return <ArvixForum id={query.id} />
+  if (isArxivForum) return <ArvixForum id={query.arxivId} />
 
   return (
     <>
@@ -145,7 +145,9 @@ const ForumPage = ({ forumNote, query, isArxivForum, appContext }) => {
 
 ForumPage.getInitialProps = async (ctx) => {
   const queryId = ctx.query.id || ctx.query.noteId
-  if (!queryId) {
+  // eslint-disable-next-line prefer-destructuring
+  const arxivId = ctx.query.arxivid
+  if (!queryId && !arxivId) {
     return { statusCode: 400, message: 'Forum or note ID is required' }
   }
 
@@ -187,12 +189,11 @@ ForumPage.getInitialProps = async (ctx) => {
   }
 
   try {
-    // get by externalId
-    if (/^\d{4}\.\d{4,}(?:v\d+)?$/.test(queryId)) {
+    if (arxivId) {
       return {
         isArxivForum: true,
         forumNote: { content: {}, invitations: [''], version: 2 },
-        query: ctx.query,
+        query: { ...ctx.query, arxivId },
       }
     }
 
