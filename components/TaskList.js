@@ -33,6 +33,7 @@ function Invitation({ invitation, referrer }) {
       <h4>
         <InvitationLink invitation={invitation} referrer={referrer} />
         <span className={`duedate ${dueDateStatus}`}>{`Due: ${dueDateStr}`}</span>
+        {invitation.hasMissingFields && <span> Update is required</span>}
       </h4>
       {replyToTitle && (
         <div className="parent-title">
