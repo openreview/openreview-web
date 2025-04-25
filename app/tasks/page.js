@@ -101,7 +101,9 @@ export default function Page() {
 
   return (
     <div className={styles.tasks}>
-      <GroupedTaskList groupedTasks={groupedTasks} />
+      <div className="tasks-container">
+        <GroupedTaskList groupedTasks={groupedTasks} />
+      </div>
     </div>
   )
 }
