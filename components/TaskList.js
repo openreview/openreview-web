@@ -21,10 +21,7 @@ export default function TaskList({ invitations, emptyMessage, referrer }) {
 
 function Invitation({ invitation, referrer }) {
   const { tagInvitation, noteInvitation, dueDateStatus, dueDateStr, apiVersion } = invitation
-  const replyToTitle =
-    apiVersion === 2
-      ? invitation.details.replytoNote?.content?.title?.value
-      : invitation.details.replytoNote?.content?.title
+  const replyToTitle = invitation.details.replytoNote?.content?.title?.value
 
   if (!noteInvitation && !tagInvitation) return null
 
@@ -52,10 +49,10 @@ function Invitation({ invitation, referrer }) {
 }
 
 function InvitationLink({ invitation, referrer }) {
-  const { web, id, groupId, noteId, completed, apiVersion, domain } = invitation
+  const { web, id, groupId, noteId, completed, domain } = invitation
   const prettifiedInvitationId = prettyTasksInvitationId(id, domain)
-  const replyTo = apiVersion === 2 ? invitation.edit?.note?.replyto : invitation.reply?.replyto
-  const hasId = apiVersion === 2 && typeof invitation.edit?.note?.id === 'string'
+  const replyTo = invitation.edit?.note?.replyto
+  const hasId = typeof invitation.edit?.note?.id === 'string'
 
   const getNoteInvitationLink = () => {
     const noteParam = replyTo ? `&noteId=${noteId}` : ''
