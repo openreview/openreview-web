@@ -2,7 +2,7 @@
 
 /* globals promptError: false */
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import Link from 'next/link'
 import styles from './Notifications.module.scss'
@@ -14,7 +14,7 @@ import useUser from '../../hooks/useUser'
 import Table from '../../components/Table'
 import { decrementNotificationCount } from '../../notificationSlice'
 
-export default function Page() {
+function Page() {
   const { user, accessToken, isRefreshing } = useUser()
   const [toEmail, setToEmail] = useState(null)
   const [confirmedEmails, setConfirmedEmails] = useState(null)
@@ -156,5 +156,13 @@ export default function Page() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function NotificationsPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <Page />
+    </Suspense>
   )
 }
