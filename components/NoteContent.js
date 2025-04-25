@@ -160,7 +160,7 @@ export const NoteContentV2 = ({
   omit = [],
   include = [],
   isEdit = false,
-  externalID,
+  externalIDs,
 }) => {
   if (!content) return null
 
@@ -188,7 +188,7 @@ export const NoteContentV2 = ({
     .concat(omit)
     .filter((field) => !include.includes(field))
 
-  const getExternalLink = () => {
+  const getExternalLink = (externalID) => {
     const colonIndex = externalID?.indexOf(':')
     if (!colonIndex) return null
 
@@ -260,12 +260,15 @@ export const NoteContentV2 = ({
           </div>
         )
       })}
-      {externalID && (
+      {externalIDs && (
         <div>
-          <NoteContentField name="External ID" />
-          <a href={getExternalLink()} target="_blank" rel="noreferrer nofollow">
-            {externalID}
-          </a>
+          <NoteContentField name="External IDs" />
+          {externalIDs.map((externalID, index) => (
+            <a key={externalID} href={getExternalLink(externalID)} target="_blank" rel="noreferrer nofollow">
+              {externalID}
+              {index < externalIDs.length - 1 && <span>{', '}</span>}
+            </a>
+          ))}
         </div>
       )}
     </div>
