@@ -14,7 +14,6 @@ const ConsoleTaskList = ({
   filterAssignedInvitation = false,
   submissionName,
   submissionNumbers,
-  apiVersion = 2,
 }) => {
   const { accessToken } = useUser()
   const [invitations, setInvitations] = useState(null)
@@ -25,44 +24,42 @@ const ConsoleTaskList = ({
         api.getAll(
           '/invitations',
           {
-            ...(apiVersion === 2 ? { domain: venueId } : { regex: `${venueId}/.*` }),
+            domain: venueId,
             invitee: true,
             duedate: true,
             replyto: true,
-            type: apiVersion === 2 ? 'note' : 'notes',
-            details: `replytoNote,repliedNotes${apiVersion === 2 ? ',repliedEdits' : ''}`,
+            type: 'note',
+            details: 'replytoNote,repliedNotes,repliedEdits',
           },
-          { accessToken, version: apiVersion }
+          { accessToken }
         ),
         api.getAll(
           '/invitations',
           {
-            ...(apiVersion !== 2 && { regex: `${venueId}/.*` }),
-            ...(apiVersion === 2 && { domain: venueId }),
+            domain: venueId,
             invitee: true,
             duedate: true,
-            type: apiVersion === 2 ? 'edge' : 'edges',
+            type: 'edge',
             details: 'repliedEdges',
           },
-          { accessToken, version: apiVersion }
+          { accessToken }
         ),
         api.getAll(
           '/invitations',
           {
-            ...(apiVersion !== 2 && { regex: `${venueId}/.*` }),
-            ...(apiVersion === 2 && { domain: venueId }),
+            domain: venueId,
             invitee: true,
             duedate: true,
-            type: apiVersion === 2 ? 'tag' : 'tags',
+            type: 'tag',
             details: 'repliedTags',
           },
-          { accessToken, version: apiVersion }
+          { accessToken }
         ),
       ]).then(([noteInvitations, edgeInvitations, tagInvitations]) =>
         noteInvitations
-          .map((inv) => ({ ...inv, noteInvitation: true, apiVersion }))
-          .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true, apiVersion })))
-          .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true, apiVersion })))
+          .map((inv) => ({ ...inv, noteInvitation: true }))
+          .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
+          .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
       )
 
       allInvitations = allInvitations.filter((p) =>
