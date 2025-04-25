@@ -25,41 +25,28 @@ export default function Page() {
     duedate: true,
     details: 'repliedTags',
   }
-  const commonOptions = { accessToken, includeVersion: true }
 
   const invitationPromises = [
     api
-      .getCombined(
+      .get(
         '/invitations',
-        {
-          ...commonParams,
-          replyto: true,
-          details: 'replytoNote,repliedNotes',
-          type: 'notes',
-        },
         {
           ...commonParams,
           replyto: true,
           details: 'replytoNote,repliedNotes,repliedEdits',
           type: 'note',
         },
-        commonOptions
+        { accessToken }
       )
       .then(addPropertyToInvitations('noteInvitation')),
     api
-      .getCombined(
-        '/invitations',
-        { ...commonParams, type: 'tags' },
-        { ...commonParams, type: 'tag' },
-        commonOptions
-      )
+      .get('/invitations', { ...commonParams, type: 'tag' }, { accessToken })
       .then(addPropertyToInvitations('tagInvitation')),
     api
-      .getCombined(
+      .get(
         '/invitations',
-        { ...commonParams, type: 'edges', details: 'repliedEdges' },
         { ...commonParams, type: 'edge', details: 'repliedEdges' },
-        commonOptions
+        { accessToken }
       )
       .then(addPropertyToInvitations('tagInvitation')),
   ]

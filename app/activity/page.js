@@ -17,14 +17,7 @@ export default function Page() {
   const router = useRouter()
 
   const loadActivityData = async () => {
-    const queryParamV1 = {
-      tauthor: true,
-      trash: true,
-      details: 'forumContent,writable,invitation',
-      sort: 'tmdate:desc',
-      limit: 100,
-    }
-    const queryParamV2 = {
+    const queryParam = {
       tauthor: true,
       trash: true,
       details: 'writable,invitation',
@@ -32,21 +25,14 @@ export default function Page() {
       limit: 100,
     }
 
-    Promise.all([
-      api.get('/notes', queryParamV1, { accessToken, version: 1 }).then(
-        ({ notes }) => (notes?.length > 0 ? notes : []),
+    api
+      .get('/notes/edits', queryParam, { accessToken })
+      .then(
+        ({ edits }) => (edits?.length > 0 ? edits : []),
         () => []
-      ),
-      api
-        .get('/notes/edits', queryParamV2, { accessToken })
-        .then(
-          ({ edits }) => (edits?.length > 0 ? edits : []),
-          () => []
-        )
-        .then((edits) => edits.map((edit) => ({ ...edit, apiVersion: 2 }))),
-    ])
-      .then(([notes, edits]) => {
-        setActivityNotes(notes.concat(edits).sort((a, b) => b.tmdate - a.tmdate))
+      )
+      .then((edits) => {
+        setActivityNotes(edits.sort((a, b) => b.tmdate - a.tmdate))
       })
       .catch((apiError) => {
         setError(apiError)

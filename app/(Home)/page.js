@@ -23,12 +23,7 @@ export default async function page() {
   const [activeVenuesResult, openVenuesResult] = await Promise.allSettled([
     api.get('groups', { id: 'active_venues' }, { remoteIpAddress }).then(formatGroupResults),
     api
-      .getCombined(
-        '/invitations',
-        { invitee: '~', pastdue: false, type: 'notes' },
-        { invitee: '~', pastdue: false, type: 'note' },
-        { remoteIpAddress }
-      )
+      .get('/invitations', { invitee: '~', pastdue: false, type: 'note' }, { remoteIpAddress })
       .then(formatInvitationResults),
   ])
 
