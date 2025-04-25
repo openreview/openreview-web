@@ -1769,7 +1769,7 @@ describe('ConsoleTaskList', () => {
       expect(Paper5metaReviewLink.parentElement.parentElement).not.toHaveClass('completed')
       expect(Paper5metaReviewLink.nextElementSibling).toHaveClass('duedate', { exact: true })
       expect(Paper5metaReviewLink.nextElementSibling.nextElementSibling.innerHTML).toContain(
-        'Update is required'
+        'Update required'
       )
     })
   })
