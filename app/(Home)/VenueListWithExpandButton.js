@@ -30,7 +30,7 @@ export default function VenueListWithExpandButton({ name, venues, maxVisible, li
                 key={`${name}-${venue.groupId}`}
                 groupId={venue.groupId}
                 dueDate={venue.dueDate}
-                hidden={!expanded && i > maxVisible}
+                hidden={!expanded && i >= maxVisible}
                 isLeadingVenue={isLeadingVenue}
               />
             )
