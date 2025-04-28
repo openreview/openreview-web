@@ -3710,4 +3710,106 @@ describe('NewReplyEditNoteReaders', () => {
       expect(clearError).toHaveBeenCalled()
     })
   })
+
+  test('show warning when parent note signature is not in the list of readers', async () => {
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: true,
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{ readers: ['~Test_IdTwo1'], signatures: ['~Test_IdThree1'] }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['~Test_IdOne1', '~Test_IdTwo1']} // signature ~Test_IdThree1 is not selected
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("This reply won't be visible to the parent note author")
+      ).toBeInTheDocument()
+    })
+  })
+
+  test('show warning when list of readers do not include all parent reply readers', async () => {
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: '~Test_IdOne1',
+                  description: 'description of test id one',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdTwo1',
+                  description: 'description of test id two',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdThree1',
+                  description: 'description of test id three',
+                  optional: true,
+                },
+                {
+                  value: '~Test_IdFour1',
+                  description: 'description of test id four',
+                  optional: true,
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{
+          readers: ['~Test_IdOne1', '~Test_IdTwo1', '~Test_IdThree1'],
+          signatures: ['~Test_IdThree1'],
+        }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['~Test_IdOne1', '~Test_IdThree1', '~Test_IdFour1']} // reply reader ~Test_IdTwo1 is not selected
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("This reply won't be visible to all the readers of the parent note")
+      ).toBeInTheDocument()
+    })
+  })
 })
