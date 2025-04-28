@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { formatTimestamp, prettyId } from '../../lib/utils'
-import Icon from '../../components/Icon'
+import { prettyId } from '../../lib/utils'
+import VenueListItemDueDate from './VenueListItemDueDate'
 
 export default function VenueListItem({ groupId, dueDate, hidden, isLeadingVenue = false }) {
   const styles = hidden ? { display: 'none' } : {}
@@ -15,12 +15,7 @@ export default function VenueListItem({ groupId, dueDate, hidden, isLeadingVenue
           {prettyId(groupId)}
         </Link>
       </h2>
-      {dueDate && (
-        <p>
-          <Icon name="time" />
-          Due {formatTimestamp(dueDate)}
-        </p>
-      )}
+      {dueDate && <VenueListItemDueDate dueDate={dueDate} />}
     </li>
   )
 }
