@@ -397,9 +397,9 @@ export const NewReplyEditNoteReaders = ({
           }))
           parentReadersToAutoSelect = isDirectReplyToForum
             ? []
-            : replyToNote?.readers?.filter((p) =>
+            : (replyToNote?.readers?.filter((p) =>
                 optionWithParentReaders.find((q) => q.value === p)
-              ) ?? []
+              ) ?? [])
           defaultValues = fieldDescription?.param?.default ?? []
 
           if (!value && (defaultValues.length || parentReadersToAutoSelect.length))
@@ -524,6 +524,17 @@ export const NewReplyEditNoteReaders = ({
     }
   }
 
+  const getReadersWarning = () => {
+    if (isDirectReplyToForum) return null
+    if (!value) return null
+    if (!value.includes(replyToNote.signatures[0]))
+      return { message: "This reply won't be visible to the parent note author" }
+    if (!isEqualOrSubset(replyToNote.readers, value)) {
+      return { message: "This reply won't be visible to all the readers of the parent note" }
+    }
+    return null
+  }
+
   useEffect(() => {
     if (!user || !fieldDescription) return // not essentially an error
     if (Array.isArray(fieldDescription) || fieldDescription.param.const) {
@@ -547,7 +558,7 @@ export const NewReplyEditNoteReaders = ({
     <EditorComponentHeader
       fieldNameOverwrite="Readers"
       inline={true}
-      error={error}
+      error={error ?? getReadersWarning()}
       className={className}
     >
       {renderReaders()}
