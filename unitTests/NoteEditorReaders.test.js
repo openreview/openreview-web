@@ -2658,7 +2658,7 @@ describe('NewReplyEditNoteReaders', () => {
 
     render(
       <NewReplyEditNoteReaders
-        replyToNote={{ readers: ['~Test_IDFive1', 'everyone'] }}
+        replyToNote={{ readers: ['~Test_IDFive1', 'everyone'], signatures: ['~Test_IDSix1'] }}
         fieldDescription={invitation.edit.note.readers}
         closeNoteEditor={jest.fn()}
         value={['~Test_IdOne1']} // triggered by onChange of default value
@@ -2716,7 +2716,7 @@ describe('NewReplyEditNoteReaders', () => {
 
     render(
       <NewReplyEditNoteReaders
-        replyToNote={{ readers: ['~Test_IDFive1', 'everyone'] }}
+        replyToNote={{ readers: ['~Test_IDFive1', 'everyone'], signatures: ['~Test_IDSix1'] }}
         fieldDescription={invitation.edit.note.readers}
         closeNoteEditor={jest.fn()}
         value={['~Test_IdOne1']} // triggered by onChange of default value
