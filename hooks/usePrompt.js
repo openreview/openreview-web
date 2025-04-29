@@ -18,6 +18,7 @@ export default function usePrompt() {
         ...(canClose && {
           closeIcon: <Icon name="remove" />,
         }),
+        animation: null,
       },
       (notification) => {
         setNotificationInstance(notification)
@@ -76,6 +77,7 @@ export default function usePrompt() {
           ...(canClose && {
             closeIcon: <Icon name="remove" />,
           }),
+          animation: null,
         },
         (notification) => {
           setNotificationInstance(notification)
