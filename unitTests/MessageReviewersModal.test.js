@@ -537,6 +537,7 @@ describe('MessageReviewersModal', () => {
         submissionName: 'Paper',
         areaChairName: 'Senior_Program_Committee',
         officialReviewName: 'Official_Review',
+        officialMetaReviewName: 'Official_Meta_Review',
       },
     }
     const componentProps = {
@@ -588,17 +589,14 @@ describe('MessageReviewersModal', () => {
       selectedIds: ['noteId1', 'noteId2'],
     }
 
-    const test = renderWithWebFieldContext(
-      <MessageReviewersModal {...componentProps} />,
-      providerProps
-    )
+    renderWithWebFieldContext(<MessageReviewersModal {...componentProps} />, providerProps)
 
     await waitFor(async () => {
       // title
       expect(basicModalProps.title).toEqual('All Area Chairs of Selected Papers')
       // instruction
       expect(basicModalProps.children[1].props.children[0].props.children).toEqual(
-        'You may customize the message that will be sent to the senior program committee. In the email body, the text {{submit_review_link}} will be replaced with a hyperlink to the form where the senior program committee can fill out his or her official review. You can also use {{fullname}} to personalize the recipient full name.'
+        'You may customize the message that will be sent to the senior program committee. In the email body, the text {{submit_review_link}} will be replaced with a hyperlink to the form where the senior program committee can fill out his or her official meta review. You can also use {{fullname}} to personalize the recipient full name.'
       )
       // go to step2
       await basicModalProps.onPrimaryButtonClick()
@@ -628,6 +626,116 @@ describe('MessageReviewersModal', () => {
           groups: ['~Test_AC1', '~Test_AC3'],
           replyTo: 'email@program.chairs',
           parentGroup: 'testVenue/Paper2/Senior_Program_Committee',
+        }),
+        expect.anything()
+      )
+    })
+  })
+
+  test('allow sending email to secondary area chairs', async () => {
+    api.post = jest.fn()
+    const providerProps = {
+      value: {
+        shortPhrase: 'Test Venue',
+        emailReplyTo: 'email@program.chairs',
+        venueId: 'testVenue',
+        submissionName: 'Paper',
+        areaChairName: 'Senior_Program_Committee',
+        secondaryAreaChairName: 'Secondary_Senior_Program_Committee',
+        officialReviewName: 'Official_Review',
+        officialMetaReviewName: 'Official_Meta_Review',
+        messageSubmissionSecondaryAreaChairsInvitationId:
+          'TestVenue/Paper{number}/Secondary_Area_Chairs/-/Message',
+      },
+    }
+    const componentProps = {
+      tableRowsDisplayed: [
+        {
+          note: { id: 'noteId1', number: 1 },
+          metaReviewData: {
+            secondaryAreaChairs: [
+              {
+                anonymizedGroup: '~Test_AC1',
+                noteNumber: 1,
+                preferredId: '~Test_AC1',
+                preferredName: 'AC_One',
+              },
+              {
+                anonymizedGroup: '~Test_AC2',
+                noteNumber: 1,
+                preferredId: '~Test_AC2',
+                preferredName: 'AC_Two',
+              },
+            ],
+          },
+        },
+        {
+          note: { id: 'noteId2', number: 2 },
+          metaReviewData: {
+            secondaryAreaChairs: [
+              {
+                anonymizedGroup: '~Test_AC1',
+                noteNumber: 2,
+                preferredId: '~Test_AC1',
+                preferredName: 'AC_One',
+              },
+              {
+                anonymizedGroup: '~Test_AC3',
+                noteNumber: 2,
+                preferredId: '~Test_AC3',
+                preferredName: 'AC_Three',
+              },
+            ],
+          },
+        },
+      ],
+      messageModalId: 'message-reviewers',
+      messageOption: {
+        value: 'allSecondaryAreaChairs',
+        label: 'All Secondary Area Chairs of Selected Papers',
+      },
+      selectedIds: ['noteId1', 'noteId2'],
+    }
+
+    renderWithWebFieldContext(<MessageReviewersModal {...componentProps} />, providerProps)
+
+    await waitFor(async () => {
+      // title
+      expect(basicModalProps.title).toEqual('All Secondary Area Chairs of Selected Papers')
+      // instruction
+      expect(basicModalProps.children[1].props.children[0].props.children).toEqual(
+        'You may customize the message that will be sent to the secondary senior program committee. In the email body, the text {{submit_review_link}} will be replaced with a hyperlink to the form where the secondary senior program committee can fill out his or her official meta review. You can also use {{fullname}} to personalize the recipient full name.'
+      )
+      // go to step2
+      await basicModalProps.onPrimaryButtonClick()
+    })
+
+    await waitFor(async () => {
+      // send messages
+      await basicModalProps.onPrimaryButtonClick()
+    })
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledTimes(2)
+      expect(api.post).toHaveBeenNthCalledWith(
+        1,
+        expect.anything(),
+        expect.objectContaining({
+          groups: ['~Test_AC1', '~Test_AC2'],
+          replyTo: 'email@program.chairs',
+          parentGroup: 'testVenue/Paper1/Senior_Program_Committee',
+          invitation: 'TestVenue/Paper1/Secondary_Area_Chairs/-/Message',
+        }),
+        expect.anything()
+      )
+      expect(api.post).toHaveBeenNthCalledWith(
+        2,
+        expect.anything(),
+        expect.objectContaining({
+          groups: ['~Test_AC1', '~Test_AC3'],
+          replyTo: 'email@program.chairs',
+          parentGroup: 'testVenue/Paper2/Senior_Program_Committee',
+          invitation: 'TestVenue/Paper2/Secondary_Area_Chairs/-/Message',
         }),
         expect.anything()
       )

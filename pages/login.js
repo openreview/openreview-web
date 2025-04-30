@@ -80,7 +80,7 @@ const LoginForm = () => {
         <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
           <strong>Terms of Use</strong>
         </a>
-        , last updated September 22, 2023.
+        , last updated September 24, 2024.
       </p>
       <button
         type="submit"

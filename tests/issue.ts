@@ -67,3 +67,20 @@ test('login button to show tooltip when email is invalid', async (t) => {
         'Please enter a valid email address'
       ).exists).notOk()
 })
+
+test('terms and conditions date should be updated', async (t) => {
+  // terms page, privacy page, login page and signup page
+  const lastUpdatedDate = 'September 24, 2024'
+  await t
+    .navigateTo(`${homepageUrl}/legal/terms`)
+    .expect(Selector('p').withText(lastUpdatedDate).exists).ok()
+
+  await t
+    .navigateTo(`${homepageUrl}/legal/privacy`)
+    .expect(Selector('p').withText(lastUpdatedDate).exists).ok()
+
+  await t
+    .navigateTo(`${homepageUrl}/login`)
+    .expect(Selector('p').withText(lastUpdatedDate).exists).ok()
+
+})

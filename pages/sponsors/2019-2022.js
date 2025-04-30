@@ -19,9 +19,7 @@ export default function SponsorsOld({ sponsors }) {
       <div className="row">
         <div className="col-xs-12 col-md-10 col-md-offset-1 mb-3 text-center">
           <h1>OpenReview Sponsors 2019–2022</h1>
-          <h5>
-            We gratefully acknowledge the support of all our sponsors from previous years:
-          </h5>
+          <h5>We gratefully acknowledge the support of all our sponsors from 2019-2022:</h5>
         </div>
       </div>
 
@@ -138,13 +136,6 @@ export default function SponsorsOld({ sponsors }) {
       </div>
 
       <div className="row mt-2 mb-4">
-        <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
-          <p>
-            <Link href="/donate" className="btn btn-lg btn-primary">
-              Donate to OpenReview
-            </Link>
-          </p>
-        </div>
         <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
           <p>
             <Link href="/sponsors">View current sponsors &raquo;</Link>

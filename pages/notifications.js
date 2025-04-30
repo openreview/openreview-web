@@ -130,7 +130,7 @@ export default function Notifications({ appContext }) {
       confirmedEmails.map((email) =>
         api
           .get('/messages', { to: email, viewed: false }, { accessToken })
-          .then((apiRes) => apiRes.count ?? 0)
+          .then((apiRes) => apiRes.messages?.length ?? 0)
       )
     )
       .then((counts) => {

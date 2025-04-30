@@ -30,6 +30,7 @@ export default function ProfileEditor({
   loading,
   isNewProfile,
   saveProfileErrors,
+  loadProfile,
 }) {
   const profileReducer = (state, action) => {
     if (action.type === 'reset') return action.data
@@ -219,7 +220,7 @@ export default function ProfileEditor({
       return promptInvalidValue(
         'history',
         null,
-        'Education and career history cannot be empty'
+        'Career and education history cannot be empty'
       )
     }
     if (
@@ -235,7 +236,7 @@ export default function ProfileEditor({
       return promptInvalidValue(
         'history',
         invalidRecord.key,
-        'You must enter position, institution, domain and country/region information for each entry in your education and career history'
+        'You must enter position, institution, domain and country/region information for each entry in your career and education history'
       )
     }
     if (!profileContent.history.some((p) => !p.end || p.end >= new Date().getFullYear())) {
@@ -243,7 +244,7 @@ export default function ProfileEditor({
       return promptInvalidValue(
         'history',
         profile.history?.[0]?.key,
-        'Your Education & Career History must include at least one current position.'
+        'Your Career & Education History must include at least one current position.'
       )
     }
     // #endregion
@@ -487,6 +488,7 @@ export default function ProfileEditor({
               updateEmails={(emails) => setProfile({ type: 'emails', data: emails })}
               institutionDomains={institutionDomains}
               isNewProfile={isNewProfile}
+              loadProfile={loadProfile}
             />
           </ProfileSection>
         )
@@ -532,8 +534,8 @@ export default function ProfileEditor({
       case 4:
         return (
           <ProfileSection
-            title={`Education & Career History${isNewProfile ? ' *' : ''}`}
-            instructions="Enter your education and career history. The institution domain is used for
+            title={`Career & Education History${isNewProfile ? ' *' : ''}`}
+            instructions="Enter your career and education history. The institution domain is used for
           conflict of interest detection, author deduplication, analysis of career path history, and
           tallies of institutional diversity. For ongoing positions, leave the End field blank."
           >
@@ -716,7 +718,7 @@ export default function ProfileEditor({
           {
             step: 4,
             title: 'History',
-            description: 'Education & Career History',
+            description: 'Career & Education History',
             status: getStepStatus(4),
           },
           {
@@ -740,7 +742,7 @@ export default function ProfileEditor({
           <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
             <strong>Terms of Use</strong>
           </a>
-          , last updated September 22, 2023.
+          , last updated September 24, 2024.
         </p>
       )}
 
