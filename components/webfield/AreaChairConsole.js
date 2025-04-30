@@ -883,18 +883,20 @@ const AreaChairConsole = ({ appContext }) => {
             content: <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />,
             visible: true,
           },
-          ...(extraRoleNamesWithUrlFormat?.length>0?extraRoleNamesWithUrlFormat?.map((role) => (
-            {
-              id: `${role.urlFormat}-tasks`,
-              label: `${getSingularRoleName(prettyField(role.name))} Tasks`,
-              content: <AreaChairConsoleTasks
-                  venueId={venueId}
-                  areaChairName={role.name}
-                  defaultAreaChairName={areaChairName}
-                />,
-              visible: true
-            }
-          )):[]),
+          ...(extraRoleNamesWithUrlFormat?.length > 0
+            ? extraRoleNamesWithUrlFormat.map((role) => ({
+                id: `${role.urlFormat}-tasks`,
+                label: `${getSingularRoleName(prettyField(role.name))} Tasks`,
+                content: (
+                  <AreaChairConsoleTasks
+                    venueId={venueId}
+                    areaChairName={role.name}
+                    defaultAreaChairName={areaChairName}
+                  />
+                ),
+                visible: true,
+              }))
+            : []),
         ]}
         updateActiveTabId={setActiveTabId}
       />
