@@ -913,7 +913,7 @@ export default function Forum({
         })
       })
       .then(([newReplies, newTags]) => {
-        const groupedTags = groupBy(newTags, 'replyto')
+        const groupedTags = groupBy(newTags, 'note')
 
         let newMessageAuthor = ''
         let newMessage = ''

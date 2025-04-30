@@ -304,7 +304,7 @@ module.exports = (function () {
     query.limit = options.pageSize
     query.invitation = invitationId
 
-    return get('/notes', query).then(function (result) {
+    return get('/notes', query, { handleErrors: false }).then(function (result) {
       if (options.includeCount) {
         return result
       } else {
