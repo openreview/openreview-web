@@ -512,14 +512,15 @@ const AreaChairConsole = ({ appContext }) => {
         const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
         const metaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
-        const metaReview = note.details.replies.find((p) => {
-          if (skipMetaReviewSignatureCheck)
-            return p.invitations.includes(metaReviewInvitationId)
-          return (
-            p.invitations.includes(metaReviewInvitationId) &&
-            p.signatures[0] === anonymousAreaChairIdByNumber[note.number]
-          )
+        const allMetaReviews = note.details.replies.flatMap((p) => {
+          if (!p.invitations.includes(metaReviewInvitationId)) return []
+          return {
+            ...p,
+            anonId: getIndentifierFromGroup(p.signatures[0], `${singularName}_`),
+            isByOtherAC: p.signatures[0] !== anonymousAreaChairIdByNumber[note.number],
+          }
         })
+        const metaReview = allMetaReviews.find((p) => !p.isByOtherAC)
         return {
           note,
           reviewers: result[1]
@@ -562,6 +563,20 @@ const AreaChairConsole = ({ appContext }) => {
             }, {}),
             metaReviewInvitationId: `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`,
             metaReview,
+            metaReviewByOtherACs: allMetaReviews.flatMap((p) => {
+              if (p.isByOtherAC)
+                return {
+                  [metaReviewRecommendationName]:
+                    p.content?.[metaReviewRecommendationName]?.value ?? 'N/A',
+                  ...additionalMetaReviewFields.reduce((prev, curr) => {
+                    const additionalMetaReviewFieldValue = p.content?.[curr]?.value ?? 'N/A'
+                    return { ...prev, [curr]: additionalMetaReviewFieldValue }
+                  }, {}),
+                  anonId: p.anonId,
+                  id: p.id,
+                }
+              return []
+            }),
           },
           messageSignature: anonymousAreaChairIdByNumber[note.number],
           ...(ithenticateInvitationId && {

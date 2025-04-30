@@ -2096,7 +2096,7 @@ describe('AreaChairConsole', () => {
     })
   })
 
-  test('take 1st meta review when skipMetaReviewSignatureCheck is set to true', async () => {
+  test('show meta review by other ac when user did not submit', async () => {
     // some conferences assign multiple AC but require only one AC to submit meta review
     const ac1AnonId = Math.random().toString(36).substring(2, 6)
     const ac2AnonId = Math.random().toString(36).substring(2, 6)
@@ -2120,10 +2120,149 @@ describe('AreaChairConsole', () => {
               number: 1,
               details: {
                 replies: [
+                  // only the other AC(1) submitted meta review
                   {
                     id: 'metaReview1Id',
                     content: {
-                      recommendation: { value: 'Very strong Accept' }, // will be taken as 1st meta review
+                      recommendation: { value: 'Very strong Accept' },
+                    },
+                    invitations: ['AAAI.org/2025/Conference/Submission1/-/Meta_Review'],
+                    signatures: [
+                      `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${ac1AnonId}`,
+                    ],
+                  },
+                ],
+              },
+            },
+          ])
+        default:
+          return null
+      }
+    })
+    api.get = jest.fn((path) => {
+      switch (path) {
+        case '/groups': // reviewer groups
+          return Promise.resolve({
+            groups: [
+              // paper 1 all ac group
+              {
+                id: 'AAAI.org/2025/Conference/Submission1/Senior_Program_Committee',
+                members: [
+                  `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${ac1AnonId}`,
+                  `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${ac2AnonId}`,
+                ],
+              },
+              // paper 1 ac1 group
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${ac1AnonId}`,
+                members: ['~PaperOne_AC1'],
+              },
+              // paper 1 ac2 group
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${ac2AnonId}`,
+                members: ['~PaperOne_AC2'],
+              },
+            ],
+          })
+        case '/edges': // sac assignments
+          return Promise.resolve({ edges: [] })
+        default:
+          return null
+      }
+    })
+    api.post = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            content: {
+              names: [{ username: '~PaperOne_AC1', fullname: 'PaperOne AC1' }],
+              emails: [],
+            },
+          },
+          {
+            content: {
+              names: [{ username: '~PaperOne_AC2', fullname: 'PaperOne AC2' }],
+              emails: [],
+            },
+          },
+        ],
+      })
+    ) // profile search
+
+    const providerProps = {
+      value: {
+        header: { title: 'Senior Program Committee', instructions: 'some instructions' },
+        entity: { id: 'AAAI.org/2025/Conference/Senior_Program_Committee' },
+        venueId: 'AAAI.org/2025/Conference',
+        reviewerAssignment: {
+          showEdgeBrowserUrl: true,
+          proposedAssignmentTitle: 'Proposed Assignment',
+          edgeBrowserProposedUrl: 'proposed edge browser url',
+          edgeBrowserDeployedUrl: 'deployed edge browser url',
+        },
+        submissionInvitationId: 'AAAI.org/2025/Conference/-/Submission',
+        seniorAreaChairsId: 'AAAI.org/2025/Conference/Area_Chairs',
+        areaChairName: 'Senior_Program_Committee',
+        submissionName: 'Submission',
+        officialReviewName: 'First_Round_Review',
+        reviewRatingName: 'rating',
+        reviewConfidenceName: 'confidence',
+        officialMetaReviewName: 'Meta_Review',
+        reviewerName: 'Program_Committee',
+        anonReviewerName: 'Program_Committee_',
+        metaReviewRecommendationName: undefined,
+        additionalMetaReviewFields: ['final_recommendation'],
+        shortPhrase: 'AAAI 2025',
+        filterOperators: undefined,
+        propertiesAllowed: undefined,
+        enableQuerySearch: true,
+        emailReplyTo: 'pc@aaai.org',
+        extraExportColumns: undefined,
+      },
+    }
+
+    renderWithWebFieldContext(
+      <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Very strong Accept')).toBeInTheDocument()
+      expect(
+        screen.getByText('Very strong Accept').parentElement.previousElementSibling.textContent
+      ).toEqual(`Recommendation by ${ac1AnonId}:`)
+    })
+  })
+
+  test('only show meta review of user when user has posted meta review', async () => {
+    // some conferences assign multiple AC but require only one AC to submit meta review
+    const ac1AnonId = Math.random().toString(36).substring(2, 6)
+    const ac2AnonId = Math.random().toString(36).substring(2, 6)
+    api.getAll = jest.fn((path, param) => {
+      switch (path) {
+        case '/groups': // all groups
+          return Promise.resolve([
+            {
+              id: 'AAAI.org/2025/Conference/Submission1/Senior_Program_Committee',
+            },
+            // no AC1 anon group
+            {
+              id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${ac2AnonId}`,
+            },
+          ])
+        case '/notes':
+          return Promise.resolve([
+            {
+              id: 'note1Id',
+              forum: 'note1Id',
+              number: 1,
+              details: {
+                replies: [
+                  // both AC(1) and AC(2) submitted meta review
+                  {
+                    id: 'metaReview1Id',
+                    content: {
+                      recommendation: { value: 'Very strong Accept' },
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission1/-/Meta_Review'],
                     signatures: [
@@ -2227,7 +2366,6 @@ describe('AreaChairConsole', () => {
         enableQuerySearch: true,
         emailReplyTo: 'pc@aaai.org',
         extraExportColumns: undefined,
-        skipMetaReviewSignatureCheck: true, // skip signature check
       },
     }
 
@@ -2237,7 +2375,8 @@ describe('AreaChairConsole', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('Very strong Accept')).toBeInTheDocument()
+      expect(screen.queryByText('Very strong Accept')).not.toBeInTheDocument()
+      expect(screen.getByText('Reject')).toBeInTheDocument()
     })
   })
 })
