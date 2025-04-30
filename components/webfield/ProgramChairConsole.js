@@ -1,6 +1,7 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import groupBy from 'lodash/groupBy'
+import { orderBy } from 'lodash'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
@@ -84,8 +85,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     messageSeniorAreaChairsInvitationId,
     preferredEmailInvitationId,
     ithenticateInvitationId,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
-  const { setBannerContent } = appContext
+  const { setBannerContent, setLayoutOptions } = appContext
   const { user, accessToken, userLoading } = useUser()
   const query = useQuery()
   const [pcConsoleData, setPcConsoleData] = useState({})
@@ -459,6 +461,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const metaReviewsByPaperNumberMap = new Map()
       const decisionByPaperNumberMap = new Map()
       const customStageReviewsByPaperNumberMap = new Map()
+      const displayReplyInvitationsByPaperNumberMap = new Map()
       notes.forEach((note) => {
         const replies = note.details.replies ?? []
         const officialReviews = replies
@@ -512,10 +515,32 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         const customStageReviews = replies.filter((p) =>
           p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
         )
+        const displayReplies = displayReplyInvitations?.map((p) => {
+          const displayInvitaitonId = p.id.replaceAll('{number}', note.number)
+          const latestReply = orderBy(
+            replies.filter((q) => q.invitations.includes(displayInvitaitonId)),
+            ['mdate'],
+            'desc'
+          )?.[0]
+          return {
+            id: latestReply?.id,
+            date: latestReply?.mdate,
+            invitationId: displayInvitaitonId,
+            values: p.fields.map((field) => {
+              const value = latestReply?.content?.[field]?.value?.toString()
+              return {
+                field,
+                value,
+              }
+            }),
+            signature: latestReply?.signatures?.[0],
+          }
+        })
         officialReviewsByPaperNumberMap.set(note.number, officialReviews)
         metaReviewsByPaperNumberMap.set(note.number, metaReviews)
         decisionByPaperNumberMap.set(note.number, decision)
         customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
+        displayReplyInvitationsByPaperNumberMap.set(note.number, displayReplies)
       })
 
       setPcConsoleData({
@@ -532,6 +557,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         metaReviewsByPaperNumberMap,
         decisionByPaperNumberMap,
         customStageReviewsByPaperNumberMap,
+        displayReplyInvitationsByPaperNumberMap,
         withdrawnNotes: results[4].flatMap((note) => {
           if (note.content?.venueid?.value === withdrawnVenueId) return note
           return []
@@ -832,6 +858,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             )?.profile
             return {
               ...areaChair,
+              noteNumber: note.number,
+              preferredId: profile ? profile.id : areaChair.areaChairProfileId,
               preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
               title: profile?.title,
             }
@@ -865,7 +893,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             }
           }, {}),
         },
-
+        displayReplies: pcConsoleData.displayReplyInvitationsByPaperNumberMap.get(note.number),
         decision,
         venue: note?.content?.venue?.value,
         messageSignature: programChairsId,
@@ -1016,7 +1044,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   useEffect(() => {
     if (!query) return
-
+    if (displayReplyInvitations?.length)
+      setLayoutOptions({ fullWidth: true, minimalFooter: true })
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
     } else {
@@ -1029,6 +1058,13 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     loadData()
   }, [user, userLoading, group])
 
+  useEffect(
+    () => () => {
+      setLayoutOptions({ fullWidth: false, minimalFooter: false })
+    },
+    []
+  )
+  
   const missingConfig = Object.entries({
     header,
     entity: group,

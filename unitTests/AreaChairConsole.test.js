@@ -160,7 +160,7 @@ describe('AreaChairConsole', () => {
     expect(api.post).not.toHaveBeenCalled()
   })
 
-  test('show assigned papers tab and ac tasks tab', async () => {
+  test('show assigned papers tab and ac tasks tab and tasks tabs specified by extraRoleNames', async () => {
     api.getAll = jest.fn((path) => {
       switch (path) {
         case '/groups': // all groups
@@ -213,6 +213,7 @@ describe('AreaChairConsole', () => {
         enableQuerySearch: true,
         emailReplyTo: 'pc@aaai.org',
         extraExportColumns: undefined,
+        extraRoleNames: ['Secondary_Area_Chairs'],
       },
     }
 
@@ -230,6 +231,9 @@ describe('AreaChairConsole', () => {
       ).toBeInTheDocument()
       expect(
         screen.getByRole('tab', { name: 'Senior Program Committee Tasks' })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('tab', { name: 'Secondary Area Chair Tasks' })
       ).toBeInTheDocument()
     })
   })

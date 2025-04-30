@@ -18,6 +18,7 @@ import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
+import { formatProfileContent } from '../../../lib/edge-utils'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.reviewerProfile ?? {}
@@ -180,7 +181,7 @@ const ReviewerProgress = ({
                             ratingDisplayName = ratingName
                             ratingValue = officialReview[ratingName]
                           }
-                          if (!ratingValue) return null
+                          if (ratingValue === undefined) return null
                           return (
                             <span key={ratingName}>
                               {prettyField(ratingDisplayName)}: {ratingValue}{' '}
@@ -373,6 +374,8 @@ const ReviewerStatusTab = ({
           })
           // eslint-disable-next-line no-param-reassign
           profile.registrationNotes = userRegNotes
+          // eslint-disable-next-line no-param-reassign
+          profile.title = formatProfileContent(profile.content).title
 
           usernames.concat(profile.email ?? []).forEach((key) => {
             reviewerProfileWithoutAssignmentMap.set(key, profile)
