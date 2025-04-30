@@ -2,13 +2,14 @@
 
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import { orderBy } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import Table from '../Table'
 import ErrorDisplay from '../ErrorDisplay'
 import NoteSummary from './NoteSummary'
-import { AcPcConsoleNoteReviewStatus } from './NoteReviewStatus'
+import { AcPcConsoleNoteReviewStatus, LatestReplies } from './NoteReviewStatus'
 import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
@@ -24,32 +25,15 @@ import {
   pluralizeString,
   getSingularRoleName,
   getRoleHashFragment,
+  buildNoteTitle,
 } from '../../lib/utils'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
 import { getProfileLink } from '../../lib/webfield-utils'
-
-const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
-  const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
-
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedNoteIds(allNoteIds)
-      return
-    }
-    setSelectedNoteIds([])
-  }
-  return (
-    <input
-      type="checkbox"
-      id="select-all-papers"
-      checked={allNotesSelected}
-      onChange={handleSelectAll}
-    />
-  )
-}
+import { formatProfileContent } from '../../lib/edge-utils'
+import SelectAllCheckBox from './SelectAllCheckbox'
 
 const AssignedPaperRow = ({
   rowData,
@@ -64,6 +48,7 @@ const AssignedPaperRow = ({
   showCheckbox = true,
   additionalMetaReviewFields,
   activeTabId,
+  displayReplyInvitations,
 }) => {
   const { note, metaReviewData, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
@@ -109,6 +94,11 @@ const AssignedPaperRow = ({
           submissionName={submissionName}
         />
       </td>
+      {displayReplyInvitations?.length && (
+        <td>
+          <LatestReplies rowData={rowData} referrerUrl={referrerUrl} />
+        </td>
+      )}
       <td>
         <AreaChairConsoleNoteMetaReviewStatus
           note={note}
@@ -122,12 +112,16 @@ const AssignedPaperRow = ({
   )
 }
 
-const AreaChairConsoleTasks = ({ venueId, areaChairName }) => {
+const AreaChairConsoleTasks = ({
+  venueId,
+  areaChairName,
+  defaultAreaChairName = areaChairName,
+}) => {
   const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
   const referrer = encodeURIComponent(
     `[${prettyField(
-      areaChairName
-    )} Console](/group?id=${venueId}/${areaChairName}#${areaChairUrlFormat}-tasks)`
+      defaultAreaChairName
+    )} Console](/group?id=${venueId}/${defaultAreaChairName}#${areaChairUrlFormat}-tasks)`
   )
 
   return (
@@ -165,7 +159,11 @@ const AreaChairConsole = ({ appContext }) => {
     enableQuerySearch,
     emailReplyTo,
     extraExportColumns,
+    preferredEmailInvitationId,
     ithenticateInvitationId,
+    extraRoleNames,
+    sortOptions,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
@@ -180,8 +178,9 @@ const AreaChairConsole = ({ appContext }) => {
   const [acConsoleData, setAcConsoleData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || `#assigned-${pluralizeString(submissionName)}`
+    decodeURIComponent(window.location.hash) || `#assigned-${pluralizeString(submissionName)}`
   )
+  const [sacLinkText, setSacLinkText] = useState('')
 
   const edgeBrowserUrl = proposedAssignmentTitle
     ? edgeBrowserProposedUrl
@@ -195,6 +194,10 @@ const AreaChairConsole = ({ appContext }) => {
     : header?.instructions
 
   const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
+  const extraRoleNamesWithUrlFormat = extraRoleNames?.map((roleName) => ({
+    name: roleName,
+    urlFormat: getRoleHashFragment(roleName),
+  }))
   const secondaryAreaChairUrlFormat = secondaryAreaChairName
     ? getRoleHashFragment(secondaryAreaChairName)
     : null
@@ -206,8 +209,8 @@ const AreaChairConsole = ({ appContext }) => {
     return name ? name.fullname : prettyId(reviewerProfile.id)
   }
 
-  const getSACLinkText = () => {
-    if (!acConsoleData.sacProfiles?.length) return ''
+  const getSACLinkText = async () => {
+    if (!acConsoleData.sacProfiles?.length) return
     const sacName = prettyField(seniorAreaChairsId?.split('/')?.pop())
     const singluarSACName = sacName.endsWith('s') ? sacName.slice(0, -1) : sacName
     const sacText = `Your assigned ${inflect(
@@ -215,18 +218,38 @@ const AreaChairConsole = ({ appContext }) => {
       `${singluarSACName} is`,
       `${singluarSACName}s are`
     )}`
+
+    let sacEmails = []
+    if (preferredEmailInvitationId) {
+      try {
+        const sacEmailPs = acConsoleData.sacProfiles.map((sacProfile) =>
+          api
+            .get(
+              '/edges',
+              { invitation: preferredEmailInvitationId, head: sacProfile.id },
+              { accessToken }
+            )
+            .then((result) => result.edges[0]?.tail)
+        )
+        sacEmails = await Promise.all(sacEmailPs)
+      } catch (error) {
+        /* empty */
+      }
+    }
     const sacProfileLinks = acConsoleData.sacProfiles.map(
-      (sacProfile) =>
-        `<a href="${getProfileLink(sacProfile.id)}" >${prettyId(sacProfile.id)}</a> (${
-          sacProfile.email
-        })`
+      (sacProfile, index) =>
+        `<a href="${getProfileLink(sacProfile.id)}" >${prettyId(sacProfile.id)}</a>${
+          sacEmails[index] ? `(${sacEmails[index]})` : ''
+        }`
     )
-    return `<p class="dark">${sacText} ${prettyList(
-      sacProfileLinks,
-      'long',
-      'conjunction',
-      false
-    )}</p>`
+    setSacLinkText(
+      `<p class="dark">${sacText} ${prettyList(
+        sacProfileLinks,
+        'long',
+        'conjunction',
+        false
+      )}</p>`
+    )
   }
 
   const loadData = async () => {
@@ -317,7 +340,7 @@ const AreaChairConsole = ({ appContext }) => {
                     (t.id === r || t.members[0] === r)
                 )
                 return {
-                  anonymizedGroup: anonymousReviewerGroup?.id,
+                  anonymizedGroup: anonymousReviewerGroup?.id ?? r,
                   anonymousId: getIndentifierFromGroup(
                     anonymousReviewerGroup?.id || r,
                     anonReviewerName
@@ -406,9 +429,12 @@ const AreaChairConsole = ({ appContext }) => {
       // #region calculate reviewProgressData and metaReviewData
       const notes = result[0]
       const ithenticateEdges = result[3]
-      const allProfiles = (profileResults[0].profiles ?? []).concat(
-        profileResults[1].profiles ?? []
-      )
+      const allProfiles = (profileResults[0].profiles ?? [])
+        .concat(profileResults[1].profiles ?? [])
+        .map((profile) => ({
+          ...profile,
+          title: formatProfileContent(profile.content).title,
+        }))
       const tableRows = notes.map((note) => {
         const assignedReviewers =
           result[1].find((p) => p.number === note.number)?.reviewers ?? []
@@ -416,7 +442,7 @@ const AreaChairConsole = ({ appContext }) => {
           allProfiles.find(
             (p) =>
               p.content.names.some((q) => q.username === reviewer.reviewerProfileId) ||
-              p.content.emails.includes(reviewer.reviewerProfileId)
+              p.email === reviewer.reviewerProfileId
           )
         )
         const officialReviews = note.details.replies
@@ -426,11 +452,11 @@ const AreaChairConsole = ({ appContext }) => {
           })
           ?.map((q) => {
             const anonymousId = getIndentifierFromGroup(q.signatures[0], anonReviewerName)
-            const reviewValue = q.content.review?.value
+            const reviewValue = q.content?.review?.value
             return {
               ...q,
               anonymousId,
-              confidence: parseNumberField(q.content[reviewConfidenceName]?.value),
+              confidence: parseNumberField(q.content?.[reviewConfidenceName]?.value),
               ...Object.fromEntries(
                 (Array.isArray(reviewRatingName) ? reviewRatingName : [reviewRatingName]).map(
                   (ratingName) => {
@@ -439,9 +465,9 @@ const AreaChairConsole = ({ appContext }) => {
                     const ratingValue =
                       typeof ratingName === 'object'
                         ? Object.values(ratingName)[0]
-                            .map((r) => q.content[r]?.value)
+                            .map((r) => q.content?.[r]?.value)
                             .find((s) => s !== undefined)
-                        : q.content[ratingName]?.value
+                        : q.content?.[ratingName]?.value
                     return [[ratingDisplayName], parseNumberField(ratingValue)]
                   }
                 )
@@ -496,7 +522,7 @@ const AreaChairConsole = ({ appContext }) => {
               const profile = allProfiles.find(
                 (p) =>
                   p.content.names.some((q) => q.username === reviewer.reviewerProfileId) ||
-                  p.content.emails.includes(reviewer.reviewerProfileId)
+                  p.email === reviewer.reviewerProfileId
               )
               return {
                 ...reviewer,
@@ -506,9 +532,6 @@ const AreaChairConsole = ({ appContext }) => {
                 noteNumber: note.number,
                 preferredId: reviewer.reviewerProfileId,
                 preferredName: profile ? getReviewerName(profile) : reviewer.reviewerProfileId,
-                preferredEmail: profile
-                  ? profile.content.preferredEmail ?? profile.content.emails[0]
-                  : reviewer.reviewerProfileId,
               }
             }),
           reviewerProfiles: assignedReviewerProfiles,
@@ -525,9 +548,10 @@ const AreaChairConsole = ({ appContext }) => {
           },
           metaReviewData: {
             [metaReviewRecommendationName]:
-              metaReview?.content[metaReviewRecommendationName]?.value ?? 'N/A',
+              metaReview?.content?.[metaReviewRecommendationName]?.value ?? 'N/A',
             ...additionalMetaReviewFields.reduce((prev, curr) => {
-              const additionalMetaReviewFieldValue = metaReview?.content[curr]?.value ?? 'N/A'
+              const additionalMetaReviewFieldValue =
+                metaReview?.content?.[curr]?.value ?? 'N/A'
               return { ...prev, [curr]: additionalMetaReviewFieldValue }
             }, {}),
             metaReviewInvitationId: `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`,
@@ -539,13 +563,34 @@ const AreaChairConsole = ({ appContext }) => {
             ithenticateWeight:
               ithenticateEdges.find((p) => p.head === note.id)?.weight ?? 'N/A',
           }),
+          displayReplies: displayReplyInvitations?.map((p) => {
+            const displayInvitaitonId = p.id.replaceAll('{number}', note.number)
+            const latestReply = orderBy(
+              note.details.replies.filter((q) => q.invitations.includes(displayInvitaitonId)),
+              ['mdate'],
+              'desc'
+            )?.[0]
+            return {
+              id: latestReply?.id,
+              date: latestReply?.mdate,
+              invitationId: displayInvitaitonId,
+              values: p.fields.map((field) => {
+                const value = latestReply?.content?.[field]?.value?.toString()
+                return {
+                  field,
+                  value,
+                }
+              }),
+              signature: latestReply?.signatures?.[0],
+            }
+          }),
         }
       })
 
       const sacProfiles = allProfiles.filter(
         (p) =>
           p.content.names.some((q) => result[2].includes(q.username)) ||
-          p.content.emails.some((r) => result[2].includes(r))
+          result[2].includes(p.email)
       )
 
       const assignedPaperRows = tableRows.filter((p) =>
@@ -564,7 +609,6 @@ const AreaChairConsole = ({ appContext }) => {
         allProfiles,
         sacProfiles: sacProfiles.map((sacProfile) => ({
           id: sacProfile.id,
-          email: sacProfile.content.preferredEmail ?? sacProfile.content.emails[0],
         })),
       })
     } catch (error) {
@@ -588,6 +632,7 @@ const AreaChairConsole = ({ appContext }) => {
             tableRowsAll={acConsoleData.tableRowsAll}
             tableRows={acConsoleData.tableRows}
             selectedNoteIds={selectedNoteIds}
+            setSelectedNoteIds={setSelectedNoteIds}
             setAcConsoleData={setAcConsoleData}
             shortPhrase={shortPhrase}
             enableQuerySearch={enableQuerySearch}
@@ -603,6 +648,7 @@ const AreaChairConsole = ({ appContext }) => {
             officialMetaReviewName={officialMetaReviewName}
             areaChairName={areaChairName}
             ithenticateInvitationId={ithenticateInvitationId}
+            sortOptions={sortOptions}
           />
           <p className="empty-message">
             No assigned {submissionName.toLowerCase()} matching search criteria.
@@ -615,6 +661,7 @@ const AreaChairConsole = ({ appContext }) => {
           tableRowsAll={acConsoleData.tableRowsAll}
           tableRows={acConsoleData.tableRows}
           selectedNoteIds={selectedNoteIds}
+          setSelectedNoteIds={setSelectedNoteIds}
           setAcConsoleData={setAcConsoleData}
           shortPhrase={shortPhrase}
           enableQuerySearch={enableQuerySearch}
@@ -630,6 +677,7 @@ const AreaChairConsole = ({ appContext }) => {
           officialMetaReviewName={officialMetaReviewName}
           areaChairName={areaChairName}
           ithenticateInvitationId={ithenticateInvitationId}
+          sortOptions={sortOptions}
         />
         <Table
           className="console-table table-striped areachair-console-table"
@@ -638,9 +686,9 @@ const AreaChairConsole = ({ appContext }) => {
               id: 'select-all',
               content: (
                 <SelectAllCheckBox
-                  selectedNoteIds={selectedNoteIds}
-                  setSelectedNoteIds={setSelectedNoteIds}
-                  allNoteIds={acConsoleData.tableRows?.map((row) => row.note.id)}
+                  selectedIds={selectedNoteIds}
+                  setSelectedIds={setSelectedNoteIds}
+                  allIds={acConsoleData.tableRows?.map((row) => row.note.id)}
                 />
               ),
               width: '35px',
@@ -652,6 +700,15 @@ const AreaChairConsole = ({ appContext }) => {
               content: `${prettyField(officialReviewName)} Progress`,
               width: '34%',
             },
+            ...(displayReplyInvitations?.length
+              ? [
+                  {
+                    id: 'latestReplies',
+                    content: 'Latest Replies',
+                    width: '50%',
+                  },
+                ]
+              : []),
             {
               id: 'metaReviewStatus',
               content: `${prettyField(officialMetaReviewName)} Status`,
@@ -674,6 +731,7 @@ const AreaChairConsole = ({ appContext }) => {
               shortPhrase={shortPhrase}
               additionalMetaReviewFields={additionalMetaReviewFields}
               activeTabId={activeTabId}
+              displayReplyInvitations={displayReplyInvitations}
             />
           ))}
         </Table>
@@ -702,6 +760,15 @@ const AreaChairConsole = ({ appContext }) => {
               content: `${prettyField(officialReviewName)} Progress`,
               width: '34%',
             },
+            ...(displayReplyInvitations?.length
+              ? [
+                  {
+                    id: 'latestReplies',
+                    content: 'Latest Replies',
+                    width: '50%',
+                  },
+                ]
+              : []),
             {
               id: 'metaReviewStatus',
               content: `${prettyField(officialMetaReviewName)} Status`,
@@ -723,6 +790,7 @@ const AreaChairConsole = ({ appContext }) => {
               showCheckbox={false}
               additionalMetaReviewFields={additionalMetaReviewFields}
               activeTabId={activeTabId}
+              displayReplyInvitations={displayReplyInvitations}
             />
           ))}
         </Table>
@@ -739,16 +807,6 @@ const AreaChairConsole = ({ appContext }) => {
       setBannerContent(venueHomepageLink(venueId))
     }
   }, [query, venueId])
-
-  useEffect(() => {
-    if (!userLoading && !user) {
-      router.replace(
-        `/login?redirect=${encodeURIComponent(
-          `${window.location.pathname}${window.location.search}${window.location.hash}`
-        )}`
-      )
-    }
-  }, [user, userLoading])
 
   useEffect(() => {
     if (
@@ -771,10 +829,17 @@ const AreaChairConsole = ({ appContext }) => {
   }, [acConsoleData.notes])
 
   useEffect(() => {
+    getSACLinkText()
+  }, [acConsoleData.sacProfiles])
+
+  useEffect(() => {
     const validTabIds = [
       `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
       ...(secondaryAreaChairName ? [`#${secondaryAreaChairUrlFormat}-assignments`] : []),
       `#${areaChairUrlFormat}-tasks`,
+      ...(extraRoleNamesWithUrlFormat?.length
+        ? extraRoleNamesWithUrlFormat.map((role) => `#${role.urlFormat}-tasks`)
+        : []),
     ]
     if (!validTabIds.includes(activeTabId)) {
       setActiveTabId(`#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`)
@@ -813,7 +878,7 @@ const AreaChairConsole = ({ appContext }) => {
     <>
       <BasicHeader
         title={header?.title}
-        instructions={`${headerInstructions}${getSACLinkText()}`}
+        instructions={`${headerInstructions}${sacLinkText}`}
       />
 
       <Tabs>
@@ -851,8 +916,17 @@ const AreaChairConsole = ({ appContext }) => {
           >
             {getSingularRoleName(prettyField(areaChairName))} Tasks
           </Tab>
+          {extraRoleNamesWithUrlFormat?.map((role) => (
+            <Tab
+              key={role.name}
+              id={`${role.urlFormat}-tasks`}
+              active={activeTabId === `#${role.urlFormat}-tasks` ? true : undefined}
+              onClick={() => setActiveTabId(`#${role.urlFormat}-tasks`)}
+            >
+              {getSingularRoleName(prettyField(role.name))} Tasks
+            </Tab>
+          ))}
         </TabList>
-
         <TabPanels>
           <TabPanel id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}>
             {activeTabId === `#assigned-${pluralizeString(submissionName).toLowerCase()}` &&
@@ -869,6 +943,17 @@ const AreaChairConsole = ({ appContext }) => {
               <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />
             )}
           </TabPanel>
+          {extraRoleNamesWithUrlFormat?.map((role) => (
+            <TabPanel key={role.name} id={`${role.urlFormat}-tasks`}>
+              {activeTabId === `#${role.urlFormat}-tasks` && (
+                <AreaChairConsoleTasks
+                  venueId={venueId}
+                  areaChairName={role.name}
+                  defaultAreaChairName={areaChairName}
+                />
+              )}
+            </TabPanel>
+          ))}
         </TabPanels>
       </Tabs>
     </>

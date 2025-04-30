@@ -12,6 +12,8 @@
 /* globals typesetMathJax: false */
 /* globals OpenBanner: false */
 
+const copy = require('copy-to-clipboard')
+
 // eslint-disable-next-line wrap-iife
 module.exports = (function () {
   // Save authentication token as a private var
@@ -589,8 +591,12 @@ module.exports = (function () {
               subject: subject,
               forumUrl: user.forumUrl,
               replyTo: options.reminderOptions.replyTo,
-              invitation: options.reminderOptions.messageInvitationId && options.reminderOptions.messageInvitationId.replace('{number}', user.number),
-              signature: options.reminderOptions.messageInvitationId && options.reminderOptions.messageSignature,
+              invitation:
+                options.reminderOptions.messageInvitationId &&
+                options.reminderOptions.messageInvitationId.replace('{number}', user.number),
+              signature:
+                options.reminderOptions.messageInvitationId &&
+                options.reminderOptions.messageSignature,
             })
             count += groupIds.length
           }
@@ -653,8 +659,12 @@ module.exports = (function () {
             subject: $('#message-reviewers-modal input[name="subject"]').val().trim(),
             message: $('#message-reviewers-modal textarea[name="message"]').val().trim(),
             replyTo: options.reminderOptions.replyTo,
-            invitation: options.reminderOptions.messageInvitationId && options.reminderOptions.messageInvitationId.replace('{number}', paperNumber),
-            signature: options.reminderOptions.messageInvitationId && options.reminderOptions.messageSignature,
+            invitation:
+              options.reminderOptions.messageInvitationId &&
+              options.reminderOptions.messageInvitationId.replace('{number}', paperNumber),
+            signature:
+              options.reminderOptions.messageInvitationId &&
+              options.reminderOptions.messageSignature,
           }
 
           $('#message-reviewers-modal').modal('hide')
@@ -684,12 +694,47 @@ module.exports = (function () {
         return false
       })
 
+      $container.on('click', 'a.copy-email', function (e) {
+        var $link = $(this)
+        var userId = $link.data('userId')
+        var name = $link.data('userName')
+
+        if (!options.preferredEmailsInvitationId) {
+          promptError('Email is not available.', { scrollToTop: false })
+          return
+        }
+
+        get('/edges', { invitation: options.preferredEmailsInvitationId, head: userId }).then(
+          function (result) {
+            var email = result.edges?.[0]?.tail
+
+            if (!email) {
+              promptError('Email is not available.', { scrollToTop: false })
+              return
+            }
+            copy(`${name} <${email}>`)
+            promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+          },
+          function () {
+            promptError('Email is not available.', { scrollToTop: false })
+          }
+        )
+        return false
+      })
+
       var postReviewerEmails = function (postData) {
         postData.message = postData.message.replace('{{forumUrl}}', postData.forumUrl)
 
         return post(
           '/messages',
-          _.pick(postData, ['groups', 'subject', 'message', 'replyTo', 'invitation', 'signature'])
+          _.pick(postData, [
+            'groups',
+            'subject',
+            'message',
+            'replyTo',
+            'invitation',
+            'signature',
+          ])
         ).then(function (response) {
           // Save the timestamp in the local storage
           for (var i = 0; i < postData.groups.length; i++) {

@@ -26,14 +26,22 @@ const EthicsChairConsole = ({ appContext }) => {
     anonEthicsReviewerName,
     shortPhrase,
     ethicsMetaReviewName,
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext
   const router = useRouter()
   const query = useQuery()
-  const [activeTabId, setActiveTabId] = useState(window.location.hash || '#overview')
+  const [activeTabId, setActiveTabId] = useState(
+    decodeURIComponent(window.location.hash) || '#overview'
+  )
   const { user, userLoading } = useUser()
 
   const ethicsChairsUrlFormat = getRoleHashFragment(ethicsChairsName)
+  const validTabIds = [
+    '#overview',
+    `#${submissionName.toLowerCase()}-status`,
+    `#${ethicsChairsUrlFormat}-tasks`,
+  ]
 
   useEffect(() => {
     if (!query) return
@@ -46,19 +54,12 @@ const EthicsChairConsole = ({ appContext }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!activeTabId) return
+    if (!validTabIds.includes(activeTabId)) {
+      setActiveTabId(validTabIds[0])
+      return
+    }
     router.replace(activeTabId)
   }, [activeTabId])
-
-  useEffect(() => {
-    if (!userLoading && !user) {
-      router.replace(
-        `/login?redirect=${encodeURIComponent(
-          `${window.location.pathname}${window.location.search}${window.location.hash}`
-        )}`
-      )
-    }
-  }, [user, userLoading])
 
   const missingConfig = Object.entries({
     header,
@@ -68,7 +69,6 @@ const EthicsChairConsole = ({ appContext }) => {
     ethicsReviewersName,
     submissionId,
     submissionName,
-    ethicsReviewName,
     anonEthicsReviewerName,
     shortPhrase,
   })

@@ -26,32 +26,64 @@ const Tasks = ({ appContext }) => {
       duedate: true,
       details: 'repliedTags',
     }
-    const commonOptions = { accessToken, includeVersion: true }
 
     const invitationPromises = [
       api
-        .getCombined(
+        .get(
           '/invitations',
-          { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes', type: 'notes'},
-          { ...commonParams, replyto: true, details: 'replytoNote,repliedNotes,repliedEdits', type: 'note' },
-          commonOptions
+          {
+            ...commonParams,
+            replyto: true,
+            details: 'replytoNote,repliedNotes,repliedEdits',
+            type: 'note',
+          },
+          { accessToken }
         )
         .then(addPropertyToInvitations('noteInvitation')),
       api
-        .getCombined('/invitations', { ...commonParams, type: 'tags' }, { ...commonParams, type: 'tag' }, commonOptions)
+        .get('/invitations', { ...commonParams, type: 'tag' }, { accessToken })
         .then(addPropertyToInvitations('tagInvitation')),
       api
-        .getCombined(
+        .get(
           '/invitations',
-          { ...commonParams, type: 'edges', details: 'repliedEdges' },
           { ...commonParams, type: 'edge', details: 'repliedEdges' },
-          commonOptions
+          { accessToken }
         )
         .then(addPropertyToInvitations('tagInvitation')),
     ]
 
     Promise.all(invitationPromises)
-      .then((allInvitations) => setGroupedTasks(formatTasksData(allInvitations)))
+      .then(async (allInvitations) => {
+        const aERecommendationInvitations = allInvitations[2].filter((p) =>
+          p.id.endsWith('/Action_Editors/-/Recommendation')
+        )
+        const aERecommendationEdgesP = aERecommendationInvitations.map((p) =>
+          api
+            .get('/edges', {
+              invitation: `${p.domain}/Action_Editors/-/Recommendation`,
+              groupBy: 'head',
+            })
+            .then((result) => result.groupedEdges)
+        )
+        const edgeResults = await Promise.all(aERecommendationEdgesP)
+        // eslint-disable-next-line no-param-reassign
+        allInvitations[2] = allInvitations[2].map((p, i) => {
+          if (!p.id.endsWith('/Action_Editors/-/Recommendation')) return p
+          const submissionId = p.edge?.head?.param?.const
+          const aERecommendationEdges = edgeResults.flatMap((q) => {
+            const edges = q.find((r) => r.id?.head === submissionId)
+            return edges ? edges.values : []
+          })
+          return {
+            ...p,
+            details: {
+              ...p.details,
+              repliedEdges: aERecommendationEdges,
+            },
+          }
+        })
+        setGroupedTasks(formatTasksData(allInvitations))
+      })
       .catch((apiError) => setError(apiError))
   }, [accessToken])
 

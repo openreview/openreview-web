@@ -1,8 +1,9 @@
 /* globals promptError: false */
 /* eslint-disable no-cond-assign */
 
-import { useEffect, useReducer, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import pick from 'lodash/pick'
+import Steps from 'rc-steps'
 import EducationHistorySection from './EducationHistorySection'
 import EmailsSection from './EmailsSection'
 import ExpertiseSection from './ExpertiseSection'
@@ -28,15 +29,23 @@ export default function ProfileEditor({
   hidePublicationEditor,
   loading,
   isNewProfile,
+  saveProfileErrors,
+  loadProfile,
 }) {
-  const profileReducer = (state, action) => ({
-    ...state,
-    [action.type]: action.data,
-  })
+  const profileReducer = (state, action) => {
+    if (action.type === 'reset') return action.data
+    return {
+      ...state,
+      [action.type]: action.data,
+    }
+  }
   const [profile, setProfile] = useReducer(profileReducer, loadedProfile)
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
   const [renderPublicationEditor, setRenderPublicationEditor] = useState(false)
+  const [currentStep, setCurrentStep] = useState(0)
+  const [invalidSteps, setInvalidSteps] = useState([])
+  const stepRef = useRef(null)
 
   const prefixedRelations = dropdownOptions?.prefixedRelations
   const relationReaders = dropdownOptions?.relationReaders
@@ -59,7 +68,7 @@ export default function ProfileEditor({
     promptError(message)
     setProfile({
       type,
-      data: profile[type].map((p, index) => {
+      data: profile[type]?.map((p, index) => {
         if ((!invalidKey && index === 0) || (invalidKey && p.key === invalidKey))
           return { ...p, valid: false }
         return p
@@ -104,10 +113,10 @@ export default function ProfileEditor({
       emails: profile.emails.map((p) => (p.email ? p : null)).filter(Boolean),
       links: undefined,
       ...profile.links,
-      history: profile.history.flatMap((p) =>
+      history: profile.history?.flatMap((p) =>
         p.position || p.institution?.domain || p.institution?.name ? p : []
       ),
-      expertise: profile.expertise.flatMap((p) => (p.keywords?.length ? p : [])),
+      expertise: profile.expertise?.flatMap((p) => (p.keywords?.length ? p : [])),
       relations: profile.relations.flatMap((p) => (p.relation || p.name || p.email ? p : [])),
       preferredEmail: profile.emails.find((p) => p.confirmed)?.email,
       preferredName: undefined,
@@ -123,6 +132,7 @@ export default function ProfileEditor({
 
     // #region validate emails
     if ((invalidRecord = profileContent.emails.find((p) => !isValidEmail(p.email)))) {
+      setInvalidSteps((current) => [...current, 2])
       return promptInvalidValue(
         'emails',
         invalidRecord.key,
@@ -134,6 +144,7 @@ export default function ProfileEditor({
     // #region validate personal links
     // must have at least 1 link
     if (!personalLinkNames.some((p) => profileContent[p]?.value?.trim())) {
+      setInvalidSteps((current) => [...current, 3])
       return promptInvalidSection('You must enter at least one personal link')
     }
     // must not have any invalid links
@@ -141,6 +152,7 @@ export default function ProfileEditor({
       (p) => profileContent[p]?.value && profileContent[p].valid === false
     )
     if (invalidLinkName) {
+      setInvalidSteps((current) => [...current, 3])
       return promptInvalidLink(
         invalidLinkName,
         'One of your personal links is invalid. Please make sure all URLs start with http:// or https://'
@@ -149,7 +161,8 @@ export default function ProfileEditor({
     // #endregion
 
     // #region validate history
-    if ((invalidRecord = profileContent.history.find((p) => !p.institution?.domain))) {
+    if ((invalidRecord = profileContent.history?.find((p) => !p.institution?.domain))) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         invalidRecord.key,
@@ -157,10 +170,11 @@ export default function ProfileEditor({
       )
     }
     if (
-      (invalidRecord = profileContent.history.find(
+      (invalidRecord = profileContent.history?.find(
         (p) => p.institution.domain.startsWith('www') || !isValidDomain(p.institution.domain)
       ))
     ) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         invalidRecord.key,
@@ -168,15 +182,17 @@ export default function ProfileEditor({
       )
     }
     if (
-      (invalidRecord = profileContent.history.find((p) => p.start && !isValidYear(p.start)))
+      (invalidRecord = profileContent.history?.find((p) => p.start && !isValidYear(p.start)))
     ) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         invalidRecord.key,
         'Start date should be a valid year'
       )
     }
-    if ((invalidRecord = profileContent.history.find((p) => p.end && !isValidYear(p.end)))) {
+    if ((invalidRecord = profileContent.history?.find((p) => p.end && !isValidYear(p.end)))) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         invalidRecord.key,
@@ -184,26 +200,31 @@ export default function ProfileEditor({
       )
     }
     if (
-      (invalidRecord = profileContent.history.find((p) => p.start && p.end && p.start > p.end))
+      (invalidRecord = profileContent.history?.find(
+        (p) => p.start && p.end && p.start > p.end
+      ))
     ) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         invalidRecord.key,
         'End date should be higher than start date'
       )
     }
-    if ((invalidRecord = profileContent.history.find((p) => !p.start && p.end))) {
+    if ((invalidRecord = profileContent.history?.find((p) => !p.start && p.end))) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue('history', invalidRecord.key, 'Start date can not be empty')
     }
-    if (!profileContent.history.length) {
+    if (!profileContent.history?.length) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         null,
-        'Education and career history cannot be empty'
+        'Career and education history cannot be empty'
       )
     }
     if (
-      (invalidRecord = profileContent.history.find(
+      (invalidRecord = profileContent.history?.find(
         (p) =>
           !p.position ||
           !p.institution.name ||
@@ -211,17 +232,19 @@ export default function ProfileEditor({
           ((!p.end || p.end >= new Date().getFullYear()) && !p.institution.country)
       ))
     ) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         invalidRecord.key,
-        'You must enter position, institution, domain and country/region information for each entry in your education and career history'
+        'You must enter position, institution, domain and country/region information for each entry in your career and education history'
       )
     }
     if (!profileContent.history.some((p) => !p.end || p.end >= new Date().getFullYear())) {
+      setInvalidSteps((current) => [...current, 4])
       return promptInvalidValue(
         'history',
         profile.history?.[0]?.key,
-        'Your Education & Career History must include at least one current position.'
+        'Your Career & Education History must include at least one current position.'
       )
     }
     // #endregion
@@ -232,6 +255,7 @@ export default function ProfileEditor({
         (p) => !p.relation || !p.name || (!p.email && !p.username)
       ))
     ) {
+      setInvalidSteps((current) => [...current, 5])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -243,6 +267,7 @@ export default function ProfileEditor({
         (p) => !p.username && !isValidEmail(p.email)
       ))
     ) {
+      setInvalidSteps((current) => [...current, 5])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -252,6 +277,7 @@ export default function ProfileEditor({
     if (
       (invalidRecord = profileContent.relations.find((p) => p.start && !isValidYear(p.start)))
     ) {
+      setInvalidSteps((current) => [...current, 5])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -259,6 +285,7 @@ export default function ProfileEditor({
       )
     }
     if ((invalidRecord = profileContent.relations.find((p) => p.end && !isValidYear(p.end)))) {
+      setInvalidSteps((current) => [...current, 5])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -270,6 +297,7 @@ export default function ProfileEditor({
         (p) => p.start && p.end && p.start > p.end
       ))
     ) {
+      setInvalidSteps((current) => [...current, 5])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -277,21 +305,26 @@ export default function ProfileEditor({
       )
     }
     if ((invalidRecord = profileContent.relations.find((p) => !p.start && p.end))) {
+      setInvalidSteps((current) => [...current, 5])
       return promptInvalidValue('relations', invalidRecord.key, 'Start date can not be empty')
     }
     // #endregion
 
     // #region validate expertise
     if (
-      (invalidRecord = profileContent.expertise.find((p) => p.start && !isValidYear(p.start)))
+      (invalidRecord = profileContent.expertise?.find((p) => p.start && !isValidYear(p.start)))
     ) {
+      setInvalidSteps((current) => [...current, 6])
       return promptInvalidValue(
         'expertise',
         invalidRecord.key,
         'Start date should be a valid year'
       )
     }
-    if ((invalidRecord = profileContent.expertise.find((p) => p.end && !isValidYear(p.end)))) {
+    if (
+      (invalidRecord = profileContent.expertise?.find((p) => p.end && !isValidYear(p.end)))
+    ) {
+      setInvalidSteps((current) => [...current, 6])
       return promptInvalidValue(
         'expertise',
         invalidRecord.key,
@@ -299,17 +332,19 @@ export default function ProfileEditor({
       )
     }
     if (
-      (invalidRecord = profileContent.expertise.find(
+      (invalidRecord = profileContent.expertise?.find(
         (p) => p.start && p.end && p.start > p.end
       ))
     ) {
+      setInvalidSteps((current) => [...current, 6])
       return promptInvalidValue(
         'expertise',
         invalidRecord.key,
         'End date should be higher than start date'
       )
     }
-    if ((invalidRecord = profileContent.expertise.find((p) => !p.start && p.end))) {
+    if ((invalidRecord = profileContent.expertise?.find((p) => !p.start && p.end))) {
+      setInvalidSteps((current) => [...current, 6])
       return promptInvalidValue('expertise', invalidRecord.key, 'Start date can not be empty')
     }
     // #endregion
@@ -326,7 +361,7 @@ export default function ProfileEditor({
       history: profileContent.history.map((p) =>
         pick(p, ['position', 'start', 'end', 'institution'])
       ),
-      expertise: profileContent.expertise.map((p) => pick(p, ['keywords', 'start', 'end'])),
+      expertise: profileContent.expertise?.map((p) => pick(p, ['keywords', 'start', 'end'])),
       relations: profileContent.relations.map((p) =>
         pick(p, ['relation', 'username', 'name', 'email', 'start', 'end', 'readers'])
       ),
@@ -343,12 +378,285 @@ export default function ProfileEditor({
     return { isValid: true, profileContent, profileReaders: profile.readers }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setInvalidSteps([])
     const { isValid, profileContent, profileReaders } = validateCleanProfile()
     if (isValid) {
-      submitHandler(profileContent, profileReaders, publicationIdsToUnlink)
+      await submitHandler(profileContent, profileReaders, publicationIdsToUnlink)
+    }
+    if (currentStep === 3) {
+      setRenderPublicationEditor((current) => !current)
     }
   }
+
+  const renderStep = (step) => {
+    switch (step) {
+      case 0:
+        return (
+          <ProfileSection
+            title="Names"
+            instructions="Enter your full name. Also add any other names you have used in the past when authoring papers."
+          >
+            <NamesSection
+              profileNames={profile?.names}
+              updateNames={(names) => setProfile({ type: 'names', data: names })}
+              preferredUsername={loadedProfile?.names?.find((p) => p.preferred)?.username}
+            />
+          </ProfileSection>
+        )
+      case 1:
+        return (
+          <>
+            <ProfileSection
+              title="Gender"
+              instructions="This information helps conferences better understand their gender diversity. (Optional)"
+            >
+              <GenderSection
+                profileGender={profile?.gender}
+                updateGender={(gender) => setProfile({ type: 'gender', data: gender })}
+              />
+            </ProfileSection>
+            <ProfileSection
+              title="Pronouns"
+              instructions="This information helps conferences know how to refer to you. (Optional)"
+            >
+              <PronounSection
+                profilePronouns={profile?.pronouns}
+                updatePronoun={(pronouns) => setProfile({ type: 'pronouns', data: pronouns })}
+              />
+            </ProfileSection>
+            <ProfileSection
+              title="Year Of Birth"
+              instructions="This information is solely used by OpenReview to disambiguate user profiles. It will never be released publicly or shared with venue organizers. (Optional)"
+            >
+              <BirthDateSection
+                profileYearOfBirth={profile?.yearOfBirth}
+                updateYearOfBirth={(yearOfBirth) =>
+                  setProfile({ type: 'yearOfBirth', data: yearOfBirth })
+                }
+              />
+            </ProfileSection>
+            {!hidePublicationEditor && (
+              <ProfileSection
+                title="Profile Visibility"
+                instructions="Your OpenReview profile will be visible to the public by default. To hide your profile from unauthenticated users, uncheck the box below."
+              >
+                <div className="checkbox">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="profile-visibility"
+                      value="everyone"
+                      checked={profile?.readers?.includes('everyone')}
+                      onChange={(e) => {
+                        const newReaders = e.target.checked ? ['everyone'] : ['~']
+                        setProfile({ type: 'readers', data: newReaders })
+                      }}
+                    />{' '}
+                    Public profile page
+                  </label>
+                </div>
+              </ProfileSection>
+            )}
+          </>
+        )
+
+      case 2:
+        return (
+          <ProfileSection
+            title="Emails"
+            instructions={
+              <>
+                <div>
+                  Enter all email addresses associated with your current and historical
+                  institutional affiliations, your previous publications, and any other related
+                  systems, such as TPMS, CMT, and ArXiv.
+                </div>
+                <strong>
+                  Emails associated with former affiliations (including previous employers)
+                  should not be deleted.
+                </strong>{' '}
+                This information is crucial for deduplicating users and ensuring that you see
+                your reviewing assignments. OpenReview will only send messages to the address
+                marked as “Preferred”.
+              </>
+            }
+          >
+            <EmailsSection
+              profileEmails={profile?.emails}
+              profileId={profile?.id}
+              updateEmails={(emails) => setProfile({ type: 'emails', data: emails })}
+              institutionDomains={institutionDomains}
+              isNewProfile={isNewProfile}
+              loadProfile={loadProfile}
+            />
+          </ProfileSection>
+        )
+      case 3:
+        return (
+          <>
+            <ProfileSection
+              title={`Personal Links${isNewProfile ? ' *' : ''}`}
+              instructions={`${
+                isNewProfile
+                  ? 'At least one URL is required that displays your name and email. '
+                  : ''
+              }Enter full URLs of your public profiles on other sites. All URLs should begin
+          with http:// or https://`}
+            >
+              <PersonalLinksSection
+                profileLinks={profile?.links}
+                profileId={profile?.id}
+                names={profile?.names}
+                renderPublicationsEditor={() =>
+                  setRenderPublicationEditor((current) => !current)
+                }
+                hideDblpButton={hideDblpButton}
+                updateLinks={(links) => setProfile({ type: 'links', data: links })}
+              />
+            </ProfileSection>
+            {!hidePublicationEditor && (
+              <ProfileSection
+                title="Imported Publications"
+                instructions="Below is a list of publications imported from DBLP and other sources that
+                include you as an author. To remove any publications you are not actually an author of
+                from your profile, click the minus sign next to the title."
+              >
+                <ImportedPublicationsSection
+                  profileId={profile?.id}
+                  updatePublicationIdsToUnlink={(ids) => setPublicationIdsToUnlink(ids)}
+                  reRender={renderPublicationEditor}
+                />
+              </ProfileSection>
+            )}
+          </>
+        )
+      case 4:
+        return (
+          <ProfileSection
+            title={`Career & Education History${isNewProfile ? ' *' : ''}`}
+            instructions="Enter your career and education history. The institution domain is used for
+          conflict of interest detection, author deduplication, analysis of career path history, and
+          tallies of institutional diversity. For ongoing positions, leave the End field blank."
+          >
+            <EducationHistorySection
+              profileHistory={profile?.history}
+              positions={positions}
+              institutionDomains={institutionDomains}
+              countries={countries}
+              updateHistory={(history) => setProfile({ type: 'history', data: history })}
+            />
+          </ProfileSection>
+        )
+      case 5:
+        return (
+          <ProfileSection
+            title="Advisors &amp; Other Relations"
+            instructions={
+              <>
+                Enter all advisors, co-workers, and other people that should be included when
+                detecting conflicts of interest.
+                <br />
+                For example, you can choose &lsquo;PhD advisor&rsquo; and enter the name of
+                your PhD advisor.
+              </>
+            }
+          >
+            <RelationsSection
+              profileRelation={profile?.relations}
+              prefixedRelations={prefixedRelations}
+              relationReaders={relationReaders}
+              updateRelations={(relations) =>
+                setProfile({ type: 'relations', data: relations })
+              }
+            />
+          </ProfileSection>
+        )
+      case 6:
+        return (
+          <ProfileSection
+            title="Expertise"
+            instructions={
+              <>
+                <div>
+                  For each line, enter comma-separated keyphrases representing an intersection
+                  of your interests. Think of each line as a query for papers in which you
+                  would have expertise and interest. For example:
+                </div>
+                <em>topic models, social network analysis, computational social science</em>
+                <br />
+                <em>deep learning, RNNs, dependency parsing</em>
+              </>
+            }
+          >
+            <ExpertiseSection
+              profileExpertises={profile?.expertise}
+              updateExpertise={(expertise) =>
+                setProfile({ type: 'expertise', data: expertise })
+              }
+            />
+          </ProfileSection>
+        )
+      default:
+        return null
+    }
+  }
+
+  const getStepStatus = (step) => {
+    if (invalidSteps.includes(step)) {
+      return 'error'
+    }
+    return currentStep === step ? 'process' : 'wait'
+  }
+
+  useEffect(() => {
+    stepRef.current?.firstChild?.children?.[currentStep]?.scrollIntoView({
+      behavior: 'smooth',
+      inline: 'center',
+      block: 'nearest',
+    })
+  }, [currentStep])
+
+  useEffect(() => {
+    if (!saveProfileErrors?.length) return
+    if (saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/names'))) {
+      setInvalidSteps((current) => [...current, 0])
+    }
+    if (
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/pronouns')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/gender')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/yearOfBirth'))
+    ) {
+      setInvalidSteps((current) => [...current, 1])
+    }
+    if (saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/emails'))) {
+      setInvalidSteps((current) => [...current, 2])
+    }
+    if (
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/homepage')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/dblp')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/gscholar')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/linkedin')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/orcid')) ||
+      saveProfileErrors.some((errorPath) =>
+        errorPath?.startsWith('content/semanticScholar')
+      ) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/aclanthology')) ||
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/wikipedia'))
+    ) {
+      setInvalidSteps((current) => [...current, 3])
+    }
+    if (saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/history'))) {
+      setInvalidSteps((current) => [...current, 4])
+    }
+  }, [saveProfileErrors])
+
+  useEffect(() => {
+    if (loadedProfile) {
+      setProfile({ type: 'reset', data: loadedProfile })
+      setInvalidSteps([])
+    }
+  }, [loadedProfile])
 
   useEffect(() => {
     const loadOptions = async () => {
@@ -375,213 +683,97 @@ export default function ProfileEditor({
   }, [])
 
   return (
-    <div className="profile-edit-container">
-      <ProfileSection
-        title="Names"
-        instructions="Enter your full name. Also add any other names you have used in the past when authoring papers."
-      >
-        <NamesSection
-          profileNames={profile?.names}
-          updateNames={(names) => setProfile({ type: 'names', data: names })}
-          preferredUsername={loadedProfile?.names?.find((p) => p.preferred)?.username}
-        />
-      </ProfileSection>
+    <div className="profile-edit-container" ref={stepRef}>
+      <Steps
+        type="navigation"
+        current={currentStep}
+        onChange={(e) => {
+          setCurrentStep(e)
+        }}
+        items={[
+          {
+            step: 0,
+            title: 'Names',
+            status: getStepStatus(0),
+          },
+          {
+            step: 1,
+            title: 'Personal Info',
+            description: isNewProfile
+              ? 'Gender, Pronouns and Birth Year'
+              : 'Gender, Pronouns, Birth Year and Profile Visibility',
+            status: getStepStatus(1),
+          },
+          {
+            step: 2,
+            title: 'Emails',
+            status: getStepStatus(2),
+          },
+          {
+            step: 3,
+            title: 'Personal Links',
+            ...(!hidePublicationEditor && { description: 'Imported DBLP publications' }),
+            status: getStepStatus(3),
+          },
+          {
+            step: 4,
+            title: 'History',
+            description: 'Career & Education History',
+            status: getStepStatus(4),
+          },
+          {
+            step: 5,
+            title: 'Relations',
+            description: 'Advisors & Other Relations',
+            status: getStepStatus(5),
+          },
+          {
+            step: 6,
+            title: 'Expertise',
+            status: getStepStatus(6),
+          },
+        ]}
+      />
+      {renderStep(currentStep)}
 
-      <ProfileSection
-        title="Pronouns"
-        instructions="This information helps conferences know how to refer to you. (Optional)"
-      >
-        <PronounSection
-          profilePronouns={profile?.pronouns}
-          updatePronoun={(pronouns) => setProfile({ type: 'pronouns', data: pronouns })}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Gender"
-        instructions="This information helps conferences better understand their gender diversity. (Optional)"
-      >
-        <GenderSection
-          profileGender={profile?.gender}
-          updateGender={(gender) => setProfile({ type: 'gender', data: gender })}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Year Of Birth"
-        instructions="This information is solely used by OpenReview to disambiguate user profiles. It will never be released publicly or shared with venue organizers. (Optional)"
-      >
-        <BirthDateSection
-          profileYearOfBirth={profile?.yearOfBirth}
-          updateYearOfBirth={(yearOfBirth) =>
-            setProfile({ type: 'yearOfBirth', data: yearOfBirth })
-          }
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Emails"
-        instructions={
-          <>
-            <div>
-              Enter all email addresses associated with your current and historical
-              institutional affiliations, your previous publications, and any other related
-              systems, such as TPMS, CMT, and ArXiv.
-            </div>
-            <strong>
-              Emails associated with former affiliations (including previous employers) should
-              not be deleted.
-            </strong>{' '}
-            This information is crucial for deduplicating users and ensuring that you see your
-            reviewing assignments. OpenReview will only send messages to the address marked as
-            “Preferred”.
-          </>
-        }
-      >
-        <EmailsSection
-          profileEmails={profile?.emails}
-          profileId={profile?.id}
-          updateEmails={(emails) => setProfile({ type: 'emails', data: emails })}
-          institutionDomains={institutionDomains}
-          isNewProfile={isNewProfile}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Personal Links"
-        instructions="Enter full URLs of your public profiles on other sites. All URLs should begin
-          with http:// or https://"
-      >
-        <PersonalLinksSection
-          profileLinks={profile?.links}
-          profileId={profile?.id}
-          names={profile?.names}
-          renderPublicationsEditor={() => setRenderPublicationEditor((current) => !current)}
-          hideDblpButton={hideDblpButton}
-          updateLinks={(links) => setProfile({ type: 'links', data: links })}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Education &amp; Career History"
-        instructions="Enter your education and career history. The institution domain is used for
-          conflict of interest detection, author deduplication, analysis of career path history, and
-          tallies of institutional diversity. For ongoing positions, leave the End field blank."
-      >
-        <EducationHistorySection
-          profileHistory={profile?.history}
-          positions={positions}
-          institutionDomains={institutionDomains}
-          countries={countries}
-          updateHistory={(history) => setProfile({ type: 'history', data: history })}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Advisors &amp; Other Relations"
-        instructions={
-          <>
-            Enter all advisors, co-workers, and other people that should be included when
-            detecting conflicts of interest.
-            <br />
-            For example, you can choose &lsquo;PhD advisor&rsquo; and enter the name of your
-            PhD advisor.
-          </>
-        }
-      >
-        <RelationsSection
-          profileRelation={profile?.relations}
-          prefixedRelations={prefixedRelations}
-          relationReaders={relationReaders}
-          updateRelations={(relations) => setProfile({ type: 'relations', data: relations })}
-        />
-      </ProfileSection>
-
-      <ProfileSection
-        title="Expertise"
-        instructions={
-          <>
-            <div>
-              For each line, enter comma-separated keyphrases representing an intersection of
-              your interests. Think of each line as a query for papers in which you would have
-              expertise and interest. For example:
-            </div>
-            <em>topic models, social network analysis, computational social science</em>
-            <br />
-            <em>deep learning, RNNs, dependency parsing</em>
-          </>
-        }
-      >
-        <ExpertiseSection
-          profileExpertises={profile?.expertise}
-          updateExpertise={(expertise) => setProfile({ type: 'expertise', data: expertise })}
-        />
-      </ProfileSection>
-
-      {!hidePublicationEditor && (
-        <ProfileSection
-          title="Profile Visibility"
-          instructions="Your OpenReview profile will be visible to the public by default. To hide your profile from unauthenticated users, uncheck the box below."
-        >
-          <div className="checkbox">
-            <label>
-              <input
-                type="checkbox"
-                name="profile-visibility"
-                value="everyone"
-                checked={profile?.readers?.includes('everyone')}
-                onChange={(e) => {
-                  const newReaders = e.target.checked ? ['everyone'] : ['~']
-                  setProfile({ type: 'readers', data: newReaders })
-                }}
-              />{' '}
-              Public profile page
-            </label>
-          </div>
-        </ProfileSection>
-      )}
-
-      {!hidePublicationEditor && (
-        <ProfileSection
-          title="Imported Publications"
-          instructions="Below is a list of publications imported from DBLP and other sources that
-            include you as an author. To remove any publications you are not actually an author of
-            from your profile, click the minus sign next to the title."
-        >
-          <ImportedPublicationsSection
-            profileId={profile?.id}
-            updatePublicationIdsToUnlink={(ids) => setPublicationIdsToUnlink(ids)}
-            reRender={renderPublicationEditor}
-          />
-        </ProfileSection>
-      )}
-
-      {hidePublicationEditor && (
+      {isNewProfile && currentStep === 6 && (
         <p className="help-block">
           By registering, you agree to the{' '}
           <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
             <strong>Terms of Use</strong>
           </a>
-          , last updated September 22, 2023.
+          , last updated September 24, 2024.
         </p>
       )}
 
-      <div className="buttons-row">
-        <button
-          type="button"
-          className="btn submit-button"
-          disabled={loading}
-          onClick={handleSubmit}
-        >
-          {submitButtonText ?? 'Save Profile Changes'}
-          {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
-        </button>
-        {!hideCancelButton && (
-          <button type="button" className="btn btn-default" onClick={cancelHandler}>
-            Cancel
+      {isNewProfile && currentStep !== 6 ? (
+        <div className="buttons-row">
+          <button
+            type="button"
+            className="btn submit-button"
+            onClick={() => setCurrentStep(currentStep + 1)}
+          >
+            {'Next Section'}
           </button>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="buttons-row">
+          <button
+            type="button"
+            className="btn submit-button"
+            disabled={loading}
+            onClick={handleSubmit}
+          >
+            {submitButtonText ?? 'Save Profile Changes'}
+            {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
+          </button>
+          {!hideCancelButton && (
+            <button type="button" className="btn btn-default" onClick={cancelHandler}>
+              {isNewProfile ? 'Cancel' : 'Exit Edit Mode'}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

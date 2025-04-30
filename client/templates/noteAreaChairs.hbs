@@ -7,7 +7,7 @@
       {{#if areachair}}
         <tr>
           <td style="width: {{#if tableWidth}}{{tableWidth}}{{else}}320px;{{/if}}">
-            {{areachair.name}} {{#if areachair.email}}<span class="text-muted">&lt;{{areachair.email}}&gt;</span>{{/if}}
+            {{areachair.name}} {{#if showPreferredEmail}}{{#if areachair.id}}<a href="#" class="copy-email"  data-user-id="{{areachair.id}}" data-user-name="{{areachair.name}}">Copy Email</a>{{/if}}{{/if}}
           </td>
         </tr>
       {{/if}}

@@ -1,5 +1,6 @@
 import random from 'lodash/random'
 import Link from 'next/link'
+import copy from 'copy-to-clipboard'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 import { prettyList } from '../../lib/utils'
@@ -34,15 +35,42 @@ const ProfileName = ({ name }) => (
   </ProfileItem>
 )
 
-const ProfileEmail = ({ email, publicProfile }) => (
-  <ProfileItem itemMeta={email.meta}>
-    <span>{email.email}</span> {email.confirmed && <small>(Confirmed)</small>}{' '}
-    {!publicProfile && email.preferred && <small>(Preferred)</small>}
-  </ProfileItem>
-)
+const ProfileEmail = ({ email, publicProfile, allowCopyEmail }) => {
+  const copyEmailToClipboard = () => {
+    copy(`${email.email}`)
+  }
+  return (
+    <ProfileItem itemMeta={email.meta}>
+      <span {...(allowCopyEmail && { onClick: copyEmailToClipboard })}>{email.email}</span>{' '}
+      {email.confirmed && <small>(Confirmed)</small>}
+      {!publicProfile && email.preferred && <small>(Preferred)</small>}
+      {allowCopyEmail && email.confirmed && (
+        <>
+          <a
+            href={`https://bing.com?q="${email.email}"`}
+            target="_blank"
+            rel="nofollow noreferrer"
+            className="ml-1"
+          >
+            Bing
+          </a>
+          <a
+            href={`https://google.com/search?q="${email.email}"`}
+            target="_blank"
+            rel="nofollow noreferrer"
+            className="ml-1"
+          >
+            Google
+          </a>
+        </>
+      )}
+    </ProfileItem>
+  )
+}
 
 const ProfileLink = ({ link, showLinkText }) => {
   const linkUrlWithProtocol = link.url?.startsWith('http') ? link.url : `//${link.url}`
+
   return (
     <ProfileItem itemMeta={link.meta}>
       <a href={linkUrlWithProtocol} target="_blank" rel="noopener noreferrer">
@@ -146,6 +174,7 @@ const BasicProfileView = ({
   profile,
   publicProfile,
   showLinkText = false,
+  moderation = false,
   contentToShow = ['names', 'emails', 'links', 'history', 'relations', 'expertise'],
 }) => {
   const uniqueNames = profile.names.filter((name) => !name.duplicate)
@@ -178,6 +207,7 @@ const BasicProfileView = ({
                   key={`${email.email}-${i}`}
                   email={email}
                   publicProfile={publicProfile}
+                  allowCopyEmail={moderation}
                 />,
               ])}
           </div>
@@ -195,7 +225,7 @@ const BasicProfileView = ({
       {contentToShow.includes('history') && (
         <ProfileViewSection
           name="history"
-          title="Education &amp; Career History"
+          title="Career &amp; Education History"
           actionLink="Suggest Position"
         >
           {profile.history?.length > 0 ? (

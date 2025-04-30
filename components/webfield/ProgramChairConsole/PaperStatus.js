@@ -5,31 +5,13 @@ import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStatus'
-import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
+import { AcPcConsoleNoteReviewStatus, LatestReplies } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from './PaperStatusMenuBar'
-import { prettyField } from '../../../lib/utils'
+import { prettyField, prettyInvitationId } from '../../../lib/utils'
 import useUser from '../../../hooks/useUser'
-
-const SelectAllCheckBox = ({ selectedNoteIds, setSelectedNoteIds, allNoteIds }) => {
-  const allNotesSelected = selectedNoteIds.length === allNoteIds?.length
-
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedNoteIds(allNoteIds)
-      return
-    }
-    setSelectedNoteIds([])
-  }
-  return (
-    <input
-      type="checkbox"
-      id="select-all-papers"
-      checked={allNotesSelected}
-      onChange={handleSelectAll}
-    />
-  )
-}
+import SelectAllCheckBox from '../SelectAllCheckbox'
+import Markdown from '../../EditorComponents/Markdown'
 
 const PaperRow = ({
   rowData,
@@ -51,6 +33,8 @@ const PaperRow = ({
     submissionName,
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
+    preferredEmailInvitationId,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const { note, metaReviewData, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
@@ -134,7 +118,13 @@ const PaperRow = ({
             areaChairAssignmentUrl={getManualAssignmentUrl(areaChairName)}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
+            preferredEmailInvitationId={preferredEmailInvitationId}
           />
+        </td>
+      )}
+      {displayReplyInvitations?.length && (
+        <td>
+          <LatestReplies rowData={rowData} referrerUrl={referrerUrl} />
         </td>
       )}
       {noteContentField && (
@@ -145,10 +135,11 @@ const PaperRow = ({
             areaChairAssignmentUrl={getManualAssignmentUrl(areaChairName)}
             metaReviewRecommendationName={metaReviewRecommendationName}
             additionalMetaReviewFields={additionalMetaReviewFields}
+            preferredEmailInvitationId={preferredEmailInvitationId}
           />
         </td>
       )}
-      {noteContentField && (
+      {noteContentField ? (
         <td className="console-decision">
           <h4 className="title">
             {prettyField(rowData.note?.content[noteContentField.field].value.toString()) ??
@@ -235,8 +226,7 @@ const PaperRow = ({
             </div>
           )}
         </td>
-      )}
-      {!noteContentField && (
+      ) : (
         <td className="console-decision">
           <h4 className="title">{decision}</h4>
           {venue && <span>{venue}</span>}
@@ -258,6 +248,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
     officialReviewName,
     officialMetaReviewName = 'Meta_Review',
     submissionName,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
@@ -267,12 +258,15 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
   const getManualAssignmentUrl = (role) => {
     if (!assignmentUrls) return null
     const assignmentUrl = assignmentUrls[role]?.manualAssignmentUrl // same for auto and manual
-    // auto
+    // auto - deployed and not expired
     const isAssignmentConfigDeployed = pcConsoleData.invitations?.some(
+      (p) =>
+        p.id === `${venueId}/${role}/-/Assignment` && (!p.expdate || p.expdate > Date.now())
+    )
+    // manual - there's no undeploy
+    const isMatchingSetup = pcConsoleData.invitations?.some(
       (p) => p.id === `${venueId}/${role}/-/Assignment`
     )
-    // manual
-    const isMatchingSetup = isAssignmentConfigDeployed
 
     if (
       (assignmentUrls[role]?.automaticAssignment === false && isMatchingSetup) ||
@@ -347,6 +341,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
           tableRowsAll={paperStatusTabData.tableRowsAll}
           tableRows={paperStatusTabData.tableRows}
           selectedNoteIds={selectedNoteIds}
+          setSelectedNoteIds={setSelectedNoteIds}
           setPaperStatusTabData={setPaperStatusTabData}
           reviewRatingName={reviewRatingName}
         />
@@ -359,6 +354,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
         tableRowsAll={paperStatusTabData.tableRowsAll}
         tableRows={paperStatusTabData.tableRows}
         selectedNoteIds={selectedNoteIds}
+        setSelectedNoteIds={setSelectedNoteIds}
         setPaperStatusTabData={setPaperStatusTabData}
         reviewRatingName={reviewRatingName}
         noteContentField={noteContentField}
@@ -370,21 +366,34 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
             id: 'select-all',
             content: (
               <SelectAllCheckBox
-                selectedNoteIds={selectedNoteIds}
-                setSelectedNoteIds={setSelectedNoteIds}
-                allNoteIds={paperStatusTabData.tableRows?.map((row) => row.note.id)}
+                selectedIds={selectedNoteIds}
+                setSelectedIds={setSelectedNoteIds}
+                allIds={paperStatusTabData.tableRows?.map((row) => row.note.id)}
               />
             ),
             width: '35px',
           },
           { id: 'number', content: '#', width: '55px' },
-          { id: 'summary', content: `${submissionName} Summary`, width: '30%' },
+          {
+            id: 'summary',
+            content: `${submissionName} Summary`,
+            width: displayReplyInvitations?.length ? '20%' : '30%',
+          },
           {
             id: 'reviewProgress',
             content: `${prettyField(officialReviewName)} Progress`,
-            width: '30%',
+            width: displayReplyInvitations?.length ? '15%' : '30%',
           },
           ...(areaChairsId ? [{ id: 'status', content: 'Status' }] : []),
+          ...(displayReplyInvitations?.length
+            ? [
+                {
+                  id: 'latestReplies',
+                  content: 'Latest Replies',
+                  width: '45%',
+                },
+              ]
+            : []),
           {
             id: noteContentField?.field ?? 'decision',
             content: noteContentField ? prettyField(noteContentField.field) : 'Decision',

@@ -1,6 +1,6 @@
 /* globals $,promptMessage,promptError,MathJax: false */
 
-import { forwardRef, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import dayjs from 'dayjs'
 import localizedFormat from 'dayjs/plugin/localizedFormat'
@@ -32,20 +32,16 @@ dayjs.extend(localizedFormat)
 dayjs.extend(isToday)
 dayjs.extend(isYesterday)
 
-// eslint-disable-next-line prefer-arrow-callback
-export default forwardRef(function ChatReply(
-  {
-    note,
-    parentNote,
-    displayOptions,
-    isSelected,
-    setChatReplyNote,
-    signature,
-    updateNote,
-    scrollToNote,
-  },
-  ref
-) {
+const ChatReply = ({
+  note,
+  parentNote,
+  displayOptions,
+  isSelected,
+  setChatReplyNote,
+  signature,
+  updateNote,
+  scrollToNote,
+}) => {
   const [loading, setLoading] = useState(false)
   const [useMarkdown, setUseMarkdown] = useState(true)
   const [needsRerender, setNeedsRerender] = useState(false)
@@ -124,11 +120,11 @@ export default forwardRef(function ChatReply(
       existingTagId = existingTags.find((t) => t.signature === signature)?.id
     }
     const tagData = {
-      tag: tagValue,
+      label: tagValue,
       invitation: reactionInvitation.id,
-      replyto: note.id,
+      note: note.id,
       forum: note.forum,
-      signatures: [signature],
+      signature,
       ...(existingTagId && { id: existingTagId, ddate: Date.now() }),
     }
     api
@@ -174,7 +170,7 @@ export default forwardRef(function ChatReply(
   // Deleted Reply
   if (note.ddate) {
     return (
-      <div className={`${styles.container}`} data-id={note.id} ref={ref}>
+      <div className={`${styles.container}`} data-id={note.id}>
         <div className="chat-body deleted clearfix">
           <ReplyInfo
             parentNote={parentNote}
@@ -204,7 +200,6 @@ export default forwardRef(function ChatReply(
     <div
       className={`left clearfix ${styles.container} ${isSelected ? styles.active : ''}`}
       data-id={note.id}
-      ref={ref}
       onMouseLeave={() => {
         setShowReactionPicker(false)
       }}
@@ -331,7 +326,7 @@ export default forwardRef(function ChatReply(
 
       {showReactionPicker && (
         <ReactionPicker
-          options={reactionInvitation.tag.tag.param.enum}
+          options={reactionInvitation.tag.label.param.enum}
           noteReactions={note.reactions}
           addOrRemoveTag={addOrRemoveTag}
           toggleReactionPicker={toggleReactionPicker}
@@ -348,7 +343,7 @@ export default forwardRef(function ChatReply(
       )}
     </div>
   )
-})
+}
 
 function ReplyInfo({ parentNote, parentTitle, scrollToNote }) {
   if (!parentNote) return null
@@ -565,3 +560,5 @@ function DeleteChatModal({ noteId, deleteInvitation, deleteNote, isVisible }) {
     </BasicModal>
   )
 }
+
+export default ChatReply

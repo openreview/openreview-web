@@ -15,6 +15,7 @@ export const MessageACSACModal = ({
   messageParentGroup,
   messageSignature,
   isMessageSeniorAreaChairs = false,
+  selectedIds,
 }) => {
   const { accessToken } = useUser()
   const {
@@ -72,29 +73,34 @@ export const MessageACSACModal = ({
       return tableRows.filter((row) => customFunc(row))
     }
 
+    const selectedRows =
+      !isMessageSeniorAreaChairs && selectedIds?.length
+        ? tableRows.filter((row) => selectedIds.includes(row.areaChairProfileId))
+        : tableRows
+
     switch (messageOption.value) {
       case 'noBids':
-        return tableRows.filter((row) => row.completedBids === 0)
+        return selectedRows.filter((row) => row.completedBids === 0)
       case 'noRecommendations':
-        return tableRows.filter((row) => row.completedRecommendations === 0)
+        return selectedRows.filter((row) => row.completedRecommendations === 0)
       case 'missingReviews':
-        return tableRows.filter((row) => row.numCompletedReviews < row.notes?.length ?? 0)
+        return selectedRows.filter((row) => row.numCompletedReviews < row.notes?.length ?? 0)
       case 'noMetaReviews':
-        return tableRows.filter(
+        return selectedRows.filter(
           (row) =>
             row.numCompletedMetaReviews === 0 &&
             (row.notes?.filter((p) => p.note.content?.venueid?.value === submissionVenueId)
               .length ?? 0) !== 0
         )
       case 'missingMetaReviews':
-        return tableRows.filter(
+        return selectedRows.filter(
           (row) =>
             row.numCompletedMetaReviews <
               row.notes?.filter((p) => p.note.content?.venueid?.value === submissionVenueId)
                 .length ?? 0
         )
       case 'missingAssignments':
-        return tableRows.filter((row) => !row.notes?.length)
+        return selectedRows.filter((row) => !row.notes?.length)
       default:
         return []
     }
@@ -102,6 +108,8 @@ export const MessageACSACModal = ({
 
   useEffect(() => {
     if (!messageOption) return
+
+    setMessage(null)
     const recipientRows = getRecipientRows()
     setRecipientsInfo(
       recipientRows.map((row) => {
@@ -111,12 +119,10 @@ export const MessageACSACModal = ({
           ? {
               id,
               preferredName: profile.preferredName,
-              preferredEmail: profile.preferredEmail,
             }
           : {
               id,
               preferredName: id,
-              preferredEmail: id,
             }
       })
     )
@@ -174,9 +180,7 @@ export const MessageACSACModal = ({
           </p>
           <div className="well reviewer-list">
             {recipientsInfo.map((recipientInfo, index) => (
-              <li
-                key={index}
-              >{`${recipientInfo.preferredName} <${recipientInfo.preferredEmail}>`}</li>
+              <li key={index}>{`${recipientInfo.preferredName}`}</li>
             ))}
           </div>
         </>
@@ -193,6 +197,8 @@ const AreaChairStatusMenuBar = ({
   recommendationEnabled,
   messageParentGroup,
   messageSignature,
+  selectedAreaChairIds,
+  setSelectedAreaChairIds,
 }) => {
   const {
     shortPhrase,
@@ -201,7 +207,7 @@ const AreaChairStatusMenuBar = ({
     acEmailFuncs,
     areaChairStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
-    propertiesAllowed: propertiesAllowedConfig,
+    areaChairStatusPropertiesAllowed,
     seniorAreaChairName = 'Senior_Area_Chairs',
     areaChairName = 'Area_Chairs',
     officialReviewName,
@@ -210,10 +216,9 @@ const AreaChairStatusMenuBar = ({
     reviewerName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
-  const propertiesAllowed = propertiesAllowedConfig ?? {
+  const propertiesAllowed = areaChairStatusPropertiesAllowed ?? {
     number: ['number'],
     name: ['areaChairProfile.preferredName'],
-    email: ['areaChairProfile.preferredEmail'],
     [camelCase(seniorAreaChairName)]: ['seniorAreaChair.seniorAreaChairId'],
   }
   const messageAreaChairOptions = [
@@ -263,10 +268,6 @@ const AreaChairStatusMenuBar = ({
       header: 'name',
       getValue: (p) => p.areaChairProfile?.preferredName ?? p.areaChairProfileId,
     },
-    {
-      header: 'email',
-      getValue: (p) => p.areaChairProfile?.preferredEmail ?? p.areaChairProfileId,
-    },
     { header: `assigned ${submissionName}`, getValue: (p) => p.notes?.length },
     {
       header: `${prettyField(officialReviewName)} completed`,
@@ -285,10 +286,6 @@ const AreaChairStatusMenuBar = ({
           {
             header: `${prettyField(seniorAreaChairName)} name`,
             getValue: (p) => p.seniorAreaChair?.sacProfile?.preferredName ?? 'N/A',
-          },
-          {
-            header: `${prettyField(seniorAreaChairName)} email`,
-            getValue: (p) => p.seniorAreaChair?.sacProfile?.preferredEmail ?? 'N/A',
           },
         ]
       : []),
@@ -363,6 +360,8 @@ const AreaChairStatusMenuBar = ({
     <BaseMenuBar
       tableRowsAll={tableRowsAll}
       tableRows={tableRows}
+      selectedIds={selectedAreaChairIds}
+      setSelectedIds={setSelectedAreaChairIds}
       setData={setAreaChairStatusTabData}
       shortPhrase={shortPhrase}
       enableQuerySearch={enableQuerySearch}

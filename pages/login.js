@@ -1,5 +1,4 @@
-/* globals promptError: false */
-/* globals promptMessage: false */
+/* globals promptError,promptMessage,$: false */
 
 import { useState, useContext, useEffect } from 'react'
 import Link from 'next/link'
@@ -46,6 +45,10 @@ const LoginForm = () => {
     }
   }
 
+  useEffect(() => {
+    $('[data-toggle="tooltip"]').tooltip()
+  }, [])
+
   return (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
@@ -77,12 +80,16 @@ const LoginForm = () => {
         <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
           <strong>Terms of Use</strong>
         </a>
-        , last updated September 22, 2023.
+        , last updated September 24, 2024.
       </p>
       <button
         type="submit"
         className="btn btn-login"
         disabled={!isValidEmail(email) || !password}
+        data-original-title={
+          email && !isValidEmail(email) ? 'Please enter a valid email address' : ''
+        }
+        data-toggle="tooltip"
       >
         Login to OpenReview
       </button>

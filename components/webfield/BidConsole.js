@@ -12,7 +12,7 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import Icon from '../Icon'
 import Dropdown from '../Dropdown'
-import { pluralizeString, prettyInvitationId } from '../../lib/utils'
+import { pluralizeString, prettyField, prettyInvitationId } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
 import PaginationLinks from '../PaginationLinks'
 import ErrorDisplay from '../ErrorDisplay'
@@ -39,8 +39,12 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     scoreIds,
     submissionVenueId,
     subjectAreas,
+    subjectAreasName,
+    enableSearch = true,
   } = useContext(WebFieldContext)
-  const defaultSubjectArea = 'All Subject Areas'
+  const defaultSubjectArea = subjectAreasName
+    ? `All ${prettyField(subjectAreasName)}`
+    : 'All Subject Areas'
   const [notes, setNotes] = useState([])
   const { user, accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(null)
@@ -53,8 +57,15 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
 
   const sortOptions = scoreIds?.map((p) => ({ label: prettyInvitationId(p), value: p }))
   const subjectAreaOptions = subjectAreas?.length
-    ? [{ label: 'All Subject Areas', value: 'All Subject Areas' }].concat(
-        subjectAreas.map((p) => ({ label: p, value: p }))
+    ? [
+        {
+          label: `All ${subjectAreasName ? prettyField(subjectAreasName) : 'Subject Areas'}`,
+          value: `All ${subjectAreasName ? prettyField(subjectAreasName) : 'Subject Areas'}`,
+        },
+      ].concat(
+        subjectAreasName
+          ? subjectAreas.map((p) => ({ label: p.description, value: p.value }))
+          : subjectAreas.map((p) => ({ label: p, value: p }))
       )
     : []
   const pageSize = 50
@@ -229,20 +240,36 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     }
     setIsLoading(true)
     try {
-      const result = await api.get(
-        '/notes/search',
-        {
-          term: subjectAreaSelected,
-          type: 'terms',
-          content: 'subject_areas',
-          source: 'forum',
-          limit: 200,
-          offset: 0,
-          venueid: submissionVenueId,
-        },
-        { accessToken }
-      )
-      setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)).slice(0, 100))
+      if (subjectAreasName) {
+        const notesResult = await api.getAll(
+          '/notes',
+          {
+            'content.venueid': submissionVenueId,
+            domain: invitation.domain,
+          },
+          { accessToken }
+        )
+        setNotes(
+          notesResult.filter(
+            (p) => p.content?.[subjectAreasName]?.value === subjectAreaSelected
+          )
+        )
+      } else {
+        const result = await api.get(
+          '/notes/search',
+          {
+            term: subjectAreaSelected,
+            type: 'terms',
+            content: 'subject_areas',
+            source: 'forum',
+            limit: 200,
+            offset: 0,
+            venueid: submissionVenueId,
+          },
+          { accessToken }
+        )
+        setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)).slice(0, 100))
+      }
     } catch (error) {
       promptError(error.message)
     }
@@ -283,13 +310,10 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
       setPageNumber(1)
       return
     }
-    if (
-      searchState.source === 'selectedSubjectArea' &&
-      searchState.selectedSubjectArea !== defaultSubjectArea
-    ) {
+    if (searchState.source === 'selectedSubjectArea') {
       handleSubjectAreaDropdownChange(searchState.selectedSubjectArea)
-      setShowPagination(false)
-      setShowBidScore(false)
+      setShowPagination(searchState.selectedSubjectArea === defaultSubjectArea)
+      setShowBidScore(searchState.selectedSubjectArea === defaultSubjectArea)
       return
     }
     if (searchState.source === 'immediateSearchTerm') {
@@ -320,21 +344,23 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
           }
         }}
       >
-        <div className="form-group search-content has-feedback">
-          <input
-            id="paper-search-input"
-            type="text"
-            className="form-control"
-            placeholder="Search by paper title and metadata"
-            autoComplete="off"
-            value={searchState.immediateSearchTerm}
-            onChange={(e) => {
-              setSearchState({ type: 'immediateSearchTerm', payload: e.target.value })
-              if (e.target.value.trim().length >= 3) delaySearch(e.target.value)
-            }}
-          />
-          <Icon name="search" extraClasses="form-control-feedback" />
-        </div>
+        {enableSearch && (
+          <div className="form-group search-content has-feedback">
+            <input
+              id="paper-search-input"
+              type="text"
+              className="form-control"
+              placeholder="Search by paper title and metadata"
+              autoComplete="off"
+              value={searchState.immediateSearchTerm}
+              onChange={(e) => {
+                setSearchState({ type: 'immediateSearchTerm', payload: e.target.value })
+                if (e.target.value.trim().length >= 3) delaySearch(e.target.value)
+              }}
+            />
+            <Icon name="search" extraClasses="form-control-feedback" />
+          </div>
+        )}
         {scoreIds?.length > 0 && (
           <div className="form-group score">
             <label htmlFor="score-dropdown">Sort By:</label>
@@ -348,7 +374,9 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
         )}
         {subjectAreas?.length > 0 && (
           <div className="form-group">
-            <label htmlFor="subjectarea-dropdown">Subject Area:</label>
+            <label htmlFor="subjectarea-dropdown">
+              {subjectAreasName ? prettyField(subjectAreasName) : 'Subject Area'}:
+            </label>
             <Dropdown
               className="dropdown-select subjectarea"
               options={subjectAreaOptions}
@@ -632,7 +660,9 @@ const BidConsole = ({ appContext }) => {
     submissionVenueId,
     conflictInvitationId,
     subjectAreas,
+    subjectAreasName,
     submissionName = 'Submission',
+    enableSearch = true,
   } = useContext(WebFieldContext)
 
   const bidOptions = invitation.edge?.label?.param?.enum

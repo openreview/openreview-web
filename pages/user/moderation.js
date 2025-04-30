@@ -16,6 +16,7 @@ import {
   inflect,
   getProfileStateLabelClass,
   getVenueTabCountMessage,
+  getRejectionReasons,
 } from '../../lib/utils'
 import BasicModal from '../../components/BasicModal'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../components/Tabs'
@@ -225,7 +226,7 @@ const NameDeletionTab = ({ accessToken, setNameDeletionRequestCount, isActive })
             {
               ...nameRemovalNotes.notes[0],
               processLogStatus: 'running',
-              processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
+              processLogUrl: `${process.env.API_V2_URL}/logs/process?id=${decisionResults[0].id}`,
             },
             ...nameDeletionNotes.filter((p) => p.content.status.value !== 'Pending'),
           ]
@@ -242,7 +243,7 @@ const NameDeletionTab = ({ accessToken, setNameDeletionRequestCount, isActive })
               ...p,
               processLogStatus,
               processLogUrl: decisionEdit
-                ? `${process.env.API_URL}/logs/process?id=${decisionEdit.id}`
+                ? `${process.env.API_V2_URL}/logs/process?id=${decisionEdit.id}`
                 : null,
             }
           })
@@ -518,7 +519,7 @@ const ProfileMergeTab = ({
             {
               ...profileMergeNotesResults.notes[0],
               processLogStatus: 'running',
-              processLogUrl: `${process.env.API_URL}/logs/process?id=${decisionResults[0].id}`,
+              processLogUrl: `${process.env.API_V2_URL}/logs/process?id=${decisionResults[0].id}`,
             },
             ...profileMergeNotes.filter((p) => p.content.status.value !== 'Pending'),
           ]
@@ -539,7 +540,7 @@ const ProfileMergeTab = ({
               ...p,
               processLogStatus,
               processLogUrl: decisionEdit
-                ? `${process.env.API_URL}/logs/process?id=${decisionEdit.id}`
+                ? `${process.env.API_V2_URL}/logs/process?id=${decisionEdit.id}`
                 : null,
             }
           })
@@ -943,9 +944,13 @@ const EmailDeletionTab = ({ accessToken, isActive }) => {
 
       const notesWithStatus = notes.map((p) => {
         const edit = edits.find((q) => q.note.id === p.id)
+        const processLog = processLogs.find((q) => q.id === edit?.id)
         return {
           ...p,
-          processLogStatus: processLogs.find((q) => q.id === edit?.id)?.status ?? 'running',
+          processLogStatus: processLog?.status ?? 'running',
+          processLogUrl: processLog
+            ? `${process.env.API_V2_URL}/logs/process?id=${processLog.id}`
+            : null,
         }
       })
 
@@ -1052,11 +1057,7 @@ const EmailDeletionTab = ({ accessToken, isActive }) => {
               {emailDeletionNotesToShow.map((note) => (
                 <div className="email-deletion-row" key={note.id}>
                   <span className="col-status">
-                    <a
-                      href={`${process.env.API_URL}/logs/process?id=${note.id}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <a href={note.processLogUrl} target="_blank" rel="noreferrer">
                       <span
                         className={`label label-${
                           note.processLogStatus === 'ok' ? 'success' : 'default'
@@ -1702,15 +1703,15 @@ const UserModerationQueue = ({
   const [totalCount, setTotalCount] = useState(0)
   const [pageNumber, setPageNumber] = useState(1)
   const [filters, setFilters] = useState({})
-  const [profileIdToReject, setProfileIdToReject] = useState(null)
+  const [profileToReject, setProfileToReject] = useState(null)
   const [signedNotes, setSignedNotes] = useState(0)
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
-  const [pageSize, setPageSize] = useState(15)
+  const [pageSize, setPageSize] = useState(onlyModeration ? 200 : 15)
   const [profileToPreview, setProfileToPreview] = useState(null)
   const [lastPreviewedProfileId, setLastPreviewedProfileId] = useState(null)
   const modalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
-  const pageSizeOptions = [15, 30, 50, 100].map((p) => ({
+  const pageSizeOptions = [15, 30, 50, 100, 200].map((p) => ({
     label: `${p} items`,
     value: p,
   }))
@@ -1785,6 +1786,9 @@ const UserModerationQueue = ({
         { id: profileId, decision: 'accept' },
         { accessToken }
       )
+      if (profiles.length === 1 && pageNumber !== 1) {
+        setPageNumber((p) => p - 1)
+      }
       reload()
       promptMessage(`${prettyId(profileId)} is now active`, { scrollToTop: false })
     } catch (error) {
@@ -1818,12 +1822,12 @@ const UserModerationQueue = ({
     return uniqBy([...signedNotesResult.notes, ...authoredNotesResult.notes], 'id')
   }
 
-  const showRejectionModal = async (profileId) => {
+  const showRejectionModal = async (profile) => {
     if (!onlyModeration) {
-      const signedAuthoredNotes = await getSignedAuthoredNotesCount(profileId)
+      const signedAuthoredNotes = await getSignedAuthoredNotesCount(profile.id)
       setSignedNotes(signedAuthoredNotes)
     }
-    setProfileIdToReject(profileId)
+    setProfileToReject(profile)
 
     $(`#${modalId}`).modal('show')
   }
@@ -1833,13 +1837,16 @@ const UserModerationQueue = ({
       await api.post(
         '/profile/moderate',
         {
-          id: profileIdToReject,
+          id: profileToReject.id,
           decision: 'reject',
           reason: rejectionMessage,
         },
         { accessToken }
       )
       $(`#${modalId}`).modal('hide')
+      if (profiles.length === 1 && pageNumber !== 1) {
+        setPageNumber((p) => p - 1)
+      }
       reload()
     } catch (error) {
       promptError(error.message, { scrollToTop: false })
@@ -1874,6 +1881,9 @@ const UserModerationQueue = ({
           { id: profile.id, decision: actionIsBlock ? 'block' : 'unblock' },
           { accessToken }
         )
+        if (profiles.length === 1 && pageNumber !== 1) {
+          setPageNumber((p) => p - 1)
+        }
       } catch (error) {
         promptError(error.message, { scrollToTop: false })
       }
@@ -1921,18 +1931,36 @@ const UserModerationQueue = ({
   }
 
   const addSDNException = async (profileId) => {
+    const sdnExceptionGroupId = `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`
     try {
-      await api.put(
-        '/groups/members',
+      const sdnExceptionGroup = await api.getGroupById(sdnExceptionGroupId, accessToken)
+      await api.post(
+        '/groups/edits',
         {
-          id: `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`,
-          members: [profileId],
+          group: {
+            id: `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`,
+            members: {
+              append: [profileId],
+            },
+          },
+          readers: sdnExceptionGroup.signatures,
+          writers: sdnExceptionGroup.signatures,
+          signatures: sdnExceptionGroup.signatures,
+          invitation: sdnExceptionGroup.invitations?.[0],
         },
-        { accessToken, version: 1 }
+        { accessToken }
       )
       promptMessage(`${profileId} is added to SDN exception group`)
     } catch (error) {
       promptError(error.message)
+    }
+  }
+
+  const showNextProfile = (currentProfileId) => {
+    const nextProfile = profiles[profiles.findIndex((p) => p.id === currentProfileId) + 1]
+    if (nextProfile) {
+      setProfileToPreview(formatProfileData(cloneDeep(nextProfile)))
+      setLastPreviewedProfileId(nextProfile.id)
     }
   }
 
@@ -2062,7 +2090,7 @@ const UserModerationQueue = ({
                       <button
                         type="button"
                         className="btn btn-xs"
-                        onClick={() => showRejectionModal(profile.id)}
+                        onClick={() => showRejectionModal(profile)}
                       >
                         <Icon name="remove-circle" /> Reject
                       </button>{' '}
@@ -2095,7 +2123,7 @@ const UserModerationQueue = ({
                         <button
                           type="button"
                           className="btn btn-xs"
-                          onClick={() => showRejectionModal(profile.id)}
+                          onClick={() => showRejectionModal(profile)}
                         >
                           <Icon name="remove-circle" /> Reject
                         </button>
@@ -2174,7 +2202,7 @@ const UserModerationQueue = ({
 
       <RejectionModal
         id={modalId}
-        profileIdToReject={profileIdToReject}
+        profileToReject={profileToReject}
         rejectUser={rejectUser}
         signedNotes={signedNotes}
       />
@@ -2192,49 +2220,32 @@ const UserModerationQueue = ({
           'publications',
           'messages',
         ]}
+        showNextProfile={showNextProfile}
+        acceptUser={acceptUser}
+        blockUser={blockUnblockUser}
+        setProfileToReject={setProfileToReject}
+        rejectUser={rejectUser}
       />
     </div>
   )
 }
 
-const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
+export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
   const selectRef = useRef(null)
 
-  const instructionText =
-    'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and complete the missing data.'
-  const rejectionReasons = [
-    {
-      value: 'invalidEmail',
-      label: 'Missing Institution Email',
-      rejectionText: `An Institution email matching your latest career/education history is required.\n\n${instructionText}`,
-    },
-    {
-      value: 'imPersonalHomepage',
-      label: 'Impersonal Homepage',
-      rejectionText: `The homepage url provided in your profile is invalid or does not display your name so your identity can't be determined.\n\n${instructionText}`,
-    },
-    {
-      value: 'imPersonalHomepageAndEmail',
-      label: 'Impersonal Homepage + Missing Institution Email',
-      rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required.\n\n${instructionText}`,
-    },
-    {
-      value: 'repeatedInvalidInfo',
-      label: 'Repeated Invalid Info',
-      rejectionText: `Submitting invalid info is a violation of OpenReview's Terms and Conditions which may result in terminating your access to the system.\n\n${instructionText}`,
-    },
-    {
-      value: 'requestEmailVerification',
-      label: 'Request Email Verification',
-      rejectionText: `Please add and confirm an institutional email to your profile.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidName',
-      label: 'Invalid Name',
-      rejectionText: `A valid name is required and must match the one listed on your provided personal homepages.\n\n${instructionText}`,
-    },
-  ]
+  const currentInstitutionName = profileToReject?.content?.history?.find(
+    (p) => !p.end || p.end >= new Date().getFullYear()
+  )?.institution?.name
+
+  const rejectionReasons = getRejectionReasons(currentInstitutionName)
+
+  const updateMessageForPastRejectProfile = () => {
+    setRejectionMessage(
+      (p) =>
+        `Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system.\n\n${p}`
+    )
+  }
 
   return (
     <BasicModal
@@ -2255,8 +2266,9 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
         >
           <div className="form-group form-rejection">
             <label htmlFor="message" className="mb-1">
-              Reason for rejecting {prettyId(profileIdToReject)}:
+              Reason for rejecting {prettyId(profileToReject?.id)}:
             </label>
+
             <Dropdown
               name="rejection-reason"
               instanceId="rejection-reason"
@@ -2268,10 +2280,15 @@ const RejectionModal = ({ id, profileIdToReject, rejectUser, signedNotes }) => {
               selectRef={selectRef}
               isClearable
             />
+
+            <button className="btn btn-xs" onClick={updateMessageForPastRejectProfile}>
+              Add Invalid Info Warning
+            </button>
+
             <textarea
               name="message"
               className="form-control mt-2"
-              rows="5"
+              rows="10"
               value={rejectionMessage}
               onChange={(e) => {
                 setRejectionMessage(e.target.value)

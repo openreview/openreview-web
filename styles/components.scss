@@ -1207,6 +1207,12 @@ table.table-minimal {
   .form-rejection {
     display: flex;
     flex-flow: column;
+    text-align: left;
+
+    .btn {
+      align-self: flex-start;
+      margin-top: 0.25rem;
+    }
   }
 
   #profile-preview {
@@ -1227,6 +1233,16 @@ table.table-minimal {
       .instructions,
       .glyphicon {
         display: none;
+
+        &.url-status {
+          display: inline-block;
+          color: #5cb85c;
+          margin-left: 0.25rem;
+
+          &.glyphicon-remove {
+            color: constants.$orRed;
+          }
+        }
       }
       .list-compact > div {
         display: inline-block;
@@ -1267,6 +1283,22 @@ table.table-minimal {
           display: inline-block;
           vertical-align: bottom;
           margin-left: 0.25rem;
+        }
+      }
+    }
+
+    section.links {
+      .section-content {
+        .spinner-container {
+          display: inline-block;
+          margin: 0 0.25rem;
+
+          .spinner {
+            height: 15px;
+            margin: 0;
+            display: inline-block;
+            vertical-align: middle;
+          }
         }
       }
     }
@@ -1927,7 +1959,7 @@ header,
   position: relative;
   margin-bottom: 0;
   vertical-align: middle;
-  font-size: .75rem;
+  font-size: 0.75rem;
 
   // Background-color and (when enabled) gradient
   &::before {
@@ -1938,7 +1970,7 @@ header,
     width: 1rem;
     height: 1rem;
     pointer-events: none;
-    content: "";
+    content: '';
     background-color: #fff;
     border: #adb5bd solid 1px;
   }
@@ -1946,12 +1978,12 @@ header,
   // Foreground (icon)
   &::after {
     position: absolute;
-    top: .5rem;
+    top: 0.5rem;
     left: -1.5rem;
     display: block;
     width: 1rem;
     height: 1rem;
-    content: "";
+    content: '';
     background-repeat: no-repeat;
     background-position: center center;
     background-size: 50% 50%;
@@ -1968,24 +2000,29 @@ header,
       left: -2.25rem;
       width: 1.75rem;
       pointer-events: all;
-      border-radius: .5rem;
+      border-radius: 0.5rem;
     }
 
     &::after {
-      top: calc(.25rem - 1px);
+      top: calc(0.25rem - 1px);
       left: calc(-2.25rem + 2px);
       width: calc(1rem - 4px);
       height: calc(1rem - 4px);
       background-color: #adb5bd;
-      border-radius: .5rem;
-      transition: transform .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out,-webkit-transform .15s ease-in-out;
+      border-radius: 0.5rem;
+      transition:
+        transform 0.15s ease-in-out,
+        background-color 0.15s ease-in-out,
+        border-color 0.15s ease-in-out,
+        box-shadow 0.15s ease-in-out,
+        -webkit-transform 0.15s ease-in-out;
     }
   }
 
   .custom-control-input:checked ~ .custom-control-label {
     &::after {
       background-color: #fff;
-      transform: translateX(.75rem);
+      transform: translateX(0.75rem);
     }
   }
 }

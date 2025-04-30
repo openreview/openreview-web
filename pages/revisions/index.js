@@ -62,7 +62,7 @@ const RevisionsList = ({
   const router = useRouter()
   const [editToChange, setEditToChange] = useState(null)
   const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
-  const newNoteEditor = revisions?.[0]?.[1]?.domain
+  const newNoteEditor = revisions?.some((p) => p?.[0]?.domain)
 
   const toggleSelected = (idx, checked) => {
     if (checked) {
@@ -246,6 +246,7 @@ const RevisionsList = ({
       {revisions.map(([reference, invitation], index) => (
         <div key={reference.id} className="row">
           <div className="checkbox col-sm-1">
+            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
             <label>
               <input
                 type="checkbox"
@@ -269,9 +270,7 @@ const RevisionsList = ({
                 <div className="meta_actions">
                   {reference.ddate ? (
                     <RestoreButton
-                      onClick={() =>
-                        deleteOrRestoreNote(reference, invitation)
-                      }
+                      onClick={() => deleteOrRestoreNote(reference, invitation)}
                       disableButton={!isNoteWritable}
                       disableReason={
                         !isNoteWritable
@@ -297,9 +296,7 @@ const RevisionsList = ({
                         />
                         {invitation.edit.ddate && (
                           <TrashButton
-                            onClick={() =>
-                              deleteOrRestoreNote(reference, invitation)
-                            }
+                            onClick={() => deleteOrRestoreNote(reference, invitation)}
                             disableButton={!isNoteWritable}
                             disableReason={
                               !isNoteWritable
@@ -434,15 +431,17 @@ const Revisions = ({ appContext }) => {
 
       if (invitations?.length > 0) {
         setRevisions(
-          references.map((reference) => {
-            const invId = reference.details?.original
-              ? reference.details.original.invitation
-              : reference.invitation
-            const referenceInvitation = invitations.find(
-              (invitation) => invitation.id === invId
-            )
-            return [reference, referenceInvitation]
-          })
+          references
+            .map((reference) => {
+              const invId = reference.details?.original
+                ? reference.details.original.invitation
+                : reference.invitation
+              const referenceInvitation = invitations.find(
+                (invitation) => invitation.id === invId
+              )
+              return [reference, referenceInvitation]
+            })
+            .sort((p) => p[0].tcdate)
         )
       } else {
         setRevisions([])
@@ -475,10 +474,8 @@ const Revisions = ({ appContext }) => {
 
     let latestNoteTitle =
       referencesToLoad === 'revisions'
-        ? revisions.sort((p) => p[0].tcdate).find((q) => q[0]?.content?.title)?.[0]?.content
-            ?.title
-        : revisions.sort((p) => p[0].tcdate).find((q) => q[0].note?.content?.title)?.[0]?.note
-            ?.content?.title?.value
+        ? revisions.find((q) => q[0]?.content?.title)?.[0]?.content?.title
+        : revisions.find((q) => q[0].note?.content?.title)?.[0]?.note?.content?.title?.value
     latestNoteTitle = truncate(latestNoteTitle, {
       length: 40,
       omission: '...',
@@ -500,7 +497,10 @@ const Revisions = ({ appContext }) => {
     const loadNote = async () => {
       let note
       try {
-        note = await api.getNoteById(noteId, accessToken, { details: 'writable,forumContent' })
+        note = await api.getNoteById(noteId, accessToken, {
+          details: 'writable,forumContent',
+          trash: true,
+        })
       } catch (apiError) {
         setBannerHidden(true)
         setError(apiError)

@@ -540,7 +540,6 @@ describe('filterCollections', () => {
           seniorAreaChairs: [
             {
               preferredName: 'Name One',
-              preferredEmail: 'one@email.com',
               preferredId: '~Id1',
               type: 'profile',
             },
@@ -553,7 +552,6 @@ describe('filterCollections', () => {
           seniorAreaChairs: [
             {
               preferredName: 'Name TWO',
-              preferredEmail: 'two@email.com',
               preferredId: '~Id2',
               type: 'profile',
             },
@@ -566,7 +564,6 @@ describe('filterCollections', () => {
           seniorAreaChairs: [
             {
               preferredName: 'Name two',
-              preferredEmail: 'three@email.com',
               preferredId: undefined, // no id, should not throw error
               type: 'profile',
             },
@@ -608,7 +605,7 @@ describe('filterCollections', () => {
       propertiesAllowed,
       uniqueIdentifier
     )
-    expect(result.filteredRows.map((p) => p.id)).toEqual([2])
+    expect(result.filteredRows.length).toEqual(0) // email is stored in edges so not available for filtering
 
     // filter by id
     filterString = 'sac=~Id'

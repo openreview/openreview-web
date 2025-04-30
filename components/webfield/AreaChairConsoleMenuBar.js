@@ -8,6 +8,7 @@ const AreaChairConsoleMenuBar = ({
   tableRowsAll,
   tableRows,
   selectedNoteIds,
+  setSelectedNoteIds,
   setAcConsoleData,
   shortPhrase,
   enableQuerySearch,
@@ -23,6 +24,7 @@ const AreaChairConsoleMenuBar = ({
   officialMetaReviewName,
   areaChairName,
   ithenticateInvitationId,
+  sortOptions: sortOptionsConfig,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
   const formattedReviewerName = camelCase(reviewerName)
@@ -34,6 +36,7 @@ const AreaChairConsoleMenuBar = ({
     title: ['note.content.title.value'],
     author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords.value'],
+    venue: ['note.content.venue.value'],
     [formattedReviewerName]: ['reviewers'],
     [`num${upperFirst(formattedReviewerName)}Assigned`]: [
       'reviewProgressData.numReviewersAssigned',
@@ -103,6 +106,10 @@ const AreaChairConsoleMenuBar = ({
       getValue: (p) => p.note?.content?.abstract?.value,
     },
     {
+      header: 'venue',
+      getValue: (p) => p.note?.content?.venue?.value,
+    },
+    {
       header: `num ${prettyField(reviewerName)}`,
       getValue: (p) => p.reviewProgressData?.numReviewersAssigned,
     },
@@ -161,6 +168,11 @@ const AreaChairConsoleMenuBar = ({
       getValue: (p) => p.note?.content?.title?.value,
     },
     {
+      label: 'Venue',
+      value: 'Venue',
+      getValue: (p) => p.note?.content?.venue?.value,
+    },
+    {
       label: 'Number of Forum Replies',
       value: 'Number of Forum Replies',
       getValue: (p) => p.reviewProgressData?.replyCount,
@@ -184,10 +196,14 @@ const AreaChairConsoleMenuBar = ({
       {
         label: `Average ${prettyField(ratingName)}`,
         value: `Average ${ratingName}`,
-        getValue: (p) =>
-          p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg === 'N/A'
-            ? 0
-            : p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg,
+        getValue: (p) => {
+          const stringAvgRatingValue = p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg
+          if (stringAvgRatingValue === 'N/A') return 0
+          const numberAvgRatingValue = Number(stringAvgRatingValue)
+          return Number.isNaN(numberAvgRatingValue)
+            ? stringAvgRatingValue
+            : numberAvgRatingValue
+        },
       },
       {
         label: `Max ${prettyField(ratingName)}`,
@@ -209,10 +225,14 @@ const AreaChairConsoleMenuBar = ({
     {
       label: 'Average Confidence',
       value: 'Average Confidence',
-      getValue: (p) =>
-        p.reviewProgressData?.confidenceAvg === 'N/A'
-          ? 0
-          : p.reviewProgressData?.confidenceAvg,
+      getValue: (p) => {
+        const stringAvgConfidenceValue = p.reviewProgressData?.confidenceAvg
+        if (stringAvgConfidenceValue === 'N/A') return 0
+        const numberAvgConfidenceValue = Number(stringAvgConfidenceValue)
+        return Number.isNaN(numberAvgConfidenceValue)
+          ? stringAvgConfidenceValue
+          : numberAvgConfidenceValue
+      },
     },
     {
       label: 'Max Confidence',
@@ -249,6 +269,7 @@ const AreaChairConsoleMenuBar = ({
           },
         ]
       : []),
+    ...(sortOptionsConfig ?? []),
   ]
   const basicSearchFunction = (row, term) => {
     const noteTitle = row.note.content?.title?.value
@@ -262,6 +283,7 @@ const AreaChairConsoleMenuBar = ({
       tableRowsAll={tableRowsAll}
       tableRows={tableRows}
       selectedIds={selectedNoteIds}
+      setSelectedIds={setSelectedNoteIds}
       setData={setAcConsoleData}
       shortPhrase={shortPhrase}
       enableQuerySearch={enableQuerySearch}

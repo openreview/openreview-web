@@ -1,4 +1,6 @@
+/* globals promptError, promptMessage: false */
 import { useContext, useEffect, useState } from 'react'
+import copy from 'copy-to-clipboard'
 import { sortBy } from 'lodash'
 import { getProfileLink } from '../../../lib/webfield-utils'
 import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
@@ -6,22 +8,56 @@ import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import SeniorAreaChairStatusMenuBar from './SeniorAreaChairStatusMenuBar'
+import api from '../../../lib/api-client'
 import WebFieldContext from '../../WebFieldContext'
 import { getNoteContentValues } from '../../../lib/forum-utils'
 
 const BasicProfileSummary = ({ profile, profileId }) => {
-  const { id, preferredName, preferredEmail } = profile ?? {}
+  const { id, preferredName, title } = profile ?? {}
+  const { preferredEmailInvitationId } = useContext(WebFieldContext)
+
+  const getEmail = async () => {
+    if (!preferredEmailInvitationId) {
+      promptError('Email is not available.', { scrollToTop: false })
+      return
+    }
+    try {
+      const result = await api.get(`/edges`, {
+        invitation: preferredEmailInvitationId,
+        head: id ?? profileId,
+      })
+      const email = result.edges?.[0]?.tail
+      if (!email) throw new Error('Email is not available.')
+      copy(`${preferredName} <${email}>`)
+      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+    } catch (error) {
+      promptError(error.message, { scrollToTop: false })
+    }
+  }
   return (
-    <div className="note">
+    <div className="ac-sac-summary">
       {preferredName ? (
-        <>
+        <div className="ac-sac-info">
           <h4>
             <a href={getProfileLink(id ?? profileId)} target="_blank" rel="noreferrer">
               {preferredName}
             </a>
           </h4>
-          <p className="text-muted">({preferredEmail})</p>
-        </>
+          <div className="profile-title">{title}</div>
+          {preferredEmailInvitationId && (
+            // eslint-disable-next-line jsx-a11y/anchor-is-valid
+            <a
+              href="#"
+              className="copy-email-link"
+              onClick={(e) => {
+                e.preventDefault()
+                getEmail()
+              }}
+            >
+              Copy Email
+            </a>
+          )}
+        </div>
       ) : (
         <h4>{profileId}</h4>
       )}
@@ -53,12 +89,35 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
   referrerUrl,
   metaReviewRecommendationName,
 }) => {
-  const { officialReviewName, officialMetaReviewName, submissionName } =
-    useContext(WebFieldContext)
-  const { id, preferredName, preferredEmail } = rowData.sacProfile ?? {}
+  const { id, preferredName, title } = rowData.sacProfile ?? {}
+  const {
+    officialReviewName,
+    officialMetaReviewName,
+    submissionName,
+    preferredEmailInvitationId,
+  } = useContext(WebFieldContext)
   const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
   const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
+
+  const getEmail = async () => {
+    if (!preferredEmailInvitationId) {
+      promptError('Email is not available.', { scrollToTop: false })
+      return
+    }
+    try {
+      const result = await api.get(`/edges`, {
+        invitation: preferredEmailInvitationId,
+        head: id ?? rowData.sacProfileId,
+      })
+      const email = result.edges?.[0]?.tail
+      if (!email) throw new Error('Email is not available.')
+      copy(`${preferredName} <${email}>`)
+      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+    } catch (error) {
+      promptError(error.message, { scrollToTop: false })
+    }
+  }
 
   return (
     <tr>
@@ -66,9 +125,9 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
         <strong>{rowData.number}</strong>
       </td>
       <td>
-        <div>
+        <div className="ac-sac-summary">
           {preferredName ? (
-            <>
+            <div className="ac-sac-info">
               <h4>
                 <a
                   href={getProfileLink(id ?? rowData.sacProfileId)}
@@ -78,8 +137,21 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
                   {preferredName}
                 </a>
               </h4>
-              <p className="text-muted">({preferredEmail})</p>
-            </>
+              <div className="profile-title">{title}</div>
+              {preferredEmailInvitationId && (
+                // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                <a
+                  href="#"
+                  className="copy-email-link"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    getEmail()
+                  }}
+                >
+                  Copy Email
+                </a>
+              )}
+            </div>
           ) : (
             <h4>{rowData.sacProfileId}</h4>
           )}
@@ -319,7 +391,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
         sacDirectPaperAssignment={sacDirectPaperAssignment}
       />
       <Table
-        className="console-table table-striped pc-console-ac-status"
+        className="console-table table-striped pc-console-ac-sac-status"
         headings={
           sacDirectPaperAssignment
             ? [

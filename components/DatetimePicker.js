@@ -16,6 +16,7 @@ const DatetimePicker = ({
   timeZone,
   placeholder,
   autoFocus = true,
+  disabledDate,
   showTime = {
     showSecond: false,
   },
@@ -54,7 +55,7 @@ const DatetimePicker = ({
       use12Hours
       autoFocus={autoFocus}
       allowClear
-      showToday={true}
+      disabledDate={disabledDate}
     />
   )
 }

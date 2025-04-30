@@ -2,6 +2,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import groupBy from 'lodash/groupBy'
+import { orderBy } from 'lodash'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
@@ -28,6 +29,7 @@ import SeniorAreaChairStatus from './ProgramChairConsole/SeniorAreaChairStatus'
 import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
+import { formatProfileContent } from '../../lib/edge-utils'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -78,17 +80,20 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     submissionContentFields = [],
     sacDirectPaperAssignment,
     propertiesAllowed,
+    areaChairStatusPropertiesAllowed,
     sacStatuspropertiesAllowed,
     messageAreaChairsInvitationId,
     messageSeniorAreaChairsInvitationId,
+    preferredEmailInvitationId,
     ithenticateInvitationId,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
-  const { setBannerContent } = appContext
+  const { setBannerContent, setLayoutOptions } = appContext
   const { user, accessToken, userLoading } = useUser()
   const router = useRouter()
   const query = useQuery()
   const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || '#venue-configuration'
+    decodeURIComponent(window.location.hash) || '#venue-configuration'
   )
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
@@ -445,15 +450,14 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         .map((profile) => ({
           ...profile,
           preferredName: getProfileName(profile),
-          preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
+          title: formatProfileContent(profile.content).title,
         }))
       // #endregion
 
       const allProfilesMap = new Map()
       allProfiles.forEach((profile) => {
         const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-        const profileEmails = profile.content.emails.filter((p) => p)
-        usernames.concat(profileEmails).forEach((key) => {
+        usernames.concat(profile.email ?? []).forEach((key) => {
           allProfilesMap.set(key, profile)
         })
       })
@@ -462,6 +466,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const metaReviewsByPaperNumberMap = new Map()
       const decisionByPaperNumberMap = new Map()
       const customStageReviewsByPaperNumberMap = new Map()
+      const displayReplyInvitationsByPaperNumberMap = new Map()
       notes.forEach((note) => {
         const replies = note.details.replies ?? []
         const officialReviews = replies
@@ -482,8 +487,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                   const profile = allProfilesMap.get(anonReviewerId)
                   if (!profile) return
                   const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-                  const profileEmails = profile.content.emails.filter((p) => p)
-                  usernames.concat(profileEmails).forEach((key) => {
+                  usernames.concat(profile.email ?? []).forEach((key) => {
                     idToAnonIdMap[key] = anonReviewerGroupId
                   })
                 }
@@ -516,10 +520,32 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         const customStageReviews = replies.filter((p) =>
           p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
         )
+        const displayReplies = displayReplyInvitations?.map((p) => {
+          const displayInvitaitonId = p.id.replaceAll('{number}', note.number)
+          const latestReply = orderBy(
+            replies.filter((q) => q.invitations.includes(displayInvitaitonId)),
+            ['mdate'],
+            'desc'
+          )?.[0]
+          return {
+            id: latestReply?.id,
+            date: latestReply?.mdate,
+            invitationId: displayInvitaitonId,
+            values: p.fields.map((field) => {
+              const value = latestReply?.content?.[field]?.value?.toString()
+              return {
+                field,
+                value,
+              }
+            }),
+            signature: latestReply?.signatures?.[0],
+          }
+        })
         officialReviewsByPaperNumberMap.set(note.number, officialReviews)
         metaReviewsByPaperNumberMap.set(note.number, metaReviews)
         decisionByPaperNumberMap.set(note.number, decision)
         customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
+        displayReplyInvitationsByPaperNumberMap.set(note.number, displayReplies)
       })
 
       setPcConsoleData({
@@ -536,6 +562,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         metaReviewsByPaperNumberMap,
         decisionByPaperNumberMap,
         customStageReviewsByPaperNumberMap,
+        displayReplyInvitationsByPaperNumberMap,
         withdrawnNotes: results[4].flatMap((note) => {
           if (note.content?.venueid?.value === withdrawnVenueId) return note
           return []
@@ -793,9 +820,15 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             noteNumber: note.number,
             preferredId: reviewer.reviewerProfileId,
             preferredName: profile ? getProfileName(profile) : reviewer.reviewerProfileId,
-            preferredEmail: profile
-              ? profile.content.preferredEmail ?? profile.content.emails[0]
-              : reviewer.reviewerProfileId,
+          }
+        }),
+        authors: note.content?.authorids?.value?.map((authorId, index) => {
+          const preferredName = note.content.authors?.value?.[index]
+          return {
+            preferredId: authorId,
+            preferredName,
+            noteNumber: note.number,
+            anonymizedGroup: authorId,
           }
         }),
         reviewerProfiles: assignedReviewerProfiles,
@@ -821,9 +854,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               noteNumber: note.number,
               preferredId: profile ? profile.id : areaChair.areaChairProfileId,
               preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
-              preferredEmail: profile
-                ? profile.content.preferredEmail ?? profile.content.emails[0]
-                : areaChair.areaChairProfileId,
+              title: profile?.title,
             }
           }),
           secondaryAreaChairs: secondaryAreaChairs.map((areaChair) => {
@@ -832,10 +863,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             )?.profile
             return {
               ...areaChair,
+              noteNumber: note.number,
+              preferredId: profile ? profile.id : areaChair.areaChairProfileId,
               preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
-              preferredEmail: profile
-                ? profile.content.preferredEmail ?? profile.content.emails[0]
-                : areaChair.areaChairProfileId,
+              title: profile?.title,
             }
           }),
           seniorAreaChairs: assignedSeniorAreaChairs.map((seniorAreaChairProfileId) => {
@@ -846,9 +877,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               type: 'profile',
               preferredId: seniorAreaChairProfileId,
               preferredName: profile ? getProfileName(profile) : seniorAreaChairProfileId,
-              preferredEmail: profile
-                ? profile.content.preferredEmail ?? profile.content.emails[0]
-                : seniorAreaChairProfileId,
+              title: profile?.title,
+              noteNumber: note.number,
+              anonymizedGroup: seniorAreaChairProfileId,
             }
           }),
           numMetaReviewsDone: metaReviews.length,
@@ -867,7 +898,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             }
           }, {}),
         },
-
+        displayReplies: pcConsoleData.displayReplyInvitationsByPaperNumberMap.get(note.number),
         decision,
         venue: note?.content?.venue?.value,
         messageSignature: programChairsId,
@@ -956,14 +987,12 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       .map((profile) => ({
         ...profile,
         preferredName: getProfileName(profile),
-        preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
+        title: formatProfileContent(profile.content).title,
       }))
 
     const acSacProfileWithoutAssignmentMap = new Map()
     acSacProfilesWithoutAssignment.forEach((profile) => {
       const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-      const profileEmails = profile.content.emails.filter((p) => p)
-
       let userRegNotes = []
       usernames.forEach((username) => {
         if (pcConsoleData.registrationNoteMap && pcConsoleData.registrationNoteMap[username]) {
@@ -974,7 +1003,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // eslint-disable-next-line no-param-reassign
       profile.registrationNotes = userRegNotes
 
-      usernames.concat(profileEmails).forEach((key) => {
+      usernames.concat(profile.email ?? []).forEach((key) => {
         acSacProfileWithoutAssignmentMap.set(key, profile)
       })
     })
@@ -1020,7 +1049,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   useEffect(() => {
     if (!query) return
-
+    if (displayReplyInvitations?.length)
+      setLayoutOptions({ fullWidth: true, minimalFooter: true })
     if (query.referrer) {
       setBannerContent(referrerLink(query.referrer))
     } else {
@@ -1029,19 +1059,16 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   }, [query, venueId])
 
   useEffect(() => {
-    if (!userLoading && !user) {
-      router.replace(
-        `/login?redirect=${encodeURIComponent(
-          `${window.location.pathname}${window.location.search}${window.location.hash}`
-        )}`
-      )
-    }
-  }, [user, userLoading])
-
-  useEffect(() => {
     if (userLoading || !user || !group || !venueId || !reviewersId || !submissionId) return
     loadData()
   }, [user, userLoading, group])
+
+  useEffect(
+    () => () => {
+      setLayoutOptions({ fullWidth: false, minimalFooter: false })
+    },
+    []
+  )
 
   useEffect(() => {
     const validTabIds = [
@@ -1213,7 +1240,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           )}
           <TabPanel id="deskrejectwithdrawn-status">
             {activeTabId === '#deskrejectwithdrawn-status' && (
-              <RejectedWithdrawnPapers pcConsoleData={pcConsoleData} />
+              <RejectedWithdrawnPapers consoleData={pcConsoleData} />
             )}
           </TabPanel>
           {submissionContentFields.length > 0 &&

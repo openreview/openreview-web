@@ -79,6 +79,13 @@ main.invitation {
     div.panel {
       @include mixins.well;
       margin-bottom: 0;
+
+      .btn.expired {
+        background-color: rgba(0, 0, 0, 0.05);
+        color: gray;
+        border-color: gray;
+        text-decoration: line-through;
+      }
     }
     .note_editor {
       margin-top: -1px;
@@ -404,6 +411,10 @@ main.invitation {
     .download-pdf-link {
       margin-bottom: 0.5rem;
     }
+
+    th {
+      white-space: nowrap;
+    }
   }
 
   .author-console-mobile {
@@ -608,49 +619,22 @@ main.invitation {
     }
   }
 
-  .pc-console-ac-status {
-    table-layout: auto;
-    .review-progress {
-      display: flex;
-      flex-direction: column;
-
-      .note-info {
-        display: flex;
-        align-items: baseline;
-        margin-bottom: 0.25rem;
-        .note-number {
-          margin-right: 0.25rem;
-          font-size: 0.75rem;
-          width: 8%;
-        }
-      }
-
-      .review-info {
-        width: 92%;
-      }
-    }
-    .areachair-progress {
-      display: flex;
-      flex-direction: column;
-
-      .meta-review-info {
-        display: flex;
-        align-items: baseline;
-        .note-number {
-          margin-right: 0.25rem;
-          font-size: 0.75rem;
-          width: 20%;
-        }
-        .meta-review {
-          display: flex;
-          flex-direction: column;
-        }
-      }
-    }
-  }
-
   .pc-console-reviewer-status {
     table-layout: auto;
+    .reviewer-summary {
+      .reviewer-info {
+        display: flex;
+        flex-direction: column;
+
+        .profile-title,
+        .copy-email-link {
+          color: constants.$subtleGray;
+          font-size: 0.75rem;
+          margin-bottom: 0.25rem;
+        }
+      }
+    }
+
     .paper-progress {
       display: flex;
       flex-direction: column;
@@ -691,8 +675,22 @@ main.invitation {
     table-layout: auto;
   }
 
-  .pc-console-ac-status {
+  .pc-console-ac-sac-status {
     table-layout: auto;
+    .ac-sac-summary {
+      .ac-sac-info {
+        display: flex;
+        flex-direction: column;
+
+        .profile-title,
+        .copy-email-link {
+          color: constants.$subtleGray;
+          font-size: 0.75rem;
+          margin-bottom: 0.25rem;
+        }
+      }
+    }
+
     .review-progress {
       display: flex;
       flex-direction: column;
@@ -727,6 +725,17 @@ main.invitation {
         .meta-review {
           display: flex;
           flex-direction: column;
+        }
+      }
+    }
+    .note {
+      .copy-email-container {
+        display: flex;
+        align-items: baseline;
+
+        .copy-email-link {
+          margin-left: 0.25rem;
+          font-size: 0.75rem;
         }
       }
     }
@@ -878,6 +887,12 @@ main.invitation {
     }
     ul.nav-tabs > li.active {
       z-index: 10;
+    }
+  }
+
+  section.invitations {
+    a.invitation-deleted {
+      opacity: 0.3;
     }
   }
 

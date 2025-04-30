@@ -40,24 +40,34 @@ const ImportedPublicationsSection = ({
 
   const loadPublications = async () => {
     try {
-      const result = await api.getCombined(
-        '/notes',
-        {
-          'content.authorids': profileId,
-          invitations: ['dblp.org/-/record'],
-        },
-        {
-          'content.authorids': profileId,
-          invitations: [
-            'DBLP.org/-/Record',
-            'OpenReview.net/Archive/-/Imported_Record',
-            'OpenReview.net/Archive/-/Direct_Upload',
-          ],
-        },
-        { accessToken, includeVersion: true, sort: 'tmdate:desc' }
-      )
-      setPublications(result.notes)
-      setTotalCount(result.count)
+      const v2Notes = await api
+        .getAll(
+          '/notes',
+          {
+            'content.authorids': profileId,
+            invitations: [
+              'DBLP.org/-/Record',
+              'OpenReview.net/Archive/-/Imported_Record',
+              'OpenReview.net/Archive/-/Direct_Upload',
+            ],
+          },
+          { accessToken, sort: 'tmdate:desc' }
+        )
+        .then((notes) => notes.map((note) => ({ ...note, apiVersion: 2 })))
+      const v1Notes = await api
+        .getAll(
+          '/notes',
+          {
+            'content.authorids': profileId,
+            invitations: ['dblp.org/-/record'],
+          },
+          { accessToken, sort: 'tmdate:desc', version: 1 }
+        )
+        .then((notes) => notes.map((note) => ({ ...note, apiVersion: 1 })))
+
+      const allNotes = v2Notes.concat(v1Notes)
+      setPublications(allNotes)
+      setTotalCount(allNotes.length)
     } catch (error) {
       promptError(`${error.message} when loading your publications`)
     }
@@ -68,6 +78,7 @@ const ImportedPublicationsSection = ({
   }, [publicationIdsToUnlink])
 
   useEffect(() => {
+    setPublicationIdsToUnlink([])
     loadPublications()
   }, [reRender])
 
@@ -78,7 +89,6 @@ const ImportedPublicationsSection = ({
     )
   }, [pageNumber, publications])
 
-  if (!publicationsToDisplay.length) return null
   return (
     <div>
       <NoteList notes={publicationsToDisplay} displayOptions={displayOptions} />

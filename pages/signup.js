@@ -10,8 +10,6 @@ import NoteList from '../components/NoteList'
 import BasicModal from '../components/BasicModal'
 import api from '../lib/api-client'
 import { isInstitutionEmail, isValidEmail, isValidPassword } from '../lib/utils'
-import ProfileMergeModal from '../components/ProfileMergeModal'
-import ErrorAlert from '../components/ErrorAlert'
 import Icon from '../components/Icon'
 import useTurnstileToken from '../hooks/useTurnstileToken'
 
@@ -91,11 +89,11 @@ const SignupForm = ({ setSignupConfirmation }) => {
     setLoading(false)
   }
 
-  const resetPassword = async (username, email) => {
+  const resetPassword = async (username, email, token) => {
     setLoading(true)
 
     try {
-      const { id: registeredEmail } = await api.post('/resettable', { id: email })
+      const { id: registeredEmail } = await api.post('/resettable', { id: email, token })
       setSignupConfirmation({ type: 'reset', registeredEmail: registeredEmail || email })
     } catch (apiError) {
       if (apiError.message === 'User not found') {
@@ -224,21 +222,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
                   />,
                 ]
               }
-              if (index === existingProfiles.length - 1)
-                return (
-                  <React.Fragment key={index}>
-                    {formComponents}
-                    <p className="merge-message hint">
-                      If two or more of the profiles above belong to you, please{' '}
-                      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                      <a href="#" data-toggle="modal" data-target="#profile-merge-modal">
-                        contact us
-                      </a>{' '}
-                      and we will assist you in merging your profiles.
-                    </p>
-                    <hr key={`${profile.id}-spacer`} className="spacer" />
-                  </React.Fragment>
-                )
               return formComponents.concat(
                 <hr key={`${profile.id}-spacer`} className="spacer" />
               )
@@ -267,8 +250,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
             }}
             setTurnstileToken={setTurnstileToken}
           />
-
-          <ProfileMergeModal />
         </>
       )}
     </div>
@@ -288,6 +269,10 @@ const ExistingProfileForm = ({
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken(
+    'reset',
+    passwordVisible && isValidEmail(email)
+  )
 
   let buttonLabel
   let usernameLabel
@@ -308,7 +293,7 @@ const ExistingProfileForm = ({
     }
 
     if (hasPassword && isActive) {
-      resetPassword(id, email)
+      resetPassword(id, email, turnstileToken)
     } else if (hasPassword && !isActive) {
       sendActivationLink(email)
     } else {
@@ -354,6 +339,7 @@ const ExistingProfileForm = ({
               <span className="new-username hint">
                 {usernameLabel} <Link href={`/profile?id=${id}`}>{id}</Link>
               </span>
+              {isActive && <div className="mt-1" ref={turnstileContainerRef} />}
             </>
           )}
         </div>

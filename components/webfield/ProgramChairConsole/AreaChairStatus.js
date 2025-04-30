@@ -1,6 +1,7 @@
-/* globals promptError: false */
+/* globals promptError, promptMessage: false */
 import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
+import copy from 'copy-to-clipboard'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -9,11 +10,11 @@ import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
+import api from '../../../lib/api-client'
 import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
 
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
-  const { id, preferredName, preferredEmail, registrationNotes } =
-    rowData.areaChairProfile ?? {}
+  const { id, preferredName, registrationNotes, title } = rowData.areaChairProfile ?? {}
   const { sacProfile, seniorAreaChairId } = rowData.seniorAreaChair ?? {}
   const {
     seniorAreaChairName = 'Senior_Area_Chairs',
@@ -23,6 +24,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
     bidName,
     scoresName,
     recommendationName,
+    preferredEmailInvitationId,
   } = useContext(WebFieldContext)
   const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
@@ -41,11 +43,30 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
     scoresName
   )
 
+  const getACSACEmail = async (name, profileId) => {
+    if (!preferredEmailInvitationId) {
+      promptError('Email is not available.', { scrollToTop: false })
+      return
+    }
+    try {
+      const result = await api.get(`/edges`, {
+        invitation: preferredEmailInvitationId,
+        head: profileId,
+      })
+      const email = result.edges?.[0]?.tail
+      if (!email) throw new Error('Email is not available.')
+      copy(`${name} <${email}>`)
+      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+    } catch (error) {
+      promptError(error.message, { scrollToTop: false })
+    }
+  }
+
   return (
     <>
-      <div className="note">
+      <div className="ac-sac-summary">
         {preferredName ? (
-          <>
+          <div className="ac-sac-info">
             <h4>
               <a
                 href={getProfileLink(id ?? rowData.areaChairProfileId)}
@@ -55,8 +76,21 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
                 {preferredName}
               </a>
             </h4>
-            <p className="text-muted">({preferredEmail})</p>
-          </>
+            <div className="profile-title">{title}</div>
+            {preferredEmailInvitationId && (
+              // eslint-disable-next-line jsx-a11y/anchor-is-valid
+              <a
+                href="#"
+                className="copy-email-link"
+                onClick={(e) => {
+                  e.preventDefault()
+                  getACSACEmail(preferredName, id ?? rowData.areaChairProfileId)
+                }}
+              >
+                Copy Email
+              </a>
+            )}
+          </div>
         ) : (
           <h4>{rowData.areaChairProfileId}</h4>
         )}
@@ -94,25 +128,40 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
         </p>
       </div>
       {sacProfile && (
-        <>
+        <div className="ac-sac-summary">
           <h4>{prettyField(seniorAreaChairName)}: </h4>
-          <div className="note">
-            {sacProfile?.preferredName && (
-              <>
-                <h4>
-                  <a
-                    href={getProfileLink(sacProfile?.id ?? seniorAreaChairId)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {sacProfile.preferredName}
-                  </a>
-                </h4>
-                <p className="text-muted">({sacProfile.preferredEmail})</p>
-              </>
-            )}
-          </div>
-        </>
+
+          {sacProfile?.preferredName && (
+            <div className="ac-sac-info">
+              <h4>
+                <a
+                  href={getProfileLink(sacProfile?.id ?? seniorAreaChairId)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {sacProfile.preferredName}
+                </a>
+              </h4>
+              <div className="profile-title">{sacProfile.title}</div>
+              {preferredEmailInvitationId && (
+                // eslint-disable-next-line jsx-a11y/anchor-is-valid
+                <a
+                  href="#"
+                  className="copy-email-link"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    getACSACEmail(
+                      sacProfile.preferredName,
+                      sacProfile?.id ?? seniorAreaChairId
+                    )
+                  }}
+                >
+                  Copy Email
+                </a>
+              )}
+            </div>
+          )}
+        </div>
       )}
       {registrationNotes?.length > 0 && (
         <>
@@ -486,7 +535,7 @@ const AreaChairStatus = ({
         messageSignature={venueId}
       />
       <Table
-        className="console-table table-striped pc-console-ac-status"
+        className="console-table table-striped pc-console-ac-sac-status"
         headings={[
           { id: 'number', content: '#', width: '55px' },
           { id: 'areachair', content: `${prettyField(areaChairName)}`, width: '10%' },

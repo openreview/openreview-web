@@ -11,9 +11,11 @@ const PaperStatusMenuBar = ({
   tableRowsAll,
   tableRows,
   selectedNoteIds,
+  setSelectedNoteIds,
   setPaperStatusTabData,
   reviewRatingName,
   noteContentField,
+  defaultSeniorAreaChairName,
 }) => {
   const {
     metaReviewRecommendationName,
@@ -27,12 +29,14 @@ const PaperStatusMenuBar = ({
     customStageInvitations = [],
     additionalMetaReviewFields = [],
     reviewerName,
-    seniorAreaChairName = 'Senior_Area_Chairs',
+    seniorAreaChairName = defaultSeniorAreaChairName,
     officialReviewName,
     officialMetaReviewName = 'Meta_Review',
     areaChairName = 'Area_Chairs',
+    secondaryAreaChairName,
     submissionName,
     ithenticateInvitationId,
+    messageSubmissionSecondaryAreaChairsInvitationId,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const formattedReviewerName = camelCase(reviewerName)
@@ -47,7 +51,7 @@ const PaperStatusMenuBar = ({
     author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords.value'],
     [formattedReviewerName]: ['reviewers'],
-    [formattedSACName]: ['metaReviewData.seniorAreaChairs'],
+    ...(formattedSACName && { [formattedSACName]: ['metaReviewData.seniorAreaChairs'] }),
     [`num${upperFirst(formattedReviewerName)}Assigned`]: [
       'reviewProgressData.numReviewersAssigned',
     ],
@@ -163,6 +167,32 @@ const PaperStatusMenuBar = ({
           },
         ]
       : []),
+    ...(secondaryAreaChairName && messageSubmissionSecondaryAreaChairsInvitationId
+      ? [
+          {
+            label: `All ${pluralizeString(
+              prettyField(secondaryAreaChairName)
+            )} of selected ${pluralizeString(submissionName)}`,
+            value: 'allSecondaryAreaChairs',
+          },
+        ]
+      : []),
+    ...(tableRowsAll?.length !== selectedNoteIds?.length
+      ? [
+          {
+            label: `All Authors of selected ${pluralizeString(submissionName)}`,
+            value: 'allAuthors',
+          },
+          ...(seniorAreaChairsId
+            ? [
+                {
+                  label: `All ${prettyField(seniorAreaChairName ?? 'Senior_Area_Chairs')} of selected ${pluralizeString(submissionName)}`,
+                  value: 'allSACs',
+                },
+              ]
+            : []),
+        ]
+      : []),
   ]
   const exportColumns = [
     { header: 'number', getValue: (p) => p.note?.number },
@@ -199,11 +229,6 @@ const PaperStatusMenuBar = ({
           ?.map((r) => r.reviewerProfileId)
           ?.join('|'),
     },
-    {
-      header: `${prettyField(reviewerName)} contact info`,
-      getValue: (p) =>
-        p.reviewers.map((q) => `${q.preferredName}<${q.preferredEmail}>`).join(','),
-    },
     ...(Array.isArray(reviewRatingName)
       ? reviewRatingName.map((p) => (typeof p === 'object' ? Object.keys(p)[0] : p))
       : [reviewRatingName]
@@ -227,13 +252,6 @@ const PaperStatusMenuBar = ({
     {
       header: `num ${prettyField(areaChairName)} assigned`,
       getValue: (p) => p.metaReviewData?.numAreaChairsAssigned,
-    },
-    {
-      header: `${prettyField(areaChairName)} contact info`,
-      getValue: (p) =>
-        p.metaReviewData?.areaChairs
-          ?.map((q) => `${q.preferredName}<${q.preferredEmail}>`)
-          .join(','),
     },
     {
       header: `num submitted ${prettyField(areaChairName)}`,
@@ -340,8 +358,15 @@ const PaperStatusMenuBar = ({
       {
         label: `Average ${prettyField(ratingName)}`,
         value: `Average ${ratingName}`,
-        getValue: (p) =>
-          getValueWithDefault(p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg),
+        getValue: (p) => {
+          const stringAvgRatingValue = getValueWithDefault(
+            p.reviewProgressData?.ratings?.[ratingName]?.ratingAvg
+          )
+          const numberAvgRatingValue = Number(stringAvgRatingValue)
+          return Number.isNaN(numberAvgRatingValue)
+            ? stringAvgRatingValue
+            : numberAvgRatingValue
+        },
       },
       {
         label: `Max ${prettyField(ratingName)}`,
@@ -366,7 +391,15 @@ const PaperStatusMenuBar = ({
     {
       label: 'Average Confidence',
       value: 'Average Confidence',
-      getValue: (p) => getValueWithDefault(p.reviewProgressData?.confidenceAvg),
+      getValue: (p) => {
+        const stringAvgConfidenceValue = getValueWithDefault(
+          p.reviewProgressData?.confidenceAvg
+        )
+        const numberAvgConfidenceValue = Number(stringAvgConfidenceValue)
+        return Number.isNaN(numberAvgConfidenceValue)
+          ? stringAvgConfidenceValue
+          : numberAvgConfidenceValue
+      },
     },
     {
       label: 'Max Confidence',
@@ -422,6 +455,7 @@ const PaperStatusMenuBar = ({
       tableRowsAll={tableRowsAllWithFilterProperties}
       tableRows={tableRows}
       selectedIds={selectedNoteIds}
+      setSelectedIds={setSelectedNoteIds}
       setData={setPaperStatusTabData}
       shortPhrase={shortPhrase}
       enableQuerySearch={enableQuerySearch}

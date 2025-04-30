@@ -2,7 +2,6 @@
 import React, { useEffect, useReducer, useRef, useState } from 'react'
 import Link from 'next/link'
 import get from 'lodash/get'
-import deburr from 'lodash/deburr'
 import copy from 'copy-to-clipboard'
 import BasicModal from '../BasicModal'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
@@ -13,6 +12,7 @@ import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
 import { isValidEmail, prettyId, urlFromGroupId } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
+import SpinnerButton from '../SpinnerButton'
 
 const MessageMemberModal = ({
   groupId,
@@ -26,18 +26,23 @@ const MessageMemberModal = ({
   const [replyToEmail, setReplyToEmail] = useState(groupDomainContent?.contact?.value ?? '')
   const [message, setMessage] = useState('')
   const [error, setError] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
 
   const sendMessage = async () => {
+    setSubmitting(true)
+    setError(null)
     const sanitizedMessage = DOMPurify.sanitize(message)
     const cleanReplytoEmail = replyToEmail.trim()
 
     if (!subject || !sanitizedMessage) {
       setError('Email Subject and Body are required to send messages.')
+      setSubmitting(false)
       return
     }
 
     if (cleanReplytoEmail && !isValidEmail(cleanReplytoEmail)) {
       setError('Reply to email is invalid.')
+      setSubmitting(false)
       return
     }
 
@@ -56,6 +61,7 @@ const MessageMemberModal = ({
       }
     } catch (e) {
       setError(e.message)
+      setSubmitting(false)
       return
     }
 
@@ -92,6 +98,7 @@ const MessageMemberModal = ({
     } catch (e) {
       setError(e.message)
     }
+    setSubmitting(false)
   }
 
   return (
@@ -100,10 +107,14 @@ const MessageMemberModal = ({
       title="Message Group Members"
       primaryButtonText="Send Messages"
       onPrimaryButtonClick={sendMessage}
+      primaryButtonDisabled={submitting}
+      isLoading={submitting}
       onClose={() => {
         setMessage('')
         setError(null)
+        setSubmitting(false)
       }}
+      options={{ useSpinnerButton: true }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
 
@@ -285,6 +296,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   const [memberAnonIds, setMemberAnonIds] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const [jobId, setJobId] = useState(null)
+  const [isAdding, setIsAdding] = useState(false)
   const defaultGroupMembers = group.members.map((p) => ({
     id: p,
     isDeleted: false,
@@ -386,18 +398,29 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     }${selectedMembers.length ? `, ${selectedMembers.length} selected` : ''})`
   }
 
-  const buildEdit = (action, members) => ({
-    group: {
-      id: group.id,
-      members: {
-        [action]: members,
+  const buildEdit = (action, members) => {
+    const userNameGroupInvitationId = `${process.env.SUPER_USER}/-/Username`
+    const emailGroupInvitationId = `${process.env.SUPER_USER}/-/Email`
+
+    let invitation = group.domain ? `${group.domain}/-/Edit` : group.invitations?.[0]
+    if (group.invitations?.includes(userNameGroupInvitationId))
+      invitation = userNameGroupInvitationId
+    if (group.invitations?.includes(emailGroupInvitationId))
+      invitation = emailGroupInvitationId
+
+    return {
+      group: {
+        id: group.id,
+        members: {
+          [action]: members,
+        },
       },
-    },
-    readers: [profileId],
-    writers: [profileId],
-    signatures: [profileId],
-    invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
-  })
+      readers: [profileId],
+      writers: [profileId],
+      signatures: [profileId],
+      invitation,
+    }
+  }
 
   const deleteMember = async (memberId) => {
     const confirmMessage =
@@ -406,15 +429,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     if (userIds.includes(memberId) && !window.confirm(confirmMessage)) return
 
     try {
-      if (group.invitations) {
-        await api.post('/groups/edits', buildEdit('remove', [memberId]), { accessToken })
-      } else {
-        await api.delete(
-          '/groups/members',
-          { id: group.id, members: [memberId] },
-          { accessToken, version: 1 }
-        )
-      }
+      await api.post('/groups/edits', buildEdit('remove', [memberId]), { accessToken })
       setGroupMembers({ type: 'DELETE', payload: [memberId] })
       reloadGroup()
     } catch (error) {
@@ -424,15 +439,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
 
   const restoreMember = async (memberId) => {
     try {
-      if (group.invitations) {
-        await api.post('/groups/edits', buildEdit('append', [memberId]), { accessToken })
-      } else {
-        await api.put(
-          '/groups/members',
-          { id: group.id, members: [memberId] },
-          { accessToken, version: 1 }
-        )
-      }
+      await api.post('/groups/edits', buildEdit('append', [memberId]), { accessToken })
       setGroupMembers({ type: 'RESTORE', payload: [memberId] })
       reloadGroup()
     } catch (error) {
@@ -459,10 +466,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   }
 
   const handleAddButtonClick = async (term) => {
-    if (!term.trim()) {
-      promptError('No member to add')
-      return
-    }
+    setIsAdding(true)
     const membersToAdd = term
       .split(',')
       .map((member) => {
@@ -472,6 +476,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       .filter((member) => member)
     if (!membersToAdd.length) {
       promptError('No member to add')
+      setIsAdding(false)
       return
     }
 
@@ -498,19 +503,11 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       : ''
 
     try {
-      if (group.invitations) {
-        await api.post(
-          '/groups/edits',
-          buildEdit('append', [...newMembers, ...existingDeleted]),
-          { accessToken }
-        )
-      } else {
-        await api.put(
-          '/groups/members',
-          { id: group.id, members: [...newMembers, ...existingDeleted] },
-          { accessToken, version: 1 }
-        )
-      }
+      await api.post(
+        '/groups/edits',
+        buildEdit('append', [...newMembers, ...existingDeleted]),
+        { accessToken }
+      )
       setSearchTerm('')
       setGroupMembers({
         type: 'ADD',
@@ -525,6 +522,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     } catch (error) {
       promptError(error.message)
     }
+    setIsAdding(false)
   }
 
   const handleRemoveSelectedButtonClick = async () => {
@@ -548,15 +546,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     }
 
     try {
-      if (group.invitations) {
-        await api.post('/groups/edits', buildEdit('remove', membersToRemove), { accessToken })
-      } else {
-        await api.delete(
-          '/groups/members',
-          { id: group.id, members: membersToRemove },
-          { accessToken, version: 1 }
-        )
-      }
+      await api.post('/groups/edits', buildEdit('remove', membersToRemove), { accessToken })
       setGroupMembers({ type: 'DELETE', payload: membersToRemove })
       reloadGroup()
     } catch (error) {
@@ -627,14 +617,17 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button
-              type="button"
-              className="btn btn-sm btn-primary mr-3 search-button"
-              disabled={!searchTerm.trim() || groupMembers.find((p) => p.id === searchTerm)}
+            <SpinnerButton
+              type="primary"
+              className="search-button"
+              disabled={
+                isAdding || !searchTerm.trim() || groupMembers.find((p) => p.id === searchTerm)
+              }
               onClick={() => handleAddButtonClick(searchTerm)}
+              loading={isAdding}
             >
               Add to Group
-            </button>
+            </SpinnerButton>
             <div className="space-taker" />
             <button
               type="button"

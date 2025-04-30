@@ -288,12 +288,12 @@ export default function Column(props) {
     if (query.filter) {
       return (
         <>
-          {`Only show ${group} available for ${invitation} `}
+          {`Show ${group} available for ${invitation} `}
           <Icon name="info-sign" tooltip={query.filter} />
         </>
       )
     }
-    return `Only show ${group} with fewer than max assigned papers`
+    return `Show ${group} with fewer than max assigned papers`
   }
 
   // Adds either a new browse edge or an edit edge to an item
@@ -596,14 +596,15 @@ export default function Column(props) {
             ...p,
             filterProperties: editAndBrowserInvitationsUnique.reduce(
               (prev, curr) => {
+                const invitaitonId = curr.id.replaceAll('.', '_')
                 const edge = [...p.browseEdges, ...p.editEdges].find(
                   (q) => q.invitation === curr.id
                 )
 
                 if (edge) {
-                  prev[curr.id] = getEdgeValue(edge) // eslint-disable-line no-param-reassign
+                  prev[invitaitonId] = getEdgeValue(edge) // eslint-disable-line no-param-reassign
                 } else {
-                  prev[curr.id] = curr.defaultWeight ?? curr.defaultLabel // eslint-disable-line no-param-reassign
+                  prev[invitaitonId] = curr.defaultWeight ?? curr.defaultLabel // eslint-disable-line no-param-reassign
                 }
                 return prev
               },
@@ -611,11 +612,14 @@ export default function Column(props) {
             ),
           }
         }),
-        `${query.filter} AND Quota=true`,
+        `${query.filter.replaceAll('.', '_')} AND Quota=true`,
         ['!=', '>=', '<=', '>', '<', '==', '='],
         editAndBrowserInvitationsUnique.reduce(
           (prev, curr) => {
-            prev[curr.id] = [`filterProperties.${curr.id}`] // eslint-disable-line no-param-reassign
+            // eslint-disable-next-line no-param-reassign
+            prev[curr.id.replaceAll('.', '_')] = [
+              `filterProperties.${curr.id.replaceAll('.', '_')}`,
+            ]
             return prev
           },
           {
@@ -731,7 +735,7 @@ export default function Column(props) {
     editInvitations.forEach((editInvitation) =>
       addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true, false)
     )
-    addToEdgesPromiseMap(hideInvitation, 'hide', edgesPromiseMap, false, true)
+    addToEdgesPromiseMap(hideInvitation, 'hide', edgesPromiseMap, false, false)
     browseInvitations.forEach((browseInvitation) =>
       addToEdgesPromiseMap(browseInvitation, 'browse', edgesPromiseMap, false, false)
     )
@@ -761,7 +765,7 @@ export default function Column(props) {
       )
       const colItems = []
       // if clicked on invite invitation profile entity
-      // dispay full list of notes with meta/browseEdges/editEdges/editEdgeTemplates
+      // display full list of notes with meta/browseEdges/editEdges/editEdgeTemplates
       if (parentColumnEntityType === 'profile' && !altGlobalEntityMap[parentId]) {
         const allItems = Object.values(globalEntityMap).map((p) =>
           appendEdgesInfo({
@@ -776,8 +780,8 @@ export default function Column(props) {
         return
       }
 
-      // sory by weight (in API) would fail when traverse edges has label instead of weight
-      // and traverse is the default sort so must sort.
+      // sort by weight (in API) would fail when traverse edges has label instead of weight
+      // and traverse is the default sort so must work.
       const traverseLabels = traverseInvitation.label?.['value-radio']
       if (traverseLabels) {
         const traverseLabelMap = _.fromPairs(

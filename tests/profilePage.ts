@@ -1,6 +1,6 @@
 /* eslint-disable newline-per-chained-call */
 // note: existing es index may cause this test to fail. better to empty notes index
-import { Selector, Role } from 'testcafe'
+import { Selector, Role, RequestMock } from 'testcafe'
 import {
   hasTaskUser,
   mergeUser as userF,
@@ -31,16 +31,149 @@ const userARole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =>
 
 const userBAlternateId = '~Di_Xu1'
 
+const responseDBLPXML = `<?xml version="1.0"?>
+<dblpperson name="Di Xu 0001" pid="95/7448-1" n="8">
+<person key="homepages/95/7448-1" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<note type="affiliation">University of British Columbia, Department of Electrical and Computer Engineering, Canada</note>
+</person>
+<homonyms n="1">
+<h f="x/Xu:Di"><person publtype="disambiguation" key="homepages/95/7448" mdate="2019-11-26">
+<author pid="95/7448">Di Xu</author>
+</person>
+</h>
+</homonyms>
+<r><inproceedings key="conf/3dtv/Coria-MendozaXN12" mdate="2019-11-26">
+<author pid="32/5783">Lino Coria-Mendoza</author>
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Automatic stereoscopic 3D video reframing.</title>
+<pages>1-4</pages>
+<year>2012</year>
+<booktitle>3DTV-Conference</booktitle>
+<ee>https://doi.org/10.1109/3DTV.2012.6365428</ee>
+<crossref>conf/3dtv/2012</crossref>
+<url>db/conf/3dtv/3dtv2012.html#Coria-MendozaXN12</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/iccel/XuCN12" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="161/3963">Lino E. Coria</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Quality of experience for the horizontal pixel parallax adjustment of stereoscopic 3D videos.</title>
+<pages>394-395</pages>
+<year>2012</year>
+<booktitle>ICCE</booktitle>
+<ee>https://doi.org/10.1109/ICCE.2012.6161918</ee>
+<crossref>conf/iccel/2012</crossref>
+<url>db/conf/iccel/icce2012.html#XuCN12</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/ictai/PourazadXN12" mdate="2023-03-24">
+<author pid="55/6295">Mahsa T. Pourazad</author>
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Random Forests Based View Generation for Multiview TV.</title>
+<pages>367-372</pages>
+<year>2012</year>
+<crossref>conf/ictai/2012</crossref>
+<booktitle>ICTAI</booktitle>
+<ee>https://doi.org/10.1109/ICTAI.2012.57</ee>
+<ee>https://doi.ieeecomputersociety.org/10.1109/ICTAI.2012.57</ee>
+<url>db/conf/ictai/ictai2012.html#PourazadXN12</url>
+</inproceedings>
+</r>
+<r><article key="journals/tvcg/XuDN11" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="58/3497">Colin Doutre</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Correction of Clipped Pixels in Color Images.</title>
+<pages>333-344</pages>
+<year>2011</year>
+<volume>17</volume>
+<journal>IEEE Trans. Vis. Comput. Graph.</journal>
+<number>3</number>
+<ee>https://doi.org/10.1109/TVCG.2010.63</ee>
+<ee>http://doi.ieeecomputersociety.org/10.1109/TVCG.2010.63</ee>
+<ee>https://www.wikidata.org/entity/Q51701964</ee>
+<url>db/journals/tvcg/tvcg17.html#XuDN11</url>
+</article>
+</r>
+<r><inproceedings key="conf/icecsys/XuCN10" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="32/5783">Lino Coria-Mendoza</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Guidelines for capturing high quality stereoscopic content based on a systematic subjective evaluation.</title>
+<pages>162-165</pages>
+<year>2010</year>
+<booktitle>ICECS</booktitle>
+<ee>https://doi.org/10.1109/ICECS.2010.5724479</ee>
+<crossref>conf/icecsys/2010</crossref>
+<url>db/conf/icecsys/icecsys2010.html#XuCN10</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/icip/XuDN10" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="58/3497">Colin Doutre</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>An improved Bayesian algorithm for color image desaturation.</title>
+<pages>1325-1328</pages>
+<year>2010</year>
+<booktitle>ICIP</booktitle>
+<ee>https://doi.org/10.1109/ICIP.2010.5649486</ee>
+<crossref>conf/icip/2010</crossref>
+<url>db/conf/icip/icip2010.html#XuDN10</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/iscas/XuDN10" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="58/3497">Colin Doutre</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Saturated-pixel enhancement for color images.</title>
+<pages>3377-3380</pages>
+<year>2010</year>
+<booktitle>ISCAS</booktitle>
+<ee>https://doi.org/10.1109/ISCAS.2010.5537871</ee>
+<crossref>conf/iscas/2010</crossref>
+<url>db/conf/iscas/iscas2010.html#XuDN10</url>
+</inproceedings>
+</r>
+<r><inproceedings key="conf/icip/XuN09" mdate="2019-11-26">
+<author pid="95/7448-1">Di Xu 0001</author>
+<author pid="55/3871">Panos Nasiopoulos</author>
+<title>Logo insertion transcoding for H.264/AVC compressed video.</title>
+<pages>3693-3696</pages>
+<year>2009</year>
+<booktitle>ICIP</booktitle>
+<ee>https://doi.org/10.1109/ICIP.2009.5414225</ee>
+<crossref>conf/icip/2009</crossref>
+<url>db/conf/icip/icip2009.html#XuN09</url>
+</inproceedings>
+</r>
+<coauthors n="5" nc="1">
+<co c="0"><na f="c/Coria:Lino_E=" pid="161/3963">Lino E. Coria</na></co>
+<co c="0"><na f="c/Coria=Mendoza:Lino" pid="32/5783">Lino Coria-Mendoza</na></co>
+<co c="0"><na f="d/Doutre:Colin" pid="58/3497">Colin Doutre</na></co>
+<co c="0"><na f="n/Nasiopoulos:Panos" pid="55/3871">Panos Nasiopoulos</na></co>
+<co c="0"><na f="p/Pourazad:Mahsa_T=" pid="55/6295">Mahsa T. Pourazad</na></co>
+</coauthors>
+</dblpperson>
+`
+
+const dblpMock = RequestMock()
+  .onRequestTo('https://dblp.org/pid/95/7448-1.xml')
+  .respond(responseDBLPXML, 200, { 'access-control-allow-origin': '*', 'content-type': 'application/xml' })
+
 // #region long repeated selectors
 const errorMessageSelector = Selector('#flash-message-container', {
   visibilityCheck: true,
 })
 const editFullNameInputSelector = Selector('input:not([readonly]).full-name')
-const nameSectionPlusIconSelector = Selector('section').nth(0).find('.glyphicon-plus-sign')
-const emailSectionPlusIconSelector = Selector('section').nth(4).find('.glyphicon-plus-sign')
+const nameSectionPlusIconSelector = Selector('section').find('.glyphicon-plus-sign')
+const emailSectionPlusIconSelector = Selector('section').find('.glyphicon-plus-sign')
 const editEmailInputSelector = Selector('input:not([readonly]).email')
-const emailConfirmButtons = Selector('section').nth(4).find('button').withText('Confirm')
-const emailRemoveButtons = Selector('section').nth(4).find('button').withText('Remove')
+const emailConfirmButtons = Selector('section').find('button').withText('Confirm')
+const emailRemoveButtons = Selector('section').find('button').withText('Remove')
 const pageHeader = Selector('div.title-container').find('h1')
 const profileViewEmail = Selector('section.emails').find('span')
 const addDBLPPaperToProfileButton = Selector('button.personal-links__adddblpbtn')
@@ -56,6 +189,7 @@ const dblpImportModalAddToProfileBtn = Selector('#dblp-import-modal')
   .withText('Add to Your Profile')
 const dblpImportModalSelectCount = Selector('#dblp-import-modal').find('div.selected-count')
 const saveProfileButton = Selector('button').withText('Save Profile Changes')
+const cancelButton = Selector('div.buttons-row').find('button').withText('Exit Edit Mode')
 const nameMakePreferredButton = Selector('div.container.names')
   .find('button.preferred_button')
   .filterVisible()
@@ -63,20 +197,27 @@ const nameMakePreferredButton = Selector('div.container.names')
 const dblpUrlInput = Selector('#dblp_url')
 const aclanthologyUrlInput = Selector('#aclanthology_url')
 const homepageUrlInput = Selector('#homepage_url')
-const yearOfBirthInput = Selector('section').nth(3).find('input')
+const yearOfBirthInput = Selector('section').nth(2).find('input') // gender pronouns year of birth
 const firstHistoryEndInput = Selector('div.history')
   .find('input')
   .withAttribute('placeholder', 'end year')
   .nth(0)
 const messageSelector = Selector('span').withAttribute('class', 'important_message')
 const messagePanelSelector = Selector('#flash-message-container')
+const step0Names = Selector('div[step="0"]').find('div[role="button"]')
+const step1PeronalInfo = Selector('div[step="1"]').find('div[role="button"]')
+const step2Emails = Selector('div[step="2"]').find('div[role="button"]')
+const step3Links = Selector('div[step="3"]').find('div[role="button"]')
+const step4History = Selector('div[step="4"]').find('div[role="button"]')
+const step5Relations = Selector('div[step="5"]').find('div[role="button"]')
+const step6Expertise = Selector('div[step="6"]').find('div[role="button"]')
 
 // #endregion
 
 fixture`Profile page`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
   return ctx
-})
+}).requestHooks(dblpMock)
 
 test('user open own profile', async (t) => {
   await t
@@ -93,16 +234,16 @@ test('user open own profile', async (t) => {
     .click(Selector('a').withText('Edit Profile'))
     .expect(Selector('h1').withText('Edit Profile').exists)
     .ok()
-    .expect(Selector('#edit-banner').find('a').innerText)
-    .eql('View Profile')
+    .click(step3Links)
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
-    .expect(Selector('ul.submissions-list').exists)
-    .notOk() // show imported papers only
+    .expect(Selector('ul.submissions-list').find('.note').count)
+    .eql(0) // no imported papers
     .expect(saveProfileButton.exists)
     .ok()
     // make some changes and save
     // add a name
+    .click(step0Names)
     .click(nameSectionPlusIconSelector)
     .typeText(editFullNameInputSelector, '111', { paste: true })
     .expect(errorMessageSelector.innerText)
@@ -116,9 +257,10 @@ test('user open own profile', async (t) => {
     )
     .click(Selector('button.remove_button').filterVisible())
     // add a email
+    .click(step2Emails)
     .expect(
       Selector('p').withText(
-        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
       ).exists
     )
     .notOk() // not activation
@@ -147,6 +289,7 @@ test('user open own profile', async (t) => {
     .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
     .notOk()
     // add empty homepage link
+    .click(step3Links)
     .typeText(homepageUrlInput, ' ', { replace: true })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
@@ -190,13 +333,15 @@ test('user open own profile', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql(
-      'Error: dblp link is invalid. A valid link should include https://dblp.org, https://dblp.uni-trier.de, https://dblp2.uni-trier.de, https://dblp.dagstuhl.de, uni-trier.de'
+      'Error: dblp link is invalid. A valid link should include https://dblp.org/pid/'
     )
     .selectText(dblpUrlInput)
     .pressKey('delete')
     // add empty expertise
+    .click(step6Expertise)
     .typeText(Selector('div.expertise').find('input').nth(0), '        ')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 })
@@ -205,7 +350,9 @@ test('add and delete year of birth', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     // add invalid year of birth
+    .click(step1PeronalInfo)
     .typeText(yearOfBirthInput, '0000')
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
@@ -220,6 +367,8 @@ test('add and delete year of birth', async (t) => {
     // remove year of birth
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step1PeronalInfo)
     .expect(yearOfBirthInput.value)
     .eql('2000')
     .selectText(yearOfBirthInput)
@@ -232,6 +381,8 @@ test('add and delete year of birth', async (t) => {
     // verify year of birth has been removed
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step1PeronalInfo)
     .expect(yearOfBirthInput.value)
     .eql('')
 })
@@ -243,10 +394,14 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step1PeronalInfo)
     .click(Selector('div.pronouns-dropdown__control'))
     .wait(1000)
     .click(Selector('div.pronouns-dropdown__option').nth(2))
     .click(saveProfileButton)
+    .wait(200)
+    .click(cancelButton)
     .expect(Selector('h4').nth(0).textContent)
     .eql('Pronouns: he/him')
 
@@ -255,10 +410,14 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step1PeronalInfo)
     .typeText(Selector('div.pronouns'), customPronouns)
     .wait(500)
     .click(Selector('div.pronouns-dropdown__option').nth(0))
     .click(saveProfileButton)
+    .wait(200)
+    .click(cancelButton) // to navigate to profile view
     .expect(Selector('h4').nth(0).textContent)
     .eql(`Pronouns: ${customPronouns}`)
 
@@ -267,10 +426,14 @@ test('add and delete pronouns', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step1PeronalInfo)
     .click(Selector('div.pronouns-dropdown__control'))
     .wait(500)
     .click(Selector('div.pronouns-dropdown__option').nth(3))
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .click(cancelButton)
     .expect(Selector('h4').nth(0).textContent)
     .notEql('Pronouns: he/him')
 })
@@ -280,12 +443,16 @@ test('add and delete geolocation of history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step4History)
     .click(Selector('input.region-dropdown__placeholder')) // show dropdown
     .click(Selector('div.country-dropdown__option').nth(3))
     .typeText(Selector('input.institution-city'), 'test city', { replace: true })
     .typeText(Selector('input.institution-state'), 'test state', { replace: true })
     .typeText(Selector('input.institution-department'), 'test department')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .click(cancelButton)
     .expect(Selector('.glyphicon-map-marker').exists)
     .ok()
     .expect(
@@ -300,11 +467,15 @@ test('add and delete geolocation of history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step4History)
     .selectText(Selector('input.institution-state'))
     .pressKey('delete')
     .selectText(Selector('input.institution-city'))
     .pressKey('delete')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .click(cancelButton)
     .expect(Selector('.glyphicon-map-marker').exists)
     .ok()
     .expect(
@@ -319,18 +490,23 @@ test('add and delete geolocation of history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step4History)
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__control'))
     .pressKey('delete')
+    .click(step4History) // to collapse dropdown
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('Error: You must enter position, institution, domain and country/region information for each entry in your education and career history')
+    .eql('Error: You must enter position, institution, domain and country/region information for each entry in your career and education history')
 })
 
 test('add links', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step3Links)
     // add invalid acl url
     .typeText(aclanthologyUrlInput, 'https://aclanthology.org/invalid_url')
     .pressKey('tab')
@@ -351,6 +527,7 @@ test('add links', async (t) => {
     .expect(aclanthologyUrlInput.hasClass('invalid-value'))
     .notOk()
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 })
@@ -361,6 +538,8 @@ test('add relation', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step5Relations)
     // add a relation by name
     .click(firstRelationRow.find('div.relation__value').nth(0)) // relation dropdown
     .click(Selector('div.relation-dropdown__option').nth(3))
@@ -407,6 +586,8 @@ test('add relation', async (t) => {
       '2023'
     )
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .click(cancelButton)
     // verify relation is added
     .expect(Selector('span').withText('Some Relation Name').exists)
     .ok()
@@ -416,6 +597,8 @@ test('add relation', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step5Relations)
     .expect(
       firstRelationRow.find('a').withAttribute('href', '/profile?id=~FirstA_LastA1')
         .textContent
@@ -452,6 +635,8 @@ test('add expertise', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step6Expertise)
     // add expertise correctly
     .typeText(
       firstExpertiseRow.find('div.expertise__value').nth(0).find('input'),
@@ -472,6 +657,8 @@ test('add expertise', async (t) => {
     )
     .typeText(thirdExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .click(cancelButton)
     // verify relation is added
     .expect(Selector('span').withText('other expertise').exists)
     .ok()
@@ -488,6 +675,8 @@ test('import paper from dblp', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step3Links)
     .expect(addDBLPPaperToProfileButton.hasAttribute('disabled'))
     .ok()
     // put incorrect persistant url
@@ -522,11 +711,15 @@ test('import paper from dblp', async (t) => {
       { timeout: 5000 }
     )
     .click(dblpImportModalCancelButton)
+    .click(step0Names)
     // add name to skip validation error
     .click(nameSectionPlusIconSelector)
     .typeText(editFullNameInputSelector, 'Di Xu')
     .click(saveProfileButton)
-    .click(Selector('a').withText('Edit Profile'))
+    // wait until profile save complete
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+
+  await t.click(step3Links)
     .click(addDBLPPaperToProfileButton)
     .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText)
     .contains('Please select the new publications of which you are actually an author.')
@@ -597,6 +790,8 @@ test('imported paper has banner back to profile edit', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step3Links)
     .click(addDBLPPaperToProfileButton)
     .expect(Selector('div.publication-title').nth(0).find('a').getAttribute('href'))
     .contains('referrer=[profile](/profile/edit)')
@@ -609,6 +804,7 @@ test('unlink paper', async (t) => {
     .expect(Selector('ul.submissions-list').find('div.note').count)
     .eql(2) // profile view has the 2 papers imported
     .click(Selector('a').withText('Edit Profile'))
+    .click(step3Links)
     .click(Selector('ul.submissions-list').find('.glyphicon-minus-sign').nth(1)) // unlink 2nd paper
     .expect(Selector('ul.submissions-list').find('div.unlinked-publication').count)
     .eql(1)
@@ -622,6 +818,7 @@ test('unlink paper', async (t) => {
     // keep 1 publication to check history
     .click(Selector('ul.submissions-list').find('.glyphicon-minus-sign').nth(1)) // unlink 2nd paper
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
 })
 
 test('check import history', async (t) => {
@@ -650,6 +847,8 @@ test('reimport unlinked paper and import all', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step3Links)
     .click(addDBLPPaperToProfileButton)
     .click(
       Selector('#dblp-import-modal')
@@ -698,19 +897,22 @@ test('validate current history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step4History)
     .typeText(firstHistoryEndInput, (new Date().getFullYear() - 1).toString(), {
       replace: true,
       paste: true,
     })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('Error: Your Education & Career History must include at least one current position.')
+    .eql('Error: Your Career & Education History must include at least one current position.')
     // add current end date
     .typeText(firstHistoryEndInput, new Date().getFullYear().toString(), {
       replace: true,
       paste: true,
     })
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 
@@ -718,9 +920,12 @@ test('validate current history', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step4History)
     .selectText(firstHistoryEndInput)
     .pressKey('delete')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 })
@@ -729,6 +934,8 @@ test('profile should be auto merged', async (t) => {
   await t
     .useRole(userARole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step2Emails)
     .click(emailSectionPlusIconSelector)
     .typeText(editEmailInputSelector, userF.email)
     .click(Selector('button').withText('Confirm').filterVisible())
@@ -737,11 +944,25 @@ test('profile should be auto merged', async (t) => {
     .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
     .contains(`A confirmation email has been sent to ${userF.email}`)
 
-    // text box to enter code should be displayed
+    // enter code to merge profile
     .expect(Selector('button').withText('Verify').nth(0).visible)
     .ok()
     .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
     .ok()
+    .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messageSelector.innerText)
+    .eql('alternate@a.com has been verified')
+    .expect(Selector('div.emails__confirmed-text').withText('(Confirmed)').count).eql(2, { timeout: 2000 }) // email section is updated
+    .expect(Selector('div.emails__preferred-text').withText('(Preferred Email)').count).eql(1) // userA's existing email
+    .expect(Selector('button').withText('Make Preferred').exists)// userF's email
+    .ok()
+
+    .click(saveProfileButton) // save profile should success
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(errorMessageSelector.innerText)
+    .eql('Your profile information has been successfully updated')
+
   const { superUserToken } = t.fixtureCtx
   const messages = await getMessages(
     { to: userF.email, subject: 'OpenReview Account Linking - Duplicate Profile Found' },
@@ -752,31 +973,12 @@ test('profile should be auto merged', async (t) => {
     .contains(
       'This alternate email address is already associated with the user [~FirstF_LastF1]'
     )
-
-  // access merge link as non-related user
   await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/merge?token=${userF.email}`)
-    .expect(Selector('h1').withText('Error 403').exists)
-    .ok()
-    .expect(Selector('pre.error-message').textContent)
-    .eql('You are not authorized to perform this merge.')
-
-  // access merge link as user which initiated the merge
-  await t
-    .useRole(userARole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/merge?token=${userF.email}`)
-    .expect(
-      Selector('p').withText(
-        'Click the confirm button below to merge ~FirstF_LastF1<alternate@a.com> into your user profile.'
-      ).exists
+    .expect(messages[0].content.text)
+    .contains(
+      'Verification Token'
     )
-    .ok()
-    .expect(Selector('button').withText('Confirm Profile Merge').exists)
-    .ok()
-    .click(Selector('button').withText('Confirm Profile Merge'))
-    .expect(Selector('div.alert-content').innerText)
-    .contains('Thank you for confirming the profile merge.')
+
 
   // email should have been added to hasTaskUser's profile
   await t
@@ -801,6 +1003,7 @@ test('open profile of other user by email', async (t) => {
     .typeText(Selector('#email-input'), userB.email)
     .typeText(Selector('#password-input'), userB.password)
     .click(Selector('button').withText('Login to OpenReview'))
+    .wait(500)
     // access FirstA LastA's profile page by email
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile?email=${hasTaskUser.email}`)
     .expect(Selector('a').withText('Edit Profile').exists)
@@ -839,6 +1042,8 @@ test('#85 confirm profile email message', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step2Emails)
     .click(emailSectionPlusIconSelector)
     .typeText(editEmailInputSelector, 'a@a.com')
     .click(Selector('button').withText('Confirm').filterVisible())
@@ -865,10 +1070,13 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .expect(Selector('#user-menu').innerText)
     .eql('FirstB LastB ')
     .click(nameMakePreferredButton)
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .click(cancelButton)
     .expect(Selector('#user-menu').innerText)
     .eql('Di Xu ')
     .expect(Selector('div.title-container').find('h1').innerText)
@@ -878,6 +1086,7 @@ test('#160 allow user to overwrite name to be lowercase', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
     .click(nameSectionPlusIconSelector)
     .typeText(editFullNameInputSelector, 'first', { speed: 0.3 }) // it will trigger call to generate ~ id so typing fast won't trigger capitalization
     .expect(editFullNameInputSelector.value)
@@ -886,6 +1095,8 @@ test('#160 allow user to overwrite name to be lowercase', async (t) => {
     .expect(editFullNameInputSelector.value)
     .eql('first')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .click(cancelButton)
     .expect(Selector('span').withText('first').exists)
     .ok()
 })
@@ -893,12 +1104,15 @@ test('fail before 2099', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step4History)
     .typeText(
       Selector('div.history').find('input').nth(2),
       `${new Date().getFullYear() + 10}`,
       { replace: true }
     ) // to fail in 2090, update validation regex
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated', undefined, {
       timeout: 5000,
@@ -908,13 +1122,16 @@ test('#1011 remove space in personal links', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .click(nameSectionPlusIconSelector)
+    .wait(100)
+    .click(step3Links)
     .typeText(homepageUrlInput, '   https://github.com/xkOpenReview    ', {
       replace: true,
       paste: true,
     })
     .pressKey('tab')
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .click(cancelButton)
     .expect(
       Selector('a')
         .withText('Homepage')
@@ -926,15 +1143,11 @@ test('confirm an email with a numeric token', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step2Emails)
     .expect(Selector('h4').withText('Emails').exists)
     .ok()
-    .click(
-      Selector('div')
-        .withAttribute('class', 'profile-edit-container')
-        .child('section')
-        .nth(4)
-        .find('span.glyphicon')
-    ) // add button
+    .click(emailSectionPlusIconSelector)
     .expect(Selector('div.container.emails').child('div.row').count)
     .eql(2)
     .typeText(
@@ -942,16 +1155,12 @@ test('confirm an email with a numeric token', async (t) => {
       'aaa@alternate.com'
     )
     .click(Selector('div.container.emails').find('button.confirm-button'))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
     .eql(
       'A confirmation email has been sent to aaa@alternate.com with confirmation instructions'
     )
     .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
     .click(Selector('button').withText('Verify').nth(0))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
     .eql('aaa@alternate.com has been verified')
     // check if buttons disappeared
@@ -964,6 +1173,8 @@ test('confirm an email with a numeric token', async (t) => {
     .expect(Selector('button').withText('Make Preferred').nth(0).exists)
     .ok()
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .click(cancelButton)
     .expect(Selector('span').withText('aaa@alternate.com').exists)
     .ok()
     .expect(
@@ -980,15 +1191,11 @@ test('check if a user can add multiple emails without entering verification toke
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step2Emails)
     .expect(Selector('h4').withText('Emails').exists)
     .ok()
-    .click(
-      Selector('div')
-        .withAttribute('class', 'profile-edit-container')
-        .child('section')
-        .nth(4)
-        .find('span.glyphicon')
-    ) // add button
+    .click(emailSectionPlusIconSelector)
     .expect(Selector('div.container.emails').child('div.row').count)
     .eql(3)
     .typeText(
@@ -1009,13 +1216,7 @@ test('check if a user can add multiple emails without entering verification toke
     .expect(messageSelector.innerText)
     .eql('aab@alternate.com has been verified')
 
-    .click(
-      Selector('div')
-        .withAttribute('class', 'profile-edit-container')
-        .child('section')
-        .nth(4)
-        .find('span.glyphicon')
-    ) // add button
+    .click(emailSectionPlusIconSelector)
     .expect(Selector('div.container.emails').child('div.row').count)
     .eql(4)
     .typeText(
@@ -1036,6 +1237,8 @@ test('check if a user can add multiple emails without entering verification toke
     .eql('token must NOT have fewer than 1 characters')
 
     .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .click(cancelButton)
     .expect(Selector('span').withText('aab@alternate.com').exists)
     .ok()
     .expect(
