@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import intersection from 'lodash/intersection'
-import NoteActivity, { NoteActivityV2 } from './NoteActivity'
+import NoteActivity from './NoteActivity'
 import useUser from '../hooks/useUser'
 import { prettyId } from '../lib/utils'
 
@@ -67,19 +67,11 @@ export default function BaseActivityList({
             key={note.id}
             className={`note note-activity ${note.details.isDeleted ? 'trashed' : ''}`}
           >
-            {note.apiVersion === 2 ? (
-              <NoteActivityV2
-                note={note}
-                showActionButtons={showActionButtons}
-                showGroup={showGroup}
-              />
-            ) : (
-              <NoteActivity
-                note={note}
-                showActionButtons={showActionButtons}
-                showGroup={showGroup}
-              />
-            )}
+            <NoteActivity
+              note={note}
+              showActionButtons={showActionButtons}
+              showGroup={showGroup}
+            />
           </li>
         ))
       ) : (
