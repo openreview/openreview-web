@@ -7,7 +7,7 @@ import GroupUICode from './GroupUICode'
 import GroupContent from './GroupContent'
 import GroupContentScripts from './GroupContentScripts'
 
-const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }) => {
+const GroupAdmin = ({ group, isSuperUser, profileId, accessToken, reloadGroup }) => {
   if (!group) return null
 
   return (
@@ -50,4 +50,4 @@ const GroupEditor = ({ group, isSuperUser, profileId, accessToken, reloadGroup }
   )
 }
 
-export default GroupEditor
+export default GroupAdmin
