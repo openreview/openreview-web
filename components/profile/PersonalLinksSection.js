@@ -4,6 +4,7 @@ import { useEffect, useReducer } from 'react'
 import DblpImportModal from '../DblpImportModal'
 import Icon from '../Icon'
 import { isValidURL } from '../../lib/utils'
+import ORCIDImportModal from '../ORCIDImportModal'
 
 const PersonalLinkInput = ({ type, links, setLinks }) => {
   const handleBlur = (e) => {
@@ -66,7 +67,7 @@ const PersonalLinksSection = ({
   profileId,
   names,
   renderPublicationsEditor,
-  hideDblpButton,
+  hideImportButton,
 }) => {
   const linksReducer = (state, action) => {
     if (action.type === 'overwrite') return action.data
@@ -83,6 +84,14 @@ const PersonalLinksSection = ({
 
   const handleAddDBLPButtonClick = () => {
     $('#dblp-import-modal').modal({
+      show: true,
+      backdrop: 'static',
+      keyboard: false,
+    })
+  }
+
+  const handleAddORCIDButtonClick = () => {
+    $('#orcid-import-modal').modal({
       show: true,
       backdrop: 'static',
       keyboard: false,
@@ -115,54 +124,94 @@ const PersonalLinksSection = ({
         </div>
       </div>
 
-      <div className="row">
-        <div className="col-md-4 personal-links__column">
-          <div className="small-heading">
-            DBLP URL
-            <a
-              className="personal-links__faqlink"
-              href="https://docs.openreview.net/getting-started/creating-an-openreview-profile/importing-papers-from-dblp"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <Icon name="info-sign" />
-            </a>
+      {hideImportButton ? (
+        <>
+          <div className="row">
+            <div className="col-md-4 personal-links__column">
+              <div className="small-heading">
+                DBLP URL
+                <a
+                  className="personal-links__faqlink"
+                  href="https://docs.openreview.net/getting-started/creating-an-openreview-profile/importing-papers-from-dblp"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Icon name="info-sign" />
+                </a>
+              </div>
+              <PersonalLinkInput type="dblp" links={links} setLinks={setLinks} />
+            </div>
+            <div className="col-md-4 personal-links__column">
+              <div className="small-heading">ORCID URL</div>
+              <PersonalLinkInput type="orcid" links={links} setLinks={setLinks} />
+            </div>
           </div>
-          <PersonalLinkInput type="dblp" links={links} setLinks={setLinks} />
-        </div>
-        <div className="col-md-4 personal-links__column">
-          <div className="row ml-0 hidden-xs hidden-sm">
-            <div className="small-heading">&nbsp;</div>
+        </>
+      ) : (
+        <>
+          <div className="row">
+            <div className="col-md-4 personal-links__column">
+              <div className="small-heading">
+                DBLP URL
+                <a
+                  className="personal-links__faqlink"
+                  href="https://docs.openreview.net/getting-started/creating-an-openreview-profile/importing-papers-from-dblp"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Icon name="info-sign" />
+                </a>
+              </div>
+              <PersonalLinkInput type="dblp" links={links} setLinks={setLinks} />
+            </div>
+            <div className="col-md-4 personal-links__column">
+              <div className="row ml-0 hidden-xs hidden-sm">
+                <div className="small-heading">&nbsp;</div>
+              </div>
+              <button
+                className="btn btn-primary personal-links__adddblpbtn"
+                type="button"
+                disabled={!links.dblp?.value}
+                onClick={handleAddDBLPButtonClick}
+              >
+                Add DBLP Papers to Profile
+              </button>
+            </div>
           </div>
-          {!hideDblpButton && (
-            <button
-              className="btn btn-primary personal-links__adddblpbtn"
-              type="button"
-              disabled={!links.dblp?.value}
-              onClick={handleAddDBLPButtonClick}
-            >
-              Add DBLP Papers to Profile
-            </button>
-          )}
-        </div>
-      </div>
+          <div className="row">
+            <div className="col-md-4 personal-links__column">
+              <div className="small-heading">ORCID URL</div>
+              <PersonalLinkInput type="orcid" links={links} setLinks={setLinks} />
+            </div>
+            <div className="col-md-4 personal-links__column">
+              <div className="row ml-0 hidden-xs hidden-sm">
+                <div className="small-heading">&nbsp;</div>
+              </div>
+              <button
+                className="btn btn-primary personal-links__adddblpbtn"
+                type="button"
+                disabled={!links.orcid?.value}
+                onClick={handleAddORCIDButtonClick}
+              >
+                Add ORCID Papers to Profile
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="row">
-        <div className="col-md-4 personal-links__column">
-          <div className="small-heading">ORCID URL</div>
-          <PersonalLinkInput type="orcid" links={links} setLinks={setLinks} />
-        </div>
         <div className="col-md-4 personal-links__column">
           <div className="small-heading">Wikipedia URL</div>
           <PersonalLinkInput type="wikipedia" links={links} setLinks={setLinks} />
         </div>
-      </div>
-
-      <div className="row">
         <div className="col-md-4 personal-links__column">
           <div className="small-heading">Linkedin URL</div>
           <PersonalLinkInput type="linkedin" links={links} setLinks={setLinks} />
         </div>
+      </div>
+
+      <div className="row">
         <div className="col-md-4 personal-links__column">
           <div className="small-heading">
             Semantic Scholar URL
@@ -177,9 +226,6 @@ const PersonalLinksSection = ({
           </div>
           <PersonalLinkInput type="semanticScholar" links={links} setLinks={setLinks} />
         </div>
-      </div>
-
-      <div className="row">
         <div className="col-md-4 personal-links__column">
           <div className="small-heading">
             ACL Anthology URL
@@ -203,6 +249,8 @@ const PersonalLinksSection = ({
           setLinks({ type: 'dblp', data: { value: url } })
         }}
       />
+
+      <ORCIDImportModal profileNames={names?.filter((p) => !p.newRow)} />
     </div>
   )
 }
