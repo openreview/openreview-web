@@ -1503,7 +1503,7 @@ module.exports = (function () {
           '<input type="checkbox" name="' +
           fieldName +
           '" value="' +
-          option +
+          _.escape(option) +
           '" ' +
           checked +
           ' ' +
