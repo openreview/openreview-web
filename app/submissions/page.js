@@ -15,7 +15,7 @@ export const metadata = {
 }
 
 export default async function page({ searchParams }) {
-  const { venue: groupId } = await searchParams
+  const { venue: groupId, page: pageParam } = await searchParams
   const { token } = await serverAuth()
 
   if (!groupId) {
@@ -66,7 +66,7 @@ export default async function page({ searchParams }) {
   return (
     <CommonLayout banner={banner} editBanner={null}>
       <div className={styles.submissions}>
-        <Submissions groupId={group.id} invitationId={invitationId} />
+        <Submissions groupId={group.id} invitationId={invitationId} page={pageParam} />
       </div>
     </CommonLayout>
   )
