@@ -538,7 +538,23 @@ export const NewReplyEditNoteReaders = ({
   const getReadersWarning = () => {
     if (isDirectReplyToForum) return null
     if (!value) return null
-    if (!value.includes(replyToNote.signatures[0]))
+
+    const replyNoteSignature = replyToNote.signatures[0]
+    const signatureInValue = value.find((p) => {
+      if (p === replyNoteSignature) return true
+      const committeeName = p.split('/').pop()
+      const singularCommitteeName = committeeName.endsWith('s')
+        ? committeeName.slice(0, -1)
+        : committeeName
+
+      return (
+        replyNoteSignature.split('/').pop().startsWith(`${singularCommitteeName}_`) ||
+        (replyNoteSignature.endsWith(`/${committeeName}`) &&
+          replyNoteSignature.length > p.length)
+      )
+    })
+
+    if (!signatureInValue)
       return { message: "This reply won't be visible to the parent note author" }
     if (!isEqualOrSubset(replyToNote.readers, value)) {
       return { message: "This reply won't be visible to all the readers of the parent note" }
