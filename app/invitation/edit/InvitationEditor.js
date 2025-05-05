@@ -46,7 +46,7 @@ export default function InvitationEditor({ id, query }) {
       const invitationObj = await api.getInvitationById(
         id,
         accessToken,
-        { details: 'writable,writableWith', expired: true, trash: true },
+        { details: 'writable', expired: true, trash: true },
         { details: 'writable', expired: true }
       )
       if (invitationObj) {
