@@ -195,7 +195,13 @@ export default function DblpPublicationTable({
                 }),
               }
             })}
-          options={{ id: 'dblp-papers', collapsed: false, html: false, bodyContainer: '' }}
+          options={{
+            id: 'dblp-papers',
+            collapsed: false,
+            html: false,
+            bodyContainer: '',
+            shouldCollapse: true,
+          }}
         />
       </div>
     </>

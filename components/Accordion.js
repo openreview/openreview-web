@@ -25,7 +25,11 @@ const Accordion = ({ sections, options }) => (
 const SectionHeading = ({ id, heading, options }) => (
   <div className="panel-heading" role="tab">
     <h4 className="panel-title">
-      <SectionHeadingLink targetId={id} collapsed={options.collapsed}>
+      <SectionHeadingLink
+        targetId={id}
+        collapsed={options.collapsed}
+        shouldCollapse={options.shouldCollapse}
+      >
         <Icon name="triangle-bottom" />
       </SectionHeadingLink>{' '}
       <SectionHeadingLink

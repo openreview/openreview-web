@@ -122,7 +122,12 @@ export default async function page({ searchParams }) {
                   heading: <GroupHeading year={obj.year} count={obj.venues.length} />,
                   body: <VenuesList filteredVenues={obj.venues} />,
                 }))}
-                options={{ id: 'venues', collapsed: true, bodyContainer: 'div' }}
+                options={{
+                  id: 'venues',
+                  collapsed: true,
+                  bodyContainer: 'div',
+                  shouldCollapse: true,
+                }}
               />
             ) : (
               <p className="mt-2 empty-message">No venues found for group {hostGroup.id}</p>

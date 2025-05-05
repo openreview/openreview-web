@@ -11,7 +11,7 @@ export default function HeadingLink({ groupId, groupInfo }) {
 
   return (
     <div className="heading-link">
-      <h2 data-toggle="collapse" data-target="#" onClick={handleClick}>
+      <h2 data-toggle="collapse" onClick={handleClick}>
         <span className="invitation-id">{prettyId(groupId)} </span>
       </h2>
       <span className="task-count-message">{`Show ${inflect(
