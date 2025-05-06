@@ -1813,6 +1813,20 @@ header,
 
 // markdown preview tab
 .markdown-preview {
+  &__textarea {
+    padding-bottom: 0.25rem;
+  }
+  &__doc-link {
+    font-size: 0.75rem;
+    color: constants.$mediumBlue;
+    background-color: #fffaf4;
+    padding: 0.25rem 0.25rem;
+
+    svg {
+      margin-right: 0.25rem;
+      vertical-align: sub;
+    }
+  }
   textarea {
     width: 100% !important;
     min-height: 250px;
