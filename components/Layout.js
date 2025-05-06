@@ -4,11 +4,11 @@ import { Noto_Sans } from 'next/font/google'
 import Nav from './Nav'
 import Banner from './Banner'
 import EditBanner from './EditBanner'
-import FlashAlert from './FlashAlert'
 import Footer from './Footer'
 import FooterMinimal from './FooterMinimal'
 import FeedbackModal from './FeedbackModal'
 import BibtexModal from './BibtexModal'
+import usePrompt from '../hooks/usePrompt'
 
 const notoSans = Noto_Sans({
   subsets: ['latin'],
@@ -26,6 +26,9 @@ export default function Layout({
   fullWidth,
   minimalFooter,
 }) {
+  const promptFunctions = usePrompt()
+  Object.assign(global, promptFunctions)
+
   return (
     <div className={notoSans.className}>
       <Head>
@@ -79,7 +82,6 @@ gtag('config', '${process.env.GA_PROPERTY_ID}', {
 
       <Banner hidden={bannerHidden}>{bannerContent}</Banner>
       <EditBanner>{editBannerContent}</EditBanner>
-      <FlashAlert />
 
       <div className={`container${fullWidth ? '-fluid' : ''}`}>
         <div className="row">
