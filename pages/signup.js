@@ -538,6 +538,13 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [institutionDomains, setInstitutionDomains] = useState([])
   const [nonInstitutionEmail, setNonInstitutionEmail] = useState(null)
+  const router = useRouter()
+
+  const storeFeedbackInfo = (e) => {
+    e.preventDefault()
+    sessionStorage.setItem('feedbackInstitution', email)
+    router.push('/contact')
+  }
 
   const InstitutionErrorMessage = ({ email: invalidEmail }) => (
     <span>
@@ -545,17 +552,11 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
       publishing institutions. It can take up to <strong>2 weeks</strong> for profiles using
       public email services to be activated. To activate immediately, please sign up with an
       email address that uses an educational or employing institution domain. If your
-      institution is not yet in our list,{' '}
+      institution is not yet in our list,
       {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-      <a
-        href="#"
-        data-toggle="modal"
-        data-target="#feedback-modal"
-        data-from={email}
-        data-subject="Please add my domain to your list of publishing institutions"
-      >
+      <Link href="#" onClick={storeFeedbackInfo}>
         contact us
-      </a>{' '}
+      </Link>{' '}
       to request that it be added.
     </span>
   )

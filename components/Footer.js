@@ -28,12 +28,6 @@ const Footer = () => (
                 <Link href="/contact">Contact</Link>
               </li>
               <li>
-                {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                <a href="#" data-toggle="modal" data-target="#feedback-modal">
-                  Feedback
-                </a>
-              </li>
-              <li>
                 <Link href="/sponsors">Sponsors</Link>
               </li>
               <li>
@@ -106,12 +100,6 @@ const Footer = () => (
               </li>
               <li>
                 <Link href="/contact">Contact</Link>
-              </li>
-              <li>
-                {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                <a href="#" data-toggle="modal" data-target="#feedback-modal">
-                  Feedback
-                </a>
               </li>
               <li>
                 <Link href="/legal/terms">Terms of Use</Link>
