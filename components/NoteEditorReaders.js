@@ -324,25 +324,36 @@ export const NewReplyEditNoteReaders = ({
             description: p,
           }))
         : fieldDescription.param.items
-      const optionsP = enumItemsConfigOptions.map((p) =>
-        p.prefix
-          ? api.get('/groups', { prefix: p.prefix }, { accessToken }).then((result) =>
-              result.groups.map((q) => ({
-                value: q.id,
-                description: prettyId(q.id, false),
-                optional: p.optional,
-              }))
-            )
-          : Promise.resolve([
-              {
-                ...p,
-                description: prettyId(p.description ?? p.value)
-                  .split(/\{(\S+)\}/g)
-                  .filter((q) => q.trim())
-                  .join(),
-              },
-            ])
-      )
+      const optionsP = enumItemsConfigOptions.map((p) => {
+        if (p.prefix)
+          return api.get('/groups', { prefix: p.prefix }, { accessToken }).then((result) =>
+            result.groups.map((q) => ({
+              value: q.id,
+              description: prettyId(q.id, false),
+              optional: p.optional,
+            }))
+          )
+        if (p.inGroup) {
+          return api.get('/groups', { id: p.inGroup }, { accessToken }).then((result) => {
+            const groupMembers = result.groups[0]?.members
+            if (!groupMembers?.length) return []
+            return groupMembers.map((q) => ({
+              value: q,
+              description: prettyId(q, false),
+              optional: p.optional,
+            }))
+          })
+        }
+        return Promise.resolve([
+          {
+            ...p,
+            description: prettyId(p.description ?? p.value)
+              .split(/\{(\S+)\}/g)
+              .filter((q) => q.trim())
+              .join(),
+          },
+        ])
+      })
       const groupResults = await Promise.all(optionsP)
 
       const optionWithParentReaders = addEnumParentReaders(
@@ -397,9 +408,9 @@ export const NewReplyEditNoteReaders = ({
           }))
           parentReadersToAutoSelect = isDirectReplyToForum
             ? []
-            : replyToNote?.readers?.filter((p) =>
+            : (replyToNote?.readers?.filter((p) =>
                 optionWithParentReaders.find((q) => q.value === p)
-              ) ?? []
+              ) ?? [])
           defaultValues = fieldDescription?.param?.default ?? []
 
           if (!value && (defaultValues.length || parentReadersToAutoSelect.length))
