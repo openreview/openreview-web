@@ -1,11 +1,9 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
 import groupBy from 'lodash/groupBy'
 import { orderBy } from 'lodash'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
@@ -30,6 +28,7 @@ import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
 import { formatProfileContent } from '../../lib/edge-utils'
+import ConsoleTabs from './ConsoleTabs'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -90,11 +89,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   } = useContext(WebFieldContext)
   const { setBannerContent, setLayoutOptions } = appContext
   const { user, accessToken, userLoading } = useUser()
-  const router = useRouter()
   const query = useQuery()
-  const [activeTabId, setActiveTabId] = useState(
-    decodeURIComponent(window.location.hash) || '#venue-configuration'
-  )
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
 
@@ -1069,32 +1064,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     },
     []
   )
-
-  useEffect(() => {
-    const validTabIds = [
-      '#venue-configuration',
-      `#${submissionName.toLowerCase()}-status`,
-      `#${reviewerUrlFormat}-status`,
-      `#${areaChairUrlFormat}-status`,
-      `#${seniorAreaChairUrlFormat}-status`,
-      '#deskrejectwithdrawn-status',
-    ]
-
-    if (submissionContentFields.length > 0) {
-      submissionContentFields.forEach((fieldAttrs) => validTabIds.push(`#${fieldAttrs.field}`))
-    }
-
-    if (extraTabs.length > 0) {
-      extraTabs.forEach((tabAttrs) => validTabIds.push(`#${tabAttrs.tabId}`))
-    }
-
-    if (!validTabIds.includes(activeTabId)) {
-      setActiveTabId('#venue-configuration')
-      return
-    }
-    router.replace(activeTabId)
-  }, [activeTabId])
-
+  
   const missingConfig = Object.entries({
     header,
     entity: group,
@@ -1123,146 +1093,93 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
-      <Tabs>
-        <TabList>
-          <Tab
-            id="venue-configuration"
-            active={activeTabId === '#venue-configuration' ? true : undefined}
-            onClick={() => setActiveTabId('#venue-configuration')}
-          >
-            Overview
-          </Tab>
-          <Tab
-            id={`${submissionName.toLowerCase()}-status`}
-            active={
-              activeTabId === `#${submissionName.toLowerCase()}-status` ? true : undefined
-            }
-            onClick={() => setActiveTabId(`#${submissionName.toLowerCase()}-status`)}
-          >
-            {submissionName} Status
-          </Tab>
-          <Tab
-            id={`${reviewerUrlFormat}-status`}
-            active={activeTabId === `#${reviewerUrlFormat}-status` ? true : undefined}
-            onClick={() => setActiveTabId(`#${reviewerUrlFormat}-status`)}
-          >
-            {getSingularRoleName(prettyField(reviewerName))} Status
-          </Tab>
-          {areaChairsId && (
-            <Tab
-              id={`${areaChairUrlFormat}-status`}
-              active={activeTabId === `#${areaChairUrlFormat}-status` ? true : undefined}
-              onClick={() => setActiveTabId(`#${areaChairUrlFormat}-status`)}
-            >
-              {getSingularRoleName(prettyField(areaChairName))} Status
-            </Tab>
-          )}
-          {seniorAreaChairsId && (
-            <Tab
-              id={`${seniorAreaChairUrlFormat}-status`}
-              active={activeTabId === `#${seniorAreaChairUrlFormat}-status` ? true : undefined}
-              onClick={() => setActiveTabId(`#${seniorAreaChairUrlFormat}-status`)}
-            >
-              {getSingularRoleName(prettyField(seniorAreaChairName))} Status
-            </Tab>
-          )}
-          {(withdrawnVenueId || deskRejectedVenueId) && (
-            <Tab
-              id="deskrejectwithdrawn-status"
-              active={activeTabId === '#deskrejectwithdrawn-status' ? true : undefined}
-              onClick={() => setActiveTabId('#deskrejectwithdrawn-status')}
-            >
-              Desk Rejected/Withdrawn {pluralizeString(submissionName)}
-            </Tab>
-          )}
-          {submissionContentFields.length > 0 &&
-            submissionContentFields.map((fieldAttrs) => (
-              <Tab
-                id={fieldAttrs.field}
-                key={fieldAttrs.field}
-                active={activeTabId === `#${fieldAttrs.field}` ? true : undefined}
-                onClick={() => setActiveTabId(`#${fieldAttrs.field}`)}
-              >
-                {prettyField(fieldAttrs.field)}
-              </Tab>
-            ))}
-          {extraTabs.length > 0 &&
-            extraTabs.map((tabAttrs) => (
-              <Tab
-                id={tabAttrs.tabId}
-                key={tabAttrs.tabId}
-                active={activeTabId === `#${tabAttrs.tabId}` ? true : undefined}
-                onClick={() => setActiveTabId(`#${tabAttrs.tabId}`)}
-              >
-                {tabAttrs.tabName}
-              </Tab>
-            ))}
-        </TabList>
-
-        <TabPanels>
-          <TabPanel id="venue-configuration">
-            <Overview pcConsoleData={pcConsoleData} />
-          </TabPanel>
-          <TabPanel id={`${submissionName.toLowerCase()}-status`}>
-            {activeTabId === `#${submissionName.toLowerCase()}-status` && (
+      <ConsoleTabs
+        defaultActiveTabId="venue-configuration"
+        tabs={[
+          {
+            id: 'venue-configuration',
+            label: 'Overview',
+            content: <Overview pcConsoleData={pcConsoleData} />,
+            visible: true,
+          },
+          {
+            id: `${submissionName.toLowerCase()}-status`,
+            label: `${submissionName} Status`,
+            content: (
               <PaperStatus
                 pcConsoleData={pcConsoleData}
                 loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
               />
-            )}
-          </TabPanel>
-          <TabPanel id={`${reviewerUrlFormat}-status`}>
-            <ReviewerStatusTab
-              pcConsoleData={pcConsoleData}
-              loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
-              loadRegistrationNoteMap={loadRegistrationNoteMap}
-              showContent={activeTabId === `#${reviewerUrlFormat}-status`}
-            />
-          </TabPanel>
-          {areaChairsId && activeTabId === `#${areaChairUrlFormat}-status` && (
-            <TabPanel id={`${areaChairUrlFormat}-status`}>
+            ),
+            visible: true,
+          },
+          {
+            id: `${reviewerUrlFormat}-status`,
+            label: `${getSingularRoleName(prettyField(reviewerName))} Status`,
+            content: (
+              <ReviewerStatusTab
+                pcConsoleData={pcConsoleData}
+                loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
+                loadRegistrationNoteMap={loadRegistrationNoteMap}
+              />
+            ),
+            visible: true,
+          },
+          {
+            id: `${areaChairUrlFormat}-status`,
+            label: `${getSingularRoleName(prettyField(areaChairName))} Status`,
+            content: (
               <AreaChairStatus
                 pcConsoleData={pcConsoleData}
                 loadSacAcInfo={loadSacAcInfo}
                 loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
                 loadRegistrationNoteMap={loadRegistrationNoteMap}
               />
-            </TabPanel>
-          )}
-          {seniorAreaChairsId && activeTabId === `#${seniorAreaChairUrlFormat}-status` && (
-            <TabPanel id={`${seniorAreaChairUrlFormat}-status`}>
+            ),
+            visible: areaChairsId,
+          },
+          {
+            id: `${seniorAreaChairUrlFormat}-status`,
+            label: `${getSingularRoleName(prettyField(seniorAreaChairName))} Status`,
+            content: (
               <SeniorAreaChairStatus
                 pcConsoleData={pcConsoleData}
                 loadSacAcInfo={loadSacAcInfo}
                 loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
               />
-            </TabPanel>
-          )}
-          <TabPanel id="deskrejectwithdrawn-status">
-            {activeTabId === '#deskrejectwithdrawn-status' && (
-              <RejectedWithdrawnPapers consoleData={pcConsoleData} />
-            )}
-          </TabPanel>
-          {submissionContentFields.length > 0 &&
-            submissionContentFields.map((fieldAttrs) => (
-              <TabPanel id={fieldAttrs.field} key={fieldAttrs.field}>
-                {activeTabId === `#${fieldAttrs.field}` && (
+            ),
+            visible: seniorAreaChairsId,
+          },
+          {
+            id: 'deskrejectwithdrawn-status',
+            label: `Desk Rejected/Withdrawn ${pluralizeString(submissionName)}`,
+            content: <RejectedWithdrawnPapers consoleData={pcConsoleData} />,
+            visible: withdrawnVenueId || deskRejectedVenueId,
+          },
+          ...(submissionContentFields.length > 0
+            ? submissionContentFields.map((fieldAttrs) => ({
+                id: fieldAttrs.field,
+                label: prettyField(fieldAttrs.field),
+                content: (
                   <PaperStatus
                     pcConsoleData={pcConsoleData}
                     loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
                     noteContentField={fieldAttrs}
                   />
-                )}
-              </TabPanel>
-            ))}
-          {extraTabs.length > 0 &&
-            extraTabs.map((tabAttrs) => (
-              <TabPanel id={tabAttrs.tabId} key={tabAttrs.tabId}>
-                {activeTabId === `#${tabAttrs.tabId}` && tabAttrs.renderTab()}
-              </TabPanel>
-            ))}
-        </TabPanels>
-      </Tabs>
+                ),
+                visible: true,
+              }))
+            : []),
+          ...(extraTabs.length > 0
+            ? extraTabs.map((tabAttrs) => ({
+                id: tabAttrs.tabId,
+                label: tabAttrs.tabName,
+                content: tabAttrs.renderTab(),
+                visible: true,
+              }))
+            : []),
+        ]}
+      />
     </>
   )
 }
