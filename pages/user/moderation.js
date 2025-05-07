@@ -1724,6 +1724,7 @@ const UserModerationQueue = ({
     'Limited',
     'Inactive',
     'Merged',
+    'Needs Moderation',
   ].map((p) => ({ label: p, value: p }))
   const twoWeeksAgo = dayjs().subtract(2, 'week').valueOf()
 
@@ -1832,12 +1833,12 @@ const UserModerationQueue = ({
     $(`#${modalId}`).modal('show')
   }
 
-  const rejectUser = async (rejectionMessage) => {
+  const rejectUser = async (rejectionMessage, id) => {
     try {
       await api.post(
         '/profile/moderate',
         {
-          id: profileToReject.id,
+          id: profileToReject?.id ?? id,
           decision: 'reject',
           reason: rejectionMessage,
         },
@@ -2240,11 +2241,8 @@ export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes })
 
   const rejectionReasons = getRejectionReasons(currentInstitutionName)
 
-  const updateMessageForPastRejectProfile = () => {
-    setRejectionMessage(
-      (p) =>
-        `Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system.\n\n${p}`
-    )
+  const updateMessageForPastRejectProfile = (messageToAdd) => {
+    setRejectionMessage((p) => `${messageToAdd}\n\n${p}`)
   }
 
   return (
@@ -2281,9 +2279,28 @@ export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes })
               isClearable
             />
 
-            <button className="btn btn-xs" onClick={updateMessageForPastRejectProfile}>
-              Add Invalid Info Warning
-            </button>
+            <div>
+              <button
+                className="btn btn-xs mr-2"
+                onClick={() =>
+                  updateMessageForPastRejectProfile(
+                    "Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system."
+                  )
+                }
+              >
+                Add Invalid Info Warning
+              </button>
+              <button
+                className="btn btn-xs"
+                onClick={() =>
+                  updateMessageForPastRejectProfile(
+                    'If invalid info is submitted again, your email will be blocked.'
+                  )
+                }
+              >
+                Add Last Notice Warning
+              </button>
+            </div>
 
             <textarea
               name="message"
