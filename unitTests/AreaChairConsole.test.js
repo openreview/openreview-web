@@ -25,7 +25,13 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => ({
     get: () => jest.fn(),
   }),
-  useRouter: jest.fn(),
+  useRouter: () => ({
+    replace: jest.fn(() => {
+      return {
+        catch: jest.fn(),
+      }
+    }),
+  }),
 }))
 
 global.promptError = jest.fn()

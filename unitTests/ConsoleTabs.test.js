@@ -5,7 +5,7 @@ import ConsoleTabs from '../components/webfield/ConsoleTabs'
 
 let routerParams
 
-jest.mock('next/router', () => ({
+jest.mock('next/navigation', () => ({
   useRouter: () => ({
     replace: jest.fn((params) => {
       routerParams = params
