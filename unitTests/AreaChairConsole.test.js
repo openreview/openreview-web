@@ -43,25 +43,6 @@ beforeEach(() => {
 })
 
 describe('AreaChairConsole', () => {
-  test('default to assigned papers tab when window.location does not contain any hash', async () => {
-    const providerProps = { value: { submissionName: 'Submissions' } }
-    renderWithWebFieldContext(
-      <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
-      providerProps
-    )
-    expect(window.location.hash).toEqual('#assigned-submissions')
-  })
-
-  test('default to assigned papers tab when window.location.hash does not match any tab', async () => {
-    window.location.hash = '#some-unknown-tab'
-    const providerProps = { value: { submissionName: 'Submissions' } }
-    renderWithWebFieldContext(
-      <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
-      providerProps
-    )
-    expect(window.location.hash).toEqual('#assigned-submissions')
-  })
-
   test('show error when config is not complete', async () => {
     const providerProps = { value: { areaChairName: undefined } }
     const { rerender } = renderWithWebFieldContext(

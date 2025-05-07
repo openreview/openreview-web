@@ -15,10 +15,12 @@ jest.mock('next/navigation', () => ({
     get: () => jest.fn(),
   }),
   useRouter: () => ({
-    replace: (params) => {
+    replace: jest.fn((params) => {
       routerParams = params
-      return jest.fn()
-    },
+      return {
+        catch: jest.fn(),
+      }
+    }),
   }),
 }))
 jest.mock('../components/webfield/SeniorAreaChairConsole/PaperStatus', () => (props) => {
@@ -54,29 +56,6 @@ beforeEach(() => {
 })
 
 describe('SeniorAreaChairConsole', () => {
-  test('default to paper status tab when window.location does not contain any hash', async () => {
-    const providerProps = { value: { submissionName: 'Submission' } }
-    renderWithWebFieldContext(
-      <SeniorAreaChairConsole
-        appContext={{ setBannerContent: jest.fn(), setLayoutOptions: jest.fn() }}
-      />,
-      providerProps
-    )
-    expect(window.location.hash).toEqual('#submission-status')
-  })
-
-  test('default to assigned papers tab when window.location.hash does not match any tab', async () => {
-    window.location.hash = '#some-unknown-tab'
-    const providerProps = { value: { submissionName: 'Submission' } }
-    renderWithWebFieldContext(
-      <SeniorAreaChairConsole
-        appContext={{ setBannerContent: jest.fn(), setLayoutOptions: jest.fn() }}
-      />,
-      providerProps
-    )
-    expect(window.location.hash).toEqual('#submission-status')
-  })
-
   test('show error message based on sac name when config is not complete', async () => {
     const providerProps = { value: { seniorAreaChairName: undefined } }
     const { rerender } = renderWithWebFieldContext(

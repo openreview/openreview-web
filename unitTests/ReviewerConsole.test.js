@@ -14,10 +14,12 @@ jest.mock('next/navigation', () => ({
     get: () => jest.fn(),
   }),
   useRouter: () => ({
-    replace: (params) => {
+    replace: jest.fn((params) => {
       routerParams = params
-      return jest.fn()
-    },
+      return {
+        catch: jest.fn(),
+      }
+    }),
   }),
 }))
 jest.mock('../hooks/useUser', () => () => useUserReturnValue)

@@ -19,7 +19,6 @@ const ProfilePreviewModal = ({
   sortFn,
   showNextProfile,
   acceptUser,
-  blockUser,
   setProfileToReject,
   rejectUser,
 }) => {
@@ -31,11 +30,8 @@ const ProfilePreviewModal = ({
   const [rejectionReasons, setRejectReasons] = useState([])
   const needsModeration = profileToPreview?.state === 'Needs Moderation'
 
-  const updateMessageForPastRejectProfile = () => {
-    setRejectionMessage(
-      (p) =>
-        `Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system.\n\n${p}`
-    )
+  const updateMessageForPastRejectProfile = (messageToAdd) => {
+    setRejectionMessage((p) => `${messageToAdd}\n\n${p}`)
   }
 
   const loadPublications = async () => {
@@ -157,11 +153,11 @@ const ProfilePreviewModal = ({
                 type="button"
                 className="btn"
                 onClick={async () => {
-                  await blockUser(profileToPreview)
+                  await rejectUser(rejectionReasons[0]?.rejectionText, profileToPreview.id)
                   showNextProfile(profileToPreview.id)
                 }}
               >
-                Block
+                Reject
               </button>
             </div>
           </div>
@@ -177,10 +173,28 @@ const ProfilePreviewModal = ({
                 }}
                 isClearable
               />
-
-              <button className="btn btn-xs" onClick={updateMessageForPastRejectProfile}>
-                Add Invalid Info Warning
-              </button>
+              <div>
+                <button
+                  className="btn btn-xs mr-2"
+                  onClick={() =>
+                    updateMessageForPastRejectProfile(
+                      "Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system."
+                    )
+                  }
+                >
+                  Add Invalid Info Warning
+                </button>
+                <button
+                  className="btn btn-xs"
+                  onClick={() =>
+                    updateMessageForPastRejectProfile(
+                      'If invalid info is submitted again, your email will be blocked.'
+                    )
+                  }
+                >
+                  Add Last Notice Warning
+                </button>
+              </div>
 
               <textarea
                 name="message"
@@ -195,7 +209,7 @@ const ProfilePreviewModal = ({
                 type="button"
                 className="btn"
                 onClick={async () => {
-                  await rejectUser(rejectionMessage)
+                  await rejectUser(rejectionMessage, profileToPreview.id)
                   showNextProfile(profileToPreview.id)
                 }}
               >

@@ -293,7 +293,6 @@ const ReviewerStatusTab = ({
   pcConsoleData,
   loadReviewMetaReviewData,
   loadRegistrationNoteMap,
-  showContent,
 }) => {
   const [reviewerStatusTabData, setReviewerStatusTabData] = useState({})
   const {
@@ -461,7 +460,7 @@ const ReviewerStatusTab = ({
   }
 
   useEffect(() => {
-    if (!pcConsoleData.reviewers || !showContent) return
+    if (!pcConsoleData.reviewers) return
     if (!pcConsoleData.registrationNoteMap) {
       loadRegistrationNoteMap()
     } else {
@@ -471,7 +470,6 @@ const ReviewerStatusTab = ({
     pcConsoleData.reviewers,
     pcConsoleData.noteNumberReviewMetaReviewMap,
     pcConsoleData.registrationNoteMap,
-    showContent,
   ])
 
   useEffect(() => {
