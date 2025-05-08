@@ -36,12 +36,8 @@ const ErrorDisplay = ({ statusCode, message }) => (
       )}
 
       <p>
-        If you&apos;d like to report this error to the developers, please use the{' '}
-        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-        <a href="#" data-toggle="modal" data-target="#feedback-modal">
-          Feedback form
-        </a>
-        .
+        If you&apos;d like to report this error to the developers, please{' '}
+        <Link href="/contact">contact us</Link>.
       </p>
     </div>
   </div>

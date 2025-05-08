@@ -4,11 +4,11 @@ Welcome, and thank you for your interest in contributing to the OpenReview web i
 
 ## Asking Questions
 
-The issue tracker is intended for bugs found in the OpenReview UI. If your question is related to how OpenReview works please first check our [documentation](https://docs.openreview.net/). If you cannot find the answer there, please contact the organizers of your venue or contact us at <info@openreview.net>.
+The issue tracker is intended for bugs found in the OpenReview UI. If your question is related to how OpenReview works please first check our [documentation](https://docs.openreview.net/). If you cannot find the answer there, please contact the organizers of your venue or [contact us](https://openreview.net/contact).
 
 ## Providing Feedback
 
-Your comments and feedback are welcome! You can use OpenReview [discussions](https://github.com/openreview/openreview/discussions) page or send us an email directly to <info@openreview.net>.
+Your comments and feedback are welcome! You can use OpenReview [discussions](https://github.com/openreview/openreview/discussions) page.
 
 ## Reporting Issues
 
@@ -18,7 +18,7 @@ If you have identified a reproducible problem in the OpenReview UI, we want to h
 
 If you have found a security vulnerability in the system, instead of opening an issue, please contact us at <security@openreview.net>. We will investigate and do our best to quickly fix the problem.
 
-If you have a problem with your account that requires you to share personal information such as your email or name, please contact us at <info@openreview.net>.
+If you have a problem with your account that requires you to share personal information such as your email or name, please [contact us](https://openreview.net/contact).
 
 For all other types of bug feel free to open an issue in this repo to describe it as best as you can.
 
@@ -40,19 +40,19 @@ The more information you can provide, the more likely someone will be successful
 
 Please include the following with each issue to the best of your abililty and leave blank the ones you don't have information for. The more information you provide the easier will it be for us to reproduce the issue and fix it.
 
-* Version (if you know it)
+- Version (if you know it)
 
-* Operating system
+- Operating system
 
-* Browser and browser version
+- Browser and browser version
 
-* Reproducible steps that trigger the issue
+- Reproducible steps that trigger the issue
 
-* What you expected to see, versus what you actually saw
+- What you expected to see, versus what you actually saw
 
-* Images, animations, or a link to a video showing the issue occurring
+- Images, animations, or a link to a video showing the issue occurring
 
-* Any errors from the browser's developer console (opening the developer console varies depending on your browser)
+- Any errors from the browser's developer console (opening the developer console varies depending on your browser)
 
 ## Development Setup
 
