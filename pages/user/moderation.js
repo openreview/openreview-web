@@ -1838,7 +1838,7 @@ const UserModerationQueue = ({
       await api.post(
         '/profile/moderate',
         {
-          id: profileToReject?.id ?? id,
+          id,
           decision: 'reject',
           reason: rejectionMessage,
         },
@@ -2250,7 +2250,7 @@ export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes })
       id={id}
       primaryButtonDisabled={!rejectionMessage}
       onPrimaryButtonClick={() => {
-        rejectUser(rejectionMessage)
+        rejectUser(rejectionMessage, profileToReject.id)
       }}
       onClose={() => {
         selectRef.current.clearValue()

@@ -209,7 +209,7 @@ const ProfilePreviewModal = ({
                 type="button"
                 className="btn"
                 onClick={async () => {
-                  await rejectUser(rejectionMessage)
+                  await rejectUser(rejectionMessage, profileToPreview.id)
                   showNextProfile(profileToPreview.id)
                 }}
               >
