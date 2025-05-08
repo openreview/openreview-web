@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import Contact from '../pages/contact'
 import useTurnstileToken from '../hooks/useTurnstileToken'
-import userEvent from '@testing-library/user-event'
 import api from '../lib/api-client'
 
 jest.mock('../hooks/useUser', () => () => ({
@@ -22,7 +22,7 @@ beforeEach(() => {
 })
 
 global.promptError = jest.fn()
-global, (promptMessage = jest.fn())
+global.promptMessage = jest.fn()
 
 describe('Contact page', () => {
   test('show link to venue request form', () => {
@@ -81,7 +81,9 @@ describe('Contact page', () => {
       },
       expect.anything()
     )
-    expect(promptMessage).toHaveBeenCalledWith('Your feedback has been submitted. Thank you.')
+    expect(global.promptMessage).toHaveBeenCalledWith(
+      'Your feedback has been submitted. Thank you.'
+    )
     // form should be cleared
     expect(screen.queryByText('test@mail.com')).not.toBeInTheDocument()
     expect(screen.queryByText('some venue')).not.toBeInTheDocument()
