@@ -5,7 +5,6 @@ import { useRouter } from 'next/router'
 import { orderBy } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import Table from '../Table'
 import ErrorDisplay from '../ErrorDisplay'
 import NoteSummary from './NoteSummary'
@@ -33,6 +32,7 @@ import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
 import { getProfileLink } from '../../lib/webfield-utils'
 import { formatProfileContent } from '../../lib/edge-utils'
+import ConsoleTabs from './ConsoleTabs'
 import SelectAllCheckBox from './SelectAllCheckbox'
 
 const AssignedPaperRow = ({
@@ -177,9 +177,7 @@ const AreaChairConsole = ({ appContext }) => {
   const { setBannerContent } = appContext
   const [acConsoleData, setAcConsoleData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
-  const [activeTabId, setActiveTabId] = useState(
-    decodeURIComponent(window.location.hash) || `#assigned-${pluralizeString(submissionName)}`
-  )
+  const [activeTabId, setActiveTabId] = useState(null)
   const [sacLinkText, setSacLinkText] = useState('')
 
   const edgeBrowserUrl = proposedAssignmentTitle
@@ -832,22 +830,6 @@ const AreaChairConsole = ({ appContext }) => {
     getSACLinkText()
   }, [acConsoleData.sacProfiles])
 
-  useEffect(() => {
-    const validTabIds = [
-      `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
-      ...(secondaryAreaChairName ? [`#${secondaryAreaChairUrlFormat}-assignments`] : []),
-      `#${areaChairUrlFormat}-tasks`,
-      ...(extraRoleNamesWithUrlFormat?.length
-        ? extraRoleNamesWithUrlFormat.map((role) => `#${role.urlFormat}-tasks`)
-        : []),
-    ]
-    if (!validTabIds.includes(activeTabId)) {
-      setActiveTabId(`#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`)
-      return
-    }
-    router.replace(activeTabId)
-  }, [activeTabId])
-
   const missingConfig = Object.entries({
     header,
     group,
@@ -880,82 +862,44 @@ const AreaChairConsole = ({ appContext }) => {
         title={header?.title}
         instructions={`${headerInstructions}${sacLinkText}`}
       />
-
-      <Tabs>
-        <TabList>
-          <Tab
-            id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}
-            active={
-              activeTabId === `#assigned-${pluralizeString(submissionName).toLowerCase()}`
-                ? true
-                : undefined
-            }
-            onClick={() =>
-              setActiveTabId(`#assigned-${pluralizeString(submissionName).toLowerCase()}`)
-            }
-          >
-            Assigned {pluralizeString(submissionName)}
-          </Tab>
-          {secondaryAreaChairName && (
-            <Tab
-              id={`${secondaryAreaChairUrlFormat}-assignments`}
-              active={
-                activeTabId === `#${secondaryAreaChairUrlFormat}-assignments`
-                  ? true
-                  : undefined
-              }
-              onClick={() => setActiveTabId(`#${secondaryAreaChairUrlFormat}-assignments`)}
-            >
-              {getSingularRoleName(prettyField(secondaryAreaChairName))} Assignments
-            </Tab>
-          )}
-          <Tab
-            id={`${areaChairUrlFormat}-tasks`}
-            active={activeTabId === `#${areaChairUrlFormat}-tasks` ? true : undefined}
-            onClick={() => setActiveTabId(`#${areaChairUrlFormat}-tasks`)}
-          >
-            {getSingularRoleName(prettyField(areaChairName))} Tasks
-          </Tab>
-          {extraRoleNamesWithUrlFormat?.map((role) => (
-            <Tab
-              key={role.name}
-              id={`${role.urlFormat}-tasks`}
-              active={activeTabId === `#${role.urlFormat}-tasks` ? true : undefined}
-              onClick={() => setActiveTabId(`#${role.urlFormat}-tasks`)}
-            >
-              {getSingularRoleName(prettyField(role.name))} Tasks
-            </Tab>
-          ))}
-        </TabList>
-        <TabPanels>
-          <TabPanel id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}>
-            {activeTabId === `#assigned-${pluralizeString(submissionName).toLowerCase()}` &&
-              renderTable()}
-          </TabPanel>
-          {secondaryAreaChairName && (
-            <TabPanel id={`${secondaryAreaChairUrlFormat}-assignments`}>
-              {activeTabId === `#${secondaryAreaChairUrlFormat}-assignments` &&
-                renderTripletACTable()}
-            </TabPanel>
-          )}
-          <TabPanel id={`${areaChairUrlFormat}-tasks`}>
-            {activeTabId === `#${areaChairUrlFormat}-tasks` && (
-              <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />
-            )}
-          </TabPanel>
-          {extraRoleNamesWithUrlFormat?.map((role) => (
-            <TabPanel key={role.name} id={`${role.urlFormat}-tasks`}>
-              {activeTabId === `#${role.urlFormat}-tasks` && (
-                <AreaChairConsoleTasks
-                  venueId={venueId}
-                  areaChairName={role.name}
-                  defaultAreaChairName={areaChairName}
-                />
-              )}
-            </TabPanel>
-          ))}
-        </TabPanels>
-      </Tabs>
+      <ConsoleTabs
+        defaultActiveTabId={`assigned-${pluralizeString(submissionName).toLowerCase()}`}
+        tabs={[
+          {
+            id: `assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
+            label: `Assigned ${pluralizeString(submissionName)}`,
+            content: renderTable(),
+            visible: true,
+          },
+          {
+            id: `${secondaryAreaChairUrlFormat}-assignments`,
+            label: `${getSingularRoleName(prettyField(secondaryAreaChairName))} Assignments`,
+            content: renderTripletACTable(),
+            visible: secondaryAreaChairName,
+          },
+          {
+            id: `${areaChairUrlFormat}-tasks`,
+            label: `${getSingularRoleName(prettyField(areaChairName))} Tasks`,
+            content: <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />,
+            visible: true,
+          },
+          ...(extraRoleNamesWithUrlFormat?.length > 0
+            ? extraRoleNamesWithUrlFormat.map((role) => ({
+                id: `${role.urlFormat}-tasks`,
+                label: `${getSingularRoleName(prettyField(role.name))} Tasks`,
+                content: (
+                  <AreaChairConsoleTasks
+                    venueId={venueId}
+                    areaChairName={role.name}
+                    defaultAreaChairName={areaChairName}
+                  />
+                ),
+                visible: true,
+              }))
+            : []),
+        ]}
+        updateActiveTabId={setActiveTabId}
+      />
     </>
   )
 }
