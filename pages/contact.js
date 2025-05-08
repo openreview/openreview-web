@@ -281,6 +281,7 @@ const Contact = () => {
           </form>
           <div ref={turnstileContainerRef} />
           <SpinnerButton
+            type="primary"
             onClick={sendFeedback}
             loading={submitting}
             disabled={!turnstileToken || submitting || error}
