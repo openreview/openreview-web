@@ -3867,6 +3867,56 @@ describe('NewReplyEditNoteReaders', () => {
     })
   })
 
+  test('no warning when everyone is selected', async () => {
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: 'everyone',
+                  optional: true,
+                },
+                {
+                  value: 'TMLR/Editors_In_Chief',
+                  description: 'description of EIC',
+                  optional: true,
+                },
+                {
+                  value: 'TMLR/Paper1/Action_Editors',
+                  description: 'description of Paper 1 AE',
+                  optional: true,
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{
+          readers: ['everyone'], // replying to a public comment
+          signatures: ['TMLR/Paper1/Action_Editor_1234'],
+        }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={['everyone']} // parent reader is auto selected
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText("This reply won't be visible to the parent note author")
+      ).not.toBeInTheDocument()
+    })
+  })
+
   test('show warning when list of readers do not include all parent reply readers', async () => {
     const invitation = {
       edit: {

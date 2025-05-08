@@ -541,7 +541,7 @@ export const NewReplyEditNoteReaders = ({
 
     const replyNoteSignature = replyToNote.signatures[0]
     const signatureInValue = value.find((p) => {
-      if (p === replyNoteSignature) return true
+      if (p === replyNoteSignature || p === 'everyone') return true
       const committeeName = p.split('/').pop()
       const singularCommitteeName = committeeName.endsWith('s')
         ? committeeName.slice(0, -1)
