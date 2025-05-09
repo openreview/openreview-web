@@ -1,9 +1,8 @@
 /* globals promptError: false */
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
@@ -12,6 +11,7 @@ import EthicsChairOverview from './EthicsChairConsole/EthicsChairOverview'
 import PaperStatus from './EthicsChairConsole/EthicsChairPaperStatus'
 import EthicsChairTasks from './EthicsChairConsole/EthicsChairTasks'
 import { getRoleHashFragment } from '../../lib/utils'
+import ConsoleTabs from './ConsoleTabs'
 
 const EthicsChairConsole = ({ appContext }) => {
   const {
@@ -31,17 +31,9 @@ const EthicsChairConsole = ({ appContext }) => {
   const { setBannerContent } = appContext
   const router = useRouter()
   const query = useQuery()
-  const [activeTabId, setActiveTabId] = useState(
-    decodeURIComponent(window.location.hash) || '#overview'
-  )
   const { user, userLoading } = useUser()
 
   const ethicsChairsUrlFormat = getRoleHashFragment(ethicsChairsName)
-  const validTabIds = [
-    '#overview',
-    `#${submissionName.toLowerCase()}-status`,
-    `#${ethicsChairsUrlFormat}-tasks`,
-  ]
 
   useEffect(() => {
     if (!query) return
@@ -52,14 +44,6 @@ const EthicsChairConsole = ({ appContext }) => {
       setBannerContent(venueHomepageLink(venueId))
     }
   }, [query, venueId])
-
-  useEffect(() => {
-    if (!validTabIds.includes(activeTabId)) {
-      setActiveTabId(validTabIds[0])
-      return
-    }
-    router.replace(activeTabId)
-  }, [activeTabId])
 
   const missingConfig = Object.entries({
     header,
@@ -84,45 +68,29 @@ const EthicsChairConsole = ({ appContext }) => {
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
-      <Tabs>
-        <TabList>
-          <Tab
-            id="overview"
-            active={activeTabId === '#overview' ? true : undefined}
-            onClick={() => setActiveTabId('#overview')}
-          >
-            Overview
-          </Tab>
-          <Tab
-            id={`${submissionName.toLowerCase()}-status`}
-            active={
-              activeTabId === `#${submissionName.toLowerCase()}-status` ? true : undefined
-            }
-            onClick={() => setActiveTabId(`#${submissionName.toLowerCase()}-status`)}
-          >
-            {submissionName} Status
-          </Tab>
-          <Tab
-            id={`${ethicsChairsUrlFormat}-tasks`}
-            active={activeTabId === `#${ethicsChairsUrlFormat}-tasks` ? true : undefined}
-            onClick={() => setActiveTabId(`#${ethicsChairsUrlFormat}-tasks`)}
-          >
-            Ethics Chair Tasks
-          </Tab>
-        </TabList>
-
-        <TabPanels>
-          <TabPanel id="overview">
-            <EthicsChairOverview />
-          </TabPanel>
-          <TabPanel id={`${submissionName.toLowerCase()}-status`}>
-            {activeTabId === `#${submissionName.toLowerCase()}-status` && <PaperStatus />}
-          </TabPanel>
-          <TabPanel id={`${ethicsChairsUrlFormat}-tasks`}>
-            {activeTabId === `#${ethicsChairsUrlFormat}-tasks` && <EthicsChairTasks />}
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
+      <ConsoleTabs
+        defaultActiveTabId="overview"
+        tabs={[
+          {
+            id: 'overview',
+            label: 'Overview',
+            content: <EthicsChairOverview />,
+            visible: true,
+          },
+          {
+            id: `${submissionName.toLowerCase()}-status`,
+            label: `${submissionName} Status`,
+            content: <PaperStatus />,
+            visible: true,
+          },
+          {
+            id: `${ethicsChairsUrlFormat}-tasks`,
+            label: 'Ethics Chair Tasks',
+            content: <EthicsChairTasks />,
+            visible: true,
+          },
+        ]}
+      />
     </>
   )
 }
