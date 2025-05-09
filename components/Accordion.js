@@ -25,11 +25,7 @@ const Accordion = ({ sections, options }) => (
 const SectionHeading = ({ id, heading, options }) => (
   <div className="panel-heading" role="tab">
     <h4 className="panel-title">
-      <SectionHeadingLink
-        targetId={id}
-        collapsed={options.collapsed}
-        shouldCollapse={options.shouldCollapse}
-      >
+      <SectionHeadingLink targetId={id} collapsed={options.collapsed}>
         <Icon name="triangle-bottom" />
       </SectionHeadingLink>{' '}
       <SectionHeadingLink
@@ -43,7 +39,7 @@ const SectionHeading = ({ id, heading, options }) => (
   </div>
 )
 
-const SectionHeadingLink = ({ targetId, children, collapsed, shouldCollapse = false }) => {
+const SectionHeadingLink = ({ targetId, children, collapsed, shouldCollapse = true }) => {
   if (shouldCollapse === false) {
     return (
       <a href={`#${targetId}`} className={`collapse-btn${collapsed ? ' collapsed' : ''}`}>

@@ -126,7 +126,6 @@ export default async function page({ searchParams }) {
                   id: 'venues',
                   collapsed: true,
                   bodyContainer: 'div',
-                  shouldCollapse: true,
                 }}
               />
             ) : (

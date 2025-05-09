@@ -200,7 +200,7 @@ export default function DblpPublicationTable({
             collapsed: false,
             html: false,
             bodyContainer: '',
-            shouldCollapse: true,
+            shouldCollapse: false,
           }}
         />
       </div>
