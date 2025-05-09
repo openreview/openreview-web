@@ -25,7 +25,7 @@ export default function ProfileEditor({
   submitHandler,
   cancelHandler,
   hideCancelButton,
-  hideDblpButton,
+  hideImportButton,
   hidePublicationEditor,
   loading,
   isNewProfile,
@@ -511,7 +511,7 @@ export default function ProfileEditor({
                 renderPublicationsEditor={() =>
                   setRenderPublicationEditor((current) => !current)
                 }
-                hideDblpButton={hideDblpButton}
+                hideImportButton={hideImportButton}
                 updateLinks={(links) => setProfile({ type: 'links', data: links })}
               />
             </ProfileSection>
