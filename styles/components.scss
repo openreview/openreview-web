@@ -395,6 +395,12 @@ table.table-minimal {
       font-size: 1rem;
     }
 
+    .update-required {
+      font-size: 0.75rem;
+      font-weight: bold;
+      vertical-align: text-top;
+    }
+
     .parent-title {
       line-height: normal;
       margin-bottom: 0.125rem;
@@ -1221,7 +1227,7 @@ table.table-minimal {
     }
     section {
       margin-bottom: 1.5rem;
-      max-width: 800px;
+      max-width: 1000px;
 
       h4 {
         width: 100%;
