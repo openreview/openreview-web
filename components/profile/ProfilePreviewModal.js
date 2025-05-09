@@ -1,6 +1,6 @@
 /* globals promptError,$: false */
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import BasicModal from '../BasicModal'
 import BasicProfileView from './BasicProfileView'
 import useUser from '../../hooks/useUser'
@@ -67,11 +67,11 @@ const ProfilePreviewModal = ({
     if (profileToPreview && contentToShow?.includes('publications')) loadPublications()
   }, [profileToPreview?.id])
 
-  useEffect(() => {
-    router.events.on('routeChangeStart', () => {
-      $('#profile-preview').modal('hide')
-    })
-  }, [])
+  // useEffect(() => {
+  //   router.events.on('routeChangeStart', () => {
+  //     $('#profile-preview').modal('hide')
+  //   })
+  // }, [])
 
   if (!profileToPreview) return null
   return (

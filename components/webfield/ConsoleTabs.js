@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 
 const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
