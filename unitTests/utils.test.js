@@ -1,6 +1,7 @@
 import {
   getDefaultTimezone,
   isInstitutionEmail,
+  parseNumberField,
   prettyInvitationId,
   stringToObject,
 } from '../lib/utils'
@@ -306,5 +307,17 @@ describe('utils', () => {
     invitationId = 'TestVenue/Paper1/-/~First_Last1_Volunteer_to_Review_Approval'
     expectedValue = 'First Last  Volunteer to Review Approval'
     expect(prettyInvitationId(invitationId)).toEqual(expectedValue)
+  })
+
+  test('return confidence number in parseNumberField', () => {
+    let confidenceString = '1 - Not Confident: not confident at all'
+    let expectedValue = 1
+
+    expect(parseNumberField(confidenceString)).toEqual(expectedValue)
+
+    confidenceString = '4 - High Confidence - Reviewer is Highly familiar with the topic' // no colon
+    expectedValue = 4
+
+    expect(parseNumberField(confidenceString)).toEqual(expectedValue)
   })
 })
