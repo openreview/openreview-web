@@ -17,8 +17,13 @@ export default function FilterTabs({
         // (which by convention is the first item in the expandedInvitations array)
         const primaryInvitationId = view.expandedInvitations?.[0]
         if (primaryInvitationId) {
-          const primaryInvitation = replyInvitations.find((inv) => inv.id === primaryInvitationId)
-          if (!primaryInvitation || (primaryInvitation.expdate && primaryInvitation.expdate < Date.now())) {
+          const primaryInvitation = replyInvitations.find(
+            (inv) => inv.id === primaryInvitationId
+          )
+          if (
+            !primaryInvitation ||
+            (primaryInvitation.expdate && primaryInvitation.expdate < Date.now())
+          ) {
             return null
           }
         }
@@ -32,7 +37,13 @@ export default function FilterTabs({
             role="presentation"
             className={view.id === currentHash ? 'active' : null}
           >
-            <Link href={`?id=${forumId}#${view.id}`} shallow>
+            <Link
+              href={`?id=${forumId}#${view.id}`}
+              shallow
+              onClick={() => {
+                window.location.hash = view.id
+              }}
+            >
               {view.label}
               {newMessageCount > 0 && <span className="badge">{newMessageCount}</span>}
             </Link>

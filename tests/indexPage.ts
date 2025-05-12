@@ -1,9 +1,9 @@
 import { Selector } from 'testcafe'
 import { baseGroupId, conferenceGroupId } from './utils/api-helper'
 
-const activeVenues = Selector('#active-venues')
-const openVenues = Selector('#open-venues')
-const allVenues = Selector('#all-venues')
+const activeVenues = Selector('#active-venues').filterVisible()
+const openVenues = Selector('#open-venues').filterVisible()
+const allVenues = Selector('#all-venues').filterVisible()
 
 // eslint-disable-next-line no-unused-expressions
 fixture`Home page`.page`http://localhost:${process.env.NEXT_PORT}`

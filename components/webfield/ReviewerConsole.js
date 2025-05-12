@@ -1,6 +1,6 @@
 /* globals typesetMathJax,promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { chunk } from 'lodash'
 import api from '../../lib/api-client'
@@ -20,8 +20,6 @@ import {
   getRoleHashFragment,
 } from '../../lib/utils'
 import Dropdown from '../Dropdown'
-import useQuery from '../../hooks/useQuery'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import ErrorDisplay from '../ErrorDisplay'
 import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
@@ -278,10 +276,9 @@ const ReviewerConsole = ({ appContext }) => {
     hasPaperRanking,
     reviewDisplayFields = ['review'],
   } = useContext(WebFieldContext)
-  const { user, accessToken, userLoading } = useUser()
-  const router = useRouter()
-  const query = useQuery()
-  const { setBannerContent } = appContext
+  const { user, accessToken, isRefreshing } = useUser()
+  const query = useSearchParams()
+  const { setBannerContent } = appContext ?? {}
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
   const [enablePaperRanking, setEnablePaperRanking] = useState(true)
   const [activeTabId, setActiveTabId] = useState(null)
@@ -573,16 +570,16 @@ const ReviewerConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
   useEffect(() => {
     if (
-      userLoading ||
+      isRefreshing ||
       !user ||
       !group ||
       !submissionInvitationId ||
@@ -592,7 +589,7 @@ const ReviewerConsole = ({ appContext }) => {
     )
       return
     loadData()
-  }, [user, userLoading, group])
+  }, [user, isRefreshing, group])
 
   useEffect(() => {
     if (reviewerConsoleData.notes) {
