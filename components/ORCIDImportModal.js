@@ -1,18 +1,27 @@
 /* globals $: false */
 import { useEffect, useRef, useState } from 'react'
-import { getOrcidPublicationsFromXmlUrl } from '../lib/profiles'
+import { nanoid } from 'nanoid'
+import {
+  getAllPapersByGroupId,
+  getOrcidPublicationsFromJsonUrl,
+  getOrcidPublicationsFromXmlUrl,
+} from '../lib/profiles'
 import DblpPublicationTable from './DblpPublicationTable'
 
-const ORCIDImportModal = ({ profileNames }) => {
+const ORCIDImportModal = ({ profileId, profileNames }) => {
   const modalEl = useRef(null)
   const [message, setMessage] = useState('')
   const [isSavingPublications, setIsSavingPublications] = useState(false)
   const [publications, setPublications] = useState([])
+  const [publicationsInOpenReview, setPublicationsInOpenReview] = useState([])
+  const [selectedPublications, setSelectedPublications] = useState([])
 
   const fetchNewPublications = async (orcid) => {
     try {
-      const fetchedPublications = await getOrcidPublicationsFromXmlUrl(orcid, profileNames)
-      setPublications(fetchedPublications)
+      setPublicationsInOpenReview(await getAllPapersByGroupId(profileId))
+      const fetchedPublications = await getOrcidPublicationsFromJsonUrl(orcid, profileNames)
+      setPublications(fetchedPublications.map((p) => ({ ...p, key: nanoid() })))
+      setMessage(`${fetchedPublications.length} publications fetched.`)
     } catch (error) {
       setMessage(error.message)
     }
@@ -50,10 +59,10 @@ const ORCIDImportModal = ({ profileNames }) => {
             {message && <p>{message}</p>}
             <DblpPublicationTable
               dblpPublications={publications}
-              orPublications={[]}
+              orPublications={publicationsInOpenReview}
               orPublicationsImportedByOtherProfile={[]}
-              selectedPublications={[]}
-              // setSelectedPublications={setSelectedPublications}
+              selectedPublications={selectedPublications}
+              setSelectedPublications={setSelectedPublications}
               // maxNumberofPublicationsToImport={maxNumberofPublicationsToImport}
             />
           </div>
