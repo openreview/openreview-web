@@ -2,6 +2,7 @@
 import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
+import Link from 'next/link'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -501,8 +502,8 @@ const AreaChairStatus = ({
   if (areaChairStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no {prettyField(areaChairName)}. Check back later or contact
-        info@openreview.net if you believe this to be an error.
+        There are no {prettyField(areaChairName)}. Check back later or{' '}
+        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
       </p>
     )
   if (areaChairStatusTabData.tableRows?.length === 0)

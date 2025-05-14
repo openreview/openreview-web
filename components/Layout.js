@@ -7,7 +7,6 @@ import EditBanner from './EditBanner'
 import FlashAlert from './FlashAlert'
 import Footer from './Footer'
 import FooterMinimal from './FooterMinimal'
-import FeedbackModal from './FeedbackModal'
 import BibtexModal from './BibtexModal'
 
 const notoSans = Noto_Sans({
@@ -98,7 +97,6 @@ gtag('config', '${process.env.GA_PROPERTY_ID}', {
 
       {minimalFooter ? <FooterMinimal /> : <Footer />}
 
-      <FeedbackModal />
       <BibtexModal />
     </div>
   )
