@@ -25,6 +25,7 @@ export default function Notifications({ appContext }) {
   const [page, setPage] = useState(1)
   const [error, setError] = useState(null)
   const [shouldRefresh, setShouldRefresh] = useState(false)
+  const [searchTerm, setSearchTerm] = useState(null)
   const router = useRouter()
   const { setUnreadNotificationCount, decrementNotificationCount } = useContext(UserContext)
   const { setBannerHidden } = appContext
@@ -93,6 +94,7 @@ export default function Notifications({ appContext }) {
 
     setToEmail(router.query.email || user.profile.preferredEmail || user.profile.emails[0])
     setPage(1)
+    setSearchTerm(null)
   }, [user?.id, router.isReady, router.query.email])
 
   useEffect(() => {
@@ -147,11 +149,13 @@ export default function Notifications({ appContext }) {
     if (!accessToken || !toEmail) return
 
     setError(null)
+    const cleanSearchTerm = searchTerm?.trim()
 
     api
       .get(
         '/messages',
         {
+          ...(cleanSearchTerm?.length && { subject: `${cleanSearchTerm}.*` }),
           to: toEmail,
           limit: pageSize,
           offset: pageSize * (page - 1),
@@ -167,6 +171,34 @@ export default function Notifications({ appContext }) {
         setMessages(null)
       })
   }, [accessToken, toEmail, page, shouldRefresh])
+
+  useEffect(() => {
+    const cleanSearchTerm = searchTerm?.trim()
+    if (!cleanSearchTerm?.length) {
+      if (searchTerm === '') {
+        // search term cleared
+        setPage(1)
+        setShouldRefresh((refresh) => !refresh)
+      }
+      return
+    }
+    api
+      .get(
+        '/messages',
+        { subject: `${cleanSearchTerm}.*`, to: toEmail, limit: pageSize },
+
+        { accessToken }
+      )
+      .then((apiRes) => {
+        setMessages(apiRes.messages ?? [])
+        setCount(apiRes.count ?? 0)
+        setPage(1)
+      })
+      .catch((apiError) => {
+        setError(apiError)
+        setMessages(null)
+      })
+  }, [searchTerm])
 
   return (
     <div>
@@ -231,6 +263,8 @@ export default function Notifications({ appContext }) {
               numUnviewed={unviewedCounts?.[toEmail] ?? 0}
               markViewed={markViewed}
               markAllViewed={markAllViewed}
+              setSearchTerm={setSearchTerm}
+              searchTerm={searchTerm}
             />
 
             <PaginationLinks
