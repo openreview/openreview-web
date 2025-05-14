@@ -562,6 +562,7 @@ const NoteEditor = ({
         editReaderValues: getEditReaderValues(roleNames),
         editWriterValues: getEditWriterValues(),
         ...(replyToNote && { replyto: replyToNote.id }),
+        ...(replyToNote && { forum: replyToNote.forum }),
         editContent: editContentData,
       }
 
