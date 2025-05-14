@@ -2,6 +2,7 @@
 import { useContext, useEffect, useState } from 'react'
 import groupBy from 'lodash/groupBy'
 import { orderBy } from 'lodash'
+import dayjs from 'dayjs'
 import useUser from '../../hooks/useUser'
 import useQuery from '../../hooks/useQuery'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
@@ -29,6 +30,7 @@ import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
 import { formatProfileContent } from '../../lib/edge-utils'
 import ConsoleTabs from './ConsoleTabs'
+import { clearCache, getCache, setCache } from '../../lib/console-cache'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -86,6 +88,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     preferredEmailInvitationId,
     ithenticateInvitationId,
     displayReplyInvitations,
+    useCache = false,
   } = useContext(WebFieldContext)
   const { setBannerContent, setLayoutOptions } = appContext
   const { user, accessToken, userLoading } = useUser()
@@ -99,7 +102,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   const loadData = async () => {
     if (isLoadingData) return
-
+    await clearCache(venueId)
     setIsLoadingData(true)
     try {
       // #region getInvitationMap
@@ -543,7 +546,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         displayReplyInvitationsByPaperNumberMap.set(note.number, displayReplies)
       })
 
-      setPcConsoleData({
+      const consoleData = {
         invitations: invitationResults.flat(),
         allProfiles,
         allProfilesMap,
@@ -647,11 +650,27 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           seniorAreaChairGroups,
         },
         ithenticateEdges,
-      })
+        timeStamp: dayjs().valueOf(),
+      }
+      setPcConsoleData(consoleData)
+      if (useCache) await setCache(venueId, consoleData)
     } catch (error) {
       promptError(`loading data: ${error.message}`)
     }
     setIsLoadingData(false)
+  }
+
+  const loadCache = async () => {
+    try {
+      const cachedPcConsoleData = await getCache(venueId)
+      if (cachedPcConsoleData) {
+        setPcConsoleData(cachedPcConsoleData)
+      } else {
+        loadData()
+      }
+    } catch (error) {
+      loadData()
+    }
   }
 
   // eslint-disable-next-line consistent-return
@@ -1055,7 +1074,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   useEffect(() => {
     if (userLoading || !user || !group || !venueId || !reviewersId || !submissionId) return
-    loadData()
+    if (useCache) {
+      loadCache()
+    } else {
+      loadData()
+    }
   }, [user, userLoading, group])
 
   useEffect(
@@ -1064,7 +1087,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     },
     []
   )
-  
+
   const missingConfig = Object.entries({
     header,
     entity: group,
@@ -1093,6 +1116,14 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
+      {useCache && pcConsoleData.timeStamp && (
+        <div className="alert alert-warning">
+          <span>Showing data loaded {dayjs(pcConsoleData.timeStamp).fromNow()}</span>{' '}
+          <button className="btn btn-xs ml-2" onClick={loadData}>
+            Reload
+          </button>
+        </div>
+      )}
       <ConsoleTabs
         defaultActiveTabId="venue-configuration"
         tabs={[
