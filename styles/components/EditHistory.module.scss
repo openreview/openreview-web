@@ -12,10 +12,10 @@
       }
 
       pre {
-        margin-top: .125rem;
+        margin-top: 0.125rem;
         margin-bottom: 0;
-        padding: .375rem;
-        font-size: .75rem;
+        padding: 0.375rem;
+        font-size: 0.75rem;
         max-height: 500px;
         overflow-y: auto;
       }
@@ -69,6 +69,11 @@
         font-style: italic;
         color: constants.$subtleGray;
       }
+    }
+
+    .edit-trashed {
+      opacity: 0.35;
+      pointer-events: none;
     }
   }
 }
