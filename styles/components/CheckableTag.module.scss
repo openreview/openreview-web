@@ -1,0 +1,47 @@
+@use '../utils/constants';
+
+.checkableTagContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 5px;
+  border: 1px solid constants.$subtleGray;
+  background-color: constants.$backgroundWhite;
+  margin-right: 0.5rem;
+  margin-top: 0.25rem;
+  cursor: pointer;
+
+  &:hover {
+    background-color: constants.$backgroundGray;
+  }
+
+  .iconLabel {
+    filter: grayscale(100%);
+
+    &.checked {
+      filter: grayscale(0%);
+    }
+  }
+
+  .tagText {
+    margin-right: 0.5rem;
+    margin-right: 0.5rem;
+  }
+
+  .count {
+    color: white;
+    background-color: constants.$subtleGray;
+    border-radius: 2rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1;
+    display: inline-block;
+    font-weight: bold;
+  }
+
+  .trashButton {
+    margin-left: 0.25rem;
+    font-size: 0.75rem;
+  }
+}

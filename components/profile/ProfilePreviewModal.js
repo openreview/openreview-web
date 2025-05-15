@@ -8,8 +8,9 @@ import api from '../../lib/api-client'
 import ProfilePublications from './ProfilePublications'
 import ProfileViewSection from './ProfileViewSection'
 import MessagesSection from './MessagesSection'
-import Dropdown from '../Dropdown'
+import Dropdown, { CreatableDropdown } from '../Dropdown'
 import { getRejectionReasons } from '../../lib/utils'
+import CheckableTag from '../CheckableTag'
 
 const ProfilePreviewModal = ({
   profileToPreview,
@@ -23,6 +24,7 @@ const ProfilePreviewModal = ({
   rejectUser,
 }) => {
   const [publications, setPublications] = useState(null)
+  const [tags, setTags] = useState([])
   const { accessToken } = useUser()
   const router = useRouter()
   const [rejectionMessage, setRejectionMessage] = useState('')
@@ -57,6 +59,48 @@ const ProfilePreviewModal = ({
     }
   }
 
+  const loadTags = async () => {
+    try {
+      const result = await api.get('/tags', {
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
+        profile: profileToPreview.id,
+      })
+      setTags(result.tags)
+    } catch (error) {
+      /* empty */
+    }
+  }
+
+  const deleteTag = async (tag) => {
+    try {
+      await api.post('/tags', {
+        id: tag.id,
+        ddate: Date.now(),
+        profile: tag.profile,
+        label: tag.label,
+        signature: tag.signature,
+        invitation: tag.invitation,
+      })
+      await loadTags()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const addTag = async (tagLabel) => {
+    try {
+      await api.post('/tags', {
+        profile: profileToPreview.id,
+        label: tagLabel,
+        signature: `${process.env.SUPER_USER}/Support`,
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
+      })
+      await loadTags()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   useEffect(() => {
     setRejectionMessage('')
     setIsRejecting(false)
@@ -65,6 +109,7 @@ const ProfilePreviewModal = ({
     )?.institution?.name
     setRejectReasons(getRejectionReasons(currentInstitutionName))
     if (profileToPreview && contentToShow?.includes('publications')) loadPublications()
+    if (profileToPreview && contentToShow?.includes('tags')) loadTags()
   }, [profileToPreview?.id])
 
   useEffect(() => {
@@ -85,6 +130,16 @@ const ProfilePreviewModal = ({
       }}
       options={{ hideFooter: !!needsModeration }}
     >
+      <div className="tags-container">
+        {tags.map((tag, index) => (
+          <CheckableTag
+            key={index}
+            label={tag.label}
+            checked={true}
+            onDelete={() => deleteTag(tag)}
+          />
+        ))}
+      </div>
       <BasicProfileView
         profile={profileToPreview}
         showLinkText={true}
@@ -118,6 +173,23 @@ const ProfilePreviewModal = ({
       )}
       {needsModeration && (
         <div className="modal-footer">
+          <div className="mb-2">
+            <CreatableDropdown
+              hideArrow
+              isClearable
+              classNamePrefix="tags-dropdown"
+              placeholder="tag the profile"
+              options={[
+                { label: 'require vouch', value: 'require vouch' },
+                { label: 'potential spam', value: 'potential spam' },
+              ]}
+              defaultValue={null}
+              onChange={(e) => {
+                if (!e) return
+                addTag(e.value)
+              }}
+            />
+          </div>
           <div>
             <div className="pull-left">
               <button
@@ -128,6 +200,7 @@ const ProfilePreviewModal = ({
                 Skip
               </button>
             </div>
+
             <div>
               <button
                 type="button"

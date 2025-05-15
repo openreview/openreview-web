@@ -1222,6 +1222,32 @@ table.table-minimal {
   }
 
   #profile-preview {
+    .tags-container {
+      display: flex;
+      flex-flow: wrap;
+      margin-bottom: 0.25rem;
+    }
+    .tags-dropdown {
+      &__control {
+        background-color: #fffaf4;
+        border: 2px solid lighten(constants.$mediumBlue, 10%);
+        padding: 0 0.75rem;
+      }
+      &__value-container {
+        padding: 0;
+      }
+
+      > div {
+        cursor: pointer;
+        color: constants.$subtleGray;
+        padding: 0.25rem 0.75rem;
+      }
+      .active {
+        background-color: constants.$mediumBlue;
+        color: #fff;
+        outline: 0px solid transparent;
+      }
+    }
     .modal-content {
       min-width: fit-content;
     }
