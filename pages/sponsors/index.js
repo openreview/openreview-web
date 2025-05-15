@@ -145,6 +145,12 @@ export default function Sponsors({ sponsors }) {
 
       <div className="row mt-2 mb-4">
         <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
+          <stripe-buy-button
+            buy-button-id="buy_btn_1RP4NcR5k9XMGLb3jk3vqJn9"
+            publishable-key="pk_test_51ROlsUR5k9XMGLb3XksWi0fOfEtQOp0U7lMV5n1IwbOQkxekA3fzV0RHeUVpuEc00lmpZLGSI9NtqaFlXbajMI2800OCNYvctd"
+          ></stripe-buy-button>
+        </div>
+        <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
           <p>
             <Link href="/sponsors/2023">View past sponsors from 2023 &raquo;</Link>
           </p>
