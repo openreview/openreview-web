@@ -1235,6 +1235,10 @@ table.table-minimal {
       }
       &__value-container {
         padding: 0;
+        text-align: left;
+      }
+      &__menu {
+        text-align: left;
       }
 
       > div {

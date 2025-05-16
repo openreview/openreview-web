@@ -183,7 +183,7 @@ const ProfilePreviewModal = ({
                 { label: 'require vouch', value: 'require vouch' },
                 { label: 'potential spam', value: 'potential spam' },
               ]}
-              defaultValue={null}
+              value={null}
               onChange={(e) => {
                 if (!e) return
                 addTag(e.value)
