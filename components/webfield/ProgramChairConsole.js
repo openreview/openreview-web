@@ -20,6 +20,7 @@ import {
   getSingularRoleName,
   pluralizeString,
   getRoleHashFragment,
+  formatDateTime,
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
@@ -31,6 +32,7 @@ import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPape
 import { formatProfileContent } from '../../lib/edge-utils'
 import ConsoleTabs from './ConsoleTabs'
 import { clearCache, getCache, setCache } from '../../lib/console-cache'
+import SpinnerButton from '../SpinnerButton'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -102,8 +104,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   const loadData = async () => {
     if (isLoadingData) return
-    await clearCache(venueId)
     setIsLoadingData(true)
+    await clearCache(venueId)
+
     try {
       // #region getInvitationMap
       const conferenceInvitationsP = api.getAll(
@@ -1118,10 +1121,18 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       <BasicHeader title={header?.title} instructions={header.instructions} />
       {useCache && pcConsoleData.timeStamp && (
         <div className="alert alert-warning">
-          <span>Showing data loaded {dayjs(pcConsoleData.timeStamp).fromNow()}</span>{' '}
-          <button className="btn btn-xs ml-2" onClick={loadData}>
+          <span>
+            Data cached {dayjs(pcConsoleData.timeStamp).fromNow()} at{' '}
+            {formatDateTime(pcConsoleData.timeStamp)}
+          </span>{' '}
+          <SpinnerButton
+            className="btn btn-xs ml-2"
+            onClick={loadData}
+            loading={isLoadingData}
+            disabled={isLoadingData}
+          >
             Reload
-          </button>
+          </SpinnerButton>
         </div>
       )}
       <ConsoleTabs
