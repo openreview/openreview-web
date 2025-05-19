@@ -19,6 +19,12 @@ export default function AppInit() {
     window._ = require('lodash')
     window.Handlebars = require('handlebars/runtime')
     window.marked = marked
+    DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+      if (node.tagName === 'A') {
+        node.setAttribute('target', '_blank')
+        node.setAttribute('rel', 'noopener noreferrer')
+      }
+    })
     window.DOMPurify = DOMPurify
     window.MathJax = mathjaxConfig
     window.nanoid = nanoid
