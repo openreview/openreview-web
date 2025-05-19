@@ -17,7 +17,9 @@ const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
       return
     }
     updateActiveTabId?.(`#${activeTabId}`)
-    router.replace(`#${activeTabId}`)
+    if (window.location.hash !== `#${activeTabId}`) {
+      router.replace(`#${activeTabId}`)
+    }
   }, [activeTabId])
 
   return (
