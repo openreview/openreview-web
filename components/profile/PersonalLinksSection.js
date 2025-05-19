@@ -250,7 +250,7 @@ const PersonalLinksSection = ({
         }}
       />
 
-      <ORCIDImportModal profileNames={names?.filter((p) => !p.newRow)} />
+      <ORCIDImportModal profileId={profileId} profileNames={names?.filter((p) => !p.newRow)} />
     </div>
   )
 }

@@ -6,6 +6,7 @@ import {
   getAllPapersByGroupId,
   getOrcidPublicationsFromJsonUrl,
   getOrcidPublicationsFromXmlUrl,
+  postOrUpdateOrcidPaper,
 } from '../lib/profiles'
 import DblpPublicationTable from './DblpPublicationTable'
 import LoadingSpinner from './LoadingSpinner'
@@ -45,9 +46,9 @@ const ORCIDImportModal = ({ profileId, profileNames }) => {
   const importSelectedPublications = async () => {
     setIsFetchingPublications(true)
     try {
-      console.log('Selected publications:', selectedPublications)
-      console.log(
-        'Selected publications IDs:',
+      await postOrUpdateOrcidPaper(
+        profileId,
+        accessToken,
         publications.find((p) => p.key === selectedPublications[0])
       )
     } catch (error) {
