@@ -105,8 +105,12 @@ const PersonalLinksSection = ({
 
   useEffect(() => {
     updateLinks(links)
-    if ($('#dblp-import-modal').data('bs.modal')) return
+    if ($('#dblp-import-modal').data('bs.modal') || $('#orcid-import-modal').data('bs.modal'))
+      return
     $('#dblp-import-modal').on('hidden.bs.modal', () => {
+      renderPublicationsEditor()
+    })
+    $('#orcid-import-modal').on('hidden.bs.modal', () => {
       renderPublicationsEditor()
     })
   }, [links])

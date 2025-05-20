@@ -25,17 +25,42 @@ const ORCIDImportModal = ({ profileId, profileNames }) => {
   const { accessToken } = useContext(UserContext)
   const maxNumberofPublicationsToImport = 500
 
+  const countExistingImportedPapers = (allPublications, existingPublications) => {
+    const existingPapers = allPublications.filter((p) =>
+      existingPublications.find((q) => q.externalId === p.externalId)
+    )
+
+    return {
+      numExisting: existingPapers.length,
+      noPubsToImport: allPublications.length === existingPapers.length,
+    }
+  }
+
   const fetchNewPublications = async (orcid) => {
     setIsFetchingPublications(true)
     setHasError(false)
     try {
       // setPublicationsInOpenReview(await getAllPapersByGroupId(profileId))
       const fetchedPublications = await getOrcidPublicationsFromJsonUrl(orcid, profileNames)
-      setPublications(fetchedPublications.map((p) => ({ ...p, key: nanoid() })))
+      setPublications(fetchedPublications)
       setMessage(`${fetchedPublications.length} publications fetched.`)
       // get existing orcid publications
-      setPublicationsInOpenReview(await getAllOrcidPapers(profileId, accessToken))
-      // get orcid publications imported by other profiles
+      const existingPublications = await getAllOrcidPapers(profileId, accessToken)
+      setPublicationsInOpenReview(existingPublications)
+      const { numExisting, noPubsToImport } = countExistingImportedPapers(
+        fetchedPublications,
+        existingPublications
+      )
+      if (noPubsToImport) {
+        setMessage(`All ${fetchedPublications.length} of the publications already
+            exist in OpenReview.`)
+      } else {
+        const newPubCount = fetchedPublications.length - numExisting
+        setMessage(` We found ${fetchedPublications.length} publications,
+          ${numExisting} of which already exist in OpenReview,
+          ${newPubCount} of which ${newPubCount === 1 ? 'is' : 'are'} new.
+          Please select the new publications of which you are actually an author. Then click "Add to Your Profile" to import them.`)
+      }
     } catch (error) {
       setMessage(error.message)
       setHasError(true)
@@ -44,13 +69,37 @@ const ORCIDImportModal = ({ profileId, profileNames }) => {
   }
 
   const importSelectedPublications = async () => {
-    setIsFetchingPublications(true)
+    setIsSavingPublications(true)
     try {
-      await postOrUpdateOrcidPaper(
-        profileId,
-        accessToken,
-        publications.find((p) => p.key === selectedPublications[0])
+      await Promise.all(
+        selectedPublications.map((pubKey) =>
+          postOrUpdateOrcidPaper(
+            profileId,
+            profileNames,
+            accessToken,
+            publications.find((p) => p.key === pubKey)
+          )
+        )
       )
+      const existingPublications = await getAllOrcidPapers(profileId, accessToken)
+      setPublicationsInOpenReview(existingPublications)
+      const { noPubsToImport: allExistInOpenReview } = countExistingImportedPapers(
+        publications,
+        existingPublications
+      )
+      if (allExistInOpenReview) {
+        setMessage(`${selectedPublications.length} publications were successfully imported.
+            All ${publications.length} of the publications now exist in OpenReview.`)
+      } else {
+        setMessage(`${selectedPublications.length} publications were successfully imported.
+            Please select any additional publications you would like to add to your profile.`)
+      }
+
+      if (allExistInOpenReview) {
+        setTimeout(() => {
+          $(modalEl.current).modal('hide')
+        }, 2000)
+      }
     } catch (error) {
       setMessage(error.message)
     }
