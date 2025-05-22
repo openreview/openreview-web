@@ -44,7 +44,7 @@ export default async function NavUserLinks() {
           aria-expanded="false"
         >
           <span>
-            {truncate(user.profile.fullname, { length: user.impersonator ? 15 : 22 })}
+            {truncate(user.profile.fullname, { length: user.impersonator ? 12 : 22 })}
             {user.impersonator && ' (Impersonated)'}
           </span>{' '}
           <span className="caret" />
