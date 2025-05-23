@@ -1,0 +1,68 @@
+# This workflow deploys any branch, tag, or commit hash to the production environment.
+
+name: Test Production Deployment
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The branch, tag, or commit hash to deploy
+        required: false
+        default: master
+        type: string
+
+jobs:
+  deploy:
+    # Allow the job to fetch a GitHub ID token
+    permissions:
+      id-token: write
+      contents: read
+
+    runs-on: ubuntu-latest
+
+    env:
+      TAG: ${{ github.event.inputs.tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 0
+      - name: Add SSH key
+        run: |
+          mkdir -p /home/runner/.ssh
+          echo "${{ secrets.GCLOUD_SSH_KEY }}" > /home/runner/.ssh/google_compute_engine
+          echo "${{ secrets.GCLOUD_SSH_KEY_PUB }}" > /home/runner/.ssh/google_compute_engine.pub
+          chmod 600 /home/runner/.ssh/google_compute_engine
+          chmod 600 /home/runner/.ssh/google_compute_engine.pub
+      - name: Authenticate with Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          cleanup_credentials: true
+          export_environment_variables: true
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          skip_install: true
+      - name: Run deploy script
+        run: |
+          gsutil cp gs://openreview-general/conf/deployment.conf ./deployment.conf
+          sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" ./deployment.conf
+          gsutil cp ./deployment.conf gs://openreview-general/conf/deployment.conf
+
+          cd $GITHUB_WORKSPACE
+          gsutil cp gs://openreview-general/conf/production.env $GITHUB_WORKSPACE/.env.local
+          config_hash="$(sha1sum $GITHUB_WORKSPACE/.env.local | cut -d " " -f 1)"
+          build_id="$(git describe --tags)-$config_hash"
+          echo "Build ID: $build_id"
+          npm install
+          npm run build
+          tar -czf "$GITHUB_WORKSPACE/${build_id}.tar.gz" "$GITHUB_WORKSPACE"
+          gsutil cp "$GITHUB_WORKSPACE/${build_id}.tar.gz" "gs://openreview-general/openreview-web-builds/deploytest${build_id}.tar.gz"
+          curl -s "https://cowsay.morecode.org/say?message=MOO%21%20YOU%20CREATED%20A%20BUILD%20SUCCESSFULLY&format=text"
