@@ -80,6 +80,7 @@ jobs:
           instance_prefix='openreview-web-'
 
           instances=$(gcloud compute instances list | grep "$instance_prefix" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
+
           instances_arr=(${instances// / })
 
           instance_names=()
