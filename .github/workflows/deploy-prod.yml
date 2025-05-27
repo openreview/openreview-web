@@ -70,7 +70,7 @@ jobs:
             npm install
             npm run build
             echo "compressing build."
-            tar --transform 's|^\.|${build_id}|' -czf "/tmp/${build_id}.tar.gz" -C "$GITHUB_WORKSPACE" .
+            tar --transform "s|^\.|${build_id}|" -czf "/tmp/${build_id}.tar.gz" -C "$GITHUB_WORKSPACE" .
 
             echo "copying build to Google Cloud."
             gsutil cp "/tmp/${build_id}.tar.gz" "gs://openreview-general/openreview-web-builds/deploytest${build_id}.tar.gz"
