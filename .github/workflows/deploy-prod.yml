@@ -70,9 +70,9 @@ jobs:
             npm install
             npm run build
             echo "compressing build."
-            tar -czf "$GITHUB_WORKSPACE/${build_id}.tar.gz" "$GITHUB_WORKSPACE"
+            tar -czf "/tmp/${build_id}.tar.gz" "$GITHUB_WORKSPACE"
 
             echo "copying build to Google Cloud."
-            gsutil cp "$GITHUB_WORKSPACE/${build_id}.tar.gz" "gs://openreview-general/openreview-web-builds/deploytest${build_id}.tar.gz"
+            gsutil cp "/tmp/${build_id}.tar.gz" "gs://openreview-general/openreview-web-builds/deploytest${build_id}.tar.gz"
             curl -s "https://cowsay.morecode.org/say?message=MOO%21%20YOU%20CREATED%20A%20BUILD%20SUCCESSFULLY&format=text"
           fi
