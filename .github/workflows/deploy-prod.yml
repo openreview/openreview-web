@@ -63,11 +63,16 @@ jobs:
           echo "Build ID: $build_id"
 
           if gsutil ls "gs://openreview-general/openreview-web-builds/deploytest${build_id}.tar.gz" ; then
+            echo "Build already exists, skipping build step."
             curl -s "https://cowsay.morecode.org/say?message=MOO%21%20BUILD%20ALREADY%20EXISTS:%20${build_id}&format=text"
           else
+            echo "Building OpenReview web application..."
             npm install
             npm run build
+            echo "compressing build."
             tar -czf "$GITHUB_WORKSPACE/${build_id}.tar.gz" "$GITHUB_WORKSPACE"
 
+            echo "copying build to Google Cloud."
             gsutil cp "$GITHUB_WORKSPACE/${build_id}.tar.gz" "gs://openreview-general/openreview-web-builds/deploytest${build_id}.tar.gz"
             curl -s "https://cowsay.morecode.org/say?message=MOO%21%20YOU%20CREATED%20A%20BUILD%20SUCCESSFULLY&format=text"
+          fi
