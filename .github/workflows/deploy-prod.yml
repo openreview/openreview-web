@@ -78,8 +78,10 @@ jobs:
           fi
 
           instance_prefix='openreview-web-'
+
           instances=$(gcloud compute instances list | grep "$instance_prefix" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
           instances_arr=(${instances// / })
+
           instance_names=()
           zones=()
           for i in ${!instances_arr[@]}; do
@@ -94,10 +96,15 @@ jobs:
             echo Deploying to ${instance_names[$i]}
             gcloud compute ssh --zone ${zones[$i]} openreview@${instance_names[$i]} --command "bash bin/deploy-web.sh ${TAG}"
           done
+
           nginx='nginx'
+
           nvm='export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" &&'
+
           nginx=$(gcloud compute instances list | grep "$nginx" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
+
           nginx_arr=(${nginx// / })
           nginx_name=${nginx_arr[0]}
           nginx_zone=${nginx_arr[1]}
+
           gcloud compute --project "sunlit-realm-131518" ssh --zone $nginx_zone openreview@$nginx_name --command "${nvm} bash bin/deploy-web.sh ${TAG}" --quiet
