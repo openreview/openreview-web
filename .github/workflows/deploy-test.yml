@@ -61,8 +61,11 @@ jobs:
           config_hash="$(sha1sum $GITHUB_WORKSPACE/.env.local | cut -d " " -f 1)"
           build_id="$(git describe --tags)-$config_hash"
           echo "Build ID: $build_id"
-          npm install
-          npm run build
-          tar -czf "$GITHUB_WORKSPACE/${build_id}.tar.gz" "$GITHUB_WORKSPACE"
-          gsutil cp "$GITHUB_WORKSPACE/${build_id}.tar.gz" "gs://openreview-general/openreview-web-builds/deploytest${build_id}.tar.gz"
-          curl -s "https://cowsay.morecode.org/say?message=MOO%21%20YOU%20CREATED%20A%20BUILD%20SUCCESSFULLY&format=text"
+          if gsutil ls "gs://openreview-general/openreview-web-builds/deploytest${build_id}.tar.gz" ; then
+            curl -s "https://cowsay.morecode.org/say?message=MOO%21%20BUILD%20ALREADY%20EXISTS:%20${build_id}&format=text"
+          else
+            npm install
+            npm run build
+            tar -czf "$GITHUB_WORKSPACE/${build_id}.tar.gz" "$GITHUB_WORKSPACE"
+            gsutil cp "$GITHUB_WORKSPACE/${build_id}.tar.gz" "gs://openreview-general/openreview-web-builds/deploytest${build_id}.tar.gz"
+            curl -s "https://cowsay.morecode.org/say?message=MOO%21%20YOU%20CREATED%20A%20BUILD%20SUCCESSFULLY&format=text"
