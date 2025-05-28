@@ -52,9 +52,9 @@ jobs:
           skip_install: true
       - name: Run deploy script
         run: |
-          gsutil cp gs://openreview-general/conf/deployment.conf ./deployment.conf
-          sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" ./deployment.conf
-          gsutil cp ./deployment.conf gs://openreview-general/conf/deployment.conf
+          #gsutil cp gs://openreview-general/conf/deployment.conf ./deployment.conf
+          #sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" ./deployment.conf
+          #gsutil cp ./deployment.conf gs://openreview-general/conf/deployment.conf
 
           cd $GITHUB_WORKSPACE
           gsutil cp gs://openreview-general/conf/production.env $GITHUB_WORKSPACE/.env.local
@@ -70,42 +70,45 @@ jobs:
             npm install
             npm run build
             echo "compressing build."
-            tar --transform "s|^\.|${build_id}|" -czf "/tmp/${build_id}.tar.gz" -C "$GITHUB_WORKSPACE" .
+
+            mv "$GITHUB_WORKSPACE" "/tmp/${build_id}"
+            cd /temp
+            tar -czf "/tmp/${build_id}.tar.gz" "${build_id}"
 
             echo "copying build to Google Cloud."
             gsutil cp "/tmp/${build_id}.tar.gz" "gs://openreview-general/openreview-web-builds/${build_id}.tar.gz"
             curl -s "https://cowsay.morecode.org/say?message=MOO%21%20YOU%20CREATED%20A%20BUILD%20SUCCESSFULLY&format=text"
           fi
 
-          instance_prefix='openreview-web-'
+          #instance_prefix='openreview-web-'
 
-          instances=$(gcloud compute instances list | grep "$instance_prefix" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
+          #instances=$(gcloud compute instances list | grep "$instance_prefix" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
 
-          instances_arr=(${instances// / })
+          #instances_arr=(${instances// / })
 
-          instance_names=()
-          zones=()
-          for i in ${!instances_arr[@]}; do
-            if echo "${instances_arr[$i]}" | grep -q "$instance_prefix"; then
-              instance_names+=(${instances_arr[$i]})
-            else
-              zones+=(${instances_arr[$i]})
-            fi
-          done
+          #instance_names=()
+          #zones=()
+          #for i in ${!instances_arr[@]}; do
+          #  if echo "${instances_arr[$i]}" | grep -q "$instance_prefix"; then
+          #    instance_names+=(${instances_arr[$i]})
+          #  else
+          #    zones+=(${instances_arr[$i]})
+          #  fi
+          #done
 
-          for i in ${!instance_names[@]}; do
-            echo Deploying to ${instance_names[$i]}
-            gcloud compute ssh --zone ${zones[$i]} openreview@${instance_names[$i]} --command "bash bin/deploy-web.sh ${TAG}"
-          done
+          #for i in ${!instance_names[@]}; do
+          #  echo Deploying to ${instance_names[$i]}
+          #  gcloud compute ssh --zone ${zones[$i]} openreview@${instance_names[$i]} --command "bash bin/deploy-web.sh ${TAG}"
+          #done
 
-          nginx='nginx'
+          #nginx='nginx'
 
-          nvm='export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" &&'
+          #nvm='export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" &&'
 
-          nginx=$(gcloud compute instances list | grep "$nginx" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
+          #nginx=$(gcloud compute instances list | grep "$nginx" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
 
-          nginx_arr=(${nginx// / })
-          nginx_name=${nginx_arr[0]}
-          nginx_zone=${nginx_arr[1]}
+          #nginx_arr=(${nginx// / })
+          #nginx_name=${nginx_arr[0]}
+          #nginx_zone=${nginx_arr[1]}
 
-          gcloud compute --project "sunlit-realm-131518" ssh --zone $nginx_zone openreview@$nginx_name --command "${nvm} bash bin/deploy-web.sh ${TAG}" --quiet
+          #gcloud compute --project "sunlit-realm-131518" ssh --zone $nginx_zone openreview@$nginx_name --command "${nvm} bash bin/deploy-web.sh ${TAG}" --quiet
