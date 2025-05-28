@@ -72,7 +72,7 @@ jobs:
             echo "compressing build."
 
             mv "$GITHUB_WORKSPACE" "/tmp/${build_id}"
-            cd /temp
+            cd /tmp
             tar -czf "/tmp/${build_id}.tar.gz" "${build_id}"
 
             echo "copying build to Google Cloud."
