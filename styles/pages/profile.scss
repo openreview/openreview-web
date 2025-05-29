@@ -53,6 +53,11 @@ main.profile {
         margin-top: 0.25rem;
         margin-bottom: 0;
       }
+
+      .tags-container {
+        display: flex;
+        flex-flow: wrap;
+      }
     }
   }
 

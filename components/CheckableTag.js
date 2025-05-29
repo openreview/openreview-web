@@ -14,8 +14,22 @@ const CheckableTag = ({
   const formattedCount = new Intl.NumberFormat('en', { notation: 'compact' }).format(rawCount)
   const showCount = Number.isNaN(rawCount)
 
+  const getColorClass = () => {
+    switch (label) {
+      case 'require vouch':
+        return styles.requireVouch
+      case 'potential spam':
+        return styles.potentialSpam
+      default:
+        return ''
+    }
+  }
+
   return (
-    <div className={styles.checkableTagContainer} onClick={onChange}>
+    <div
+      className={`${styles.checkableTagContainer} ${getColorClass()}`}
+      onClick={onChange ?? onDelete}
+    >
       <span className={`${styles.iconLabel} ${checked ? styles.checked : ''}`}>{label}</span>
       {tagText && noTagText && (
         <span className={showCount ? styles.tagText : ''}>

@@ -45,3 +45,23 @@
     font-size: 0.75rem;
   }
 }
+
+.potentialSpam {
+  border-color: red;
+  background-color: red;
+  color: white;
+
+  &:hover {
+    background-color: darken($color: red, $amount: 10);
+  }
+}
+
+.requireVouch {
+  border-color: #fa8c16;
+  background-color: #fa8c16;
+  color: white;
+
+  &:hover {
+    background-color: darken($color: #fa8c16, $amount: 10);
+  }
+}
