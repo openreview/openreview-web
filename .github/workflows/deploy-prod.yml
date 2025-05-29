@@ -56,7 +56,9 @@ jobs:
         run: |
           echo copy gcloud credential
           cp "$DEFAULT_CREDENTIAL" "${{ runner.temp }}/gcloud_credentials.json"
+          export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE="${{ runner.temp }}/gcloud_credentials.json"
           export GOOGLE_APPLICATION_CREDENTIALS="${{ runner.temp }}/gcloud_credentials.json"
+          export GOOGLE_GHA_CREDS_PATH="${{ runner.temp }}/gcloud_credentials.json"
 
           gsutil cp gs://openreview-general/conf/deployment.conf ./deployment.conf
           sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" ./deployment.conf
