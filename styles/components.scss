@@ -1252,8 +1252,27 @@ table.table-minimal {
         outline: 0px solid transparent;
       }
     }
+    .modal-dialog {
+      min-width: 60%;
+    }
     .modal-content {
       min-width: fit-content;
+
+      .moderation-actions {
+        display: flex;
+        flex-direction: column;
+
+        .moderation-actions-buttons {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          margin-top: 0.5rem;
+
+          button {
+            margin-right: 0.5rem;
+          }
+        }
+      }
     }
     section {
       margin-bottom: 1.5rem;

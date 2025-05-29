@@ -171,26 +171,26 @@ const ProfilePreviewModal = ({
           />
         </ProfileViewSection>
       )}
-      {needsModeration && (
-        <div className="modal-footer">
-          <div className="mb-2">
-            <CreatableDropdown
-              hideArrow
-              isClearable
-              classNamePrefix="tags-dropdown"
-              placeholder="tag the profile"
-              options={[
-                { label: 'require vouch', value: 'require vouch' },
-                { label: 'potential spam', value: 'potential spam' },
-              ]}
-              value={null}
-              onChange={(e) => {
-                if (!e) return
-                addTag(e.value)
-              }}
-            />
-          </div>
-          <div>
+      <div className="moderation-actions">
+        <div className="mb-2">
+          <CreatableDropdown
+            hideArrow
+            isClearable
+            classNamePrefix="tags-dropdown"
+            placeholder="tag the profile"
+            options={[
+              { label: 'require vouch', value: 'require vouch' },
+              { label: 'potential spam', value: 'potential spam' },
+            ]}
+            value={null}
+            onChange={(e) => {
+              if (!e) return
+              addTag(e.value)
+            }}
+          />
+        </div>
+        {needsModeration && (
+          <div className="moderation-actions-buttons">
             <div className="pull-left">
               <button
                 type="button"
@@ -234,64 +234,64 @@ const ProfilePreviewModal = ({
               </button>
             </div>
           </div>
-          {isRejecting && (
-            <div className="form-group form-rejection mt-2">
-              <Dropdown
-                name="rejection-reason"
-                instanceId="rejection-reason"
-                placeholder="Choose a common reject reason..."
-                options={rejectionReasons}
-                onChange={(p) => {
-                  setRejectionMessage(p?.rejectionText || '')
-                }}
-                isClearable
-              />
-              <div>
-                <button
-                  className="btn btn-xs mr-2"
-                  onClick={() =>
-                    updateMessageForPastRejectProfile(
-                      "Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system."
-                    )
-                  }
-                >
-                  Add Invalid Info Warning
-                </button>
-                <button
-                  className="btn btn-xs"
-                  onClick={() =>
-                    updateMessageForPastRejectProfile(
-                      'If invalid info is submitted again, your email will be blocked.'
-                    )
-                  }
-                >
-                  Add Last Notice Warning
-                </button>
-              </div>
-
-              <textarea
-                name="message"
-                className="form-control mt-2"
-                rows="10"
-                value={rejectionMessage}
-                onChange={(e) => {
-                  setRejectionMessage(e.target.value)
-                }}
-              />
+        )}
+        {isRejecting && (
+          <div className="form-group form-rejection mt-2">
+            <Dropdown
+              name="rejection-reason"
+              instanceId="rejection-reason"
+              placeholder="Choose a common reject reason..."
+              options={rejectionReasons}
+              onChange={(p) => {
+                setRejectionMessage(p?.rejectionText || '')
+              }}
+              isClearable
+            />
+            <div>
               <button
-                type="button"
-                className="btn"
-                onClick={async () => {
-                  await rejectUser(rejectionMessage, profileToPreview.id)
-                  showNextProfile(profileToPreview.id)
-                }}
+                className="btn btn-xs mr-2"
+                onClick={() =>
+                  updateMessageForPastRejectProfile(
+                    "Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system."
+                  )
+                }
               >
-                Reject
+                Add Invalid Info Warning
+              </button>
+              <button
+                className="btn btn-xs"
+                onClick={() =>
+                  updateMessageForPastRejectProfile(
+                    'If invalid info is submitted again, your email will be blocked.'
+                  )
+                }
+              >
+                Add Last Notice Warning
               </button>
             </div>
-          )}
-        </div>
-      )}
+
+            <textarea
+              name="message"
+              className="form-control mt-2"
+              rows="10"
+              value={rejectionMessage}
+              onChange={(e) => {
+                setRejectionMessage(e.target.value)
+              }}
+            />
+            <button
+              type="button"
+              className="btn"
+              onClick={async () => {
+                await rejectUser(rejectionMessage, profileToPreview.id)
+                showNextProfile(profileToPreview.id)
+              }}
+            >
+              Reject
+            </button>
+          </div>
+        )}
+      </div>
     </BasicModal>
   )
 }
