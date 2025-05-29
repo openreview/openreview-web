@@ -43,7 +43,6 @@ jobs:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           create_credentials_file: true
-          credentials_file_path: ${{ runner.temp }}/gcloud_credentials.json
           cleanup_credentials: true
           export_environment_variables: true
       - name: Setup gcloud
@@ -52,7 +51,13 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           skip_install: true
       - name: Run deploy script
+        env:
+          DEFAULT_CREDENTIAL: ${{ steps.auth.outputs.credentials_file_path }}
         run: |
+          echo copy gcloud credential
+          cp "$DEFAULT_CREDENTIAL" "${{ runner.temp }}/gcloud_credentials.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="${{ runner.temp }}/gcloud_credentials.json"
+
           gsutil cp gs://openreview-general/conf/deployment.conf ./deployment.conf
           sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" ./deployment.conf
           gsutil cp ./deployment.conf gs://openreview-general/conf/deployment.conf
