@@ -1225,7 +1225,6 @@ table.table-minimal {
     .tags-container {
       display: flex;
       flex-flow: wrap;
-      margin-bottom: 0.25rem;
     }
     .tags-dropdown {
       &__control {
@@ -1303,10 +1302,14 @@ table.table-minimal {
         display: inline-block;
         line-height: normal;
       }
+      .messages-table {
+        margin-bottom: 0;
+      }
       .empty-message {
         color: constants.$subtleGray;
         font-style: italic;
         margin-top: 0;
+        margin-bottom: 0;
       }
       .table-row {
         display: flex;

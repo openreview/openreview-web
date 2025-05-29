@@ -130,16 +130,6 @@ const ProfilePreviewModal = ({
       }}
       options={{ hideFooter: !!needsModeration }}
     >
-      <div className="tags-container">
-        {tags.map((tag, index) => (
-          <CheckableTag
-            key={index}
-            label={tag.label}
-            checked={true}
-            onDelete={() => deleteTag(tag)}
-          />
-        ))}
-      </div>
       <BasicProfileView
         profile={profileToPreview}
         showLinkText={true}
@@ -172,6 +162,16 @@ const ProfilePreviewModal = ({
         </ProfileViewSection>
       )}
       <div className="moderation-actions">
+        <div className={`tags-container ${tags.length ? 'mb-2' : ''}`}>
+          {tags.map((tag, index) => (
+            <CheckableTag
+              key={index}
+              label={tag.label}
+              checked={true}
+              onDelete={() => deleteTag(tag)}
+            />
+          ))}
+        </div>
         <div className="mb-2">
           <CreatableDropdown
             hideArrow
