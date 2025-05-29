@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 
 const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
@@ -9,7 +8,6 @@ const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
       defaultActiveTabId ||
       validTabIds[0]
   )
-  const router = useRouter()
 
   useEffect(() => {
     if (!validTabIds.includes(activeTabId)) {
@@ -18,7 +16,7 @@ const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
     }
     updateActiveTabId?.(`#${activeTabId}`)
     if (window.location.hash !== `#${activeTabId}`) {
-      router.replace(`#${activeTabId}`)
+      window.history.replaceState(null, '', `#${activeTabId}`)
     }
   }, [activeTabId])
 
