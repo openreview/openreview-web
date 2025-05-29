@@ -54,12 +54,6 @@ jobs:
         env:
           DEFAULT_CREDENTIAL: ${{ steps.auth.outputs.credentials_file_path }}
         run: |
-          echo copy gcloud credential
-          cp "$DEFAULT_CREDENTIAL" "${{ runner.temp }}/gcloud_credentials.json"
-          export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE="${{ runner.temp }}/gcloud_credentials.json"
-          export GOOGLE_APPLICATION_CREDENTIALS="${{ runner.temp }}/gcloud_credentials.json"
-          export GOOGLE_GHA_CREDS_PATH="${{ runner.temp }}/gcloud_credentials.json"
-
           gsutil cp gs://openreview-general/conf/deployment.conf ./deployment.conf
           sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" ./deployment.conf
           gsutil cp ./deployment.conf gs://openreview-general/conf/deployment.conf
@@ -79,7 +73,7 @@ jobs:
             npm run build
             echo "compressing build."
 
-            mv "$GITHUB_WORKSPACE" "/tmp/${build_id}"
+            cp -a "$GITHUB_WORKSPACE" "/tmp/${build_id}"
             cd /tmp
             tar -czf "/tmp/${build_id}.tar.gz" "${build_id}"
 
