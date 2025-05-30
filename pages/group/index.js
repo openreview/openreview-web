@@ -161,8 +161,7 @@ return {
   if (group.web.includes('<script type="text/javascript">')) {
     return {
       statusCode: 400,
-      message:
-        'This group is no longer accessible. Please contact info@openreview.net if you require access.',
+      message: 'This group is no longer accessible.',
     }
   }
 
