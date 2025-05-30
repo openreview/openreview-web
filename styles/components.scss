@@ -396,6 +396,12 @@ table.table-minimal {
       font-size: 1rem;
     }
 
+    .update-required {
+      font-size: 0.75rem;
+      font-weight: bold;
+      vertical-align: text-top;
+    }
+
     .parent-title {
       line-height: normal;
       margin-bottom: 0.125rem;
@@ -1222,7 +1228,7 @@ table.table-minimal {
     }
     section {
       margin-bottom: 1.5rem;
-      max-width: 800px;
+      max-width: 1000px;
 
       h4 {
         width: 100%;
@@ -1808,6 +1814,20 @@ header,
 
 // markdown preview tab
 .markdown-preview {
+  &__textarea {
+    padding-bottom: 0.25rem;
+  }
+  &__doc-link {
+    font-size: 0.75rem;
+    color: constants.$mediumBlue;
+    background-color: #fffaf4;
+    padding: 0.25rem 0.25rem;
+
+    svg {
+      margin-right: 0.25rem;
+      vertical-align: sub;
+    }
+  }
   textarea {
     width: 100% !important;
     min-height: 250px;
