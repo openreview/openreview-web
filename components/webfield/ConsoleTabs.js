@@ -32,7 +32,7 @@ const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
           if (!visible) return null
           return (
             <Tab
-              key={id}
+              key={`${id}-tab`}
               id={id}
               active={activeTabId === id ? true : undefined}
               onClick={() => setActiveTabId(id)}
@@ -47,7 +47,7 @@ const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
           const { id, content, visible } = tab
           if (!visible || activeTabId !== `${id}`) return null
           return (
-            <TabPanel key={id} id={id}>
+            <TabPanel key={`${id}-panel`} id={id}>
               {content}
             </TabPanel>
           )

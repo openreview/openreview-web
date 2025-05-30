@@ -1,0 +1,66 @@
+@use '../utils/constants';
+
+.formContainer {
+  padding-bottom: 0.25rem;
+  margin-top: 0.5rem;
+  background-color: unset;
+}
+
+.fieldContainer {
+  margin-bottom: 0.5rem;
+}
+
+.enumHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+
+  .valueHeader,
+  .descriptionHeader,
+  .optionalHeader {
+    font-weight: bold;
+    line-height: 1rem;
+    color: constants.$darkBlue;
+  }
+
+  .valueHeader,
+  .descriptionHeader {
+    flex-grow: 1;
+  }
+
+  .descriptionHeader {
+    margin-left: 3.75rem;
+  }
+
+  @media #{constants.$large} {
+    max-width: 85%;
+  }
+}
+
+.enumRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+
+  @media #{constants.$large} {
+    max-width: 85%;
+  }
+}
+
+.enumValue,
+.enumDescription {
+  flex-grow: 1;
+  margin-right: 0.25rem;
+}
+
+.enumOptional {
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.enumDeleteBtn {
+  color: constants.$mediumBlue;
+  font-size: 1.25rem;
+}

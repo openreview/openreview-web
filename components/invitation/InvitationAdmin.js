@@ -1,6 +1,3 @@
-/* globals promptMessage: false */
-/* globals promptError: false */
-
 import React from 'react'
 import InvitationGeneral, { InvitationGeneralV2 } from './InvitationGeneral'
 import InvitationReply, {
@@ -15,7 +12,7 @@ import { isSuperUser } from '../../lib/auth'
 import InvitationProcessFunctionsV2 from './InvitationProcessFunctions'
 import ContentProcessFunctions from './ContentProcessFunctions'
 
-const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => {
+const InvitationAdmin = ({ invitation, user, accessToken, loadInvitation }) => {
   const profileId = user?.profile?.id
   const showProcessEditor = isSuperUser(user)
 
@@ -69,7 +66,7 @@ const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => 
   )
 }
 
-export const InvitationEditorV2 = ({
+export const InvitationAdminV2 = ({
   invitation,
   isMetaInvitation,
   user,
@@ -152,4 +149,4 @@ export const InvitationEditorV2 = ({
   )
 }
 
-export default InvitationEditor
+export default InvitationAdmin
