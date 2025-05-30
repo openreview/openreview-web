@@ -1,4 +1,4 @@
-/* globals $,typesetMathJax: false */
+/* globals $,typesetMathJax,promptError: false */
 
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
@@ -17,6 +17,7 @@ import api from '../../lib/api-client'
 import { formatProfileData, getCoAuthorsFromPublications } from '../../lib/profiles'
 import { auth, isSuperUser } from '../../lib/auth'
 import { profileModeToggle } from '../../lib/banner-links'
+import CheckableTag from '../../components/CheckableTag'
 
 const CoAuthorsList = ({ coAuthors, loading }) => {
   const [visibleCoAuthors, setVisibleCoAuthors] = useState([])
@@ -77,6 +78,7 @@ const CoAuthorsList = ({ coAuthors, loading }) => {
 
 const Profile = ({ profile, publicProfile, appContext }) => {
   const [publications, setPublications] = useState(null)
+  const [tags, setTags] = useState([])
   const [count, setCount] = useState(0)
   const [coAuthors, setCoAuthors] = useState([])
   const { user, userLoading, accessToken } = useUser()
@@ -122,6 +124,35 @@ const Profile = ({ profile, publicProfile, appContext }) => {
     }
   }
 
+  const loadTags = async () => {
+    try {
+      if (!isSuperUser(user)) return
+      const result = await api.get('/tags', {
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
+        profile: profile.id,
+      })
+      setTags(result.tags)
+    } catch (error) {
+      setTags([])
+    }
+  }
+
+  const deleteTag = async (tag) => {
+    try {
+      await api.post('/tags', {
+        id: tag.id,
+        ddate: Date.now(),
+        profile: tag.profile,
+        label: tag.label,
+        signature: tag.signature,
+        invitation: tag.invitation,
+      })
+      await loadTags()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   useEffect(() => {
     if (!router.isReady || userLoading) return
 
@@ -138,6 +169,7 @@ const Profile = ({ profile, publicProfile, appContext }) => {
     }
 
     loadPublications()
+    loadTags()
   }, [router.isReady, router.query, userLoading, accessToken, profile])
 
   useEffect(() => {
@@ -171,6 +203,16 @@ const Profile = ({ profile, publicProfile, appContext }) => {
               <Icon name="calendar" extraClasses="pr-1" /> Joined {profile.joined}
             </li>
           </ul>
+          <div className={`tags-container ${tags.length ? 'mb-2' : ''}`}>
+            {tags.map((tag, index) => (
+              <CheckableTag
+                key={index}
+                label={tag.label}
+                checked={true}
+                onDelete={() => deleteTag(tag)}
+              />
+            ))}
+          </div>
         </div>
       </header>
 
@@ -248,9 +290,7 @@ Profile.getInitialProps = async (ctx) => {
   if (!profile.active && !isSuperUser(user)) {
     return {
       statusCode: 400,
-      message: `The profile ${
-        profileQuery.id || profileQuery.email
-      } is not active`,
+      message: `The profile ${profileQuery.id || profileQuery.email} is not active`,
     }
   }
 
