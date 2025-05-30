@@ -3,21 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ConsoleTabs from '../components/webfield/ConsoleTabs'
 
-let routerParams
-
-jest.mock('next/router', () => ({
-  useRouter: () => ({
-    replace: jest.fn((params) => {
-      routerParams = params
-      return {
-        catch: jest.fn(),
-      }
-    }),
-  }),
-}))
-
 beforeEach(() => {
-  routerParams = null
   window.location.hash = ''
 })
 
@@ -101,10 +87,10 @@ describe('ConsoleTabs', () => {
 
     await userEvent.click(screen.getByText('Tab Two'))
     expect(screen.getByText('tab 2 content')).toBeInTheDocument()
-    expect(routerParams).toBe('#tab2Id')
+    expect(window.location.hash).toBe('#tab2Id')
 
     await userEvent.click(screen.getByText('Tab Three'))
     expect(screen.getByText('tab 3 content')).toBeInTheDocument()
-    expect(routerParams).toBe('#tab3Id')
+    expect(window.location.hash).toBe('#tab3Id')
   })
 })

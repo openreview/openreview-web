@@ -1,9 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect } from 'react'
-import { useRouter } from 'next/router'
-import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
+import { useSearchParams } from 'next/navigation'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import ErrorDisplay from '../ErrorDisplay'
@@ -28,20 +25,18 @@ const EthicsChairConsole = ({ appContext }) => {
     ethicsMetaReviewName,
     preferredEmailInvitationId,
   } = useContext(WebFieldContext)
-  const { setBannerContent } = appContext
-  const router = useRouter()
-  const query = useQuery()
-  const { user, userLoading } = useUser()
+  const { setBannerContent } = appContext ?? {}
+  const query = useSearchParams()
 
   const ethicsChairsUrlFormat = getRoleHashFragment(ethicsChairsName)
 
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 

@@ -1,13 +1,13 @@
 /* globals view2,promptError: false */
 import { groupBy, uniq } from 'lodash'
-import { useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Accordion from './Accordion'
 import Table from './Table'
 import { inflect } from '../lib/utils'
-import UserContext from './UserContext'
 import api from '../lib/api-client'
 import ErrorAlert from './ErrorAlert'
 import LoadingSpinner from './LoadingSpinner'
+import useUser from '../hooks/useUser'
 
 export default function DblpPublicationTable({
   dblpPublications,
@@ -17,7 +17,7 @@ export default function DblpPublicationTable({
   orPublicationsImportedByOtherProfile,
   maxNumberofPublicationsToImport,
 }) {
-  const { accessToken } = useContext(UserContext)
+  const { accessToken } = useUser()
   const [profileIdsRequested, setProfileIdsRequested] = useState([])
   const pubsCouldNotImport = [] // either existing or associated with other profile
   const pubsCouldImport = []
@@ -139,7 +139,9 @@ export default function DblpPublicationTable({
                     <input
                       className="year-checkbox"
                       type="checkbox"
-                      onChange={(e) => toggleSelectYear(e, p)}
+                      onChange={(e) => {
+                        toggleSelectYear(e, p)
+                      }}
                       checked={
                         publicationsCouldImportOfYear.length &&
                         publicationsCouldImportOfYear.every((r) =>
@@ -193,7 +195,13 @@ export default function DblpPublicationTable({
                 }),
               }
             })}
-          options={{ id: 'dblp-papers', collapsed: false, html: false, bodyContainer: '' }}
+          options={{
+            id: 'dblp-papers',
+            collapsed: false,
+            html: false,
+            bodyContainer: '',
+            shouldCollapse: false,
+          }}
         />
       </div>
     </>
@@ -213,7 +221,7 @@ const DblpPublicationRow = ({
   profileIdsRequested,
   setProfileIdsRequested,
 }) => {
-  const { accessToken, user } = useContext(UserContext)
+  const { accessToken, user } = useUser()
   const [error, setError] = useState(null)
   const [profileMergeStatus, setProfileMergeStatus] = useState(null)
   const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
