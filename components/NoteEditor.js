@@ -131,7 +131,7 @@ const NoteEditor = ({
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState([])
-  const { noteEditorPreview } = useContext(WebFieldContext)
+  const { noteEditorPreview } = useContext(WebFieldContext) ?? {}
   if (noteEditorPreview)
     // eslint-disable-next-line no-param-reassign
     customValidator = () => ({
