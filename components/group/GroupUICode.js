@@ -98,7 +98,7 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
         componentProps[propName] = prop
       }
     })
-    setWebComponentProps(componentProps)
+    setWebComponentProps({ ...componentProps, noteEditorPreview: true })
   }
 
   useEffect(() => {
@@ -139,7 +139,6 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
             <TabPanel id="ui-code-preview">
               <WebFieldContext.Provider value={webComponentProps}>
                 <div id="group-container">
-                  {console.log('Rendering WebComponent:', WebComponent)}
                   {WebComponent && webComponentProps ? (
                     <WebComponent
                       appContext={{

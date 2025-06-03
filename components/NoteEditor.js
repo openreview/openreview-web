@@ -1,6 +1,6 @@
 /* globals promptError, promptLogin, view2, clearMessage: false */
 
-import React, { useEffect, useCallback, useReducer, useState } from 'react'
+import React, { useEffect, useCallback, useReducer, useState, useContext } from 'react'
 import throttle from 'lodash/throttle'
 import { intersection, isEmpty } from 'lodash'
 import EditorComponentContext from './EditorComponentContext'
@@ -22,6 +22,7 @@ import LicenseWidget from './EditorComponents/LicenseWidget'
 import DatePickerWidget from './EditorComponents/DatePickerWidget'
 import EditSignatures from './EditSignatures'
 import Markdown from './EditorComponents/Markdown'
+import WebFieldContext from './WebFieldContext'
 
 const ExistingNoteReaders = NewReplyEditNoteReaders
 
@@ -130,6 +131,13 @@ const NoteEditor = ({
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState([])
+  const { noteEditorPreview } = useContext(WebFieldContext)
+  if (noteEditorPreview)
+    // eslint-disable-next-line no-param-reassign
+    customValidator = () => ({
+      isValid: false,
+      errorMessage: 'This is a note editor preview',
+    })
   const useCheckboxWidget = true
 
   const displayError =
@@ -224,6 +232,7 @@ const NoteEditor = ({
                 return existingErrors.filter((p) => p.fieldName !== fieldName)
               })
             },
+            noteEditorPreview,
           }}
         >
           <EditorComponentHeader fieldNameOverwrite={fieldNameOverwrite}>
@@ -680,6 +689,14 @@ const NoteEditor = ({
         <div className={styles.editReaderSignature}>
           <h2>Edit History</h2>
           <hr />
+
+          <EditContent
+            invitation={invitation}
+            editContentData={editContentData}
+            setEditContentData={setEditContentData}
+            errors={errors}
+            setErrors={setErrors}
+          />
 
           <EditReaders
             fieldDescription={invitation.edit.readers}

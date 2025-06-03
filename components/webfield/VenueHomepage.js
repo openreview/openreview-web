@@ -15,7 +15,6 @@ import Markdown from '../EditorComponents/Markdown'
 import ErrorDisplay from '../ErrorDisplay'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload }) {
   const [userConsoles, setUserConsoles] = useState(null)

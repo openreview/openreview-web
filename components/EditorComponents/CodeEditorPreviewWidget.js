@@ -62,7 +62,7 @@ const CodeEditorPreviewWidget = () => {
         componentProps[propName] = prop
       }
     })
-    setWebComponentProps(componentProps)
+    setWebComponentProps({ ...componentProps, noteEditorPreview: true })
   }
 
   const onCodeChange = (updatedCode) => {
