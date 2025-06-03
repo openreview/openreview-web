@@ -9,6 +9,8 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import SpinnerButton from '../../components/SpinnerButton'
 import api from '../../lib/api-client'
 import { prettyId, prettyField, getProfileStateLabelClass } from '../../lib/utils'
+import CheckableTag from '../../components/CheckableTag'
+
 // #region components used by Compare (in renderField method)
 const Names = ({ names, highlightValue }) => (
   <table>
@@ -248,7 +250,9 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   const [highlightValues, setHighlightValues] = useState(null)
   const [fields, setFields] = useState([])
   const [edgeCounts, setEdgeCounts] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [tags, setTags] = useState(null)
+  const [loadingEdges, setLoadingEdges] = useState(false)
+  const [loadingTags, setLoadingTags] = useState(false)
   const { setBannerHidden } = appContext
 
   const getPublications = async (profileId) => {
@@ -520,7 +524,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   }
 
   const mergeEdge = async (from, to) => {
-    setLoading(true)
+    setLoadingEdges(true)
     try {
       await api.post(
         '/edges/rename',
@@ -531,7 +535,50 @@ const Compare = ({ left, right, accessToken, appContext }) => {
     } catch (error) {
       promptError(error.message)
     }
-    setLoading(false)
+    setLoadingEdges(false)
+  }
+
+  const getTags = async () => {
+    try {
+      const leftTagsP = api.get(
+        '/tags',
+        {
+          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
+          profile: basicProfiles.left.id,
+        },
+        { accessToken }
+      )
+      const rightTagsP = api.get(
+        '/tags',
+        {
+          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
+          profile: basicProfiles.right.id,
+        },
+        { accessToken }
+      )
+      const results = await Promise.all([leftTagsP, rightTagsP])
+      setTags({
+        left: results[0].tags,
+        right: results[1].tags,
+      })
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const mergeTag = async (from, to) => {
+    setLoadingTags(true)
+    try {
+      await api.post(
+        '/tags/rename',
+        { currentId: basicProfiles[from].id, newId: basicProfiles[to].id },
+        { accessToken }
+      )
+      await getTags()
+    } catch (error) {
+      promptError(error.message)
+    }
+    setLoadingTags(false)
   }
 
   const getEdges = async () => {
@@ -574,6 +621,7 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       right: addSignatureToProfile(basicProfiles.right),
     })
     getEdges()
+    getTags()
   }, [basicProfiles])
 
   useEffect(() => {
@@ -683,8 +731,10 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                     <SpinnerButton
                       type="button"
                       className="mb-2"
-                      loading={loading}
-                      disabled={!(edgeCounts.rightHead || edgeCounts.rightTail) || loading}
+                      loading={loadingEdges}
+                      disabled={
+                        !(edgeCounts.rightHead || edgeCounts.rightTail) || loadingEdges
+                      }
                       onClick={() => mergeEdge('right', 'left')}
                     >
                       &laquo;
@@ -692,8 +742,8 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                     <br />
                     <SpinnerButton
                       type="button"
-                      loading={loading}
-                      disabled={!(edgeCounts.leftHead || edgeCounts.leftTail) || loading}
+                      loading={loadingEdges}
+                      disabled={!(edgeCounts.leftHead || edgeCounts.leftTail) || loadingEdges}
                       onClick={() => mergeEdge('left', 'right')}
                     >
                       &raquo;
@@ -703,6 +753,52 @@ const Compare = ({ left, right, accessToken, appContext }) => {
                     {renderEdgeLink(edgeCounts.rightHead, 'head', basicProfiles.right.id)}
                     {', '}
                     {renderEdgeLink(edgeCounts.rightTail, 'tail', basicProfiles.right.id)}
+                  </td>
+                </tr>
+              )}
+              {tags && (
+                <tr>
+                  <td>
+                    <strong>Tags</strong>
+                  </td>
+                  <td>
+                    <div className="tags-container">
+                      {tags.left.length > 0
+                        ? tags.left.map((tag, index) => (
+                            <CheckableTag key={index} label={tag.label} checked={true} />
+                          ))
+                        : 'no tag'}
+                    </div>
+                  </td>
+                  <td colSpan="2" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                    <SpinnerButton
+                      type="button"
+                      className="mb-2"
+                      loading={loadingTags}
+                      disabled={!tags.right.length || loadingTags}
+                      onClick={() => mergeTag('right', 'left')}
+                    >
+                      {loadingTags ? '' : '«'}
+                    </SpinnerButton>
+                    <br />
+
+                    <SpinnerButton
+                      type="button"
+                      loading={loadingTags}
+                      disabled={!tags.left.length || loadingTags}
+                      onClick={() => mergeTag('left', 'right')}
+                    >
+                      {loadingTags ? '' : '»'}
+                    </SpinnerButton>
+                  </td>
+                  <td>
+                    <div className="tags-container">
+                      {tags.right.length > 0
+                        ? tags.right.map((tag, index) => (
+                            <CheckableTag key={index} label={tag.label} checked={true} />
+                          ))
+                        : ' no tag'}
+                    </div>
                   </td>
                 </tr>
               )}
