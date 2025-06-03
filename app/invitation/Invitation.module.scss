@@ -1422,6 +1422,15 @@
       }
     }
 
+    .invitationEditorTabsContainer {
+      &.deleted {
+        opacity: 0.5;
+      }
+      .tab-pane {
+        padding-left: 0;
+      }
+    }
+
     .dateprocess-editor {
       .glyphicon-minus-sign,
       .glyphicon-plus-sign {
@@ -1505,6 +1514,16 @@
       }
       .empty-message {
         color: constants.$subtleGray;
+      }
+    }
+
+    .invitationEditorTabsContainer {
+      .tab-pane {
+        padding-left: 0;
+        padding-top: 0;
+      }
+      .code-editor {
+        margin-top: 0;
       }
     }
   }

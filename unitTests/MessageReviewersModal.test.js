@@ -6,6 +6,7 @@ import api from '../lib/api-client'
 
 let basicModalProps
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
 jest.mock('../components/BasicModal', () => (props) => {
   basicModalProps = props

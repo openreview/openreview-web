@@ -8,9 +8,7 @@ import styles from '../Invitation.module.scss'
 import { prettyId } from '../../../lib/utils'
 import EditBanner from '../../../components/EditBanner'
 import { invitationModeToggle } from '../../../lib/banner-links'
-import InvitationEditorV1, {
-  InvitationEditorV2,
-} from '../../../components/invitation/InvitationEditor'
+import InvitationWithInvitation from '../../../components/invitation/InvitationWithInvitation'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import ErrorDisplay from '../../../components/ErrorDisplay'
@@ -43,25 +41,11 @@ export default function InvitationEditor({ id, query }) {
 
   const loadInvitation = async () => {
     try {
-      const invitationObj = await api.getInvitationById(
-        id,
-        accessToken,
-        { details: 'writable', expired: true, trash: true },
-        { details: 'writable', expired: true }
-      )
+      const invitationObj = await api.getInvitationById(id, accessToken)
       if (invitationObj) {
-        if (invitationObj.details?.writable) {
-          setInvitation(invitationObj)
-        } else if (!accessToken) {
-          router.replace(
-            `/login?redirect=/invitation/edit?${encodeURIComponent(stringify(query))}`
-          )
-        } else {
-          // User is a reader, not a writer of the invitation, so redirect to info mode
-          router.replace(`/invitation/info?id=${id}`)
-        }
+        setInvitation(invitationObj)
       } else {
-        setError('Invitation not found')
+        setError({ statusCode: 404, message: 'Invitation not found' })
       }
     } catch (apiError) {
       if (apiError.name === 'ForbiddenError') {
@@ -98,22 +82,12 @@ export default function InvitationEditor({ id, query }) {
         <div id="header">
           <h1>{getHeaderText()}</h1>
         </div>
-        {invitation?.apiVersion === 1 ? (
-          <InvitationEditorV1
+        <div className="invitationEditorTabsContainer">
+          <InvitationWithInvitation
             invitation={invitation}
-            user={user}
-            accessToken={accessToken}
-            loadInvitation={loadInvitation}
+            reloadInvitation={() => loadInvitation(invitation.id)}
           />
-        ) : (
-          <InvitationEditorV2
-            invitation={invitation}
-            isMetaInvitation={isMetaInvitation}
-            user={user}
-            accessToken={accessToken}
-            loadInvitation={loadInvitation}
-          />
-        )}{' '}
+        </div>
       </div>
     </CommonLayout>
   )

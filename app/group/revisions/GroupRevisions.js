@@ -31,8 +31,8 @@ export default function GroupRevisions({ id, query }) {
             `/login?redirect=/group/revisions?${encodeURIComponent(stringify(query))}`
           )
         } else {
-          // User is a reader, not a writer of the group, so redirect to info mode
-          router.replace(`/group/info?id=${id}`)
+          // User is a reader, not a writer of the group, so redirect to edit mode
+          router.replace(`/group/edit?id=${id}`)
         }
       } else {
         setError('Group not found')

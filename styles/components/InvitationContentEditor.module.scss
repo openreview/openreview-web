@@ -1,0 +1,97 @@
+@use '../utils/constants';
+
+.invitationContentEditor {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  :global {
+    .tabs-container {
+      margin-bottom: 0;
+    }
+
+    #web-ui-code-preview {
+      #group-container {
+        min-height: 600px;
+        em.preview-error {
+          color: constants.$orRed;
+        }
+      }
+    }
+  }
+}
+
+.fieldContainer {
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  font-weight: bold;
+  font-size: 1.375rem;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.requiredField {
+  font-size: 0.75rem;
+  color: constants.$orRed;
+  margin-bottom: 0.75rem;
+  span {
+    color: #cc2d2d;
+  }
+}
+
+.fieldReaders {
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+
+  :global {
+    span {
+      color: constants.$subtleGray;
+      padding-right: 0.25rem;
+    }
+    div[class^='TagsWidget_container__'] {
+      margin-top: 0;
+    }
+    div[class^='TagsWidget_value__'] {
+      padding: 0.125rem 0.25rem;
+    }
+  }
+}
+
+.responseButtons {
+  display: flex;
+  margin-top: 0.5rem;
+}
+
+.submitButton {
+  margin-right: 0.25rem;
+}
+
+.editReaderSignature {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 0.5rem;
+  padding-bottom: 0.25rem;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+
+  h2 {
+    font-size: 1rem;
+    line-height: normal;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+  hr {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+  }
+  & > div[class^='EditorComponentHeader_inline__'] {
+    margin-bottom: 0.875rem;
+  }
+}
+
+.invalidValue {
+  border-color: constants.$orRed;
+}

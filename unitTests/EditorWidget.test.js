@@ -3,6 +3,7 @@ import EditorWidget from '../components/webfield/EditorWidget'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/EditorComponents/TextboxWidget', () => () => <span>textbox</span>)
 jest.mock('../components/EditorComponents/TagsWidget', () => () => <span>tags</span>)
 jest.mock('../components/EditorComponents/RadioButtonWidget', () => () => <span>radio</span>)
