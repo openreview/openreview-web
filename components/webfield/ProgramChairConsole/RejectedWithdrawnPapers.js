@@ -1,5 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
+import Link from 'next/link'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import LoadingSpinner from '../../LoadingSpinner'
@@ -152,8 +153,8 @@ const RejectedWithdrawnPapers = ({ consoleData, isSacConsole = false }) => {
   if (rejectedPaperTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        No papers have been desk rejected or withdrawn.Check back later or contact
-        info@openreview.net if you believe this to be an error.
+        No papers have been desk rejected or withdrawn.Check back later or{' '}
+        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
       </p>
     )
   if (rejectedPaperTabData.tableRows?.length === 0)
