@@ -218,7 +218,12 @@ const addMissingReaders = (
   return readersSelected
 }
 
-export const getNoteReaderValues = (roleNames, invitation, noteEditorData) => {
+export const getNoteReaderValues = async (
+  roleNames,
+  invitation,
+  noteEditorData,
+  accessToken
+) => {
   if (!invitation.edit.note.readers || Array.isArray(invitation.edit.note.readers)) {
     return undefined
   }
@@ -232,34 +237,49 @@ export const getNoteReaderValues = (roleNames, invitation, noteEditorData) => {
 
   const invitationNoteReaderValues =
     invitation.edit.note.readers?.param?.enum ??
-    invitation.edit.note.readers?.param?.items?.map((p) => {
-      if (p.value) return p.value
-      if (p.inGroup) return `${p.inGroup.slice(0, -1)}.*`
-      return p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
-    })
+    (await Promise.all(
+      invitation.edit.note.readers?.param?.items?.map(async (p) => {
+        if (p.value) return p.value
+        if (p.inGroup) {
+          const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+          return result.groups[0]?.members
+        }
+        return p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
+      })
+    ))
 
   return addMissingReaders(
     noteEditorData.noteReaderValues,
-    invitationNoteReaderValues,
+    invitationNoteReaderValues.flat(),
     signatureInputValues,
     roleNames
   )
 }
 
-export const getEditReaderValues = (roleNames, invitation, noteEditorData) => {
+export const getEditReaderValues = async (
+  roleNames,
+  invitation,
+  noteEditorData,
+  accessToken
+) => {
   if (Array.isArray(invitation.edit.readers)) return undefined
 
   const invitationEditReaderValues =
     invitation.edit.readers?.param?.enum ??
-    invitation.edit.readers?.param?.items?.map((p) => {
-      if (p.value) return p.value
-      if (p.inGroup) return `${p.inGroup.slice(0, -1)}.*`
-      return p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
-    })
+    (await Promise.all(
+      invitation.edit.readers?.param?.items?.map(async (p) => {
+        if (p.value) return p.value
+        if (p.inGroup) {
+          const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+          return result.groups[0]?.members
+        }
+        return p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
+      })
+    ))
 
   return addMissingReaders(
     noteEditorData.editReaderValues,
-    invitationEditReaderValues,
+    invitationEditReaderValues.flat(),
     noteEditorData.editSignatureInputValues,
     roleNames
   )
@@ -562,8 +582,18 @@ const NoteEditor = ({
           Object.entries(noteEditorData)
             .filter(([key, value]) => value === undefined)
             .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {})),
-        noteReaderValues: getNoteReaderValues(roleNames, invitation, noteEditorData),
-        editReaderValues: getEditReaderValues(roleNames, invitation, noteEditorData),
+        noteReaderValues: await getNoteReaderValues(
+          roleNames,
+          invitation,
+          noteEditorData,
+          accessToken
+        ),
+        editReaderValues: await getEditReaderValues(
+          roleNames,
+          invitation,
+          noteEditorData,
+          accessToken
+        ),
         editWriterValues: getEditWriterValues(),
         ...(replyToNote && { replyto: replyToNote.id }),
         editContent: editContentData,

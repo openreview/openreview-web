@@ -1,4 +1,5 @@
 import { getNoteReaderValues } from '../components/NoteEditor'
+import api from '../lib/api-client'
 
 const roleNames = {
   anonAreaChairName: 'Area_Chair_',
@@ -9,7 +10,7 @@ const roleNames = {
 }
 
 describe('NoteEditor', () => {
-  test('return correct reader value in getNoteReaderValues', () => {
+  test('return correct reader value in getNoteReaderValues', async () => {
     const invitation = {
       edit: {
         note: {
@@ -48,7 +49,36 @@ describe('NoteEditor', () => {
       ],
     }
 
-    const readerValue = getNoteReaderValues(roleNames, invitation, noteEditorData)
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        groups: [
+          {
+            id: 'NeurIPS.cc/2025/Conference/Submission1/Reviewers',
+            members: [
+              'NeurIPS.cc/2025/Conference/Submission1/Reviewer_abcd',
+              'NeurIPS.cc/2025/Conference/Submission1/Reviewer_efgh',
+              'NeurIPS.cc/2025/Conference/Submission1/Reviewer_ijkl',
+              'NeurIPS.cc/2025/Conference/Submission1/Reviewer_mnop',
+            ],
+          },
+        ],
+      })
+    )
+
+    const readerValue = await getNoteReaderValues(
+      roleNames,
+      invitation,
+      noteEditorData,
+      'token'
+    )
+
+    expect(api.get).toHaveBeenCalledWith(
+      '/groups',
+      {
+        id: 'NeurIPS.cc/2025/Conference/Submission1/Reviewers',
+      },
+      expect.anything()
+    )
     // signature should be added and reviewers group should not be added
     const expectedReaderValue = [
       'NeurIPS.cc/2025/Conference/Program_Chairs',
