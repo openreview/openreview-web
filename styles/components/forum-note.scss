@@ -56,6 +56,12 @@
     }
   }
 
+  .forum-other-versions {
+    font-size: 0.75rem;
+    color: constants.$subtleGray;
+    margin-bottom: 0.5rem;
+  }
+
   .forum-meta {
     float: left;
     margin-top: 0.125rem;
@@ -77,6 +83,10 @@
       line-height: normal;
       color: constants.$subtleGray;
     }
+  }
+
+  .forum-tags {
+    display: flex;
   }
 
   .invitation-buttons {

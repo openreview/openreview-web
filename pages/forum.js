@@ -10,8 +10,9 @@ import api from '../lib/api-client'
 import { auth } from '../lib/auth'
 import { getConferenceName, getJournalName, getIssn } from '../lib/utils'
 import { referrerLink, venueHomepageLink } from '../lib/banner-links'
+import ArvixForum from '../components/forum/ArxivForum'
 
-const ForumPage = ({ forumNote, query, appContext }) => {
+const ForumPage = ({ forumNote, query, isArxivForum, appContext }) => {
   const { clientJsLoading, setBannerContent } = appContext
 
   let content
@@ -78,6 +79,8 @@ const ForumPage = ({ forumNote, query, appContext }) => {
     }
   }, [forumNote.version])
 
+  if (isArxivForum) return <ArvixForum id={query.arxivId} />
+
   return (
     <>
       <Head>
@@ -142,7 +145,9 @@ const ForumPage = ({ forumNote, query, appContext }) => {
 
 ForumPage.getInitialProps = async (ctx) => {
   const queryId = ctx.query.id || ctx.query.noteId
-  if (!queryId) {
+  // eslint-disable-next-line prefer-destructuring
+  const arxivId = ctx.query.arxivid
+  if (!queryId && !arxivId) {
     return { statusCode: 400, message: 'Forum or note ID is required' }
   }
 
@@ -184,6 +189,14 @@ ForumPage.getInitialProps = async (ctx) => {
   }
 
   try {
+    if (arxivId) {
+      return {
+        isArxivForum: true,
+        forumNote: { content: {}, invitations: [''], version: 2 },
+        query: { ...ctx.query, arxivId },
+      }
+    }
+
     const note = await api.getNoteById(
       queryId,
       token,
