@@ -76,4 +76,18 @@ footer {
   .join-the-team {
     display: none;
   }
+
+  #feedback-modal,
+  #feedback-modal-mobile {
+    text-align: left;
+
+    p {
+      font-size: unset;
+      margin: 0 0 10px;
+    }
+
+    a {
+      color: #4d8093;
+    }
+  }
 }

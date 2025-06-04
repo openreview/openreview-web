@@ -2454,14 +2454,14 @@ module.exports = (function () {
     var $editButton = null
     var $actionButtons = null
     if (
-      $('#content').hasClass('legacy-forum') ||
-      $('#content').hasClass('tasks') ||
-      $('#content').hasClass('revisions')
+      // $('#content').hasClass('legacy-forum') ||
+      // $('#content').hasClass('tasks') ||
+      // $('#content').hasClass('revisions')
+      true
     ) {
       var canEdit =
         (details.original && details.originalWritable) ||
         (!details.originalWritable && details.writable)
-
       if (canEdit && params.onTrashedOrRestored) {
         var buttonContent = notePastDue
           ? 'Restore'
@@ -2567,7 +2567,7 @@ module.exports = (function () {
       note.tmdate,
       note.content.year,
       note.pdate,
-      note.id !== note.forum, // include time if this a reply
+      note.id !== note.forum // include time if this a reply
     )
     var $replyCountLabel =
       params.withReplyCount && details.replyCount
@@ -2907,6 +2907,7 @@ module.exports = (function () {
         newNote.writers = getWriters(newNote.details.invitation, newSignatures, user)
         newNote = getCopiedValues(newNote, newNote.details.invitation.reply)
       }
+
       Webfield.post('/notes', newNote, { handleErrors: false }).then(
         function (updatedNote) {
           onTrashedOrRestored(Object.assign(newNote, updatedNote))
@@ -4448,13 +4449,7 @@ module.exports = (function () {
             var clientUploadId = nanoid()
             var chunks = Array.from(new Array(chunkCount), function (e, chunkIndex) {
               return new File(
-                [
-                  file.slice(
-                    chunkIndex * chunkSize,
-                    (chunkIndex + 1) * chunkSize,
-                    file.type
-                  ),
-                ],
+                [file.slice(chunkIndex * chunkSize, (chunkIndex + 1) * chunkSize, file.type)],
                 file.name
               )
             })
@@ -4508,11 +4503,7 @@ module.exports = (function () {
               )
             }
             $progressBar.show()
-            var sendChunksPromiseRef = chunks.reduce(function (
-              oldPromises,
-              currentChunk,
-              i
-            ) {
+            var sendChunksPromiseRef = chunks.reduce(function (oldPromises, currentChunk, i) {
               return oldPromises.then(function (_) {
                 return sendSingleChunk(currentChunk, i)
               })
@@ -4556,6 +4547,7 @@ module.exports = (function () {
       var saveNote = function (note) {
         // apply any 'value-copied' fields
         note = getCopiedValues(note, invitation.reply)
+
         Webfield.post('/notes', note, { handleErrors: false }).then(
           function (result) {
             if (params.onNoteEdited) {
@@ -4873,7 +4865,7 @@ module.exports = (function () {
   var setupMarked = function () {
     var renderer = new marked.Renderer()
 
-    renderer.image = function (href, title, text) {
+    renderer.image = function ({ href, title, text }) {
       if (href.startsWith('/images/')) {
         var titleAttr = title ? 'title="' + title + '" ' : ''
         var classAttr = href.endsWith('_icon.svg') ? 'class="icon" ' : ''
