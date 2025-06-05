@@ -10,4 +10,9 @@ main.compare {
   .highlight {
     background-color: #d4efdf;
   }
+
+  .tags-container {
+    display: flex;
+    flex-flow: wrap;
+  }
 }
