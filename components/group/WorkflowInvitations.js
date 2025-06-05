@@ -363,7 +363,8 @@ const SubInvitationRow = ({
   const [subInvitationContentFieldValues, setSubInvitationContentFieldValues] = useState({})
   const isGroupInvitation = subInvitation.edit?.group // sub invitation can be group invitation too
   const isCollapsed = collapsedWorkflowInvitationIds.includes(workflowInvitation.id)
-  const isTaskCompleted = workflowTasks.find((p) => p.id === subInvitation.id && p.isCompleted)
+  const isTask = workflowTasks.find((p) => p.id === subInvitation.id)
+  const isTaskCompleted = isTask && subInvitation.isCompleted
 
   const existingValue = isGroupInvitation
     ? {}
@@ -415,8 +416,10 @@ const SubInvitationRow = ({
         subInvitation.edit.content?.[key]?.value?.param?.type
       )
       if (displayValue === 'value missing') {
-        displayValue = <span className="missing-value">Configuration tasks are pending</span>
-        hasMissingValue = true
+        displayValue = isTask ? (
+          <span className="missing-value">Configuration tasks are pending</span>
+        ) : null
+        hasMissingValue = isTask && true
       }
       contentFieldValueMap[key] = displayValue
     })
@@ -659,10 +662,12 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
     }
   }
 
-  const formatWorkflowInvitation = (stepObj, invitations, logs) => {
+  const formatWorkflowInvitation = (stepObj, invitations, workflowInvitationIds, logs) => {
     const invitationId = stepObj.id
     const isStageInvitation = stepObj.duedate || stepObj.edit?.invitation
-    const subInvitations = invitations.filter((i) => i.edit?.invitation?.id === invitationId)
+    const subInvitations = invitations.filter(
+      (i) => i.edit?.invitation?.id === invitationId && !workflowInvitationIds.includes(i.id)
+    )
     const invitationTasks = subInvitations.flatMap((p) => {
       if (!p.duedate) return []
       return {
@@ -943,11 +948,17 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       ])
 
       const exclusionWorkflowInvitations = group.content?.exclusion_workflow_invitations?.value
-      const invitationsToShowInWorkflow = filterWorkflowInvitations(
+      const filteredInvitations = filterWorkflowInvitations(
         exclusionWorkflowInvitations,
         invitations
-      ).map((stepObj) => {
-        return formatWorkflowInvitation(stepObj, invitations, logs)
+      )
+      const invitationsToShowInWorkflow = filteredInvitations.map((stepObj) => {
+        return formatWorkflowInvitation(
+          stepObj,
+          invitations,
+          filteredInvitations.map((p) => p.id),
+          logs
+        )
       })
 
       setWorkflowTasks(

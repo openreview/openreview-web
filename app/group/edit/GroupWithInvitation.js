@@ -4,18 +4,10 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { get } from 'lodash'
 import api from '../../../lib/api-client'
-import {
-  formatDateTime,
-  prettyContentValue,
-  prettyField,
-  prettyId,
-  prettyInvitationId,
-} from '../../../lib/utils'
+import { formatDateTime, prettyContentValue, prettyField, prettyId } from '../../../lib/utils'
 import styles from '../../../styles/components/GroupWithInvitation.module.scss'
 import Markdown from '../../../components/EditorComponents/Markdown'
-import InvitationEditor from '../../../components/group/InvitationEditor'
 import Icon from '../../../components/Icon'
 import GroupMembersInfo from '../../../components/group/info/GroupMembersInfo'
 import CodeEditor from '../../../components/CodeEditor'
@@ -25,6 +17,7 @@ import GroupRelatedInvitations from '../../../components/group/GroupRelatedInvit
 import GroupMembers from '../../../components/group/GroupMembers'
 import WorkFlowInvitations from '../../../components/group/WorkflowInvitations'
 import ConsoleTabs from '../../../components/webfield/ConsoleTabs'
+import GroupSectionWithEditInvitation from './GroupSectionWithEditInvitation'
 
 const groupTabsConfig = (group) => {
   const tabs = [
@@ -133,25 +126,32 @@ const GroupContent = ({ groupContent, presentation, groupReaders }) => {
 
 const GroupWithInvitation = ({ group, reloadGroup, accessToken }) => {
   const [editGroupInvitations, setEditGroupInvitations] = useState([])
-  const [activeGroupInvitation, setActivateGroupInvitation] = useState(null)
   const [messageAllMembersInvitation, setMessageAllMembersInvitation] = useState(null)
   const [messageSingleMemberInvitation, setMessageSingleMemberInvitation] = useState(null)
   const [addRemoveMembersInvitaiton, setAddRemoveMembersInvitaiton] = useState(null)
 
   const renderSection = (sectionName) => {
+    let editInvitations = []
     switch (sectionName) {
       case 'workflowInvitations':
         return (
           <WorkFlowInvitations key={sectionName} group={group} accessToken={accessToken} />
         )
       case 'groupContent':
+        editInvitations = editGroupInvitations.filter((p) => p.edit?.group?.content)
         return (
-          <GroupContent
+          <GroupSectionWithEditInvitation
             key={sectionName}
-            groupContent={group.content}
-            presentation={group.details?.presentation}
-            groupReaders={group.readers}
-          />
+            group={group}
+            editInvitations={editInvitations}
+            reloadGroup={reloadGroup}
+          >
+            <GroupContent
+              groupContent={group.content}
+              presentation={group.details?.presentation}
+              groupReaders={group.readers}
+            />
+          </GroupSectionWithEditInvitation>
         )
       case 'groupMembers':
         return messageAllMembersInvitation ||
@@ -169,7 +169,17 @@ const GroupWithInvitation = ({ group, reloadGroup, accessToken }) => {
           <GroupMembersInfo key={sectionName} group={group} />
         )
       case 'groupUICode':
-        return <CodeEditor key={sectionName} code={group.web} readOnly />
+        editInvitations = editGroupInvitations.filter((p) => p.edit?.content?.web)
+        return (
+          <GroupSectionWithEditInvitation
+            key={sectionName}
+            group={group}
+            editInvitations={editInvitations}
+            reloadGroup={reloadGroup}
+          >
+            <CodeEditor key={sectionName} code={group.web} readOnly />
+          </GroupSectionWithEditInvitation>
+        )
       case 'groupSignedNotes':
         return <GroupSignedNotes key={sectionName} group={group} accessToken={accessToken} />
       case 'groupChildGroups':
@@ -267,55 +277,6 @@ const GroupWithInvitation = ({ group, reloadGroup, accessToken }) => {
           <Icon name="duplicate" />
           <Link href={`/group/revisions?id=${group.id}`}>Revisions</Link>
         </span>
-      </div>
-
-      {/* <div className={styles.groupContent}></div> */}
-      <div className={styles.groupInvitations}>
-        <div className={styles.groupInvitationButtons}>
-          {editGroupInvitations.length > 0 && <span className="item">Add:</span>}
-          {editGroupInvitations.map((invitation) => (
-            <button
-              key={invitation.id}
-              type="button"
-              className="btn btn-xs mr-2"
-              onClick={() =>
-                setActivateGroupInvitation(activeGroupInvitation ? null : invitation)
-              }
-            >
-              {prettyInvitationId(invitation.id)}
-            </button>
-          ))}
-        </div>
-        <div className={styles.activeGroupDescription}>
-          <Markdown text={activeGroupInvitation?.description} />
-        </div>
-        <div>
-          {activeGroupInvitation && (
-            <>
-              <InvitationEditor
-                invitation={activeGroupInvitation}
-                existingValue={Object.fromEntries(
-                  Object.keys(activeGroupInvitation.edit?.content ?? {}).map((key) => {
-                    const existingFieldValue = get(
-                      group,
-                      activeGroupInvitation?.edit?.group?.content
-                        ? ['content', key, 'value'] // editing group content
-                        : [key] // editing other group info
-                    )
-                    return [key, existingFieldValue]
-                  })
-                )}
-                closeInvitationEditor={() => setActivateGroupInvitation(null)}
-                onInvitationEditPosted={() => {
-                  promptMessage('Edit is posted')
-                  reloadGroup()
-                }}
-                isGroupInvitation={true}
-                group={group}
-              />
-            </>
-          )}
-        </div>
       </div>
 
       <ConsoleTabs

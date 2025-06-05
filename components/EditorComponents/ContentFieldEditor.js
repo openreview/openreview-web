@@ -533,7 +533,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
 const ContentFieldEditor = () => {
   const { field, onChange, value, error } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
-  const [activeTabId, setActiveTabId] = useState(`widgets${fieldName}`)
+  const [activeTabId, setActiveTabId] = useState(`result${fieldName}`)
 
   const valueWithoutDeletedFields = Object.keys(value ?? {}).reduce((prev, curr) => {
     if (value[curr]?.delete) return prev
@@ -551,15 +551,6 @@ const ContentFieldEditor = () => {
     <Tabs className={styles.contentEditorTabs}>
       <TabList>
         <Tab
-          id={`widgets${fieldName}`}
-          active={activeTabId === `widgets${fieldName}` ? true : undefined}
-          onClick={() => {
-            setActiveTabId(`widgets${fieldName}`)
-          }}
-        >
-          Widgets
-        </Tab>
-        <Tab
           id={`result${fieldName}`}
           active={activeTabId === `result${fieldName}` ? true : undefined}
           onClick={() => {
@@ -568,6 +559,16 @@ const ContentFieldEditor = () => {
         >
           Content JSON
         </Tab>
+        <Tab
+          id={`widgets${fieldName}`}
+          active={activeTabId === `widgets${fieldName}` ? true : undefined}
+          onClick={() => {
+            setActiveTabId(`widgets${fieldName}`)
+          }}
+        >
+          Widgets
+        </Tab>
+
         <Tab
           id={`preview${fieldName}`}
           active={activeTabId === `preview${fieldName}` ? true : undefined}
