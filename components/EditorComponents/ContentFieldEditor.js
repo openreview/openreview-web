@@ -581,14 +581,16 @@ const ContentFieldEditor = () => {
       </TabList>
 
       <TabPanels>
-        <TabPanel id={`widgets${fieldName}`}>
-          <JsonEditor
-            existingFields={valueWithoutDeletedFields}
-            onFieldChange={onFieldChange}
-          />
-        </TabPanel>
         <TabPanel id={`result${fieldName}`}>
           {activeTabId === `result${fieldName}` && <CodeEditorWidget />}
+        </TabPanel>
+        <TabPanel id={`widgets${fieldName}`}>
+          {activeTabId === `widgets${fieldName}` && (
+            <JsonEditor
+              existingFields={valueWithoutDeletedFields}
+              onFieldChange={onFieldChange}
+            />
+          )}
         </TabPanel>
         <TabPanel id={`preview${fieldName}`}>
           {activeTabId === `preview${fieldName}` && (

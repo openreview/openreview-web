@@ -23,7 +23,7 @@ beforeEach(() => {
 })
 
 describe('ContentFieldEditor', () => {
-  test('render 3 tabs for widget editing, json editing and preview', () => {
+  test('render 3 tabs for json editing,widget editing and preview', () => {
     const providerProps = {
       value: {
         field: {
@@ -40,12 +40,12 @@ describe('ContentFieldEditor', () => {
 
     renderWithEditorComponentContext(<ContentFieldEditor />, providerProps)
     // show 3 tabs
-    expect(screen.getByText('Widgets')).toBeInTheDocument()
     expect(screen.getByText('Content JSON')).toBeInTheDocument()
+    expect(screen.getByText('Widgets')).toBeInTheDocument()
     expect(screen.getByText('Preview')).toBeInTheDocument()
 
-    // show add field dropdown
-    expect(screen.getByText('Add a field or Select a field to edit')).toBeInTheDocument()
+    // show json
+    expect(screen.getByText('mocked content json editor')).toBeInTheDocument()
   })
 
   test('switch tab to show content json and editor preview', async () => {
@@ -65,16 +65,17 @@ describe('ContentFieldEditor', () => {
 
     renderWithEditorComponentContext(<ContentFieldEditor />, providerProps)
 
-    // widgets tab is not destroyed
-    expect(screen.getByText('Add a field or Select a field to edit')).toBeInTheDocument()
-    expect(screen.queryByText('mocked content json editor')).not.toBeInTheDocument()
+    expect(screen.queryByText('Add a field or Select a field to edit')).not.toBeInTheDocument()
+    expect(screen.getByText('mocked content json editor')).toBeInTheDocument()
     expect(screen.queryByText('mocked note editor preview')).not.toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('tab', { name: 'Content JSON' }))
-    expect(screen.queryByText('mocked content json editor')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: 'Widgets' }))
+    expect(screen.queryByText('mocked content json editor')).not.toBeInTheDocument()
+    expect(screen.getByText('Add a field or Select a field to edit')).toBeInTheDocument()
     expect(screen.queryByText('mocked note editor preview')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('tab', { name: 'Preview' }))
+    expect(screen.queryByText('mocked content json editor')).not.toBeInTheDocument()
     expect(screen.queryByText('mocked content json editor')).not.toBeInTheDocument()
     expect(screen.queryByText('mocked note editor preview')).toBeInTheDocument()
   })
@@ -96,6 +97,7 @@ describe('ContentFieldEditor', () => {
 
     renderWithEditorComponentContext(<ContentFieldEditor />, providerProps)
 
+    await userEvent.click(screen.getByRole('tab', { name: 'Widgets' }))
     await userEvent.click(screen.getByText('Add a field or Select a field to edit'))
     await userEvent.click(screen.getByRole('option', { name: 'Add a new field' }))
 
@@ -153,6 +155,7 @@ describe('ContentFieldEditor', () => {
 
     renderWithEditorComponentContext(<ContentFieldEditor />, providerProps)
 
+    await userEvent.click(screen.getByRole('tab', { name: 'Widgets' }))
     await userEvent.click(screen.getByText('Add a field or Select a field to edit'))
     // existing fields are shown in dropdown
     expect(screen.getByRole('option', { name: 'title' })).toBeInTheDocument()
@@ -203,6 +206,7 @@ describe('ContentFieldEditor', () => {
 
     renderWithEditorComponentContext(<ContentFieldEditor />, providerProps)
 
+    await userEvent.click(screen.getByRole('tab', { name: 'Widgets' }))
     await userEvent.click(screen.getByText('Add a field or Select a field to edit'))
     await userEvent.click(screen.getByRole('option', { name: 'title' }))
 
