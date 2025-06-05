@@ -539,11 +539,16 @@ const Compare = ({ left, right, accessToken, appContext }) => {
   }
 
   const getTags = async () => {
+    if (
+      !basicProfiles.left?.id ||
+      !basicProfiles.right?.id ||
+      basicProfiles.left.id === basicProfiles.right.id
+    )
+      return
     try {
       const leftTagsP = api.get(
         '/tags',
         {
-          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
           profile: basicProfiles.left.id,
         },
         { accessToken }
@@ -551,7 +556,6 @@ const Compare = ({ left, right, accessToken, appContext }) => {
       const rightTagsP = api.get(
         '/tags',
         {
-          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
           profile: basicProfiles.right.id,
         },
         { accessToken }

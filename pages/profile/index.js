@@ -128,7 +128,6 @@ const Profile = ({ profile, publicProfile, appContext }) => {
     try {
       if (!isSuperUser(user)) return
       const result = await api.get('/tags', {
-        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
         profile: profile.id,
       })
       setTags(result.tags)

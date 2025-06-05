@@ -1256,6 +1256,9 @@ table.table-minimal {
     }
     .modal-content {
       min-width: fit-content;
+      .modal-body {
+        max-width: 1000px;
+      }
 
       .moderation-actions {
         display: flex;

@@ -62,7 +62,6 @@ const ProfilePreviewModal = ({
   const loadTags = async () => {
     try {
       const result = await api.get('/tags', {
-        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
         profile: profileToPreview.id,
       })
       setTags(result.tags)
