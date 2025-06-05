@@ -19,14 +19,24 @@ import {
   trueFalseOptions,
   urlFromGroupId,
 } from '../../lib/utils'
+import LoadingSpinner from '../LoadingSpinner'
 
 dayjs.extend(timezone)
 dayjs.extend(utc)
 
-const DatetimePicker = dynamic(() => import('../DatetimePicker'))
-const Dropdown = dynamic(() => import('../Dropdown'))
-const TimezoneDropdown = dynamic(() =>
-  import('../Dropdown').then((mod) => mod.TimezoneDropdown)
+const DatetimePicker = dynamic(() => import('../DatetimePicker'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const Dropdown = dynamic(() => import('../Dropdown'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+const TimezoneDropdown = dynamic(
+  () => import('../Dropdown').then((mod) => mod.TimezoneDropdown),
+  {
+    ssr: false,
+  }
 )
 
 export const InvitationGeneralView = ({
@@ -150,12 +160,7 @@ export const InvitationGeneralView = ({
   )
 }
 
-export const InvitationGeneralViewV2 = ({
-  invitation,
-  showEditButton = true,
-  setIsEditMode,
-  isMetaInvitation,
-}) => {
+export const InvitationGeneralViewV2 = ({ invitation, isMetaInvitation }) => {
   const parentGroupId = invitation.id.split('/-/')[0]
 
   return (
@@ -260,20 +265,6 @@ export const InvitationGeneralViewV2 = ({
           {formatDateTime(invitation.ddate, { month: 'long', timeZoneName: 'short' })}
         </div>
       )}
-      {showEditButton && (
-        <button type="button" className="btn btn-sm btn-primary" onClick={setIsEditMode}>
-          Edit General Info
-        </button>
-      )}
-      {showEditButton && (
-        <Link
-          href={`/invitation/revisions?id=${invitation.id}`}
-          role="button"
-          className="btn btn-sm btn-default edit-group-info"
-        >
-          View Invitation Revisions
-        </Link>
-      )}
     </div>
   )
 }
@@ -288,6 +279,7 @@ const InvitationGeneralEdit = ({ invitation, accessToken, loadInvitation, setIsE
           cdate: dayjs(state.cdate).tz(action.payload, true).valueOf(),
           activationDateTimezone: action.payload,
         }
+
       case 'duedateTimezone':
         return {
           ...state,
@@ -581,7 +573,6 @@ const InvitationGeneralEditV2 = ({
           cdate: dayjs(state.cdate).tz(action.payload, true).valueOf(),
           activationDateTimezone: action.payload,
         }
-
       case 'deletionDateTimezone':
         return {
           ...state,
@@ -687,7 +678,7 @@ const InvitationGeneralEditV2 = ({
       await api.post('/invitations/edits', requestBody, { accessToken })
       promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
       setIsEditMode(false)
-      loadInvitation(invitation.id)
+      await loadInvitation(invitation.id)
     } catch (error) {
       promptError(error.message, { scrollToTop: false })
     }
@@ -938,11 +929,22 @@ export const InvitationGeneralV2 = ({
           isMetaInvitation={isMetaInvitation}
         />
       ) : (
-        <InvitationGeneralViewV2
-          invitation={invitation}
-          setIsEditMode={() => setIsEditMode(true)}
-          isMetaInvitation={isMetaInvitation}
-        />
+        <>
+          <InvitationGeneralViewV2
+            invitation={invitation}
+            isMetaInvitation={isMetaInvitation}
+          />
+          <button type="button" className="btn btn-sm btn-primary" onClick={setIsEditMode}>
+            Edit General Info
+          </button>
+          <Link
+            href={`/invitation/revisions?id=${invitation.id}`}
+            role="button"
+            className="btn btn-sm btn-default edit-group-info"
+          >
+            View Invitation Revisions
+          </Link>
+        </>
       )}
     </EditorSection>
   )

@@ -9,7 +9,11 @@ let routerParams
 let noteSummaryProps
 let noteReviewStatusProps
 
-jest.mock('next/router', () => ({
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: () => jest.fn(),
+  }),
   useRouter: () => ({
     replace: jest.fn((params) => {
       routerParams = params
@@ -20,7 +24,6 @@ jest.mock('next/router', () => ({
   }),
 }))
 jest.mock('../hooks/useUser', () => () => useUserReturnValue)
-jest.mock('../hooks/useQuery', () => () => ({}))
 jest.mock('../components/webfield/NoteSummary', () => (props) => {
   noteSummaryProps(props)
   return <span>note summary</span>
@@ -31,6 +34,7 @@ jest.mock('../components/webfield/NoteReviewStatus', () => ({
     return <span>note review status</span>
   },
 }))
+jest.mock('../app/CustomBanner', () => () => <span>Custom Banner</span>)
 
 global.promptError = jest.fn()
 global.typesetMathJax = jest.fn()
@@ -38,6 +42,7 @@ global.DOMPurify = {
   sanitize: jest.fn(),
 }
 global.marked = jest.fn()
+global.$ = jest.fn(() => ({ on: jest.fn(), off: jest.fn(), modal: jest.fn() }))
 
 beforeEach(() => {
   useUserReturnValue = { user: {}, accessToken: 'some token' }

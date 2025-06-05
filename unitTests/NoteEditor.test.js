@@ -1,6 +1,8 @@
 import { getNoteReaderValues } from '../components/NoteEditor'
 import api from '../lib/api-client'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 const roleNames = {
   anonAreaChairName: 'Area_Chair_',
   anonReviewerName: 'Reviewer_',

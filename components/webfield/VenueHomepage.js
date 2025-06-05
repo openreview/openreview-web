@@ -1,7 +1,7 @@
 /* globals promptError, promptMessage, $: false */
 import { useState, useContext, useEffect, useReducer } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import uniq from 'lodash/uniq'
 import kebabCase from 'lodash/kebabCase'
 import { get } from 'lodash'
@@ -15,14 +15,13 @@ import Markdown from '../EditorComponents/Markdown'
 import ErrorDisplay from '../ErrorDisplay'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload }) {
   const [userConsoles, setUserConsoles] = useState(null)
-  const { user, accessToken, userLoading } = useUser()
+  const { user, accessToken, isRefreshing } = useUser()
 
   useEffect(() => {
-    if (userLoading) return
+    if (isRefreshing) return
 
     if (!user) {
       setUserConsoles([])
@@ -48,7 +47,7 @@ function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload
         setUserConsoles([])
         promptError(error.message)
       })
-  }, [user, accessToken, userLoading, venueId, submissionInvitationId, shouldReload])
+  }, [user, accessToken, isRefreshing, venueId, submissionInvitationId, shouldReload])
 
   useEffect(() => {
     if (!userConsoles || typeof setHidden !== 'function') return
@@ -110,8 +109,12 @@ export default function VenueHomepage({ appContext }) {
   const [defaultActiveTab, setDefaultActiveTab] = useState(-1)
   const [tabsDisabled, setTabsDisabled] = useState(false)
   const [shouldReload, reload] = useReducer((p) => !p, true)
-  const router = useRouter()
-  const { setBannerContent } = appContext
+  const queryParam = useSearchParams()
+  const { setBannerContent } = appContext ?? {}
+  const submissionIds =
+    typeof submissionId === 'string' ? [{ value: submissionId, version: 2 }] : submissionId
+  const defaultConfirmationMessage =
+    'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
 
   const renderTab = (tabConfig, tabIndex) => {
     if (!tabConfig) return null
@@ -210,27 +213,14 @@ export default function VenueHomepage({ appContext }) {
   }
 
   useEffect(() => {
-    const handleRouteChange = () => {
-      setTabsDisabled(false)
-    }
-
-    router.events.on('hashChangeComplete', handleRouteChange)
-    $('[data-toggle="tooltip"]').tooltip()
-    return () => {
-      router.events.off('hashChangeComplete', handleRouteChange)
-    }
-  }, [])
-
-  useEffect(() => {
-    // Set referrer banner
-    if (!router.isReady) return
-
-    if (router.query.referrer) {
-      setBannerContent(referrerLink(router.query.referrer))
+    if (queryParam.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: queryParam.get('referrer') })
     } else if (parentGroupId) {
-      setBannerContent(venueHomepageLink(parentGroupId))
+      setBannerContent({ type: 'venueHomepageLink', value: parentGroupId })
+    } else {
+      setBannerContent({ type: null, value: null })
     }
-  }, [router.isReady, router.query])
+  }, [queryParam])
 
   useEffect(() => {
     if (!tabs) return
@@ -274,21 +264,19 @@ export default function VenueHomepage({ appContext }) {
     <>
       <VenueHeader headerInfo={header} />
 
-      {submissionId && (
-        <div id="invitation">
+      {submissionIds?.map(({ value, version }, index) => (
+        <div id="invitation" key={index}>
           <SubmissionButton
-            invitationId={submissionId}
-            apiVersion={2}
+            invitationId={value}
+            apiVersion={version}
             onNoteCreated={() => {
-              const defaultConfirmationMessage =
-                'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
               promptMessage(submissionConfirmationMessage || defaultConfirmationMessage)
               reload()
             }}
             options={{ largeLabel: true }}
           />
         </div>
-      )}
+      ))}
 
       <div id="notes">
         <Tabs>
@@ -306,10 +294,7 @@ export default function VenueHomepage({ appContext }) {
                   const currentHash = window.location.hash.slice(5)
                   if (currentHash !== tabConfig.id) {
                     setTabsDisabled(true)
-                    router.replace(`#tab-${tabConfig.id}`, undefined, {
-                      scroll: false,
-                      shallow: true,
-                    })
+                    window.location.hash = `#tab-${tabConfig.id}`
                   }
                 }}
               >
