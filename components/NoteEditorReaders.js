@@ -334,15 +334,18 @@ export const NewReplyEditNoteReaders = ({
             }))
           )
         if (p.inGroup) {
-          return api.get('/groups', { id: p.inGroup }, { accessToken }).then((result) => {
-            const groupMembers = result.groups[0]?.members
-            if (!groupMembers?.length) return []
-            return groupMembers.map((q) => ({
-              value: q,
-              description: prettyId(q, false),
-              optional: p.optional,
-            }))
-          })
+          return api
+            .get('/groups', { id: p.inGroup }, { accessToken })
+            .then((result) => {
+              const groupMembers = result.groups[0]?.members
+              if (!groupMembers?.length) return []
+              return groupMembers.map((q) => ({
+                value: q,
+                description: prettyId(q, false),
+                optional: p.optional,
+              }))
+            })
+            .catch(() => [])
         }
         return Promise.resolve([
           {
