@@ -241,8 +241,12 @@ export const getNoteReaderValues = async (
       invitation.edit.note.readers?.param?.items?.map(async (p) => {
         if (p.value) return p.value
         if (p.inGroup) {
-          const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
-          return result.groups[0]?.members
+          try {
+            const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+            return result.groups[0]?.members
+          } catch (error) {
+            return []
+          }
         }
         return p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
       })
@@ -270,8 +274,12 @@ export const getEditReaderValues = async (
       invitation.edit.readers?.param?.items?.map(async (p) => {
         if (p.value) return p.value
         if (p.inGroup) {
-          const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
-          return result.groups[0]?.members
+          try {
+            const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+            return result.groups[0]?.members
+          } catch (error) {
+            return []
+          }
         }
         return p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
       })
