@@ -10,6 +10,7 @@ export default class OpenReviewDocument extends Document {
             src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
             defer
           ></script>
+          <script async src="https://js.stripe.com/v3/buy-button.js"></script>
         </Head>
 
         <body>
