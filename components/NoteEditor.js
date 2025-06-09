@@ -306,7 +306,7 @@ const NoteEditor = ({
   customValidator,
   className,
 }) => {
-  const { user, userLoading, accessToken } = useUser()
+  const { user, isRefreshing, accessToken } = useUser()
   const [fields, setFields] = useState([])
   const [loading, setLoading] = useState({
     noteReaders: false,
@@ -680,7 +680,7 @@ const NoteEditor = ({
   }
 
   useEffect(() => {
-    if (userLoading || !invitation?.edit?.note?.content) return
+    if (isRefreshing || !invitation?.edit?.note?.content) return
 
     if (!user) {
       promptLogin()
@@ -692,7 +692,7 @@ const NoteEditor = ({
         (a, b) => (a[1].order ?? 100) - (b[1].order ?? 100)
       )
     )
-  }, [invitation, user, userLoading])
+  }, [invitation, user, isRefreshing])
 
   if (!invitation?.edit?.note?.content || !user) return null
 
