@@ -26,7 +26,6 @@ const NewNoteEditorModal = ({
   assignmentNotes,
 }) => {
   const [errorMessage, setErrorMessage] = useState(null)
-  const router = useRouter()
 
   const invitationWithHiddenFields = cloneDeep(configInvitation)
   const fieldsToHide = [
@@ -84,7 +83,7 @@ const NewNoteEditorModal = ({
         onNoteCreated={() => {
           closeModal()
           promptMessage('Note updated successfully')
-          router.refresh()
+          window.location.reload()
         }}
         setErrorAlertMessage={(msg) => {
           setErrorMessage(msg)
@@ -285,6 +284,22 @@ export default function V2Assignments({
     configInvitation?.content?.multiple_deployments?.value ||
     !assignmentNotes?.some((p) => p?.content?.status?.value === 'Deployed')
 
+  const getAssignmentNotes = async () => {
+    try {
+      const { notes, count } = await api.get(
+        '/notes',
+        {
+          invitation: `${group}/-/Assignment_Configuration`,
+        },
+        { accessToken, version: 2 }
+      )
+      setAllConfigNotes(notes || [])
+      setTotalCount(count || 0)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   const handleNewConfiguration = () => {
     setEditorNote(null)
     $('#new-note-editor-modal').modal({ backdrop: 'static' })
@@ -319,6 +334,7 @@ export default function V2Assignments({
       promptMessage(
         'Matching started. The status of the assignments will be updated when the matching process is complete'
       )
+      getAssignmentNotes()
     } catch (apiError) {
       promptError(apiError.message)
     }
@@ -349,22 +365,6 @@ export default function V2Assignments({
       setAssignmentNotes((notes) =>
         notes.map((note) => (note.id === noteId ? updatedConfigNote : note))
       )
-    } catch (error) {
-      promptError(error.message)
-    }
-  }
-
-  const getAssignmentNotes = async () => {
-    try {
-      const { notes, count } = await api.get(
-        '/notes',
-        {
-          invitation: `${group}/-/Assignment_Configuration`,
-        },
-        { accessToken, version: 2 }
-      )
-      setAllConfigNotes(notes || [])
-      setTotalCount(count || 0)
     } catch (error) {
       promptError(error.message)
     }
