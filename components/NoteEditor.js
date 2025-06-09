@@ -148,6 +148,143 @@ const EditContent = ({
   ))
 }
 
+const addMissingReaders = (
+  readersSelected,
+  readersDefinedInInvitation,
+  signatureInputValues,
+  roleNames
+) => {
+  if (!readersSelected) return undefined
+  const {
+    reviewerName = 'Reviewers',
+    anonReviewerName = 'Reviewer_',
+    areaChairName = 'Area_Chairs',
+    anonAreaChairName = 'Area_Chair_',
+    secondaryAreaChairName = 'Secondary_Area_Chair_',
+  } = roleNames
+  if (signatureInputValues?.length && !readersSelected.includes('everyone')) {
+    const signatureId = signatureInputValues[0]
+    const anonReviewerIndex = signatureId.indexOf(anonReviewerName)
+    if (anonReviewerIndex > 0) {
+      const reviewersSubmittedGroupId = signatureId
+        .slice(0, anonReviewerIndex)
+        .concat(`${reviewerName}/Submitted`)
+      const reviewersGroupId = signatureId.slice(0, anonReviewerIndex).concat(reviewerName)
+      if (
+        // reader does not contain the signature so user won't be able to see the note/edit
+        isEmpty(
+          intersection(readersSelected, [
+            signatureId,
+            reviewersSubmittedGroupId,
+            reviewersGroupId,
+          ])
+        )
+      ) {
+        if (
+          readersDefinedInInvitation?.includes(signatureId) ||
+          readersDefinedInInvitation?.some(
+            (p) => p.endsWith('.*') && signatureId.startsWith(p.slice(0, -2))
+          )
+        ) {
+          return [...readersSelected, signatureId]
+        }
+        if (readersDefinedInInvitation?.includes(reviewersSubmittedGroupId)) {
+          return [...readersSelected, reviewersSubmittedGroupId]
+        }
+        if (readersDefinedInInvitation?.includes(reviewersGroupId)) {
+          return [...readersSelected, reviewersGroupId]
+        }
+      }
+    } else {
+      const acIndex = signatureId.indexOf(anonAreaChairName)
+      const secondaryAcIndex = signatureId.indexOf(secondaryAreaChairName)
+
+      const acGroupId =
+        acIndex >= 0 ? signatureId.slice(0, acIndex).concat(areaChairName) : signatureId
+      const secondaryAcGroupId =
+        secondaryAcIndex >= 0
+          ? signatureId.slice(0, secondaryAcIndex).concat(areaChairName)
+          : signatureId
+
+      const groupToAdd = [acGroupId, secondaryAcGroupId].filter((p) =>
+        readersDefinedInInvitation?.includes(p)
+      )
+
+      return groupToAdd.length
+        ? [...new Set([...readersSelected, ...groupToAdd])]
+        : readersSelected
+    }
+  }
+  return readersSelected
+}
+
+export const getNoteReaderValues = async (
+  roleNames,
+  invitation,
+  noteEditorData,
+  accessToken
+) => {
+  if (!invitation.edit.note.readers || Array.isArray(invitation.edit.note.readers)) {
+    return undefined
+  }
+
+  const constNoteSignature = // when note signature is edit signature, note reader should use edit signatures
+    invitation.edit.note?.signatures?.[0]?.includes('/signatures}') ||
+    invitation.edit.note?.signatures?.param?.const?.[0]?.includes('/signatures}')
+  const signatureInputValues = constNoteSignature
+    ? noteEditorData.editSignatureInputValues
+    : noteEditorData.noteSignatureInputValues
+
+  const invitationNoteReaderValues =
+    invitation.edit.note.readers?.param?.enum ??
+    (await Promise.all(
+      invitation.edit.note.readers?.param?.items?.map(async (p) => {
+        if (p.value) return p.value
+        if (p.inGroup) {
+          const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+          return result.groups[0]?.members
+        }
+        return p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
+      })
+    ))
+
+  return addMissingReaders(
+    noteEditorData.noteReaderValues,
+    invitationNoteReaderValues.flat(),
+    signatureInputValues,
+    roleNames
+  )
+}
+
+export const getEditReaderValues = async (
+  roleNames,
+  invitation,
+  noteEditorData,
+  accessToken
+) => {
+  if (Array.isArray(invitation.edit.readers)) return undefined
+
+  const invitationEditReaderValues =
+    invitation.edit.readers?.param?.enum ??
+    (await Promise.all(
+      invitation.edit.readers?.param?.items?.map(async (p) => {
+        if (p.value) return p.value
+        if (p.inGroup) {
+          const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+          return result.groups[0]?.members
+        }
+        return p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
+      })
+    ))
+
+  return addMissingReaders(
+    noteEditorData.editReaderValues,
+    invitationEditReaderValues.flat(),
+    noteEditorData.editSignatureInputValues,
+    roleNames
+  )
+}
+
 // For v2 invitations only
 const NoteEditor = ({
   invitation,
@@ -356,119 +493,6 @@ const NoteEditor = ({
     closeNoteEditor()
   }
 
-  const addMissingReaders = (
-    readersSelected,
-    readersDefinedInInvitation,
-    signatureInputValues,
-    roleNames
-  ) => {
-    if (!readersSelected) return undefined
-    const {
-      reviewerName = 'Reviewers',
-      anonReviewerName = 'Reviewer_',
-      areaChairName = 'Area_Chairs',
-      anonAreaChairName = 'Area_Chair_',
-      secondaryAreaChairName = 'Secondary_Area_Chair_',
-    } = roleNames
-    if (signatureInputValues?.length && !readersSelected.includes('everyone')) {
-      const signatureId = signatureInputValues[0]
-      const anonReviewerIndex = signatureId.indexOf(anonReviewerName)
-      if (anonReviewerIndex > 0) {
-        const reviewersSubmittedGroupId = signatureId
-          .slice(0, anonReviewerIndex)
-          .concat(`${reviewerName}/Submitted`)
-        const reviewersGroupId = signatureId.slice(0, anonReviewerIndex).concat(reviewerName)
-        if (
-          // reader does not contain the signature so user won't be able to see the note/edit
-          isEmpty(
-            intersection(readersSelected, [
-              signatureId,
-              reviewersSubmittedGroupId,
-              reviewersGroupId,
-            ])
-          )
-        ) {
-          if (
-            readersDefinedInInvitation?.includes(signatureId) ||
-            readersDefinedInInvitation?.some(
-              (p) => p.endsWith('.*') && signatureId.startsWith(p.slice(0, -2))
-            )
-          ) {
-            return [...readersSelected, signatureId]
-          }
-          if (readersDefinedInInvitation?.includes(reviewersSubmittedGroupId)) {
-            return [...readersSelected, reviewersSubmittedGroupId]
-          }
-          if (readersDefinedInInvitation?.includes(reviewersGroupId)) {
-            return [...readersSelected, reviewersGroupId]
-          }
-        }
-      } else {
-        const acIndex = signatureId.indexOf(anonAreaChairName)
-        const secondaryAcIndex = signatureId.indexOf(secondaryAreaChairName)
-
-        const acGroupId =
-          acIndex >= 0 ? signatureId.slice(0, acIndex).concat(areaChairName) : signatureId
-        const secondaryAcGroupId =
-          secondaryAcIndex >= 0
-            ? signatureId.slice(0, secondaryAcIndex).concat(areaChairName)
-            : signatureId
-
-        const groupToAdd = [acGroupId, secondaryAcGroupId].filter((p) =>
-          readersDefinedInInvitation?.includes(p)
-        )
-
-        return groupToAdd.length
-          ? [...new Set([...readersSelected, ...groupToAdd])]
-          : readersSelected
-      }
-    }
-    return readersSelected
-  }
-
-  const getNoteReaderValues = (roleNames) => {
-    if (!invitation.edit.note.readers || Array.isArray(invitation.edit.note.readers)) {
-      return undefined
-    }
-
-    const constNoteSignature = // when note signature is edit signature, note reader should use edit signatures
-      invitation.edit.note?.signatures?.[0]?.includes('/signatures}') ||
-      invitation.edit.note?.signatures?.param?.const?.[0]?.includes('/signatures}')
-    const signatureInputValues = constNoteSignature
-      ? noteEditorData.editSignatureInputValues
-      : noteEditorData.noteSignatureInputValues
-
-    const invitationNoteReaderValues =
-      invitation.edit.note.readers?.param?.enum ??
-      invitation.edit.note.readers?.param?.items?.map(
-        (p) => p.value ?? (p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`)
-      )
-
-    return addMissingReaders(
-      noteEditorData.noteReaderValues,
-      invitationNoteReaderValues,
-      signatureInputValues,
-      roleNames
-    )
-  }
-
-  const getEditReaderValues = (roleNames) => {
-    if (Array.isArray(invitation.edit.readers)) return undefined
-
-    const invitationEditReaderValues =
-      invitation.edit.readers?.param?.enum ??
-      invitation.edit.readers?.param?.items?.map((p) =>
-        p.value ?? p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
-      )
-
-    return addMissingReaders(
-      noteEditorData.editReaderValues,
-      invitationEditReaderValues,
-      noteEditorData.editSignatureInputValues,
-      roleNames
-    )
-  }
-
   const getEditWriterValues = () => {
     const writerDescription = invitation.edit.writers
     if (Array.isArray(writerDescription) || writerDescription?.param?.const) {
@@ -558,8 +582,18 @@ const NoteEditor = ({
           Object.entries(noteEditorData)
             .filter(([key, value]) => value === undefined)
             .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {})),
-        noteReaderValues: getNoteReaderValues(roleNames),
-        editReaderValues: getEditReaderValues(roleNames),
+        noteReaderValues: await getNoteReaderValues(
+          roleNames,
+          invitation,
+          noteEditorData,
+          accessToken
+        ),
+        editReaderValues: await getEditReaderValues(
+          roleNames,
+          invitation,
+          noteEditorData,
+          accessToken
+        ),
         editWriterValues: getEditWriterValues(),
         ...(replyToNote && { replyto: replyToNote.id }),
         editContent: editContentData,
