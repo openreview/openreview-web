@@ -65,7 +65,13 @@ export default function Assignments({ accessToken }) {
       </CommonLayout>
     )
   if (configInvitation.apiVersion !== 2)
-    return <ErrorDisplay message={'Old version of assignments is not supported'} />
+    return (
+      <ErrorDisplay
+        message={
+          'This venue was hosted using a deprecated API version, and the assignments are not available through this page. Please use our contact form if you need to access the assignment data.'
+        }
+      />
+    )
 
   const banner = referrer ? referrerLink(referrer) : venueHomepageLink(group)
   return (
