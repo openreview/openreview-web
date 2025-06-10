@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Select, { components, createFilter } from 'react-select'
 import CreatableSelect from 'react-select/creatable'
 import List from 'rc-virtual-list'
-import { getDefaultTimezone, prettyId, timezoneOptions } from '../lib/utils'
+import { getDefaultTimezone, timezoneOptions } from '../lib/utils'
+import LoadingSpinner from './LoadingSpinner'
 
 // For more details see https://react-select.com/styles#overriding-the-theme
 const createCustomTheme = (height) => (theme) => ({
@@ -81,6 +82,7 @@ export const CreatableDropdown = (props) => {
   // eslint-disable-next-line react/destructuring-assignment
   const customTheme = createCustomTheme(props.height)
   const dropdownRef = useRef(null)
+  const [isClientRendering, setIsClientRendering] = useState(false)
   let customComponents = {}
   // eslint-disable-next-line react/destructuring-assignment
   if (props.hideArrow) {
@@ -115,6 +117,13 @@ export const CreatableDropdown = (props) => {
   useEffect(() => {
     if (props.autofocus) dropdownRef.current.focus()
   }, [])
+
+  useEffect(() => {
+    setIsClientRendering(true)
+  }, [])
+
+  if (!isClientRendering)
+    return <LoadingSpinner inline text={null} extraClass="spinner-small" />
 
   return (
     <CreatableSelect

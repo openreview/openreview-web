@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import FeedbackLink from './FeedbackLink'
 
 export default function Footer() {
   return (
@@ -28,9 +27,6 @@ export default function Footer() {
               <ul className="list-unstyled">
                 <li>
                   <Link href="/contact">Contact</Link>
-                </li>
-                <li>
-                  <FeedbackLink />
                 </li>
                 <li>
                   <Link href="/sponsors">Sponsors</Link>
@@ -105,9 +101,6 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link href="/contact">Contact</Link>
-                </li>
-                <li>
-                  <FeedbackLink modalId="feedback-modal-mobile" />
                 </li>
                 <li>
                   <Link href="/legal/terms">Terms of Use</Link>
