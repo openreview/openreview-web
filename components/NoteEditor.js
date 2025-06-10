@@ -241,8 +241,12 @@ export const getNoteReaderValues = async (
       invitation.edit.note.readers?.param?.items?.map(async (p) => {
         if (p.value) return p.value
         if (p.inGroup) {
-          const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
-          return result.groups[0]?.members
+          try {
+            const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+            return result.groups[0]?.members
+          } catch (error) {
+            return []
+          }
         }
         return p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
       })
@@ -270,8 +274,12 @@ export const getEditReaderValues = async (
       invitation.edit.readers?.param?.items?.map(async (p) => {
         if (p.value) return p.value
         if (p.inGroup) {
-          const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
-          return result.groups[0]?.members
+          try {
+            const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+            return result.groups[0]?.members
+          } catch (error) {
+            return []
+          }
         }
         return p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
       })
@@ -298,7 +306,7 @@ const NoteEditor = ({
   customValidator,
   className,
 }) => {
-  const { user, userLoading, accessToken } = useUser()
+  const { user, isRefreshing, accessToken } = useUser()
   const [fields, setFields] = useState([])
   const [loading, setLoading] = useState({
     noteReaders: false,
@@ -672,7 +680,7 @@ const NoteEditor = ({
   }
 
   useEffect(() => {
-    if (userLoading || !invitation?.edit?.note?.content) return
+    if (isRefreshing || !invitation?.edit?.note?.content) return
 
     if (!user) {
       promptLogin()
@@ -684,7 +692,7 @@ const NoteEditor = ({
         (a, b) => (a[1].order ?? 100) - (b[1].order ?? 100)
       )
     )
-  }, [invitation, user, userLoading])
+  }, [invitation, user, isRefreshing])
 
   if (!invitation?.edit?.note?.content || !user) return null
 
