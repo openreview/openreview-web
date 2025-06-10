@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import { get } from 'lodash'
+import { nanoid } from 'nanoid'
 import {
   formatDateTime,
   getPath,
@@ -16,10 +17,12 @@ import Icon from '../Icon'
 import InvitationEditor from '../group/InvitationEditor'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
-import { InvitationReplyV2 } from './InvitationReply'
+import InvitationReply, { InvitationReplyV2 } from './InvitationReply'
 import CodeEditor from '../CodeEditor'
 import EditorSection from '../EditorSection'
-import { InvitationChildInvitationsV2 } from './InvitationChildInvitations'
+import InvitationChildInvitations, {
+  InvitationChildInvitationsV2,
+} from './InvitationChildInvitations'
 import ConsoleTabs from '../webfield/ConsoleTabs'
 
 const getReplyFieldByInvitationType = (invitation) => {
@@ -32,10 +35,13 @@ const getReplyFieldByInvitationType = (invitation) => {
 
 const invitationTabsConfig = (invitation) => {
   const isMetaInvitation = invitation?.edit === true
+  const isV1Invitation = invitation.apiVersion !== 2
   const tabs = [
     {
       id: 'invitationReply',
-      label: prettyField(getReplyFieldByInvitationType(invitation)),
+      label: isV1Invitation
+        ? 'Reply Forum Views'
+        : prettyField(getReplyFieldByInvitationType(invitation)),
       sections: ['invitationReply'],
     },
     ...(isMetaInvitation
@@ -47,16 +53,20 @@ const invitationTabsConfig = (invitation) => {
             sections: ['invitationChildInvitations'],
           },
         ]),
-    {
-      id: 'invitationContent',
-      label: 'Content',
-      sections: ['invitationContent'],
-    },
-    {
-      id: 'contentProcessFunctions',
-      label: 'Content Process Functions',
-      sections: ['contentProcessFunctions'],
-    },
+    ...(isV1Invitation
+      ? []
+      : [
+          {
+            id: 'invitationContent',
+            label: 'Content',
+            sections: ['invitationContent'],
+          },
+          {
+            id: 'contentProcessFunctions',
+            label: 'Content Process Functions',
+            sections: ['contentProcessFunctions'],
+          },
+        ]),
     {
       id: 'processFunctions',
       label: 'Process Functions',
@@ -76,10 +86,22 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
   const [editInvitationInvitations, setEditInvitationInvitations] = useState([])
   const [activeInvitationInvitation, setActivateInvitationInvitation] = useState(null)
   const { accessToken } = useUser()
+  const isV1Invitation = invitation.apiVersion !== 2
 
   const renderSection = (sectionName) => {
     switch (sectionName) {
       case 'invitationReply':
+        if (isV1Invitation) {
+          return (
+            <InvitationReply
+              key={sectionName}
+              invitation={invitation}
+              replyField="replyForumViews"
+              readOnly={true}
+              noTitle
+            />
+          )
+        }
         return (
           <InvitationReplyV2
             key={sectionName}
@@ -90,8 +112,19 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
           />
         )
       case 'invitationChildInvitations':
+        if (isV1Invitation)
+          return <InvitationChildInvitations key={sectionName} invitation={invitation} />
         return <InvitationChildInvitationsV2 key={sectionName} invitation={invitation} />
       case 'invitationReplyForumView':
+        if (isV1Invitation)
+          return (
+            <InvitationReply
+              key={sectionName}
+              invitation={invitation}
+              replyField="replyForumViews"
+              readOnly={true}
+            />
+          )
         return (
           <InvitationReplyV2
             key={sectionName}
@@ -102,6 +135,7 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
           />
         )
       case 'invitationContent':
+        if (isV1Invitation) return null
         return (
           <InvitationReplyV2
             key={sectionName}
@@ -117,7 +151,11 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
           (key) => key.endsWith('_script') && typeof invitation.content[key].value === 'string'
         )
         if (!contentScripts.length)
-          return <p className="empty-message">No content process functions</p>
+          return (
+            <p key={nanoid()} className="empty-message">
+              No content process functions
+            </p>
+          )
         return contentScripts.map((contentScript, index) => (
           <React.Fragment key={index}>
             <EditorSection title={prettyField(contentScript)} />
