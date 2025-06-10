@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation'
 import api from '../../lib/api-client'
 import V2Assignments from './V2Assignments'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import V1Assignments from './V1Assignments'
 import styles from './Assignments.module.scss'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import CommonLayout from '../CommonLayout'
@@ -22,23 +21,6 @@ export default function Assignments({ accessToken }) {
 
   const notFoundMessage =
     'There is currently no assignment configuration ready for use. Please go to your venue request form and use the Paper Matching Setup to compute conflicts and/or affinity scores.'
-
-  const assignmentNotesP =
-    configInvitation?.apiVersion === 2
-      ? api
-          .get(
-            '/notes',
-            {
-              invitation: `${group}/-/Assignment_Configuration`,
-            },
-            { accessToken, version: 2 }
-          )
-          .then((response) => {
-            const { notes, count } = response
-            return { notes, count }
-          })
-          .catch((apiError) => ({ errorMessage: apiError.message }))
-      : Promise.resolve(null)
 
   const getPreferredEmailInvitationId = async (invitation) => {
     try {
@@ -82,28 +64,24 @@ export default function Assignments({ accessToken }) {
         <LoadingSpinner />
       </CommonLayout>
     )
+  if (configInvitation.apiVersion !== 2)
+    return (
+      <ErrorDisplay
+        message={
+          'This venue was hosted using a deprecated API version, and the assignments are not available through this page. Please use our contact form if you need to access the assignment data.'
+        }
+      />
+    )
 
   const banner = referrer ? referrerLink(referrer) : venueHomepageLink(group)
   return (
     <CommonLayout banner={<Banner>{banner}</Banner>}>
-      <header>
-        <h1>Activity</h1>
-      </header>
       <div className={styles.assignments}>
-        {configInvitation.apiVersion === 2 ? (
-          <V2Assignments
-            assignmentNotesP={assignmentNotesP}
-            configInvitation={configInvitation}
-            accessToken={accessToken}
-            preferredEmailInvitationId={preferredEmailInvitationId}
-          />
-        ) : (
-          <V1Assignments
-            configInvitation={configInvitation}
-            // query={query}
-            accessToken={accessToken}
-          />
-        )}
+        <V2Assignments
+          configInvitation={configInvitation}
+          accessToken={accessToken}
+          preferredEmailInvitationId={preferredEmailInvitationId}
+        />
       </div>
     </CommonLayout>
   )
