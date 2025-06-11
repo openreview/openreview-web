@@ -40,6 +40,7 @@ const sendActivationLinkButtonSelector = Selector('button').withText('Send Activ
 const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
 const messageSelector = Selector('.rc-notification-notice-content').nth(-1)
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
+const errorMessageLabel = Selector('.error-message') // server rendered error message
 
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
@@ -527,26 +528,27 @@ fixture`Activate with errors`
 
 test('try to activate a profile with no token and get an error', async (t) => {
   await t
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate`)
-    .wait(500)
-    .expect(messageSelector.innerText)
-    .eql('Error: Invalid profile activation link. Please check your email and try again.')
+    .expect(errorMessageLabel.exists)
+    .ok()
+    .expect(errorMessageLabel.innerText)
+    .eql('Invalid profile activation link. Please check your email and try again.')
 }).skipJsErrors()
 
 test('try to activate a profile with empty token and get an error', async (t) => {
   await t
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=`)
-    .wait(500)
-    .expect(messageSelector.innerText)
-    .eql('Error: Invalid profile activation link. Please check your email and try again.')
+    .expect(errorMessageLabel.exists)
+    .ok()
+    .expect(errorMessageLabel.innerText)
+    .eql('Invalid profile activation link. Please check your email and try again.')
 }).skipJsErrors()
 
 test('try to activate a profile with invalid token and get an error', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=fhtbsk`)
-    .wait(500)
-    .expect(messageSelector.innerText)
-    .eql('Error: Activation token is not valid')
+    .expect(errorMessageLabel.exists)
+    .ok()
+    .expect(errorMessageLabel.innerText)
+    .eql('Activation token is not valid')
 }).skipJsErrors()
 
 fixture`Reset password`.before(
