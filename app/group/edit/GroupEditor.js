@@ -13,6 +13,7 @@ import LoadingSpinner from '../../../components/LoadingSpinner'
 import ErrorDisplay from '../../../components/ErrorDisplay'
 import api from '../../../lib/api-client'
 import GroupWithInvitation from './GroupWithInvitation'
+import GroupAdmin from '../admin/GroupAdmin'
 
 export default function GroupEditor({ id, query }) {
   const [group, setGroup] = useState(null)
@@ -73,6 +74,9 @@ export default function GroupEditor({ id, query }) {
         <LoadingSpinner />
       </CommonLayout>
     )
+
+  if (!group.details.domain?.content?.request_form_invitation)
+    return <GroupAdmin id={id} query={query} />
 
   const editBanner = <EditBanner>{groupModeToggle('edit', group.id)}</EditBanner>
   return (
