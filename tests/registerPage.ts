@@ -528,6 +528,7 @@ fixture`Activate with errors`
 
 test('try to activate a profile with no token and get an error', async (t) => {
   await t
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate`)
     .expect(errorMessageLabel.exists)
     .ok()
     .expect(errorMessageLabel.innerText)
@@ -536,6 +537,7 @@ test('try to activate a profile with no token and get an error', async (t) => {
 
 test('try to activate a profile with empty token and get an error', async (t) => {
   await t
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=`)
     .expect(errorMessageLabel.exists)
     .ok()
     .expect(errorMessageLabel.innerText)
