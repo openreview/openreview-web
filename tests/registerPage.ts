@@ -38,10 +38,8 @@ const confirmPasswordInputSelector = Selector('input').withAttribute(
 )
 const sendActivationLinkButtonSelector = Selector('button').withText('Send Activation Link')
 const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
-const messageSelector = Selector('span').withAttribute('class', 'important_message')
-const messagePanelSelector = Selector('#flash-message-container')
+const messageSelector = Selector('.rc-notification-notice-content').nth(-1)
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
-const errorMessageLabel = Selector('.error-message')
 
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
@@ -222,13 +220,20 @@ test('create a new profile with an institutional email', async (t) => {
 
 test('enter invalid name', async (t) => {
   await t
-    .typeText(fullNameInputSelector, 'abc 1')
-    .expect(Selector('.important_message').exists)
-    .ok()
-    .expect(Selector('.important_message').textContent)
+    .typeText(fullNameInputSelector, '1')
+    .expect(messageSelector.innerText)
     .eql(
-      'The name Abc 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
+      'Error: The name 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
+    .typeText(fullNameInputSelector, 'abc', { replace: true })
+    .expect(messageSelector.exists).notOk() // page calls clearMessage
+    .typeText(fullNameInputSelector, 'abc `', { replace: true })
+    .expect(messageSelector.innerText)
+    .eql(
+      'Error: The name Abc ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
+    )
+    .click(Selector('.rc-notification-notice-close')) // close message
+    .expect(messageSelector.exists).notOk()
 })
 
 test('enter valid name invalid email and change to valid email and register', async (t) => {
@@ -273,8 +278,6 @@ test('request a new activation link', async (t) => {
   await t
     .typeText(Selector('input').withAttribute('placeholder', 'Email'), 'melisa@test.com')
     .click(Selector('a').withText("Didn't receive email confirmation?"))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
     .eql(
       'A confirmation email with the subject "OpenReview signup confirmation" has been sent to melisa@test.com. Please click the link in this email to confirm your email address and complete registration.'
@@ -388,22 +391,16 @@ test('update profile', async (t) => {
       'melisa@umass.edu'
     )
     .click(Selector('div.container.emails').find('button.confirm-button'))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
     .eql(
       'A confirmation email has been sent to melisa@umass.edu with confirmation instructions'
     )
     .wait(500)
     .click(Selector('button').withText('Verify').nth(0))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
-    .eql('token must NOT have fewer than 1 characters')
+    .eql('Error: token must NOT have fewer than 1 characters')
     .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
     .click(Selector('button').withText('Verify').nth(0))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
     .eql('melisa@umass.edu has been verified')
     // check if buttons disappeared
@@ -438,8 +435,6 @@ test('update profile', async (t) => {
     .click(nextSectiomButtonSelector) // last section expertise
     .expect(Selector('p').withText("last updated September 24, 2024").exists).ok()
     .click(Selector('button').withText('Register for OpenReview'))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
     .eql('Your OpenReview profile has been successfully created')
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile?id=~Melisa_Bok1`)
@@ -486,22 +481,16 @@ test('register a profile with an institutional email', async (t) => {
       'kevin@test.com'
     )
     .click(Selector('div.container.emails').find('button.confirm-button'))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
     .eql(
       'A confirmation email has been sent to kevin@test.com with confirmation instructions'
     )
     .wait(500)
     .click(Selector('button').withText('Verify').nth(0))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
-    .eql('token must NOT have fewer than 1 characters')
+    .eql('Error: token must NOT have fewer than 1 characters')
     .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
     .click(Selector('button').withText('Verify').nth(0))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
     .eql('kevin@test.com has been verified')
     // check if buttons disappeared
@@ -529,8 +518,6 @@ test('register a profile with an institutional email', async (t) => {
     .click(nextSectiomButtonSelector)
     .click(nextSectiomButtonSelector)
     .click(Selector('button').withText('Register for OpenReview'))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
     .eql('Your OpenReview profile has been successfully created')
 })
@@ -541,28 +528,25 @@ fixture`Activate with errors`
 test('try to activate a profile with no token and get an error', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate`)
-    .expect(errorMessageLabel.exists)
-    .ok()
-    .expect(errorMessageLabel.innerText)
-    .eql('Invalid profile activation link. Please check your email and try again.')
+    .wait(500)
+    .expect(messageSelector.innerText)
+    .eql('Error: Invalid profile activation link. Please check your email and try again.')
 }).skipJsErrors()
 
 test('try to activate a profile with empty token and get an error', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=`)
-    .expect(errorMessageLabel.exists)
-    .ok()
-    .expect(errorMessageLabel.innerText)
-    .eql('Invalid profile activation link. Please check your email and try again.')
+    .wait(500)
+    .expect(messageSelector.innerText)
+    .eql('Error: Invalid profile activation link. Please check your email and try again.')
 }).skipJsErrors()
 
 test('try to activate a profile with invalid token and get an error', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=fhtbsk`)
-    .expect(errorMessageLabel.exists)
-    .ok()
-    .expect(errorMessageLabel.innerText)
-    .eql('Activation token is not valid')
+    .wait(500)
+    .expect(messageSelector.innerText)
+    .eql('Error: Activation token is not valid')
 }).skipJsErrors()
 
 fixture`Reset password`.before(
@@ -625,8 +609,6 @@ test('add alternate email', async (t) => {
       'melisa@alternate.com'
     )
     .click(Selector('div.container.emails').find('button.confirm-button'))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
     .eql(
       'A confirmation email has been sent to melisa@alternate.com with confirmation instructions'

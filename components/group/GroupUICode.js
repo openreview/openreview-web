@@ -39,7 +39,7 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
         }
         await api.post('/groups', groupToPost, { accessToken, version: 1 })
       }
-      promptMessage(`UI code for ${group.id} has been updated`, { scrollToTop: false })
+      promptMessage(`UI code for ${group.id} has been updated`)
       setShowCodeEditor(false)
       reloadGroup()
     } catch (error) {

@@ -401,9 +401,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
 
     if (!emailVisible) {
       if (!validateFullName()) {
-        promptError('Your name must match the name of the profile you are claiming', {
-          scrollToTop: false,
-        })
+        promptError('Your name must match the name of the profile you are claiming')
         return
       }
       setEmailVisible(true)
