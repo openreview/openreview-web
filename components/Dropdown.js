@@ -115,8 +115,9 @@ export const CreatableDropdown = (props) => {
     }
   }
   useEffect(() => {
+    if (!isClientRendering) return
     if (props.autofocus) dropdownRef.current.focus()
-  }, [])
+  }, [isClientRendering])
 
   useEffect(() => {
     setIsClientRendering(true)
