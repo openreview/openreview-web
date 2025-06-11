@@ -707,6 +707,7 @@ const DescriptionTimelineOtherConfigRow = ({
     customStageInvitations = [],
     assignmentUrls,
     submissionName,
+    domainContent,
   } = useContext(WebFieldContext)
 
   const { requestForm, registrationForms, invitations } = pcConsoleData
@@ -869,9 +870,11 @@ const DescriptionTimelineOtherConfigRow = ({
               <strong>Venue Configuration Request</strong>
             </a>
             <br />
-            <a href={`/group/edit?id=${venueId}&referrer=${referrerUrl}`}>
-              <strong>Workflow Configuration</strong>
-            </a>
+            {domainContent.request_form_invitation && (
+              <a href={`/group/edit?id=${venueId}&referrer=${referrerUrl}`}>
+                <strong>Workflow Configuration</strong>
+              </a>
+            )}
           </p>
         </div>
         <div className="col-md-8 col-xs-12">
