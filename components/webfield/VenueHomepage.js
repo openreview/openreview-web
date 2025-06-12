@@ -264,13 +264,23 @@ export default function VenueHomepage({ appContext }) {
     <>
       <VenueHeader headerInfo={header} />
 
-      {submissionIds?.map(({ value, version }, index) => (
+      {submissionIds?.map(({ value, version, tabName }, index) => (
         <div id="invitation" key={index}>
           <SubmissionButton
             invitationId={value}
             apiVersion={version}
             onNoteCreated={() => {
               promptMessage(submissionConfirmationMessage || defaultConfirmationMessage)
+
+              if (tabName) {
+                const tabId = kebabCase(tabName)
+                const currentHash = window.location.hash.slice(5)
+                if (currentHash !== tabId) {
+                  setTabsDisabled(true)
+                  window.location.hash = `#tab-${tabId}`
+                  setTabsDisabled(false)
+                }
+              }
               reload()
             }}
             options={{ largeLabel: true }}
@@ -295,6 +305,7 @@ export default function VenueHomepage({ appContext }) {
                   if (currentHash !== tabConfig.id) {
                     setTabsDisabled(true)
                     window.location.hash = `#tab-${tabConfig.id}`
+                    setTabsDisabled(false)
                   }
                 }}
               >
