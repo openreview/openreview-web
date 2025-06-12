@@ -44,11 +44,11 @@ export default function InvitationEditor({ id, query }) {
     try {
       const invitationObj = await api.getInvitationById(id, accessToken)
       const domainResult = await api
-        .get('/groupsd', { id: invitationObj.domain }, { accessToken })
+        .get('/groups', { id: invitationObj.domain }, { accessToken })
         .catch(() => {})
       const domainGroup = domainResult?.groups?.length > 0 ? domainResult.groups[0] : null
       if (invitationObj) {
-        setInvitation({ invitationObj, domain: domainGroup })
+        setInvitation({ ...invitationObj, domain: domainGroup })
       } else {
         setError({ statusCode: 404, message: 'Invitation not found' })
       }
@@ -79,7 +79,6 @@ export default function InvitationEditor({ id, query }) {
         <LoadingSpinner />
       </CommonLayout>
     )
-
   if (!invitation.domain?.content?.request_form_invitation)
     return <InvitationAdmin id={id} query={query} />
 
