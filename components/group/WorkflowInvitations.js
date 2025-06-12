@@ -665,15 +665,18 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const formatWorkflowInvitation = (stepObj, invitations, workflowInvitationIds, logs) => {
     const invitationId = stepObj.id
     const isStageInvitation = stepObj.duedate || stepObj.edit?.invitation
-    const subInvitations = invitations.filter(
-      (i) => i.edit?.invitation?.id === invitationId && !workflowInvitationIds.includes(i.id)
-    )
+    const subInvitations = invitations.flatMap((i) => {
+      if (i.edit?.invitation?.id === invitationId && !workflowInvitationIds.includes(i.id)) {
+        return {
+          ...i,
+          isCompleted: stepObj.invitations?.includes(i.id),
+        }
+      }
+      return []
+    })
     const invitationTasks = subInvitations.flatMap((p) => {
       if (!p.duedate) return []
-      return {
-        ...p,
-        isCompleted: stepObj.invitations?.includes(p.id),
-      }
+      return p
     })
     const isExpired = stepObj.ddate
 
