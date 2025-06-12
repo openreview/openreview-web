@@ -23,7 +23,7 @@ const GroupChildGroups = ({ groupId, accessToken }) => {
       translatedGroups = groups.map((group) => ({
         id: group.id,
         title: prettyId(group.id),
-        href: urlFromGroupId(group.id),
+        href: urlFromGroupId(group.id, true),
       }))
     }
     if (count !== totalCount) {
