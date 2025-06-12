@@ -102,6 +102,7 @@ const ProfilePreviewModal = ({
   useEffect(() => {
     setRejectionMessage('')
     setIsRejecting(false)
+    setTags([])
     const currentInstitutionName = profileToPreview?.history?.find(
       (p) => !p.end || p.end >= new Date().getFullYear()
     )?.institution?.name
