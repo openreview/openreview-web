@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import groupBy from 'lodash/groupBy'
 import { orderBy } from 'lodash'
+import dayjs from 'dayjs'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
@@ -18,6 +19,7 @@ import {
   getSingularRoleName,
   pluralizeString,
   getRoleHashFragment,
+  formatDateTime,
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
@@ -28,6 +30,8 @@ import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
 import { formatProfileContent } from '../../lib/edge-utils'
 import ConsoleTabs from './ConsoleTabs'
+import { clearCache, getCache, setCache } from '../../lib/console-cache'
+import SpinnerButton from '../SpinnerButton'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -85,6 +89,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     preferredEmailInvitationId,
     ithenticateInvitationId,
     displayReplyInvitations,
+    useCache = false,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
   const { user, accessToken, isRefreshing } = useUser()
@@ -98,8 +103,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   const loadData = async () => {
     if (isLoadingData) return
-
     setIsLoadingData(true)
+    await clearCache(venueId)
+
     try {
       // #region getInvitationMap
       const conferenceInvitationsP = api.getAll(
@@ -536,7 +542,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         displayReplyInvitationsByPaperNumberMap.set(note.number, displayReplies)
       })
 
-      setPcConsoleData({
+      const consoleData = {
         invitations: invitationResults.flat(),
         allProfiles,
         allProfilesMap,
@@ -640,11 +646,27 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           seniorAreaChairGroups,
         },
         ithenticateEdges,
-      })
+        timeStamp: dayjs().valueOf(),
+      }
+      setPcConsoleData(consoleData)
+      if (useCache) await setCache(venueId, consoleData)
     } catch (error) {
       promptError(`loading data: ${error.message}`)
     }
     setIsLoadingData(false)
+  }
+
+  const loadCache = async () => {
+    try {
+      const cachedPcConsoleData = await getCache(venueId)
+      if (cachedPcConsoleData) {
+        setPcConsoleData(cachedPcConsoleData)
+      } else {
+        loadData()
+      }
+    } catch (error) {
+      loadData()
+    }
   }
 
   // eslint-disable-next-line consistent-return
@@ -1047,7 +1069,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   useEffect(() => {
     if (isRefreshing || !user || !group || !venueId || !reviewersId || !submissionId) return
-    loadData()
+    if (useCache) {
+      loadCache()
+    } else {
+      loadData()
+    }
   }, [user, isRefreshing, group])
 
   const missingConfig = Object.entries({
@@ -1079,6 +1105,22 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
+      {useCache && pcConsoleData.timeStamp && (
+        <div className="alert alert-warning">
+          <span>
+            Data cached {dayjs(pcConsoleData.timeStamp).fromNow()} at{' '}
+            {formatDateTime(pcConsoleData.timeStamp)}
+          </span>{' '}
+          <SpinnerButton
+            className="btn btn-xs ml-2"
+            onClick={loadData}
+            loading={isLoadingData}
+            disabled={isLoadingData}
+          >
+            Reload
+          </SpinnerButton>
+        </div>
+      )}
       <ConsoleTabs
         defaultActiveTabId="venue-configuration"
         tabs={[
