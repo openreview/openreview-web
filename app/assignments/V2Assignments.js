@@ -155,7 +155,6 @@ const AssignmentRow = ({
         ) ? (
           <>
             <strong>{status}</strong>
-            {console.log('error message', errorMessage)}
             <br />
             <a
               tabIndex="0"
