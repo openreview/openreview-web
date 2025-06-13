@@ -273,7 +273,7 @@ export default async function page({ searchParams }) {
 
   return (
     <CommonLayout banner={<Banner>{banner}</Banner>}>
-      <div className={legacyStyles.legacyForum}>
+      <div className={`legacy-forum ${legacyStyles.legacyForum}`}>
         <LegacyForum
           forumNote={forumNote}
           selectedNoteId={query.noteId}
