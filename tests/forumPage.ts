@@ -67,6 +67,16 @@ test('show a valid forum', async (t) => {
     .eql('Paper Abstract')
 })
 
+test('view forum bibtex', async (t) => {
+  const { forumId } = t.fixtureCtx
+  await t
+    .useRole(authorRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forumId}`)
+    .click(Selector('a').withText('BibTeX'))
+    .expect(Selector('#bibtex-modal.in').exists)
+    .ok()
+})
+
 test('delete the forum note and restore it', async (t) => {
   const { forumId } = t.fixtureCtx
 

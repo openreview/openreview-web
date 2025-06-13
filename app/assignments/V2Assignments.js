@@ -162,7 +162,7 @@ const AssignmentRow = ({
               className="assignment-status"
               data-toggle="popover"
               data-placement="top"
-              data-trigger="foucus"
+              data-trigger="focus"
               data-content={errorMessage}
               title="Error Details"
             >
@@ -383,6 +383,10 @@ export default function V2Assignments({
   useEffect(() => {
     getAssignmentNotes()
   }, [configInvitation])
+
+  useEffect(() => {
+    if (assignmentNotes) $('[data-toggle="popover"]').popover({ container: 'body' })
+  }, [assignmentNotes])
 
   return (
     <>
