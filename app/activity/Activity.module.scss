@@ -1,0 +1,15 @@
+@use '../../styles/utils/constants';
+
+.activity {
+  :global {
+    header {
+      margin-bottom: 2rem;
+    }
+
+    .submissions-list {
+      margin-top: 0.875rem;
+      margin-bottom: 1.25rem;
+      max-width: 800px;
+    }
+  }
+}

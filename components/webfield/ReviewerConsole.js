@@ -1,6 +1,6 @@
 /* globals typesetMathJax,promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { chunk } from 'lodash'
 import api from '../../lib/api-client'
@@ -20,8 +20,6 @@ import {
   getRoleHashFragment,
 } from '../../lib/utils'
 import Dropdown from '../Dropdown'
-import useQuery from '../../hooks/useQuery'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import ErrorDisplay from '../ErrorDisplay'
 import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
@@ -261,6 +259,114 @@ const ReviewerConsoleTasks = ({ venueId, reviewerName, submissionName, noteNumbe
   )
 }
 
+const ReviewerConsoleTabs = ({
+  reviewerConsoleData,
+  setReviewerConsoleData,
+  paperRankingId,
+}) => {
+  const [enablePaperRanking, setEnablePaperRanking] = useState(true)
+  const {
+    venueId,
+    reviewerName,
+    officialReviewName,
+    submissionName,
+    reviewDisplayFields = ['review'],
+  } = useContext(WebFieldContext)
+  const defaultActiveTabId = `assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`
+  const [activeTabId, setActiveTabId] = useState(defaultActiveTabId)
+  const reviewerUrlFormat = reviewerName ? getRoleHashFragment(reviewerName) : null
+
+  const renderTable = () => {
+    if (!reviewerConsoleData.notes) return <LoadingSpinner />
+    if (reviewerConsoleData.notes?.length === 0) {
+      return (
+        <p className="empty-message">
+          You have no assigned papers. Please check again after the paper assignment process is
+          complete.
+        </p>
+      )
+    }
+
+    if (reviewerConsoleData.tableRows?.length === 0)
+      return (
+        <div className="table-container empty-table-container">
+          <ReviewerConsoleMenuBar
+            venueId={venueId}
+            tableRowsAll={reviewerConsoleData.tableRowsAll}
+            tableRows={reviewerConsoleData.tableRows}
+            setReviewerConsoleData={setReviewerConsoleData}
+            submissionName={submissionName}
+          />
+          <p className="empty-message">No {submissionName} matching search criteria.</p>
+        </div>
+      )
+    return (
+      <div className="table-container">
+        <ReviewerConsoleMenuBar
+          venueId={venueId}
+          tableRowsAll={reviewerConsoleData.tableRowsAll}
+          tableRows={reviewerConsoleData.tableRows}
+          setReviewerConsoleData={setReviewerConsoleData}
+          submissionName={submissionName}
+        />
+        <Table
+          className="console-table table-striped"
+          headings={[
+            { id: 'number', content: '#', width: '55px' },
+            { id: 'summary', content: `${submissionName} Summary`, width: '46%' },
+            {
+              id: 'ratings',
+              content: `Your ${prettyField(officialReviewName)} Ratings`,
+              width: 'auto',
+            },
+          ]}
+        >
+          {reviewerConsoleData.tableRows?.map((row) => (
+            <AssignedPaperRow
+              key={row.note.id}
+              note={row.note}
+              reviewerConsoleData={reviewerConsoleData}
+              paperRankingId={paperRankingId}
+              setReviewerConsoleData={setReviewerConsoleData}
+              enablePaperRanking={enablePaperRanking}
+              setEnablePaperRanking={setEnablePaperRanking}
+              reviewDisplayFields={reviewDisplayFields}
+              activeTabId={activeTabId}
+            />
+          ))}
+        </Table>
+      </div>
+    )
+  }
+  return (
+    <ConsoleTabs
+      defaultActiveTabId={defaultActiveTabId}
+      tabs={[
+        {
+          id: `assigned-${pluralizeString(submissionName).toLowerCase()}`,
+          label: `Assigned ${pluralizeString(submissionName)}`,
+          content: renderTable(),
+          visible: true,
+        },
+        {
+          id: `${reviewerUrlFormat}-tasks`,
+          label: `${getSingularRoleName(prettyField(reviewerName))} Tasks`,
+          content: (
+            <ReviewerConsoleTasks
+              venueId={venueId}
+              reviewerName={reviewerName}
+              submissionName={submissionName}
+              noteNumbers={reviewerConsoleData.noteNumbers}
+            />
+          ),
+          visible: true,
+        },
+      ]}
+      updateActiveTabId={setActiveTabId}
+    />
+  )
+}
+
 const ReviewerConsole = ({ appContext }) => {
   const {
     header,
@@ -278,16 +384,12 @@ const ReviewerConsole = ({ appContext }) => {
     hasPaperRanking,
     reviewDisplayFields = ['review'],
   } = useContext(WebFieldContext)
-  const { user, accessToken, userLoading } = useUser()
-  const router = useRouter()
-  const query = useQuery()
-  const { setBannerContent } = appContext
+  const { user, accessToken, isRefreshing } = useUser()
+  const query = useSearchParams()
+  const { setBannerContent } = appContext ?? {}
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
-  const [enablePaperRanking, setEnablePaperRanking] = useState(true)
-  const [activeTabId, setActiveTabId] = useState(null)
 
   const paperRankingId = `${venueId}/${reviewerName}/-/Paper_Ranking`
-  const reviewerUrlFormat = reviewerName ? getRoleHashFragment(reviewerName) : null
 
   const loadData = async () => {
     let anonGroups
@@ -508,81 +610,19 @@ const ReviewerConsole = ({ appContext }) => {
       })
   }
 
-  const renderTable = () => {
-    if (reviewerConsoleData.notes?.length === 0) {
-      return (
-        <p className="empty-message">
-          You have no assigned papers. Please check again after the paper assignment process is
-          complete.
-        </p>
-      )
-    }
-
-    if (reviewerConsoleData.tableRows?.length === 0)
-      return (
-        <div className="table-container empty-table-container">
-          <ReviewerConsoleMenuBar
-            venueId={venueId}
-            tableRowsAll={reviewerConsoleData.tableRowsAll}
-            tableRows={reviewerConsoleData.tableRows}
-            setReviewerConsoleData={setReviewerConsoleData}
-            submissionName={submissionName}
-          />
-          <p className="empty-message">No {submissionName} matching search criteria.</p>
-        </div>
-      )
-    return (
-      <div className="table-container">
-        <ReviewerConsoleMenuBar
-          venueId={venueId}
-          tableRowsAll={reviewerConsoleData.tableRowsAll}
-          tableRows={reviewerConsoleData.tableRows}
-          setReviewerConsoleData={setReviewerConsoleData}
-          submissionName={submissionName}
-        />
-        <Table
-          className="console-table table-striped"
-          headings={[
-            { id: 'number', content: '#', width: '55px' },
-            { id: 'summary', content: `${submissionName} Summary`, width: '46%' },
-            {
-              id: 'ratings',
-              content: `Your ${prettyField(officialReviewName)} Ratings`,
-              width: 'auto',
-            },
-          ]}
-        >
-          {reviewerConsoleData.tableRows?.map((row) => (
-            <AssignedPaperRow
-              key={row.note.id}
-              note={row.note}
-              reviewerConsoleData={reviewerConsoleData}
-              paperRankingId={paperRankingId}
-              setReviewerConsoleData={setReviewerConsoleData}
-              enablePaperRanking={enablePaperRanking}
-              setEnablePaperRanking={setEnablePaperRanking}
-              reviewDisplayFields={reviewDisplayFields}
-              activeTabId={activeTabId}
-            />
-          ))}
-        </Table>
-      </div>
-    )
-  }
-
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
   useEffect(() => {
     if (
-      userLoading ||
+      isRefreshing ||
       !user ||
       !group ||
       !submissionInvitationId ||
@@ -592,7 +632,7 @@ const ReviewerConsole = ({ appContext }) => {
     )
       return
     loadData()
-  }, [user, userLoading, group])
+  }, [user, isRefreshing, group])
 
   useEffect(() => {
     if (reviewerConsoleData.notes) {
@@ -623,9 +663,6 @@ const ReviewerConsole = ({ appContext }) => {
     }`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
-
-  if (!reviewerConsoleData.notes) return <LoadingSpinner />
-
   return (
     <>
       <BasicHeader
@@ -634,31 +671,15 @@ const ReviewerConsole = ({ appContext }) => {
         customLoad={reviewerConsoleData.customLoad}
         submissionName={submissionName}
       />
-      <ConsoleTabs
-        defaultActiveTabId={`assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`}
-        tabs={[
-          {
-            id: `assigned-${pluralizeString(submissionName).toLowerCase()}`,
-            label: `Assigned ${pluralizeString(submissionName)}`,
-            content: renderTable(),
-            visible: true,
-          },
-          {
-            id: `${reviewerUrlFormat}-tasks`,
-            label: `${getSingularRoleName(prettyField(reviewerName))} Tasks`,
-            content: (
-              <ReviewerConsoleTasks
-                venueId={venueId}
-                reviewerName={reviewerName}
-                submissionName={submissionName}
-                noteNumbers={reviewerConsoleData.noteNumbers}
-              />
-            ),
-            visible: true,
-          },
-        ]}
-        updateActiveTabId={setActiveTabId}
-      />
+      {reviewerConsoleData.notes ? (
+        <ReviewerConsoleTabs
+          reviewerConsoleData={reviewerConsoleData}
+          setReviewerConsoleData={setReviewerConsoleData}
+          paperRankingId={paperRankingId}
+        />
+      ) : (
+        <LoadingSpinner />
+      )}
     </>
   )
 }

@@ -6,20 +6,9 @@ import { reRenderWithWebFieldContext, renderWithWebFieldContext } from './util'
 import AreaChairConsole from '../components/webfield/AreaChairConsole'
 
 let useUserReturnValue
-let routerParams
 let noteSummaryProps
 let noteReviewStatusProps
 
-jest.mock('next/router', () => ({
-  useRouter: () => ({
-    replace: jest.fn((params) => {
-      routerParams = params
-      return {
-        catch: jest.fn(),
-      }
-    }),
-  }),
-}))
 jest.mock('../hooks/useUser', () => () => useUserReturnValue)
 jest.mock('../components/webfield/NoteSummary', () => (props) => {
   noteSummaryProps(props)
@@ -31,6 +20,19 @@ jest.mock('../components/webfield/NoteReviewStatus', () => ({
     return <span>note review status</span>
   },
 }))
+jest.mock('../app/CustomBanner', () => () => <span>Custom Banner</span>)
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: () => jest.fn(),
+  }),
+  useRouter: () => ({
+    replace: jest.fn(() => {
+      return {
+        catch: jest.fn(),
+      }
+    }),
+  }),
+}))
 
 global.promptError = jest.fn()
 global.DOMPurify = {
@@ -41,9 +43,9 @@ global.$ = jest.fn(() => ({ on: jest.fn(), off: jest.fn(), modal: jest.fn() }))
 
 beforeEach(() => {
   useUserReturnValue = { user: { profile: { id: '~Test_User1' } }, accessToken: 'some token' }
-  routerParams = null
   noteSummaryProps = jest.fn()
   noteReviewStatusProps = jest.fn()
+  window.location.hash = ''
 })
 
 describe('AreaChairConsole', () => {

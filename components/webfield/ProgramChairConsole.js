@@ -1,11 +1,10 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import groupBy from 'lodash/groupBy'
 import { orderBy } from 'lodash'
 import dayjs from 'dayjs'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
@@ -92,9 +91,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     displayReplyInvitations,
     useCache = false,
   } = useContext(WebFieldContext)
-  const { setBannerContent, setLayoutOptions } = appContext
-  const { user, accessToken, userLoading } = useUser()
-  const query = useQuery()
+  const { setBannerContent } = appContext ?? {}
+  const { user, accessToken, isRefreshing } = useUser()
+  const query = useSearchParams()
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
 
@@ -1066,30 +1065,22 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   useEffect(() => {
     if (!query) return
-    if (displayReplyInvitations?.length)
-      setLayoutOptions({ fullWidth: true, minimalFooter: true })
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
   useEffect(() => {
-    if (userLoading || !user || !group || !venueId || !reviewersId || !submissionId) return
+    if (isRefreshing || !user || !group || !venueId || !reviewersId || !submissionId) return
     if (useCache) {
       loadCache()
     } else {
       loadData()
     }
-  }, [user, userLoading, group])
-
-  useEffect(
-    () => () => {
-      setLayoutOptions({ fullWidth: false, minimalFooter: false })
-    },
-    []
-  )
+  }, [user, isRefreshing, group])
 
   const missingConfig = Object.entries({
     header,
@@ -1116,6 +1107,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     }`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
+
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />

@@ -26,6 +26,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 0
       - name: Add SSH key
         run: |
           mkdir -p /home/runner/.ssh
@@ -53,6 +56,30 @@ jobs:
           sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" ./deployment.conf
           gsutil cp ./deployment.conf gs://openreview-general/conf/deployment.conf
 
+          cd $GITHUB_WORKSPACE
+          gsutil cp gs://openreview-general/conf/production.env $GITHUB_WORKSPACE/.env.local
+          config_hash="$(sha1sum $GITHUB_WORKSPACE/.env.local | cut -d " " -f 1)"
+          build_id="$(git describe --tags)-$config_hash"
+          echo "Build ID: $build_id"
+
+          if gsutil ls "gs://openreview-general/openreview-web-builds/${build_id}.tar.gz" ; then
+            echo "Build already exists, skipping build step."
+            curl -s "https://cowsay.morecode.org/say?message=MOO%21%20BUILD%20ALREADY%20EXISTS:%20${build_id}&format=text"
+          else
+            echo "Building OpenReview web application..."
+            npm install
+            npm run build
+            echo "compressing build."
+
+            cp -a "$GITHUB_WORKSPACE" "/tmp/${build_id}"
+            cd /tmp
+            tar -czf "/tmp/${build_id}.tar.gz" "${build_id}"
+
+            echo "copying build to Google Cloud."
+            gsutil cp "/tmp/${build_id}.tar.gz" "gs://openreview-general/openreview-web-builds/${build_id}.tar.gz"
+            curl -s "https://cowsay.morecode.org/say?message=MOO%21%20YOU%20CREATED%20A%20BUILD%20SUCCESSFULLY&format=text"
+          fi
+
           instance_prefix='openreview-web-'
 
           instances=$(gcloud compute instances list | grep "$instance_prefix" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
@@ -68,8 +95,6 @@ jobs:
               zones+=(${instances_arr[$i]})
             fi
           done
-
-          gcloud compute ssh --zone ${zones[0]} openreview@${instance_names[0]} --command "bash bin/build-web.sh ${TAG}"
 
           for i in ${!instance_names[@]}; do
             echo Deploying to ${instance_names[$i]}
