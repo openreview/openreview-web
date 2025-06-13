@@ -704,6 +704,7 @@ const UserModerationQueue = ({
           'expertise',
           'publications',
           'messages',
+          'tags',
         ]}
         showNextProfile={showNextProfile}
         acceptUser={acceptUser}

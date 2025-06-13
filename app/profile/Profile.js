@@ -4,10 +4,11 @@ import styles from './Profile.module.scss'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import ProfileViewSection from '../../components/profile/ProfileViewSection'
 import ProfilePublications from '../../components/profile/ProfilePublications'
-import serverAuth from '../auth'
+import serverAuth, { isSuperUser } from '../auth'
 import api from '../../lib/api-client'
 import CoAuthorsList from './CoAuthorsList'
 import { getCoAuthorsFromPublications } from '../../lib/profiles'
+import ProfileTags from './ProfileTags'
 
 export default async function Profile({ profile, publicProfile }) {
   const { token, user } = await serverAuth()
@@ -83,6 +84,7 @@ export default async function Profile({ profile, publicProfile }) {
               <Icon name="calendar" extraClasses="pr-1" /> Joined {profile.joined}
             </li>
           </ul>
+          <ProfileTags profileId={profile.preferredId} isSuperUser={isSuperUser(user)} />
         </div>
       </header>
       <div className="row equal-height-cols">
