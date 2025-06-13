@@ -100,6 +100,7 @@ export function InvitationReplyV2({
   replyField,
   isMetaInvitation = false,
   readOnly = false,
+  noTitle = false,
 }) {
   const [replyString, setReplyString] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -197,7 +198,7 @@ export function InvitationReplyV2({
   }, [invitation, replyField])
 
   return (
-    <EditorSection title={sectionTitle}>
+    <EditorSection title={noTitle ? null : sectionTitle}>
       <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
 
       {!readOnly && (

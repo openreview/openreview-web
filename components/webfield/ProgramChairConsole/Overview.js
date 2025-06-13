@@ -14,6 +14,7 @@ import {
   pluralizeString,
 } from '../../../lib/utils'
 import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
+import { getNoteContentValues } from '../../../lib/forum-utils'
 
 const StatContainer = ({ title, hint, value }) => (
   <div className="col-md-4 col-xs-6">
@@ -706,13 +707,14 @@ const DescriptionTimelineOtherConfigRow = ({
     customStageInvitations = [],
     assignmentUrls,
     submissionName,
+    domainContent,
   } = useContext(WebFieldContext)
 
   const { requestForm, registrationForms, invitations } = pcConsoleData
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
   )
-  const requestFormContent = requestForm?.content
+  const requestFormContent = getNoteContentValues(requestForm?.content)
   const sacRoles = requestFormContent?.senior_area_chair_roles ?? ['Senior_Area_Chairs']
   const acRoles = requestFormContent?.area_chair_roles ?? ['Area_Chairs']
   const hasEthicsChairs = requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes')
@@ -865,8 +867,14 @@ const DescriptionTimelineOtherConfigRow = ({
             </span>
             <br />
             <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
-              <strong>Full Venue Configuration</strong>
+              <strong>Venue Configuration Request</strong>
             </a>
+            <br />
+            {domainContent.request_form_invitation && (
+              <a href={`/group/edit?id=${venueId}&referrer=${referrerUrl}`}>
+                <strong>Workflow Configuration</strong>
+              </a>
+            )}
           </p>
         </div>
         <div className="col-md-8 col-xs-12">

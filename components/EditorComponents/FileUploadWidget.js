@@ -12,7 +12,7 @@ import { prettyField } from '../../lib/utils'
 import styles from '../../styles/components/FileUploadWidget.module.scss'
 
 const FileUploadWidget = () => {
-  const { field, onChange, value, invitation, error, clearError } =
+  const { field, onChange, value, invitation, error, clearError, noteEditorPreview } =
     useContext(EditorComponentContext)
   const fileInputRef = useRef(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -34,10 +34,12 @@ const FileUploadWidget = () => {
       data.append('clientUploadId', clientUploadId)
       data.append('file', chunk)
 
-      const result = await api.put('/attachment/chunk', data, {
-        accessToken,
-        contentType: 'unset',
-      })
+      const result = noteEditorPreview
+        ? await Promise.resolve({ url: 'preview url' })
+        : await api.put('/attachment/chunk', data, {
+            accessToken,
+            contentType: 'unset',
+          })
       if (result.url) {
         // upload is completed
         onChange({ fieldName, value: result.url })

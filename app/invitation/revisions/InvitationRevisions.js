@@ -31,8 +31,8 @@ export default function InvitationRevisions({ id, query }) {
             `/login?redirect=/invitation/revisions?${encodeURIComponent(stringify(query))}`
           )
         } else {
-          // User is a reader, not a writer of the invitation, so redirect to info mode
-          router.replace(`/invitation/info?id=${id}`)
+          // User is a reader, not a writer of the invitation, so redirect to edit mode
+          router.replace(`/invitation/edit?id=${id}`)
         }
       } else {
         setError('Invitation not found')
