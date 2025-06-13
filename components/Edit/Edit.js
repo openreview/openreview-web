@@ -84,8 +84,10 @@ export default function Edit({ edit, type, className, showContents }) {
   ]
 
   return (
-    <div className={`edit ${className ?? ''}`}>
-      <h4>{buildNoteTitle(edit.invitations?.[0] ?? edit.invitation, edit.signatures, true)}</h4>
+    <div className={`edit ${className ?? ''}`} id={edit.id}>
+      <h4>
+        {buildNoteTitle(edit.invitations?.[0] ?? edit.invitation, edit.signatures, true)}
+      </h4>
 
       <ul className="edit_meta_info list-inline">
         <li>

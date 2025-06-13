@@ -71,7 +71,12 @@ export default function GroupRevisions({ id, query }) {
         <div id="header">
           <h1>{prettyId(group.id)} Group Edit History</h1>
         </div>
-        <EditHistory group={group} accessToken={accessToken} setError={setError} />
+        <EditHistory
+          group={group}
+          accessToken={accessToken}
+          setError={setError}
+          editId={query.editId}
+        />
       </div>
     </CommonLayout>
   )
