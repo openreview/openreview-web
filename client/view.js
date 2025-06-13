@@ -2439,7 +2439,7 @@ module.exports = (function () {
 
     // Link to comment button
     var $linkButton = null
-    if (forumId !== note.id && $('#content').hasClass('legacy-forum')) {
+    if (forumId !== note.id && $('#content>div').hasClass('legacy-forum')) {
       var commentUrl = location.origin + '/forum?id=' + forumId + '&noteId=' + note.id
       $linkButton = $(
         '<button class="btn btn-xs btn-default permalink-button" title="Link to this comment" data-permalink-url="' +
