@@ -1,5 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
+import Link from 'next/link'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import WebFieldContext from '../../WebFieldContext'
@@ -279,8 +280,8 @@ const EthicsChairPaperStatus = () => {
   if (paperStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        No papers have been submitted.Check back later or contact info@openreview.net if you
-        believe this to be an error.
+        No papers have been submitted.Check back later or{' '}
+        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
       </p>
     )
 
