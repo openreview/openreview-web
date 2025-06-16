@@ -2,9 +2,9 @@
 
 import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import sum from 'lodash/sum'
 import upperFirst from 'lodash/upperFirst'
+import { useSearchParams } from 'next/navigation'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
@@ -12,7 +12,6 @@ import Table from '../Table'
 import { AuthorConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import ErrorDisplay from '../ErrorDisplay'
 import NoteSummary from './NoteSummary'
-import useQuery from '../../hooks/useQuery'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import {
@@ -317,9 +316,8 @@ const AuthorConsole = ({ appContext }) => {
     IEEEArtSourceCode,
   } = useContext(WebFieldContext)
 
-  const { user, userLoading, accessToken } = useUser()
-  const router = useRouter()
-  const query = useQuery()
+  const { user, isRefreshing, accessToken } = useUser()
+  const query = useSearchParams()
   const { setBannerContent } = appContext
   const [showTasks, setShowTasks] = useState(false)
   const [authorNotes, setAuthorNotes] = useState(null)
@@ -465,22 +463,22 @@ const AuthorConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
   useEffect(() => {
-    if (userLoading || !user || !group || !authorSubmissionField || !submissionId) return
+    if (isRefreshing || !user || !group || !authorSubmissionField || !submissionId) return
 
     if (apiVersion === 2) {
       loadDataV2()
     } else {
       loadDataV1()
     }
-  }, [user, userLoading, group])
+  }, [user, isRefreshing, group])
 
   useEffect(() => {
     if (!authorNotes) return

@@ -46,7 +46,7 @@ export default function EditHistory({ group, invitation, accessToken, setError }
         }
         setCount(apiRes.count ?? 0)
       } catch (apiError) {
-        setError({ statusCode: apiError.status, message: apiError.message })
+        setError(apiError.message)
       }
     }
 

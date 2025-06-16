@@ -1,10 +1,10 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import groupBy from 'lodash/groupBy'
 import { orderBy } from 'lodash'
+import dayjs from 'dayjs'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
@@ -19,6 +19,7 @@ import {
   getSingularRoleName,
   pluralizeString,
   getRoleHashFragment,
+  formatDateTime,
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
@@ -29,6 +30,8 @@ import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
 import { formatProfileContent } from '../../lib/edge-utils'
 import ConsoleTabs from './ConsoleTabs'
+import { clearCache, getCache, setCache } from '../../lib/console-cache'
+import SpinnerButton from '../SpinnerButton'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -86,10 +89,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     preferredEmailInvitationId,
     ithenticateInvitationId,
     displayReplyInvitations,
+    useCache = false,
   } = useContext(WebFieldContext)
-  const { setBannerContent, setLayoutOptions } = appContext
-  const { user, accessToken, userLoading } = useUser()
-  const query = useQuery()
+  const { setBannerContent } = appContext ?? {}
+  const { user, accessToken, isRefreshing } = useUser()
+  const query = useSearchParams()
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
 
@@ -99,8 +103,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   const loadData = async () => {
     if (isLoadingData) return
-
     setIsLoadingData(true)
+    await clearCache(venueId)
+
     try {
       // #region getInvitationMap
       const conferenceInvitationsP = api.getAll(
@@ -543,7 +548,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         displayReplyInvitationsByPaperNumberMap.set(note.number, displayReplies)
       })
 
-      setPcConsoleData({
+      const consoleData = {
         invitations: invitationResults.flat(),
         allProfiles,
         allProfilesMap,
@@ -647,11 +652,27 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           seniorAreaChairGroups,
         },
         ithenticateEdges,
-      })
+        timeStamp: dayjs().valueOf(),
+      }
+      setPcConsoleData(consoleData)
+      if (useCache) await setCache(venueId, consoleData)
     } catch (error) {
       promptError(`loading data: ${error.message}`)
     }
     setIsLoadingData(false)
+  }
+
+  const loadCache = async () => {
+    try {
+      const cachedPcConsoleData = await getCache(venueId)
+      if (cachedPcConsoleData) {
+        setPcConsoleData(cachedPcConsoleData)
+      } else {
+        loadData()
+      }
+    } catch (error) {
+      loadData()
+    }
   }
 
   // eslint-disable-next-line consistent-return
@@ -1044,27 +1065,23 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   useEffect(() => {
     if (!query) return
-    if (displayReplyInvitations?.length)
-      setLayoutOptions({ fullWidth: true, minimalFooter: true })
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
   useEffect(() => {
-    if (userLoading || !user || !group || !venueId || !reviewersId || !submissionId) return
-    loadData()
-  }, [user, userLoading, group])
+    if (isRefreshing || !user || !group || !venueId || !reviewersId || !submissionId) return
+    if (useCache) {
+      loadCache()
+    } else {
+      loadData()
+    }
+  }, [user, isRefreshing, group])
 
-  useEffect(
-    () => () => {
-      setLayoutOptions({ fullWidth: false, minimalFooter: false })
-    },
-    []
-  )
-  
   const missingConfig = Object.entries({
     header,
     entity: group,
@@ -1090,9 +1107,26 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     }`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
+
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
+      {useCache && pcConsoleData.timeStamp && (
+        <div className="alert alert-warning">
+          <span>
+            Data cached {dayjs(pcConsoleData.timeStamp).fromNow()} at{' '}
+            {formatDateTime(pcConsoleData.timeStamp)}
+          </span>{' '}
+          <SpinnerButton
+            className="btn btn-xs ml-2"
+            onClick={loadData}
+            loading={isLoadingData}
+            disabled={isLoadingData}
+          >
+            Reload
+          </SpinnerButton>
+        </div>
+      )}
       <ConsoleTabs
         defaultActiveTabId="venue-configuration"
         tabs={[
