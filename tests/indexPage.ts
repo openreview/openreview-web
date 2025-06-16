@@ -13,7 +13,7 @@ test('show active venues', async (t) => {
   await t
     // Active venues
     .expect(activeVenues.find('li').count)
-    .eql(4)
+    .eql(5)
     .expect(activeVenues.find('a').nth(0).textContent)
     .eql(conferenceGroupName)
     .expect(activeVenues.find('a').nth(1).textContent)
