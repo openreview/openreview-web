@@ -16,7 +16,7 @@ function EmptyMessage({ id }) {
 export default function EditHistory({ group, invitation, accessToken, setError, editId }) {
   const [edits, setEdits] = useState(null)
   const [count, setCount] = useState(null)
-  const [editLookupComplete, setEditLookupComplete] = useState(false)
+  const [editLookupComplete, setEditLookupComplete] = useState(!editId)
   const [page, setPage] = useState(1)
   const pageSize = 25
 
@@ -95,6 +95,8 @@ export default function EditHistory({ group, invitation, accessToken, setError, 
               type={group ? 'group' : 'invitation'}
               className={edit.ddate ? 'edit-trashed' : ''}
               showContents
+              showLog
+              accessToken={accessToken}
             />
           </motion.div>
         )

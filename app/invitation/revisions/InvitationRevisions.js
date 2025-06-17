@@ -75,7 +75,12 @@ export default function InvitationRevisions({ id, query }) {
         <div id="header">
           <h1>{prettyId(invitation.id)} Invitation Edit History</h1>
         </div>
-        <EditHistory invitation={invitation} accessToken={accessToken} setError={setError} />
+        <EditHistory
+          invitation={invitation}
+          accessToken={accessToken}
+          setError={setError}
+          editId={query.editId}
+        />
       </div>
     </CommonLayout>
   )

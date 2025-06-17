@@ -6,9 +6,32 @@
       padding: 0;
       margin-bottom: 2rem;
 
-      h4 {
-        color: constants.$darkBlue;
-        margin-bottom: 0.25rem;
+      &:hover {
+        & > .edit-header > .permalink-btn {
+          opacity: 1;
+        }
+      }
+
+      .edit-header {
+        display: flex;
+
+        h4 {
+          color: constants.$darkBlue;
+          margin-bottom: 0.25rem;
+        }
+
+        .permalink-btn {
+          background: transparent;
+          border: 2px solid transparent;
+          opacity: 0;
+          margin-right: auto;
+          &:focus {
+            box-shadow: none;
+          }
+          span {
+            color: constants.$mediumBlue;
+          }
+        }
       }
 
       pre {
