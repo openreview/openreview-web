@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
 import { nanoid } from 'nanoid'
@@ -10,8 +10,10 @@ import mathjaxConfig from '../lib/mathjax-config'
 import MathjaxScript from './MathjaxScript'
 import TurnstileScript from './TurnstileScript'
 import usePrompt from '../hooks/usePrompt'
+import BibtexModal from '../components/BibtexModal'
 
 export default function AppInit() {
+  const [libarysLoaded, setLibrariesLoaded] = useState(false)
   const { notificationHolder, promptFunctions } = usePrompt()
 
   useEffect(() => {
@@ -46,6 +48,8 @@ export default function AppInit() {
 
     // Setup marked options and renderer overwrite
     window.view.setupMarked()
+
+    setLibrariesLoaded(true)
 
     // Set required constants for api call in view
     window.OR_API_URL = process.env.API_URL
@@ -94,6 +98,7 @@ export default function AppInit() {
       <MathjaxScript />
       <TurnstileScript />
       {notificationHolder}
+      {libarysLoaded && <BibtexModal />}
     </>
   )
 }
