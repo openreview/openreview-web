@@ -8,7 +8,7 @@ import ProfilePublications from './ProfilePublications'
 import ProfileViewSection from './ProfileViewSection'
 import MessagesSection from './MessagesSection'
 import Dropdown, { CreatableDropdown } from '../Dropdown'
-import { getRejectionReasons } from '../../lib/utils'
+import { getRejectionReasons, prettyInvitationId, prettyId } from '../../lib/utils'
 import CheckableTag from '../CheckableTag'
 
 const ProfilePreviewModal = ({
@@ -159,7 +159,7 @@ const ProfilePreviewModal = ({
           {tags.map((tag, index) => (
             <CheckableTag
               key={index}
-              label={tag.label}
+              label={`${prettyInvitationId(tag.invitation)}${tag.label !== undefined ? ` ${tag.label}` : ''}${tag.weight !== undefined ? ` ${tag.weight}` : ''}${!tag.invitation.startsWith(tag.signature) ? '' : ` by ${prettyId(tag.signature)}`}`}
               checked={true}
               onDelete={() => deleteTag(tag)}
             />

@@ -5,7 +5,12 @@ import React, { useEffect, useState } from 'react'
 import { isEmpty } from 'lodash'
 import { nanoid } from 'nanoid'
 import SpinnerButton from '../../../components/SpinnerButton'
-import { getProfileStateLabelClass, prettyField } from '../../../lib/utils'
+import {
+  getProfileStateLabelClass,
+  prettyField,
+  prettyId,
+  prettyInvitationId,
+} from '../../../lib/utils'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
 import CheckableTag from '../../../components/CheckableTag'
@@ -597,7 +602,11 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
               <div className="tags-container">
                 {tags.left.length > 0
                   ? tags.left.map((tag, index) => (
-                      <CheckableTag key={index} label={tag.label} checked={true} />
+                      <CheckableTag
+                        key={index}
+                        label={`${prettyInvitationId(tag.invitation)}${tag.label !== undefined ? ` ${tag.label}` : ''}${tag.weight !== undefined ? ` ${tag.weight}` : ''}${!tag.invitation.startsWith(tag.signature) ? '' : ` by ${prettyId(tag.signature)}`}`}
+                        checked={true}
+                      />
                     ))
                   : 'no tag'}
               </div>
@@ -627,7 +636,11 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
               <div className="tags-container">
                 {tags.right.length > 0
                   ? tags.right.map((tag, index) => (
-                      <CheckableTag key={index} label={tag.label} checked={true} />
+                      <CheckableTag
+                        key={index}
+                        label={`${prettyInvitationId(tag.invitation)}${tag.label !== undefined ? ` ${tag.label}` : ''}${tag.weight !== undefined ? ` ${tag.weight}` : ''}${!tag.invitation.startsWith(tag.signature) ? '' : ` by ${prettyId(tag.signature)}`}`}
+                        checked={true}
+                      />
                     ))
                   : ' no tag'}
               </div>
