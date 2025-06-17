@@ -18,27 +18,8 @@ import InvitationAdmin from '../admin/InvitationAdmin'
 export default function InvitationEditor({ id, query }) {
   const [invitation, setInvitation] = useState(null)
   const [error, setError] = useState(null)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { accessToken, isRefreshing } = useUser()
   const router = useRouter()
-  const isMetaInvitation = invitation?.edit === true
-
-  const getHeaderText = () => {
-    if (!invitation) return ''
-    let type = ''
-    if (isMetaInvitation) {
-      type = '(Meta Invitation)'
-    } else if (invitation.edit?.invitation) {
-      type = '(Invitation of Invitation)'
-    } else if (invitation.edit?.note) {
-      type = '(Invitation of Note)'
-    } else if (invitation.edit?.edge) {
-      type = '(Invitation of Edge)'
-    } else if (invitation.edit?.tag) {
-      type = '(Invitation of Tag)'
-    }
-
-    return `${prettyId(invitation?.id)} ${type}`
-  }
 
   const loadInvitation = async () => {
     try {
@@ -87,7 +68,7 @@ export default function InvitationEditor({ id, query }) {
     <CommonLayout banner={null} editBanner={editBanner}>
       <div className={styles.invitation}>
         <div id="header">
-          <h1>{getHeaderText()}</h1>
+          <h1>{prettyId(invitation?.id)}</h1>
         </div>
         <div className="invitationEditorTabsContainer">
           <InvitationWithInvitation

@@ -34,6 +34,16 @@
         }
       }
 
+      .log-status {
+        color: #c27ba0;
+        font-style: italic;
+        font-size: 0.75rem;
+
+        .log-details {
+          margin-left: 0.25rem;
+        }
+      }
+
       pre {
         margin-top: 0.125rem;
         margin-bottom: 0;

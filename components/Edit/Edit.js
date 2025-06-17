@@ -157,20 +157,22 @@ export default function Edit({
       </div>
 
       {(type === 'group' || type === 'invitation') && lastLog && (
-        <div>
-          Status: {lastLog.status}{' '}
-          {lastLog.status === 'ok' &&
-            lastLog.log.length > 0 &&
-            `- ${lastLog.log[lastLog.log.length - 1]}`}
+        <span className="log-status">
+          <span>
+            Status: {lastLog.status}
+            {lastLog.status === 'ok' &&
+              lastLog.log.length > 0 &&
+              `- ${lastLog.log[lastLog.log.length - 1]}`}
+          </span>
           <a
-            className="ml-1"
+            className="log-details"
             href={`${process.env.API_V2_URL}/logs/process?id=${edit.id}`}
             target="_blank"
             rel="noopener noreferrer"
           >
             details
           </a>
-        </div>
+        </span>
       )}
 
       <ul className="edit_meta_info list-inline">

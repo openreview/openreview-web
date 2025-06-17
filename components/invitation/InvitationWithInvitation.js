@@ -225,6 +225,9 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
 
   return (
     <div className={invitation.ddate ? styles.deleted : ''}>
+      <div className={styles.invitationDescription}>
+        <Markdown text={invitation.description} />
+      </div>
       <div className={styles.invitationMeta}>
         <span className="item">
           <Icon name="calendar" />
@@ -294,9 +297,6 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
         <span>
           Invitees: <span>{invitation.invitees.map((p) => prettyId(p)).join(', ')}</span>
         </span>
-      </div>
-      <div className={styles.invitationDescription}>
-        <Markdown text={invitation.description} />
       </div>
       <div className={styles.groupInvitations}>
         <div className={styles.invitationButtons}>
