@@ -15,8 +15,8 @@ const CheckableTag = ({
   const showCount = Number.isNaN(rawCount)
 
   const getColorClass = () => {
-    if (label.includes('require vouch')) return styles.requireVouch
-    if (label.includes('potential spam')) return styles.potentialSpam
+    if (label.includes('"require vouch"')) return styles.requireVouch
+    if (label.includes('"potential spam"')) return styles.potentialSpam
     return ''
   }
 

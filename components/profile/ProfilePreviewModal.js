@@ -159,7 +159,7 @@ const ProfilePreviewModal = ({
           {tags.map((tag, index) => (
             <CheckableTag
               key={index}
-              label={`${prettyInvitationId(tag.invitation)}${tag.label !== undefined ? ` ${tag.label}` : ''}${tag.weight !== undefined ? ` ${tag.weight}` : ''}${!tag.invitation.startsWith(tag.signature) ? '' : ` by ${prettyId(tag.signature)}`}`}
+              label={`${prettyInvitationId(tag.invitation)}${tag.label !== undefined ? ` "${tag.label}"` : ''}${tag.weight !== undefined ? ` (${tag.weight})` : ''}${!tag.invitation.startsWith(tag.signature) ? '' : ` by ${prettyId(tag.signature)}`}`}
               checked={true}
               onDelete={() => deleteTag(tag)}
             />
