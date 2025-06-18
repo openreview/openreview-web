@@ -160,6 +160,13 @@
     }
 
     // Console webfield styles
+    .tabs-container {
+      .tab-pane {
+        .spinner-inline {
+          margin-top: 3rem;
+        }
+      }
+    }
     .tab-pane form.search-form {
       margin: -10px 0 10px -16px;
       border-left: 1px solid #ddd;
