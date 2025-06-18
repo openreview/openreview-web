@@ -1037,26 +1037,30 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   }
 
   const loadRegistrationNoteMap = async () => {
-    if (!pcConsoleData.registrationForms) {
+    if (!pcConsoleData.registrationForms?.length) {
       setPcConsoleData((data) => ({ ...data, registrationNoteMap: {} }))
+      return
     }
     if (pcConsoleData.registrationNoteMap) return
-
     try {
-      const registrationNotes = await Promise.all(
+      const registrationNoteResults = await Promise.all(
         pcConsoleData.registrationForms.map((regForm) =>
-          api.getAll(
+          api.get(
             '/notes',
             {
               forum: regForm.id,
               select: 'id,signatures,invitations,content',
               domain: venueId,
+              stream: true,
             },
             { accessToken }
           )
         )
       )
-      const registrationNoteMap = groupBy(registrationNotes.flat(), 'signatures[0]')
+      const registrationNoteMap = groupBy(
+        registrationNoteResults.flatMap((result) => result.notes ?? []),
+        'signatures[0]'
+      )
       setPcConsoleData((data) => ({ ...data, registrationNoteMap }))
     } catch (error) {
       promptError(`Erro loading registration notes: ${error.message}`)
