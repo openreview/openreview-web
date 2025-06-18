@@ -1679,4 +1679,98 @@ describe('ConsoleTaskList', () => {
       expect(metaReview6RevisionLink).not.toBeInTheDocument()
     })
   })
+
+  test('show task as incomplete and requires update when invitation has changed', async () => {
+    const now = Date.now()
+    noteInvitations = [
+      {
+        id: `${venueId}/${submissionName}5/-/Meta_Review`,
+        domain: venueId,
+        duedate: now + fourDays,
+        invitees: [`${venueId}/${areaChairName}`],
+        edit: {
+          note: {
+            forum: 'paper5Id',
+            replyto: 'paper5Id',
+            content: {
+              mandatoryField: {
+                order: 1,
+                value: {
+                  param: {
+                    optional: false,
+                  },
+                },
+              },
+              optionalField: {
+                order: 2,
+                value: {
+                  param: {
+                    optional: true,
+                  },
+                },
+              },
+              mandatoryFieldTwo: {
+                // mandatory field added to invitation after meta review has been posted
+                order: 3,
+                value: {
+                  param: {
+                    optional: false,
+                  },
+                },
+              },
+            },
+          },
+        },
+        details: {
+          replytoNote: {
+            forum: 'paper5Id',
+            content: {
+              title: {
+                value: 'Paper 5 Title',
+              },
+            },
+          },
+          repliedNotes: [
+            {
+              id: 'paper5MetaReview',
+              forum: 'paper5Id',
+              content: {
+                // does not contain mandatoryFieldTwo
+                mandatoryField: {
+                  value: 'some value',
+                },
+                optionalField: {
+                  value: 'some value',
+                },
+              },
+            },
+          ],
+        },
+      },
+    ]
+    edgeInvitations = []
+    tagInvitations = []
+
+    render(
+      <ConsoleTaskList
+        venueId={venueId}
+        roleName={areaChairName}
+        referrer={areaChairConsoleReferrer}
+        filterAssignedInvitation={false}
+        submissionName={undefined}
+        submissionNumbers={undefined}
+      />
+    )
+
+    await waitFor(() => {
+      const Paper5metaReviewLink = screen.getByText('Submission5 Meta Review')
+
+      expect(Paper5metaReviewLink).toBeInTheDocument()
+      expect(Paper5metaReviewLink.parentElement.parentElement).not.toHaveClass('completed')
+      expect(Paper5metaReviewLink.nextElementSibling).toHaveClass('duedate', { exact: true })
+      expect(Paper5metaReviewLink.nextElementSibling.nextElementSibling.innerHTML).toContain(
+        'Update required'
+      )
+    })
+  })
 })
