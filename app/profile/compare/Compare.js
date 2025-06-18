@@ -3,11 +3,17 @@
 /* globals promptError: false */
 import React, { useEffect, useState } from 'react'
 import { isEmpty } from 'lodash'
-import { useRouter } from 'next/navigation'
+import { nanoid } from 'nanoid'
 import SpinnerButton from '../../../components/SpinnerButton'
-import { getProfileStateLabelClass, prettyField } from '../../../lib/utils'
+import {
+  getProfileStateLabelClass,
+  prettyField,
+  prettyId,
+  prettyInvitationId,
+} from '../../../lib/utils'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
+import ProfileTag from '../../../components/ProfileTag'
 
 // #region components used by Compare (in renderField method)
 const Names = ({ names, highlightValue }) => (
@@ -39,7 +45,7 @@ const History = ({ historys, highlightValue }) => (
       {historys &&
         historys.map((history) => (
           <tr
-            key={`${history.position}${history.institution.name}${history.start}${history.end}`}
+            key={nanoid()}
             data-toggle={history.signatures && 'tooltip'}
             title={history.signature && `Edited by ${history.signatures}`}
             style={history.confirmed ? null : { color: '#8c1b13' }}
@@ -342,25 +348,74 @@ const getHighlightValue = (withSignatureProfile) => {
   return compareFields.filter((p) => p)
 }
 
-export default function Compare({ profilesWithEdgeCounts, accessToken }) {
-  const { withSignatureProfiles, edgeCounts } = profilesWithEdgeCounts
+export default function Compare({ profiles, accessToken, loadProfiles }) {
   const [highlightValues, setHighlightValues] = useState(null)
   const [fields, setFields] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [edgeCounts, setEdgeCounts] = useState(null)
+  const [tags, setTags] = useState(null)
+  const [loadingEdges, setLoadingEdges] = useState(false)
+  const [loadingTags, setLoadingTags] = useState(false)
+
+  const getEdges = async () => {
+    if (!profiles.left?.id || !profiles.right?.id || profiles.left.id === profiles.right.id)
+      return
+    try {
+      const leftHeadP = api.get('/edges', { head: profiles.left.id }, { accessToken })
+      const leftTailP = api.get('/edges', { tail: profiles.left.id }, { accessToken })
+      const rightHeadP = api.get('/edges', { head: profiles.right.id }, { accessToken })
+      const rightTailP = api.get('/edges', { tail: profiles.right.id }, { accessToken })
+      const results = await Promise.all([leftHeadP, leftTailP, rightHeadP, rightTailP])
+      setEdgeCounts({
+        leftHead: results[0].count,
+        leftTail: results[1].count,
+        rightHead: results[2].count,
+        rightTail: results[3].count,
+      })
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const getTags = async () => {
+    if (!profiles.left?.id || !profiles.right?.id || profiles.left.id === profiles.right.id)
+      return
+    try {
+      const leftTagsP = api.get(
+        '/tags',
+        {
+          profile: profiles.left.id,
+        },
+        { accessToken }
+      )
+      const rightTagsP = api.get(
+        '/tags',
+        {
+          profile: profiles.right.id,
+        },
+        { accessToken }
+      )
+      const results = await Promise.all([leftTagsP, rightTagsP])
+      setTags({
+        left: results[0].tags,
+        right: results[1].tags,
+      })
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
 
   const mergeProfile = (from, to) => {
     const fromProfile = {
-      id: withSignatureProfiles[from].id,
-      active: withSignatureProfiles[from].active,
-      state: withSignatureProfiles[from].state,
+      id: profiles[from].id,
+      active: profiles[from].active,
+      state: profiles[from].state,
     }
     const toProfile = {
-      id: withSignatureProfiles[to].id,
+      id: profiles[to].id,
       active: ['Active Institutional', 'Active Automatic', 'Active'].includes(
-        withSignatureProfiles[to].state
+        profiles[to].state
       ),
-      state: withSignatureProfiles[to].state,
+      state: profiles[to].state,
     }
     const postMerge = async () => {
       try {
@@ -369,7 +424,9 @@ export default function Compare({ profilesWithEdgeCounts, accessToken }) {
           { from: fromProfile.id, to: toProfile.id },
           { accessToken }
         )
-        router.refresh()
+        await loadProfiles()
+        setEdgeCounts(null)
+        setTags(null)
       } catch (apiError) {
         promptError(apiError.message)
       }
@@ -390,41 +447,59 @@ export default function Compare({ profilesWithEdgeCounts, accessToken }) {
   }
 
   const mergeEdge = async (from, to) => {
-    setLoading(true)
+    setLoadingEdges(true)
     try {
       await api.post(
         '/edges/rename',
-        { currentId: withSignatureProfiles[from].id, newId: withSignatureProfiles[to].id },
+        { currentId: profiles[from].id, newId: profiles[to].id },
         { accessToken }
       )
-      router.refresh()
+      await getEdges()
     } catch (apiError) {
       promptError(apiError.message)
     }
-    setLoading(false)
+    setLoadingEdges(false)
+  }
+
+  const mergeTag = async (from, to) => {
+    setLoadingTags(true)
+    try {
+      await api.post(
+        '/tags/rename',
+        { currentId: profiles[from].id, newId: profiles[to].id },
+        { accessToken }
+      )
+      await getTags()
+    } catch (error) {
+      promptError(error.message)
+    }
+    setLoadingTags(false)
   }
 
   useEffect(() => {
-    if (!withSignatureProfiles) return
+    if (!profiles) return
 
     setFields(
       Array.from(
         new Set([
-          ...Object.keys(withSignatureProfiles.left).filter(
-            (key) => !isEmpty(withSignatureProfiles.left[key]) && key !== 'id'
+          ...Object.keys(profiles.left).filter(
+            (key) => !isEmpty(profiles.left[key]) && key !== 'id'
           ),
-          ...Object.keys(withSignatureProfiles.right).filter(
-            (key) => !isEmpty(withSignatureProfiles.right[key]) && key !== 'id'
+          ...Object.keys(profiles.right).filter(
+            (key) => !isEmpty(profiles.right[key]) && key !== 'id'
           ),
         ])
       )
     )
 
     setHighlightValues({
-      left: getHighlightValue(withSignatureProfiles.left),
-      right: getHighlightValue(withSignatureProfiles.right),
+      left: getHighlightValue(profiles.left),
+      right: getHighlightValue(profiles.right),
     })
-  }, [withSignatureProfiles])
+
+    getEdges()
+    getTags()
+  }, [profiles])
 
   return (
     <table className="table">
@@ -432,21 +507,15 @@ export default function Compare({ profilesWithEdgeCounts, accessToken }) {
         <tr>
           <th style={{ width: '110px', verticalAlign: 'middle' }}>Merge Direction</th>
           <th style={{ width: '300px', textAlign: 'center', verticalAlign: 'middle' }}>
-            <a
-              href={`/profile?id=${withSignatureProfiles.left?.id}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {withSignatureProfiles.left?.id}
+            <a href={`/profile?id=${profiles.left?.id}`} target="_blank" rel="noreferrer">
+              {profiles.left?.id}
             </a>
           </th>
           <th colSpan="2" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
             <button
               type="button"
               className="btn merge-btn-left mb-2"
-              disabled={
-                withSignatureProfiles.left?.id && withSignatureProfiles.right?.id ? null : true
-              }
+              disabled={profiles.left?.id && profiles.right?.id ? null : true}
               onClick={() => mergeProfile('right', 'left')}
             >
               &laquo;
@@ -455,21 +524,15 @@ export default function Compare({ profilesWithEdgeCounts, accessToken }) {
             <button
               type="button"
               className="btn merge-btn-right"
-              disabled={
-                withSignatureProfiles.left?.id && withSignatureProfiles.right?.id ? null : true
-              }
+              disabled={profiles.left?.id && profiles.right?.id ? null : true}
               onClick={() => mergeProfile('left', 'right')}
             >
               &raquo;
             </button>
           </th>
           <th style={{ width: '300px', textAlign: 'center', verticalAlign: 'middle' }}>
-            <a
-              href={`/profile?id=${withSignatureProfiles.right?.id}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {withSignatureProfiles.right?.id}
+            <a href={`/profile?id=${profiles.right?.id}`} target="_blank" rel="noreferrer">
+              {profiles.right?.id}
             </a>
           </th>
         </tr>
@@ -482,12 +545,8 @@ export default function Compare({ profilesWithEdgeCounts, accessToken }) {
               <td>
                 <strong>{prettyField(field)}</strong>
               </td>
-              <td colSpan="2">
-                {renderField(withSignatureProfiles?.left, field, highlightValues.right)}
-              </td>
-              <td colSpan="2">
-                {renderField(withSignatureProfiles?.right, field, highlightValues.left)}
-              </td>
+              <td colSpan="2">{renderField(profiles?.left, field, highlightValues.right)}</td>
+              <td colSpan="2">{renderField(profiles?.right, field, highlightValues.left)}</td>
             </tr>
           ))
         ) : (
@@ -503,16 +562,16 @@ export default function Compare({ profilesWithEdgeCounts, accessToken }) {
               <strong>Edges</strong>
             </td>
             <td>
-              {renderEdgeLink(edgeCounts.leftHead, 'head', withSignatureProfiles.left.id)}
+              {renderEdgeLink(edgeCounts.leftHead, 'head', profiles.left.id)}
               {', '}
-              {renderEdgeLink(edgeCounts.leftTail, 'tail', withSignatureProfiles.left.id)}
+              {renderEdgeLink(edgeCounts.leftTail, 'tail', profiles.left.id)}
             </td>
             <td colSpan="2" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
               <SpinnerButton
                 type="button"
                 className="mb-2"
-                loading={loading}
-                disabled={!(edgeCounts.rightHead || edgeCounts.rightTail) || loading}
+                loading={loadingEdges}
+                disabled={!(edgeCounts.rightHead || edgeCounts.rightTail) || loadingEdges}
                 onClick={() => mergeEdge('right', 'left')}
               >
                 &laquo;
@@ -520,17 +579,59 @@ export default function Compare({ profilesWithEdgeCounts, accessToken }) {
               <br />
               <SpinnerButton
                 type="button"
-                loading={loading}
-                disabled={!(edgeCounts.leftHead || edgeCounts.leftTail) || loading}
+                loading={loadingEdges}
+                disabled={!(edgeCounts.leftHead || edgeCounts.leftTail) || loadingEdges}
                 onClick={() => mergeEdge('left', 'right')}
               >
                 &raquo;
               </SpinnerButton>
             </td>
             <td>
-              {renderEdgeLink(edgeCounts.rightHead, 'head', withSignatureProfiles.right.id)}
+              {renderEdgeLink(edgeCounts.rightHead, 'head', profiles.right.id)}
               {', '}
-              {renderEdgeLink(edgeCounts.rightTail, 'tail', withSignatureProfiles.right.id)}
+              {renderEdgeLink(edgeCounts.rightTail, 'tail', profiles.right.id)}
+            </td>
+          </tr>
+        )}
+        {tags && (
+          <tr>
+            <td>
+              <strong>Tags</strong>
+            </td>
+            <td>
+              <div className="tags-container">
+                {tags.left.length > 0
+                  ? tags.left.map((tag, index) => <ProfileTag key={index} tag={tag} />)
+                  : 'no tag'}
+              </div>
+            </td>
+            <td colSpan="2" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+              <SpinnerButton
+                type="button"
+                className="mb-2"
+                loading={loadingTags}
+                disabled={!tags.right.length || loadingTags}
+                onClick={() => mergeTag('right', 'left')}
+              >
+                {loadingTags ? '' : '«'}
+              </SpinnerButton>
+              <br />
+
+              <SpinnerButton
+                type="button"
+                loading={loadingTags}
+                disabled={!tags.left.length || loadingTags}
+                onClick={() => mergeTag('left', 'right')}
+              >
+                {loadingTags ? '' : '»'}
+              </SpinnerButton>
+            </td>
+            <td>
+              <div className="tags-container">
+                {tags.right.length > 0
+                  ? tags.right.map((tag, index) => <ProfileTag key={index} tag={tag} />)
+                  : ' no tag'}
+              </div>
             </td>
           </tr>
         )}
