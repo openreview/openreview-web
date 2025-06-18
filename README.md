@@ -1,6 +1,6 @@
 # OpenReview Web
 
-[![Next.js CI](https://github.com/openreview/openreview-web/workflows/Next.js%20CI/badge.svg?branch=master)](https://github.com/openreview/openreview-web/actions)
+[![Next.js CI](https://github.com/openreview/openreview-web/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/openreview/openreview-web/actions)
 
 The official web interface to the [OpenReview API](https://github.com/openreview/openreview/),
 built with React and Next.js.
