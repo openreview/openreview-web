@@ -187,6 +187,7 @@ const BlockModal = ({ profileToBlockUnblock, signedNotes, reload, accessToken })
         label: blockTag.trim(),
         signature: `${process.env.SUPER_USER}/Support`,
         invitation: `${process.env.SUPER_USER}/Support/-/Profile_Blocked_Status`,
+        readers: [`${process.env.SUPER_USER}/Support`],
       })
 
       await api.post(
