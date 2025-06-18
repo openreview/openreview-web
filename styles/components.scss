@@ -1226,6 +1226,11 @@ table.table-minimal {
     .tags-container {
       display: flex;
       flex-flow: wrap;
+
+      .tooltip-inner {
+        max-width: none;
+        width: max-content;
+      }
     }
     .tags-dropdown {
       &__control {

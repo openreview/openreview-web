@@ -13,7 +13,7 @@ import {
 } from '../../../lib/utils'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
-import CheckableTag from '../../../components/CheckableTag'
+import ProfileTag from '../../../components/ProfileTag'
 
 // #region components used by Compare (in renderField method)
 const Names = ({ names, highlightValue }) => (
@@ -601,13 +601,7 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
             <td>
               <div className="tags-container">
                 {tags.left.length > 0
-                  ? tags.left.map((tag, index) => (
-                      <CheckableTag
-                        key={index}
-                        label={`${prettyInvitationId(tag.invitation)}${tag.label !== undefined ? ` "${tag.label}"` : ''}${tag.weight !== undefined ? ` (${tag.weight})` : ''}${!tag.invitation.startsWith(tag.signature) ? '' : ` by ${prettyId(tag.signature)}`}`}
-                        checked={true}
-                      />
-                    ))
+                  ? tags.left.map((tag, index) => <ProfileTag key={index} tag={tag} />)
                   : 'no tag'}
               </div>
             </td>
@@ -635,13 +629,7 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
             <td>
               <div className="tags-container">
                 {tags.right.length > 0
-                  ? tags.right.map((tag, index) => (
-                      <CheckableTag
-                        key={index}
-                        label={`${prettyInvitationId(tag.invitation)}${tag.label !== undefined ? ` "${tag.label}"` : ''}${tag.weight !== undefined ? ` (${tag.weight})` : ''}${!tag.invitation.startsWith(tag.signature) ? '' : ` by ${prettyId(tag.signature)}`}`}
-                        checked={true}
-                      />
-                    ))
+                  ? tags.right.map((tag, index) => <ProfileTag key={index} tag={tag} />)
                   : ' no tag'}
               </div>
             </td>

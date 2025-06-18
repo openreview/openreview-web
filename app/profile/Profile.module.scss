@@ -55,11 +55,6 @@
           margin-top: 0.25rem;
           margin-bottom: 0;
         }
-
-        .tags-container {
-          display: flex;
-          flex-flow: wrap;
-        }
       }
     }
 
@@ -332,6 +327,17 @@
       }
       .list-unstyled {
         margin-bottom: 1rem;
+      }
+    }
+
+    .tags-container {
+      display: flex;
+      flex-flow: wrap;
+      margin-left: -15px;
+
+      .tooltip-inner {
+        max-width: none;
+        width: max-content;
       }
     }
 

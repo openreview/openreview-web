@@ -1,6 +1,6 @@
 @use '../utils/constants';
 
-.checkableTagContainer {
+.profileTagContainer {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,34 +10,19 @@
   background-color: constants.$backgroundWhite;
   margin-right: 0.5rem;
   margin-top: 0.25rem;
-  cursor: pointer;
 
   &:hover {
     background-color: constants.$backgroundGray;
   }
 
-  .iconLabel {
-    filter: grayscale(100%);
-
-    &.checked {
-      filter: grayscale(0%);
-    }
+  &.deletable {
+    cursor: pointer;
   }
 
-  .tagText {
-    margin-right: 0.5rem;
-    margin-right: 0.5rem;
-  }
-
-  .count {
-    color: white;
-    background-color: constants.$subtleGray;
-    border-radius: 2rem;
-    padding: 0.25rem 0.5rem;
+  .readerIcon {
+    margin-left: 0.25rem;
     font-size: 0.75rem;
-    line-height: 1;
-    display: inline-block;
-    font-weight: bold;
+    top: 0;
   }
 
   .trashButton {

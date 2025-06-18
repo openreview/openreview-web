@@ -9,7 +9,7 @@ import ProfileViewSection from './ProfileViewSection'
 import MessagesSection from './MessagesSection'
 import Dropdown, { CreatableDropdown } from '../Dropdown'
 import { getRejectionReasons, prettyInvitationId, prettyId } from '../../lib/utils'
-import CheckableTag from '../CheckableTag'
+import ProfileTag from '../ProfileTag'
 
 const ProfilePreviewModal = ({
   profileToPreview,
@@ -157,12 +157,7 @@ const ProfilePreviewModal = ({
       <div className="moderation-actions">
         <div className={`tags-container ${tags.length ? 'mb-2' : ''}`}>
           {tags.map((tag, index) => (
-            <CheckableTag
-              key={index}
-              label={`${prettyInvitationId(tag.invitation)}${tag.label !== undefined ? ` "${tag.label}"` : ''}${tag.weight !== undefined ? ` (${tag.weight})` : ''}${!tag.invitation.startsWith(tag.signature) ? '' : ` by ${prettyId(tag.signature)}`}`}
-              checked={true}
-              onDelete={() => deleteTag(tag)}
-            />
+            <ProfileTag key={index} tag={tag} onDelete={() => deleteTag(tag)} />
           ))}
         </div>
         {profileToPreview.state !== 'Merged' && (

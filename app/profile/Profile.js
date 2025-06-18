@@ -84,7 +84,6 @@ export default async function Profile({ profile, publicProfile }) {
               <Icon name="calendar" extraClasses="pr-1" /> Joined {profile.joined}
             </li>
           </ul>
-          <ProfileTags profileId={profile.preferredId} isSuperUser={isSuperUser(user)} />
         </div>
       </header>
       <div className="row equal-height-cols">
@@ -107,6 +106,9 @@ export default async function Profile({ profile, publicProfile }) {
             <CoAuthorsList coAuthors={coAuthors} />
           </ProfileViewSection>
         </aside>
+      </div>
+      <div className="col-md-12 col-lg-8">
+        <ProfileTags profileId={profile.preferredId} isSuperUser={isSuperUser(user)} />
       </div>
     </div>
   )
