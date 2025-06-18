@@ -15,6 +15,7 @@ const PaperStatusMenuBar = ({
   setPaperStatusTabData,
   reviewRatingName,
   noteContentField,
+  defaultSeniorAreaChairName,
 }) => {
   const {
     metaReviewRecommendationName,
@@ -28,12 +29,14 @@ const PaperStatusMenuBar = ({
     customStageInvitations = [],
     additionalMetaReviewFields = [],
     reviewerName,
-    seniorAreaChairName = 'Senior_Area_Chairs',
+    seniorAreaChairName = defaultSeniorAreaChairName,
     officialReviewName,
     officialMetaReviewName = 'Meta_Review',
     areaChairName = 'Area_Chairs',
+    secondaryAreaChairName,
     submissionName,
     ithenticateInvitationId,
+    messageSubmissionSecondaryAreaChairsInvitationId,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const formattedReviewerName = camelCase(reviewerName)
@@ -48,7 +51,7 @@ const PaperStatusMenuBar = ({
     author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords.value'],
     [formattedReviewerName]: ['reviewers'],
-    [formattedSACName]: ['metaReviewData.seniorAreaChairs'],
+    ...(formattedSACName && { [formattedSACName]: ['metaReviewData.seniorAreaChairs'] }),
     [`num${upperFirst(formattedReviewerName)}Assigned`]: [
       'reviewProgressData.numReviewersAssigned',
     ],
@@ -164,12 +167,30 @@ const PaperStatusMenuBar = ({
           },
         ]
       : []),
+    ...(secondaryAreaChairName && messageSubmissionSecondaryAreaChairsInvitationId
+      ? [
+          {
+            label: `All ${pluralizeString(
+              prettyField(secondaryAreaChairName)
+            )} of selected ${pluralizeString(submissionName)}`,
+            value: 'allSecondaryAreaChairs',
+          },
+        ]
+      : []),
     ...(tableRowsAll?.length !== selectedNoteIds?.length
       ? [
           {
             label: `All Authors of selected ${pluralizeString(submissionName)}`,
             value: 'allAuthors',
           },
+          ...(seniorAreaChairsId
+            ? [
+                {
+                  label: `All ${prettyField(seniorAreaChairName ?? 'Senior_Area_Chairs')} of selected ${pluralizeString(submissionName)}`,
+                  value: 'allSACs',
+                },
+              ]
+            : []),
         ]
       : []),
   ]

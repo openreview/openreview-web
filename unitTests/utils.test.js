@@ -1,4 +1,10 @@
-import { getDefaultTimezone, isInstitutionEmail, stringToObject } from '../lib/utils'
+import {
+  getDefaultTimezone,
+  isInstitutionEmail,
+  parseNumberField,
+  prettyInvitationId,
+  stringToObject,
+} from '../lib/utils'
 
 describe('utils', () => {
   test('convert string to object in stringToObject', () => {
@@ -279,5 +285,39 @@ describe('utils', () => {
     }))
     expect(getDefaultTimezone()).toEqual(null)
     // #endregion
+  })
+
+  test('return human readable invitation id in prettyInvitationId', () => {
+    let invitationId = 'TestVenue/Conference/-/Submission'
+    let expectedValue = 'Submission'
+
+    expect(prettyInvitationId(invitationId)).toEqual(expectedValue)
+
+    // do not remove token ending with digits
+    invitationId = 'ICML.cc/2025/Conference/Reviewers/-/robust_affinity_Q75'
+    expectedValue = 'robust affinity Q75'
+    expect(prettyInvitationId(invitationId)).toEqual(expectedValue)
+
+    // take last two tokens
+    invitationId = 'TestVenue/Reviewers/-/~First_Last1/Responsibility/Acknowledgement'
+    expectedValue = 'Responsibility Acknowledgement'
+    expect(prettyInvitationId(invitationId)).toEqual(expectedValue)
+
+    // pretty print tilde id
+    invitationId = 'TestVenue/Paper1/-/~First_Last1_Volunteer_to_Review_Approval'
+    expectedValue = 'First Last  Volunteer to Review Approval'
+    expect(prettyInvitationId(invitationId)).toEqual(expectedValue)
+  })
+
+  test('return confidence number in parseNumberField', () => {
+    let confidenceString = '1 - Not Confident: not confident at all'
+    let expectedValue = 1
+
+    expect(parseNumberField(confidenceString)).toEqual(expectedValue)
+
+    confidenceString = '4 - High Confidence - Reviewer is Highly familiar with the topic' // no colon
+    expectedValue = 4
+
+    expect(parseNumberField(confidenceString)).toEqual(expectedValue)
   })
 })

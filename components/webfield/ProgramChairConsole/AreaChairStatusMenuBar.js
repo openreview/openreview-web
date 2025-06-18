@@ -15,6 +15,7 @@ export const MessageACSACModal = ({
   messageParentGroup,
   messageSignature,
   isMessageSeniorAreaChairs = false,
+  selectedIds,
 }) => {
   const { accessToken } = useUser()
   const {
@@ -72,29 +73,34 @@ export const MessageACSACModal = ({
       return tableRows.filter((row) => customFunc(row))
     }
 
+    const selectedRows =
+      !isMessageSeniorAreaChairs && selectedIds?.length
+        ? tableRows.filter((row) => selectedIds.includes(row.areaChairProfileId))
+        : tableRows
+
     switch (messageOption.value) {
       case 'noBids':
-        return tableRows.filter((row) => row.completedBids === 0)
+        return selectedRows.filter((row) => row.completedBids === 0)
       case 'noRecommendations':
-        return tableRows.filter((row) => row.completedRecommendations === 0)
+        return selectedRows.filter((row) => row.completedRecommendations === 0)
       case 'missingReviews':
-        return tableRows.filter((row) => row.numCompletedReviews < row.notes?.length ?? 0)
+        return selectedRows.filter((row) => row.numCompletedReviews < row.notes?.length ?? 0)
       case 'noMetaReviews':
-        return tableRows.filter(
+        return selectedRows.filter(
           (row) =>
             row.numCompletedMetaReviews === 0 &&
             (row.notes?.filter((p) => p.note.content?.venueid?.value === submissionVenueId)
               .length ?? 0) !== 0
         )
       case 'missingMetaReviews':
-        return tableRows.filter(
+        return selectedRows.filter(
           (row) =>
             row.numCompletedMetaReviews <
               row.notes?.filter((p) => p.note.content?.venueid?.value === submissionVenueId)
                 .length ?? 0
         )
       case 'missingAssignments':
-        return tableRows.filter((row) => !row.notes?.length)
+        return selectedRows.filter((row) => !row.notes?.length)
       default:
         return []
     }
@@ -102,6 +108,8 @@ export const MessageACSACModal = ({
 
   useEffect(() => {
     if (!messageOption) return
+
+    setMessage(null)
     const recipientRows = getRecipientRows()
     setRecipientsInfo(
       recipientRows.map((row) => {
@@ -110,11 +118,11 @@ export const MessageACSACModal = ({
         return profile
           ? {
               id,
-              preferredName: profile.preferredName
+              preferredName: profile.preferredName,
             }
           : {
               id,
-              preferredName: id
+              preferredName: id,
             }
       })
     )
@@ -189,6 +197,8 @@ const AreaChairStatusMenuBar = ({
   recommendationEnabled,
   messageParentGroup,
   messageSignature,
+  selectedAreaChairIds,
+  setSelectedAreaChairIds,
 }) => {
   const {
     shortPhrase,
@@ -197,7 +207,7 @@ const AreaChairStatusMenuBar = ({
     acEmailFuncs,
     areaChairStatusExportColumns: exportColumnsConfig,
     filterOperators: filterOperatorsConfig,
-    propertiesAllowed: propertiesAllowedConfig,
+    areaChairStatusPropertiesAllowed,
     seniorAreaChairName = 'Senior_Area_Chairs',
     areaChairName = 'Area_Chairs',
     officialReviewName,
@@ -206,7 +216,7 @@ const AreaChairStatusMenuBar = ({
     reviewerName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
-  const propertiesAllowed = propertiesAllowedConfig ?? {
+  const propertiesAllowed = areaChairStatusPropertiesAllowed ?? {
     number: ['number'],
     name: ['areaChairProfile.preferredName'],
     [camelCase(seniorAreaChairName)]: ['seniorAreaChair.seniorAreaChairId'],
@@ -350,6 +360,8 @@ const AreaChairStatusMenuBar = ({
     <BaseMenuBar
       tableRowsAll={tableRowsAll}
       tableRows={tableRows}
+      selectedIds={selectedAreaChairIds}
+      setSelectedIds={setSelectedAreaChairIds}
       setData={setAreaChairStatusTabData}
       shortPhrase={shortPhrase}
       enableQuerySearch={enableQuerySearch}

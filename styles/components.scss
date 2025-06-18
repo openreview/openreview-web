@@ -4,17 +4,18 @@
 @use 'utils/constants';
 @use 'utils/mixins';
 
-@import 'components/nav';
-@import 'components/footer';
-@import 'components/forum-note';
-@import 'components/note-content';
-@import 'components/forum';
-@import 'components/dropdown';
-@import 'components/messages-table';
-@import 'components/autocomplete-input';
-@import 'components/legacy-forum';
-@import 'components/legacy-profile-editor';
-@import 'components/datetime-picker';
+@use 'components/nav';
+@use 'components/footer';
+@use 'components/forum-note';
+@use 'components/note-content';
+@use 'components/forum';
+@use 'components/dropdown';
+@use 'components/messages-table';
+@use 'components/autocomplete-input';
+@use 'components/legacy-forum';
+@use 'components/datetime-picker';
+
+@use 'sass:color';
 
 // Tab navigation
 .nav-tabs {
@@ -52,7 +53,7 @@
       a:hover {
         cursor: wait;
         color: constants.$subtleGray;
-        background: lighten(constants.$sandyBrown, 3%);
+        background: color.adjust(constants.$sandyBrown, $lightness: 3%);
       }
     }
   }
@@ -311,12 +312,12 @@ table.table-minimal {
       }
       &.warning {
         background-color: constants.$sandyBrown;
-        border: 1px solid darken(constants.$sandyBrown, 5%);
+        border: 1px solid color.adjust(constants.$sandyBrown, $lightness: -5%);
       }
       &.expired {
         background-color: constants.$alertRed;
         border-color: #ebccd1;
-        border: 1px solid darken(constants.$alertRed, 5%);
+        border: 1px solid color.adjust(constants.$alertRed, $lightness: -5%);
       }
     }
 
@@ -393,6 +394,12 @@ table.table-minimal {
 
     &.invitation-link a {
       font-size: 1rem;
+    }
+
+    .update-required {
+      font-size: 0.75rem;
+      font-weight: bold;
+      vertical-align: text-top;
     }
 
     .parent-title {
@@ -993,7 +1000,7 @@ table.table-minimal {
       color: constants.$darkBlue;
     }
     &.danger {
-      color: lighten(constants.$orRed, 20%);
+      color: color.adjust(constants.$orRed, $lightness: 20%);
     }
   }
   .row button {
@@ -1043,7 +1050,7 @@ table.table-minimal {
   padding: 0.25rem 0px;
   height: 202px;
   width: 500px;
-  border: 2px solid lighten(constants.$mediumBlue, 10%);
+  border: 2px solid color.adjust(constants.$mediumBlue, $lightness: 10%);
   border-top: 0;
   overflow-y: scroll;
   background-color: white;
@@ -1207,6 +1214,7 @@ table.table-minimal {
   .form-rejection {
     display: flex;
     flex-flow: column;
+    text-align: left;
 
     .btn {
       align-self: flex-start;
@@ -1220,7 +1228,7 @@ table.table-minimal {
     }
     section {
       margin-bottom: 1.5rem;
-      max-width: 800px;
+      max-width: 1000px;
 
       h4 {
         width: 100%;
@@ -1232,6 +1240,16 @@ table.table-minimal {
       .instructions,
       .glyphicon {
         display: none;
+
+        &.url-status {
+          display: inline-block;
+          color: #5cb85c;
+          margin-left: 0.25rem;
+
+          &.glyphicon-remove {
+            color: constants.$orRed;
+          }
+        }
       }
       .list-compact > div {
         display: inline-block;
@@ -1272,6 +1290,22 @@ table.table-minimal {
           display: inline-block;
           vertical-align: bottom;
           margin-left: 0.25rem;
+        }
+      }
+    }
+
+    section.links {
+      .section-content {
+        .spinner-container {
+          display: inline-block;
+          margin: 0 0.25rem;
+
+          .spinner {
+            height: 15px;
+            margin: 0;
+            display: inline-block;
+            vertical-align: middle;
+          }
         }
       }
     }
@@ -1641,7 +1675,7 @@ table.table-minimal {
     background-position: 100% 70%;
     background-repeat: no-repeat;
     background-color: #fffaf4;
-    border: 2px solid lighten(constants.$mediumBlue, 10%);
+    border: 2px solid color.adjust(constants.$mediumBlue, $lightness: 10%);
     padding-right: 24px;
   }
   button[disabled] {
@@ -1780,6 +1814,20 @@ header,
 
 // markdown preview tab
 .markdown-preview {
+  &__textarea {
+    padding-bottom: 0.25rem;
+  }
+  &__doc-link {
+    font-size: 0.75rem;
+    color: constants.$mediumBlue;
+    background-color: #fffaf4;
+    padding: 0.25rem 0.25rem;
+
+    svg {
+      margin-right: 0.25rem;
+      vertical-align: sub;
+    }
+  }
   textarea {
     width: 100% !important;
     min-height: 250px;
@@ -1878,7 +1926,7 @@ header,
         color: constants.$darkBlue;
       }
       &.danger {
-        color: lighten(constants.$orRed, 20%);
+        color: color.adjust(constants.$orRed, $lightness: 20%);
       }
     }
   }

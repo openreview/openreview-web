@@ -1,17 +1,15 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
+import { orderBy } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import BasicHeader from './BasicHeader'
 import AreaChairStatus from './SeniorAreaChairConsole/AreaChairStatus'
 import PaperStatus from './SeniorAreaChairConsole/PaperStatus'
 import SeniorAreaChairTasks from './SeniorAreaChairConsole/SeniorAreaChairTasks'
 import ErrorDisplay from '../ErrorDisplay'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import {
   getIndentifierFromGroup,
   getNumberFromGroup,
@@ -25,6 +23,7 @@ import {
 } from '../../lib/utils'
 import { formatProfileContent } from '../../lib/edge-utils'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
+import ConsoleTabs from './ConsoleTabs'
 
 const SeniorAreaChairConsole = ({ appContext }) => {
   const {
@@ -61,16 +60,13 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     filterFunction,
     preferredEmailInvitationId,
     ithenticateInvitationId,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
-  const { setBannerContent } = appContext
-  const { user, accessToken, userLoading } = useUser()
+  const { setBannerContent } = appContext ?? {}
+  const { user, accessToken, isRefreshing } = useUser()
   const [sacConsoleData, setSacConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
-  const router = useRouter()
-  const query = useQuery()
-  const [activeTabId, setActiveTabId] = useState(
-    window.location.hash || `#${submissionName ?? ''.toLowerCase()}-status`
-  )
+  const query = useSearchParams()
 
   const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
   const areaChairUrlFormat = getRoleHashFragment(areaChairName)
@@ -547,6 +543,28 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             }
           }
 
+          const displayReplies = displayReplyInvitations?.map((p) => {
+            const displayInvitaitonId = p.id.replaceAll('{number}', note.number)
+            const latestReply = orderBy(
+              note.details.replies.filter((q) => q.invitations.includes(displayInvitaitonId)),
+              ['mdate'],
+              'desc'
+            )?.[0]
+            return {
+              id: latestReply?.id,
+              date: latestReply?.mdate,
+              invitationId: displayInvitaitonId,
+              values: p.fields.map((field) => {
+                const value = latestReply?.content?.[field]?.value?.toString()
+                return {
+                  field,
+                  value,
+                }
+              }),
+              signature: latestReply?.signatures?.[0],
+            }
+          })
+
           return {
             noteNumber: note.number,
             note: {
@@ -600,6 +618,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 const profile = allProfilesMap.get(areaChair.areaChairProfileId)
                 return {
                   ...areaChair,
+                  noteNumber: note.number,
+                  preferredId: profile ? profile.id : areaChair.areaChairProfileId,
                   preferredName: profile
                     ? getProfileName(profile)
                     : areaChair.areaChairProfileId,
@@ -625,6 +645,8 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             preliminaryDecision,
             messageSignature: seniorAreaChairGroupByNumber[note.number],
             ithenticateEdge: ithenticateEdges.find((p) => p.head === note.id),
+            venue: note.content?.venue?.value,
+            displayReplies,
           }
         }),
         withdrawnNotes: assignedNotes.flatMap((note) => {
@@ -645,32 +667,17 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
   useEffect(() => {
-    if (userLoading || !user || !group || !venueId) return
+    if (isRefreshing || !user || !group || !venueId) return
     loadData()
-  }, [user, userLoading, group])
-
-  useEffect(() => {
-    // if (!activeTabId) return
-    const validTabIds = [
-      `#${(submissionName ?? '').toLowerCase()}-status`,
-      `#${areaChairUrlFormat}-status`,
-      '#deskrejectwithdrawn-status',
-      `#${seniorAreaChairUrlFormat}-tasks`,
-    ]
-    if (!validTabIds.includes(activeTabId)) {
-      setActiveTabId(`#${(submissionName ?? '').toLowerCase()}-status`)
-      return
-    }
-    router.replace(activeTabId)
-  }, [activeTabId])
+  }, [user, isRefreshing, group])
 
   const missingConfig = Object.entries({
     header,
@@ -693,72 +700,43 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
-
-      <Tabs>
-        <TabList>
-          <Tab
-            id={`${submissionName.toLowerCase()}-status`}
-            active={
-              activeTabId === `#${submissionName.toLowerCase()}-status` ? true : undefined
-            }
-            onClick={() => setActiveTabId(`#${submissionName.toLowerCase()}-status`)}
-          >
-            {submissionName} Status
-          </Tab>
-          <Tab
-            id={`${areaChairUrlFormat}-status`}
-            active={activeTabId === `#${areaChairUrlFormat}-status` ? true : undefined}
-            onClick={() => setActiveTabId(`#${areaChairUrlFormat}-status`)}
-            hidden={!assignmentInvitation}
-          >
-            {getSingularRoleName(prettyField(areaChairName))} Status
-          </Tab>
-          {(withdrawnVenueId || deskRejectedVenueId) && (
-            <Tab
-              id="deskrejectwithdrawn-status"
-              active={activeTabId === '#deskrejectwithdrawn-status' ? true : undefined}
-              onClick={() => setActiveTabId('#deskrejectwithdrawn-status')}
-            >
-              Desk Rejected/Withdrawn {pluralizeString(submissionName)}
-            </Tab>
-          )}
-          <Tab
-            id={`${seniorAreaChairUrlFormat}-tasks`}
-            active={activeTabId === `#${seniorAreaChairUrlFormat}-tasks` ? true : undefined}
-            onClick={() => setActiveTabId(`#${seniorAreaChairUrlFormat}-tasks`)}
-          >
-            {getSingularRoleName(prettyField(seniorAreaChairName))} Tasks
-          </Tab>
-        </TabList>
-
-        <TabPanels>
-          <TabPanel id={`${submissionName.toLowerCase()}-status`}>
-            {activeTabId === `#${submissionName.toLowerCase()}-status` && (
-              <PaperStatus sacConsoleData={sacConsoleData} />
-            )}
-          </TabPanel>
-          {activeTabId === `#${areaChairUrlFormat}-status` && (
-            <TabPanel id={`${areaChairUrlFormat}-status`}>
+      <ConsoleTabs
+        defaultActiveTabId={`${(submissionName ?? '').toLowerCase()}-status`}
+        tabs={[
+          {
+            id: `${submissionName.toLowerCase()}-status`,
+            label: `${submissionName} Status`,
+            content: <PaperStatus sacConsoleData={sacConsoleData} />,
+            visible: true,
+          },
+          {
+            id: `${areaChairUrlFormat}-status`,
+            label: `${getSingularRoleName(prettyField(areaChairName))} Status`,
+            content: (
               <AreaChairStatus
                 sacConsoleData={sacConsoleData}
                 loadSacConsoleData={loadData}
                 user={user}
               />
-            </TabPanel>
-          )}
-          {activeTabId === '#deskrejectwithdrawn-status' && (
-            <TabPanel id="deskrejectwithdrawn-status">
+            ),
+            visible: assignmentInvitation,
+          },
+          {
+            id: 'deskrejectwithdrawn-status',
+            label: `Desk Rejected/Withdrawn ${pluralizeString(submissionName)}`,
+            content: (
               <RejectedWithdrawnPapers consoleData={sacConsoleData} isSacConsole={true} />
-            </TabPanel>
-          )}
-
-          {activeTabId === `#${seniorAreaChairUrlFormat}-tasks` && (
-            <TabPanel id={`${seniorAreaChairUrlFormat}-tasks`}>
-              <SeniorAreaChairTasks />
-            </TabPanel>
-          )}
-        </TabPanels>
-      </Tabs>
+            ),
+            visible: withdrawnVenueId || deskRejectedVenueId,
+          },
+          {
+            id: `${seniorAreaChairUrlFormat}-tasks`,
+            label: `${getSingularRoleName(prettyField(seniorAreaChairName))} Tasks`,
+            content: <SeniorAreaChairTasks />,
+            visible: true,
+          },
+        ]}
+      />
     </>
   )
 }

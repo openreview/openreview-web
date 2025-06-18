@@ -24,6 +24,7 @@ const AreaChairConsoleMenuBar = ({
   officialMetaReviewName,
   areaChairName,
   ithenticateInvitationId,
+  sortOptions: sortOptionsConfig,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
   const formattedReviewerName = camelCase(reviewerName)
@@ -35,6 +36,7 @@ const AreaChairConsoleMenuBar = ({
     title: ['note.content.title.value'],
     author: ['note.content.authors.value', 'note.content.authorids.value'],
     keywords: ['note.content.keywords.value'],
+    venue: ['note.content.venue.value'],
     [formattedReviewerName]: ['reviewers'],
     [`num${upperFirst(formattedReviewerName)}Assigned`]: [
       'reviewProgressData.numReviewersAssigned',
@@ -104,6 +106,10 @@ const AreaChairConsoleMenuBar = ({
       getValue: (p) => p.note?.content?.abstract?.value,
     },
     {
+      header: 'venue',
+      getValue: (p) => p.note?.content?.venue?.value,
+    },
+    {
       header: `num ${prettyField(reviewerName)}`,
       getValue: (p) => p.reviewProgressData?.numReviewersAssigned,
     },
@@ -120,9 +126,8 @@ const AreaChairConsoleMenuBar = ({
           ?.join('|'),
     },
     {
-      header: `${prettyField(reviewerName)} contact info`,
-      getValue: (p) =>
-        p.reviewers.map((q) => `${q.preferredName}<${q.preferredEmail}>`).join(','),
+      header: `${prettyField(reviewerName)} name`,
+      getValue: (p) => p.reviewers.map((q) => q.preferredName).join(','),
     },
     ...(Array.isArray(reviewRatingName)
       ? reviewRatingName.map((p) => (typeof p === 'object' ? Object.keys(p)[0] : p))
@@ -160,6 +165,11 @@ const AreaChairConsoleMenuBar = ({
       label: `${submissionName} Title`,
       value: 'Paper Title',
       getValue: (p) => p.note?.content?.title?.value,
+    },
+    {
+      label: 'Venue',
+      value: 'Venue',
+      getValue: (p) => p.note?.content?.venue?.value,
     },
     {
       label: 'Number of Forum Replies',
@@ -258,6 +268,7 @@ const AreaChairConsoleMenuBar = ({
           },
         ]
       : []),
+    ...(sortOptionsConfig ?? []),
   ]
   const basicSearchFunction = (row, term) => {
     const noteTitle = row.note.content?.title?.value

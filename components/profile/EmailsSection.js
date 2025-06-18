@@ -1,7 +1,7 @@
 /* globals promptError,promptMessage,$: false */
 
 import { useEffect, useReducer, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
@@ -68,8 +68,10 @@ const EmailsSection = ({
   updateEmails,
   institutionDomains,
   isNewProfile,
+  loadProfile,
 }) => {
-  const router = useRouter()
+  const searchParams = useSearchParams()
+  const tokenParam = searchParams.get('token')
 
   const emailsReducer = (state, action) => {
     if (action.addNewEmail) return [...state, action.data]
@@ -78,7 +80,7 @@ const EmailsSection = ({
         let emailCopy = { ...email }
         if (email.key === action.data.key) {
           emailCopy = action.data
-          if (action.setVerifyVisible) emailCopy.verifyVisible = action.data.visibleValue
+          emailCopy.verifyVisible = false
         }
         return emailCopy
       })
@@ -98,7 +100,7 @@ const EmailsSection = ({
         const emailCopy = { ...email }
         if (email.key === action.data.key) {
           emailCopy.confirmed = true
-          if (action.setVerifyVisible) emailCopy.verifyVisible = action.data.visibleValue
+          emailCopy.verifyVisible = false
         }
         return emailCopy
       })
@@ -120,7 +122,7 @@ const EmailsSection = ({
         return emailCopy
       })
     }
-
+    if (action.reset) return action.data
     return state
   }
   // eslint-disable-next-line max-len
@@ -134,8 +136,7 @@ const EmailsSection = ({
   const handleAddEmail = () => {
     setEmails({
       addNewEmail: true,
-      setVerifyVisible: true,
-      data: { email: '', key: nanoid(), isValid: true, visibleValue: false },
+      data: { email: '', key: nanoid(), isValid: true },
     })
   }
 
@@ -145,16 +146,14 @@ const EmailsSection = ({
     const isValid = isValidEmail(targetValue.toLowerCase())
     setEmails({
       updateEmail: true,
-      setVerifyVisible: true,
-      data: { ...existingEmailObj, key, email: targetValue, isValid, visibleValue: false },
+      data: { ...existingEmailObj, key, email: targetValue, isValid },
     })
   }
 
   const handleRemoveEmail = (key) => {
     setEmails({
       removeEmail: true,
-      setVerifyVisible: true,
-      data: { key, visibleValue: false },
+      data: { key },
     })
   }
 
@@ -171,7 +170,7 @@ const EmailsSection = ({
       const linkData = { alternate: newEmail, username: profileId }
       try {
         if (isNewProfile) {
-          await api.post(`/user/confirm/${router.query.token}`, linkData, { accessToken })
+          await api.post(`/user/confirm/${tokenParam}`, linkData, { accessToken })
         } else {
           await api.post('/user/confirm', linkData, { accessToken })
         }
@@ -192,16 +191,25 @@ const EmailsSection = ({
     const newEmail = emails?.find((p) => p.key === key)?.email?.toLowerCase()
     const token = emails?.find((p) => p.key === key)?.verificationToken ?? ''
     const payload = { email: newEmail, token }
+    let verifyResult
     try {
       if (isNewProfile) {
-        await api.put(`/activatelink/${router.query.token}`, payload, { accessToken })
+        await api.put(`/activatelink/${tokenParam}`, payload, { accessToken })
       } else {
-        await api.put('/activatelink', payload, { accessToken })
+        verifyResult = await api.put('/activatelink', payload, { accessToken })
+      }
+      if (verifyResult?.id) {
+        const updatedProfile = await loadProfile()
+        setEmails({
+          reset: true,
+          data:
+            updatedProfile?.emails?.map((p) => ({ ...p, key: nanoid(), isValid: true })) ?? [],
+        })
+        return promptMessage(`${newEmail} has been verified`)
       }
       setEmails({
-        setVerifyVisible: true,
         setConfirmed: true,
-        data: { key, visibleValue: false },
+        data: { key },
       })
       if (isInstitutionEmail(newEmail, institutionDomains)) setHasInstitutionEmail(true)
       return promptMessage(`${newEmail} has been verified`)
@@ -230,9 +238,9 @@ const EmailsSection = ({
         <div className="activation-message">
           <Icon name="warning-sign" />
           <p>
-            Your profile does not contain any institution email and it can take up to 2 weeks
-            for your profile to be activated. If you would like to activate your profile,
-            please add an institutional email.
+            Your profile does not contain any company/institution email and it can take up to 2
+            weeks for your profile to be activated. If you would like to activate your profile,
+            please add an email issued by employing or educational institution.
           </p>
         </div>
       )}

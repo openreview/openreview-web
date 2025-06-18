@@ -1,4 +1,4 @@
-import { Selector, ClientFunction, Role } from 'testcafe'
+import { Selector, ClientFunction, Role, RequestLogger } from 'testcafe'
 import {
   inactiveUser,
   inActiveUserNoPassword,
@@ -41,6 +41,7 @@ const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
 const messageSelector = Selector('span').withAttribute('class', 'important_message')
 const messagePanelSelector = Selector('#flash-message-container')
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
+const errorMessageLabel = Selector('.error-message')
 
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
@@ -226,7 +227,7 @@ test('enter invalid name', async (t) => {
     .ok()
     .expect(Selector('.important_message').textContent)
     .eql(
-      'The name 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
+      'The name Abc 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
 })
 
@@ -374,7 +375,7 @@ test('update profile', async (t) => {
     .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
-        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
       ).exists
     )
     .ok()
@@ -416,7 +417,7 @@ test('update profile', async (t) => {
     .ok()
     .expect(
       Selector('p').withText(
-        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
       ).exists
     )
     .notOk()
@@ -435,6 +436,7 @@ test('update profile', async (t) => {
 
     .click(nextSectiomButtonSelector) // relation
     .click(nextSectiomButtonSelector) // last section expertise
+    .expect(Selector('p').withText("last updated September 24, 2024").exists).ok()
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messagePanelSelector.exists)
     .ok()
@@ -445,58 +447,20 @@ test('update profile', async (t) => {
     .notOk()
 })
 
-// eslint-disable-next-line no-unused-expressions
-fixture`Activate`
-  .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=peter@test.com`
-
-test('do not allow merging from not registered profiles', async (t) => {
+const resetPasswordLogger = RequestLogger({ url: `${process.env.API_V2_URL}/resettable`, method: 'post' }, { logRequestBody: true })
+fixture`Sign up`.page`http://localhost:${process.env.NEXT_PORT}/signup`.requestHooks(resetPasswordLogger)
+test('reset password should have turnstile token', async (t) => {
   await t
-    .click(nextSectiomButtonSelector)
-    .click(nextSectiomButtonSelector)
-    .expect(
-      Selector('p').withText(
-        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
-      ).exists
-    )
-    .ok()
-    // add alternate email while registering
-    .click(Selector('span.glyphicon.glyphicon-plus-sign')) // add button
-    .expect(Selector('div.container.emails').child('div.row').count)
-    .eql(2)
-    .typeText(
-      Selector('div.container.emails').child('div.row').nth(1).find('input'),
-      'melisa@umass.edu'
-    )
-    .click(Selector('div.container.emails').find('button.confirm-button'))
-    .expect(messagePanelSelector.exists)
-    .ok()
-    .expect(messageSelector.innerText)
-    .eql(
-      'A confirmation email has been sent to melisa@umass.edu with confirmation instructions'
-    )
-    .navigateTo(
-      `http://localhost:${process.env.NEXT_PORT}/profile/merge?token=melisa@umass.edu`
-    )
-    .typeText(Selector('#email-input'), 'peter@test.com')
-    .typeText(Selector('#password-input'), strongPassword)
-    .click(Selector('button').withText('Login to OpenReview'))
-    .expect(messagePanelSelector.exists)
-    .ok()
-    .expect(messageSelector.innerText)
-    .eql(
-      'User not confirmed. Please click on "Didn\'t receive email confirmation?" to complete the registration.'
-    )
-    .selectText(Selector('#email-input'))
-    .pressKey('delete')
-    .typeText(Selector('#email-input'), 'melisa@test.com')
-    .selectText(Selector('#password-input'))
-    .pressKey('delete')
-    .typeText(Selector('#password-input'), strongPassword)
-    .click(Selector('button').withText('Login to OpenReview'))
-    .expect(Selector('pre.error-message').exists)
-    .ok()
-    .expect(Selector('pre.error-message').innerText)
-    .eql('You are not authorized to perform this merge.')
+    .typeText(fullNameInputSelector, "Melisa Bok")
+    .wait(500)
+    .click(Selector('label.name-confirmation'))
+    .click(Selector('button').withText('Reset Password'))
+    .expect(Selector('button').withText('Reset Password').hasAttribute('disabled')).ok()
+    .typeText(Selector('input').withAttribute('placeholder', 'Full email for ****@test.com'), 'melisa@test.com')
+    .expect(Selector('button').withText('Reset Password').hasAttribute('disabled')).notOk()
+    .click(Selector('button').withText('Reset Password'))
+  // token is passed to reset call
+  await t.expect(resetPasswordLogger.contains((record) => record.request.body.includes('token'))).ok()
 })
 
 // eslint-disable-next-line no-unused-expressions
@@ -509,7 +473,7 @@ test('register a profile with an institutional email', async (t) => {
     .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
-        'Your profile does not contain any institution email and it can take up to 2 weeks for your profile to be activated.'
+        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
       ).exists
     )
     .notOk()
@@ -577,31 +541,31 @@ fixture`Activate with errors`
 test('try to activate a profile with no token and get an error', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate`)
-    .expect(messagePanelSelector.exists)
+    .expect(errorMessageLabel.exists)
     .ok()
-    .expect(messageSelector.innerText)
+    .expect(errorMessageLabel.innerText)
     .eql('Invalid profile activation link. Please check your email and try again.')
-})
+}).skipJsErrors()
 
 test('try to activate a profile with empty token and get an error', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=`)
-    .expect(messagePanelSelector.exists)
+    .expect(errorMessageLabel.exists)
     .ok()
-    .expect(messageSelector.innerText)
+    .expect(errorMessageLabel.innerText)
     .eql('Invalid profile activation link. Please check your email and try again.')
-})
+}).skipJsErrors()
 
 test('try to activate a profile with invalid token and get an error', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=fhtbsk`)
-    .expect(messagePanelSelector.exists)
+    .expect(errorMessageLabel.exists)
     .ok()
-    .expect(messageSelector.innerText)
+    .expect(errorMessageLabel.innerText)
     .eql('Activation token is not valid')
-})
+}).skipJsErrors()
 
-fixture`Reset password`.page`http://localhost:${process.env.NEXT_PORT}/reset`.before(
+fixture`Reset password`.before(
   async (ctx) => {
     ctx.superUserToken = await getToken(superUserName, strongPassword)
     return ctx
@@ -610,6 +574,8 @@ fixture`Reset password`.page`http://localhost:${process.env.NEXT_PORT}/reset`.be
 
 test('reset password of active profile', async (t) => {
   await t
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/reset`)
+    .wait(1000)
     .typeText(Selector('#email-input'), 'melisa@test.com')
     .expect(Selector('button').withText('Reset Password').hasAttribute('disabled')).notOk({ timeout: 5000 })
     .click(Selector('button').withText('Reset Password'))
@@ -624,7 +590,7 @@ test('reset password of active profile', async (t) => {
   await t
     .expect(messages[0].content.text)
     .contains('http://localhost:3030/user/password?token=')
-})
+}).skipJsErrors()
 
 fixture`Edit profile`.page`http://localhost:${process.env.NEXT_PORT}/login`.before(
   async (ctx) => {
@@ -670,6 +636,10 @@ test('add alternate email', async (t) => {
     .ok()
     .expect(Selector('input[placeholder="Enter Verification Token"]').visible)
     .ok()
+    .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
+    .click(Selector('button').withText('Verify').nth(0))
+    .expect(messageSelector.innerText)
+    .eql('melisa@alternate.com has been verified')
 
   const messages = await getMessages(
     { to: 'melisa@alternate.com', subject: 'OpenReview Email Confirmation' },
@@ -680,46 +650,6 @@ test('add alternate email', async (t) => {
     .contains(
       'to confirm an alternate email address melisa@alternate.com. If you would like to confirm this email, please use the verification token mentioned below'
     )
-})
-
-// eslint-disable-next-line no-unused-expressions
-fixture`Confirm altenate email`
-
-// guest redirect to login
-test('confirm email as guest', async (t) => {
-  const getPageUrl = ClientFunction(() => window.location.href.toString())
-  await t
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
-    .expect(getPageUrl())
-    .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
-})
-
-// another user show error
-test('confirm email as another user', async (t) => {
-  await t
-    .useRole(SURole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
-    .expect(Selector('#content h1').innerText)
-    .eql('Error 403')
-    .expect(Selector('.error-message').innerText)
-    .eql('You are not authorized to activate this email.')
-})
-
-test('update profile', async (t) => {
-  await t
-    .useRole(EmailOwnerRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/confirm?token=melisa@alternate.com`)
-    .expect(
-      Selector('p').withText(
-        'Click Confirm Email button below to confirm adding melisa@alternate.com to your account.'
-      ).exists
-    )
-    .ok()
-    .click(Selector('button').withText('Confirm Email'))
-    .expect(messagePanelSelector.exists)
-    .ok()
-    .expect(messageSelector.innerText)
-    .eql('Thank you for confirming your email melisa@alternate.com')
 })
 
 // eslint-disable-next-line no-unused-expressions

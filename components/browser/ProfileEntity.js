@@ -6,6 +6,8 @@
 import { nanoid } from 'nanoid'
 import React, { useContext } from 'react'
 import copy from 'copy-to-clipboard'
+import { sortBy } from 'lodash'
+import { useSearchParams } from 'next/navigation'
 import api from '../../lib/api-client'
 import {
   getInterpolatedValues,
@@ -14,13 +16,13 @@ import {
   isInGroupInvite,
   isNotInGroupInvite,
 } from '../../lib/edge-utils'
-import UserContext from '../UserContext'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import ScoresList from './ScoresList'
-import useQuery from '../../hooks/useQuery'
+import EditEdgeTextbox from './EditEdgeTextbox'
+import useUser from '../../hooks/useUser'
 
 export default function ProfileEntity(props) {
   const {
@@ -31,8 +33,9 @@ export default function ProfileEntity(props) {
     ignoreHeadBrowseInvitations,
     version,
   } = useContext(EdgeBrowserContext)
-  const { user, accessToken } = useContext(UserContext)
-  const query = useQuery()
+  const { user, accessToken } = useUser()
+  const query = useSearchParams()
+  const preferredEmailInvitationId = query.get('preferredEmailInvitationId')
 
   if (!props.profile || !props.profile.content) {
     return null
@@ -65,12 +68,16 @@ export default function ProfileEntity(props) {
       if (!browseEdges?.find((q) => q.invitation === p.id)) {
         browseEdges = browseEdges.concat({
           id: nanoid(),
+          invitation: p.id,
           name: p.name,
           label: p.defaultLabel,
           weight: p.defaultWeight,
         })
       }
     })
+    browseEdges = sortBy(browseEdges, (edge) =>
+      browseInvitations.findIndex((p) => p.id === edge.invitation)
+    )
   }
 
   const isInviteAcceptedProfile =
@@ -138,7 +145,7 @@ export default function ProfileEntity(props) {
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
       } else if (isCustomLoadInvitation) {
-        props.updateChildColumn(props.columnIndex, null)
+        props.updateChildColumn(props.columnIndex, defaultWeight)
       }
       props.reloadColumnEntities()
     } catch (error) {
@@ -149,7 +156,7 @@ export default function ProfileEntity(props) {
   const getEmail = async () => {
     try {
       const result = await api.get(`/edges`, {
-        invitation: query.preferredEmailInvitationId,
+        invitation: preferredEmailInvitationId,
         head: id,
       })
       const email = result.edges?.[0]?.tail
@@ -199,7 +206,7 @@ export default function ProfileEntity(props) {
     )
     if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
-      return
+      return false
     }
 
     const {
@@ -236,8 +243,10 @@ export default function ProfileEntity(props) {
         promptMessage(
           `Invitation has been sent to ${body.tail} and it's waiting for the response.`
         )
+      return true
     } catch (error) {
       promptError(error.message)
+      return false
     }
   }
 
@@ -312,10 +321,27 @@ export default function ProfileEntity(props) {
     if (!edge && content?.isInvitedProfile && isEmergencyReviewerStage && !isInviteInvitation)
       return null
 
+    const editEdgeTextbox = (type) => (
+      <>
+        <EditEdgeTextbox
+          existingEdge={edge}
+          canAddEdge={
+            editEdges?.filter((p) => p?.invitation === invitation.id).length === 0 ||
+            invitation.multiReply
+          }
+          label={invitation.name}
+          selected={edge?.[type]}
+          addEdge={addEdge}
+          removeEdge={() => removeEdge(edge)}
+          type={type} // label or weight
+          editEdgeTemplate={editEdgeTemplates?.find((p) => p?.invitation === invitation.id)}
+        />
+      </>
+    )
+
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown
         existingEdge={edge}
-        // eslint-disable-next-line max-len
         canAddEdge={
           editEdges?.filter((p) => p?.invitation === invitation.id).length === 0 ||
           invitation.multiReply
@@ -381,12 +407,14 @@ export default function ProfileEntity(props) {
     const shouldRenderWeightRadio = weightRadio && !invitation.label
     const shouldRenderLabelDropdown = labelDropdown && !invitation.weight
     const shouldRenderWeightDropdown = weightDropdown && !invitation.label
+    const shouldRenderWeightTextbox = invitation.weight?.['value-textbox']
 
     if (shouldRenderTwoRadio) return editEdgeTwoDropdowns('value-radio')
     if (shouldRenderTwoDropdown) return editEdgeTwoDropdowns('value-dropdown')
     if (shouldRenderLabelRadio) return editEdgeDropdown('label', 'value-radio') // for now treat radio the same as dropdown
     if (shouldRenderWeightRadio) return editEdgeDropdown('weight', 'value-radio') // for now treat radio the same as dropdown
     if (shouldRenderLabelDropdown) return editEdgeDropdown('label', 'value-dropdown')
+    if (shouldRenderWeightTextbox) return editEdgeTextbox('weight')
     if (shouldRenderWeightDropdown) return editEdgeDropdown('weight', 'value-dropdown')
     return editEdgeToggle()
   }
@@ -446,8 +474,8 @@ export default function ProfileEntity(props) {
         </h3>
         <p>{content.title}</p>
         <h3>
-          {!query.preferredEmailInvitationId && <span>({content.email})</span>}
-          {query.preferredEmailInvitationId && !content.isDummyProfile && (
+          {!preferredEmailInvitationId && <span>({content.email})</span>}
+          {preferredEmailInvitationId && !content.isDummyProfile && (
             <span
               onClick={(e) => {
                 e.stopPropagation()

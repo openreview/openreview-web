@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { formatDateTime, prettyId, prettyInvitationId } from '../../lib/utils'
+
+dayjs.extend(relativeTime)
 
 export default function SubmissionButton({
   invitationId,
@@ -13,11 +17,13 @@ export default function SubmissionButton({
 }) {
   const [invitation, setInvitation] = useState(null)
   const [noteEditorOpen, setNoteEditorOpen] = useState(false)
-  const { accessToken, userLoading } = useUser()
+  const { accessToken, isRefreshing } = useUser()
   const newNoteEditor = invitation?.domain
 
-  const invitationPastDue =
-    invitation?.duedate && invitation.duedate < Date.now() && !invitation?.details.writable
+  const invitationPastDue = invitation?.duedate && invitation.duedate < Date.now()
+  const invitationDeleted = invitation?.ddate
+  const invitationNotAvailable =
+    (invitationPastDue || invitationDeleted) && !invitation?.details.writable
 
   const loadInvitation = async () => {
     try {
@@ -39,13 +45,21 @@ export default function SubmissionButton({
     setNoteEditorOpen(!noteEditorOpen)
   }
 
+  const getTitle = () => {
+    if (invitationDeleted)
+      return `${prettyInvitationId(invitationId)} invitation is deleted. ddate: ${formatDateTime(invitation.ddate)}`
+    if (invitationPastDue)
+      return `${prettyInvitationId(invitationId)} expired ${dayjs(invitation.expdate).fromNow()}`
+    return ''
+  }
+
   useEffect(() => {
-    if (userLoading) return
+    if (isRefreshing) return
 
     loadInvitation()
-  }, [userLoading, invitationId])
+  }, [isRefreshing, invitationId])
 
-  if (!invitation || invitationPastDue) return null
+  if (!invitation || invitationNotAvailable) return null
 
   return (
     <>
@@ -55,7 +69,14 @@ export default function SubmissionButton({
         ) : (
           <span className="item hint">Add:</span>
         )}
-        <button className="btn" onClick={toggleSubmissionForm}>
+        <button
+          className={`btn ${invitationPastDue || invitationDeleted ? 'expired' : ''}`}
+          onClick={toggleSubmissionForm}
+          data-toggle="tooltip"
+          data-placement="top"
+          data-trigger="hover"
+          title={getTitle()}
+        >
           {prettyId(invitationId)}
         </button>
       </div>

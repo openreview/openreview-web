@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useContext, useRef } from 'react'
 import _ from 'lodash'
+import { useSearchParams } from 'next/navigation'
 import Icon from '../Icon'
 import LoadingSpinner from '../LoadingSpinner'
 import EdgeBrowserContext from './EdgeBrowserContext'
@@ -17,7 +18,6 @@ import {
 } from '../../lib/edge-utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
 import { filterCollections, getEdgeValue } from '../../lib/webfield-utils'
 
 export default function Column(props) {
@@ -43,7 +43,7 @@ export default function Column(props) {
   const entityMap = useRef({ globalEntityMap, altGlobalEntityMap })
   const [entityMapChanged, setEntityMapChanged] = useState(false)
   const { accessToken, user } = useUser()
-  const query = useQuery()
+  const query = useSearchParams()
 
   const sortOptions = [
     {
@@ -285,11 +285,11 @@ export default function Column(props) {
       editInvitations?.[0]?.id ?? traverseInvitation.id,
       true
     ).toLowerCase()
-    if (query.filter) {
+    if (query.get('filter')) {
       return (
         <>
           {`Show ${group} available for ${invitation} `}
-          <Icon name="info-sign" tooltip={query.filter} />
+          <Icon name="info-sign" tooltip={query.get('filter')} />
         </>
       )
     }
@@ -585,25 +585,28 @@ export default function Column(props) {
 
   const filterQuotaReachedItems = (colItems) => {
     if (!hideQuotaReached) return colItems
-    if (query.filter) {
+    if (query.get('filter')) {
       const { filteredRows, queryIsInvalid } = filterCollections(
         colItems.map((p) => {
           const customLoad = getQuota(p)
           const quotaNotReached =
-            query.check_quota === 'false' ? !p.traverseEdge : p.traverseEdgesCount < customLoad
+            query.get('check_quota') === 'false'
+              ? !p.traverseEdge
+              : p.traverseEdgesCount < customLoad
 
           return {
             ...p,
             filterProperties: editAndBrowserInvitationsUnique.reduce(
               (prev, curr) => {
+                const invitaitonId = curr.id.replaceAll('.', '_')
                 const edge = [...p.browseEdges, ...p.editEdges].find(
                   (q) => q.invitation === curr.id
                 )
 
                 if (edge) {
-                  prev[curr.id] = getEdgeValue(edge) // eslint-disable-line no-param-reassign
+                  prev[invitaitonId] = getEdgeValue(edge) // eslint-disable-line no-param-reassign
                 } else {
-                  prev[curr.id] = curr.defaultWeight ?? curr.defaultLabel // eslint-disable-line no-param-reassign
+                  prev[invitaitonId] = curr.defaultWeight ?? curr.defaultLabel // eslint-disable-line no-param-reassign
                 }
                 return prev
               },
@@ -611,11 +614,14 @@ export default function Column(props) {
             ),
           }
         }),
-        `${query.filter} AND Quota=true`,
+        `${query.get('filter').replaceAll('.', '_')} AND Quota=true`,
         ['!=', '>=', '<=', '>', '<', '==', '='],
         editAndBrowserInvitationsUnique.reduce(
           (prev, curr) => {
-            prev[curr.id] = [`filterProperties.${curr.id}`] // eslint-disable-line no-param-reassign
+            // eslint-disable-next-line no-param-reassign
+            prev[curr.id.replaceAll('.', '_')] = [
+              `filterProperties.${curr.id.replaceAll('.', '_')}`,
+            ]
             return prev
           },
           {
@@ -731,7 +737,7 @@ export default function Column(props) {
     editInvitations.forEach((editInvitation) =>
       addToEdgesPromiseMap(editInvitation, 'edit', edgesPromiseMap, true, false)
     )
-    addToEdgesPromiseMap(hideInvitation, 'hide', edgesPromiseMap, false, true)
+    addToEdgesPromiseMap(hideInvitation, 'hide', edgesPromiseMap, false, false)
     browseInvitations.forEach((browseInvitation) =>
       addToEdgesPromiseMap(browseInvitation, 'browse', edgesPromiseMap, false, false)
     )
