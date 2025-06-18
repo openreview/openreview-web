@@ -181,7 +181,7 @@ const ReviewerProgress = ({
                             ratingDisplayName = ratingName
                             ratingValue = officialReview[ratingName]
                           }
-                          if (!ratingValue) return null
+                          if (ratingValue === undefined) return null
                           return (
                             <span key={ratingName}>
                               {prettyField(ratingDisplayName)}: {ratingValue}{' '}
@@ -293,7 +293,6 @@ const ReviewerStatusTab = ({
   pcConsoleData,
   loadReviewMetaReviewData,
   loadRegistrationNoteMap,
-  showContent,
 }) => {
   const [reviewerStatusTabData, setReviewerStatusTabData] = useState({})
   const {
@@ -461,7 +460,7 @@ const ReviewerStatusTab = ({
   }
 
   useEffect(() => {
-    if (!pcConsoleData.reviewers || !showContent) return
+    if (!pcConsoleData.reviewers) return
     if (!pcConsoleData.registrationNoteMap) {
       loadRegistrationNoteMap()
     } else {
@@ -471,7 +470,6 @@ const ReviewerStatusTab = ({
     pcConsoleData.reviewers,
     pcConsoleData.noteNumberReviewMetaReviewMap,
     pcConsoleData.registrationNoteMap,
-    showContent,
   ])
 
   useEffect(() => {
@@ -491,7 +489,7 @@ const ReviewerStatusTab = ({
     setPageNumber(1)
   }, [reviewerStatusTabData.tableRows])
 
-  if (!reviewerStatusTabData.tableRowsAll) return <LoadingSpinner />
+  if (!reviewerStatusTabData.tableRowsAll) return <LoadingSpinner inline />
 
   if (reviewerStatusTabData.tableRowsAll?.length === 0)
     return (

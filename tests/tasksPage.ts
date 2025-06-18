@@ -10,8 +10,27 @@ const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async 
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
+const hasNoTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
+  await t
+    .click(Selector('a').withText('Login'))
+    .typeText(Selector('#email-input'), hasNoTaskUser.email)
+    .typeText(Selector('#password-input'), hasNoTaskUser.password)
+    .click(Selector('button').withText('Login to OpenReview'))
+})
+
 // eslint-disable-next-line no-unused-expressions
 fixture`Tasks Page`
+
+test('user with no tasks should see an empty tasks page', async (t) => {
+  await t
+    .useRole(hasNoTaskUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
+    // should see no task message
+    .expect(Selector('p.empty-message').exists)
+    .ok()
+    .expect(Selector('p.empty-message').textContent)
+    .eql('No current pending or completed tasks')
+})
 
 test('task should change when note is deleted and restored', async (t) => {
   await t
@@ -46,4 +65,6 @@ test('task should change when note is deleted and restored', async (t) => {
     .click(Selector('a').withText('Tasks'))
     .expect(Selector('span.task-count-message').innerText)
     .eql('Show 0 pending tasks and 1 completed task')
+}).skipJsErrors({
+  message: "[Cloudflare Turnstile] Error: 300030."
 })

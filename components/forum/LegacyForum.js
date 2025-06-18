@@ -1,18 +1,15 @@
-import { useEffect, useContext } from 'react'
-import UserContext from '../UserContext'
+'use client'
+
+import { useEffect } from 'react'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteAuthors from '../NoteAuthors'
 import NoteReaders from '../NoteReaders'
 import NoteContent from '../NoteContent'
 import { prettyId, inflect, forumDate, classNames } from '../../lib/utils'
+import useUser from '../../hooks/useUser'
 
-export default function LegacyForum({
-  forumNote,
-  selectedNoteId,
-  selectedInvitationId,
-  clientJsLoading,
-}) {
-  const { user, userLoading } = useContext(UserContext)
+export default function LegacyForum({ forumNote, selectedNoteId, selectedInvitationId }) {
+  const { user, isRefreshing } = useUser()
   const { id, content, details } = forumNote
   const authors =
     Array.isArray(content.authors) || typeof content.authors === 'string'
@@ -21,13 +18,13 @@ export default function LegacyForum({
 
   // Load and execute legacy forum code
   useEffect(() => {
-    if (clientJsLoading || userLoading) return
+    if (isRefreshing) return
 
     // eslint-disable-next-line global-require
     const runForum = require('../../client/forum')
     runForum(id, selectedNoteId, selectedInvitationId, user)
     // authors resets when clientJsLoading turns false
-  }, [clientJsLoading, user?.id, JSON.stringify(authors), userLoading])
+  }, [user?.id, JSON.stringify(authors), isRefreshing])
 
   return (
     <div className="forum-container">
