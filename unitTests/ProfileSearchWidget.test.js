@@ -1937,6 +1937,15 @@ describe('ProfileSearchWidget to be used by itself', () => {
     )
 
     await userEvent.click(screen.getByText('Add'))
+    // a user may have this email but not confirmed
+    // seach by confiemedEmail (not returning any profile) allow user to add the custom relation
+    expect(api.get).toHaveBeenCalledWith(
+      '/profiles/search',
+      expect.objectContaining({
+        confirmedEmail: 'test@email.nomatch',
+      }),
+      expect.anything()
+    )
     expect(onChange).toHaveBeenCalledWith(
       undefined,
       'fullname',
