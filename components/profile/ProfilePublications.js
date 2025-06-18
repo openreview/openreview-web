@@ -1,4 +1,7 @@
+'use client'
+
 /* globals $: false */
+
 import { useEffect } from 'react'
 import { nanoid } from 'nanoid'
 import Link from 'next/link'
