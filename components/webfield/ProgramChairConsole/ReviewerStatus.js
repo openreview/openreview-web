@@ -490,7 +490,7 @@ const ReviewerStatusTab = ({
     setPageNumber(1)
   }, [reviewerStatusTabData.tableRows])
 
-  if (!reviewerStatusTabData.tableRowsAll) return <LoadingSpinner />
+  if (!reviewerStatusTabData.tableRowsAll) return <LoadingSpinner inline />
 
   if (reviewerStatusTabData.tableRowsAll?.length === 0)
     return (

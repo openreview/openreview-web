@@ -9,6 +9,7 @@ import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { getMetaInvitationId, prettyId } from '../../lib/utils'
+import NoteEditor from '../NoteEditor'
 
 // Used for both reply/edit and reply forum views
 export default function InvitationReply({
@@ -103,6 +104,13 @@ export function InvitationReplyV2({
 }) {
   const [replyString, setReplyString] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [activeTabId, setActiveTabId] = useState('reply')
+  const [replyPreview, setReplyPreview] = useState(null)
+  const showPreview =
+    replyField === 'edit' &&
+    (invitation.edit?.note || invitation.edit?.invitation?.edit?.note) &&
+    !readOnly
+  const isInvitaitonOfInvitation = invitation.edit?.invitation
 
   const titleMap = {
     edge: 'Edge',
@@ -179,6 +187,17 @@ export function InvitationReplyV2({
   }
 
   useEffect(() => {
+    if (activeTabId !== 'preview') return
+    try {
+      const parsedReply = JSON.parse(replyString)
+      setReplyPreview(isInvitaitonOfInvitation ? parsedReply.invitation.edit : parsedReply)
+    } catch (error) {
+      promptError(`Reply is not valid JSON: ${error.message}.`, { scrollToTop: false })
+      setActiveTabId('reply')
+    }
+  }, [activeTabId])
+
+  useEffect(() => {
     if (!invitation || !replyField) return
 
     let code = invitation[replyField]
@@ -197,8 +216,57 @@ export function InvitationReplyV2({
   }, [invitation, replyField])
 
   return (
-    <EditorSection title={sectionTitle}>
-      <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
+    <EditorSection title={sectionTitle} className="reply-preview">
+      {showPreview ? (
+        <>
+          <Tabs>
+            <TabList>
+              <Tab
+                id="reply"
+                active={activeTabId === 'reply' ? true : undefined}
+                onClick={() => {
+                  setActiveTabId('reply')
+                }}
+              >
+                Reply
+              </Tab>
+              <Tab
+                id="preview"
+                active={activeTabId === 'preview' ? true : undefined}
+                onClick={() => {
+                  setActiveTabId('preview')
+                }}
+              >
+                {isInvitaitonOfInvitation ? 'Preview of Inner Invitation' : 'Preview'}
+              </Tab>
+            </TabList>
+            <TabPanels>
+              <TabPanel id="reply">
+                <CodeEditor code={replyString} onChange={setReplyString} isJson />
+              </TabPanel>
+              <TabPanel id="preview">
+                {activeTabId === 'preview' && (
+                  <NoteEditor
+                    invitation={{
+                      domain: invitation.domain,
+                      edit: replyPreview,
+                    }}
+                    closeNoteEditor={() => {
+                      setActiveTabId('reply')
+                    }}
+                    customValidator={() => ({
+                      isValid: false,
+                      errorMessage: 'This is a note editor preview',
+                    })}
+                  />
+                )}
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        </>
+      ) : (
+        <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
+      )}
 
       {!readOnly && (
         <div className="mt-2">

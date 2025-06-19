@@ -26,9 +26,7 @@ const WebfieldContainer = forwardRef((props, ref) => {
 
     if (href.match(/^\/(forum|group|profile|invitation|assignments)/)) {
       e.preventDefault()
-      // Need to manually scroll to top of page after using router.push,
-      // see https://github.com/vercel/next.js/issues/3249
-      router.push(href).then(() => window.scrollTo(0, 0))
+      router.push(href)
     } else if (href.startsWith('#') && target.getAttribute('data-modify-history') === 'true') {
       router.replace(window.location.pathname + window.location.search + href)
     }

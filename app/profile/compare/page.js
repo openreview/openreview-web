@@ -88,7 +88,7 @@ const addSignatureToProfile = (profile) => {
 
 function Page() {
   const { user, accessToken, isRefreshing } = useUser()
-  const [profilesWithEdgeCounts, setProfilesWithEdgeCounts] = useState(null)
+  const [profiles, setProfiles] = useState(null)
   const [error, setError] = useState(null)
   const query = useSearchParams()
   const left = query.get('left')
@@ -142,61 +142,16 @@ function Page() {
     return {}
   }
 
-  const getEdges = async (withSignatureProfiles) => {
-    if (
-      !withSignatureProfiles.left?.id ||
-      !withSignatureProfiles.right?.id ||
-      withSignatureProfiles.left.id === withSignatureProfiles.right.id
-    )
-      return null
-    const leftHeadP = api.get(
-      '/edges',
-      { head: withSignatureProfiles.left.id },
-      { accessToken }
-    )
-    const leftTailP = api.get(
-      '/edges',
-      { tail: withSignatureProfiles.left.id },
-      { accessToken }
-    )
-    const rightHeadP = api.get(
-      '/edges',
-      { head: withSignatureProfiles.right.id },
-      { accessToken }
-    )
-    const rightTailP = api.get(
-      '/edges',
-      { tail: withSignatureProfiles.right.id },
-      { accessToken }
-    )
-    return Promise.all([leftHeadP, leftTailP, rightHeadP, rightTailP]).then((results) => ({
-      leftHead: results[0].count,
-      leftTail: results[1].count,
-      rightHead: results[2].count,
-      rightTail: results[3].count,
-    }))
-  }
-
   const loadProfiles = async () => {
     try {
-      await Promise.all([getBasicProfile(left), getBasicProfile(right)])
-        .then(([basicProfileLeft, basicProfileRight]) => ({
-          left: addSignatureToProfile(basicProfileLeft),
-          right: addSignatureToProfile(basicProfileRight),
-        }))
-        .then((withSignatureProfiles) =>
-          getEdges(withSignatureProfiles)
-            .then((edgeCounts) =>
-              setProfilesWithEdgeCounts({
-                withSignatureProfiles,
-                edgeCounts,
-              })
-            )
-            .catch((edgeError) => {
-              promptError(edgeError.message)
-              return { withSignatureProfiles }
-            })
-        )
+      await Promise.all([getBasicProfile(left), getBasicProfile(right)]).then(
+        ([basicProfileLeft, basicProfileRight]) => {
+          setProfiles({
+            left: addSignatureToProfile(basicProfileLeft),
+            right: addSignatureToProfile(basicProfileRight),
+          })
+        }
+      )
     } catch (apiError) {
       setError(apiError.message)
     }
@@ -211,7 +166,7 @@ function Page() {
     loadProfiles()
   }, [isRefreshing])
 
-  if (!profilesWithEdgeCounts && !error) return <LoadingSpinner />
+  if (!profiles && !error) return <LoadingSpinner />
   if (error) return <ErrorDisplay message={error} />
 
   return (
@@ -222,7 +177,7 @@ function Page() {
           <hr />
         </header>
         <div className="table-responsive">
-          <Compare profilesWithEdgeCounts={profilesWithEdgeCounts} accessToken={accessToken} />
+          <Compare profiles={profiles} accessToken={accessToken} loadProfiles={loadProfiles} />
         </div>
       </div>
     </CommonLayout>
