@@ -174,6 +174,88 @@ export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes })
   )
 }
 
+const BlockModal = ({ profileToBlockUnblock, signedNotes, reload, accessToken }) => {
+  const [blockTag, setBlockTag] = useState('')
+  const actionIsBlock = profileToBlockUnblock?.state !== 'Blocked'
+
+  const blockUnblockUser = async (profile) => {
+    if (!profile) return
+
+    try {
+      await api.post('/tags', {
+        profile: profileToBlockUnblock.id,
+        label: blockTag.trim(),
+        signature: `${process.env.SUPER_USER}/Support`,
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Blocked_Status`,
+        readers: [`${process.env.SUPER_USER}/Support`],
+      })
+
+      await api.post(
+        '/profile/moderate',
+        { id: profile.id, decision: actionIsBlock ? 'block' : 'unblock' },
+        { accessToken }
+      )
+      setBlockTag('')
+      $('#block-user-modal').modal('hide')
+    } catch (error) {
+      promptError(error.message)
+    }
+    reload()
+  }
+
+  useEffect(() => {}, [profileToBlockUnblock])
+
+  return (
+    <BasicModal
+      id="block-user-modal"
+      primaryButtonText={`${profileToBlockUnblock?.state === 'Blocked' ? 'Unblock' : 'Block'}`}
+      onPrimaryButtonClick={() => {
+        blockUnblockUser(profileToBlockUnblock)
+      }}
+      primaryButtonDisabled={!blockTag.trim()}
+    >
+      <>
+        <h4>{`You are about to ${actionIsBlock ? 'block' : 'unblock'} ${
+          profileToBlockUnblock?.content?.names?.[0]?.fullname
+        }.`}</h4>
+        <div>
+          <input
+            id="tag-input"
+            type="text"
+            className="form-control mb-2"
+            value={blockTag}
+            placeholder="a tag to be added to this profile such as block/unblock reason"
+            onChange={(e) => setBlockTag(e.target.value)}
+          />
+        </div>
+        {actionIsBlock && signedNotes.length > 0 && (
+          <>
+            <h4>{`There ${inflect(signedNotes.length, 'is', 'are', false)} ${inflect(
+              signedNotes.length,
+              'note',
+              'notes',
+              true
+            )} signed by this profile.`}</h4>
+            {signedNotes.slice(0, 10).map((p) => (
+              <div key={p.id}>
+                <a
+                  href={`${
+                    p.apiVersion === 2 ? process.env.API_V2_URL : process.env.API_URL
+                  }/notes?id=${p.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {p.id}
+                </a>
+              </div>
+            ))}
+          </>
+        )}
+      </>
+    </BasicModal>
+  )
+}
+
 const UserModerationQueue = ({
   accessToken,
   title,
@@ -187,13 +269,14 @@ const UserModerationQueue = ({
   const [pageNumber, setPageNumber] = useState(1)
   const [filters, setFilters] = useState({})
   const [profileToReject, setProfileToReject] = useState(null)
+  const [profileToBlockUnblock, setProfileToBlockUnblock] = useState(null)
   const [signedNotes, setSignedNotes] = useState(0)
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
   const [pageSize, setPageSize] = useState(onlyModeration ? 200 : 15)
   const [profileToPreview, setProfileToPreview] = useState(null)
   const [lastPreviewedProfileId, setLastPreviewedProfileId] = useState(null)
-  const modalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
+  const rejectModalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
   const pageSizeOptions = [15, 30, 50, 100, 200].map((p) => ({
     label: `${p} items`,
     value: p,
@@ -313,7 +396,14 @@ const UserModerationQueue = ({
     }
     setProfileToReject(profile)
 
-    $(`#${modalId}`).modal('show')
+    $(`#${rejectModalId}`).modal('show')
+  }
+
+  const showBlockUnblockModal = async (profile) => {
+    const signedAuthoredNotes = await getSignedAuthoredNotesCount(profile.id)
+    setSignedNotes(signedAuthoredNotes)
+    setProfileToBlockUnblock(profile)
+    $(`#block-user-modal`).modal('show')
   }
 
   const rejectUser = async (rejectionMessage, id) => {
@@ -327,7 +417,7 @@ const UserModerationQueue = ({
         },
         { accessToken }
       )
-      $(`#${modalId}`).modal('hide')
+      $(`#${rejectModalId}`).modal('hide')
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
@@ -336,45 +426,7 @@ const UserModerationQueue = ({
       promptError(error.message)
     }
   }
-
-  const blockUnblockUser = async (profile) => {
-    if (!profile) return
-
-    const actionIsBlock = profile.state !== 'Blocked'
-    const signedAuthoredNotesCount = (await getSignedAuthoredNotesCount(profile.id)).length
-
-    const noteCountMessage =
-      !onlyModeration && actionIsBlock && signedAuthoredNotesCount
-        ? `There ${inflect(signedAuthoredNotesCount, 'is', 'are', false)} ${inflect(
-            signedAuthoredNotesCount,
-            'note',
-            'notes',
-            true
-          )} signed by this profile.`
-        : ''
-    // eslint-disable-next-line no-alert
-    const confirmResult = window.confirm(
-      `Are you sure you want to ${actionIsBlock ? 'block' : 'unblock'} ${
-        profile.content?.names?.[0]?.fullname
-      }?\n\n${noteCountMessage}`
-    )
-    if (confirmResult) {
-      try {
-        await api.post(
-          '/profile/moderate',
-          { id: profile.id, decision: actionIsBlock ? 'block' : 'unblock' },
-          { accessToken }
-        )
-        if (profiles.length === 1 && pageNumber !== 1) {
-          setPageNumber((p) => p - 1)
-        }
-      } catch (error) {
-        promptError(error.message)
-      }
-      reload()
-    }
-  }
-
+  
   const deleteRestoreUser = async (profile) => {
     if (!profile) return
 
@@ -581,7 +633,7 @@ const UserModerationQueue = ({
                       <button
                         type="button"
                         className="btn btn-xs btn-block-profile"
-                        onClick={() => blockUnblockUser(profile)}
+                        onClick={() => showBlockUnblockModal(profile)}
                       >
                         <Icon name="ban-circle" />
                         {'   '}
@@ -625,7 +677,7 @@ const UserModerationQueue = ({
                         <button
                           type="button"
                           className="btn btn-xs btn-block-profile"
-                          onClick={() => blockUnblockUser(profile)}
+                          onClick={() => showBlockUnblockModal(profile)}
                         >
                           <Icon
                             name={`${profile.state === 'Blocked' ? 'refresh' : 'ban-circle'}`}
@@ -686,10 +738,16 @@ const UserModerationQueue = ({
       </div>
 
       <RejectionModal
-        id={modalId}
+        id={rejectModalId}
         profileToReject={profileToReject}
         rejectUser={rejectUser}
         signedNotes={signedNotes}
+      />
+      <BlockModal
+        profileToBlockUnblock={profileToBlockUnblock}
+        signedNotes={signedNotes}
+        reload={reload}
+        accessToken={accessToken}
       />
       <ProfilePreviewModal
         profileToPreview={profileToPreview}
@@ -704,10 +762,10 @@ const UserModerationQueue = ({
           'expertise',
           'publications',
           'messages',
+          'tags',
         ]}
         showNextProfile={showNextProfile}
         acceptUser={acceptUser}
-        blockUser={blockUnblockUser}
         setProfileToReject={setProfileToReject}
         rejectUser={rejectUser}
       />

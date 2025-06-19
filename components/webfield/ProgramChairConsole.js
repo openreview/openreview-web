@@ -1115,20 +1115,26 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
-      {useCache && pcConsoleData.timeStamp && (
+      {useCache && (
         <div className="alert alert-warning">
-          <span>
-            Data cached {dayjs(pcConsoleData.timeStamp).fromNow()} at{' '}
-            {formatDateTime(pcConsoleData.timeStamp)}
-          </span>{' '}
-          <SpinnerButton
-            className="btn btn-xs ml-2"
-            onClick={loadData}
-            loading={isLoadingData}
-            disabled={isLoadingData}
-          >
-            Reload
-          </SpinnerButton>
+          {pcConsoleData.timeStamp ? (
+            <>
+              <span>
+                Data last updated {dayjs(pcConsoleData.timeStamp).fromNow()} (
+                {formatDateTime(pcConsoleData.timeStamp, { second: undefined })})
+              </span>{' '}
+              <SpinnerButton
+                className="btn btn-xs ml-2"
+                onClick={loadData}
+                loading={isLoadingData}
+                disabled={isLoadingData}
+              >
+                Reload
+              </SpinnerButton>
+            </>
+          ) : (
+            'Data is loading...'
+          )}
         </div>
       )}
       <ConsoleTabs

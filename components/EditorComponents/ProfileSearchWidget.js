@@ -474,7 +474,7 @@ const CustomAuthorForm = ({
       const results = await api.get(
         '/profiles/search',
         {
-          email: cleanAuthorEmail,
+          confirmedEmail: cleanAuthorEmail,
           es: true,
         },
         { accessToken }

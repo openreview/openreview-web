@@ -32,6 +32,11 @@ body {
     flex-grow: 1;
     display: flex;
 
+    @media #{constants.$phone-only} {
+      margin-left: 15px;
+      margin-right: unset;
+    }
+
     .row {
       width: 100%;
     }

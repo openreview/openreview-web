@@ -330,6 +330,17 @@
       }
     }
 
+    .tags-container {
+      display: flex;
+      flex-flow: wrap;
+      margin-left: -15px;
+
+      .tooltip-inner {
+        max-width: none;
+        width: max-content;
+      }
+    }
+
     // Public profile
     .profile-public {
       .instructions {
