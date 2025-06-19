@@ -4,6 +4,7 @@ import TextboxWidget from '../components/EditorComponents/TextboxWidget'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => ({ user: {} }))
 jest.mock('../lib/utils', () => {
   const original = jest.requireActual('../lib/utils')

@@ -6,6 +6,8 @@ import {
   convertToArray,
 } from '../lib/webfield-utils'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 const filterOperators = ['!=', '>=', '<=', '>', '<', '==', '=']
 const uniqueIdentifier = 'id'
 

@@ -61,20 +61,20 @@ const EthicsChairOverview = () => {
         <h4>Ethics Review Roles</h4>
         <ul>
           <li>
-            <Link href={`/group/info?id=${venueId}/${ethicsChairsName}`}>
+            <Link href={`/group/edit?id=${venueId}/${ethicsChairsName}`}>
               {prettyId(ethicsChairsName)}
             </Link>
           </li>
           <li>
-            <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}`}>
+            <Link href={`/group/edit?id=${venueId}/${ethicsReviewersName}`}>
               {prettyId(ethicsReviewersName)}
             </Link>{' '}
             (
-            <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}/Invited`}>
+            <Link href={`/group/edit?id=${venueId}/${ethicsReviewersName}/Invited`}>
               Invited
             </Link>
             ,
-            <Link href={`/group/info?id=${venueId}/${ethicsReviewersName}/Declined`}>
+            <Link href={`/group/edit?id=${venueId}/${ethicsReviewersName}/Declined`}>
               Declined
             </Link>
             )
