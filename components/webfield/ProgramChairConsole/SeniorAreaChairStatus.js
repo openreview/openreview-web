@@ -2,6 +2,7 @@
 import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import { sortBy } from 'lodash'
+import Link from 'next/link'
 import { getProfileLink } from '../../../lib/webfield-utils'
 import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
@@ -364,8 +365,8 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
   if (seniorAreaChairStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no {prettyField(seniorAreaChairName)}.Check back later or contact
-        info@openreview.net if you believe this to be an error.
+        There are no {prettyField(seniorAreaChairName)}.Check back later or{' '}
+        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
       </p>
     )
   if (seniorAreaChairStatusTabData.tableRows?.length === 0)

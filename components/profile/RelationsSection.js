@@ -11,7 +11,9 @@ const CreatableDropdown = dynamic(
   () => import('../Dropdown').then((mod) => mod.CreatableDropdown),
   {
     ssr: false,
-    loading: () => <input className="form-control relation__placeholder" value="loading..." />,
+    loading: () => (
+      <input className="form-control relation__placeholder" value="loading..." readOnly />
+    ),
   }
 )
 const MultiSelectorDropdown = dynamic(() => import('../MultiSelectorDropdown'), { ssr: false })

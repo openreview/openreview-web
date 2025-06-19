@@ -80,9 +80,7 @@ return {
   }
 
   if (group.web.includes('<script type="text/javascript">')) {
-    return (
-      <ErrorDisplay message="This group is no longer accessible. Please contact info@openreview.net if you require access." />
-    )
+    return <ErrorDisplay message="This group is no longer accessible." />
   }
 
   const isWebfieldComponent = group.web.startsWith('// Webfield component')

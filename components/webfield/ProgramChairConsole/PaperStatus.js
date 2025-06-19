@@ -1,5 +1,6 @@
 /* globals $: false */
 import { useContext, useEffect, useState } from 'react'
+import Link from 'next/link'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -8,10 +9,9 @@ import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStat
 import { AcPcConsoleNoteReviewStatus, LatestReplies } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from './PaperStatusMenuBar'
-import { prettyField, prettyInvitationId } from '../../../lib/utils'
+import { prettyField } from '../../../lib/utils'
 import useUser from '../../../hooks/useUser'
 import SelectAllCheckBox from '../SelectAllCheckbox'
-import Markdown from '../../EditorComponents/Markdown'
 
 const PaperRow = ({
   rowData,
@@ -330,8 +330,8 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
   if (paperStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        No papers have been submitted.Check back later or contact info@openreview.net if you
-        believe this to be an error.
+        No papers have been submitted.Check back later or{' '}
+        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
       </p>
     )
   if (paperStatusTabData.tableRows?.length === 0)
