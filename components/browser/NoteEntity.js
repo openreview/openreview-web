@@ -75,11 +75,12 @@ export default function NoteEntity(props) {
     // Delete existing edge
     // TODO: allow ProfileItems to be head objects
     const editInvitation = editInvitations.filter((p) => p.id === editEdge.invitation)?.[0]
-    const signatures = getSignatures(
+    const signatures = await getSignatures(
       editInvitation,
       availableSignaturesInvitationMap,
       number,
-      user
+      user,
+      accessToken
     )
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     if (version === 1 && (!signatures || signatures.length === 0)) {
@@ -124,11 +125,12 @@ export default function NoteEntity(props) {
     const isInviteInvitation =
       isInGroupInvite(editInvitation, otherColumnType) ||
       isForBothGroupTypesInvite(editInvitation, otherColumnType)
-    const signatures = getSignatures(
+    const signatures = await getSignatures(
       editInvitation,
       availableSignaturesInvitationMap,
       number,
-      user
+      user,
+      accessToken
     )
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const maxLoadInvitationHead = editInvitation.head?.query?.id
