@@ -4,20 +4,22 @@ import userEvent from '@testing-library/user-event'
 import Contact from '../app/contact/page'
 import useTurnstileToken from '../hooks/useTurnstileToken'
 import api from '../lib/api-client'
+import useUser from '../hooks/useUser'
 
-jest.mock('../hooks/useUser', () => () => ({
-  user: {
-    profile: {
-      id: 'some id',
-    },
-  },
-  accessToken: 'some token',
-}))
 jest.mock('../hooks/useTurnstileToken')
+jest.mock('../hooks/useUser')
 
 beforeEach(() => {
   useTurnstileToken.mockImplementation(() => ({
     turnstileToken: 'some token',
+  }))
+  useUser.mockImplementation(() => ({
+    user: {
+      profile: {
+        id: 'some id',
+      },
+    },
+    accessToken: 'some token',
   }))
 })
 
@@ -32,10 +34,29 @@ describe('Contact page', () => {
     screen.debug()
   })
 
-  test('show feedback form fields', () => {
+  test('show feedback form fields when user is guest', () => {
     render(<Contact />)
 
     expect(screen.getByPlaceholderText('Your email address')).toBeInTheDocument()
+    expect(screen.getByRole('combobox')).toBeInTheDocument() // topic
+    expect(screen.getByPlaceholderText('Message')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send' })).toBeInTheDocument()
+  })
+
+  test('prefill email when user is logged in', () => {
+    useUser.mockImplementation(() => ({
+      user: {
+        profile: {
+          id: 'some id',
+          preferredEmail: 'test@email.com',
+        },
+      },
+      accessToken: 'some token',
+      isRefreshing: false,
+    }))
+
+    render(<Contact />)
+    expect(screen.getByDisplayValue('test@email.com')).toBeInTheDocument()
     expect(screen.getByRole('combobox')).toBeInTheDocument() // topic
     expect(screen.getByPlaceholderText('Message')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Send' })).toBeInTheDocument()
@@ -366,6 +387,11 @@ describe('Contact page', () => {
   })
 
   test('read feedbackInstitution and select adding domain option', () => {
+    useUser.mockImplementation(() => ({
+      // only guest can access sign up
+      isRefreshing: false,
+      user: undefined,
+    }))
     const mockSessionStorage = {
       getItem: jest.fn(() => 'test@mail.com'),
       removeItem: jest.fn(),

@@ -23,7 +23,7 @@ export default function Page() {
     return { ...state, [action.type]: action.payload }
   }, {})
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('feedback')
-  const { accessToken } = useUser()
+  const { user, accessToken, isRefreshing } = useUser()
 
   const profileSubject = 'My OpenReview profile'
   const submissionSubject = 'A conference I submitted to'
@@ -267,6 +267,16 @@ export default function Page() {
       /* empty */
     }
   }, [])
+
+  useEffect(() => {
+    if (isRefreshing || !user) return
+    setFormData({
+      type: 'prefill',
+      payload: {
+        from: user.profile.preferredEmail,
+      },
+    })
+  }, [isRefreshing])
 
   return (
     <div className={styles.contactContainer}>
