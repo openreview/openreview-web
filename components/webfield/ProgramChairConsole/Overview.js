@@ -881,7 +881,13 @@ const DescriptionTimelineOtherConfigRow = ({
           <h4>Timeline:</h4>
           {datedInvitations.map((invitation) => (
             <li className="overview-timeline" key={invitation.id}>
-              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
+              <a
+                href={
+                  domainContent.request_form_invitation
+                    ? `/group/edit?id=${venueId}&referrer=${referrerUrl}`
+                    : `/forum?id=${requestForm.id}&referrer=${referrerUrl}`
+                }
+              >
                 {invitation.displayName}
               </a>
               {invitation.periodString}
@@ -889,7 +895,13 @@ const DescriptionTimelineOtherConfigRow = ({
           ))}
           {notDatedInvitations.map((invitation) => (
             <li className="overview-timeline" key={invitation.id}>
-              <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
+              <a
+                href={
+                  domainContent.request_form_invitation
+                    ? `/group/edit?id=${venueId}&referrer=${referrerUrl}`
+                    : `/forum?id=${requestForm.id}&referrer=${referrerUrl}`
+                }
+              >
                 {invitation.displayName}
               </a>
               {invitation.periodString}
