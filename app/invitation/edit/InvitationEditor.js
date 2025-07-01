@@ -24,14 +24,16 @@ export default function InvitationEditor({ id, query }) {
   const loadInvitation = async () => {
     try {
       const invitationObj = await api.getInvitationById(id, accessToken)
-      const domainResult = await api
-        .get('/groups', { id: invitationObj.domain }, { accessToken })
-        .catch(() => {})
+      const domainResult = invitationObj
+        ? await api
+            .get('/groups', { id: invitationObj.domain }, { accessToken })
+            .catch(() => {})
+        : null
       const domainGroup = domainResult?.groups?.length > 0 ? domainResult.groups[0] : null
       if (invitationObj) {
         setInvitation({ ...invitationObj, domain: domainGroup })
       } else {
-        setError({ statusCode: 404, message: 'Invitation not found' })
+        setError('Invitation not found')
       }
     } catch (apiError) {
       if (apiError.name === 'ForbiddenError') {
