@@ -28,11 +28,17 @@ export default function Page() {
   const profileSubject = 'My OpenReview profile'
   const submissionSubject = 'A conference I submitted to'
   const organizationSubject = 'A conference I organized'
+  const committeeSubject = 'I am a reviewer or committee member'
+  const createProfileSubject = 'I am trying to create my profile'
+  const accessPublicationSubject = 'I am trying to access a publication'
   const institutionSubject = 'Please add my domain to your list of publishing institutions'
   const subjectOptions = [
     profileSubject,
     submissionSubject,
     organizationSubject,
+    committeeSubject,
+    createProfileSubject,
+    accessPublicationSubject,
     institutionSubject,
   ].map((subject) => ({
     label: subject,
@@ -66,15 +72,23 @@ export default function Page() {
       name: 'venueId',
       type: 'input',
       placeholder: 'Venue ID or Conference Name',
-      required: () => true,
-      showIf: () => formData.subject !== institutionSubject,
+      required: () =>
+        formData.subject === submissionSubject ||
+        formData.subject === organizationSubject ||
+        formData.subject === committeeSubject,
+      showIf: () =>
+        formData.subject === submissionSubject ||
+        formData.subject === organizationSubject ||
+        formData.subject === committeeSubject,
     },
     {
       name: 'submissionId',
       type: 'input',
       placeholder: 'Submission ID',
       required: () => false,
-      showIf: () => formData.subject === submissionSubject,
+      showIf: () =>
+        formData.subject === submissionSubject ||
+        formData.subject === accessPublicationSubject,
     },
     {
       name: 'institutionDomain',
@@ -124,7 +138,7 @@ export default function Page() {
 
       switch (formData.subject) {
         case profileSubject:
-          feedbackData.message = `Venue ID: ${formData.venueId}\nProfile ID: ${formData.profileId}\n\n${formData.message}`
+          feedbackData.message = `Profile ID: ${formData.profileId}\n\n${formData.message}`
           feedbackData.subject = `${cleanSubject} - ${formData.profileId}`
           break
         case submissionSubject:
@@ -135,17 +149,27 @@ export default function Page() {
 
           break
         case organizationSubject:
+        case committeeSubject:
           feedbackData.message = `Venue ID: ${formData.venueId}\n\n${formData.message}`
-          feedbackData.subject = formData.venueId
-            ? `Venue - ${formData.venueId}`
-            : cleanSubject
+          feedbackData.subject = `Venue - ${formData.venueId}`
+
           break
         case institutionSubject:
           feedbackData.message = `Institution Domain: ${formData.institutionDomain}\nInstitution Fullname: ${formData.institutionName}\nInstitution URL: ${formData.institutionUrl}\n\n${formData.message}`
           feedbackData.subject = `${cleanSubject} - ${formData.institutionDomain}`
           break
+        case createProfileSubject:
+          feedbackData.message = `${formData.message}`
+          feedbackData.subject = cleanSubject
+          break
+        case accessPublicationSubject:
+          feedbackData.message = `Submission ID: ${formData.submissionId}\n\n${formData.message}`
+          feedbackData.subject = formData.submissionId
+            ? `Access Publication - ${formData.submissionId}`
+            : cleanSubject
+          break
         default:
-          feedbackData.message = `Venue ID: ${formData.venueId}\n\n${formData.message}`
+          feedbackData.message = formData.message
           feedbackData.subject = cleanSubject
       }
 

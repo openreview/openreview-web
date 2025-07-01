@@ -37,7 +37,6 @@ describe('Contact page', () => {
 
     expect(screen.getByPlaceholderText('Your email address')).toBeInTheDocument()
     expect(screen.getByRole('combobox')).toBeInTheDocument() // topic
-    expect(screen.getByPlaceholderText('Venue ID or Conference Name')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Message')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Send' })).toBeInTheDocument()
   })
@@ -52,13 +51,272 @@ describe('Contact page', () => {
     expect(sendButton).toBeDisabled()
   })
 
+  test('show feedback options', async () => {
+    api.put = jest.fn()
+    render(<Contact />)
+
+    const topicSelect = screen.getByRole('combobox')
+
+    await userEvent.click(topicSelect)
+
+    expect(
+      screen.getByRole('option', {
+        name: 'My OpenReview profile',
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('option', {
+        name: 'A conference I submitted to',
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('option', {
+        name: 'A conference I organized',
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('option', {
+        name: 'I am a reviewer or committee member',
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('option', {
+        name: 'I am trying to create my profile',
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('option', {
+        name: 'I am trying to access a publication',
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('option', {
+        name: 'Please add my domain to your list of publishing institutions',
+      })
+    ).toBeInTheDocument()
+  })
+
+  test('show fields based on selected feedback option', async () => {
+    api.put = jest.fn()
+    render(<Contact />)
+
+    // by default not to show extra fields
+    expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Venue ID or Conference Name')
+    ).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Submission ID')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Email Domain of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Full Name of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Official Website URL of Your Institution')
+    ).not.toBeInTheDocument()
+
+    // my openreview profile - show only profile id input
+    await userEvent.click(screen.getByRole('combobox'))
+    const profileOption = screen.getByRole('option', {
+      name: 'My OpenReview profile',
+    })
+    await userEvent.click(profileOption)
+    expect(screen.getByPlaceholderText('Profile ID')).toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Venue ID or Conference Name')
+    ).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Submission ID')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Email Domain of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Full Name of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Official Website URL of Your Institution')
+    ).not.toBeInTheDocument()
+
+    // a conference i submitted to - show venue id and submission id
+    await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    await userEvent.click(screen.getByRole('combobox'))
+
+    const conferenceSubmittedToOptions = screen.getByRole('option', {
+      name: 'A conference I submitted to',
+    })
+    await userEvent.click(conferenceSubmittedToOptions)
+    expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Venue ID or Conference Name')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Submission ID')).toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Email Domain of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Full Name of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Official Website URL of Your Institution')
+    ).not.toBeInTheDocument()
+
+    // a conference i organized - show venue id
+    await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    await userEvent.click(screen.getByRole('combobox'))
+
+    const conferenceOrganizedOptions = screen.getByRole('option', {
+      name: 'A conference I organized',
+    })
+    await userEvent.click(conferenceOrganizedOptions)
+    expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Venue ID or Conference Name')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Submission ID')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Email Domain of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Full Name of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Official Website URL of Your Institution')
+    ).not.toBeInTheDocument()
+
+    // I am a reviewer or committee member - show venue id
+    await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    await userEvent.click(screen.getByRole('combobox'))
+
+    const reviewerOption = screen.getByRole('option', {
+      name: 'I am a reviewer or committee member',
+    })
+    await userEvent.click(reviewerOption)
+    expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Venue ID or Conference Name')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Submission ID')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Email Domain of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Full Name of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Official Website URL of Your Institution')
+    ).not.toBeInTheDocument()
+
+    // I am trying to create my profile - no extra fields
+    await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    await userEvent.click(screen.getByRole('combobox'))
+
+    const createProfileOption = screen.getByRole('option', {
+      name: 'I am trying to create my profile',
+    })
+    await userEvent.click(createProfileOption)
+    expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Venue ID or Conference Name')
+    ).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Submission ID')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Email Domain of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Full Name of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Official Website URL of Your Institution')
+    ).not.toBeInTheDocument()
+
+    // I am trying to access a publication - show submission id
+    await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    await userEvent.click(screen.getByRole('combobox'))
+
+    const accessPublicationOption = screen.getByRole('option', {
+      name: 'I am trying to access a publication',
+    })
+    await userEvent.click(accessPublicationOption)
+    expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Venue ID or Conference Name')
+    ).not.toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Submission ID')).toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Email Domain of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Full Name of Your Institution')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Official Website URL of Your Institution')
+    ).not.toBeInTheDocument()
+
+    // add institution domain - show email domain, full name and website url
+    await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    await userEvent.click(screen.getByRole('combobox'))
+
+    const addInstitutionOption = screen.getByRole('option', {
+      name: 'Please add my domain to your list of publishing institutions',
+    })
+    await userEvent.click(addInstitutionOption)
+    expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Venue ID or Conference Name')
+    ).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Submission ID')).not.toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Email Domain of Your Institution')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Full Name of Your Institution')).toBeInTheDocument()
+    expect(
+      screen.getByPlaceholderText('Official Website URL of Your Institution')
+    ).toBeInTheDocument()
+  })
+
+  test('show missing field error when there are fields missing', async () => {
+    api.put = jest.fn()
+    render(<Contact />)
+
+    const emailInput = screen.getByPlaceholderText('Your email address')
+    const topicSelect = screen.getByRole('combobox')
+    const messageInput = screen.getByPlaceholderText('Message')
+
+    // from and message are always required
+    await userEvent.type(emailInput, 'test@mail.com')
+    await userEvent.type(messageInput, 'some message')
+    await userEvent.click(topicSelect)
+    await userEvent.click(
+      // profile id will be required
+      screen.getByRole('option', {
+        name: 'My OpenReview profile',
+      })
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }))
+    expect(api.put).not.toHaveBeenCalled()
+    expect(screen.getByText('Please fill in all fields.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
+
+    // clear error when user update form
+    await userEvent.type(screen.getByPlaceholderText('Profile ID'), '~Test_User1')
+    expect(screen.queryByText('Please fill in all fields.')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send' })).not.toBeDisabled()
+
+    // send message with no error
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }))
+    expect(api.put).toHaveBeenCalledWith(
+      expect.anything(),
+      {
+        from: 'test@mail.com',
+        message: 'Profile ID: ~Test_User1\n\nsome message',
+        subject: 'My OpenReview profile - ~Test_User1',
+        token: 'some token',
+      },
+      expect.anything()
+    )
+    expect(global.promptMessage).toHaveBeenCalledWith(
+      'Your feedback has been submitted. Thank you.'
+    )
+  })
+
   test('send feedback', async () => {
     api.put = jest.fn()
     render(<Contact />)
 
     const emailInput = screen.getByPlaceholderText('Your email address')
     const topicSelect = screen.getByRole('combobox')
-    const venueInput = screen.getByPlaceholderText('Venue ID or Conference Name')
     const messageInput = screen.getByPlaceholderText('Message')
 
     await userEvent.type(emailInput, 'test@mail.com')
@@ -68,6 +326,7 @@ describe('Contact page', () => {
         name: 'A conference I organized',
       })
     )
+    const venueInput = screen.getByPlaceholderText('Venue ID or Conference Name')
     await userEvent.type(venueInput, 'some venue')
     await userEvent.type(messageInput, 'some message')
     await userEvent.click(screen.getByRole('button', { name: 'Send' }))
