@@ -396,7 +396,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
           ? convertToType(get(existingValue, this.valuePath), 'integer')
-          : null
+          : undefined
       },
       valuePath: 'value.param.maxSize',
     },
