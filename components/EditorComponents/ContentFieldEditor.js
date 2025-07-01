@@ -150,7 +150,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
             // { value: 'float[]', description: 'Float Array (Dropdown or Textbox)' },
             // { value: 'group', description: 'Group ID (Profile Search)' },
             // { value: 'profile', description: 'Profile ID (Profile Search)' },
-            // { value: 'group[]', description: 'Group ID Array (Profile Search)' },
+            { value: 'group[]', description: 'Group ID Array (Profile Search)' },
             // { value: 'profile[]', description: 'Profile ID Array (Profile Search)' },
             // { value: 'note', description: 'Note ID (Not implemented)' },
             // { value: 'note[]', description: 'Note ID Array (Not implemented)' },
