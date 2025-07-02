@@ -439,7 +439,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
 
   const restoreMember = async (memberId) => {
     try {
-      await api.post('/groups/edits', buildEdit('append', [memberId]), { accessToken })
+      await api.post('/groups/edits', buildEdit('add', [memberId]), { accessToken })
       setGroupMembers({ type: 'RESTORE', payload: [memberId] })
       reloadGroup()
     } catch (error) {
@@ -505,7 +505,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     try {
       await api.post(
         '/groups/edits',
-        buildEdit('append', [...newMembers, ...existingDeleted]),
+        buildEdit('add', [...newMembers, ...existingDeleted]),
         { accessToken }
       )
       setSearchTerm('')

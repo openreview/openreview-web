@@ -113,7 +113,9 @@ const EditorWidget = () => {
       case 'profile':
         return <ProfileSearchWidget />
       case 'group[]':
+      case 'group{}':
       case 'profile[]':
+      case 'profile{}':
         return <ProfileSearchWidget multiple={true} />
       case 'note':
       case 'note[]':
