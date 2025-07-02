@@ -25,7 +25,7 @@ export default function Page() {
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('feedback')
   const { user, accessToken, isRefreshing } = useUser()
 
-  const profileSubject = 'My OpenReview profile'
+  const profileSubject = 'I have a question about my existing OpenReview profile'
   const submissionSubject = 'A conference I submitted to'
   const organizationSubject = 'A conference I organized'
   const committeeSubject = 'I am a reviewer or committee member'

@@ -82,7 +82,7 @@ describe('Contact page', () => {
 
     expect(
       screen.getByRole('option', {
-        name: 'My OpenReview profile',
+        name: 'I have a question about my existing OpenReview profile',
       })
     ).toBeInTheDocument()
     expect(
@@ -137,10 +137,10 @@ describe('Contact page', () => {
       screen.queryByPlaceholderText('Official Website URL of Your Institution')
     ).not.toBeInTheDocument()
 
-    // my openreview profile - show only profile id input
+    // I have a question about my existing OpenReview profile - show only profile id input
     await userEvent.click(screen.getByRole('combobox'))
     const profileOption = screen.getByRole('option', {
-      name: 'My OpenReview profile',
+      name: 'I have a question about my existing OpenReview profile',
     })
     await userEvent.click(profileOption)
     expect(screen.getByPlaceholderText('Profile ID')).toBeInTheDocument()
@@ -302,7 +302,7 @@ describe('Contact page', () => {
     await userEvent.click(
       // profile id will be required
       screen.getByRole('option', {
-        name: 'My OpenReview profile',
+        name: 'I have a question about my existing OpenReview profile',
       })
     )
     await userEvent.click(screen.getByRole('button', { name: 'Send' }))
@@ -322,7 +322,7 @@ describe('Contact page', () => {
       {
         from: 'test@mail.com',
         message: 'Profile ID: ~Test_User1\n\nsome message',
-        subject: 'My OpenReview profile - ~Test_User1',
+        subject: 'I have a question about my existing OpenReview profile - ~Test_User1',
         token: 'some token',
       },
       expect.anything()
