@@ -3,6 +3,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { orderBy } from 'lodash'
+import Link from 'next/link'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import Table from '../Table'
@@ -171,8 +172,8 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
     if (acConsoleData.tableRowsAll?.length === 0)
       return (
         <p className="empty-message">
-          No assigned {submissionName.toLowerCase()}. Check back later or contact
-          info@openreview.net if you believe this to be an error.
+          No assigned {submissionName.toLowerCase()}. Check back later or{' '}
+          <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
         </p>
       )
     if (acConsoleData.tableRows?.length === 0)
@@ -294,8 +295,8 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
     if (acConsoleData.tripletACtableRows?.length === 0)
       return (
         <p className="empty-message">
-          No assigned {submissionName.toLowerCase()}.Check back later or contact
-          info@openreview.net if you believe this to be an error.
+          No assigned {submissionName.toLowerCase()}.Check back later or{' '}
+          <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
         </p>
       )
     return (
