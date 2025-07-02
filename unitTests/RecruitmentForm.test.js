@@ -489,7 +489,7 @@ describe('RecruitmentForm', () => {
       expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, {
         version: 2,
       })
-      expect(screen.queryByRole('button')).not.toBeInTheDocument() // invitation does not have content
+      expect(screen.queryByRole('button')).not.toBeInTheDocument() // invitation does not have comment field in content
     })
   })
 
