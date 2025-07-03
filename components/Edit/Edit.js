@@ -17,6 +17,7 @@ import {
 import { getNoteContentValues } from '../../lib/forum-utils'
 import Icon from '../Icon'
 import api from '../../lib/api-client'
+import useSocket from '../../hooks/useSocket'
 
 function EditFields({ editId, displayObj, omitFields = [], label = 'Edit' }) {
   const formatGroupMemberEdit = (membersObj) => {
@@ -119,6 +120,9 @@ export default function Edit({
     'forum',
   ]
   const [lastLog, setLastLog] = useState(null)
+  const events = useSocket(showLog ? 'venue/workflow' : undefined, ['date-process-updated'], {
+    venueid: edit.domain,
+  })
 
   const loadEditLog = async () => {
     try {
@@ -140,6 +144,11 @@ export default function Edit({
     if (!showLog) return
     loadEditLog()
   }, [edit, showLog])
+
+  useEffect(() => {
+    if (!events) return
+    loadEditLog()
+  }, [events?.uniqueId])
 
   return (
     <div className={`edit ${className ?? ''}`} id={edit.id}>
