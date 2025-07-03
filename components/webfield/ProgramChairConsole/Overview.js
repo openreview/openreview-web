@@ -12,6 +12,7 @@ import {
   prettyId,
   prettyField,
   pluralizeString,
+  prettyInvitationId,
 } from '../../../lib/utils'
 import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
@@ -849,22 +850,26 @@ const DescriptionTimelineOtherConfigRow = ({
         <div className="col-md-4 col-xs-12">
           <h4>Description:</h4>
           <p>
-            <span>
-              {`Author And Reviewer Anonymity: ${requestFormContent?.['Author and Reviewer Anonymity']}`}
-              <br />
-              {requestFormContent?.['Open Reviewing Policy']}
-              <br />
-              {`Paper matching uses ${
-                requestFormContent?.submission_reviewer_assignment ??
-                requestFormContent?.['Paper Matching']?.join(', ')
-              }`}
-              {requestFormContent?.['Other Important Information'] && (
-                <>
-                  <br />
-                  {requestFormContent?.['Other Important Information']}
-                </>
-              )}
-            </span>
+            {domainContent.request_form_invitation ? (
+              <span>{prettyInvitationId(domainContent.request_form_invitation.value)}</span>
+            ) : (
+              <span>
+                {`Author And Reviewer Anonymity: ${requestFormContent?.['Author and Reviewer Anonymity']}`}
+                <br />
+                {requestFormContent?.['Open Reviewing Policy']}
+                <br />
+                {`Paper matching uses ${
+                  requestFormContent?.submission_reviewer_assignment ??
+                  requestFormContent?.['Paper Matching']?.join(', ')
+                }`}
+                {requestFormContent?.['Other Important Information'] && (
+                  <>
+                    <br />
+                    {requestFormContent?.['Other Important Information']}
+                  </>
+                )}
+              </span>
+            )}
             <br />
             <a href={`/forum?id=${requestForm.id}&referrer=${referrerUrl}`}>
               <strong>Venue Configuration Request</strong>
