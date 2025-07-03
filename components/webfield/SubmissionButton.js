@@ -16,6 +16,7 @@ export default function SubmissionButton({
   accessToken,
 }) {
   const [invitation, setInvitation] = useState(null)
+  const [isNewWorkflow, setIsNewWorkflow] = useState(false)
   const [noteEditorOpen, setNoteEditorOpen] = useState(false)
   const newNoteEditor = invitation?.domain
 
@@ -32,7 +33,15 @@ export default function SubmissionButton({
         { accessToken, version: apiVersion }
       )
       if (invitations?.length > 0) {
+        const domainResult = await api
+          .get(
+            '/groudps',
+            { id: invitations[0].domain, select: 'content.request_form_invitation' },
+            { accessToken }
+          )
+          .catch(() => undefined)
         setInvitation(invitations[0])
+        setIsNewWorkflow(domainResult?.groups?.[0]?.content?.request_form_invitation)
       }
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -76,7 +85,7 @@ export default function SubmissionButton({
         >
           {prettyId(invitationId)}
         </button>
-        {options.showStartEndDate && (
+        {options.showStartEndDate && isNewWorkflow && (
           <span className=" hint">
             {invitation.cdate ? ` Submission start: ${formatDateTime(invitation.tcdate)}` : ''}
             {invitation.duedate ? `, Deadline: ${formatDateTime(invitation.duedate)}` : ''}
