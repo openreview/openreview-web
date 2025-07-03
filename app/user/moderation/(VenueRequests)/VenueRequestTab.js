@@ -11,7 +11,16 @@ import api from '../../../../lib/api-client'
 dayjs.extend(relativeTime)
 
 const VenueRequestRow = ({ item }) => {
-  const { forum, abbreviatedName, unrepliedPcComments, deployed, tauthor, tcdate } = item
+  const {
+    forum,
+    abbreviatedName,
+    unrepliedPcComments,
+    deployed,
+    tauthor,
+    tcdate,
+    signature,
+    apiVersion,
+  } = item
   return (
     <div className="venue-request-row">
       <a className="request-name" href={`/forum?id=${forum}`} target="_blank" rel="noreferrer">
@@ -45,9 +54,15 @@ ${unrepliedPcComments[0].content?.comment}`}
         </div>
         <div className="tcdate-label">{dayjs(tcdate).fromNow()}</div>
       </div>
-      <a href={`/profile?email=${tauthor}`} target="_blank" rel="noreferrer">
-        {prettyId(tauthor)}
-      </a>
+      {apiVersion === 2 ? (
+        <a href={`/profile?id=${signature}`} target="_blank" rel="noreferrer">
+          {prettyId(signature)}
+        </a>
+      ) : (
+        <a href={`/profile?email=${tauthor}`} target="_blank" rel="noreferrer">
+          {prettyId(tauthor)}
+        </a>
+      )}
     </div>
   )
 }
@@ -83,7 +98,7 @@ export default function VenueRequestTab({ accessToken }) {
           invitation: `${process.env.SUPER_USER}/Support/Venue_Request.*`,
           sort: 'tcdate',
           details: 'replies',
-          select: `id,forum,parentInvitations,tcdate,content.abbreviated_venue_name,content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
+          select: `id,forum,parentInvitations,signatures,tcdate,content.abbreviated_venue_name,content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
         },
         { accessToken, includeVersion: true }
       )
@@ -115,6 +130,8 @@ export default function VenueRequestTab({ accessToken }) {
         ),
         deployed: p.apiVersion === 2 ? p.content?.venue_id?.value : p.content?.venue_id,
         tauthor: p.tauthor,
+        signature: p.signatures?.[0],
+        apiVersion: p.apiVersion,
       }))
 
       setVenueRequestNotes(
