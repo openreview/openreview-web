@@ -716,10 +716,16 @@ const DescriptionTimelineOtherConfigRow = ({
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
   )
   const requestFormContent = getNoteContentValues(requestForm?.content)
-  const sacRoles = requestFormContent?.senior_area_chair_roles ?? ['Senior_Area_Chairs']
-  const acRoles = requestFormContent?.area_chair_roles ?? ['Area_Chairs']
-  const hasEthicsChairs = requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes')
-  const reviewerRoles = requestFormContent?.reviewer_roles ?? ['Reviewers']
+  const domainContentValues = getNoteContentValues(domainContent)
+  const sacRoles = requestFormContent?.senior_area_chair_roles ??
+    domainContentValues.senior_area_chair_roles ?? ['Senior_Area_Chairs']
+  const acRoles = requestFormContent?.area_chair_roles ??
+    domainContentValues.area_chair_roles ?? ['Area_Chairs']
+  const hasEthicsChairs =
+    requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes') ||
+    domainContentValues.ethics_chairs_and_reviewers?.includes('Yes')
+  const reviewerRoles = requestFormContent?.reviewer_roles ??
+    domainContentValues.reviewer_roles ?? ['Reviewers']
   const singularReviewerName = getSingularRoleName(reviewerName)
   const singularAreaChairName = getSingularRoleName(areaChairName)
   const singularSeniorAreaChairName = getSingularRoleName(seniorAreaChairName)
@@ -850,8 +856,8 @@ const DescriptionTimelineOtherConfigRow = ({
         <div className="col-md-4 col-xs-12">
           <h4>Description:</h4>
           <p>
-            {domainContent.request_form_invitation ? (
-              <span>{prettyInvitationId(domainContent.request_form_invitation.value)}</span>
+            {domainContentValues.request_form_invitation ? (
+              <span>{prettyInvitationId(domainContentValues.request_form_invitation)}</span>
             ) : (
               <span>
                 {`Author And Reviewer Anonymity: ${requestFormContent?.['Author and Reviewer Anonymity']}`}
@@ -875,7 +881,7 @@ const DescriptionTimelineOtherConfigRow = ({
               <strong>Venue Configuration Request</strong>
             </a>
             <br />
-            {domainContent.request_form_invitation && (
+            {domainContentValues.request_form_invitation && (
               <a href={`/group/edit?id=${venueId}&referrer=${referrerUrl}`}>
                 <strong>Workflow Configuration</strong>
               </a>
@@ -888,7 +894,7 @@ const DescriptionTimelineOtherConfigRow = ({
             <li className="overview-timeline" key={invitation.id}>
               <a
                 href={
-                  domainContent.request_form_invitation
+                  domainContentValues.request_form_invitation
                     ? `/group/edit?id=${venueId}&referrer=${referrerUrl}`
                     : `/forum?id=${requestForm.id}&referrer=${referrerUrl}`
                 }
@@ -902,7 +908,7 @@ const DescriptionTimelineOtherConfigRow = ({
             <li className="overview-timeline" key={invitation.id}>
               <a
                 href={
-                  domainContent.request_form_invitation
+                  domainContentValues.request_form_invitation
                     ? `/group/edit?id=${venueId}&referrer=${referrerUrl}`
                     : `/forum?id=${requestForm.id}&referrer=${referrerUrl}`
                 }
