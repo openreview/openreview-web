@@ -1,0 +1,35 @@
+.groupWithInvitation {
+}
+
+.groupDescription {
+  margin-bottom: 0.5rem;
+}
+
+.invitationMeta {
+  font-size: 0.75rem;
+  color: #777;
+  margin-bottom: 0.5rem;
+
+  :global {
+    .glyphicon {
+      margin-right: 0.25rem;
+    }
+  }
+}
+
+.groupContents {
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+  max-width: 80%;
+}
+
+.groupContentFieldName {
+  font-weight: bold;
+  color: #8c1b13;
+  padding-right: 0.25rem;
+}
+
+.privateIcon {
+  color: #777;
+  padding-right: 0.25rem;
+}
