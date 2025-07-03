@@ -76,6 +76,12 @@ export default function SubmissionButton({
         >
           {prettyId(invitationId)}
         </button>
+        {options.showStartEndDate && (
+          <span className=" hint">
+            {invitation.cdate ? ` Submission start: ${formatDateTime(invitation.tcdate)}` : ''}
+            {invitation.duedate ? `, Deadline: ${formatDateTime(invitation.duedate)}` : ''}
+          </span>
+        )}
       </div>
 
       {noteEditorOpen &&

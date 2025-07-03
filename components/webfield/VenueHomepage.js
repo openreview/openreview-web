@@ -295,7 +295,7 @@ export default function VenueHomepage({ appContext }) {
               }
               reload()
             }}
-            options={{ largeLabel: true }}
+            options={{ largeLabel: true, showStartEndDate: true }}
             accessToken={accessToken}
           />
         </div>
