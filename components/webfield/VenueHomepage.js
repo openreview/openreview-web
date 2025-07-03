@@ -15,14 +15,19 @@ import Markdown from '../EditorComponents/Markdown'
 import ErrorDisplay from '../ErrorDisplay'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
+import LoadingSpinner from '../LoadingSpinner'
 
-function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload }) {
+function ConsolesList({
+  venueId,
+  submissionInvitationId,
+  setHidden,
+  shouldReload,
+  user,
+  accessToken,
+}) {
   const [userConsoles, setUserConsoles] = useState(null)
-  const { user, accessToken, isRefreshing } = useUser()
 
   useEffect(() => {
-    if (isRefreshing) return
-
     if (!user) {
       setUserConsoles([])
       return
@@ -47,7 +52,7 @@ function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload
         setUserConsoles([])
         promptError(error.message)
       })
-  }, [user, accessToken, isRefreshing, venueId, submissionInvitationId, shouldReload])
+  }, [user, accessToken, venueId, submissionInvitationId, shouldReload])
 
   useEffect(() => {
     if (!userConsoles || typeof setHidden !== 'function') return
@@ -111,6 +116,7 @@ export default function VenueHomepage({ appContext }) {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const queryParam = useSearchParams()
   const { setBannerContent } = appContext ?? {}
+  const { user, accessToken, isRefreshing } = useUser()
   const submissionIds =
     typeof submissionId === 'string' ? [{ value: submissionId, version: 2 }] : submissionId
   const defaultConfirmationMessage =
@@ -143,6 +149,8 @@ export default function VenueHomepage({ appContext }) {
             }
             markTabLoaded()
           }}
+          user={user}
+          accessToken={accessToken}
         />
       )
     }
@@ -155,6 +163,7 @@ export default function VenueHomepage({ appContext }) {
           invitation={tabConfig.options.invitation}
           pageSize={tabConfig.options.pageSize}
           shouldReload={shouldReload}
+          accessToken={accessToken}
         />
       )
     }
@@ -206,6 +215,7 @@ export default function VenueHomepage({ appContext }) {
             markTabLoaded()
           }}
           filterNotes={filterFn}
+          accessToken={accessToken}
         />
       )
     }
@@ -260,6 +270,8 @@ export default function VenueHomepage({ appContext }) {
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
 
+  if (isRefreshing) return <LoadingSpinner />
+
   return (
     <>
       <VenueHeader headerInfo={header} />
@@ -284,6 +296,7 @@ export default function VenueHomepage({ appContext }) {
               reload()
             }}
             options={{ largeLabel: true }}
+            accessToken={accessToken}
           />
         </div>
       ))}
