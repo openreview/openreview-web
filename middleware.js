@@ -1,5 +1,5 @@
-import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { getTokenPayload } from './lib/clientAuth'
 
 // eslint-disable-next-line import/prefer-default-export
 export async function middleware(request) {
@@ -14,6 +14,8 @@ export async function middleware(request) {
     return response
   }
 
+  const decodedRefreshToken = getTokenPayload(refreshToken.value)
+
   try {
     const tokenRefreshResponse = await fetch(`${process.env.API_V2_URL}/refreshToken`, {
       method: 'POST',
@@ -22,6 +24,9 @@ export async function middleware(request) {
         Cookie: `${process.env.REFRESH_TOKEN_NAME}=${refreshToken?.value}`,
         'Content-Type': 'application/json; charset=UTF-8',
         'X-Forwarded-For': request.headers.get('x-forwarded-for'),
+        'X-Url': request.nextUrl.href,
+        'X-User': decodedRefreshToken?.user?.profile?.id ?? decodedRefreshToken?.user?.id,
+        'X-Source': 'middleware',
       },
     })
 
