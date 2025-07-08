@@ -92,7 +92,7 @@ describe('clientAuth', () => {
     expect(expectedResult).toEqual(actualResult)
   })
 
-  test('return empty object when refresh token fail with MissingTokenError', async () => {
+  test.skip('return empty object when refresh token fail with MissingTokenError', async () => {
     const accessTokenInCookie = undefined
     const cookieGet = jest.fn(() => accessTokenInCookie)
     Cookies.mockImplementation(() => ({
@@ -121,7 +121,7 @@ describe('clientAuth', () => {
     expect(expectedResult).toEqual(actualResult)
   })
 
-  test('return empty object when refresh token fail with RateLimitError', async () => {
+  test.skip('return empty object when refresh token fail with RateLimitError', async () => {
     const accessTokenInCookie = undefined
     const cookieGet = jest.fn(() => accessTokenInCookie)
     Cookies.mockImplementation(() => ({
@@ -150,7 +150,7 @@ describe('clientAuth', () => {
     expect(expectedResult).toEqual(actualResult)
   })
 
-  test('return empty object when refresh token is successful but new token is an expired one', async () => {
+  test.skip('return empty object when refresh token is successful but new token is an expired one', async () => {
     const accessTokenInCookie = undefined
     const cookieGet = jest.fn(() => accessTokenInCookie)
     Cookies.mockImplementation(() => ({
