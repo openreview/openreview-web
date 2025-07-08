@@ -25,9 +25,6 @@ function EditFields({ editId, displayObj, omitFields = [], label = 'Edit' }) {
     if (membersObj.add) {
       updates.push(`**Added**: ${membersObj.add.join(', ')}`)
     }
-    if (membersObj.push) {
-      updates.push(`**Added**: ${membersObj.push.join(', ')}`)
-    }
     if (membersObj.remove) {
       updates.push(`**Removed**: ${membersObj.remove.join(', ')}`)
     }
