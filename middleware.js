@@ -1,5 +1,6 @@
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { getTokenPayload } from './lib/clientAuth'
 
 // eslint-disable-next-line import/prefer-default-export
 export async function middleware(request) {
@@ -26,7 +27,12 @@ export async function middleware(request) {
     })
 
     const data = await tokenRefreshResponse.json()
-    if (data.status === 401 || data.status === 400) {
+    if (!data.token) {
+      console.error('middleware.js refresh token failed', data)
+      return response
+    }
+    const decodedToken = getTokenPayload(data.token)
+    if (!decodedToken) {
       console.error('middleware.js refresh token failed', data)
       return response
     }
