@@ -347,6 +347,18 @@ describe('EditorWidget', () => {
     expect(screen.getByText('profile')).toBeInTheDocument()
   })
 
+  test('render ProfileSearchWidget for type profile/profile{}', async () => {
+    const providerProps = typeProviderProps
+
+    providerProps.value.field.field_name.value.param.type = 'profile'
+    const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('profile')).toBeInTheDocument()
+
+    providerProps.value.field.field_name.value.param.type = 'profile{}'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('profile')).toBeInTheDocument()
+  })
+
   test('render nothing for type note/edit/edge/tag/note[]/edit[]/edge[]/tag[]', async () => {
     const providerProps = typeProviderProps
 
