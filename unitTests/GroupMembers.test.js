@@ -292,7 +292,7 @@ describe('GroupMembers (customized by invitations)', () => {
       '/groups/edits',
       expect.objectContaining({
         group: expect.objectContaining({
-          members: { append: ['~Test_Id2'] },
+          members: { add: ['~Test_Id2'] },
         }),
         invitation: 'addRemoveMembersInvitaiton',
       }),
