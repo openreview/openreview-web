@@ -194,6 +194,29 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
                 <p className="empty-message">No Date Process to display</p>
               )}
             </EditorSection>
+            <EditorSection title="Post Process">
+              {invitation.postprocesses?.length > 0 ? (
+                <>
+                  {invitation.postprocesses.map((postProcess, index) => {
+                    const { dates, cron, startDate, endDate, delay, script } = postProcess
+                    return (
+                      <React.Fragment key={index}>
+                        {delay && <div>Delay: {delay}</div>}
+                        {cron && (
+                          <div>
+                            Cron: {cron}, Start date: {startDate}, End date: {endDate}
+                          </div>
+                        )}
+                        {dates && <div>Dates: {dates.join(', ')}</div>}
+                        <CodeEditor key={index} code={script} readOnly />
+                      </React.Fragment>
+                    )
+                  })}
+                </>
+              ) : (
+                <p className="empty-message">No Post Process to display</p>
+              )}
+            </EditorSection>
           </React.Fragment>
         )
       case 'invitationCode':
