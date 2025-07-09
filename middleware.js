@@ -1,4 +1,3 @@
-import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { getTokenPayload } from './lib/clientAuth'
 
@@ -15,6 +14,8 @@ export async function middleware(request) {
     return response
   }
 
+  const decodedRefreshToken = getTokenPayload(refreshToken.value)
+
   try {
     const tokenRefreshResponse = await fetch(`${process.env.API_V2_URL}/refreshToken`, {
       method: 'POST',
@@ -22,7 +23,10 @@ export async function middleware(request) {
         Accept: 'application/json,text/*;q=0.99',
         Cookie: `${process.env.REFRESH_TOKEN_NAME}=${refreshToken?.value}`,
         'Content-Type': 'application/json; charset=UTF-8',
+        Referer: 'middleware',
         'X-Forwarded-For': request.headers.get('x-forwarded-for'),
+        'X-Url': request.nextUrl.href,
+        'X-User': decodedRefreshToken?.user?.profile?.id ?? decodedRefreshToken?.user?.id,
       },
     })
 
