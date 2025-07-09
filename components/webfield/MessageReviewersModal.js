@@ -29,6 +29,7 @@ const MessageReviewersModal = ({
     areaChairName = 'Area Chairs',
     secondaryAreaChairName,
     seniorAreaChairName = 'Senior_Area_Chairs',
+    defaultEmailBody = 'Your message...',
   } = useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
   const [error, setError] = useState(null)
@@ -190,7 +191,7 @@ const MessageReviewersModal = ({
 
   useEffect(() => {
     if (!messageOption) return
-    setMessage('Your message...')
+    setMessage(defaultEmailBody)
 
     const recipients = getRecipients(selectedIds)
 
