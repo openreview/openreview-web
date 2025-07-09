@@ -32,6 +32,46 @@ describe('MessageReviewersModal', () => {
     expect(basicModalProps.title).toEqual('All Reviewers of Selected Submission')
   })
 
+  test('show email body specified by defaultEmailBody', async () => {
+    const providerProps = {
+      value: {
+        officialReviewName: 'Official_Review',
+        shortPhrase: 'Test Venue',
+        defaultEmailBody: 'This is an email sent by AC',
+      },
+    }
+    const componentProps = {
+      tableRowsDisplayed: [
+        {
+          note: { id: 'noteId1', number: 1, forum: 'noteId1' },
+          reviewers: [
+            {
+              reviewerProfileId: '~Reviewer_One1',
+              preferredId: '~Reviewer_One1',
+              anonymizedGroup: 'TestVenue/Submission1/Reviewer_ABCD',
+              hasReview: true,
+              noteNumber: 1,
+            },
+          ],
+          messageSignature: 'messageSignature1',
+        },
+      ],
+      messageModalId: 'message-reviewers',
+      messageOption: { value: 'allReviewers', label: 'All Reviewers of Selected Submission' },
+      selectedIds: ['noteId1'],
+    }
+
+    renderWithWebFieldContext(<MessageReviewersModal {...componentProps} />, providerProps)
+
+    expect(screen.getByText('Basic Modal')).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(
+        basicModalProps.children[1].props.children[1].props.children[3].props.value
+      ).toEqual(expect.stringContaining('This is an email sent by AC'))
+    })
+  })
+
   test('show default message template in step1', async () => {
     const providerProps = {
       value: { officialReviewName: 'Official_Review', shortPhrase: 'Test Venue' },
