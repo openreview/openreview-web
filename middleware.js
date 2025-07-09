@@ -31,7 +31,12 @@ export async function middleware(request) {
     })
 
     const data = await tokenRefreshResponse.json()
-    if (data.status === 401 || data.status === 400) {
+    if (!data.token) {
+      console.error('middleware.js refresh token failed', data)
+      return response
+    }
+    const decodedToken = getTokenPayload(data.token)
+    if (!decodedToken) {
       console.error('middleware.js refresh token failed', data)
       return response
     }
