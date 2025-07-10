@@ -225,7 +225,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #endregion
 
       // #region getSubmissions
-      const notesP = api.getAll(
+      const notesP = api.getAllWithAfter(
         '/notes',
         {
           invitation: submissionId,
