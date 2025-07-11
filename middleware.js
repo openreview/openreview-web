@@ -23,10 +23,10 @@ export async function middleware(request) {
         Accept: 'application/json,text/*;q=0.99',
         Cookie: `${process.env.REFRESH_TOKEN_NAME}=${refreshToken?.value}`,
         'Content-Type': 'application/json; charset=UTF-8',
-        Referer: request.nextUrl.href,
         'X-Forwarded-For': request.headers.get('x-forwarded-for'),
-        'X-Source': 'middleware',
+        'X-Url': request.nextUrl.href,
         'X-User': decodedRefreshToken?.user?.profile?.id ?? decodedRefreshToken?.user?.id,
+        'X-Source': 'middleware',
       },
     })
 
