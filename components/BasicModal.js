@@ -1,4 +1,4 @@
-/* globals $: false */
+/* globals $,clearMessage: false */
 
 import { useEffect, useRef } from 'react'
 import SpinnerButton from './SpinnerButton'
@@ -25,6 +25,7 @@ export default function BasicModal({
       }
     })
     $(modalRef.current).on('show.bs.modal', (e) => {
+      clearMessage()
       if (typeof onOpen === 'function') {
         onOpen(e.relatedTarget)
       }

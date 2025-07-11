@@ -340,11 +340,11 @@ const InvitationGeneralEdit = ({ invitation, accessToken, loadInvitation, setIsE
     const requestBody = constructInvitationToPost()
     try {
       await api.post('/invitations', requestBody, { accessToken, version: 1 })
-      promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      promptMessage(`Settings for ${prettyId(invitation.id)} updated`)
       setIsEditMode(false)
       loadInvitation(invitation.id)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
     setIsSaving(false)
   }
@@ -676,11 +676,11 @@ const InvitationGeneralEditV2 = ({
         throw new Error('No meta invitation found')
       }
       await api.post('/invitations/edits', requestBody, { accessToken })
-      promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      promptMessage(`Settings for ${prettyId(invitation.id)} updated`)
       setIsEditMode(false)
       await loadInvitation(invitation.id)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
     setIsSaving(false)
   }
