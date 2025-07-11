@@ -48,7 +48,7 @@ export default async function Profile({ profile, publicProfile }) {
       apiRes = await api.getCombined('/notes', queryParam, null, { accessToken: token })
     } catch (error) {
       apiRes = error
-      console.log('Error in loadPublications', {
+      console.error('Error in loadPublications', {
         page: 'profile',
         component: 'Profile',
         user: user?.id,
