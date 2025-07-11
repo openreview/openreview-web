@@ -8,58 +8,30 @@ import styles from '../Invitation.module.scss'
 import { prettyId } from '../../../lib/utils'
 import EditBanner from '../../../components/EditBanner'
 import { invitationModeToggle } from '../../../lib/banner-links'
-import InvitationEditorV1, {
-  InvitationEditorV2,
-} from '../../../components/invitation/InvitationEditor'
+import InvitationWithInvitation from '../../../components/invitation/InvitationWithInvitation'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import ErrorDisplay from '../../../components/ErrorDisplay'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import InvitationAdmin from '../admin/InvitationAdmin'
 
 export default function InvitationEditor({ id, query }) {
   const [invitation, setInvitation] = useState(null)
   const [error, setError] = useState(null)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { accessToken, isRefreshing } = useUser()
   const router = useRouter()
-  const isMetaInvitation = invitation?.edit === true
-
-  const getHeaderText = () => {
-    if (!invitation) return ''
-    let type = ''
-    if (isMetaInvitation) {
-      type = '(Meta Invitation)'
-    } else if (invitation.edit?.invitation) {
-      type = '(Invitation of Invitation)'
-    } else if (invitation.edit?.note) {
-      type = '(Invitation of Note)'
-    } else if (invitation.edit?.edge) {
-      type = '(Invitation of Edge)'
-    } else if (invitation.edit?.tag) {
-      type = '(Invitation of Tag)'
-    }
-
-    return `${prettyId(invitation?.id)} ${type}`
-  }
 
   const loadInvitation = async () => {
     try {
-      const invitationObj = await api.getInvitationById(
-        id,
-        accessToken,
-        { details: 'writable', expired: true, trash: true },
-        { details: 'writable', expired: true }
-      )
+      const invitationObj = await api.getInvitationById(id, accessToken)
+      const domainResult = invitationObj
+        ? await api
+            .get('/groups', { id: invitationObj.domain }, { accessToken })
+            .catch(() => {})
+        : null
+      const domainGroup = domainResult?.groups?.length > 0 ? domainResult.groups[0] : null
       if (invitationObj) {
-        if (invitationObj.details?.writable) {
-          setInvitation(invitationObj)
-        } else if (!accessToken) {
-          router.replace(
-            `/login?redirect=/invitation/edit?${encodeURIComponent(stringify(query))}`
-          )
-        } else {
-          // User is a reader, not a writer of the invitation, so redirect to info mode
-          router.replace(`/invitation/info?id=${id}`)
-        }
+        setInvitation({ ...invitationObj, domain: domainGroup })
       } else {
         setError('Invitation not found')
       }
@@ -90,30 +62,22 @@ export default function InvitationEditor({ id, query }) {
         <LoadingSpinner />
       </CommonLayout>
     )
+  if (!invitation.domain?.content?.request_form_invitation)
+    return <InvitationAdmin id={id} query={query} />
 
   const editBanner = <EditBanner>{invitationModeToggle('edit', invitation.id)}</EditBanner>
   return (
     <CommonLayout banner={null} editBanner={editBanner}>
       <div className={styles.invitation}>
         <div id="header">
-          <h1>{getHeaderText()}</h1>
+          <h1>{prettyId(invitation?.id)}</h1>
         </div>
-        {invitation?.apiVersion === 1 ? (
-          <InvitationEditorV1
+        <div className="invitationEditorTabsContainer">
+          <InvitationWithInvitation
             invitation={invitation}
-            user={user}
-            accessToken={accessToken}
-            loadInvitation={loadInvitation}
+            reloadInvitation={() => loadInvitation(invitation.id)}
           />
-        ) : (
-          <InvitationEditorV2
-            invitation={invitation}
-            isMetaInvitation={isMetaInvitation}
-            user={user}
-            accessToken={accessToken}
-            loadInvitation={loadInvitation}
-          />
-        )}{' '}
+        </div>
       </div>
     </CommonLayout>
   )
