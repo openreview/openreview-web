@@ -22,7 +22,6 @@ export default function useUser(pollToken = false) {
       interval = setInterval(async () => {
         const { token: tokenFromCookie } = await clientAuth()
         if (tokenFromCookie !== tokenRef.current) {
-          console.log('Token has changed, calling fetchData')
           fetchData()
         }
       }, 30000)
