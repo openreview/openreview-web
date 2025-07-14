@@ -20,6 +20,7 @@ const ProfilePublications = ({
     htmlLink: false,
     showContents: false,
     showPrivateIcon: true,
+    clientRenderingOnly: true,
     referrer:
       preferredName &&
       profileId &&

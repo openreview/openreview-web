@@ -5,6 +5,7 @@ import NoteContent, { NoteContentV2 } from './NoteContent'
 import Icon from './Icon'
 import { prettyId, forumDate, inflect } from '../lib/utils'
 import Collapse from './Collapse'
+import ClientForumDate from './ClientForumDate'
 
 const Note = ({ note, invitation, options }) => {
   const privatelyRevealed = options.showPrivateIcon && !note.readers.includes('everyone')
@@ -173,13 +174,17 @@ export const NoteV2 = ({ note, options }) => {
 
       <ul className="note-meta-info list-inline">
         <li>
-          {forumDate(
-            note.cdate,
-            note.tcdate,
-            note.mdate,
-            note.tmdate,
-            note.content?.year?.value,
-            note.pdate
+          {options.clientRenderingOnly ? (
+            <ClientForumDate note={note} />
+          ) : (
+            forumDate(
+              note.cdate,
+              note.tcdate,
+              note.mdate,
+              note.tmdate,
+              note.content?.year?.value,
+              note.pdate
+            )
           )}
         </li>
         <li>
