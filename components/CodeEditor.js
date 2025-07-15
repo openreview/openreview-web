@@ -126,7 +126,7 @@ const CodeEditor = ({
     ])
   }, [language, isVisible])
 
-  return <div className="code-editor" ref={containerRef} />
+  return <div className="code-editor disable-tex-rendering" ref={containerRef} />
 }
 
 export default CodeEditor
