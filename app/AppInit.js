@@ -9,10 +9,12 @@ import { nanoid } from 'nanoid'
 import mathjaxConfig from '../lib/mathjax-config'
 import MathjaxScript from './MathjaxScript'
 import TurnstileScript from './TurnstileScript'
+import usePrompt from '../hooks/usePrompt'
 import BibtexModal from '../components/BibtexModal'
 
 export default function AppInit() {
   const [libarysLoaded, setLibrariesLoaded] = useState(false)
+  const { notificationHolder, promptFunctions } = usePrompt()
 
   useEffect(() => {
     // Load required vendor libraries
@@ -41,6 +43,8 @@ export default function AppInit() {
     require('../client/templates')
     require('../client/template-helpers')
     require('../client/globals')
+
+    Object.assign(global, promptFunctions)
 
     // Setup marked options and renderer overwrite
     window.view.setupMarked()
@@ -93,6 +97,7 @@ export default function AppInit() {
     <>
       <MathjaxScript />
       <TurnstileScript />
+      {notificationHolder}
       {libarysLoaded && <BibtexModal />}
     </>
   )

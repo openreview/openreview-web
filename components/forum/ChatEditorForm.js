@@ -73,7 +73,7 @@ export default function ChatEditorForm({
       setSignatureOptions(sigOptions)
       setSignature(sigOptions[0]?.value)
     } catch (err) {
-      promptError(err.message, { scrollToTop: false })
+      promptError(err.message)
     }
   }
 
@@ -134,7 +134,7 @@ export default function ChatEditorForm({
           })
       })
       .catch((err) => {
-        promptError(err.message, { scrollToTop: false })
+        promptError(err.message)
         setLoading(false)
       })
   }
