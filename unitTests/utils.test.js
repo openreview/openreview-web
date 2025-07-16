@@ -1,5 +1,6 @@
 import {
   getDefaultTimezone,
+  getTagDispayText,
   isInstitutionEmail,
   parseNumberField,
   prettyInvitationId,
@@ -319,5 +320,56 @@ describe('utils', () => {
     expectedValue = 4
 
     expect(parseNumberField(confidenceString)).toEqual(expectedValue)
+  })
+
+  test('return display text for label', () => {
+    process.env.SUPER_USER = 'OpenReview.net'
+    // not to show invitation group when it's same as signature
+    let tag = {
+      invitation: 'OpenReview.net/Support/-/Profile_Moderation_Label',
+      label: 'spam user',
+      profile: '~Test_User1',
+      readers: ['OpenReview.net/Support'],
+      signature: 'OpenReview.net/Support',
+    }
+
+    let expectedValue = 'OpenReview Support Profile Moderation Label spam user'
+    expect(getTagDispayText(tag, false)).toEqual(expectedValue)
+
+    // show profile id when the param is true (for page other than profile/moderation)
+    tag = {
+      invitation: 'OpenReview.net/Support/-/Profile_Moderation_Label',
+      label: 'spam user',
+      profile: '~Test_User1',
+      readers: ['OpenReview.net/Support'],
+      signature: 'OpenReview.net/Support',
+    }
+
+    expectedValue = 'OpenReview Support Profile Moderation Label Test User spam user'
+    expect(getTagDispayText(tag, true)).toEqual(expectedValue)
+
+    // show label for vouch invitation (show profile id false)
+    tag = {
+      invitation: 'OpenReview.net/Support/-/Vouch',
+      label: 'vouch',
+      profile: '~Test_User1',
+      readers: ['OpenReview.net/Support'],
+      signature: '~Mentor_User1',
+    }
+
+    expectedValue = 'Vouched by ~Mentor_User1'
+    expect(getTagDispayText(tag, false)).toEqual(expectedValue)
+
+    // show label for vouch invitation (show profile id true)
+    tag = {
+      invitation: 'OpenReview.net/Support/-/Vouch',
+      label: 'vouch',
+      profile: '~Test_User1',
+      readers: ['OpenReview.net/Support'],
+      signature: '~Mentor_User1',
+    }
+
+    expectedValue = '~Mentor_User1 vouch ~Test_User1'
+    expect(getTagDispayText(tag, true)).toEqual(expectedValue)
   })
 })
