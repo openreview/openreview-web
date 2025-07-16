@@ -108,7 +108,7 @@ export default async function Profile({ profile, publicProfile }) {
         </aside>
       </div>
       <div className="col-md-12 col-lg-8">
-        <ProfileTags profileId={profile.preferredId} isSuperUser={isSuperUser(user)} />
+        <ProfileTags profileId={profile.preferredId} showProfileId={false} />
       </div>
     </div>
   )

@@ -1232,6 +1232,21 @@ table.table-minimal {
         width: max-content;
       }
     }
+    .tag-editor-container {
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+
+      .dropdown-select {
+        flex-grow: 1;
+        max-width: 40%;
+      }
+
+      .tag-label {
+        flex-grow: 1;
+        max-width: 60%;
+      }
+    }
     .tags-dropdown {
       &__control {
         background-color: #fffaf4;
