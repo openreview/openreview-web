@@ -279,21 +279,23 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
     } else if (sacDirectPaperAssignment && !pcConsoleData.noteNumberReviewMetaReviewMap) {
       loadReviewMetaReviewData()
     } else {
+      // Optimization: build a map of notes by id
+      const notesById = new Map(pcConsoleData.notes.map(n => [n.id, n]))
       const tableRows = pcConsoleData.seniorAreaChairs.map((sacProfileId, index) => {
         let notes = []
         let acs = []
 
         if (sacDirectPaperAssignment) {
           notes =
-            pcConsoleData.sacAcInfo.acBySacMap.get(sacProfileId)?.map((noteId) => {
-              const note = pcConsoleData.notes.find((p) => p.id === noteId)
-              if (!note) return null
-              const noteNumber = note?.number
-
-              const reviewMetaReviewInfo =
-                pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}
-              return { note, noteNumber, ...reviewMetaReviewInfo }
-            }) ?? []
+            pcConsoleData.sacAcInfo.acBySacMap.get(sacProfileId)
+              ?.filter((noteId) => notesById.has(noteId))
+              .map((noteId) => {
+                const note = notesById.get(noteId)
+                const noteNumber = note?.number
+                const reviewMetaReviewInfo =
+                  pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}
+                return { note, noteNumber, ...reviewMetaReviewInfo }
+              }) ?? []
         } else {
           acs =
             pcConsoleData.sacAcInfo.acBySacMap.get(sacProfileId)?.map((acProfileId) => {
