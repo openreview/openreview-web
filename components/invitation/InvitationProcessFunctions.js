@@ -27,6 +27,13 @@ const InvitationProcessFunctionsV2 = ({
             tooltip="Use the form below to specify dates expression and delay of date processes, invitation properties can be references with #{}, e.g. #{duedate}"
           />
         </Tab>
+        <Tab id="postprocesses">
+          Post Process{' '}
+          <Icon
+            name="info-sign"
+            tooltip="Use the form below to specify dates expression and delay of post processes, invitation properties can be references with #{}, e.g. #{duedate}"
+          />
+        </Tab>
       </TabList>
 
       <TabPanels>
@@ -64,6 +71,17 @@ const InvitationProcessFunctionsV2 = ({
             accessToken={accessToken}
             loadInvitation={loadInvitation}
             isMetaInvitation={isMetaInvitation}
+          />
+        </TabPanel>
+        <TabPanel id="postprocesses">
+          <DateProcessesEditor
+            key={invitation.id}
+            invitation={invitation}
+            profileId={profileId}
+            accessToken={accessToken}
+            loadInvitation={loadInvitation}
+            isMetaInvitation={isMetaInvitation}
+            field="postprocesses"
           />
         </TabPanel>
       </TabPanels>

@@ -3,14 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { stringify } from 'query-string'
-import GroupGeneral from '../../../components/group/GroupGeneral'
-import GroupMembers from '../../../components/group/GroupMembers'
-import GroupContent from '../../../components/group/GroupContent'
-import GroupContentScripts from '../../../components/group/GroupContentScripts'
-import GroupSignedNotes from '../../../components/group/GroupSignedNotes'
-import GroupChildGroups from '../../../components/group/GroupChildGroups'
-import GroupRelatedInvitations from '../../../components/group/GroupRelatedInvitations'
-import GroupUICode from '../../../components/group/GroupUICode'
 import CommonLayout from '../../CommonLayout'
 import styles from '../Group.module.scss'
 import { prettyId } from '../../../lib/utils'
@@ -20,18 +12,18 @@ import useUser from '../../../hooks/useUser'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import ErrorDisplay from '../../../components/ErrorDisplay'
 import api from '../../../lib/api-client'
-import { isSuperUser } from '../../../lib/clientAuth'
+import GroupWithInvitation from './GroupWithInvitation'
+import GroupAdmin from '../admin/GroupAdmin'
 
 export default function GroupEditor({ id, query }) {
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
   const { user, accessToken, isRefreshing } = useUser()
   const router = useRouter()
-  const profileId = user?.profile?.id
 
   const loadGroup = async () => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken })
+      const { groups } = await api.get('/groups', { id, details: 'writable' }, { accessToken })
       if (!groups?.length) throw new Error('Group not found')
       // eslint-disable-next-line no-shadow
       const group = groups[0]
@@ -55,10 +47,7 @@ export default function GroupEditor({ id, query }) {
         }
         setGroup(group)
       } else {
-        const redirectPath = accessToken
-          ? `/group/info?id=${id}`
-          : `/login?redirect=/group/edit?${encodeURIComponent(stringify(query))}`
-        router.replace(redirectPath)
+        setGroup(group)
       }
     } catch (apiError) {
       if (apiError.name === 'ForbiddenError') {
@@ -86,6 +75,9 @@ export default function GroupEditor({ id, query }) {
       </CommonLayout>
     )
 
+  if (!group.details.domain?.content?.request_form_invitation)
+    return <GroupAdmin id={id} query={query} />
+
   const editBanner = <EditBanner>{groupModeToggle('edit', group.id)}</EditBanner>
   return (
     <CommonLayout banner={null} editBanner={editBanner}>
@@ -93,40 +85,11 @@ export default function GroupEditor({ id, query }) {
         <div id="header">
           <h1>{prettyId(group.id)}</h1>
         </div>
-        <div>
-          <GroupGeneral
+        <div className="groupEditorTabsContainer">
+          <GroupWithInvitation
             group={group}
-            profileId={profileId}
-            isSuperUser={isSuperUser(user)}
+            reloadGroup={() => loadGroup(group.id)}
             accessToken={accessToken}
-            reloadGroup={loadGroup}
-          />
-          <GroupMembers group={group} accessToken={accessToken} reloadGroup={loadGroup} />
-          {group.invitations && (
-            <GroupContent
-              group={group}
-              profileId={profileId}
-              accessToken={accessToken}
-              reloadGroup={loadGroup}
-            />
-          )}
-          {group.invitations && (
-            <GroupContentScripts
-              key={`${group.id}-content-scripts`}
-              group={group}
-              profileId={profileId}
-              accessToken={accessToken}
-              reloadGroup={loadGroup}
-            />
-          )}
-          <GroupSignedNotes group={group} accessToken={accessToken} />
-          <GroupChildGroups groupId={group.id} accessToken={accessToken} />
-          <GroupRelatedInvitations group={group} accessToken={accessToken} />
-          <GroupUICode
-            group={group}
-            profileId={profileId}
-            accessToken={accessToken}
-            reloadGroup={loadGroup}
           />
         </div>
       </div>
