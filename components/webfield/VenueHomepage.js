@@ -117,6 +117,10 @@ export default function VenueHomepage({ appContext }) {
   const queryParam = useSearchParams()
   const { setBannerContent } = appContext ?? {}
   const { user, accessToken, isRefreshing } = useUser()
+  const submissionIds =
+    typeof submissionId === 'string' ? [{ value: submissionId, version: 2 }] : submissionId
+  const defaultConfirmationMessage =
+    'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
 
   const renderTab = (tabConfig, tabIndex) => {
     if (!tabConfig) return null
@@ -272,22 +276,30 @@ export default function VenueHomepage({ appContext }) {
     <>
       <VenueHeader headerInfo={header} />
 
-      {submissionId && (
-        <div id="invitation">
+      {submissionIds?.map(({ value, version, tabName }, index) => (
+        <div id="invitation" key={index}>
           <SubmissionButton
-            invitationId={submissionId}
-            apiVersion={2}
+            invitationId={value}
+            apiVersion={version}
             onNoteCreated={() => {
-              const defaultConfirmationMessage =
-                'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
               promptMessage(submissionConfirmationMessage || defaultConfirmationMessage)
+
+              if (tabName) {
+                const tabId = kebabCase(tabName)
+                const currentHash = window.location.hash.slice(5)
+                if (currentHash !== tabId) {
+                  setTabsDisabled(true)
+                  window.location.hash = `#tab-${tabId}`
+                  setTabsDisabled(false)
+                }
+              }
               reload()
             }}
-            options={{ largeLabel: true }}
+            options={{ largeLabel: true, showStartEndDate: true }}
             accessToken={accessToken}
           />
         </div>
-      )}
+      ))}
 
       <div id="notes">
         <Tabs>
@@ -306,6 +318,7 @@ export default function VenueHomepage({ appContext }) {
                   if (currentHash !== tabConfig.id) {
                     setTabsDisabled(true)
                     window.location.hash = `#tab-${tabConfig.id}`
+                    setTabsDisabled(false)
                   }
                 }}
               >

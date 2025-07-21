@@ -89,6 +89,7 @@
     p.empty-message {
       margin-top: 15px;
       font-style: italic;
+      color: constants.$subtleGray;
     }
     @media #{constants.$phone-only} {
       padding-left: 0;
