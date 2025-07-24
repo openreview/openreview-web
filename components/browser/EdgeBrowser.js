@@ -350,6 +350,7 @@ export default class EdgeBrowser extends React.Component {
     const editTranerseInvitations = [...this.editInvitations, this.traverseInvitation]
     editTranerseInvitations?.forEach(async (editInvitation) => {
       // this case is handled here to reduce num of calls to /groups,other cases handled at entity
+      if (!editInvitation.signatures) return
       if (
         editInvitation.signatures['values-regex'] &&
         !editInvitation.signatures['values-regex']?.startsWith('~.*')
