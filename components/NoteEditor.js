@@ -320,9 +320,7 @@ const NoteEditor = ({
   const useCheckboxWidget = true
 
   const displayError =
-    typeof setErrorAlertMessage === 'function'
-      ? setErrorAlertMessage
-      : (p) => promptError(p, { scrollToTop: false })
+    typeof setErrorAlertMessage === 'function' ? setErrorAlertMessage : (p) => promptError(p)
 
   const saveDraft = useCallback(
     throttle((fieldName, value) => {
