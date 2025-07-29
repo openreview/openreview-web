@@ -154,7 +154,8 @@ jobs:
 
     needs: build
 
-    if: github.ref == 'refs/heads/master'
+    if: false
+    #if: github.ref == 'refs/heads/master' && (github.event_name != 'repository_dispatch' || github.event.action != 'openreview-api-updated')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

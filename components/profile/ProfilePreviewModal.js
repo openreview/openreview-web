@@ -1,6 +1,5 @@
 /* globals promptError,$: false */
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
 import BasicModal from '../BasicModal'
 import BasicProfileView from './BasicProfileView'
 import useUser from '../../hooks/useUser'
@@ -8,8 +7,9 @@ import api from '../../lib/api-client'
 import ProfilePublications from './ProfilePublications'
 import ProfileViewSection from './ProfileViewSection'
 import MessagesSection from './MessagesSection'
-import Dropdown from '../Dropdown'
-import { getRejectionReasons } from '../../lib/utils'
+import Dropdown, { CreatableDropdown } from '../Dropdown'
+import { getRejectionReasons, prettyInvitationId, prettyId } from '../../lib/utils'
+import ProfileTag from '../ProfileTag'
 
 const ProfilePreviewModal = ({
   profileToPreview,
@@ -19,23 +19,19 @@ const ProfilePreviewModal = ({
   sortFn,
   showNextProfile,
   acceptUser,
-  blockUser,
   setProfileToReject,
   rejectUser,
 }) => {
   const [publications, setPublications] = useState(null)
+  const [tags, setTags] = useState([])
   const { accessToken } = useUser()
-  const router = useRouter()
   const [rejectionMessage, setRejectionMessage] = useState('')
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionReasons, setRejectReasons] = useState([])
   const needsModeration = profileToPreview?.state === 'Needs Moderation'
 
-  const updateMessageForPastRejectProfile = () => {
-    setRejectionMessage(
-      (p) =>
-        `Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system.\n\n${p}`
-    )
+  const updateMessageForPastRejectProfile = (messageToAdd) => {
+    setRejectionMessage((p) => `${messageToAdd}\n\n${p}`)
   }
 
   const loadPublications = async () => {
@@ -61,21 +57,59 @@ const ProfilePreviewModal = ({
     }
   }
 
+  const loadTags = async () => {
+    if (profileToPreview.state === 'Merged') return
+    try {
+      const result = await api.get('/tags', {
+        profile: profileToPreview.id,
+      })
+      setTags(result.tags)
+    } catch (error) {
+      /* empty */
+    }
+  }
+
+  const deleteTag = async (tag) => {
+    try {
+      await api.post('/tags', {
+        id: tag.id,
+        ddate: Date.now(),
+        profile: tag.profile,
+        label: tag.label,
+        signature: tag.signature,
+        invitation: tag.invitation,
+      })
+      await loadTags()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const addTag = async (tagLabel) => {
+    try {
+      await api.post('/tags', {
+        profile: profileToPreview.id,
+        label: tagLabel,
+        signature: `${process.env.SUPER_USER}/Support`,
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
+      })
+      await loadTags()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   useEffect(() => {
     setRejectionMessage('')
     setIsRejecting(false)
+    setTags([])
     const currentInstitutionName = profileToPreview?.history?.find(
       (p) => !p.end || p.end >= new Date().getFullYear()
     )?.institution?.name
     setRejectReasons(getRejectionReasons(currentInstitutionName))
     if (profileToPreview && contentToShow?.includes('publications')) loadPublications()
+    if (profileToPreview && contentToShow?.includes('tags')) loadTags()
   }, [profileToPreview?.id])
-
-  useEffect(() => {
-    router.events.on('routeChangeStart', () => {
-      $('#profile-preview').modal('hide')
-    })
-  }, [])
 
   if (!profileToPreview) return null
   return (
@@ -120,9 +154,33 @@ const ProfilePreviewModal = ({
           />
         </ProfileViewSection>
       )}
-      {needsModeration && (
-        <div className="modal-footer">
-          <div>
+      <div className="moderation-actions">
+        <div className={`tags-container ${tags.length ? 'mb-2' : ''}`}>
+          {tags.map((tag, index) => (
+            <ProfileTag key={index} tag={tag} onDelete={() => deleteTag(tag)} />
+          ))}
+        </div>
+        {profileToPreview.state !== 'Merged' && (
+          <div className="mb-2">
+            <CreatableDropdown
+              hideArrow
+              isClearable
+              classNamePrefix="tags-dropdown"
+              placeholder="tag the profile"
+              options={[
+                { label: 'require vouch', value: 'require vouch' },
+                { label: 'potential spam', value: 'potential spam' },
+              ]}
+              value={null}
+              onChange={(e) => {
+                if (!e) return
+                addTag(e.value)
+              }}
+            />
+          </div>
+        )}
+        {needsModeration && (
+          <div className="moderation-actions-buttons">
             <div className="pull-left">
               <button
                 type="button"
@@ -157,54 +215,71 @@ const ProfilePreviewModal = ({
                 type="button"
                 className="btn"
                 onClick={async () => {
-                  await blockUser(profileToPreview)
-                  showNextProfile(profileToPreview.id)
-                }}
-              >
-                Block
-              </button>
-            </div>
-          </div>
-          {isRejecting && (
-            <div className="form-group form-rejection mt-2">
-              <Dropdown
-                name="rejection-reason"
-                instanceId="rejection-reason"
-                placeholder="Choose a common reject reason..."
-                options={rejectionReasons}
-                onChange={(p) => {
-                  setRejectionMessage(p?.rejectionText || '')
-                }}
-                isClearable
-              />
-
-              <button className="btn btn-xs" onClick={updateMessageForPastRejectProfile}>
-                Add Invalid Info Warning
-              </button>
-
-              <textarea
-                name="message"
-                className="form-control mt-2"
-                rows="10"
-                value={rejectionMessage}
-                onChange={(e) => {
-                  setRejectionMessage(e.target.value)
-                }}
-              />
-              <button
-                type="button"
-                className="btn"
-                onClick={async () => {
-                  await rejectUser(rejectionMessage)
+                  await rejectUser(rejectionReasons[0]?.rejectionText, profileToPreview.id)
                   showNextProfile(profileToPreview.id)
                 }}
               >
                 Reject
               </button>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+        {isRejecting && (
+          <div className="form-group form-rejection mt-2">
+            <Dropdown
+              name="rejection-reason"
+              instanceId="rejection-reason"
+              placeholder="Choose a common reject reason..."
+              options={rejectionReasons}
+              onChange={(p) => {
+                setRejectionMessage(p?.rejectionText || '')
+              }}
+              isClearable
+            />
+            <div>
+              <button
+                className="btn btn-xs mr-2"
+                onClick={() =>
+                  updateMessageForPastRejectProfile(
+                    "Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system."
+                  )
+                }
+              >
+                Add Invalid Info Warning
+              </button>
+              <button
+                className="btn btn-xs"
+                onClick={() =>
+                  updateMessageForPastRejectProfile(
+                    'If invalid info is submitted again, your email will be blocked.'
+                  )
+                }
+              >
+                Add Last Notice Warning
+              </button>
+            </div>
+            <textarea
+              name="message"
+              className="form-control mt-2"
+              rows="10"
+              value={rejectionMessage}
+              onChange={(e) => {
+                setRejectionMessage(e.target.value)
+              }}
+            />
+            <button
+              type="button"
+              className="btn"
+              onClick={async () => {
+                await rejectUser(rejectionMessage, profileToPreview.id)
+                showNextProfile(profileToPreview.id)
+              }}
+            >
+              Reject
+            </button>
+          </div>
+        )}
+      </div>
     </BasicModal>
   )
 }

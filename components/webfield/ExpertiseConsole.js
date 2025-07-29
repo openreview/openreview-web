@@ -2,13 +2,12 @@
 /* globals promptMessage: false */
 
 import { useContext, useEffect, useReducer } from 'react'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import WebFieldContext from '../WebFieldContext'
 import SubmissionButton from './SubmissionButton'
 import Markdown from '../EditorComponents/Markdown'
 import ExpertiseSelector from '../ExpertiseSelector'
 import { prettyId } from '../../lib/utils'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 
 export default function ExpertiseConsole({ appContext }) {
   const {
@@ -20,9 +19,9 @@ export default function ExpertiseConsole({ appContext }) {
     apiVersion,
   } = useContext(WebFieldContext)
   const [shouldReload, reload] = useReducer((p) => !p, true)
-  const router = useRouter()
+  const query = useSearchParams()
 
-  const { setBannerContent } = appContext
+  const { setBannerContent } = appContext ?? {}
   const options =
     apiVersion === 2
       ? invitation.edge?.label?.param?.enum
@@ -43,19 +42,18 @@ Papers not automatically included as part of this import process can be uploaded
 Make sure that your email is part of the "authorids" field of the upload form, otherwise the paper will not appear in the list,
 though it will be included in the recommendations process. Only upload papers you are an author of.
 
-Please contact info@openreview.net with any questions or concerns about this interface, or about the expertise scoring process.`
+Please [contact us](/contact) with any questions or concerns about this interface, or about the expertise scoring process.`
   const defaultUploadInvitationId = `${process.env.SUPER_USER}/Archive/-/Direct_Upload`
 
   useEffect(() => {
     // Set referrer banner
-    if (!router.isReady) return
 
-    if (router.query.referrer) {
-      setBannerContent(referrerLink(router.query.referrer))
-    } else if (venueId) {
-      setBannerContent(venueHomepageLink(venueId))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
+    } else {
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
-  }, [router.isReady, router.query])
+  }, [query])
 
   return (
     <>

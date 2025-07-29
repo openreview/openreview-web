@@ -3,7 +3,6 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { formatDateTime, prettyId, prettyInvitationId } from '../../lib/utils'
 
@@ -14,10 +13,10 @@ export default function SubmissionButton({
   onNoteCreated,
   apiVersion,
   options,
+  accessToken,
 }) {
   const [invitation, setInvitation] = useState(null)
   const [noteEditorOpen, setNoteEditorOpen] = useState(false)
-  const { accessToken, userLoading } = useUser()
   const newNoteEditor = invitation?.domain
 
   const invitationPastDue = invitation?.duedate && invitation.duedate < Date.now()
@@ -54,10 +53,8 @@ export default function SubmissionButton({
   }
 
   useEffect(() => {
-    if (userLoading) return
-
     loadInvitation()
-  }, [userLoading, invitationId])
+  }, [invitationId])
 
   if (!invitation || invitationNotAvailable) return null
 

@@ -1,12 +1,10 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import groupBy from 'lodash/groupBy'
 import { orderBy } from 'lodash'
+import dayjs from 'dayjs'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
@@ -21,6 +19,7 @@ import {
   getSingularRoleName,
   pluralizeString,
   getRoleHashFragment,
+  formatDateTime,
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
@@ -30,6 +29,9 @@ import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
 import { formatProfileContent } from '../../lib/edge-utils'
+import ConsoleTabs from './ConsoleTabs'
+import { clearCache, getCache, setCache } from '../../lib/console-cache'
+import SpinnerButton from '../SpinnerButton'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -87,14 +89,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     preferredEmailInvitationId,
     ithenticateInvitationId,
     displayReplyInvitations,
+    useCache = false,
   } = useContext(WebFieldContext)
-  const { setBannerContent, setLayoutOptions } = appContext
-  const { user, accessToken, userLoading } = useUser()
-  const router = useRouter()
-  const query = useQuery()
-  const [activeTabId, setActiveTabId] = useState(
-    decodeURIComponent(window.location.hash) || '#venue-configuration'
-  )
+  const { setBannerContent } = appContext ?? {}
+  const { user, accessToken, isRefreshing } = useUser()
+  const query = useSearchParams()
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
 
@@ -104,8 +103,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   const loadData = async () => {
     if (isLoadingData) return
-
     setIsLoadingData(true)
+    await clearCache(venueId)
+
     try {
       // #region getInvitationMap
       const conferenceInvitationsP = api.getAll(
@@ -225,7 +225,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #endregion
 
       // #region getSubmissions
-      const notesP = api.getAll(
+      const notesP = api.getAllWithAfter(
         '/notes',
         {
           invitation: submissionId,
@@ -548,7 +548,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         displayReplyInvitationsByPaperNumberMap.set(note.number, displayReplies)
       })
 
-      setPcConsoleData({
+      const consoleData = {
         invitations: invitationResults.flat(),
         allProfiles,
         allProfilesMap,
@@ -652,11 +652,27 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           seniorAreaChairGroups,
         },
         ithenticateEdges,
-      })
+        timeStamp: dayjs().valueOf(),
+      }
+      setPcConsoleData(consoleData)
+      if (useCache) await setCache(venueId, consoleData)
     } catch (error) {
       promptError(`loading data: ${error.message}`)
     }
     setIsLoadingData(false)
+  }
+
+  const loadCache = async () => {
+    try {
+      const cachedPcConsoleData = await getCache(venueId)
+      if (cachedPcConsoleData) {
+        setPcConsoleData(cachedPcConsoleData)
+      } else {
+        loadData()
+      }
+    } catch (error) {
+      loadData()
+    }
   }
 
   // eslint-disable-next-line consistent-return
@@ -1021,26 +1037,30 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   }
 
   const loadRegistrationNoteMap = async () => {
-    if (!pcConsoleData.registrationForms) {
+    if (!pcConsoleData.registrationForms?.length) {
       setPcConsoleData((data) => ({ ...data, registrationNoteMap: {} }))
+      return
     }
     if (pcConsoleData.registrationNoteMap) return
-
     try {
-      const registrationNotes = await Promise.all(
+      const registrationNoteResults = await Promise.all(
         pcConsoleData.registrationForms.map((regForm) =>
-          api.getAll(
+          api.get(
             '/notes',
             {
               forum: regForm.id,
               select: 'id,signatures,invitations,content',
               domain: venueId,
+              stream: true,
             },
             { accessToken }
           )
         )
       )
-      const registrationNoteMap = groupBy(registrationNotes.flat(), 'signatures[0]')
+      const registrationNoteMap = groupBy(
+        registrationNoteResults.flatMap((result) => result.notes ?? []),
+        'signatures[0]'
+      )
       setPcConsoleData((data) => ({ ...data, registrationNoteMap }))
     } catch (error) {
       promptError(`Erro loading registration notes: ${error.message}`)
@@ -1049,51 +1069,22 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   useEffect(() => {
     if (!query) return
-    if (displayReplyInvitations?.length)
-      setLayoutOptions({ fullWidth: true, minimalFooter: true })
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
   useEffect(() => {
-    if (userLoading || !user || !group || !venueId || !reviewersId || !submissionId) return
-    loadData()
-  }, [user, userLoading, group])
-
-  useEffect(
-    () => () => {
-      setLayoutOptions({ fullWidth: false, minimalFooter: false })
-    },
-    []
-  )
-
-  useEffect(() => {
-    const validTabIds = [
-      '#venue-configuration',
-      `#${submissionName.toLowerCase()}-status`,
-      `#${reviewerUrlFormat}-status`,
-      `#${areaChairUrlFormat}-status`,
-      `#${seniorAreaChairUrlFormat}-status`,
-      '#deskrejectwithdrawn-status',
-    ]
-
-    if (submissionContentFields.length > 0) {
-      submissionContentFields.forEach((fieldAttrs) => validTabIds.push(`#${fieldAttrs.field}`))
+    if (isRefreshing || !user || !group || !venueId || !reviewersId || !submissionId) return
+    if (useCache) {
+      loadCache()
+    } else {
+      loadData()
     }
-
-    if (extraTabs.length > 0) {
-      extraTabs.forEach((tabAttrs) => validTabIds.push(`#${tabAttrs.tabId}`))
-    }
-
-    if (!validTabIds.includes(activeTabId)) {
-      setActiveTabId('#venue-configuration')
-      return
-    }
-    router.replace(activeTabId)
-  }, [activeTabId])
+  }, [user, isRefreshing, group])
 
   const missingConfig = Object.entries({
     header,
@@ -1120,149 +1111,119 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     }`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
+
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
-      <Tabs>
-        <TabList>
-          <Tab
-            id="venue-configuration"
-            active={activeTabId === '#venue-configuration' ? true : undefined}
-            onClick={() => setActiveTabId('#venue-configuration')}
-          >
-            Overview
-          </Tab>
-          <Tab
-            id={`${submissionName.toLowerCase()}-status`}
-            active={
-              activeTabId === `#${submissionName.toLowerCase()}-status` ? true : undefined
-            }
-            onClick={() => setActiveTabId(`#${submissionName.toLowerCase()}-status`)}
-          >
-            {submissionName} Status
-          </Tab>
-          <Tab
-            id={`${reviewerUrlFormat}-status`}
-            active={activeTabId === `#${reviewerUrlFormat}-status` ? true : undefined}
-            onClick={() => setActiveTabId(`#${reviewerUrlFormat}-status`)}
-          >
-            {getSingularRoleName(prettyField(reviewerName))} Status
-          </Tab>
-          {areaChairsId && (
-            <Tab
-              id={`${areaChairUrlFormat}-status`}
-              active={activeTabId === `#${areaChairUrlFormat}-status` ? true : undefined}
-              onClick={() => setActiveTabId(`#${areaChairUrlFormat}-status`)}
-            >
-              {getSingularRoleName(prettyField(areaChairName))} Status
-            </Tab>
-          )}
-          {seniorAreaChairsId && (
-            <Tab
-              id={`${seniorAreaChairUrlFormat}-status`}
-              active={activeTabId === `#${seniorAreaChairUrlFormat}-status` ? true : undefined}
-              onClick={() => setActiveTabId(`#${seniorAreaChairUrlFormat}-status`)}
-            >
-              {getSingularRoleName(prettyField(seniorAreaChairName))} Status
-            </Tab>
-          )}
-          {(withdrawnVenueId || deskRejectedVenueId) && (
-            <Tab
-              id="deskrejectwithdrawn-status"
-              active={activeTabId === '#deskrejectwithdrawn-status' ? true : undefined}
-              onClick={() => setActiveTabId('#deskrejectwithdrawn-status')}
-            >
-              Desk Rejected/Withdrawn {pluralizeString(submissionName)}
-            </Tab>
-          )}
-          {submissionContentFields.length > 0 &&
-            submissionContentFields.map((fieldAttrs) => (
-              <Tab
-                id={fieldAttrs.field}
-                key={fieldAttrs.field}
-                active={activeTabId === `#${fieldAttrs.field}` ? true : undefined}
-                onClick={() => setActiveTabId(`#${fieldAttrs.field}`)}
+      {useCache && (
+        <div className="alert alert-warning">
+          {pcConsoleData.timeStamp ? (
+            <>
+              <span>
+                Data last updated {dayjs(pcConsoleData.timeStamp).fromNow()} (
+                {formatDateTime(pcConsoleData.timeStamp, { second: undefined })})
+              </span>{' '}
+              <SpinnerButton
+                className="btn btn-xs ml-2"
+                onClick={loadData}
+                loading={isLoadingData}
+                disabled={isLoadingData}
               >
-                {prettyField(fieldAttrs.field)}
-              </Tab>
-            ))}
-          {extraTabs.length > 0 &&
-            extraTabs.map((tabAttrs) => (
-              <Tab
-                id={tabAttrs.tabId}
-                key={tabAttrs.tabId}
-                active={activeTabId === `#${tabAttrs.tabId}` ? true : undefined}
-                onClick={() => setActiveTabId(`#${tabAttrs.tabId}`)}
-              >
-                {tabAttrs.tabName}
-              </Tab>
-            ))}
-        </TabList>
-
-        <TabPanels>
-          <TabPanel id="venue-configuration">
-            <Overview pcConsoleData={pcConsoleData} />
-          </TabPanel>
-          <TabPanel id={`${submissionName.toLowerCase()}-status`}>
-            {activeTabId === `#${submissionName.toLowerCase()}-status` && (
+                Reload
+              </SpinnerButton>
+            </>
+          ) : (
+            'Data is loading...'
+          )}
+        </div>
+      )}
+      <ConsoleTabs
+        defaultActiveTabId="venue-configuration"
+        tabs={[
+          {
+            id: 'venue-configuration',
+            label: 'Overview',
+            content: <Overview pcConsoleData={pcConsoleData} />,
+            visible: true,
+          },
+          {
+            id: `${submissionName.toLowerCase()}-status`,
+            label: `${submissionName} Status`,
+            content: (
               <PaperStatus
                 pcConsoleData={pcConsoleData}
                 loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
               />
-            )}
-          </TabPanel>
-          <TabPanel id={`${reviewerUrlFormat}-status`}>
-            <ReviewerStatusTab
-              pcConsoleData={pcConsoleData}
-              loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
-              loadRegistrationNoteMap={loadRegistrationNoteMap}
-              showContent={activeTabId === `#${reviewerUrlFormat}-status`}
-            />
-          </TabPanel>
-          {areaChairsId && activeTabId === `#${areaChairUrlFormat}-status` && (
-            <TabPanel id={`${areaChairUrlFormat}-status`}>
+            ),
+            visible: true,
+          },
+          {
+            id: `${reviewerUrlFormat}-status`,
+            label: `${getSingularRoleName(prettyField(reviewerName))} Status`,
+            content: (
+              <ReviewerStatusTab
+                pcConsoleData={pcConsoleData}
+                loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
+                loadRegistrationNoteMap={loadRegistrationNoteMap}
+              />
+            ),
+            visible: true,
+          },
+          {
+            id: `${areaChairUrlFormat}-status`,
+            label: `${getSingularRoleName(prettyField(areaChairName))} Status`,
+            content: (
               <AreaChairStatus
                 pcConsoleData={pcConsoleData}
                 loadSacAcInfo={loadSacAcInfo}
                 loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
                 loadRegistrationNoteMap={loadRegistrationNoteMap}
               />
-            </TabPanel>
-          )}
-          {seniorAreaChairsId && activeTabId === `#${seniorAreaChairUrlFormat}-status` && (
-            <TabPanel id={`${seniorAreaChairUrlFormat}-status`}>
+            ),
+            visible: areaChairsId,
+          },
+          {
+            id: `${seniorAreaChairUrlFormat}-status`,
+            label: `${getSingularRoleName(prettyField(seniorAreaChairName))} Status`,
+            content: (
               <SeniorAreaChairStatus
                 pcConsoleData={pcConsoleData}
                 loadSacAcInfo={loadSacAcInfo}
                 loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
               />
-            </TabPanel>
-          )}
-          <TabPanel id="deskrejectwithdrawn-status">
-            {activeTabId === '#deskrejectwithdrawn-status' && (
-              <RejectedWithdrawnPapers consoleData={pcConsoleData} />
-            )}
-          </TabPanel>
-          {submissionContentFields.length > 0 &&
-            submissionContentFields.map((fieldAttrs) => (
-              <TabPanel id={fieldAttrs.field} key={fieldAttrs.field}>
-                {activeTabId === `#${fieldAttrs.field}` && (
+            ),
+            visible: seniorAreaChairsId,
+          },
+          {
+            id: 'deskrejectwithdrawn-status',
+            label: `Desk Rejected/Withdrawn ${pluralizeString(submissionName)}`,
+            content: <RejectedWithdrawnPapers consoleData={pcConsoleData} />,
+            visible: withdrawnVenueId || deskRejectedVenueId,
+          },
+          ...(submissionContentFields.length > 0
+            ? submissionContentFields.map((fieldAttrs) => ({
+                id: fieldAttrs.field,
+                label: prettyField(fieldAttrs.field),
+                content: (
                   <PaperStatus
                     pcConsoleData={pcConsoleData}
                     loadReviewMetaReviewData={calculateNotesReviewMetaReviewData}
                     noteContentField={fieldAttrs}
                   />
-                )}
-              </TabPanel>
-            ))}
-          {extraTabs.length > 0 &&
-            extraTabs.map((tabAttrs) => (
-              <TabPanel id={tabAttrs.tabId} key={tabAttrs.tabId}>
-                {activeTabId === `#${tabAttrs.tabId}` && tabAttrs.renderTab()}
-              </TabPanel>
-            ))}
-        </TabPanels>
-      </Tabs>
+                ),
+                visible: true,
+              }))
+            : []),
+          ...(extraTabs.length > 0
+            ? extraTabs.map((tabAttrs) => ({
+                id: tabAttrs.tabId,
+                label: tabAttrs.tabName,
+                content: tabAttrs.renderTab(),
+                visible: true,
+              }))
+            : []),
+        ]}
+      />
     </>
   )
 }

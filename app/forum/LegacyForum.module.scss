@@ -1,0 +1,601 @@
+@use '../../styles/utils/constants';
+@use '../../styles/utils/mixins';
+@use 'sass:color';
+
+.legacyForum {
+  :global {
+    .note {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding-bottom: 0.75rem;
+      margin-bottom: 0;
+
+      .title_collapsed {
+        display: none;
+      }
+    }
+
+    .note-content,
+    div.note_contents {
+      font-size: 0.75rem;
+      line-height: 1.125rem;
+      margin-top: 0.125rem;
+      margin-bottom: 0.125rem;
+
+      strong,
+      .note_content_field {
+        font-weight: bold;
+        color: constants.$orRed;
+        padding-right: 0.25rem;
+      }
+      .note-content-value,
+      .note_content_value {
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+        &.markdown-rendered {
+          @include mixins.markdown-content-styles;
+        }
+      }
+      li {
+        padding: 0.125rem 0;
+      }
+    }
+    .note-content {
+      .attachment-download-link {
+        .glyphicon {
+          padding-right: 0.25rem;
+        }
+      }
+    }
+    .note_contents {
+      margin-top: 0.125rem;
+      margin-bottom: 0.125rem;
+      line-height: 1.125rem;
+    }
+
+    .view-more-replies {
+      font-weight: bold;
+    }
+    .view-all-replies-container {
+      text-align: center;
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
+
+      > span {
+        display: inline-block;
+        margin-top: 1px;
+        font-style: italic;
+        color: constants.$subtleGray;
+        padding-right: 0.75rem;
+      }
+    }
+
+    .collapse-comment-tree {
+      float: left;
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      padding: 0.5rem 1px 0.5rem 1px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.75rem;
+      letter-spacing: -1px;
+      line-height: 1.125rem;
+      transition: 0.2s;
+
+      &:hover {
+        color: #fff;
+        font-weight: bold;
+        text-decoration: none;
+        text-shadow: none;
+        background-color: color.adjust(constants.$mediumBlue, $lightness: 10%);
+      }
+    }
+
+    .filter-row {
+      @include mixins.clearfix;
+      margin: 1rem 0 -0.25rem 0;
+
+      span {
+        color: #555555;
+      }
+      .multiselector.dropdown {
+        margin: 0 0.5rem 0.5rem 0.25rem;
+      }
+      .filter-container {
+        width: calc(100% - 90px);
+
+        > div {
+          display: inline-block;
+        }
+        @media #{constants.$phone-only} {
+          width: 100%;
+        }
+      }
+    }
+
+    .filter-tabs {
+      > li.semi-active > a {
+        text-decoration: none;
+        background-color: #f3f5f5;
+        border-color: #eee #eee #ddd;
+      }
+    }
+
+    #tab-message {
+      margin: 0.5rem 0;
+      @include mixins.markdown-content-styles;
+
+      p:last-child {
+        margin-bottom: 0;
+      }
+    }
+    #beta-message {
+      margin-bottom: 0.5rem;
+
+      p:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    .tooltip .tooltip-inner {
+      max-width: none;
+    }
+
+    // Note heading
+    h2.note_content_title {
+      font-size: 2rem;
+      font-weight: bold;
+      line-height: 2.5rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0.25rem;
+
+      a {
+        color: constants.$darkBlue;
+      }
+      a:hover {
+        text-decoration: none;
+        cursor: text;
+        &.note_content_pdf {
+          cursor: pointer;
+        }
+      }
+      .note_content_pdf {
+        font-size: 0.75rem;
+        line-height: 1.125rem;
+        margin-left: 1.5rem;
+
+        &.html-link {
+          margin-left: 0.5rem;
+        }
+        img {
+          width: 2rem;
+          height: 2rem;
+          margin-top: -18px;
+        }
+      }
+      &.pull-left {
+        // Leave enough room for the edit and delete buttons
+        max-width: calc(100% - 85px);
+      }
+
+      @media #{constants.$phone-only} {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+
+        .note_content_pdf img {
+          margin-top: -15px;
+        }
+      }
+    }
+    div.note_content_section {
+      margin-left: -0.75rem;
+      margin-right: -0.75rem;
+      padding: 0.75rem;
+    }
+    .note_with_children div.note_content_section {
+      margin-left: -1.5rem;
+      margin-right: -0.5rem;
+      padding: 0.75rem 0.5rem 0.75rem 1.5rem;
+      > .row:last-child {
+        margin-bottom: 0.25rem;
+      }
+    }
+
+    .citation_author {
+      display: none;
+    }
+
+    div.note_contents {
+      padding-left: 0;
+      margin-top: 0.125rem;
+      margin-bottom: 0.125rem;
+      line-height: 1.125rem;
+
+      .note_content_field {
+        color: constants.$orRed;
+        padding-right: 4px;
+      }
+    }
+
+    .meta_row {
+      margin-right: 0.625rem;
+
+      &.pull-left {
+        max-width: calc(100% - 160px);
+        margin-right: 0;
+        @media #{constants.$phone-only} {
+          max-width: none;
+        }
+      }
+      .signatures,
+      .author {
+        font-size: 1.125rem;
+        font-style: italic;
+        margin-right: 1rem;
+        a {
+          color: constants.$darkBlue;
+        }
+        &.no-margin {
+          margin-right: 4px;
+        }
+        a.show-all {
+          color: constants.$subtleGray;
+        }
+      }
+      h3 {
+        margin-top: 0;
+        margin-bottom: 0.25rem;
+      }
+      .item {
+        display: inline;
+        font-size: 0.75rem;
+        color: #777777;
+        padding-right: 1.25rem;
+        margin: 0;
+      }
+      .note_content_pdf {
+        color: constants.$mediumBlue;
+      }
+      .readers-icon {
+        font-size: 0.875rem;
+        padding-left: 0.25rem;
+      }
+      .private-author-label {
+        font-size: 0.875rem;
+        font-style: italic;
+        margin-right: 0.875rem;
+        line-height: normal;
+        color: constants.$subtleGray;
+      }
+      .hint {
+        padding-right: 0;
+        margin-right: 0.5rem;
+      }
+      .trash_button,
+      .edit_button {
+        margin-top: -1px;
+        margin-right: 0.25rem;
+      }
+      .highlight {
+        background-color: constants.$mediumBlue;
+        color: #fff;
+        padding: 0 4px;
+        border-radius: 2px;
+        margin-right: 1.25rem;
+      }
+    }
+
+    .meta_actions {
+      float: right;
+      margin-right: 0;
+
+      button:first-child {
+        margin-right: 0.25rem;
+      }
+      .trash_button,
+      .edit_button {
+        display: inline-block;
+        float: none;
+      }
+    }
+
+    .private-contents {
+      background-color: rgba(0, 0, 0, 0.04);
+      padding: 0.25rem 0.5rem;
+      margin: 0.25rem -0.5rem;
+      border-radius: 0;
+
+      hr {
+        margin-bottom: 0.125rem;
+      }
+      .signatures {
+        font-size: 0.875rem;
+      }
+    }
+
+    .note-tags-toggle {
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
+    .reply_row {
+      margin-top: 0.5rem;
+      margin-right: 0;
+      text-align: right;
+
+      .hint {
+        vertical-align: middle;
+        margin-right: 0.5rem;
+      }
+      button {
+        margin-right: 0.25rem;
+      }
+      button:last-child {
+        margin-right: 0;
+      }
+
+      @media #{constants.$phone-only} {
+        margin-top: 0.5rem;
+      }
+    }
+
+    #reply_count {
+      text-align: right;
+      font-size: 0.875rem;
+      color: constants.$darkBlue;
+      font-weight: bold;
+      line-height: 34px;
+
+      @media #{constants.$phone-only} {
+        display: none;
+      }
+    }
+
+    hr {
+      margin: 0.25rem 0;
+    }
+
+    // Comments, reviews, replies, etc.
+    #note_children {
+      margin-top: 0.75rem;
+
+      > div {
+        background: rgba(0, 0, 0, 0.04);
+        padding: 0.5rem;
+        padding-left: 1.5rem;
+        margin-top: 0.75rem;
+      }
+
+      .note.panel {
+        padding: 0;
+        margin: 0;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+
+        &:hover {
+          h2.note_content_title .btn-default {
+            opacity: 1;
+          }
+        }
+      }
+      .note.new-layout {
+        .meta_row {
+          .glyphicon {
+            font-size: 0.75rem;
+            padding-right: 0.25rem;
+          }
+        }
+      }
+
+      .spinner-container {
+        position: static;
+        top: auto;
+        left: auto;
+        transform: none;
+        padding: 2rem 0;
+      }
+
+      .meta_row {
+        .signatures,
+        .author,
+        .profile-link {
+          font-size: 0.875rem;
+        }
+      }
+
+      div.note_contents {
+        max-width: 850px;
+      }
+
+      .note_editor.panel .note_content_title {
+        font-size: 1.125rem;
+        line-height: 1.125rem;
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+      }
+      .note_editor.panel hr {
+        margin-top: 0.5rem;
+        margin-right: 1.25rem;
+      }
+      & > .note_editor.panel:not(.existing) {
+        padding: 0.75rem;
+        hr {
+          margin-right: 0;
+        }
+      }
+    }
+
+    #reply-empty-message {
+      p.empty-message {
+        color: constants.$subtleGray;
+        font-style: italic;
+        text-align: center;
+        margin-top: 3rem;
+        margin-bottom: 1rem;
+      }
+    }
+
+    .children {
+      margin-top: 0.75rem;
+
+      .note_with_children {
+        padding: 0.5rem;
+        padding-left: 1.5rem;
+      }
+      .note_with_children + .note_with_children {
+        margin-top: 0.75rem;
+      }
+
+      @media #{constants.$tablet} {
+        margin-left: 2.25rem;
+      }
+    }
+    .children:empty {
+      display: none;
+    }
+
+    .note_with_children {
+      position: relative;
+
+      &.comment-level-even {
+        background-color: constants.$backgroundWhite;
+        border: 1px solid #eee;
+
+        > .children > .note_editor.panel {
+          background-color: rgba(0, 0, 0, 0.04);
+          padding: 0.5rem;
+          border: 1px solid #eee;
+        }
+      }
+      &.comment-level-odd {
+        background-color: rgba(0, 0, 0, 0.04);
+        border: 1px solid #eee;
+
+        > .children > .note_editor.panel {
+          background-color: constants.$backgroundWhite;
+          padding: 0.5rem;
+          border: 1px solid #eee;
+        }
+      }
+
+      h2.note_content_title {
+        font-size: 1.125rem;
+        line-height: 1.125rem;
+        margin-top: 0;
+        margin-bottom: 0;
+
+        .btn-default {
+          margin-top: -4px;
+          margin-left: 0.5rem;
+          background: transparent;
+          border: 2px solid transparent;
+          opacity: 0;
+
+          &:hover {
+            background-color: constants.$backgroundGray;
+            border-color: constants.$subtleGray;
+          }
+        }
+
+        img {
+          margin-top: -4px;
+          width: 1.5rem;
+        }
+      }
+
+      .collapse-comment-tree.expand-link {
+        display: none;
+      }
+
+      .title_collapsed {
+        display: none;
+
+        h2.note_content_title {
+          font-size: 1rem;
+          width: 100%;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+
+      &.collapsed,
+      &.semi-collapsed {
+        > .collapse-comment-tree.collapse-link {
+          display: none;
+        }
+        > .collapse-comment-tree.expand-link {
+          display: block;
+        }
+        > .note {
+          > .title_collapsed {
+            display: block;
+          }
+          > .title_pdf_row,
+          > .note_contents,
+          > .clearfix,
+          > .meta_row {
+            display: none;
+          }
+        }
+        > .children {
+          display: none;
+        }
+      }
+      &.collapsed {
+        height: 2.25rem;
+        overflow: hidden;
+      }
+      &.semi-collapsed {
+        > .children {
+          display: block;
+        }
+        > .children:empty {
+          display: none;
+        }
+      }
+    }
+
+    .note_editor.panel {
+      margin-bottom: 0.5rem;
+      border-radius: 0;
+    }
+    .forum-container > .note_editor.panel {
+      margin-bottom: 2rem;
+    }
+
+    .private-contents-icon {
+      font-size: 0.75rem;
+      margin-right: 0.25rem;
+      margin-left: 0.25rem;
+      line-height: normal;
+      color: constants.$subtleGray;
+    }
+
+    #bibtex-modal {
+      pre.bibtex-content {
+        font-size: 0.75rem;
+      }
+      em.instructions {
+        color: constants.$subtleGray;
+      }
+    }
+
+    #permalink-modal {
+      .modal-dialog {
+        margin-top: 100px;
+
+        p {
+          margin-top: 1rem;
+        }
+      }
+      .input-group {
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+      }
+    }
+  }
+}

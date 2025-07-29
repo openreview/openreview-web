@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react'
 import LoadingSpinner from '../LoadingSpinner'
 import ErrorAlert from '../ErrorAlert'
 import BaseActivityList from '../BaseActivityList'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 
 export default function ActivityList({
@@ -14,10 +13,10 @@ export default function ActivityList({
   invitation,
   pageSize,
   shouldReload,
+  accessToken,
 }) {
   const [activityNotes, setActivityNotes] = useState(null)
   const [error, setError] = useState(null)
-  const { accessToken } = useUser()
 
   useEffect(() => {
     const loadActivityNotes = () =>

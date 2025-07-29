@@ -2,9 +2,11 @@
 
 @use 'utils/constants';
 @use 'utils/mixins';
+@use 'sass:color';
 
 html {
   font-size: 16px;
+  scrollbar-gutter: stable;
 
   @media #{constants.$phone-only} {
     font-size: 14px;
@@ -13,10 +15,45 @@ html {
 body {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 0.875rem;
+
+  &.modal-open {
+    padding-right: 0 !important;
+  }
 }
 #__next {
-  padding-top: 50px;
+  // padding-top: 50px;
   background-color: constants.$backgroundWhite;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+
+  > .container {
+    flex-grow: 1;
+    display: flex;
+
+    @media #{constants.$phone-only} {
+      margin-left: 15px;
+      margin-right: unset;
+    }
+
+    .row {
+      width: 100%;
+    }
+  }
+
+  > .container-fluid {
+    flex-grow: 1;
+    display: flex;
+    margin-left: 0;
+    margin-right: 0;
+
+    .row {
+      width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+    }
+  }
 }
 
 h1,
@@ -302,7 +339,7 @@ hr {
   font-size: 0.875rem;
   padding: 0.375rem 0.75rem;
   background-color: #fffaf4;
-  border: 2px solid lighten(constants.$mediumBlue, 10%);
+  border: 2px solid color.adjust(constants.$mediumBlue, $lightness: 10%);
   border-radius: 0;
 
   &:focus {
@@ -364,7 +401,7 @@ textarea.form-control {
 .input-group .input-group-addon {
   border-radius: 0;
   border-width: 2px;
-  border-color: lighten(constants.$mediumBlue, 10%);
+  border-color: color.adjust(constants.$mediumBlue, $lightness: 10%);
   .glyphicon {
     color: constants.$subtleGray;
     top: 1px;
@@ -387,7 +424,7 @@ textarea.form-control {
     margin-right: 0;
     min-width: auto;
     height: 36px;
-    border-color: lighten(constants.$mediumBlue, 10%);
+    border-color: color.adjust(constants.$mediumBlue, $lightness: 10%);
     border-radius: 0;
   }
 }
@@ -427,33 +464,34 @@ $bannerHeight: 39px;
   box-sizing: border-box;
   position: relative;
   padding: 20px 0 30px 0;
-  min-height: calc(100vh - 243px);
+  // min-height: calc(100vh - 243px);
+  height: 100%;
   @include mixins.clearfix;
 
-  &.banner-hidden {
-    min-height: calc(100vh - 204px);
-  }
+  // &.banner-hidden {
+  //   min-height: calc(100vh - 204px);
+  // }
   &.minimal-footer {
     padding-bottom: 0;
-    min-height: calc(100vh - 126px);
+    // min-height: calc(100vh - 126px);
   }
-  &.banner-hidden.minimal-footer {
-    min-height: calc(100vh - 88px);
-  }
+  // &.banner-hidden.minimal-footer {
+  //   min-height: calc(100vh - 88px);
+  // }
 
   @media #{constants.$phone-only} {
     padding: 15px 0 20px 0;
-    min-height: calc(100vh - 273px);
+    // min-height: calc(100vh - 273px);
 
-    &.banner-hidden {
-      min-height: calc(100vh - 239px);
-    }
-    &.minimal-footer {
-      min-height: calc(100vh - 120px);
-    }
-    &.minimal-footer.banner-hidden {
-      min-height: calc(100vh - 85px);
-    }
+    // &.banner-hidden {
+    //   min-height: calc(100vh - 239px);
+    // }
+    // &.minimal-footer {
+    //   min-height: calc(100vh - 120px);
+    // }
+    // &.minimal-footer.banner-hidden {
+    //   min-height: calc(100vh - 85px);
+    // }
   }
 }
 
@@ -529,27 +567,6 @@ header {
     input,
     textarea {
       max-width: 100%;
-    }
-    .clearable-input {
-      position: relative;
-
-      button {
-        position: absolute;
-        right: 0;
-        top: 0%;
-        height: 100%;
-        border-radius: 0;
-        border-color: #659aae;
-        background-color: #659aae;
-      }
-
-      &:focus-within button {
-        background-color: #3f6978;
-        border-color: #3f6978;
-        box-shadow:
-          inset 0 1px 1px rgba(0, 0, 0, 0.075),
-          0 0 8px rgba(102, 175, 233, 0.6);
-      }
     }
 
     .feedback-dropdown {
