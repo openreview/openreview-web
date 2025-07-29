@@ -206,6 +206,7 @@ const WorkflowInvitationRow = ({
   collapsedWorkflowInvitationIds,
   handleExpandCollapseSubInvitations,
   workflowTasks,
+  isStageInvitation,
 }) => {
   const [showEditor, setShowEditor] = useState(false)
   const { user, accessToken } = useUser()
@@ -285,6 +286,7 @@ const WorkflowInvitationRow = ({
               className="workflow-invitation-id"
               onClick={() => handleExpandCollapseSubInvitations(invitation.id)}
             >
+              {isStageInvitation ? '' : 'Create '}
               {prettyId(invitation.id.replace(invitation.domain, ''))}
             </span>
             {/* <a className="id-icon" href={`/invitation/edit?id=${invitation.id}`}>
@@ -841,6 +843,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       formattedDate,
       subInvitations,
       startEndDateContent: getStartEndDateContent(),
+      isStageInvitation,
     }
   }
 
@@ -1094,6 +1097,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                   formattedDate,
                   subInvitations,
                   startEndDateContent,
+                  isStageInvitation,
                 } = stepObj
                 return (
                   <motion.div
@@ -1128,6 +1132,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                             handleExpandCollapseSubInvitations
                           }
                           workflowTasks={workflowTasks}
+                          isStageInvitation={isStageInvitation}
                         />
 
                         {subInvitations.length > 0 &&
