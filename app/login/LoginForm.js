@@ -8,6 +8,7 @@ import { useDispatch } from 'react-redux'
 import api from '../../lib/api-client'
 import { isValidEmail } from '../../lib/utils'
 import { setNotificationCount } from '../../notificationSlice'
+import { resetRefreshTokenStatus } from '../../lib/clientAuth'
 
 export default function LoginForm() {
   // eslint-disable-next-line no-use-before-define
@@ -66,6 +67,7 @@ export default function LoginForm() {
         id: formState.email,
         password: formState.password,
       })
+      resetRefreshTokenStatus()
       dispatch(setNotificationCount(null))
       window.location.replace(redirect ?? '/')
     } catch (error) {
