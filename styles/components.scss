@@ -1223,8 +1223,64 @@ table.table-minimal {
   }
 
   #profile-preview {
+    .tags-container {
+      display: flex;
+      flex-flow: wrap;
+
+      .tooltip-inner {
+        max-width: none;
+        width: max-content;
+      }
+    }
+    .tags-dropdown {
+      &__control {
+        background-color: #fffaf4;
+        border: 2px solid lighten(constants.$mediumBlue, 10%);
+        padding: 0 0.75rem;
+      }
+      &__value-container {
+        padding: 0;
+        text-align: left;
+      }
+      &__menu {
+        text-align: left;
+      }
+
+      > div {
+        cursor: pointer;
+        color: constants.$subtleGray;
+        padding: 0.25rem 0.75rem;
+      }
+      .active {
+        background-color: constants.$mediumBlue;
+        color: #fff;
+        outline: 0px solid transparent;
+      }
+    }
+    .modal-dialog {
+      min-width: 60%;
+    }
     .modal-content {
       min-width: fit-content;
+      .modal-body {
+        max-width: 1000px;
+      }
+
+      .moderation-actions {
+        display: flex;
+        flex-direction: column;
+
+        .moderation-actions-buttons {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          margin-top: 0.5rem;
+
+          button {
+            margin-right: 0.5rem;
+          }
+        }
+      }
     }
     section {
       margin-bottom: 1.5rem;
@@ -1255,10 +1311,14 @@ table.table-minimal {
         display: inline-block;
         line-height: normal;
       }
+      .messages-table {
+        margin-bottom: 0;
+      }
       .empty-message {
         color: constants.$subtleGray;
         font-style: italic;
         margin-top: 0;
+        margin-bottom: 0;
       }
       .table-row {
         display: flex;

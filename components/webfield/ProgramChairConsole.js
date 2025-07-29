@@ -225,7 +225,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #endregion
 
       // #region getSubmissions
-      const notesP = api.getAll(
+      const notesP = api.getAllWithAfter(
         '/notes',
         {
           invitation: submissionId,
@@ -1037,26 +1037,30 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   }
 
   const loadRegistrationNoteMap = async () => {
-    if (!pcConsoleData.registrationForms) {
+    if (!pcConsoleData.registrationForms?.length) {
       setPcConsoleData((data) => ({ ...data, registrationNoteMap: {} }))
+      return
     }
     if (pcConsoleData.registrationNoteMap) return
-
     try {
-      const registrationNotes = await Promise.all(
+      const registrationNoteResults = await Promise.all(
         pcConsoleData.registrationForms.map((regForm) =>
-          api.getAll(
+          api.get(
             '/notes',
             {
               forum: regForm.id,
               select: 'id,signatures,invitations,content',
               domain: venueId,
+              stream: true,
             },
             { accessToken }
           )
         )
       )
-      const registrationNoteMap = groupBy(registrationNotes.flat(), 'signatures[0]')
+      const registrationNoteMap = groupBy(
+        registrationNoteResults.flatMap((result) => result.notes ?? []),
+        'signatures[0]'
+      )
       setPcConsoleData((data) => ({ ...data, registrationNoteMap }))
     } catch (error) {
       promptError(`Erro loading registration notes: ${error.message}`)
@@ -1111,20 +1115,26 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
-      {useCache && pcConsoleData.timeStamp && (
+      {useCache && (
         <div className="alert alert-warning">
-          <span>
-            Data cached {dayjs(pcConsoleData.timeStamp).fromNow()} at{' '}
-            {formatDateTime(pcConsoleData.timeStamp)}
-          </span>{' '}
-          <SpinnerButton
-            className="btn btn-xs ml-2"
-            onClick={loadData}
-            loading={isLoadingData}
-            disabled={isLoadingData}
-          >
-            Reload
-          </SpinnerButton>
+          {pcConsoleData.timeStamp ? (
+            <>
+              <span>
+                Data last updated {dayjs(pcConsoleData.timeStamp).fromNow()} (
+                {formatDateTime(pcConsoleData.timeStamp, { second: undefined })})
+              </span>{' '}
+              <SpinnerButton
+                className="btn btn-xs ml-2"
+                onClick={loadData}
+                loading={isLoadingData}
+                disabled={isLoadingData}
+              >
+                Reload
+              </SpinnerButton>
+            </>
+          ) : (
+            'Data is loading...'
+          )}
         </div>
       )}
       <ConsoleTabs

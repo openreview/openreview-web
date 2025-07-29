@@ -290,6 +290,7 @@ export default function V2Assignments({
         '/notes',
         {
           invitation: `${group}/-/Assignment_Configuration`,
+          count: true,
         },
         { accessToken, version: 2 }
       )

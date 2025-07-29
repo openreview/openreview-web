@@ -32,6 +32,11 @@ body {
     flex-grow: 1;
     display: flex;
 
+    @media #{constants.$phone-only} {
+      margin-left: 15px;
+      margin-right: unset;
+    }
+
     .row {
       width: 100%;
     }
@@ -562,27 +567,6 @@ header {
     input,
     textarea {
       max-width: 100%;
-    }
-    .clearable-input {
-      position: relative;
-
-      button {
-        position: absolute;
-        right: 0;
-        top: 0%;
-        height: 100%;
-        border-radius: 0;
-        border-color: #659aae;
-        background-color: #659aae;
-      }
-
-      &:focus-within button {
-        background-color: #3f6978;
-        border-color: #3f6978;
-        box-shadow:
-          inset 0 1px 1px rgba(0, 0, 0, 0.075),
-          0 0 8px rgba(102, 175, 233, 0.6);
-      }
     }
 
     .feedback-dropdown {
