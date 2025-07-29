@@ -34,8 +34,8 @@ export default async function Profile({ profile, publicProfile }) {
   }
 
   let count = 0
-  let publications = []
-  let coAuthors = []
+  let publications = null
+  let coAuthors = null
 
   const loadPublications = async () => {
     let apiRes
@@ -46,6 +46,12 @@ export default async function Profile({ profile, publicProfile }) {
     }
     try {
       apiRes = await api.getCombined('/notes', queryParam, null, { accessToken: token })
+      if (apiRes.notes) {
+        publications = apiRes.notes
+        // eslint-disable-next-line prefer-destructuring
+        count = apiRes.count
+        coAuthors = getCoAuthorsFromPublications(profile, publications)
+      }
     } catch (error) {
       apiRes = error
       console.error('Error in loadPublications', {
@@ -58,12 +64,6 @@ export default async function Profile({ profile, publicProfile }) {
           params: queryParam,
         },
       })
-    }
-    if (apiRes.notes) {
-      publications = apiRes.notes
-      // eslint-disable-next-line prefer-destructuring
-      count = apiRes.count
-      coAuthors = getCoAuthorsFromPublications(profile, publications)
     }
   }
   await loadPublications()
