@@ -45,7 +45,12 @@ export default async function Profile({ profile, publicProfile }) {
       limit: 1000,
     }
     try {
-      apiRes = await api.getCombined('/notes', queryParam, null, { accessToken: token })
+      apiRes = await api.getCombined(
+        '/notes',
+        queryParam,
+        { ...queryParam, count: true },
+        { accessToken: token }
+      )
       if (apiRes.notes) {
         publications = apiRes.notes
         // eslint-disable-next-line prefer-destructuring
