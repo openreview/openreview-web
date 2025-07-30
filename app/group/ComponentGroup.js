@@ -1,7 +1,7 @@
 'use client'
 
 /* globals promptError: false */
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useDispatch } from 'react-redux'
 import WebFieldContext from '../../components/WebFieldContext'
@@ -10,8 +10,7 @@ import { setBannerContent } from '../../bannerSlice'
 import CommonLayout from '../CommonLayout'
 import styles from './Group.module.scss'
 
-export default function ComponentGroup({ componentObjP, editBanner }) {
-  const componentObj = use(componentObjP)
+export default function ComponentGroup({ componentObj, editBanner }) {
   const [WebComponent, setWebComponent] = useState(null)
   const [webComponentProps, setWebComponentProps] = useState({})
   const isFullWidth =
