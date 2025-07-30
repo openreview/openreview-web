@@ -246,14 +246,17 @@ const AllSubmissionsTab = ({
     setIsLoading(true)
     try {
       if (subjectAreasName) {
-        const notesResult = await api.getAll(
-          '/notes',
-          {
-            'content.venueid': submissionVenueId,
-            domain: invitation.domain,
-          },
-          { accessToken }
-        )
+        const notesResult = await api
+          .get(
+            '/notes',
+            {
+              'content.venueid': submissionVenueId,
+              domain: invitation.domain,
+              stream: true,
+            },
+            { accessToken }
+          )
+          .then((result) => result.notes)
         setNotes(
           notesResult.filter(
             (p) => p.content?.[subjectAreasName]?.value === subjectAreaSelected
@@ -701,16 +704,30 @@ const BidConsole = ({ appContext }) => {
 
   const getBidAndConflictEdges = async () => {
     try {
-      const bidEdgeResultsP = api.getAll(
-        '/edges',
-        { invitation: invitation.id, tail: user.profile.id, domain: invitation.domain },
-        { accessToken }
-      )
-      const conflictEdgeResultsP = api.getAll(
-        '/edges',
-        { invitation: conflictInvitationId, tail: user.profile.id, domain: invitation.domain },
-        { accessToken }
-      )
+      const bidEdgeResultsP = api
+        .get(
+          '/edges',
+          {
+            invitation: invitation.id,
+            tail: user.profile.id,
+            domain: invitation.domain,
+            stream: true,
+          },
+          { accessToken }
+        )
+        .then((result) => result.edges)
+      const conflictEdgeResultsP = api
+        .get(
+          '/edges',
+          {
+            invitation: conflictInvitationId,
+            tail: user.profile.id,
+            domain: invitation.domain,
+            stream: true,
+          },
+          { accessToken }
+        )
+        .then((result) => result.edges)
       const results = await Promise.all([bidEdgeResultsP, conflictEdgeResultsP])
       setBidEdges(results[0])
       setConflictIds(results[1]?.map((p) => p.head))
