@@ -51,7 +51,6 @@ export default async function Profile({ profile, publicProfile, remoteIpAddress 
         { ...queryParam, count: true },
         { accessToken: token, remoteIpAddress }
       )
-      if (profile.id === '~Liu_Aofan1' && !token) console.log('loadPublication apiRes', apiRes)
       if (apiRes.notes) {
         publications = apiRes.notes
         // eslint-disable-next-line prefer-destructuring
