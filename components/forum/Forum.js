@@ -89,6 +89,7 @@ export default function Forum({
   prefilledValues,
   query,
 }) {
+  const { isRefreshing, accessToken } = useUser()
   const [parentNote, setParentNote] = useState(forumNote)
   const [replyNoteMap, setReplyNoteMap] = useState(null)
   const [parentMap, setParentMap] = useState(null)
@@ -116,7 +117,6 @@ export default function Forum({
   const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [enableLiveUpdate, setEnableLiveUpdate] = useState(false)
-  const { isRefreshing, accessToken } = useUser(enableLiveUpdate)
   const [latestMdate, setLatestMdate] = useState(null)
   const [chatReplyNote, setChatReplyNote] = useState(null)
   const [notificationPermissions, setNotificationPermissions] = useState('loading')
