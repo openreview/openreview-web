@@ -57,11 +57,12 @@ const EditEdgeInviteEmail = ({
       weight: 0,
       readers: getValues(inviteInvitation.readers, email),
       writers: getValues(inviteInvitation.writers, email),
-      signatures: getSignatures(
+      signatures: await getSignatures(
         inviteInvitation,
         availableSignaturesInvitationMap,
         parentNumber,
-        user
+        user,
+        accessToken
       ),
       nonreaders: getValues(inviteInvitation.nonreaders, email),
     }

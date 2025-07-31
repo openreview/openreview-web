@@ -116,11 +116,12 @@ export default function ProfileEntity(props) {
     const editInvitation = isTraverseEdge
       ? traverseInvitation
       : editInvitations.filter((p) => p.id === editEdge.invitation)?.[0]
-    const signatures = getSignatures(
+    const signatures = await getSignatures(
       editInvitation,
       availableSignaturesInvitationMap,
       props.parentInfo.number,
-      user
+      user,
+      accessToken
     )
     if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
@@ -198,11 +199,12 @@ export default function ProfileEntity(props) {
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const isCustomLoadInvitation = editInvitation.id.includes('Custom_Max_Papers')
     const maxLoadInvitationHead = editInvitation.head?.query?.id
-    const signatures = getSignatures(
+    const signatures = await getSignatures(
       editInvitation,
       availableSignaturesInvitationMap,
       props.parentInfo.number,
-      user
+      user,
+      accessToken
     )
     if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
