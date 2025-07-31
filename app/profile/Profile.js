@@ -10,7 +10,7 @@ import CoAuthorsList from './CoAuthorsList'
 import { getCoAuthorsFromPublications } from '../../lib/profiles'
 import ProfileTags from './ProfileTags'
 
-export default async function Profile({ profile, publicProfile }) {
+export default async function Profile({ profile, publicProfile, remoteIpAddress }) {
   const { token, user } = await serverAuth()
   const getCurrentInstitutionInfo = () => {
     const currentHistories = profile?.history?.filter(
@@ -34,8 +34,8 @@ export default async function Profile({ profile, publicProfile }) {
   }
 
   let count = 0
-  let publications = []
-  let coAuthors = []
+  let publications = null
+  let coAuthors = null
 
   const loadPublications = async () => {
     let apiRes
@@ -45,7 +45,18 @@ export default async function Profile({ profile, publicProfile }) {
       limit: 1000,
     }
     try {
-      apiRes = await api.getCombined('/notes', queryParam, null, { accessToken: token })
+      apiRes = await api.getCombined(
+        '/notes',
+        queryParam,
+        { ...queryParam, count: true },
+        { accessToken: token, remoteIpAddress }
+      )
+      if (apiRes.notes) {
+        publications = apiRes.notes
+        // eslint-disable-next-line prefer-destructuring
+        count = apiRes.count
+        coAuthors = getCoAuthorsFromPublications(profile, publications)
+      }
     } catch (error) {
       apiRes = error
       console.error('Error in loadPublications', {
@@ -58,12 +69,6 @@ export default async function Profile({ profile, publicProfile }) {
           params: queryParam,
         },
       })
-    }
-    if (apiRes.notes) {
-      publications = apiRes.notes
-      // eslint-disable-next-line prefer-destructuring
-      count = apiRes.count
-      coAuthors = getCoAuthorsFromPublications(profile, publications)
     }
   }
   await loadPublications()
