@@ -4,6 +4,8 @@ import SearchFilterForm from '../app/search/FilterForm'
 import api from '../lib/api-client'
 import userEvent from '@testing-library/user-event'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),

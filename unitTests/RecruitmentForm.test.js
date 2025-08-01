@@ -7,7 +7,10 @@ import RecruitmentForm from '../components/webfield/RecruitmentForm'
 
 let markdownProps
 let responseEditMock
+let contentParam
 let responseUpdateEditMock
+
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/EditorComponents/Markdown', () => (props) => {
   markdownProps(props)
   return <span>{props.text}</span>
@@ -19,6 +22,7 @@ jest.mock('../lib/utils', () => {
   return {
     ...original,
     constructRecruitmentResponseNote: jest.fn((invitation, content, existingNote) => {
+      contentParam(content)
       if (!existingNote) return responseEditMock
       return responseUpdateEditMock
     }),
@@ -33,6 +37,7 @@ global.DOMPurify = {
 beforeEach(() => {
   markdownProps = jest.fn()
   responseEditMock = null
+  contentParam = jest.fn()
   responseUpdateEditMock = null
 })
 
@@ -74,7 +79,7 @@ describe('RecruitmentForm', () => {
     ).toBeInTheDocument()
   })
 
-  test('show title, contact, invitation message and action buttons (no accept with reduced load)', () => {
+  test('show title, contact, invitation message, extra fields and action buttons (no accept with reduced load)', async () => {
     const providerProps = {
       value: {
         venueId: 'ICML.cc/2023/Conference',
@@ -88,7 +93,18 @@ describe('RecruitmentForm', () => {
           apiVersion: 2,
           edit: {
             note: {
-              content: {},
+              content: {
+                arbitrary_field: {
+                  description: 'this is a custom field to be displayed above action buttons',
+                  value: {
+                    param: {
+                      type: 'string',
+                      enum: ['Yes', 'No'],
+                      input: 'radio',
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -112,6 +128,13 @@ describe('RecruitmentForm', () => {
     expect(screen.getByText(providerProps.value.header.contact)).toBeVisible()
     expect(markdownProps).toHaveBeenCalledWith({ text: providerProps.value.invitationMessage })
     expect(screen.getByText(providerProps.value.invitationMessage)).toBeVisible()
+    expect(
+      screen.getByText('this is a custom field to be displayed above action buttons')
+    ).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: 'Yes' })).toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: 'No' })).toBeInTheDocument()
+    })
     expect(screen.getByRole('button', { name: 'Accept' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Decline' })).toBeVisible()
   })
@@ -160,7 +183,7 @@ describe('RecruitmentForm', () => {
     expect(screen.getByRole('button', { name: 'Decline' })).toBeVisible()
   })
 
-  test('call api to post response when user accept', async () => {
+  test('call api to post response when user accept (no extra field)', async () => {
     responseEditMock = {
       invitation: 'ICML.cc/2023/Conference/Area_Chairs/-/Recruitment',
       note: { content: { response: 'Yes' } },
@@ -204,6 +227,72 @@ describe('RecruitmentForm', () => {
       expect(
         screen.getByText('Thank you test@email.com for accepting this invitation')
       ).toBeVisible()
+      expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, {
+        version: 2,
+      })
+    })
+  })
+
+  test('call api to post response when user accept (with extra field)', async () => {
+    responseEditMock = {
+      invitation: 'ICML.cc/2023/Conference/Area_Chairs/-/Recruitment',
+      note: { content: { response: { value: 'Yes' }, arbitrary_field: { value: 'No' } } },
+    }
+    const postResponse = jest.fn(() => Promise.resolve({}))
+    api.post = postResponse
+    const providerProps = {
+      value: {
+        venueId: 'ICML.cc/2023/Conference',
+        header: {
+          contact: 'conact@email.com',
+          subtitle: 'ICML 2023',
+          title: 'International Conference on Machine Learning',
+          website: 'https://openreview.net',
+        },
+        entity: {
+          apiVersion: 2,
+          edit: {
+            note: {
+              content: {
+                arbitrary_field: {
+                  description: 'this is a custom field to be displayed above action buttons',
+                  value: {
+                    param: {
+                      type: 'string',
+                      enum: ['Yes', 'No'],
+                      input: 'radio',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        args: {
+          id: 'ICML.cc/2023/Conference/Area_Chairs/-/Recruitment',
+          user: 'test@email.com',
+          key: 'somekey',
+        },
+        invitationMessage: '# You have been invited #',
+        acceptMessage: 'Thank you {{user}} for accepting this invitation',
+        declineMessage: 'You have declined the invitation',
+        reducedLoadMessage:
+          'If you chose to decline the invitation because the paper load is too high, you can request to reduce your load. You can request a reduced reviewer load below',
+      },
+    }
+
+    renderWithWebFieldContext(<RecruitmentForm />, providerProps)
+    await waitFor(() => {
+      userEvent.click(screen.getByRole('radio', { name: 'No' }))
+      userEvent.click(screen.getByRole('button', { name: 'Accept' }))
+    })
+    await waitFor(() => {
+      expect(
+        screen.getByText('Thank you test@email.com for accepting this invitation')
+      ).toBeVisible()
+      expect(contentParam).toHaveBeenCalledWith(
+        expect.objectContaining({ arbitrary_field: 'No' })
+      )
       expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, {
         version: 2,
       })
@@ -289,7 +378,7 @@ describe('RecruitmentForm', () => {
     expect(screen.getByText('Thank you for accepting this invitation')).toBeVisible()
   })
 
-  test('call api to post response when user decline', async () => {
+  test('call api to post response when user decline (no extra field)', async () => {
     responseEditMock = {
       invitation: 'ICML.cc/2023/Conference/Area_Chairs/-/Recruitment',
       note: { content: { response: { value: 'No' } } },
@@ -335,6 +424,72 @@ describe('RecruitmentForm', () => {
         version: 2,
       })
       expect(screen.queryByRole('button')).not.toBeInTheDocument() // invitation does not have content
+    })
+  })
+
+  test('call api to post response when user decline (with extra field)', async () => {
+    responseEditMock = {
+      invitation: 'ICML.cc/2023/Conference/Area_Chairs/-/Recruitment',
+      note: { content: { response: { value: 'No' }, arbitrary_field: { value: 'No' } } },
+    }
+    const postResponse = jest.fn(() => Promise.resolve({}))
+    api.post = postResponse
+    const providerProps = {
+      value: {
+        venueId: 'ICML.cc/2023/Conference',
+        header: {
+          contact: 'conact@email.com',
+          subtitle: 'ICML 2023',
+          title: 'International Conference on Machine Learning',
+          website: 'https://openreview.net',
+        },
+        entity: {
+          apiVersion: 2,
+          edit: {
+            note: {
+              content: {
+                arbitrary_field: {
+                  description: 'this is a custom field to be displayed above action buttons',
+                  value: {
+                    param: {
+                      type: 'string',
+                      enum: ['Yes', 'No'],
+                      input: 'radio',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        args: {
+          id: 'ICML.cc/2023/Conference/Area_Chairs/-/Recruitment',
+          user: 'test@email.com',
+          key: 'somekey',
+        },
+        invitationMessage: '# You have been invited #',
+        acceptMessage: 'Thank you for accepting this invitation',
+        declineMessage: 'You {{user}} have declined the invitation',
+        reducedLoadMessage:
+          'If you chose to decline the invitation because the paper load is too high, you can request to reduce your load. You can request a reduced reviewer load below',
+      },
+    }
+
+    renderWithWebFieldContext(<RecruitmentForm />, providerProps)
+
+    await waitFor(() => {
+      userEvent.click(screen.getByRole('radio', { name: 'No' }))
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'Decline' }))
+    await waitFor(() => {
+      expect(screen.getByText('You test@email.com have declined the invitation')).toBeVisible()
+      expect(contentParam).toHaveBeenCalledWith(
+        expect.objectContaining({ arbitrary_field: 'No' })
+      )
+      expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, {
+        version: 2,
+      })
+      expect(screen.queryByRole('button')).not.toBeInTheDocument() // invitation does not have comment field in content
     })
   })
 

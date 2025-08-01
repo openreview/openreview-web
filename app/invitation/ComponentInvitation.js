@@ -20,7 +20,8 @@ export default function ComponentInvitation({ componentObjP }) {
     setWebComponent(() =>
       dynamic(() =>
         import(`../../components/webfield/${componentObj.component}`, {
-          loading: () => <LoadingSpinner />,
+          ssr: false,
+          loading: () => <LoadingSpinner inline />,
         }).catch((e) => {
           promptError(`Error loading ${componentObj.component}: ${e.message}`)
         })
@@ -33,7 +34,8 @@ export default function ComponentInvitation({ componentObjP }) {
       if (prop?.component) {
         componentProps[propName] = () =>
           dynamic(() => import(`../../components/webfield/${prop.component}`), {
-            loading: () => <LoadingSpinner />,
+            ssr: false,
+            loading: () => <LoadingSpinner inline />,
           })
       } else {
         componentProps[propName] = prop

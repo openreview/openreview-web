@@ -6,6 +6,8 @@ global.$ = jest.fn(() => ({
   tooltip: jest.fn(),
 }))
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 describe('TagsWidget', () => {
   test('display nothing when empty value is passed', () => {
     const { container, rerender } = render(<TagsWidget />)

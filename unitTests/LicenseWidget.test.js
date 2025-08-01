@@ -4,6 +4,7 @@ import '@testing-library/jest-dom'
 import LicenseWidget from '../components/EditorComponents/LicenseWidget'
 
 global.$ = jest.fn(() => ({ tooltip: jest.fn() })) // for Tag
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 describe('LicenseWidget', () => {
   test('show nothing if there is no note license field', () => {

@@ -4,6 +4,7 @@ import api from '../lib/api-client'
 import { renderWithWebFieldContext } from './util'
 import GroupDirectory from '../components/webfield/GroupDirectory'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
 jest.mock('../components/LoadingSpinner', () => () => <span>loading spinner</span>)
 jest.mock('next/navigation', () => ({
