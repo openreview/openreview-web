@@ -18,6 +18,14 @@
     background-color: constants.$borderGray;
     margin-right: 0.25rem;
     padding: 0.25rem 0.15rem 0.25rem 0.5rem;
+    touch-action: none;
+
+    .dragHandle {
+      opacity: 0.3;
+      color: constants.$mediumBlue;
+      cursor: grab;
+      margin-right: 0.25rem;
+    }
 
     .authorName > .authorNameLink {
       font-style: italic;

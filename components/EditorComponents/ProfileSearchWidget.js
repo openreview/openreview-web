@@ -1,7 +1,9 @@
 /* globals promptError, $: false */
 
-import React, { useContext, useState, useEffect } from 'react'
-import { maxBy, upperFirst } from 'lodash'
+import React, { useContext, useState, useEffect, useCallback } from 'react'
+import { maxBy, throttle, upperFirst } from 'lodash'
+import { DndContext, useSensor, useSensors, PointerSensor, TouchSensor } from '@dnd-kit/core'
+import { SortableContext, useSortable, arrayMove } from '@dnd-kit/sortable'
 import EditorComponentContext from '../EditorComponentContext'
 import IconButton from '../IconButton'
 import LoadingSpinner from '../LoadingSpinner'
@@ -50,6 +52,7 @@ const Author = ({
   authorId,
   profile,
   showArrowButton,
+  showDragSort,
   displayAuthors,
   setDisplayAuthors,
   allowAddRemove,
@@ -57,9 +60,15 @@ const Author = ({
   multiple,
   onChange,
 }) => {
+  const { listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: authorId,
+  })
+  const style = {
+    transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : 'none',
+    transition,
+  }
   const increaseAuthorIndex = () => {
     const authorIndex = displayAuthors.findIndex((p) => p.authorId === authorId)
-
     const updatedValue = [...displayAuthors]
     updatedValue.splice(authorIndex, 1)
     updatedValue.splice(authorIndex + 1, 0, displayAuthors[authorIndex])
@@ -73,12 +82,17 @@ const Author = ({
   if (!profile) return null
 
   return (
-    <div className={styles.selectedAuthor}>
+    <div className={styles.selectedAuthor} ref={setNodeRef} style={style}>
+      {showDragSort && (
+        <div className={styles.dragHandle} {...listeners}>
+          <Icon name="menu-hamburger" />
+        </div>
+      )}
       <div className={styles.authorName}>
         {profile.noProfile ? (
           <span
             className={styles.authorNameLink}
-            data-original-title={authorId}
+            data-original-title={isDragging ? null : authorId}
             data-toggle="tooltip"
             data-placement="top"
           >
@@ -87,7 +101,7 @@ const Author = ({
         ) : (
           <a
             href={`/profile?id=${profile.id}`}
-            data-original-title={authorId}
+            data-original-title={isDragging ? null : authorId}
             data-toggle="tooltip"
             data-placement="top"
             target="_blank"
@@ -577,6 +591,29 @@ const ProfileSearchWidget = ({
   const [selectedAuthorProfiles, setSelectedAuthorProfiles] = useState([])
   const [displayAuthors, setDisplayAuthors] = useState(!multiple && value ? [value] : value) // id+email
 
+  const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor))
+
+  const handleDragOver = useCallback(
+    throttle((event) => {
+      const { active, over } = event
+
+      if (over && active.id !== over.id) {
+        const oldIndex = displayAuthors.findIndex((p) => p.authorId === active.id)
+        const newIndex = displayAuthors.findIndex((p) => p.authorId === over.id)
+        const updatedValue = arrayMove(displayAuthors, oldIndex, newIndex)
+        setDisplayAuthors(updatedValue)
+      }
+    }, 250),
+    [displayAuthors]
+  )
+
+  const handleDragEnd = () => {
+    onChange({
+      fieldName,
+      value: isAuthoridsField ? displayAuthors : displayAuthors.map((p) => p.authorId),
+    })
+  }
+
   const getProfiles = async (authorIds) => {
     try {
       const ids = authorIds.filter((p) => p.startsWith('~'))
@@ -679,36 +716,44 @@ const ProfileSearchWidget = ({
   return (
     <div className={`${styles.profileSearch} ${className}`}>
       <div className={styles.selectedAuthors}>
-        {displayAuthors?.map(({ authorId, authorName }, index) => {
-          const authorProfile = selectedAuthorProfiles.find(
-            (p) =>
-              p.content.names.find((q) => q.username === authorId) ||
-              p.content.emails.find((r) => r === authorId)
-          ) ?? {
-            noProfile: true,
-            authorId,
-            authorName,
-          }
-          const showArrowButton =
-            displayAuthors.length !== 1 && index !== displayAuthors.length - 1
-          return (
-            <React.Fragment key={index}>
-              {index > 0 && <span className={styles.authorSeparator}>,</span>}
-              <Author
-                fieldName={fieldName}
-                authorId={authorId}
-                profile={authorProfile}
-                showArrowButton={showArrowButton}
-                displayAuthors={displayAuthors}
-                setDisplayAuthors={setDisplayAuthors}
-                allowAddRemove={allowAddRemove}
-                isAuthoridsField={isAuthoridsField}
-                multiple={multiple}
-                onChange={onChange}
-              />
-            </React.Fragment>
-          )
-        })}
+        <DndContext sensors={sensors} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
+          <SortableContext
+            items={displayAuthors?.map((p) => p.authorId) ?? []}
+            strategy={() => null}
+          >
+            {displayAuthors?.map(({ authorId, authorName }, index) => {
+              const authorProfile = selectedAuthorProfiles.find(
+                (p) =>
+                  p.content.names.find((q) => q.username === authorId) ||
+                  p.content.emails.find((r) => r === authorId)
+              ) ?? {
+                noProfile: true,
+                authorId,
+                authorName,
+              }
+              const showArrowButton =
+                displayAuthors.length !== 1 && index !== displayAuthors.length - 1
+              return (
+                <React.Fragment key={index}>
+                  {index > 0 && <span className={styles.authorSeparator}>,</span>}
+                  <Author
+                    fieldName={fieldName}
+                    authorId={authorId}
+                    profile={authorProfile}
+                    showArrowButton={showArrowButton}
+                    showDragSort={displayAuthors.length > 5}
+                    displayAuthors={displayAuthors}
+                    setDisplayAuthors={setDisplayAuthors}
+                    allowAddRemove={allowAddRemove}
+                    isAuthoridsField={isAuthoridsField}
+                    multiple={multiple}
+                    onChange={onChange}
+                  />
+                </React.Fragment>
+              )
+            })}
+          </SortableContext>
+        </DndContext>
       </div>
 
       {allowAddRemove && (multiple || !displayAuthors?.length) && (
