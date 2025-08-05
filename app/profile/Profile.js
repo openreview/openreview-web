@@ -10,7 +10,7 @@ import CoAuthorsList from './CoAuthorsList'
 import { getCoAuthorsFromPublications } from '../../lib/profiles'
 import ProfileTags from './ProfileTags'
 
-export default async function Profile({ profile, publicProfile }) {
+export default async function Profile({ profile, publicProfile, remoteIpAddress }) {
   const { token, user } = await serverAuth()
   const getCurrentInstitutionInfo = () => {
     const currentHistories = profile?.history?.filter(
@@ -49,7 +49,7 @@ export default async function Profile({ profile, publicProfile }) {
         '/notes',
         queryParam,
         { ...queryParam, count: true },
-        { accessToken: token }
+        { accessToken: token, remoteIpAddress }
       )
       if (apiRes.notes) {
         publications = apiRes.notes
