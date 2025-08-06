@@ -30,6 +30,7 @@
     "@codemirror/view": "^6.22.2",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
+    "@google-cloud/logging-winston": "^6.0.1",
     "@reduxjs/toolkit": "^2.5.0",
     "bootstrap": "^3.4.1",
     "codemirror": "^6.0.1",
@@ -38,7 +39,6 @@
     "dayjs": "^1.11.10",
     "eslint-plugin-jest": "^27.6.0",
     "eslint4b-prebuilt": "^6.7.2",
-    "fluent-logger": "^3.4.1",
     "handlebars": "^4.7.8",
     "isomorphic-dompurify": "^2.21.0",
     "jquery": "^2.2.4",
@@ -58,8 +58,7 @@
     "react-select": "^5.8.0",
     "redux": "^5.0.1",
     "socket.io-client": "^4.8.1",
-    "universal-cookie": "^6.1.1",
-    "winston": "^3.17.0"
+    "universal-cookie": "^6.1.1"
   },
   "devDependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
