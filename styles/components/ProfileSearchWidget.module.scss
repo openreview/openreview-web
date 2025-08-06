@@ -12,13 +12,13 @@
   flex-wrap: wrap;
 
   .selectedAuthor {
-    margin-bottom: 0.25rem;
     display: flex;
     align-items: center;
     background-color: constants.$borderGray;
-    margin-right: 0.25rem;
     padding: 0.25rem 0.15rem 0.25rem 0.5rem;
     touch-action: none;
+    border: 0.25rem solid transparent;
+    background-clip: padding-box;
 
     .dragHandle {
       opacity: 0.3;

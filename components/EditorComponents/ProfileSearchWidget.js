@@ -1,8 +1,15 @@
 /* globals promptError, $: false */
 
-import React, { useContext, useState, useEffect, useCallback } from 'react'
+import React, { useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { maxBy, throttle, upperFirst } from 'lodash'
-import { DndContext, useSensor, useSensors, PointerSensor, TouchSensor } from '@dnd-kit/core'
+import {
+  DndContext,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  TouchSensor,
+  pointerWithin,
+} from '@dnd-kit/core'
 import { SortableContext, useSortable, arrayMove } from '@dnd-kit/sortable'
 import EditorComponentContext from '../EditorComponentContext'
 import IconButton from '../IconButton'
@@ -590,6 +597,7 @@ const ProfileSearchWidget = ({
   const allowAddRemove = isEditor ? field?.[fieldName].value?.param?.regex : true
   const [selectedAuthorProfiles, setSelectedAuthorProfiles] = useState([])
   const [displayAuthors, setDisplayAuthors] = useState(!multiple && value ? [value] : value) // id+email
+  const displayAuthorsRef = useRef(displayAuthors)
 
   const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor))
 
@@ -598,13 +606,15 @@ const ProfileSearchWidget = ({
       const { active, over } = event
 
       if (over && active.id !== over.id) {
-        const oldIndex = displayAuthors.findIndex((p) => p.authorId === active.id)
-        const newIndex = displayAuthors.findIndex((p) => p.authorId === over.id)
-        const updatedValue = arrayMove(displayAuthors, oldIndex, newIndex)
+        const currentAuthors = displayAuthorsRef.current
+        const oldIndex = currentAuthors.findIndex((p) => p.authorId === active.id)
+        const newIndex = currentAuthors.findIndex((p) => p.authorId === over.id)
+        const updatedValue = arrayMove(currentAuthors, oldIndex, newIndex)
+        console.log(oldIndex, newIndex)
         setDisplayAuthors(updatedValue)
       }
     }, 250),
-    [displayAuthors]
+    []
   )
 
   const handleDragEnd = () => {
@@ -711,12 +721,18 @@ const ProfileSearchWidget = ({
   useEffect(() => {
     if (!value?.length) return
     $('[data-toggle="tooltip"]').tooltip()
+    displayAuthorsRef.current = displayAuthors
   }, [value, displayAuthors])
 
   return (
     <div className={`${styles.profileSearch} ${className}`}>
       <div className={styles.selectedAuthors}>
-        <DndContext sensors={sensors} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
+        <DndContext
+          sensors={sensors}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+          collisionDetection={pointerWithin}
+        >
           <SortableContext
             items={displayAuthors?.map((p) => p.authorId) ?? []}
             strategy={() => null}
@@ -734,22 +750,20 @@ const ProfileSearchWidget = ({
               const showArrowButton =
                 displayAuthors.length !== 1 && index !== displayAuthors.length - 1
               return (
-                <React.Fragment key={index}>
-                  {index > 0 && <span className={styles.authorSeparator}>,</span>}
-                  <Author
-                    fieldName={fieldName}
-                    authorId={authorId}
-                    profile={authorProfile}
-                    showArrowButton={showArrowButton}
-                    showDragSort={displayAuthors.length > 5}
-                    displayAuthors={displayAuthors}
-                    setDisplayAuthors={setDisplayAuthors}
-                    allowAddRemove={allowAddRemove}
-                    isAuthoridsField={isAuthoridsField}
-                    multiple={multiple}
-                    onChange={onChange}
-                  />
-                </React.Fragment>
+                <Author
+                  key={index}
+                  fieldName={fieldName}
+                  authorId={authorId}
+                  profile={authorProfile}
+                  showArrowButton={showArrowButton}
+                  showDragSort={displayAuthors.length > 5}
+                  displayAuthors={displayAuthors}
+                  setDisplayAuthors={setDisplayAuthors}
+                  allowAddRemove={allowAddRemove}
+                  isAuthoridsField={isAuthoridsField}
+                  multiple={multiple}
+                  onChange={onChange}
+                />
               )
             })}
           </SortableContext>
