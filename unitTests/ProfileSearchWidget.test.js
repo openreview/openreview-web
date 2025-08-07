@@ -1248,6 +1248,57 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       })
     )
   })
+
+  test('not to allow custom author to be duplicated', async () => {
+    api.post = jest.fn(() => Promise.resolve([]))
+    api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+
+    const providerProps = {
+      value: {
+        field: {
+          authorids: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
+              },
+            },
+          },
+        },
+        value: [
+          { authorId: '~test_id1', authorName: 'Test First Test Last' },
+          { authorId: 'test@email.com', authorName: 'fullname of the author' },
+        ],
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'fullname of'
+    )
+    await userEvent.click(screen.getByText('Search'))
+    await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
+    expect(screen.getByText('Add')).toHaveAttribute('disabled')
+
+    // add the same custom author test@email.com again
+    await userEvent.type(
+      screen.getByPlaceholderText('Full name of the author to add'),
+      'fullname of the author'
+    )
+    expect(screen.getByText('Add')).toHaveAttribute('disabled')
+
+    await userEvent.type(
+      screen.getByPlaceholderText('Email of the author to add'),
+      '   TEST@EMAIL.COM   ' // same as test@email.com
+    )
+    expect(screen.getByText('Add')).toHaveAttribute('disabled')
+  })
 })
 
 describe('ProfileSearchWidget for non authorids field', () => {
