@@ -85,7 +85,7 @@ return {
 
   const isWebfieldComponent = group.web.startsWith('// Webfield component')
   const isFullWidth = id.endsWith('Editors_In_Chief') || id.endsWith('Action_Editors')
-  const jsAllowedGroups = ['TMLR']
+  const jsAllowedGroups = ['TMLR', 'ICLR.cc/2021']
   const editBanner = group.details?.writable ? (
     <EditBanner>{groupModeToggle('view', id)}</EditBanner>
   ) : null
