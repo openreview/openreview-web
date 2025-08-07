@@ -1289,7 +1289,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     // add the same custom author test@email.com again
     await userEvent.type(
       screen.getByPlaceholderText('Full name of the author to add'),
-      'fullname of the author'
+      'a different name of the author'
     )
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
 
