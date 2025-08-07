@@ -85,23 +85,27 @@ return {
 
   const isWebfieldComponent = group.web.startsWith('// Webfield component')
   const isFullWidth = id.endsWith('Editors_In_Chief') || id.endsWith('Action_Editors')
+  const jsAllowedGroups = ['TMLR']
   const editBanner = group.details?.writable ? (
     <EditBanner>{groupModeToggle('view', id)}</EditBanner>
   ) : null
 
-  if (!isWebfieldComponent)
-    return (
-      <CommonLayout
-        banner={null}
-        editBanner={editBanner}
-        fullWidth={isFullWidth}
-        minimalFooter={isFullWidth}
-      >
-        <div className={styles.group}>
-          <CustomGroup webfieldCode={generateGroupWebfieldCode(group, query)} user={user} />
-        </div>
-      </CommonLayout>
-    )
+  if (!isWebfieldComponent) {
+    if (jsAllowedGroups.some((p) => group.id.startsWith(p)))
+      return (
+        <CommonLayout
+          banner={null}
+          editBanner={editBanner}
+          fullWidth={isFullWidth}
+          minimalFooter={isFullWidth}
+        >
+          <div className={styles.group}>
+            <CustomGroup webfieldCode={generateGroupWebfieldCode(group, query)} user={user} />
+          </div>
+        </CommonLayout>
+      )
+    return <ErrorDisplay message={`JS is disabled for ${group.id}`} />
+  }
 
   const componentObjP =
     group.domain !== group.id
