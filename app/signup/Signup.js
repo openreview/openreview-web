@@ -4,13 +4,13 @@
 import { debounce } from 'lodash'
 import { useState, useEffect, useCallback, useContext, createContext } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import api from '../../lib/api-client'
 import NoteList from '../../components/NoteList'
 import BasicModal from '../../components/BasicModal'
 import { isInstitutionEmail, isValidEmail, isValidPassword } from '../../lib/utils'
 import Icon from '../../components/Icon'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
-import useBreakpoint from '../../hooks/useBreakPoint'
 
 const LoadingContext = createContext()
 
@@ -535,7 +535,13 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [institutionDomains, setInstitutionDomains] = useState([])
   const [nonInstitutionEmail, setNonInstitutionEmail] = useState(null)
-  const isMobile = !useBreakpoint('lg')
+  const router = useRouter()
+
+  const storeFeedbackInfo = (e) => {
+    e.preventDefault()
+    sessionStorage.setItem('feedbackInstitution', email)
+    router.push('/contact')
+  }
 
   const InstitutionErrorMessage = ({ email: invalidEmail }) => (
     <span>
@@ -545,15 +551,9 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
       email address that uses an educational or employing institution domain. If your
       institution is not yet in our list,{' '}
       {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-      <a
-        href="#"
-        data-toggle="modal"
-        data-target={isMobile ? '#feedback-modal-mobile' : '#feedback-modal'}
-        data-from={email}
-        data-subject="Please add my domain to your list of publishing institutions"
-      >
+      <Link href="#" onClick={storeFeedbackInfo}>
         contact us
-      </a>{' '}
+      </Link>{' '}
       to request that it be added.
     </span>
   )

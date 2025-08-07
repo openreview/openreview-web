@@ -2,6 +2,7 @@
 import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
+import Link from 'next/link'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import {
@@ -494,8 +495,8 @@ const ReviewerStatusTab = ({
   if (reviewerStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no {prettyField(reviewerName)}.Check back later or contact
-        info@openreview.net if you believe this to be an error.
+        There are no {prettyField(reviewerName)}.Check back later or{' '}
+        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
       </p>
     )
   if (reviewerStatusTabData.tableRows?.length === 0)
