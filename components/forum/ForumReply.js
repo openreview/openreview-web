@@ -237,6 +237,7 @@ export default function ForumReply({
             }}
           >
             <Icon name={ddate ? 'repeat' : 'trash'} />
+            <span className="sr-only">Delete or restore note</span>
           </button>
         )}
       </div>
@@ -463,12 +464,18 @@ function CopyLinkButton({ forumId, noteId }) {
   }
 
   return (
-    <button type="button" className="btn btn-xs permalink-btn" onClick={copyNoteUrl}>
+    <button
+      type="button"
+      className="btn btn-xs permalink-btn"
+      onClick={copyNoteUrl}
+      aria-label={`Copy URL of note ${noteId}`}
+    >
       <a
         onClick={(e) => e.preventDefault()}
         href={`${window.location.origin}${window.location.pathname}?id=${forumId}&noteId=${noteId}`}
       >
         <Icon name="link" tooltip={`Copy URL of note ${noteId}`} />
+        <span className="sr-only">Copy URL of note {noteId}</span>
       </a>
     </button>
   )

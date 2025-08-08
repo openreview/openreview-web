@@ -1139,6 +1139,7 @@ export default function Column(props) {
               onChange={(e) => setSearch({ term: e.target.value })}
               autoComplete="off"
               autoCorrect="off"
+              aria-label={getPlaceholderText()}
             />
             <span
               className="glyphicon glyphicon-search form-control-feedback"
