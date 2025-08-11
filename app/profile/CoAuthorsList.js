@@ -18,11 +18,19 @@ const authorLink = ({ name, id, email }) => {
 }
 
 export default function CoAuthorsList({ coAuthors }) {
-  const [visibleCoAuthors, setVisibleCoAuthors] = useState(coAuthors.slice(0, 25))
+  const [visibleCoAuthors, setVisibleCoAuthors] = useState(coAuthors?.slice(0, 25))
 
   const handleViewAllClick = (e) => {
     e.preventDefault()
     setVisibleCoAuthors(coAuthors)
+  }
+
+  if (!coAuthors) {
+    return (
+      <p className="loading-message">
+        <em>Loading...</em>
+      </p>
+    )
   }
 
   return visibleCoAuthors.length > 0 ? (

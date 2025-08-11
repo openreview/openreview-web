@@ -69,7 +69,11 @@ export default async function page({ searchParams }) {
   return (
     <CommonLayout banner={null} editBanner={editBanner}>
       <PreferredIdUpdater shouldRedirect={shouldRedirect} preferredId={preferredId}>
-        <Profile profile={formattedProfile} publicProfile={!isProfileOwner} />
+        <Profile
+          profile={formattedProfile}
+          publicProfile={!isProfileOwner}
+          remoteIpAddress={remoteIpAddress}
+        />
       </PreferredIdUpdater>
     </CommonLayout>
   )
