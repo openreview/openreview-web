@@ -1,16 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
-import useQuery from '../hooks/useQuery'
-import LoadingSpinner from '../components/LoadingSpinner'
-import useUser from '../hooks/useUser'
-import api from '../lib/api-client'
-import usePdf from '../hooks/usePdf'
-import PDFCanvas from '../components/PdfCanvas'
+'use client'
 
-export default function PDFViewer() {
+import { useEffect, useState } from 'react'
+import usePdf from '../../hooks/usePdf'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import PDFCanvas from '../../components/PDFCanvas'
+import api from '../../lib/api-client'
+
+export default function PDFViewer({ query, accessToken }) {
   const [noteId, setNoteId] = useState(null)
   const [pageContents, setPageContents] = useState([])
-  const query = useQuery()
-  const { accessToken } = useUser()
   const { initialized, loadDocument, getPageContent, getPagesCount } = usePdf(accessToken)
 
   const loadPdf = async (id) => {
@@ -33,7 +31,7 @@ export default function PDFViewer() {
   }
 
   useEffect(() => {
-    if (!query || !initialized) return
+    if (!query?.id || !initialized) return
     setNoteId(query.id)
     loadPdf(query.id)
   }, [query, initialized])
