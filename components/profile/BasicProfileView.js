@@ -1,6 +1,6 @@
-import random from 'lodash/random'
 import Link from 'next/link'
 import copy from 'copy-to-clipboard'
+import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 import { prettyList } from '../../lib/utils'
@@ -37,7 +37,7 @@ const ProfileName = ({ name }) => (
 
 const ProfileEmail = ({ email, publicProfile, allowCopyEmail }) => {
   const copyEmailToClipboard = () => {
-    copy(`"${email.email}"`)
+    copy(`${email.email}`)
   }
   return (
     <ProfileItem itemMeta={email.meta}>
@@ -230,15 +230,7 @@ const BasicProfileView = ({
         >
           {profile.history?.length > 0 ? (
             profile.history.map((history) => (
-              <ProfileHistory
-                key={
-                  history.institution.name +
-                  (history.position || random(1, 100)) +
-                  (history.start || '') +
-                  (history.end || '')
-                }
-                history={history}
-              />
+              <ProfileHistory key={nanoid()} history={history} />
             ))
           ) : (
             <p className="empty-message">No history added</p>

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import Note, { NoteV2 } from '../Note'
 import PaginatedList from '../PaginatedList'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 
 const defaultDisplayOptions = {
@@ -25,11 +24,10 @@ export default function SubmissionsList({
   enableSearch,
   useCredentials,
   paperDisplayOptions,
+  accessToken,
 }) {
-  const { accessToken, userLoading } = useUser()
-
   const [combinedDisplayOptions, setCombinedDisplayOptions] = useState(defaultDisplayOptions)
-  const details = 'replyCount,presentation'
+  const details = 'replyCount,presentation,writable'
 
   const loadNotes = useCallback(
     async (limit, offset) => {
@@ -86,8 +84,6 @@ export default function SubmissionsList({
       setCombinedDisplayOptions({ ...defaultDisplayOptions, ...paperDisplayOptions })
     }
   }, [paperDisplayOptions])
-
-  if (userLoading) return null
 
   return (
     <PaginatedList

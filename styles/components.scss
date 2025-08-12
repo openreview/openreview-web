@@ -4,17 +4,18 @@
 @use 'utils/constants';
 @use 'utils/mixins';
 
-@import 'components/nav';
-@import 'components/footer';
-@import 'components/forum-note';
-@import 'components/note-content';
-@import 'components/forum';
-@import 'components/dropdown';
-@import 'components/messages-table';
-@import 'components/autocomplete-input';
-@import 'components/legacy-forum';
-@import 'components/legacy-profile-editor';
-@import 'components/datetime-picker';
+@use 'components/nav';
+@use 'components/footer';
+@use 'components/forum-note';
+@use 'components/note-content';
+@use 'components/forum';
+@use 'components/dropdown';
+@use 'components/messages-table';
+@use 'components/autocomplete-input';
+@use 'components/legacy-forum';
+@use 'components/datetime-picker';
+
+@use 'sass:color';
 
 // Tab navigation
 .nav-tabs {
@@ -52,7 +53,7 @@
       a:hover {
         cursor: wait;
         color: constants.$subtleGray;
-        background: lighten(constants.$sandyBrown, 3%);
+        background: color.adjust(constants.$sandyBrown, $lightness: 3%);
       }
     }
   }
@@ -311,12 +312,12 @@ table.table-minimal {
       }
       &.warning {
         background-color: constants.$sandyBrown;
-        border: 1px solid darken(constants.$sandyBrown, 5%);
+        border: 1px solid color.adjust(constants.$sandyBrown, $lightness: -5%);
       }
       &.expired {
         background-color: constants.$alertRed;
         border-color: #ebccd1;
-        border: 1px solid darken(constants.$alertRed, 5%);
+        border: 1px solid color.adjust(constants.$alertRed, $lightness: -5%);
       }
     }
 
@@ -393,6 +394,12 @@ table.table-minimal {
 
     &.invitation-link a {
       font-size: 1rem;
+    }
+
+    .update-required {
+      font-size: 0.75rem;
+      font-weight: bold;
+      vertical-align: text-top;
     }
 
     .parent-title {
@@ -993,7 +1000,7 @@ table.table-minimal {
       color: constants.$darkBlue;
     }
     &.danger {
-      color: lighten(constants.$orRed, 20%);
+      color: color.adjust(constants.$orRed, $lightness: 20%);
     }
   }
   .row button {
@@ -1043,7 +1050,7 @@ table.table-minimal {
   padding: 0.25rem 0px;
   height: 202px;
   width: 500px;
-  border: 2px solid lighten(constants.$mediumBlue, 10%);
+  border: 2px solid color.adjust(constants.$mediumBlue, $lightness: 10%);
   border-top: 0;
   overflow-y: scroll;
   background-color: white;
@@ -1207,6 +1214,7 @@ table.table-minimal {
   .form-rejection {
     display: flex;
     flex-flow: column;
+    text-align: left;
 
     .btn {
       align-self: flex-start;
@@ -1215,12 +1223,68 @@ table.table-minimal {
   }
 
   #profile-preview {
+    .tags-container {
+      display: flex;
+      flex-flow: wrap;
+
+      .tooltip-inner {
+        max-width: none;
+        width: max-content;
+      }
+    }
+    .tags-dropdown {
+      &__control {
+        background-color: #fffaf4;
+        border: 2px solid lighten(constants.$mediumBlue, 10%);
+        padding: 0 0.75rem;
+      }
+      &__value-container {
+        padding: 0;
+        text-align: left;
+      }
+      &__menu {
+        text-align: left;
+      }
+
+      > div {
+        cursor: pointer;
+        color: constants.$subtleGray;
+        padding: 0.25rem 0.75rem;
+      }
+      .active {
+        background-color: constants.$mediumBlue;
+        color: #fff;
+        outline: 0px solid transparent;
+      }
+    }
+    .modal-dialog {
+      min-width: 60%;
+    }
     .modal-content {
       min-width: fit-content;
+      .modal-body {
+        max-width: 1000px;
+      }
+
+      .moderation-actions {
+        display: flex;
+        flex-direction: column;
+
+        .moderation-actions-buttons {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          margin-top: 0.5rem;
+
+          button {
+            margin-right: 0.5rem;
+          }
+        }
+      }
     }
     section {
       margin-bottom: 1.5rem;
-      max-width: 800px;
+      max-width: 1000px;
 
       h4 {
         width: 100%;
@@ -1247,10 +1311,14 @@ table.table-minimal {
         display: inline-block;
         line-height: normal;
       }
+      .messages-table {
+        margin-bottom: 0;
+      }
       .empty-message {
         color: constants.$subtleGray;
         font-style: italic;
         margin-top: 0;
+        margin-bottom: 0;
       }
       .table-row {
         display: flex;
@@ -1667,7 +1735,7 @@ table.table-minimal {
     background-position: 100% 70%;
     background-repeat: no-repeat;
     background-color: #fffaf4;
-    border: 2px solid lighten(constants.$mediumBlue, 10%);
+    border: 2px solid color.adjust(constants.$mediumBlue, $lightness: 10%);
     padding-right: 24px;
   }
   button[disabled] {
@@ -1806,6 +1874,20 @@ header,
 
 // markdown preview tab
 .markdown-preview {
+  &__textarea {
+    padding-bottom: 0.25rem;
+  }
+  &__doc-link {
+    font-size: 0.75rem;
+    color: constants.$mediumBlue;
+    background-color: #fffaf4;
+    padding: 0.25rem 0.25rem;
+
+    svg {
+      margin-right: 0.25rem;
+      vertical-align: sub;
+    }
+  }
   textarea {
     width: 100% !important;
     min-height: 250px;
@@ -1904,7 +1986,7 @@ header,
         color: constants.$darkBlue;
       }
       &.danger {
-        color: lighten(constants.$orRed, 20%);
+        color: color.adjust(constants.$orRed, $lightness: 20%);
       }
     }
   }

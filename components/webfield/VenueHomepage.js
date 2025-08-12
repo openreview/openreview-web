@@ -1,9 +1,10 @@
 /* globals promptError, promptMessage, $: false */
 import { useState, useContext, useEffect, useReducer } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import uniq from 'lodash/uniq'
 import kebabCase from 'lodash/kebabCase'
+import { get } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
 import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 import VenueHeader from './VenueHeader'
@@ -14,15 +15,19 @@ import Markdown from '../EditorComponents/Markdown'
 import ErrorDisplay from '../ErrorDisplay'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
+import LoadingSpinner from '../LoadingSpinner'
 
-function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload }) {
+function ConsolesList({
+  venueId,
+  submissionInvitationId,
+  setHidden,
+  shouldReload,
+  user,
+  accessToken,
+}) {
   const [userConsoles, setUserConsoles] = useState(null)
-  const { user, accessToken, userLoading } = useUser()
 
   useEffect(() => {
-    if (userLoading) return
-
     if (!user) {
       setUserConsoles([])
       return
@@ -47,7 +52,7 @@ function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload
         setUserConsoles([])
         promptError(error.message)
       })
-  }, [user, accessToken, userLoading, venueId, submissionInvitationId, shouldReload])
+  }, [user, accessToken, venueId, submissionInvitationId, shouldReload])
 
   useEffect(() => {
     if (!userConsoles || typeof setHidden !== 'function') return
@@ -109,8 +114,9 @@ export default function VenueHomepage({ appContext }) {
   const [defaultActiveTab, setDefaultActiveTab] = useState(-1)
   const [tabsDisabled, setTabsDisabled] = useState(false)
   const [shouldReload, reload] = useReducer((p) => !p, true)
-  const router = useRouter()
-  const { setBannerContent } = appContext
+  const queryParam = useSearchParams()
+  const { setBannerContent } = appContext ?? {}
+  const { user, accessToken, isRefreshing } = useUser()
 
   const renderTab = (tabConfig, tabIndex) => {
     if (!tabConfig) return null
@@ -139,6 +145,8 @@ export default function VenueHomepage({ appContext }) {
             }
             markTabLoaded()
           }}
+          user={user}
+          accessToken={accessToken}
         />
       )
     }
@@ -151,6 +159,7 @@ export default function VenueHomepage({ appContext }) {
           invitation={tabConfig.options.invitation}
           pageSize={tabConfig.options.pageSize}
           shouldReload={shouldReload}
+          accessToken={accessToken}
         />
       )
     }
@@ -175,7 +184,7 @@ export default function VenueHomepage({ appContext }) {
           Object.keys(postQuery).every((key) => {
             const value = key.startsWith('content.')
               ? note.content[key.slice(8)]?.value
-              : note[key]
+              : get(note, key)
             if (typeof value === 'undefined' || value === null) return false
             return Array.isArray(value)
               ? value.includes(postQuery[key])
@@ -202,6 +211,7 @@ export default function VenueHomepage({ appContext }) {
             markTabLoaded()
           }}
           filterNotes={filterFn}
+          accessToken={accessToken}
         />
       )
     }
@@ -209,27 +219,14 @@ export default function VenueHomepage({ appContext }) {
   }
 
   useEffect(() => {
-    const handleRouteChange = () => {
-      setTabsDisabled(false)
-    }
-
-    router.events.on('hashChangeComplete', handleRouteChange)
-    $('[data-toggle="tooltip"]').tooltip()
-    return () => {
-      router.events.off('hashChangeComplete', handleRouteChange)
-    }
-  }, [])
-
-  useEffect(() => {
-    // Set referrer banner
-    if (!router.isReady) return
-
-    if (router.query.referrer) {
-      setBannerContent(referrerLink(router.query.referrer))
+    if (queryParam.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: queryParam.get('referrer') })
     } else if (parentGroupId) {
-      setBannerContent(venueHomepageLink(parentGroupId))
+      setBannerContent({ type: 'venueHomepageLink', value: parentGroupId })
+    } else {
+      setBannerContent({ type: null, value: null })
     }
-  }, [router.isReady, router.query])
+  }, [queryParam])
 
   useEffect(() => {
     if (!tabs) return
@@ -269,6 +266,8 @@ export default function VenueHomepage({ appContext }) {
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
 
+  if (isRefreshing) return <LoadingSpinner />
+
   return (
     <>
       <VenueHeader headerInfo={header} />
@@ -285,6 +284,7 @@ export default function VenueHomepage({ appContext }) {
               reload()
             }}
             options={{ largeLabel: true }}
+            accessToken={accessToken}
           />
         </div>
       )}
@@ -305,10 +305,7 @@ export default function VenueHomepage({ appContext }) {
                   const currentHash = window.location.hash.slice(5)
                   if (currentHash !== tabConfig.id) {
                     setTabsDisabled(true)
-                    router.replace(`#tab-${tabConfig.id}`, undefined, {
-                      scroll: false,
-                      shallow: true,
-                    })
+                    window.location.hash = `#tab-${tabConfig.id}`
                   }
                 }}
               >

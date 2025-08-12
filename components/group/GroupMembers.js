@@ -26,18 +26,23 @@ const MessageMemberModal = ({
   const [replyToEmail, setReplyToEmail] = useState(groupDomainContent?.contact?.value ?? '')
   const [message, setMessage] = useState('')
   const [error, setError] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
 
   const sendMessage = async () => {
+    setSubmitting(true)
+    setError(null)
     const sanitizedMessage = DOMPurify.sanitize(message)
     const cleanReplytoEmail = replyToEmail.trim()
 
     if (!subject || !sanitizedMessage) {
       setError('Email Subject and Body are required to send messages.')
+      setSubmitting(false)
       return
     }
 
     if (cleanReplytoEmail && !isValidEmail(cleanReplytoEmail)) {
       setError('Reply to email is invalid.')
+      setSubmitting(false)
       return
     }
 
@@ -56,6 +61,7 @@ const MessageMemberModal = ({
       }
     } catch (e) {
       setError(e.message)
+      setSubmitting(false)
       return
     }
 
@@ -92,6 +98,7 @@ const MessageMemberModal = ({
     } catch (e) {
       setError(e.message)
     }
+    setSubmitting(false)
   }
 
   return (
@@ -100,10 +107,14 @@ const MessageMemberModal = ({
       title="Message Group Members"
       primaryButtonText="Send Messages"
       onPrimaryButtonClick={sendMessage}
+      primaryButtonDisabled={submitting}
+      isLoading={submitting}
       onClose={() => {
         setMessage('')
         setError(null)
+        setSubmitting(false)
       }}
+      options={{ useSpinnerButton: true }}
     >
       {error && <div className="alert alert-danger">{error}</div>}
 
@@ -428,7 +439,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
 
   const restoreMember = async (memberId) => {
     try {
-      await api.post('/groups/edits', buildEdit('append', [memberId]), { accessToken })
+      await api.post('/groups/edits', buildEdit('add', [memberId]), { accessToken })
       setGroupMembers({ type: 'RESTORE', payload: [memberId] })
       reloadGroup()
     } catch (error) {
@@ -494,7 +505,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     try {
       await api.post(
         '/groups/edits',
-        buildEdit('append', [...newMembers, ...existingDeleted]),
+        buildEdit('add', [...newMembers, ...existingDeleted]),
         { accessToken }
       )
       setSearchTerm('')

@@ -3,11 +3,10 @@
 import { useCallback, useContext, useEffect, useReducer, useState } from 'react'
 import debounce from 'lodash/debounce'
 import kebabCase from 'lodash/kebabCase'
+import { useSearchParams } from 'next/navigation'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
-import useQuery from '../../hooks/useQuery'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import Icon from '../Icon'
@@ -33,7 +32,14 @@ const getBidObjectToPost = (id, updatedOption, invitation, note, userId, ddate) 
   ddate,
 })
 
-const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) => {
+const AllSubmissionsTab = ({
+  bidEdges,
+  setBidEdges,
+  conflictIds,
+  bidOptions,
+  user,
+  accessToken,
+}) => {
   const {
     entity: invitation,
     scoreIds,
@@ -46,7 +52,6 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     ? `All ${prettyField(subjectAreasName)}`
     : 'All Subject Areas'
   const [notes, setNotes] = useState([])
-  const { user, accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
@@ -241,14 +246,17 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions }) =
     setIsLoading(true)
     try {
       if (subjectAreasName) {
-        const notesResult = await api.getAll(
-          '/notes',
-          {
-            'content.venueid': submissionVenueId,
-            domain: invitation.domain,
-          },
-          { accessToken }
-        )
+        const notesResult = await api
+          .get(
+            '/notes',
+            {
+              'content.venueid': submissionVenueId,
+              domain: invitation.domain,
+              stream: true,
+            },
+            { accessToken }
+          )
+          .then((result) => result.notes)
         setNotes(
           notesResult.filter(
             (p) => p.content?.[subjectAreasName]?.value === subjectAreaSelected
@@ -432,11 +440,12 @@ const NoBidTab = ({
   bidEdges,
   setBidEdges,
   conflictIds,
+  user,
+  accessToken,
 }) => {
   const [notes, setNotes] = useState([])
   const [scoreEdges, setScoreEdges] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const { user, accessToken } = useUser()
   const selectedScore = scoreIds[0]
   const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
 
@@ -565,10 +574,17 @@ const NoBidTab = ({
   )
 }
 
-const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges }) => {
+const BidOptionTab = ({
+  bidOptions,
+  bidOption,
+  bidEdges,
+  invitation,
+  setBidEdges,
+  user,
+  accessToken,
+}) => {
   const [notes, setNotes] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const { user, accessToken } = useUser()
   const noteIds = bidEdges.filter((p) => p.label === bidOption).map((q) => q.head)
   const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
 
@@ -682,22 +698,36 @@ const BidConsole = ({ appContext }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [bidEdges, setBidEdges] = useState([])
   const [conflictIds, setConflictIds] = useState([])
-  const { setBannerContent } = appContext
-  const { accessToken, user } = useUser()
-  const query = useQuery()
+  const { setBannerContent } = appContext ?? {}
+  const { accessToken, user, isRefreshing } = useUser()
+  const query = useSearchParams()
 
   const getBidAndConflictEdges = async () => {
     try {
-      const bidEdgeResultsP = api.getAll(
-        '/edges',
-        { invitation: invitation.id, tail: user.profile.id, domain: invitation.domain },
-        { accessToken }
-      )
-      const conflictEdgeResultsP = api.getAll(
-        '/edges',
-        { invitation: conflictInvitationId, tail: user.profile.id, domain: invitation.domain },
-        { accessToken }
-      )
+      const bidEdgeResultsP = api
+        .get(
+          '/edges',
+          {
+            invitation: invitation.id,
+            tail: user.profile.id,
+            domain: invitation.domain,
+            stream: true,
+          },
+          { accessToken }
+        )
+        .then((result) => result.edges)
+      const conflictEdgeResultsP = api
+        .get(
+          '/edges',
+          {
+            invitation: conflictInvitationId,
+            tail: user.profile.id,
+            domain: invitation.domain,
+            stream: true,
+          },
+          { accessToken }
+        )
+        .then((result) => result.edges)
       const results = await Promise.all([bidEdgeResultsP, conflictEdgeResultsP])
       setBidEdges(results[0])
       setConflictIds(results[1]?.map((p) => p.head))
@@ -710,16 +740,17 @@ const BidConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
   useEffect(() => {
+    if (isRefreshing) return
     getBidAndConflictEdges()
-  }, [])
+  }, [isRefreshing])
 
   const renderActiveTab = () => {
     const id = kebabCase(bidOptionsWithDefaultTabs[activeTabIndex])
@@ -731,6 +762,8 @@ const BidConsole = ({ appContext }) => {
             setBidEdges={setBidEdges}
             conflictIds={conflictIds}
             bidOptions={bidOptions}
+            user={user}
+            accessToken={accessToken}
           />
         </TabPanel>
       )
@@ -745,6 +778,8 @@ const BidConsole = ({ appContext }) => {
             bidEdges={bidEdges}
             setBidEdges={setBidEdges}
             conflictIds={conflictIds}
+            user={user}
+            accessToken={accessToken}
           />
         </TabPanel>
       )
@@ -757,6 +792,8 @@ const BidConsole = ({ appContext }) => {
           bidEdges={bidEdges}
           invitation={invitation}
           setBidEdges={setBidEdges}
+          user={user}
+          accessToken={accessToken}
         />
       </TabPanel>
     )

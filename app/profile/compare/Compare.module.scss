@@ -1,0 +1,19 @@
+.compare {
+  :global {
+    header {
+      h1 {
+        margin: 0;
+      }
+    }
+    .table-responsive {
+      margin-top: -24px;
+    }
+    .highlight {
+      background-color: #d4efdf;
+    }
+    .tags-container {
+      display: flex;
+      flex-flow: wrap;
+    }
+  }
+}

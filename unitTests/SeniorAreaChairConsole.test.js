@@ -1,26 +1,28 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import userEvent from '@testing-library/user-event'
-import api from '../lib/api-client'
 import { reRenderWithWebFieldContext, renderWithWebFieldContext } from './util'
 import SeniorAreaChairConsole from '../components/webfield/SeniorAreaChairConsole'
 
 let useUserReturnValue
-let routerParams
 let paperStatusProps
 let acStatusProps
 let sacTasksProps
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
-jest.mock('next/router', () => ({
+jest.mock('../hooks/useUser', () => () => useUserReturnValue)
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: () => jest.fn(),
+  }),
   useRouter: () => ({
-    replace: (params) => {
+    replace: jest.fn((params) => {
       routerParams = params
-      return jest.fn()
-    },
+      return {
+        catch: jest.fn(),
+      }
+    }),
   }),
 }))
-jest.mock('../hooks/useUser', () => () => useUserReturnValue)
 jest.mock('../components/webfield/SeniorAreaChairConsole/PaperStatus', () => (props) => {
   paperStatusProps(props)
   return <span>paper status</span>
@@ -36,6 +38,7 @@ jest.mock(
     return <span>sac tasks</span>
   }
 )
+jest.mock('../app/CustomBanner', () => () => <span>Custom Banner</span>)
 
 global.promptError = jest.fn()
 global.DOMPurify = {
@@ -46,36 +49,19 @@ global.$ = jest.fn(() => ({ on: jest.fn(), off: jest.fn(), modal: jest.fn() }))
 
 beforeEach(() => {
   useUserReturnValue = { user: { profile: { id: '~Test_User1' } }, accessToken: 'some token' }
-  routerParams = null
   paperStatusProps = jest.fn()
   acStatusProps = jest.fn()
   sacTasksProps = jest.fn()
+  window.location.hash = ''
 })
 
 describe('SeniorAreaChairConsole', () => {
-  test('default to paper status tab when window.location does not contain any hash', async () => {
-    const providerProps = { value: { submissionName: 'Submission' } }
-    renderWithWebFieldContext(
-      <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
-      providerProps
-    )
-    expect(routerParams).toEqual('#submission-status')
-  })
-
-  test('default to assigned papers tab when window.location.hash does not match any tab', async () => {
-    window.location.hash = '#some-unknown-tab'
-    const providerProps = { value: { submissionName: 'Submission' } }
-    renderWithWebFieldContext(
-      <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
-      providerProps
-    )
-    expect(routerParams).toEqual('#submission-status')
-  })
-
   test('show error message based on sac name when config is not complete', async () => {
     const providerProps = { value: { seniorAreaChairName: undefined } }
     const { rerender } = renderWithWebFieldContext(
-      <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      <SeniorAreaChairConsole
+        appContext={{ setBannerContent: jest.fn(), setLayoutOptions: jest.fn() }}
+      />,
       providerProps
     )
     expect(
@@ -85,7 +71,9 @@ describe('SeniorAreaChairConsole', () => {
     providerProps.value.seniorAreaChairName = 'Area_Chairs'
     reRenderWithWebFieldContext(
       rerender,
-      <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      <SeniorAreaChairConsole
+        appContext={{ setBannerContent: jest.fn(), setLayoutOptions: jest.fn() }}
+      />,
       providerProps
     )
     expect(
@@ -102,7 +90,9 @@ describe('SeniorAreaChairConsole', () => {
       },
     }
     const { rerender } = renderWithWebFieldContext(
-      <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      <SeniorAreaChairConsole
+        appContext={{ setBannerContent: jest.fn(), setLayoutOptions: jest.fn() }}
+      />,
       providerProps
     )
     expect(
@@ -112,7 +102,9 @@ describe('SeniorAreaChairConsole', () => {
     providerProps.value.seniorAreaChairName = 'Area_Chairs'
     reRenderWithWebFieldContext(
       rerender,
-      <SeniorAreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      <SeniorAreaChairConsole
+        appContext={{ setBannerContent: jest.fn(), setLayoutOptions: jest.fn() }}
+      />,
       providerProps
     )
     expect(

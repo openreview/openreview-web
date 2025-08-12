@@ -24,6 +24,7 @@ const AreaChairConsoleMenuBar = ({
   officialMetaReviewName,
   areaChairName,
   ithenticateInvitationId,
+  sortOptions: sortOptionsConfig,
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
   const formattedReviewerName = camelCase(reviewerName)
@@ -125,9 +126,8 @@ const AreaChairConsoleMenuBar = ({
           ?.join('|'),
     },
     {
-      header: `${prettyField(reviewerName)} contact info`,
-      getValue: (p) =>
-        p.reviewers.map((q) => `${q.preferredName}<${q.preferredEmail}>`).join(','),
+      header: `${prettyField(reviewerName)} name`,
+      getValue: (p) => p.reviewers.map((q) => q.preferredName).join(','),
     },
     ...(Array.isArray(reviewRatingName)
       ? reviewRatingName.map((p) => (typeof p === 'object' ? Object.keys(p)[0] : p))
@@ -268,6 +268,7 @@ const AreaChairConsoleMenuBar = ({
           },
         ]
       : []),
+    ...(sortOptionsConfig ?? []),
   ]
   const basicSearchFunction = (row, term) => {
     const noteTitle = row.note.content?.title?.value

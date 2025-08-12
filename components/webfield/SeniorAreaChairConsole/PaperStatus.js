@@ -1,11 +1,12 @@
 /* globals $: false */
 import { useContext, useEffect, useState } from 'react'
+import Link from 'next/link'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStatus'
-import { AcPcConsoleNoteReviewStatus } from '../NoteReviewStatus'
+import { AcPcConsoleNoteReviewStatus, LatestReplies } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from '../ProgramChairConsole/PaperStatusMenuBar'
 import { pluralizeString, prettyField } from '../../../lib/utils'
@@ -33,6 +34,7 @@ const PaperRow = ({
     metaReviewRecommendationName = 'recommendation',
     additionalMetaReviewFields = [],
     preferredEmailInvitationId,
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const { note, ithenticateEdge } = rowData
   const referrerUrl = encodeURIComponent(
@@ -106,6 +108,11 @@ const PaperRow = ({
           preferredEmailInvitationId={preferredEmailInvitationId}
         />
       </td>
+      {displayReplyInvitations?.length && (
+        <td>
+          <LatestReplies rowData={rowData} referrerUrl={referrerUrl} />
+        </td>
+      )}
       <td className="console-decision">
         <h4 className="title">{decision}</h4>
         {venue && <span>{venue}</span>}
@@ -125,6 +132,7 @@ const PaperStatus = ({ sacConsoleData }) => {
     officialReviewName,
     areaChairName = 'Area_Chairs',
     officialMetaReviewName = 'Meta_Review',
+    displayReplyInvitations,
   } = useContext(WebFieldContext)
   const pageSize = 25
 
@@ -161,8 +169,8 @@ const PaperStatus = ({ sacConsoleData }) => {
   if (paperStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        No {submissionName.toLowerCase()} have been submitted.Check back later or contact
-        info@openreview.net if you believe this to be an error.
+        No {submissionName.toLowerCase()} have been submitted.Check back later or{' '}
+        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
       </p>
     )
   if (paperStatusTabData.tableRows?.length === 0)
@@ -213,9 +221,18 @@ const PaperStatus = ({ sacConsoleData }) => {
           {
             id: 'reviewProgress',
             content: `${prettyField(officialReviewName)} Progress`,
-            width: '30%',
+            width: displayReplyInvitations?.length ? '20%' : '30%',
           },
           { id: 'status', content: 'Status' },
+          ...(displayReplyInvitations?.length
+            ? [
+                {
+                  id: 'latestReplies',
+                  content: 'Latest Replies',
+                  width: '35%',
+                },
+              ]
+            : []),
           { id: 'decision', content: 'Decision' },
         ]}
       >

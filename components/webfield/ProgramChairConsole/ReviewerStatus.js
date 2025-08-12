@@ -2,6 +2,7 @@
 import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
+import Link from 'next/link'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import {
@@ -18,6 +19,7 @@ import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
+import { formatProfileContent } from '../../../lib/edge-utils'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.reviewerProfile ?? {}
@@ -180,7 +182,7 @@ const ReviewerProgress = ({
                             ratingDisplayName = ratingName
                             ratingValue = officialReview[ratingName]
                           }
-                          if (!ratingValue) return null
+                          if (ratingValue === undefined) return null
                           return (
                             <span key={ratingName}>
                               {prettyField(ratingDisplayName)}: {ratingValue}{' '}
@@ -292,7 +294,6 @@ const ReviewerStatusTab = ({
   pcConsoleData,
   loadReviewMetaReviewData,
   loadRegistrationNoteMap,
-  showContent,
 }) => {
   const [reviewerStatusTabData, setReviewerStatusTabData] = useState({})
   const {
@@ -374,6 +375,8 @@ const ReviewerStatusTab = ({
           })
           // eslint-disable-next-line no-param-reassign
           profile.registrationNotes = userRegNotes
+          // eslint-disable-next-line no-param-reassign
+          profile.title = formatProfileContent(profile.content).title
 
           usernames.concat(profile.email ?? []).forEach((key) => {
             reviewerProfileWithoutAssignmentMap.set(key, profile)
@@ -399,6 +402,7 @@ const ReviewerStatusTab = ({
                 officialReview: reviewMetaReviewInfo.officialReviews?.find(
                   (p) => p.anonymousId === reviewerAnonIdOfNote
                 ),
+                anonymousId: reviewerAnonIdOfNote,
                 numOfReviews: reviewMetaReviewInfo.officialReviews?.length ?? 0,
                 numOfReviewers: reviewMetaReviewInfo.reviewers?.length ?? 0,
                 ratingAvg: reviewMetaReviewInfo.reviewProgressData?.ratingAvg,
@@ -413,6 +417,7 @@ const ReviewerStatusTab = ({
                   officialReview: reviewMetaReviewInfo.officialReviews?.find(
                     (p) => p.anonymousId === reviewerAnonIdOfNote
                   ),
+                  anonymousId: reviewerAnonIdOfNote,
                   numOfReviews: reviewMetaReviewInfo.officialReviews?.length ?? 0,
                   numOfReviewers: reviewMetaReviewInfo.reviewers?.length ?? 0,
                   ratingAvg: reviewMetaReviewInfo.reviewProgressData?.ratingAvg,
@@ -456,7 +461,7 @@ const ReviewerStatusTab = ({
   }
 
   useEffect(() => {
-    if (!pcConsoleData.reviewers || !showContent) return
+    if (!pcConsoleData.reviewers) return
     if (!pcConsoleData.registrationNoteMap) {
       loadRegistrationNoteMap()
     } else {
@@ -466,7 +471,6 @@ const ReviewerStatusTab = ({
     pcConsoleData.reviewers,
     pcConsoleData.noteNumberReviewMetaReviewMap,
     pcConsoleData.registrationNoteMap,
-    showContent,
   ])
 
   useEffect(() => {
@@ -486,13 +490,13 @@ const ReviewerStatusTab = ({
     setPageNumber(1)
   }, [reviewerStatusTabData.tableRows])
 
-  if (!reviewerStatusTabData.tableRowsAll) return <LoadingSpinner />
+  if (!reviewerStatusTabData.tableRowsAll) return <LoadingSpinner inline />
 
   if (reviewerStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no {prettyField(reviewerName)}.Check back later or contact
-        info@openreview.net if you believe this to be an error.
+        There are no {prettyField(reviewerName)}.Check back later or{' '}
+        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
       </p>
     )
   if (reviewerStatusTabData.tableRows?.length === 0)
