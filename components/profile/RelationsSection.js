@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useState } from 'react'
 import { nanoid } from 'nanoid'
 import dynamic from 'next/dynamic'
+import { uniqBy } from 'lodash'
 import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import { getStartEndYear } from '../../lib/utils'
@@ -11,7 +12,9 @@ const CreatableDropdown = dynamic(
   () => import('../Dropdown').then((mod) => mod.CreatableDropdown),
   {
     ssr: false,
-    loading: () => <input className="form-control relation__placeholder" value="loading..." />,
+    loading: () => (
+      <input className="form-control relation__placeholder" value="loading..." readOnly />
+    ),
   }
 )
 const MultiSelectorDropdown = dynamic(() => import('../MultiSelectorDropdown'), { ssr: false })
@@ -86,6 +89,10 @@ const RelationRow = ({
 }) => {
   const relationPlaceholder = 'Choose or type a relation'
   const [relationClicked, setRelationClicked] = useState(false)
+  const relationReadersOptionWithExistingRelation = uniqBy(
+    relationReaderOptions.concat(relation.readers.map((r) => ({ value: r, label: r }))),
+    (p) => p.value
+  )
 
   const getReaderText = (selectedValues) => {
     if (!selectedValues || !selectedValues.length || selectedValues.includes('everyone'))
@@ -271,7 +278,7 @@ const RelationRow = ({
           extraClass={`relation__multiple-select${
             isMobile ? ' relation__multiple-select-mobile' : ''
           }`}
-          options={relationReaderOptions}
+          options={relationReadersOptionWithExistingRelation}
           selectedValues={relation.readers}
           setSelectedValues={(values) =>
             setRelation({ type: readersType, data: { value: values, key: relation.key } })
