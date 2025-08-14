@@ -6,6 +6,7 @@ import OpenVenues from './OpenVenues'
 import api from '../../lib/api-client'
 import { formatGroupResults } from '../../lib/utils'
 import ActiveConsoles from './ActiveConsoles'
+import VersionChecker from '../../components/VersionChecker'
 
 export const metadata = {
   title: 'Venues | OpenReview',
@@ -64,6 +65,7 @@ export default async function page() {
       <div className="col-xs-12">
         <AllVenues />
       </div>
+      <VersionChecker />
     </div>
   )
 }
