@@ -1,17 +1,14 @@
 'use client'
 
 /* global promptError:false */
-import { useRouter } from 'next/navigation'
 import CommonLayout from '../app/CommonLayout'
 import api from '../lib/api-client'
 
 const ErrorDisplay = ({ statusCode, message }) => {
-  const router = useRouter()
-
   const handleLogout = async () => {
     try {
       await api.post('/logout')
-      router.replace('/')
+      window.location.reload()
       window.localStorage.setItem('openreview.lastLogout', Date.now())
     } catch (error) {
       console.log('Error in ErrorDisplay', {
