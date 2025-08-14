@@ -503,11 +503,9 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
       : ''
 
     try {
-      await api.post(
-        '/groups/edits',
-        buildEdit('add', [...newMembers, ...existingDeleted]),
-        { accessToken }
-      )
+      await api.post('/groups/edits', buildEdit('add', [...newMembers, ...existingDeleted]), {
+        accessToken,
+      })
       setSearchTerm('')
       setGroupMembers({
         type: 'ADD',
@@ -615,6 +613,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
                 placeholder="e.g. ~Jane_Doe1, jane@example.com, abc.com/2018/Conf/Authors"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                aria-label='"Add or search group members"'
               />
             </div>
             <SpinnerButton
@@ -686,6 +685,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
                         payload: member.id,
                       })
                     }}
+                    aria-label="Select or unselect group member"
                   />
                   <span
                     className="member-id"

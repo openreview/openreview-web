@@ -140,6 +140,7 @@ export default function FilterForm({
 
         <div className="form-group expand">
           <input
+            aria-label="Search keywords..."
             type="text"
             className="form-control"
             id="keyword-input"
@@ -276,10 +277,9 @@ export default function FilterForm({
       </div>
 
       <div>
-        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-        <label className="control-label icon-label">
+        <span className="control-label icon-label">
           <Icon name="eye-open" tooltip="Visible to" />
-        </label>
+        </span>
 
         {filterOptions.readers.length > 25 ? (
           <div className="form-group readers-filter-container">
