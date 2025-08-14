@@ -8,7 +8,7 @@ import ProfilePublications from './ProfilePublications'
 import ProfileViewSection from './ProfileViewSection'
 import MessagesSection from './MessagesSection'
 import Dropdown, { CreatableDropdown } from '../Dropdown'
-import { getRejectionReasons, prettyInvitationId, prettyId } from '../../lib/utils'
+import { getRejectionReasons } from '../../lib/utils'
 import ProfileTag from '../ProfileTag'
 
 const ProfilePreviewModal = ({
@@ -131,7 +131,11 @@ const ProfilePreviewModal = ({
       />
       {contentToShow?.includes('publications') && (
         <ProfileViewSection name="publications" title="Publications">
-          <ProfilePublications publications={publications} numPublicationsToShow={3} />
+          <ProfilePublications
+            publications={publications}
+            numPublicationsToShow={3}
+            openNoteInNewWindow={true}
+          />
         </ProfileViewSection>
       )}
       {contentToShow?.includes('messages') && (

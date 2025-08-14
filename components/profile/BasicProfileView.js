@@ -128,7 +128,13 @@ const ProfileRelation = ({ relation }) => (
     </div>
     <div>
       {relation.username ? (
-        <Link href={`/profile?id=${relation.username}`}>{relation.name}</Link>
+        <Link
+          href={`/profile?id=${relation.username}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {relation.name}
+        </Link>
       ) : (
         <span>{relation.name}</span>
       )}
