@@ -6,6 +6,7 @@ import useTurnstileToken from '../hooks/useTurnstileToken'
 import api from '../lib/api-client'
 import useUser from '../hooks/useUser'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useTurnstileToken')
 jest.mock('../hooks/useUser')
 

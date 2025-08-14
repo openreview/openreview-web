@@ -9,6 +9,7 @@ let useUserReturnValue
 let noteSummaryProps
 let noteReviewStatusProps
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => useUserReturnValue)
 jest.mock('../components/webfield/NoteSummary', () => (props) => {
   noteSummaryProps(props)

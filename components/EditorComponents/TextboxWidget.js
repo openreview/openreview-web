@@ -58,6 +58,10 @@ const TextboxWidget = () => {
   }, [displayValue])
 
   useEffect(() => {
+    setDisplayValue(initialValue)
+  }, [initialValue])
+
+  useEffect(() => {
     if (!isNil(value)) return
 
     let savedText

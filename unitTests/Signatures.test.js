@@ -4,12 +4,12 @@ import '@testing-library/jest-dom'
 import Signatures from '../components/Signatures'
 import api from '../lib/api-client'
 
-jest.mock('../lib/api-client')
-
 let mockUseUserHookValue
 let tagProps
-jest.mock('../hooks/useUser', () => () => mockUseUserHookValue)
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+jest.mock('../hooks/useUser', () => () => mockUseUserHookValue)
+jest.mock('../lib/api-client')
 jest.mock('../components/EditorComponents/TagsWidget', () => (props) => {
   tagProps(props)
   return <span>tags</span>
@@ -385,7 +385,9 @@ describe('Signatures', () => {
     })
     await user.click(screen.getByRole('combobox'))
     await waitFor(() => {
-      expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer abc')).toBeInTheDocument()
+      expect(
+        screen.getByText('ICML 2023 Conference Submission5 Reviewer abc')
+      ).toBeInTheDocument()
       expect(screen.getByText('ICML 2023 Conference Program Chairs')).toBeInTheDocument()
     })
   })
@@ -426,8 +428,12 @@ describe('Signatures', () => {
     })
     await user.click(screen.getByRole('combobox'))
     await waitFor(() => {
-      expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer abc')).toBeInTheDocument()
-      expect(screen.getByText('ICML 2023 Conference Submission5 Reviewer xyz')).toBeInTheDocument()
+      expect(
+        screen.getByText('ICML 2023 Conference Submission5 Reviewer abc')
+      ).toBeInTheDocument()
+      expect(
+        screen.getByText('ICML 2023 Conference Submission5 Reviewer xyz')
+      ).toBeInTheDocument()
     })
   })
 
@@ -661,7 +667,9 @@ describe('Signatures', () => {
     await user.click(await screen.findByRole('combobox'))
     await waitFor(() => {
       expect(screen.getByText('some_test_group1')).toBeInTheDocument()
-      expect(screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)')).toBeInTheDocument()
+      expect(
+        screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)')
+      ).toBeInTheDocument()
     })
   })
 
@@ -698,7 +706,9 @@ describe('Signatures', () => {
     await user.click(await screen.findByRole('combobox'))
     await waitFor(() => {
       expect(screen.getByText('some_test_group1')).toBeInTheDocument()
-      expect(screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)')).toBeInTheDocument()
+      expect(
+        screen.getByText('ICML 2023 Conference Program Chairs (PC TildeId)')
+      ).toBeInTheDocument()
     })
   })
 

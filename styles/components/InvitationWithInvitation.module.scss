@@ -1,0 +1,26 @@
+@use '../utils/constants';
+
+.deleted {
+  opacity: 0.5;
+}
+
+.invitationDescription {
+  margin-top: 0.5rem;
+}
+
+.invitationMeta {
+  font-size: 0.75rem;
+  color: #777;
+
+  :global {
+    .glyphicon {
+      margin-right: 0.25rem;
+    }
+  }
+}
+
+.invitationButtons {
+  // text-align: right;
+  line-height: 1.75rem;
+  margin-bottom: 0.5rem;
+}

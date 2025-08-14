@@ -91,6 +91,43 @@ describe('FileUploadWidget', () => {
     expect(clearError).toHaveBeenCalled()
   })
 
+  test('not to upload file when rendered in preview', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    api.put = jest.fn()
+
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitationId' },
+        field: {
+          supplementary_material: {
+            value: {
+              param: {
+                type: 'file',
+                extensions: ['pdf', 'zip'],
+                maxSize: 1,
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+        noteEditorPreview: true,
+      },
+    }
+    renderWithEditorComponentContext(<FileUploadWidget />, providerProps)
+
+    const fileInput = screen.getByLabelText('supplementary_material')
+    const file = new File(['some byte string'], 'supplementary_material.pdf', {
+      type: 'application/pdf',
+    })
+    await userEvent.upload(fileInput, file)
+
+    expect(api.put).not.toHaveBeenCalled()
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: 'preview url' }))
+    expect(clearError).toHaveBeenCalled()
+  })
+
   test('show File too large when selected file is too large', async () => {
     const promptError = jest.fn()
     global.promptError = promptError
