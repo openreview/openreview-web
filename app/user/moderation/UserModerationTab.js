@@ -174,7 +174,7 @@ export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes })
   )
 }
 
-const BlockModal = ({ profileToBlockUnblock, signedNotes, reload, accessToken }) => {
+const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload, accessToken }) => {
   const [blockTag, setBlockTag] = useState('')
   const actionIsBlock = profileToBlockUnblock?.state !== 'Blocked'
 
@@ -196,7 +196,7 @@ const BlockModal = ({ profileToBlockUnblock, signedNotes, reload, accessToken })
         { accessToken }
       )
       setBlockTag('')
-      $('#block-user-modal').modal('hide')
+      $(`#${id}`).modal('hide')
     } catch (error) {
       promptError(error.message)
     }
@@ -207,7 +207,7 @@ const BlockModal = ({ profileToBlockUnblock, signedNotes, reload, accessToken })
 
   return (
     <BasicModal
-      id="block-user-modal"
+      id={id}
       primaryButtonText={`${profileToBlockUnblock?.state === 'Blocked' ? 'Unblock' : 'Block'}`}
       onPrimaryButtonClick={() => {
         blockUnblockUser(profileToBlockUnblock)
@@ -277,6 +277,7 @@ const UserModerationQueue = ({
   const [profileToPreview, setProfileToPreview] = useState(null)
   const [lastPreviewedProfileId, setLastPreviewedProfileId] = useState(null)
   const rejectModalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
+  const blockModalId = `${onlyModeration ? 'new' : ''}-user-block-modal`
   const pageSizeOptions = [15, 30, 50, 100, 200].map((p) => ({
     label: `${p} items`,
     value: p,
@@ -403,7 +404,7 @@ const UserModerationQueue = ({
     const signedAuthoredNotes = await getSignedAuthoredNotesCount(profile.id)
     setSignedNotes(signedAuthoredNotes)
     setProfileToBlockUnblock(profile)
-    $(`#block-user-modal`).modal('show')
+    $(`#${blockModalId}`).modal('show')
   }
 
   const rejectUser = async (rejectionMessage, id) => {
@@ -744,6 +745,7 @@ const UserModerationQueue = ({
         signedNotes={signedNotes}
       />
       <BlockModal
+        id={blockModalId}
         profileToBlockUnblock={profileToBlockUnblock}
         signedNotes={signedNotes}
         reload={reload}
