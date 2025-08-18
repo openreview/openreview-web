@@ -14,7 +14,7 @@ const VersionChecker = () => {
     try {
       const response = await fetch('/version')
       if (!response.ok) {
-        throw new Error('Network response was not ok')
+        return
       }
       const { version: serverVersion } = await response.json()
       if (!version) {
