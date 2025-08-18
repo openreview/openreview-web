@@ -1,5 +1,6 @@
 /* globals $: false */
 import { useContext, useEffect, useState } from 'react'
+import Link from 'next/link'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -168,8 +169,8 @@ const PaperStatus = ({ sacConsoleData }) => {
   if (paperStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        No {submissionName.toLowerCase()} have been submitted.Check back later or contact
-        info@openreview.net if you believe this to be an error.
+        No {submissionName.toLowerCase()} have been submitted.Check back later or{' '}
+        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
       </p>
     )
   if (paperStatusTabData.tableRows?.length === 0)
