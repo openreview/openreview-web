@@ -418,7 +418,6 @@ const AreaChairConsole = ({ appContext }) => {
     extraExportColumns,
     preferredEmailInvitationId,
     ithenticateInvitationId,
-    skipMetaReviewSignatureCheck = false,
     extraRoleNames,
     sortOptions,
     displayReplyInvitations,

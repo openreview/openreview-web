@@ -1937,7 +1937,7 @@ describe('AreaChairConsole', () => {
     })
   })
 
-  test('check meta review signature when skipMetaReviewSignatureCheck is false (default value)', async () => {
+  test('check meta review signature to show meta review from logged in user', async () => {
     // meta review signature should match with anon group so that AC don't see meta review of another AC
     const ac1AnonId = Math.random().toString(36).substring(2, 6)
     const ac2AnonId = Math.random().toString(36).substring(2, 6)
