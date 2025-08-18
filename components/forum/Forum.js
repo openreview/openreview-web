@@ -29,7 +29,6 @@ import ForumReplyContext from './ForumReplyContext'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 
 import useUser from '../../hooks/useUser'
-import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import {
@@ -40,6 +39,7 @@ import {
 } from '../../lib/forum-utils'
 import useLocalStorage from '../../hooks/useLocalStorage'
 import Icon from '../Icon'
+import useSocket from '../../hooks/useSocket'
 
 dayjs.extend(relativeTime)
 
@@ -89,6 +89,7 @@ export default function Forum({
   prefilledValues,
   query,
 }) {
+  const { isRefreshing, accessToken } = useUser()
   const [parentNote, setParentNote] = useState(forumNote)
   const [replyNoteMap, setReplyNoteMap] = useState(null)
   const [parentMap, setParentMap] = useState(null)
@@ -116,7 +117,6 @@ export default function Forum({
   const [confirmDeleteModalData, setConfirmDeleteModalData] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [enableLiveUpdate, setEnableLiveUpdate] = useState(false)
-  const { isRefreshing, accessToken } = useUser(enableLiveUpdate)
   const [latestMdate, setLatestMdate] = useState(null)
   const [chatReplyNote, setChatReplyNote] = useState(null)
   const [notificationPermissions, setNotificationPermissions] = useState('loading')
@@ -138,6 +138,13 @@ export default function Forum({
     ? parentNote.domain
     : undefined
 
+  const events = useSocket(
+    repliesLoaded && enableLiveUpdate ? 'forum' : undefined,
+    ['edit-upserted'],
+    {
+      id: forumNote.id,
+    }
+  )
   // Process forum views config
   let replyForumViews = null
   if (details.invitation?.replyForumViews) {
@@ -888,10 +895,8 @@ export default function Forum({
     }
   }, [query])
 
-  // Toggle real-time updates
-  useInterval(() => {
-    if (!repliesLoaded || !enableLiveUpdate) return
-
+  // load real-time updates
+  const loadUpdates = () =>
     Promise.all([loadNewReplies(), loadNewTags()])
       .then(([newReplies, newTags]) => {
         // If any of the new notes include signatures that are not in the signaturesMap, load them
@@ -1012,7 +1017,11 @@ export default function Forum({
           }
         }
       })
-  }, 1500)
+
+  useEffect(() => {
+    if (!events) return
+    loadUpdates()
+  }, [events?.uniqueId])
 
   return (
     <div className="forum-container">
