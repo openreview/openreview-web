@@ -1,0 +1,52 @@
+@use '../utils/constants';
+
+.profileTagContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 5px;
+  border: 1px solid constants.$subtleGray;
+  background-color: constants.$backgroundWhite;
+  margin-right: 0.5rem;
+  margin-top: 0.25rem;
+
+  &:hover {
+    background-color: constants.$backgroundGray;
+  }
+
+  &.deletable {
+    cursor: pointer;
+  }
+
+  .readerIcon {
+    margin-left: 0.25rem;
+    font-size: 0.75rem;
+    top: 0;
+  }
+
+  .trashButton {
+    margin-left: 0.25rem;
+    font-size: 0.75rem;
+  }
+}
+
+.potentialSpam {
+  border-color: red;
+  background-color: red;
+  color: white;
+
+  &:hover {
+    background-color: darken($color: red, $amount: 10);
+  }
+}
+
+.requireVouch {
+  border-color: #fa8c16;
+  background-color: #fa8c16;
+  color: white;
+
+  &:hover {
+    background-color: darken($color: #fa8c16, $amount: 10);
+  }
+}

@@ -6,12 +6,12 @@ import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
 export default function FilterForm({ searchQuery, sourceOptions }) {
-  const defaultOption = [{ value: 'all', label: 'all of OpenReview' }]
+  const defaultOption = { value: 'all', label: 'all of OpenReview' }
   const [groupOptions, setGroupOptions] = useState([])
   const [isClientRendering, setIsClientRendering] = useState(false)
 
   const selectedGroupOption =
-    groupOptions.find((option) => option.value === searchQuery.group) || defaultOption[0]
+    groupOptions.find((option) => option.value === searchQuery.group) || defaultOption
 
   const contentOptions = [
     { value: 'all', label: 'All Content' },
