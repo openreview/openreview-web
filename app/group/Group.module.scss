@@ -160,6 +160,18 @@
     }
 
     // Console webfield styles
+    .pc-console-loading {
+      .spinner-inline {
+        display: inline-block;
+        vertical-align: text-top;
+      }
+      .spinner-small {
+        display: inline-block;
+        div {
+          background-color: constants.$orRed;
+        }
+      }
+    }
     .tabs-container {
       .tab-pane {
         .spinner-inline {
