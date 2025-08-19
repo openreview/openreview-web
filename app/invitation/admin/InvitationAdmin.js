@@ -32,9 +32,9 @@ export default function InvitationAdmin({ id, query }) {
       type = '(Invitation of Invitation)'
     } else if (invitation.edit?.note) {
       type = '(Invitation of Note)'
-    } else if (invitation.edit?.edge) {
+    } else if (invitation.edge) {
       type = '(Invitation of Edge)'
-    } else if (invitation.edit?.tag) {
+    } else if (invitation.tag) {
       type = '(Invitation of Tag)'
     }
 
