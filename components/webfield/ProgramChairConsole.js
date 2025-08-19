@@ -241,7 +241,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           accessToken,
           statusUpdate: (loadedCount, totalCount) => {
             setDataLoadingStatusMessage(
-              `Loading ${submissionName}s: ${loadedCount} of ${totalCount} ${submissionName}s loaded`
+              `Loading ${submissionName}s: ${loadedCount}/${totalCount}`
             )
           },
         }
