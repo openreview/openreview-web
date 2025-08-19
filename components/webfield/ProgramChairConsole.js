@@ -32,6 +32,7 @@ import { formatProfileContent } from '../../lib/edge-utils'
 import ConsoleTabs from './ConsoleTabs'
 import { clearCache, getCache, setCache } from '../../lib/console-cache'
 import SpinnerButton from '../SpinnerButton'
+import LoadingSpinner from '../LoadingSpinner'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -96,6 +97,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const query = useSearchParams()
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
+  const [dataLoadingStatusMessage, setDataLoadingStatusMessage] = useState('Data is loading')
 
   const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
   const areaChairUrlFormat = getRoleHashFragment(areaChairName)
@@ -104,6 +106,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const loadData = async () => {
     if (isLoadingData) return
     setIsLoadingData(true)
+    setDataLoadingStatusMessage('Data is loading')
     await clearCache(venueId)
 
     try {
@@ -228,7 +231,14 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           sort: 'number:asc',
           domain: venueId,
         },
-        { accessToken }
+        {
+          accessToken,
+          statusUpdate: (loadedCount, totalCount) => {
+            setDataLoadingStatusMessage(
+              `Loading ${submissionName}s: ${loadedCount}/${totalCount}`
+            )
+          },
+        }
       )
       // #endregion
 
@@ -438,6 +448,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             { accessToken }
           )
         : Promise.resolve([])
+      setDataLoadingStatusMessage('Loading profiles')
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
       const allProfiles = (profileResults[0].profiles ?? [])
         .concat(profileResults[1].profiles ?? [])
@@ -648,6 +659,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         ithenticateEdges,
         timeStamp: dayjs().valueOf(),
       }
+      setDataLoadingStatusMessage(null)
       setPcConsoleData(consoleData)
       if (useCache) await setCache(venueId, consoleData)
     } catch (error) {
@@ -1110,7 +1122,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
       {useCache && (
-        <div className="alert alert-warning">
+        <div className="alert alert-warning pc-console-loading">
           {pcConsoleData.timeStamp ? (
             <>
               <span>
@@ -1118,16 +1130,26 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                 {formatDateTime(pcConsoleData.timeStamp, { second: undefined })})
               </span>{' '}
               <SpinnerButton
-                className="btn btn-xs ml-2"
+                className="btn btn-xs ml-2 mr-2"
                 onClick={loadData}
-                loading={isLoadingData}
                 disabled={isLoadingData}
               >
                 Reload
               </SpinnerButton>
+              {isLoadingData && dataLoadingStatusMessage && (
+                <>
+                  <span>
+                    {dataLoadingStatusMessage}{' '}
+                    <LoadingSpinner inline text={null} extraClass="spinner-small" />
+                  </span>
+                </>
+              )}
             </>
           ) : (
-            'Data is loading...'
+            <>
+              <span>{dataLoadingStatusMessage}</span>
+              <LoadingSpinner inline text={null} extraClass="spinner-small" />
+            </>
           )}
         </div>
       )}
