@@ -35,7 +35,7 @@ export default function SubmissionButton({
       if (invitations?.length > 0) {
         const domainResult = await api
           .get(
-            '/groudps',
+            '/groups',
             { id: invitations[0].domain, select: 'content.request_form_invitation' },
             { accessToken }
           )
