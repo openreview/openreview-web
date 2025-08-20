@@ -1,0 +1,24 @@
+.container {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  max-width: 80%;
+
+  .sectionContent {
+    flex-grow: 1;
+  }
+
+  .invitationButtons {
+    flex-grow: 0;
+  }
+}
+
+.editContainer {
+  display: flex;
+  flex-direction: column;
+
+  .activeGroupDescription {
+    margin-top: 0.5rem;
+  }
+}
