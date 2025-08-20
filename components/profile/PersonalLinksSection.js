@@ -206,20 +206,16 @@ const PersonalLinksSection = ({
 
       <div className="row">
         <div className="col-md-4 personal-links__column">
-          <div className="small-heading">ORCID URL</div>
-          <PersonalLinkInput type="orcid" links={links} setLinks={setLinks} />
-        </div>
-        <div className="col-md-4 personal-links__column">
           <div className="small-heading">Wikipedia URL</div>
           <PersonalLinkInput type="wikipedia" links={links} setLinks={setLinks} />
         </div>
-      </div>
-
-      <div className="row">
         <div className="col-md-4 personal-links__column">
           <div className="small-heading">Linkedin URL</div>
           <PersonalLinkInput type="linkedin" links={links} setLinks={setLinks} />
         </div>
+      </div>
+
+      <div className="row">
         <div className="col-md-4 personal-links__column">
           <div className="small-heading">
             Semantic Scholar URL
@@ -234,8 +230,6 @@ const PersonalLinksSection = ({
           </div>
           <PersonalLinkInput type="semanticScholar" links={links} setLinks={setLinks} />
         </div>
-      </div>
-      <div className="row">
         <div className="col-md-4 personal-links__column">
           <div className="small-heading">
             ACL Anthology URL
