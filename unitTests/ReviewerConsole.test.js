@@ -9,6 +9,7 @@ let routerParams
 let noteSummaryProps
 let noteReviewStatusProps
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('next/navigation', () => ({
   useSearchParams: () => ({
     get: () => jest.fn(),

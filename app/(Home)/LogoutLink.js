@@ -2,7 +2,6 @@
 
 /* globals promptError: false */
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import api from '../../lib/api-client'
 
 export default function LogoutLink() {
