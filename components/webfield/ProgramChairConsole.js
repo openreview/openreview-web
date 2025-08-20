@@ -180,20 +180,14 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       // #region getRequestForm
       const getRequestFormResultP = requestFormId
-        ? api
-            .get(
-              '/notes',
-              {
-                id: requestFormId,
-                limit: 1,
-                select: 'id,content',
-              },
-              { accessToken, version: 1 } // request form is currently in v1
-            )
-            .then(
-              (result) => result.notes?.[0],
-              () => null
-            )
+        ? api.getNoteById(
+            requestFormId,
+            accessToken,
+            {
+              select: 'id,content',
+            },
+            undefined
+          )
         : Promise.resolve(null)
       // #endregion
 

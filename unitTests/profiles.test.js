@@ -1,5 +1,7 @@
 import { formatProfileData } from '../lib/profiles'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 describe('profiles', () => {
   test('not to fail when formatting profile with no email', () => {
     const apiProfileResponse = {
