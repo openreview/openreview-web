@@ -315,7 +315,7 @@ const WorkflowInvitationRow = ({
               <a>{isExpired ? 'Enable' : 'Disable'}</a>
             </div>
           </div>
-          {(invitation.instruction ?? invitation.description) && (
+          {(invitation.instructions ?? invitation.description) && (
             <div className="invitation-description">
               <Markdown text={invitation.instruction ?? invitation.description} />
             </div>
