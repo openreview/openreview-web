@@ -317,7 +317,7 @@ const WorkflowInvitationRow = ({
           </div>
           {(invitation.instructions ?? invitation.description) && (
             <div className="invitation-description">
-              <Markdown text={invitation.instruction ?? invitation.description} />
+              <Markdown text={invitation.instructions ?? invitation.description} />
             </div>
           )}
           {earliestDueDate && (
