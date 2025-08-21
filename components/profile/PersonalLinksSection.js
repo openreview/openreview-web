@@ -192,7 +192,7 @@ const PersonalLinksSection = ({
                 <div className="small-heading">&nbsp;</div>
               </div>
               <button
-                className="btn btn-primary personal-links__adddblpbtn"
+                className="btn btn-primary personal-links__addorcidbtn"
                 type="button"
                 disabled={!links.orcid?.value}
                 onClick={handleAddORCIDButtonClick}
