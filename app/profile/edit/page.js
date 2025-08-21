@@ -37,6 +37,7 @@ export default function Page() {
         'OpenReview.net/Archive/-/Imported_Record_Revision',
       'OpenReview.net/Archive/-/Direct_Upload':
         'OpenReview.net/Archive/-/Direct_Upload_Revision',
+      'DBLP.org/-/Record': 'DBLP.org/-/Author_Coreference',
       [`${process.env.SUPER_USER}/Public_Article/-/ORCID_Record`]: `${process.env.SUPER_USER}/Public_Article/-/Author_Removal`,
     }
     if (!authorIds) {
