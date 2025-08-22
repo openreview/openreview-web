@@ -1,178 +1,16 @@
 /* globals DOMPurify,marked,$,promptError,promptMessage: false */
 import React, { useEffect, useReducer, useRef, useState } from 'react'
 import Link from 'next/link'
-import get from 'lodash/get'
 import copy from 'copy-to-clipboard'
-import BasicModal from '../BasicModal'
-import MarkdownPreviewTab from '../MarkdownPreviewTab'
 import ProgressBar from '../ProgressBar'
 import PaginationLinks from '../PaginationLinks'
 import Icon from '../Icon'
 import EditorSection from '../EditorSection'
 import api from '../../lib/api-client'
-import { isValidEmail, prettyId, urlFromGroupId } from '../../lib/utils'
+import { prettyId, urlFromGroupId } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 import SpinnerButton from '../SpinnerButton'
-
-const MessageMemberModal = ({
-  groupId,
-  domainId,
-  groupDomainContent,
-  membersToMessage,
-  accessToken,
-  setJobId,
-}) => {
-  const [subject, setSubject] = useState(`Message to ${prettyId(groupId)}`)
-  const [replyToEmail, setReplyToEmail] = useState(groupDomainContent?.contact?.value ?? '')
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
-
-  const sendMessage = async () => {
-    setSubmitting(true)
-    setError(null)
-    const sanitizedMessage = DOMPurify.sanitize(message)
-    const cleanReplytoEmail = replyToEmail.trim()
-
-    if (!subject || !sanitizedMessage) {
-      setError('Email Subject and Body are required to send messages.')
-      setSubmitting(false)
-      return
-    }
-
-    if (cleanReplytoEmail && !isValidEmail(cleanReplytoEmail)) {
-      setError('Reply to email is invalid.')
-      setSubmitting(false)
-      return
-    }
-
-    // Reload group to make sure members haven't been removed since the modal was opened
-    try {
-      const apiRes = await api.get(
-        '/groups',
-        { id: groupId, select: 'members' },
-        { accessToken }
-      )
-      const newMembers = get(apiRes, 'groups.0.members', [])
-      if (!membersToMessage.every((p) => newMembers.includes(p))) {
-        throw new Error(
-          'The members of this group, including members selected below, have changed since the page was opened. Please reload the page and try again.'
-        )
-      }
-    } catch (e) {
-      setError(e.message)
-      setSubmitting(false)
-      return
-    }
-
-    try {
-      const result = await api.post(
-        '/messages',
-        {
-          invitation: `${domainId}/-/Edit`,
-          signature: domainId,
-          groups: membersToMessage,
-          subject,
-          message: sanitizedMessage,
-          parentGroup: groupId,
-          ...(cleanReplytoEmail && { replyTo: cleanReplytoEmail }),
-          useJob: true,
-          fromName: groupDomainContent?.message_sender?.value?.fromName,
-          fromEmail: groupDomainContent?.message_sender?.value?.fromEmail,
-        },
-        { accessToken }
-      )
-      setJobId(result.jobId)
-      setSubject(`Message to ${prettyId(groupId)}`)
-      setMessage('')
-      // Save the timestamp in the local storage (used in PC console)
-      membersToMessage.forEach((member) => {
-        try {
-          localStorage.setItem(`${groupId}|${member}`, Date.now())
-        } catch (e) {
-          // eslint-disable-next-line no-console
-          console.warn(`Could not save timestamp for ${member}`)
-        }
-      })
-      $('#message-group-members').modal('hide')
-    } catch (e) {
-      setError(e.message)
-    }
-    setSubmitting(false)
-  }
-
-  return (
-    <BasicModal
-      id="message-group-members"
-      title="Message Group Members"
-      primaryButtonText="Send Messages"
-      onPrimaryButtonClick={sendMessage}
-      primaryButtonDisabled={submitting}
-      isLoading={submitting}
-      onClose={() => {
-        setMessage('')
-        setError(null)
-        setSubmitting(false)
-      }}
-      options={{ useSpinnerButton: true }}
-    >
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      <p>
-        Enter a subject and message below. Your message will be sent via email to the following{' '}
-        {membersToMessage?.length} group member(s):
-      </p>
-      <div className="well receiver-list">
-        {membersToMessage.map((p) => (p.includes('@') ? p : prettyId(p)))?.join(', ')}
-      </div>
-
-      <div id="message-group-members-form">
-        <div className="form-group">
-          <label htmlFor="subject">Email Subject</label>
-          <input
-            type="text"
-            name="subject"
-            className="form-control"
-            placeholder="Subject"
-            value={subject}
-            required
-            onChange={(e) => setSubject(e.target.value)}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="subject">Reply To</label>
-          <input
-            type="text"
-            name="replyto"
-            className="form-control"
-            value={replyToEmail}
-            onChange={(e) => setReplyToEmail(e.target.value)}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="message">Email Body</label>
-          <p className="hint">
-            Hint: You can personalize emails using template variables. The text {'{{'}fullname
-            {'}}'} will automatically be replaced with the recipient&apos;s full name if they
-            have an OpenReview profile. If a profile isn&apos;t found their email address will
-            be used instead.
-          </p>
-          <p className="hint">
-            You can use Markdown syntax to add basic formatting to your email. Use the Preview
-            tab to see how your email will look.
-          </p>
-          <MarkdownPreviewTab
-            value={message}
-            onValueChanged={setMessage}
-            placeholder="Message"
-          />
-        </div>
-      </div>
-    </BasicModal>
-  )
-}
+import MessageMemberModal from './MessageMemberModal'
 
 const StatusMessage = ({ statusParam }) => {
   if (!statusParam.status) return null
@@ -290,7 +128,14 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   )
 }
 
-const GroupMembers = ({ group, accessToken, reloadGroup }) => {
+const GroupMembers = ({
+  group,
+  accessToken,
+  reloadGroup,
+  messageAllMembersInvitation,
+  messageSingleMemberInvitation,
+  addRemoveMembersInvitaiton,
+}) => {
   const membersPerPage = 15
   const [searchTerm, setSearchTerm] = useState('')
   const [memberAnonIds, setMemberAnonIds] = useState([])
@@ -377,6 +222,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   }
 
   const [memberToMessage, setMemberToMessage] = useState([])
+  const [messageInvitation, setMessageInvitation] = useState(null)
   const [displayedMembers, setDisplayedMembers] = useState(
     filteredMembers.length > membersPerPage
       ? filteredMembers.slice(0, membersPerPage)
@@ -399,6 +245,16 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
   }
 
   const buildEdit = (action, members) => {
+    if (addRemoveMembersInvitaiton)
+      return {
+        group: {
+          id: group.id,
+          members: {
+            [action]: members,
+          },
+        },
+        invitation: addRemoveMembersInvitaiton.id,
+      }
     const userNameGroupInvitationId = `${process.env.SUPER_USER}/-/Username`
     const emailGroupInvitationId = `${process.env.SUPER_USER}/-/Email`
 
@@ -599,6 +455,183 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
     $('[data-toggle="tooltip"]').tooltip()
   }, [])
 
+  const showCustomGroupMembers =
+    messageAllMembersInvitation || messageSingleMemberInvitation || addRemoveMembersInvitaiton
+
+  if (!showCustomGroupMembers)
+    return (
+      <>
+        <EditorSection title={getTitle()} className="members">
+          <div className="container members-container">
+            <div className="search-row">
+              <div className="input-group">
+                <input
+                  className="form-control input-sm"
+                  placeholder="e.g. ~Jane_Doe1, jane@example.com, abc.com/2018/Conf/Authors"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <SpinnerButton
+                type="primary"
+                className="search-button"
+                disabled={
+                  isAdding ||
+                  !searchTerm.trim() ||
+                  groupMembers.find((p) => p.id === searchTerm)
+                }
+                onClick={() => handleAddButtonClick(searchTerm)}
+                loading={isAdding}
+              >
+                Add to Group
+              </SpinnerButton>
+              <div className="space-taker" />
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                disabled={isFilteredEmpty}
+                onClick={() => setGroupMembers({ type: 'SELECTDESELECTALL' })}
+              >
+                {isAllFilterdSelected ? 'Deselect All' : 'Select All'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-primary hidden-sm hidden-xs"
+                disabled={!groupMembers.some((p) => p.isSelected)}
+                onClick={handleCopySelectedButtonClick}
+                title="Copy member IDs to clipboard. Useful for adding group members to other groups"
+                data-toggle="tooltip"
+                data-placement="top"
+              >
+                Copy Selected
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                disabled={!groupMembers.some((p) => p.isSelected)}
+                onClick={() =>
+                  messageMember(groupMembers.filter((p) => p.isSelected)?.map((q) => q.id))
+                }
+              >
+                Message Selected
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                disabled={!groupMembers.some((p) => p.isSelected)}
+                onClick={() => handleRemoveSelectedButtonClick()}
+              >
+                Remove Selected
+              </button>
+            </div>
+
+            {filteredMembers?.length > 0 ? (
+              displayedMembers.map((member) => {
+                const hasAnonId = memberAnonIds.find((p) => p.member.includes(member.id))
+                return (
+                  <div
+                    key={member.id}
+                    className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={member.isSelected}
+                      disabled={member.isDeleted}
+                      onChange={(e) => {
+                        setGroupMembers({
+                          type: e.target.checked ? 'SELECT' : 'UNSELECT',
+                          payload: member.id,
+                        })
+                      }}
+                    />
+                    <span
+                      className="member-id"
+                      onClick={(e) => {
+                        if (e.currentTarget !== e.target) return
+                        setGroupMembers({
+                          type: 'INVERTSELECTION',
+                          payload: member.id,
+                        })
+                      }}
+                    >
+                      <Link href={urlFromGroupId(member.id)}>{member.id}</Link>
+                      {hasAnonId && (
+                        <>
+                          {' | '}
+                          <Link href={urlFromGroupId(hasAnonId.anonId, true)}>
+                            {prettyId(hasAnonId.anonId)}
+                          </Link>
+                        </>
+                      )}
+                      {member.isDeleted && <> {'(Deleted)'}</>}
+                    </span>
+                    {member.isDeleted ? (
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-primary"
+                        onClick={() => restoreMember(member.id)}
+                      >
+                        <Icon name="repeat" />
+                        Undo
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-primary"
+                          onClick={() => messageMember([member.id])}
+                        >
+                          <Icon name="envelope" />
+                          Message
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-primary"
+                          onClick={() => deleteMember(member.id)}
+                        >
+                          <Icon name="remove" />
+                          Remove
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )
+              })
+            ) : (
+              <div className="empty-message-row">
+                {searchTerm
+                  ? `No members matching the search "${searchTerm}" found. Click Add to Group above to add a new member.`
+                  : 'No members to display'}
+              </div>
+            )}
+            <PaginationLinks
+              setCurrentPage={(e) => setCurrentPage(e)}
+              totalCount={filteredMembers.length}
+              itemsPerPage={membersPerPage}
+              currentPage={currentPage}
+              options={{ noScroll: true }}
+            />
+          </div>
+        </EditorSection>
+
+        <MessageMemberModal
+          groupId={group.id}
+          domainId={group.domain}
+          groupDomainContent={group.details.domain?.content}
+          membersToMessage={memberToMessage}
+          accessToken={accessToken}
+          setJobId={(id) => setJobId(id)}
+        />
+
+        <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
+      </>
+    )
+
+  const showMessageAll = messageAllMembersInvitation
+  const showMessageSingle = messageSingleMemberInvitation
+  const showAddRemoveMembers = addRemoveMembersInvitaiton
+  const showCheckbox = showMessageSingle || showAddRemoveMembers
+
   return (
     <>
       <EditorSection title={getTitle()} className="members">
@@ -612,55 +645,80 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <SpinnerButton
-              type="primary"
-              className="search-button"
-              disabled={
-                isAdding || !searchTerm.trim() || groupMembers.find((p) => p.id === searchTerm)
-              }
-              onClick={() => handleAddButtonClick(searchTerm)}
-              loading={isAdding}
-            >
-              Add to Group
-            </SpinnerButton>
+            {showAddRemoveMembers && (
+              <SpinnerButton
+                type="primary"
+                className="search-button"
+                disabled={
+                  isAdding ||
+                  !searchTerm.trim() ||
+                  groupMembers.find((p) => p.id === searchTerm)
+                }
+                onClick={() => handleAddButtonClick(searchTerm)}
+                loading={isAdding}
+              >
+                Add to Group
+              </SpinnerButton>
+            )}
             <div className="space-taker" />
-            <button
-              type="button"
-              className="btn btn-sm btn-primary"
-              disabled={isFilteredEmpty}
-              onClick={() => setGroupMembers({ type: 'SELECTDESELECTALL' })}
-            >
-              {isAllFilterdSelected ? 'Deselect All' : 'Select All'}
-            </button>
-            <button
-              type="button"
-              className="btn btn-sm btn-primary hidden-sm hidden-xs"
-              disabled={!groupMembers.some((p) => p.isSelected)}
-              onClick={handleCopySelectedButtonClick}
-              title="Copy member IDs to clipboard. Useful for adding group members to other groups"
-              data-toggle="tooltip"
-              data-placement="top"
-            >
-              Copy Selected
-            </button>
-            <button
-              type="button"
-              className="btn btn-sm btn-primary"
-              disabled={!groupMembers.some((p) => p.isSelected)}
-              onClick={() =>
-                messageMember(groupMembers.filter((p) => p.isSelected)?.map((q) => q.id))
-              }
-            >
-              Message Selected
-            </button>
-            <button
-              type="button"
-              className="btn btn-sm btn-primary"
-              disabled={!groupMembers.some((p) => p.isSelected)}
-              onClick={() => handleRemoveSelectedButtonClick()}
-            >
-              Remove Selected
-            </button>
+            {showCheckbox && (
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                disabled={isFilteredEmpty}
+                onClick={() => setGroupMembers({ type: 'SELECTDESELECTALL' })}
+              >
+                {isAllFilterdSelected ? 'Deselect All' : 'Select All'}
+              </button>
+            )}
+            {showAddRemoveMembers && (
+              <button
+                type="button"
+                className="btn btn-sm btn-primary hidden-sm hidden-xs"
+                disabled={!groupMembers.some((p) => p.isSelected)}
+                onClick={handleCopySelectedButtonClick}
+                title="Copy member IDs to clipboard. Useful for adding group members to other groups"
+                data-toggle="tooltip"
+                data-placement="top"
+              >
+                Copy Selected
+              </button>
+            )}
+            {showMessageSingle && (
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                disabled={!groupMembers.some((p) => p.isSelected)}
+                onClick={() => {
+                  setMessageInvitation(messageSingleMemberInvitation)
+                  messageMember(groupMembers.filter((p) => p.isSelected)?.map((q) => q.id))
+                }}
+              >
+                Message Selected
+              </button>
+            )}
+            {showMessageAll && (
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                onClick={() => {
+                  setMessageInvitation(messageAllMembersInvitation)
+                  messageMember([group.id])
+                }}
+              >
+                Message All
+              </button>
+            )}
+            {showAddRemoveMembers && (
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                disabled={!groupMembers.some((p) => p.isSelected)}
+                onClick={() => handleRemoveSelectedButtonClick()}
+              >
+                Remove Selected
+              </button>
+            )}
           </div>
 
           {filteredMembers?.length > 0 ? (
@@ -671,17 +729,19 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
                   key={member.id}
                   className={`member-row ${member.isDeleted ? 'deleted' : ''}`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={member.isSelected}
-                    disabled={member.isDeleted}
-                    onChange={(e) => {
-                      setGroupMembers({
-                        type: e.target.checked ? 'SELECT' : 'UNSELECT',
-                        payload: member.id,
-                      })
-                    }}
-                  />
+                  {showCheckbox && (
+                    <input
+                      type="checkbox"
+                      checked={member.isSelected}
+                      disabled={member.isDeleted}
+                      onChange={(e) => {
+                        setGroupMembers({
+                          type: e.target.checked ? 'SELECT' : 'UNSELECT',
+                          payload: member.id,
+                        })
+                      }}
+                    />
+                  )}
                   <span
                     className="member-id"
                     onClick={(e) => {
@@ -703,7 +763,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
                     )}
                     {member.isDeleted && <> {'(Deleted)'}</>}
                   </span>
-                  {member.isDeleted ? (
+                  {showAddRemoveMembers && member.isDeleted ? (
                     <button
                       type="button"
                       className="btn btn-xs btn-primary"
@@ -714,22 +774,29 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
                     </button>
                   ) : (
                     <>
-                      <button
-                        type="button"
-                        className="btn btn-xs btn-primary"
-                        onClick={() => messageMember([member.id])}
-                      >
-                        <Icon name="envelope" />
-                        Message
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-xs btn-primary"
-                        onClick={() => deleteMember(member.id)}
-                      >
-                        <Icon name="remove" />
-                        Remove
-                      </button>
+                      {showMessageSingle && (
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-primary"
+                          onClick={() => {
+                            setMessageInvitation(messageSingleMemberInvitation)
+                            messageMember([member.id])
+                          }}
+                        >
+                          <Icon name="envelope" />
+                          Message
+                        </button>
+                      )}
+                      {showAddRemoveMembers && (
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-primary"
+                          onClick={() => deleteMember(member.id)}
+                        >
+                          <Icon name="remove" />
+                          Remove
+                        </button>
+                      )}
                     </>
                   )}
                 </div>
@@ -738,7 +805,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
           ) : (
             <div className="empty-message-row">
               {searchTerm
-                ? `No members matching the search "${searchTerm}" found. Click Add to Group above to add a new member.`
+                ? `No members matching the search "${searchTerm}" found.${showAddRemoveMembers ? ' Click Add to Group above to add a new member.' : ''}`
                 : 'No members to display'}
             </div>
           )}
@@ -759,6 +826,7 @@ const GroupMembers = ({ group, accessToken, reloadGroup }) => {
         membersToMessage={memberToMessage}
         accessToken={accessToken}
         setJobId={(id) => setJobId(id)}
+        messageMemberInvitation={messageInvitation}
       />
 
       <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />

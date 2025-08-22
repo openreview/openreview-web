@@ -406,7 +406,7 @@ function ChatSignature({ groupId, signatureGroup }) {
           {signatureGroup.members.length > 4 && (
             <a
               key="others"
-              href={`/group/info?id=${groupId}`}
+              href={`/group/edit?id=${groupId}`}
               target="_blank"
               rel="noreferrer"
             >

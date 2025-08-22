@@ -1,6 +1,6 @@
 /* globals promptError, promptLogin, view2, clearMessage: false */
 
-import React, { useEffect, useCallback, useReducer, useState } from 'react'
+import React, { useEffect, useCallback, useReducer, useState, useContext } from 'react'
 import throttle from 'lodash/throttle'
 import { intersection, isEmpty } from 'lodash'
 import EditorComponentContext from './EditorComponentContext'
@@ -20,7 +20,9 @@ import { getNoteContentValues } from '../lib/forum-utils'
 import styles from '../styles/components/NoteEditor.module.scss'
 import LicenseWidget from './EditorComponents/LicenseWidget'
 import DatePickerWidget from './EditorComponents/DatePickerWidget'
+import EditSignatures from './EditSignatures'
 import Markdown from './EditorComponents/Markdown'
+import WebFieldContext from './WebFieldContext'
 
 const ExistingNoteReaders = NewReplyEditNoteReaders
 
@@ -52,49 +54,6 @@ const NoteSignatures = ({
   }
 
   if (!fieldDescription) return null
-
-  return (
-    <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true} error={error}>
-      <Signatures
-        fieldDescription={fieldDescription}
-        onChange={onChange}
-        currentValue={noteEditorData[fieldName]}
-        onError={onError}
-        extraClasses={styles.signatures}
-        clearError={() =>
-          setErrors((existingErrors) =>
-            existingErrors.filter((p) => p.fieldName !== fieldName)
-          )
-        }
-      />
-    </EditorComponentHeader>
-  )
-}
-
-const EditSignatures = ({
-  fieldDescription,
-  setLoading,
-  noteEditorData,
-  setNoteEditorData,
-  closeNoteEditor,
-  errors,
-  setErrors,
-}) => {
-  const fieldName = 'editSignatureInputValues'
-  const error = errors.find((e) => e.fieldName === fieldName)
-
-  const onChange = ({ loading, value }) => {
-    setLoading((existingLoadingState) => ({
-      ...existingLoadingState,
-      editSignatures: loading,
-    }))
-    if (value) setNoteEditorData({ fieldName, value })
-  }
-
-  const onError = (errorMessage) => {
-    promptError(errorMessage)
-    closeNoteEditor()
-  }
 
   return (
     <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true} error={error}>
@@ -317,6 +276,13 @@ const NoteEditor = ({
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState([])
+  const { noteEditorPreview } = useContext(WebFieldContext) ?? {}
+  if (noteEditorPreview)
+    // eslint-disable-next-line no-param-reassign
+    customValidator = () => ({
+      isValid: false,
+      errorMessage: 'This is a note editor preview',
+    })
   const useCheckboxWidget = true
 
   const displayError =
@@ -409,6 +375,7 @@ const NoteEditor = ({
                 return existingErrors.filter((p) => p.fieldName !== fieldName)
               })
             },
+            noteEditorPreview,
           }}
         >
           <EditorComponentHeader fieldNameOverwrite={fieldNameOverwrite}>
@@ -563,7 +530,7 @@ const NoteEditor = ({
       }
 
       const domainGroup =
-        invitation.domain === process.env.SUPER_USER
+        !invitation.domain || invitation.domain === process.env.SUPER_USER
           ? {}
           : await api.get('/groups', { id: invitation.domain }, { accessToken })
       const {
@@ -758,42 +725,45 @@ const NoteEditor = ({
         setErrors={setErrors}
       />
 
-      <div className={styles.editReaderSignature}>
-        <h2>Edit History</h2>
-        <hr />
+      {(invitation.edit?.content || invitation.edit.readers || invitation.edit.signatures) && (
+        <div className={styles.editReaderSignature}>
+          <h2>Edit History</h2>
+          <hr />
 
-        <EditContent
-          invitation={invitation}
-          editContentData={editContentData}
-          setEditContentData={setEditContentData}
-          errors={errors}
-          setErrors={setErrors}
-        />
+          <EditContent
+            invitation={invitation}
+            editContentData={editContentData}
+            setEditContentData={setEditContentData}
+            errors={errors}
+            setErrors={setErrors}
+          />
 
-        <EditReaders
-          fieldDescription={invitation.edit.readers}
-          closeNoteEditor={closeNoteEditor}
-          value={noteEditorData.editReaderValues}
-          onChange={(value) => setNoteEditorData({ fieldName: 'editReaderValues', value })}
-          setLoading={setLoading}
-          placeholder="Select edit readers"
-          error={errors.find((e) => e.fieldName === 'editReaderValues')}
-          clearError={() =>
-            setErrors((existingErrors) =>
-              existingErrors.filter((p) => p.fieldName !== 'editReaderValues')
-            )
-          }
-        />
-        <EditSignatures
-          fieldDescription={invitation.edit.signatures}
-          setLoading={setLoading}
-          noteEditorData={noteEditorData}
-          setNoteEditorData={setNoteEditorData}
-          closeNoteEditor={closeNoteEditor}
-          errors={errors}
-          setErrors={setErrors}
-        />
-      </div>
+          <EditReaders
+            fieldDescription={invitation.edit.readers}
+            closeNoteEditor={closeNoteEditor}
+            value={noteEditorData.editReaderValues}
+            onChange={(value) => setNoteEditorData({ fieldName: 'editReaderValues', value })}
+            setLoading={setLoading}
+            placeholder="Select edit readers"
+            error={errors.find((e) => e.fieldName === 'editReaderValues')}
+            clearError={() =>
+              setErrors((existingErrors) =>
+                existingErrors.filter((p) => p.fieldName !== 'editReaderValues')
+              )
+            }
+          />
+          <EditSignatures
+            fieldDescription={invitation.edit.signatures}
+            setLoading={setLoading}
+            editorData={noteEditorData}
+            setEditorData={setNoteEditorData}
+            closeEditor={closeNoteEditor}
+            errors={errors}
+            setErrors={setErrors}
+            extraClasses={styles.signatures}
+          />
+        </div>
+      )}
 
       {Object.values(loading).some((p) => p) ? (
         <LoadingSpinner inline />

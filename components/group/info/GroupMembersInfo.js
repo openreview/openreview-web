@@ -7,7 +7,7 @@ const GroupMembersInfo = ({ group }) => {
     items: group.members.slice(offset, offset + limit).map((member) => ({
       id: member,
       title: member,
-      href: urlFromGroupId(member, true),
+      href: urlFromGroupId(member, false),
     })),
     count: group.members.length,
   })
@@ -24,7 +24,7 @@ const GroupMembersInfo = ({ group }) => {
       items: filteredMembers.slice(offset, offset + limit).map((member) => ({
         id: member,
         title: member,
-        href: urlFromGroupId(member, true),
+        href: urlFromGroupId(member, false),
       })),
       count: filteredMembers.length,
     }
@@ -39,7 +39,7 @@ const GroupMembersInfo = ({ group }) => {
     >
       <PaginatedList
         loadItems={loadMembers}
-        searchItems={memberCount > 20 ? searchMembers : null}
+        searchItems={memberCount > 1 ? searchMembers : null}
         emptyMessage="No members to display"
         searchPlaceholder="Search members by username"
         itemsPerPage={20}
