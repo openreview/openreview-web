@@ -167,6 +167,7 @@
       }
       .spinner-small {
         display: inline-block;
+        margin-bottom: 0;
         div {
           background-color: constants.$orRed;
         }
