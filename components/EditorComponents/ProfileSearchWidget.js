@@ -464,7 +464,9 @@ const CustomAuthorForm = ({
   const { accessToken } = useUser()
 
   const disableAddButton =
-    isLoading || !(customAuthorName.trim() && isValidEmail(customAuthorEmail))
+    isLoading ||
+    !(customAuthorName.trim() && isValidEmail(customAuthorEmail)) ||
+    displayAuthors.find((p) => p.authorId === customAuthorEmail.trim().toLowerCase())
 
   const handleAddCustomAuthor = async () => {
     const cleanAuthorName = customAuthorName.trim()
