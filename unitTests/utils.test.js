@@ -878,5 +878,18 @@ describe('utils', () => {
 
     expectedValue = '~Mentor_User1 vouch ~Test_User1'
     expect(getTagDispayText(tag, true)).toEqual(expectedValue)
+
+    // not to duplicate signature and invitation
+    tag = {
+      invitation: 'ICML.cc/2023/Conference/Reviewers/-/Assignment_Count',
+      label: undefined,
+      weight: 25,
+      profile: '~Test_User1',
+      readers: ['ICML.cc/2023/Conference'],
+      signature: 'ICML.cc/2023/Conference',
+    }
+
+    expectedValue = 'ICML 2023 Conference Assignment Count (25)'
+    expect(getTagDispayText(tag, false)).toEqual(expectedValue)
   })
 })
