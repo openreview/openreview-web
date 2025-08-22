@@ -37,29 +37,40 @@ export default function VenueRequestCount({ accessToken }) {
   const getPendingVenueRequestCount = async () => {
     try {
       const allVenueRequests = await api
-        .get(
+        .getCombined(
           '/notes',
           {
             invitation: `${process.env.SUPER_USER}/Support/-/Request_Form`,
             details: 'replies',
             select: `content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate`,
           },
-          { accessToken, version: 1 }
+          {
+            invitation: `${process.env.SUPER_USER}/Support/Venue_Request.*`,
+            sort: 'tcdate',
+            details: 'replies',
+            select: `id,forum,parentInvitations,tcdate,content.abbreviated_venue_name,content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
+          },
+          { accessToken, includeVersion: true }
         )
         .then((response) =>
-          response?.notes?.map((p) => ({
-            unrepliedPcComments: sortBy(
-              p.details?.replies?.filter(
-                (q) =>
-                  q.invitation.endsWith('Comment') &&
-                  !q.signatures.includes(`${process.env.SUPER_USER}/Support`) &&
-                  !hasBeenReplied(q, p.details?.replies ?? []) &&
-                  dayjs().diff(dayjs(q.cdate), 'd') < 7
+          response?.notes?.flatMap((p) => {
+            if (p.parentInvitations) return []
+            return {
+              unrepliedPcComments: sortBy(
+                p.details?.replies?.filter(
+                  (q) =>
+                    (p.apiVersion === 2
+                      ? q.invitations.find((r) => r.endsWith('Comment'))
+                      : q.invitation.endsWith('Comment')) &&
+                    !q.signatures.includes(`${process.env.SUPER_USER}/Support`) &&
+                    !hasBeenReplied(q, p.details?.replies ?? []) &&
+                    dayjs().diff(dayjs(q.cdate), 'd') < 7
+                ),
+                (s) => -s.cdate
               ),
-              (s) => -s.cdate
-            ),
-            deployed: p.content?.venue_id,
-          }))
+              deployed: p.apiVersion === 2 ? p.content?.venue_id?.value : p.content?.venue_id,
+            }
+          })
         )
 
       const undeployedVenueCount = allVenueRequests.filter((p) => !p.deployed).length
