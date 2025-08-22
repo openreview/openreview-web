@@ -108,7 +108,7 @@ const ReducedLoadInfo = ({
   )
 }
 
-const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
+const DeclineForm = ({ responseNote, setDecision, setReducedLoad, extraFieldsForm }) => {
   const {
     declineMessage,
     reducedLoadMessage,
@@ -133,7 +133,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
   )
 
   const initialState = fieldsToRender.reduce((acc, field) => {
-    acc[field] = args[field]
+    acc[field] = args[field] ?? extraFieldsForm[field]
     return acc
   }, {})
 
@@ -285,6 +285,21 @@ const RecruitmentForm = () => {
   const invitationContentFields = isV2Invitation
     ? Object.keys(invitation.edit?.note?.content)
     : Object.keys(invitation.reply?.content)
+  const extraFields = invitationContentFields.filter(
+    (p) => !['id', 'title', 'key', 'response', 'user', 'reduced_load', 'comment'].includes(p)
+  )
+  const extraFieldsReducer = (state, action) => ({
+    ...state,
+    [action.fieldName]: action.value,
+  })
+
+  const [extraFieldsForm, setExtraFieldsForm] = useReducer(
+    extraFieldsReducer,
+    extraFields.reduce((acc, field) => {
+      acc[field] = args[field]
+      return acc
+    }, {})
+  )
 
   const defaultButtonState = [
     { response: 'Yes', loading: false, disabled: false },
@@ -317,6 +332,7 @@ const RecruitmentForm = () => {
             ([key]) => !fieldsToHide.includes(key) && invitationContentFields.includes(key)
           )
         ),
+        ...extraFieldsForm,
       }
       const noteToPost = constructRecruitmentResponseNote(invitation, noteContent)
       const result = await api.post(isV2Invitation ? '/notes/edits' : '/notes', noteToPost, {
@@ -354,6 +370,7 @@ const RecruitmentForm = () => {
             responseNote={responseNote}
             setDecision={setDecision}
             setReducedLoad={setReducedLoad}
+            extraFieldsForm={extraFieldsForm}
           />
         )
       case 'acceptWithReducedLoad':
@@ -362,6 +379,7 @@ const RecruitmentForm = () => {
             responseNote={responseNote}
             setDecision={setDecision}
             setReducedLoad={setReducedLoad}
+            extraFieldsForm={extraFieldsForm}
           />
         )
       case 'error':
@@ -379,6 +397,25 @@ const RecruitmentForm = () => {
             ) : (
               <Markdown text={responseDescription} />
             )}
+            {extraFields.map((extraField) => (
+              <EditorComponentContext.Provider
+                key={extraField}
+                value={{
+                  field: {
+                    [extraField]: invitation.edit?.note?.content?.[extraField],
+                  },
+                  onChange: ({ fieldName, value }) => setExtraFieldsForm({ fieldName, value }),
+                  value: extraFieldsForm[extraField],
+                  key: extraField,
+                  isWebfield: true,
+                }}
+              >
+                <EditorComponentHeader>
+                  <EditorWidget />
+                </EditorComponentHeader>
+              </EditorComponentContext.Provider>
+            ))}
+
             <div className="response-buttons">
               <SpinnerButton
                 type="primary"
