@@ -103,16 +103,26 @@ return {
       </CommonLayout>
     )
 
-  const componentObjP =
-    group.domain !== group.id
-      ? api
-          .get('/groups', { id: group.domain }, { accessToken, remoteIpAddress })
-          .then((apiRes) => {
-            const domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
-            return parseComponentCode(group, domainGroup, user, query, accessToken)
-          })
-          .catch((error) => parseComponentCode(group, null, user, query, accessToken))
-      : parseComponentCode(group, group, user, query, accessToken)
+  let domainGroup = null
+  if (group.domain === group.id) {
+    domainGroup = group
+  } else {
+    try {
+      const apiRes = await api.get(
+        '/groups',
+        { id: group.domain },
+        { accessToken, remoteIpAddress }
+      )
+      domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
+    } catch (error) {
+      domainGroup = null
+    }
+  }
 
-  return <ComponentGroup componentObjP={componentObjP} editBanner={editBanner} />
+  try {
+    const componentObj = await parseComponentCode(group, domainGroup, user, query, accessToken)
+    return <ComponentGroup componentObj={componentObj} editBanner={editBanner} />
+  } catch (error) {
+    return <ErrorDisplay message={error.message} />
+  }
 }
