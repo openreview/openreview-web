@@ -272,6 +272,7 @@ describe('RecruitmentForm', () => {
           id: 'ICML.cc/2023/Conference/Area_Chairs/-/Recruitment',
           user: 'test@email.com',
           key: 'somekey',
+          arbitrary_field: 'No',
         },
         invitationMessage: '# You have been invited #',
         acceptMessage: 'Thank you {{user}} for accepting this invitation',
@@ -282,8 +283,9 @@ describe('RecruitmentForm', () => {
     }
 
     renderWithWebFieldContext(<RecruitmentForm />, providerProps)
+    expect(screen.getByRole('radio', { name: 'No' })).toBeChecked()
     await waitFor(() => {
-      userEvent.click(screen.getByRole('radio', { name: 'No' }))
+      userEvent.click(screen.getByRole('radio', { name: 'Yes' }))
       userEvent.click(screen.getByRole('button', { name: 'Accept' }))
     })
     await waitFor(() => {
@@ -291,7 +293,7 @@ describe('RecruitmentForm', () => {
         screen.getByText('Thank you test@email.com for accepting this invitation')
       ).toBeVisible()
       expect(contentParam).toHaveBeenCalledWith(
-        expect.objectContaining({ arbitrary_field: 'No' })
+        expect.objectContaining({ arbitrary_field: 'Yes' })
       )
       expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, {
         version: 2,
@@ -448,13 +450,12 @@ describe('RecruitmentForm', () => {
           edit: {
             note: {
               content: {
-                arbitrary_field: {
-                  description: 'this is a custom field to be displayed above action buttons',
+                submission_id: {
+                  description: 'submission id',
                   value: {
                     param: {
                       type: 'string',
-                      enum: ['Yes', 'No'],
-                      input: 'radio',
+                      regex: '.*',
                     },
                   },
                 },
@@ -466,6 +467,7 @@ describe('RecruitmentForm', () => {
           id: 'ICML.cc/2023/Conference/Area_Chairs/-/Recruitment',
           user: 'test@email.com',
           key: 'somekey',
+          submission_id: 'param value of submission id',
         },
         invitationMessage: '# You have been invited #',
         acceptMessage: 'Thank you for accepting this invitation',
@@ -478,13 +480,14 @@ describe('RecruitmentForm', () => {
     renderWithWebFieldContext(<RecruitmentForm />, providerProps)
 
     await waitFor(() => {
-      userEvent.click(screen.getByRole('radio', { name: 'No' }))
+      expect(screen.getByDisplayValue('param value of submission id')).toBeInTheDocument()
     })
+    await userEvent.type(screen.getByDisplayValue('param value of submission id'), ' modified')
     await userEvent.click(screen.getByRole('button', { name: 'Decline' }))
     await waitFor(() => {
       expect(screen.getByText('You test@email.com have declined the invitation')).toBeVisible()
       expect(contentParam).toHaveBeenCalledWith(
-        expect.objectContaining({ arbitrary_field: 'No' })
+        expect.objectContaining({ submission_id: 'param value of submission id modified' })
       )
       expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, {
         version: 2,
