@@ -293,7 +293,13 @@ const RecruitmentForm = () => {
     [action.fieldName]: action.value,
   })
 
-  const [extraFieldsForm, setExtraFieldsForm] = useReducer(extraFieldsReducer, {})
+  const [extraFieldsForm, setExtraFieldsForm] = useReducer(
+    extraFieldsReducer,
+    extraFields.reduce((acc, field) => {
+      acc[field] = args[field]
+      return acc
+    }, {})
+  )
 
   const defaultButtonState = [
     { response: 'Yes', loading: false, disabled: false },
