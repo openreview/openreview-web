@@ -32,7 +32,6 @@ describe('Contact page', () => {
     render(<Contact />)
 
     expect(screen.getByRole('link', { name: 'venue request form' })).toBeInTheDocument()
-    screen.debug()
   })
 
   test('show feedback form fields when user is guest', () => {
