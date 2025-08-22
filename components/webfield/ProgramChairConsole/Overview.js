@@ -681,7 +681,7 @@ const DescriptionTimelineOtherConfigRow = ({
   reviewersBidEnabled,
   areaChairsBidEnabled,
   seniorAreaChairsBidEnabled,
-  pcConsoleData,
+  timelineData,
   recommendationEnabled,
 }) => {
   const {
@@ -711,7 +711,7 @@ const DescriptionTimelineOtherConfigRow = ({
     domainContent,
   } = useContext(WebFieldContext)
 
-  const { requestForm, registrationForms, invitations } = pcConsoleData
+  const { requestForm, registrationForms, invitations } = timelineData
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
   )
@@ -747,7 +747,7 @@ const DescriptionTimelineOtherConfigRow = ({
   const getAssignmentLink = (role) => {
     if (assignmentUrls?.[role]?.automaticAssignment === false) {
       return assignmentUrls?.[role]?.manualAssignmentUrl &&
-        pcConsoleData.invitations?.some((p) => p.id === `${venueId}/${role}/-/Assignment`)
+        invitations?.some((p) => p.id === `${venueId}/${role}/-/Assignment`)
         ? `${assignmentUrls[role].manualAssignmentUrl}&referrer=${referrerUrl}`
         : null
     }
@@ -1124,7 +1124,7 @@ const DescriptionTimelineOtherConfigRow = ({
   )
 }
 
-const Overview = ({ pcConsoleData }) => {
+const Overview = ({ pcConsoleData, timelineData }) => {
   const {
     areaChairsId,
     areaChairName = 'Area_Chairs',
@@ -1136,14 +1136,12 @@ const Overview = ({ pcConsoleData }) => {
   } = useContext(WebFieldContext)
 
   const isBidEnabled = (groupId) =>
-    bidName
-      ? pcConsoleData.invitations?.find((p) => p.id === `${groupId}/-/${bidName}`)
-      : false
+    bidName ? timelineData.invitations?.find((p) => p.id === `${groupId}/-/${bidName}`) : false
 
   const reviewersBidEnabled = isBidEnabled(reviewersId)
   const areaChairsBidEnabled = isBidEnabled(areaChairsId)
   const seniorAreaChairsBidEnabled = isBidEnabled(seniorAreaChairsId)
-  const recommendationEnabled = pcConsoleData.invitations?.find(
+  const recommendationEnabled = timelineData.invitations?.find(
     (p) => p.id === `${reviewersId}/-/${recommendationName}`
   )
   return (
@@ -1165,7 +1163,7 @@ const Overview = ({ pcConsoleData }) => {
         reviewersBidEnabled={reviewersBidEnabled}
         areaChairsBidEnabled={areaChairsBidEnabled}
         seniorAreaChairsBidEnabled={seniorAreaChairsBidEnabled}
-        pcConsoleData={pcConsoleData}
+        timelineData={timelineData}
         recommendationEnabled={recommendationEnabled}
       />
     </>

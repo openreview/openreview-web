@@ -96,6 +96,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const { user, accessToken, isRefreshing } = useUser()
   const query = useSearchParams()
   const [pcConsoleData, setPcConsoleData] = useState({})
+  const [timelineData, setTimelineData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
   const [dataLoadingStatusMessage, setDataLoadingStatusMessage] = useState('Data is loading')
 
@@ -213,6 +214,23 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       )
       // #endregion
 
+      setDataLoadingStatusMessage('Loading timeline data')
+      const TimelineDataResult = await Promise.all([
+        invitationResultsP,
+        getRequestFormResultP,
+        getRegistrationFormResultsP,
+      ])
+
+      const invitationResults = TimelineDataResult[0].flat()
+      const requestForm = TimelineDataResult[1]
+      const registrationForms = TimelineDataResult[2].flatMap((p) => p ?? [])
+
+      setTimelineData({
+        invitations: invitationResults,
+        requestForm,
+        registrationForms,
+      })
+
       // #region get Reviewer, AC, SAC members
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
@@ -315,9 +333,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         : Promise.resolve([])
       // #endregion
       const results = await Promise.all([
-        invitationResultsP,
-        getRequestFormResultP,
-        getRegistrationFormResultsP,
         committeeMemberResultsP,
         notesP,
         getAcRecommendationsP,
@@ -325,12 +340,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         perPaperGroupResultsP,
         ithenticateEdgesP,
       ])
-      const invitationResults = results[0]
-      const requestForm = results[1]
-      const registrationForms = results[2].flatMap((p) => p ?? [])
-      const committeeMemberResults = results[3]
-      const ithenticateEdges = results[8]
-      const notes = results[4].flatMap((note) => {
+
+      const committeeMemberResults = results[0]
+      const ithenticateEdges = results[5]
+      const notes = results[1].flatMap((note) => {
         if ([withdrawnVenueId, deskRejectedVenueId].includes(note.content?.venueid?.value))
           return []
         return {
@@ -341,9 +354,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           }),
         }
       })
-      const acRecommendationsCount = results[5]
-      const bidCountResults = results[6]
-      const perPaperGroupResults = results[7]
+      const acRecommendationsCount = results[2]
+      const bidCountResults = results[3]
+      const perPaperGroupResults = results[4]
 
       // #region categorize result of per paper groups
       const reviewerGroups = []
@@ -554,7 +567,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       })
 
       const consoleData = {
-        invitations: invitationResults.flat(),
+        invitations: invitationResults,
         allProfiles,
         allProfilesMap,
         requestForm,
@@ -568,11 +581,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         decisionByPaperNumberMap,
         customStageReviewsByPaperNumberMap,
         displayReplyInvitationsByPaperNumberMap,
-        withdrawnNotes: results[4].flatMap((note) => {
+        withdrawnNotes: results[1].flatMap((note) => {
           if (note.content?.venueid?.value === withdrawnVenueId) return note
           return []
         }),
-        deskRejectedNotes: results[4].flatMap((note) => {
+        deskRejectedNotes: results[1].flatMap((note) => {
           if (note.content?.venueid?.value === deskRejectedVenueId) return note
           return []
         }),
@@ -672,6 +685,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     try {
       const cachedPcConsoleData = await getCache(venueId)
       if (cachedPcConsoleData) {
+        setTimelineData({
+          invitations: cachedPcConsoleData.invitations,
+          requestForm: cachedPcConsoleData.requestForm,
+          registrationForms: cachedPcConsoleData.registrationForms,
+        })
         setPcConsoleData(cachedPcConsoleData)
       } else {
         loadData()
@@ -1159,7 +1177,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           {
             id: 'venue-configuration',
             label: 'Overview',
-            content: <Overview pcConsoleData={pcConsoleData} />,
+            content: <Overview pcConsoleData={pcConsoleData} timelineData={timelineData} />,
             visible: true,
           },
           {
