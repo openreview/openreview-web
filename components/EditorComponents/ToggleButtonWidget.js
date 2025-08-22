@@ -7,7 +7,7 @@ const ToggleButtonWidget = () => {
   const fieldName = Object.keys(field)[0]
 
   useEffect(() => {
-    if (note) return
+    if (note || value) return
     const defaultValue = field[fieldName].value?.param?.default
     onChange({ fieldName, value: defaultValue ?? false })
   }, [])

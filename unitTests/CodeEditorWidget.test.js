@@ -12,6 +12,10 @@ jest.mock('../components/CodeEditor', () => (props) => {
   return <span>code editor</span>
 })
 
+jest.mock('../components/EditorComponents/CodeEditorPreviewWidget', () => (props) => (
+  <span>CodeEditorPreviewWidget</span>
+))
+
 jest.mock('next/dynamic', () => ({
   __esModule: true,
   default: (...props) => {
@@ -26,7 +30,7 @@ beforeEach(() => {
   onCodeChange = null
 })
 
-describe('CheckboxWidget', () => {
+describe('CodeEditorWidget', () => {
   test('render non-json editor if type is not json', async () => {
     const providerProps = {
       value: {
@@ -57,6 +61,28 @@ describe('CheckboxWidget', () => {
             value: {
               param: {
                 type: 'json',
+              },
+            },
+          },
+        },
+      },
+    }
+
+    renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
+    await waitFor(() => {
+      expect(screen.getByText('code editor')).toBeInTheDocument()
+      expect(codeEditorProps).toHaveBeenCalledWith(expect.objectContaining({ isJson: true }))
+    })
+  })
+
+  test('render json editor if type is content', async () => {
+    const providerProps = {
+      value: {
+        field: {
+          setting: {
+            value: {
+              param: {
+                type: 'content',
               },
             },
           },
@@ -282,6 +308,27 @@ describe('CheckboxWidget', () => {
     renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
     await waitFor(() => {
       expect(onChange).not.toHaveBeenCalled()
+    })
+  })
+
+  test('render code editor with preview widget when field is web', async () => {
+    const providerProps = {
+      value: {
+        field: {
+          web: {
+            value: {
+              param: {
+                type: 'script',
+              },
+            },
+          },
+        },
+      },
+    }
+
+    renderWithEditorComponentContext(<CodeEditorWidget />, providerProps)
+    await waitFor(() => {
+      expect(screen.getByText('CodeEditorPreviewWidget')).toBeInTheDocument()
     })
   })
 })
