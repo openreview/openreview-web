@@ -38,7 +38,8 @@ export default function ComponentGroup({ componentObj, editBanner }) {
       if (prop?.component) {
         componentProps[propName] = () =>
           dynamic(() => import(`../../components/webfield/${prop.component}`), {
-            loading: () => <LoadingSpinner />,
+            ssr: false,
+            loading: () => <LoadingSpinner inline />,
           })
       } else {
         componentProps[propName] = prop

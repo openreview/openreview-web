@@ -1,4 +1,9 @@
+/* globals promptMessage: false */
+
 import isEmpty from 'lodash/isEmpty'
+import copy from 'copy-to-clipboard'
+import { useEffect, useState } from 'react'
+import { orderBy } from 'lodash'
 import EditContent from './EditContent'
 import EditValue from './EditValue'
 import EditContentValue from './EditContentValue'
@@ -10,6 +15,9 @@ import {
   prettyContentValue,
 } from '../../lib/utils'
 import { getNoteContentValues } from '../../lib/forum-utils'
+import Icon from '../Icon'
+import api from '../../lib/api-client'
+import useSocket from '../../hooks/useSocket'
 
 function EditFields({ editId, displayObj, omitFields = [], label = 'Edit' }) {
   const formatGroupMemberEdit = (membersObj) => {
@@ -73,7 +81,36 @@ function EditFields({ editId, displayObj, omitFields = [], label = 'Edit' }) {
   )
 }
 
-export default function Edit({ edit, type, className, showContents }) {
+function CopyEditLinkButton({ groupInvitationId, editId }) {
+  const copyEditUrl = (e) => {
+    if (!window.location) return
+
+    copy(
+      `${window.location.origin}${window.location.pathname}?id=${groupInvitationId}&editId=${editId}`
+    )
+    promptMessage(`URL of edit ${editId} copied to clipboard`, { scrollToTop: false })
+  }
+
+  return (
+    <button type="button" className="btn btn-xs permalink-btn" onClick={copyEditUrl}>
+      <a
+        onClick={(e) => e.preventDefault()}
+        href={`${window.location.origin}${window.location.pathname}?id=${groupInvitationId}&editId=${editId}`}
+      >
+        <Icon name="link" tooltip={`Copy URL of edit ${editId}`} />
+      </a>
+    </button>
+  )
+}
+
+export default function Edit({
+  edit,
+  type,
+  className,
+  showContents,
+  showLog = false,
+  accessToken,
+}) {
   const omitFields = [
     'id',
     'content',
@@ -85,10 +122,70 @@ export default function Edit({ edit, type, className, showContents }) {
     'number',
     'forum',
   ]
+  const [lastLog, setLastLog] = useState(null)
+  const events = useSocket(showLog ? 'venue/workflow' : undefined, ['date-process-updated'], {
+    venueid: edit.domain,
+  })
+
+  const loadEditLog = async () => {
+    try {
+      const response = await api.get(
+        '/logs/process',
+        {
+          id: edit.id,
+        },
+        { accessToken }
+      )
+      const logs = orderBy(response.logs, ['edate'], ['desc'])
+      setLastLog(logs?.[0])
+    } catch (error) {
+      /* empty */
+    }
+  }
+
+  useEffect(() => {
+    if (!showLog) return
+    loadEditLog()
+  }, [edit, showLog])
+
+  useEffect(() => {
+    if (!events) return
+    loadEditLog()
+  }, [events?.uniqueId])
 
   return (
-    <div className={`edit ${className ?? ''}`}>
-      <h4>{buildNoteTitle(edit.invitations?.[0] ?? edit.invitation, edit.signatures, true)}</h4>
+    <div className={`edit ${className ?? ''}`} id={edit.id}>
+      <div className="edit-header">
+        <h4>
+          {buildNoteTitle(edit.invitations?.[0] ?? edit.invitation, edit.signatures, true)}
+        </h4>
+        {type === 'group' && edit.group && (
+          <CopyEditLinkButton groupInvitationId={edit.group.id} editId={edit.id} />
+        )}
+
+        {type === 'invitation' && edit.invitation && (
+          <CopyEditLinkButton groupInvitationId={edit.invitation.id} editId={edit.id} />
+        )}
+      </div>
+
+      {(type === 'group' || type === 'invitation') && lastLog && (
+        <span className="log-status">
+          <span>
+            Status: {lastLog.status}
+            {lastLog.status === 'ok' &&
+              lastLog.log.length > 0 &&
+              `- ${lastLog.log[lastLog.log.length - 1]}`}
+          </span>
+          <a
+            className="log-details"
+            href={`${process.env.API_V2_URL}/logs/process?id=${edit.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            details
+          </a>
+        </span>
+      )}
 
       <ul className="edit_meta_info list-inline">
         <li>

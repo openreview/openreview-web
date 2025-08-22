@@ -31,8 +31,8 @@ export default function InvitationRevisions({ id, query }) {
             `/login?redirect=/invitation/revisions?${encodeURIComponent(stringify(query))}`
           )
         } else {
-          // User is a reader, not a writer of the invitation, so redirect to info mode
-          router.replace(`/invitation/info?id=${id}`)
+          // User is a reader, not a writer of the invitation, so redirect to edit mode
+          router.replace(`/invitation/edit?id=${id}`)
         }
       } else {
         setError('Invitation not found')
@@ -75,7 +75,12 @@ export default function InvitationRevisions({ id, query }) {
         <div id="header">
           <h1>{prettyId(invitation.id)} Invitation Edit History</h1>
         </div>
-        <EditHistory invitation={invitation} accessToken={accessToken} setError={setError} />
+        <EditHistory
+          invitation={invitation}
+          accessToken={accessToken}
+          setError={setError}
+          editId={query.editId}
+        />
       </div>
     </CommonLayout>
   )
