@@ -2,7 +2,6 @@ import Alert from '../../../components/Alert'
 import Icon from '../../../components/Icon'
 
 export default function LimitedStateAlert({ profile }) {
-  console.log('LimitedStateAlert', profile)
   if (profile?.state !== 'Limited') return null
 
   return (

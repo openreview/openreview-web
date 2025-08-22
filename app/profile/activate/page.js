@@ -91,7 +91,7 @@ export default function Page() {
           submitButtonText="Register for OpenReview"
           submitHandler={saveProfile}
           hideCancelButton
-          hideDblpButton
+          hideImportButton
           hidePublicationEditor
           loading={loading}
           isNewProfile={true}
