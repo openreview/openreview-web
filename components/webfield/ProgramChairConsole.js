@@ -222,14 +222,12 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #endregion
 
       // #region getSubmissions
-      const notesP = api.getAllWithAfter(
-        '/notes',
+      const notesP = api.get(
+        '/notes/views',
         {
-          invitation: submissionId,
-          details: 'replies',
-          select: 'id,number,forum,content,details,invitations,readers',
-          sort: 'number:asc',
-          domain: venueId,
+          name: 'submissions_with_replies_and_groups',
+          invitations: submissionId,
+          stream: true,
         },
         {
           accessToken,
@@ -287,19 +285,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       )
       // #endregion
 
-      // #region getGroups (per paper groups)
-      const perPaperGroupResultsP = api.get(
-        '/groups',
-        {
-          prefix: `${venueId}/${submissionName}.*`,
-          stream: true,
-          select: 'id,members',
-          domain: venueId,
-        },
-        { accessToken }
-      )
-      // #endregion
-
       // #region get ithenticate edges
       const ithenticateEdgesP = ithenticateInvitationId
         ? api
@@ -322,15 +307,16 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         notesP,
         getAcRecommendationsP,
         bidCountResultsP,
-        perPaperGroupResultsP,
         ithenticateEdgesP,
       ])
       const invitationResults = results[0]
       const requestForm = results[1]
       const registrationForms = results[2].flatMap((p) => p ?? [])
       const committeeMemberResults = results[3]
-      const ithenticateEdges = results[8]
-      const notes = results[4].flatMap((note) => {
+      const ithenticateEdges = results[7]
+      const perPaperGroupResults = []
+      const notes = results[4].views.flatMap((note) => {
+        perPaperGroupResults.push(...note.submissionGroups)
         if ([withdrawnVenueId, deskRejectedVenueId].includes(note.content?.venueid?.value))
           return []
         return {
@@ -343,7 +329,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       })
       const acRecommendationsCount = results[5]
       const bidCountResults = results[6]
-      const perPaperGroupResults = results[7]
 
       // #region categorize result of per paper groups
       const reviewerGroups = []
@@ -354,7 +339,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const secondaryAnonAreaChairGroups = {}
       const seniorAreaChairGroups = []
       let allGroupMembers = []
-      perPaperGroupResults.groups?.forEach((p) => {
+      perPaperGroupResults.forEach((p) => {
         const number = getNumberFromGroup(p.id, submissionName)
         const noteVenueId = notes.find((q) => q.number === number)?.content?.venueid?.value
         if (
@@ -473,7 +458,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const customStageReviewsByPaperNumberMap = new Map()
       const displayReplyInvitationsByPaperNumberMap = new Map()
       notes.forEach((note) => {
-        const replies = note.details.replies ?? []
+        const replies = note.replies ?? []
         const officialReviews = replies
           .filter((p) => {
             const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
@@ -568,11 +553,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         decisionByPaperNumberMap,
         customStageReviewsByPaperNumberMap,
         displayReplyInvitationsByPaperNumberMap,
-        withdrawnNotes: results[4].flatMap((note) => {
+        withdrawnNotes: results[4].views.flatMap((note) => {
           if (note.content?.venueid?.value === withdrawnVenueId) return note
           return []
         }),
-        deskRejectedNotes: results[4].flatMap((note) => {
+        deskRejectedNotes: results[4].views.flatMap((note) => {
           if (note.content?.venueid?.value === deskRejectedVenueId) return note
           return []
         }),
@@ -863,7 +848,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           confidenceAvg,
           confidenceMax,
           confidenceMin,
-          replyCount: note.details.replies?.length ?? 0,
+          replyCount: note.replies?.length ?? 0,
         },
         metaReviewData: {
           numAreaChairsAssigned: assignedAreaChairs.length,
