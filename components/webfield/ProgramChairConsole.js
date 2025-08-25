@@ -240,14 +240,12 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #endregion
 
       // #region getSubmissions
-      const notesP = api.getAllWithAfter(
-        '/notes',
+      const notesP = api.get(
+        '/notes/views',
         {
-          invitation: submissionId,
-          details: 'replies',
-          select: 'id,number,forum,content,details,invitations,readers',
-          sort: 'number:asc',
-          domain: venueId,
+          name: 'submissions_with_replies_and_groups',
+          invitations: submissionId,
+          stream: true,
         },
         {
           accessToken,
@@ -305,19 +303,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       )
       // #endregion
 
-      // #region getGroups (per paper groups)
-      const perPaperGroupResultsP = api.get(
-        '/groups',
-        {
-          prefix: `${venueId}/${submissionName}.*`,
-          stream: true,
-          select: 'id,members',
-          domain: venueId,
-        },
-        { accessToken }
-      )
-      // #endregion
-
       // #region get ithenticate edges
       const ithenticateEdgesP = ithenticateInvitationId
         ? api
@@ -337,13 +322,14 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         notesP,
         getAcRecommendationsP,
         bidCountResultsP,
-        perPaperGroupResultsP,
         ithenticateEdgesP,
       ])
 
       const committeeMemberResults = results[0]
-      const ithenticateEdges = results[5]
-      const notes = results[1].flatMap((note) => {
+      const ithenticateEdges = results[4]
+      const perPaperGroupResults = []
+      const notes = results[1].views.flatMap((note) => {
+        perPaperGroupResults.push(...note.submissionGroups)
         if ([withdrawnVenueId, deskRejectedVenueId].includes(note.content?.venueid?.value))
           return []
         return {
@@ -356,7 +342,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       })
       const acRecommendationsCount = results[2]
       const bidCountResults = results[3]
-      const perPaperGroupResults = results[4]
 
       // #region categorize result of per paper groups
       const reviewerGroups = []
@@ -367,7 +352,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const secondaryAnonAreaChairGroups = {}
       const seniorAreaChairGroups = []
       let allGroupMembers = []
-      perPaperGroupResults.groups?.forEach((p) => {
+      perPaperGroupResults.forEach((p) => {
         const number = getNumberFromGroup(p.id, submissionName)
         const noteVenueId = notes.find((q) => q.number === number)?.content?.venueid?.value
         if (
@@ -486,7 +471,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const customStageReviewsByPaperNumberMap = new Map()
       const displayReplyInvitationsByPaperNumberMap = new Map()
       notes.forEach((note) => {
-        const replies = note.details.replies ?? []
+        const replies = note.replies ?? []
         const officialReviews = replies
           .filter((p) => {
             const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
@@ -581,11 +566,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         decisionByPaperNumberMap,
         customStageReviewsByPaperNumberMap,
         displayReplyInvitationsByPaperNumberMap,
-        withdrawnNotes: results[1].flatMap((note) => {
+        withdrawnNotes: results[1].views.flatMap((note) => {
           if (note.content?.venueid?.value === withdrawnVenueId) return note
           return []
         }),
-        deskRejectedNotes: results[1].flatMap((note) => {
+        deskRejectedNotes: results[1].views.flatMap((note) => {
           if (note.content?.venueid?.value === deskRejectedVenueId) return note
           return []
         }),
@@ -881,7 +866,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           confidenceAvg,
           confidenceMax,
           confidenceMin,
-          replyCount: note.details.replies?.length ?? 0,
+          replyCount: note.replies?.length ?? 0,
         },
         metaReviewData: {
           numAreaChairsAssigned: assignedAreaChairs.length,
