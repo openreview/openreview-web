@@ -128,21 +128,22 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
 }
 
 const SubmissionsStatsRow = ({ pcConsoleData }) => {
-  const [submissionByStatus, setSubmissionByStatus] = useState({})
+  const submissionByStatus = pcConsoleData.notes
+    ? {
+        activeSubmissionsCount: pcConsoleData.notes.length,
+        deskRejectedNotesCount: pcConsoleData.deskRejectedNotes.length,
+        withdrawnNotesCount: pcConsoleData.withdrawnNotes.length,
+      }
+    : null
 
-  useEffect(() => {
-    if (!pcConsoleData) return
-    const { withdrawnNotes, deskRejectedNotes, notes: activeSubmissions } = pcConsoleData
-    setSubmissionByStatus({ activeSubmissions, deskRejectedNotes, withdrawnNotes })
-  }, [pcConsoleData])
   return (
     <>
       <div className="row">
         <StatContainer
           title="Active Submissions"
           value={
-            submissionByStatus.activeSubmissions ? (
-              submissionByStatus.activeSubmissions.length
+            submissionByStatus ? (
+              submissionByStatus.activeSubmissionsCount
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )
@@ -151,8 +152,8 @@ const SubmissionsStatsRow = ({ pcConsoleData }) => {
         <StatContainer
           title="Withdrawn Submissions"
           value={
-            submissionByStatus.withdrawnNotes ? (
-              submissionByStatus.withdrawnNotes.length
+            submissionByStatus ? (
+              submissionByStatus.withdrawnNotesCount
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )
@@ -161,8 +162,8 @@ const SubmissionsStatsRow = ({ pcConsoleData }) => {
         <StatContainer
           title="Desk Rejected Submissions"
           value={
-            submissionByStatus.deskRejectedNotes ? (
-              submissionByStatus.deskRejectedNotes.length
+            submissionByStatus ? (
+              submissionByStatus.deskRejectedNotesCount
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )
@@ -206,6 +207,7 @@ const BiddingStatsRow = ({
       0
     )
     const total = pcConsoleData[role]?.length
+    if (bidComplete === undefined) return <LoadingSpinner inline={true} text={null} />
     return total === 0 ? (
       <span>{bidComplete} / 0</span>
     ) : (
@@ -230,6 +232,8 @@ const BiddingStatsRow = ({
       0
     )
     const total = pcConsoleData.areaChairs?.length
+    if (recommendationComplete === undefined)
+      return <LoadingSpinner inline={true} text={null} />
     return total === 0 ? (
       <span>{recommendationComplete} / 0</span>
     ) : (
