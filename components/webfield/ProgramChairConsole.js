@@ -343,16 +343,25 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       const committeeMemberResults = results[0]
       const ithenticateEdges = results[5]
-      const notes = results[1].flatMap((note) => {
-        if ([withdrawnVenueId, deskRejectedVenueId].includes(note.content?.venueid?.value))
-          return []
-        return {
+      const notes = []
+      const withdrawnNotes = []
+      const deskRejectedNotes = []
+      results[1].forEach((note) => {
+        if (note.content?.venueid?.value === withdrawnVenueId) {
+          withdrawnNotes.push(note)
+          return
+        }
+        if (note.content?.venueid?.value === deskRejectedVenueId) {
+          deskRejectedNotes.push(note)
+          return
+        }
+        notes.push({
           ...note,
           ...(ithenticateInvitationId && {
             ithenticateWeight:
               ithenticateEdges.find((p) => p.head === note.id)?.weight ?? 'N/A',
           }),
-        }
+        })
       })
       const acRecommendationsCount = results[2]
       const bidCountResults = results[3]
@@ -581,14 +590,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         decisionByPaperNumberMap,
         customStageReviewsByPaperNumberMap,
         displayReplyInvitationsByPaperNumberMap,
-        withdrawnNotes: results[1].flatMap((note) => {
-          if (note.content?.venueid?.value === withdrawnVenueId) return note
-          return []
-        }),
-        deskRejectedNotes: results[1].flatMap((note) => {
-          if (note.content?.venueid?.value === deskRejectedVenueId) return note
-          return []
-        }),
+        withdrawnNotes,
+        deskRejectedNotes,
 
         acRecommendationsCount,
         bidCounts: {
