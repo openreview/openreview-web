@@ -496,14 +496,26 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const displayReplyInvitationsByPaperNumberMap = new Map()
       notes.forEach((note) => {
         const replies = note.details.replies ?? []
-        const officialReviews = replies
-          .filter((p) => {
-            const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
-            return p.invitations.includes(officialReviewInvitationId)
-          })
-          .map((review) => {
+        const officialReviews = []
+        const metaReviews = []
+        let decision
+        const customStageReviews = []
+        const latestDisplayReplies = []
+
+        const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
+        const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
+        const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
+        const customStageInvitationIds = customStageInvitations
+          ? customStageInvitations.map((p) => `/-/${p.name}`)
+          : []
+        const displayInvitationIds = displayReplyInvitations
+          ? displayReplyInvitations.map((p) => p.id.replaceAll('{number}', note.number))
+          : []
+
+        replies.forEach((reply) => {
+          if (reply.invitations.includes(officialReviewInvitationId)) {
             let anonymousGroupId
-            if (review.signatures[0].startsWith('~')) {
+            if (reply.signatures[0].startsWith('~')) {
               const idToAnonIdMap = Object.keys(anonReviewerGroups[note.number] ?? {}).reduce(
                 (prev, curr) => ({ ...prev, [anonReviewerGroups[note.number][curr]]: curr }),
                 {}
@@ -519,60 +531,80 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                   })
                 }
               )
-              anonymousGroupId = idToAnonIdMap?.[review.signatures[0]] ?? ''
+              anonymousGroupId = idToAnonIdMap?.[reply.signatures[0]] ?? ''
             } else {
-              anonymousGroupId = review.signatures[0]
+              anonymousGroupId = reply.signatures[0]
             }
 
-            return {
-              ...review,
+            officialReviews.push({
+              ...reply,
               anonId: getIndentifierFromGroup(anonymousGroupId, anonReviewerName),
-            }
-          })
-        const metaReviews = replies
-          .filter((p) => {
-            const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
-            return p.invitations.includes(officialMetaReviewInvitationId)
-          })
-          .map((metaReview) => ({
-            ...metaReview,
-            anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
-          }))
-
-        const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
-        const decision = replies.find((p) => p.invitations.includes(decisionInvitationId))
-        const customStageInvitationIds = customStageInvitations
-          ? customStageInvitations.map((p) => `/-/${p.name}`)
-          : []
-        const customStageReviews = replies.filter((p) =>
-          p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
-        )
-        const displayReplies = displayReplyInvitations?.map((p) => {
-          const displayInvitaitonId = p.id.replaceAll('{number}', note.number)
-          const latestReply = orderBy(
-            replies.filter((q) => q.invitations.includes(displayInvitaitonId)),
-            ['mdate'],
-            'desc'
-          )?.[0]
-          return {
-            id: latestReply?.id,
-            date: latestReply?.mdate,
-            invitationId: displayInvitaitonId,
-            values: p.fields.map((field) => {
-              const value = latestReply?.content?.[field]?.value?.toString()
-              return {
-                field,
-                value,
+            })
+          } else if (reply.invitations.includes(officialMetaReviewInvitationId)) {
+            metaReviews.push({
+              ...reply,
+              anonId: getIndentifierFromGroup(reply.signatures[0], anonAreaChairName),
+            })
+          } else if (reply.invitations.includes(decisionInvitationId)) {
+            decision = reply
+          } else if (
+            reply.invitations.some((p) => customStageInvitationIds.some((q) => p.includes(q)))
+          ) {
+            customStageReviews.push(reply)
+          } else {
+            const displayInvitationId = displayInvitationIds.find((p) =>
+              reply.invitations.includes(p)
+            )
+            if (!displayInvitationId) return
+            const displayInvitation = displayReplyInvitations.find(
+              (p) => p.id === displayInvitationId
+            )
+            const replyOfDisplayInvitationIndex = latestDisplayReplies.findIndex(
+              (p) => p.invitationId === displayInvitationId
+            )
+            if (replyOfDisplayInvitationIndex === -1) {
+              // new
+              latestDisplayReplies.push({
+                id: reply?.id,
+                date: reply?.mdate,
+                invitationId: displayInvitationId,
+                values: displayInvitation.fields.map((field) => {
+                  const value = reply?.content?.[field]?.value?.toString()
+                  return {
+                    field,
+                    value,
+                  }
+                }),
+                signature: reply?.signatures?.[0],
+              })
+            } else {
+              // get latest
+              const existingReplyOfDisplayInvitation =
+                latestDisplayReplies[replyOfDisplayInvitationIndex]
+              if (existingReplyOfDisplayInvitation.mdate < reply.mdate) {
+                latestDisplayReplies[replyOfDisplayInvitationIndex] = {
+                  id: reply?.id,
+                  date: reply?.mdate,
+                  invitationId: displayInvitationId,
+                  values: displayInvitation.fields.map((field) => {
+                    const value = reply?.content?.[field]?.value?.toString()
+                    return {
+                      field,
+                      value,
+                    }
+                  }),
+                  signature: reply?.signatures?.[0],
+                }
               }
-            }),
-            signature: latestReply?.signatures?.[0],
+            }
           }
         })
+
         officialReviewsByPaperNumberMap.set(note.number, officialReviews)
         metaReviewsByPaperNumberMap.set(note.number, metaReviews)
         decisionByPaperNumberMap.set(note.number, decision)
         customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
-        displayReplyInvitationsByPaperNumberMap.set(note.number, displayReplies)
+        displayReplyInvitationsByPaperNumberMap.set(note.number, latestDisplayReplies)
       })
 
       const consoleData = {
