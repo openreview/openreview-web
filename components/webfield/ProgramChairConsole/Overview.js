@@ -1,5 +1,5 @@
 /* globals promptError: false */
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
@@ -306,11 +306,8 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
     submissionName,
   } = useContext(WebFieldContext)
   const singularReviewerName = getSingularRoleName(reviewerName)
-
-  const [reviewStats, setReviewStats] = useState({})
-
-  useEffect(() => {
-    if (!pcConsoleData.notes || Object.keys(reviewStats).length) return
+  const reviewStats = useMemo(() => {
+    if (!pcConsoleData.notes) return {}
     const allOfficialReviews = [
       ...(pcConsoleData.officialReviewsByPaperNumberMap?.values() ?? []),
     ]?.flat()
@@ -378,14 +375,14 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
       )
     })
 
-    setReviewStats({
+    return {
       allOfficialReviews,
       assignedReviewsCount,
       reviewersComplete,
       reviewersWithAssignmentsCount,
       paperWithMoreThanThresholdReviews,
-    })
-  }, [pcConsoleData])
+    }
+  }, [pcConsoleData.notes])
 
   return (
     <>
