@@ -376,15 +376,23 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const secondaryAnonAreaChairGroups = {}
       const seniorAreaChairGroups = []
       let allGroupMembers = []
+
+      const noteNumberVenueIdMap = new Map()
+      const withdrawnNoteIds = withdrawnNotes.map((p) => p.id)
+      const deskRejectedNoteIds = deskRejectedNotes.map((p) => p.id)
+      notes.forEach((note) => {
+        noteNumberVenueIdMap.set(note.number, note.content?.venueid?.value)
+      })
+
       perPaperGroupResults.groups?.forEach((p) => {
         const number = getNumberFromGroup(p.id, submissionName)
-        const noteVenueId = notes.find((q) => q.number === number)?.content?.venueid?.value
         if (
-          !noteVenueId ||
-          noteVenueId === withdrawnVenueId ||
-          noteVenueId === deskRejectedVenueId
+          !number ||
+          withdrawnNoteIds.includes(number) ||
+          deskRejectedNoteIds.includes(number)
         )
           return
+
         if (p.id.endsWith(`/${reviewerName}`)) {
           reviewerGroups.push({
             noteNumber: number,
