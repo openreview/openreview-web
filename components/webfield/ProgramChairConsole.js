@@ -32,6 +32,7 @@ import { formatProfileContent } from '../../lib/edge-utils'
 import ConsoleTabs from './ConsoleTabs'
 import { clearCache, getCache, setCache } from '../../lib/console-cache'
 import SpinnerButton from '../SpinnerButton'
+import LoadingSpinner from '../LoadingSpinner'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -95,7 +96,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const { user, accessToken, isRefreshing } = useUser()
   const query = useSearchParams()
   const [pcConsoleData, setPcConsoleData] = useState({})
+  const [timelineData, setTimelineData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
+  const [dataLoadingStatusMessage, setDataLoadingStatusMessage] = useState('Data is loading')
 
   const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
   const areaChairUrlFormat = getRoleHashFragment(areaChairName)
@@ -104,6 +107,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const loadData = async () => {
     if (isLoadingData) return
     setIsLoadingData(true)
+    setDataLoadingStatusMessage('Data is loading')
     await clearCache(venueId)
 
     try {
@@ -177,20 +181,14 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       // #region getRequestForm
       const getRequestFormResultP = requestFormId
-        ? api
-            .get(
-              '/notes',
-              {
-                id: requestFormId,
-                limit: 1,
-                select: 'id,content',
-              },
-              { accessToken, version: 1 } // request form is currently in v1
-            )
-            .then(
-              (result) => result.notes?.[0],
-              () => null
-            )
+        ? api.getNoteById(
+            requestFormId,
+            accessToken,
+            {
+              select: 'id,content',
+            },
+            undefined
+          )
         : Promise.resolve(null)
       // #endregion
 
@@ -216,6 +214,23 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       )
       // #endregion
 
+      setDataLoadingStatusMessage('Loading timeline data')
+      const TimelineDataResult = await Promise.all([
+        invitationResultsP,
+        getRequestFormResultP,
+        getRegistrationFormResultsP,
+      ])
+
+      const invitationResults = TimelineDataResult[0].flat()
+      const requestForm = TimelineDataResult[1]
+      const registrationForms = TimelineDataResult[2].flatMap((p) => p ?? [])
+
+      setTimelineData({
+        invitations: invitationResults,
+        requestForm,
+        registrationForms,
+      })
+
       // #region get Reviewer, AC, SAC members
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
@@ -234,7 +249,14 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           sort: 'number:asc',
           domain: venueId,
         },
-        { accessToken }
+        {
+          accessToken,
+          statusUpdate: (loadedCount, totalCount) => {
+            setDataLoadingStatusMessage(
+              `Loading ${submissionName}s: ${loadedCount}/${totalCount}`
+            )
+          },
+        }
       )
       // #endregion
 
@@ -311,9 +333,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         : Promise.resolve([])
       // #endregion
       const results = await Promise.all([
-        invitationResultsP,
-        getRequestFormResultP,
-        getRegistrationFormResultsP,
         committeeMemberResultsP,
         notesP,
         getAcRecommendationsP,
@@ -321,12 +340,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         perPaperGroupResultsP,
         ithenticateEdgesP,
       ])
-      const invitationResults = results[0]
-      const requestForm = results[1]
-      const registrationForms = results[2].flatMap((p) => p ?? [])
-      const committeeMemberResults = results[3]
-      const ithenticateEdges = results[8]
-      const notes = results[4].flatMap((note) => {
+
+      const committeeMemberResults = results[0]
+      const ithenticateEdges = results[5]
+      const notes = results[1].flatMap((note) => {
         if ([withdrawnVenueId, deskRejectedVenueId].includes(note.content?.venueid?.value))
           return []
         return {
@@ -337,9 +354,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           }),
         }
       })
-      const acRecommendationsCount = results[5]
-      const bidCountResults = results[6]
-      const perPaperGroupResults = results[7]
+      const acRecommendationsCount = results[2]
+      const bidCountResults = results[3]
+      const perPaperGroupResults = results[4]
 
       // #region categorize result of per paper groups
       const reviewerGroups = []
@@ -444,6 +461,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             { accessToken }
           )
         : Promise.resolve([])
+      setDataLoadingStatusMessage('Loading profiles')
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
       const allProfiles = (profileResults[0].profiles ?? [])
         .concat(profileResults[1].profiles ?? [])
@@ -549,7 +567,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       })
 
       const consoleData = {
-        invitations: invitationResults.flat(),
+        invitations: invitationResults,
         allProfiles,
         allProfilesMap,
         requestForm,
@@ -563,11 +581,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         decisionByPaperNumberMap,
         customStageReviewsByPaperNumberMap,
         displayReplyInvitationsByPaperNumberMap,
-        withdrawnNotes: results[4].flatMap((note) => {
+        withdrawnNotes: results[1].flatMap((note) => {
           if (note.content?.venueid?.value === withdrawnVenueId) return note
           return []
         }),
-        deskRejectedNotes: results[4].flatMap((note) => {
+        deskRejectedNotes: results[1].flatMap((note) => {
           if (note.content?.venueid?.value === deskRejectedVenueId) return note
           return []
         }),
@@ -654,6 +672,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         ithenticateEdges,
         timeStamp: dayjs().valueOf(),
       }
+      setDataLoadingStatusMessage(null)
       setPcConsoleData(consoleData)
       if (useCache) await setCache(venueId, consoleData)
     } catch (error) {
@@ -666,6 +685,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     try {
       const cachedPcConsoleData = await getCache(venueId)
       if (cachedPcConsoleData) {
+        setTimelineData({
+          invitations: cachedPcConsoleData.invitations,
+          requestForm: cachedPcConsoleData.requestForm,
+          registrationForms: cachedPcConsoleData.registrationForms,
+        })
         setPcConsoleData(cachedPcConsoleData)
       } else {
         loadData()
@@ -1116,7 +1140,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
       {useCache && (
-        <div className="alert alert-warning">
+        <div className="alert alert-warning pc-console-loading">
           {pcConsoleData.timeStamp ? (
             <>
               <span>
@@ -1124,16 +1148,26 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                 {formatDateTime(pcConsoleData.timeStamp, { second: undefined })})
               </span>{' '}
               <SpinnerButton
-                className="btn btn-xs ml-2"
+                className="btn btn-xs ml-2 mr-2"
                 onClick={loadData}
-                loading={isLoadingData}
                 disabled={isLoadingData}
               >
                 Reload
               </SpinnerButton>
+              {isLoadingData && dataLoadingStatusMessage && (
+                <>
+                  <span>
+                    {dataLoadingStatusMessage}{' '}
+                    <LoadingSpinner inline text={null} extraClass="spinner-small" />
+                  </span>
+                </>
+              )}
             </>
           ) : (
-            'Data is loading...'
+            <>
+              <span>{dataLoadingStatusMessage}</span>
+              <LoadingSpinner inline text={null} extraClass="spinner-small" />
+            </>
           )}
         </div>
       )}
@@ -1143,7 +1177,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           {
             id: 'venue-configuration',
             label: 'Overview',
-            content: <Overview pcConsoleData={pcConsoleData} />,
+            content: <Overview pcConsoleData={pcConsoleData} timelineData={timelineData} />,
             visible: true,
           },
           {

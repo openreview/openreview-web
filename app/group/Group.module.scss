@@ -160,6 +160,19 @@
     }
 
     // Console webfield styles
+    .pc-console-loading {
+      .spinner-inline {
+        display: inline-block;
+        vertical-align: text-top;
+      }
+      .spinner-small {
+        display: inline-block;
+        margin-bottom: 0;
+        div {
+          background-color: constants.$orRed;
+        }
+      }
+    }
     .tabs-container {
       .tab-pane {
         .spinner-inline {
@@ -1259,12 +1272,376 @@
       }
     }
 
+    .workflow-instruction {
+      margin-top: 0.5rem;
+      margin-bottom: 1.75rem;
+      font-size: 0.875rem;
+      color: constants.$subtleGray;
+    }
+
+    .workflow {
+      h4 {
+        font-size: 1.25rem;
+      }
+      .group-workflow-container {
+        .group-workflow {
+          display: flex;
+          justify-content: left;
+          align-items: baseline;
+
+          .group-cdate {
+            margin-right: 0.5rem;
+            color: black;
+            font-size: 0.65rem;
+          }
+          .group-content {
+            max-width: 80%;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+
+            .group-id {
+              color: black;
+              font-weight: 700;
+              font-size: 1rem;
+              margin-right: 0.25rem;
+            }
+            .member-count {
+              margin-left: 0.5rem;
+              color: #ff9900;
+            }
+
+            .group-description {
+              color: constants.$subtleGray;
+              p {
+                margin-bottom: 0;
+              }
+            }
+
+            .group-invitations {
+              margin-bottom: 0.25rem;
+              display: flex;
+              flex-wrap: wrap;
+            }
+          }
+        }
+      }
+
+      em {
+        color: constants.$orRed;
+      }
+
+      .task-header {
+        display: flex;
+        align-items: baseline;
+
+        .task-title {
+          margin-right: 0.25rem;
+          margin-bottom: 0.25rem;
+          h4 {
+            margin-top: 0;
+            margin-bottom: 0.25rem;
+          }
+        }
+
+        .task-count {
+          display: block;
+        }
+      }
+      .tasks-list {
+        display: flex;
+        flex-direction: column;
+
+        .task-container {
+          display: flex;
+          justify-content: start;
+          margin-bottom: 0.5rem;
+
+          &.completed {
+            opacity: 0.6;
+            background-color: #eee;
+            padding: 0.25rem 0.5rem;
+          }
+
+          .task-name {
+            margin-right: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+          }
+          .task-due-date {
+            background-color: constants.$sandyBrown;
+            border: 1px solid darken(constants.$sandyBrown, 5%);
+            font-size: 0.75rem;
+            font-weight: normal;
+            color: constants.$orRed;
+            padding: 0 4px;
+          }
+        }
+      }
+
+      .workflow-invitations-header {
+        display: flex;
+        color: #999999;
+        align-items: baseline;
+        width: 110%;
+
+        .cdate-header {
+          width: 10%;
+          margin-right: 0.5rem;
+          font-size: 0.7rem;
+          font-style: italic;
+        }
+        .invtations-header {
+          width: 75%;
+          font-size: 1rem;
+          display: flex;
+          align-items: center;
+
+          .collapse-invitation {
+            color: constants.$mediumBlue;
+            margin-right: 0.25rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+          }
+
+          .missing-value {
+            color: red;
+          }
+        }
+      }
+
+      .workflow-invitation-container {
+        display: flex;
+        padding-bottom: 0.5rem;
+        align-items: baseline;
+        position: relative;
+        width: 110%;
+
+        &.section-passed {
+          background-color: lighten(#c8e6c9, 10%);
+        }
+        &.section-active {
+          background-color: lighten(#bbdefb, 10%);
+        }
+        &.section-scheduled {
+          background-color: #eeeeee;
+        }
+
+        &.expired {
+          color: gray;
+          text-decoration: line-through;
+          opacity: 0.8;
+          background: darken(constants.$backgroundGray, 5%);
+        }
+
+        .invitation-cdate {
+          width: 10%;
+          margin-right: 0.5rem;
+          color: #999999;
+          font-size: 0.9rem;
+          font-style: italic;
+          display: flex;
+          justify-content: flex-start;
+
+          .cdate {
+            width: 90%;
+            float: right;
+            .activation-date.highlight,
+            .due-date.highlight {
+              font-weight: 900;
+            }
+          }
+
+          .tooltip-inner {
+            max-width: unset;
+          }
+
+          .edit-cdate-icon {
+            cursor: pointer;
+          }
+        }
+
+        .edit-invitation-info {
+          flex-grow: 1;
+          width: 75%;
+          .edit-invitation-container {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.5rem;
+            margin-bottom: 0.25rem;
+
+            .glyphicon {
+              vertical-align: baseline;
+              margin-right: 0.5rem;
+              cursor: pointer;
+            }
+
+            .invitation-content {
+              max-width: 80%;
+              flex-grow: 1;
+
+              .invitation-id-container {
+                display: flex;
+                justify-content: left;
+                align-items: center;
+
+                .collapse-invitation {
+                  color: constants.$mediumBlue;
+                }
+
+                .workflow-invitation-id {
+                  white-space: nowrap;
+                  color: black;
+                  font-weight: 700;
+                  font-size: 1rem;
+                  margin-right: 0.25rem;
+                }
+
+                .invitation-invitee {
+                  margin-left: 0.5rem;
+                  display: inline-block;
+                  white-space: nowrap;
+                  vertical-align: bottom;
+                  overflow-x: hidden;
+                  text-overflow: ellipsis;
+                  max-width: 50%;
+                  color: #999999;
+                  font-style: italic;
+                  font-size: 0.75rem;
+                }
+
+                .tooltip-inner {
+                  max-width: unset;
+                }
+
+                .expire-link {
+                  margin-left: 0.5rem;
+                  text-decoration: none;
+                  cursor: pointer;
+                  a {
+                    display: inline-block;
+                  }
+                }
+              }
+
+              .invitation-description {
+                color: constants.$subtleGray;
+                p {
+                  margin-bottom: 0;
+                }
+              }
+
+              .missing-value {
+                color: red;
+                display: block;
+              }
+
+              .spinner {
+                margin: 0;
+                height: 1rem;
+              }
+
+              .log-status {
+                color: #c27ba0;
+                font-style: italic;
+                font-size: 0.7rem;
+
+                .fixed-text {
+                  font-size: 0.875rem;
+                  &.missing-value {
+                    color: red;
+                  }
+                }
+
+                .log-details {
+                  cursor: pointer;
+                }
+              }
+            }
+
+            .content-editor-container {
+              max-width: 80%;
+            }
+          }
+
+          .sub-invitation-container {
+            margin-left: -2.5rem;
+
+            .sub-invitation-description {
+              color: constants.$subtleGray;
+              p {
+                margin-bottom: 0;
+              }
+            }
+
+            .sub-invitation-due-date {
+              margin-left: 0.25rem;
+              background-color: constants.$sandyBrown;
+              border: 1px solid darken(constants.$sandyBrown, 5%);
+              font-size: 0.75rem;
+              font-weight: normal;
+              color: constants.$orRed;
+            }
+
+            ul {
+              list-style-type: none;
+            }
+
+            .existing-value-field {
+              font-size: 0.75rem;
+              display: inline-block;
+              margin-right: 0.25rem;
+              &.highlight {
+                font-weight: 900;
+              }
+            }
+            .existing-value-field-value {
+              font-size: 0.75rem;
+              font-style: italic;
+            }
+            .missing-value {
+              color: red;
+            }
+          }
+        }
+
+        .start-end-date {
+          position: absolute;
+          top: 0;
+          right: 0;
+          font-style: italic;
+          color: #999999;
+          flex-grow: 1;
+        }
+      }
+
+      .add-stage {
+        display: flex;
+        align-items: center;
+
+        .dropdown-select {
+          width: 50%;
+        }
+      }
+    }
+
     .spinner-small {
       width: 40px;
     }
 
     .save-button-wrapper {
       display: flex;
+    }
+
+    .groupEditorTabsContainer {
+      .tab-pane {
+        padding-left: 0;
+        padding-top: 0;
+      }
+      .code-editor {
+        margin-top: 0;
+      }
     }
   }
 }

@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import PronounSection from '../components/profile/PronounSection'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 describe('Pronoun selection dropdown', () => {
   test('check if pronouns dropdown renders successfully when no pronouns are selected', () => {
     const updatePronoun = jest.fn()

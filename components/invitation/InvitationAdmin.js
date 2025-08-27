@@ -15,7 +15,7 @@ import InvitationProcessFunctionsV2 from './InvitationProcessFunctions'
 import ContentProcessFunctions from './ContentProcessFunctions'
 import { isSuperUser } from '../../lib/clientAuth'
 
-const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => {
+const InvitationAdminV1 = ({ invitation, user, accessToken, loadInvitation }) => {
   const profileId = user?.profile?.id
   const showProcessEditor = isSuperUser(user)
 
@@ -69,7 +69,7 @@ const InvitationEditor = ({ invitation, user, accessToken, loadInvitation }) => 
   )
 }
 
-export const InvitationEditorV2 = ({
+export const InvitationAdminV2 = ({
   invitation,
   isMetaInvitation,
   user,
@@ -157,4 +157,4 @@ export const InvitationEditorV2 = ({
   )
 }
 
-export default InvitationEditor
+export default InvitationAdminV1

@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
+import { isEqual } from 'lodash'
 import Dropdown from '../Dropdown'
 import EditorComponentContext from '../EditorComponentContext'
 import { prettyField, prettyId } from '../../lib/utils'
@@ -29,9 +30,10 @@ const DropdownWidget = () => {
         })
         break
       case 'remove-value': // only applicable for multiselect
-        updatedValue = value.filter(
-          (p) => p !== convertToType(actionMeta.removedValue.value, dataType)
-        )
+        updatedValue = value.filter((p) => {
+          if (typeof p === 'object') return !isEqual(p, actionMeta.removedValue.value)
+          return p !== convertToType(actionMeta.removedValue.value, dataType)
+        })
         onChange({
           fieldName,
           value: updatedValue.length ? updatedValue : undefined,
@@ -87,7 +89,9 @@ const DropdownWidget = () => {
       if (value) {
         onChange({
           fieldName,
-          value: value.filter((p) => options.find((q) => q.value === p)),
+          value: value.filter((p) =>
+            options.find((q) => (typeof p === 'object' ? isEqual(q.value, p) : q.value === p))
+          ),
         })
       }
     }
@@ -102,7 +106,12 @@ const DropdownWidget = () => {
         onChange={dropdownChangeHandler}
         value={
           allowMultiSelect
-            ? value?.map((p) => dropdownOptions.find((q) => q.value == p)) // eslint-disable-line eqeqeq
+            ? value?.map((p) =>
+                dropdownOptions.find((q) =>
+                  // eslint-disable-next-line eqeqeq
+                  typeof p === 'object' ? isEqual(q.value, p) : q.value == p
+                )
+              )
             : dropdownOptions.filter((p) => p.value == value) // eslint-disable-line eqeqeq
         }
         isClearable={true}
