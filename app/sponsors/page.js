@@ -174,8 +174,8 @@ export default function page() {
       <div className="row mt-2 mb-4">
         <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
           <stripe-buy-button
-            buy-button-id="buy_btn_1RP4NcR5k9XMGLb3jk3vqJn9"
-            publishable-key="pk_test_51ROlsUR5k9XMGLb3XksWi0fOfEtQOp0U7lMV5n1IwbOQkxekA3fzV0RHeUVpuEc00lmpZLGSI9NtqaFlXbajMI2800OCNYvctd"
+            buy-button-id="buy_btn_1S0p87Cl36NCiRDgXCL1qdDL"
+            publishable-key="pk_live_51RP76TCl36NCiRDgxC9p1LwEBdv9OyLylD60bImUgP4lKuylNIR6euYrEPd9SNIiJrhzKVdKE4L3pojPkLoD1qPS00hFNOq3y9"
           ></stripe-buy-button>
         </div>
         <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
