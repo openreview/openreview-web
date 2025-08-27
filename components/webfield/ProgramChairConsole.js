@@ -1272,6 +1272,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             label: 'Overview',
             content: <Overview pcConsoleData={pcConsoleData} timelineData={timelineData} />,
             visible: true,
+            alwaysMount: true,
           },
           {
             id: `${submissionName.toLowerCase()}-status`,
