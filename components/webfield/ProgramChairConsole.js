@@ -1,3 +1,4 @@
+/* eslint-disable no-continue */
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -375,89 +376,122 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const secondaryAreaChairGroups = []
       const secondaryAnonAreaChairGroups = {}
       const seniorAreaChairGroups = []
-      let allGroupMembers = []
+      const allGroupMembers = new Set()
 
-      const noteNumberVenueIdMap = new Map()
-      const withdrawnNoteIds = withdrawnNotes.map((p) => p.id)
-      const deskRejectedNoteIds = deskRejectedNotes.map((p) => p.id)
-      notes.forEach((note) => {
-        noteNumberVenueIdMap.set(note.number, note.content?.venueid?.value)
-      })
+      const activeNoteNumbers = notes.map((p) => p.number)
 
-      perPaperGroupResults.groups?.forEach((p) => {
+      for (let index = 0; index < perPaperGroupResults.groups?.length; index += 1) {
+        const p = perPaperGroupResults.groups[index]
         const number = getNumberFromGroup(p.id, submissionName)
-        if (
-          !number ||
-          withdrawnNoteIds.includes(number) ||
-          deskRejectedNoteIds.includes(number)
-        )
-          return
+        if (!number || !activeNoteNumbers.includes(number)) continue
 
         if (p.id.endsWith(`/${reviewerName}`)) {
           reviewerGroups.push({
             noteNumber: number,
             ...p,
           })
-          p.members.forEach((member) => {
-            if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
-            if (!(member in anonReviewerGroups[number]) && member.includes(anonReviewerName)) {
+          for (let reviewerIndex = 0; reviewerIndex < p.members.length; reviewerIndex += 1) {
+            const member = p.members[reviewerIndex]
+            if (anonReviewerGroups[number] === undefined) anonReviewerGroups[number] = {}
+            if (
+              anonReviewerGroups[number][member] === undefined &&
+              member.includes(anonReviewerName)
+            ) {
               anonReviewerGroups[number][member] = member
             }
-          })
-        } else if (p.id.includes(`/${anonReviewerName}`)) {
-          if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
+          }
+          continue
+        }
+        if (p.id.includes(`/${anonReviewerName}`)) {
+          if (anonReviewerGroups[number] === undefined) anonReviewerGroups[number] = {}
           if (p.members.length) anonReviewerGroups[number][p.id] = p.members[0]
-          allGroupMembers = allGroupMembers.concat(p.members)
-        } else if (p.id.endsWith(`/${areaChairName}`)) {
+          for (
+            let anonReviewerIndex = 0;
+            anonReviewerIndex < p.members.length;
+            anonReviewerIndex += 1
+          ) {
+            const member = p.members[anonReviewerIndex]
+            allGroupMembers.add(member)
+          }
+          continue
+        }
+        if (p.id.endsWith(`/${areaChairName}`)) {
           areaChairGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
             ...p,
           })
-          p.members.forEach((member) => {
-            if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
+          for (let acMemberIndex = 0; acMemberIndex < p.members.length; acMemberIndex += 1) {
+            const member = p.members[acMemberIndex]
+            if (anonAreaChairGroups[number] === undefined) anonAreaChairGroups[number] = {}
             if (
-              !(member in anonAreaChairGroups[number]) &&
+              anonAreaChairGroups[number][member] === undefined &&
               member.includes(`/${anonAreaChairName}`)
             ) {
               anonAreaChairGroups[number][member] = member
             }
-          })
-        } else if (p.id.includes(`/${anonAreaChairName}`)) {
-          if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
+          }
+          continue
+        }
+        if (p.id.includes(`/${anonAreaChairName}`)) {
+          if (anonAreaChairGroups[number] === undefined) anonAreaChairGroups[number] = {}
           if (p.members.length) anonAreaChairGroups[number][p.id] = p.members[0]
-          allGroupMembers = allGroupMembers.concat(p.members)
-        } else if (p.id.endsWith(seniorAreaChairName)) {
+          for (let anonACIndex = 0; anonACIndex < p.members.length; anonACIndex += 1) {
+            const member = p.members[anonACIndex]
+            allGroupMembers.add(member)
+          }
+          continue
+        }
+        if (p.id.endsWith(seniorAreaChairName)) {
           seniorAreaChairGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
             ...p,
           })
-          allGroupMembers = allGroupMembers.concat(p.members)
-        } else if (secondaryAreaChairName && p.id.endsWith(`/${secondaryAreaChairName}`)) {
+          for (let sacIndex = 0; sacIndex < p.members.length; sacIndex += 1) {
+            const member = p.members[sacIndex]
+            allGroupMembers.add(member)
+          }
+          continue
+        }
+        if (secondaryAreaChairName && p.id.endsWith(`/${secondaryAreaChairName}`)) {
           secondaryAreaChairGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
             ...p,
           })
-          p.members.forEach((member) => {
-            if (!(number in secondaryAnonAreaChairGroups))
+          for (
+            let secondaryACIndex = 0;
+            secondaryACIndex < p.members.length;
+            secondaryACIndex += 1
+          ) {
+            const member = p.members[secondaryACIndex]
+            if (secondaryAnonAreaChairGroups[number] === undefined)
               secondaryAnonAreaChairGroups[number] = {}
             if (
-              !(member in secondaryAnonAreaChairGroups[number]) &&
+              secondaryAnonAreaChairGroups[number][member] === undefined &&
               member.includes(`/${secondaryAnonAreaChairName}`)
             ) {
               secondaryAnonAreaChairGroups[number][member] = member
             }
-          })
-        } else if (secondaryAreaChairName && p.id.includes(`/${secondaryAnonAreaChairName}`)) {
-          if (!(number in secondaryAnonAreaChairGroups))
+          }
+          continue
+        }
+        if (secondaryAreaChairName && p.id.includes(`/${secondaryAnonAreaChairName}`)) {
+          if (secondaryAnonAreaChairGroups[number] === undefined)
             secondaryAnonAreaChairGroups[number] = {}
           if (p.members.length) secondaryAnonAreaChairGroups[number][p.id] = p.members[0]
-          allGroupMembers = allGroupMembers.concat(p.members)
+          for (
+            let secondaryAnonACIndex = 0;
+            secondaryAnonACIndex < p.members.length;
+            secondaryAnonACIndex += 1
+          ) {
+            const member = p.members[secondaryAnonACIndex]
+            allGroupMembers.add(member)
+          }
         }
-      })
+      }
       // #endregion
 
       // #region get all profiles(with assignments)
-      const allIds = [...new Set(allGroupMembers)]
+      const allIds = [...allGroupMembers]
       const ids = allIds.filter((p) => p.startsWith('~'))
       const emails = allIds.filter((p) => p.match(/.+@.+/))
       const getProfilesByIdsP = ids.length
