@@ -1,5 +1,5 @@
 /* globals promptError: false */
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
@@ -128,21 +128,22 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
 }
 
 const SubmissionsStatsRow = ({ pcConsoleData }) => {
-  const [submissionByStatus, setSubmissionByStatus] = useState({})
+  const submissionByStatus = pcConsoleData.notes
+    ? {
+        activeSubmissionsCount: pcConsoleData.notes.length,
+        deskRejectedNotesCount: pcConsoleData.deskRejectedNotes.length,
+        withdrawnNotesCount: pcConsoleData.withdrawnNotes.length,
+      }
+    : null
 
-  useEffect(() => {
-    if (!pcConsoleData) return
-    const { withdrawnNotes, deskRejectedNotes, notes: activeSubmissions } = pcConsoleData
-    setSubmissionByStatus({ activeSubmissions, deskRejectedNotes, withdrawnNotes })
-  }, [pcConsoleData])
   return (
     <>
       <div className="row">
         <StatContainer
           title="Active Submissions"
           value={
-            submissionByStatus.activeSubmissions ? (
-              submissionByStatus.activeSubmissions.length
+            submissionByStatus ? (
+              submissionByStatus.activeSubmissionsCount
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )
@@ -151,8 +152,8 @@ const SubmissionsStatsRow = ({ pcConsoleData }) => {
         <StatContainer
           title="Withdrawn Submissions"
           value={
-            submissionByStatus.withdrawnNotes ? (
-              submissionByStatus.withdrawnNotes.length
+            submissionByStatus ? (
+              submissionByStatus.withdrawnNotesCount
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )
@@ -161,8 +162,8 @@ const SubmissionsStatsRow = ({ pcConsoleData }) => {
         <StatContainer
           title="Desk Rejected Submissions"
           value={
-            submissionByStatus.deskRejectedNotes ? (
-              submissionByStatus.deskRejectedNotes.length
+            submissionByStatus ? (
+              submissionByStatus.deskRejectedNotesCount
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )
@@ -206,6 +207,7 @@ const BiddingStatsRow = ({
       0
     )
     const total = pcConsoleData[role]?.length
+    if (bidComplete === undefined) return <LoadingSpinner inline={true} text={null} />
     return total === 0 ? (
       <span>{bidComplete} / 0</span>
     ) : (
@@ -230,6 +232,8 @@ const BiddingStatsRow = ({
       0
     )
     const total = pcConsoleData.areaChairs?.length
+    if (recommendationComplete === undefined)
+      return <LoadingSpinner inline={true} text={null} />
     return total === 0 ? (
       <span>{recommendationComplete} / 0</span>
     ) : (
@@ -302,11 +306,8 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
     submissionName,
   } = useContext(WebFieldContext)
   const singularReviewerName = getSingularRoleName(reviewerName)
-
-  const [reviewStats, setReviewStats] = useState({})
-
-  useEffect(() => {
-    if (!pcConsoleData.notes || Object.keys(reviewStats).length) return
+  const reviewStats = useMemo(() => {
+    if (!pcConsoleData.notes) return {}
     const allOfficialReviews = [
       ...(pcConsoleData.officialReviewsByPaperNumberMap?.values() ?? []),
     ]?.flat()
@@ -374,14 +375,14 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
       )
     })
 
-    setReviewStats({
+    return {
       allOfficialReviews,
       assignedReviewsCount,
       reviewersComplete,
       reviewersWithAssignmentsCount,
       paperWithMoreThanThresholdReviews,
-    })
-  }, [pcConsoleData])
+    }
+  }, [pcConsoleData.notes])
 
   return (
     <>
@@ -681,7 +682,7 @@ const DescriptionTimelineOtherConfigRow = ({
   reviewersBidEnabled,
   areaChairsBidEnabled,
   seniorAreaChairsBidEnabled,
-  pcConsoleData,
+  timelineData,
   recommendationEnabled,
 }) => {
   const {
@@ -711,7 +712,7 @@ const DescriptionTimelineOtherConfigRow = ({
     domainContent,
   } = useContext(WebFieldContext)
 
-  const { requestForm, registrationForms, invitations } = pcConsoleData
+  const { requestForm, registrationForms, invitations } = timelineData
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
   )
@@ -747,7 +748,7 @@ const DescriptionTimelineOtherConfigRow = ({
   const getAssignmentLink = (role) => {
     if (assignmentUrls?.[role]?.automaticAssignment === false) {
       return assignmentUrls?.[role]?.manualAssignmentUrl &&
-        pcConsoleData.invitations?.some((p) => p.id === `${venueId}/${role}/-/Assignment`)
+        invitations?.some((p) => p.id === `${venueId}/${role}/-/Assignment`)
         ? `${assignmentUrls[role].manualAssignmentUrl}&referrer=${referrerUrl}`
         : null
     }
@@ -1124,7 +1125,7 @@ const DescriptionTimelineOtherConfigRow = ({
   )
 }
 
-const Overview = ({ pcConsoleData }) => {
+const Overview = ({ pcConsoleData, timelineData }) => {
   const {
     areaChairsId,
     areaChairName = 'Area_Chairs',
@@ -1136,14 +1137,12 @@ const Overview = ({ pcConsoleData }) => {
   } = useContext(WebFieldContext)
 
   const isBidEnabled = (groupId) =>
-    bidName
-      ? pcConsoleData.invitations?.find((p) => p.id === `${groupId}/-/${bidName}`)
-      : false
+    bidName ? timelineData.invitations?.find((p) => p.id === `${groupId}/-/${bidName}`) : false
 
   const reviewersBidEnabled = isBidEnabled(reviewersId)
   const areaChairsBidEnabled = isBidEnabled(areaChairsId)
   const seniorAreaChairsBidEnabled = isBidEnabled(seniorAreaChairsId)
-  const recommendationEnabled = pcConsoleData.invitations?.find(
+  const recommendationEnabled = timelineData.invitations?.find(
     (p) => p.id === `${reviewersId}/-/${recommendationName}`
   )
   return (
@@ -1165,7 +1164,7 @@ const Overview = ({ pcConsoleData }) => {
         reviewersBidEnabled={reviewersBidEnabled}
         areaChairsBidEnabled={areaChairsBidEnabled}
         seniorAreaChairsBidEnabled={seniorAreaChairsBidEnabled}
-        pcConsoleData={pcConsoleData}
+        timelineData={timelineData}
         recommendationEnabled={recommendationEnabled}
       />
     </>
