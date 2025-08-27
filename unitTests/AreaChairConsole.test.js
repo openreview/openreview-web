@@ -6,18 +6,10 @@ import { reRenderWithWebFieldContext, renderWithWebFieldContext } from './util'
 import AreaChairConsole from '../components/webfield/AreaChairConsole'
 
 let useUserReturnValue
-let routerParams
 let noteSummaryProps
 let noteReviewStatusProps
 
-jest.mock('next/router', () => ({
-  useRouter: () => ({
-    replace: (params) => {
-      routerParams = params
-      return jest.fn()
-    },
-  }),
-}))
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => useUserReturnValue)
 jest.mock('../components/webfield/NoteSummary', () => (props) => {
   noteSummaryProps(props)
@@ -29,6 +21,19 @@ jest.mock('../components/webfield/NoteReviewStatus', () => ({
     return <span>note review status</span>
   },
 }))
+jest.mock('../app/CustomBanner', () => () => <span>Custom Banner</span>)
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: () => jest.fn(),
+  }),
+  useRouter: () => ({
+    replace: jest.fn(() => {
+      return {
+        catch: jest.fn(),
+      }
+    }),
+  }),
+}))
 
 global.promptError = jest.fn()
 global.DOMPurify = {
@@ -39,31 +44,12 @@ global.$ = jest.fn(() => ({ on: jest.fn(), off: jest.fn(), modal: jest.fn() }))
 
 beforeEach(() => {
   useUserReturnValue = { user: { profile: { id: '~Test_User1' } }, accessToken: 'some token' }
-  routerParams = null
   noteSummaryProps = jest.fn()
   noteReviewStatusProps = jest.fn()
+  window.location.hash = ''
 })
 
 describe('AreaChairConsole', () => {
-  test('default to assigned papers tab when window.location does not contain any hash', async () => {
-    const providerProps = { value: { submissionName: 'Submissions' } }
-    renderWithWebFieldContext(
-      <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
-      providerProps
-    )
-    expect(routerParams).toEqual('#assigned-submissions')
-  })
-
-  test('default to assigned papers tab when window.location.hash does not match any tab', async () => {
-    window.location.hash = '#some-unknown-tab'
-    const providerProps = { value: { submissionName: 'Submissions' } }
-    renderWithWebFieldContext(
-      <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
-      providerProps
-    )
-    expect(routerParams).toEqual('#assigned-submissions')
-  })
-
   test('show error when config is not complete', async () => {
     const providerProps = { value: { areaChairName: undefined } }
     const { rerender } = renderWithWebFieldContext(

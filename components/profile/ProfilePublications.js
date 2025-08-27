@@ -1,4 +1,7 @@
+'use client'
+
 /* globals $: false */
+
 import { useEffect } from 'react'
 import { nanoid } from 'nanoid'
 import Link from 'next/link'
@@ -11,12 +14,15 @@ const ProfilePublications = ({
   loading,
   preferredName,
   numPublicationsToShow = 10,
+  openNoteInNewWindow = false,
 }) => {
   const displayOptions = {
     pdfLink: false,
     htmlLink: false,
     showContents: false,
     showPrivateIcon: true,
+    clientRenderingOnly: true,
+    openNoteInNewWindow,
     referrer:
       preferredName &&
       profileId &&

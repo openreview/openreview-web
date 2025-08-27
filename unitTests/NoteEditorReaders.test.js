@@ -6,6 +6,8 @@ import api from '../lib/api-client'
 
 let mockUser
 let tagProps
+
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => mockUser)
 jest.mock('../components/EditorComponents/TagsWidget', () => (props) => {
   tagProps(props)
@@ -3708,6 +3710,70 @@ describe('NewReplyEditNoteReaders', () => {
     await user.click(await screen.findByText('description of reviewers'))
     await waitFor(() => {
       expect(clearError).toHaveBeenCalled()
+    })
+  })
+
+  test('show inGroup group members when items include inGroup', async () => {
+    const getInGroup = jest.fn(() =>
+      Promise.resolve({
+        groups: [
+          { members: ['venue/Submission1/Reviewer_aaaa', 'venue/Submission1/Reviewer_bbbb'] },
+        ],
+      })
+    )
+    api.get = getInGroup
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: 'venue/Submission1/Program_Chairs',
+                  optional: true,
+                },
+                {
+                  value: 'venue/Submission1/Area_Chairs',
+                  optional: true,
+                },
+                {
+                  inGroup: 'venue/Submission1/Reviewers',
+                  optional: true,
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={undefined}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={null} // triggered by onChange of default value
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(4)
+      expect(
+        screen.getByRole('checkbox', { name: 'Submission1 Program Chairs' })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('checkbox', { name: 'Submission1 Area Chairs' })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('checkbox', { name: 'Submission1 Reviewer aaaa' })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('checkbox', { name: 'Submission1 Reviewer bbbb' })
+      ).toBeInTheDocument()
     })
   })
 })
