@@ -716,8 +716,11 @@ const DescriptionTimelineOtherConfigRow = ({
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
   )
-  const requestFormContent = getNoteContentValues(requestForm?.content)
-  const domainContentValues = getNoteContentValues(domainContent)
+  const requestFormContent = getNoteContentValues(
+    requestForm?.content,
+    requestForm?.apiVersion
+  )
+  const domainContentValues = getNoteContentValues(domainContent, requestForm?.apiVersion)
   const sacRoles = requestFormContent?.senior_area_chair_roles ??
     domainContentValues.senior_area_chair_roles ?? ['Senior_Area_Chairs']
   const acRoles = requestFormContent?.area_chair_roles ??
