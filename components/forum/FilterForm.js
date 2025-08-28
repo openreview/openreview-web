@@ -163,6 +163,7 @@ export default function FilterForm({
             onChange={(e) => {
               setSort(e.target.value)
             }}
+            aria-label="Order By"
           >
             <option value="date-desc">Sort: Newest First</option>
             <option value="date-asc">Sort: Oldest First</option>

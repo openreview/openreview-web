@@ -470,13 +470,8 @@ function CopyLinkButton({ forumId, noteId }) {
       onClick={copyNoteUrl}
       aria-label={`Copy URL of note ${noteId}`}
     >
-      <a
-        onClick={(e) => e.preventDefault()}
-        href={`${window.location.origin}${window.location.pathname}?id=${forumId}&noteId=${noteId}`}
-      >
-        <Icon name="link" tooltip={`Copy URL of note ${noteId}`} />
-        <span className="sr-only">Copy URL of note {noteId}</span>
-      </a>
+      <Icon name="link" tooltip={`Copy URL of note ${noteId}`} />
+      <span className="sr-only">Copy URL of note {noteId}</span>
     </button>
   )
 }

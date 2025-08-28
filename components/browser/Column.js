@@ -1155,6 +1155,7 @@ export default function Column(props) {
               <select
                 className="form-control input-sm"
                 onChange={(e) => setColumnSort(e.target.value)}
+                aria-label="Order By"
               >
                 {sortOptions.map((p) => (
                   <option key={p.key} value={p.value}>
