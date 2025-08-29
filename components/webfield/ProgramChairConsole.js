@@ -660,7 +660,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         }
         if (latestDisplayReplies.length){
           displayReplyInvitationsByPaperNumberMap.set(note.number, latestDisplayReplies)
-      }
+        }
+        note.replyCount = replies.length
+        delete note.details.replies
       })
 
       const consoleData = {
@@ -984,7 +986,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           confidenceAvg,
           confidenceMax,
           confidenceMin,
-          replyCount: note.details.replies?.length ?? 0,
+          replyCount: note.replyCount,
         },
         metaReviewData: {
           numAreaChairsAssigned: assignedAreaChairs.length,
