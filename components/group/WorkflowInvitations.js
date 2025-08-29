@@ -1022,10 +1022,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
   return (
     <>
-      <div className="workflow-instruction">
-        Add members of the Program Chairs and to the Reviewers invited group, then start
-        configuring pending tasks
-      </div>
       {workflowGroups.length > 0 && (
         <EditorSection
           title={`Workflow Groups (${workflowGroups.length})`}
