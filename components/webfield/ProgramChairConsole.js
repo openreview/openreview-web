@@ -649,7 +649,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         officialReviewsByPaperNumberMap.set(note.number, officialReviews)
         metaReviewsByPaperNumberMap.set(note.number, metaReviews)
         decisionByPaperNumberMap.set(note.number, decision)
-        customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
+        if (customStageReviews.length) {
+          customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
+        }
         displayReplyInvitationsByPaperNumberMap.set(note.number, latestDisplayReplies)
       })
 
