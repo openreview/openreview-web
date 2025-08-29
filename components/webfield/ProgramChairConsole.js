@@ -514,23 +514,24 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         : Promise.resolve([])
       setDataLoadingStatusMessage('Loading profiles')
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
-      const allProfiles = (profileResults[0].profiles ?? [])
-        .concat(profileResults[1].profiles ?? [])
-        .map((profile) => ({
-          ...profile,
-          preferredName: getProfileName(profile),
-          title: formatProfileContent(profile.content).title,
-        }))
-      // #endregion
-
       const allProfilesMap = new Map()
-      allProfiles.forEach((profile) => {
-        const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-        usernames.concat(profile.email ?? []).forEach((key) => {
-          allProfilesMap.set(key, profile)
-        })
-      })
+      const _ = (profileResults[0].profiles ?? [])
+        .concat(profileResults[1].profiles ?? [])
+        .forEach((profile) => {
+          const reducedProfile = {
+            id: profile.id,
+            preferredName: getProfileName(profile),
+            title: formatProfileContent(profile.content).title,
+            usernames: profile.content.names.flatMap((p) => p.username ?? []),
+          }
 
+          const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+          usernames.concat(profile.email ?? []).forEach((key) => {
+            allProfilesMap.set(key, reducedProfile)
+          })
+
+        })
+      // #endregion
       const officialReviewsByPaperNumberMap = new Map()
       const metaReviewsByPaperNumberMap = new Map()
       const decisionByPaperNumberMap = new Map()
@@ -654,7 +655,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       const consoleData = {
         invitations: invitationResults,
-        allProfiles,
         allProfilesMap,
         requestForm,
         registrationForms,
@@ -952,7 +952,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             hasReview: officialReviews.some((p) => p.anonymousId === reviewer.anonymousId),
             noteNumber: note.number,
             preferredId: reviewer.reviewerProfileId,
-            preferredName: profile ? getProfileName(profile) : reviewer.reviewerProfileId,
+            preferredName: profile ? profile.preferredName : reviewer.reviewerProfileId,
           }
         }),
         authors: note.content?.authorids?.value?.map((authorId, index) => {
@@ -986,7 +986,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               ...areaChair,
               noteNumber: note.number,
               preferredId: profile ? profile.id : areaChair.areaChairProfileId,
-              preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
+              preferredName: profile ? profile.preferredName : areaChair.areaChairProfileId,
               title: profile?.title,
             }
           }),
@@ -998,7 +998,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               ...areaChair,
               noteNumber: note.number,
               preferredId: profile ? profile.id : areaChair.areaChairProfileId,
-              preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
+              preferredName: profile ? profile.preferredName : areaChair.areaChairProfileId,
               title: profile?.title,
             }
           }),
@@ -1009,7 +1009,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             return {
               type: 'profile',
               preferredId: seniorAreaChairProfileId,
-              preferredName: profile ? getProfileName(profile) : seniorAreaChairProfileId,
+              preferredName: profile ? profile.preferredName : seniorAreaChairProfileId,
               title: profile?.title,
               noteNumber: note.number,
               anonymizedGroup: seniorAreaChairProfileId,
@@ -1041,7 +1041,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
     // add profileRegistrationNote
     pcConsoleData.allProfilesMap.forEach((profile, id) => {
-      const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+      const usernames = profile.usernames ?? []
 
       let userRegNotes = []
       usernames.forEach((username) => {
