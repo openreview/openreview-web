@@ -10,8 +10,17 @@ import { formatProfileData } from '../../lib/profiles'
 import CommonLayout from '../CommonLayout'
 import EditBanner from '../../components/EditBanner'
 import PreferredIdUpdater from './PreferredIdUpdater'
+import { prettyId } from '../../lib/utils'
 
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({ searchParams }) {
+  const { id } = await searchParams
+
+  return {
+    title: `${prettyId(id)} | OpenReview`,
+  }
+}
 
 export default async function page({ searchParams }) {
   const { user, token } = await serverAuth()

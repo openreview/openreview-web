@@ -122,7 +122,6 @@ function Page() {
                     {confirmedEmails.map((email) => (
                       <li
                         key={email}
-                        role="presentation"
                         className={toEmail === email ? 'active' : null}
                         onClick={(e) => {
                           router.push(`/notifications?email=${encodeURIComponent(email)}`)
