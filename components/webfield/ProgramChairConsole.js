@@ -646,13 +646,21 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           }
         })
 
-        officialReviewsByPaperNumberMap.set(note.number, officialReviews)
-        metaReviewsByPaperNumberMap.set(note.number, metaReviews)
-        decisionByPaperNumberMap.set(note.number, decision)
+        if (officialReviews.length) {
+          officialReviewsByPaperNumberMap.set(note.number, officialReviews)
+        }
+        if (metaReviews.length){
+          metaReviewsByPaperNumberMap.set(note.number, metaReviews)
+        }
+        if (decision) {
+          decisionByPaperNumberMap.set(note.number, decision)
+        }
         if (customStageReviews.length) {
           customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
         }
-        displayReplyInvitationsByPaperNumberMap.set(note.number, latestDisplayReplies)
+        if (latestDisplayReplies.length){
+          displayReplyInvitationsByPaperNumberMap.set(note.number, latestDisplayReplies)
+      }
       })
 
       const consoleData = {
