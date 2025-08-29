@@ -345,15 +345,15 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const committeeMemberResults = results[0]
       const ithenticateEdges = results[5]
       const notes = []
-      const withdrawnNotes = []
-      const deskRejectedNotes = []
+      let withdrawnNotesCount = 0
+      let deskRejectedNotesCount = 0
       results[1].forEach((note) => {
         if (note.content?.venueid?.value === withdrawnVenueId) {
-          withdrawnNotes.push(note)
+          withdrawnNotesCount += 1
           return
         }
         if (note.content?.venueid?.value === deskRejectedVenueId) {
-          deskRejectedNotes.push(note)
+          deskRejectedNotesCount += 1
           return
         }
         notes.push({
@@ -529,7 +529,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           usernames.concat(profile.email ?? []).forEach((key) => {
             allProfilesMap.set(key, reducedProfile)
           })
-
         })
       // #endregion
       const officialReviewsByPaperNumberMap = new Map()
@@ -580,13 +579,19 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             }
 
             officialReviews.push({
-              ...reply,
+              content: reply.content,
+              id: reply.id,
+              signatures: reply.signatures,
+              forum: reply.forum,
               anonId: getIndentifierFromGroup(anonymousGroupId, anonReviewerName),
             })
           }
           if (reply.invitations.includes(officialMetaReviewInvitationId)) {
             metaReviews.push({
-              ...reply,
+              id: reply.id,
+              forum: reply.forum,
+              content: reply.content,
+              signatures: reply.signatures,
               anonId: getIndentifierFromGroup(reply.signatures[0], anonAreaChairName),
             })
           }
@@ -649,7 +654,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         if (officialReviews.length) {
           officialReviewsByPaperNumberMap.set(note.number, officialReviews)
         }
-        if (metaReviews.length){
+        if (metaReviews.length) {
           metaReviewsByPaperNumberMap.set(note.number, metaReviews)
         }
         if (decision) {
@@ -658,11 +663,13 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         if (customStageReviews.length) {
           customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
         }
-        if (latestDisplayReplies.length){
+        if (latestDisplayReplies.length) {
           displayReplyInvitationsByPaperNumberMap.set(note.number, latestDisplayReplies)
         }
+        // eslint-disable-next-line no-param-reassign
         note.replyCount = replies.length
-        delete note.details.replies
+        // eslint-disable-next-line no-param-reassign
+        delete note.details?.replies
       })
 
       const consoleData = {
@@ -679,8 +686,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         decisionByPaperNumberMap,
         customStageReviewsByPaperNumberMap,
         displayReplyInvitationsByPaperNumberMap,
-        withdrawnNotes,
-        deskRejectedNotes,
+        withdrawnNotesCount,
+        deskRejectedNotesCount,
 
         acRecommendationsCount,
         bidCounts: {
@@ -1043,7 +1050,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             }
           }, {}),
         },
-        displayReplies: pcConsoleData.displayReplyInvitationsByPaperNumberMap.get(note.number),
+        displayReplies:
+          pcConsoleData.displayReplyInvitationsByPaperNumberMap.get(note.number) ?? [],
         decision,
         venue: note?.content?.venue?.value,
         messageSignature: programChairsId,

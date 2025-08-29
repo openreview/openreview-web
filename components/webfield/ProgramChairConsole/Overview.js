@@ -131,8 +131,8 @@ const SubmissionsStatsRow = ({ pcConsoleData }) => {
   const submissionByStatus = pcConsoleData.notes
     ? {
         activeSubmissionsCount: pcConsoleData.notes.length,
-        deskRejectedNotesCount: pcConsoleData.deskRejectedNotes.length,
-        withdrawnNotesCount: pcConsoleData.withdrawnNotes.length,
+        deskRejectedNotesCount: pcConsoleData.deskRejectedNotesCount,
+        withdrawnNotesCount: pcConsoleData.withdrawnNotesCount,
       }
     : null
 
