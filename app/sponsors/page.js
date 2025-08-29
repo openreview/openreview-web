@@ -173,6 +173,12 @@ export default function page() {
 
       <div className="row mt-2 mb-4">
         <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
+          <stripe-buy-button
+            buy-button-id="buy_btn_1S0p87Cl36NCiRDgXCL1qdDL"
+            publishable-key="pk_live_51RP76TCl36NCiRDgxC9p1LwEBdv9OyLylD60bImUgP4lKuylNIR6euYrEPd9SNIiJrhzKVdKE4L3pojPkLoD1qPS00hFNOq3y9"
+          ></stripe-buy-button>
+        </div>
+        <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
           <p>
             <Link href="/sponsors/2023" prefetch={false}>
               View past sponsors from 2023 &raquo;
