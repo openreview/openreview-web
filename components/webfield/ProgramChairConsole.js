@@ -241,14 +241,12 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #endregion
 
       // #region getSubmissions
-      const notesP = api.getAllWithAfter(
-        '/notes',
+      const notesP = api.get(
+        '/notes/views',
         {
-          invitation: submissionId,
-          details: 'replies',
-          select: 'id,number,forum,content,details,invitations,readers',
-          sort: 'number:asc',
-          domain: venueId,
+          name: 'submissions_with_replies_and_groups',
+          invitations: submissionId,
+          stream: true,
         },
         {
           accessToken,
@@ -306,19 +304,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       )
       // #endregion
 
-      // #region getGroups (per paper groups)
-      const perPaperGroupResultsP = api.get(
-        '/groups',
-        {
-          prefix: `${venueId}/${submissionName}.*`,
-          stream: true,
-          select: 'id,members',
-          domain: venueId,
-        },
-        { accessToken }
-      )
-      // #endregion
-
       // #region get ithenticate edges
       const ithenticateEdgesP = ithenticateInvitationId
         ? api
@@ -338,15 +323,16 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         notesP,
         getAcRecommendationsP,
         bidCountResultsP,
-        perPaperGroupResultsP,
         ithenticateEdgesP,
       ])
 
       const committeeMemberResults = results[0]
-      const ithenticateEdges = results[5]
+      const ithenticateEdges = results[4]
       const notes = []
       const withdrawnNotes = []
       const deskRejectedNotes = []
+      const perPaperGroupResults = []
+
       results[1].forEach((note) => {
         if (note.content?.venueid?.value === withdrawnVenueId) {
           withdrawnNotes.push(note)
@@ -356,6 +342,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           deskRejectedNotes.push(note)
           return
         }
+        perPaperGroupResults.push(...note.submissionGroups)
         notes.push({
           ...note,
           ...(ithenticateInvitationId && {
@@ -366,7 +353,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       })
       const acRecommendationsCount = results[2]
       const bidCountResults = results[3]
-      const perPaperGroupResults = results[4]
 
       // #region categorize result of per paper groups
       const reviewerGroups = []
@@ -537,7 +523,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const customStageReviewsByPaperNumberMap = new Map()
       const displayReplyInvitationsByPaperNumberMap = new Map()
       notes.forEach((note) => {
-        const replies = note.details.replies ?? []
+        const replies = note.replies ?? []
         const officialReviews = []
         const metaReviews = []
         let decision
@@ -974,7 +960,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           confidenceAvg,
           confidenceMax,
           confidenceMin,
-          replyCount: note.details.replies?.length ?? 0,
+          replyCount: note.replies?.length ?? 0,
         },
         metaReviewData: {
           numAreaChairsAssigned: assignedAreaChairs.length,
