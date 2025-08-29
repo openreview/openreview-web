@@ -324,7 +324,7 @@ const UserModerationQueue = ({
       setTotalCount(result.count ?? 0)
       setProfiles(result.profiles ?? [])
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
   }
 
@@ -358,9 +358,9 @@ const UserModerationQueue = ({
         setPageNumber((p) => p - 1)
       }
       reload()
-      promptMessage(`${prettyId(profileId)} is now active`, { scrollToTop: false })
+      promptMessage(`${prettyId(profileId)} is now active`)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== profileId))
     }
   }
@@ -424,10 +424,10 @@ const UserModerationQueue = ({
       }
       reload()
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
   }
-
+  
   const deleteRestoreUser = async (profile) => {
     if (!profile) return
 
@@ -461,7 +461,7 @@ const UserModerationQueue = ({
           { accessToken }
         )
       } catch (error) {
-        promptError(error.message, { scrollToTop: false })
+        promptError(error.message)
       }
       reload()
     }
