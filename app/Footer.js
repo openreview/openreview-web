@@ -29,6 +29,10 @@ export default function Footer() {
                   <Link href="/contact">Contact</Link>
                 </li>
                 <li>
+                  <Link href="https://donate.stripe.com/eVqdR8fP48bK1R61fi0oM00">Donate</Link>
+                </li>
+                <li></li>
+                <li>
                   <Link href="/sponsors">Sponsors</Link>
                 </li>
                 <li>
@@ -101,6 +105,9 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link href="/contact">Contact</Link>
+                </li>
+                <li>
+                  <Link href="https://donate.stripe.com/eVqdR8fP48bK1R61fi0oM00">Donate</Link>
                 </li>
                 <li>
                   <Link href="/legal/terms">Terms of Use</Link>
