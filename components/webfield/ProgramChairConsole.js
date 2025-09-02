@@ -105,6 +105,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const areaChairUrlFormat = getRoleHashFragment(areaChairName)
   const reviewerUrlFormat = getRoleHashFragment(reviewerName)
 
+  const reviewersInvitedId = reviewersId ? `${reviewersId}/Invited` : null
+  const areaChairsInvitedId = areaChairsId ? `${areaChairsId}/Invited` : null
+  const seniorAreaChairsInvitedId = seniorAreaChairsId ? `${seniorAreaChairsId}/Invited` : null
+
   const loadData = async () => {
     if (isLoadingData) return
     setIsLoadingData(true)
@@ -232,6 +236,17 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         registrationForms,
       })
 
+      // #region get invited groups
+      const invitedGroupsP = await Promise.all(
+        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map(
+          (invitedId) =>
+            invitedId
+              ? api.getGroupById(invitedId, accessToken, { select: 'members' })
+              : Promise.resolve(null)
+        )
+      )
+      // #endregion
+
       // #region get Reviewer, AC, SAC members
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
@@ -340,6 +355,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         bidCountResultsP,
         perPaperGroupResultsP,
         ithenticateEdgesP,
+        invitedGroupsP,
       ])
 
       const committeeMemberResults = results[0]
@@ -367,6 +383,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const acRecommendationsCount = results[2]
       const bidCountResults = results[3]
       const perPaperGroupResults = results[4]
+      const invitedGroupsResult = results[6]
 
       // #region categorize result of per paper groups
       const reviewerGroups = []
@@ -688,7 +705,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         displayReplyInvitationsByPaperNumberMap,
         withdrawnNotesCount,
         deskRejectedNotesCount,
-
         acRecommendationsCount,
         bidCounts: {
           reviewers: bidCountResults[0],
@@ -769,6 +785,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           seniorAreaChairGroups,
         },
         ithenticateEdges,
+        reviewersInvitedCount: invitedGroupsResult[0]?.members?.length ?? 0,
+        areaChairsInvitedCount: invitedGroupsResult[1]?.members?.length ?? 0,
+        seniorAreaChairsInvitedCount: invitedGroupsResult[2]?.members?.length ?? 0,
         timeStamp: dayjs().valueOf(),
       }
       setDataLoadingStatusMessage(null)

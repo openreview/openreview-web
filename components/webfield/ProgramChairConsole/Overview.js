@@ -37,49 +37,19 @@ const renderStat = (numComplete, total) =>
 
 const RecruitmentStatsRow = ({ pcConsoleData }) => {
   const {
-    reviewersId,
     reviewerName = 'Reviewers',
     areaChairsId,
     areaChairName = 'Area_Chairs',
     seniorAreaChairsId,
     seniorAreaChairName = 'Senior_Area_Chairs',
   } = useContext(WebFieldContext)
-  const { accessToken } = useUser()
-  const [invitedCount, setInvitedCount] = useState({})
-  const [isLoading, setIsLoading] = useState(false)
-  const reviewersInvitedId = reviewersId ? `${reviewersId}/Invited` : null
-  const areaChairsInvitedId = areaChairsId ? `${areaChairsId}/Invited` : null
-  const seniorAreaChairsInvitedId = seniorAreaChairsId ? `${seniorAreaChairsId}/Invited` : null
+
   const singularReviewerName = getSingularRoleName(reviewerName)
   const singularAreaChairName = getSingularRoleName(areaChairName)
   const singularSeniorAreaChairName = getSingularRoleName(seniorAreaChairName)
 
-  const loadData = async () => {
-    setIsLoading(true)
-    try {
-      const result = await Promise.all(
-        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map(
-          (invitedId) =>
-            invitedId
-              ? api.getGroupById(invitedId, accessToken, { select: 'members' })
-              : Promise.resolve(null)
-        )
-      )
-      setInvitedCount({
-        reviewersInvitedCount: result[0]?.members?.length ?? 0,
-        areaChairsInvitedCount: result[1]?.members?.length ?? 0,
-        seniorAreaChairsInvitedCount: result[2]?.members?.length ?? 0,
-      })
-    } catch (error) {
-      promptError(error.message)
-    }
-    setIsLoading(false)
-  }
-
-  useEffect(() => {
-    if (!reviewersId) return
-    loadData()
-  }, [])
+  const { reviewersInvitedCount, areaChairsInvitedCount, seniorAreaChairsInvitedCount } =
+    pcConsoleData
 
   return (
     <>
@@ -88,8 +58,8 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
           title={`${prettyField(singularReviewerName)} Recruitment`}
           hint="accepted / invited"
           value={
-            !isLoading && pcConsoleData.reviewers ? (
-              `${pcConsoleData.reviewers?.length} / ${invitedCount.reviewersInvitedCount}`
+            pcConsoleData.reviewers ? (
+              `${pcConsoleData.reviewers?.length} / ${reviewersInvitedCount}`
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )
@@ -100,8 +70,8 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
             title={`${prettyField(singularAreaChairName)} Recruitment`}
             hint="accepted / invited"
             value={
-              !isLoading && pcConsoleData.areaChairs ? (
-                `${pcConsoleData.areaChairs?.length} / ${invitedCount.areaChairsInvitedCount}`
+              pcConsoleData.areaChairs ? (
+                `${pcConsoleData.areaChairs?.length} / ${areaChairsInvitedCount}`
               ) : (
                 <LoadingSpinner inline={true} text={null} />
               )
@@ -113,8 +83,8 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
             title={`${prettyField(singularSeniorAreaChairName)} Recruitment`}
             hint="accepted / invited"
             value={
-              !isLoading && pcConsoleData.seniorAreaChairs ? (
-                `${pcConsoleData.seniorAreaChairs?.length} / ${invitedCount.seniorAreaChairsInvitedCount}`
+              pcConsoleData.seniorAreaChairs ? (
+                `${pcConsoleData.seniorAreaChairs?.length} / ${seniorAreaChairsInvitedCount}`
               ) : (
                 <LoadingSpinner inline={true} text={null} />
               )
