@@ -1,6 +1,6 @@
 {
   "name": "openreview-web",
-  "version": "1.14.18",
+  "version": "1.14.19",
   "private": true,
   "scripts": {
     "dev": "next dev --port $NEXT_PORT",
@@ -49,6 +49,7 @@
     "nanoid": "^5.0.4",
     "next": "^15.2.3",
     "next-build-id": "^3.0.0",
+    "pako": "^2.1.0",
     "query-string": "^7.1.3",
     "rc-picker": "^4.6.14",
     "rc-steps": "^6.0.1",
