@@ -40,8 +40,8 @@ const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
       </TabList>
       <TabPanels>
         {tabs.map((tab) => {
-          const { id, content, visible } = tab
-          if (!visible || activeTabId !== `${id}`) return null
+          const { id, content, visible, alwaysMount } = tab
+          if ((!visible || activeTabId !== `${id}`) && !alwaysMount) return null
           return (
             <TabPanel key={`${id}-panel`} id={id}>
               {content}
