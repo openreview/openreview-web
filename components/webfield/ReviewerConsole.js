@@ -490,40 +490,42 @@ const ReviewerConsole = ({ appContext }) => {
 
     // #region get area chair groups
     const getAreaChairGroupsP = areaChairName
-      ? api
-          .get(
-            '/groups',
-            {
-              prefix: `${venueId}/${submissionName}.*`,
-              select: 'id,members',
-              domain: group.domain,
-              stream: true,
-            },
-            { accessToken }
+      ? Promise.all(
+          noteNumbers.map((noteNumber) =>
+            api.get(
+              '/groups',
+              {
+                parent: `${venueId}/${submissionName}${noteNumber}`,
+                select: 'id,members',
+                domain: group.domain,
+              },
+              { accessToken }
+            )
           )
-          .then((result) => {
-            const singularAreaChairName = areaChairName.endsWith('s')
-              ? areaChairName.slice(0, -1)
-              : areaChairName
-            const areaChairMap = {}
-            result.groups.forEach((areaChairgroup) => {
-              if (areaChairgroup.id.endsWith(`/${areaChairName}`)) {
-                const num = getNumberFromGroup(areaChairgroup.id, submissionName)
-                areaChairMap[num] = areaChairgroup.members
-              }
-            })
-            result.groups.forEach((anonGroup) => {
-              if (anonGroup.id.includes(`/${singularAreaChairName}_`)) {
-                // TODO: parametrize anon group name
-                const num = getNumberFromGroup(anonGroup.id, submissionName)
-                if (areaChairMap[num]) {
-                  const index = areaChairMap[num].indexOf(anonGroup.id)
-                  if (index >= 0) areaChairMap[num][index] = anonGroup.members[0]
-                }
-              }
-            })
-            return areaChairMap
+        ).then((result) => {
+          const singularAreaChairName = areaChairName.endsWith('s')
+            ? areaChairName.slice(0, -1)
+            : areaChairName
+          const areaChairMap = {}
+          const allACGroupResult = result.flatMap((p) => p.groups)
+          allACGroupResult.forEach((areaChairgroup) => {
+            if (areaChairgroup.id.endsWith(`/${areaChairName}`)) {
+              const num = getNumberFromGroup(areaChairgroup.id, submissionName)
+              areaChairMap[num] = areaChairgroup.members
+            }
           })
+          allACGroupResult.forEach((anonGroup) => {
+            if (anonGroup.id.includes(`/${singularAreaChairName}_`)) {
+              // TODO: parametrize anon group name
+              const num = getNumberFromGroup(anonGroup.id, submissionName)
+              if (areaChairMap[num]) {
+                const index = areaChairMap[num].indexOf(anonGroup.id)
+                if (index >= 0) areaChairMap[num][index] = anonGroup.members[0]
+              }
+            }
+          })
+          return areaChairMap
+        })
       : Promise.resolve({})
     // #endregion
 
