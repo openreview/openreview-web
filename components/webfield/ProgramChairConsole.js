@@ -105,6 +105,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const areaChairUrlFormat = getRoleHashFragment(areaChairName)
   const reviewerUrlFormat = getRoleHashFragment(reviewerName)
 
+  const reviewersInvitedId = reviewersId ? `${reviewersId}/Invited` : null
+  const areaChairsInvitedId = areaChairsId ? `${areaChairsId}/Invited` : null
+  const seniorAreaChairsInvitedId = seniorAreaChairsId ? `${seniorAreaChairsId}/Invited` : null
+
   const loadData = async () => {
     if (isLoadingData) return
     setIsLoadingData(true)
@@ -232,6 +236,17 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         registrationForms,
       })
 
+      // #region get invited groups
+      const invitedGroupsP = await Promise.all(
+        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map(
+          (invitedId) =>
+            invitedId
+              ? api.getGroupById(invitedId, accessToken, { select: 'members' })
+              : Promise.resolve(null)
+        )
+      )
+      // #endregion
+
       // #region get Reviewer, AC, SAC members
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
@@ -340,20 +355,21 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         bidCountResultsP,
         perPaperGroupResultsP,
         ithenticateEdgesP,
+        invitedGroupsP,
       ])
 
       const committeeMemberResults = results[0]
       const ithenticateEdges = results[5]
       const notes = []
-      const withdrawnNotes = []
-      const deskRejectedNotes = []
+      let withdrawnNotesCount = 0
+      let deskRejectedNotesCount = 0
       results[1].forEach((note) => {
         if (note.content?.venueid?.value === withdrawnVenueId) {
-          withdrawnNotes.push(note)
+          withdrawnNotesCount += 1
           return
         }
         if (note.content?.venueid?.value === deskRejectedVenueId) {
-          deskRejectedNotes.push(note)
+          deskRejectedNotesCount += 1
           return
         }
         notes.push({
@@ -367,6 +383,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const acRecommendationsCount = results[2]
       const bidCountResults = results[3]
       const perPaperGroupResults = results[4]
+      const invitedGroupsResult = results[6]
 
       // #region categorize result of per paper groups
       const reviewerGroups = []
@@ -514,23 +531,23 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         : Promise.resolve([])
       setDataLoadingStatusMessage('Loading profiles')
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
-      const allProfiles = (profileResults[0].profiles ?? [])
-        .concat(profileResults[1].profiles ?? [])
-        .map((profile) => ({
-          ...profile,
-          preferredName: getProfileName(profile),
-          title: formatProfileContent(profile.content).title,
-        }))
-      // #endregion
-
       const allProfilesMap = new Map()
-      allProfiles.forEach((profile) => {
-        const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-        usernames.concat(profile.email ?? []).forEach((key) => {
-          allProfilesMap.set(key, profile)
-        })
-      })
+      const _ = (profileResults[0].profiles ?? [])
+        .concat(profileResults[1].profiles ?? [])
+        .forEach((profile) => {
+          const reducedProfile = {
+            id: profile.id,
+            preferredName: getProfileName(profile),
+            title: formatProfileContent(profile.content).title,
+            usernames: profile.content.names.flatMap((p) => p.username ?? []),
+          }
 
+          const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+          usernames.concat(profile.email ?? []).forEach((key) => {
+            allProfilesMap.set(key, reducedProfile)
+          })
+        })
+      // #endregion
       const officialReviewsByPaperNumberMap = new Map()
       const metaReviewsByPaperNumberMap = new Map()
       const decisionByPaperNumberMap = new Map()
@@ -579,13 +596,19 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             }
 
             officialReviews.push({
-              ...reply,
+              content: reply.content,
+              id: reply.id,
+              signatures: reply.signatures,
+              forum: reply.forum,
               anonId: getIndentifierFromGroup(anonymousGroupId, anonReviewerName),
             })
           }
           if (reply.invitations.includes(officialMetaReviewInvitationId)) {
             metaReviews.push({
-              ...reply,
+              id: reply.id,
+              forum: reply.forum,
+              content: reply.content,
+              signatures: reply.signatures,
               anonId: getIndentifierFromGroup(reply.signatures[0], anonAreaChairName),
             })
           }
@@ -645,16 +668,29 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           }
         })
 
-        officialReviewsByPaperNumberMap.set(note.number, officialReviews)
-        metaReviewsByPaperNumberMap.set(note.number, metaReviews)
-        decisionByPaperNumberMap.set(note.number, decision)
-        customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
-        displayReplyInvitationsByPaperNumberMap.set(note.number, latestDisplayReplies)
+        if (officialReviews.length) {
+          officialReviewsByPaperNumberMap.set(note.number, officialReviews)
+        }
+        if (metaReviews.length) {
+          metaReviewsByPaperNumberMap.set(note.number, metaReviews)
+        }
+        if (decision) {
+          decisionByPaperNumberMap.set(note.number, decision)
+        }
+        if (customStageReviews.length) {
+          customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
+        }
+        if (latestDisplayReplies.length) {
+          displayReplyInvitationsByPaperNumberMap.set(note.number, latestDisplayReplies)
+        }
+        // eslint-disable-next-line no-param-reassign
+        note.replyCount = replies.length
+        // eslint-disable-next-line no-param-reassign
+        delete note.details?.replies
       })
 
       const consoleData = {
         invitations: invitationResults,
-        allProfiles,
         allProfilesMap,
         requestForm,
         registrationForms,
@@ -667,9 +703,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         decisionByPaperNumberMap,
         customStageReviewsByPaperNumberMap,
         displayReplyInvitationsByPaperNumberMap,
-        withdrawnNotes,
-        deskRejectedNotes,
-
+        withdrawnNotesCount,
+        deskRejectedNotesCount,
         acRecommendationsCount,
         bidCounts: {
           reviewers: bidCountResults[0],
@@ -750,6 +785,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           seniorAreaChairGroups,
         },
         ithenticateEdges,
+        reviewersInvitedCount: invitedGroupsResult[0]?.members?.length ?? 0,
+        areaChairsInvitedCount: invitedGroupsResult[1]?.members?.length ?? 0,
+        seniorAreaChairsInvitedCount: invitedGroupsResult[2]?.members?.length ?? 0,
         timeStamp: dayjs().valueOf(),
       }
       setDataLoadingStatusMessage(null)
@@ -952,7 +990,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             hasReview: officialReviews.some((p) => p.anonymousId === reviewer.anonymousId),
             noteNumber: note.number,
             preferredId: reviewer.reviewerProfileId,
-            preferredName: profile ? getProfileName(profile) : reviewer.reviewerProfileId,
+            preferredName: profile ? profile.preferredName : reviewer.reviewerProfileId,
           }
         }),
         authors: note.content?.authorids?.value?.map((authorId, index) => {
@@ -974,7 +1012,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           confidenceAvg,
           confidenceMax,
           confidenceMin,
-          replyCount: note.details.replies?.length ?? 0,
+          replyCount: note.replyCount,
         },
         metaReviewData: {
           numAreaChairsAssigned: assignedAreaChairs.length,
@@ -986,7 +1024,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               ...areaChair,
               noteNumber: note.number,
               preferredId: profile ? profile.id : areaChair.areaChairProfileId,
-              preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
+              preferredName: profile ? profile.preferredName : areaChair.areaChairProfileId,
               title: profile?.title,
             }
           }),
@@ -998,7 +1036,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               ...areaChair,
               noteNumber: note.number,
               preferredId: profile ? profile.id : areaChair.areaChairProfileId,
-              preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
+              preferredName: profile ? profile.preferredName : areaChair.areaChairProfileId,
               title: profile?.title,
             }
           }),
@@ -1009,7 +1047,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             return {
               type: 'profile',
               preferredId: seniorAreaChairProfileId,
-              preferredName: profile ? getProfileName(profile) : seniorAreaChairProfileId,
+              preferredName: profile ? profile.preferredName : seniorAreaChairProfileId,
               title: profile?.title,
               noteNumber: note.number,
               anonymizedGroup: seniorAreaChairProfileId,
@@ -1031,7 +1069,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             }
           }, {}),
         },
-        displayReplies: pcConsoleData.displayReplyInvitationsByPaperNumberMap.get(note.number),
+        displayReplies:
+          pcConsoleData.displayReplyInvitationsByPaperNumberMap.get(note.number) ?? [],
         decision,
         venue: note?.content?.venue?.value,
         messageSignature: programChairsId,
@@ -1041,7 +1080,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
     // add profileRegistrationNote
     pcConsoleData.allProfilesMap.forEach((profile, id) => {
-      const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+      const usernames = profile.usernames ?? []
 
       let userRegNotes = []
       usernames.forEach((username) => {

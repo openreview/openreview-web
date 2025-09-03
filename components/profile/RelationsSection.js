@@ -91,7 +91,9 @@ const RelationRow = ({
   const relationPlaceholder = 'Choose or type a relation'
   const [relationClicked, setRelationClicked] = useState(false)
   const relationReadersOptionWithExistingRelation = uniqBy(
-    relationReaderOptions.concat(relation.readers.map((r) => ({ value: r, label: r }))),
+    relationReaderOptions.concat(
+      (relation.readers ?? []).map((r) => ({ value: r, label: r }))
+    ),
     (p) => p.value
   )
 
@@ -283,7 +285,7 @@ const RelationRow = ({
             isMobile ? ' relation__multiple-select-mobile' : ''
           }`}
           options={relationReadersOptionWithExistingRelation}
-          selectedValues={relation.readers}
+          selectedValues={relation.readers ?? []}
           setSelectedValues={(values) =>
             setRelation({ type: readersType, data: { value: values, key: relation.key } })
           }
