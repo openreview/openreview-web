@@ -167,6 +167,7 @@
       }
       .spinner-small {
         display: inline-block;
+        margin-bottom: 0;
         div {
           background-color: constants.$orRed;
         }
@@ -1269,13 +1270,6 @@
       .pagination-container {
         margin-top: 1.25rem;
       }
-    }
-
-    .workflow-instruction {
-      margin-top: 0.5rem;
-      margin-bottom: 1.75rem;
-      font-size: 0.875rem;
-      color: constants.$subtleGray;
     }
 
     .workflow {
