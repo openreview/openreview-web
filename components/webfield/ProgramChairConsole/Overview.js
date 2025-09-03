@@ -697,7 +697,7 @@ const DescriptionTimelineOtherConfigRow = ({
     domainContentValues.area_chair_roles ?? ['Area_Chairs']
   const hasEthicsChairs =
     requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes') ||
-    domainContentValues.ethics_chairs_and_reviewers?.value?.includes('Yes')
+    domainContentValues.ethics_chairs_id
   const reviewerRoles = requestFormContent?.reviewer_roles ??
     domainContentValues.reviewer_roles ?? ['Reviewers']
   const singularReviewerName = getSingularRoleName(reviewerName)
