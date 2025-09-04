@@ -927,7 +927,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
     const getAllInvitationsP = await api.getAll(
       '/invitations',
-      { prefix: groupId, expired: true, trash: true, type: 'all', details: 'writableWith' },
+      { prefix: groupId, expired: true, trash: true, type: 'all' },
       { accessToken }
     )
 
