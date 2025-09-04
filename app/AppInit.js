@@ -10,6 +10,7 @@ import mathjaxConfig from '../lib/mathjax-config'
 import MathjaxScript from './MathjaxScript'
 import TurnstileScript from './TurnstileScript'
 import BibtexModal from '../components/BibtexModal'
+import StripeScript from './StripeScript'
 
 export default function AppInit() {
   const [libarysLoaded, setLibrariesLoaded] = useState(false)
@@ -93,6 +94,7 @@ export default function AppInit() {
     <>
       <MathjaxScript />
       <TurnstileScript />
+      <StripeScript />
       {libarysLoaded && <BibtexModal />}
     </>
   )
