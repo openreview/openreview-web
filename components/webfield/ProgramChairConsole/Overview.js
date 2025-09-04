@@ -690,14 +690,14 @@ const DescriptionTimelineOtherConfigRow = ({
     requestForm?.content,
     requestForm?.apiVersion
   )
-  const domainContentValues = getNoteContentValues(domainContent, requestForm?.apiVersion)
+  const domainContentValues = getNoteContentValues(domainContent)
   const sacRoles = requestFormContent?.senior_area_chair_roles ??
     domainContentValues.senior_area_chair_roles ?? ['Senior_Area_Chairs']
   const acRoles = requestFormContent?.area_chair_roles ??
     domainContentValues.area_chair_roles ?? ['Area_Chairs']
   const hasEthicsChairs =
     requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes') ||
-    domainContentValues.ethics_chairs_and_reviewers?.includes('Yes')
+    domainContentValues.ethics_chairs_id
   const reviewerRoles = requestFormContent?.reviewer_roles ??
     domainContentValues.reviewer_roles ?? ['Reviewers']
   const singularReviewerName = getSingularRoleName(reviewerName)
