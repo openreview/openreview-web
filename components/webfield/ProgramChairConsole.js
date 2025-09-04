@@ -685,6 +685,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         }
         // eslint-disable-next-line no-param-reassign
         note.replyCount = replies.length
+        // eslint-disable-next-line no-param-reassign
+        delete note.details?.replies
       })
 
       const consoleData = {
