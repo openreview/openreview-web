@@ -6,10 +6,10 @@ table.messages-table {
   margin-bottom: 2rem;
 
   .email-to {
-    color: constants.$subtleGray;
+    color: black;
   }
   .email-sent {
-    color: constants.$subtleGray;
+    color: darken(constants.$subtleGray, 50%);
   }
   .email-parent {
     color: constants.$subtleGray;
@@ -20,6 +20,7 @@ table.messages-table {
   }
   .email-content {
     position: relative;
+    cursor: pointer;
 
     &.collapsed {
       max-height: 150px;

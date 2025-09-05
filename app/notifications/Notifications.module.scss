@@ -38,10 +38,10 @@
         line-height: 26px;
       }
       td.viewed {
-        opacity: 0.6;
+        opacity: 0.8;
         background-color: #eee;
         &:hover {
-          opacity: 0.8;
+          opacity: 0.9;
         }
         .collapse-widget > div {
           border-left: 3px solid #fff;
@@ -49,6 +49,10 @@
           padding-right: 0.5rem;
           padding-bottom: 0.5rem;
           background-color: constants.$backgroundWhite;
+        }
+
+        .collapse-widget > a {
+          color: darken(constants.$mediumBlue, 50%);
         }
       }
       .email-title h4 {

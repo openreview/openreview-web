@@ -6,8 +6,6 @@ const Accordion = ({ sections, options }) => (
   <div
     id={options.id}
     className={`webfield-accordion panel-group ${options.extraClasses ?? ''}`}
-    role="tablist"
-    aria-multiselectable="true"
   >
     {sections.map((section, i) => {
       const sectionId = section.id || `${options.id}-section-${i}`
@@ -23,7 +21,7 @@ const Accordion = ({ sections, options }) => (
 )
 
 const SectionHeading = ({ id, heading, options }) => (
-  <div className="panel-heading" role="tab">
+  <div className="panel-heading">
     <h4 className="panel-title">
       <SectionHeadingLink targetId={id} collapsed={options.collapsed}>
         <Icon name="triangle-bottom" />
@@ -54,7 +52,7 @@ const SectionHeadingLink = ({ targetId, children, collapsed, shouldCollapse = tr
       role="button"
       data-toggle="collapse"
       data-target={`#${targetId}`}
-      aria-controls={targetId}
+      aria-label="Toggle section"
     >
       {children}
     </a>
@@ -73,11 +71,7 @@ const SectionBody = ({ id, body, options }) => {
     }
   }
   return (
-    <div
-      id={id}
-      className={`panel-collapse collapse${options.collapsed ? '' : ' in'}`}
-      role="tabpanel"
-    >
+    <div id={id} className={`panel-collapse collapse${options.collapsed ? '' : ' in'}`}>
       <div className="panel-body">
         {options.html ? (
           // eslint-disable-next-line react/no-danger

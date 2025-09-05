@@ -14,7 +14,12 @@ const UnlinkPublicationButton = ({ noteId, linkUnlinkPublication, isUnlinked }) 
   }
 
   return (
-    <span role="button" tabIndex={0} onClick={handleClick}>
+    <span
+      role="button"
+      tabIndex={0}
+      onClick={handleClick}
+      aria-label={shouldUnlink ? 'unlink this paper' : 'relink this paper'}
+    >
       <Icon
         name={iconType}
         extraClasses={extraClasses}
