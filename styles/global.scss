@@ -959,3 +959,8 @@ header {
     }
   }
 }
+
+.pdf-container {
+  display: flex;
+  flex-direction: column;
+}
