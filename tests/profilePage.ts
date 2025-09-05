@@ -164,6 +164,511 @@ const dblpMock = RequestMock()
   .onRequestTo('https://dblp.org/pid/95/7448-1.xml')
   .respond(responseDBLPXML, 200, { 'access-control-allow-origin': '*', 'content-type': 'application/xml' })
 
+const orcidMock = RequestMock().onRequestTo('https://pub.orcid.org/v3.0/0000-0002-0613-2229/person')
+  .respond({
+    name: {
+      "given-names": {
+        "value": "Di"
+      },
+      "family-name": {
+        "value": "Xu"
+      },
+      "credit-name": null,
+      "source": null,
+      "visibility": "public",
+      "path": "0000-0002-0613-2229"
+    },
+    "other-names": {
+      "other-name"
+        : []
+    },
+  }, 200, { 'access-control-allow-origin': '*', 'content-type': 'application/json' })
+  .onRequestTo('https://pub.orcid.org/v3.0/0000-0002-0613-2229/works')
+  .respond({
+    group: [
+      {
+        "last-modified-date": {
+          "value": 1659733982465
+        },
+        "external-ids": {
+          "external-id": [
+            {
+              "external-id-type": "doi",
+              "external-id-value": "10.1364/OE.413844",
+              "external-id-normalized": {
+                "value": "10.1364/oe.413844",
+                "transient": true
+              },
+              "external-id-normalized-error": null,
+              "external-id-url": {
+                "value": "https://doi.org/10.1364/OE.413844"
+              },
+              "external-id-relationship": "self"
+            }
+          ]
+        },
+        "work-summary": [
+          {
+            "put-code": 89975745,
+            "created-date": {
+              "value": 1614900258303
+            },
+            "last-modified-date": {
+              "value": 1659733982465
+            },
+            "source": {
+              "source-orcid": null,
+              "source-client-id": {
+                "uri": "https://orcid.org/client/0000-0001-9884-1913",
+                "path": "0000-0001-9884-1913",
+                "host": "orcid.org"
+              },
+              "source-name": {
+                "value": "Crossref"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "title": {
+              "title": {
+                "value": "Verification of cascade optical coherence tomography for freeform optics form metrology"
+              },
+              "subtitle": null,
+              "translated-title": null
+            },
+            "external-ids": {
+              "external-id": [
+                {
+                  "external-id-type": "doi",
+                  "external-id-value": "10.1364/OE.413844",
+                  "external-id-normalized": {
+                    "value": "10.1364/oe.413844",
+                    "transient": true
+                  },
+                  "external-id-normalized-error": null,
+                  "external-id-url": {
+                    "value": "https://doi.org/10.1364/OE.413844"
+                  },
+                  "external-id-relationship": "self"
+                }
+              ]
+            },
+            "url": {
+              "value": "https://doi.org/10.1364/OE.413844"
+            },
+            "type": "journal-article",
+            "publication-date": {
+              "year": {
+                "value": "2021"
+              },
+              "month": {
+                "value": "03"
+              },
+              "day": {
+                "value": "15"
+              }
+            },
+            "journal-title": {
+              "value": "Optics Express"
+            },
+            "visibility": "public",
+            "path": "/0000-0002-0613-2229/work/89975745",
+            "display-index": "0"
+          }
+        ]
+      },
+      {
+        "last-modified-date": {
+          "value": 1663265211991
+        },
+        "external-ids": {
+          "external-id": [
+            {
+              "external-id-type": "doi",
+              "external-id-value": "10.1364/OE.394638",
+              "external-id-normalized": {
+                "value": "10.1364/oe.394638",
+                "transient": true
+              },
+              "external-id-normalized-error": null,
+              "external-id-url": {
+                "value": "https://doi.org/10.1364/OE.394638"
+              },
+              "external-id-relationship": "self"
+            }
+          ]
+        },
+        "work-summary": [
+          {
+            "put-code": 76065020,
+            "created-date": {
+              "value": 1592855844182
+            },
+            "last-modified-date": {
+              "value": 1663265211991
+            },
+            "source": {
+              "source-orcid": null,
+              "source-client-id": {
+                "uri": "https://orcid.org/client/0000-0001-9884-1913",
+                "path": "0000-0001-9884-1913",
+                "host": "orcid.org"
+              },
+              "source-name": {
+                "value": "Crossref"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "title": {
+              "title": {
+                "value": "Cascade optical coherence tomography (C-OCT)"
+              },
+              "subtitle": null,
+              "translated-title": null
+            },
+            "external-ids": {
+              "external-id": [
+                {
+                  "external-id-type": "doi",
+                  "external-id-value": "10.1364/OE.394638",
+                  "external-id-normalized": {
+                    "value": "10.1364/oe.394638",
+                    "transient": true
+                  },
+                  "external-id-normalized-error": null,
+                  "external-id-url": {
+                    "value": "https://doi.org/10.1364/OE.394638"
+                  },
+                  "external-id-relationship": "self"
+                }
+              ]
+            },
+            "url": {
+              "value": "https://doi.org/10.1364/OE.394638"
+            },
+            "type": "journal-article",
+            "publication-date": {
+              "year": {
+                "value": "2020"
+              },
+              "month": {
+                "value": "07"
+              },
+              "day": {
+                "value": "06"
+              }
+            },
+            "journal-title": {
+              "value": "Optics Express"
+            },
+            "visibility": "public",
+            "path": "/0000-0002-0613-2229/work/76065020",
+            "display-index": "0"
+          }
+        ]
+      }
+    ]
+  }, 200, { 'access-control-allow-origin': '*', 'content-type': 'application/json' })
+  .onRequestTo('https://pub.orcid.org/v3.0/0000-0002-0613-2229/works/89975745,76065020')
+  .respond({
+    "bulk": [
+      {
+        "work": {
+          "created-date": {
+            "value": 1592855844182
+          },
+          "last-modified-date": {
+            "value": 1663265211991
+          },
+          "source": {
+            "source-orcid": null,
+            "source-client-id": {
+              "uri": "https://orcid.org/client/0000-0001-9884-1913",
+              "path": "0000-0001-9884-1913",
+              "host": "orcid.org"
+            },
+            "source-name": {
+              "value": "Crossref"
+            },
+            "assertion-origin-orcid": null,
+            "assertion-origin-client-id": null,
+            "assertion-origin-name": null
+          },
+          "put-code": 76065020,
+          "path": "/0000-0002-0613-2229/work/76065020",
+          "title": {
+            "title": {
+              "value": "Cascade optical coherence tomography (C-OCT)"
+            },
+            "subtitle": null,
+            "translated-title": null
+          },
+          "journal-title": {
+            "value": "Optics Express"
+          },
+          "short-description": null,
+          "citation": {
+            "citation-type": "bibtex",
+            "citation-value": "<head>\n<META HTTP-EQUIV=\"Refresh\" CONTENT=\"0;URL=/servlet/useragent\">\n</head>\n"
+          },
+          "type": "journal-article",
+          "publication-date": {
+            "year": {
+              "value": "2020"
+            },
+            "month": {
+              "value": "07"
+            },
+            "day": {
+              "value": "06"
+            }
+          },
+          "external-ids": {
+            "external-id": [
+              {
+                "external-id-type": "doi",
+                "external-id-value": "10.1364/OE.394638",
+                "external-id-normalized": {
+                  "value": "10.1364/oe.394638",
+                  "transient": true
+                },
+                "external-id-normalized-error": null,
+                "external-id-url": {
+                  "value": "https://doi.org/10.1364/OE.394638"
+                },
+                "external-id-relationship": "self"
+              }
+            ]
+          },
+          "url": {
+            "value": "https://doi.org/10.1364/OE.394638"
+          },
+          "contributors": {
+            "contributor": [
+              {
+                "contributor-orcid": null,
+                "credit-name": {
+                  "value": "Di Xu"
+                },
+                "contributor-email": null,
+                "contributor-attributes": {
+                  "contributor-sequence": null,
+                  "contributor-role": "author"
+                }
+              },
+              {
+                "contributor-orcid": null,
+                "credit-name": {
+                  "value": "Andres Garcia Coleto"
+                },
+                "contributor-email": null,
+                "contributor-attributes": {
+                  "contributor-sequence": null,
+                  "contributor-role": "author"
+                }
+              },
+              {
+                "contributor-orcid": null,
+                "credit-name": {
+                  "value": "Benjamin Moon"
+                },
+                "contributor-email": null,
+                "contributor-attributes": {
+                  "contributor-sequence": null,
+                  "contributor-role": "author"
+                }
+              },
+              {
+                "contributor-orcid": null,
+                "credit-name": {
+                  "value": "Jonathan C. Papa"
+                },
+                "contributor-email": null,
+                "contributor-attributes": {
+                  "contributor-sequence": null,
+                  "contributor-role": "author"
+                }
+              },
+              {
+                "contributor-orcid": null,
+                "credit-name": {
+                  "value": "Michael Pomerantz"
+                },
+                "contributor-email": null,
+                "contributor-attributes": {
+                  "contributor-sequence": null,
+                  "contributor-role": "author"
+                }
+              },
+              {
+                "contributor-orcid": null,
+                "credit-name": {
+                  "value": "Jannick P. Rolland"
+                },
+                "contributor-email": null,
+                "contributor-attributes": {
+                  "contributor-sequence": null,
+                  "contributor-role": "author"
+                }
+              }
+            ]
+          },
+          "language-code": null,
+          "country": null,
+          "visibility": "public"
+        }
+      },
+      {
+        "work": {
+          "created-date": {
+            "value": 1614900258303
+          },
+          "last-modified-date": {
+            "value": 1659733982465
+          },
+          "source": {
+            "source-orcid": null,
+            "source-client-id": {
+              "uri": "https://orcid.org/client/0000-0001-9884-1913",
+              "path": "0000-0001-9884-1913",
+              "host": "orcid.org"
+            },
+            "source-name": {
+              "value": "Crossref"
+            },
+            "assertion-origin-orcid": null,
+            "assertion-origin-client-id": null,
+            "assertion-origin-name": null
+          },
+          "put-code": 89975745,
+          "path": "/0000-0002-0613-2229/work/89975745",
+          "title": {
+            "title": {
+              "value": "Verification of cascade optical coherence tomography for freeform optics form metrology"
+            },
+            "subtitle": null,
+            "translated-title": null
+          },
+          "journal-title": {
+            "value": "Optics Express"
+          },
+          "short-description": null,
+          "citation": {
+            "citation-type": "bibtex",
+            "citation-value": "@article{Xu_2021,\n\tdoi = {10.1364/oe.413844},\n\turl = {https://doi.org/10.1364%2Foe.413844},\n\tyear = 2021,\n\tmonth = {mar},\n\tpublisher = {The Optical Society},\n\tvolume = {29},\n\tnumber = {6},\n\tpages = {8542},\n\tauthor = {Di Xu and Zhenkun Wen and Andres Garcia Coleto and Michael Pomerantz and John C. Lambropoulos and Jannick P. Rolland},\n\ttitle = {Verification of cascade optical coherence tomography for freeform optics form metrology},\n\tjournal = {Optics Express}\n}"
+          },
+          "type": "journal-article",
+          "publication-date": {
+            "year": {
+              "value": "2021"
+            },
+            "month": {
+              "value": "03"
+            },
+            "day": {
+              "value": "15"
+            }
+          },
+          "external-ids": {
+            "external-id": [
+              {
+                "external-id-type": "doi",
+                "external-id-value": "10.1364/OE.413844",
+                "external-id-normalized": {
+                  "value": "10.1364/oe.413844",
+                  "transient": true
+                },
+                "external-id-normalized-error": null,
+                "external-id-url": {
+                  "value": "https://doi.org/10.1364/OE.413844"
+                },
+                "external-id-relationship": "self"
+              }
+            ]
+          },
+          "url": {
+            "value": "https://doi.org/10.1364/OE.413844"
+          },
+          "contributors": {
+            "contributor": [
+              {
+                "contributor-orcid": null,
+                "credit-name": {
+                  "value": "Di Xu"
+                },
+                "contributor-email": null,
+                "contributor-attributes": {
+                  "contributor-sequence": null,
+                  "contributor-role": "author"
+                }
+              },
+              {
+                "contributor-orcid": null,
+                "credit-name": {
+                  "value": "Zhenkun Wen"
+                },
+                "contributor-email": null,
+                "contributor-attributes": {
+                  "contributor-sequence": null,
+                  "contributor-role": "author"
+                }
+              },
+              {
+                "contributor-orcid": null,
+                "credit-name": {
+                  "value": "Andres Garcia Coleto"
+                },
+                "contributor-email": null,
+                "contributor-attributes": {
+                  "contributor-sequence": null,
+                  "contributor-role": "author"
+                }
+              },
+              {
+                "contributor-orcid": null,
+                "credit-name": {
+                  "value": "Michael Pomerantz"
+                },
+                "contributor-email": null,
+                "contributor-attributes": {
+                  "contributor-sequence": null,
+                  "contributor-role": "author"
+                }
+              },
+              {
+                "contributor-orcid": null,
+                "credit-name": {
+                  "value": "John C. Lambropoulos"
+                },
+                "contributor-email": null,
+                "contributor-attributes": {
+                  "contributor-sequence": null,
+                  "contributor-role": "author"
+                }
+              },
+              {
+                "contributor-orcid": null,
+                "credit-name": {
+                  "value": "Jannick P. Rolland"
+                },
+                "contributor-email": null,
+                "contributor-attributes": {
+                  "contributor-sequence": null,
+                  "contributor-role": "author"
+                }
+              }
+            ]
+          },
+          "language-code": null,
+          "country": null,
+          "visibility": "public"
+        }
+      }
+    ]
+  }, 200, { 'access-control-allow-origin': '*', 'content-type': 'application/json' })
 // #region long repeated selectors
 const errorMessageSelector = Selector('#flash-message-container', {
   visibilityCheck: true,
@@ -211,6 +716,11 @@ const step3Links = Selector('div[step="3"]').find('div[role="button"]')
 const step4History = Selector('div[step="4"]').find('div[role="button"]')
 const step5Relations = Selector('div[step="5"]').find('div[role="button"]')
 const step6Expertise = Selector('div[step="6"]').find('div[role="button"]')
+const orcidUrlInput = Selector('#orcid_url')
+const addORCIDPapersToProfileButton = Selector('button.personal-links__addorcidbtn')
+const orcidImportModalAddToProfileBtn = Selector('#orcid-import-modal')
+  .find('button')
+  .withText('Add to Your Profile')
 
 // #endregion
 
@@ -1026,6 +1536,70 @@ test('open profile of other user by id', async (t) => {
     .eql(hasTaskUser.fullname)
     .expect(profileViewEmail.innerText)
     .contains('****')
+})
+
+fixture`ORCID import`.requestHooks(orcidMock)
+test('show error when using orcid url of somone else', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step3Links)
+    // add orcid papers button should be disabled when there's no orcid url
+    .expect(addORCIDPapersToProfileButton.hasAttribute('disabled'))
+    .ok()
+    .typeText(orcidUrlInput, 'https://orcid.org/0000-0001-7660-1599', { replace: true })
+    .expect(addORCIDPapersToProfileButton.hasAttribute('disabled'))
+    .notOk()
+    .click(addORCIDPapersToProfileButton)
+    // should show orcid import modal with error message
+    .expect(Selector('#orcid-import-modal').visible)
+    .ok()
+    .expect(Selector('#orcid-import-modal').find('div.modal-body').innerText)
+    .eql('Your profile name must match with the ORCID url')
+})
+
+test('show error when using invalid orcid url', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step3Links)
+    // add orcid papers button should be disabled when there's no orcid url
+    .expect(addORCIDPapersToProfileButton.hasAttribute('disabled'))
+    .ok()
+    .typeText(orcidUrlInput, 'https://orcid.org/0000-0000-0000-0000', { replace: true })
+    .expect(addORCIDPapersToProfileButton.hasAttribute('disabled'))
+    .notOk()
+    .click(addORCIDPapersToProfileButton)
+    // should show orcid import modal with error message
+    .expect(Selector('#orcid-import-modal').visible)
+    .ok()
+    .expect(Selector('#orcid-import-modal').find('div.modal-body').innerText)
+    .eql('ORCID ID 0000-0000-0000-0000 is not found')
+})
+
+test('show orcid publications', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step3Links)
+    .typeText(orcidUrlInput, 'https://orcid.org/0000-0002-0613-2229', { replace: true })
+    .click(addORCIDPapersToProfileButton)
+    // should show 2 publications in mock response
+    .expect(Selector('#orcid-import-modal').visible)
+    .ok()
+    .expect(Selector('#orcid-import-modal').find('div.modal-body>p').innerText)
+    .eql('We found 2 publications, 0 of which already exist in OpenReview, 2 of which are new. Please select the new publications of which you are actually an author. Then click "Add to Your Profile" to import them.')
+    .expect(Selector('div.publication-title').count)
+    .eql(2)
+    .expect(Selector('div.publication-title').nth(0).innerText)
+    .eql('Verification of cascade optical coherence tomography for freeform optics form metrology(Crossref)')
+    .expect(Selector('div.publication-title').nth(1).innerText)
+    .eql('Cascade optical coherence tomography (C-OCT)(Crossref)')
+    .expect(orcidImportModalAddToProfileBtn.hasAttribute('disabled'))
+    .ok()
 })
 
 // eslint-disable-next-line no-unused-expressions
