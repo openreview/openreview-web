@@ -5,15 +5,9 @@ import React, { useEffect, useState } from 'react'
 import { isEmpty } from 'lodash'
 import { nanoid } from 'nanoid'
 import SpinnerButton from '../../../components/SpinnerButton'
-import {
-  getProfileStateLabelClass,
-  prettyField,
-  prettyId,
-  prettyInvitationId,
-} from '../../../lib/utils'
+import { getProfileStateLabelClass, prettyField } from '../../../lib/utils'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
-import ProfileTag from '../../../components/ProfileTag'
 
 // #region components used by Compare (in renderField method)
 const Names = ({ names, highlightValue }) => (
@@ -290,6 +284,21 @@ const renderEdgeLink = (count, headTail, id) => {
   )
 }
 
+const renderTagLink = (count, id) => {
+  if (count === 0) return 'no tag'
+  return (
+    <>
+      <a
+        href={`${process.env.API_V2_URL}/tags?profile=${id}`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {count} tags
+      </a>
+    </>
+  )
+}
+
 const getHighlightValue = (withSignatureProfile) => {
   const compareFields = []
   Object.entries(withSignatureProfile).forEach(([key, value]) => {
@@ -396,8 +405,8 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
       )
       const results = await Promise.all([leftTagsP, rightTagsP])
       setTags({
-        left: results[0].tags,
-        right: results[1].tags,
+        left: results[0].count,
+        right: results[1].count,
       })
     } catch (error) {
       promptError(error.message)
@@ -600,9 +609,7 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
             </td>
             <td>
               <div className="tags-container">
-                {tags.left.length > 0
-                  ? tags.left.map((tag, index) => <ProfileTag key={index} tag={tag} />)
-                  : 'no tag'}
+                {renderTagLink(tags.left, profiles.left.id)}
               </div>
             </td>
             <td colSpan="2" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
@@ -628,9 +635,7 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
             </td>
             <td>
               <div className="tags-container">
-                {tags.right.length > 0
-                  ? tags.right.map((tag, index) => <ProfileTag key={index} tag={tag} />)
-                  : ' no tag'}
+                {renderTagLink(tags.right, profiles.right.id)}
               </div>
             </td>
           </tr>
