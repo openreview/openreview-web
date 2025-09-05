@@ -1556,7 +1556,27 @@ test('show error when using orcid url of somone else', async (t) => {
     .expect(Selector('#orcid-import-modal').visible)
     .ok()
     .expect(Selector('#orcid-import-modal').find('div.modal-body').innerText)
-    .eql('Please use your own ORCID')
+    .eql('Your profile name must match with the ORCID url')
+})
+
+test('show error when using invalid orcid url', async (t) => {
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step3Links)
+    // add orcid papers button should be disabled when there's no orcid url
+    .expect(addORCIDPapersToProfileButton.hasAttribute('disabled'))
+    .ok()
+    .typeText(orcidUrlInput, 'https://orcid.org/0000-0000-0000-0000', { replace: true })
+    .expect(addORCIDPapersToProfileButton.hasAttribute('disabled'))
+    .notOk()
+    .click(addORCIDPapersToProfileButton)
+    // should show orcid import modal with error message
+    .expect(Selector('#orcid-import-modal').visible)
+    .ok()
+    .expect(Selector('#orcid-import-modal').find('div.modal-body').innerText)
+    .eql('ORCID ID 0000-0000-0000-0000 is not found')
 })
 
 test('show orcid publications', async (t) => {
