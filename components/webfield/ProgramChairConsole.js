@@ -584,8 +584,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                 ([anonReviewerId, anonReviewerGroupId]) => {
                   const profile = allProfilesMap.get(anonReviewerId)
                   if (!profile) return
-                  const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-                  usernames.concat(profile.email ?? []).forEach((key) => {
+                  profile.usernames.concat(profile.email ?? []).forEach((key) => {
                     idToAnonIdMap[key] = anonReviewerGroupId
                   })
                 }
