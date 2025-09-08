@@ -199,6 +199,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
     metaReviews,
     seniorAreaChairs,
     secondaryAreaChairs,
+    customStageReviews,
   } = metaReviewData
   const paperManualAreaChairAssignmentUrl = areaChairAssignmentUrl?.replace(
     'edges/browse?',
@@ -398,6 +399,25 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
           ))}
         </div>
       )}
+      {Object.values(customStageReviews ?? {}).map((customStageReview) => {
+        if (!customStageReview.value) return null
+        return (
+          <div key={customStageReview.id}>
+            <span className="recommendation">
+              {customStageReview.name}: {customStageReview.value}
+            </span>
+            <div>
+              <a
+                href={`/forum?id=${customStageReview.forum}&noteId=${customStageReview.id}&referrer=${referrerUrl}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {`Read ${customStageReview.name}`}
+              </a>
+            </div>
+          </div>
+        )
+      })}
 
       {paperManualAreaChairAssignmentUrl && (
         <div className="mt-3">
