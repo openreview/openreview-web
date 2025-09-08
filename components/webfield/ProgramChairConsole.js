@@ -1094,6 +1094,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                 },
               }
             const customStageValue = customStageReview?.content?.[curr.displayField]?.value
+            const customStageExtraDisplayFields = curr.extraDisplayFields ?? []
             return {
               ...prev,
               [camelCase(curr.name)]: {
@@ -1101,6 +1102,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                 name: prettyId(curr.name),
                 role: curr.role,
                 value: customStageValue,
+                extraDisplayFields: customStageExtraDisplayFields.map((field) => ({
+                  field,
+                  value: customStageReview?.content?.[field]?.value,
+                })),
                 ...customStageReview,
               },
             }

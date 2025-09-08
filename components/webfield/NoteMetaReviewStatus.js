@@ -399,25 +399,44 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
           ))}
         </div>
       )}
-      {Object.values(customStageReviews ?? {}).map((customStageReview) => {
-        if (!customStageReview.value) return null
-        return (
-          <div key={customStageReview.id}>
-            <span className="recommendation">
-              {customStageReview.name}: {customStageReview.value}
-            </span>
-            <div>
-              <a
-                href={`/forum?id=${customStageReview.forum}&noteId=${customStageReview.id}&referrer=${referrerUrl}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {`Read ${customStageReview.name}`}
-              </a>
-            </div>
-          </div>
-        )
-      })}
+
+      {customStageReviews && (
+        <div>
+          <strong>Others:</strong>
+          {Object.values(customStageReviews).map((customStageReview) => {
+            if (!customStageReview.value) return null
+            return (
+              <div key={customStageReview.id} className="meta-review-info">
+                <span>
+                  {customStageReview.name}: {customStageReview.value}
+                </span>
+
+                {customStageReview.extraDisplayFields?.length > 0 &&
+                  customStageReview.extraDisplayFields.map(({ field, value }, index) => {
+                    if (!value) return null
+                    return (
+                      <div key={`${field}-${index}`} className="meta-review-info">
+                        <span>
+                          {prettyField(field)}: {value}
+                        </span>
+                      </div>
+                    )
+                  })}
+
+                <div>
+                  <a
+                    href={`/forum?id=${customStageReview.forum}&noteId=${customStageReview.id}&referrer=${referrerUrl}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {`Read ${customStageReview.name}`}
+                  </a>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {paperManualAreaChairAssignmentUrl && (
         <div className="mt-3">
