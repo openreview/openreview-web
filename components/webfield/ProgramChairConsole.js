@@ -1102,8 +1102,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                 name: prettyId(curr.name),
                 role: curr.role,
                 value: customStageValue,
+                displayField: prettyField(curr.displayField),
                 extraDisplayFields: customStageExtraDisplayFields.map((field) => ({
-                  field,
+                  field: prettyField(field),
                   value: customStageReview?.content?.[field]?.value,
                 })),
                 ...customStageReview,

@@ -399,38 +399,40 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
           ))}
         </div>
       )}
-
       {customStageReviews && (
         <div>
-          <strong>Others:</strong>
-          {Object.values(customStageReviews).map((customStageReview) => {
+          {Object.values(customStageReviews).map((customStageReview, index) => {
             if (!customStageReview.value) return null
+
             return (
-              <div key={customStageReview.id} className="meta-review-info">
-                <span>
-                  {customStageReview.name}: {customStageReview.value}
-                </span>
+              <div key={`${customStageReview.id}-${index}`}>
+                <strong className="custom-stage-name">{customStageReview.name}:</strong>
+                <div className="meta-review-info">
+                  <span>
+                    {customStageReview.displayField}: {customStageReview.value}
+                  </span>
 
-                {customStageReview.extraDisplayFields?.length > 0 &&
-                  customStageReview.extraDisplayFields.map(({ field, value }, index) => {
-                    if (!value) return null
-                    return (
-                      <div key={`${field}-${index}`} className="meta-review-info">
-                        <span>
-                          {prettyField(field)}: {value}
-                        </span>
-                      </div>
-                    )
-                  })}
+                  {customStageReview.extraDisplayFields?.length > 0 &&
+                    customStageReview.extraDisplayFields.map(({ field, value }, i) => {
+                      if (!value) return null
+                      return (
+                        <div key={`${field}-${i}`} className="meta-review-info">
+                          <span>
+                            {field}: {value}
+                          </span>
+                        </div>
+                      )
+                    })}
 
-                <div>
-                  <a
-                    href={`/forum?id=${customStageReview.forum}&noteId=${customStageReview.id}&referrer=${referrerUrl}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {`Read ${customStageReview.name}`}
-                  </a>
+                  <div>
+                    <a
+                      href={`/forum?id=${customStageReview.forum}&noteId=${customStageReview.id}&referrer=${referrerUrl}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {`Read ${customStageReview.name}`}
+                    </a>
+                  </div>
                 </div>
               </div>
             )
