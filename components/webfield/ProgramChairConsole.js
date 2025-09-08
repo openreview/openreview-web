@@ -3,7 +3,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import groupBy from 'lodash/groupBy'
-import { orderBy } from 'lodash'
+import { camelCase, orderBy } from 'lodash'
 import dayjs from 'dayjs'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -91,6 +91,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     preferredEmailInvitationId,
     ithenticateInvitationId,
     displayReplyInvitations,
+    metaReviewAgreementConfig,
     useCache = false,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
@@ -186,14 +187,25 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       // #region getRequestForm
       const getRequestFormResultP = requestFormId
-        ? api.getNoteById(
-            requestFormId,
-            accessToken,
-            {
-              select: 'id,content',
-            },
-            undefined
-          )
+        ? api
+            .getNoteById(
+              requestFormId,
+              accessToken,
+              {
+                select: 'id,content',
+              },
+              undefined
+            )
+            .catch((error) => {
+              if (error.name === 'ForbiddenError') {
+                promptError(
+                  'You do not have access to the venue configuration, please refer to the <a target="_blank" rel="noopener noreferrer" href="https://docs.openreview.net/getting-started/frequently-asked-questions/how-do-i-add-a-program-chair-to-my-venue">documentation</a>.',
+                  { html: true }
+                )
+                return null
+              }
+              throw error
+            })
         : Promise.resolve(null)
       // #endregion
 
@@ -552,6 +564,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const metaReviewsByPaperNumberMap = new Map()
       const decisionByPaperNumberMap = new Map()
       const customStageReviewsByPaperNumberMap = new Map()
+      const metaReviewAgreementsByPaperNumberMap = new Map()
       const displayReplyInvitationsByPaperNumberMap = new Map()
       notes.forEach((note) => {
         const replies = note.details.replies ?? []
@@ -559,6 +572,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         const metaReviews = []
         let decision
         const customStageReviews = []
+        const metaReviewAgreements = []
         const latestDisplayReplies = []
 
         const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
@@ -613,6 +627,12 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           }
           if (reply.invitations.includes(decisionInvitationId)) {
             decision = reply
+          }
+          if (
+            metaReviewAgreementConfig &&
+            reply.invitations.some((p) => p.includes(`/-/${metaReviewAgreementConfig.name}`))
+          ) {
+            metaReviewAgreements.push(reply)
           }
           if (
             reply.invitations.some((p) => customStageInvitationIds.some((q) => p.includes(q)))
@@ -679,6 +699,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         if (customStageReviews.length) {
           customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
         }
+        if (metaReviewAgreements.length) {
+          metaReviewAgreementsByPaperNumberMap.set(note.number, metaReviewAgreements)
+        }
         if (latestDisplayReplies.length) {
           displayReplyInvitationsByPaperNumberMap.set(note.number, latestDisplayReplies)
         }
@@ -701,6 +724,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         metaReviewsByPaperNumberMap,
         decisionByPaperNumberMap,
         customStageReviewsByPaperNumberMap,
+        metaReviewAgreementsByPaperNumberMap,
         displayReplyInvitationsByPaperNumberMap,
         withdrawnNotesCount,
         deskRejectedNotesCount,
@@ -932,16 +956,14 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       const customStageReviews =
         pcConsoleData.customStageReviewsByPaperNumberMap?.get(note.number) ?? []
-
+      const metaReviewAgreements =
+        pcConsoleData.metaReviewAgreementsByPaperNumberMap?.get(note.number) ?? []
       const metaReviews = (
         pcConsoleData.metaReviewsByPaperNumberMap?.get(note.number) ?? []
       ).map((metaReview) => {
-        const metaReviewAgreement = customStageReviews.find(
-          (p) => p.replyto === metaReview.id || p.forum === metaReview.forum
-        )
-        const metaReviewAgreementConfig = metaReviewAgreement
-          ? customStageInvitations.find((p) =>
-              metaReviewAgreement.invitations.some((q) => q.includes(`/-/${p.name}`))
+        const metaReviewAgreement = metaReviewAgreementConfig
+          ? metaReviewAgreements.find(
+              (p) => p.replyto === metaReview.id || p.forum === metaReview.forum
             )
           : null
         const metaReviewAgreementValue =
@@ -1060,6 +1082,35 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           metaReviewAgreementSearchValue: metaReviews
             .map((p) => p.metaReviewAgreement.searchValue)
             .join(' '),
+          customStageReviews: customStageInvitations?.reduce((prev, curr) => {
+            const customStageReview = customStageReviews.find((p) =>
+              p.invitations.some((q) => q.includes(`/-/${curr.name}`))
+            )
+            if (!customStageReview)
+              return {
+                ...prev,
+                [camelCase(curr.name)]: {
+                  searchValue: 'N/A',
+                },
+              }
+            const customStageValue = customStageReview?.content?.[curr.displayField]?.value
+            const customStageExtraDisplayFields = curr.extraDisplayFields ?? []
+            return {
+              ...prev,
+              [camelCase(curr.name)]: {
+                searchValue: customStageValue,
+                name: prettyId(curr.name),
+                role: curr.role,
+                value: customStageValue,
+                displayField: prettyField(curr.displayField),
+                extraDisplayFields: customStageExtraDisplayFields.map((field) => ({
+                  field: prettyField(field),
+                  value: customStageReview?.content?.[field]?.value,
+                })),
+                ...customStageReview,
+              },
+            }
+          }, {}),
           ...additionalMetaReviewFields?.reduce((prev, curr) => {
             const additionalMetaReviewValues = metaReviews.map((p) => p[curr]?.searchValue)
             return {

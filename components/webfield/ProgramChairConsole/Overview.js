@@ -523,6 +523,79 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
   )
 }
 
+const MetaReviewAgreementStatsRow = ({ pcConsoleData }) => {
+  const { metaReviewAgreementConfig } = useContext(WebFieldContext)
+  const metaReviewAgreementInvitationId = `/-/${metaReviewAgreementConfig?.name}`
+  const noMetaReviewInvitation = !pcConsoleData.invitations?.find((p) =>
+    p.id.includes(metaReviewAgreementInvitationId)
+  )
+
+  const metaReviewAgreements = [
+    ...(pcConsoleData.metaReviewAgreementsByPaperNumberMap?.values() ?? []),
+  ].filter(
+    (repliesToNote) =>
+      repliesToNote.filter((reply) =>
+        reply.invitations.find((q) => q.includes(metaReviewAgreementInvitationId))
+      ).length >= metaReviewAgreementConfig.repliesPerSubmission
+  )
+
+  const uniqueDisplayValues = [
+    ...new Set(
+      metaReviewAgreements
+        .flat()
+        .flatMap(
+          (review) => review.content?.[metaReviewAgreementConfig.displayField]?.value ?? []
+        )
+    ),
+  ].sort()
+
+  if (noMetaReviewInvitation) return null
+
+  return (
+    <React.Fragment key={metaReviewAgreementConfig.name}>
+      <div className="row">
+        <StatContainer
+          title={`${prettyId(metaReviewAgreementConfig.role)} ${prettyId(
+            metaReviewAgreementConfig.name
+          )} Progress`}
+          hint={metaReviewAgreementConfig.description}
+          value={
+            pcConsoleData.notes ? (
+              renderStat(metaReviewAgreements?.length, pcConsoleData.notes.length)
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
+        />
+      </div>
+      <div className="row">
+        {uniqueDisplayValues.map((displayValue) => {
+          const noteCount = metaReviewAgreements.filter((p) =>
+            p.some(
+              (q) =>
+                q.content?.[metaReviewAgreementConfig.displayField]?.value === displayValue
+            )
+          ).length
+          return (
+            <StatContainer
+              key={displayValue}
+              title={displayValue}
+              value={
+                pcConsoleData.metaReviewAgreementsByPaperNumberMap ? (
+                  renderStat(noteCount, pcConsoleData.notes.length)
+                ) : (
+                  <LoadingSpinner inline={true} text={null} />
+                )
+              }
+            />
+          )
+        })}
+      </div>
+      <hr className="spacer" />
+    </React.Fragment>
+  )
+}
+
 const CustomStageStatsRow = ({ pcConsoleData }) => {
   const { customStageInvitations = [] } = useContext(WebFieldContext)
   const customStageInvitationIds = customStageInvitations.map((p) => `/-/${p.name}`)
@@ -1131,6 +1204,7 @@ const Overview = ({ pcConsoleData, timelineData }) => {
       />
       <ReviewStatsRow pcConsoleData={pcConsoleData} />
       <MetaReviewStatsRow pcConsoleData={pcConsoleData} />
+      <MetaReviewAgreementStatsRow pcConsoleData={pcConsoleData} />
       <CustomStageStatsRow pcConsoleData={pcConsoleData} />
       <DecisionStatsRow pcConsoleData={pcConsoleData} />
       <DescriptionTimelineOtherConfigRow
