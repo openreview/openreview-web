@@ -295,6 +295,194 @@ const AuthorConsoleTasks = () => {
   )
 }
 
+// #region config docs
+/** AuthorConsole config doc
+ *
+ * @typedef {Object} AuthorConsoleConfig
+ *
+ // eslint-disable-next-line max-len
+ * @property {Object} header mandatory but can be empty object
+ * @property {1|2} apiVersion mandatory
+ * @property {string} venueId mandatory
+ * @property {string} submissionId mandatory
+ * @property {string} authorSubmissionField mandatory
+ * @property {string} officialReviewName mandatory
+ * @property {string} [decisionName=Decision] optional
+ * @property {string|string[]|object[]} reviewRatingName mandatory
+ * @property {string} reviewConfidenceName mandatory
+ * @property {string} authorName mandatory
+ * @property {string} submissionName mandatory
+ * @property {boolean} showAuthorProfileStatus optional
+ * @property {string} blindSubmissionId optional
+ * @property {boolean} showIEEECopyright optional
+ * @property {string} IEEEPublicationTitle optional
+ * @property {number} IEEEArtSourceCode optional
+ */
+
+/**
+ * @name AuthorConsoleConfig.header
+ * @description Page header. Contains two string fields: "title" and "instructions" (markdown supported).
+ * @type {Object}
+ * @default no default value
+ * @example
+ * {
+ *   "header": {
+ *     "title": "Some conference",
+ *     "instructions": "some **instructions**"
+ *   }
+ * }
+ */
+
+/**
+ * @name AuthorConsoleConfig.apiVersion
+ * @description API version to request. use 2 for new venues.
+ * @type {1|2}
+ * @default no default value
+ * @example
+ * { "apiVersion": 2 }
+ */
+
+/**
+ * @name AuthorConsoleConfig.venueId
+ * @description The id of the venue group, usually should be value of domain.id
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "venueId": "ICLR.cc/202X/Conference" }
+ */
+
+/**
+ * @name AuthorConsoleConfig.submissionId
+ * @description The invitation id of submissions, used to get the notes for display in console.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "submissionId": "ICLR.cc/20XX/Conference/-/Submission" }
+ */
+
+/**
+ * @name AuthorConsoleConfig.authorSubmissionField
+ * @description used to filter notes that current user is an author of.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "authorSubmissionField": "content.authorids" }
+ */
+
+/**
+ * @name AuthorConsoleConfig.officialReviewName
+ * @description name of the offical review, used for header display and for composing the official review invitation id for filtering
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "officialReviewName": "Official_Review" }
+ */
+
+/**
+ * @name AuthorConsoleConfig.decisionName
+ * @description name of the decision note. used to construct decision invitation id to find the decision note and to display the paper decision.
+ * @type {string}
+ * @default 'Decision'
+ * @example
+ * { "decisionName": "Decision" }
+ */
+
+/**
+ * @name AuthorConsoleConfig.reviewRatingName
+ * @description denotes the rating field in review. which is parsed and used for min/max/avg calculation and display.
+ * @type {string}
+ * @default no default value
+ * @example string shows single rating
+ * { "reviewRatingName": "rating" }
+ * @example string array shows multiple ratings
+ * { "reviewRatingName": ["soundness","excitement","reproducibility"] }
+ * @example object array/mixed shows multiple ratings with fallback options
+ * the following config would show 2 ratings: "overall_rating" and "overall_recommendation"
+ * for "overall_rating", it's value will be final_rating field, when final_rating field is not available, it will take the next available value defined in the array, in this example it will take "preliminary_rating"
+ * {
+ *  "reviewRatingName": [
+ *    {
+ *      "overall_rating": [
+ *        "final_rating",
+ *        "preliminary_rating"
+ *      ]
+ *    },
+ *    "overall_recommendation",
+ *  ]
+ */
+
+/**
+ * @name AuthorConsoleConfig.reviewConfidenceName
+ * @description name of the decision note. used to construct decision invitation id to find the decision note and to display the paper decision.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "decisionName": "Decision" }
+ */
+
+/**
+ * @name AuthorConsoleConfig.authorName
+ * @description used to construct referrer link back to author console and to filtering invitations for author in tasks tab
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "authorName": "Authors" }
+ */
+
+/**
+ * @name AuthorConsoleConfig.submissionName
+ * @description use to construct referrer link/review invitation id/decision invitation id and text display
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "submissionName": "Submission" }
+ */
+
+/**
+ * @name AuthorConsoleConfig.showAuthorProfileStatus
+ * @description use to control whether to load author profiles. the info is used to display author activation status
+ * @type {boolean}
+ * @default no default value but is compared against false so equivalent to true if not provided
+ * @example
+ * { "showAuthorProfileStatus": undefined }
+ */
+
+/**
+ * @name AuthorConsoleConfig.blindSubmissionId
+ * @deprecated only for v1. used to tell whether the note is a bline submission so that author name can be retrieved from original submission
+ * @type {string}
+ * @default no default value
+ */
+
+/**
+ * @name AuthorConsoleConfig.showIEEECopyright
+ * @description used to control whether to show link to IEEE copyright form. used together with IEEEPublicationTitle and IEEEArtSourceCode
+ * @type {boolean}
+ * @default no default value, by default the link to IEEE copyright form is hidden
+ * @example
+ * { "showIEEECopyright": true }
+ */
+
+/**
+ * @name AuthorConsoleConfig.IEEEPublicationTitle
+ * @description a string assigned by IEEE copyright system. must be exact match with the value assigned. used together with showIEEECopyright and IEEEArtSourceCode
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "IEEEPublicationTitle": "20XX The International Conference on Learning Representations (ICLR)" }
+ */
+
+/**
+ * @name AuthorConsoleConfig.IEEEArtSourceCode
+ * @description a number assigned by IEEE copyright system. must be exact match with the value assigned. used together with showIEEECopyright and IEEEPublicationTitle
+ * @type {number}
+ * @default no default value
+ * @example
+ * { "IEEEArtSourceCode": 12345 }
+ */
+
+// #endregion
+
 const AuthorConsole = ({ appContext }) => {
   const {
     header,
