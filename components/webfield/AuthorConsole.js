@@ -307,7 +307,7 @@ const AuthorConsoleTasks = () => {
  * @property {string} submissionId mandatory
  * @property {string} authorSubmissionField mandatory
  * @property {string} officialReviewName mandatory
- * @property {string} [decisionName=Decision] optional
+ * @property {string} decisionName=Decision optional
  * @property {string|string[]|object[]} reviewRatingName mandatory
  * @property {string} reviewConfidenceName mandatory
  * @property {string} authorName mandatory
@@ -392,13 +392,11 @@ const AuthorConsoleTasks = () => {
  * @description denotes the rating field in review. which is parsed and used for min/max/avg calculation and display.
  * @type {string}
  * @default no default value
- * @example string shows single rating
+ * @example <caption>string shows single rating</caption>
  * { "reviewRatingName": "rating" }
- * @example string array shows multiple ratings
+ * @example <caption>string array shows multiple ratings</caption>
  * { "reviewRatingName": ["soundness","excitement","reproducibility"] }
- * @example object array/mixed shows multiple ratings with fallback options
- * the following config would show 2 ratings: "overall_rating" and "overall_recommendation"
- * for "overall_rating", it's value will be final_rating field, when final_rating field is not available, it will take the next available value defined in the array, in this example it will take "preliminary_rating"
+ * @example <caption>object array/mixed shows multiple ratings with fallback options the following config would show 2 ratings: "overall_rating" and "overall_recommendation" for "overall_rating", it's value will be final_rating field, when final_rating field is not available, it will take the next available value defined in the array, in this example it will take "preliminary_rating"</caption>
  * {
  *  "reviewRatingName": [
  *    {
