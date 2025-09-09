@@ -22,7 +22,6 @@ import {
   inflect,
   pluralizeString,
 } from '../../lib/utils'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import ConsoleTaskList from './ConsoleTaskList'
 
