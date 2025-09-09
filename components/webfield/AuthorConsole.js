@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* globals $, typesetMathJax, promptError: false */
 
 import { useContext, useEffect, useState } from 'react'
