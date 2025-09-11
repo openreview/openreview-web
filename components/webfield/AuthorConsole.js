@@ -390,7 +390,7 @@ const AuthorConsoleTasks = () => {
 /**
  * @name AuthorConsoleConfig.reviewRatingName
  * @description denotes the rating field in review. which is parsed and used for min/max/avg calculation and display.
- * @type {string}
+ * @type {string|string[]|object[]}
  * @default no default value
  * @example <caption>string shows single rating</caption>
  * { "reviewRatingName": "rating" }

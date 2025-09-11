@@ -10,7 +10,7 @@
     "start": "next start --port $NEXT_PORT",
     "unit-test": "jest",
     "test": "testcafe",
-    "doc": "jsdoc2md 'components/webfield/*Console.js' > docs/webfieldconfig.md",
+    "doc": "jsdoc2md 'components/webfield/*Console.js' > webfieldconfig.md",
     "test-setup": "testcafe chrome tests/_setup.ts",
     "templates": "handlebars client/templates/ -n 'window.Handlebars.templates' -f client/templates.js -e 'hbs'"
   },
