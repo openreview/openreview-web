@@ -8,7 +8,7 @@ import {
 } from '../lib/profiles'
 import DblpPublicationTable from './DblpPublicationTable'
 import LoadingSpinner from './LoadingSpinner'
-import { inflect } from '../lib/utils'
+import { getNameString, inflect } from '../lib/utils'
 import useUser from '../hooks/useUser'
 
 const ORCIDImportModal = ({ profileId, profileNames }) => {
@@ -39,7 +39,10 @@ const ORCIDImportModal = ({ profileId, profileNames }) => {
     setHasError(false)
     try {
       // setPublicationsInOpenReview(await getAllPapersByGroupId(profileId))
-      const fetchedPublications = await getOrcidPublicationsFromJsonUrl(orcid, profileNames)
+      const fetchedPublications = await getOrcidPublicationsFromJsonUrl(
+        orcid,
+        profileNames.map((p) => getNameString(p))
+      )
       setPublications(fetchedPublications)
       setMessage(`${fetchedPublications.length} publications fetched.`)
       // get existing orcid publications
