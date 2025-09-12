@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* globals typesetMathJax,promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -367,6 +368,163 @@ const ReviewerConsoleTabs = ({
   )
 }
 
+// #region config docs
+/** Reviewer Console config doc
+ *
+ * @typedef {Object} ReviewerConsoleConfig
+ *
+ // eslint-disable-next-line max-len
+ * @property {Object} header mandatory but can be empty object
+ * @property {string} venueId mandatory
+ * @property {string} reviewerName mandatory
+ * @property {string} officialReviewName mandatory
+ * @property {string|string[]|object[]} reviewRatingName mandatory
+ * @property {string} areaChairName optional
+ * @property {string} submissionName mandatory
+ * @property {string} submissionInvitationId mandatory
+ * @property {string} recruitmentInvitationId mandatory
+ * @property {string} customMaxPapersInvitationId mandatory
+ * @property {string|number} reviewLoad mandatory
+ * @property {boolean} hasPaperRanking mandatory
+ * @property {string[]} reviewDisplayFields optional
+ */
+
+/**
+ * @name ReviewerConsoleConfig.header
+ * @description Page header. Contains two string fields: "title" and "instructions" (markdown supported).
+ * @type {Object}
+ * @default no default value
+ * @example
+ * {
+ *   "header": {
+ *     "title": "Some conference",
+ *     "instructions": "some **instructions**"
+ *   }
+ * }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.venueId
+ * @description Used to construct banner content, referrer link and various group/invitation ids. The value is usually domain.id
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "venueId": "ICLR.cc/202X/Conference" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.reviewerName
+ * @description Used to construct referrer link, title and for filtering groups
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "reviewerName": "Reviewers" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.officialReviewName
+ * @description Used to construct official review invitation id
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "officialReviewName": "Official_Review" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.reviewRatingName
+ * @description Used to get rating value from official review, support string, string array for displaying multiple rating fields and object array which allows custom rating name and fallback values
+ * @type {string|string[]|object[]}
+ * @default no default value
+ * @example <caption>string shows single rating</caption>
+ * { "reviewRatingName": "rating" }
+ * @example <caption>string array shows multiple ratings</caption>
+ * { "reviewRatingName": ["soundness","excitement","reproducibility"] }
+ * @example <caption>object array/mixed shows multiple ratings with fallback options the following config would show 2 ratings: "overall_rating" and "overall_recommendation" for "overall_rating", it's value will be final_rating field, when final_rating field is not available, it will take the next available value defined in the array, in this example it will take "preliminary_rating"</caption>
+ * {
+ *  "reviewRatingName": [
+ *    {
+ *      "overall_rating": [
+ *        "final_rating",
+ *        "preliminary_rating"
+ *      ]
+ *    },
+ *    "overall_recommendation",
+ *  ]
+ */
+
+/**
+ * @name ReviewerConsoleConfig.areaChairName
+ * @description Used to construct AC/Anonymous AC group and label. optional for venues that don't have area chairs
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "areaChairName": "Area_Chairs" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.submissionName
+ * @description Used to filter/construct group id (paper display/tasks), invitation id, header text
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "submissionName": "Submission" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.submissionInvitationId
+ * @description Notes with the submissionInvitationId will be fetched
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "submissionInvitationId": "ICLR.cc/202X/Conference/-/Submission" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.recruitmentInvitationId
+ * @description Related to customMaxPapersInvitationId and reviewLoad. The invitation to get recruitment note where custom load is saved (if there's no custom load edge) and custom load is displayed in header
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "recruitmentInvitationId": "ICLR.cc/202X/Conference/Reviewers/-/Recruitment" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.customMaxPapersInvitationId
+ * @description Related to recruitmentInvitationId and reviewLoad. The invitation to get custom load edge. If edge exist the weight is used as custom load otherwise it will load the recruitment note to read the reduced_load field.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "customMaxPapersInvitationId": "ICLR.cc/202X/Conference/Reviewers/-/Custom_Max_Papers" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.reviewLoad
+ * @description Related to recruitmentInvitationId and customMaxPapersInvitationId. The default value to display in header when there's no custom load edge or recruitment note
+ * @type {string|number}
+ * @default no default value
+ * @example
+ * { "reviewLoad": "ICLR.cc/202X/Conference/Reviewers/-/Custom_Max_Papers" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.hasPaperRanking
+ * @description Flag to enable paper ranking (tag fetching and display)
+ * @type {boolean}
+ * @default no default value
+ * @example
+ * { "hasPaperRanking": false }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.reviewDisplayFields
+ * @description The content fields to display from official review note
+ * @type {string[]}
+ * @default ['review']
+ * @example
+ * { "reviewDisplayFields": ['review'] }
+ */
+
+// #endregion
 const ReviewerConsole = ({ appContext }) => {
   const {
     header,
@@ -654,15 +812,12 @@ const ReviewerConsole = ({ appContext }) => {
     customMaxPapersInvitationId,
     reviewLoad,
     hasPaperRanking,
-  }).filter(([key, value]) => value === undefined)
-  if (missingConfig?.length || recruitmentInvitationId === undefined) {
+    recruitmentInvitationId,
+  }).filter(([_, value]) => value === undefined)
+  if (missingConfig?.length) {
     const errorMessage = `${
       reviewerName ? `${prettyId(reviewerName)} ` : ''
-    }Console is missing required properties: ${
-      missingConfig.length
-        ? missingConfig.map((p) => p[0]).join(', ')
-        : 'recruitmentInvitationId'
-    }`
+    }Console is missing required properties: ${missingConfig.map((p) => p[0]).join(', ')}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
   return (
