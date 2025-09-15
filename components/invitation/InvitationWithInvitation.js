@@ -4,6 +4,8 @@ import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import { get } from 'lodash'
 import { nanoid } from 'nanoid'
+import dayjs from 'dayjs'
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import {
   formatDateTime,
   getPath,
@@ -24,6 +26,8 @@ import InvitationChildInvitations, {
   InvitationChildInvitationsV2,
 } from './InvitationChildInvitations'
 import ConsoleTabs from '../webfield/ConsoleTabs'
+
+dayjs.extend(isSameOrBefore)
 
 const getReplyFieldByInvitationType = (invitation) => {
   if (!invitation) return 'edit'
@@ -87,6 +91,7 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
   const [activeInvitationInvitation, setActivateInvitationInvitation] = useState(null)
   const { accessToken } = useUser()
   const isV1Invitation = invitation.apiVersion !== 2
+  const isActivated = dayjs(invitation.cdate).isSameOrBefore(dayjs())
 
   const renderSection = (sectionName) => {
     switch (sectionName) {
@@ -256,6 +261,10 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
           <Icon name="calendar" />
           <span>
             Created:{' '}
+            <span data-toggle="tooltip" data-placement="top" title={invitation.tcdate}>
+              {formatDateTime(invitation.tcdate)}
+            </span>
+            , {isActivated ? 'Activated' : 'Active in'}:{' '}
             <span data-toggle="tooltip" data-placement="top" title={invitation.cdate}>
               {formatDateTime(invitation.cdate)}
             </span>
