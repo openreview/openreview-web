@@ -87,7 +87,7 @@ export default function SubmissionButton({
         </button>
         {options.showStartEndDate && isNewWorkflow && (
           <span className=" hint">
-            {invitation.cdate ? ` Submission start: ${formatDateTime(invitation.tcdate)}` : ''}
+            {invitation.cdate ? ` Submission start: ${formatDateTime(invitation.cdate)}` : ''}
             {invitation.duedate ? `, Deadline: ${formatDateTime(invitation.duedate)}` : ''}
           </span>
         )}

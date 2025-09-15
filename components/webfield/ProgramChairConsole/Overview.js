@@ -37,49 +37,19 @@ const renderStat = (numComplete, total) =>
 
 const RecruitmentStatsRow = ({ pcConsoleData }) => {
   const {
-    reviewersId,
     reviewerName = 'Reviewers',
     areaChairsId,
     areaChairName = 'Area_Chairs',
     seniorAreaChairsId,
     seniorAreaChairName = 'Senior_Area_Chairs',
   } = useContext(WebFieldContext)
-  const { accessToken } = useUser()
-  const [invitedCount, setInvitedCount] = useState({})
-  const [isLoading, setIsLoading] = useState(false)
-  const reviewersInvitedId = reviewersId ? `${reviewersId}/Invited` : null
-  const areaChairsInvitedId = areaChairsId ? `${areaChairsId}/Invited` : null
-  const seniorAreaChairsInvitedId = seniorAreaChairsId ? `${seniorAreaChairsId}/Invited` : null
+
   const singularReviewerName = getSingularRoleName(reviewerName)
   const singularAreaChairName = getSingularRoleName(areaChairName)
   const singularSeniorAreaChairName = getSingularRoleName(seniorAreaChairName)
 
-  const loadData = async () => {
-    setIsLoading(true)
-    try {
-      const result = await Promise.all(
-        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map(
-          (invitedId) =>
-            invitedId
-              ? api.getGroupById(invitedId, accessToken, { select: 'members' })
-              : Promise.resolve(null)
-        )
-      )
-      setInvitedCount({
-        reviewersInvitedCount: result[0]?.members?.length ?? 0,
-        areaChairsInvitedCount: result[1]?.members?.length ?? 0,
-        seniorAreaChairsInvitedCount: result[2]?.members?.length ?? 0,
-      })
-    } catch (error) {
-      promptError(error.message)
-    }
-    setIsLoading(false)
-  }
-
-  useEffect(() => {
-    if (!reviewersId) return
-    loadData()
-  }, [])
+  const { reviewersInvitedCount, areaChairsInvitedCount, seniorAreaChairsInvitedCount } =
+    pcConsoleData
 
   return (
     <>
@@ -88,8 +58,8 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
           title={`${prettyField(singularReviewerName)} Recruitment`}
           hint="accepted / invited"
           value={
-            !isLoading && pcConsoleData.reviewers ? (
-              `${pcConsoleData.reviewers?.length} / ${invitedCount.reviewersInvitedCount}`
+            pcConsoleData.reviewers ? (
+              `${pcConsoleData.reviewers?.length} / ${reviewersInvitedCount}`
             ) : (
               <LoadingSpinner inline={true} text={null} />
             )
@@ -100,8 +70,8 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
             title={`${prettyField(singularAreaChairName)} Recruitment`}
             hint="accepted / invited"
             value={
-              !isLoading && pcConsoleData.areaChairs ? (
-                `${pcConsoleData.areaChairs?.length} / ${invitedCount.areaChairsInvitedCount}`
+              pcConsoleData.areaChairs ? (
+                `${pcConsoleData.areaChairs?.length} / ${areaChairsInvitedCount}`
               ) : (
                 <LoadingSpinner inline={true} text={null} />
               )
@@ -113,8 +83,8 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
             title={`${prettyField(singularSeniorAreaChairName)} Recruitment`}
             hint="accepted / invited"
             value={
-              !isLoading && pcConsoleData.seniorAreaChairs ? (
-                `${pcConsoleData.seniorAreaChairs?.length} / ${invitedCount.seniorAreaChairsInvitedCount}`
+              pcConsoleData.seniorAreaChairs ? (
+                `${pcConsoleData.seniorAreaChairs?.length} / ${seniorAreaChairsInvitedCount}`
               ) : (
                 <LoadingSpinner inline={true} text={null} />
               )
@@ -131,8 +101,8 @@ const SubmissionsStatsRow = ({ pcConsoleData }) => {
   const submissionByStatus = pcConsoleData.notes
     ? {
         activeSubmissionsCount: pcConsoleData.notes.length,
-        deskRejectedNotesCount: pcConsoleData.deskRejectedNotes.length,
-        withdrawnNotesCount: pcConsoleData.withdrawnNotes.length,
+        deskRejectedNotesCount: pcConsoleData.deskRejectedNotesCount,
+        withdrawnNotesCount: pcConsoleData.withdrawnNotesCount,
       }
     : null
 
@@ -553,6 +523,79 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
   )
 }
 
+const MetaReviewAgreementStatsRow = ({ pcConsoleData }) => {
+  const { metaReviewAgreementConfig } = useContext(WebFieldContext)
+  const metaReviewAgreementInvitationId = `/-/${metaReviewAgreementConfig?.name}`
+  const noMetaReviewInvitation = !pcConsoleData.invitations?.find((p) =>
+    p.id.includes(metaReviewAgreementInvitationId)
+  )
+
+  const metaReviewAgreements = [
+    ...(pcConsoleData.metaReviewAgreementsByPaperNumberMap?.values() ?? []),
+  ].filter(
+    (repliesToNote) =>
+      repliesToNote.filter((reply) =>
+        reply.invitations.find((q) => q.includes(metaReviewAgreementInvitationId))
+      ).length >= metaReviewAgreementConfig.repliesPerSubmission
+  )
+
+  const uniqueDisplayValues = [
+    ...new Set(
+      metaReviewAgreements
+        .flat()
+        .flatMap(
+          (review) => review.content?.[metaReviewAgreementConfig.displayField]?.value ?? []
+        )
+    ),
+  ].sort()
+
+  if (noMetaReviewInvitation) return null
+
+  return (
+    <React.Fragment key={metaReviewAgreementConfig.name}>
+      <div className="row">
+        <StatContainer
+          title={`${prettyId(metaReviewAgreementConfig.role)} ${prettyId(
+            metaReviewAgreementConfig.name
+          )} Progress`}
+          hint={metaReviewAgreementConfig.description}
+          value={
+            pcConsoleData.notes ? (
+              renderStat(metaReviewAgreements?.length, pcConsoleData.notes.length)
+            ) : (
+              <LoadingSpinner inline={true} text={null} />
+            )
+          }
+        />
+      </div>
+      <div className="row">
+        {uniqueDisplayValues.map((displayValue) => {
+          const noteCount = metaReviewAgreements.filter((p) =>
+            p.some(
+              (q) =>
+                q.content?.[metaReviewAgreementConfig.displayField]?.value === displayValue
+            )
+          ).length
+          return (
+            <StatContainer
+              key={displayValue}
+              title={displayValue}
+              value={
+                pcConsoleData.metaReviewAgreementsByPaperNumberMap ? (
+                  renderStat(noteCount, pcConsoleData.notes.length)
+                ) : (
+                  <LoadingSpinner inline={true} text={null} />
+                )
+              }
+            />
+          )
+        })}
+      </div>
+      <hr className="spacer" />
+    </React.Fragment>
+  )
+}
+
 const CustomStageStatsRow = ({ pcConsoleData }) => {
   const { customStageInvitations = [] } = useContext(WebFieldContext)
   const customStageInvitationIds = customStageInvitations.map((p) => `/-/${p.name}`)
@@ -716,7 +759,10 @@ const DescriptionTimelineOtherConfigRow = ({
   const referrerUrl = encodeURIComponent(
     `[Program Chair Console](/group?id=${venueId}/Program_Chairs)`
   )
-  const requestFormContent = getNoteContentValues(requestForm?.content)
+  const requestFormContent = getNoteContentValues(
+    requestForm?.content,
+    requestForm?.apiVersion
+  )
   const domainContentValues = getNoteContentValues(domainContent)
   const sacRoles = requestFormContent?.senior_area_chair_roles ??
     domainContentValues.senior_area_chair_roles ?? ['Senior_Area_Chairs']
@@ -724,7 +770,7 @@ const DescriptionTimelineOtherConfigRow = ({
     domainContentValues.area_chair_roles ?? ['Area_Chairs']
   const hasEthicsChairs =
     requestFormContent?.ethics_chairs_and_reviewers?.includes('Yes') ||
-    domainContentValues.ethics_chairs_and_reviewers?.includes('Yes')
+    domainContentValues.ethics_chairs_id
   const reviewerRoles = requestFormContent?.reviewer_roles ??
     domainContentValues.reviewer_roles ?? ['Reviewers']
   const singularReviewerName = getSingularRoleName(reviewerName)
@@ -1158,6 +1204,7 @@ const Overview = ({ pcConsoleData, timelineData }) => {
       />
       <ReviewStatsRow pcConsoleData={pcConsoleData} />
       <MetaReviewStatsRow pcConsoleData={pcConsoleData} />
+      <MetaReviewAgreementStatsRow pcConsoleData={pcConsoleData} />
       <CustomStageStatsRow pcConsoleData={pcConsoleData} />
       <DecisionStatsRow pcConsoleData={pcConsoleData} />
       <DescriptionTimelineOtherConfigRow
