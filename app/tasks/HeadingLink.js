@@ -1,7 +1,7 @@
 import { useRouter } from 'next/navigation'
 import { inflect, prettyId } from '../../lib/utils'
 
-export default function HeadingLink({ groupId, groupInfo, loadTaksForDomain }) {
+export default function HeadingLink({ groupId, groupInfo, loadTasksForDomain }) {
   const router = useRouter()
   const handleClick = (e) => {
     router.push(`/group?id=${groupId}`)
@@ -26,7 +26,7 @@ export default function HeadingLink({ groupId, groupInfo, loadTaksForDomain }) {
             : ''
         }`}</span>
       ) : (
-        <span className="task-count-message" onClick={() => loadTaksForDomain(groupId)}>
+        <span className="task-count-message" onClick={() => loadTasksForDomain(groupId)}>
           show {prettyId(groupId)} tasks
         </span>
       )}
