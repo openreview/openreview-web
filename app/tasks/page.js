@@ -164,7 +164,7 @@ export default function Page() {
               <HeadingLink
                 groupId={domain}
                 groupInfo={domainTasksMap.get(domain)}
-                loadTaksForDomain={loadGroupTasks}
+                loadTasksForDomain={loadGroupTasks}
               />
             ),
             body: domainTasksMap.has(domain) ? (
