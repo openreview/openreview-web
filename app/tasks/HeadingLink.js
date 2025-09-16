@@ -1,7 +1,7 @@
 import { useRouter } from 'next/navigation'
 import { inflect, prettyId } from '../../lib/utils'
 
-export default function HeadingLink({ groupId, groupInfo }) {
+export default function HeadingLink({ groupId, groupInfo, loadTaksForDomain }) {
   const router = useRouter()
   const handleClick = (e) => {
     router.push(`/group?id=${groupId}`)
@@ -14,16 +14,22 @@ export default function HeadingLink({ groupId, groupInfo }) {
       <h2 data-toggle="collapse" onClick={handleClick}>
         <span className="invitation-id">{prettyId(groupId)} </span>
       </h2>
-      <span className="task-count-message">{`Show ${inflect(
-        groupInfo.numPending,
-        'pending task',
-        'pending tasks',
-        true
-      )}${
-        groupInfo.numCompleted
-          ? ` and ${inflect(groupInfo.numCompleted, 'completed task', 'completed tasks', true)}`
-          : ''
-      }`}</span>
+      {groupInfo ? (
+        <span className="task-count-message">{`${inflect(
+          groupInfo.numPending,
+          'pending task',
+          'pending tasks',
+          true
+        )}${
+          groupInfo.numCompleted
+            ? ` and ${inflect(groupInfo.numCompleted, 'completed task', 'completed tasks', true)}`
+            : ''
+        }`}</span>
+      ) : (
+        <span className="task-count-message" onClick={() => loadTaksForDomain(groupId)}>
+          show {prettyId(groupId)} tasks
+        </span>
+      )}
     </div>
   )
 }
