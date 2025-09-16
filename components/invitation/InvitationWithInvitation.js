@@ -264,7 +264,7 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
             <span data-toggle="tooltip" data-placement="top" title={invitation.tcdate}>
               {formatDateTime(invitation.tcdate)}
             </span>
-            , {isActivated ? 'Activated' : 'Active in'}:{' '}
+            , {isActivated ? 'Activated' : 'Activate on'}:{' '}
             <span data-toggle="tooltip" data-placement="top" title={invitation.cdate}>
               {formatDateTime(invitation.cdate)}
             </span>
