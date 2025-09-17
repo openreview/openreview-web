@@ -10,6 +10,7 @@ import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
+import OtherVersions from './OtherVersions'
 
 dayjs.extend(relativeTime)
 
@@ -171,7 +172,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
           )}
         </div>
       </div>
-
+      <OtherVersions note={note} />
       <NoteContentV2
         id={id}
         content={content}
