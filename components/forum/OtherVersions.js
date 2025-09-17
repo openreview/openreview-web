@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import { orderBy } from 'lodash'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { inflect } from '../../lib/utils'
+import { inflect, prettyId } from '../../lib/utils'
 
 const OtherVersions = ({ note }) => {
   const { accessToken, isRefreshing } = useUser()
@@ -16,7 +17,12 @@ const OtherVersions = ({ note }) => {
         },
         { accessToken }
       )
-      const otherNoteVersions = result.notes.filter((p) => p.id !== note.id)
+
+      const otherNoteVersions = orderBy(
+        result.notes.filter((p) => p.id !== note.id && p.content?.venue?.value),
+        'pdate',
+        'desc'
+      )
       setOtherVersions(otherNoteVersions)
     } catch (_) {
       /* empty */
@@ -24,33 +30,28 @@ const OtherVersions = ({ note }) => {
   }
 
   useEffect(() => {
-    if (!note?.content?.venue || isRefreshing) return
+    if (!note?.content?.paperhash?.value || isRefreshing) return
     loadOtherVersions()
   }, [note, isRefreshing])
 
   if (!otherVersions?.length) return null
 
   return (
-    <div className="btn-group">
-      <button
-        type="button"
-        className="btn btn-xs dropdown-toggle"
-        data-toggle="dropdown"
-        aria-haspopup="true"
-        aria-expanded="false"
-      >
-        {otherVersions.length} Other {inflect(otherVersions.length, 'Version', 'Versions')}{' '}
-        <span className="caret" />
-      </button>
-      <ul className="dropdown-menu">
-        {otherVersions?.map((otherVersionNote) => (
-          <li key={otherVersionNote.id} data-toggle="tooltip" data-placement="top">
-            <a href={`/forum?id=${otherVersionNote.id}`}>
-              {otherVersionNote.content.venue.value}
-            </a>
-          </li>
-        ))}
-      </ul>
+    <div className="forum-other-versions">
+      <span className="mr-2">
+        View other {inflect(otherVersions.length, 'version', 'versions', true)}:
+      </span>
+      {otherVersions.map((otherVersionNote, index) => (
+        <a
+          key={otherVersionNote.id}
+          href={`/forum?id=${otherVersionNote.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span>{prettyId(otherVersionNote.content.venue.value)}</span>
+          {index < otherVersions.length - 1 && <span>{', '}</span>}
+        </a>
+      ))}
     </div>
   )
 }

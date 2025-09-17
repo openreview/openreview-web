@@ -107,6 +107,8 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
         </h3>
       </div>
 
+      <OtherVersions note={note} />
+
       <div className="clearfix mb-1">
         <ForumMeta note={note} />
 
@@ -172,7 +174,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
           )}
         </div>
       </div>
-      <OtherVersions note={note} />
+
       <NoteContentV2
         id={id}
         content={content}
