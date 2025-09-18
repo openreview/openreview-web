@@ -32,7 +32,7 @@ const OtherVersions = ({ note }) => {
   useEffect(() => {
     if (!note?.content?.paperhash?.value || isRefreshing) return
     loadOtherVersions()
-  }, [note, isRefreshing])
+  }, [note?.id, isRefreshing])
 
   if (!otherVersions?.length) return null
 
