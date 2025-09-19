@@ -160,6 +160,7 @@ export default function Page() {
       <div className="tasks-container">
         <Accordion
           sections={domains.map((domain) => ({
+            domain,
             heading: (
               <HeadingLink
                 groupId={domain}
@@ -178,6 +179,7 @@ export default function Page() {
             collapsed: true,
             html: false,
             bodyContainer: '',
+            onExpand: loadGroupTasks,
           }}
         />
       </div>
