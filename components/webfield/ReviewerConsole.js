@@ -503,7 +503,7 @@ const ReviewerConsoleTabs = ({
  * @type {string|number}
  * @default no default value
  * @example
- * { "reviewLoad": "ICLR.cc/202X/Conference/Reviewers/-/Custom_Max_Papers" }
+ * { "reviewLoad": "" }
  */
 
 /**
