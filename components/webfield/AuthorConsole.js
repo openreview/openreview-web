@@ -362,7 +362,7 @@ const AuthorConsoleTasks = () => {
 
 /**
  * @name AuthorConsoleConfig.authorSubmissionField
- * @description used to filter notes that current user is an author of.
+ * @description field name in the submission note that represents the id of author. used to filter notes that current user is an author of.
  * @type {string}
  * @default no default value
  * @example
@@ -371,7 +371,7 @@ const AuthorConsoleTasks = () => {
 
 /**
  * @name AuthorConsoleConfig.officialReviewName
- * @description name of the offical review, used for header display and for composing the official review invitation id for filtering
+ * @description name of the offical review in official review invitation, used for header display and for composing the official review invitation id for filtering
  * @type {string}
  * @default no default value
  * @example
@@ -380,7 +380,7 @@ const AuthorConsoleTasks = () => {
 
 /**
  * @name AuthorConsoleConfig.decisionName
- * @description name of the decision note. used to construct decision invitation id to find the decision note and to display the paper decision.
+ * @description name of the decision field in decision note and name of decision invitation. used to construct decision invitation id to find the decision note and to display the paper decision.
  * @type {string}
  * @default 'Decision'
  * @example
