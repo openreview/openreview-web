@@ -7,51 +7,54 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import api from '../../lib/api-client'
 import styles from './Tasks.module.scss'
 import { formatTasksData } from '../../lib/utils'
-import GroupedTaskList from './GroupedTaskList'
 import useUser from '../../hooks/useUser'
 import ErrorAlert from '../../components/ErrorAlert'
+import Accordion from '../../components/Accordion'
+import HeadingLink from './HeadingLink'
+import TaskList from '../../components/TaskList'
 
 export default function Page() {
   const { accessToken, isRefreshing } = useUser()
   const router = useRouter()
-  const [groupedTasks, setGroupedTasks] = useState(null)
+  const [domainTasksMap, setDomainTasksMap] = useState(new Map())
+  const [domains, setDomains] = useState(null)
   const [error, setError] = useState(null)
 
   const addPropertyToInvitations = (propertyName) => (apiRes) =>
     apiRes.invitations.map((inv) => ({ ...inv, [propertyName]: true }))
 
-  const commonParams = {
-    invitee: true,
-    duedate: true,
-    details: 'repliedTags',
-  }
-
-  const invitationPromises = [
-    api
-      .get(
-        '/invitations',
-        {
-          ...commonParams,
-          replyto: true,
-          details: 'replytoNote,repliedNotes,repliedEdits',
-          type: 'note',
-        },
-        { accessToken }
-      )
-      .then(addPropertyToInvitations('noteInvitation')),
-    api
-      .get('/invitations', { ...commonParams, type: 'tag' }, { accessToken })
-      .then(addPropertyToInvitations('tagInvitation')),
-    api
-      .get(
-        '/invitations',
-        { ...commonParams, type: 'edge', details: 'repliedEdges' },
-        { accessToken }
-      )
-      .then(addPropertyToInvitations('tagInvitation')),
-  ]
-
-  const loadGroupTasks = async () => {
+  const loadGroupTasks = async (domain) => {
+    if (domainTasksMap.has(domain)) return
+    const commonParams = {
+      invitee: true,
+      duedate: true,
+      details: 'repliedTags',
+      domain,
+    }
+    const invitationPromises = [
+      api
+        .get(
+          '/invitations',
+          {
+            ...commonParams,
+            replyto: true,
+            details: 'replytoNote,repliedNotes,repliedEdits',
+            type: 'note',
+          },
+          { accessToken }
+        )
+        .then(addPropertyToInvitations('noteInvitation')),
+      api
+        .get('/invitations', { ...commonParams, type: 'tag' }, { accessToken })
+        .then(addPropertyToInvitations('tagInvitation')),
+      api
+        .get(
+          '/invitations',
+          { ...commonParams, type: 'edge', details: 'repliedEdges' },
+          { accessToken }
+        )
+        .then(addPropertyToInvitations('tagInvitation')),
+    ]
     await Promise.all(invitationPromises)
       .then(async (allInvitations) => {
         const aERecommendationInvitations = allInvitations[2].filter((p) =>
@@ -82,9 +85,60 @@ export default function Page() {
             },
           }
         })
-        setGroupedTasks(formatTasksData(allInvitations))
+        const formattedTasksData = formatTasksData(allInvitations)
+        setDomainTasksMap((tasks) => {
+          const updatedTasks = new Map(tasks)
+          updatedTasks.set(domain, Object.values(formattedTasksData)[0])
+          return updatedTasks
+        })
       })
       .catch((apiError) => setError(apiError))
+  }
+
+  const loadDomains = async () => {
+    const invitationPromises = [
+      api
+        .get(
+          '/invitations',
+          {
+            invitee: true,
+            duedate: true,
+            select: 'domain',
+            type: 'note',
+          },
+          { accessToken }
+        )
+        .then((result) => result.invitations),
+      api
+        .get(
+          '/invitations',
+          {
+            invitee: true,
+            duedate: true,
+            select: 'domain',
+            type: 'tag',
+          },
+          { accessToken }
+        )
+        .then((result) => result.invitations),
+      api
+        .get(
+          '/invitations',
+          {
+            invitee: true,
+            duedate: true,
+            select: 'domain',
+            type: 'edge',
+          },
+          { accessToken }
+        )
+        .then((result) => result.invitations),
+    ]
+    const domainResult = await Promise.all(invitationPromises).catch((apiError) =>
+      setError(apiError)
+    )
+    const uniqueDomains = [...new Set(domainResult.flat().flatMap((inv) => inv.domain ?? []))]
+    setDomains(uniqueDomains)
   }
 
   useEffect(() => {
@@ -93,16 +147,41 @@ export default function Page() {
       router.push('/login?redirect=/tasks')
       return
     }
-    loadGroupTasks()
+    loadDomains()
   }, [isRefreshing])
 
-  if (!groupedTasks) return <LoadingSpinner />
+  if (!domains) return <LoadingSpinner />
   if (error) return <ErrorAlert error={error} />
 
+  if (!domains.length)
+    return <p className="empty-message">No current pending or completed tasks</p>
   return (
     <div className={styles.tasks}>
       <div className="tasks-container">
-        <GroupedTaskList groupedTasks={groupedTasks} />
+        <Accordion
+          sections={domains.map((domain) => ({
+            domain,
+            heading: (
+              <HeadingLink
+                groupId={domain}
+                groupInfo={domainTasksMap.get(domain)}
+                loadTasksForDomain={loadGroupTasks}
+              />
+            ),
+            body: domainTasksMap.has(domain) ? (
+              <TaskList invitations={domainTasksMap.get(domain)?.invitations} />
+            ) : (
+              <LoadingSpinner inline text={null} />
+            ),
+          }))}
+          options={{
+            id: 'tasks',
+            collapsed: true,
+            html: false,
+            bodyContainer: '',
+            onExpand: loadGroupTasks,
+          }}
+        />
       </div>
     </div>
   )

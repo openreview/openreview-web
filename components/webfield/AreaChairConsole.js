@@ -2,7 +2,7 @@
 
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { orderBy } from 'lodash'
+import { chunk, orderBy } from 'lodash'
 import Link from 'next/link'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
@@ -555,22 +555,32 @@ const AreaChairConsole = ({ appContext }) => {
         : Promise.resolve([])
 
       // #region getReviewerGroups(noteNumbers)
-      const reviewerGroupsP = api
-        .get(
-          '/groups',
-          {
-            prefix: `${venueId}/${submissionName}.*`,
-            select: 'id,members',
-            stream: true,
-            domain: group.domain,
-          },
-          { accessToken }
+      const reviewerGroupsP = chunk([...new Set(areaChairPaperNums)], 25)
+        .reduce(
+          (prev, curr) =>
+            prev.then((acc) =>
+              Promise.all(
+                curr.map((paperNumber) =>
+                  api.get(
+                    '/groups',
+                    {
+                      parent: `${venueId}/${submissionName}${paperNumber}`,
+                      select: 'id,members',
+                      domain: group.domain,
+                    },
+                    { accessToken }
+                  )
+                )
+              ).then((res) => acc.concat(res))
+            ),
+          Promise.resolve([])
         )
-        .then((reviewerGroupsResult) => {
-          const anonymousReviewerGroups = reviewerGroupsResult.groups.filter((p) =>
+        .then((result) => {
+          const reviewerGroupsResult = result.flatMap((p) => p.groups)
+          const anonymousReviewerGroups = reviewerGroupsResult.filter((p) =>
             p.id.includes(`/${anonReviewerName}`)
           )
-          const reviewerGroups = reviewerGroupsResult.groups.filter((p) =>
+          const reviewerGroups = reviewerGroupsResult.filter((p) =>
             p.id.includes(`/${reviewerName}`)
           )
           return noteNumbers.map((p) => {

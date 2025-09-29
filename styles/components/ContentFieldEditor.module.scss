@@ -1,0 +1,46 @@
+@use '../utils/constants';
+
+.contentEditorTabs {
+  :global {
+    textarea {
+      width: 100% !important;
+      min-height: 250px;
+    }
+    .tab-pane {
+      padding: 0;
+    }
+    .nav-tabs {
+      font-size: 0.75rem;
+      max-width: 80%;
+    }
+  }
+}
+
+.jsonEditorContainer {
+  .addFieldDropdown {
+    max-width: 80%;
+  }
+
+  .newFieldForm {
+    margin-top: 0.5rem;
+
+    .newFieldNameInput {
+      max-width: 80%;
+    }
+
+    .addFieldButton {
+      margin-top: 0.25rem;
+    }
+  }
+
+  .deleteFieldButton {
+    float: right;
+    button {
+      padding: 1px 5px;
+    }
+  }
+}
+
+.contentPreview {
+  background: constants.$sandyBrown;
+}
