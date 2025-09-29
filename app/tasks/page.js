@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
+import { intersection } from 'lodash'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import api from '../../lib/api-client'
 import styles from './Tasks.module.scss'
@@ -101,9 +102,10 @@ export default function Page() {
         .get(
           '/invitations',
           {
+            replyto: true,
             invitee: true,
             duedate: true,
-            select: 'domain',
+            select: 'domain,invitees',
             type: 'note',
           },
           { accessToken }
@@ -115,7 +117,7 @@ export default function Page() {
           {
             invitee: true,
             duedate: true,
-            select: 'domain',
+            select: 'domain,invitees',
             type: 'tag',
           },
           { accessToken }
@@ -127,7 +129,7 @@ export default function Page() {
           {
             invitee: true,
             duedate: true,
-            select: 'domain',
+            select: 'domain,invitees',
             type: 'edge',
           },
           { accessToken }
@@ -137,7 +139,20 @@ export default function Page() {
     const domainResult = await Promise.all(invitationPromises).catch((apiError) =>
       setError(apiError)
     )
-    const uniqueDomains = [...new Set(domainResult.flat().flatMap((inv) => inv.domain ?? []))]
+    const uniqueDomains = [
+      ...new Set(
+        domainResult.flat().flatMap((inv) => {
+          if (!inv.domain) return []
+          if (
+            intersection(['everyone', '~', '(guest)', '(anonymous)'], inv.invitees).length !==
+            0
+          ) {
+            return []
+          }
+          return inv.domain
+        })
+      ),
+    ]
     setDomains(uniqueDomains)
   }
 
