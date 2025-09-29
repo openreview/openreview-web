@@ -120,11 +120,11 @@ const ChatReply = ({
       existingTagId = existingTags.find((t) => t.signature === signature)?.id
     }
     const tagData = {
-      tag: tagValue,
+      label: tagValue,
       invitation: reactionInvitation.id,
-      replyto: note.id,
+      note: note.id,
       forum: note.forum,
-      signatures: [signature],
+      signature,
       ...(existingTagId && { id: existingTagId, ddate: Date.now() }),
     }
     api
@@ -326,7 +326,7 @@ const ChatReply = ({
 
       {showReactionPicker && (
         <ReactionPicker
-          options={reactionInvitation.tag.tag.param.enum}
+          options={reactionInvitation.tag.label.param.enum}
           noteReactions={note.reactions}
           addOrRemoveTag={addOrRemoveTag}
           toggleReactionPicker={toggleReactionPicker}
@@ -406,7 +406,7 @@ function ChatSignature({ groupId, signatureGroup }) {
           {signatureGroup.members.length > 4 && (
             <a
               key="others"
-              href={`/group/info?id=${groupId}`}
+              href={`/group/edit?id=${groupId}`}
               target="_blank"
               rel="noreferrer"
             >

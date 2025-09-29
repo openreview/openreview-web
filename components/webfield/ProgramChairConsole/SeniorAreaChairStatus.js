@@ -2,6 +2,7 @@
 import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import { sortBy } from 'lodash'
+import Link from 'next/link'
 import { getProfileLink } from '../../../lib/webfield-utils'
 import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
@@ -278,21 +279,25 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
     } else if (sacDirectPaperAssignment && !pcConsoleData.noteNumberReviewMetaReviewMap) {
       loadReviewMetaReviewData()
     } else {
+      // Optimization: build an object of notes by id
+      const notesById = {}
+      pcConsoleData.notes.forEach((n) => { notesById[n.id] = n })
+
       const tableRows = pcConsoleData.seniorAreaChairs.map((sacProfileId, index) => {
         let notes = []
         let acs = []
 
         if (sacDirectPaperAssignment) {
           notes =
-            pcConsoleData.sacAcInfo.acBySacMap.get(sacProfileId)?.map((noteId) => {
-              const note = pcConsoleData.notes.find((p) => p.id === noteId)
-              if (!note) return null
-              const noteNumber = note?.number
-
-              const reviewMetaReviewInfo =
-                pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}
-              return { note, noteNumber, ...reviewMetaReviewInfo }
-            }) ?? []
+            pcConsoleData.sacAcInfo.acBySacMap.get(sacProfileId)
+              ?.filter((noteId) => notesById[noteId])
+              .map((noteId) => {
+                const note = notesById[noteId]
+                const noteNumber = note?.number
+                const reviewMetaReviewInfo =
+                  pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}
+                return { note, noteNumber, ...reviewMetaReviewInfo }
+              }) ?? []
         } else {
           acs =
             pcConsoleData.sacAcInfo.acBySacMap.get(sacProfileId)?.map((acProfileId) => {
@@ -364,8 +369,8 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
   if (seniorAreaChairStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no {prettyField(seniorAreaChairName)}.Check back later or contact
-        info@openreview.net if you believe this to be an error.
+        There are no {prettyField(seniorAreaChairName)}.Check back later or{' '}
+        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
       </p>
     )
   if (seniorAreaChairStatusTabData.tableRows?.length === 0)

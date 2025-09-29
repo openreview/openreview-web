@@ -1,10 +1,9 @@
 import { useContext, useEffect } from 'react'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import WebFieldContext from '../WebFieldContext'
 import VenueHeader from './VenueHeader'
 import MarkdownContent from './MarkdownContent'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import { prettyId } from '../../lib/utils'
 
 export default function ArchivedConsole({ appContext }) {
@@ -15,19 +14,19 @@ export default function ArchivedConsole({ appContext }) {
     header,
     message,
   } = useContext(WebFieldContext)
-  const router = useRouter()
+  const query = useSearchParams()
   const { setBannerContent } = appContext
 
   useEffect(() => {
     // Set referrer banner
-    if (!router.isReady) return
-
-    if (router.query.referrer) {
-      setBannerContent(referrerLink(router.query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else if (parentGroupId) {
-      setBannerContent(venueHomepageLink(parentGroupId))
+      setBannerContent({ type: 'venueHomepageLink', value: parentGroupId })
+    } else {
+      setBannerContent({ type: null, value: null })
     }
-  }, [router.isReady, router.query])
+  }, [query])
 
   return (
     <div className="text-center row">
@@ -39,11 +38,7 @@ export default function ArchivedConsole({ appContext }) {
         <div id="notes">
           <h4 className="mt-4">This {prettyId(group.id, true)} Console has been archived.</h4>{' '}
           <p>
-            To request access, please contact OpenReview Support at{' '}
-            <a href="mailto:info@openreview.net" target="_blank" rel="noreferrer">
-              info@openreview.net
-            </a>
-            .
+            To request access, please <Link href={`/contact`}>contact us</Link>.
           </p>
           <p>
             Return to the{' '}

@@ -1,11 +1,11 @@
+/* eslint-disable max-len */
 /* globals typesetMathJax,promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { chunk } from 'lodash'
 import api from '../../lib/api-client'
 import Table from '../Table'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import { ReviewerConsoleNoteReviewStatus } from './NoteReviewStatus'
@@ -21,13 +21,12 @@ import {
   getRoleHashFragment,
 } from '../../lib/utils'
 import Dropdown from '../Dropdown'
-import useQuery from '../../hooks/useQuery'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import ErrorDisplay from '../ErrorDisplay'
 import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
 import { getProfileLink } from '../../lib/webfield-utils'
+import ConsoleTabs from './ConsoleTabs'
 
 const AreaChairInfo = ({ areaChairName, areaChairIds }) => (
   <div className="note-area-chairs">
@@ -261,6 +260,271 @@ const ReviewerConsoleTasks = ({ venueId, reviewerName, submissionName, noteNumbe
   )
 }
 
+const ReviewerConsoleTabs = ({
+  reviewerConsoleData,
+  setReviewerConsoleData,
+  paperRankingId,
+}) => {
+  const [enablePaperRanking, setEnablePaperRanking] = useState(true)
+  const {
+    venueId,
+    reviewerName,
+    officialReviewName,
+    submissionName,
+    reviewDisplayFields = ['review'],
+  } = useContext(WebFieldContext)
+  const defaultActiveTabId = `assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`
+  const [activeTabId, setActiveTabId] = useState(defaultActiveTabId)
+  const reviewerUrlFormat = reviewerName ? getRoleHashFragment(reviewerName) : null
+
+  const renderTable = () => {
+    if (!reviewerConsoleData.notes) return <LoadingSpinner />
+    if (reviewerConsoleData.notes?.length === 0) {
+      return (
+        <p className="empty-message">
+          You have no assigned papers. Please check again after the paper assignment process is
+          complete.
+        </p>
+      )
+    }
+
+    if (reviewerConsoleData.tableRows?.length === 0)
+      return (
+        <div className="table-container empty-table-container">
+          <ReviewerConsoleMenuBar
+            venueId={venueId}
+            tableRowsAll={reviewerConsoleData.tableRowsAll}
+            tableRows={reviewerConsoleData.tableRows}
+            setReviewerConsoleData={setReviewerConsoleData}
+            submissionName={submissionName}
+          />
+          <p className="empty-message">No {submissionName} matching search criteria.</p>
+        </div>
+      )
+    return (
+      <div className="table-container">
+        <ReviewerConsoleMenuBar
+          venueId={venueId}
+          tableRowsAll={reviewerConsoleData.tableRowsAll}
+          tableRows={reviewerConsoleData.tableRows}
+          setReviewerConsoleData={setReviewerConsoleData}
+          submissionName={submissionName}
+        />
+        <Table
+          className="console-table table-striped"
+          headings={[
+            { id: 'number', content: '#', width: '55px' },
+            { id: 'summary', content: `${submissionName} Summary`, width: '46%' },
+            {
+              id: 'ratings',
+              content: `Your ${prettyField(officialReviewName)} Ratings`,
+              width: 'auto',
+            },
+          ]}
+        >
+          {reviewerConsoleData.tableRows?.map((row) => (
+            <AssignedPaperRow
+              key={row.note.id}
+              note={row.note}
+              reviewerConsoleData={reviewerConsoleData}
+              paperRankingId={paperRankingId}
+              setReviewerConsoleData={setReviewerConsoleData}
+              enablePaperRanking={enablePaperRanking}
+              setEnablePaperRanking={setEnablePaperRanking}
+              reviewDisplayFields={reviewDisplayFields}
+              activeTabId={activeTabId}
+            />
+          ))}
+        </Table>
+      </div>
+    )
+  }
+  return (
+    <ConsoleTabs
+      defaultActiveTabId={defaultActiveTabId}
+      tabs={[
+        {
+          id: `assigned-${pluralizeString(submissionName).toLowerCase()}`,
+          label: `Assigned ${pluralizeString(submissionName)}`,
+          content: renderTable(),
+          visible: true,
+        },
+        {
+          id: `${reviewerUrlFormat}-tasks`,
+          label: `${getSingularRoleName(prettyField(reviewerName))} Tasks`,
+          content: (
+            <ReviewerConsoleTasks
+              venueId={venueId}
+              reviewerName={reviewerName}
+              submissionName={submissionName}
+              noteNumbers={reviewerConsoleData.noteNumbers}
+            />
+          ),
+          visible: true,
+        },
+      ]}
+      updateActiveTabId={setActiveTabId}
+    />
+  )
+}
+
+// #region config docs
+/** Reviewer Console config doc
+ *
+ * @typedef {Object} ReviewerConsoleConfig
+ *
+ // eslint-disable-next-line max-len
+ * @property {Object} header mandatory but can be empty object
+ * @property {string} venueId mandatory
+ * @property {string} reviewerName mandatory
+ * @property {string} officialReviewName mandatory
+ * @property {string|string[]|object[]} reviewRatingName mandatory
+ * @property {string} areaChairName optional
+ * @property {string} submissionName mandatory
+ * @property {string} submissionInvitationId mandatory
+ * @property {string} recruitmentInvitationId mandatory
+ * @property {string} customMaxPapersInvitationId mandatory
+ * @property {string|number} reviewLoad mandatory
+ * @property {boolean} hasPaperRanking mandatory
+ * @property {string[]} reviewDisplayFields optional
+ */
+
+/**
+ * @name ReviewerConsoleConfig.header
+ * @description Page header. Contains two string fields: "title" and "instructions" (markdown supported).
+ * @type {Object}
+ * @default no default value
+ * @example
+ * {
+ *   "header": {
+ *     "title": "Some conference",
+ *     "instructions": "some **instructions**"
+ *   }
+ * }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.venueId
+ * @description Used to construct banner content, referrer link and various group/invitation ids. The value is usually domain.id
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "venueId": "ICLR.cc/202X/Conference" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.reviewerName
+ * @description Used to construct referrer link, title and for filtering groups
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "reviewerName": "Reviewers" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.officialReviewName
+ * @description Used to construct official review invitation id
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "officialReviewName": "Official_Review" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.reviewRatingName
+ * @description Used to get rating value from official review, support string, string array for displaying multiple rating fields and object array which allows custom rating name and fallback values
+ * @type {string|string[]|object[]}
+ * @default no default value
+ * @example <caption>string shows single rating</caption>
+ * { "reviewRatingName": "rating" }
+ * @example <caption>string array shows multiple ratings</caption>
+ * { "reviewRatingName": ["soundness","excitement","reproducibility"] }
+ * @example <caption>object array/mixed shows multiple ratings with fallback options the following config would show 2 ratings: "overall_rating" and "overall_recommendation" for "overall_rating", it's value will be final_rating field, when final_rating field is not available, it will take the next available value defined in the array, in this example it will take "preliminary_rating"</caption>
+ * {
+ *  "reviewRatingName": [
+ *    {
+ *      "overall_rating": [
+ *        "final_rating",
+ *        "preliminary_rating"
+ *      ]
+ *    },
+ *    "overall_recommendation",
+ *  ]
+ */
+
+/**
+ * @name ReviewerConsoleConfig.areaChairName
+ * @description Used to construct AC/Anonymous AC group and label. optional for venues that don't have area chairs
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "areaChairName": "Area_Chairs" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.submissionName
+ * @description Used to filter/construct group id (paper display/tasks), invitation id, header text
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "submissionName": "Submission" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.submissionInvitationId
+ * @description Notes with the submissionInvitationId will be fetched
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "submissionInvitationId": "ICLR.cc/202X/Conference/-/Submission" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.recruitmentInvitationId
+ * @description Related to customMaxPapersInvitationId and reviewLoad. The invitation to get recruitment note where custom load is saved (if there's no custom load edge) and custom load is displayed in header
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "recruitmentInvitationId": "ICLR.cc/202X/Conference/Reviewers/-/Recruitment" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.customMaxPapersInvitationId
+ * @description Related to recruitmentInvitationId and reviewLoad. The invitation to get custom load edge. If edge exist the weight is used as custom load otherwise it will load the recruitment note to read the reduced_load field.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "customMaxPapersInvitationId": "ICLR.cc/202X/Conference/Reviewers/-/Custom_Max_Papers" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.reviewLoad
+ * @description Related to recruitmentInvitationId and customMaxPapersInvitationId. The default value to display in header when there's no custom load edge or recruitment note
+ * @type {string|number}
+ * @default no default value
+ * @example
+ * { "reviewLoad": "" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.hasPaperRanking
+ * @description Flag to enable paper ranking (tag fetching and display)
+ * @type {boolean}
+ * @default no default value
+ * @example
+ * { "hasPaperRanking": false }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.reviewDisplayFields
+ * @description The content fields to display from official review note
+ * @type {string[]}
+ * @default ['review']
+ * @example
+ * { "reviewDisplayFields": ['review'] }
+ */
+
+// #endregion
 const ReviewerConsole = ({ appContext }) => {
   const {
     header,
@@ -278,19 +542,12 @@ const ReviewerConsole = ({ appContext }) => {
     hasPaperRanking,
     reviewDisplayFields = ['review'],
   } = useContext(WebFieldContext)
-  const { user, accessToken, userLoading } = useUser()
-  const router = useRouter()
-  const query = useQuery()
-  const { setBannerContent } = appContext
+  const { user, accessToken, isRefreshing } = useUser()
+  const query = useSearchParams()
+  const { setBannerContent } = appContext ?? {}
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
-  const [enablePaperRanking, setEnablePaperRanking] = useState(true)
-  const [activeTabId, setActiveTabId] = useState(
-    decodeURIComponent(window.location.hash) ||
-      `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`
-  )
 
   const paperRankingId = `${venueId}/${reviewerName}/-/Paper_Ranking`
-  const reviewerUrlFormat = reviewerName ? getRoleHashFragment(reviewerName) : null
 
   const loadData = async () => {
     let anonGroups
@@ -391,40 +648,42 @@ const ReviewerConsole = ({ appContext }) => {
 
     // #region get area chair groups
     const getAreaChairGroupsP = areaChairName
-      ? api
-          .get(
-            '/groups',
-            {
-              prefix: `${venueId}/${submissionName}.*`,
-              select: 'id,members',
-              domain: group.domain,
-              stream: true,
-            },
-            { accessToken }
+      ? Promise.all(
+          noteNumbers.map((noteNumber) =>
+            api.get(
+              '/groups',
+              {
+                parent: `${venueId}/${submissionName}${noteNumber}`,
+                select: 'id,members',
+                domain: group.domain,
+              },
+              { accessToken }
+            )
           )
-          .then((result) => {
-            const singularAreaChairName = areaChairName.endsWith('s')
-              ? areaChairName.slice(0, -1)
-              : areaChairName
-            const areaChairMap = {}
-            result.groups.forEach((areaChairgroup) => {
-              if (areaChairgroup.id.endsWith(`/${areaChairName}`)) {
-                const num = getNumberFromGroup(areaChairgroup.id, submissionName)
-                areaChairMap[num] = areaChairgroup.members
-              }
-            })
-            result.groups.forEach((anonGroup) => {
-              if (anonGroup.id.includes(`/${singularAreaChairName}_`)) {
-                // TODO: parametrize anon group name
-                const num = getNumberFromGroup(anonGroup.id, submissionName)
-                if (areaChairMap[num]) {
-                  const index = areaChairMap[num].indexOf(anonGroup.id)
-                  if (index >= 0) areaChairMap[num][index] = anonGroup.members[0]
-                }
-              }
-            })
-            return areaChairMap
+        ).then((result) => {
+          const singularAreaChairName = areaChairName.endsWith('s')
+            ? areaChairName.slice(0, -1)
+            : areaChairName
+          const areaChairMap = {}
+          const allACGroupResult = result.flatMap((p) => p.groups)
+          allACGroupResult.forEach((areaChairgroup) => {
+            if (areaChairgroup.id.endsWith(`/${areaChairName}`)) {
+              const num = getNumberFromGroup(areaChairgroup.id, submissionName)
+              areaChairMap[num] = areaChairgroup.members
+            }
           })
+          allACGroupResult.forEach((anonGroup) => {
+            if (anonGroup.id.includes(`/${singularAreaChairName}_`)) {
+              // TODO: parametrize anon group name
+              const num = getNumberFromGroup(anonGroup.id, submissionName)
+              if (areaChairMap[num]) {
+                const index = areaChairMap[num].indexOf(anonGroup.id)
+                if (index >= 0) areaChairMap[num][index] = anonGroup.members[0]
+              }
+            }
+          })
+          return areaChairMap
+        })
       : Promise.resolve({})
     // #endregion
 
@@ -511,81 +770,19 @@ const ReviewerConsole = ({ appContext }) => {
       })
   }
 
-  const renderTable = () => {
-    if (reviewerConsoleData.notes?.length === 0) {
-      return (
-        <p className="empty-message">
-          You have no assigned papers. Please check again after the paper assignment process is
-          complete.
-        </p>
-      )
-    }
-
-    if (reviewerConsoleData.tableRows?.length === 0)
-      return (
-        <div className="table-container empty-table-container">
-          <ReviewerConsoleMenuBar
-            venueId={venueId}
-            tableRowsAll={reviewerConsoleData.tableRowsAll}
-            tableRows={reviewerConsoleData.tableRows}
-            setReviewerConsoleData={setReviewerConsoleData}
-            submissionName={submissionName}
-          />
-          <p className="empty-message">No {submissionName} matching search criteria.</p>
-        </div>
-      )
-    return (
-      <div className="table-container">
-        <ReviewerConsoleMenuBar
-          venueId={venueId}
-          tableRowsAll={reviewerConsoleData.tableRowsAll}
-          tableRows={reviewerConsoleData.tableRows}
-          setReviewerConsoleData={setReviewerConsoleData}
-          submissionName={submissionName}
-        />
-        <Table
-          className="console-table table-striped"
-          headings={[
-            { id: 'number', content: '#', width: '55px' },
-            { id: 'summary', content: `${submissionName} Summary`, width: '46%' },
-            {
-              id: 'ratings',
-              content: `Your ${prettyField(officialReviewName)} Ratings`,
-              width: 'auto',
-            },
-          ]}
-        >
-          {reviewerConsoleData.tableRows?.map((row) => (
-            <AssignedPaperRow
-              key={row.note.id}
-              note={row.note}
-              reviewerConsoleData={reviewerConsoleData}
-              paperRankingId={paperRankingId}
-              setReviewerConsoleData={setReviewerConsoleData}
-              enablePaperRanking={enablePaperRanking}
-              setEnablePaperRanking={setEnablePaperRanking}
-              reviewDisplayFields={reviewDisplayFields}
-              activeTabId={activeTabId}
-            />
-          ))}
-        </Table>
-      </div>
-    )
-  }
-
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
   useEffect(() => {
     if (
-      userLoading ||
+      isRefreshing ||
       !user ||
       !group ||
       !submissionInvitationId ||
@@ -595,27 +792,13 @@ const ReviewerConsole = ({ appContext }) => {
     )
       return
     loadData()
-  }, [user, userLoading, group])
+  }, [user, isRefreshing, group])
 
   useEffect(() => {
     if (reviewerConsoleData.notes) {
       typesetMathJax()
     }
   }, [reviewerConsoleData.notes])
-
-  useEffect(() => {
-    if (user && !userLoading) {
-      const validTabIds = [
-        `#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
-        `#${reviewerUrlFormat}-tasks`,
-      ]
-      if (!validTabIds.includes(activeTabId)) {
-        setActiveTabId(`#assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`)
-        return
-      }
-      router.replace(activeTabId)
-    }
-  }, [activeTabId, user, userLoading])
 
   const missingConfig = Object.entries({
     header,
@@ -629,20 +812,14 @@ const ReviewerConsole = ({ appContext }) => {
     customMaxPapersInvitationId,
     reviewLoad,
     hasPaperRanking,
-  }).filter(([key, value]) => value === undefined)
-  if (missingConfig?.length || recruitmentInvitationId === undefined) {
+    recruitmentInvitationId,
+  }).filter(([_, value]) => value === undefined)
+  if (missingConfig?.length) {
     const errorMessage = `${
       reviewerName ? `${prettyId(reviewerName)} ` : ''
-    }Console is missing required properties: ${
-      missingConfig.length
-        ? missingConfig.map((p) => p[0]).join(', ')
-        : 'recruitmentInvitationId'
-    }`
+    }Console is missing required properties: ${missingConfig.map((p) => p[0]).join(', ')}`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
-
-  if (!reviewerConsoleData.notes) return <LoadingSpinner />
-
   return (
     <>
       <BasicHeader
@@ -651,48 +828,15 @@ const ReviewerConsole = ({ appContext }) => {
         customLoad={reviewerConsoleData.customLoad}
         submissionName={submissionName}
       />
-      <Tabs>
-        <TabList>
-          <Tab
-            id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}
-            active={
-              activeTabId === `#assigned-${pluralizeString(submissionName).toLowerCase()}`
-                ? true
-                : undefined
-            }
-            onClick={() =>
-              setActiveTabId(`#assigned-${pluralizeString(submissionName).toLowerCase()}`)
-            }
-          >
-            Assigned {pluralizeString(submissionName)}
-          </Tab>
-          <Tab
-            id={`${reviewerUrlFormat}-tasks`}
-            active={activeTabId === `#${reviewerUrlFormat}-tasks` ? true : undefined}
-            onClick={() => setActiveTabId(`#${reviewerUrlFormat}-tasks`)}
-          >
-            {getSingularRoleName(prettyField(reviewerName))} Tasks
-          </Tab>
-        </TabList>
-
-        <TabPanels>
-          <TabPanel id={`assigned-${pluralizeString(submissionName).toLowerCase()}`}>
-            {activeTabId === `#assigned-${pluralizeString(submissionName).toLowerCase()}` &&
-              renderTable()}
-          </TabPanel>
-
-          <TabPanel id={`${reviewerUrlFormat}-tasks`}>
-            {activeTabId === `#${reviewerUrlFormat}-tasks` && (
-              <ReviewerConsoleTasks
-                venueId={venueId}
-                reviewerName={reviewerName}
-                submissionName={submissionName}
-                noteNumbers={reviewerConsoleData.noteNumbers}
-              />
-            )}
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
+      {reviewerConsoleData.notes ? (
+        <ReviewerConsoleTabs
+          reviewerConsoleData={reviewerConsoleData}
+          setReviewerConsoleData={setReviewerConsoleData}
+          paperRankingId={paperRankingId}
+        />
+      ) : (
+        <LoadingSpinner />
+      )}
     </>
   )
 }

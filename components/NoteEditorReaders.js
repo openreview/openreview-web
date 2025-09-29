@@ -24,7 +24,7 @@ export const NewNoteReaders = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
-  const { user, accessToken } = useUser()
+  const { user, accessToken, isRefreshing } = useUser()
 
   const getRegexReaders = async () => {
     setLoading((loading) => ({ ...loading, fieldName: true }))
@@ -193,7 +193,7 @@ export const NewNoteReaders = ({
   }
 
   useEffect(() => {
-    if (!user || !fieldDescription) return // not essentially an error
+    if (isRefreshing || !user || !fieldDescription) return // not essentially an error
     if (Array.isArray(fieldDescription) || fieldDescription.param.const) {
       setDescriptionType('const')
     } else if (fieldDescription.param.regex) {
@@ -201,7 +201,7 @@ export const NewNoteReaders = ({
     } else if (fieldDescription.param.enum || fieldDescription.param.items) {
       setDescriptionType('enum')
     }
-  }, [])
+  }, [isRefreshing])
 
   useEffect(() => {
     if (descriptionType === 'regex') getRegexReaders()
@@ -235,7 +235,7 @@ export const NewReplyEditNoteReaders = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
-  const { user, accessToken } = useUser()
+  const { user, accessToken, isRefreshing } = useUser()
 
   const addEnumParentReaders = (groupResults, parentReaders, invitationReaders) => {
     if (!parentReaders?.length || parentReaders.includes('everyone') || isDirectReplyToForum)
@@ -324,25 +324,39 @@ export const NewReplyEditNoteReaders = ({
             description: p,
           }))
         : fieldDescription.param.items
-      const optionsP = enumItemsConfigOptions.map((p) =>
-        p.prefix
-          ? api.get('/groups', { prefix: p.prefix }, { accessToken }).then((result) =>
-              result.groups.map((q) => ({
-                value: q.id,
-                description: prettyId(q.id, false),
+      const optionsP = enumItemsConfigOptions.map((p) => {
+        if (p.prefix)
+          return api.get('/groups', { prefix: p.prefix }, { accessToken }).then((result) =>
+            result.groups.map((q) => ({
+              value: q.id,
+              description: prettyId(q.id, false),
+              optional: p.optional,
+            }))
+          )
+        if (p.inGroup) {
+          return api
+            .get('/groups', { id: p.inGroup }, { accessToken })
+            .then((result) => {
+              const groupMembers = result.groups[0]?.members
+              if (!groupMembers?.length) return []
+              return groupMembers.map((q) => ({
+                value: q,
+                description: prettyId(q, false),
                 optional: p.optional,
               }))
-            )
-          : Promise.resolve([
-              {
-                ...p,
-                description: prettyId(p.description ?? p.value)
-                  .split(/\{(\S+)\}/g)
-                  .filter((q) => q.trim())
-                  .join(),
-              },
-            ])
-      )
+            })
+            .catch(() => [])
+        }
+        return Promise.resolve([
+          {
+            ...p,
+            description: prettyId(p.description ?? p.value)
+              .split(/\{(\S+)\}/g)
+              .filter((q) => q.trim())
+              .join(),
+          },
+        ])
+      })
       const groupResults = await Promise.all(optionsP)
 
       const optionWithParentReaders = addEnumParentReaders(
@@ -397,9 +411,9 @@ export const NewReplyEditNoteReaders = ({
           }))
           parentReadersToAutoSelect = isDirectReplyToForum
             ? []
-            : replyToNote?.readers?.filter((p) =>
+            : (replyToNote?.readers?.filter((p) =>
                 optionWithParentReaders.find((q) => q.value === p)
-              ) ?? []
+              ) ?? [])
           defaultValues = fieldDescription?.param?.default ?? []
 
           if (!value && (defaultValues.length || parentReadersToAutoSelect.length))
@@ -525,7 +539,7 @@ export const NewReplyEditNoteReaders = ({
   }
 
   useEffect(() => {
-    if (!user || !fieldDescription) return // not essentially an error
+    if (isRefreshing || !user || !fieldDescription) return // not essentially an error
     if (Array.isArray(fieldDescription) || fieldDescription.param.const) {
       setDescriptionType('const')
     } else if (fieldDescription.param.regex) {
@@ -533,7 +547,7 @@ export const NewReplyEditNoteReaders = ({
     } else if (fieldDescription.param.enum || fieldDescription.param.items) {
       setDescriptionType('enum')
     }
-  }, [])
+  }, [isRefreshing])
 
   useEffect(() => {
     if (descriptionType === 'regex') getRegexReaders()

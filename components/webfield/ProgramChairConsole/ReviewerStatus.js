@@ -2,6 +2,7 @@
 import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
+import Link from 'next/link'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import {
@@ -181,7 +182,7 @@ const ReviewerProgress = ({
                             ratingDisplayName = ratingName
                             ratingValue = officialReview[ratingName]
                           }
-                          if (!ratingValue) return null
+                          if (ratingValue === undefined) return null
                           return (
                             <span key={ratingName}>
                               {prettyField(ratingDisplayName)}: {ratingValue}{' '}
@@ -293,7 +294,6 @@ const ReviewerStatusTab = ({
   pcConsoleData,
   loadReviewMetaReviewData,
   loadRegistrationNoteMap,
-  showContent,
 }) => {
   const [reviewerStatusTabData, setReviewerStatusTabData] = useState({})
   const {
@@ -461,7 +461,7 @@ const ReviewerStatusTab = ({
   }
 
   useEffect(() => {
-    if (!pcConsoleData.reviewers || !showContent) return
+    if (!pcConsoleData.reviewers) return
     if (!pcConsoleData.registrationNoteMap) {
       loadRegistrationNoteMap()
     } else {
@@ -471,7 +471,6 @@ const ReviewerStatusTab = ({
     pcConsoleData.reviewers,
     pcConsoleData.noteNumberReviewMetaReviewMap,
     pcConsoleData.registrationNoteMap,
-    showContent,
   ])
 
   useEffect(() => {
@@ -491,13 +490,13 @@ const ReviewerStatusTab = ({
     setPageNumber(1)
   }, [reviewerStatusTabData.tableRows])
 
-  if (!reviewerStatusTabData.tableRowsAll) return <LoadingSpinner />
+  if (!reviewerStatusTabData.tableRowsAll) return <LoadingSpinner inline />
 
   if (reviewerStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        There are no {prettyField(reviewerName)}.Check back later or contact
-        info@openreview.net if you believe this to be an error.
+        There are no {prettyField(reviewerName)}.Check back later or{' '}
+        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
       </p>
     )
   if (reviewerStatusTabData.tableRows?.length === 0)
