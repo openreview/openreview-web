@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { orderBy } from 'lodash'
+import { motion } from 'framer-motion'
+import dayjs from 'dayjs'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { inflect, prettyId } from '../../lib/utils'
+import { inflect } from '../../lib/utils'
 
 const OtherVersions = ({ note }) => {
   const { accessToken, isRefreshing } = useUser()
   const [otherVersions, setOtherVersions] = useState(null)
+  const containerRef = useRef(null)
 
   const loadOtherVersions = async () => {
     try {
@@ -19,8 +22,8 @@ const OtherVersions = ({ note }) => {
       )
 
       const otherNoteVersions = orderBy(
-        result.notes.filter((p) => p.id !== note.id && p.content?.venue?.value),
-        'pdate',
+        result.notes.filter((p) => p.content?.venue?.value),
+        [(p) => p.pdate ?? p.cdate],
         'desc'
       )
       setOtherVersions(otherNoteVersions)
@@ -34,25 +37,46 @@ const OtherVersions = ({ note }) => {
     loadOtherVersions()
   }, [note?.id, isRefreshing])
 
-  if (!otherVersions?.length) return null
+  if (!otherVersions?.length || otherVersions.length === 1) return null
 
   return (
-    <div className="forum-other-versions">
-      <span className="mr-2">
-        View other {inflect(otherVersions.length, 'version', 'versions', true)}:
-      </span>
-      {otherVersions.map((otherVersionNote, index) => (
-        <a
-          key={otherVersionNote.id}
-          href={`/forum?id=${otherVersionNote.id}`}
-          target="_blank"
-          rel="noopener noreferrer"
+    <motion.div
+      ref={containerRef}
+      initial={{ height: 0, overflow: 'hidden' }}
+      animate={{ height: 'auto' }}
+      transition={{
+        height: { duration: 0.25, ease: 'easeIn' },
+      }}
+      onAnimationComplete={() => {
+        if (containerRef.current) containerRef.current.style.overflow = 'visible'
+      }}
+    >
+      <div className="btn-group">
+        <button
+          type="button"
+          className="btn btn-xs dropdown-toggle"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
         >
-          <span>{prettyId(otherVersionNote.content.venue.value)}</span>
-          {index < otherVersions.length - 1 && <span>{', '}</span>}
-        </a>
-      ))}
-    </div>
+          {otherVersions.length} {inflect(otherVersions.length, 'Version', 'Versions')}{' '}
+          <span className="caret" />
+        </button>
+        <ul className="dropdown-menu">
+          {otherVersions?.map((otherVersionNote) => (
+            <li
+              key={otherVersionNote.id}
+              className={otherVersionNote.id === note.id ? 'disabled' : undefined}
+            >
+              <a href={`/forum?id=${otherVersionNote.id}`}>
+                {otherVersionNote.content.venue.value} (
+                {dayjs(otherVersionNote.pdate ?? otherVersionNote.cdate).format('LL')})
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </motion.div>
   )
 }
 

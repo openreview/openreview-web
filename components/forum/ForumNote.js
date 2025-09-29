@@ -89,6 +89,8 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
         texDisabled && 'disable-tex-rendering'
       )}
     >
+      <OtherVersions note={note} />
+
       <ForumTitle
         id={id}
         title={DOMPurify.sanitize(content?.title?.value)}
@@ -106,8 +108,6 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
           />
         </h3>
       </div>
-
-      <OtherVersions note={note} />
 
       <div className="clearfix mb-1">
         <ForumMeta note={note} />
