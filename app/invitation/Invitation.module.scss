@@ -816,22 +816,6 @@
       }
     }
 
-    #venue-configuration {
-      .overview-list {
-        padding-left: 15px;
-      }
-      .overview-timeline,
-      .overview-registration-link {
-        white-space: nowrap;
-      }
-      span.fraction {
-        color: constants.$subtleGray;
-      }
-      .recruitment-stat-row {
-        margin-top: 0.5rem;
-      }
-    }
-
     // Edit and Info Mode
     section {
       &.general,
