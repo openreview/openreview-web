@@ -11,6 +11,7 @@ import MathjaxScript from './MathjaxScript'
 import TurnstileScript from './TurnstileScript'
 import usePrompt from '../hooks/usePrompt'
 import BibtexModal from '../components/BibtexModal'
+import StripeScript from './StripeScript'
 
 export default function AppInit() {
   const [libarysLoaded, setLibrariesLoaded] = useState(false)
@@ -98,6 +99,7 @@ export default function AppInit() {
       <MathjaxScript />
       <TurnstileScript />
       {notificationHolder}
+      <StripeScript />
       {libarysLoaded && <BibtexModal />}
     </>
   )

@@ -170,6 +170,63 @@ module.exports = (function () {
     })
   }
 
+  var getAllWithAfter = function (url, queryObjParam, resultsKey) {
+    const queryObj = { ...queryObjParam }
+    queryObj.limit = Math.min(queryObj.limit || 1000, 1000)
+    queryObj.count = true
+
+    if (!resultsKey) {
+      if (url.indexOf('notes') !== -1) {
+        resultsKey = 'notes'
+      } else if (url.indexOf('groups') !== -1) {
+        resultsKey = 'groups'
+      } else if (url.indexOf('profiles') !== -1) {
+        resultsKey = 'profiles'
+      } else if (url.indexOf('invitations') !== -1) {
+        resultsKey = 'invitations'
+      } else if (url.indexOf('tags') !== -1) {
+        resultsKey = 'tags'
+      } else if (url.indexOf('edges') !== -1) {
+        resultsKey = 'edges'
+      } else {
+        return $.Deferred().reject('Unknown API endpoint')
+      }
+    }
+
+    return get(url, queryObj).then(function (initialResult) {
+      if (!initialResult || !initialResult[resultsKey]) {
+        return []
+      }
+
+      var initialResults = initialResult[resultsKey]
+      const totalCount = initialResult.count ?? initialResults.length
+      if (!totalCount) return []
+      if (totalCount - initialResults.length <= 0) return initialResults
+
+      const allResults = initialResults
+
+      const requestsCount = Math.ceil(totalCount / 1000)
+      let requestNumber = 1
+
+      const getSingleBatchWithAfter = function (afterId) {
+        if (requestNumber >= requestsCount) {
+          return allResults
+        }
+        return get(url, { ...queryObj, after: afterId, count: false }).then(function (result) {
+          const resultObjects = result?.[resultsKey]
+          if (!resultObjects?.length) return []
+          allResults.push(...resultObjects)
+          const afterId = resultObjects[resultObjects.length - 1].id
+          if (!afterId) return []
+          requestNumber++
+          return getSingleBatchWithAfter(afterId)
+        })
+      }
+
+      return getSingleBatchWithAfter(allResults[allResults.length - 1]?.id)
+    })
+  }
+
   var jqSuccessCallback = function (response) {
     return response
   }
@@ -271,6 +328,7 @@ module.exports = (function () {
       query.domain = options.domain
     }
 
+    if (options.withAfter) return getAllWithAfter('/notes', query)
     return getAll('/notes', query)
   }
 

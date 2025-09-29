@@ -32,7 +32,7 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
         const requestBody = {
           group: {
             id: group.id,
-            web: modifiedWebCode.trim() ? modifiedWebCode.trim() : null,
+            web: modifiedWebCode,
           },
           readers: [profileId],
           writers: [profileId],
