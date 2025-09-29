@@ -1354,10 +1354,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         </div>
       )}
       <ConsoleTabs
-        defaultActiveTabId="venue-configuration"
+        defaultActiveTabId="overview"
         tabs={[
           {
-            id: 'venue-configuration',
+            id: 'overview',
             label: 'Overview',
             content: <Overview pcConsoleData={pcConsoleData} timelineData={timelineData} />,
             visible: true,

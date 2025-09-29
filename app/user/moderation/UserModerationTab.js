@@ -643,7 +643,8 @@ const UserModerationQueue = ({
                     </>
                   ) : (
                     <>
-                      {profile.state === 'Needs Moderation' && (
+                      {(profile.state === 'Needs Moderation' ||
+                        profile.state === 'Rejected') && (
                         <button
                           type="button"
                           className="btn btn-xs"
@@ -655,6 +656,7 @@ const UserModerationQueue = ({
                       {!(
                         profile.state === 'Blocked' ||
                         profile.state === 'Limited' ||
+                        profile.state === 'Rejected' ||
                         profile.ddate
                       ) && (
                         <button
