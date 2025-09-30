@@ -25,7 +25,6 @@ export default function Page() {
     apiRes.invitations.map((inv) => ({ ...inv, [propertyName]: true }))
 
   const loadGroupTasks = async (domain, types) => {
-    console.log('Loading tasks for domain:', domain, types)
     if (domainTasksMap.has(domain)) return
     const commonParams = {
       invitee: true,
