@@ -18,13 +18,14 @@ export default function Page() {
   const { accessToken, isRefreshing } = useUser()
   const router = useRouter()
   const [domainTasksMap, setDomainTasksMap] = useState(new Map())
-  const [domains, setDomains] = useState(null)
+  const [domainTypeMap, setDomainTypeMap] = useState(null)
   const [error, setError] = useState(null)
 
   const addPropertyToInvitations = (propertyName) => (apiRes) =>
     apiRes.invitations.map((inv) => ({ ...inv, [propertyName]: true }))
 
-  const loadGroupTasks = async (domain) => {
+  const loadGroupTasks = async (domain, types) => {
+    console.log('Loading tasks for domain:', domain, types)
     if (domainTasksMap.has(domain)) return
     const commonParams = {
       invitee: true,
@@ -33,28 +34,34 @@ export default function Page() {
       domain,
     }
     const invitationPromises = [
-      api
-        .get(
-          '/invitations',
-          {
-            ...commonParams,
-            replyto: true,
-            details: 'replytoNote,repliedNotes,repliedEdits',
-            type: 'note',
-          },
-          { accessToken }
-        )
-        .then(addPropertyToInvitations('noteInvitation')),
-      api
-        .get('/invitations', { ...commonParams, type: 'tag' }, { accessToken })
-        .then(addPropertyToInvitations('tagInvitation')),
-      api
-        .get(
-          '/invitations',
-          { ...commonParams, type: 'edge', details: 'repliedEdges' },
-          { accessToken }
-        )
-        .then(addPropertyToInvitations('tagInvitation')),
+      types.includes('note')
+        ? api
+            .get(
+              '/invitations',
+              {
+                ...commonParams,
+                replyto: true,
+                details: 'replytoNote,repliedNotes,repliedEdits',
+                type: 'note',
+              },
+              { accessToken }
+            )
+            .then(addPropertyToInvitations('noteInvitation'))
+        : Promise.resolve([]),
+      types.includes('tag')
+        ? api
+            .get('/invitations', { ...commonParams, type: 'tag' }, { accessToken })
+            .then(addPropertyToInvitations('tagInvitation'))
+        : Promise.resolve([]),
+      types.includes('edge')
+        ? api
+            .get(
+              '/invitations',
+              { ...commonParams, type: 'edge', details: 'repliedEdges' },
+              { accessToken }
+            )
+            .then(addPropertyToInvitations('tagInvitation'))
+        : Promise.resolve([]),
     ]
     await Promise.all(invitationPromises)
       .then(async (allInvitations) => {
@@ -139,21 +146,32 @@ export default function Page() {
     const domainResult = await Promise.all(invitationPromises).catch((apiError) =>
       setError(apiError)
     )
-    const uniqueDomains = [
-      ...new Set(
-        domainResult.flat().flatMap((inv) => {
-          if (!inv.domain) return []
-          if (
-            intersection(['everyone', '~', '(guest)', '(anonymous)'], inv.invitees).length !==
-            0
-          ) {
-            return []
-          }
-          return inv.domain
-        })
-      ),
-    ]
-    setDomains(uniqueDomains)
+
+    const uniqueDomainsTypeMap = new Map()
+    const processDomainResults = (invitations, type) => {
+      invitations.forEach((inv) => {
+        if (
+          !inv.domain ||
+          intersection(['everyone', '~', '(guest)', '(anonymous)'], inv.invitees).length !== 0
+        ) {
+          return
+        }
+        if (uniqueDomainsTypeMap.has(inv.domain)) {
+          const existingTypes = uniqueDomainsTypeMap.get(inv.domain)
+          if (existingTypes.includes(type)) return
+          existingTypes.push(type)
+          uniqueDomainsTypeMap.set(inv.domain, existingTypes)
+        } else {
+          uniqueDomainsTypeMap.set(inv.domain, [type])
+        }
+      })
+    }
+    domainResult.forEach((invitations, index) => {
+      const type = ['note', 'tag', 'edge'][index]
+      processDomainResults(invitations, type)
+    })
+
+    setDomainTypeMap(uniqueDomainsTypeMap)
   }
 
   useEffect(() => {
@@ -165,22 +183,22 @@ export default function Page() {
     loadDomains()
   }, [isRefreshing])
 
-  if (!domains) return <LoadingSpinner />
+  if (!domainTypeMap) return <LoadingSpinner />
   if (error) return <ErrorAlert error={error} />
 
-  if (!domains.length)
+  if (!domainTypeMap.size)
     return <p className="empty-message">No current pending or completed tasks</p>
   return (
     <div className={styles.tasks}>
       <div className="tasks-container">
         <Accordion
-          sections={domains.map((domain) => ({
+          sections={Array.from(domainTypeMap.entries()).map(([domain, types]) => ({
             domain,
             heading: (
               <HeadingLink
                 groupId={domain}
                 groupInfo={domainTasksMap.get(domain)}
-                loadTasksForDomain={loadGroupTasks}
+                loadTasksForDomain={() => loadGroupTasks(domain, types)}
               />
             ),
             body: domainTasksMap.has(domain) ? (
