@@ -155,7 +155,10 @@ const ArxivForum = ({ id }) => {
   if (!arxivNote) return <LoadingSpinner />
   return (
     <CommonLayout>
-      <Forum forumNote={arxivNote} />
+      <Forum
+        forumNote={arxivNote}
+        editInvitationIdToHide={`${process.env.SUPER_USER}/Public_Article/arXiv.org/-/Record`}
+      />
     </CommonLayout>
   )
 }
