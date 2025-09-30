@@ -12,6 +12,7 @@ import CommonLayout from '../CommonLayout'
 import Forum from '../../components/forum/Forum'
 import LoadingSpinner from '../../components/LoadingSpinner'
 
+const entrySelector = '//atom:feed/atom:entry'
 const titleSelector = '//atom:feed/atom:entry/atom:title/text()'
 const abstractSelector = '//atom:feed/atom:entry/atom:summary/text()'
 const authorsSelector = '//atom:feed/atom:entry/atom:author/atom:name/text()'
@@ -82,26 +83,33 @@ const ArxivForum = ({ id }) => {
       const pdate = dayjs(xpathSelect(pdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
       const mdate = dayjs(xpathSelect(mdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
       const pdfUrl = xpathSelect(pdfSelector, xmlDoc, true)?.[0]?.nodeValue
+      const rawXml = xpathSelect(entrySelector, xmlDoc, true)[0].outerHTML
 
       const notePostResult = await api.post(
         '/notes/edits',
         {
           invitation: `${process.env.SUPER_USER}/Public_Article/arXiv.org/-/Record`,
           signatures: [user.profile.id],
+          content: {
+            xml: {
+              value: rawXml,
+            },
+          },
           note: {
             id: latestExistingVersionNote?.id,
             content: {
               title: {
                 value: title,
               },
-              abstract: {
-                value: abstract,
-              },
+
               authors: {
                 value: authorNames,
               },
               authorids: {
                 value: authorIds,
+              },
+              abstract: {
+                value: abstract,
               },
               subject_areas: {
                 value: subjectAreas,
@@ -124,7 +132,16 @@ const ArxivForum = ({ id }) => {
       })
       setArvixNote(noteResult)
     } catch (apiError) {
-      setError(apiError.message)
+      if (
+        apiError.name === 'ItemsError' &&
+        apiError.details?.path?.startsWith('note/content/subject_areas')
+      ) {
+        setError(
+          'The subject areas of this arXiv paper is not supported yet. Please try a different paper.'
+        )
+      } else {
+        setError(apiError.message)
+      }
     }
   }
 
