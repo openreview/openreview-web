@@ -14,12 +14,9 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 
 const entrySelector = '//atom:feed/atom:entry'
 const titleSelector = '//atom:feed/atom:entry/atom:title/text()'
-const abstractSelector = '//atom:feed/atom:entry/atom:summary/text()'
 const authorsSelector = '//atom:feed/atom:entry/atom:author/atom:name/text()'
-const subjectAreasSelector = '//atom:feed/atom:entry/atom:category/@term'
 const pdateSelector = '//atom:feed/atom:entry/atom:published/text()'
 const mdateSelector = '//atom:feed/atom:entry/atom:updated/text()'
-const pdfSelector = '//atom:feed/atom:entry/atom:link[@title="pdf"]/@href'
 const idSelector = '//atom:feed/atom:entry/atom:id/text()'
 
 const ArxivForum = ({ id }) => {
@@ -70,19 +67,12 @@ const ArxivForum = ({ id }) => {
         ?.nodeValue?.trim()
         ?.replace(/\n/g, ' ')
       if (!title) throw new Error(`The Note ${id} was not found`)
-      const abstract = xpathSelect(abstractSelector, xmlDoc, true)?.[0]?.nodeValue?.trim()
+
       const authorNames = xpathSelect(authorsSelector, xmlDoc, true)?.map((author) =>
         author.nodeValue.trim()
       )
-      const authorIds = authorNames.map(
-        (p) => `https://arxiv.org/search/?query=${encodeURIComponent(p)}&searchtype=all`
-      )
-      const subjectAreas = xpathSelect(subjectAreasSelector, xmlDoc, true)?.map((subject) =>
-        subject.nodeValue.trim()
-      )
       const pdate = dayjs(xpathSelect(pdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
       const mdate = dayjs(xpathSelect(mdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
-      const pdfUrl = xpathSelect(pdfSelector, xmlDoc, true)?.[0]?.nodeValue
       const rawXml = xpathSelect(entrySelector, xmlDoc, true)[0].outerHTML
 
       const notePostResult = await api.post(
@@ -101,21 +91,8 @@ const ArxivForum = ({ id }) => {
               title: {
                 value: title,
               },
-
               authors: {
                 value: authorNames,
-              },
-              authorids: {
-                value: authorIds,
-              },
-              abstract: {
-                value: abstract,
-              },
-              subject_areas: {
-                value: subjectAreas,
-              },
-              pdf: {
-                value: pdfUrl,
               },
             },
             pdate,
