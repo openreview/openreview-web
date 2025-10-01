@@ -33,8 +33,11 @@ const PaperStatusMenuBar = ({
     officialReviewName,
     officialMetaReviewName = 'Meta_Review',
     areaChairName = 'Area_Chairs',
+    secondaryAreaChairName,
     submissionName,
     ithenticateInvitationId,
+    messageSubmissionSecondaryAreaChairsInvitationId,
+    metaReviewAgreementConfig,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
   const formattedReviewerName = camelCase(reviewerName)
@@ -86,11 +89,18 @@ const PaperStatusMenuBar = ({
         }),
         {}
       )),
+    ...(metaReviewAgreementConfig && {
+      [camelCase(metaReviewAgreementConfig.name)]: [
+        `metaReviewData.metaReviewAgreementSearchValue`,
+      ],
+    }),
     ...(customStageInvitations?.length > 0 &&
       customStageInvitations.reduce(
         (prev, curr) => ({
           ...prev,
-          [camelCase(curr.name)]: [`metaReviewData.metaReviewAgreementSearchValue`],
+          [camelCase(curr.name)]: [
+            `metaReviewData.customStageReviews.${camelCase(curr.name)}.searchValue`,
+          ],
         }),
         {}
       )),
@@ -162,6 +172,16 @@ const PaperStatusMenuBar = ({
               prettyField(areaChairName)
             )} of selected ${pluralizeString(submissionName)}`,
             value: 'allAreaChairs',
+          },
+        ]
+      : []),
+    ...(secondaryAreaChairName && messageSubmissionSecondaryAreaChairsInvitationId
+      ? [
+          {
+            label: `All ${pluralizeString(
+              prettyField(secondaryAreaChairName)
+            )} of selected ${pluralizeString(submissionName)}`,
+            value: 'allSecondaryAreaChairs',
           },
         ]
       : []),
@@ -263,13 +283,22 @@ const PaperStatusMenuBar = ({
           },
         ]
       : []),
+    ...(metaReviewAgreementConfig
+      ? [
+          {
+            header: prettyId(metaReviewAgreementConfig.name),
+            getValue: (p) =>
+              p.metaReviewData?.metaReviews
+                ?.map((q) => q.metaReviewAgreement?.searchValue)
+                .join('|'),
+          },
+        ]
+      : []),
     ...(customStageInvitations?.length > 0
       ? customStageInvitations.map((invitation) => ({
           header: prettyId(invitation.name),
           getValue: (p) =>
-            p.metaReviewData?.metaReviews
-              ?.map((q) => q.metaReviewAgreement?.searchValue)
-              .join('|'),
+            p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]?.searchValue,
         }))
       : []),
     ...(exportColumnsConfig ?? []),

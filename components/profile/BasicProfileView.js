@@ -1,6 +1,6 @@
-import random from 'lodash/random'
 import Link from 'next/link'
 import copy from 'copy-to-clipboard'
+import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 import { prettyList } from '../../lib/utils'
@@ -128,7 +128,13 @@ const ProfileRelation = ({ relation }) => (
     </div>
     <div>
       {relation.username ? (
-        <Link href={`/profile?id=${relation.username}`}>{relation.name}</Link>
+        <Link
+          href={`/profile?id=${relation.username}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {relation.name}
+        </Link>
       ) : (
         <span>{relation.name}</span>
       )}
@@ -230,15 +236,7 @@ const BasicProfileView = ({
         >
           {profile.history?.length > 0 ? (
             profile.history.map((history) => (
-              <ProfileHistory
-                key={
-                  history.institution.name +
-                  (history.position || random(1, 100)) +
-                  (history.start || '') +
-                  (history.end || '')
-                }
-                history={history}
-              />
+              <ProfileHistory key={nanoid()} history={history} />
             ))
           ) : (
             <p className="empty-message">No history added</p>

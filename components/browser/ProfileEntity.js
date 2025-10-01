@@ -7,6 +7,7 @@ import { nanoid } from 'nanoid'
 import React, { useContext } from 'react'
 import copy from 'copy-to-clipboard'
 import { sortBy } from 'lodash'
+import { useSearchParams } from 'next/navigation'
 import api from '../../lib/api-client'
 import {
   getInterpolatedValues,
@@ -15,14 +16,13 @@ import {
   isInGroupInvite,
   isNotInGroupInvite,
 } from '../../lib/edge-utils'
-import UserContext from '../UserContext'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
 import EditEdgeToggle from './EditEdgeToggle'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import ScoresList from './ScoresList'
-import useQuery from '../../hooks/useQuery'
 import EditEdgeTextbox from './EditEdgeTextbox'
+import useUser from '../../hooks/useUser'
 
 export default function ProfileEntity(props) {
   const {
@@ -32,9 +32,11 @@ export default function ProfileEntity(props) {
     browseInvitations,
     ignoreHeadBrowseInvitations,
     version,
+    traverseGroup,
   } = useContext(EdgeBrowserContext)
-  const { user, accessToken } = useContext(UserContext)
-  const query = useQuery()
+  const { user, accessToken } = useUser()
+  const query = useSearchParams()
+  const preferredEmailInvitationId = query.get('preferredEmailInvitationId')
 
   if (!props.profile || !props.profile.content) {
     return null
@@ -115,11 +117,12 @@ export default function ProfileEntity(props) {
     const editInvitation = isTraverseEdge
       ? traverseInvitation
       : editInvitations.filter((p) => p.id === editEdge.invitation)?.[0]
-    const signatures = getSignatures(
+    const signatures = await getSignatures(
       editInvitation,
       availableSignaturesInvitationMap,
       props.parentInfo.number,
-      user
+      user,
+      accessToken
     )
     if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
@@ -155,7 +158,7 @@ export default function ProfileEntity(props) {
   const getEmail = async () => {
     try {
       const result = await api.get(`/edges`, {
-        invitation: query.preferredEmailInvitationId,
+        invitation: preferredEmailInvitationId,
         head: id,
       })
       const email = result.edges?.[0]?.tail
@@ -197,11 +200,12 @@ export default function ProfileEntity(props) {
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const isCustomLoadInvitation = editInvitation.id.includes('Custom_Max_Papers')
     const maxLoadInvitationHead = editInvitation.head?.query?.id
-    const signatures = getSignatures(
+    const signatures = await getSignatures(
       editInvitation,
       availableSignaturesInvitationMap,
       props.parentInfo.number,
-      user
+      user,
+      accessToken
     )
     if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
@@ -289,6 +293,15 @@ export default function ProfileEntity(props) {
       isInviteInvitation
     ) {
       disableControlReason = 'The reviewer has already been invited'
+    }
+    // traverse invitation but user not in traverse group
+    const isTraverseInvitation = invitation.id === traverseInvitation.id
+    if (
+      isTraverseInvitation &&
+      traverseGroup?.members &&
+      !traverseGroup.members.includes(id)
+    ) {
+      disableControlReason = `${id} is not a member of ${traverseGroup.id}`
     }
 
     // show invite only at bottom of column
@@ -473,8 +486,8 @@ export default function ProfileEntity(props) {
         </h3>
         <p>{content.title}</p>
         <h3>
-          {!query.preferredEmailInvitationId && <span>({content.email})</span>}
-          {query.preferredEmailInvitationId && !content.isDummyProfile && (
+          {!preferredEmailInvitationId && <span>({content.email})</span>}
+          {preferredEmailInvitationId && !content.isDummyProfile && (
             <span
               onClick={(e) => {
                 e.stopPropagation()

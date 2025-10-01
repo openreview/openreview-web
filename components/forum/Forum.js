@@ -1,10 +1,12 @@
+'use client'
+
 /* globals $: false */
 /* globals typesetMathJax: false */
 /* globals promptError: false */
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import isEmpty from 'lodash/isEmpty'
 import truncate from 'lodash/truncate'
 import debounce from 'lodash/debounce'
@@ -27,8 +29,6 @@ import ForumReplyContext from './ForumReplyContext'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
-import useInterval from '../../hooks/useInterval'
 import api from '../../lib/api-client'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import {
@@ -39,6 +39,7 @@ import {
 } from '../../lib/forum-utils'
 import useLocalStorage from '../../hooks/useLocalStorage'
 import Icon from '../Icon'
+import useSocket from '../../hooks/useSocket'
 
 dayjs.extend(relativeTime)
 
@@ -86,9 +87,9 @@ export default function Forum({
   selectedNoteId,
   selectedInvitationId,
   prefilledValues,
-  clientJsLoading,
+  query,
 }) {
-  const { userLoading, accessToken } = useUser()
+  const { isRefreshing, accessToken } = useUser()
   const [parentNote, setParentNote] = useState(forumNote)
   const [replyNoteMap, setReplyNoteMap] = useState(null)
   const [parentMap, setParentMap] = useState(null)
@@ -130,7 +131,6 @@ export default function Forum({
   const cutoffIndex = useRef(0)
   const attachedToBottom = useRef(false)
   const router = useRouter()
-  const query = useQuery()
 
   const { id, details } = parentNote
   const repliesLoaded = replyNoteMap && displayOptionsMap && orderedReplies
@@ -138,6 +138,13 @@ export default function Forum({
     ? parentNote.domain
     : undefined
 
+  const events = useSocket(
+    repliesLoaded && enableLiveUpdate ? 'forum' : undefined,
+    ['edit-upserted'],
+    {
+      id: forumNote.id,
+    }
+  )
   // Process forum views config
   let replyForumViews = null
   if (details.invitation?.replyForumViews) {
@@ -631,8 +638,8 @@ export default function Forum({
   useEffect(() => {
     if (!parentNote) return
 
-    const handleRouteChange = (url) => {
-      const [_, tabId] = url.split('#')
+    const handleRouteChange = () => {
+      const [_, tabId] = (window.location.hash || '').split('#')
       if (!tabId || !replyForumViews) return
 
       const tab = replyForumViews.find((view) => view.id === tabId)
@@ -691,18 +698,17 @@ export default function Forum({
       }, 200)
     }
 
-    router.events.on('hashChangeComplete', handleRouteChange)
-    router.events.on('routeChangeComplete', handleRouteChange)
+    window.onhashchange = handleRouteChange
+
     // eslint-disable-next-line consistent-return
     return () => {
-      router.events.off('hashChangeComplete', handleRouteChange)
-      router.events.on('routeChangeComplete', handleRouteChange)
+      window.onhashchange = null
     }
   }, [parentNote])
 
   // Load forum replies
   useEffect(() => {
-    if (userLoading || clientJsLoading) return
+    if (isRefreshing) return
 
     // Initialize latest mdate to be 1 second before the current time
     setLatestMdate(Date.now() - 1000)
@@ -712,7 +718,7 @@ export default function Forum({
       // Can be 'granted', 'denied', or 'prompt'
       setNotificationPermissions(state)
     })
-  }, [userLoading])
+  }, [isRefreshing])
 
   // Update forum nesting level
   useEffect(() => {
@@ -889,10 +895,8 @@ export default function Forum({
     }
   }, [query])
 
-  // Toggle real-time updates
-  useInterval(() => {
-    if (!repliesLoaded || !enableLiveUpdate) return
-
+  // load real-time updates
+  const loadUpdates = () =>
     Promise.all([loadNewReplies(), loadNewTags()])
       .then(([newReplies, newTags]) => {
         // If any of the new notes include signatures that are not in the signaturesMap, load them
@@ -913,7 +917,7 @@ export default function Forum({
         })
       })
       .then(([newReplies, newTags]) => {
-        const groupedTags = groupBy(newTags, 'replyto')
+        const groupedTags = groupBy(newTags, 'note')
 
         let newMessageAuthor = ''
         let newMessage = ''
@@ -1013,7 +1017,11 @@ export default function Forum({
           }
         }
       })
-  }, 1500)
+
+  useEffect(() => {
+    if (!events) return
+    loadUpdates()
+  }, [events?.uniqueId])
 
   return (
     <div className="forum-container">

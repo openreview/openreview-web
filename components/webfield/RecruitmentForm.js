@@ -379,6 +379,7 @@ const RecruitmentForm = () => {
             ) : (
               <Markdown text={responseDescription} />
             )}
+
             <div className="response-buttons">
               <SpinnerButton
                 type="primary"

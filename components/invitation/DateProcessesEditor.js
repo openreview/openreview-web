@@ -2,6 +2,7 @@
 
 import React, { useEffect, useReducer, useState } from 'react'
 import { nanoid } from 'nanoid'
+import { upperFirst } from 'lodash'
 import CodeEditor from '../CodeEditor'
 import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
@@ -184,6 +185,7 @@ const DateProcessesEditor = ({
   accessToken,
   loadInvitation,
   isMetaInvitation,
+  field = 'dateprocesses',
 }) => {
   const isInvalidDate = (value, type) => {
     if (type === 'delay') {
@@ -349,7 +351,7 @@ const DateProcessesEditor = ({
 
   const [processes, setProcesses] = useReducer(
     dateProcessesReducer,
-    invitation.dateprocesses?.map((p) => ({
+    invitation[field]?.map((p) => ({
       ...p,
       key: nanoid(),
       showScript: false,
@@ -407,7 +409,7 @@ const DateProcessesEditor = ({
         invitation: {
           id: invitation.id,
           signatures: invitation.signatures,
-          dateprocesses: processesToPost.length ? processesToPost : { delete: true },
+          [field]: processesToPost.length ? processesToPost : { delete: true },
           ...(isMetaInvitation && { edit: true }),
         },
         readers: [profileId],
@@ -416,7 +418,7 @@ const DateProcessesEditor = ({
         ...(!isMetaInvitation && { invitations: metaInvitationId }),
       }
       await api.post(requestPath, requestBody, { accessToken })
-      promptMessage(`Date processes for ${prettyId(invitation.id)} updated`, {
+      promptMessage(`${upperFirst(field)} of ${prettyId(invitation.id)} updated`, {
         scrollToTop: false,
       })
       loadInvitation(invitation.id)
@@ -430,9 +432,7 @@ const DateProcessesEditor = ({
   return (
     <div className="dateprocess-editor">
       {processes.length === 0 && (
-        <p className="empty-message">
-          There are no date processes associated with this invitation
-        </p>
+        <p className="empty-message">There are no {field} associated with this invitation</p>
       )}
 
       <div className="add-row">
@@ -455,7 +455,7 @@ const DateProcessesEditor = ({
           disabled={isSaving}
           loading={isSaving}
         >
-          {isSaving ? 'Saving...' : 'Save Date Processes'}
+          {isSaving ? 'Saving...' : `Save ${upperFirst(field)}`}
         </SpinnerButton>
       </div>
     </div>

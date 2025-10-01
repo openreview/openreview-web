@@ -3,9 +3,8 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId, prettyInvitationId } from '../../lib/utils'
+import { formatDateTime, prettyId, prettyInvitationId } from '../../lib/utils'
 
 dayjs.extend(relativeTime)
 
@@ -14,14 +13,17 @@ export default function SubmissionButton({
   onNoteCreated,
   apiVersion,
   options,
+  accessToken,
 }) {
   const [invitation, setInvitation] = useState(null)
+  const [isNewWorkflow, setIsNewWorkflow] = useState(false)
   const [noteEditorOpen, setNoteEditorOpen] = useState(false)
-  const { accessToken, userLoading } = useUser()
   const newNoteEditor = invitation?.domain
 
   const invitationPastDue = invitation?.duedate && invitation.duedate < Date.now()
-  const invitationNotAvailable = invitationPastDue && !invitation?.details.writable
+  const invitationDeleted = invitation?.ddate
+  const invitationNotAvailable =
+    (invitationPastDue || invitationDeleted) && !invitation?.details.writable
 
   const loadInvitation = async () => {
     try {
@@ -31,7 +33,15 @@ export default function SubmissionButton({
         { accessToken, version: apiVersion }
       )
       if (invitations?.length > 0) {
+        const domainResult = await api
+          .get(
+            '/groups',
+            { id: invitations[0].domain, select: 'content.request_form_invitation' },
+            { accessToken }
+          )
+          .catch(() => undefined)
         setInvitation(invitations[0])
+        setIsNewWorkflow(domainResult?.groups?.[0]?.content?.request_form_invitation)
       }
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -43,11 +53,17 @@ export default function SubmissionButton({
     setNoteEditorOpen(!noteEditorOpen)
   }
 
-  useEffect(() => {
-    if (userLoading) return
+  const getTitle = () => {
+    if (invitationDeleted)
+      return `${prettyInvitationId(invitationId)} invitation is deleted. ddate: ${formatDateTime(invitation.ddate)}`
+    if (invitationPastDue)
+      return `${prettyInvitationId(invitationId)} expired ${dayjs(invitation.expdate).fromNow()}`
+    return ''
+  }
 
+  useEffect(() => {
     loadInvitation()
-  }, [userLoading, invitationId])
+  }, [invitationId])
 
   if (!invitation || invitationNotAvailable) return null
 
@@ -60,19 +76,21 @@ export default function SubmissionButton({
           <span className="item hint">Add:</span>
         )}
         <button
-          className={`btn ${invitationPastDue ? 'expired' : ''}`}
+          className={`btn ${invitationPastDue || invitationDeleted ? 'expired' : ''}`}
           onClick={toggleSubmissionForm}
           data-toggle="tooltip"
           data-placement="top"
           data-trigger="hover"
-          title={
-            invitationPastDue
-              ? `${prettyInvitationId(invitationId)} expired ${dayjs(invitation.expdate).fromNow()}`
-              : ''
-          }
+          title={getTitle()}
         >
           {prettyId(invitationId)}
         </button>
+        {options.showStartEndDate && isNewWorkflow && (
+          <span className=" hint">
+            {invitation.cdate ? ` Submission start: ${formatDateTime(invitation.cdate)}` : ''}
+            {invitation.duedate ? `, Deadline: ${formatDateTime(invitation.duedate)}` : ''}
+          </span>
+        )}
       </div>
 
       {noteEditorOpen &&

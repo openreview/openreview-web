@@ -107,6 +107,14 @@ test('Set up TestVenue', async (t) => {
       'Expected Submissions': '6000',
       'publication_chairs': 'No, our venue does not have Publication Chairs',
       submission_license: ['CC BY 4.0'],
+      venue_organizer_agreement: [
+        'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
+        'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
+        'When assembling our group of reviewers and meta-reviewers, we will only include email addresses or OpenReview Profile IDs of people we know to have authored publications relevant to our venue.  (We will not solicit new reviewers using an open web form, because unfortunately some malicious actors sometimes try to create "fake ids" aiming to be assigned to review their own paper submissions.)',
+        'We acknowledge that, if our venue\'s reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.',
+        'We acknowledge that OpenReview staff work Monday-Friday during standard business hours US Eastern time, and we cannot expect support responses outside those times.  For this reason, we recommend setting submission and reviewing deadlines Monday through Thursday.',
+        'We will treat the OpenReview staff with kindness and consideration.'
+      ]
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
@@ -236,6 +244,14 @@ test('Set up AnotherTestVenue', async (t) => {
       'Expected Submissions': '6000',
       'publication_chairs': 'No, our venue does not have Publication Chairs',
       submission_license: ['CC BY 4.0'],
+      venue_organizer_agreement: [
+        'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
+        'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
+        'When assembling our group of reviewers and meta-reviewers, we will only include email addresses or OpenReview Profile IDs of people we know to have authored publications relevant to our venue.  (We will not solicit new reviewers using an open web form, because unfortunately some malicious actors sometimes try to create "fake ids" aiming to be assigned to review their own paper submissions.)',
+        'We acknowledge that, if our venue\'s reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.',
+        'We acknowledge that OpenReview staff work Monday-Friday during standard business hours US Eastern time, and we cannot expect support responses outside those times.  For this reason, we recommend setting submission and reviewing deadlines Monday through Thursday.',
+        'We will treat the OpenReview staff with kindness and consideration.'
+      ]
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
@@ -336,6 +352,14 @@ test('Set up ICLR', async (t) => {
       reviewer_identity: ['Program Chairs', 'Assigned Area Chair'],
       'publication_chairs': 'No, our venue does not have Publication Chairs',
       submission_license: ['CC BY 4.0'],
+      venue_organizer_agreement: [
+        'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
+        'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
+        'When assembling our group of reviewers and meta-reviewers, we will only include email addresses or OpenReview Profile IDs of people we know to have authored publications relevant to our venue.  (We will not solicit new reviewers using an open web form, because unfortunately some malicious actors sometimes try to create "fake ids" aiming to be assigned to review their own paper submissions.)',
+        'We acknowledge that, if our venue\'s reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.',
+        'We acknowledge that OpenReview staff work Monday-Friday during standard business hours US Eastern time, and we cannot expect support responses outside those times.  For this reason, we recommend setting submission and reviewing deadlines Monday through Thursday.',
+        'We will treat the OpenReview staff with kindness and consideration.'
+      ]
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
@@ -457,6 +481,14 @@ test('Set up TestVenue using API 2', async (t) => {
       'publication_chairs': 'No, our venue does not have Publication Chairs',
       'api_version': '2',
       submission_license: ['CC BY 4.0'],
+      venue_organizer_agreement: [
+        'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
+        'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
+        'When assembling our group of reviewers and meta-reviewers, we will only include email addresses or OpenReview Profile IDs of people we know to have authored publications relevant to our venue.  (We will not solicit new reviewers using an open web form, because unfortunately some malicious actors sometimes try to create "fake ids" aiming to be assigned to review their own paper submissions.)',
+        'We acknowledge that, if our venue\'s reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.',
+        'We acknowledge that OpenReview staff work Monday-Friday during standard business hours US Eastern time, and we cannot expect support responses outside those times.  For this reason, we recommend setting submission and reviewing deadlines Monday through Thursday.',
+        'We will treat the OpenReview staff with kindness and consideration.'
+      ]
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
@@ -502,11 +534,11 @@ test('Set up TestVenue using API 2', async (t) => {
 
   // close deadline
   const submissionCloseDate = new Date(Date.now() - (28 * 60 * 1000)) // 28 minutes ago
-  const year = submissionCloseDate.getUTCFullYear()
-  const month = `0${submissionCloseDate.getUTCMonth() + 1}`.slice(-2)
-  const day = `0${submissionCloseDate.getUTCDate()}`.slice(-2)
-  const hours = `0${submissionCloseDate.getUTCHours()}`.slice(-2)
-  const minutes = `0${submissionCloseDate.getUTCMinutes()}`.slice(-2)
+  const year = submissionCloseDate.getFullYear()
+  const month = `0${submissionCloseDate.getMonth() + 1}`.slice(-2)
+  const day = `0${submissionCloseDate.getDate()}`.slice(-2)
+  const hours = `0${submissionCloseDate.getHours()}`.slice(-2)
+  const minutes = `0${submissionCloseDate.getMinutes()}`.slice(-2)
   const submissionCloseDateString = `${year}/${month}/${day} ${hours}:${minutes}`
   const editVenueJson = {
     content: {
@@ -517,6 +549,7 @@ test('Set up TestVenue using API 2', async (t) => {
       program_chair_emails: ['john@mail.com', 'tom@mail.com', 'program_chair@mail.com'],
       contact_email: 'testvenue@mail.com',
       'Venue Start Date': '2021/11/01',
+      'Submission Start Date': '2021/11/01',
       'Submission Deadline': submissionCloseDateString,
       Location: 'Virtual',
       submission_reviewer_assignment: 'Automatic',

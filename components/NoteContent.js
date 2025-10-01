@@ -1,3 +1,5 @@
+'use client'
+
 /* globals DOMPurify,marked: false */
 
 import { useState, useEffect } from 'react'
@@ -202,7 +204,7 @@ export const NoteContentV2 = ({
           rawFieldValue =
             fieldName === 'Submission_Number' ? number : content[fieldName]?.value
         }
-        const fieldValue = prettyContentValue(rawFieldValue)
+        const fieldValue = prettyContentValue(rawFieldValue, presentation?.[i]?.type)
 
         if (!fieldValue) return null
 

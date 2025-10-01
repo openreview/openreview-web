@@ -4,6 +4,7 @@ import AreaChairConsoleMenuBar from '../components/webfield/AreaChairConsoleMenu
 
 let baseMenuBarProps
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/webfield/BaseMenuBar', () => (props) => {
   baseMenuBarProps = props
   return <span>Base Menu Bar</span>

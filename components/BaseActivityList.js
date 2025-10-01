@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import intersection from 'lodash/intersection'
-import NoteActivity, { NoteActivityV2 } from './NoteActivity'
+import NoteActivity from './NoteActivity'
 import useUser from '../hooks/useUser'
 import { prettyId } from '../lib/utils'
 
@@ -11,10 +11,10 @@ export default function BaseActivityList({
   showGroup,
 }) {
   const [formattedNotes, setFormattedNotes] = useState(null)
-  const { user, userLoading } = useUser()
+  const { user, isRefreshing } = useUser()
 
   useEffect(() => {
-    if (!notes || userLoading) return
+    if (!notes || isRefreshing) return
 
     const tempNotes = []
 
@@ -55,7 +55,7 @@ export default function BaseActivityList({
 
     // Filter out any notes that should not be displayed
     setFormattedNotes(tempNotes)
-  }, [notes])
+  }, [notes, isRefreshing])
 
   if (!formattedNotes) return null
 
@@ -67,19 +67,11 @@ export default function BaseActivityList({
             key={note.id}
             className={`note note-activity ${note.details.isDeleted ? 'trashed' : ''}`}
           >
-            {note.apiVersion === 2 ? (
-              <NoteActivityV2
-                note={note}
-                showActionButtons={showActionButtons}
-                showGroup={showGroup}
-              />
-            ) : (
-              <NoteActivity
-                note={note}
-                showActionButtons={showActionButtons}
-                showGroup={showGroup}
-              />
-            )}
+            <NoteActivity
+              note={note}
+              showActionButtons={showActionButtons}
+              showGroup={showGroup}
+            />
           </li>
         ))
       ) : (

@@ -1,50 +1,47 @@
-import Head from 'next/head'
-import Link from 'next/link'
+'use client'
 
-const ErrorDisplay = ({ statusCode, message }) => (
-  <div className="row error-display">
-    <Head>
-      <title key="title">Error | OpenReview</title>
-    </Head>
+/* global promptError:false */
+import CommonLayout from '../app/CommonLayout'
+import api from '../lib/api-client'
 
-    <header className="col-xs-12 col-md-10 col-md-offset-1 text-center">
-      <h1>{`Error ${statusCode}`}</h1>
-      <hr />
-    </header>
+const ErrorDisplay = ({ statusCode, message }) => {
+  const handleLogout = async () => {
+    try {
+      await api.post('/logout')
+      window.location.reload()
+      window.localStorage.setItem('openreview.lastLogout', Date.now())
+    } catch (error) {
+      console.log('Error in ErrorDisplay', {
+        component: 'ErrorDisplay',
+        apiError: error,
+        apiRequest: {
+          endpoint: '/logout',
+        },
+      })
+      promptError(error.message)
+    }
+  }
 
-    <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
-      <h4>The server responded with the following message:</h4>
-      <pre className="error-message">{message}</pre>
+  return (
+    <CommonLayout>
+      <div className="row error-display">
+        <header className="col-xs-12 col-md-10 col-md-offset-1 text-center">
+          <h1>{`Error${statusCode ? ` ${statusCode}` : ''}`}</h1>
+          <hr />
+        </header>
 
-      {statusCode === 403 && (
-        <>
-          <p className="error-help">
-            <strong>
-              Important: If this URL was sent to you in an email, then in order to access this
-              page the same email address must be added to your OpenReview profile and
-              confirmed.
-            </strong>
-          </p>
-          <p className="error-help">
-            To add a new email to your profile, navigate to the{' '}
-            <Link href="/profile/edit">Edit Profile page</Link>, click the + icon at the bottom
-            of the Emails section and enter the new email address. Then, click the Confirm
-            button, check your email for the confirmation message from OpenReview, and finally
-            click the link to complete the confirmation.
-          </p>
-        </>
-      )}
-
-      <p>
-        If you&apos;d like to report this error to the developers, please use the{' '}
-        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-        <a href="#" data-toggle="modal" data-target="#feedback-modal">
-          Feedback form
-        </a>
-        .
-      </p>
-    </div>
-  </div>
-)
+        <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">
+          <h4>The server responded with the following message:</h4>
+          <pre className="error-message">{message}</pre>
+          {message === 'Token has expired, please log out and log in again.' && (
+            <button type="button" className="btn" onClick={handleLogout}>
+              Log out
+            </button>
+          )}
+        </div>
+      </div>
+    </CommonLayout>
+  )
+}
 
 export default ErrorDisplay

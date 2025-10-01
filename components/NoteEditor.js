@@ -1,6 +1,6 @@
 /* globals promptError, promptLogin, view2, clearMessage: false */
 
-import React, { useEffect, useCallback, useReducer, useState } from 'react'
+import React, { useEffect, useCallback, useReducer, useState, useContext } from 'react'
 import throttle from 'lodash/throttle'
 import { intersection, isEmpty } from 'lodash'
 import EditorComponentContext from './EditorComponentContext'
@@ -20,7 +20,9 @@ import { getNoteContentValues } from '../lib/forum-utils'
 import styles from '../styles/components/NoteEditor.module.scss'
 import LicenseWidget from './EditorComponents/LicenseWidget'
 import DatePickerWidget from './EditorComponents/DatePickerWidget'
+import EditSignatures from './EditSignatures'
 import Markdown from './EditorComponents/Markdown'
+import WebFieldContext from './WebFieldContext'
 
 const ExistingNoteReaders = NewReplyEditNoteReaders
 
@@ -52,49 +54,6 @@ const NoteSignatures = ({
   }
 
   if (!fieldDescription) return null
-
-  return (
-    <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true} error={error}>
-      <Signatures
-        fieldDescription={fieldDescription}
-        onChange={onChange}
-        currentValue={noteEditorData[fieldName]}
-        onError={onError}
-        extraClasses={styles.signatures}
-        clearError={() =>
-          setErrors((existingErrors) =>
-            existingErrors.filter((p) => p.fieldName !== fieldName)
-          )
-        }
-      />
-    </EditorComponentHeader>
-  )
-}
-
-const EditSignatures = ({
-  fieldDescription,
-  setLoading,
-  noteEditorData,
-  setNoteEditorData,
-  closeNoteEditor,
-  errors,
-  setErrors,
-}) => {
-  const fieldName = 'editSignatureInputValues'
-  const error = errors.find((e) => e.fieldName === fieldName)
-
-  const onChange = ({ loading, value }) => {
-    setLoading((existingLoadingState) => ({
-      ...existingLoadingState,
-      editSignatures: loading,
-    }))
-    if (value) setNoteEditorData({ fieldName, value })
-  }
-
-  const onError = (errorMessage) => {
-    promptError(errorMessage)
-    closeNoteEditor()
-  }
 
   return (
     <EditorComponentHeader fieldNameOverwrite="Signatures" inline={true} error={error}>
@@ -148,6 +107,151 @@ const EditContent = ({
   ))
 }
 
+const addMissingReaders = (
+  readersSelected,
+  readersDefinedInInvitation,
+  signatureInputValues,
+  roleNames
+) => {
+  if (!readersSelected) return undefined
+  const {
+    reviewerName = 'Reviewers',
+    anonReviewerName = 'Reviewer_',
+    areaChairName = 'Area_Chairs',
+    anonAreaChairName = 'Area_Chair_',
+    secondaryAreaChairName = 'Secondary_Area_Chair_',
+  } = roleNames
+  if (signatureInputValues?.length && !readersSelected.includes('everyone')) {
+    const signatureId = signatureInputValues[0]
+    const anonReviewerIndex = signatureId.indexOf(anonReviewerName)
+    if (anonReviewerIndex > 0) {
+      const reviewersSubmittedGroupId = signatureId
+        .slice(0, anonReviewerIndex)
+        .concat(`${reviewerName}/Submitted`)
+      const reviewersGroupId = signatureId.slice(0, anonReviewerIndex).concat(reviewerName)
+      if (
+        // reader does not contain the signature so user won't be able to see the note/edit
+        isEmpty(
+          intersection(readersSelected, [
+            signatureId,
+            reviewersSubmittedGroupId,
+            reviewersGroupId,
+          ])
+        )
+      ) {
+        if (
+          readersDefinedInInvitation?.includes(signatureId) ||
+          readersDefinedInInvitation?.some(
+            (p) => p.endsWith('.*') && signatureId.startsWith(p.slice(0, -2))
+          )
+        ) {
+          return [...readersSelected, signatureId]
+        }
+        if (readersDefinedInInvitation?.includes(reviewersSubmittedGroupId)) {
+          return [...readersSelected, reviewersSubmittedGroupId]
+        }
+        if (readersDefinedInInvitation?.includes(reviewersGroupId)) {
+          return [...readersSelected, reviewersGroupId]
+        }
+      }
+    } else {
+      const acIndex = signatureId.indexOf(anonAreaChairName)
+      const secondaryAcIndex = signatureId.indexOf(secondaryAreaChairName)
+
+      const acGroupId =
+        acIndex >= 0 ? signatureId.slice(0, acIndex).concat(areaChairName) : signatureId
+      const secondaryAcGroupId =
+        secondaryAcIndex >= 0
+          ? signatureId.slice(0, secondaryAcIndex).concat(areaChairName)
+          : signatureId
+
+      const groupToAdd = [acGroupId, secondaryAcGroupId].filter((p) =>
+        readersDefinedInInvitation?.includes(p)
+      )
+
+      return groupToAdd.length
+        ? [...new Set([...readersSelected, ...groupToAdd])]
+        : readersSelected
+    }
+  }
+  return readersSelected
+}
+
+export const getNoteReaderValues = async (
+  roleNames,
+  invitation,
+  noteEditorData,
+  accessToken
+) => {
+  if (!invitation.edit.note.readers || Array.isArray(invitation.edit.note.readers)) {
+    return undefined
+  }
+
+  const constNoteSignature = // when note signature is edit signature, note reader should use edit signatures
+    invitation.edit.note?.signatures?.[0]?.includes('/signatures}') ||
+    invitation.edit.note?.signatures?.param?.const?.[0]?.includes('/signatures}')
+  const signatureInputValues = constNoteSignature
+    ? noteEditorData.editSignatureInputValues
+    : noteEditorData.noteSignatureInputValues
+
+  const invitationNoteReaderValues =
+    invitation.edit.note.readers?.param?.enum ??
+    (await Promise.all(
+      invitation.edit.note.readers?.param?.items?.map(async (p) => {
+        if (p.value) return p.value
+        if (p.inGroup) {
+          try {
+            const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+            return result.groups[0]?.members
+          } catch (error) {
+            return []
+          }
+        }
+        return p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
+      })
+    ))
+
+  return addMissingReaders(
+    noteEditorData.noteReaderValues,
+    invitationNoteReaderValues.flat(),
+    signatureInputValues,
+    roleNames
+  )
+}
+
+export const getEditReaderValues = async (
+  roleNames,
+  invitation,
+  noteEditorData,
+  accessToken
+) => {
+  if (Array.isArray(invitation.edit.readers)) return undefined
+
+  const invitationEditReaderValues =
+    invitation.edit.readers?.param?.enum ??
+    (await Promise.all(
+      invitation.edit.readers?.param?.items?.map(async (p) => {
+        if (p.value) return p.value
+        if (p.inGroup) {
+          try {
+            const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+            return result.groups[0]?.members
+          } catch (error) {
+            return []
+          }
+        }
+        return p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
+      })
+    ))
+
+  return addMissingReaders(
+    noteEditorData.editReaderValues,
+    invitationEditReaderValues.flat(),
+    noteEditorData.editSignatureInputValues,
+    roleNames
+  )
+}
+
 // For v2 invitations only
 const NoteEditor = ({
   invitation,
@@ -161,7 +265,7 @@ const NoteEditor = ({
   customValidator,
   className,
 }) => {
-  const { user, userLoading, accessToken } = useUser()
+  const { user, isRefreshing, accessToken } = useUser()
   const [fields, setFields] = useState([])
   const [loading, setLoading] = useState({
     noteReaders: false,
@@ -172,6 +276,13 @@ const NoteEditor = ({
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState([])
+  const { noteEditorPreview } = useContext(WebFieldContext) ?? {}
+  if (noteEditorPreview)
+    // eslint-disable-next-line no-param-reassign
+    customValidator = () => ({
+      isValid: false,
+      errorMessage: 'This is a note editor preview',
+    })
   const useCheckboxWidget = true
 
   const displayError =
@@ -266,6 +377,7 @@ const NoteEditor = ({
                 return existingErrors.filter((p) => p.fieldName !== fieldName)
               })
             },
+            noteEditorPreview,
           }}
         >
           <EditorComponentHeader fieldNameOverwrite={fieldNameOverwrite}>
@@ -356,119 +468,6 @@ const NoteEditor = ({
     closeNoteEditor()
   }
 
-  const addMissingReaders = (
-    readersSelected,
-    readersDefinedInInvitation,
-    signatureInputValues,
-    roleNames
-  ) => {
-    if (!readersSelected) return undefined
-    const {
-      reviewerName = 'Reviewers',
-      anonReviewerName = 'Reviewer_',
-      areaChairName = 'Area_Chairs',
-      anonAreaChairName = 'Area_Chair_',
-      secondaryAreaChairName = 'Secondary_Area_Chair_',
-    } = roleNames
-    if (signatureInputValues?.length && !readersSelected.includes('everyone')) {
-      const signatureId = signatureInputValues[0]
-      const anonReviewerIndex = signatureId.indexOf(anonReviewerName)
-      if (anonReviewerIndex > 0) {
-        const reviewersSubmittedGroupId = signatureId
-          .slice(0, anonReviewerIndex)
-          .concat(`${reviewerName}/Submitted`)
-        const reviewersGroupId = signatureId.slice(0, anonReviewerIndex).concat(reviewerName)
-        if (
-          // reader does not contain the signature so user won't be able to see the note/edit
-          isEmpty(
-            intersection(readersSelected, [
-              signatureId,
-              reviewersSubmittedGroupId,
-              reviewersGroupId,
-            ])
-          )
-        ) {
-          if (
-            readersDefinedInInvitation?.includes(signatureId) ||
-            readersDefinedInInvitation?.some(
-              (p) => p.endsWith('.*') && signatureId.startsWith(p.slice(0, -2))
-            )
-          ) {
-            return [...readersSelected, signatureId]
-          }
-          if (readersDefinedInInvitation?.includes(reviewersSubmittedGroupId)) {
-            return [...readersSelected, reviewersSubmittedGroupId]
-          }
-          if (readersDefinedInInvitation?.includes(reviewersGroupId)) {
-            return [...readersSelected, reviewersGroupId]
-          }
-        }
-      } else {
-        const acIndex = signatureId.indexOf(anonAreaChairName)
-        const secondaryAcIndex = signatureId.indexOf(secondaryAreaChairName)
-
-        const acGroupId =
-          acIndex >= 0 ? signatureId.slice(0, acIndex).concat(areaChairName) : signatureId
-        const secondaryAcGroupId =
-          secondaryAcIndex >= 0
-            ? signatureId.slice(0, secondaryAcIndex).concat(areaChairName)
-            : signatureId
-
-        const groupToAdd = [acGroupId, secondaryAcGroupId].filter((p) =>
-          readersDefinedInInvitation?.includes(p)
-        )
-
-        return groupToAdd.length
-          ? [...new Set([...readersSelected, ...groupToAdd])]
-          : readersSelected
-      }
-    }
-    return readersSelected
-  }
-
-  const getNoteReaderValues = (roleNames) => {
-    if (!invitation.edit.note.readers || Array.isArray(invitation.edit.note.readers)) {
-      return undefined
-    }
-
-    const constNoteSignature = // when note signature is edit signature, note reader should use edit signatures
-      invitation.edit.note?.signatures?.[0]?.includes('/signatures}') ||
-      invitation.edit.note?.signatures?.param?.const?.[0]?.includes('/signatures}')
-    const signatureInputValues = constNoteSignature
-      ? noteEditorData.editSignatureInputValues
-      : noteEditorData.noteSignatureInputValues
-
-    const invitationNoteReaderValues =
-      invitation.edit.note.readers?.param?.enum ??
-      invitation.edit.note.readers?.param?.items?.map(
-        (p) => p.value ?? (p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`)
-      )
-
-    return addMissingReaders(
-      noteEditorData.noteReaderValues,
-      invitationNoteReaderValues,
-      signatureInputValues,
-      roleNames
-    )
-  }
-
-  const getEditReaderValues = (roleNames) => {
-    if (Array.isArray(invitation.edit.readers)) return undefined
-
-    const invitationEditReaderValues =
-      invitation.edit.readers?.param?.enum ??
-      invitation.edit.readers?.param?.items?.map((p) =>
-        p.value ?? p.prefix?.endsWith('*') ? p.prefix : `${p.prefix}.*`
-      )
-
-    return addMissingReaders(
-      noteEditorData.editReaderValues,
-      invitationEditReaderValues,
-      noteEditorData.editSignatureInputValues,
-      roleNames
-    )
-  }
-
   const getEditWriterValues = () => {
     const writerDescription = invitation.edit.writers
     if (Array.isArray(writerDescription) || writerDescription?.param?.const) {
@@ -533,7 +532,7 @@ const NoteEditor = ({
       }
 
       const domainGroup =
-        invitation.domain === process.env.SUPER_USER
+        !invitation.domain || invitation.domain === process.env.SUPER_USER
           ? {}
           : await api.get('/groups', { id: invitation.domain }, { accessToken })
       const {
@@ -558,8 +557,18 @@ const NoteEditor = ({
           Object.entries(noteEditorData)
             .filter(([key, value]) => value === undefined)
             .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {})),
-        noteReaderValues: getNoteReaderValues(roleNames),
-        editReaderValues: getEditReaderValues(roleNames),
+        noteReaderValues: await getNoteReaderValues(
+          roleNames,
+          invitation,
+          noteEditorData,
+          accessToken
+        ),
+        editReaderValues: await getEditReaderValues(
+          roleNames,
+          invitation,
+          noteEditorData,
+          accessToken
+        ),
         editWriterValues: getEditWriterValues(),
         ...(replyToNote && { replyto: replyToNote.id }),
         editContent: editContentData,
@@ -638,7 +647,7 @@ const NoteEditor = ({
   }
 
   useEffect(() => {
-    if (userLoading || !invitation?.edit?.note?.content) return
+    if (isRefreshing || !invitation?.edit?.note?.content) return
 
     if (!user) {
       promptLogin()
@@ -650,7 +659,7 @@ const NoteEditor = ({
         (a, b) => (a[1].order ?? 100) - (b[1].order ?? 100)
       )
     )
-  }, [invitation, user, userLoading])
+  }, [invitation, user, isRefreshing])
 
   if (!invitation?.edit?.note?.content || !user) return null
 
@@ -718,42 +727,45 @@ const NoteEditor = ({
         setErrors={setErrors}
       />
 
-      <div className={styles.editReaderSignature}>
-        <h2>Edit History</h2>
-        <hr />
+      {(invitation.edit?.content || invitation.edit.readers || invitation.edit.signatures) && (
+        <div className={styles.editReaderSignature}>
+          <h2>Edit History</h2>
+          <hr />
 
-        <EditContent
-          invitation={invitation}
-          editContentData={editContentData}
-          setEditContentData={setEditContentData}
-          errors={errors}
-          setErrors={setErrors}
-        />
+          <EditContent
+            invitation={invitation}
+            editContentData={editContentData}
+            setEditContentData={setEditContentData}
+            errors={errors}
+            setErrors={setErrors}
+          />
 
-        <EditReaders
-          fieldDescription={invitation.edit.readers}
-          closeNoteEditor={closeNoteEditor}
-          value={noteEditorData.editReaderValues}
-          onChange={(value) => setNoteEditorData({ fieldName: 'editReaderValues', value })}
-          setLoading={setLoading}
-          placeholder="Select edit readers"
-          error={errors.find((e) => e.fieldName === 'editReaderValues')}
-          clearError={() =>
-            setErrors((existingErrors) =>
-              existingErrors.filter((p) => p.fieldName !== 'editReaderValues')
-            )
-          }
-        />
-        <EditSignatures
-          fieldDescription={invitation.edit.signatures}
-          setLoading={setLoading}
-          noteEditorData={noteEditorData}
-          setNoteEditorData={setNoteEditorData}
-          closeNoteEditor={closeNoteEditor}
-          errors={errors}
-          setErrors={setErrors}
-        />
-      </div>
+          <EditReaders
+            fieldDescription={invitation.edit.readers}
+            closeNoteEditor={closeNoteEditor}
+            value={noteEditorData.editReaderValues}
+            onChange={(value) => setNoteEditorData({ fieldName: 'editReaderValues', value })}
+            setLoading={setLoading}
+            placeholder="Select edit readers"
+            error={errors.find((e) => e.fieldName === 'editReaderValues')}
+            clearError={() =>
+              setErrors((existingErrors) =>
+                existingErrors.filter((p) => p.fieldName !== 'editReaderValues')
+              )
+            }
+          />
+          <EditSignatures
+            fieldDescription={invitation.edit.signatures}
+            setLoading={setLoading}
+            editorData={noteEditorData}
+            setEditorData={setNoteEditorData}
+            closeEditor={closeNoteEditor}
+            errors={errors}
+            setErrors={setErrors}
+            extraClasses={styles.signatures}
+          />
+        </div>
+      )}
 
       {Object.values(loading).some((p) => p) ? (
         <LoadingSpinner inline />
