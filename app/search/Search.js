@@ -64,7 +64,12 @@ export default function Search({ searchQuery, sourceOptions }) {
 
       const [v1Results, v2Results] = await Promise.all([v1ResultsP, v2ResultsP])
       if (!v1Results?.notes?.length && !v2Results?.notes?.length) {
-        setEndOfResults(true)
+        if (offset === 0) {
+          // initial load with no results
+          setNotes([])
+        } else {
+          setEndOfResults(true)
+        }
         return
       }
       if (offset === 0) {
