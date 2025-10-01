@@ -109,16 +109,7 @@ const ArxivForum = ({ id }) => {
       })
       setArvixNote(noteResult)
     } catch (apiError) {
-      if (
-        apiError.name === 'ItemsError' &&
-        apiError.details?.path?.startsWith('note/content/subject_areas')
-      ) {
-        setError(
-          'The subject areas of this arXiv paper is not supported yet. Please try a different paper.'
-        )
-      } else {
-        setError(apiError.message)
-      }
+      setError(apiError.message)
     }
   }
 
