@@ -49,8 +49,9 @@ test('task should change when note is deleted and restored', async (t) => {
     .ok()
     .click(Selector('a').withText('Tasks'))
     .wait(2000)
+    .click(Selector('span.task-count-message'))
     .expect(Selector('span.task-count-message').innerText)
-    .eql('Show 1 pending task')
+    .eql('1 pending task')
     .click(Selector('span.task-count-message'))
     .click(Selector('a').withText('Submission1 Official Review'))
     .wait(2000)
@@ -63,8 +64,9 @@ test('task should change when note is deleted and restored', async (t) => {
     .expect(Selector('.note').hasClass('deleted'))
     .notOk()
     .click(Selector('a').withText('Tasks'))
+    .click(Selector('span.task-count-message'))
     .expect(Selector('span.task-count-message').innerText)
-    .eql('Show 0 pending tasks and 1 completed task')
+    .eql('0 pending tasks and 1 completed task')
 }).skipJsErrors({
   message: "[Cloudflare Turnstile] Error: 300030."
 })

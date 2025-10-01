@@ -816,22 +816,6 @@
       }
     }
 
-    #venue-configuration {
-      .overview-list {
-        padding-left: 15px;
-      }
-      .overview-timeline,
-      .overview-registration-link {
-        white-space: nowrap;
-      }
-      span.fraction {
-        color: constants.$subtleGray;
-      }
-      .recruitment-stat-row {
-        margin-top: 0.5rem;
-      }
-    }
-
     // Edit and Info Mode
     section {
       &.general,
@@ -1422,6 +1406,15 @@
       }
     }
 
+    .invitationEditorTabsContainer {
+      &.deleted {
+        opacity: 0.5;
+      }
+      .tab-pane {
+        padding-left: 0;
+      }
+    }
+
     .dateprocess-editor {
       .glyphicon-minus-sign,
       .glyphicon-plus-sign {
@@ -1505,6 +1498,16 @@
       }
       .empty-message {
         color: constants.$subtleGray;
+      }
+    }
+
+    .invitationEditorTabsContainer {
+      .tab-pane {
+        padding-left: 0;
+        padding-top: 0;
+      }
+      .code-editor {
+        margin-top: 0;
       }
     }
   }

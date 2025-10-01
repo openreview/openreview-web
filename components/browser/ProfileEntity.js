@@ -32,6 +32,7 @@ export default function ProfileEntity(props) {
     browseInvitations,
     ignoreHeadBrowseInvitations,
     version,
+    traverseGroup,
   } = useContext(EdgeBrowserContext)
   const { user, accessToken } = useUser()
   const query = useSearchParams()
@@ -116,11 +117,12 @@ export default function ProfileEntity(props) {
     const editInvitation = isTraverseEdge
       ? traverseInvitation
       : editInvitations.filter((p) => p.id === editEdge.invitation)?.[0]
-    const signatures = getSignatures(
+    const signatures = await getSignatures(
       editInvitation,
       availableSignaturesInvitationMap,
       props.parentInfo.number,
-      user
+      user,
+      accessToken
     )
     if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
@@ -198,11 +200,12 @@ export default function ProfileEntity(props) {
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const isCustomLoadInvitation = editInvitation.id.includes('Custom_Max_Papers')
     const maxLoadInvitationHead = editInvitation.head?.query?.id
-    const signatures = getSignatures(
+    const signatures = await getSignatures(
       editInvitation,
       availableSignaturesInvitationMap,
       props.parentInfo.number,
-      user
+      user,
+      accessToken
     )
     if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
@@ -290,6 +293,15 @@ export default function ProfileEntity(props) {
       isInviteInvitation
     ) {
       disableControlReason = 'The reviewer has already been invited'
+    }
+    // traverse invitation but user not in traverse group
+    const isTraverseInvitation = invitation.id === traverseInvitation.id
+    if (
+      isTraverseInvitation &&
+      traverseGroup?.members &&
+      !traverseGroup.members.includes(id)
+    ) {
+      disableControlReason = `${id} is not a member of ${traverseGroup.id}`
     }
 
     // show invite only at bottom of column

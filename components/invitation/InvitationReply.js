@@ -101,6 +101,7 @@ export function InvitationReplyV2({
   replyField,
   isMetaInvitation = false,
   readOnly = false,
+  noTitle = false,
 }) {
   const [replyString, setReplyString] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -216,7 +217,7 @@ export function InvitationReplyV2({
   }, [invitation, replyField])
 
   return (
-    <EditorSection title={sectionTitle} className="reply-preview">
+    <EditorSection title={noTitle ? null : sectionTitle} className="reply-preview">
       {showPreview ? (
         <>
           <Tabs>
@@ -267,7 +268,7 @@ export function InvitationReplyV2({
       ) : (
         <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
       )}
-
+      
       {!readOnly && (
         <div className="mt-2">
           <SpinnerButton
