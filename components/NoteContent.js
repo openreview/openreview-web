@@ -162,6 +162,7 @@ export const NoteContentV2 = ({
   omit = [],
   include = [],
   isEdit = false,
+  externalIDs,
 }) => {
   if (!content) return null
 
@@ -188,6 +189,24 @@ export const NoteContentV2 = ({
   ]
     .concat(omit)
     .filter((field) => !include.includes(field))
+
+  const getExternalLink = (externalID) => {
+    const colonIndex = externalID?.indexOf(':')
+    if (!colonIndex) return null
+
+    const prefix = externalID.slice(0, colonIndex)
+    const externalIDWithoutPrefix = externalID.slice(colonIndex + 1)
+
+    switch (prefix) {
+      case 'arxiv':
+        return `https://arxiv.org/abs/${externalIDWithoutPrefix}`
+      case 'dblp':
+        return `https://dblp.org/rec/${externalIDWithoutPrefix}`
+      // TODO: figure out orcid
+      default:
+        return null
+    }
+  }
 
   return (
     <div className="note-content">
@@ -244,6 +263,22 @@ export const NoteContentV2 = ({
           </div>
         )
       })}
+      {externalIDs && (
+        <div>
+          <NoteContentField name="External IDs" />
+          {externalIDs.map((externalID, index) => (
+            <a
+              key={externalID}
+              href={getExternalLink(externalID)}
+              target="_blank"
+              rel="noreferrer nofollow"
+            >
+              {externalID}
+              {index < externalIDs.length - 1 && <span>{', '}</span>}
+            </a>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

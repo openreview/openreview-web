@@ -186,6 +186,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
         omit={[canShowIcon('pdf') ? 'pdf' : null, canShowIcon('html') ? 'html' : null].filter(
           Boolean
         )}
+        externalIDs={note.externalIds}
       />
     </div>
   )
