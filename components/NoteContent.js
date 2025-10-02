@@ -2,7 +2,7 @@
 
 /* globals DOMPurify,marked: false */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import union from 'lodash/union'
 import {
   prettyField,
@@ -190,19 +190,37 @@ export const NoteContentV2 = ({
     .concat(omit)
     .filter((field) => !include.includes(field))
 
-  const getExternalLink = (externalID) => {
+  const renderExternalId = (externalID) => {
     const colonIndex = externalID?.indexOf(':')
     if (!colonIndex) return null
 
     const prefix = externalID.slice(0, colonIndex)
     const externalIDWithoutPrefix = externalID.slice(colonIndex + 1)
-
     switch (prefix) {
       case 'arxiv':
-        return `https://arxiv.org/abs/${externalIDWithoutPrefix}`
+        return (
+          <a
+            key={externalID}
+            href={`https://arxiv.org/abs/${externalIDWithoutPrefix}`}
+            target="_blank"
+            rel="noreferrer nofollow"
+          >
+            {externalID}
+          </a>
+        )
       case 'dblp':
-        return `https://dblp.org/rec/${externalIDWithoutPrefix}`
-      // TODO: figure out orcid
+        return (
+          <a
+            key={externalID}
+            href={`https://dblp.org/rec/${externalIDWithoutPrefix}`}
+            target="_blank"
+            rel="noreferrer nofollow"
+          >
+            {externalID}
+          </a>
+        )
+      case 'orcid':
+        return <span>{externalID}</span>
       default:
         return null
     }
@@ -267,15 +285,10 @@ export const NoteContentV2 = ({
         <div>
           <NoteContentField name="External IDs" />
           {externalIDs.map((externalID, index) => (
-            <a
-              key={externalID}
-              href={getExternalLink(externalID)}
-              target="_blank"
-              rel="noreferrer nofollow"
-            >
-              {externalID}
+            <React.Fragment key={externalID}>
+              {renderExternalId(externalID)}
               {index < externalIDs.length - 1 && <span>{', '}</span>}
-            </a>
+            </React.Fragment>
           ))}
         </div>
       )}
