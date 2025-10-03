@@ -692,7 +692,7 @@ const AuthorConsole = ({ appContext }) => {
     const errorMessage = `Author Console is missing required properties: ${
       missingConfig.length ? missingConfig.map((p) => p[0]).join(', ') : 'blindSubmissionId'
     }`
-    return <ErrorDisplay statusCode="" message={errorMessage} />
+    return <ErrorDisplay statusCode="" message={errorMessage} withLayout={false} />
   }
 
   return (

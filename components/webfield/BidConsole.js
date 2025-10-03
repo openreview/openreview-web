@@ -812,7 +812,7 @@ const BidConsole = ({ appContext }) => {
     const errorMessage = `Bidding Console is missing required properties: ${missingConfig
       .map((p) => p[0])
       .join(', ')}`
-    return <ErrorDisplay statusCode="" message={errorMessage} />
+    return <ErrorDisplay statusCode="" message={errorMessage} withLayout={false} />
   }
 
   return (
