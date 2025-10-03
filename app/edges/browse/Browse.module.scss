@@ -87,7 +87,7 @@ $conflictAssignedColor: #e9d7c7;
           margin-top: 0;
           span {
             font-weight: normal;
-            color: #777;
+            color: #656565;
           }
         }
         p {
@@ -188,7 +188,8 @@ $conflictAssignedColor: #e9d7c7;
         .edit-edge-toggle-btn {
           vertical-align: super;
           &.disable {
-            opacity: 0.5;
+            opacity: 0.7;
+            color: #253e46;
             cursor: no-drop;
           }
         }

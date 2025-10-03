@@ -104,7 +104,7 @@ export default function Footer() {
         </div>
       </footer>
 
-      <footer className="sponsor">
+      <div className="sponsor">
         <div className="container">
           <div className="row">
             <div className="col-sm-10 col-sm-offset-1">
@@ -124,7 +124,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-      </footer>
+      </div>
     </>
   )
 }

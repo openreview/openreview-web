@@ -12,8 +12,9 @@ const createCustomTheme = (height) => (theme) => ({
   colors: {
     ...theme.colors,
     neutral0: '#fffaf4',
+    neutral50: '#737373',
     primary25: '#ddd',
-    primary: '#4d8093',
+    primary: '#3e6775',
   },
   spacing: {
     baseUnit: 2,
@@ -131,6 +132,7 @@ export const CreatableDropdown = (props) => {
       ref={dropdownRef}
       theme={customTheme}
       formatCreateLabel={(value) => value}
+      aria-label={props.placeholder || 'Select option'}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
     />
@@ -165,6 +167,7 @@ export default function Dropdown(props) {
       classNamePrefix="dropdown-select"
       theme={customTheme}
       ref={props.selectRef}
+      aria-label={props.placeholder || 'Select option'}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
       filterOption={filterOption}
