@@ -165,19 +165,50 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
           </p>
         </>
       ) : (
-        <h4>
-          {metaReviewInvitation ? (
-            <a
-              href={`/forum?id=${note.forum}&noteId=${note.id}&invitationId=${metaReviewData.metaReviewInvitationId}&referrer=${referrerUrl}`}
-              target="_blank"
-              rel="nofollow noreferrer"
-            >
-              Submit
-            </a>
-          ) : (
-            <strong>{`No ${metaReviewRecommendationName}`}</strong>
-          )}
-        </h4>
+        <>
+          <>
+            {metaReviewData.metaReviewByOtherACs.map((p) => (
+              <>
+                <h4 className="title">
+                  {prettyField(metaReviewRecommendationName)} by {p.anonId}:
+                </h4>
+                <p>
+                  <strong>{p[metaReviewRecommendationName]}</strong>
+                </p>
+                {additionalMetaReviewFields.map((additionalMetaReviewField) => {
+                  const fieldValue = p[additionalMetaReviewField]
+                  return (
+                    <p key={additionalMetaReviewField}>
+                      <strong>{prettyField(additionalMetaReviewField)}:</strong> {fieldValue}
+                    </p>
+                  )
+                })}
+                <p>
+                  <a
+                    href={`/forum?id=${note.forum}&noteId=${p.id}&referrer=${referrerUrl}`}
+                    target="_blank"
+                    rel="nofollow noreferrer"
+                  >
+                    Read
+                  </a>
+                </p>
+              </>
+            ))}
+          </>
+          <h4>
+            {metaReviewInvitation ? (
+              <a
+                href={`/forum?id=${note.forum}&noteId=${note.id}&invitationId=${metaReviewData.metaReviewInvitationId}&referrer=${referrerUrl}`}
+                target="_blank"
+                rel="nofollow noreferrer"
+              >
+                Submit
+              </a>
+            ) : (
+              <strong>{`No ${metaReviewRecommendationName}`}</strong>
+            )}
+          </h4>
+        </>
       )}
     </div>
   )
