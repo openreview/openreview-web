@@ -127,12 +127,10 @@ export default function Page() {
           unlinkPublication(profile.id, publicationId)
         )
       )
-      promptMessage('Your profile information has been successfully updated', {
-        timeout: 2000,
-      })
+      promptMessage('Your profile information has been successfully updated', 2)
       loadProfile()
     } catch (apiError) {
-      promptError(marked(`**Error:** ${apiError.message}`), { html: true })
+      promptError(apiError.message)
       setSaveProfileErrors(
         apiError.errors?.map((p) => p.details?.path) ?? [apiError?.details?.path]
       )
