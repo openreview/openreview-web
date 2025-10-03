@@ -88,6 +88,7 @@ function NoteContentField({ name, customFieldName }) {
 
 export function NoteContentValue({ content = '', enableMarkdown, className }) {
   const [sanitizedHtml, setSanitizedHtml] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   const autoLinkContent = (value) => {
     // Regex based on https://gist.github.com/dperini/729294 modified to not accept FTP urls
@@ -114,8 +115,10 @@ export function NoteContentValue({ content = '', enableMarkdown, className }) {
     } else {
       setSanitizedHtml(DOMPurify.sanitize(autoLinkContent(content)))
     }
+    setIsLoading(false)
   }, [enableMarkdown, content])
 
+  if (isLoading && (enableMarkdown || content.startsWith('<'))) return <span>loading...</span>
   if (!sanitizedHtml) {
     return <span className={classNames('note-content-value', className)}>{content}</span>
   }
