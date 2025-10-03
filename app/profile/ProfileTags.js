@@ -4,9 +4,8 @@
 import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import ProfileTag from '../../components/ProfileTag'
-import { prettyInvitationId, prettyId } from '../../lib/utils'
 
-export default function ProfileTags({ profileId, isSuperUser }) {
+export default function ProfileTags({ profileId, showProfileId }) {
   const [tags, setTags] = useState([])
 
   const loadTags = async () => {
@@ -36,16 +35,19 @@ export default function ProfileTags({ profileId, isSuperUser }) {
     }
   }
   useEffect(() => {
-    if (!profileId || !isSuperUser) return
+    if (!profileId) return
     loadTags()
   }, [profileId])
-
-  if (!isSuperUser) return null
 
   return (
     <div className={`tags-container ${tags.length ? 'mb-2' : ''}`}>
       {tags.map((tag, index) => (
-        <ProfileTag key={index} tag={tag} onDelete={() => deleteTag(tag)} />
+        <ProfileTag
+          key={index}
+          tag={tag}
+          onDelete={() => deleteTag(tag)}
+          showProfileId={showProfileId}
+        />
       ))}
     </div>
   )
