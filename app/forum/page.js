@@ -14,6 +14,7 @@ import Banner from '../../components/Banner'
 import legacyStyles from './LegacyForum.module.scss'
 import LegacyForum from '../../components/forum/LegacyForum'
 import ErrorDisplay from '../../components/ErrorDisplay'
+import ArxivForum from './ArxivForum'
 
 const fallbackMetadata = { title: 'Forum | OpenReview' }
 
@@ -117,10 +118,10 @@ export async function generateMetadata({ searchParams }) {
   const headersList = await headers()
   const userAgent = headersList.get('user-agent')
   const remoteIpAddress = headersList.get('x-forwarded-for')
-  const { id, noteId, invitationId } = query
+  const { id, noteId, arxivid, invitationId } = query
 
   const queryId = id || noteId
-  if (!queryId) return fallbackMetadata
+  if (!queryId || arxivid) return fallbackMetadata
 
   const { token } = await serverAuth()
 
@@ -222,9 +223,15 @@ export default async function page({ searchParams }) {
   const userAgent = headersList.get('user-agent')
   const remoteIpAddress = headersList.get('x-forwarded-for')
 
-  const { id, noteId, invitationId, referrer } = query
+  const { id, noteId, arxivid, invitationId, referrer } = query
   const queryId = id || noteId
-  if (!queryId) return <ErrorDisplay message="Forum or note ID is required" />
+  if (!queryId && !arxivid) return <ErrorDisplay message="Forum or note ID is required" />
+
+  if (arxivid) {
+    if (!/^\d{4}\.\d{4,}(?:v\d+)?$/.test(arxivid))
+      return <ErrorDisplay message={`The Note ${arxivid} was not found`} />
+    return <ArxivForum id={arxivid} />
+  }
 
   const { token, user } = await serverAuth()
 
