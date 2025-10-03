@@ -2284,6 +2284,12 @@ module.exports = (function () {
     Object.entries(otherFields.content ?? {}).forEach(
       ([editContentFieldName, editContentFieldValue]) => {
         if (!editContentFieldValue.value.param) return
+        if (editContentFieldValue.value.param.const !== undefined) {
+          editContent[editContentFieldName] = {
+            value: editContentFieldValue.value.param.const,
+          }
+          return
+        }
         var newVal = formData?.editContent?.[editContentFieldName]
         if (
           typeof newVal === 'string' &&

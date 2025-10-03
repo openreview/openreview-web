@@ -49,6 +49,7 @@ const ImportedPublicationsSection = ({
               'DBLP.org/-/Record',
               'OpenReview.net/Archive/-/Imported_Record',
               'OpenReview.net/Archive/-/Direct_Upload',
+              `${process.env.SUPER_USER}/Public_Article/ORCID.org/-/Record`,
             ],
           },
           { accessToken, sort: 'tmdate:desc' }
