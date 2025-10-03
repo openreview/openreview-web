@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import { truncate } from 'lodash'
 import NoteList from '../../components/NoteList'
-import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import { inflect } from '../../lib/utils'
 import ErrorAlert from '../../components/ErrorAlert'
 
 const displayOptions = {
@@ -14,69 +12,129 @@ const displayOptions = {
   showContents: false,
   emptyMessage: '',
 }
-const pageSize = 25
+const limit = 20
 
 export default function Search({ searchQuery, sourceOptions }) {
-  const [allNotes, setAllNotes] = useState(null)
-  const [notes, setNotes] = useState([])
-  const [page, setPage] = useState(1)
-  const [count, setCount] = useState(0)
+  const [notes, setNotes] = useState(null)
+  const [counts, setCounts] = useState({})
+  const [offset, setOffset] = useState(0)
+  const [endOfResults, setEndOfResults] = useState(false)
   const [error, setError] = useState(null)
   const { accessToken, isRefreshing } = useUser()
 
   const loadSearchResults = async (query) => {
     try {
-      const result = await api.getCombined(
-        '/notes/search',
-        {
-          term: query.term,
-          type: 'terms',
-          content: query.content || 'all',
-          group: query.group || 'all',
-          source: Object.keys(sourceOptions).includes(query.source) ? query.source : 'all',
-          sort: 'tmdate:desc',
-          limit: 1000,
-        },
-        null,
-        { accessToken, resultsKey: 'notes' }
-      )
-      setAllNotes(result.notes)
-      setCount(result.count > 1000 ? 1000 : result.count)
-      setNotes(result.notes.slice(0, pageSize))
-      setPage(1)
+      const v1ResultsP =
+        offset <= (counts.v1 ?? 0)
+          ? api.get(
+              '/notes/search',
+              {
+                term: query.term,
+                type: 'terms',
+                content: query.content || 'all',
+                group: query.group || 'all',
+                source: Object.keys(sourceOptions).includes(query.source)
+                  ? query.source
+                  : 'all',
+                offset,
+                limit,
+              },
+              { accessToken, version: 1 }
+            )
+          : Promise.resolve({ notes: [] })
+
+      const v2ResultsP =
+        offset <= (counts.v2 ?? 0)
+          ? api.get(
+              '/notes/search',
+              {
+                term: query.term,
+                type: 'terms',
+                content: query.content || 'all',
+                group: query.group || 'all',
+                source: Object.keys(sourceOptions).includes(query.source)
+                  ? query.source
+                  : 'all',
+                offset,
+                limit,
+              },
+              { accessToken }
+            )
+          : Promise.resolve({ notes: [] })
+
+      const [v1Results, v2Results] = await Promise.all([v1ResultsP, v2ResultsP])
+      if (!v1Results?.notes?.length && !v2Results?.notes?.length) {
+        if (offset === 0) {
+          // initial load with no results
+          setNotes([])
+        } else {
+          setEndOfResults(true)
+        }
+        return
+      }
+      if (offset === 0) {
+        setCounts({
+          v1: v1Results.count,
+          v2: v2Results.count,
+        })
+        setNotes([...v2Results.notes, ...v1Results.notes])
+        return
+      }
+      setNotes([...(notes ?? []), ...v2Results.notes, ...v1Results.notes])
     } catch (apiError) {
       setError(apiError)
     }
   }
 
   useEffect(() => {
-    if (!allNotes) return
-    setNotes(allNotes.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize))
-  }, [page])
-
-  useEffect(() => {
     if (isRefreshing) return
+    setNotes(null)
+    setOffset(0)
+    setEndOfResults(false)
+    setCounts({})
+    setError(null)
     loadSearchResults(searchQuery)
   }, [searchQuery, isRefreshing])
 
+  useEffect(() => {
+    loadSearchResults(searchQuery)
+  }, [offset])
+
   if (error) return <ErrorAlert error={error} />
-  if (!allNotes) return <LoadingSpinner />
+  if (!notes) return <LoadingSpinner />
 
   return (
     <>
       <h3>
-        {inflect(count, 'result', 'results', true)} found for &quot;
+        Results for &quot;
         {truncate(searchQuery.term, { length: 200, separator: /,? +/ })}
         &quot;
       </h3>
       <hr className="small" />
       <NoteList notes={notes} displayOptions={displayOptions} />
-      <PaginationLinks
-        currentPage={page}
-        itemsPerPage={pageSize}
-        totalCount={count}
-        setCurrentPage={setPage}
-      />
+      {notes.length > 0 ? (
+        <div className="text-center mt-4">
+          <button
+            type="button"
+            className="btn btn-xs btn-default"
+            onClick={() => {
+              if (endOfResults) {
+                window.scrollTo(0, 0)
+                return
+              }
+              setOffset((existingOffset) => existingOffset + limit)
+            }}
+          >
+            {endOfResults ? (
+              'You have reached the end of search results'
+            ) : (
+              <span>View More Results &rarr;</span>
+            )}
+          </button>
+        </div>
+      ) : (
+        <p className="empty-message">No results found for your search query.</p>
+      )}
     </>
   )
 }
