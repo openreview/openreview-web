@@ -51,6 +51,7 @@ export default class EdgeBrowser extends React.Component {
       metadataMap: {},
       columns: [initialColumn],
       loading: true,
+      traverseGroup: null,
     }
 
     this.exploreInterfaceRef = React.createRef()
@@ -141,7 +142,10 @@ export default class EdgeBrowser extends React.Component {
           { id: requestParams.group },
           { accessToken: this.accessToken, version: this.version }
         )
-        .then((response) => _.get(response, 'groups[0].members', []))
+        .then((response) => {
+          this.setState({ traverseGroup: response.groups[0] })
+          return _.get(response, 'groups[0].members', [])
+        })
     } else {
       initialKeysP = Promise.resolve(null)
     }
@@ -347,9 +351,10 @@ export default class EdgeBrowser extends React.Component {
   async lookupSignatures() {
     const editInvitationSignaturesMap = []
     // traverseInvitation may be edited without being in edit param
-    const editTranerseInvitations = [...this.editInvitations, this.traverseInvitation]
-    editTranerseInvitations?.forEach(async (editInvitation) => {
+    const editTraverseInvitations = [...this.editInvitations, this.traverseInvitation]
+    editTraverseInvitations?.forEach(async (editInvitation) => {
       // this case is handled here to reduce num of calls to /groups,other cases handled at entity
+      if (!editInvitation.signatures) return
       if (
         editInvitation.signatures['values-regex'] &&
         !editInvitation.signatures['values-regex']?.startsWith('~.*')
@@ -409,6 +414,7 @@ export default class EdgeBrowser extends React.Component {
       hideInvitation: this.hideInvitation,
       availableSignaturesInvitationMap: this.availableSignaturesInvitationMap,
       version: this.version,
+      traverseGroup: this.state.traverseGroup,
     }
 
     return (

@@ -1,7 +1,7 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { orderBy } from 'lodash'
+import { camelCase, orderBy } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import AreaChairStatus from './SeniorAreaChairConsole/AreaChairStatus'
@@ -61,6 +61,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     preferredEmailInvitationId,
     ithenticateInvitationId,
     displayReplyInvitations,
+    metaReviewAgreementConfig,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
   const { user, accessToken, isRefreshing } = useUser()
@@ -463,6 +464,12 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           const confidenceMin = validConfidences.length ? Math.min(...validConfidences) : 'N/A'
           const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
+          const metaReviewAgreements = metaReviewAgreementConfig
+            ? note.details.replies.filter((p) =>
+                p.invitations.some((q) => q.includes(`/-/${metaReviewAgreementConfig.name}`))
+              )
+            : []
+
           const customStageInvitationIds = customStageInvitations
             ? customStageInvitations.map((p) => `/-/${p.name}`)
             : []
@@ -480,12 +487,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
             }))
             .map((metaReview) => {
-              const metaReviewAgreement = customStageReviews.find(
-                (p) => p.replyto === metaReview.id || p.forum === metaReview.forum
-              )
-              const metaReviewAgreementConfig = metaReviewAgreement
-                ? customStageInvitations.find((p) =>
-                    metaReviewAgreement.invitations.some((q) => q.includes(`/-/${p.name}`))
+              const metaReviewAgreement = metaReviewAgreementConfig
+                ? metaReviewAgreements.find(
+                    (p) => p.replyto === metaReview.id || p.forum === metaReview.forum
                   )
                 : null
               const metaReviewAgreementValue =
@@ -633,6 +637,35 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               metaReviewAgreementSearchValue: metaReviews
                 .map((p) => p.metaReviewAgreement?.searchValue)
                 .join(' '),
+              customStageReviews: customStageInvitations?.reduce((prev, curr) => {
+                const customStageReview = customStageReviews.find((p) =>
+                  p.invitations.some((q) => q.includes(`/-/${curr.name}`))
+                )
+                if (!customStageReview)
+                  return {
+                    ...prev,
+                    [camelCase(curr.name)]: {
+                      searchValue: 'N/A',
+                    },
+                  }
+                const customStageValue = customStageReview?.content?.[curr.displayField]?.value
+                const customStageExtraDisplayFields = curr.extraDisplayFields ?? []
+                return {
+                  ...prev,
+                  [camelCase(curr.name)]: {
+                    searchValue: customStageValue,
+                    name: prettyId(curr.name),
+                    role: curr.role,
+                    value: customStageValue,
+                    displayField: prettyField(curr.displayField),
+                    extraDisplayFields: customStageExtraDisplayFields.map((field) => ({
+                      field: prettyField(field),
+                      value: customStageReview?.content?.[field]?.value,
+                    })),
+                    ...customStageReview,
+                  },
+                }
+              }, {}),
               ...additionalMetaReviewFields?.reduce((prev, curr) => {
                 const additionalMetaReviewValues = metaReviews.map((p) => p[curr]?.searchValue)
                 return {

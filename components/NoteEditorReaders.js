@@ -24,7 +24,7 @@ export const NewNoteReaders = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
-  const { user, accessToken } = useUser()
+  const { user, accessToken, isRefreshing } = useUser()
 
   const getRegexReaders = async () => {
     setLoading((loading) => ({ ...loading, fieldName: true }))
@@ -193,7 +193,7 @@ export const NewNoteReaders = ({
   }
 
   useEffect(() => {
-    if (!user || !fieldDescription) return // not essentially an error
+    if (isRefreshing || !user || !fieldDescription) return // not essentially an error
     if (Array.isArray(fieldDescription) || fieldDescription.param.const) {
       setDescriptionType('const')
     } else if (fieldDescription.param.regex) {
@@ -201,7 +201,7 @@ export const NewNoteReaders = ({
     } else if (fieldDescription.param.enum || fieldDescription.param.items) {
       setDescriptionType('enum')
     }
-  }, [])
+  }, [isRefreshing])
 
   useEffect(() => {
     if (descriptionType === 'regex') getRegexReaders()

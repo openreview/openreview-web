@@ -6,6 +6,7 @@ import useTurnstileToken from '../hooks/useTurnstileToken'
 import api from '../lib/api-client'
 import useUser from '../hooks/useUser'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useTurnstileToken')
 jest.mock('../hooks/useUser')
 
@@ -31,7 +32,6 @@ describe('Contact page', () => {
     render(<Contact />)
 
     expect(screen.getByRole('link', { name: 'venue request form' })).toBeInTheDocument()
-    screen.debug()
   })
 
   test('show feedback form fields when user is guest', () => {
