@@ -57,7 +57,7 @@ const EthicsChairConsole = ({ appContext }) => {
     const errorMessage = `Ethics Chair Console is missing required properties: ${missingConfig.join(
       ', '
     )}`
-    return <ErrorDisplay statusCode="" message={errorMessage} />
+    return <ErrorDisplay statusCode="" message={errorMessage} withLayout={false} />
   }
 
   return (

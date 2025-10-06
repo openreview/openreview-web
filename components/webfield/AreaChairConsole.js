@@ -946,7 +946,7 @@ const AreaChairConsole = ({ appContext }) => {
     const errorMessage = `${
       areaChairName ? `${prettyField(areaChairName)} ` : ''
     }Console is missing required properties: ${missingConfig.join(', ')}`
-    return <ErrorDisplay statusCode="" message={errorMessage} />
+    return <ErrorDisplay statusCode="" message={errorMessage} withLayout={false} />
   }
 
   return (
