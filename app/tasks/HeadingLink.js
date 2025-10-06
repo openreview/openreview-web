@@ -26,7 +26,7 @@ export default function HeadingLink({ groupId, groupInfo, loadTasksForDomain }) 
             : ''
         }`}</span>
       ) : (
-        <span className="task-count-message" onClick={() => loadTasksForDomain(groupId)}>
+        <span className="task-count-message" onClick={loadTasksForDomain}>
           show {prettyId(groupId)} tasks
         </span>
       )}
