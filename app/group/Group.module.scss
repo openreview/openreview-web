@@ -613,6 +613,9 @@
             display: inline-block;
           }
         }
+        .custom-stage-name {
+          color: constants.$orRed;
+        }
         .senior-areachair {
           margin-top: 0.25rem;
         }
@@ -840,7 +843,7 @@
       }
     }
 
-    #venue-configuration {
+    #overview {
       .overview-list {
         padding-left: 15px;
       }
