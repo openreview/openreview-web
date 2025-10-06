@@ -1,6 +1,6 @@
 {
   "name": "openreview-web",
-  "version": "1.14.15",
+  "version": "1.14.24",
   "private": true,
   "scripts": {
     "dev": "next dev --port $NEXT_PORT",
@@ -10,6 +10,7 @@
     "start": "next start --port $NEXT_PORT",
     "unit-test": "jest",
     "test": "testcafe",
+    "doc": "jsdoc2md 'components/webfield/*Console.js' > webfieldconfig.md",
     "test-setup": "testcafe chrome tests/_setup.ts",
     "templates": "handlebars client/templates/ -n 'window.Handlebars.templates' -f client/templates.js -e 'hbs'"
   },
@@ -49,6 +50,7 @@
     "nanoid": "^5.0.4",
     "next": "^15.2.3",
     "next-build-id": "^3.0.0",
+    "pako": "^2.1.0",
     "query-string": "^7.1.3",
     "rc-picker": "^4.6.14",
     "rc-steps": "^6.0.1",
@@ -75,6 +77,7 @@
     "eslint-plugin-import": "^2.31.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "jsdoc-to-markdown": "^9.1.2",
     "node-fetch-cjs": "^3.3.2",
     "prettier": "^3.1.0",
     "sass": "^1.82.0",

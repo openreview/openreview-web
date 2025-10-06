@@ -13,7 +13,12 @@ const Accordion = ({ sections, options }) => (
       const sectionId = section.id || `${options.id}-section-${i}`
       return (
         <div key={sectionId} className="panel panel-default">
-          <SectionHeading id={sectionId} heading={section.heading} options={options} />
+          <SectionHeading
+            id={sectionId}
+            heading={section.heading}
+            options={options}
+            domain={section.domain}
+          />
           <SectionBody id={sectionId} body={section.body} options={options} />
           <hr className="webfield-accordion-divider" />
         </div>
@@ -22,10 +27,14 @@ const Accordion = ({ sections, options }) => (
   </div>
 )
 
-const SectionHeading = ({ id, heading, options }) => (
+const SectionHeading = ({ id, heading, options, domain }) => (
   <div className="panel-heading" role="tab">
     <h4 className="panel-title">
-      <SectionHeadingLink targetId={id} collapsed={options.collapsed}>
+      <SectionHeadingLink
+        targetId={id}
+        collapsed={options.collapsed}
+        onExpand={() => options.onExpand?.(domain)}
+      >
         <Icon name="triangle-bottom" />
       </SectionHeadingLink>{' '}
       <SectionHeadingLink
@@ -39,7 +48,13 @@ const SectionHeading = ({ id, heading, options }) => (
   </div>
 )
 
-const SectionHeadingLink = ({ targetId, children, collapsed, shouldCollapse = true }) => {
+const SectionHeadingLink = ({
+  targetId,
+  children,
+  collapsed,
+  shouldCollapse = true,
+  onExpand,
+}) => {
   if (shouldCollapse === false) {
     return (
       <a href={`#${targetId}`} className={`collapse-btn${collapsed ? ' collapsed' : ''}`}>
@@ -47,14 +62,16 @@ const SectionHeadingLink = ({ targetId, children, collapsed, shouldCollapse = tr
       </a>
     )
   }
-  // eslint-disable-next-line jsx-a11y/anchor-is-valid
+
   return (
+    // eslint-disable-next-line jsx-a11y/anchor-is-valid
     <a
       className={`collapse-btn${collapsed ? ' collapsed' : ''}`}
       role="button"
       data-toggle="collapse"
       data-target={`#${targetId}`}
       aria-controls={targetId}
+      onClick={onExpand}
     >
       {children}
     </a>

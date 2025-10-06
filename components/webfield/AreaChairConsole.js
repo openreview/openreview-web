@@ -2,7 +2,7 @@
 
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { orderBy } from 'lodash'
+import { chunk, orderBy } from 'lodash'
 import Link from 'next/link'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
@@ -555,22 +555,32 @@ const AreaChairConsole = ({ appContext }) => {
         : Promise.resolve([])
 
       // #region getReviewerGroups(noteNumbers)
-      const reviewerGroupsP = api
-        .get(
-          '/groups',
-          {
-            prefix: `${venueId}/${submissionName}.*`,
-            select: 'id,members',
-            stream: true,
-            domain: group.domain,
-          },
-          { accessToken }
+      const reviewerGroupsP = chunk([...new Set(areaChairPaperNums)], 25)
+        .reduce(
+          (prev, curr) =>
+            prev.then((acc) =>
+              Promise.all(
+                curr.map((paperNumber) =>
+                  api.get(
+                    '/groups',
+                    {
+                      parent: `${venueId}/${submissionName}${paperNumber}`,
+                      select: 'id,members',
+                      domain: group.domain,
+                    },
+                    { accessToken }
+                  )
+                )
+              ).then((res) => acc.concat(res))
+            ),
+          Promise.resolve([])
         )
-        .then((reviewerGroupsResult) => {
-          const anonymousReviewerGroups = reviewerGroupsResult.groups.filter((p) =>
+        .then((result) => {
+          const reviewerGroupsResult = result.flatMap((p) => p.groups)
+          const anonymousReviewerGroups = reviewerGroupsResult.filter((p) =>
             p.id.includes(`/${anonReviewerName}`)
           )
-          const reviewerGroups = reviewerGroupsResult.groups.filter((p) =>
+          const reviewerGroups = reviewerGroupsResult.filter((p) =>
             p.id.includes(`/${reviewerName}`)
           )
           return noteNumbers.map((p) => {
@@ -754,9 +764,15 @@ const AreaChairConsole = ({ appContext }) => {
         const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
         const metaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
-        const metaReview = note.details.replies.find((p) =>
-          p.invitations.includes(metaReviewInvitationId)
-        )
+        const allMetaReviews = note.details.replies.flatMap((p) => {
+          if (!p.invitations.includes(metaReviewInvitationId)) return []
+          return {
+            ...p,
+            anonId: getIndentifierFromGroup(p.signatures[0], `${singularName}_`),
+            isByOtherAC: p.signatures[0] !== anonymousAreaChairIdByNumber[note.number],
+          }
+        })
+        const metaReview = allMetaReviews.find((p) => !p.isByOtherAC)
         return {
           note,
           reviewers: result[1]
@@ -799,6 +815,20 @@ const AreaChairConsole = ({ appContext }) => {
             }, {}),
             metaReviewInvitationId: `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`,
             metaReview,
+            metaReviewByOtherACs: allMetaReviews.flatMap((p) => {
+              if (p.isByOtherAC)
+                return {
+                  [metaReviewRecommendationName]:
+                    p.content?.[metaReviewRecommendationName]?.value ?? 'N/A',
+                  ...additionalMetaReviewFields.reduce((prev, curr) => {
+                    const additionalMetaReviewFieldValue = p.content?.[curr]?.value ?? 'N/A'
+                    return { ...prev, [curr]: additionalMetaReviewFieldValue }
+                  }, {}),
+                  anonId: p.anonId,
+                  id: p.id,
+                }
+              return []
+            }),
           },
           messageSignature: anonymousAreaChairIdByNumber[note.number],
           ...(ithenticateInvitationId && {
@@ -916,7 +946,7 @@ const AreaChairConsole = ({ appContext }) => {
     const errorMessage = `${
       areaChairName ? `${prettyField(areaChairName)} ` : ''
     }Console is missing required properties: ${missingConfig.join(', ')}`
-    return <ErrorDisplay statusCode="" message={errorMessage} />
+    return <ErrorDisplay statusCode="" message={errorMessage} withLayout={false} />
   }
 
   return (
