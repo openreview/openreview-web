@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useContext, useRef } from 'react'
 import _ from 'lodash'
+import { useSearchParams } from 'next/navigation'
 import Icon from '../Icon'
 import LoadingSpinner from '../LoadingSpinner'
 import EdgeBrowserContext from './EdgeBrowserContext'
@@ -17,7 +18,6 @@ import {
 } from '../../lib/edge-utils'
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
 import { filterCollections, getEdgeValue } from '../../lib/webfield-utils'
 
 export default function Column(props) {
@@ -43,7 +43,7 @@ export default function Column(props) {
   const entityMap = useRef({ globalEntityMap, altGlobalEntityMap })
   const [entityMapChanged, setEntityMapChanged] = useState(false)
   const { accessToken, user } = useUser()
-  const query = useQuery()
+  const query = useSearchParams()
 
   const sortOptions = [
     {
@@ -285,11 +285,11 @@ export default function Column(props) {
       editInvitations?.[0]?.id ?? traverseInvitation.id,
       true
     ).toLowerCase()
-    if (query.filter) {
+    if (query.get('filter')) {
       return (
         <>
           {`Show ${group} available for ${invitation} `}
-          <Icon name="info-sign" tooltip={query.filter} />
+          <Icon name="info-sign" tooltip={query.get('filter')} />
         </>
       )
     }
@@ -303,7 +303,9 @@ export default function Column(props) {
       const headOrTailId = edge[type]
       const edgeFormatted = formatEdge(edge)
       const existingItem = _.find(colItems, ['id', headOrTailId])
-      const hasConflict = edgeFormatted.name === 'Conflict' && edgeFormatted.weight === -1
+      const hasConflict =
+        (edgeFormatted.name === 'Conflict' || edgeFormatted.label === 'Conflict') &&
+        edgeFormatted.weight === -1
 
       if (existingItem) {
         if (isHidden) {
@@ -585,12 +587,14 @@ export default function Column(props) {
 
   const filterQuotaReachedItems = (colItems) => {
     if (!hideQuotaReached) return colItems
-    if (query.filter) {
+    if (query.get('filter')) {
       const { filteredRows, queryIsInvalid } = filterCollections(
         colItems.map((p) => {
           const customLoad = getQuota(p)
           const quotaNotReached =
-            query.check_quota === 'false' ? !p.traverseEdge : p.traverseEdgesCount < customLoad
+            query.get('check_quota') === 'false'
+              ? !p.traverseEdge
+              : p.traverseEdgesCount < customLoad
 
           return {
             ...p,
@@ -612,7 +616,7 @@ export default function Column(props) {
             ),
           }
         }),
-        `${query.filter.replaceAll('.', '_')} AND Quota=true`,
+        `${query.get('filter').replaceAll('.', '_')} AND Quota=true`,
         ['!=', '>=', '<=', '>', '<', '==', '='],
         editAndBrowserInvitationsUnique.reduce(
           (prev, curr) => {

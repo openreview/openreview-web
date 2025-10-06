@@ -14,7 +14,14 @@ jest.mock('../hooks/useUser', () => () => ({
   },
   accessToken: 'some token',
 }))
-jest.mock('../hooks/useQuery', () => () => ({}))
+jest.mock('../app/CustomBanner', () => () => <span>Custom Banner</span>)
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: () => jest.fn(),
+  }),
+  useRouter: jest.fn(),
+}))
+
 let bidInvitation
 
 global.promptError = jest.fn()
@@ -23,6 +30,7 @@ global.marked = jest.fn()
 global.DOMPurify = {
   sanitize: jest.fn(),
 }
+global.$ = jest.fn(() => ({ on: jest.fn(), off: jest.fn(), modal: jest.fn() }))
 
 beforeEach(() => {
   bidInvitation = {
@@ -85,90 +93,87 @@ describe('BidConsole', () => {
       },
     }
 
-    api.getAll = jest.fn((path) => {
+    api.get = jest.fn((path, queryParam) => {
       switch (path) {
         case '/edges': // bid and conflict edges
-          return Promise.resolve([])
-        case '/notes': // all notes for subject areas dropdown filtering
-          return Promise.resolve([
-            {
-              id: 'noteId1',
-              content: {
-                title: {
-                  value: 'Note one',
-                },
-                primary_keyword: {
-                  value: 'subject_area_1',
-                },
-              },
-              invitations: ['AAAI.org/2025/Conference/-/Submission'],
-              readers: [
-                'AAAI.org/2025/Conference',
-                'AAAI.org/2025/Conference/Program_Committee',
-              ],
-            },
-            {
-              id: 'noteId2',
-              content: {
-                title: {
-                  value: 'Note two',
-                },
-                primary_keyword: {
-                  value: 'subject_area_2',
-                },
-              },
-              invitations: ['AAAI.org/2025/Conference/-/Submission'],
-              readers: [
-                'AAAI.org/2025/Conference',
-                'AAAI.org/2025/Conference/Program_Committee',
-              ],
-            },
-          ])
-        default:
-          return null
-      }
-    })
-
-    api.get = jest.fn((path) => {
-      switch (path) {
+          return Promise.resolve({ edges: [] })
         case '/notes':
-          return Promise.resolve({
-            notes: [
-              {
-                id: 'noteId1',
-                content: {
-                  title: {
-                    value: 'Note one',
+          if (queryParam.stream)
+            // all notes for subject areas dropdown filtering
+            return Promise.resolve({
+              notes: [
+                {
+                  id: 'noteId1',
+                  content: {
+                    title: {
+                      value: 'Note one',
+                    },
+                    primary_keyword: {
+                      value: 'subject_area_1',
+                    },
                   },
-                  primary_keyword: {
-                    value: 'subject_area_1',
-                  },
+                  invitations: ['AAAI.org/2025/Conference/-/Submission'],
+                  readers: [
+                    'AAAI.org/2025/Conference',
+                    'AAAI.org/2025/Conference/Program_Committee',
+                  ],
                 },
-                invitations: ['AAAI.org/2025/Conference/-/Submission'],
-                readers: [
-                  'AAAI.org/2025/Conference',
-                  'AAAI.org/2025/Conference/Program_Committee',
-                ],
-              },
-              {
-                id: 'noteId2',
-                content: {
-                  title: {
-                    value: 'Note two',
+                {
+                  id: 'noteId2',
+                  content: {
+                    title: {
+                      value: 'Note two',
+                    },
+                    primary_keyword: {
+                      value: 'subject_area_2',
+                    },
                   },
-                  primary_keyword: {
-                    value: 'subject_area_2',
-                  },
+                  invitations: ['AAAI.org/2025/Conference/-/Submission'],
+                  readers: [
+                    'AAAI.org/2025/Conference',
+                    'AAAI.org/2025/Conference/Program_Committee',
+                  ],
                 },
-                invitations: ['AAAI.org/2025/Conference/-/Submission'],
-                readers: [
-                  'AAAI.org/2025/Conference',
-                  'AAAI.org/2025/Conference/Program_Committee',
-                ],
-              },
-            ],
-            count: 2,
-          })
+              ],
+            })
+          else
+            return Promise.resolve({
+              notes: [
+                {
+                  id: 'noteId1',
+                  content: {
+                    title: {
+                      value: 'Note one',
+                    },
+                    primary_keyword: {
+                      value: 'subject_area_1',
+                    },
+                  },
+                  invitations: ['AAAI.org/2025/Conference/-/Submission'],
+                  readers: [
+                    'AAAI.org/2025/Conference',
+                    'AAAI.org/2025/Conference/Program_Committee',
+                  ],
+                },
+                {
+                  id: 'noteId2',
+                  content: {
+                    title: {
+                      value: 'Note two',
+                    },
+                    primary_keyword: {
+                      value: 'subject_area_2',
+                    },
+                  },
+                  invitations: ['AAAI.org/2025/Conference/-/Submission'],
+                  readers: [
+                    'AAAI.org/2025/Conference',
+                    'AAAI.org/2025/Conference/Program_Committee',
+                  ],
+                },
+              ],
+              count: 2,
+            })
         default:
           return null
       }

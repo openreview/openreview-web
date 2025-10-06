@@ -3,6 +3,7 @@ import EditorWidget from '../components/webfield/EditorWidget'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/EditorComponents/TextboxWidget', () => () => <span>textbox</span>)
 jest.mock('../components/EditorComponents/TagsWidget', () => () => <span>tags</span>)
 jest.mock('../components/EditorComponents/RadioButtonWidget', () => () => <span>radio</span>)
@@ -342,6 +343,18 @@ describe('EditorWidget', () => {
     expect(screen.getByText('profile')).toBeInTheDocument()
 
     providerProps.value.field.field_name.value.param.type = 'profile[]'
+    reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
+    expect(screen.getByText('profile')).toBeInTheDocument()
+  })
+
+  test('render ProfileSearchWidget for type profile/profile{}', async () => {
+    const providerProps = typeProviderProps
+
+    providerProps.value.field.field_name.value.param.type = 'profile'
+    const { rerender } = renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('profile')).toBeInTheDocument()
+
+    providerProps.value.field.field_name.value.param.type = 'profile{}'
     reRenderWithEditorComponentContext(rerender, <EditorWidget />, providerProps)
     expect(screen.getByText('profile')).toBeInTheDocument()
   })

@@ -1,4 +1,6 @@
+/* globals $: false */
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import LoadingSpinner from './LoadingSpinner'
 import Edit from './Edit/Edit'
 import PaginationLinks from './PaginationLinks'
@@ -11,9 +13,10 @@ function EmptyMessage({ id }) {
   return <p className="empty-message">No revision history available for {prettyId(id)}.</p>
 }
 
-export default function EditHistory({ group, invitation, accessToken, setError }) {
+export default function EditHistory({ group, invitation, accessToken, setError, editId }) {
   const [edits, setEdits] = useState(null)
   const [count, setCount] = useState(null)
+  const [editLookupComplete, setEditLookupComplete] = useState(!editId)
   const [page, setPage] = useState(1)
   const pageSize = 25
 
@@ -43,29 +46,70 @@ export default function EditHistory({ group, invitation, accessToken, setError }
           )
         } else {
           setEdits([])
+          setEditLookupComplete(true)
         }
         setCount(apiRes.count ?? 0)
       } catch (apiError) {
-        setError({ statusCode: apiError.status, message: apiError.message })
+        setError(apiError.message)
       }
     }
 
     loadEdits()
   }, [group, invitation, accessToken, page])
 
+  useEffect(() => {
+    const findEditId = async () => {
+      if (edits.find((p) => p.id === editId)) {
+        setEditLookupComplete(true)
+      } else if ((page + 1) * pageSize > count) {
+        setPage(1)
+        setEditLookupComplete(true)
+      } else {
+        setPage((prevPage) => prevPage + 1)
+      }
+    }
+    if (!editId || editLookupComplete || !edits?.length > 0) return
+    findEditId()
+  }, [edits])
+
   const renderEdits = () => {
     if (!edits) return <LoadingSpinner inline />
     if (edits.length === 0) return <EmptyMessage id={group?.id ?? invitation?.id} />
 
-    return edits.map((edit) => (
-      <Edit
-        key={edit.id}
-        edit={edit}
-        type={group ? 'group' : 'invitation'}
-        className={edit.ddate ? 'edit-trashed' : ''}
-        showContents
-      />
-    ))
+    return edits.map((edit) => {
+      if (edit.id === editId && editLookupComplete)
+        return (
+          <motion.div
+            key={edit.id}
+            animate={{
+              rotate: [0, -1, 1, -1, 1, 0],
+            }}
+            transition={{ duration: 0.25, ease: 'linear' }}
+            onAnimationStart={() => {
+              $(`#${editId}`)[0].scrollIntoView()
+            }}
+          >
+            <Edit
+              key={edit.id}
+              edit={edit}
+              type={group ? 'group' : 'invitation'}
+              className={edit.ddate ? 'edit-trashed' : ''}
+              showContents
+              showLog
+              accessToken={accessToken}
+            />
+          </motion.div>
+        )
+      return (
+        <Edit
+          key={edit.id}
+          edit={edit}
+          type={group ? 'group' : 'invitation'}
+          className={edit.ddate ? 'edit-trashed' : ''}
+          showContents
+        />
+      )
+    })
   }
 
   if (!group && !invitation) return null
@@ -77,6 +121,8 @@ export default function EditHistory({ group, invitation, accessToken, setError }
       </div>
     )
   }
+
+  if (!editLookupComplete) return <LoadingSpinner />
 
   return (
     <div className="row">

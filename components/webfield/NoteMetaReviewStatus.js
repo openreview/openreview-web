@@ -13,10 +13,10 @@ import { getProfileLink } from '../../lib/webfield-utils'
 const IEEECopyrightForm = ({ note, isV2Note }) => {
   const { showIEEECopyright, IEEEPublicationTitle, IEEEArtSourceCode } =
     useContext(WebFieldContext)
-  const { user } = useUser()
+  const { user, isRefreshing } = useUser()
   const noteContent = isV2Note ? getNoteContentValues(note.content) : note.content
 
-  if (showIEEECopyright && IEEEPublicationTitle && IEEEArtSourceCode) {
+  if (showIEEECopyright && IEEEPublicationTitle && IEEEArtSourceCode && !isRefreshing) {
     return (
       <form action="https://ecopyright.ieee.org/ECTT/IntroPage.jsp" method="post">
         <input type="hidden" name="PubTitle" value={IEEEPublicationTitle} />
@@ -165,19 +165,50 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
           </p>
         </>
       ) : (
-        <h4>
-          {metaReviewInvitation ? (
-            <a
-              href={`/forum?id=${note.forum}&noteId=${note.id}&invitationId=${metaReviewData.metaReviewInvitationId}&referrer=${referrerUrl}`}
-              target="_blank"
-              rel="nofollow noreferrer"
-            >
-              Submit
-            </a>
-          ) : (
-            <strong>{`No ${metaReviewRecommendationName}`}</strong>
-          )}
-        </h4>
+        <>
+          <>
+            {metaReviewData.metaReviewByOtherACs.map((p) => (
+              <>
+                <h4 className="title">
+                  {prettyField(metaReviewRecommendationName)} by {p.anonId}:
+                </h4>
+                <p>
+                  <strong>{p[metaReviewRecommendationName]}</strong>
+                </p>
+                {additionalMetaReviewFields.map((additionalMetaReviewField) => {
+                  const fieldValue = p[additionalMetaReviewField]
+                  return (
+                    <p key={additionalMetaReviewField}>
+                      <strong>{prettyField(additionalMetaReviewField)}:</strong> {fieldValue}
+                    </p>
+                  )
+                })}
+                <p>
+                  <a
+                    href={`/forum?id=${note.forum}&noteId=${p.id}&referrer=${referrerUrl}`}
+                    target="_blank"
+                    rel="nofollow noreferrer"
+                  >
+                    Read
+                  </a>
+                </p>
+              </>
+            ))}
+          </>
+          <h4>
+            {metaReviewInvitation ? (
+              <a
+                href={`/forum?id=${note.forum}&noteId=${note.id}&invitationId=${metaReviewData.metaReviewInvitationId}&referrer=${referrerUrl}`}
+                target="_blank"
+                rel="nofollow noreferrer"
+              >
+                Submit
+              </a>
+            ) : (
+              <strong>{`No ${metaReviewRecommendationName}`}</strong>
+            )}
+          </h4>
+        </>
       )}
     </div>
   )
@@ -199,6 +230,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
     metaReviews,
     seniorAreaChairs,
     secondaryAreaChairs,
+    customStageReviews,
   } = metaReviewData
   const paperManualAreaChairAssignmentUrl = areaChairAssignmentUrl?.replace(
     'edges/browse?',
@@ -396,6 +428,46 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
               </div>
             </div>
           ))}
+        </div>
+      )}
+      {customStageReviews && (
+        <div>
+          {Object.values(customStageReviews).map((customStageReview, index) => {
+            if (!customStageReview.value) return null
+
+            return (
+              <div key={`${customStageReview.id}-${index}`}>
+                <strong className="custom-stage-name">{customStageReview.name}:</strong>
+                <div className="meta-review-info">
+                  <span>
+                    {customStageReview.displayField}: {customStageReview.value}
+                  </span>
+
+                  {customStageReview.extraDisplayFields?.length > 0 &&
+                    customStageReview.extraDisplayFields.map(({ field, value }, i) => {
+                      if (!value) return null
+                      return (
+                        <div key={`${field}-${i}`} className="meta-review-info">
+                          <span>
+                            {field}: {value}
+                          </span>
+                        </div>
+                      )
+                    })}
+
+                  <div>
+                    <a
+                      href={`/forum?id=${customStageReview.forum}&noteId=${customStageReview.id}&referrer=${referrerUrl}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {`Read ${customStageReview.name}`}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 

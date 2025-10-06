@@ -1,8 +1,9 @@
 /* globals $,promptMessage,promptError,typesetMathJax: false */
 
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
-import { orderBy } from 'lodash'
+import { useSearchParams } from 'next/navigation'
+import { chunk, orderBy } from 'lodash'
+import Link from 'next/link'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import Table from '../Table'
@@ -11,7 +12,6 @@ import NoteSummary from './NoteSummary'
 import { AcPcConsoleNoteReviewStatus, LatestReplies } from './NoteReviewStatus'
 import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
 import {
   getNumberFromGroup,
@@ -24,9 +24,7 @@ import {
   pluralizeString,
   getSingularRoleName,
   getRoleHashFragment,
-  buildNoteTitle,
 } from '../../lib/utils'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
@@ -134,6 +132,265 @@ const AreaChairConsoleTasks = ({
   )
 }
 
+const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
+  const [selectedNoteIds, setSelectedNoteIds] = useState([])
+  const {
+    venueId,
+    areaChairName,
+    secondaryAreaChairName,
+    submissionName,
+    officialReviewName,
+    reviewRatingName,
+    officialMetaReviewName,
+    reviewerName = 'Reviewers',
+    metaReviewRecommendationName = 'recommendation',
+    additionalMetaReviewFields = [],
+    shortPhrase,
+    filterOperators,
+    propertiesAllowed,
+    enableQuerySearch,
+    extraExportColumns,
+    ithenticateInvitationId,
+    extraRoleNames,
+    sortOptions,
+    displayReplyInvitations,
+  } = useContext(WebFieldContext)
+  const defaultActiveTabId = `assigned-${pluralizeString(submissionName).toLowerCase()}`
+  const [activeTabId, setActiveTabId] = useState(defaultActiveTabId)
+
+  const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
+  const extraRoleNamesWithUrlFormat = extraRoleNames?.map((roleName) => ({
+    name: roleName,
+    urlFormat: getRoleHashFragment(roleName),
+  }))
+  const secondaryAreaChairUrlFormat = secondaryAreaChairName
+    ? getRoleHashFragment(secondaryAreaChairName)
+    : null
+
+  const renderTable = () => {
+    if (!acConsoleData.tableRowsAll) return <LoadingSpinner />
+    if (acConsoleData.tableRowsAll?.length === 0)
+      return (
+        <p className="empty-message">
+          No assigned {submissionName.toLowerCase()}. Check back later or{' '}
+          <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
+        </p>
+      )
+    if (acConsoleData.tableRows?.length === 0)
+      return (
+        <div className="table-container empty-table-container">
+          <AreaChairConsoleMenuBar
+            tableRowsAll={acConsoleData.tableRowsAll}
+            tableRows={acConsoleData.tableRows}
+            selectedNoteIds={selectedNoteIds}
+            setSelectedNoteIds={setSelectedNoteIds}
+            setAcConsoleData={setAcConsoleData}
+            shortPhrase={shortPhrase}
+            enableQuerySearch={enableQuerySearch}
+            extraExportColumns={extraExportColumns}
+            filterOperators={filterOperators}
+            propertiesAllowed={propertiesAllowed}
+            reviewRatingName={reviewRatingName}
+            metaReviewRecommendationName={metaReviewRecommendationName}
+            additionalMetaReviewFields={additionalMetaReviewFields}
+            reviewerName={reviewerName}
+            officialReviewName={officialReviewName}
+            submissionName={submissionName}
+            officialMetaReviewName={officialMetaReviewName}
+            areaChairName={areaChairName}
+            ithenticateInvitationId={ithenticateInvitationId}
+            sortOptions={sortOptions}
+          />
+          <p className="empty-message">
+            No assigned {submissionName.toLowerCase()} matching search criteria.
+          </p>
+        </div>
+      )
+    return (
+      <div className="table-container">
+        <AreaChairConsoleMenuBar
+          tableRowsAll={acConsoleData.tableRowsAll}
+          tableRows={acConsoleData.tableRows}
+          selectedNoteIds={selectedNoteIds}
+          setSelectedNoteIds={setSelectedNoteIds}
+          setAcConsoleData={setAcConsoleData}
+          shortPhrase={shortPhrase}
+          enableQuerySearch={enableQuerySearch}
+          extraExportColumns={extraExportColumns}
+          filterOperators={filterOperators}
+          propertiesAllowed={propertiesAllowed}
+          reviewRatingName={reviewRatingName}
+          metaReviewRecommendationName={metaReviewRecommendationName}
+          additionalMetaReviewFields={additionalMetaReviewFields}
+          reviewerName={reviewerName}
+          officialReviewName={officialReviewName}
+          submissionName={submissionName}
+          officialMetaReviewName={officialMetaReviewName}
+          areaChairName={areaChairName}
+          ithenticateInvitationId={ithenticateInvitationId}
+          sortOptions={sortOptions}
+        />
+        <Table
+          className="console-table table-striped areachair-console-table"
+          headings={[
+            {
+              id: 'select-all',
+              content: (
+                <SelectAllCheckBox
+                  selectedIds={selectedNoteIds}
+                  setSelectedIds={setSelectedNoteIds}
+                  allIds={acConsoleData.tableRows?.map((row) => row.note.id)}
+                />
+              ),
+              width: '35px',
+            },
+            { id: 'number', content: '#', width: '55px' },
+            { id: 'summary', content: `${submissionName} Summary`, width: '34%' },
+            {
+              id: 'reviewProgress',
+              content: `${prettyField(officialReviewName)} Progress`,
+              width: '34%',
+            },
+            ...(displayReplyInvitations?.length
+              ? [
+                  {
+                    id: 'latestReplies',
+                    content: 'Latest Replies',
+                    width: '50%',
+                  },
+                ]
+              : []),
+            {
+              id: 'metaReviewStatus',
+              content: `${prettyField(officialMetaReviewName)} Status`,
+              width: 'auto',
+            },
+          ]}
+        >
+          {acConsoleData.tableRows?.map((row) => (
+            <AssignedPaperRow
+              key={row.note.id}
+              rowData={row}
+              venueId={venueId}
+              areaChairName={areaChairName}
+              officialReviewName={officialReviewName}
+              officialMetaReviewName={officialMetaReviewName}
+              submissionName={submissionName}
+              metaReviewRecommendationName={metaReviewRecommendationName}
+              selectedNoteIds={selectedNoteIds}
+              setSelectedNoteIds={setSelectedNoteIds}
+              shortPhrase={shortPhrase}
+              additionalMetaReviewFields={additionalMetaReviewFields}
+              activeTabId={activeTabId}
+              displayReplyInvitations={displayReplyInvitations}
+            />
+          ))}
+        </Table>
+      </div>
+    )
+  }
+
+  const renderTripletACTable = () => {
+    if (!acConsoleData.tripletACtableRows) return <LoadingSpinner />
+    if (acConsoleData.tripletACtableRows?.length === 0)
+      return (
+        <p className="empty-message">
+          No assigned {submissionName.toLowerCase()}.Check back later or{' '}
+          <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
+        </p>
+      )
+    return (
+      <div className="table-container">
+        <Table
+          className="console-table table-striped areachair-console-table"
+          headings={[
+            { id: 'number', content: '#', width: '55px' },
+            { id: 'summary', content: `${submissionName} Summary`, width: '34%' },
+            {
+              id: 'reviewProgress',
+              content: `${prettyField(officialReviewName)} Progress`,
+              width: '34%',
+            },
+            ...(displayReplyInvitations?.length
+              ? [
+                  {
+                    id: 'latestReplies',
+                    content: 'Latest Replies',
+                    width: '50%',
+                  },
+                ]
+              : []),
+            {
+              id: 'metaReviewStatus',
+              content: `${prettyField(officialMetaReviewName)} Status`,
+              width: 'auto',
+            },
+          ]}
+        >
+          {acConsoleData.tripletACtableRows?.map((row) => (
+            <AssignedPaperRow
+              key={row.note.id}
+              rowData={row}
+              venueId={venueId}
+              areaChairName={areaChairName}
+              officialReviewName={officialReviewName}
+              officialMetaReviewName={officialMetaReviewName}
+              submissionName={submissionName}
+              metaReviewRecommendationName={metaReviewRecommendationName}
+              shortPhrase={shortPhrase}
+              showCheckbox={false}
+              additionalMetaReviewFields={additionalMetaReviewFields}
+              activeTabId={activeTabId}
+              displayReplyInvitations={displayReplyInvitations}
+            />
+          ))}
+        </Table>
+      </div>
+    )
+  }
+
+  return (
+    <ConsoleTabs
+      defaultActiveTabId={defaultActiveTabId}
+      tabs={[
+        {
+          id: `assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
+          label: `Assigned ${pluralizeString(submissionName)}`,
+          content: renderTable(),
+          visible: true,
+        },
+        {
+          id: `${secondaryAreaChairUrlFormat}-assignments`,
+          label: `${getSingularRoleName(prettyField(secondaryAreaChairName))} Assignments`,
+          content: renderTripletACTable(),
+          visible: secondaryAreaChairName,
+        },
+        {
+          id: `${areaChairUrlFormat}-tasks`,
+          label: `${getSingularRoleName(prettyField(areaChairName))} Tasks`,
+          content: <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />,
+          visible: true,
+        },
+        ...(extraRoleNamesWithUrlFormat?.length > 0
+          ? extraRoleNamesWithUrlFormat.map((role) => ({
+              id: `${role.urlFormat}-tasks`,
+              label: `${getSingularRoleName(prettyField(role.name))} Tasks`,
+              content: (
+                <AreaChairConsoleTasks
+                  venueId={venueId}
+                  areaChairName={role.name}
+                  defaultAreaChairName={areaChairName}
+                />
+              ),
+              visible: true,
+            }))
+          : []),
+      ]}
+      updateActiveTabId={setActiveTabId}
+    />
+  )
+}
+
 const AreaChairConsole = ({ appContext }) => {
   const {
     header,
@@ -171,10 +428,9 @@ const AreaChairConsole = ({ appContext }) => {
     edgeBrowserProposedUrl,
     edgeBrowserDeployedUrl,
   } = reviewerAssignment ?? {}
-  const { user, accessToken, userLoading } = useUser()
-  const router = useRouter()
-  const query = useQuery()
-  const { setBannerContent } = appContext
+  const { user, accessToken, isRefreshing } = useUser()
+  const query = useSearchParams()
+  const { setBannerContent } = appContext ?? {}
   const [acConsoleData, setAcConsoleData] = useState({})
   const [selectedNoteIds, setSelectedNoteIds] = useState([])
   const [activeTabId, setActiveTabId] = useState(null)
@@ -190,15 +446,6 @@ const AreaChairConsole = ({ appContext }) => {
         prettyField(reviewerName)
       )} Assignments</a></p>`
     : header?.instructions
-
-  const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
-  const extraRoleNamesWithUrlFormat = extraRoleNames?.map((roleName) => ({
-    name: roleName,
-    urlFormat: getRoleHashFragment(roleName),
-  }))
-  const secondaryAreaChairUrlFormat = secondaryAreaChairName
-    ? getRoleHashFragment(secondaryAreaChairName)
-    : null
 
   const getReviewerName = (reviewerProfile) => {
     const name =
@@ -318,22 +565,32 @@ const AreaChairConsole = ({ appContext }) => {
         : Promise.resolve([])
 
       // #region getReviewerGroups(noteNumbers)
-      const reviewerGroupsP = api
-        .get(
-          '/groups',
-          {
-            prefix: `${venueId}/${submissionName}.*`,
-            select: 'id,members',
-            stream: true,
-            domain: group.domain,
-          },
-          { accessToken }
+      const reviewerGroupsP = chunk([...new Set(areaChairPaperNums)], 25)
+        .reduce(
+          (prev, curr) =>
+            prev.then((acc) =>
+              Promise.all(
+                curr.map((paperNumber) =>
+                  api.get(
+                    '/groups',
+                    {
+                      parent: `${venueId}/${submissionName}${paperNumber}`,
+                      select: 'id,members',
+                      domain: group.domain,
+                    },
+                    { accessToken }
+                  )
+                )
+              ).then((res) => acc.concat(res))
+            ),
+          Promise.resolve([])
         )
-        .then((reviewerGroupsResult) => {
-          const anonymousReviewerGroups = reviewerGroupsResult.groups.filter((p) =>
+        .then((result) => {
+          const reviewerGroupsResult = result.flatMap((p) => p.groups)
+          const anonymousReviewerGroups = reviewerGroupsResult.filter((p) =>
             p.id.includes(`/${anonReviewerName}`)
           )
-          const reviewerGroups = reviewerGroupsResult.groups.filter((p) =>
+          const reviewerGroups = reviewerGroupsResult.filter((p) =>
             p.id.includes(`/${reviewerName}`)
           )
           return noteNumbers.map((p) => {
@@ -535,9 +792,15 @@ const AreaChairConsole = ({ appContext }) => {
         const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
         const metaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
-        const metaReview = note.details.replies.find((p) =>
-          p.invitations.includes(metaReviewInvitationId)
-        )
+        const allMetaReviews = note.details.replies.flatMap((p) => {
+          if (!p.invitations.includes(metaReviewInvitationId)) return []
+          return {
+            ...p,
+            anonId: getIndentifierFromGroup(p.signatures[0], `${singularName}_`),
+            isByOtherAC: p.signatures[0] !== anonymousAreaChairIdByNumber[note.number],
+          }
+        })
+        const metaReview = allMetaReviews.find((p) => !p.isByOtherAC)
         return {
           note,
           reviewers: result[1]
@@ -580,6 +843,20 @@ const AreaChairConsole = ({ appContext }) => {
             }, {}),
             metaReviewInvitationId: `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`,
             metaReview,
+            metaReviewByOtherACs: allMetaReviews.flatMap((p) => {
+              if (p.isByOtherAC)
+                return {
+                  [metaReviewRecommendationName]:
+                    p.content?.[metaReviewRecommendationName]?.value ?? 'N/A',
+                  ...additionalMetaReviewFields.reduce((prev, curr) => {
+                    const additionalMetaReviewFieldValue = p.content?.[curr]?.value ?? 'N/A'
+                    return { ...prev, [curr]: additionalMetaReviewFieldValue }
+                  }, {}),
+                  anonId: p.anonId,
+                  id: p.id,
+                }
+              return []
+            }),
           },
           messageSignature: anonymousAreaChairIdByNumber[note.number],
           ...(ithenticateInvitationId && {
@@ -649,201 +926,19 @@ const AreaChairConsole = ({ appContext }) => {
     }
   }
 
-  const renderTable = () => {
-    if (!acConsoleData.tableRowsAll) return <LoadingSpinner />
-    if (acConsoleData.tableRowsAll?.length === 0)
-      return (
-        <p className="empty-message">
-          No assigned {submissionName.toLowerCase()}. Check back later or contact
-          info@openreview.net if you believe this to be an error.
-        </p>
-      )
-    if (acConsoleData.tableRows?.length === 0)
-      return (
-        <div className="table-container empty-table-container">
-          <AreaChairConsoleMenuBar
-            tableRowsAll={acConsoleData.tableRowsAll}
-            tableRows={acConsoleData.tableRows}
-            selectedNoteIds={selectedNoteIds}
-            setSelectedNoteIds={setSelectedNoteIds}
-            setAcConsoleData={setAcConsoleData}
-            shortPhrase={shortPhrase}
-            enableQuerySearch={enableQuerySearch}
-            extraExportColumns={extraExportColumns}
-            filterOperators={filterOperators}
-            propertiesAllowed={propertiesAllowed}
-            reviewRatingName={reviewRatingName}
-            metaReviewRecommendationName={metaReviewRecommendationName}
-            additionalMetaReviewFields={additionalMetaReviewFields}
-            reviewerName={reviewerName}
-            officialReviewName={officialReviewName}
-            submissionName={submissionName}
-            officialMetaReviewName={officialMetaReviewName}
-            areaChairName={areaChairName}
-            ithenticateInvitationId={ithenticateInvitationId}
-            sortOptions={sortOptions}
-          />
-          <p className="empty-message">
-            No assigned {submissionName.toLowerCase()} matching search criteria.
-          </p>
-        </div>
-      )
-    return (
-      <div className="table-container">
-        <AreaChairConsoleMenuBar
-          tableRowsAll={acConsoleData.tableRowsAll}
-          tableRows={acConsoleData.tableRows}
-          selectedNoteIds={selectedNoteIds}
-          setSelectedNoteIds={setSelectedNoteIds}
-          setAcConsoleData={setAcConsoleData}
-          shortPhrase={shortPhrase}
-          enableQuerySearch={enableQuerySearch}
-          extraExportColumns={extraExportColumns}
-          filterOperators={filterOperators}
-          propertiesAllowed={propertiesAllowed}
-          reviewRatingName={reviewRatingName}
-          metaReviewRecommendationName={metaReviewRecommendationName}
-          additionalMetaReviewFields={additionalMetaReviewFields}
-          reviewerName={reviewerName}
-          officialReviewName={officialReviewName}
-          submissionName={submissionName}
-          officialMetaReviewName={officialMetaReviewName}
-          areaChairName={areaChairName}
-          ithenticateInvitationId={ithenticateInvitationId}
-          sortOptions={sortOptions}
-        />
-        <Table
-          className="console-table table-striped areachair-console-table"
-          headings={[
-            {
-              id: 'select-all',
-              content: (
-                <SelectAllCheckBox
-                  selectedIds={selectedNoteIds}
-                  setSelectedIds={setSelectedNoteIds}
-                  allIds={acConsoleData.tableRows?.map((row) => row.note.id)}
-                />
-              ),
-              width: '35px',
-            },
-            { id: 'number', content: '#', width: '55px' },
-            { id: 'summary', content: `${submissionName} Summary`, width: '34%' },
-            {
-              id: 'reviewProgress',
-              content: `${prettyField(officialReviewName)} Progress`,
-              width: '34%',
-            },
-            ...(displayReplyInvitations?.length
-              ? [
-                  {
-                    id: 'latestReplies',
-                    content: 'Latest Replies',
-                    width: '50%',
-                  },
-                ]
-              : []),
-            {
-              id: 'metaReviewStatus',
-              content: `${prettyField(officialMetaReviewName)} Status`,
-              width: 'auto',
-            },
-          ]}
-        >
-          {acConsoleData.tableRows?.map((row) => (
-            <AssignedPaperRow
-              key={row.note.id}
-              rowData={row}
-              venueId={venueId}
-              areaChairName={areaChairName}
-              officialReviewName={officialReviewName}
-              officialMetaReviewName={officialMetaReviewName}
-              submissionName={submissionName}
-              metaReviewRecommendationName={metaReviewRecommendationName}
-              selectedNoteIds={selectedNoteIds}
-              setSelectedNoteIds={setSelectedNoteIds}
-              shortPhrase={shortPhrase}
-              additionalMetaReviewFields={additionalMetaReviewFields}
-              activeTabId={activeTabId}
-              displayReplyInvitations={displayReplyInvitations}
-            />
-          ))}
-        </Table>
-      </div>
-    )
-  }
-
-  const renderTripletACTable = () => {
-    if (!acConsoleData.tripletACtableRows) return <LoadingSpinner />
-    if (acConsoleData.tripletACtableRows?.length === 0)
-      return (
-        <p className="empty-message">
-          No assigned {submissionName.toLowerCase()}.Check back later or contact
-          info@openreview.net if you believe this to be an error.
-        </p>
-      )
-    return (
-      <div className="table-container">
-        <Table
-          className="console-table table-striped areachair-console-table"
-          headings={[
-            { id: 'number', content: '#', width: '55px' },
-            { id: 'summary', content: `${submissionName} Summary`, width: '34%' },
-            {
-              id: 'reviewProgress',
-              content: `${prettyField(officialReviewName)} Progress`,
-              width: '34%',
-            },
-            ...(displayReplyInvitations?.length
-              ? [
-                  {
-                    id: 'latestReplies',
-                    content: 'Latest Replies',
-                    width: '50%',
-                  },
-                ]
-              : []),
-            {
-              id: 'metaReviewStatus',
-              content: `${prettyField(officialMetaReviewName)} Status`,
-              width: 'auto',
-            },
-          ]}
-        >
-          {acConsoleData.tripletACtableRows?.map((row) => (
-            <AssignedPaperRow
-              key={row.note.id}
-              rowData={row}
-              venueId={venueId}
-              areaChairName={areaChairName}
-              officialReviewName={officialReviewName}
-              officialMetaReviewName={officialMetaReviewName}
-              submissionName={submissionName}
-              metaReviewRecommendationName={metaReviewRecommendationName}
-              shortPhrase={shortPhrase}
-              showCheckbox={false}
-              additionalMetaReviewFields={additionalMetaReviewFields}
-              activeTabId={activeTabId}
-              displayReplyInvitations={displayReplyInvitations}
-            />
-          ))}
-        </Table>
-      </div>
-    )
-  }
-
   useEffect(() => {
     if (!query) return
 
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
   useEffect(() => {
     if (
-      userLoading ||
+      isRefreshing ||
       !user ||
       !group ||
       !venueId ||
@@ -853,7 +948,7 @@ const AreaChairConsole = ({ appContext }) => {
     )
       return
     loadData()
-  }, [user, userLoading, group])
+  }, [user, isRefreshing, group])
 
   useEffect(() => {
     if (acConsoleData.notes) {
@@ -897,43 +992,9 @@ const AreaChairConsole = ({ appContext }) => {
         title={header?.title}
         instructions={`${headerInstructions}${sacSecondaryACLinkText}`}
       />
-      <ConsoleTabs
-        defaultActiveTabId={`assigned-${pluralizeString(submissionName).toLowerCase()}`}
-        tabs={[
-          {
-            id: `assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`,
-            label: `Assigned ${pluralizeString(submissionName)}`,
-            content: renderTable(),
-            visible: true,
-          },
-          {
-            id: `${secondaryAreaChairUrlFormat}-assignments`,
-            label: `${getSingularRoleName(prettyField(secondaryAreaChairName))} Assignments`,
-            content: renderTripletACTable(),
-            visible: secondaryAreaChairName,
-          },
-          {
-            id: `${areaChairUrlFormat}-tasks`,
-            label: `${getSingularRoleName(prettyField(areaChairName))} Tasks`,
-            content: <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />,
-            visible: true,
-          },
-          ...(extraRoleNamesWithUrlFormat?.length > 0
-            ? extraRoleNamesWithUrlFormat.map((role) => ({
-                id: `${role.urlFormat}-tasks`,
-                label: `${getSingularRoleName(prettyField(role.name))} Tasks`,
-                content: (
-                  <AreaChairConsoleTasks
-                    venueId={venueId}
-                    areaChairName={role.name}
-                    defaultAreaChairName={areaChairName}
-                  />
-                ),
-                visible: true,
-              }))
-            : []),
-        ]}
-        updateActiveTabId={setActiveTabId}
+      <AreaChairConsoleTabs
+        acConsoleData={acConsoleData}
+        setAcConsoleData={setAcConsoleData}
       />
     </>
   )

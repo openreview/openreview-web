@@ -1,7 +1,7 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
-import { orderBy } from 'lodash'
+import { useSearchParams } from 'next/navigation'
+import { camelCase, orderBy } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import AreaChairStatus from './SeniorAreaChairConsole/AreaChairStatus'
@@ -9,9 +9,7 @@ import PaperStatus from './SeniorAreaChairConsole/PaperStatus'
 import SeniorAreaChairTasks from './SeniorAreaChairConsole/SeniorAreaChairTasks'
 import ErrorDisplay from '../ErrorDisplay'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
 import api from '../../lib/api-client'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import {
   getIndentifierFromGroup,
   getNumberFromGroup,
@@ -63,13 +61,13 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     preferredEmailInvitationId,
     ithenticateInvitationId,
     displayReplyInvitations,
+    metaReviewAgreementConfig,
   } = useContext(WebFieldContext)
-  const { setBannerContent, setLayoutOptions } = appContext
-  const { user, accessToken, userLoading } = useUser()
+  const { setBannerContent } = appContext ?? {}
+  const { user, accessToken, isRefreshing } = useUser()
   const [sacConsoleData, setSacConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
-  const router = useRouter()
-  const query = useQuery()
+  const query = useSearchParams()
 
   const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
   const areaChairUrlFormat = getRoleHashFragment(areaChairName)
@@ -466,6 +464,12 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           const confidenceMin = validConfidences.length ? Math.min(...validConfidences) : 'N/A'
           const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
 
+          const metaReviewAgreements = metaReviewAgreementConfig
+            ? note.details.replies.filter((p) =>
+                p.invitations.some((q) => q.includes(`/-/${metaReviewAgreementConfig.name}`))
+              )
+            : []
+
           const customStageInvitationIds = customStageInvitations
             ? customStageInvitations.map((p) => `/-/${p.name}`)
             : []
@@ -483,12 +487,9 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
             }))
             .map((metaReview) => {
-              const metaReviewAgreement = customStageReviews.find(
-                (p) => p.replyto === metaReview.id || p.forum === metaReview.forum
-              )
-              const metaReviewAgreementConfig = metaReviewAgreement
-                ? customStageInvitations.find((p) =>
-                    metaReviewAgreement.invitations.some((q) => q.includes(`/-/${p.name}`))
+              const metaReviewAgreement = metaReviewAgreementConfig
+                ? metaReviewAgreements.find(
+                    (p) => p.replyto === metaReview.id || p.forum === metaReview.forum
                   )
                 : null
               const metaReviewAgreementValue =
@@ -636,6 +637,35 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               metaReviewAgreementSearchValue: metaReviews
                 .map((p) => p.metaReviewAgreement?.searchValue)
                 .join(' '),
+              customStageReviews: customStageInvitations?.reduce((prev, curr) => {
+                const customStageReview = customStageReviews.find((p) =>
+                  p.invitations.some((q) => q.includes(`/-/${curr.name}`))
+                )
+                if (!customStageReview)
+                  return {
+                    ...prev,
+                    [camelCase(curr.name)]: {
+                      searchValue: 'N/A',
+                    },
+                  }
+                const customStageValue = customStageReview?.content?.[curr.displayField]?.value
+                const customStageExtraDisplayFields = curr.extraDisplayFields ?? []
+                return {
+                  ...prev,
+                  [camelCase(curr.name)]: {
+                    searchValue: customStageValue,
+                    name: prettyId(curr.name),
+                    role: curr.role,
+                    value: customStageValue,
+                    displayField: prettyField(curr.displayField),
+                    extraDisplayFields: customStageExtraDisplayFields.map((field) => ({
+                      field: prettyField(field),
+                      value: customStageReview?.content?.[field]?.value,
+                    })),
+                    ...customStageReview,
+                  },
+                }
+              }, {}),
               ...additionalMetaReviewFields?.reduce((prev, curr) => {
                 const additionalMetaReviewValues = metaReviews.map((p) => p[curr]?.searchValue)
                 return {
@@ -670,27 +700,17 @@ const SeniorAreaChairConsole = ({ appContext }) => {
   useEffect(() => {
     if (!query) return
 
-    if (displayReplyInvitations?.length)
-      setLayoutOptions({ fullWidth: true, minimalFooter: true })
-
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
-  useEffect(
-    () => () => {
-      setLayoutOptions({ fullWidth: false, minimalFooter: false })
-    },
-    []
-  )
-
   useEffect(() => {
-    if (userLoading || !user || !group || !venueId) return
+    if (isRefreshing || !user || !group || !venueId) return
     loadData()
-  }, [user, userLoading, group])
+  }, [user, isRefreshing, group])
 
   const missingConfig = Object.entries({
     header,

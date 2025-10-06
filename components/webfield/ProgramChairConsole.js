@@ -1,10 +1,11 @@
+/* eslint-disable no-continue */
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import groupBy from 'lodash/groupBy'
-import { orderBy } from 'lodash'
+import { camelCase, orderBy } from 'lodash'
+import dayjs from 'dayjs'
 import useUser from '../../hooks/useUser'
-import useQuery from '../../hooks/useQuery'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import api from '../../lib/api-client'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
@@ -19,6 +20,7 @@ import {
   getSingularRoleName,
   pluralizeString,
   getRoleHashFragment,
+  formatDateTime,
 } from '../../lib/utils'
 import Overview from './ProgramChairConsole/Overview'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
@@ -29,6 +31,9 @@ import ErrorDisplay from '../ErrorDisplay'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
 import { formatProfileContent } from '../../lib/edge-utils'
 import ConsoleTabs from './ConsoleTabs'
+import { clearCache, getCache, setCache } from '../../lib/console-cache'
+import SpinnerButton from '../SpinnerButton'
+import LoadingSpinner from '../LoadingSpinner'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -86,21 +91,31 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     preferredEmailInvitationId,
     ithenticateInvitationId,
     displayReplyInvitations,
+    metaReviewAgreementConfig,
+    useCache = false,
   } = useContext(WebFieldContext)
-  const { setBannerContent, setLayoutOptions } = appContext
-  const { user, accessToken, userLoading } = useUser()
-  const query = useQuery()
+  const { setBannerContent } = appContext ?? {}
+  const { user, accessToken, isRefreshing } = useUser()
+  const query = useSearchParams()
   const [pcConsoleData, setPcConsoleData] = useState({})
+  const [timelineData, setTimelineData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
+  const [dataLoadingStatusMessage, setDataLoadingStatusMessage] = useState('Data is loading')
 
   const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
   const areaChairUrlFormat = getRoleHashFragment(areaChairName)
   const reviewerUrlFormat = getRoleHashFragment(reviewerName)
 
+  const reviewersInvitedId = reviewersId ? `${reviewersId}/Invited` : null
+  const areaChairsInvitedId = areaChairsId ? `${areaChairsId}/Invited` : null
+  const seniorAreaChairsInvitedId = seniorAreaChairsId ? `${seniorAreaChairsId}/Invited` : null
+
   const loadData = async () => {
     if (isLoadingData) return
-
     setIsLoadingData(true)
+    setDataLoadingStatusMessage('Data is loading')
+    await clearCache(venueId)
+
     try {
       // #region getInvitationMap
       const conferenceInvitationsP = api.getAll(
@@ -173,19 +188,24 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #region getRequestForm
       const getRequestFormResultP = requestFormId
         ? api
-            .get(
-              '/notes',
+            .getNoteById(
+              requestFormId,
+              accessToken,
               {
-                id: requestFormId,
-                limit: 1,
                 select: 'id,content',
               },
-              { accessToken, version: 1 } // request form is currently in v1
+              undefined
             )
-            .then(
-              (result) => result.notes?.[0],
-              () => null
-            )
+            .catch((error) => {
+              if (error.name === 'ForbiddenError') {
+                promptError(
+                  'You do not have access to the venue configuration, please refer to the <a target="_blank" rel="noopener noreferrer" href="https://docs.openreview.net/getting-started/frequently-asked-questions/how-do-i-add-a-program-chair-to-my-venue">documentation</a>.',
+                  { html: true }
+                )
+                return null
+              }
+              throw error
+            })
         : Promise.resolve(null)
       // #endregion
 
@@ -211,6 +231,34 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       )
       // #endregion
 
+      setDataLoadingStatusMessage('Loading timeline data')
+      const TimelineDataResult = await Promise.all([
+        invitationResultsP,
+        getRequestFormResultP,
+        getRegistrationFormResultsP,
+      ])
+
+      const invitationResults = TimelineDataResult[0].flat()
+      const requestForm = TimelineDataResult[1]
+      const registrationForms = TimelineDataResult[2].flatMap((p) => p ?? [])
+
+      setTimelineData({
+        invitations: invitationResults,
+        requestForm,
+        registrationForms,
+      })
+
+      // #region get invited groups
+      const invitedGroupsP = await Promise.all(
+        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map(
+          (invitedId) =>
+            invitedId
+              ? api.getGroupById(invitedId, accessToken, { select: 'members' })
+              : Promise.resolve(null)
+        )
+      )
+      // #endregion
+
       // #region get Reviewer, AC, SAC members
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
@@ -220,7 +268,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #endregion
 
       // #region getSubmissions
-      const notesP = api.getAll(
+      const notesP = api.getAllWithAfter(
         '/notes',
         {
           invitation: submissionId,
@@ -229,7 +277,14 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           sort: 'number:asc',
           domain: venueId,
         },
-        { accessToken }
+        {
+          accessToken,
+          statusUpdate: (loadedCount, totalCount) => {
+            setDataLoadingStatusMessage(
+              `Loading ${submissionName}s: ${loadedCount}/${totalCount}`
+            )
+          },
+        }
       )
       // #endregion
 
@@ -306,35 +361,41 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         : Promise.resolve([])
       // #endregion
       const results = await Promise.all([
-        invitationResultsP,
-        getRequestFormResultP,
-        getRegistrationFormResultsP,
         committeeMemberResultsP,
         notesP,
         getAcRecommendationsP,
         bidCountResultsP,
         perPaperGroupResultsP,
         ithenticateEdgesP,
+        invitedGroupsP,
       ])
-      const invitationResults = results[0]
-      const requestForm = results[1]
-      const registrationForms = results[2].flatMap((p) => p ?? [])
-      const committeeMemberResults = results[3]
-      const ithenticateEdges = results[8]
-      const notes = results[4].flatMap((note) => {
-        if ([withdrawnVenueId, deskRejectedVenueId].includes(note.content?.venueid?.value))
-          return []
-        return {
+
+      const committeeMemberResults = results[0]
+      const ithenticateEdges = results[5]
+      const notes = []
+      let withdrawnNotesCount = 0
+      let deskRejectedNotesCount = 0
+      results[1].forEach((note) => {
+        if (note.content?.venueid?.value === withdrawnVenueId) {
+          withdrawnNotesCount += 1
+          return
+        }
+        if (note.content?.venueid?.value === deskRejectedVenueId) {
+          deskRejectedNotesCount += 1
+          return
+        }
+        notes.push({
           ...note,
           ...(ithenticateInvitationId && {
             ithenticateWeight:
               ithenticateEdges.find((p) => p.head === note.id)?.weight ?? 'N/A',
           }),
-        }
+        })
       })
-      const acRecommendationsCount = results[5]
-      const bidCountResults = results[6]
-      const perPaperGroupResults = results[7]
+      const acRecommendationsCount = results[2]
+      const bidCountResults = results[3]
+      const perPaperGroupResults = results[4]
+      const invitedGroupsResult = results[6]
 
       // #region categorize result of per paper groups
       const reviewerGroups = []
@@ -344,81 +405,122 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const secondaryAreaChairGroups = []
       const secondaryAnonAreaChairGroups = {}
       const seniorAreaChairGroups = []
-      let allGroupMembers = []
-      perPaperGroupResults.groups?.forEach((p) => {
+      const allGroupMembers = new Set()
+
+      const activeNoteNumbers = notes.map((p) => p.number)
+
+      for (let index = 0; index < perPaperGroupResults.groups?.length; index += 1) {
+        const p = perPaperGroupResults.groups[index]
         const number = getNumberFromGroup(p.id, submissionName)
-        const noteVenueId = notes.find((q) => q.number === number)?.content?.venueid?.value
-        if (
-          !noteVenueId ||
-          noteVenueId === withdrawnVenueId ||
-          noteVenueId === deskRejectedVenueId
-        )
-          return
+        if (!number || !activeNoteNumbers.includes(number)) continue
+
         if (p.id.endsWith(`/${reviewerName}`)) {
           reviewerGroups.push({
             noteNumber: number,
             ...p,
           })
-          p.members.forEach((member) => {
-            if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
-            if (!(member in anonReviewerGroups[number]) && member.includes(anonReviewerName)) {
+          for (let reviewerIndex = 0; reviewerIndex < p.members.length; reviewerIndex += 1) {
+            const member = p.members[reviewerIndex]
+            if (anonReviewerGroups[number] === undefined) anonReviewerGroups[number] = {}
+            if (
+              anonReviewerGroups[number][member] === undefined &&
+              member.includes(anonReviewerName)
+            ) {
               anonReviewerGroups[number][member] = member
             }
-          })
-        } else if (p.id.includes(`/${anonReviewerName}`)) {
-          if (!(number in anonReviewerGroups)) anonReviewerGroups[number] = {}
+          }
+          continue
+        }
+        if (p.id.includes(`/${anonReviewerName}`)) {
+          if (anonReviewerGroups[number] === undefined) anonReviewerGroups[number] = {}
           if (p.members.length) anonReviewerGroups[number][p.id] = p.members[0]
-          allGroupMembers = allGroupMembers.concat(p.members)
-        } else if (p.id.endsWith(`/${areaChairName}`)) {
+          for (
+            let anonReviewerIndex = 0;
+            anonReviewerIndex < p.members.length;
+            anonReviewerIndex += 1
+          ) {
+            const member = p.members[anonReviewerIndex]
+            allGroupMembers.add(member)
+          }
+          continue
+        }
+        if (p.id.endsWith(`/${areaChairName}`)) {
           areaChairGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
             ...p,
           })
-          p.members.forEach((member) => {
-            if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
+          for (let acMemberIndex = 0; acMemberIndex < p.members.length; acMemberIndex += 1) {
+            const member = p.members[acMemberIndex]
+            if (anonAreaChairGroups[number] === undefined) anonAreaChairGroups[number] = {}
             if (
-              !(member in anonAreaChairGroups[number]) &&
+              anonAreaChairGroups[number][member] === undefined &&
               member.includes(`/${anonAreaChairName}`)
             ) {
               anonAreaChairGroups[number][member] = member
             }
-          })
-        } else if (p.id.includes(`/${anonAreaChairName}`)) {
-          if (!(number in anonAreaChairGroups)) anonAreaChairGroups[number] = {}
+          }
+          continue
+        }
+        if (p.id.includes(`/${anonAreaChairName}`)) {
+          if (anonAreaChairGroups[number] === undefined) anonAreaChairGroups[number] = {}
           if (p.members.length) anonAreaChairGroups[number][p.id] = p.members[0]
-          allGroupMembers = allGroupMembers.concat(p.members)
-        } else if (p.id.endsWith(seniorAreaChairName)) {
+          for (let anonACIndex = 0; anonACIndex < p.members.length; anonACIndex += 1) {
+            const member = p.members[anonACIndex]
+            allGroupMembers.add(member)
+          }
+          continue
+        }
+        if (p.id.endsWith(seniorAreaChairName)) {
           seniorAreaChairGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
             ...p,
           })
-          allGroupMembers = allGroupMembers.concat(p.members)
-        } else if (secondaryAreaChairName && p.id.endsWith(`/${secondaryAreaChairName}`)) {
+          for (let sacIndex = 0; sacIndex < p.members.length; sacIndex += 1) {
+            const member = p.members[sacIndex]
+            allGroupMembers.add(member)
+          }
+          continue
+        }
+        if (secondaryAreaChairName && p.id.endsWith(`/${secondaryAreaChairName}`)) {
           secondaryAreaChairGroups.push({
             noteNumber: getNumberFromGroup(p.id, submissionName),
             ...p,
           })
-          p.members.forEach((member) => {
-            if (!(number in secondaryAnonAreaChairGroups))
+          for (
+            let secondaryACIndex = 0;
+            secondaryACIndex < p.members.length;
+            secondaryACIndex += 1
+          ) {
+            const member = p.members[secondaryACIndex]
+            if (secondaryAnonAreaChairGroups[number] === undefined)
               secondaryAnonAreaChairGroups[number] = {}
             if (
-              !(member in secondaryAnonAreaChairGroups[number]) &&
+              secondaryAnonAreaChairGroups[number][member] === undefined &&
               member.includes(`/${secondaryAnonAreaChairName}`)
             ) {
               secondaryAnonAreaChairGroups[number][member] = member
             }
-          })
-        } else if (secondaryAreaChairName && p.id.includes(`/${secondaryAnonAreaChairName}`)) {
-          if (!(number in secondaryAnonAreaChairGroups))
+          }
+          continue
+        }
+        if (secondaryAreaChairName && p.id.includes(`/${secondaryAnonAreaChairName}`)) {
+          if (secondaryAnonAreaChairGroups[number] === undefined)
             secondaryAnonAreaChairGroups[number] = {}
           if (p.members.length) secondaryAnonAreaChairGroups[number][p.id] = p.members[0]
-          allGroupMembers = allGroupMembers.concat(p.members)
+          for (
+            let secondaryAnonACIndex = 0;
+            secondaryAnonACIndex < p.members.length;
+            secondaryAnonACIndex += 1
+          ) {
+            const member = p.members[secondaryAnonACIndex]
+            allGroupMembers.add(member)
+          }
         }
-      })
+      }
       // #endregion
 
       // #region get all profiles(with assignments)
-      const allIds = [...new Set(allGroupMembers)]
+      const allIds = [...allGroupMembers]
       const ids = allIds.filter((p) => p.startsWith('~'))
       const emails = allIds.filter((p) => p.match(/.+@.+/))
       const getProfilesByIdsP = ids.length
@@ -439,39 +541,54 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             { accessToken }
           )
         : Promise.resolve([])
+      setDataLoadingStatusMessage('Loading profiles')
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
-      const allProfiles = (profileResults[0].profiles ?? [])
-        .concat(profileResults[1].profiles ?? [])
-        .map((profile) => ({
-          ...profile,
-          preferredName: getProfileName(profile),
-          title: formatProfileContent(profile.content).title,
-        }))
-      // #endregion
-
       const allProfilesMap = new Map()
-      allProfiles.forEach((profile) => {
-        const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-        usernames.concat(profile.email ?? []).forEach((key) => {
-          allProfilesMap.set(key, profile)
-        })
-      })
+      const _ = (profileResults[0].profiles ?? [])
+        .concat(profileResults[1].profiles ?? [])
+        .forEach((profile) => {
+          const reducedProfile = {
+            id: profile.id,
+            preferredName: getProfileName(profile),
+            title: formatProfileContent(profile.content).title,
+            usernames: profile.content.names.flatMap((p) => p.username ?? []),
+          }
 
+          const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+          usernames.concat(profile.email ?? []).forEach((key) => {
+            allProfilesMap.set(key, reducedProfile)
+          })
+        })
+      // #endregion
       const officialReviewsByPaperNumberMap = new Map()
       const metaReviewsByPaperNumberMap = new Map()
       const decisionByPaperNumberMap = new Map()
       const customStageReviewsByPaperNumberMap = new Map()
+      const metaReviewAgreementsByPaperNumberMap = new Map()
       const displayReplyInvitationsByPaperNumberMap = new Map()
       notes.forEach((note) => {
         const replies = note.details.replies ?? []
-        const officialReviews = replies
-          .filter((p) => {
-            const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
-            return p.invitations.includes(officialReviewInvitationId)
-          })
-          .map((review) => {
+        const officialReviews = []
+        const metaReviews = []
+        let decision
+        const customStageReviews = []
+        const metaReviewAgreements = []
+        const latestDisplayReplies = []
+
+        const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
+        const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
+        const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
+        const customStageInvitationIds = customStageInvitations
+          ? customStageInvitations.map((p) => `/-/${p.name}`)
+          : []
+        const displayInvitationIds = displayReplyInvitations
+          ? displayReplyInvitations.map((p) => p.id.replaceAll('{number}', note.number))
+          : []
+
+        replies.forEach((reply) => {
+          if (reply.invitations.includes(officialReviewInvitationId)) {
             let anonymousGroupId
-            if (review.signatures[0].startsWith('~')) {
+            if (reply.signatures[0].startsWith('~')) {
               const idToAnonIdMap = Object.keys(anonReviewerGroups[note.number] ?? {}).reduce(
                 (prev, curr) => ({ ...prev, [anonReviewerGroups[note.number][curr]]: curr }),
                 {}
@@ -481,71 +598,121 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                 ([anonReviewerId, anonReviewerGroupId]) => {
                   const profile = allProfilesMap.get(anonReviewerId)
                   if (!profile) return
-                  const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-                  usernames.concat(profile.email ?? []).forEach((key) => {
+                  profile.usernames.concat(profile.email ?? []).forEach((key) => {
                     idToAnonIdMap[key] = anonReviewerGroupId
                   })
                 }
               )
-              anonymousGroupId = idToAnonIdMap?.[review.signatures[0]] ?? ''
+              anonymousGroupId = idToAnonIdMap?.[reply.signatures[0]] ?? ''
             } else {
-              anonymousGroupId = review.signatures[0]
+              anonymousGroupId = reply.signatures[0]
             }
 
-            return {
-              ...review,
+            officialReviews.push({
+              content: reply.content,
+              id: reply.id,
+              signatures: reply.signatures,
+              forum: reply.forum,
               anonId: getIndentifierFromGroup(anonymousGroupId, anonReviewerName),
-            }
-          })
-        const metaReviews = replies
-          .filter((p) => {
-            const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
-            return p.invitations.includes(officialMetaReviewInvitationId)
-          })
-          .map((metaReview) => ({
-            ...metaReview,
-            anonId: getIndentifierFromGroup(metaReview.signatures[0], anonAreaChairName),
-          }))
+            })
+          }
+          if (reply.invitations.includes(officialMetaReviewInvitationId)) {
+            metaReviews.push({
+              id: reply.id,
+              forum: reply.forum,
+              content: reply.content,
+              signatures: reply.signatures,
+              anonId: getIndentifierFromGroup(reply.signatures[0], anonAreaChairName),
+            })
+          }
+          if (reply.invitations.includes(decisionInvitationId)) {
+            decision = reply
+          }
+          if (
+            metaReviewAgreementConfig &&
+            reply.invitations.some((p) => p.includes(`/-/${metaReviewAgreementConfig.name}`))
+          ) {
+            metaReviewAgreements.push(reply)
+          }
+          if (
+            reply.invitations.some((p) => customStageInvitationIds.some((q) => p.includes(q)))
+          ) {
+            customStageReviews.push(reply)
+          }
 
-        const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
-        const decision = replies.find((p) => p.invitations.includes(decisionInvitationId))
-        const customStageInvitationIds = customStageInvitations
-          ? customStageInvitations.map((p) => `/-/${p.name}`)
-          : []
-        const customStageReviews = replies.filter((p) =>
-          p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
-        )
-        const displayReplies = displayReplyInvitations?.map((p) => {
-          const displayInvitaitonId = p.id.replaceAll('{number}', note.number)
-          const latestReply = orderBy(
-            replies.filter((q) => q.invitations.includes(displayInvitaitonId)),
-            ['mdate'],
-            'desc'
-          )?.[0]
-          return {
-            id: latestReply?.id,
-            date: latestReply?.mdate,
-            invitationId: displayInvitaitonId,
-            values: p.fields.map((field) => {
-              const value = latestReply?.content?.[field]?.value?.toString()
-              return {
-                field,
-                value,
+          const displayInvitationId = displayInvitationIds.find((p) =>
+            reply.invitations.includes(p)
+          )
+          if (!displayInvitationId) return
+          const displayInvitation = displayReplyInvitations.find(
+            (p) => p.id === displayInvitationId
+          )
+          const replyOfDisplayInvitationIndex = latestDisplayReplies.findIndex(
+            (p) => p.invitationId === displayInvitationId
+          )
+          if (replyOfDisplayInvitationIndex === -1) {
+            // new
+            latestDisplayReplies.push({
+              id: reply?.id,
+              date: reply?.mdate,
+              invitationId: displayInvitationId,
+              values: displayInvitation.fields.map((field) => {
+                const value = reply?.content?.[field]?.value?.toString()
+                return {
+                  field,
+                  value,
+                }
+              }),
+              signature: reply?.signatures?.[0],
+            })
+          } else {
+            // get latest
+            const existingReplyOfDisplayInvitation =
+              latestDisplayReplies[replyOfDisplayInvitationIndex]
+            if (existingReplyOfDisplayInvitation.mdate < reply.mdate) {
+              latestDisplayReplies[replyOfDisplayInvitationIndex] = {
+                id: reply?.id,
+                date: reply?.mdate,
+                invitationId: displayInvitationId,
+                values: displayInvitation.fields.map((field) => {
+                  const value = reply?.content?.[field]?.value?.toString()
+                  return {
+                    field,
+                    value,
+                  }
+                }),
+                signature: reply?.signatures?.[0],
               }
-            }),
-            signature: latestReply?.signatures?.[0],
+            }
           }
         })
-        officialReviewsByPaperNumberMap.set(note.number, officialReviews)
-        metaReviewsByPaperNumberMap.set(note.number, metaReviews)
-        decisionByPaperNumberMap.set(note.number, decision)
-        customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
-        displayReplyInvitationsByPaperNumberMap.set(note.number, displayReplies)
+
+        if (officialReviews.length) {
+          officialReviewsByPaperNumberMap.set(note.number, officialReviews)
+        }
+        if (metaReviews.length) {
+          metaReviewsByPaperNumberMap.set(note.number, metaReviews)
+        }
+        if (decision) {
+          decisionByPaperNumberMap.set(note.number, decision)
+        }
+        if (customStageReviews.length) {
+          customStageReviewsByPaperNumberMap.set(note.number, customStageReviews)
+        }
+        if (metaReviewAgreements.length) {
+          metaReviewAgreementsByPaperNumberMap.set(note.number, metaReviewAgreements)
+        }
+        if (latestDisplayReplies.length) {
+          displayReplyInvitationsByPaperNumberMap.set(note.number, latestDisplayReplies)
+        }
+        // eslint-disable-next-line no-param-reassign
+        note.replyCount = replies.length
+        // eslint-disable-next-line no-param-reassign
+        if (useCache) delete note.details?.replies
       })
 
-      setPcConsoleData({
-        invitations: invitationResults.flat(),
-        allProfiles,
+      const consoleData = {
+        invitations: invitationResults,
         allProfilesMap,
         requestForm,
         registrationForms,
@@ -557,16 +724,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         metaReviewsByPaperNumberMap,
         decisionByPaperNumberMap,
         customStageReviewsByPaperNumberMap,
+        metaReviewAgreementsByPaperNumberMap,
         displayReplyInvitationsByPaperNumberMap,
-        withdrawnNotes: results[4].flatMap((note) => {
-          if (note.content?.venueid?.value === withdrawnVenueId) return note
-          return []
-        }),
-        deskRejectedNotes: results[4].flatMap((note) => {
-          if (note.content?.venueid?.value === deskRejectedVenueId) return note
-          return []
-        }),
-
+        withdrawnNotesCount,
+        deskRejectedNotesCount,
         acRecommendationsCount,
         bidCounts: {
           reviewers: bidCountResults[0],
@@ -647,49 +808,87 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           seniorAreaChairGroups,
         },
         ithenticateEdges,
-      })
+        reviewersInvitedCount: invitedGroupsResult[0]?.members?.length ?? 0,
+        areaChairsInvitedCount: invitedGroupsResult[1]?.members?.length ?? 0,
+        seniorAreaChairsInvitedCount: invitedGroupsResult[2]?.members?.length ?? 0,
+        timeStamp: dayjs().valueOf(),
+      }
+      setDataLoadingStatusMessage(null)
+      setPcConsoleData(consoleData)
+      if (useCache) await setCache(venueId, consoleData)
     } catch (error) {
       promptError(`loading data: ${error.message}`)
     }
     setIsLoadingData(false)
   }
 
+  const loadCache = async () => {
+    try {
+      const cachedPcConsoleData = await getCache(venueId)
+      if (cachedPcConsoleData) {
+        setTimelineData({
+          invitations: cachedPcConsoleData.invitations,
+          requestForm: cachedPcConsoleData.requestForm,
+          registrationForms: cachedPcConsoleData.registrationForms,
+        })
+        setPcConsoleData(cachedPcConsoleData)
+      } else {
+        loadData()
+      }
+    } catch (error) {
+      loadData()
+    }
+  }
+
   // eslint-disable-next-line consistent-return
   const calculateNotesReviewMetaReviewData = () => {
     if (!pcConsoleData) return new Map()
     const noteNumberReviewMetaReviewMap = new Map()
+    const noteNumberReviewerGroupMembersMap = new Map()
+    const noteNumberACGroupMembersSecondariesMap = new Map()
+    const noteNumberSeniorAcGroupMembersMap = new Map()
+
+    pcConsoleData.paperGroups.reviewerGroups?.forEach((p) => {
+      noteNumberReviewerGroupMembersMap.set(p.noteNumber, p.members)
+    })
+    pcConsoleData.paperGroups.areaChairGroups?.forEach((p) => {
+      noteNumberACGroupMembersSecondariesMap.set(p.noteNumber, {
+        members: p.members ?? [],
+        secondaries: p.secondaries ?? [],
+      })
+    })
+
+    pcConsoleData.paperGroups.seniorAreaChairGroups?.forEach((p) => {
+      noteNumberSeniorAcGroupMembersMap.set(p.noteNumber, p.members)
+    })
+
     pcConsoleData.notes.forEach((note) => {
-      const assignedReviewers =
-        pcConsoleData.paperGroups.reviewerGroups?.find((p) => p.noteNumber === note.number)
-          ?.members ?? []
+      const assignedReviewers = noteNumberReviewerGroupMembersMap.get(note.number) ?? []
+      const assignedACs = noteNumberACGroupMembersSecondariesMap.get(note.number) ?? {
+        members: [],
+        secondaries: [],
+      }
 
       const assignedReviewerProfiles = assignedReviewers.map((reviewer) => ({
         id: reviewer.reviewerProfileId,
         profile: pcConsoleData.allProfilesMap.get(reviewer.reviewerProfileId),
       }))
 
-      const assignedAreaChairs =
-        pcConsoleData.paperGroups.areaChairGroups?.find((p) => p.noteNumber === note.number)
-          ?.members ?? []
+      const assignedAreaChairs = assignedACs.members
 
       const assignedAreaChairProfiles = assignedAreaChairs.map((areaChair) => ({
         id: areaChair.areaChairProfileId,
         profile: pcConsoleData.allProfilesMap.get(areaChair.areaChairProfileId),
       }))
 
-      const secondaryAreaChairs =
-        pcConsoleData.paperGroups.areaChairGroups?.find((p) => p.noteNumber === note.number)
-          ?.secondaries ?? []
+      const secondaryAreaChairs = assignedACs.secondaries
 
       const secondaryAreaChairProfiles = secondaryAreaChairs.map((areaChair) => ({
         id: areaChair.areaChairProfileId,
         profile: pcConsoleData.allProfilesMap.get(areaChair.areaChairProfileId),
       }))
 
-      const assignedSeniorAreaChairs =
-        pcConsoleData.paperGroups.seniorAreaChairGroups?.find(
-          (p) => p.noteNumber === note.number
-        )?.members ?? []
+      const assignedSeniorAreaChairs = noteNumberSeniorAcGroupMembersMap.get(note.number) ?? []
 
       const assignedSeniorAreaChairProfiles = assignedSeniorAreaChairs.map(
         (seniorAreaChairProfileId) => ({
@@ -757,16 +956,14 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       const customStageReviews =
         pcConsoleData.customStageReviewsByPaperNumberMap?.get(note.number) ?? []
-
+      const metaReviewAgreements =
+        pcConsoleData.metaReviewAgreementsByPaperNumberMap?.get(note.number) ?? []
       const metaReviews = (
         pcConsoleData.metaReviewsByPaperNumberMap?.get(note.number) ?? []
       ).map((metaReview) => {
-        const metaReviewAgreement = customStageReviews.find(
-          (p) => p.replyto === metaReview.id || p.forum === metaReview.forum
-        )
-        const metaReviewAgreementConfig = metaReviewAgreement
-          ? customStageInvitations.find((p) =>
-              metaReviewAgreement.invitations.some((q) => q.includes(`/-/${p.name}`))
+        const metaReviewAgreement = metaReviewAgreementConfig
+          ? metaReviewAgreements.find(
+              (p) => p.replyto === metaReview.id || p.forum === metaReview.forum
             )
           : null
         const metaReviewAgreementValue =
@@ -814,7 +1011,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             hasReview: officialReviews.some((p) => p.anonymousId === reviewer.anonymousId),
             noteNumber: note.number,
             preferredId: reviewer.reviewerProfileId,
-            preferredName: profile ? getProfileName(profile) : reviewer.reviewerProfileId,
+            preferredName: profile ? profile.preferredName : reviewer.reviewerProfileId,
           }
         }),
         authors: note.content?.authorids?.value?.map((authorId, index) => {
@@ -836,7 +1033,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           confidenceAvg,
           confidenceMax,
           confidenceMin,
-          replyCount: note.details.replies?.length ?? 0,
+          replyCount: note.replyCount,
         },
         metaReviewData: {
           numAreaChairsAssigned: assignedAreaChairs.length,
@@ -848,7 +1045,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               ...areaChair,
               noteNumber: note.number,
               preferredId: profile ? profile.id : areaChair.areaChairProfileId,
-              preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
+              preferredName: profile ? profile.preferredName : areaChair.areaChairProfileId,
               title: profile?.title,
             }
           }),
@@ -860,7 +1057,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               ...areaChair,
               noteNumber: note.number,
               preferredId: profile ? profile.id : areaChair.areaChairProfileId,
-              preferredName: profile ? getProfileName(profile) : areaChair.areaChairProfileId,
+              preferredName: profile ? profile.preferredName : areaChair.areaChairProfileId,
               title: profile?.title,
             }
           }),
@@ -871,7 +1068,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             return {
               type: 'profile',
               preferredId: seniorAreaChairProfileId,
-              preferredName: profile ? getProfileName(profile) : seniorAreaChairProfileId,
+              preferredName: profile ? profile.preferredName : seniorAreaChairProfileId,
               title: profile?.title,
               noteNumber: note.number,
               anonymizedGroup: seniorAreaChairProfileId,
@@ -885,6 +1082,35 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           metaReviewAgreementSearchValue: metaReviews
             .map((p) => p.metaReviewAgreement.searchValue)
             .join(' '),
+          customStageReviews: customStageInvitations?.reduce((prev, curr) => {
+            const customStageReview = customStageReviews.find((p) =>
+              p.invitations.some((q) => q.includes(`/-/${curr.name}`))
+            )
+            if (!customStageReview)
+              return {
+                ...prev,
+                [camelCase(curr.name)]: {
+                  searchValue: 'N/A',
+                },
+              }
+            const customStageValue = customStageReview?.content?.[curr.displayField]?.value
+            const customStageExtraDisplayFields = curr.extraDisplayFields ?? []
+            return {
+              ...prev,
+              [camelCase(curr.name)]: {
+                searchValue: customStageValue,
+                name: prettyId(curr.name),
+                role: curr.role,
+                value: customStageValue,
+                displayField: prettyField(curr.displayField),
+                extraDisplayFields: customStageExtraDisplayFields.map((field) => ({
+                  field: prettyField(field),
+                  value: customStageReview?.content?.[field]?.value,
+                })),
+                ...customStageReview,
+              },
+            }
+          }, {}),
           ...additionalMetaReviewFields?.reduce((prev, curr) => {
             const additionalMetaReviewValues = metaReviews.map((p) => p[curr]?.searchValue)
             return {
@@ -893,7 +1119,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             }
           }, {}),
         },
-        displayReplies: pcConsoleData.displayReplyInvitationsByPaperNumberMap.get(note.number),
+        displayReplies:
+          pcConsoleData.displayReplyInvitationsByPaperNumberMap.get(note.number) ?? [],
         decision,
         venue: note?.content?.venue?.value,
         messageSignature: programChairsId,
@@ -903,7 +1130,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
     // add profileRegistrationNote
     pcConsoleData.allProfilesMap.forEach((profile, id) => {
-      const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+      const usernames = profile.usernames ?? []
 
       let userRegNotes = []
       usernames.forEach((username) => {
@@ -1016,26 +1243,30 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   }
 
   const loadRegistrationNoteMap = async () => {
-    if (!pcConsoleData.registrationForms) {
+    if (!pcConsoleData.registrationForms?.length) {
       setPcConsoleData((data) => ({ ...data, registrationNoteMap: {} }))
+      return
     }
     if (pcConsoleData.registrationNoteMap) return
-
     try {
-      const registrationNotes = await Promise.all(
+      const registrationNoteResults = await Promise.all(
         pcConsoleData.registrationForms.map((regForm) =>
-          api.getAll(
+          api.get(
             '/notes',
             {
               forum: regForm.id,
               select: 'id,signatures,invitations,content',
               domain: venueId,
+              stream: true,
             },
             { accessToken }
           )
         )
       )
-      const registrationNoteMap = groupBy(registrationNotes.flat(), 'signatures[0]')
+      const registrationNoteMap = groupBy(
+        registrationNoteResults.flatMap((result) => result.notes ?? []),
+        'signatures[0]'
+      )
       setPcConsoleData((data) => ({ ...data, registrationNoteMap }))
     } catch (error) {
       promptError(`Erro loading registration notes: ${error.message}`)
@@ -1044,27 +1275,23 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
   useEffect(() => {
     if (!query) return
-    if (displayReplyInvitations?.length)
-      setLayoutOptions({ fullWidth: true, minimalFooter: true })
-    if (query.referrer) {
-      setBannerContent(referrerLink(query.referrer))
+
+    if (query.get('referrer')) {
+      setBannerContent({ type: 'referrerLink', value: query.get('referrer') })
     } else {
-      setBannerContent(venueHomepageLink(venueId))
+      setBannerContent({ type: 'venueHomepageLink', value: venueId })
     }
   }, [query, venueId])
 
   useEffect(() => {
-    if (userLoading || !user || !group || !venueId || !reviewersId || !submissionId) return
-    loadData()
-  }, [user, userLoading, group])
+    if (isRefreshing || !user || !group || !venueId || !reviewersId || !submissionId) return
+    if (useCache) {
+      loadCache()
+    } else {
+      loadData()
+    }
+  }, [user, isRefreshing, group])
 
-  useEffect(
-    () => () => {
-      setLayoutOptions({ fullWidth: false, minimalFooter: false })
-    },
-    []
-  )
-  
   const missingConfig = Object.entries({
     header,
     entity: group,
@@ -1090,17 +1317,51 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     }`
     return <ErrorDisplay statusCode="" message={errorMessage} />
   }
+
   return (
     <>
       <BasicHeader title={header?.title} instructions={header.instructions} />
+      {useCache && (
+        <div className="alert alert-warning pc-console-loading">
+          {pcConsoleData.timeStamp ? (
+            <>
+              <span>
+                Data last updated {dayjs(pcConsoleData.timeStamp).fromNow()} (
+                {formatDateTime(pcConsoleData.timeStamp, { second: undefined })})
+              </span>{' '}
+              <SpinnerButton
+                className="btn btn-xs ml-2 mr-2"
+                onClick={loadData}
+                disabled={isLoadingData}
+              >
+                Reload
+              </SpinnerButton>
+              {isLoadingData && dataLoadingStatusMessage && (
+                <>
+                  <span>
+                    {dataLoadingStatusMessage}{' '}
+                    <LoadingSpinner inline text={null} extraClass="spinner-small" />
+                  </span>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              <span>{dataLoadingStatusMessage}</span>
+              <LoadingSpinner inline text={null} extraClass="spinner-small" />
+            </>
+          )}
+        </div>
+      )}
       <ConsoleTabs
-        defaultActiveTabId="venue-configuration"
+        defaultActiveTabId="overview"
         tabs={[
           {
-            id: 'venue-configuration',
+            id: 'overview',
             label: 'Overview',
-            content: <Overview pcConsoleData={pcConsoleData} />,
+            content: <Overview pcConsoleData={pcConsoleData} timelineData={timelineData} />,
             visible: true,
+            alwaysMount: true,
           },
           {
             id: `${submissionName.toLowerCase()}-status`,

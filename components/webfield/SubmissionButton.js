@@ -3,7 +3,6 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import NoteEditor from '../NoteEditor'
 import NoteEditorForm from '../NoteEditorForm'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { formatDateTime, prettyId, prettyInvitationId } from '../../lib/utils'
 
@@ -14,10 +13,11 @@ export default function SubmissionButton({
   onNoteCreated,
   apiVersion,
   options,
+  accessToken,
 }) {
   const [invitation, setInvitation] = useState(null)
+  const [isNewWorkflow, setIsNewWorkflow] = useState(false)
   const [noteEditorOpen, setNoteEditorOpen] = useState(false)
-  const { accessToken, userLoading } = useUser()
   const newNoteEditor = invitation?.domain
 
   const invitationPastDue = invitation?.duedate && invitation.duedate < Date.now()
@@ -33,7 +33,15 @@ export default function SubmissionButton({
         { accessToken, version: apiVersion }
       )
       if (invitations?.length > 0) {
+        const domainResult = await api
+          .get(
+            '/groups',
+            { id: invitations[0].domain, select: 'content.request_form_invitation' },
+            { accessToken }
+          )
+          .catch(() => undefined)
         setInvitation(invitations[0])
+        setIsNewWorkflow(domainResult?.groups?.[0]?.content?.request_form_invitation)
       }
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -54,10 +62,8 @@ export default function SubmissionButton({
   }
 
   useEffect(() => {
-    if (userLoading) return
-
     loadInvitation()
-  }, [userLoading, invitationId])
+  }, [invitationId])
 
   if (!invitation || invitationNotAvailable) return null
 
@@ -79,6 +85,12 @@ export default function SubmissionButton({
         >
           {prettyId(invitationId)}
         </button>
+        {options.showStartEndDate && isNewWorkflow && (
+          <span className=" hint">
+            {invitation.cdate ? ` Submission start: ${formatDateTime(invitation.cdate)}` : ''}
+            {invitation.duedate ? `, Deadline: ${formatDateTime(invitation.duedate)}` : ''}
+          </span>
+        )}
       </div>
 
       {noteEditorOpen &&

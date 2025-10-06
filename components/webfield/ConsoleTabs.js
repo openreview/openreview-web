@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 
 const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
@@ -9,7 +8,6 @@ const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
       defaultActiveTabId ||
       validTabIds[0]
   )
-  const router = useRouter()
 
   useEffect(() => {
     if (!validTabIds.includes(activeTabId)) {
@@ -17,11 +15,9 @@ const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
       return
     }
     updateActiveTabId?.(`#${activeTabId}`)
-    router.replace(`#${activeTabId}`).catch((e) => {
-      if (!e.cancelled) {
-        throw e
-      }
-    })
+    if (window.location.hash !== `#${activeTabId}`) {
+      window.history.replaceState(null, '', `#${activeTabId}`)
+    }
   }, [activeTabId])
 
   return (
@@ -32,7 +28,7 @@ const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
           if (!visible) return null
           return (
             <Tab
-              key={id}
+              key={`${id}-tab`}
               id={id}
               active={activeTabId === id ? true : undefined}
               onClick={() => setActiveTabId(id)}
@@ -44,10 +40,10 @@ const ConsoleTabs = ({ defaultActiveTabId, tabs = [], updateActiveTabId }) => {
       </TabList>
       <TabPanels>
         {tabs.map((tab) => {
-          const { id, content, visible } = tab
-          if (!visible || activeTabId !== `${id}`) return null
+          const { id, content, visible, alwaysMount } = tab
+          if ((!visible || activeTabId !== `${id}`) && !alwaysMount) return null
           return (
-            <TabPanel key={id} id={id}>
+            <TabPanel key={`${id}-panel`} id={id}>
               {content}
             </TabPanel>
           )

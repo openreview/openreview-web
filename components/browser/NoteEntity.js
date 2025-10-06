@@ -13,7 +13,7 @@ import NoteContent from './NoteContent'
 import ScoresList from './ScoresList'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import api from '../../lib/api-client'
-import UserContext from '../UserContext'
+
 import {
   getInterpolatedValues,
   getSignatures,
@@ -21,11 +21,12 @@ import {
   isInGroupInvite,
   isNotInGroupInvite,
 } from '../../lib/edge-utils'
+import useUser from '../../hooks/useUser'
 
 export default function NoteEntity(props) {
   const { editInvitations, traverseInvitation, availableSignaturesInvitationMap, version } =
     useContext(EdgeBrowserContext)
-  const { user, accessToken } = useContext(UserContext)
+  const { user, accessToken } = useUser()
 
   if (!props.note || !props.note.content) {
     return null
@@ -74,11 +75,12 @@ export default function NoteEntity(props) {
     // Delete existing edge
     // TODO: allow ProfileItems to be head objects
     const editInvitation = editInvitations.filter((p) => p.id === editEdge.invitation)?.[0]
-    const signatures = getSignatures(
+    const signatures = await getSignatures(
       editInvitation,
       availableSignaturesInvitationMap,
       number,
-      user
+      user,
+      accessToken
     )
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     if (version === 1 && (!signatures || signatures.length === 0)) {
@@ -123,11 +125,12 @@ export default function NoteEntity(props) {
     const isInviteInvitation =
       isInGroupInvite(editInvitation, otherColumnType) ||
       isForBothGroupTypesInvite(editInvitation, otherColumnType)
-    const signatures = getSignatures(
+    const signatures = await getSignatures(
       editInvitation,
       availableSignaturesInvitationMap,
       number,
-      user
+      user,
+      accessToken
     )
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const maxLoadInvitationHead = editInvitation.head?.query?.id
