@@ -26,7 +26,7 @@ const getForumNote = async (token, paperhash, remoteIpAddress) => {
     )
     const note = result.notes?.[0]
     if (!note || (note.ddate && !note.details?.writable)) {
-      throw new Error(`paperhash ${paperhash} is not Found`)
+      throw new Error(`paperhash ${paperhash} is not found`)
     }
 
     return { forumNote: note }
