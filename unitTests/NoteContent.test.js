@@ -105,7 +105,10 @@ describe('NoteContentV2', () => {
     render(<NoteContentV2 {...props} />)
 
     expect(global.marked).toHaveBeenCalledTimes(1)
-    expect(global.marked).toHaveBeenCalledWith('<image/src/onerror=prompt(document.domain)>')
+    expect(global.marked).toHaveBeenCalledWith(
+      '<image/src/onerror=prompt(document.domain)>',
+      undefined
+    )
 
     expect(global.DOMPurify.sanitize).toHaveBeenCalledTimes(3) // 2 fields + submission number
     expect(global.DOMPurify.sanitize).toHaveBeenNthCalledWith(
