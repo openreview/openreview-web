@@ -1,7 +1,7 @@
 /* globals promptError, $: false */
 
-import React, { useContext, useState, useEffect, useCallback, useRef } from 'react'
-import { maxBy, set, throttle, upperFirst } from 'lodash'
+import { useContext, useState, useEffect, useCallback, useRef } from 'react'
+import { maxBy, throttle, upperFirst } from 'lodash'
 import {
   DndContext,
   useSensor,
