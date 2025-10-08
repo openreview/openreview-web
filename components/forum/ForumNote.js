@@ -184,7 +184,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
           Boolean
         )}
         fullMarkdown={note.invitations.some(
-          (p) => p === `${process.env.SUPER_USER}/Blog/-/Post`
+          (p) => p === `${process.env.SUPER_USER}/News/-/Article`
         )}
       />
     </div>
