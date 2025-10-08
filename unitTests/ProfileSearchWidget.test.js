@@ -377,7 +377,8 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     expect(getProfile).toHaveBeenCalledWith(
       '/profiles/search',
-      { email: 'test@email.com', es: true, limit: 200 },
+      { email: 'test@email.com', es: true, limit: 20, offset: 0 },
+
       expect.anything()
     )
   })
@@ -413,7 +414,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     expect(getProfile).toHaveBeenCalledWith(
       '/profiles/search',
-      { id: '~Test_User1', es: true, limit: 200 },
+      { id: '~Test_User1', es: true, limit: 20, offset: 0 },
       expect.anything()
     )
   })
@@ -869,9 +870,10 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
       },
     }))
-    const searchProfile = jest.fn(() =>
+    const searchProfile = jest.fn((_, { offset, limit }) =>
       Promise.resolve({
-        profiles,
+        profiles: profiles.slice(offset, offset + limit),
+        count: 150,
       })
     )
     api.post = jest.fn(() => Promise.resolve([]))
@@ -927,10 +929,10 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
       },
     }))
-    const searchProfile = jest.fn(() =>
+    const searchProfile = jest.fn((_, { offset, limit }) =>
       Promise.resolve({
-        profiles,
-        count: 1000, // db has 1000 results but get limit it to 200
+        profiles: profiles.slice(offset, offset + limit),
+        count: 1000, // db has 1000 results but limit to 200
       })
     )
     api.post = jest.fn(() => Promise.resolve([]))
@@ -1795,9 +1797,10 @@ describe('ProfileSearchWidget to be used by itself', () => {
         emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
       },
     }))
-    const searchProfile = jest.fn(() =>
+    const searchProfile = jest.fn((_, { offset, limit }) =>
       Promise.resolve({
-        profiles,
+        profiles: profiles.slice(offset, offset + limit),
+        count: 150,
       })
     )
     api.get = searchProfile
@@ -1817,7 +1820,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: 200, fullname: 'search text' }),
+      expect.objectContaining({ limit: 2, offset: 0, fullname: 'search text' }),
       expect.anything()
     )
 
@@ -1841,9 +1844,10 @@ describe('ProfileSearchWidget to be used by itself', () => {
         emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
       },
     }))
-    const searchProfile = jest.fn(() =>
+    const searchProfile = jest.fn((_, { offset, limit }) =>
       Promise.resolve({
-        profiles,
+        profiles: profiles.slice(offset, offset + limit),
+        count: 150,
       })
     )
     api.get = searchProfile
@@ -1864,7 +1868,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: 200, fullname: 'search text' }),
+      expect.objectContaining({ limit: 2, offset: 0, fullname: 'search text' }),
       expect.anything()
     )
 
@@ -1887,10 +1891,10 @@ describe('ProfileSearchWidget to be used by itself', () => {
         emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
       },
     }))
-    const searchProfile = jest.fn(() =>
+    const searchProfile = jest.fn((_, { offset, limit }) =>
       Promise.resolve({
-        profiles, // limited by 200
-        count: 1000, // db has 1000 results
+        profiles: profiles.slice(offset, offset + limit),
+        count: 1000,
       })
     )
     api.get = searchProfile
@@ -1911,7 +1915,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: 200, fullname: 'search text' }),
+      expect.objectContaining({ limit: 2, offset: 0, fullname: 'search text' }),
       expect.anything()
     )
 
