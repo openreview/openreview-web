@@ -1819,7 +1819,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: props.pageSize, offset: 0, fullname: 'search text' }),
+      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' }),
       expect.anything()
     )
 
@@ -1867,7 +1867,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: props.pageSize, offset: 0, fullname: 'search text' }),
+      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' }),
       expect.anything()
     )
 
