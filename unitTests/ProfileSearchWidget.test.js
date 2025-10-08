@@ -378,7 +378,6 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     expect(getProfile).toHaveBeenCalledWith(
       '/profiles/search',
       { email: 'test@email.com', es: true, limit: 20, offset: 0 },
-
       expect.anything()
     )
   })
@@ -1820,7 +1819,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: 2, offset: 0, fullname: 'search text' }),
+      expect.objectContaining({ limit: props.pageSize, offset: 0, fullname: 'search text' }),
       expect.anything()
     )
 
@@ -1868,7 +1867,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: 2, offset: 0, fullname: 'search text' }),
+      expect.objectContaining({ limit: props.pageSize, offset: 0, fullname: 'search text' }),
       expect.anything()
     )
 
