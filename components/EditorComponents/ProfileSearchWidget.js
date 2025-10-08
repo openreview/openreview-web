@@ -1,7 +1,7 @@
 /* globals promptError, $: false */
 
 import React, { useContext, useState, useEffect, useCallback, useRef } from 'react'
-import { maxBy, throttle, upperFirst } from 'lodash'
+import { maxBy, set, throttle, upperFirst } from 'lodash'
 import {
   DndContext,
   useSensor,
@@ -267,6 +267,7 @@ const ProfileSearchFormAndResults = ({
   const [isLoading, setIsLoading] = useState(false)
   const [pageNumber, setPageNumber] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
+  const [profileSearchResultsToDisplay, setProfileSearchResultsToDisplay] = useState(null)
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   const [showCustomAuthorForm, setShowCustomAuthorForm] = useState(false)
   const { accessToken } = useUser()
@@ -279,7 +280,7 @@ const ProfileSearchFormAndResults = ({
   }
 
   // eslint-disable-next-line no-shadow
-  const searchProfiles = async (searchTerm, pageNumber, showLoadingSpinner = true) => {
+  const searchProfiles = async (searchTerm, showLoadingSpinner = true) => {
     const cleanSearchTerm = searchTerm.trim()
     let paramKey = 'fullname'
     let paramValue = cleanSearchTerm.toLowerCase()
@@ -297,17 +298,17 @@ const ProfileSearchFormAndResults = ({
         {
           [paramKey]: paramValue,
           es: true,
-          limit: pageSize,
-          offset: pageSize * (pageNumber - 1),
+          limit: 200,
         },
         { accessToken }
       )
-      setTotalCount(results.count)
-      setProfileSearchResults(
+      setTotalCount(results.profiles.length)
+      const profileResults =
         isEditor === false
           ? results.profiles
           : results.profiles.filter((p) => p.content.emails?.length)
-      )
+      setProfileSearchResults(profileResults)
+      setProfileSearchResultsToDisplay(profileResults.slice(0, pageSize))
     } catch (apiError) {
       promptError(apiError.message)
     }
@@ -369,7 +370,7 @@ const ProfileSearchFormAndResults = ({
     return (
       <div className={styles.searchResults}>
         <>
-          {profileSearchResults.map((profile, index) => (
+          {profileSearchResultsToDisplay.map((profile, index) => (
             <ProfileSearchResultRow
               key={index}
               profile={profile}
@@ -402,7 +403,9 @@ const ProfileSearchFormAndResults = ({
 
   useEffect(() => {
     if (!searchTerm || !pageNumber) return
-    searchProfiles(searchTerm, pageNumber, false)
+    setProfileSearchResultsToDisplay(
+      profileSearchResults.slice((pageNumber - 1) * pageSize, pageNumber * pageSize)
+    )
   }, [pageNumber])
 
   useEffect(() => {
@@ -437,7 +440,7 @@ const ProfileSearchFormAndResults = ({
           onSubmit={(e) => {
             e.preventDefault()
             setShowCustomAuthorForm(false)
-            searchProfiles(searchTerm, 1)
+            searchProfiles(searchTerm)
             setPageNumber(null)
           }}
         >

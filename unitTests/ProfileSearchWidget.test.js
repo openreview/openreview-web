@@ -377,7 +377,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     expect(getProfile).toHaveBeenCalledWith(
       '/profiles/search',
-      { email: 'test@email.com', es: true, limit: 20, offset: 0 },
+      { email: 'test@email.com', es: true, limit: 200 },
       expect.anything()
     )
   })
@@ -413,7 +413,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
     expect(getProfile).toHaveBeenCalledWith(
       '/profiles/search',
-      { id: '~Test_User1', es: true, limit: 20, offset: 0 },
+      { id: '~Test_User1', es: true, limit: 200 },
       expect.anything()
     )
   })
@@ -869,10 +869,9 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
       },
     }))
-    const searchProfile = jest.fn((_, { offset, limit }) =>
+    const searchProfile = jest.fn(() =>
       Promise.resolve({
-        profiles: profiles.slice(offset, offset + limit),
-        count: 150,
+        profiles,
       })
     )
     api.post = jest.fn(() => Promise.resolve([]))
@@ -913,6 +912,59 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByRole('button', { name: '7' }))
     expect(screen.queryByText('Showing 121-140 of 150')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: '~ search _ result 130' })).toBeInTheDocument()
+  })
+
+  test('show 200 results when there are >200 search results', async () => {
+    const profiles = Array.from(new Array(200), (_, p) => ({
+      id: `~search_result${p}`,
+      content: {
+        names: [
+          {
+            fullname: `Result First ${p}`,
+            username: `~search_result${p}`,
+          },
+        ],
+        emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
+      },
+    }))
+    const searchProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles,
+        count: 1000, // db has 1000 results but get limit it to 200
+      })
+    )
+    api.post = jest.fn(() => Promise.resolve([]))
+    api.get = searchProfile
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authorids: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
+              },
+            },
+          },
+        },
+        value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
+
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'search text'
+    )
+    await userEvent.click(screen.getByText('Search'))
+    expect(screen.getByRole('link', { name: '~ search _ result 2' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: '10' }))
+    expect(screen.getByRole('link', { name: '~ search _ result 199' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '11' })).not.toBeInTheDocument() // 200 results shown in 10 pages
   })
 
   test('show error message when profile search end point is not working', async () => {
@@ -1743,10 +1795,9 @@ describe('ProfileSearchWidget to be used by itself', () => {
         emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
       },
     }))
-    const searchProfile = jest.fn((_, { offset, limit }) =>
+    const searchProfile = jest.fn(() =>
       Promise.resolve({
-        profiles: profiles.slice(offset, offset + limit),
-        count: 150,
+        profiles,
       })
     )
     api.get = searchProfile
@@ -1766,7 +1817,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' }),
+      expect.objectContaining({ limit: 200, fullname: 'search text' }),
       expect.anything()
     )
 
@@ -1790,10 +1841,9 @@ describe('ProfileSearchWidget to be used by itself', () => {
         emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
       },
     }))
-    const searchProfile = jest.fn((_, { offset, limit }) =>
+    const searchProfile = jest.fn(() =>
       Promise.resolve({
-        profiles: profiles.slice(offset, offset + limit),
-        count: 150,
+        profiles,
       })
     )
     api.get = searchProfile
@@ -1814,7 +1864,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' }),
+      expect.objectContaining({ limit: 200, fullname: 'search text' }),
       expect.anything()
     )
 
@@ -1822,6 +1872,53 @@ describe('ProfileSearchWidget to be used by itself', () => {
     expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '8' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '9' })).not.toBeInTheDocument()
+  })
+
+  test('show 200 results when there are more than 200 results', async () => {
+    const profiles = Array.from(new Array(200), (_, p) => ({
+      id: `~search_result${p}`,
+      content: {
+        names: [
+          {
+            fullname: `Result First ${p}`,
+            username: `~search_result${p}`,
+          },
+        ],
+        emails: [`test${p}@email.com`, `anothertest${p}@email.com`],
+      },
+    }))
+    const searchProfile = jest.fn(() =>
+      Promise.resolve({
+        profiles, // limited by 200
+        count: 1000, // db has 1000 results
+      })
+    )
+    api.get = searchProfile
+    const props = {
+      isEditor: false,
+      searchInputPlaceHolder: 'Search relation by name or email',
+      pageSize: 2,
+      pageListLength: 12,
+    }
+
+    render(<ProfileSearchWidget {...props} />)
+
+    await userEvent.type(
+      screen.getByPlaceholderText(props.searchInputPlaceHolder),
+      'search text'
+    )
+    await userEvent.click(screen.getByText('Search'))
+
+    expect(searchProfile).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ limit: 200, fullname: 'search text' }),
+      expect.anything()
+    )
+
+    expect(screen.getByRole('navigation')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: '»' })) // go to last page
+    expect(screen.getByRole('button', { name: '100' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '101' })).not.toBeInTheDocument()
   })
 
   test('show text based on fieldName', async () => {
