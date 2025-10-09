@@ -117,4 +117,38 @@ describe('NoteContentV2', () => {
     )
     expect(global.DOMPurify.sanitize).toHaveBeenNthCalledWith(2, 'markdown output')
   })
+
+  test('overwrite app wide config when enable full markdown', () => {
+    global.marked = jest.fn((_) => 'markdown output')
+    global.marked.Renderer = jest.fn()
+
+    const blogContent =
+      'Some **markdown** text with base64 image ![test](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==)'
+
+    const props = {
+      id: 'noteId',
+      content: {
+        title: { value: 'A blog post' },
+        post: {
+          value: blogContent,
+        },
+      },
+      number: 1,
+      presentation: [
+        { name: 'title', order: 1, type: 'string' },
+        { name: 'post', order: 2, type: 'string', input: 'textarea', markdown: true },
+      ],
+      fullMarkdown: true,
+    }
+
+    render(<NoteContentV2 {...props} />)
+
+    expect(global.marked).toHaveBeenCalledTimes(1)
+    expect(global.marked).toHaveBeenCalledWith(
+      blogContent,
+      expect.objectContaining({ renderer: expect.any(Object) })
+    )
+
+    expect(global.marked.Renderer).toHaveBeenCalledTimes(1)
+  })
 })
