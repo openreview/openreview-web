@@ -119,6 +119,7 @@ export default function ToggleButtonGroup({
             onChange={onResetClick}
           />{' '}
           <Icon name="remove" tooltip="Reset" />
+          <span className="sr-only">Reset</span>
         </label>
       )}
     </div>

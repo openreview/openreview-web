@@ -65,6 +65,7 @@ const CustomProfileSearchForm = ({
           setPageNumber(null)
         }
       }}
+      aria-label="Search relation by name or email"
     />
 
     <SearchButton
@@ -235,6 +236,7 @@ const RelationRow = ({
             onClick={() => setRelationClicked(true)}
             onFocus={() => setRelationClicked(true)}
             onChange={() => {}}
+            aria-label="Relation"
           />
         )}
       </div>
@@ -257,6 +259,7 @@ const RelationRow = ({
               data: { value: e.target.value, key: relation.key },
             })
           }
+          aria-label="Start Year"
         />
       </div>
       <div className="col-md-1 relation__value">
@@ -272,6 +275,7 @@ const RelationRow = ({
           onChange={(e) =>
             setRelation({ type: endType, data: { value: e.target.value, key: relation.key } })
           }
+          aria-label="End Year"
         />
       </div>
       <div className="col-md-1 relation__value additional-width-col">

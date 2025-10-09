@@ -144,6 +144,7 @@ const AutoCompleteInput = () => {
     <>
       <div className="form-group has-feedback">
         <input
+          aria-label="term"
           type="text"
           name="term"
           className="form-control"

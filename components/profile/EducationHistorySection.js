@@ -132,6 +132,7 @@ const EducationHistoryRow = ({
             onClick={() => setIsPositionClicked(true)}
             onFocus={() => setIsPositionClicked(true)}
             onChange={() => {}}
+            aria-label="Position"
           />
         )}
       </div>
@@ -148,6 +149,7 @@ const EducationHistoryRow = ({
           onChange={(e) =>
             setHistory({ type: startType, data: { value: e.target.value, key: p.key } })
           }
+          aria-label="start year"
         />
       </div>
       <div className="col-md-1 history__value">
@@ -163,6 +165,7 @@ const EducationHistoryRow = ({
           onChange={(e) =>
             setHistory({ type: endType, data: { value: e.target.value, key: p.key } })
           }
+          aria-label="end year"
         />
       </div>
       <div className="col-md-3 history__value">
@@ -206,6 +209,7 @@ const EducationHistoryRow = ({
             onClick={() => setIsDomainClicked(true)}
             onFocus={() => setIsDomainClicked(true)}
             onChange={() => {}}
+            aria-label="Institution Domain"
           />
         )}
       </div>
@@ -225,6 +229,7 @@ const EducationHistoryRow = ({
               data: { value: e.target.value, key: p.key },
             })
           }
+          aria-label="Institution Name"
         />
       </div>
       <div className="col-md-1 history__value">
@@ -273,6 +278,7 @@ const EducationHistoryRow = ({
             onClick={() => setIsRegionClicked(true)}
             onFocus={() => setIsRegionClicked(true)}
             onChange={() => {}}
+            aria-label="Institution Country/Region"
           />
         )}
       </div>
@@ -288,6 +294,7 @@ const EducationHistoryRow = ({
               data: { value: e.target.value, key: p.key },
             })
           }
+          aria-label="Institution State/Province"
         />
       </div>
       <div className="col-md-3 history__value">
@@ -302,6 +309,7 @@ const EducationHistoryRow = ({
               data: { value: e.target.value, key: p.key },
             })
           }
+          aria-label="Institution City"
         />
       </div>
       <div className="col-md-3 history__value">
@@ -316,6 +324,7 @@ const EducationHistoryRow = ({
               data: { value: e.target.value, key: p.key },
             })
           }
+          aria-label="Department of Institution"
         />
       </div>
     </div>
