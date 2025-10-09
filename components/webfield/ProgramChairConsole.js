@@ -1315,7 +1315,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     const errorMessage = `PC Console is missing required properties: ${
       missingConfig.length ? missingConfig.join(', ') : 'submissionVenueId'
     }`
-    return <ErrorDisplay statusCode="" message={errorMessage} />
+    return <ErrorDisplay statusCode="" message={errorMessage} withLayout={false} />
   }
 
   return (
