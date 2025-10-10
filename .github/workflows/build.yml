@@ -132,7 +132,7 @@ jobs:
           wait_for_service() {
             local url=$1
             local service_name=$2
-            local max_attempts=60
+            local max_attempts=3
             local attempt=0
 
             echo "Checking $service_name at $url"
@@ -145,17 +145,17 @@ jobs:
 
               attempt=$((attempt + 1))
               echo "Attempt $attempt/$max_attempts: $service_name not ready yet..."
-              sleep 2
+              sleep 5
             done
 
             echo "ERROR: $service_name failed to become ready after $max_attempts attempts"
             return 1
           }
 
-          # Wait for API v1 (typically on port 3000)
+          # Wait for API v1
           wait_for_service "http://localhost:3000/healthcheck" "openreview-api-v1" || exit 1
 
-          # Wait for API v2 (typically on port 3001)
+          # Wait for API v2
           wait_for_service "http://localhost:3001/healthcheck" "openreview-api" || exit 1
 
           echo "All APIs are ready!"
