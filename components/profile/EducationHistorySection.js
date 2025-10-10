@@ -244,10 +244,6 @@ const EducationHistoryRow = ({
               })
               if (e) setIsRegionClicked(false)
             }}
-            // onBlur={() => {
-            //   console.log('blur') // eslint-disable-line no-console --- IGNORE ---
-            //   setIsRegionClicked(false)
-            // }}
             isInvalid={invalidFields?.includes('country')}
             value={countryOptions?.find((q) => q.value === p.institution?.country)}
             placeholder={regionPlaceholder}
