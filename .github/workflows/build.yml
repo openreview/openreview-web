@@ -124,6 +124,41 @@ jobs:
         run: |
           cd openreview-api
           NODE_ENV=circleci node scripts/setup_app.js &
+      - name: Wait for APIs to be ready
+        run: |
+          echo "Waiting for APIs to be ready..."
+
+          # Function to check if a service is ready
+          wait_for_service() {
+            local url=$1
+            local service_name=$2
+            local max_attempts=60
+            local attempt=0
+
+            echo "Checking $service_name at $url"
+
+            while [ $attempt -lt $max_attempts ]; do
+              if curl -f -s -o /dev/null "$url"; then
+                echo "$service_name is ready!"
+                return 0
+              fi
+
+              attempt=$((attempt + 1))
+              echo "Attempt $attempt/$max_attempts: $service_name not ready yet..."
+              sleep 2
+            done
+
+            echo "ERROR: $service_name failed to become ready after $max_attempts attempts"
+            return 1
+          }
+
+          # Wait for API v1 (typically on port 3000)
+          wait_for_service "http://localhost:3000/healthcheck" "openreview-api-v1" || exit 1
+
+          # Wait for API v2 (typically on port 3001)
+          wait_for_service "http://localhost:3001/healthcheck" "openreview-api" || exit 1
+
+          echo "All APIs are ready!"
       - name: Run openreview-web
         run: |
           cd openreview-web
