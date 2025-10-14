@@ -98,7 +98,6 @@ module.exports = function (forumId, noteId, invitationId, user) {
         '/invitations',
         {
           replyForum: forum,
-          tags: true,
         },
         { handleErrors: false }
       ).then(function (result) {
