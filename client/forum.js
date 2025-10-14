@@ -89,21 +89,8 @@ module.exports = function (forumId, noteId, invitationId, user) {
       }).fail(onError)
     }
 
-    var tagInvitationsP = function (forum) {
-      if (!forum) {
-        return $.Deferred().resolve([])
-      }
-
-      return Webfield.get(
-        '/invitations',
-        {
-          replyForum: forum,
-          tags: true,
-        },
-        { handleErrors: false }
-      ).then(function (result) {
-        return result.invitations || []
-      }, onError)
+    var tagInvitationsP = function (_) {
+      $.Deferred().resolve([])
     }
 
     var originalInvitationsP = function (original) {
@@ -194,7 +181,7 @@ module.exports = function (forumId, noteId, invitationId, user) {
             note: note,
             replyInvitations: replyInvitations,
             referenceInvitations: referenceInvitations,
-            tagInvitations: tagInvitations,
+            tagInvitations: [],
             originalInvitations: originalInvitations,
           }
         })
