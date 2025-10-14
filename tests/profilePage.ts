@@ -369,7 +369,89 @@ const orcidMock = RequestMock().onRequestTo('https://pub.orcid.org/v3.0/0000-000
             "display-index": "0"
           }
         ]
-      }
+      },
+      {
+        "last-modified-date": {
+          "value": 1653805860366
+        },
+        "external-ids": {
+          "external-id": [
+            {
+              "external-id-type": "doi",
+              "external-id-value": "10.1364/OE.27.034593",
+              "external-id-normalized": {
+                "value": "10.1364/oe.27.034593",
+                "transient": true
+              },
+              "external-id-normalized-error": null,
+              "external-id-url": {
+                "value": "https://doi.org/10.1364/OE.27.034593"
+              },
+              "external-id-relationship": "self"
+            }
+          ]
+        },
+        "work-summary": [
+          {
+            "put-code": 64418159,
+            "created-date": {
+              "value": 1573499904152
+            },
+            "last-modified-date": {
+              "value": 1653805860366
+            },
+            "source": {
+              "source-orcid": null,
+              "source-client-id": {
+                "uri": "https://orcid.org/client/0000-0001-9884-1913",
+                "path": "0000-0001-9884-1913",
+                "host": "orcid.org"
+              },
+              "source-name": {
+                "value": "Crossref"
+              },
+              "assertion-origin-orcid": null,
+              "assertion-origin-client-id": null,
+              "assertion-origin-name": null
+            },
+            "title": {
+              "title": {
+                "value": "Absolute linear-in-k spectrometer designs enabled by freeform optics"
+              },
+              "subtitle": null,
+              "translated-title": null
+            },
+            "external-ids": {
+              "external-id": [
+                {
+                  "external-id-type": "doi",
+                  "external-id-value": "10.1364/OE.27.034593",
+                  "external-id-normalized": {
+                    "value": "10.1364/oe.27.034593",
+                    "transient": true
+                  },
+                  "external-id-normalized-error": null,
+                  "external-id-url": {
+                    "value": "https://doi.org/10.1364/OE.27.034593"
+                  },
+                  "external-id-relationship": "self"
+                }
+              ]
+            },
+            "url": {
+              "value": "https://doi.org/10.1364/OE.27.034593"
+            },
+            "type": "journal-article",
+            "publication-date": null, // no pdate, should be filtered out
+            "journal-title": {
+              "value": "Optics Express"
+            },
+            "visibility": "public",
+            "path": "/0000-0002-0613-2229/work/64418159",
+            "display-index": "0"
+          }
+        ]
+      },
     ]
   }, 200, { 'access-control-allow-origin': '*', 'content-type': 'application/json' })
   .onRequestTo('https://pub.orcid.org/v3.0/0000-0002-0613-2229/works/89975745,76065020')
