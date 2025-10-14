@@ -352,7 +352,7 @@ module.exports = (function () {
   var getTagInvitations = function (replyInvitation) {
     var urlParams = {
       replyInvitation: replyInvitation,
-      tags: true,
+      type: 'tags',
     }
 
     return get('/invitations', urlParams).then(function (result) {
