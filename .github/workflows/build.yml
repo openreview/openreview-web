@@ -162,7 +162,8 @@ jobs:
       - name: Run openreview-web
         run: |
           cd openreview-web
-          NODE_ENV=production SUPER_USER=openreview.net npm run start &
+          mkdir -p logs
+          NODE_ENV=production SUPER_USER=openreview.net npm run start > logs/web.log 2>&1 &
       - name: Run TestCafe Tests
         run: |
           cd openreview-web
@@ -178,6 +179,16 @@ jobs:
         run: |
           cd openreview-api/logs
           cat "$(ls -rt | tail -n1)"
+      - name: Check Web Logs
+        if: failure()
+        run: |
+          cd openreview-web/logs
+          if [ -f web.log ]; then
+            echo "=== OpenReview Web Logs ==="
+            cat web.log
+          else
+            echo "No web logs found"
+          fi
 
   deploy:
     # Allow the job to fetch a GitHub ID token
