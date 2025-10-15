@@ -5,7 +5,7 @@
 import { useEffect } from 'react'
 import { nanoid } from 'nanoid'
 import Link from 'next/link'
-import NoteList from '../NoteList'
+import NoteList, { GroupedNoteList } from '../NoteList'
 
 const ProfilePublications = ({
   profileId,
@@ -48,7 +48,7 @@ const ProfilePublications = ({
 
   return publications?.length > 0 ? (
     <>
-      <NoteList
+      <GroupedNoteList
         key={nanoid()}
         notes={publications.slice(0, numPublicationsToShow)}
         displayOptions={displayOptions}
