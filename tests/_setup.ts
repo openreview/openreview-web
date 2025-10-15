@@ -592,6 +592,7 @@ test('Set up TestVenue using API 2', async (t) => {
   const { id: reviewStageId } = await createNote(reviewStageJson, superUserToken)
 
   await waitForJobs(reviewStageId, superUserToken)
+  await waitForJobs('TestVenue/2023/Conference/-/Official_Review-0-1', superUserToken)
 
   await addMembersToGroup(
     'TestVenue/2023/Conference/Submission1/Reviewers',
