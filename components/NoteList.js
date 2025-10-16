@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import Note, { NoteV2 } from './Note'
-import { nanoid } from 'nanoid'
-import { NoteTitleV2 } from './NoteTitle'
 import { NoteAuthorsV2 } from './NoteAuthors'
 import { buildNoteTitle, buildNoteUrl, prettyId } from '../lib/utils'
-import Image from 'next/image'
 import ClientForumDate from './ClientForumDate'
 import Icon from './Icon'
 import NoteReaders from './NoteReaders'
+import { getImportSourceIcon } from '../lib/profiles'
 
 const NoteList = ({ notes, displayOptions }) => (
   <ul className="list-unstyled submissions-list">
@@ -34,32 +32,7 @@ const MultiSourceNote = ({ notes, displayOptions }) => {
   const privatelyRevealed = !noteToShowMeta?.readers?.includes('everyone')
   const noteToShowTitle = notes[0]
   const { id, forum, content, invitations, readers, signatures } = noteToShowTitle
-  const getImportSourceIcon = (invitation) => {
-    switch (invitation) {
-      case 'DBLP.org/-/Record':
-        return (
-          <Image
-            src="/images/dblp.ico"
-            alt="DBLP"
-            width={16}
-            height={16}
-            className="import-source-icon"
-          />
-        )
-      case `${process.env.SUPER_USER}/Public_Article/ORCID.org/-/Record`:
-        return (
-          <Image
-            src="/images/orcid.png"
-            alt="ORCID"
-            width={16}
-            height={16}
-            className="import-source-icon"
-          />
-        )
-      default:
-        return null
-    }
-  }
+
   const sources = [
     'DBLP.org/-/Record',
     `${process.env.SUPER_USER}/Public_Article/ORCID.org/-/Record`,
@@ -127,7 +100,7 @@ const MultiSourceNote = ({ notes, displayOptions }) => {
   )
 }
 
-const GroupedNoteList = ({ notes, displayOptions }) => {
+const SourceGroupedNoteList = ({ notes, displayOptions }) => {
   const groupedNotes = notes.reduce((prev, curr) => {
     if (
       curr.version !== 2 ||
@@ -137,7 +110,7 @@ const GroupedNoteList = ({ notes, displayOptions }) => {
       ].some((p) => curr.invitations.includes(p))
     ) {
       // eslint-disable-next-line no-param-reassign
-      prev[nanoid()] = [curr]
+      prev[curr.id] = [curr]
       return prev
     }
     const title = curr.content.title.value
@@ -155,8 +128,7 @@ const GroupedNoteList = ({ notes, displayOptions }) => {
   return (
     <ul className="list-unstyled submissions-list">
       {Object.entries(groupedNotes).map(([paperHash, importedPapers]) => {
-        const noDuplication = importedPapers.length === 1
-        if (noDuplication) {
+        if (importedPapers.length === 1) {
           const note = importedPapers[0]
           return (
             <li key={note.id}>
@@ -188,4 +160,4 @@ const GroupedNoteList = ({ notes, displayOptions }) => {
 }
 
 export default NoteList
-export { GroupedNoteList }
+export { SourceGroupedNoteList }

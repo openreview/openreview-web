@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import UnlinkPublicationButton from './UnlinkPublicationButton'
 import { buildNoteTitle, buildNoteUrl } from '../lib/utils'
+import { getImportSourceIcon } from '../lib/profiles'
 
 const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} }) => (
   <h4>
@@ -68,33 +68,6 @@ const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} })
     )}
   </h4>
 )
-
-const getImportSourceIcon = (invitation) => {
-  switch (invitation) {
-    case 'DBLP.org/-/Record':
-      return (
-        <Image
-          src="/images/dblp.ico"
-          alt="DBLP"
-          width={16}
-          height={16}
-          className="import-source-icon"
-        />
-      )
-    case `${process.env.SUPER_USER}/Public_Article/ORCID.org/-/Record`:
-      return (
-        <Image
-          src="/images/orcid.png"
-          alt="ORCID"
-          width={16}
-          height={16}
-          className="import-source-icon"
-        />
-      )
-    default:
-      return null
-  }
-}
 
 export const NoteTitleV2 = ({
   id,
