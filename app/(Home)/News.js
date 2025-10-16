@@ -29,7 +29,7 @@ export default function News({ news }) {
       <h1>News</h1>
       <hr className="small" />
       <NoteList
-        notes={news}
+        notes={news.map((p) => ({ ...p, version: 2 }))}
         displayOptions={{
           clientRenderingOnly: true,
           openNoteInNewWindow: true,

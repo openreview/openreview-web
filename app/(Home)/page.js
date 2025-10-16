@@ -31,8 +31,8 @@ export default async function page() {
       '/notes',
       {
         invitation: `${process.env.SUPER_USER}/News/-/Article`,
+        select: 'id,cdate,content.title,content.authors,content.authorids,content.paperhash',
         limit: 3,
-        details: 'replyCount',
         sort: 'cdate:desc',
       },
       { remoteIpAddress }
@@ -62,6 +62,7 @@ export default async function page() {
   let news = []
   if (newsResult.status === 'fulfilled') {
     news = newsResult.value.notes
+    console.log('news', news)
   } else {
     console.log('Error in page', {
       page: 'Home',
