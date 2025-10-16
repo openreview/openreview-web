@@ -4,7 +4,8 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
-import NoteList, { SourceGroupedNoteList } from '../NoteList'
+import NoteList from '../NoteList'
+import SourceGroupedNoteList from '../SourceGroupedNoteList'
 
 const ProfilePublications = ({
   profileId,
