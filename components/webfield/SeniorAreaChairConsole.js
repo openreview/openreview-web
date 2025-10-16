@@ -727,7 +727,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     const errorMessage = `${prettyField(
       seniorAreaChairName
     )} Console is missing required properties: ${missingConfig.join(', ')}`
-    return <ErrorDisplay statusCode="" message={errorMessage} />
+    return <ErrorDisplay statusCode="" message={errorMessage} withLayout={false} />
   }
 
   return (

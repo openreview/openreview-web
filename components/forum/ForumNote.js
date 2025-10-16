@@ -183,6 +183,9 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
         omit={[canShowIcon('pdf') ? 'pdf' : null, canShowIcon('html') ? 'html' : null].filter(
           Boolean
         )}
+        fullMarkdown={note.invitations.some(
+          (p) => p === `${process.env.SUPER_USER}/News/-/Article`
+        )}
       />
     </div>
   )

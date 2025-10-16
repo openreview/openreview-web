@@ -159,7 +159,8 @@ export async function generateMetadata({ searchParams }) {
 
     if (
       noteInvitation.startsWith(process.env.SUPER_USER) ||
-      noteInvitation.startsWith('dblp.org')
+      noteInvitation.startsWith('dblp.org') ||
+      noteInvitation.startsWith('DBLP.org')
     ) {
       metaData.other.robots = 'noindex'
     } else {

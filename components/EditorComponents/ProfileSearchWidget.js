@@ -1,6 +1,6 @@
 /* globals promptError, $: false */
 
-import React, { useContext, useState, useEffect, useCallback, useRef } from 'react'
+import { useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { maxBy, throttle, upperFirst } from 'lodash'
 import {
   DndContext,
@@ -302,7 +302,7 @@ const ProfileSearchFormAndResults = ({
         },
         { accessToken }
       )
-      setTotalCount(results.count)
+      setTotalCount(results.count > 200 ? 200 : results.count)
       setProfileSearchResults(
         isEditor === false
           ? results.profiles
@@ -612,7 +612,6 @@ const ProfileSearchWidget = ({
         const oldIndex = currentAuthors.findIndex((p) => p.authorId === active.id)
         const newIndex = currentAuthors.findIndex((p) => p.authorId === over.id)
         const updatedValue = arrayMove(currentAuthors, oldIndex, newIndex)
-        console.log(oldIndex, newIndex)
         setDisplayAuthors(updatedValue)
       }
     }, 250),
