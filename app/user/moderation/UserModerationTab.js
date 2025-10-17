@@ -765,7 +765,7 @@ const UserModerationQueue = ({
           'relations',
           'expertise',
           'publications',
-          'messages',
+          'pastStates',
           'tags',
         ]}
         showNextProfile={showNextProfile}
