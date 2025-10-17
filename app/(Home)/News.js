@@ -5,6 +5,7 @@ import { buildNoteUrl, formatDateTime } from '../../lib/utils'
 import styles from './Home.module.scss'
 
 const customMetaInfo = (_) => null
+const customAuthor = (_) => null
 const customTitle = (note) => (
   <div className={styles.newsTitle}>
     <h4>
@@ -36,6 +37,7 @@ export default function News({ news }) {
           replyCount: false,
           customMetaInfo,
           customTitle,
+          customAuthor,
         }}
       />
       <button type="button" className="btn-link">

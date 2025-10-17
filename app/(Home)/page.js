@@ -31,7 +31,7 @@ export default async function page() {
       '/notes',
       {
         invitation: `${process.env.SUPER_USER}/News/-/Article`,
-        select: 'id,cdate,content.title,content.authors,content.authorids,content.paperhash',
+        select: 'id,cdate,content.title,content.paperhash',
         limit: 3,
         sort: 'cdate:desc',
       },

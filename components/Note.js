@@ -168,12 +168,16 @@ export const NoteV2 = ({ note, options }) => {
       )}
 
       <div className="note-authors">
-        <NoteAuthorsV2
-          authors={note.content?.authors}
-          authorIds={note.content?.authorids}
-          signatures={note.signatures}
-          noteReaders={note.readers}
-        />
+        {options.customAuthor ? (
+          options.customAuthor(note)
+        ) : (
+          <NoteAuthorsV2
+            authors={note.content?.authors}
+            authorIds={note.content?.authorids}
+            signatures={note.signatures}
+            noteReaders={note.readers}
+          />
+        )}
       </div>
 
       {options.customMetaInfo ? (
