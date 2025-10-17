@@ -147,14 +147,18 @@ export const NoteV2 = ({ note, options }) => {
         options.unlinkedPublications?.includes(note.id) ? 'unlinked-publication' : ''
       } ${options.extraClasses}`}
     >
-      <NoteTitleV2
-        id={note.id}
-        forum={note.forum}
-        invitation={note.invitations[0]}
-        content={note.content ?? {}}
-        signatures={note.signatures}
-        options={options}
-      />
+      {options.customTitle ? (
+        options.customTitle(note)
+      ) : (
+        <NoteTitleV2
+          id={note.id}
+          forum={note.forum}
+          invitation={note.invitations[0]}
+          content={note.content ?? {}}
+          signatures={note.signatures}
+          options={options}
+        />
+      )}
 
       {note.forumContent && note.id !== note.forum && (
         <div className="note-parent-title">
@@ -164,48 +168,56 @@ export const NoteV2 = ({ note, options }) => {
       )}
 
       <div className="note-authors">
-        <NoteAuthorsV2
-          authors={note.content?.authors}
-          authorIds={note.content?.authorids}
-          signatures={note.signatures}
-          noteReaders={note.readers}
-        />
+        {options.customAuthor ? (
+          options.customAuthor(note)
+        ) : (
+          <NoteAuthorsV2
+            authors={note.content?.authors}
+            authorIds={note.content?.authorids}
+            signatures={note.signatures}
+            noteReaders={note.readers}
+          />
+        )}
       </div>
 
-      <ul className="note-meta-info list-inline">
-        <li>
-          {options.clientRenderingOnly ? (
-            <ClientForumDate note={note} />
-          ) : (
-            forumDate(
-              note.cdate,
-              note.tcdate,
-              note.mdate,
-              note.tmdate,
-              note.content?.year?.value,
-              note.pdate
-            )
+      {options.customMetaInfo ? (
+        options.customMetaInfo(note)
+      ) : (
+        <ul className="note-meta-info list-inline">
+          <li>
+            {options.clientRenderingOnly ? (
+              <ClientForumDate note={note} />
+            ) : (
+              forumDate(
+                note.cdate,
+                note.tcdate,
+                note.mdate,
+                note.tmdate,
+                note.content?.year?.value,
+                note.pdate
+              )
+            )}
+          </li>
+          <li>
+            {note.note || !note.content?.venue?.value // note.note indicates this is an edit
+              ? prettyId(note.invitations[0])
+              : note.content?.venue?.value}
+            {privatelyRevealed && (
+              <Icon
+                name="eye-open"
+                extraClasses="note-visible-icon ml-2"
+                tooltip="Privately revealed to you"
+              />
+            )}
+          </li>
+          <li className="readers">
+            Readers: <NoteReaders readers={note.readers} />
+          </li>
+          {options.replyCount && typeof note.details?.replyCount === 'number' && (
+            <li>{inflect(note.details?.replyCount, 'Reply', 'Replies', true)}</li>
           )}
-        </li>
-        <li>
-          {note.note || !note.content?.venue?.value // note.note indicates this is an edit
-            ? prettyId(note.invitations[0])
-            : note.content?.venue?.value}
-          {privatelyRevealed && (
-            <Icon
-              name="eye-open"
-              extraClasses="note-visible-icon ml-2"
-              tooltip="Privately revealed to you"
-            />
-          )}
-        </li>
-        <li className="readers">
-          Readers: <NoteReaders readers={note.readers} />
-        </li>
-        {options.replyCount && typeof note.details?.replyCount === 'number' && (
-          <li>{inflect(note.details?.replyCount, 'Reply', 'Replies', true)}</li>
-        )}
-      </ul>
+        </ul>
+      )}
 
       {renderNoteContent()}
     </div>
