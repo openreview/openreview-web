@@ -222,7 +222,7 @@ test('create a new profile with an institutional email', async (t) => {
 
 test('enter invalid name', async (t) => {
   await t
-    .typeText(fullNameInputSelector, 'abc 1')
+    .typeText(fullNameInputSelector, 'abc 1', { speed: 0.8 })
     .expect(Selector('.important_message').exists)
     .ok()
     .expect(Selector('.important_message').textContent)
@@ -426,6 +426,7 @@ test('update profile', async (t) => {
     .typeText(Selector('#homepage_url'), 'http://homepage.do', { paste: true })
     .click(nextSectiomButtonSelector) // history
     .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .wait(300)
     .pressKey('M S space s t u d e n t tab')
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
     .click(Selector('div.institution-dropdown__option').nth(0))
@@ -518,6 +519,7 @@ test('register a profile with an institutional email', async (t) => {
     .typeText(Selector('#homepage_url'), 'http://kevinmalone.com', { paste: true })
     .click(nextSectiomButtonSelector) // history
     .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .wait(300)
     .pressKey('M S space s t u d e n t tab')
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
     .click(Selector('div.institution-dropdown__option').nth(0))
