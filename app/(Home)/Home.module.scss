@@ -88,11 +88,9 @@
     }
 
     #news {
-      ul {
-        background-color: constants.$backgroundGray;
-        padding: 0.5rem;
-        border-radius: 5px;
-      }
+      background-color: constants.$backgroundGray;
+      padding: 0.5rem;
+      border-radius: 5px;
     }
   }
 }
