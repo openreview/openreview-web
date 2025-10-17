@@ -3,9 +3,9 @@
 /* globals $: false */
 
 import { useEffect } from 'react'
-import { nanoid } from 'nanoid'
 import Link from 'next/link'
 import NoteList from '../NoteList'
+import SourceGroupedNoteList from '../SourceGroupedNoteList'
 
 const ProfilePublications = ({
   profileId,
@@ -48,11 +48,17 @@ const ProfilePublications = ({
 
   return publications?.length > 0 ? (
     <>
-      <NoteList
-        key={nanoid()}
-        notes={publications.slice(0, numPublicationsToShow)}
-        displayOptions={displayOptions}
-      />
+      {openNoteInNewWindow ? (
+        <NoteList
+          notes={publications.slice(0, numPublicationsToShow)}
+          displayOptions={displayOptions}
+        />
+      ) : (
+        <SourceGroupedNoteList
+          notes={publications.slice(0, numPublicationsToShow)}
+          displayOptions={displayOptions}
+        />
+      )}
 
       {count > numPublicationsToShow && (
         <Link
