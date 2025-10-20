@@ -14,6 +14,7 @@ const SURole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), superUserName)
     .typeText(Selector('#password-input'), strongPassword)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
@@ -22,6 +23,7 @@ const EmailOwnerRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), 'melisa@test.com')
     .typeText(Selector('#password-input'), strongPassword)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
@@ -606,6 +608,7 @@ test('add alternate email', async (t) => {
   await t
     .typeText(Selector('#email-input'), 'melisa@test.com')
     .typeText(Selector('#password-input'), strongPassword)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
     .expect(getPageUrl())
     .contains('http://localhost:3030', { timeout: 10000 })
