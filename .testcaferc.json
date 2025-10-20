@@ -2,5 +2,6 @@
   "browsers": "chrome",
   "videoPath": "videos",
   "stopOnFirstFail": true,
-  "pageRequestTimeout": 30000
+  "pageRequestTimeout": 30000,
+  "retryTestPages": true
 }
