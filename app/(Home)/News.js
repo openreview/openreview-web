@@ -42,9 +42,9 @@ export default function News({ news }) {
       />
       <button type="button" className="btn-link">
         <a
-          href={`/group?id=${process.env.SUPER_USER}/News`}
+          href={`/group?id=${process.env.SUPER_USER}/News&referrer=[Homepage](/)`}
           target="_blank"
-          rel="nofollow noreferrer"
+          rel="nofollow"
         >
           View all OpenReview news
         </a>
