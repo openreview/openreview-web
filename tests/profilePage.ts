@@ -18,6 +18,7 @@ const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =>
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), userB.email)
     .typeText(Selector('#password-input'), userB.password)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
@@ -26,6 +27,7 @@ const userARole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =>
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), hasTaskUser.email)
     .typeText(Selector('#password-input'), hasTaskUser.password)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
@@ -817,6 +819,7 @@ test('user open own profile', async (t) => {
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), hasTaskUser.email)
     .typeText(Selector('#password-input'), hasTaskUser.password)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
     .click(Selector('a.dropdown-toggle'))
     .click(Selector('a').withText('Profile'))
@@ -1596,6 +1599,7 @@ test('open profile of other user by email', async (t) => {
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), userB.email)
     .typeText(Selector('#password-input'), userB.password)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
     .wait(500)
     // access FirstA LastA's profile page by email

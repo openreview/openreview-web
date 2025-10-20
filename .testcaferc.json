@@ -1,5 +1,6 @@
 {
   "browsers": "chrome",
   "videoPath": "videos",
-  "stopOnFirstFail": true
+  "stopOnFirstFail": true,
+  "pageRequestTimeout": 30000
 }
