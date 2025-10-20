@@ -8,10 +8,9 @@ import NoteReaders from './NoteReaders'
 import { getImportSourceIcon } from '../lib/profiles'
 
 const MultiSourceNote = ({ notes, displayOptions }) => {
-  const [noteToShowMeta, setNoteToShowMeta] = useState(null)
-  const privatelyRevealed = !noteToShowMeta?.readers?.includes('everyone')
-  const noteToShowTitle = notes[0]
-  const { id, forum, content, invitations, readers, signatures } = noteToShowTitle
+  const [noteToShow, setNoteToShow] = useState(notes[0])
+  const { id, forum, content, invitations, readers, signatures } = noteToShow
+  const privatelyRevealed = !noteToShow?.readers?.includes('everyone')
 
   const sources = [
     'DBLP.org/-/Record',
@@ -37,15 +36,15 @@ const MultiSourceNote = ({ notes, displayOptions }) => {
           noteReaders={readers}
         />
       </div>
-      {noteToShowMeta && (
+      {noteToShow && (
         <ul className="note-meta-info list-inline">
           <li>
-            <ClientForumDate note={noteToShowMeta} />
+            <ClientForumDate note={noteToShow} />
           </li>
           <li>
-            {!noteToShowMeta.content?.venue?.value // note.note indicates this is an edit
-              ? prettyId(noteToShowMeta.invitations[0])
-              : noteToShowMeta.content?.venue?.value}
+            {!noteToShow.content?.venue?.value
+              ? prettyId(noteToShow.invitations[0])
+              : noteToShow.content?.venue?.value}
             {privatelyRevealed && (
               <Icon
                 name="eye-open"
@@ -55,21 +54,20 @@ const MultiSourceNote = ({ notes, displayOptions }) => {
             )}
           </li>
           <li className="readers">
-            Readers: <NoteReaders readers={noteToShowMeta.readers} />
+            Readers: <NoteReaders readers={noteToShow.readers} />
           </li>
         </ul>
       )}
       <div className="import-sources">
         {sources.map((source) => {
           const sourceNote = notes.find((note) => note.invitations.includes(source))
-          const isActive = noteToShowMeta?.id === sourceNote?.id
+          const isActive = noteToShow?.id === sourceNote?.id
           return (
             <button
               key={source}
               type="button"
-              onClick={() => setNoteToShowMeta(sourceNote)}
-              className="import-source-button"
-              style={{ opacity: isActive ? 1 : 0.5, cursor: 'pointer' }}
+              onClick={() => setNoteToShow(sourceNote)}
+              className={`import-source-button ${isActive ? 'active' : ''}`}
             >
               {getImportSourceIcon(source)}
             </button>

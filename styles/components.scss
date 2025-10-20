@@ -246,6 +246,10 @@ table.table-minimal {
         border: none;
         padding: 4px;
         transition: opacity 0.2s ease;
+        opacity: 0.5;
+        &.active {
+          opacity: 1;
+        }
       }
 
       .import-source-button:hover {
