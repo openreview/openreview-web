@@ -1,7 +1,7 @@
 /* globals promptError: false */
 /* eslint-disable no-cond-assign */
 
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import pick from 'lodash/pick'
 import Steps from 'rc-steps'
 import EducationHistorySection from './EducationHistorySection'
@@ -46,6 +46,9 @@ export default function ProfileEditor({
   const [currentStep, setCurrentStep] = useState(0)
   const [invalidSteps, setInvalidSteps] = useState([])
   const stepRef = useRef(null)
+  const renderPublicationsEditor = useCallback(() => {
+    setRenderPublicationEditor((current) => !current)
+  }, [])
 
   const prefixedRelations = dropdownOptions?.prefixedRelations
   const relationReaders = dropdownOptions?.relationReaders
@@ -521,9 +524,7 @@ export default function ProfileEditor({
                 profileLinks={profile?.links}
                 profileId={profile?.id}
                 names={profile?.names}
-                renderPublicationsEditor={() =>
-                  setRenderPublicationEditor((current) => !current)
-                }
+                renderPublicationsEditor={renderPublicationsEditor}
                 hideImportButton={hideImportButton}
                 updateLinks={(links) => setProfile({ type: 'links', data: links })}
               />
