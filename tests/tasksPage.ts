@@ -7,6 +7,7 @@ const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async 
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), 'test@mail.com')
     .typeText(Selector('#password-input'), hasTaskUser.password)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
@@ -15,6 +16,7 @@ const hasNoTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, asyn
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), hasNoTaskUser.email)
     .typeText(Selector('#password-input'), hasNoTaskUser.password)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 

@@ -1110,21 +1110,25 @@ export default function Forum({
                 )
               })}
             </div>
-            <NoteEditor
-              note={selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)}
-              replyToNote={parentNote}
-              invitation={activeInvitation}
-              className="note-editor-reply depth-even"
-              closeNoteEditor={() => {
-                setActiveInvitation(null)
-              }}
-              onNoteCreated={(note) => {
-                updateNote(note)
-                setActiveInvitation(null)
-                scrollToElement('#forum-replies')
-              }}
-              isDirectReplyToForum={true}
-            />
+            {activeInvitation && (
+              <NoteEditor
+                note={
+                  selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)
+                }
+                replyToNote={parentNote}
+                invitation={activeInvitation}
+                className="note-editor-reply depth-even"
+                closeNoteEditor={() => {
+                  setActiveInvitation(null)
+                }}
+                onNoteCreated={(note) => {
+                  updateNote(note)
+                  setActiveInvitation(null)
+                  scrollToElement('#forum-replies')
+                }}
+                isDirectReplyToForum={true}
+              />
+            )}
           </div>
         )}
 

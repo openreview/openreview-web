@@ -18,6 +18,7 @@ const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =>
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), userB.email)
     .typeText(Selector('#password-input'), userB.password)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
@@ -26,6 +27,7 @@ const userARole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =>
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), hasTaskUser.email)
     .typeText(Selector('#password-input'), hasTaskUser.password)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
@@ -817,6 +819,7 @@ test('user open own profile', async (t) => {
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), hasTaskUser.email)
     .typeText(Selector('#password-input'), hasTaskUser.password)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
     .click(Selector('a.dropdown-toggle'))
     .click(Selector('a').withText('Profile'))
@@ -1596,6 +1599,7 @@ test('open profile of other user by email', async (t) => {
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), userB.email)
     .typeText(Selector('#password-input'), userB.password)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
     .wait(500)
     // access FirstA LastA's profile page by email
@@ -1677,9 +1681,9 @@ test('show orcid publications', async (t) => {
     .expect(Selector('div.publication-title').count)
     .eql(2)
     .expect(Selector('div.publication-title').nth(0).innerText)
-    .eql('Verification of cascade optical coherence tomography for freeform optics form metrology(Crossref)')
+    .eql('Verification of cascade optical coherence tomography for freeform optics form metrology\nOptics Express - Crossref')
     .expect(Selector('div.publication-title').nth(1).innerText)
-    .eql('Cascade optical coherence tomography (C-OCT)(Crossref)')
+    .eql('Cascade optical coherence tomography (C-OCT)\nOptics Express - Crossref')
     .expect(orcidImportModalAddToProfileBtn.hasAttribute('disabled'))
     .ok()
 })

@@ -14,6 +14,7 @@ const SURole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), superUserName)
     .typeText(Selector('#password-input'), strongPassword)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
@@ -22,6 +23,7 @@ const EmailOwnerRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), 'melisa@test.com')
     .typeText(Selector('#password-input'), strongPassword)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
@@ -222,7 +224,7 @@ test('create a new profile with an institutional email', async (t) => {
 
 test('enter invalid name', async (t) => {
   await t
-    .typeText(fullNameInputSelector, 'abc 1')
+    .typeText(fullNameInputSelector, 'abc 1', { speed: 0.8 })
     .expect(Selector('.important_message').exists)
     .ok()
     .expect(Selector('.important_message').textContent)
@@ -426,6 +428,7 @@ test('update profile', async (t) => {
     .typeText(Selector('#homepage_url'), 'http://homepage.do', { paste: true })
     .click(nextSectiomButtonSelector) // history
     .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .wait(300)
     .pressKey('M S space s t u d e n t tab')
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
     .click(Selector('div.institution-dropdown__option').nth(0))
@@ -518,6 +521,7 @@ test('register a profile with an institutional email', async (t) => {
     .typeText(Selector('#homepage_url'), 'http://kevinmalone.com', { paste: true })
     .click(nextSectiomButtonSelector) // history
     .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .wait(300)
     .pressKey('M S space s t u d e n t tab')
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
     .click(Selector('div.institution-dropdown__option').nth(0))
@@ -604,6 +608,7 @@ test('add alternate email', async (t) => {
   await t
     .typeText(Selector('#email-input'), 'melisa@test.com')
     .typeText(Selector('#password-input'), strongPassword)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
     .expect(getPageUrl())
     .contains('http://localhost:3030', { timeout: 10000 })
