@@ -44,7 +44,7 @@ export default function News({ news }) {
         <a
           href={`/group?id=${process.env.SUPER_USER}/News&referrer=[Homepage](/)`}
           target="_blank"
-          rel="nofollow"
+          rel="nofollow noreferrer"
         >
           View all OpenReview news
         </a>

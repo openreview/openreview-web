@@ -2427,6 +2427,9 @@ module.exports = (function () {
           case 'cdate':
             editNote[p] = formContent.noteCDateValue ?? edit.note[p]
             break
+          case 'mdate':
+            editNote[p] = formContent.noteMDateValue ?? edit.note[p]
+            break
           case 'pdate':
             editNote[p] = formContent.notePDateValue ?? edit.note[p]
             break
