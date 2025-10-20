@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import UnlinkPublicationButton from './UnlinkPublicationButton'
 import { buildNoteTitle, buildNoteUrl } from '../lib/utils'
-import { getImportSourceIcon } from '../lib/profiles'
 
 const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} }) => (
   <h4>
@@ -78,7 +77,6 @@ export const NoteTitleV2 = ({
   options = {},
 }) => (
   <h4>
-    {options.unlinkButton && getImportSourceIcon(invitation)}
     {options.openNoteInNewWindow ? (
       <a
         href={buildNoteUrl(id, forum, content, options)}
@@ -114,14 +112,6 @@ export const NoteTitleV2 = ({
       >
         <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
       </a>
-    )}
-
-    {options.unlinkButton && (
-      <UnlinkPublicationButton
-        noteId={id}
-        linkUnlinkPublication={options.linkUnlinkPublication}
-        isUnlinked={options.isUnlinked}
-      />
     )}
   </h4>
 )
