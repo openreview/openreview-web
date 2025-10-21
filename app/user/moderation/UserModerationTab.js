@@ -496,7 +496,9 @@ const UserModerationQueue = ({
   const showNextProfile = (currentProfileId) => {
     const nextProfile = profiles[profiles.findIndex((p) => p.id === currentProfileId) + 1]
     if (nextProfile) {
-      setProfileToPreview(formatProfileData(cloneDeep(nextProfile)))
+      setProfileToPreview(
+        formatProfileData(cloneDeep(nextProfile), { includePastStates: true })
+      )
       setLastPreviewedProfileId(nextProfile.id)
     }
   }
@@ -607,7 +609,9 @@ const UserModerationQueue = ({
                       profile.id === lastPreviewedProfileId ? ' last-previewed' : ''
                     }`}
                     onClick={() => {
-                      setProfileToPreview(formatProfileData(cloneDeep(profile)))
+                      setProfileToPreview(
+                        formatProfileData(cloneDeep(profile), { includePastStates: true })
+                      )
                     }}
                   >
                     {state}
