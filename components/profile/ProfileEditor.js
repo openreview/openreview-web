@@ -1,7 +1,7 @@
 /* globals promptError: false */
 /* eslint-disable no-cond-assign */
 
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import pick from 'lodash/pick'
 import Steps from 'rc-steps'
 import EducationHistorySection from './EducationHistorySection'
@@ -25,7 +25,7 @@ export default function ProfileEditor({
   submitHandler,
   cancelHandler,
   hideCancelButton,
-  hideDblpButton,
+  hideImportButton,
   hidePublicationEditor,
   loading,
   isNewProfile,
@@ -46,6 +46,9 @@ export default function ProfileEditor({
   const [currentStep, setCurrentStep] = useState(0)
   const [invalidSteps, setInvalidSteps] = useState([])
   const stepRef = useRef(null)
+  const renderPublicationsEditor = useCallback(() => {
+    setRenderPublicationEditor((current) => !current)
+  }, [])
 
   const prefixedRelations = dropdownOptions?.prefixedRelations
   const relationReaders = dropdownOptions?.relationReaders
@@ -71,6 +74,19 @@ export default function ProfileEditor({
       data: profile[type]?.map((p, index) => {
         if ((!invalidKey && index === 0) || (invalidKey && p.key === invalidKey))
           return { ...p, valid: false }
+        return p
+      }),
+    })
+    return { isValid: false, profileContent: null }
+  }
+
+  const promptInvalidHisotry = (invalidKey, fields, message) => {
+    promptError(message)
+    setProfile({
+      type: 'history',
+      data: profile.history?.map((p, index) => {
+        if ((!invalidKey && index === 0) || (invalidKey && p.key === invalidKey))
+          return { ...p, valid: false, invalidFields: fields }
         return p
       }),
     })
@@ -163,9 +179,9 @@ export default function ProfileEditor({
     // #region validate history
     if ((invalidRecord = profileContent.history?.find((p) => !p.institution?.domain))) {
       setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
+      return promptInvalidHisotry(
         invalidRecord.key,
+        ['institution'],
         'Domain is required for all positions'
       )
     }
@@ -175,9 +191,9 @@ export default function ProfileEditor({
       ))
     ) {
       setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
+      return promptInvalidHisotry(
         invalidRecord.key,
+        ['institution'],
         `${invalidRecord.institution.domain} is not a valid domain. Domains should not contain "http", "www", or and special characters like "?" or "/".`
       )
     }
@@ -185,17 +201,17 @@ export default function ProfileEditor({
       (invalidRecord = profileContent.history?.find((p) => p.start && !isValidYear(p.start)))
     ) {
       setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
+      return promptInvalidHisotry(
         invalidRecord.key,
+        ['startYear'],
         'Start date should be a valid year'
       )
     }
     if ((invalidRecord = profileContent.history?.find((p) => p.end && !isValidYear(p.end)))) {
       setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
+      return promptInvalidHisotry(
         invalidRecord.key,
+        ['endYear'],
         'End date should be a valid year'
       )
     }
@@ -205,23 +221,23 @@ export default function ProfileEditor({
       ))
     ) {
       setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
+      return promptInvalidHisotry(
         invalidRecord.key,
+        ['startYear', 'endYear'],
         'End date should be higher than start date'
       )
     }
     if ((invalidRecord = profileContent.history?.find((p) => !p.start && p.end))) {
       setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue('history', invalidRecord.key, 'Start date can not be empty')
+      return promptInvalidHisotry(
+        invalidRecord.key,
+        ['startYear'],
+        'Start date can not be empty'
+      )
     }
     if (!profileContent.history?.length) {
       setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
-        null,
-        'Career and education history cannot be empty'
-      )
+      return promptInvalidHisotry(null, [], 'Career and education history cannot be empty')
     }
     if (
       (invalidRecord = profileContent.history?.find(
@@ -233,17 +249,17 @@ export default function ProfileEditor({
       ))
     ) {
       setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
+      return promptInvalidHisotry(
         invalidRecord.key,
+        ['position', 'institution', 'country'],
         'You must enter position, institution, domain and country/region information for each entry in your career and education history'
       )
     }
     if (!profileContent.history.some((p) => !p.end || p.end >= new Date().getFullYear())) {
       setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
+      return promptInvalidHisotry(
         profile.history?.[0]?.key,
+        ['endYear'],
         'Your Career & Education History must include at least one current position.'
       )
     }
@@ -508,10 +524,8 @@ export default function ProfileEditor({
                 profileLinks={profile?.links}
                 profileId={profile?.id}
                 names={profile?.names}
-                renderPublicationsEditor={() =>
-                  setRenderPublicationEditor((current) => !current)
-                }
-                hideDblpButton={hideDblpButton}
+                renderPublicationsEditor={renderPublicationsEditor}
+                hideImportButton={hideImportButton}
                 updateLinks={(links) => setProfile({ type: 'links', data: links })}
               />
             </ProfileSection>

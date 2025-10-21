@@ -79,14 +79,16 @@ function NoteContent({
 }
 
 function NoteContentField({ name, customFieldName }) {
+  const fieldName = customFieldName ?? prettyField(name)
   return (
     <strong className="note-content-field disable-tex-rendering">
-      {customFieldName ?? prettyField(name)}:
+      {fieldName}
+      {fieldName?.trim() && ':'}
     </strong>
   )
 }
 
-export function NoteContentValue({ content = '', enableMarkdown, className }) {
+export function NoteContentValue({ content = '', enableMarkdown, className, fullMarkdown }) {
   const [sanitizedHtml, setSanitizedHtml] = useState(null)
 
   const autoLinkContent = (value) => {
@@ -110,7 +112,11 @@ export function NoteContentValue({ content = '', enableMarkdown, className }) {
 
   useEffect(() => {
     if (enableMarkdown) {
-      setSanitizedHtml(DOMPurify.sanitize(marked(content)))
+      setSanitizedHtml(
+        DOMPurify.sanitize(
+          marked(content, fullMarkdown ? { renderer: new marked.Renderer() } : undefined)
+        )
+      )
     } else {
       setSanitizedHtml(DOMPurify.sanitize(autoLinkContent(content)))
     }
@@ -163,6 +169,7 @@ export const NoteContentV2 = ({
   include = [],
   isEdit = false,
   externalIDs,
+  fullMarkdown = false,
 }) => {
   if (!content) return null
 
@@ -258,7 +265,11 @@ export const NoteContentV2 = ({
                 />
               </span>
             ) : (
-              <NoteContentValue content={fieldValue} enableMarkdown={enableMarkdown} />
+              <NoteContentValue
+                content={fieldValue}
+                enableMarkdown={enableMarkdown}
+                fullMarkdown={fullMarkdown}
+              />
             )}
           </div>
         )

@@ -187,6 +187,9 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
           Boolean
         )}
         externalIDs={note.externalIds}
+        fullMarkdown={note.invitations.some(
+          (p) => p === `${process.env.SUPER_USER}/News/-/Article`
+        )}
       />
     </div>
   )

@@ -168,7 +168,8 @@
       }
     }
 
-    #dblp-import-modal {
+    #dblp-import-modal,
+    #orcid-import-modal {
       .modal-body {
         min-height: 200px;
         max-height: 600px;
@@ -192,7 +193,6 @@
             font-weight: lighter;
             font-size: smaller;
             font-style: italic;
-            margin-left: 0.25rem;
           }
         }
       }
