@@ -62,7 +62,6 @@ export default async function page() {
   let news = []
   if (newsResult.status === 'fulfilled') {
     news = newsResult.value.notes
-    console.log('news', news)
   } else {
     console.log('Error in page', {
       page: 'Home',
