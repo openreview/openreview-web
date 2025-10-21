@@ -664,7 +664,7 @@ test('#160 allow user to overwrite last/middle/first name to be lowercase', asyn
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/signup`)
     .click(fullNameInputSelector)
-    .pressKey('f i r s t')
+    .pressKey('f i r s t', { speed: 0.8 })
     .expect(fullNameInputSelector.value)
     .eql('First')
     .pressKey('left left left left left delete f tab')
