@@ -15,5 +15,5 @@ export async function GET() {
       error,
     })
   }
-  return Response.json({ healthy: false })
+  return Response.json({ healthy: false }, { status: 503 })
 }
