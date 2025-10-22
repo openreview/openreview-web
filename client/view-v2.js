@@ -2322,6 +2322,12 @@ module.exports = (function () {
         case 'license':
           note[otherNoteField] = formData?.noteLicenseValue ?? noteObj?.[otherNoteField]
           break
+        case 'cdate':
+          note[otherNoteField] = formData?.noteCDateValue ?? noteObj?.[otherNoteField]
+          break
+        case 'mdate':
+          note[otherNoteField] = formData?.noteMDateValue ?? noteObj?.[otherNoteField]
+          break
         case 'pdate':
           note[otherNoteField] = formData?.notePDateValue ?? noteObj?.[otherNoteField]
           break
@@ -2417,6 +2423,12 @@ module.exports = (function () {
         switch (p) {
           case 'license':
             editNote[p] = formContent.noteLicenseValue ?? edit.note[p]
+            break
+          case 'cdate':
+            editNote[p] = formContent.noteCDateValue ?? edit.note[p]
+            break
+          case 'mdate':
+            editNote[p] = formContent.noteMDateValue ?? edit.note[p]
             break
           case 'pdate':
             editNote[p] = formContent.notePDateValue ?? edit.note[p]

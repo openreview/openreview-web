@@ -15,6 +15,7 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
+    .wait(100)
     .click(loginButton)
 })
 const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
@@ -22,6 +23,7 @@ const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'a@a.com')
     .typeText(passwordInput, strongPassword)
+    .wait(100)
     .click(loginButton)
 })
 const pcRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
@@ -29,6 +31,7 @@ const pcRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'program_chair@mail.com')
     .typeText(passwordInput, strongPassword)
+    .wait(100)
     .click(loginButton)
 })
 

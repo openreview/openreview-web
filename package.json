@@ -1,6 +1,6 @@
 {
   "name": "openreview-web",
-  "version": "1.14.27",
+  "version": "1.14.28",
   "private": true,
   "scripts": {
     "dev": "next dev --port $NEXT_PORT",
@@ -81,6 +81,6 @@
     "node-fetch-cjs": "^3.3.2",
     "prettier": "^3.1.0",
     "sass": "^1.82.0",
-    "testcafe": "^3.4.0"
+    "testcafe": "^3.7.2"
   }
 }
