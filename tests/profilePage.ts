@@ -1503,7 +1503,14 @@ test('validate current history', async (t) => {
     })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('Error: Your Career & Education History must include at least one current position.')
+    .eql('Error: There are errors in your Career & Education History.')
+    .expect(
+      Selector('span.invalid-value-icon').withAttribute(
+        'data-original-title',
+        'Your Career & Education History must include at least one current position.'
+      ).exists
+    )
+    .ok()
     // add current end date
     .typeText(firstHistoryEndInput, new Date().getFullYear().toString(), {
       replace: true,
