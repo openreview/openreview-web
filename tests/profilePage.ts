@@ -1095,7 +1095,8 @@ test('add and delete geolocation of history', async (t) => {
     .click(step4History) // to collapse dropdown
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('Error: You must enter position, institution, domain and country/region information for each entry in your career and education history')
+    .eql('Error: There are errors in your Career & Education History.')
+    .expect(Selector('span.invalid-value-icon').withAttribute('data-original-title', 'Country/Region is required for current positions').exists).ok()
 })
 
 test('add links', async (t) => {
