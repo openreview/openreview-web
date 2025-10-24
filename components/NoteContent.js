@@ -2,7 +2,7 @@
 
 /* globals DOMPurify,marked: false */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import union from 'lodash/union'
 import {
   prettyField,
@@ -168,6 +168,7 @@ export const NoteContentV2 = ({
   omit = [],
   include = [],
   isEdit = false,
+  externalIDs,
   fullMarkdown = false,
 }) => {
   if (!content) return null
@@ -195,6 +196,24 @@ export const NoteContentV2 = ({
   ]
     .concat(omit)
     .filter((field) => !include.includes(field))
+
+  const getExternalLink = (externalID) => {
+    const colonIndex = externalID?.indexOf(':')
+    if (!colonIndex) return null
+
+    const prefix = externalID.slice(0, colonIndex)
+    const externalIDWithoutPrefix = externalID.slice(colonIndex + 1)
+    switch (prefix) {
+      case 'arxiv':
+        return `https://arxiv.org/abs/${externalIDWithoutPrefix}`
+      case 'dblp':
+        return `https://dblp.org/rec/${externalIDWithoutPrefix}`
+      case 'doi':
+        return `https://doi.org/${externalIDWithoutPrefix}`
+      default:
+        return null
+    }
+  }
 
   return (
     <div className="note-content">
@@ -255,6 +274,19 @@ export const NoteContentV2 = ({
           </div>
         )
       })}
+      {externalIDs && (
+        <div>
+          <NoteContentField name="External IDs" />
+          {externalIDs.map((externalID, index) => (
+            <React.Fragment key={externalID}>
+              <a href={getExternalLink(externalID)} target="_blank" rel="noreferrer nofollow">
+                {externalID}
+              </a>
+              {index < externalIDs.length - 1 && <span>{', '}</span>}
+            </React.Fragment>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

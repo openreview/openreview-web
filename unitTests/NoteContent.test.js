@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { NoteContentV2 } from '../components/NoteContent'
 
@@ -150,5 +150,36 @@ describe('NoteContentV2', () => {
     )
 
     expect(global.marked.Renderer).toHaveBeenCalledTimes(1)
+  })
+
+  test('render valid external id as links', () => {
+    const props = {
+      id: 'noteId',
+      content: {},
+      externalIDs: [
+        'arxiv:1234.5678',
+        'doi:10.1000/xyz123',
+        'dblp:journals/abc/12345',
+        'orcid:12345', // non-existing external id prefix as orcid use doi
+      ],
+    }
+
+    render(<NoteContentV2 {...props} />)
+
+    expect(screen.getAllByRole('link').length).toEqual(3)
+    expect(screen.getByRole('link', { name: 'arxiv:1234.5678' })).toHaveAttribute(
+      'href',
+      'https://arxiv.org/abs/1234.5678'
+    )
+    expect(screen.getByRole('link', { name: 'doi:10.1000/xyz123' })).toHaveAttribute(
+      'href',
+      'https://doi.org/10.1000/xyz123'
+    )
+    expect(screen.getByRole('link', { name: 'dblp:journals/abc/12345' })).toHaveAttribute(
+      'href',
+      'https://dblp.org/rec/journals/abc/12345'
+    )
+
+    expect(screen.getByText('orcid:12345')).not.toHaveAttribute('href')
   })
 })

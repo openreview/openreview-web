@@ -33,7 +33,7 @@ const EditContentValue = ({ editId, fieldName, fieldValue, enableMarkdown, isJso
     )
   }
 
-  if (fieldName === '_bibtex') {
+  if (fieldName === '_bibtex' || fieldName === 'xml') {
     return (
       <div className="note-content-value">
         <pre>{fieldValue}</pre>
