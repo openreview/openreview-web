@@ -86,9 +86,7 @@ export const NoteTitleV2 = ({
         {content.title?.value || buildNoteTitle(invitation, signatures)}
       </a>
     ) : (
-      <Link
-        href={buildNoteUrl(id, forum, content, options)}
-      >
+      <Link href={buildNoteUrl(id, forum, content, options)}>
         {content.title?.value || buildNoteTitle(invitation, signatures)}
       </Link>
     )}
@@ -114,14 +112,6 @@ export const NoteTitleV2 = ({
       >
         <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
       </a>
-    )}
-
-    {options.unlinkButton && (
-      <UnlinkPublicationButton
-        noteId={id}
-        linkUnlinkPublication={options.linkUnlinkPublication}
-        isUnlinked={options.isUnlinked}
-      />
     )}
   </h4>
 )
