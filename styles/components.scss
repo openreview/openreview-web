@@ -158,6 +158,13 @@ table.table-minimal {
       .completed-date {
         padding-left: 0.5rem;
       }
+
+      .import-source-icon {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 0.25rem;
+        margin-top: -2px;
+      }
     }
 
     .pdf-link,
@@ -229,6 +236,25 @@ table.table-minimal {
     .private-author-label {
       color: constants.$subtleGray;
       font-style: italic;
+    }
+
+    .import-sources {
+      display: flex;
+
+      .import-source-button {
+        background: none;
+        border: none;
+        padding: 4px;
+        transition: opacity 0.2s ease;
+        opacity: 0.25;
+        &.active {
+          opacity: 1;
+        }
+      }
+
+      .import-source-button:hover {
+        opacity: 1 !important;
+      }
     }
 
     .note-contents-collapse {
