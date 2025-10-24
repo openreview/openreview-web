@@ -15,6 +15,8 @@ const MultiSourceNote = ({ notes, displayOptions }) => {
   const sources = [
     'DBLP.org/-/Record',
     `${process.env.SUPER_USER}/Public_Article/ORCID.org/-/Record`,
+    `${process.env.SUPER_USER}/Public_Article/arXiv.org/-/Record`,
+    `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
   ].filter((p) => notes.some((q) => q.invitations.includes(p)))
 
   return (
@@ -85,6 +87,8 @@ const SourceGroupedNoteList = ({ notes, displayOptions }) => {
       ![
         'DBLP.org/-/Record',
         `${process.env.SUPER_USER}/Public_Article/ORCID.org/-/Record`,
+        `${process.env.SUPER_USER}/Public_Article/arXiv.org/-/Record`,
+        `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
       ].some((p) => curr.invitations.includes(p))
     ) {
       // eslint-disable-next-line no-param-reassign
