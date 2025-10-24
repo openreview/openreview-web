@@ -1,4 +1,4 @@
-/* globals promptError: false */
+/* globals promptError,$: false */
 import { useEffect, useReducer, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { nanoid } from 'nanoid'
@@ -102,7 +102,7 @@ const EducationHistoryRow = ({
             isClearable
             classNamePrefix="position-dropdown"
             placeholder={positionPlaceholder}
-            isInvalid={invalidFields?.includes('position')}
+            isInvalid={invalidFields?.position}
             defaultValue={p.position ? { value: p.position, label: p.position } : null}
             onChange={(e) => {
               setHistory({
@@ -125,7 +125,7 @@ const EducationHistoryRow = ({
         ) : (
           <input
             className={`form-control position-dropdown__placeholder ${
-              invalidFields?.includes('position') ? 'invalid-value' : ''
+              invalidFields?.position ? 'invalid-value' : ''
             }`}
             placeholder={positionPlaceholder}
             value={p.position}
@@ -134,32 +134,58 @@ const EducationHistoryRow = ({
             onChange={() => {}}
           />
         )}
+        {invalidFields?.position && (
+          <span
+            className="invalid-value-icon"
+            data-toggle="tooltip"
+            data-placement="top"
+            title={invalidFields.position}
+          >
+            <Icon name="exclamation-sign" />
+          </span>
+        )}
       </div>
       <div className="col-md-1 history__value">
         {isMobile && <div className="small-heading col-md-1">Start</div>}
         <input
-          className={`form-control ${
-            invalidFields?.includes('startYear') ? 'invalid-value' : ''
-          }`}
+          className={`form-control ${invalidFields?.startYear ? 'invalid-value' : ''}`}
           value={p.start ?? ''}
           placeholder="start year"
           onChange={(e) =>
             setHistory({ type: startType, data: { value: e.target.value, key: p.key } })
           }
         />
+        {invalidFields?.startYear && (
+          <span
+            className="invalid-value-icon"
+            data-toggle="tooltip"
+            data-placement="top"
+            title={invalidFields.startYear}
+          >
+            <Icon name="exclamation-sign" />
+          </span>
+        )}
       </div>
       <div className="col-md-1 history__value">
         {isMobile && <div className="small-heading col-md-1">End</div>}
         <input
-          className={`form-control ${
-            invalidFields?.includes('endYear') ? 'invalid-value' : ''
-          }`}
+          className={`form-control ${invalidFields?.endYear ? 'invalid-value' : ''}`}
           value={p.end ?? ''}
           placeholder="end year"
           onChange={(e) =>
             setHistory({ type: endType, data: { value: e.target.value, key: p.key } })
           }
         />
+        {invalidFields?.endYear && (
+          <span
+            className="invalid-value-icon"
+            data-toggle="tooltip"
+            data-placement="top"
+            title={invalidFields.endYear}
+          >
+            <Icon name="exclamation-sign" />
+          </span>
+        )}
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-3">Institution Domain</div>}
@@ -173,7 +199,7 @@ const EducationHistoryRow = ({
             isClearable
             classNamePrefix="institution-dropdown"
             placeholder={institutionPlaceholder}
-            isInvalid={invalidFields?.includes('institution')}
+            isInvalid={invalidFields?.institutionDomain}
             defaultValue={
               p.institution?.domain
                 ? { value: p.institution?.domain, label: p.institution?.domain }
@@ -194,7 +220,7 @@ const EducationHistoryRow = ({
         ) : (
           <input
             className={`form-control institution-dropdown__placeholder ${
-              invalidFields?.includes('institution') ? 'invalid-value' : ''
+              invalidFields?.institutionDomain ? 'invalid-value' : ''
             }`}
             placeholder={institutionPlaceholder}
             value={p.institution?.domain}
@@ -203,12 +229,22 @@ const EducationHistoryRow = ({
             onChange={() => {}}
           />
         )}
+        {invalidFields?.institutionDomain && (
+          <span
+            className="invalid-value-icon"
+            data-toggle="tooltip"
+            data-placement="top"
+            title={invalidFields.institutionDomain}
+          >
+            <Icon name="exclamation-sign" />
+          </span>
+        )}
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution Name</div>}
         <input
           className={`form-control institution-dropdown__name ${
-            invalidFields?.includes('institution') ? 'invalid-value' : ''
+            invalidFields?.institutionName ? 'invalid-value' : ''
           }`}
           placeholder="Institution Name"
           value={p.institution?.name ?? ''}
@@ -219,6 +255,16 @@ const EducationHistoryRow = ({
             })
           }
         />
+        {invalidFields?.institutionName && (
+          <span
+            className="invalid-value-icon"
+            data-toggle="tooltip"
+            data-placement="top"
+            title={invalidFields.institutionName}
+          >
+            <Icon name="exclamation-sign" />
+          </span>
+        )}
       </div>
       <div className="col-md-1 history__value">
         {history.length > 1 && (
@@ -244,7 +290,7 @@ const EducationHistoryRow = ({
               })
               if (e) setIsRegionClicked(false)
             }}
-            isInvalid={invalidFields?.includes('country')}
+            isInvalid={invalidFields?.institutionCountryRegion}
             value={countryOptions?.find((q) => q.value === p.institution?.country)}
             placeholder={regionPlaceholder}
             classNamePrefix="country-dropdown"
@@ -256,7 +302,7 @@ const EducationHistoryRow = ({
         ) : (
           <input
             className={`form-control region-dropdown__placeholder ${
-              invalidFields?.includes('country') ? 'invalid-value' : ''
+              invalidFields?.institutionCountryRegion ? 'invalid-value' : ''
             }`}
             placeholder={regionPlaceholder}
             value={
@@ -266,6 +312,16 @@ const EducationHistoryRow = ({
             onFocus={() => setIsRegionClicked(true)}
             onChange={() => {}}
           />
+        )}
+        {invalidFields?.institutionCountryRegion && (
+          <span
+            className="invalid-value-icon"
+            data-toggle="tooltip"
+            data-placement="top"
+            title={invalidFields.institutionCountryRegion}
+          >
+            <Icon name="exclamation-sign" />
+          </span>
         )}
       </div>
       <div className="col-md-3 history__value">
@@ -461,6 +517,10 @@ const EducationHistorySection = ({
   useEffect(() => {
     updateHistory(history)
   }, [history])
+
+  useEffect(() => {
+    $('[data-toggle="tooltip"]').tooltip()
+  }, [profileHistory])
 
   return (
     <div className="container history history-new">

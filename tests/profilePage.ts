@@ -1095,7 +1095,8 @@ test('add and delete geolocation of history', async (t) => {
     .click(step4History) // to collapse dropdown
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('Error: You must enter position, institution, domain and country/region information for each entry in your career and education history')
+    .eql('Error: There are errors in your Career & Education History.')
+    .expect(Selector('span.invalid-value-icon').withAttribute('data-original-title', 'Country/Region is required for current positions').exists).ok()
 })
 
 test('add links', async (t) => {
@@ -1502,7 +1503,14 @@ test('validate current history', async (t) => {
     })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql('Error: Your Career & Education History must include at least one current position.')
+    .eql('Error: There are errors in your Career & Education History.')
+    .expect(
+      Selector('span.invalid-value-icon').withAttribute(
+        'data-original-title',
+        'Your Career & Education History must include at least one current position.'
+      ).exists
+    )
+    .ok()
     // add current end date
     .typeText(firstHistoryEndInput, new Date().getFullYear().toString(), {
       replace: true,
