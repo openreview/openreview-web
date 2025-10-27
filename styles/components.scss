@@ -1260,18 +1260,18 @@ table.table-minimal {
       }
     }
     .tag-editor-container {
-      margin-bottom: 0.5rem;
+      margin-bottom: 1rem;
       display: flex;
       justify-content: space-between;
 
       .dropdown-select {
         flex-grow: 1;
-        max-width: 40%;
+        max-width: 30%;
       }
 
       .tag-label {
         flex-grow: 1;
-        max-width: 60%;
+        max-width: 70%;
       }
     }
     .tags-dropdown {

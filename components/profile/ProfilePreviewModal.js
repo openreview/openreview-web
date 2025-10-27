@@ -30,11 +30,11 @@ const ProfilePreviewModal = ({
   const [rejectionReasons, setRejectReasons] = useState([])
   const tagInvitationOptions = [
     {
-      label: 'Moderation Label',
+      label: 'General Moderation Tag',
       value: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
     },
     {
-      label: 'Vouched by',
+      label: 'Vouched by Tag',
       value: `${process.env.SUPER_USER}/Support/-/Vouch`,
     },
   ]
@@ -102,7 +102,7 @@ const ProfilePreviewModal = ({
     try {
       await api.post('/tags', {
         profile: profileToPreview.id,
-        label: isVouchInvitation ? 'vouch' : tagLabel,
+        ...(!isVouchInvitation && { label: tagLabel }),
         signature: isVouchInvitation ? tagLabel : `${process.env.SUPER_USER}/Support`,
         invitation: tagInvitation,
       })
@@ -199,13 +199,17 @@ const ProfilePreviewModal = ({
                 classNamePrefix="tags-dropdown"
                 placeholder={
                   tagInvitation === `${process.env.SUPER_USER}/Support/-/Vouch`
-                    ? 'tilde id of the user vouching for this user'
+                    ? 'enter tilde id of the user vouching for this user'
                     : 'select or create tag label'
                 }
-                options={[
-                  { label: 'require vouch', value: 'require vouch' },
-                  { label: 'potential spam', value: 'potential spam' },
-                ]}
+                options={
+                  tagInvitation === `${process.env.SUPER_USER}/Support/-/Vouch`
+                    ? []
+                    : [
+                        { label: 'require vouch', value: 'require vouch' },
+                        { label: 'potential spam', value: 'potential spam' },
+                      ]
+                }
                 value={null}
                 onChange={(e) => {
                   if (!e) return
