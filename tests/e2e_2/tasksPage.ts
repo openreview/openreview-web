@@ -16,7 +16,7 @@ const hasNoTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, asyn
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), hasNoTaskUser.email)
     .typeText(Selector('#password-input'), hasNoTaskUser.password)
-    .wait(100)
+    .wait(300)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
