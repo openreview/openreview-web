@@ -39,6 +39,7 @@ test('task should change when note is deleted and restored', async (t) => {
     .useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
     .click(Selector('span.task-count-message'))
+    .wait(200)
     .click(Selector('a').withText('Submission1 Official Review')) // go to forum page
     .wait(2000)
     .click(Selector('#forum-replies').find('button').withAttribute('type', 'button').nth(5))
@@ -55,6 +56,7 @@ test('task should change when note is deleted and restored', async (t) => {
     .expect(Selector('span.task-count-message').innerText)
     .eql('1 pending task')
     .click(Selector('span.task-count-message'))
+    .wait(200)
     .click(Selector('a').withText('Submission1 Official Review'))
     .wait(2000)
     .click(Selector('#forum-replies').find('button').withAttribute('type', 'button').nth(4))
