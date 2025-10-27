@@ -61,8 +61,8 @@ const ProfilePreviewModal = ({
         null,
         { accessToken }
       )
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      promptError(apiError)
     }
     if (apiRes.notes) {
       const sortedNotes = sortFn ? sortFn(apiRes.notes) : apiRes.notes
