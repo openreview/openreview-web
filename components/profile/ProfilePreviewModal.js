@@ -10,6 +10,7 @@ import MessagesSection from './MessagesSection'
 import Dropdown, { CreatableDropdown } from '../Dropdown'
 import { getRejectionReasons } from '../../lib/utils'
 import ProfileTag from '../ProfileTag'
+import ErrorAlert from '../ErrorAlert'
 
 const ProfilePreviewModal = ({
   profileToPreview,
@@ -28,6 +29,7 @@ const ProfilePreviewModal = ({
   const [rejectionMessage, setRejectionMessage] = useState('')
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionReasons, setRejectReasons] = useState([])
+  const [error, setError] = useState(null)
   const tagInvitationOptions = [
     {
       label: 'General Moderation Tag',
@@ -75,8 +77,8 @@ const ProfilePreviewModal = ({
         profile: profileToPreview.id,
       })
       setTags(result.tags)
-    } catch (error) {
-      /* empty */
+    } catch (apiError) {
+      setError(apiError)
     }
   }
 
@@ -91,8 +93,8 @@ const ProfilePreviewModal = ({
         invitation: tag.invitation,
       })
       await loadTags()
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      setError(apiError)
     }
   }
 
@@ -107,8 +109,8 @@ const ProfilePreviewModal = ({
         invitation: tagInvitation,
       })
       await loadTags()
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      setError(apiError)
     }
   }
 
@@ -117,6 +119,7 @@ const ProfilePreviewModal = ({
     setIsRejecting(false)
     setTags([])
     setTagInvitation(tagInvitationOptions[0].value)
+    setError(null)
     const currentInstitutionName = profileToPreview?.history?.find(
       (p) => !p.end || p.end >= new Date().getFullYear()
     )?.institution?.name
@@ -137,6 +140,7 @@ const ProfilePreviewModal = ({
       }}
       options={{ hideFooter: !!needsModeration }}
     >
+      {error && <ErrorAlert error={error} />}
       <BasicProfileView
         profile={profileToPreview}
         showLinkText={true}
