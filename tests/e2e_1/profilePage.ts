@@ -11,7 +11,7 @@ import {
   getNoteEdits,
   superUserName,
   strongPassword,
-} from './utils/api-helper'
+} from '../utils/api-helper'
 
 const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
@@ -808,6 +808,7 @@ const orcidImportModalAddToProfileBtn = Selector('#orcid-import-modal')
 
 // #endregion
 
+// eslint-disable-next-line no-unused-expressions
 fixture`Profile page`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
   return ctx
@@ -1624,6 +1625,7 @@ test('open profile of other user by id', async (t) => {
     .contains('****')
 })
 
+// eslint-disable-next-line no-unused-expressions
 fixture`ORCID import`.requestHooks(orcidMock)
 test('show error when using orcid url of somone else', async (t) => {
   await t

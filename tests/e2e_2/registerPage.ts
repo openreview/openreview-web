@@ -7,7 +7,7 @@ import {
   getMessages,
   superUserName,
   strongPassword,
-} from './utils/api-helper'
+} from '../utils/api-helper'
 
 const SURole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t

@@ -1,5 +1,5 @@
 import { Selector, Role } from 'testcafe'
-import { hasTaskUser, hasNoTaskUser } from './utils/api-helper'
+import { hasTaskUser, hasNoTaskUser } from '../utils/api-helper'
 
 const confirmDeleteModal = Selector('#confirm-delete-modal')
 const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
