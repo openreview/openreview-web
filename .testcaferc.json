@@ -1,5 +1,4 @@
 {
-  "videoPath": "videos",
   "stopOnFirstFail": true,
   "pageRequestTimeout": 30000,
   "hostname": "localhost",
