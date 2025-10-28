@@ -76,15 +76,15 @@ const OtherVersions = ({ note }) => {
               className={otherVersionNote.id === note.id ? 'disabled' : undefined}
             >
               <a href={`/forum?id=${otherVersionNote.id}`}>
+                {otherVersionNote.content.venue.value} (
+                {dayjs(otherVersionNote.pdate ?? otherVersionNote.cdate).format('LL')})
                 {otherVersionNote.privatelyRevealed && (
                   <Icon
-                    name="eye-close"
-                    extraClasses="mr-2"
+                    name="eye-open"
+                    extraClasses="ml-2"
                     tooltip="Privately revealed to you"
                   />
                 )}
-                {otherVersionNote.content.venue.value} (
-                {dayjs(otherVersionNote.pdate ?? otherVersionNote.cdate).format('LL')})
               </a>
             </li>
           ))}
