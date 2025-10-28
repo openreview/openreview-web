@@ -5,6 +5,7 @@ import dayjs from 'dayjs'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { inflect } from '../../lib/utils'
+import Icon from '../Icon'
 
 const OtherVersions = ({ note }) => {
   const { accessToken, isRefreshing } = useUser()
@@ -22,7 +23,13 @@ const OtherVersions = ({ note }) => {
       )
 
       const otherNoteVersions = orderBy(
-        result.notes.filter((p) => p.content?.venue?.value),
+        result.notes.flatMap((p) => {
+          if (!p.content?.venue?.value) return []
+          return {
+            ...p,
+            privatelyRevealed: !note.readers.includes('everyone'),
+          }
+        }),
         [(p) => p.pdate ?? p.cdate],
         'desc'
       )
@@ -71,6 +78,13 @@ const OtherVersions = ({ note }) => {
               <a href={`/forum?id=${otherVersionNote.id}`}>
                 {otherVersionNote.content.venue.value} (
                 {dayjs(otherVersionNote.pdate ?? otherVersionNote.cdate).format('LL')})
+                {otherVersionNote.privatelyRevealed && (
+                  <Icon
+                    name="eye-open"
+                    extraClasses="ml-2"
+                    tooltip="Privately revealed to you"
+                  />
+                )}
               </a>
             </li>
           ))}
