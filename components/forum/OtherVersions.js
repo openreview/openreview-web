@@ -27,7 +27,7 @@ const OtherVersions = ({ note }) => {
           if (!p.content?.venue?.value) return []
           return {
             ...p,
-            privatelyRevealed: !note.readers.includes('everyone'),
+            privatelyRevealed: !p.readers.includes('everyone'),
           }
         }),
         [(p) => p.pdate ?? p.cdate],
@@ -52,7 +52,7 @@ const OtherVersions = ({ note }) => {
       initial={{ height: 0, overflow: 'hidden' }}
       animate={{ height: 'auto' }}
       transition={{
-        height: { duration: 0.25, ease: 'easeIn' },
+        height: { duration: 0.5, ease: 'easeIn' },
       }}
       onAnimationComplete={() => {
         if (containerRef.current) containerRef.current.style.overflow = 'visible'
