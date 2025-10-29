@@ -13,9 +13,14 @@
 
   &:hover {
     background-color: constants.$backgroundGray;
+
+    :global(.highlight) {
+      text-decoration: underline;
+    }
   }
 
-  &.deletable {
+  &.deletable,
+  &.withTagLink {
     cursor: pointer;
   }
 

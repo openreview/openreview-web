@@ -2,20 +2,23 @@
 
 /* globals promptError: false */
 import { useEffect, useState } from 'react'
+import { orderBy } from 'lodash'
 import api from '../../lib/api-client'
 import ProfileTag from '../../components/ProfileTag'
 
-export default function ProfileTags({ profileId, showProfileId }) {
-  const [tags, setTags] = useState([])
+export default function ProfileTags({ profileId, showProfileId, isSuperUser }) {
+  const [allTags, setAllTags] = useState([])
+  const [tagsToShow, setTagsToShow] = useState(5)
+  const visibleTags = allTags.slice(0, tagsToShow)
 
   const loadTags = async () => {
     try {
       const result = await api.get('/tags', {
         profile: profileId,
       })
-      setTags(result.tags)
+      setAllTags(orderBy(result.tags, ['cdate'], ['desc']))
     } catch (error) {
-      setTags([])
+      setAllTags([])
     }
   }
 
@@ -35,13 +38,15 @@ export default function ProfileTags({ profileId, showProfileId }) {
     }
   }
   useEffect(() => {
-    if (!profileId) return
+    if (!profileId || !isSuperUser) return
     loadTags()
   }, [profileId])
 
+  if (!isSuperUser) return null
+
   return (
-    <div className={`tags-container ${tags.length ? 'mb-2' : ''}`}>
-      {tags.map((tag, index) => (
+    <div className={`tags-container ${visibleTags.length ? 'mb-2' : ''}`}>
+      {visibleTags.map((tag, index) => (
         <ProfileTag
           key={index}
           tag={tag}
@@ -49,6 +54,17 @@ export default function ProfileTags({ profileId, showProfileId }) {
           showProfileId={showProfileId}
         />
       ))}
+      {allTags.length > 0 && tagsToShow !== allTags.length && (
+        // eslint-disable-next-line jsx-a11y/anchor-is-valid
+        <a
+          href="#"
+          onClick={() => setTagsToShow(allTags.length)}
+          role="button"
+          className="mt-2"
+        >
+          View all {allTags.length} tags
+        </a>
+      )}
     </div>
   )
 }

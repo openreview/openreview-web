@@ -8,6 +8,8 @@ import {
   prettyInvitationId,
   stringToObject,
 } from '../lib/utils'
+import { screen, render } from '@testing-library/react'
+import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
@@ -855,7 +857,7 @@ describe('utils', () => {
     expectedValue = 'OpenReview Support Profile Moderation Label Test User spam user'
     expect(getTagDispayText(tag, true)).toEqual(expectedValue)
 
-    // show label for vouch invitation (show profile id false)
+    // show label for vouch invitation (show profile id false)- highlight signature
     tag = {
       invitation: 'OpenReview.net/Support/-/Vouch',
       label: 'vouch',
@@ -865,9 +867,11 @@ describe('utils', () => {
     }
 
     expectedValue = 'Vouched by ~Mentor_User1'
-    expect(getTagDispayText(tag, false)).toEqual(expectedValue)
+    const { container } = render(getTagDispayText(tag, false))
+    expect(container.textContent).toEqual(expectedValue)
+    expect(screen.getByText('~Mentor_User1')).toHaveClass('highlight')
 
-    // show label for vouch invitation (show profile id true)
+    // show label for vouch invitation (show profile id true)-does not have hightlight as it's not used
     tag = {
       invitation: 'OpenReview.net/Support/-/Vouch',
       label: 'vouch',
@@ -890,6 +894,8 @@ describe('utils', () => {
     }
 
     expectedValue = 'ICML 2023 Conference Assignment Count (25)'
-    expect(getTagDispayText(tag, false)).toEqual(expectedValue)
+    const { container: conferenceTagContainer } = render(getTagDispayText(tag, false))
+    expect(conferenceTagContainer.textContent).toEqual(expectedValue)
+    expect(screen.getByText('ICML 2023 Conference')).toHaveClass('highlight')
   })
 })
