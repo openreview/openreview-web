@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* globals promptError: false */
 
 import { useContext, useEffect, useState } from 'react'
@@ -92,6 +93,39 @@ const TagsPage = ({ tagsOfPage, accessToken, domain }) => {
     </>
   )
 }
+
+// #region config docs
+/** TagsViewer config doc
+ *
+ * @typedef {Object} TagsViewerConfig
+ *
+ * @property {string} tagInvitation optional
+ * @property {string} instructions optional
+ * @property {string} domain optional
+ */
+
+/**
+ * @name TagsViewerConfig.tagInvitation
+ * @description The invitation id to get tags. By default it shows the blocked profiles.
+ * @type {string}
+ * @default `${process.env.SUPER_USER}/Support/-/Profile_Blocked_Status`
+ */
+
+/**
+ * @name TagsViewerConfig.instructions
+ * @description Markdown string rendered under the header title.
+ * @type {string}
+ * @default no default value
+ * @example "some **instructions**"
+ */
+
+/**
+ * @name TagsViewerConfig.domain
+ * @description This is used to filter the group membership of tagged profile. By default it is group.domain so that member of the venue is shown. If the component is used in a group webfield outside the venue, this property should be set to the venue domain.
+ * @type {string}
+ * @default domain of the group
+ */
+// #endregion
 
 const TagsViewer = () => {
   const {
