@@ -29,6 +29,19 @@
       border-color: constants.$orRed;
     }
 
+    .invalid-value-icon {
+      position: absolute;
+      top: 0.25rem;
+      right: 8px;
+      color: constants.$orRed;
+    }
+
+    .tooltip .tooltip-inner {
+      white-space: nowrap;
+      max-width: none;
+      width: max-content;
+    }
+
     div.instructions {
       font-size: 0.75rem;
       color: constants.$subtleGray;
