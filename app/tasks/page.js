@@ -193,6 +193,7 @@ export default function Page() {
         <Accordion
           sections={Array.from(domainTypeMap.entries()).map(([domain, types]) => ({
             domain,
+            types,
             heading: (
               <HeadingLink
                 groupId={domain}
