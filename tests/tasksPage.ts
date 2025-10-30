@@ -35,6 +35,11 @@ test('user with no tasks should see an empty tasks page', async (t) => {
 })
 
 test('task should change when note is deleted and restored', async (t) => {
+  await t // clicking triangle should expand tasks
+    .useRole(hasTaskUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
+    .click(Selector('span.glyphicon-triangle-bottom'))
+    .expect(Selector('a').withText('Submission1 Official Review').exists).ok()
   await t
     .useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
