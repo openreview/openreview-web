@@ -18,6 +18,7 @@ const Accordion = ({ sections, options }) => (
             heading={section.heading}
             options={options}
             domain={section.domain}
+            types={section.types}
           />
           <SectionBody id={sectionId} body={section.body} options={options} />
           <hr className="webfield-accordion-divider" />
@@ -27,13 +28,13 @@ const Accordion = ({ sections, options }) => (
   </div>
 )
 
-const SectionHeading = ({ id, heading, options, domain }) => (
+const SectionHeading = ({ id, heading, options, domain, types }) => (
   <div className="panel-heading" role="tab">
     <h4 className="panel-title">
       <SectionHeadingLink
         targetId={id}
         collapsed={options.collapsed}
-        onExpand={() => options.onExpand?.(domain)}
+        onExpand={() => options.onExpand?.(domain, types)}
       >
         <Icon name="triangle-bottom" />
       </SectionHeadingLink>{' '}
