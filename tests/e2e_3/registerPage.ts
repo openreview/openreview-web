@@ -112,7 +112,6 @@ test('create new profile', async (t) => {
 })
 
 test('create another new profile', async (t) => {
-  await t.expect(1).eql(0)
   await t
     .typeText(fullNameInputSelector, 'Peter Pan')
     .expect(emailAddressInputSelector.exists)
