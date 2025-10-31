@@ -164,6 +164,14 @@ jobs:
           cd openreview-web
           mkdir -p logs
           NODE_ENV=production SUPER_USER=openreview.net npm run start > logs/web.log 2>&1 &
+      - name: Pin Firefox Version
+        id: setup-firefox
+        uses: browser-actions/setup-firefox@v1
+        with:
+          firefox-version: '143.0'
+      - name: Overwrite default firefox
+        run: |
+          sudo ln -sf "${{ steps.setup-firefox.outputs.firefox-path }}" /usr/bin/firefox
       - name: Run TestCafe Tests
         run: |
           cd openreview-web
