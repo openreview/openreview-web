@@ -12,8 +12,6 @@
   margin-top: 0.25rem;
 
   &:hover {
-    background-color: constants.$backgroundGray;
-
     :global(.highlight) {
       text-decoration: underline;
     }
@@ -40,18 +38,10 @@
   border-color: red;
   background-color: red;
   color: white;
-
-  &:hover {
-    background-color: darken($color: red, $amount: 10);
-  }
 }
 
 .requireVouch {
   border-color: #fa8c16;
   background-color: #fa8c16;
   color: white;
-
-  &:hover {
-    background-color: darken($color: #fa8c16, $amount: 10);
-  }
 }

@@ -866,10 +866,10 @@ describe('utils', () => {
       signature: '~Mentor_User1',
     }
 
-    expectedValue = 'Vouched by ~Mentor_User1'
+    expectedValue = 'Vouched by Mentor User'
     const { container } = render(getTagDispayText(tag, false))
     expect(container.textContent).toEqual(expectedValue)
-    expect(screen.getByText('~Mentor_User1')).toHaveClass('highlight')
+    expect(screen.getByText('Mentor User')).toHaveClass('highlight')
 
     // show label for vouch invitation (show profile id true)-does not have hightlight as it's not used
     tag = {

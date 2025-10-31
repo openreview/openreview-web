@@ -50,11 +50,11 @@ export default function ProfileTags({ profileId, showProfileId, isSuperUser }) {
         <ProfileTag
           key={index}
           tag={tag}
-          onDelete={() => deleteTag(tag)}
+          // onDelete={() => deleteTag(tag)}
           showProfileId={showProfileId}
         />
       ))}
-      {allTags.length > 0 && tagsToShow !== allTags.length && (
+      {allTags.length > 0 && tagsToShow < allTags.length && (
         // eslint-disable-next-line jsx-a11y/anchor-is-valid
         <a
           href="#"
