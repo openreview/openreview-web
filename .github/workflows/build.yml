@@ -170,7 +170,7 @@ jobs:
           firefox-version: '143.0'
       - name: Overwrite default firefox
         run: |
-          sudo ln -sf "$FIREFOX_PATH" /usr/bin/firefox
+          sudo ln -sf "${{ steps.firefox.outputs.firefox-path }}" /usr/bin/firefox
       - name: Run TestCafe Tests
         run: |
           cd openreview-web
