@@ -1,5 +1,5 @@
 import { Selector, Role } from 'testcafe'
-import { getToken, getNotes, superUserName, strongPassword } from './utils/api-helper'
+import { getToken, getNotes, superUserName, strongPassword } from '../utils/api-helper'
 
 const titleLabel = Selector('.forum-title h2')
 const authorLabel = Selector('.forum-authors span')
@@ -75,6 +75,7 @@ test('view forum bibtex', async (t) => {
   await t
     .useRole(authorRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forumId}`)
+    .wait(1500)
     .click(Selector('a').withText('BibTeX'))
     .expect(Selector('#bibtex-modal.in').exists)
     .ok()

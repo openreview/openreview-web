@@ -16,7 +16,7 @@ import {
   setupRegister,
   superUserName,
   strongPassword,
-} from './utils/api-helper'
+} from '../utils/api-helper'
 
 const waitForJobs = (noteId, superUserToken, count = 1) =>
   new Promise((resolve, reject) => {
@@ -381,7 +381,7 @@ test('Set up ICLR', async (t) => {
   await waitForJobs(deployId, superUserToken)
 
   const userToken = await getToken(hasTaskUser.email, hasTaskUser.password)
-  const blob = fileFromSync(`${__dirname}/utils/data/paper.pdf`, 'application/pdf')
+  const blob = fileFromSync(`${__dirname}/paper.pdf`, 'application/pdf')
   const data = new FormData()
   data.set('invitationId', 'ICLR.cc/2021/Conference/-/Submission')
   data.set('name', 'pdf')

@@ -11,7 +11,7 @@ import {
   getNoteEdits,
   superUserName,
   strongPassword,
-} from './utils/api-helper'
+} from '../utils/api-helper'
 
 const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t

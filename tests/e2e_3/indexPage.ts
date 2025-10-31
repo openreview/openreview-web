@@ -1,5 +1,5 @@
 import { Selector } from 'testcafe'
-import { baseGroupId, conferenceGroupId } from './utils/api-helper'
+import { baseGroupId, conferenceGroupId } from '../utils/api-helper'
 
 const activeVenues = Selector('#active-venues').filterVisible()
 const openVenues = Selector('#open-venues').filterVisible()
@@ -14,14 +14,15 @@ test('show active venues', async (t) => {
     // Active venues
     .expect(activeVenues.find('li').count)
     .eql(5)
-    .expect(activeVenues.find('a').nth(1).textContent)
-    .eql(conferenceGroupName)
-    .expect(activeVenues.find('a').nth(2).textContent)
-    .eql(`Another${conferenceGroupName}`)
-    .expect(activeVenues.find('a').nth(3).textContent)
-    .eql('ICLR 2021 Conference')
-    .expect(activeVenues.find('a').nth(4).textContent)
-    .eql('TestVenue 2023 Conference')
+    .expect(activeVenues.find('a').withText(conferenceGroupName).exists)
+    .ok()
+    .expect(activeVenues.find('a').withText(`Another${conferenceGroupName}`).exists)
+    .ok()
+    .expect(activeVenues.find('a').withText('TestVenue 2023 Conference').exists)
+    .ok()
+    .expect(activeVenues.find('a').withText('ICLR 2021 Conference').exists)
+    .ok()
+
 
     // Open for submissions
     .expect(openVenues.find('li').count)

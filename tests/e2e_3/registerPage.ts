@@ -1,4 +1,4 @@
-import { Selector, ClientFunction, Role, RequestLogger } from 'testcafe'
+import { Selector, ClientFunction, RequestLogger } from 'testcafe'
 import {
   inactiveUser,
   inActiveUserNoPassword,
@@ -7,25 +7,8 @@ import {
   getMessages,
   superUserName,
   strongPassword,
-} from './utils/api-helper'
+} from '../utils/api-helper'
 
-const SURole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
-  await t
-    .click(Selector('a').withText('Login'))
-    .typeText(Selector('#email-input'), superUserName)
-    .typeText(Selector('#password-input'), strongPassword)
-    .wait(100)
-    .click(Selector('button').withText('Login to OpenReview'))
-})
-
-const EmailOwnerRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
-  await t
-    .click(Selector('a').withText('Login'))
-    .typeText(Selector('#email-input'), 'melisa@test.com')
-    .typeText(Selector('#password-input'), strongPassword)
-    .wait(100)
-    .click(Selector('button').withText('Login to OpenReview'))
-})
 
 const fullNameInputSelector = Selector('#first-input')
 const emailAddressInputSelector = Selector('input').withAttribute(
