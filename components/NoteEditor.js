@@ -581,7 +581,7 @@ const NoteEditor = ({
           formData.authors = noteEditorData.authorids.map((p) => p.authorName)
           formData.authorids = noteEditorData.authorids.map((p) => p.authorId)
         }
-      } else {
+      } else if (!noteEditorData.authors) {
         formData.authors = { delete: true }
         formData.authorids = { delete: true }
       }

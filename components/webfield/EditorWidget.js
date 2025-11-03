@@ -50,6 +50,14 @@ const ProfileSearchWidget = dynamic(() => import('../EditorComponents/ProfileSea
   loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
 })
 
+const ProfileSearchWithInstitutionWidget = dynamic(
+  () => import('../EditorComponents/ProfileSearchWithInstitutionWidget'),
+  {
+    ssr: false,
+    loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+  }
+)
+
 // #endregion
 
 const EditorWidget = () => {
@@ -117,6 +125,8 @@ const EditorWidget = () => {
       case 'profile[]':
       case 'profile{}':
         return <ProfileSearchWidget multiple={true} />
+      case 'author{}':
+        return <ProfileSearchWithInstitutionWidget />
       case 'note':
       case 'note[]':
       case 'edit':
