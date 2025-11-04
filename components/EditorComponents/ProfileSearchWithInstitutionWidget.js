@@ -22,7 +22,18 @@ import MultiSelectorDropdown from '../MultiSelectorDropdown'
 import LoadingSpinner from '../LoadingSpinner'
 import PaginationLinks from '../PaginationLinks'
 
-const getTitle = (profile, isEditor) => {
+const mapDisplayAuthorsToEditorValue = (displayAuthors) =>
+  displayAuthors.map((p) => ({
+    username: p.username,
+    fullname: p.fullname,
+    institutions: p.selectedInstitutions.map((institution) => ({
+      name: institution.name,
+      domain: institution.domain,
+      country: institution.country,
+    })),
+  }))
+
+const getTitle = (profile) => {
   if (!profile.content) return null
   const latestHistory =
     profile.content.history?.find((p) => !p.end) || maxBy(profile.content.history, 'end')
@@ -30,11 +41,7 @@ const getTitle = (profile, isEditor) => {
   const title = latestHistory
     ? `${latestHistory.position ? `${latestHistory.position}` : ''}${
         latestHistory.institution?.name ? ` at ${latestHistory.institution?.name}` : ''
-      }${
-        latestHistory.institution?.domain && isEditor
-          ? ` (${latestHistory.institution?.domain})`
-          : ''
-      }`
+      }${latestHistory.institution?.domain ? ` (${latestHistory.institution?.domain})` : ''}`
     : ''
   return title
 }
@@ -49,15 +56,13 @@ const getInstitutionOptionsFromProfile = (profile) => {
       value: institution.domain,
       name: institution.name,
       domain: institution.domain,
-      countryRegigon: institution.country,
+      country: institution.country,
     })
   })
   return institutionOptions
 }
 
 const checkIsInAuthorList = (selectedAuthors, profileToCheck) => {
-  console.log('selectedAuthors', selectedAuthors)
-  console.log('profileToCheck', profileToCheck)
   const profileIds = profileToCheck.content?.names?.map((p) => p.username) ?? []
   return selectedAuthors?.find((p) => profileIds.includes(p.username))
 }
@@ -87,11 +92,12 @@ const Author = ({
     const updatedValue = [...displayAuthors]
     updatedValue.splice(authorIndex, 1)
     updatedValue.splice(authorIndex + 1, 0, displayAuthors[authorIndex])
+
+    setDisplayAuthors(updatedValue)
     onChange({
       fieldName,
-      value: updatedValue,
+      value: mapDisplayAuthorsToEditorValue(updatedValue),
     })
-    setDisplayAuthors(updatedValue)
   }
 
   const handleInstitutionChange = (newValues) => {
@@ -108,7 +114,7 @@ const Author = ({
     setDisplayAuthors(updatedAuthors)
     onChange({
       fieldName,
-      value: updatedAuthors,
+      value: mapDisplayAuthorsToEditorValue(updatedAuthors),
     })
   }
 
@@ -145,7 +151,7 @@ const Author = ({
                 setDisplayAuthors(updatedAuthors)
                 onChange({
                   fieldName,
-                  value: updatedAuthors,
+                  value: mapDisplayAuthorsToEditorValue(updatedAuthors),
                 })
               }}
               extraClasses="remove-button"
@@ -179,14 +185,11 @@ const ProfileSearchResultRow = ({
   profile,
   setProfileSearchResults,
   setSearchTerm,
-  setSelectedAuthorProfiles,
   displayAuthors,
   setDisplayAuthors,
-  multiple,
   field,
   onChange,
   clearError,
-  isEditor,
 }) => {
   const fieldName = Object.keys(field ?? {})[0]
 
@@ -227,16 +230,12 @@ const ProfileSearchResultRow = ({
             />
           )}
         </div>
-        <div className={styles.authorTitle}>{getTitle(profile, isEditor)}</div>
+        <div className={styles.authorTitle}>{getTitle(profile)}</div>
       </div>
       <div className={styles.authorEmails}>
-        {isEditor ? (
-          profile.content?.emailsConfirmed?.map((email, index) => (
-            <span key={index}>{email}</span>
-          ))
-        ) : (
-          <span>{profile.content?.preferredEmail}</span>
-        )}
+        {profile.content?.emailsConfirmed?.map((email, index) => (
+          <span key={index}>{email}</span>
+        ))}
       </div>
       <div className={styles.addButton}>
         <IconButton
@@ -252,24 +251,14 @@ const ProfileSearchResultRow = ({
               selectedInstitutions: institutionOptions.length ? [institutionOptions[0]] : [],
             })
             setDisplayAuthors(updatedAuthors)
-            if (isEditor === false) {
-              onChange(
-                preferredId,
-                getProfileName(profile),
-                profile?.content?.preferredEmail,
-                profile
-              )
-            } else {
-              onChange({
-                fieldName,
-                value: updatedAuthors,
-              })
-            }
+            onChange({
+              fieldName,
+              value: mapDisplayAuthorsToEditorValue(updatedAuthors),
+            })
 
             clearError?.()
             setProfileSearchResults(null)
             setSearchTerm('')
-            setSelectedAuthorProfiles((existingProfiles) => [...existingProfiles, profile])
           }}
         />
       </div>
@@ -278,7 +267,6 @@ const ProfileSearchResultRow = ({
 }
 
 const ProfileSearchFormAndResults = ({
-  setSelectedAuthorProfiles,
   displayAuthors,
   setDisplayAuthors,
   error,
@@ -292,7 +280,7 @@ const ProfileSearchFormAndResults = ({
   const [totalCount, setTotalCount] = useState(0)
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   const { accessToken } = useUser()
-  const pageSize = 5
+  const pageSize = 20
 
   // eslint-disable-next-line no-shadow
   const searchProfiles = async (searchTerm, pageNumber, showLoadingSpinner = true) => {
@@ -351,11 +339,9 @@ const ProfileSearchFormAndResults = ({
               profile={profile}
               setProfileSearchResults={setProfileSearchResults}
               setSearchTerm={setSearchTerm}
-              setSelectedAuthorProfiles={setSelectedAuthorProfiles}
               displayAuthors={displayAuthors}
               setDisplayAuthors={setDisplayAuthors}
               isAuthoridsField={true}
-              multiple={true}
               field={field}
               onChange={onChange}
               clearError={clearError}
@@ -421,14 +407,13 @@ const ProfileSearchFormAndResults = ({
   )
 }
 
-const ProfileSearchWithInstitutionWidget = ({ multiple = false }) => {
+const ProfileSearchWithInstitutionWidget = () => {
   const { user, accessToken, isRefreshing } = useUser()
   const { field, onChange, value, error, clearError } = useContext(EditorComponentContext)
   // const allowAddRemove = field?.authors?.value?.param?.regex // only work with authors field
   const reorderOnly = !field?.authors?.value?.param
   const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor))
   const [displayAuthors, setDisplayAuthors] = useState(null)
-  const [selectedAuthorProfiles, setSelectedAuthorProfiles] = useState([])
   const displayAuthorsRef = useRef(displayAuthors)
 
   const handleDragOver = useCallback(
@@ -449,7 +434,7 @@ const ProfileSearchWithInstitutionWidget = ({ multiple = false }) => {
   const handleDragEnd = () => {
     onChange({
       fieldName: 'authors',
-      value: displayAuthors,
+      value: mapDisplayAuthorsToEditorValue(displayAuthors),
     })
   }
 
@@ -462,52 +447,60 @@ const ProfileSearchWithInstitutionWidget = ({ multiple = false }) => {
         },
         { accessToken }
       )
-
-      setSelectedAuthorProfiles(profiles)
-      if (!value) {
-        const currentAuthorProfile = profiles.find((p) =>
-          p.content.names.find((q) => q.username === user.profile.id)
-        )
-        const institutionOptions = getInstitutionOptionsFromProfile(currentAuthorProfile)
-        const username = user.profile.id
-        const fullname = getProfileName(currentAuthorProfile)
-        const selectedInstitutions = institutionOptions.length ? [institutionOptions[0]] : []
-        setDisplayAuthors([
-          {
-            username,
-            fullname,
-            selectedInstitutions,
-            institutionOptions,
-          },
-        ])
-        onChange({
-          fieldName: 'authors',
-          value: [
-            {
-              username,
-              fullname,
-              institutions: selectedInstitutions.map((p) => ({
-                name: p.name,
-                domain: p.domain,
-                country: p.countryRegigon,
-              })),
-            },
-          ],
-        })
-      }
+      return profiles
     } catch (apiError) {
       promptError(apiError.message)
+      return []
     }
+  }
+
+  const setDisplayAuthorNewEditor = async () => {
+    const profileResults = await getProfiles([user.profile.id])
+    const currentUserProfile = profileResults?.[0]
+    const institutionOptions = getInstitutionOptionsFromProfile(currentUserProfile)
+    const username = user.profile.id
+    const fullname = getProfileName(currentUserProfile)
+    const selectedInstitutions = institutionOptions.length ? [institutionOptions[0]] : []
+    const authors = [
+      {
+        username,
+        fullname,
+        selectedInstitutions,
+        institutionOptions,
+      },
+    ]
+    setDisplayAuthors(authors)
+    onChange({
+      fieldName: 'authors',
+      value: mapDisplayAuthorsToEditorValue(authors),
+    })
+  }
+
+  const setDisplayAuthorExistingValue = async () => {
+    const authorIds = value.map((p) => p.username)
+    const profileResults = await getProfiles(authorIds)
+    const authors = value.map((author) => {
+      const profile = profileResults.find((p) =>
+        p.content.names.find((q) => q.username === author.username)
+      )
+      const institutionOptions = getInstitutionOptionsFromProfile(profile)
+      return {
+        username: author.username,
+        fullname: author.fullname,
+        selectedInstitutions: author.institutions,
+        institutionOptions,
+      }
+    })
+    setDisplayAuthors(authors)
   }
 
   useEffect(() => {
     if (isRefreshing) return
     if (!value) {
-      getProfiles([user.profile.id])
+      setDisplayAuthorNewEditor()
       return
     }
-    onChange({ fieldName: 'authors', value: displayAuthors })
-    if (!reorderOnly) getProfiles(multiple ? value.map((p) => p.authorId) : [value.authorId])
+    if (!reorderOnly) setDisplayAuthorExistingValue()
   }, [isRefreshing])
 
   useEffect(() => {
@@ -544,7 +537,6 @@ const ProfileSearchWithInstitutionWidget = ({ multiple = false }) => {
                   setDisplayAuthors={setDisplayAuthors}
                   allowAddRemove={!reorderOnly}
                   isAuthoridsField={true}
-                  multiple={multiple}
                   onChange={onChange}
                 />
               )
@@ -555,7 +547,6 @@ const ProfileSearchWithInstitutionWidget = ({ multiple = false }) => {
 
       {!reorderOnly && (true || !displayAuthors?.length) && (
         <ProfileSearchFormAndResults
-          setSelectedAuthorProfiles={setSelectedAuthorProfiles}
           displayAuthors={displayAuthors}
           setDisplayAuthors={setDisplayAuthors}
           error={error}

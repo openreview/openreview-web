@@ -97,6 +97,10 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
 }
 
 export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) => {
+  if (!authorIds?.value) {
+    return <NoteAuthorsWithInstitutions authors={authors} noteReaders={noteReaders} />
+  }
+
   let showPrivateLabel = false
   const sortedReaders = noteReaders ? [...noteReaders].sort() : []
   if (Array.isArray(authorIds?.readers) && !isEqual(sortedReaders, authorIds.readers.sort())) {
@@ -104,10 +108,7 @@ export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) =
   }
 
   let authorsList
-  if (!authorIds) {
-    // object authors
-    authorsList = authors.value?.map((p) => [p.fullname, p.username])
-  } else if (authors?.value?.length > 0) {
+  if (authors?.value?.length > 0) {
     authorsList = zip(authors?.value, authorIds?.value || [])
   } else if (signatures?.length > 0) {
     authorsList = signatures.map((id) => [prettyId(id), id])
@@ -180,6 +181,83 @@ export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) =
         />
       )}
     </ExpandableList>
+  )
+}
+
+export const NoteAuthorsWithInstitutions = ({ authors, noteReaders }) => {
+  let showPrivateLabel = false
+  const sortedReaders = noteReaders ? [...noteReaders].sort() : []
+  if (Array.isArray(authors?.readers) && !isEqual(sortedReaders, authors.readers.sort())) {
+    showPrivateLabel = !authors.readers.includes('everyone')
+  }
+
+  if (!authors?.value) return null
+  const uniqueInstitutions = uniqBy(
+    authors.value.map((p) => p.institutions).flat(),
+    (p) => p.domain
+  )
+
+  const institutionIndexMap = new Map(
+    uniqueInstitutions.map((institution, index) => [institution.domain, index + 1])
+  )
+
+  const authorsLinks = authors.value.map((author) => {
+    if (!author) return null
+
+    const institutionNumbers = (author.institutions || []).map((institution) =>
+      institutionIndexMap.get(institution.domain)
+    )
+
+    return (
+      <span key={author.username} className="note-author-with-institutions">
+        <Link
+          key={`${author.fullname} ${author.username}`}
+          href={`/profile?id=${encodeURIComponent(author.username)}`}
+          title={author.fullname}
+          data-toggle="tooltip"
+          data-placement="top"
+        >
+          {author.fullname}
+        </Link>
+        {institutionNumbers.length > 0 && <sup>{institutionNumbers.join(',')}</sup>}
+      </span>
+    )
+  })
+
+  return (
+    <>
+      <ExpandableList
+        items={authorsLinks}
+        maxItems={maxAuthorsToShow}
+        expandLabel={`et al. (${
+          authorsLinks.length - maxAuthorsToShow
+        } additional authors not shown)`}
+        collapseLabel="(hide authors)"
+      >
+        {showPrivateLabel && (
+          <Icon
+            key="private-label"
+            name="eye-open"
+            extraClasses="private-contents-icon"
+            tooltip={`Identities privately revealed to ${authors?.readers
+              ?.map((p) => prettyId(p))
+              .join(', ')}`}
+          />
+        )}
+      </ExpandableList>
+      {uniqueInstitutions.length > 0 && (
+        <div className="note-authors-institutions">
+          {uniqueInstitutions.map((institution) => {
+            const institutionIndex = institutionIndexMap.get(institution.domain)
+            return (
+              <div key={institution.domain}>
+                <sup>{institutionIndex}</sup> {institution.name} ({institution.domain})
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </>
   )
 }
 

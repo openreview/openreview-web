@@ -10,11 +10,20 @@ import ExpandableList from '../ExpandableList'
 import api from '../../lib/api-client'
 
 const getAuthorsValue = (note, isV2Note) => {
-  if (isV2Note) return note.content?.authors?.value
+  if (isV2Note) {
+    if (note.content?.authorids?.value) return note.content?.authors?.value
+    return note.content?.authors?.value?.map((p) => p.fullname)
+  }
   const noteAuthors = note.content?.authors
   const originalAuthors = note.details?.original?.content?.authors
   if (originalAuthors && !isEqual(noteAuthors, originalAuthors)) return originalAuthors
   return noteAuthors
+}
+
+const getAuthorIdsValue = (note, isV2Notes) => {
+  const authorIdsValue = isV2Notes ? note.content?.authorids?.value : note.content?.authorids
+  if (isV2Notes && !authorIdsValue) return note.content?.authors?.value?.map((p) => p.username)
+  return authorIdsValue
 }
 
 const NoteSummary = ({
@@ -30,13 +39,12 @@ const NoteSummary = ({
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
   const authorsValue = getAuthorsValue(note, isV2Note)
-  const authorIdsValue = isV2Note ? note.content?.authorids?.value : note.content?.authorids
+  const authorIdsValue = getAuthorIdsValue(note, isV2Note)
   const privatelyRevealed = !note.readers?.includes('everyone')
   const maxAuthors = 15
 
   const [reportLink, setReportLink] = useState(null)
   const [isLoadingReportLink, setIsLoadingReportLink] = useState(false)
-
   const authorNames = authorsValue?.map((authorName, i) => {
     const authorId = authorIdsValue[i]
     const authorProfile = profileMap?.[authorIdsValue[i]]
