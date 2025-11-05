@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from 'react'
 import union from 'lodash/union'
+import { marked } from 'marked'
 import {
   prettyField,
   prettyContentValue,
@@ -111,16 +112,24 @@ export function NoteContentValue({ content = '', enableMarkdown, className, full
   }
 
   useEffect(() => {
+    if (fullMarkdown) return
     if (enableMarkdown) {
-      setSanitizedHtml(
-        DOMPurify.sanitize(
-          marked(content, fullMarkdown ? { renderer: new marked.Renderer() } : undefined)
-        )
-      )
+      setSanitizedHtml(DOMPurify.sanitize(marked(content)))
     } else {
       setSanitizedHtml(DOMPurify.sanitize(autoLinkContent(content)))
     }
-  }, [enableMarkdown, content])
+  }, [enableMarkdown, content, fullMarkdown])
+
+  if (enableMarkdown && fullMarkdown) {
+    const html = marked(content, { renderer: new marked.Renderer() })
+
+    return (
+      <div
+        className={classNames('note-content-value', 'markdown-rendered', className)}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    )
+  }
 
   if (!sanitizedHtml) {
     return <span className={classNames('note-content-value', className)}>{content}</span>
