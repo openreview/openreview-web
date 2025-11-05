@@ -553,7 +553,7 @@ const ProfileSearchWithInstitutionWidget = () => {
                   username={profile.username}
                   profile={profile}
                   showArrowButton={showArrowButton}
-                  showDragSort={displayAuthors.length > 1}
+                  showDragSort={displayAuthors.length > 5}
                   displayAuthors={displayAuthors}
                   setDisplayAuthors={setDisplayAuthors}
                   allowAddRemove={allowAddRemove}
