@@ -175,6 +175,7 @@ const Author = ({
               ? 'Add Institution'
               : `${inflect(selectedValues.length, 'Institution', 'Institutions', true)} added`
           }}
+          optionsDisabled={!allowAddRemove}
         />
       </div>
     </div>
@@ -483,12 +484,25 @@ const ProfileSearchWithInstitutionWidget = () => {
       const profile = profileResults.find((p) =>
         p.content.names.find((q) => q.username === author.username)
       )
-      const institutionOptions = getInstitutionOptionsFromProfile(profile)
+      const institutionOptionsFromProfile = getInstitutionOptionsFromProfile(profile)
+      const institutionOptionsFromValue = author.institutions.flatMap((institution) => {
+        if (institutionOptionsFromProfile.find((p) => p.domain === institution.domain))
+          // institution selected before still exist in profile
+          return []
+        return {
+          label: `${institution.name} (${institution.domain})`,
+          value: institution.domain,
+          name: institution.name,
+          domain: institution.domain,
+          country: institution.country,
+        }
+      })
+
       return {
         username: author.username,
         fullname: author.fullname,
         selectedInstitutions: author.institutions,
-        institutionOptions,
+        institutionOptions: [...institutionOptionsFromValue, ...institutionOptionsFromProfile],
       }
     })
     setDisplayAuthors(authors)
@@ -500,7 +514,7 @@ const ProfileSearchWithInstitutionWidget = () => {
       setDisplayAuthorNewEditor()
       return
     }
-    if (!reorderOnly) setDisplayAuthorExistingValue()
+    setDisplayAuthorExistingValue()
   }, [isRefreshing])
 
   useEffect(() => {

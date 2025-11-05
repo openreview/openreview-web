@@ -355,7 +355,12 @@ const NoteEditor = ({
       }))
     }
 
-    if (fieldName === 'authors' && Array.isArray(fieldDescription?.value)) return null
+    if (
+      fieldName === 'authors' &&
+      Array.isArray(fieldDescription?.value) &&
+      fieldDescription.value.every((p) => typeof p !== 'object') // object author reorder should still show widget
+    )
+      return null
 
     return (
       <div key={fieldName} className={isHiddenField ? null : styles.fieldContainer}>

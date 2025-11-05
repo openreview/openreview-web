@@ -143,6 +143,8 @@ const EditorWidget = () => {
 
   if (fieldName === 'authorids' && Array.isArray(field.authorids?.value))
     return <ProfileSearchWidget multiple={true} />
+  if (fieldName === 'authors' && Array.isArray(field.authors?.value))
+    return <ProfileSearchWithInstitutionWidget />
   if (!field[fieldName].value?.param) {
     if (!field[fieldName].value && field[fieldName].readers) {
       return null // TODO: an empty widget which shows only readers
