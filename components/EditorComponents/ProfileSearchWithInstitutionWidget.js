@@ -76,6 +76,7 @@ const Author = ({
   displayAuthors,
   setDisplayAuthors,
   allowAddRemove,
+  allowInstitutionChange,
   onChange,
 }) => {
   const { listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -164,7 +165,10 @@ const Author = ({
       <div className={styles.authorInstitution}>
         <MultiSelectorDropdown
           key={profile.username}
-          disabled={!profile.institutionOptions.length}
+          disabled={
+            !profile.institutionOptions.length ||
+            (!allowInstitutionChange && !profile.selectedInstitutions.length)
+          }
           extraClass={styles.authorInstitutionDropdown}
           options={profile.institutionOptions}
           selectedValues={profile.selectedInstitutions?.map((p) => p.domain)}
@@ -172,10 +176,10 @@ const Author = ({
           displayTextFn={(selectedValues) => {
             if (!profile.institutionOptions.length) return 'No Active Institution'
             return selectedValues.length === 0
-              ? 'Add Institution'
+              ? `${allowInstitutionChange ? 'Add' : 'No'} Institution`
               : `${inflect(selectedValues.length, 'Institution', 'Institutions', true)} added`
           }}
-          optionsDisabled={!allowAddRemove}
+          optionsDisabled={!allowInstitutionChange}
         />
       </div>
     </div>
@@ -411,8 +415,11 @@ const ProfileSearchFormAndResults = ({
 const ProfileSearchWithInstitutionWidget = () => {
   const { user, accessToken, isRefreshing } = useUser()
   const { field, onChange, value, error, clearError } = useContext(EditorComponentContext)
-  // const allowAddRemove = field?.authors?.value?.param?.regex // only work with authors field
-  const reorderOnly = !field?.authors?.value?.param
+
+  const reorderOnly = Array.isArray(field?.authors?.value)
+  const allowAddRemove = !reorderOnly && !field.authors.value.param.elements // reorder with institution change
+  const allowInstitutionChange = !reorderOnly
+
   const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor))
   const [displayAuthors, setDisplayAuthors] = useState(null)
   const displayAuthorsRef = useRef(displayAuthors)
@@ -546,10 +553,11 @@ const ProfileSearchWithInstitutionWidget = () => {
                   username={profile.username}
                   profile={profile}
                   showArrowButton={showArrowButton}
-                  showDragSort={displayAuthors.length > 5}
+                  showDragSort={displayAuthors.length > 1}
                   displayAuthors={displayAuthors}
                   setDisplayAuthors={setDisplayAuthors}
-                  allowAddRemove={!reorderOnly}
+                  allowAddRemove={allowAddRemove}
+                  allowInstitutionChange={allowInstitutionChange}
                   isAuthoridsField={true}
                   onChange={onChange}
                 />
@@ -559,7 +567,7 @@ const ProfileSearchWithInstitutionWidget = () => {
         </DndContext>
       </div>
 
-      {!reorderOnly && (true || !displayAuthors?.length) && (
+      {allowAddRemove && (
         <ProfileSearchFormAndResults
           displayAuthors={displayAuthors}
           setDisplayAuthors={setDisplayAuthors}

@@ -143,7 +143,11 @@ const EditorWidget = () => {
 
   if (fieldName === 'authorids' && Array.isArray(field.authorids?.value))
     return <ProfileSearchWidget multiple={true} />
-  if (fieldName === 'authors' && Array.isArray(field.authors?.value))
+  if (
+    fieldName === 'authors' &&
+    (Array.isArray(field.authors?.value) || // reorder only
+      field.authors?.value?.param?.elements) // reorder with institution change
+  )
     return <ProfileSearchWithInstitutionWidget />
   if (!field[fieldName].value?.param) {
     if (!field[fieldName].value && field[fieldName].readers) {
