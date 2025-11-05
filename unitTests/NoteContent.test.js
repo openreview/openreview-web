@@ -1,14 +1,23 @@
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { NoteContentV2 } from '../components/NoteContent'
+import { marked } from 'marked'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+jest.mock('marked', () => {
+  let marked = jest.requireActual('marked')
+  marked = jest.fn((_) => 'local markdown output')
+  marked.Renderer = jest.fn().mockImplementation(() => {
+    return {}
+  })
+  return { marked }
+})
 
 beforeEach(() => {
+  jest.clearAllMocks()
   global.DOMPurify = {
     sanitize: jest.fn(),
   }
-  global.marked = jest.fn()
 })
 
 describe('NoteContentV2', () => {
@@ -86,7 +95,6 @@ describe('NoteContentV2', () => {
   })
 
   test('sanitize value no matter if it is markdown field', () => {
-    global.marked = jest.fn((_) => 'markdown output')
     const props = {
       id: 'noteId',
       content: {
@@ -103,25 +111,18 @@ describe('NoteContentV2', () => {
     }
 
     render(<NoteContentV2 {...props} />)
-
-    expect(global.marked).toHaveBeenCalledTimes(1)
-    expect(global.marked).toHaveBeenCalledWith(
-      '<image/src/onerror=prompt(document.domain)>',
-      undefined
-    )
+    expect(marked).toHaveBeenCalledTimes(1)
+    expect(marked).toHaveBeenCalledWith('<image/src/onerror=prompt(document.domain)>')
 
     expect(global.DOMPurify.sanitize).toHaveBeenCalledTimes(3) // 2 fields + submission number
     expect(global.DOMPurify.sanitize).toHaveBeenNthCalledWith(
       1,
       '<image/src/onerror=prompt(document.domain)>'
     )
-    expect(global.DOMPurify.sanitize).toHaveBeenNthCalledWith(2, 'markdown output')
+    expect(global.DOMPurify.sanitize).toHaveBeenNthCalledWith(2, 'local markdown output')
   })
 
   test('overwrite app wide config when enable full markdown', () => {
-    global.marked = jest.fn((_) => 'markdown output')
-    global.marked.Renderer = jest.fn()
-
     const blogContent =
       'Some **markdown** text with base64 image ![test](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==)'
 
@@ -142,14 +143,13 @@ describe('NoteContentV2', () => {
     }
 
     render(<NoteContentV2 {...props} />)
-
-    expect(global.marked).toHaveBeenCalledTimes(1)
-    expect(global.marked).toHaveBeenCalledWith(
+    expect(screen.getByText('local markdown output')).toBeInTheDocument() // call local imported version of marked for server rendering
+    expect(marked).toHaveBeenCalledWith(
       blogContent,
       expect.objectContaining({ renderer: expect.any(Object) })
     )
 
-    expect(global.marked.Renderer).toHaveBeenCalledTimes(1)
+    expect(marked.Renderer).toHaveBeenCalledTimes(1)
   })
 
   test('render valid external id as links', () => {
