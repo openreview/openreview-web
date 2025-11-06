@@ -190,6 +190,7 @@ export default function DblpPublicationTable({
                       otherProfileId={existingPublicationOfOtherProfile?.existingProfileId}
                       category={category}
                       venue={publication.venue}
+                      source={publication.source}
                       profileIdsRequested={profileIdsRequested}
                       setProfileIdsRequested={setProfileIdsRequested}
                     />
@@ -220,6 +221,7 @@ const DblpPublicationRow = ({
   otherProfileId,
   category,
   venue,
+  source,
   profileIdsRequested,
   setProfileIdsRequested,
 }) => {
@@ -313,7 +315,11 @@ const DblpPublicationRow = ({
             ) : (
               <span>{title}</span>
             )}
-            <span className="venue">({venue})</span>
+            <br />
+            <span className="venue">
+              {venue}
+              {source && ` - ${source}`}
+            </span>
           </div>
           <div className="publication-author-names">{authors.join(', ')}</div>
           {category === 'existing-different-profile' && (

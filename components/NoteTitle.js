@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import UnlinkPublicationButton from './UnlinkPublicationButton'
-import { buildNoteTitle } from '../lib/utils'
+import { buildNoteTitle, buildNoteUrl } from '../lib/utils'
 
 const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} }) => (
   <h4>
@@ -79,18 +79,14 @@ export const NoteTitleV2 = ({
   <h4>
     {options.openNoteInNewWindow ? (
       <a
-        href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}`}
+        href={buildNoteUrl(id, forum, content, options)}
         target="_blank"
         rel="nofollow noreferrer"
       >
         {content.title?.value || buildNoteTitle(invitation, signatures)}
       </a>
     ) : (
-      <Link
-        href={`/forum?id=${forum}${id === forum ? '' : `&noteId=${id}`}${
-          options.referrer ? `&referrer=${encodeURIComponent(options.referrer)}` : ''
-        }`}
-      >
+      <Link href={buildNoteUrl(id, forum, content, options)}>
         {content.title?.value || buildNoteTitle(invitation, signatures)}
       </Link>
     )}
@@ -116,14 +112,6 @@ export const NoteTitleV2 = ({
       >
         <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
       </a>
-    )}
-
-    {options.unlinkButton && (
-      <UnlinkPublicationButton
-        noteId={id}
-        linkUnlinkPublication={options.linkUnlinkPublication}
-        isUnlinked={options.isUnlinked}
-      />
     )}
   </h4>
 )

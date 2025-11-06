@@ -38,6 +38,7 @@ const DatePickerWidget = (props) => {
         autoFocus={false}
         disabledDate={disabledDate}
         showTime={props.showTime}
+        getPopupContainer={(trigger) => trigger.parentElement}
       />
       {props.showTime !== false && (
         <div className={styles.timeZonePicker}>

@@ -29,6 +29,19 @@
       border-color: constants.$orRed;
     }
 
+    .invalid-value-icon {
+      position: absolute;
+      top: 0.25rem;
+      right: 8px;
+      color: constants.$orRed;
+    }
+
+    .tooltip .tooltip-inner {
+      white-space: nowrap;
+      max-width: none;
+      width: max-content;
+    }
+
     div.instructions {
       font-size: 0.75rem;
       color: constants.$subtleGray;
@@ -168,7 +181,8 @@
       }
     }
 
-    #dblp-import-modal {
+    #dblp-import-modal,
+    #orcid-import-modal {
       .modal-body {
         min-height: 200px;
         max-height: 600px;
@@ -192,7 +206,6 @@
             font-weight: lighter;
             font-size: smaller;
             font-style: italic;
-            margin-left: 0.25rem;
           }
         }
       }

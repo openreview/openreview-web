@@ -1,5 +1,5 @@
 import { Selector, Role } from 'testcafe'
-import { getToken, getNotes, superUserName, strongPassword } from './utils/api-helper'
+import { getToken, getNotes, superUserName, strongPassword } from '../utils/api-helper'
 
 const titleLabel = Selector('.forum-title h2')
 const authorLabel = Selector('.forum-authors span')
@@ -15,6 +15,7 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
+    .wait(100)
     .click(loginButton)
 })
 const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
@@ -22,6 +23,7 @@ const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'a@a.com')
     .typeText(passwordInput, strongPassword)
+    .wait(100)
     .click(loginButton)
 })
 const pcRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
@@ -29,6 +31,7 @@ const pcRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'program_chair@mail.com')
     .typeText(passwordInput, strongPassword)
+    .wait(100)
     .click(loginButton)
 })
 
@@ -72,6 +75,7 @@ test('view forum bibtex', async (t) => {
   await t
     .useRole(authorRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forumId}`)
+    .wait(1500)
     .click(Selector('a').withText('BibTeX'))
     .expect(Selector('#bibtex-modal.in').exists)
     .ok()
