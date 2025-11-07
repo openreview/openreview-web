@@ -53,27 +53,29 @@ export default async function page({ searchParams }) {
   }
 
   let serviceRoles = []
-  try {
-    const serviceRolesResult = await api.get(
-      '/tags',
-      {
-        profile: profile.id,
-      },
-      {
-        remoteIpAddress,
-      }
-    )
+  if (isSuperUser(user)) {
+    try {
+      const serviceRolesResult = await api.get(
+        '/tags',
+        {
+          profile: profile.id,
+        },
+        {
+          remoteIpAddress,
+        }
+      )
 
-    serviceRoles = orderBy(
-      serviceRolesResult.tags?.filter((p) => p.parentInvitations?.endsWith('_Role')),
-      ['cdate'],
-      ['desc']
-    )
-  } catch (error) {
-    console.log('Error in page', {
-      page: 'Home',
-      error,
-    })
+      serviceRoles = orderBy(
+        serviceRolesResult.tags?.filter((p) => p.parentInvitations?.endsWith('_Role')),
+        ['cdate'],
+        ['desc']
+      )
+    } catch (error) {
+      console.log('Error in page', {
+        page: 'Home',
+        error,
+      })
+    }
   }
 
   const editBanner = isProfileOwner ? (
