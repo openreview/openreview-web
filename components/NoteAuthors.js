@@ -96,8 +96,14 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
   )
 }
 
-export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) => {
-  if (!authorIds?.value) {
+export const NoteAuthorsV2 = ({
+  authors,
+  authorIds,
+  signatures,
+  noteReaders,
+  showAuthorInstitutions,
+}) => {
+  if (showAuthorInstitutions && !authorIds?.value) {
     return <NoteAuthorsWithInstitutions authors={authors} noteReaders={noteReaders} />
   }
 
@@ -193,7 +199,10 @@ export const NoteAuthorsWithInstitutions = ({ authors, noteReaders }) => {
 
   if (!authors?.value) return null
   const uniqueInstitutions = uniqBy(
-    authors.value.map((p) => p.institutions).flat(),
+    authors.value
+      .map((p) => p.institutions)
+      .flat()
+      .filter((p) => p?.domain),
     (p) => p.domain
   )
 

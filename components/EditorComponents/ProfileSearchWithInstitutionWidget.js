@@ -46,11 +46,13 @@ const getTitle = (profile) => {
   return title
 }
 
-const getInstitutionOptionsFromProfile = (profile) => {
+const getCurrentInstitutionOptionsFromProfile = (profile) => {
   const institutionOptions = []
+  const currentYear = new Date().getFullYear()
   profile?.content?.history?.forEach((history) => {
     const { institution } = history
     if (institutionOptions.find((p) => p.value === institution.domain)) return
+    if (history.end && history.end < currentYear) return
     institutionOptions.push({
       label: `${institution.name} (${institution.domain})`,
       value: institution.domain,
@@ -248,7 +250,7 @@ const ProfileSearchResultRow = ({
           disableButton={checkIsInAuthorList(displayAuthors, profile)}
           disableReason="This author is already in author list"
           onClick={() => {
-            const institutionOptions = getInstitutionOptionsFromProfile(profile)
+            const institutionOptions = getCurrentInstitutionOptionsFromProfile(profile)
             const updatedAuthors = displayAuthors.concat({
               username: preferredId,
               fullname: getProfileName(profile),
@@ -319,8 +321,9 @@ const ProfileSearchFormAndResults = ({
     if (showLoadingSpinner) setIsLoading(false)
   }
 
-  const displayCustomAuthorForm = (isEmptyResult) => {
-    if (isEmptyResult)
+  const displayResults = () => {
+    if (!profileSearchResults) return null
+    if (!profileSearchResults.length)
       return (
         <div className={styles.noMatchingProfile}>
           <div className={styles.noMatchingProfileMessage}>
@@ -328,12 +331,6 @@ const ProfileSearchFormAndResults = ({
           </div>
         </div>
       )
-    return null
-  }
-
-  const displayResults = () => {
-    if (!profileSearchResults) return null
-    if (!profileSearchResults.length) return displayCustomAuthorForm(true)
 
     return (
       <div className={styles.searchResults}>
@@ -361,8 +358,6 @@ const ProfileSearchFormAndResults = ({
             options={{ noScroll: true, showCount: false }}
           />
         </>
-
-        {(pageNumber ?? 1) * pageSize >= totalCount && displayCustomAuthorForm(false)}
       </div>
     )
   }
@@ -465,7 +460,7 @@ const ProfileSearchWithInstitutionWidget = () => {
   const setDisplayAuthorNewEditor = async () => {
     const profileResults = await getProfiles([user.profile.id])
     const currentUserProfile = profileResults?.[0]
-    const institutionOptions = getInstitutionOptionsFromProfile(currentUserProfile)
+    const institutionOptions = getCurrentInstitutionOptionsFromProfile(currentUserProfile)
     const username = user.profile.id
     const fullname = getProfileName(currentUserProfile)
     const selectedInstitutions = institutionOptions.length ? [institutionOptions[0]] : []
@@ -491,7 +486,7 @@ const ProfileSearchWithInstitutionWidget = () => {
       const profile = profileResults.find((p) =>
         p.content.names.find((q) => q.username === author.username)
       )
-      const institutionOptionsFromProfile = getInstitutionOptionsFromProfile(profile)
+      const institutionOptionsFromProfile = getCurrentInstitutionOptionsFromProfile(profile)
       const institutionOptionsFromValue = author.institutions.flatMap((institution) => {
         if (institutionOptionsFromProfile.find((p) => p.domain === institution.domain))
           // institution selected before still exist in profile

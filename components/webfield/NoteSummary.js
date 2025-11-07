@@ -1,30 +1,12 @@
 /* globals promptError: false */
-import isEqual from 'lodash/isEqual'
 import { useState } from 'react'
-import { forumDate, getNotePdfUrl } from '../../lib/utils'
+import { forumDate, getNoteAuthorIds, getNoteAuthors, getNotePdfUrl } from '../../lib/utils'
 import Collapse from '../Collapse'
 import Icon from '../Icon'
 import NoteContent, { NoteContentV2 } from '../NoteContent'
 import NoteReaders from '../NoteReaders'
 import ExpandableList from '../ExpandableList'
 import api from '../../lib/api-client'
-
-const getAuthorsValue = (note, isV2Note) => {
-  if (isV2Note) {
-    if (note.content?.authorids?.value) return note.content?.authors?.value
-    return note.content?.authors?.value?.map((p) => p.fullname)
-  }
-  const noteAuthors = note.content?.authors
-  const originalAuthors = note.details?.original?.content?.authors
-  if (originalAuthors && !isEqual(noteAuthors, originalAuthors)) return originalAuthors
-  return noteAuthors
-}
-
-const getAuthorIdsValue = (note, isV2Notes) => {
-  const authorIdsValue = isV2Notes ? note.content?.authorids?.value : note.content?.authorids
-  if (isV2Notes && !authorIdsValue) return note.content?.authors?.value?.map((p) => p.username)
-  return authorIdsValue
-}
 
 const NoteSummary = ({
   note,
@@ -38,8 +20,8 @@ const NoteSummary = ({
 }) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
-  const authorsValue = getAuthorsValue(note, isV2Note)
-  const authorIdsValue = getAuthorIdsValue(note, isV2Note)
+  const authorsValue = getNoteAuthors(note, isV2Note)
+  const authorIdsValue = getNoteAuthorIds(note, isV2Note)
   const privatelyRevealed = !note.readers?.includes('everyone')
   const maxAuthors = 15
 
