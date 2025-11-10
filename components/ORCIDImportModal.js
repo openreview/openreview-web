@@ -72,7 +72,7 @@ const ORCIDImportModal = ({ profileId, profileNames }) => {
   const importSelectedPublications = async () => {
     setIsSavingPublications(true)
     try {
-      await Promise.all(
+      const postPaperResults = await Promise.allSettled(
         selectedPublications.map((pubKey) =>
           postOrUpdateOrcidPaper(
             profileId,
@@ -82,6 +82,14 @@ const ORCIDImportModal = ({ profileId, profileNames }) => {
           )
         )
       )
+      const successfulCount = postPaperResults.filter(
+        (result) => result.status === 'fulfilled'
+      ).length
+      const failedResults = postPaperResults.filter((result) => result.status === 'rejected')
+      if (successfulCount === 0) {
+        const firstError = failedResults[0]
+        throw firstError.reason
+      }
       const existingPublications = await getAllOrcidPapers(profileId, accessToken)
       setPublicationsInOpenReview(existingPublications)
       const { noPubsToImport: allExistInOpenReview } = countExistingImportedPapers(
@@ -91,9 +99,12 @@ const ORCIDImportModal = ({ profileId, profileNames }) => {
       if (allExistInOpenReview) {
         setMessage(`${selectedPublications.length} publications were successfully imported.
             All ${publications.length} of the publications now exist in OpenReview.`)
-      } else {
+      } else if (failedResults.length === 0) {
         setMessage(`${selectedPublications.length} publications were successfully imported.
             Please select any additional publications you would like to add to your profile.`)
+      } else {
+        setMessage(`${successfulCount} publications were successfully imported.
+            However, ${failedResults.length} publications failed to import. Please try again later.`)
       }
 
       if (allExistInOpenReview) {
