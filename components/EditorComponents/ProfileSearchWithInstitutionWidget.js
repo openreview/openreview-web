@@ -120,7 +120,7 @@ const Author = ({
     setDisplayAuthors(updatedAuthors)
     onChange({
       fieldName,
-      value: mapDisplayAuthorsToEditorValue(updatedAuthors, hasInstitutionProperty),
+      value: mapDisplayAuthorsToEditorValue(updatedAuthors, true),
     })
   }
 
@@ -491,6 +491,10 @@ const ProfileSearchWithInstitutionWidget = () => {
   const setDisplayAuthorExistingValue = async () => {
     const authorIds = value.map((p) => p.username)
     const profileResults = await getProfiles(authorIds)
+    if (!hasInstitutionProperty) {
+      setDisplayAuthors(value)
+      return
+    }
     const authors = value.map((author) => {
       const profile = profileResults.find((p) =>
         p.content.names.find((q) => q.username === author.username)

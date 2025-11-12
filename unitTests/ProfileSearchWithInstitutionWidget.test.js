@@ -289,6 +289,96 @@ describe('ProfileSearchWithInstitutionWidget', () => {
     })
   })
 
+  test('add current user to author list (multiple current institution but invitation does not request institution)', async () => {
+    const currentYear = new Date().getFullYear()
+    const apiPost = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              preferredEmail: 'test@email.com',
+              history: [
+                {
+                  start: 1999,
+                  end: null,
+                  institution: {
+                    name: 'Test Institution',
+                    domain: 'test.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 2000,
+                  end: currentYear + 1,
+                  institution: {
+                    name: 'Another Test Institution',
+                    domain: 'another.test.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 1999,
+                  end: currentYear + 1,
+                  institution: {
+                    name: 'Yet Another Test Institution',
+                    domain: 'yet.another.test.edu',
+                    country: 'TC',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      })
+    )
+    api.post = apiPost
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  username: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  institutions: undefined, // institution is not requested
+                },
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          value: [
+            {
+              username: '~test_id1',
+              fullname: 'Test First Test Last',
+            },
+          ],
+        })
+      )
+    })
+  })
+
   test('show added author (no current institution)', async () => {
     const apiPost = jest.fn(() =>
       Promise.resolve({
@@ -725,6 +815,118 @@ describe('ProfileSearchWithInstitutionWidget', () => {
           ],
         })
       )
+    })
+  })
+
+  test('show added author (multiple current institution but invitation does not request institution)', async () => {
+    const currentYear = new Date().getFullYear()
+    const apiPost = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              preferredEmail: 'test@email.com',
+              history: [
+                {
+                  start: 1999,
+                  end: null,
+                  institution: {
+                    name: 'Test Institution',
+                    domain: 'test.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 2000,
+                  end: currentYear + 1,
+                  institution: {
+                    name: 'Another Test Institution',
+                    domain: 'another.test.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 1999,
+                  end: currentYear - 1,
+                  institution: {
+                    name: 'Non Current Institution',
+                    domain: 'not.current.test.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 1999,
+                  end: currentYear + 1,
+                  institution: {
+                    name: 'Yet Another Test Institution',
+                    domain: 'yet.another.test.edu',
+                    country: 'TC',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      })
+    )
+    api.post = apiPost
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  username: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        value: [
+          {
+            username: '~test_id1',
+            fullname: 'Test First Test Last',
+          },
+        ],
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    await waitFor(() => {
+      // show name
+      expect(screen.getByText('Test First Test Last')).toBeInTheDocument()
+      // show tilde id as tooltip
+      expect(screen.getByText('Test First Test Last')).toHaveAttribute(
+        'data-original-title',
+        '~test_id1'
+      )
+      // show link to profile page
+      expect(screen.getByText('Test First Test Last')).toHaveAttribute(
+        'href',
+        '/profile?id=~test_id1'
+      )
+      // show remove button
+      expect(screen.getByRole('button', { name: 'remove' })).toBeInTheDocument()
+      // no invitation info
+      expect(
+        screen.queryByRole('button', { name: '1 Institution added' })
+      ).not.toBeInTheDocument()
     })
   })
 
