@@ -22,15 +22,17 @@ import MultiSelectorDropdown from '../MultiSelectorDropdown'
 import LoadingSpinner from '../LoadingSpinner'
 import PaginationLinks from '../PaginationLinks'
 
-const mapDisplayAuthorsToEditorValue = (displayAuthors) =>
+const mapDisplayAuthorsToEditorValue = (displayAuthors, hasInstitutionProperty) =>
   displayAuthors.map((p) => ({
     username: p.username,
     fullname: p.fullname,
-    institutions: p.selectedInstitutions.map((institution) => ({
-      name: institution.name,
-      domain: institution.domain,
-      country: institution.country,
-    })),
+    ...(hasInstitutionProperty && {
+      institutions: p.selectedInstitutions.map((institution) => ({
+        name: institution.name,
+        domain: institution.domain,
+        country: institution.country,
+      })),
+    }),
   }))
 
 const getTitle = (profile) => {
@@ -79,6 +81,7 @@ const Author = ({
   setDisplayAuthors,
   allowAddRemove,
   allowInstitutionChange,
+  hasInstitutionProperty,
   onChange,
 }) => {
   const { listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -99,7 +102,7 @@ const Author = ({
     setDisplayAuthors(updatedValue)
     onChange({
       fieldName,
-      value: mapDisplayAuthorsToEditorValue(updatedValue),
+      value: mapDisplayAuthorsToEditorValue(updatedValue, hasInstitutionProperty),
     })
   }
 
@@ -117,7 +120,7 @@ const Author = ({
     setDisplayAuthors(updatedAuthors)
     onChange({
       fieldName,
-      value: mapDisplayAuthorsToEditorValue(updatedAuthors),
+      value: mapDisplayAuthorsToEditorValue(updatedAuthors, hasInstitutionProperty),
     })
   }
 
@@ -154,7 +157,10 @@ const Author = ({
                 setDisplayAuthors(updatedAuthors)
                 onChange({
                   fieldName,
-                  value: mapDisplayAuthorsToEditorValue(updatedAuthors),
+                  value: mapDisplayAuthorsToEditorValue(
+                    updatedAuthors,
+                    hasInstitutionProperty
+                  ),
                 })
               }}
               extraClasses="remove-button"
@@ -164,26 +170,28 @@ const Author = ({
         </div>
       </div>
 
-      <div className={styles.authorInstitution}>
-        <MultiSelectorDropdown
-          key={profile.username}
-          disabled={
-            !profile.institutionOptions.length ||
-            (!allowInstitutionChange && !profile.selectedInstitutions.length)
-          }
-          extraClass={styles.authorInstitutionDropdown}
-          options={profile.institutionOptions}
-          selectedValues={profile.selectedInstitutions?.map((p) => p.domain)}
-          setSelectedValues={handleInstitutionChange}
-          displayTextFn={(selectedValues) => {
-            if (!profile.institutionOptions.length) return 'No Active Institution'
-            return selectedValues.length === 0
-              ? `${allowInstitutionChange ? 'Add' : 'No'} Institution`
-              : `${inflect(selectedValues.length, 'Institution', 'Institutions', true)} added`
-          }}
-          optionsDisabled={!allowInstitutionChange}
-        />
-      </div>
+      {hasInstitutionProperty && (
+        <div className={styles.authorInstitution}>
+          <MultiSelectorDropdown
+            key={profile.username}
+            disabled={
+              !profile.institutionOptions.length ||
+              (!allowInstitutionChange && !profile.selectedInstitutions.length)
+            }
+            extraClass={styles.authorInstitutionDropdown}
+            options={profile.institutionOptions}
+            selectedValues={profile.selectedInstitutions?.map((p) => p.domain)}
+            setSelectedValues={handleInstitutionChange}
+            displayTextFn={(selectedValues) => {
+              if (!profile.institutionOptions.length) return 'No Active Institution'
+              return selectedValues.length === 0
+                ? `${allowInstitutionChange ? 'Add' : 'No'} Institution`
+                : `${inflect(selectedValues.length, 'Institution', 'Institutions', true)} added`
+            }}
+            optionsDisabled={!allowInstitutionChange}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -197,6 +205,7 @@ const ProfileSearchResultRow = ({
   field,
   onChange,
   clearError,
+  hasInstitutionProperty,
 }) => {
   const fieldName = Object.keys(field ?? {})[0]
 
@@ -260,7 +269,7 @@ const ProfileSearchResultRow = ({
             setDisplayAuthors(updatedAuthors)
             onChange({
               fieldName,
-              value: mapDisplayAuthorsToEditorValue(updatedAuthors),
+              value: mapDisplayAuthorsToEditorValue(updatedAuthors, hasInstitutionProperty),
             })
 
             clearError?.()
@@ -343,7 +352,6 @@ const ProfileSearchFormAndResults = ({
               setSearchTerm={setSearchTerm}
               displayAuthors={displayAuthors}
               setDisplayAuthors={setDisplayAuthors}
-              isAuthoridsField={true}
               field={field}
               onChange={onChange}
               clearError={clearError}
@@ -411,6 +419,7 @@ const ProfileSearchWithInstitutionWidget = () => {
   const { user, accessToken, isRefreshing } = useUser()
   const { field, onChange, value, error, clearError } = useContext(EditorComponentContext)
 
+  const hasInstitutionProperty = field?.authors?.value?.param?.properties?.institutions
   const reorderOnly = Array.isArray(field?.authors?.value)
   const allowAddRemove = !reorderOnly && !field.authors.value.param.elements // reorder with institution change
   const allowInstitutionChange = !reorderOnly
@@ -437,7 +446,7 @@ const ProfileSearchWithInstitutionWidget = () => {
   const handleDragEnd = () => {
     onChange({
       fieldName: 'authors',
-      value: mapDisplayAuthorsToEditorValue(displayAuthors),
+      value: mapDisplayAuthorsToEditorValue(displayAuthors, hasInstitutionProperty),
     })
   }
 
@@ -475,7 +484,7 @@ const ProfileSearchWithInstitutionWidget = () => {
     setDisplayAuthors(authors)
     onChange({
       fieldName: 'authors',
-      value: mapDisplayAuthorsToEditorValue(authors),
+      value: mapDisplayAuthorsToEditorValue(authors, hasInstitutionProperty),
     })
   }
 
@@ -553,7 +562,7 @@ const ProfileSearchWithInstitutionWidget = () => {
                   setDisplayAuthors={setDisplayAuthors}
                   allowAddRemove={allowAddRemove}
                   allowInstitutionChange={allowInstitutionChange}
-                  isAuthoridsField={true}
+                  hasInstitutionProperty={hasInstitutionProperty}
                   onChange={onChange}
                 />
               )
@@ -570,6 +579,7 @@ const ProfileSearchWithInstitutionWidget = () => {
           field={field}
           onChange={onChange}
           clearError={clearError}
+          hasInstitutionProperty={hasInstitutionProperty}
         />
       )}
     </div>
