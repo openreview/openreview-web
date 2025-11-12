@@ -1,4 +1,4 @@
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import AllVenues from './AllVenues'
 import ActiveVenues from './ActiveVenues'
 import styles from './Home.module.scss'
@@ -21,6 +21,7 @@ const formatInvitationResults = (apiRes) =>
 
 export default async function page() {
   const headersList = await headers()
+  const cookieStore = await cookies()
   const remoteIpAddress = headersList.get('x-forwarded-for')
   const [activeVenuesResult, openVenuesResult, newsResult] = await Promise.allSettled([
     api.get('groups', { id: 'active_venues' }, { remoteIpAddress }).then(formatGroupResults),
@@ -62,7 +63,6 @@ export default async function page() {
   let news = []
   if (newsResult.status === 'fulfilled') {
     news = newsResult.value.notes
-    console.log('news', news)
   } else {
     console.log('Error in page', {
       page: 'Home',
@@ -70,10 +70,16 @@ export default async function page() {
     })
   }
 
+  let showNews = false
+  const hideNewsBeforeTimeStamp = cookieStore.get('hideNewsBeforeTimeStamp')?.value
+  if (!hideNewsBeforeTimeStamp || hideNewsBeforeTimeStamp < news?.[0]?.cdate) {
+    showNews = true
+  }
+
   return (
     <div className={styles.home}>
       <div className="col-xs-12">
-        <News news={news} />
+        <News news={news} showNews={showNews} />
       </div>
       <div className="col-xs-12 col-sm-6">
         <ActiveConsoles activeVenues={activeVenues} openVenues={openVenues} />

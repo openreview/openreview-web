@@ -1,6 +1,6 @@
 {
   "name": "openreview-web",
-  "version": "1.14.28",
+  "version": "1.14.33",
   "private": true,
   "scripts": {
     "dev": "next dev --port $NEXT_PORT",
@@ -9,9 +9,9 @@
     "build": "next build",
     "start": "next start --port $NEXT_PORT",
     "unit-test": "jest",
-    "test": "testcafe",
+    "test": "testcafe firefox tests/setup --concurrency 4 && (testcafe firefox:headless tests/e2e_1 & testcafe firefox:headless tests/e2e_2 & testcafe firefox:headless tests/e2e_3)",
     "doc": "jsdoc2md 'components/webfield/*Console.js' > webfieldconfig.md",
-    "test-setup": "testcafe chrome tests/_setup.ts",
+    "test-setup": "testcafe firefox tests/setup --concurrency 4",
     "templates": "handlebars client/templates/ -n 'window.Handlebars.templates' -f client/templates.js -e 'hbs'"
   },
   "browserslist": [

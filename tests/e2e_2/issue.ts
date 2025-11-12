@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-expressions */
 import { Selector, ClientFunction } from 'testcafe'
-import { strongPassword } from './utils/api-helper'
+import { strongPassword } from '../utils/api-helper'
 
 const openreviewLogo = Selector('a.navbar-brand')
 const loginLink = Selector('a').withText('Login')

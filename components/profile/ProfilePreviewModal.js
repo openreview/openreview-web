@@ -11,6 +11,7 @@ import Dropdown, { CreatableDropdown } from '../Dropdown'
 import { getRejectionReasons } from '../../lib/utils'
 import ProfileTag from '../ProfileTag'
 import PastStatesSection from './PastStatesSection'
+import ErrorAlert from '../ErrorAlert'
 
 const ProfilePreviewModal = ({
   profileToPreview,
@@ -29,6 +30,18 @@ const ProfilePreviewModal = ({
   const [rejectionMessage, setRejectionMessage] = useState('')
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionReasons, setRejectReasons] = useState([])
+  const [error, setError] = useState(null)
+  const tagInvitationOptions = [
+    {
+      label: 'General Moderation Tag',
+      value: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
+    },
+    {
+      label: 'Vouched by Tag',
+      value: `${process.env.SUPER_USER}/Support/-/Vouch`,
+    },
+  ]
+  const [tagInvitation, setTagInvitation] = useState(tagInvitationOptions[0].value)
   const needsModeration = profileToPreview?.state === 'Needs Moderation'
 
   const updateMessageForPastRejectProfile = (messageToAdd) => {
@@ -49,8 +62,8 @@ const ProfilePreviewModal = ({
         null,
         { accessToken }
       )
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      promptError(apiError)
     }
     if (apiRes.notes) {
       const sortedNotes = sortFn ? sortFn(apiRes.notes) : apiRes.notes
@@ -65,8 +78,8 @@ const ProfilePreviewModal = ({
         profile: profileToPreview.id,
       })
       setTags(result.tags)
-    } catch (error) {
-      /* empty */
+    } catch (apiError) {
+      setError(apiError)
     }
   }
 
@@ -81,22 +94,24 @@ const ProfilePreviewModal = ({
         invitation: tag.invitation,
       })
       await loadTags()
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      setError(apiError)
     }
   }
 
   const addTag = async (tagLabel) => {
+    const isVouchInvitation = tagInvitation === `${process.env.SUPER_USER}/Support/-/Vouch`
+
     try {
       await api.post('/tags', {
         profile: profileToPreview.id,
-        label: tagLabel,
-        signature: `${process.env.SUPER_USER}/Support`,
-        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
+        ...(!isVouchInvitation && { label: tagLabel }),
+        signature: isVouchInvitation ? tagLabel : `${process.env.SUPER_USER}/Support`,
+        invitation: tagInvitation,
       })
       await loadTags()
-    } catch (error) {
-      promptError(error.message)
+    } catch (apiError) {
+      setError(apiError)
     }
   }
 
@@ -104,6 +119,8 @@ const ProfilePreviewModal = ({
     setRejectionMessage('')
     setIsRejecting(false)
     setTags([])
+    setTagInvitation(tagInvitationOptions[0].value)
+    setError(null)
     const currentInstitutionName = profileToPreview?.history?.find(
       (p) => !p.end || p.end >= new Date().getFullYear()
     )?.institution?.name
@@ -124,6 +141,7 @@ const ProfilePreviewModal = ({
       }}
       options={{ hideFooter: !!needsModeration }}
     >
+      {error && <ErrorAlert error={error} />}
       <BasicProfileView
         profile={profileToPreview}
         showLinkText={true}
@@ -171,26 +189,48 @@ const ProfilePreviewModal = ({
       <div className="moderation-actions">
         <div className={`tags-container ${tags.length ? 'mb-2' : ''}`}>
           {tags.map((tag, index) => (
-            <ProfileTag key={index} tag={tag} onDelete={() => deleteTag(tag)} />
+            <ProfileTag
+              key={index}
+              tag={tag}
+              onDelete={() => deleteTag(tag)}
+              showProfileId={false}
+            />
           ))}
         </div>
         {profileToPreview.state !== 'Merged' && (
-          <div className="mb-2">
-            <CreatableDropdown
-              hideArrow
-              isClearable
-              classNamePrefix="tags-dropdown"
-              placeholder="tag the profile"
-              options={[
-                { label: 'require vouch', value: 'require vouch' },
-                { label: 'potential spam', value: 'potential spam' },
-              ]}
-              value={null}
+          <div className="tag-editor-container">
+            <Dropdown
+              value={tagInvitationOptions.find((p) => p.value === tagInvitation)}
+              options={tagInvitationOptions}
               onChange={(e) => {
-                if (!e) return
-                addTag(e.value)
+                setTagInvitation(e.value)
               }}
             />
+            <div className="tag-label">
+              <CreatableDropdown
+                hideArrow
+                isClearable
+                classNamePrefix="tags-dropdown"
+                placeholder={
+                  tagInvitation === `${process.env.SUPER_USER}/Support/-/Vouch`
+                    ? 'enter tilde id of the user vouching for this user'
+                    : 'select or create tag label'
+                }
+                options={
+                  tagInvitation === `${process.env.SUPER_USER}/Support/-/Vouch`
+                    ? []
+                    : [
+                        { label: 'require vouch', value: 'require vouch' },
+                        { label: 'potential spam', value: 'potential spam' },
+                      ]
+                }
+                value={null}
+                onChange={(e) => {
+                  if (!e) return
+                  addTag(e.value)
+                }}
+              />
+            </div>
           </div>
         )}
         {needsModeration && (

@@ -1,5 +1,5 @@
 import { Selector, ClientFunction, Role } from 'testcafe'
-import { strongPassword } from './utils/api-helper'
+import { strongPassword } from '../utils/api-helper'
 
 const emailInput = Selector('#email-input')
 const passwordInput = Selector('#password-input')
@@ -7,10 +7,10 @@ const loginButton = Selector('button').withText('Login to OpenReview')
 const content = Selector('#content')
 const errorMessageLabel = Selector('.error-message')
 
-const johnRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
+const reviewerRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
     .click(Selector('a').withText('Login'))
-    .typeText(emailInput, 'john@mail.com')
+    .typeText(emailInput, 'reviewer_iclr@mail.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)
     .click(loginButton)
@@ -26,27 +26,27 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
 })
 
 // eslint-disable-next-line no-unused-expressions
-fixture`Program Chairs page`
-  .page`http://localhost:${process.env.NEXT_PORT}/group?id=ICLR.cc/2021/Conference/Program_Chairs`
+fixture`Bidding page`
+  .page`http://localhost:${process.env.NEXT_PORT}/invitation?id=ICLR.cc/2021/Conference/Reviewers/-/Bid`
 
-test('guest user should be redirected to login page and access to the group', async (t) => {
+test('guest user should be redirected to login page and be able to access the invitation page', async (t) => {
   const getPageUrl = ClientFunction(() => window.location.href.toString())
   await t
     .expect(getPageUrl())
     .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
-    .typeText(emailInput, 'john@mail.com')
+    .typeText(emailInput, 'reviewer_iclr@mail.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)
     .click(loginButton)
-    .expect(Selector('#group-container').exists)
+    .expect(Selector('#invitation-container').exists)
     .ok()
-    .expect(Selector('#group-container h1').innerText)
-    .eql('Program Chairs Console')
+    .expect(Selector('#invitation-container h1').innerText)
+    .eql('Reviewers Bidding Console')
     .expect(Selector('#notes').exists)
     .ok()
 })
 
-test('guest user should be redirected to login page and get a forbidden', async (t) => {
+test('guest user should be redirected to login page and get a forbidden error', async (t) => {
   const getPageUrl = ClientFunction(() => window.location.href.toString())
   await t
     .expect(getPageUrl())
@@ -58,41 +58,41 @@ test('guest user should be redirected to login page and get a forbidden', async 
     .expect(content.exists)
     .ok()
     .expect(errorMessageLabel.innerText)
-    .eql("You don't have permission to read this group")
+    .eql("You don't have permission to read this invitation")
 })
 
-test('logged user should access to the group', async (t) => {
+test('logged in user should be able to access to the invitation', async (t) => {
   await t
-    .useRole(johnRole)
+    .useRole(reviewerRole)
     .navigateTo(
-      `http://localhost:${process.env.NEXT_PORT}/group?id=ICLR.cc/2021/Conference/Program_Chairs`
+      `http://localhost:${process.env.NEXT_PORT}/invitation?id=ICLR.cc/2021/Conference/Reviewers/-/Bid`
     )
-    .expect(Selector('#group-container').exists)
+    .expect(Selector('#invitation-container').exists)
     .ok()
-    .expect(Selector('#group-container h1').innerText)
-    .eql('Program Chairs Console')
+    .expect(Selector('#invitation-container h1').innerText)
+    .eql('Reviewers Bidding Console')
     .expect(Selector('#notes').exists)
     .ok()
 })
 
-test('logged user should get a forbidden error', async (t) => {
+test('logged in user should get a forbidden error', async (t) => {
   await t
     .useRole(testUserRole)
     .navigateTo(
-      `http://localhost:${process.env.NEXT_PORT}/group?id=ICLR.cc/2021/Conference/Program_Chairs`
+      `http://localhost:${process.env.NEXT_PORT}/invitation?id=ICLR.cc/2021/Conference/Reviewers/-/Bid`
     )
     .expect(content.exists)
     .ok()
     .expect(errorMessageLabel.innerText)
-    .eql("You don't have permission to read this group")
+    .eql("You don't have permission to read this invitation")
 })
 
 // eslint-disable-next-line no-unused-expressions
-fixture`Group page`.page`http://localhost:${process.env.NEXT_PORT}`
+fixture`Invitation page`.page`http://localhost:${process.env.NEXT_PORT}`
 
-test('try to access to an invalid group and get a not found error', async (t) => {
+test('accessing an invalid invitation should get a not found error', async (t) => {
   await t
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/group?id=dslkjf`)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/invitation?id=dslkjf`)
     .expect(errorMessageLabel.innerText)
-    .eql('Group Not Found: dslkjf')
+    .eql('The Invitation dslkjf was not found')
 })

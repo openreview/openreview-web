@@ -164,16 +164,18 @@ jobs:
           cd openreview-web
           mkdir -p logs
           NODE_ENV=production SUPER_USER=openreview.net npm run start > logs/web.log 2>&1 &
+      - name: Pin Firefox Version
+        id: setup-firefox
+        uses: browser-actions/setup-firefox@v1
+        with:
+          firefox-version: '143.0'
+      - name: Overwrite default firefox
+        run: |
+          sudo ln -sf "${{ steps.setup-firefox.outputs.firefox-path }}" /usr/bin/firefox
       - name: Run TestCafe Tests
         run: |
           cd openreview-web
           xvfb-run --server-args="-screen 0 1280x720x24" npm run test
-      - name: Upload Test Videos
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: TestCafe Videos
-          path: openreview-web/videos/
       - name: Check API Logs
         if: failure()
         run: |

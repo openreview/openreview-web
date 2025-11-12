@@ -1,5 +1,5 @@
 import { Selector, Role } from 'testcafe'
-import { hasTaskUser, hasNoTaskUser } from './utils/api-helper'
+import { hasTaskUser, hasNoTaskUser } from '../utils/api-helper'
 
 const confirmDeleteModal = Selector('#confirm-delete-modal')
 const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
@@ -16,7 +16,7 @@ const hasNoTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, asyn
     .click(Selector('a').withText('Login'))
     .typeText(Selector('#email-input'), hasNoTaskUser.email)
     .typeText(Selector('#password-input'), hasNoTaskUser.password)
-    .wait(100)
+    .wait(300)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
@@ -35,10 +35,16 @@ test('user with no tasks should see an empty tasks page', async (t) => {
 })
 
 test('task should change when note is deleted and restored', async (t) => {
+  await t // clicking triangle should expand tasks
+    .useRole(hasTaskUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
+    .click(Selector('span.glyphicon-triangle-bottom'))
+    .expect(Selector('a').withText('Submission1 Official Review').exists).ok()
   await t
     .useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
     .click(Selector('span.task-count-message'))
+    .wait(200)
     .click(Selector('a').withText('Submission1 Official Review')) // go to forum page
     .wait(2000)
     .click(Selector('#forum-replies').find('button').withAttribute('type', 'button').nth(5))
@@ -55,6 +61,7 @@ test('task should change when note is deleted and restored', async (t) => {
     .expect(Selector('span.task-count-message').innerText)
     .eql('1 pending task')
     .click(Selector('span.task-count-message'))
+    .wait(200)
     .click(Selector('a').withText('Submission1 Official Review'))
     .wait(2000)
     .click(Selector('#forum-replies').find('button').withAttribute('type', 'button').nth(4))

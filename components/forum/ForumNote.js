@@ -10,6 +10,7 @@ import { NoteContentV2 } from '../NoteContent'
 import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
+import OtherVersions from './OtherVersions'
 
 dayjs.extend(relativeTime)
 
@@ -88,6 +89,8 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
         texDisabled && 'disable-tex-rendering'
       )}
     >
+      <OtherVersions note={note} />
+
       <ForumTitle
         id={id}
         title={DOMPurify.sanitize(content?.title?.value)}
@@ -183,6 +186,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
         omit={[canShowIcon('pdf') ? 'pdf' : null, canShowIcon('html') ? 'html' : null].filter(
           Boolean
         )}
+        externalIDs={note.externalIds}
         fullMarkdown={note.invitations.some(
           (p) => p === `${process.env.SUPER_USER}/News/-/Article`
         )}

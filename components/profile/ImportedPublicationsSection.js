@@ -1,10 +1,14 @@
 /* globals promptError: false */
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import NoteList from '../NoteList'
 import PaginationLinks from '../PaginationLinks'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
+import { getImportSourceIcon } from '../../lib/profiles'
+import { buildNoteTitle, buildNoteUrl } from '../../lib/utils'
+import UnlinkPublicationButton from '../UnlinkPublicationButton'
 
 const ImportedPublicationsSection = ({
   profileId,
@@ -27,6 +31,45 @@ const ImportedPublicationsSection = ({
     }
   }
 
+  const customTitle = (note) => {
+    const { id, forum, content, invitations, signatures } = note
+    return (
+      <h4>
+        {getImportSourceIcon(invitations[0])}
+        <a href={buildNoteUrl(id, forum, content)} target="_blank" rel="nofollow noreferrer">
+          {content.title?.value || buildNoteTitle(invitations[0], signatures)}
+        </a>
+
+        {content.pdf?.value && (
+          <Link
+            href={`/attachment?id=${id}&name=pdf`}
+            className="pdf-link"
+            title="Download PDF"
+            target="_blank"
+          >
+            <img src="/images/pdf_icon_blue.svg" alt="pdf icon" />
+          </Link>
+        )}
+        {content.html?.value && (
+          <a
+            href={content.html.value}
+            className="html-link"
+            title="Open Website"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
+          </a>
+        )}
+        <UnlinkPublicationButton
+          noteId={id}
+          linkUnlinkPublication={handleLinkUnlinkPublication}
+          isUnlinked={publicationIdsToUnlink?.includes(note.id)}
+        />
+      </h4>
+    )
+  }
+
   const displayOptions = {
     pdfLink: true,
     htmlLink: true,
@@ -36,6 +79,7 @@ const ImportedPublicationsSection = ({
     unlinkedPublications: publicationIdsToUnlink,
     linkUnlinkPublication: handleLinkUnlinkPublication,
     emptyMessage: 'No imported publications found',
+    customTitle,
   }
 
   const loadPublications = async () => {
