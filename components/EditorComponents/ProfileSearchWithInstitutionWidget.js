@@ -419,7 +419,9 @@ const ProfileSearchWithInstitutionWidget = () => {
   const { user, accessToken, isRefreshing } = useUser()
   const { field, onChange, value, error, clearError } = useContext(EditorComponentContext)
 
-  const hasInstitutionProperty = field?.authors?.value?.param?.properties?.institutions
+  const hasInstitutionProperty =
+    field?.authors?.value?.param?.properties?.institutions || // add institution
+    field?.authors?.value?.param?.elements // reorder
   const reorderOnly = Array.isArray(field?.authors?.value)
   const allowAddRemove = !reorderOnly && !field.authors.value.param.elements // reorder with institution change
   const allowInstitutionChange = !reorderOnly
