@@ -930,7 +930,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
     })
   })
 
-  test('allow reorder only when invitation fix authors value)', async () => {
+  test('allow reorder only (no institution)', async () => {
     const apiPost = jest.fn(() =>
       Promise.resolve({
         profiles: [
@@ -942,7 +942,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
               history: [
                 {
                   start: 1999,
-                  end: 1999,
+                  end: null,
                   institution: {
                     name: 'Test Institution',
                     domain: 'test.edu',
@@ -961,6 +961,339 @@ describe('ProfileSearchWithInstitutionWidget', () => {
               ],
             },
           },
+          {
+            id: '~test_id2',
+            content: {
+              names: [{ fullname: 'Another First Another Last', username: '~test_id2' }],
+              preferredEmail: 'another@email.com',
+              history: [
+                {
+                  start: 1999,
+                  end: null,
+                  institution: {
+                    name: 'Another User Institution',
+                    domain: 'another.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 2000,
+                  end: null,
+                  institution: {
+                    name: 'Another User Another Institution',
+                    domain: 'another.user.test.edu',
+                    country: 'TC',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      })
+    )
+    api.post = apiPost
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            value: [
+              {
+                username: '~test_id1',
+                fullname: 'Test First Test Last',
+              },
+              {
+                username: '~test_id2',
+                fullname: 'Another First Another Last',
+              },
+            ],
+          },
+        },
+        onChange,
+        value: [
+          // value from existing note
+          {
+            username: '~test_id1',
+            fullname: 'Test First Test Last',
+          },
+          {
+            username: '~test_id2',
+            fullname: 'Another First Another Last',
+          },
+        ],
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    await waitFor(() => {
+      // show name and reorder button only
+      expect(screen.getByText('Test First Test Last')).toBeInTheDocument()
+      expect(screen.getByText('Another First Another Last')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'arrow-right' })).toBeInTheDocument()
+
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'remove' })).not.toBeInTheDocument()
+      expect(screen.queryByText('1 Institution added')).not.toBeInTheDocument()
+    })
+
+    // update order
+    await userEvent.click(screen.getByRole('button', { name: 'arrow-right' }))
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          value: [
+            {
+              username: '~test_id2',
+              fullname: 'Another First Another Last',
+            },
+            {
+              username: '~test_id1',
+              fullname: 'Test First Test Last',
+            },
+          ],
+        })
+      )
+    })
+  })
+
+  test('allow reorder only (with institution)', async () => {
+    const apiPost = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              preferredEmail: 'test@email.com',
+              history: [
+                {
+                  start: 1999,
+                  end: null,
+                  institution: {
+                    name: 'Test Institution',
+                    domain: 'test.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 2000,
+                  end: 2000,
+                  institution: {
+                    name: 'Another Test Institution',
+                    domain: 'another.test.edu',
+                    country: 'TC',
+                  },
+                },
+              ],
+            },
+          },
+          {
+            id: '~test_id2',
+            content: {
+              names: [{ fullname: 'Another First Another Last', username: '~test_id2' }],
+              preferredEmail: 'another@email.com',
+              history: [
+                {
+                  start: 1999,
+                  end: null,
+                  institution: {
+                    name: 'Another User Institution',
+                    domain: 'another.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 2000,
+                  end: null,
+                  institution: {
+                    name: 'Another User Another Institution',
+                    domain: 'another.user.test.edu',
+                    country: 'TC',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      })
+    )
+    api.post = apiPost
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            value: [
+              {
+                username: '~test_id1',
+                fullname: 'Test First Test Last',
+                institutions: [
+                  { name: 'Non existing Institution', domain: 'non.existing', country: 'TC' },
+                ],
+              },
+              {
+                username: '~test_id2',
+                fullname: 'Another First Another Last',
+                institutions: [
+                  {
+                    name: 'Another User Institution',
+                    domain: 'another.edu',
+                    country: 'TC',
+                  },
+                  {
+                    name: 'Another User Another Institution',
+                    domain: 'another.user.test.edu',
+                    country: 'TC',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        onChange,
+        value: [
+          // value from existing note
+          {
+            username: '~test_id1',
+            fullname: 'Test First Test Last',
+            institutions: [
+              { name: 'Non existing Institution', domain: 'non.existing', country: 'TC' },
+            ],
+          },
+          {
+            username: '~test_id2',
+            fullname: 'Another First Another Last',
+            institutions: [
+              {
+                name: 'Another User Institution',
+                domain: 'another.edu',
+                country: 'TC',
+              },
+              {
+                name: 'Another User Another Institution',
+                domain: 'another.user.test.edu',
+                country: 'TC',
+              },
+            ],
+          },
+        ],
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    await waitFor(() => {
+      // show name and reorder button
+      expect(screen.getByText('Test First Test Last')).toBeInTheDocument()
+      expect(screen.getByText('Another First Another Last')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'arrow-right' })).toBeInTheDocument()
+
+      expect(screen.queryByRole('button', { name: 'remove' })).not.toBeInTheDocument()
+    })
+
+    // institution is shown is disabled
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '1 Institution added' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '2 Institutions added' })).toBeInTheDocument()
+      screen.getAllByRole('checkbox').forEach((checkbox) => {
+        expect(checkbox).toBeDisabled()
+      })
+    })
+
+    //update order
+    await userEvent.click(screen.getByRole('button', { name: 'arrow-right' }))
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          value: [
+            {
+              username: '~test_id2',
+              fullname: 'Another First Another Last',
+              institutions: [
+                {
+                  name: 'Another User Institution',
+                  domain: 'another.edu',
+                  country: 'TC',
+                },
+                {
+                  name: 'Another User Another Institution',
+                  domain: 'another.user.test.edu',
+                  country: 'TC',
+                },
+              ],
+            },
+            {
+              username: '~test_id1',
+              fullname: 'Test First Test Last',
+              institutions: [
+                { name: 'Non existing Institution', domain: 'non.existing', country: 'TC' },
+              ],
+            },
+          ],
+        })
+      )
+    })
+  })
+
+  test('allow reorder with institution change', async () => {
+    const apiPost = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              preferredEmail: 'test@email.com',
+              history: [
+                {
+                  start: 1999,
+                  end: null,
+                  institution: {
+                    name: 'Test Institution',
+                    domain: 'test.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 2000,
+                  end: 2000,
+                  institution: {
+                    name: 'Another Test Institution',
+                    domain: 'another.test.edu',
+                    country: 'TC',
+                  },
+                },
+              ],
+            },
+          },
+          {
+            id: '~test_id2',
+            content: {
+              names: [{ fullname: 'Another First Another Last', username: '~test_id2' }],
+              preferredEmail: 'another@email.com',
+              history: [
+                {
+                  start: 1999,
+                  end: null,
+                  institution: {
+                    name: 'Another User Institution',
+                    domain: 'another.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 2000,
+                  end: null,
+                  institution: {
+                    name: 'Another User Another Institution',
+                    domain: 'another.user.test.edu',
+                    country: 'TC',
+                  },
+                },
+              ],
+            },
+          },
         ],
       })
     )
@@ -972,47 +1305,160 @@ describe('ProfileSearchWithInstitutionWidget', () => {
           authors: {
             value: {
               param: {
-                type: 'author{}',
-                properties: {
-                  fullname: {
+                type: 'object{}',
+                elements: [
+                  {
                     param: {
-                      type: 'string',
-                    },
-                  },
-                  username: {
-                    param: {
-                      type: 'string',
-                    },
-                  },
-                  institutions: {
-                    param: {
-                      type: 'object{}',
+                      type: 'object',
                       properties: {
-                        name: { param: { type: 'string' } },
-                        domain: { param: { type: 'string' } },
-                        country: { param: { type: 'string' } },
+                        fullname: 'Test First Test Last',
+                        username: '~test_id1',
+                        institutions: {
+                          param: {
+                            type: 'object{}',
+                            properties: {
+                              name: { param: { type: 'string' } },
+                              domain: { param: { type: 'string' } },
+                              country: { param: { type: 'string' } },
+                            },
+                          },
+                        },
                       },
                     },
                   },
-                },
+                  {
+                    param: {
+                      type: 'object',
+                      properties: {
+                        fullname: 'Another First Another Last',
+                        username: '~test_id2',
+                        institutions: {
+                          param: {
+                            type: 'object{}',
+                            properties: {
+                              name: { param: { type: 'string' } },
+                              domain: { param: { type: 'string' } },
+                              country: { param: { type: 'string' } },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                ],
               },
             },
           },
         },
         onChange,
+        value: [
+          // value from existing note
+          {
+            username: '~test_id1',
+            fullname: 'Test First Test Last',
+            institutions: [
+              { name: 'Non existing Institution', domain: 'non.existing', country: 'TC' },
+            ],
+          },
+          {
+            username: '~test_id2',
+            fullname: 'Another First Another Last',
+            institutions: [
+              {
+                name: 'Another User Institution',
+                domain: 'another.edu',
+                country: 'TC',
+              },
+              {
+                name: 'Another User Another Institution',
+                domain: 'another.user.test.edu',
+                country: 'TC',
+              },
+            ],
+          },
+        ],
       },
     }
 
     renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
 
+    // no remove button
+    await waitFor(() => {
+      expect(screen.getByText('Test First Test Last')).toBeInTheDocument()
+      expect(screen.getByText('Another First Another Last')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '1 Institution added' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '2 Institutions added' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'arrow-right' })).toBeInTheDocument()
+
+      expect(screen.queryByRole('button', { name: 'remove' })).not.toBeInTheDocument()
+    })
+
+    // institution is enabled
+    await waitFor(() => {
+      screen.getAllByRole('checkbox').forEach((checkbox) => {
+        expect(checkbox).not.toBeDisabled()
+      })
+    })
+
+    // update order
+    await userEvent.click(screen.getByRole('button', { name: 'arrow-right' }))
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
           value: [
             {
+              username: '~test_id2',
+              fullname: 'Another First Another Last',
+              institutions: [
+                {
+                  name: 'Another User Institution',
+                  domain: 'another.edu',
+                  country: 'TC',
+                },
+                {
+                  name: 'Another User Another Institution',
+                  domain: 'another.user.test.edu',
+                  country: 'TC',
+                },
+              ],
+            },
+            {
               username: '~test_id1',
               fullname: 'Test First Test Last',
-              institutions: [],
+              institutions: [
+                { name: 'Non existing Institution', domain: 'non.existing', country: 'TC' },
+              ],
+            },
+          ],
+        })
+      )
+    })
+
+    // uncheck an institution from ~test_id2
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Another User Institution (another.edu)' })
+    )
+    await waitFor(() => {
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          value: [
+            {
+              username: '~test_id2',
+              fullname: 'Another First Another Last',
+              institutions: [
+                {
+                  name: 'Another User Another Institution',
+                  domain: 'another.user.test.edu',
+                  country: 'TC',
+                },
+              ],
+            },
+            {
+              username: '~test_id1',
+              fullname: 'Test First Test Last',
+              institutions: [
+                { name: 'Non existing Institution', domain: 'non.existing', country: 'TC' },
+              ],
             },
           ],
         })
