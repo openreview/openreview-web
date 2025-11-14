@@ -355,7 +355,12 @@ const NoteEditor = ({
       }))
     }
 
-    if (fieldName === 'authors' && Array.isArray(fieldDescription?.value)) return null
+    if (
+      fieldName === 'authors' &&
+      Array.isArray(fieldDescription?.value) &&
+      fieldDescription.value.every((p) => typeof p !== 'object') // object author reorder should still show widget
+    )
+      return null
 
     return (
       <div key={fieldName} className={isHiddenField ? null : styles.fieldContainer}>
@@ -581,7 +586,7 @@ const NoteEditor = ({
           formData.authors = noteEditorData.authorids.map((p) => p.authorName)
           formData.authorids = noteEditorData.authorids.map((p) => p.authorId)
         }
-      } else {
+      } else if (!noteEditorData.authors) {
         formData.authors = { delete: true }
         formData.authorids = { delete: true }
       }
