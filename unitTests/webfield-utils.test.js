@@ -631,6 +631,111 @@ describe('filterCollections', () => {
     )
     expect(result.filteredRows.map((p) => p.id)).toEqual([2])
   })
+
+  test('filter object authors', () => {
+    const note1Authors = [
+      {
+        fullname: 'Name One',
+        username: '~Id1',
+        institutions: [{ domain: 'institution.one', name: 'Institution One', country: 'TC' }],
+      },
+      {
+        fullname: 'Name Two',
+        username: '~Id2',
+        institutions: [{ domain: 'institution.two', name: 'Institution Two', country: 'TC' }],
+      },
+    ]
+    const note2Authors = [
+      {
+        fullname: 'Name Three',
+        username: '~Id3',
+        institutions: [
+          { domain: 'institution.three', name: 'Institution Three', country: 'TC' },
+        ],
+      },
+      {
+        fullname: 'Name Four',
+        username: '~Id4',
+        institutions: [
+          { domain: 'institution.four', name: 'Institution Four', country: 'TC' },
+        ],
+      },
+    ]
+    const collections = [
+      {
+        id: 1,
+        note: {
+          content: {
+            authors: { value: note1Authors },
+          },
+          authorSearchValue: note1Authors.map((p) => ({
+            ...p,
+            type: 'authorObj',
+          })),
+        },
+      },
+      {
+        id: 2,
+        note: {
+          content: {
+            authors: { value: note2Authors },
+          },
+          authorSearchValue: note2Authors.map((p) => ({
+            ...p,
+            type: 'authorObj',
+          })),
+        },
+      },
+    ]
+
+    // id match
+    let filterString = 'author=~Id'
+    const propertiesAllowed = {
+      author: ['note.authorSearchValue'],
+    }
+
+    let result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([1, 2])
+
+    // id exact match
+    filterString = 'author=~Id3'
+    result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([2])
+
+    // name match
+    filterString = 'author=Name'
+    result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([1, 2])
+
+    // name exact match
+    filterString = 'author==Name Three'
+    result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([2])
+  })
 })
 
 describe('convertToString', () => {
