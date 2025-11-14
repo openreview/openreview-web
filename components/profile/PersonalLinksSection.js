@@ -48,6 +48,7 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
 
   return (
     <input
+      aria-label={`${type} URL`}
       id={`${type}_url`}
       className={`form-control personal-links__input ${
         links[type]?.valid === false ? 'invalid-value' : ''
@@ -226,6 +227,7 @@ const PersonalLinksSection = ({
               rel="noreferrer"
             >
               <Icon name="info-sign" />
+              <span className="sr-only">Semantic Scholar URL instruction</span>
             </a>
           </div>
           <PersonalLinkInput type="semanticScholar" links={links} setLinks={setLinks} />
@@ -240,6 +242,7 @@ const PersonalLinksSection = ({
               rel="noreferrer"
             >
               <Icon name="info-sign" />
+              <span className="sr-only">ACL Anthology URL instruction</span>
             </a>
           </div>
           <PersonalLinkInput type="aclanthology" links={links} setLinks={setLinks} />

@@ -34,7 +34,6 @@ export default function FilterTabs({
           <li
             key={view.id}
             data-id={view.id}
-            role="presentation"
             className={view.id === currentHash ? 'active' : null}
           >
             <Link

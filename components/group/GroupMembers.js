@@ -359,11 +359,9 @@ const GroupMembers = ({
       : ''
 
     try {
-      await api.post(
-        '/groups/edits',
-        buildEdit('add', [...newMembers, ...existingDeleted]),
-        { accessToken }
-      )
+      await api.post('/groups/edits', buildEdit('add', [...newMembers, ...existingDeleted]), {
+        accessToken,
+      })
       setSearchTerm('')
       setGroupMembers({
         type: 'ADD',
@@ -648,6 +646,7 @@ const GroupMembers = ({
                 placeholder="e.g. ~Jane_Doe1, jane@example.com, abc.com/2018/Conf/Authors"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                aria-label='"Add or search group members"'
               />
             </div>
             {showAddRemoveMembers && (
@@ -745,6 +744,7 @@ const GroupMembers = ({
                           payload: member.id,
                         })
                       }}
+                      aria-label="Select or unselect group member"
                     />
                   )}
                   <span

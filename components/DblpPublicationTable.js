@@ -109,6 +109,7 @@ export default function DblpPublicationTable({
           onChange={(e) => toggleSelectAll(e.target.checked)}
           checked={allChecked}
           disabled={allExistInOpenReview}
+          aria-label="Select all"
         />
       ),
       width: '24px',
@@ -149,6 +150,7 @@ export default function DblpPublicationTable({
                         )
                       }
                       disabled={publicationsCouldImportOfYear.length === 0}
+                      aria-label="Select all publications of this year"
                     />
                     {`${p} – ${inflect(
                       publicationsOfYear.length,
@@ -297,6 +299,7 @@ const DblpPublicationRow = ({
           checked={selected}
           disabled={openReviewId || authorIsInvalid}
           title={authorIsInvalid ? 'Your name does not match the author list' : undefined}
+          aria-label="Select this publication"
         />
         <div>
           <div className="publication-title">

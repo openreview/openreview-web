@@ -8,7 +8,12 @@ export default function Banner({ hidden, children }) {
   )
 
   return (
-    <div id="or-banner" className="banner" style={hidden ? { display: 'none' } : null}>
+    <div
+      id="or-banner"
+      className="banner"
+      role="banner"
+      style={hidden ? { display: 'none' } : null}
+    >
       <div className="container">
         <div className="row">
           <div className="col-xs-12">{children || defaultContent}</div>
