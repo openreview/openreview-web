@@ -224,7 +224,13 @@ const EthicsChairPaperStatus = () => {
               return p.invitations.includes(ethicsMetaReviewInvitationId)
             })
           : null
-
+        if (typeof note.content?.authors?.value === 'object') {
+          // eslint-disable-next-line no-param-reassign
+          note.authorSearchValue = note.content.authors.value.map((p) => ({
+            ...p,
+            type: 'authorObj',
+          }))
+        }
         return {
           note,
           ethicsReviews,
