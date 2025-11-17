@@ -292,15 +292,19 @@ const NoteEditor = ({
 
   const saveDraft = useCallback(
     throttle((fieldName, value) => {
-      const keyOfSavedText = getAutoStorageKey(
-        user,
-        invitation.id,
-        note?.id,
-        replyToNote?.id,
-        fieldName
-      )
-      localStorage.setItem(keyOfSavedText, value ?? '')
-      setAutoStorageKeys((keys) => [...keys, keyOfSavedText])
+      try {
+        const keyOfSavedText = getAutoStorageKey(
+          user,
+          invitation.id,
+          note?.id,
+          replyToNote?.id,
+          fieldName
+        )
+        localStorage.setItem(keyOfSavedText, value ?? '')
+        setAutoStorageKeys((keys) => [...keys, keyOfSavedText])
+      } catch (error) {
+        /* empty */
+      }
     }, 1500),
     [invitation, note, replyToNote]
   )
