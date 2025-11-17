@@ -53,6 +53,12 @@ export default function NoteEntity(props) {
   if (editEdges?.length) extraClasses.push('is-editable')
   if (props.isSelected) extraClasses.push('is-selected')
 
+  let { authors, authorids } = content
+
+  if (!authorids) {
+    authors = authors.map((p) => p.fullname)
+    authorids = authors.map((p) => p.username)
+  }
   // Event handlers
   const handleClick = (e) => {
     if (!props.canTraverse) return
@@ -338,8 +344,8 @@ export default function NoteEntity(props) {
         </h3>
 
         <NoteAuthors
-          authors={content.authors}
-          authorIds={content.authorids}
+          authors={authors}
+          authorIds={authorids}
           signatures={noteSignatures}
           original={original}
           max={4}
