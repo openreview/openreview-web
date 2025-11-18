@@ -1,6 +1,6 @@
 /* eslint-disable func-names,object-shorthand */
 import { useContext, useState } from 'react'
-import { get, set } from 'lodash'
+import { get, set, unset } from 'lodash'
 import EditorComponentContext from '../EditorComponentContext'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import CodeEditorWidget from './CodeEditorWidget'
@@ -151,6 +151,10 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
             // { value: 'group', description: 'Group ID (Profile Search)' },
             // { value: 'profile', description: 'Profile ID (Profile Search)' },
             { value: 'group[]', description: 'Group ID Array (Profile Search)' },
+            {
+              value: 'author{}',
+              description: 'Author Object (Profile Search with Institution)',
+            },
             // { value: 'profile[]', description: 'Profile ID Array (Profile Search)' },
             // { value: 'note', description: 'Note ID (Not implemented)' },
             // { value: 'note[]', description: 'Note ID Array (Not implemented)' },
@@ -188,7 +192,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
         },
       },
       shouldBeShown: (formData) =>
-        !['const', 'file', 'date', 'boolean', 'json'].includes(formData.dataType),
+        !['const', 'file', 'date', 'boolean', 'json', 'author{}'].includes(formData.dataType),
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -433,12 +437,63 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       },
       valuePath: 'value.param.markdown',
     },
+    institution: {
+      order: 9,
+      description: 'whether to include institution info',
+      value: {
+        param: {
+          input: 'checkbox',
+          type: 'boolean',
+          enum: [{ value: true, description: 'Include institution info' }],
+          optional: true,
+        },
+      },
+      shouldBeShown: (formData) => formData.dataType === 'author{}',
+      getValue: function (existingValue) {
+        const hasInstitution = get(existingValue, this.valuePath)
+        return !!hasInstitution
+      },
+      valuePath: 'value.param.properties.institutions',
+    },
   }
 
   const onFormChange = (updatedForm) => {
     const updatedField = Object.entries(fieldSpecificationsOfJsonField).reduce(
       (prev, [key, config]) => {
-        if (config.valuePath) {
+        if (key === 'dataType' && updatedForm[key] === 'author{}') {
+          set(prev, config.valuePath, updatedForm[key])
+          set(prev, 'value.param.properties', {
+            fullname: { param: { type: 'string' } },
+            username: { param: { type: 'string' } },
+          })
+        } else if (key === 'institution') {
+          const includeInstitution = updatedForm[key]
+          // eslint-disable-next-line no-unused-expressions
+          includeInstitution
+            ? set(prev, 'value.param.properties.institutions', {
+                param: {
+                  type: 'object{}',
+                  properties: {
+                    name: {
+                      param: {
+                        type: 'string',
+                      },
+                    },
+                    domain: {
+                      param: {
+                        type: 'string',
+                      },
+                    },
+                    country: {
+                      param: {
+                        type: 'string',
+                      },
+                    },
+                  },
+                },
+              })
+            : unset(prev, 'value.param.properties.institutions', undefined)
+        } else if (config.valuePath) {
           set(prev, config.valuePath, updatedForm[key])
         } else {
           set(prev, key, updatedForm[key])
