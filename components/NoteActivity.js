@@ -16,6 +16,7 @@ import {
 
 dayjs.extend(relativeTime)
 
+
 export default function NoteActivity({ note, showGroup, showActionButtons }) {
   const { details } = note
   const { id, forum, content = {} } = note.note
