@@ -43,14 +43,19 @@ export default function Footer() {
               <ul className="list-unstyled">
                 <li>
                   <a href="https://docs.openreview.net/getting-started/frequently-asked-questions">
-                    Frequently Asked Questions
+                    FAQ
                   </a>
                 </li>
                 <li>
-                  <Link href="/legal/terms">Terms of Use</Link>
+                  <Link href="/legal/terms">Terms of Use</Link> /{' '}
+                  <Link href="/legal/privacy">Privacy Policy</Link>
                 </li>
                 <li>
-                  <Link href="/legal/privacy">Privacy Policy</Link>
+                  <Link
+                    href={`/group?id=${process.env.SUPER_USER}/News&referrer=[Homepage](/)`}
+                  >
+                    News
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -74,6 +79,13 @@ export default function Footer() {
                 <li>
                   <Link href="/sponsors">Sponsors</Link>
                 </li>
+                <li>
+                  <Link
+                    href={`/group?id=${process.env.SUPER_USER}/News&referrer=[Homepage](/)`}
+                  >
+                    News
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -81,7 +93,7 @@ export default function Footer() {
               <ul className="list-unstyled">
                 <li>
                   <a href="https://docs.openreview.net/getting-started/frequently-asked-questions">
-                    Frequently Asked Questions
+                    FAQ
                   </a>
                 </li>
                 <li>

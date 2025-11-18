@@ -267,7 +267,7 @@ export default function VenueHomepage({ appContext }) {
 
   if (!header || !tabs) {
     const errorMessage = 'Venue Homepage requires both header and tabs properties to be set'
-    return <ErrorDisplay statusCode="" message={errorMessage} />
+    return <ErrorDisplay statusCode="" message={errorMessage} withLayout={false} />
   }
 
   if (isRefreshing) return <LoadingSpinner />

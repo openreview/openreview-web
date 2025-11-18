@@ -1,4 +1,4 @@
-import { Selector, ClientFunction, Role, RequestLogger } from 'testcafe'
+import { Selector, ClientFunction, RequestLogger } from 'testcafe'
 import {
   inactiveUser,
   inActiveUserNoPassword,
@@ -7,23 +7,8 @@ import {
   getMessages,
   superUserName,
   strongPassword,
-} from './utils/api-helper'
+} from '../utils/api-helper'
 
-const SURole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
-  await t
-    .click(Selector('a').withText('Login'))
-    .typeText(Selector('#email-input'), superUserName)
-    .typeText(Selector('#password-input'), strongPassword)
-    .click(Selector('button').withText('Login to OpenReview'))
-})
-
-const EmailOwnerRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
-  await t
-    .click(Selector('a').withText('Login'))
-    .typeText(Selector('#email-input'), 'melisa@test.com')
-    .typeText(Selector('#password-input'), strongPassword)
-    .click(Selector('button').withText('Login to OpenReview'))
-})
 
 const fullNameInputSelector = Selector('#first-input')
 const emailAddressInputSelector = Selector('input').withAttribute(
@@ -222,7 +207,7 @@ test('create a new profile with an institutional email', async (t) => {
 
 test('enter invalid name', async (t) => {
   await t
-    .typeText(fullNameInputSelector, 'abc 1')
+    .typeText(fullNameInputSelector, 'abc 1', { speed: 0.8 })
     .expect(Selector('.important_message').exists)
     .ok()
     .expect(Selector('.important_message').textContent)
@@ -426,6 +411,7 @@ test('update profile', async (t) => {
     .typeText(Selector('#homepage_url'), 'http://homepage.do', { paste: true })
     .click(nextSectiomButtonSelector) // history
     .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .wait(300)
     .pressKey('M S space s t u d e n t tab')
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
     .click(Selector('div.institution-dropdown__option').nth(0))
@@ -518,6 +504,7 @@ test('register a profile with an institutional email', async (t) => {
     .typeText(Selector('#homepage_url'), 'http://kevinmalone.com', { paste: true })
     .click(nextSectiomButtonSelector) // history
     .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .wait(300)
     .pressKey('M S space s t u d e n t tab')
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
     .click(Selector('div.institution-dropdown__option').nth(0))
@@ -604,6 +591,7 @@ test('add alternate email', async (t) => {
   await t
     .typeText(Selector('#email-input'), 'melisa@test.com')
     .typeText(Selector('#password-input'), strongPassword)
+    .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
     .expect(getPageUrl())
     .contains('http://localhost:3030', { timeout: 10000 })
@@ -659,7 +647,7 @@ test('#160 allow user to overwrite last/middle/first name to be lowercase', asyn
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/signup`)
     .click(fullNameInputSelector)
-    .pressKey('f i r s t')
+    .pressKey('f i r s t', { speed: 0.8 })
     .expect(fullNameInputSelector.value)
     .eql('First')
     .pressKey('left left left left left delete f tab')
