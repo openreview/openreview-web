@@ -1,4 +1,4 @@
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import AllVenues from './AllVenues'
 import ActiveVenues from './ActiveVenues'
 import styles from './Home.module.scss'
@@ -7,6 +7,7 @@ import api from '../../lib/api-client'
 import { formatGroupResults } from '../../lib/utils'
 import ActiveConsoles from './ActiveConsoles'
 import VersionChecker from '../../components/VersionChecker'
+import News from './News'
 
 export const metadata = {
   title: 'Venues | OpenReview',
@@ -20,12 +21,23 @@ const formatInvitationResults = (apiRes) =>
 
 export default async function page() {
   const headersList = await headers()
+  const cookieStore = await cookies()
   const remoteIpAddress = headersList.get('x-forwarded-for')
-  const [activeVenuesResult, openVenuesResult] = await Promise.allSettled([
+  const [activeVenuesResult, openVenuesResult, newsResult] = await Promise.allSettled([
     api.get('groups', { id: 'active_venues' }, { remoteIpAddress }).then(formatGroupResults),
     api
       .get('/invitations', { invitee: '~', pastdue: false, type: 'note' }, { remoteIpAddress })
       .then(formatInvitationResults),
+    api.get(
+      '/notes',
+      {
+        invitation: `${process.env.SUPER_USER}/News/-/Article`,
+        select: 'id,cdate,content.title,content.paperhash',
+        limit: 3,
+        sort: 'cdate:desc',
+      },
+      { remoteIpAddress }
+    ),
   ])
 
   let activeVenues
@@ -48,9 +60,27 @@ export default async function page() {
       openVenuesResult,
     })
   }
+  let news = []
+  if (newsResult.status === 'fulfilled') {
+    news = newsResult.value.notes
+  } else {
+    console.log('Error in page', {
+      page: 'Home',
+      newsResult,
+    })
+  }
+
+  let showNews = false
+  const hideNewsBeforeTimeStamp = cookieStore.get('hideNewsBeforeTimeStamp')?.value
+  if (!hideNewsBeforeTimeStamp || hideNewsBeforeTimeStamp < news?.[0]?.cdate) {
+    showNews = true
+  }
 
   return (
     <div className={styles.home}>
+      <div className="col-xs-12">
+        <News news={news} showNews={showNews} />
+      </div>
       <div className="col-xs-12 col-sm-6">
         <ActiveConsoles activeVenues={activeVenues} openVenues={openVenues} />
         <div className="visible-xs">

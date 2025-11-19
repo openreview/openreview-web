@@ -312,12 +312,13 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
   }
 
   useEffect(() => {
+    if (!user) return
     if (!sacConsoleData.notes) {
       loadSacConsoleData()
       return
     }
     if (!areaChairStatusTabData.tableRows) calcACStatusTabData()
-  }, [sacConsoleData])
+  }, [sacConsoleData, user])
 
   useEffect(() => {
     setAreaChairStatusTabData((data) => ({

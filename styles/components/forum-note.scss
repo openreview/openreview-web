@@ -60,7 +60,12 @@
     float: left;
     margin-top: 0.125rem;
     margin-bottom: 0.125rem;
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 85%;
+
     .item {
+      display: inline-flex;
       font-size: 0.75rem;
       color: constants.$subtleGray;
       padding-right: 1rem;

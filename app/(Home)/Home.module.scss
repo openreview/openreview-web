@@ -86,5 +86,44 @@
         }
       }
     }
+
+    #news {
+      border: 1px solid constants.$backgroundGray;
+      padding: 0.5rem;
+      border-radius: 5px;
+    }
+  }
+}
+
+.newsTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+
+  @media #{constants.$phone-only} {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .newsDate {
+    white-space: 'nowrap';
+    align-self: 'baseline';
+    min-width: fit-content;
+  }
+}
+
+.closeNewsBtn {
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  color: constants.$darkBlue;
+
+  position: absolute;
+  top: 0;
+  right: 15px;
+
+  &:hover {
+    color: constants.$subtleGray;
   }
 }

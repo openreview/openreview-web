@@ -134,6 +134,7 @@ module.exports = (function () {
         resultsKey = 'profiles'
       } else if (url.indexOf('invitations') !== -1) {
         resultsKey = 'invitations'
+        offset = undefined
       } else if (url.indexOf('tags') !== -1) {
         resultsKey = 'tags'
       } else if (url.indexOf('edges') !== -1) {
@@ -351,7 +352,7 @@ module.exports = (function () {
   var getTagInvitations = function (replyInvitation) {
     var urlParams = {
       replyInvitation: replyInvitation,
-      tags: true,
+      type: 'tags',
     }
 
     return get('/invitations', urlParams).then(function (result) {

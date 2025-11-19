@@ -88,6 +88,7 @@ export default function Forum({
   selectedInvitationId,
   prefilledValues,
   query,
+  editInvitationIdToHide,
 }) {
   const { isRefreshing, accessToken } = useUser()
   const [parentNote, setParentNote] = useState(forumNote)
@@ -180,7 +181,8 @@ export default function Forum({
       )
       .then(({ invitations }) => {
         if (!invitations?.length) return []
-        return invitations.map((inv) => {
+        return invitations.flatMap((inv) => {
+          if (inv.id === editInvitationIdToHide) return []
           // Check if invitation does not have multiReply prop OR invitation is set to multiReply
           // but it is not false OR there have not been any replies to the invitation yet
           const repliesAvailable =
@@ -1110,21 +1112,25 @@ export default function Forum({
                 )
               })}
             </div>
-            <NoteEditor
-              note={selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)}
-              replyToNote={parentNote}
-              invitation={activeInvitation}
-              className="note-editor-reply depth-even"
-              closeNoteEditor={() => {
-                setActiveInvitation(null)
-              }}
-              onNoteCreated={(note) => {
-                updateNote(note)
-                setActiveInvitation(null)
-                scrollToElement('#forum-replies')
-              }}
-              isDirectReplyToForum={true}
-            />
+            {activeInvitation && (
+              <NoteEditor
+                note={
+                  selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)
+                }
+                replyToNote={parentNote}
+                invitation={activeInvitation}
+                className="note-editor-reply depth-even"
+                closeNoteEditor={() => {
+                  setActiveInvitation(null)
+                }}
+                onNoteCreated={(note) => {
+                  updateNote(note)
+                  setActiveInvitation(null)
+                  scrollToElement('#forum-replies')
+                }}
+                isDirectReplyToForum={true}
+              />
+            )}
           </div>
         )}
 

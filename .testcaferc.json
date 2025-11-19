@@ -1,5 +1,6 @@
 {
-  "browsers": "firefox",
-  "videoPath": "videos",
-  "stopOnFirstFail": true
+  "stopOnFirstFail": true,
+  "pageRequestTimeout": 30000,
+  "hostname": "localhost",
+  "retryTestPages": true
 }

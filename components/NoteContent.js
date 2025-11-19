@@ -2,8 +2,9 @@
 
 /* globals DOMPurify,marked: false */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import union from 'lodash/union'
+import { marked } from 'marked'
 import {
   prettyField,
   prettyContentValue,
@@ -79,14 +80,16 @@ function NoteContent({
 }
 
 function NoteContentField({ name, customFieldName }) {
+  const fieldName = customFieldName ?? prettyField(name)
   return (
     <strong className="note-content-field disable-tex-rendering">
-      {customFieldName ?? prettyField(name)}:
+      {fieldName}
+      {fieldName?.trim() && ':'}
     </strong>
   )
 }
 
-export function NoteContentValue({ content = '', enableMarkdown, className }) {
+export function NoteContentValue({ content = '', enableMarkdown, className, fullMarkdown }) {
   const [sanitizedHtml, setSanitizedHtml] = useState(null)
 
   const autoLinkContent = (value) => {
@@ -109,12 +112,24 @@ export function NoteContentValue({ content = '', enableMarkdown, className }) {
   }
 
   useEffect(() => {
+    if (fullMarkdown) return
     if (enableMarkdown) {
       setSanitizedHtml(DOMPurify.sanitize(marked(content)))
     } else {
       setSanitizedHtml(DOMPurify.sanitize(autoLinkContent(content)))
     }
-  }, [enableMarkdown, content])
+  }, [enableMarkdown, content, fullMarkdown])
+
+  if (fullMarkdown) {
+    const html = marked(content, { renderer: new marked.Renderer() })
+
+    return (
+      <div
+        className={classNames('note-content-value', 'markdown-rendered', className)}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    )
+  }
 
   if (!sanitizedHtml) {
     return <span className={classNames('note-content-value', className)}>{content}</span>
@@ -162,6 +177,8 @@ export const NoteContentV2 = ({
   omit = [],
   include = [],
   isEdit = false,
+  externalIDs,
+  fullMarkdown = false,
 }) => {
   if (!content) return null
 
@@ -188,6 +205,24 @@ export const NoteContentV2 = ({
   ]
     .concat(omit)
     .filter((field) => !include.includes(field))
+
+  const getExternalLink = (externalID) => {
+    const colonIndex = externalID?.indexOf(':')
+    if (!colonIndex) return null
+
+    const prefix = externalID.slice(0, colonIndex)
+    const externalIDWithoutPrefix = externalID.slice(colonIndex + 1)
+    switch (prefix) {
+      case 'arxiv':
+        return `https://arxiv.org/abs/${externalIDWithoutPrefix}`
+      case 'dblp':
+        return `https://dblp.org/rec/${externalIDWithoutPrefix}`
+      case 'doi':
+        return `https://doi.org/${externalIDWithoutPrefix}`
+      default:
+        return null
+    }
+  }
 
   return (
     <div className="note-content">
@@ -239,11 +274,28 @@ export const NoteContentV2 = ({
                 />
               </span>
             ) : (
-              <NoteContentValue content={fieldValue} enableMarkdown={enableMarkdown} />
+              <NoteContentValue
+                content={fieldValue}
+                enableMarkdown={enableMarkdown}
+                fullMarkdown={fullMarkdown}
+              />
             )}
           </div>
         )
       })}
+      {externalIDs && (
+        <div>
+          <NoteContentField name="External IDs" />
+          {externalIDs.map((externalID, index) => (
+            <React.Fragment key={externalID}>
+              <a href={getExternalLink(externalID)} target="_blank" rel="noreferrer nofollow">
+                {externalID}
+              </a>
+              {index < externalIDs.length - 1 && <span>{', '}</span>}
+            </React.Fragment>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
