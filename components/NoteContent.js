@@ -120,7 +120,7 @@ export function NoteContentValue({ content = '', enableMarkdown, className, full
     }
   }, [enableMarkdown, content, fullMarkdown])
 
-  if (enableMarkdown && fullMarkdown) {
+  if (fullMarkdown) {
     const html = marked(content, { renderer: new marked.Renderer() })
 
     return (

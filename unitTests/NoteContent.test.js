@@ -136,20 +136,20 @@ describe('NoteContentV2', () => {
       },
       number: 1,
       presentation: [
-        { name: 'title', order: 1, type: 'string' },
+        { name: 'title', order: 1, type: 'string' }, // will be rendered as markdown too
         { name: 'post', order: 2, type: 'string', input: 'textarea', markdown: true },
       ],
       fullMarkdown: true,
     }
 
     render(<NoteContentV2 {...props} />)
-    expect(screen.getByText('local markdown output')).toBeInTheDocument() // call local imported version of marked for server rendering
+    expect(screen.getAllByText('local markdown output').length).toBe(2) // call local imported version of marked for server rendering
     expect(marked).toHaveBeenCalledWith(
       blogContent,
       expect.objectContaining({ renderer: expect.any(Object) })
     )
 
-    expect(marked.Renderer).toHaveBeenCalledTimes(1)
+    expect(marked.Renderer).toHaveBeenCalledTimes(2)
   })
 
   test('render valid external id as links', () => {
