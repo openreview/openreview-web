@@ -55,6 +55,14 @@ const EditInvitationProcessLogStatus = ({ processLogs, isMissingValue }) => {
       <span className="log-status">
         <span className="fixed-text">Status:</span> {formattedDate}
         <span className="fixed-text">. Running…</span>
+        <a
+          className="log-details"
+          href={`${process.env.API_V2_URL}/logs/process?id=${runningProcessLog?.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          logs
+        </a>
       </span>
     )
   }
@@ -84,7 +92,7 @@ const EditInvitationProcessLogStatus = ({ processLogs, isMissingValue }) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            details
+            logs
           </a>
         </span>
       )
@@ -100,7 +108,7 @@ const EditInvitationProcessLogStatus = ({ processLogs, isMissingValue }) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            details
+            logs
           </a>
         </span>
       )
@@ -115,7 +123,7 @@ const EditInvitationProcessLogStatus = ({ processLogs, isMissingValue }) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            details
+            logs
           </a>
         </span>
       )
