@@ -5,7 +5,7 @@ import styles from '../styles/components/ProfileTag.module.scss'
 import Icon from './Icon'
 
 const ProfileTag = ({ tag, onDelete, showProfileId }) => {
-  const { label, invitation, readers, signature } = tag
+  const { label, invitation, parentInvitations, readers, signature } = tag
   const deletable = invitation.startsWith(`${process.env.SUPER_USER}/Support`)
   const isPrivateTag = !readers.includes('everyone')
   let tagLink = null
@@ -18,6 +18,7 @@ const ProfileTag = ({ tag, onDelete, showProfileId }) => {
   const getColorClass = () => {
     if (label === 'require vouch') return styles.requireVouch
     if (label === 'potential spam') return styles.potentialSpam
+    if (parentInvitations?.endsWith('_Role')) return styles.serviceRole
     return ''
   }
 
