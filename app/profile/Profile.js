@@ -4,13 +4,17 @@ import styles from './Profile.module.scss'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import ProfileViewSection from '../../components/profile/ProfileViewSection'
 import ProfilePublications from '../../components/profile/ProfilePublications'
-import serverAuth, { isSuperUser } from '../auth'
+import serverAuth from '../auth'
 import api from '../../lib/api-client'
 import CoAuthorsList from './CoAuthorsList'
 import { getCoAuthorsFromPublications } from '../../lib/profiles'
-import ProfileTags from './ProfileTags'
 
-export default async function Profile({ profile, publicProfile, remoteIpAddress }) {
+export default async function Profile({
+  profile,
+  publicProfile,
+  serviceRoles,
+  remoteIpAddress,
+}) {
   const { token, user } = await serverAuth()
   const getCurrentInstitutionInfo = () => {
     const currentHistories = profile?.history?.filter(
@@ -93,14 +97,11 @@ export default async function Profile({ profile, publicProfile, remoteIpAddress 
       </header>
       <div className="row equal-height-cols">
         <div className="col-md-12 col-lg-8">
-          <BasicProfileView profile={profile} publicProfile={publicProfile} />
-          <div className="hidden-xs hidden-sm hidden-md">
-            <ProfileTags
-              profileId={profile.id}
-              showProfileId={false}
-              isSuperUser={isSuperUser(user)}
-            />
-          </div>
+          <BasicProfileView
+            profile={profile}
+            publicProfile={publicProfile}
+            serviceRoles={serviceRoles}
+          />
         </div>
 
         <aside className="col-md-12 col-lg-4">
@@ -118,15 +119,6 @@ export default async function Profile({ profile, publicProfile, remoteIpAddress 
             <CoAuthorsList coAuthors={coAuthors} />
           </ProfileViewSection>
         </aside>
-      </div>
-      <div className="row hidden-lg">
-        <div className="col-md-12">
-          <ProfileTags
-            profileId={profile.id}
-            showProfileId={false}
-            isSuperUser={isSuperUser(user)}
-          />
-        </div>
       </div>
     </div>
   )
