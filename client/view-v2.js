@@ -2284,6 +2284,12 @@ module.exports = (function () {
     Object.entries(otherFields.content ?? {}).forEach(
       ([editContentFieldName, editContentFieldValue]) => {
         if (!editContentFieldValue.value.param) return
+        if (editContentFieldValue.value.param.const !== undefined) {
+          editContent[editContentFieldName] = {
+            value: editContentFieldValue.value.param.const,
+          }
+          return
+        }
         var newVal = formData?.editContent?.[editContentFieldName]
         if (
           typeof newVal === 'string' &&
@@ -2315,6 +2321,12 @@ module.exports = (function () {
           break
         case 'license':
           note[otherNoteField] = formData?.noteLicenseValue ?? noteObj?.[otherNoteField]
+          break
+        case 'cdate':
+          note[otherNoteField] = formData?.noteCDateValue ?? noteObj?.[otherNoteField]
+          break
+        case 'mdate':
+          note[otherNoteField] = formData?.noteMDateValue ?? noteObj?.[otherNoteField]
           break
         case 'pdate':
           note[otherNoteField] = formData?.notePDateValue ?? noteObj?.[otherNoteField]
@@ -2411,6 +2423,12 @@ module.exports = (function () {
         switch (p) {
           case 'license':
             editNote[p] = formContent.noteLicenseValue ?? edit.note[p]
+            break
+          case 'cdate':
+            editNote[p] = formContent.noteCDateValue ?? edit.note[p]
+            break
+          case 'mdate':
+            editNote[p] = formContent.noteMDateValue ?? edit.note[p]
             break
           case 'pdate':
             editNote[p] = formContent.notePDateValue ?? edit.note[p]

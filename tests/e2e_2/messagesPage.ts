@@ -1,5 +1,5 @@
 import { Selector, ClientFunction, Role } from 'testcafe'
-import { strongPassword } from './utils/api-helper'
+import { strongPassword } from '../utils/api-helper'
 
 const emailInput = Selector('#email-input')
 const passwordInput = Selector('#password-input')
@@ -10,6 +10,7 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
+    .wait(100)
     .click(loginButton)
 })
 
@@ -24,6 +25,7 @@ test('guest user should be redirected to login page', async (t) => {
     .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
     .typeText(emailInput, 'a@a.com')
     .typeText(passwordInput, strongPassword)
+    .wait(100)
     .click(loginButton)
     .expect(Selector('form.filter-controls').exists)
     .ok()

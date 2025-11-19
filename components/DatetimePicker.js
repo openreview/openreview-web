@@ -23,6 +23,7 @@ const DatetimePicker = ({
   showTime = {
     showSecond: false,
   },
+  getPopupContainer,
 }) => {
   const [value, setValue] = useState(
     existingValue && dayjs(existingValue).isValid() ? dayjs(existingValue) : ''
@@ -61,6 +62,7 @@ const DatetimePicker = ({
       autoFocus={autoFocus}
       allowClear={allowClear}
       disabledDate={disabledDate}
+      getPopupContainer={getPopupContainer}
     />
   )
 }

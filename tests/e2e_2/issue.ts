@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-expressions */
 import { Selector, ClientFunction } from 'testcafe'
-import { strongPassword } from './utils/api-helper'
+import { strongPassword } from '../utils/api-helper'
 
 const openreviewLogo = Selector('a.navbar-brand')
 const loginLink = Selector('a').withText('Login')
@@ -18,6 +18,7 @@ test('user not redirected to group page', async (t) => {
     .click(loginLink)
     .typeText('#email-input', 'test@mail.com')
     .typeText('#password-input', strongPassword)
+    .wait(100)
     .click(loginButton)
     .expect(getLocation())
     .eql(`${homepageUrl}/`)
@@ -40,6 +41,7 @@ routesToSkipRedirection.forEach((route) => {
       .click(loginLink)
       .typeText('#email-input', 'test@mail.com')
       .typeText('#password-input', strongPassword)
+      .wait(100)
       .click(loginButton)
       .expect(getLocation())
       .eql(`${homepageUrl}/`)
@@ -53,6 +55,7 @@ test(`redirection to /profile/activate is skipped`, async (t) => {
     .click(loginLink)
     .typeText('#email-input', 'test@mail.com')
     .typeText('#password-input', strongPassword)
+    .wait(100)
     .click(loginButton)
     .expect(getLocation())
     .eql(`${homepageUrl}/`)

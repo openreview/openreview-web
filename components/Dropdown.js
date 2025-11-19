@@ -130,6 +130,12 @@ export const CreatableDropdown = (props) => {
     <CreatableSelect
       ref={dropdownRef}
       theme={customTheme}
+      styles={{
+        control: (baseStyles) => ({
+          ...baseStyles,
+          ...(props.isInvalid && { borderColor: '#8c1b13!important' }),
+        }),
+      }}
       formatCreateLabel={(value) => value}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
@@ -164,6 +170,12 @@ export default function Dropdown(props) {
       className="dropdown-select"
       classNamePrefix="dropdown-select"
       theme={customTheme}
+      styles={{
+        control: (baseStyles) => ({
+          ...baseStyles,
+          ...(props.isInvalid && { borderColor: '#8c1b13!important' }),
+        }),
+      }}
       ref={props.selectRef}
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}

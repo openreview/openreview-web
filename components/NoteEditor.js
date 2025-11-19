@@ -292,15 +292,19 @@ const NoteEditor = ({
 
   const saveDraft = useCallback(
     throttle((fieldName, value) => {
-      const keyOfSavedText = getAutoStorageKey(
-        user,
-        invitation.id,
-        note?.id,
-        replyToNote?.id,
-        fieldName
-      )
-      localStorage.setItem(keyOfSavedText, value ?? '')
-      setAutoStorageKeys((keys) => [...keys, keyOfSavedText])
+      try {
+        const keyOfSavedText = getAutoStorageKey(
+          user,
+          invitation.id,
+          note?.id,
+          replyToNote?.id,
+          fieldName
+        )
+        localStorage.setItem(keyOfSavedText, value ?? '')
+        setAutoStorageKeys((keys) => [...keys, keyOfSavedText])
+      } catch (error) {
+        /* empty */
+      }
     }, 1500),
     [invitation, note, replyToNote]
   )
@@ -311,6 +315,8 @@ const NoteEditor = ({
       noteReaderValues: note.readers,
       noteLicenseValue: note.license,
       notePDateValue: note.pdate,
+      noteCDateValue: note.cdate,
+      noteMDateValue: note.mdate,
     }),
   }
 
@@ -691,6 +697,52 @@ const NoteEditor = ({
           )
         }
       />
+
+      {invitation.edit.note.cdate && (
+        <EditorComponentHeader
+          inline={true}
+          fieldNameOverwrite="Creation Date"
+          error={errors.find((e) => e.fieldName === 'noteCDateValue')}
+        >
+          <DatePickerWidget
+            isEditor={false}
+            field={{ 'creation date': null }}
+            value={noteEditorData.noteCDateValue ?? ''}
+            error={errors.find((e) => e.fieldName === 'noteCDateValue')}
+            clearError={() =>
+              setErrors((existingErrors) =>
+                existingErrors.filter((p) => p.fieldName !== 'noteCDateValue')
+              )
+            }
+            onChange={({ fieldName, value }) =>
+              setNoteEditorData({ fieldName: 'noteCDateValue', value })
+            }
+          />
+        </EditorComponentHeader>
+      )}
+
+      {invitation.edit.note.mdate && (
+        <EditorComponentHeader
+          inline={true}
+          fieldNameOverwrite="Modification Date"
+          error={errors.find((e) => e.fieldName === 'noteMDateValue')}
+        >
+          <DatePickerWidget
+            isEditor={false}
+            field={{ 'modification date': null }}
+            value={noteEditorData.noteMDateValue ?? ''}
+            error={errors.find((e) => e.fieldName === 'noteMDateValue')}
+            clearError={() =>
+              setErrors((existingErrors) =>
+                existingErrors.filter((p) => p.fieldName !== 'noteMDateValue')
+              )
+            }
+            onChange={({ fieldName, value }) =>
+              setNoteEditorData({ fieldName: 'noteMDateValue', value })
+            }
+          />
+        </EditorComponentHeader>
+      )}
 
       {invitation.edit.note.pdate && (
         <EditorComponentHeader

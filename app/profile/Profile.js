@@ -94,6 +94,13 @@ export default async function Profile({ profile, publicProfile, remoteIpAddress 
       <div className="row equal-height-cols">
         <div className="col-md-12 col-lg-8">
           <BasicProfileView profile={profile} publicProfile={publicProfile} />
+          <div className="hidden-xs hidden-sm hidden-md">
+            <ProfileTags
+              profileId={profile.id}
+              showProfileId={false}
+              isSuperUser={isSuperUser(user)}
+            />
+          </div>
         </div>
 
         <aside className="col-md-12 col-lg-4">
@@ -112,8 +119,14 @@ export default async function Profile({ profile, publicProfile, remoteIpAddress 
           </ProfileViewSection>
         </aside>
       </div>
-      <div className="col-md-12 col-lg-8">
-        <ProfileTags profileId={profile.preferredId} isSuperUser={isSuperUser(user)} />
+      <div className="row hidden-lg">
+        <div className="col-md-12">
+          <ProfileTags
+            profileId={profile.id}
+            showProfileId={false}
+            isSuperUser={isSuperUser(user)}
+          />
+        </div>
       </div>
     </div>
   )

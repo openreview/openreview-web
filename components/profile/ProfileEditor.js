@@ -1,7 +1,7 @@
 /* globals promptError: false */
 /* eslint-disable no-cond-assign */
 
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import pick from 'lodash/pick'
 import Steps from 'rc-steps'
 import EducationHistorySection from './EducationHistorySection'
@@ -25,7 +25,7 @@ export default function ProfileEditor({
   submitHandler,
   cancelHandler,
   hideCancelButton,
-  hideDblpButton,
+  hideImportButton,
   hidePublicationEditor,
   loading,
   isNewProfile,
@@ -46,6 +46,9 @@ export default function ProfileEditor({
   const [currentStep, setCurrentStep] = useState(0)
   const [invalidSteps, setInvalidSteps] = useState([])
   const stepRef = useRef(null)
+  const renderPublicationsEditor = useCallback(() => {
+    setRenderPublicationEditor((current) => !current)
+  }, [])
 
   const prefixedRelations = dropdownOptions?.prefixedRelations
   const relationReaders = dropdownOptions?.relationReaders
@@ -71,6 +74,19 @@ export default function ProfileEditor({
       data: profile[type]?.map((p, index) => {
         if ((!invalidKey && index === 0) || (invalidKey && p.key === invalidKey))
           return { ...p, valid: false }
+        return p
+      }),
+    })
+    return { isValid: false, profileContent: null }
+  }
+
+  const promptInvalidHistory = (invalidKeys, keyErrorFieldMessageMap) => {
+    promptError('There are errors in your Career & Education History.')
+    setProfile({
+      type: 'history',
+      data: profile.history?.map((p, index) => {
+        if ((!invalidKeys && index === 0) || invalidKeys.includes(p.key))
+          return { ...p, valid: false, invalidFields: keyErrorFieldMessageMap.get(p.key) }
         return p
       }),
     })
@@ -161,91 +177,80 @@ export default function ProfileEditor({
     // #endregion
 
     // #region validate history
-    if ((invalidRecord = profileContent.history?.find((p) => !p.institution?.domain))) {
+    const historyRecords = profileContent.history
+    if (!historyRecords?.length) {
       setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
-        invalidRecord.key,
-        'Domain is required for all positions'
-      )
+      promptError('There are errors in your Career & Education History.')
+      return null
     }
-    if (
-      (invalidRecord = profileContent.history?.find(
-        (p) => p.institution.domain.startsWith('www') || !isValidDomain(p.institution.domain)
-      ))
-    ) {
+    if (!historyRecords.find((p) => !p.end || p.end >= new Date().getFullYear())) {
       setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
-        invalidRecord.key,
-        `${invalidRecord.institution.domain} is not a valid domain. Domains should not contain "http", "www", or and special characters like "?" or "/".`
-      )
+      const keyErrorFieldMessageMap = new Map()
+      keyErrorFieldMessageMap.set(profile.history?.[0]?.key, {
+        endYear: 'Your Career & Education History must include at least one current position.',
+      })
+      return promptInvalidHistory([profile.history?.[0]?.key], keyErrorFieldMessageMap)
     }
-    if (
-      (invalidRecord = profileContent.history?.find((p) => p.start && !isValidYear(p.start)))
-    ) {
+
+    const invalidKeys = []
+    const keyErrorFieldMessageMap = new Map()
+
+    historyRecords.forEach((history) => {
+      const {
+        key,
+        position,
+        start,
+        end,
+        institution: {
+          name: institutionName,
+          domain: institutionDomain,
+          country: institutionCountryRegion,
+        },
+      } = history
+
+      const invalidFieldErrorMap = {}
+
+      if (!position) {
+        invalidKeys.push(key)
+        invalidFieldErrorMap.position = 'Position is required'
+      }
+      if (!institutionName) {
+        invalidKeys.push(key)
+        invalidFieldErrorMap.institutionName = 'Institution name is required'
+      }
+      if (!institutionDomain) {
+        invalidKeys.push(key)
+        invalidFieldErrorMap.institutionDomain = 'Institution domain is required'
+      }
+      if (institutionDomain && !isValidDomain(institutionDomain)) {
+        invalidKeys.push(key)
+        invalidFieldErrorMap.institutionDomain = `${institutionDomain} is not a valid domain. Domains should not contain "http", "www", or and special characters like "?" or "/".`
+      }
+      if (end && !isValidYear(end)) {
+        invalidKeys.push(key)
+        invalidFieldErrorMap.endYear = 'End date should be a valid year'
+      }
+      if (end && !start) {
+        invalidKeys.push(key)
+        invalidFieldErrorMap.startYear = 'Start date can not be empty'
+      }
+      if (start && end && start > end) {
+        invalidKeys.push(key)
+        invalidFieldErrorMap.startYear = 'End date should be higher than start date'
+        invalidFieldErrorMap.endYear = 'End date should be higher than start date'
+      }
+      if ((!end || end >= new Date().getFullYear()) && !institutionCountryRegion) {
+        invalidKeys.push(key)
+        invalidFieldErrorMap.institutionCountryRegion =
+          'Country/Region is required for current positions'
+      }
+
+      keyErrorFieldMessageMap.set(key, invalidFieldErrorMap)
+    })
+
+    if (invalidKeys.length) {
       setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
-        invalidRecord.key,
-        'Start date should be a valid year'
-      )
-    }
-    if ((invalidRecord = profileContent.history?.find((p) => p.end && !isValidYear(p.end)))) {
-      setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
-        invalidRecord.key,
-        'End date should be a valid year'
-      )
-    }
-    if (
-      (invalidRecord = profileContent.history?.find(
-        (p) => p.start && p.end && p.start > p.end
-      ))
-    ) {
-      setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
-        invalidRecord.key,
-        'End date should be higher than start date'
-      )
-    }
-    if ((invalidRecord = profileContent.history?.find((p) => !p.start && p.end))) {
-      setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue('history', invalidRecord.key, 'Start date can not be empty')
-    }
-    if (!profileContent.history?.length) {
-      setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
-        null,
-        'Career and education history cannot be empty'
-      )
-    }
-    if (
-      (invalidRecord = profileContent.history?.find(
-        (p) =>
-          !p.position ||
-          !p.institution.name ||
-          !p.institution.domain ||
-          ((!p.end || p.end >= new Date().getFullYear()) && !p.institution.country)
-      ))
-    ) {
-      setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
-        invalidRecord.key,
-        'You must enter position, institution, domain and country/region information for each entry in your career and education history'
-      )
-    }
-    if (!profileContent.history.some((p) => !p.end || p.end >= new Date().getFullYear())) {
-      setInvalidSteps((current) => [...current, 4])
-      return promptInvalidValue(
-        'history',
-        profile.history?.[0]?.key,
-        'Your Career & Education History must include at least one current position.'
-      )
+      return promptInvalidHistory(invalidKeys, keyErrorFieldMessageMap)
     }
     // #endregion
 
@@ -508,10 +513,8 @@ export default function ProfileEditor({
                 profileLinks={profile?.links}
                 profileId={profile?.id}
                 names={profile?.names}
-                renderPublicationsEditor={() =>
-                  setRenderPublicationEditor((current) => !current)
-                }
-                hideDblpButton={hideDblpButton}
+                renderPublicationsEditor={renderPublicationsEditor}
+                hideImportButton={hideImportButton}
                 updateLinks={(links) => setProfile({ type: 'links', data: links })}
               />
             </ProfileSection>

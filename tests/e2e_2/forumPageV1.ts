@@ -1,6 +1,6 @@
 import fetch from 'node-fetch-cjs'
 import { Selector, ClientFunction, Role } from 'testcafe'
-import { getToken, getNotes, superUserName, strongPassword } from './utils/api-helper'
+import { getToken, getNotes, superUserName, strongPassword } from '../utils/api-helper'
 
 const titleLabel = Selector('.note_content_title span')
 const authorLabel = Selector('.meta_row a')
@@ -19,6 +19,7 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
+    .wait(100)
     .click(loginButton)
 })
 
@@ -27,6 +28,7 @@ const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'a@a.com')
     .typeText(passwordInput, strongPassword)
+    .wait(100)
     .click(loginButton)
 })
 
@@ -35,6 +37,7 @@ const superUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t
     .click(Selector('a').withText('Login'))
     .typeText(emailInput, 'openreview.net')
     .typeText(passwordInput, strongPassword)
+    .wait(100)
     .click(loginButton)
 })
 
@@ -108,6 +111,7 @@ test('get a forbidden error for a guest user', async (t) => {
     .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
     .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
+    .wait(100)
     .click(loginButton)
     .expect(Selector('#content').exists)
     .ok()
