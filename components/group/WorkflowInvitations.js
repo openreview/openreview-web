@@ -893,7 +893,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       }
       return tempFilterResult
     }
-    console.log(workflowAndSubInvitations.length, exclusionWorkflowInvitations.length)
     const tempFilterResult = workflowAndSubInvitations.flatMap((stepObj) => {
       const isWorkflowInvitation = skipWorkflowInvitationCheck
         ? true
@@ -953,7 +952,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
             .then((invitations) => invitations.filter((p) => p.id.endsWith('_Template')))
         : Promise.resolve([])
     getStageInvitationTemplatesP = Promise.resolve([])
-    console.log(0)
     try {
       // eslint-disable-next-line no-shadow
       const [groups, invitations, stageInvitations, logs] = await Promise.all([
@@ -962,14 +960,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         getStageInvitationTemplatesP,
         loadProcessLogs(),
       ])
-      console.log(1)
       const exclusionWorkflowInvitations = group.content?.exclusion_workflow_invitations?.value
-      console.log(1.1)
       const filteredInvitations = filterWorkflowInvitations(
         exclusionWorkflowInvitations,
         invitations
       )
-      console.log(1.2)
       const invitationsToShowInWorkflow = filteredInvitations.map((stepObj) => {
         return formatWorkflowInvitation(
           stepObj,
@@ -978,7 +973,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           logs
         )
       })
-      console.log(2)
       setWorkflowTasks(
         sortBy(
           invitationsToShowInWorkflow.reduce(
