@@ -325,7 +325,6 @@ const RecruitmentForm = () => {
           </div>
         )
       case 'reject':
-        console.log('responseNote', responseNote)
         return (
           <DeclineForm
             responseNote={responseNote}
