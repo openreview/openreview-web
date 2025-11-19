@@ -1,7 +1,6 @@
 /* globals $, _: false */
-/* globals view, view2: false */
-/* globals promptError, promptMessage, promptLogin, generalPrompt, translateErrorMessage: false */
-/* globals marked, DOMPurify, MathJax, Handlebars: false */
+/* globals view: false */
+/* globals translateErrorMessage: false */
 
 // Global helper functions (main.js)
 window.serializeUrlParams = function (obj) {

@@ -1006,6 +1006,13 @@ header {
         border-color: #d6e9c6;
       }
 
+      .message {
+        display: flex;
+        button {
+          margin-left: 0.25rem;
+        }
+      }
+
       &:has(.error) {
         background-color: #f2dede;
         border-color: #ebccd1;

@@ -1,4 +1,4 @@
-/* global generalPrompt:false */
+/* global promptRefresh:false */
 
 'use client'
 
@@ -22,10 +22,9 @@ const VersionChecker = () => {
         return
       }
       if (version !== serverVersion) {
-        generalPrompt(
-          'info',
-          'A new version of OpenReview is available. Please refresh the page to get latest changes. <button class="btn btn-xs" onclick="window.location.reload()">Refresh</button>',
-          { html: true }
+        promptRefresh(
+          'A new version of OpenReview is available. Please refresh the page to get latest changes.',
+          10
         )
       }
     } catch (_) {

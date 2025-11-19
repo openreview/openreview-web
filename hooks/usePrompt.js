@@ -61,6 +61,20 @@ export default function usePrompt() {
           closable: canClose,
           pauseOnHover: true,
         }),
+      promptRefresh: (message, customDuration) =>
+        api.open({
+          content: (
+            <div className="message">
+              <Markdown text={message} />
+              <button className="btn btn-xs" onClick={() => window.location.reload()}>
+                Refresh
+              </button>
+            </div>
+          ),
+          duration: customDuration ?? messageDuration,
+          closable: canClose,
+          pauseOnHover: true,
+        }),
       clearMessage: () => {
         api.destroy()
       },
