@@ -461,7 +461,7 @@ const SubInvitationRow = ({
                 // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a
                   href="#"
-                  className="mr-2"
+                  className="edit-close-button"
                   onClick={(e) => {
                     e.preventDefault()
                     setShowInvitationEditor((isOpen) => !isOpen)
@@ -548,7 +548,7 @@ const WorkflowGroupRow = ({ group, groupInvitations }) => {
           ) : (
             <span className="group-id">{prettyId(group.id, true)}</span>
           )}
-          <a className="id-icon" href={`/group/edit?id=${group.id}`}>
+          <a className="id-icon" href={`/group/edit?id=${group.id}`} aria-label="Edit group">
             <Icon name="new-window" />
           </a>
           <span className="member-count">Group of {group.members?.length}</span>
@@ -893,6 +893,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       }
       return tempFilterResult
     }
+    console.log(workflowAndSubInvitations.length, exclusionWorkflowInvitations.length)
     const tempFilterResult = workflowAndSubInvitations.flatMap((stepObj) => {
       const isWorkflowInvitation = skipWorkflowInvitationCheck
         ? true
@@ -952,7 +953,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
             .then((invitations) => invitations.filter((p) => p.id.endsWith('_Template')))
         : Promise.resolve([])
     getStageInvitationTemplatesP = Promise.resolve([])
-
+    console.log(0)
     try {
       // eslint-disable-next-line no-shadow
       const [groups, invitations, stageInvitations, logs] = await Promise.all([
@@ -961,12 +962,14 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         getStageInvitationTemplatesP,
         loadProcessLogs(),
       ])
-
+      console.log(1)
       const exclusionWorkflowInvitations = group.content?.exclusion_workflow_invitations?.value
+      console.log(1.1)
       const filteredInvitations = filterWorkflowInvitations(
         exclusionWorkflowInvitations,
         invitations
       )
+      console.log(1.2)
       const invitationsToShowInWorkflow = filteredInvitations.map((stepObj) => {
         return formatWorkflowInvitation(
           stepObj,
@@ -975,7 +978,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           logs
         )
       })
-
+      console.log(2)
       setWorkflowTasks(
         sortBy(
           invitationsToShowInWorkflow.reduce(
