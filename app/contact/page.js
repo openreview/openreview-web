@@ -197,6 +197,7 @@ export default function Page() {
             placeholder={field.placeholder}
             value={formData[field.name] ?? ''}
             onChange={(e) => setFormData({ type: field.name, payload: e.target.value })}
+            aria-label={field.placeholder}
           />
         )
       case 'textarea':
@@ -209,6 +210,7 @@ export default function Page() {
             placeholder={field.placeholder}
             value={formData[field.name] ?? ''}
             onChange={(e) => setFormData({ type: field.name, payload: e.target.value })}
+            aria-label={field.placeholder}
           />
         )
       case 'select':

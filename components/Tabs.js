@@ -40,14 +40,7 @@ export function Tab({ id, headingCount, icon, onClick, active, hidden, disabled,
 
   return (
     <li role="presentation" className={disabled ? 'disabled' : null}>
-      <a
-        href={`#${id}`}
-        aria-controls={id}
-        role="tab"
-        data-toggle="tab"
-        ref={tabEl}
-        onClick={handleClick}
-      >
+      <a href={`#${id}`} role="tab" data-toggle="tab" ref={tabEl} onClick={handleClick}>
         {children}
         {Number.isInteger(headingCount) && <span className="badge">{headingCount}</span>}
         {icon && <Icon name={icon} />}
