@@ -18,29 +18,7 @@ const ProfileTag = ({ tag, onDelete, showProfileId }) => {
   const getColorClass = () => {
     if (label === 'require vouch') return styles.requireVouch
     if (label === 'potential spam') return styles.potentialSpam
-    if (parentInvitations?.endsWith('_Role')) {
-      const role = parentInvitations.split('/').pop()
-      switch (role) {
-        case 'Reviewer_Role':
-          return styles.reviewerServiceRole
-        case 'Ethics_Reviewer_Role':
-          return styles.ethicsReviewerServiceRole
-        case 'Meta_Reviewer_Role':
-          return styles.metaReviewerServiceRole
-        case 'Senior_Meta_Reviewer_Role':
-          return styles.seniorMetaReviewerServiceRole
-        case 'Ethics_Chair_Role':
-          return styles.ethicsChairServiceRole
-        case 'Program_Chair_Role':
-          return styles.programChairServiceRole
-        case 'Publication_Chair_Role':
-          return styles.publicationChairServiceRole
-        case 'Workflow_Chair_Role':
-          return styles.workflowChairServiceRole
-        default:
-          return ''
-      }
-    }
+    if (parentInvitations?.endsWith('_Role')) return styles.serviceRole
     return ''
   }
 

@@ -46,50 +46,8 @@
   color: white;
 }
 
-.reviewerServiceRole {
-  border-color: #a8c6d0;
-  background-color: #f0f8fb;
-  color: #4d8093;
-}
-
-.ethicsReviewerServiceRole {
-  border-color: #8db3c2;
-  background-color: #e8f2f7;
-  color: #3f6978;
-}
-
-.metaReviewerServiceRole {
-  border-color: #72a0b4;
-  background-color: #e0ecf3;
-  color: #315461;
-}
-
-.seniorMetaReviewerServiceRole {
-  border-color: #578da6;
-  background-color: #d8e6ef;
-  color: #2c3a4a;
-}
-
-.ethicsChairServiceRole {
-  border-color: #4d8093;
-  background-color: #d0e0eb;
-  color: #2c3a4a;
-}
-
-.publicationChairServiceRole {
-  border-color: #3f6978;
-  background-color: #c8dae7;
-  color: #2c3a4a;
-}
-
-.workflowChairServiceRole {
-  border-color: #315461;
-  background-color: #c0d4e3;
-  color: #2c3a4a;
-}
-
-.programChairServiceRole {
-  border-color: #2c3a4a;
-  background-color: #b8cedf;
-  color: #2c3a4a;
+:global(.service-roles-container) {
+  .serviceRole {
+    border: none;
+  }
 }
