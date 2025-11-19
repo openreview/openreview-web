@@ -1,3 +1,4 @@
+/* global promptError:false */
 import { useCallback, useEffect, useSyncExternalStore } from 'react'
 
 function dispatchStorageEvent(key, newValue) {
@@ -5,9 +6,19 @@ function dispatchStorageEvent(key, newValue) {
 }
 
 function setLocalStorageItem(key, value) {
-  const stringifiedValue = JSON.stringify(value)
-  window.localStorage.setItem(key, stringifiedValue)
-  dispatchStorageEvent(key, stringifiedValue)
+  try {
+    const stringifiedValue = JSON.stringify(value)
+    window.localStorage.setItem(key, stringifiedValue)
+    dispatchStorageEvent(key, stringifiedValue)
+  } catch (error) {
+    if (error?.name === 'QuotaExceededError') {
+      Object.keys(window.localStorage).forEach((storageKey) => {
+        if (storageKey.startsWith('forum-notifications-')) {
+          window.localStorage.removeItem(storageKey)
+        }
+      })
+    }
+  }
 }
 
 function removeLocalStorageItem(key) {
