@@ -199,8 +199,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             .catch((error) => {
               if (error.name === 'ForbiddenError') {
                 promptError(
-                  'You do not have access to the venue configuration, please refer to the <a target="_blank" rel="noopener noreferrer" href="https://docs.openreview.net/getting-started/frequently-asked-questions/how-do-i-add-a-program-chair-to-my-venue">documentation</a>.',
-                  { html: true }
+                  'You do not have access to the venue configuration, please refer to the [documentation](https://docs.openreview.net/getting-started/frequently-asked-questions/how-do-i-add-a-program-chair-to-my-venue).'
                 )
                 return null
               }

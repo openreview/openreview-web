@@ -16,7 +16,7 @@ global.fetch = jest.fn(() =>
 )
 
 beforeEach(() => {
-  global.generalPrompt = jest.fn()
+  global.promptRefresh = jest.fn()
 })
 
 describe('VersionChecker', () => {
@@ -24,7 +24,7 @@ describe('VersionChecker', () => {
     render(<VersionChecker />)
 
     await waitFor(() => {
-      expect(generalPrompt).toHaveBeenCalled()
+      expect(promptRefresh).toHaveBeenCalled()
     })
   })
 
@@ -38,7 +38,7 @@ describe('VersionChecker', () => {
     render(<VersionChecker />)
 
     await waitFor(() => {
-      expect(generalPrompt).not.toHaveBeenCalled()
+      expect(promptRefresh).not.toHaveBeenCalled()
     })
   })
 
@@ -53,7 +53,7 @@ describe('VersionChecker', () => {
         payload: { value: '1.0.0' },
         type: 'version/setVersion',
       })
-      expect(generalPrompt).not.toHaveBeenCalled()
+      expect(promptRefresh).not.toHaveBeenCalled()
     })
   })
 })
