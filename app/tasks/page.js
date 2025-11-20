@@ -142,9 +142,10 @@ export default function Page() {
         )
         .then((result) => result.invitations),
     ]
-    const domainResult = await Promise.all(invitationPromises).catch((apiError) =>
+    const domainResult = await Promise.all(invitationPromises).catch((apiError) => {
       setError(apiError)
-    )
+      return []
+    })
 
     const uniqueDomainsTypeMap = new Map()
     const processDomainResults = (invitations, type) => {

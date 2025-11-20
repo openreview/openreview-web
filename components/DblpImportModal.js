@@ -177,7 +177,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
     setIsSavingPublications(true)
 
     try {
-      await Promise.all(
+      const postPaperResults = await Promise.allSettled(
         selectedPublications.map((key) =>
           postOrUpdatePaper(
             publications.find((p) => p.key === key),
@@ -187,15 +187,26 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
           )
         )
       )
+      const successfulCount = postPaperResults.filter(
+        (result) => result.status === 'fulfilled'
+      ).length
+      const failedResults = postPaperResults.filter((result) => result.status === 'rejected')
+      if (successfulCount === 0) {
+        const firstError = failedResults[0]
+        throw firstError.reason
+      }
 
       publicationsInOpenReview.current = await getAllPapersByGroupId(profileId)
       const { noPubsToImport: allExistInOpenReview } = getExistingFromDblpPubs(publications)
       if (allExistInOpenReview) {
         setMessage(`${selectedPublications.length} publications were successfully imported.
             All ${publications.length} of the publications from DBLP now exist in OpenReview.`)
-      } else {
+      } else if (failedResults.length === 0) {
         setMessage(`${selectedPublications.length} publications were successfully imported.
             Please select any additional publications you would like to add to your profile.`)
+      } else {
+        setMessage(`${successfulCount} publications were successfully imported.
+            However, ${failedResults.length} publications failed to import. Please try again later.`)
       }
 
       // replace other format of dblp homepage with persistent url

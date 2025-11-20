@@ -420,7 +420,7 @@ const ProfileSearchWithInstitutionWidget = () => {
   const { field, onChange, value, error, clearError } = useContext(EditorComponentContext)
 
   const reorderOnly = Array.isArray(field?.authors?.value)
-  const allowAddRemove = !reorderOnly && !field.authors.value.param.elements // reorder with institution change
+  const allowAddRemove = !reorderOnly && !field.authors?.value.param.elements // reorder with institution change
   const allowInstitutionChange = !reorderOnly
 
   const hasInstitutionProperty =
