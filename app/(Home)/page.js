@@ -5,7 +5,6 @@ import styles from './Home.module.scss'
 import OpenVenues from './OpenVenues'
 import api from '../../lib/api-client'
 import { formatGroupResults } from '../../lib/utils'
-import ActiveConsoles from './ActiveConsoles'
 import VersionChecker from '../../components/VersionChecker'
 import News from './News'
 
@@ -82,7 +81,6 @@ export default async function page() {
         <News news={news} showNews={showNews} />
       </div>
       <div className="col-xs-12 col-sm-6">
-        <ActiveConsoles activeVenues={activeVenues} openVenues={openVenues} />
         <div className="visible-xs">
           <OpenVenues venues={openVenues} />
         </div>

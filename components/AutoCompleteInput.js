@@ -149,7 +149,7 @@ const AutoCompleteInput = () => {
           name="term"
           className="form-control"
           value={immediateSearchTerm}
-          placeholder="Search OpenReview..."
+          placeholder="Search OpenReview"
           autoComplete="off"
           autoCorrect="off"
           onChange={(e) => {
