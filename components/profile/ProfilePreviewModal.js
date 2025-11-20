@@ -10,6 +10,7 @@ import MessagesSection from './MessagesSection'
 import Dropdown, { CreatableDropdown } from '../Dropdown'
 import { getRejectionReasons } from '../../lib/utils'
 import ProfileTag from '../ProfileTag'
+import PastStatesSection from './PastStatesSection'
 import ErrorAlert from '../ErrorAlert'
 
 const ProfilePreviewModal = ({
@@ -173,6 +174,15 @@ const ProfilePreviewModal = ({
             email={profileToPreview.preferredEmail}
             accessToken={accessToken}
             rejectMessagesOnly
+          />
+        </ProfileViewSection>
+      )}
+      {contentToShow?.includes('pastStates') && profileToPreview.pastStates && (
+        <ProfileViewSection name="pastStates" title="Past States">
+          <PastStatesSection
+            email={profileToPreview.preferredEmail}
+            pastStates={profileToPreview.pastStates}
+            accessToken={accessToken}
           />
         </ProfileViewSection>
       )}
