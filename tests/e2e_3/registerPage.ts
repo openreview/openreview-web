@@ -99,7 +99,7 @@ test('create new profile', async (t) => {
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
     .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
     .notOk({ timeout: 8000 })
-    .click(Selector('#donation-container').find('input').withAttribute('type', 'checkbox')) // check donation checkbox
+    .click(Selector('.donation-container').find('input').withAttribute('type', 'checkbox')) // check donation checkbox
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
     .expect(Selector('p.donation-thanks').exists)
