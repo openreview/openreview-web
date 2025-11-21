@@ -1,6 +1,6 @@
 'use client'
 
-/* globals promptError,clearMessage */
+/* globals promptError,clearMessage,$ */
 import { debounce } from 'lodash'
 import { useState, useEffect, useCallback, useContext, createContext } from 'react'
 import Link from 'next/link'
@@ -14,7 +14,7 @@ import useTurnstileToken from '../../hooks/useTurnstileToken'
 
 const LoadingContext = createContext()
 
-const SignupForm = ({ setSignupConfirmation }) => {
+const SignupForm = ({ setSignupConfirmation, setDonationAcknowledgement }) => {
   const [fullName, setFullName] = useState('')
   const [confirmFullName, setConfirmFullName] = useState(false)
   const [newUsername, setNewUsername] = useState('')
@@ -23,6 +23,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
   const [existingProfiles, setExistingProfiles] = useState([])
   const [isComposing, setIsComposing] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState(null)
+  const [donationEmail, setDonationEmail] = useState(null)
 
   const getNewUsername = useCallback(
     debounce(async (name) => {
@@ -237,6 +238,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
               id={newUsername}
               registerUser={registerUser}
               nameConfirmed={nameConfirmed}
+              setDonationEmail={setDonationEmail}
             />
           </LoadingContext.Provider>
 
@@ -248,6 +250,8 @@ const SignupForm = ({ setSignupConfirmation }) => {
               $('#confirm-name-modal').modal('hide')
             }}
             setTurnstileToken={setTurnstileToken}
+            donationEmail={donationEmail}
+            setDonationAcknowledgement={setDonationAcknowledgement}
           />
         </>
       )}
@@ -530,7 +534,7 @@ const ClaimProfileForm = ({ id, registerUser }) => {
   )
 }
 
-const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
+const NewProfileForm = ({ id, registerUser, nameConfirmed, setDonationEmail }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -614,6 +618,7 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
           onChange={(e) => {
             const cleanEmail = e.target.value.trim()
             setEmail(cleanEmail)
+            setDonationEmail(cleanEmail)
             if (!cleanEmail) setNonInstitutionEmail(null)
           }}
           onBlur={(e) => {
@@ -701,8 +706,16 @@ const SubmitButton = ({ disabled, children }) => {
   )
 }
 
-const ConfirmNameModal = ({ fullName, newUsername, onConfirm, setTurnstileToken }) => {
+const ConfirmNameModal = ({
+  fullName,
+  newUsername,
+  onConfirm,
+  setTurnstileToken,
+  donationEmail,
+  setDonationAcknowledgement,
+}) => {
   const [agreeTerms, setAgreeTerms] = useState(false)
+  const [localAcknowledgeDonation, setLocalAcknowledgeDonation] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('registration', isOpen)
 
@@ -713,7 +726,7 @@ const ConfirmNameModal = ({ fullName, newUsername, onConfirm, setTurnstileToken 
   return (
     <BasicModal
       id="confirm-name-modal"
-      title="Confirm Full Name"
+      title="Confirm Registration"
       primaryButtonText="Register"
       onPrimaryButtonClick={() => {
         setIsOpen(false)
@@ -722,6 +735,7 @@ const ConfirmNameModal = ({ fullName, newUsername, onConfirm, setTurnstileToken 
       primaryButtonDisabled={!agreeTerms || !turnstileToken}
       onClose={() => {
         setAgreeTerms(false)
+        setLocalAcknowledgeDonation(false)
         setIsOpen(false)
       }}
       onOpen={() => setIsOpen(true)}
@@ -740,12 +754,47 @@ const ConfirmNameModal = ({ fullName, newUsername, onConfirm, setTurnstileToken 
           I confirm my name is correct
         </label>
       </div>
+      <div className="donation-container">
+        <p className="mb-2">
+          <strong>Support OpenReview</strong>
+        </p>
+        <p className="mb-2">
+          OpenReview is a non-profit organization that relies on community support. Your
+          donation helps us process your registration faster.{' '}
+        </p>
+        <p>
+          <a
+            href="https://donate.stripe.com/eVqdR8fP48bK1R61fi0oM00"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Consider making a donation
+          </a>
+        </p>
+        <div className="checkbox mb-0">
+          <label>
+            <input
+              type="checkbox"
+              checked={localAcknowledgeDonation}
+              onChange={() => {
+                setLocalAcknowledgeDonation((value) => !value)
+                setDonationAcknowledgement((value) => !value)
+              }}
+            />{' '}
+            I made a donation using the email {donationEmail}
+          </label>
+        </div>
+      </div>
       <div className="mt-3 mb-2 text-center" ref={turnstileContainerRef}></div>
     </BasicModal>
   )
 }
 
-const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
+const ConfirmationMessage = ({
+  registrationType,
+  registeredEmail,
+  donationAcknowledgement,
+}) => {
   if (registrationType === 'reset') {
     return (
       <div className="confirm-message col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
@@ -763,6 +812,12 @@ const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
   return (
     <div className="confirm-message col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
       <h1>Thank You for Signing Up</h1>
+      {donationAcknowledgement && (
+        <p className="donation-thanks">
+          <strong>Thank you for your donation!</strong> Your support helps us keep OpenReview
+          running.
+        </p>
+      )}
       <p>
         An email with the subject &quot;OpenReview signup confirmation&quot; has been sent to
         your email <span className="email">{registeredEmail}</span>. Please click the link in
@@ -783,18 +838,23 @@ const ConfirmationMessage = ({ registrationType, registeredEmail }) => {
 
 export default function Signup() {
   const [signupConfirmation, setSignupConfirmation] = useState(null)
+  const [donationAcknowledgement, setDonationAcknowledgement] = useState(false)
 
   if (signupConfirmation)
     return (
       <ConfirmationMessage
         registrationType={signupConfirmation.type}
         registeredEmail={signupConfirmation.registeredEmail}
+        donationAcknowledgement={donationAcknowledgement}
       />
     )
   return (
     <div className="col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
       <h1>Sign Up for OpenReview</h1>
-      <SignupForm setSignupConfirmation={setSignupConfirmation} />
+      <SignupForm
+        setSignupConfirmation={setSignupConfirmation}
+        setDonationAcknowledgement={setDonationAcknowledgement}
+      />
     </div>
   )
 }
