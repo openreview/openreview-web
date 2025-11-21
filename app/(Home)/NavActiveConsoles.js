@@ -16,9 +16,11 @@ const NavActiveConsoles = () => {
     try {
       const [activeVenuesResult, openVenuesResult, activeConsoleResult] =
         await Promise.allSettled([
-          api.get('groups', { id: 'active_venues' }).then(formatGroupResults),
           api
-            .get('/invitations', { invitee: '~', pastdue: false, type: 'note' })
+            .get('groups', { id: 'active_venues', select: 'members' })
+            .then(formatGroupResults),
+          api
+            .get('/invitations', { invitee: '~', pastdue: false, type: 'note', select: 'id' })
             .then((results) =>
               results.invitations.map((inv) => ({ groupId: inv.id.split('/-/')[0] }))
             ),
