@@ -96,7 +96,7 @@ nav.navbar {
 
     input {
       background-color: #ddd;
-      width: 380px;
+      width: 280px;
       height: 30px;
       border: 1px solid #ccc;
       border-radius: 0;
@@ -107,10 +107,10 @@ nav.navbar {
         box-shadow 0.4s 0.2s ease;
 
       @media #{constants.$desktop-only} {
-        width: 250px;
+        width: 200px;
       }
       @media #{constants.$tablet-only} {
-        width: 250px;
+        width: 200px;
       }
       @media #{constants.$phone-only} {
         width: 100%;
