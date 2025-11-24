@@ -193,7 +193,6 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           ithenticateEdgesP,
         ])
       const assignedAreaChairIds = assignmentEdges.map((p) => p.head)
-      console.log('notes', notes)
 
       // #region categorize result of per paper groups
       let reviewerGroups = []
