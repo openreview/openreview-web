@@ -125,6 +125,7 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
                   data: { value: e.target.value, key: p.key },
                 })
               }
+              aria-label="Research areas of interest"
             />
           </div>
           <div className="col-md-1 expertise__value">
@@ -140,6 +141,7 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
               onChange={(e) =>
                 setExpertises({ type: startType, data: { value: e.target.value, key: p.key } })
               }
+              aria-label="Start Year"
             />
           </div>
           <div className="col-md-1 expertise__value">
@@ -155,6 +157,7 @@ const ExpertiseSection = ({ profileExpertises, updateExpertise }) => {
               onChange={(e) =>
                 setExpertises({ type: endType, data: { value: e.target.value, key: p.key } })
               }
+              aria-label="End Year"
             />
           </div>
           <div className="col-md-1 relation__value">

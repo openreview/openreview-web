@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { stringify } from 'query-string'
 import { headers } from 'next/headers'
+import { orderBy } from 'lodash'
 import serverAuth, { isSuperUser } from '../auth'
 import api from '../../lib/api-client'
 import ErrorDisplay from '../../components/ErrorDisplay'
@@ -10,8 +11,17 @@ import { formatProfileData } from '../../lib/profiles'
 import CommonLayout from '../CommonLayout'
 import EditBanner from '../../components/EditBanner'
 import PreferredIdUpdater from './PreferredIdUpdater'
+import { prettyId } from '../../lib/utils'
 
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({ searchParams }) {
+  const { id } = await searchParams
+
+  return {
+    title: `${prettyId(id)} | OpenReview`,
+  }
+}
 
 export default async function page({ searchParams }) {
   const { user, token } = await serverAuth()
@@ -51,6 +61,32 @@ export default async function page({ searchParams }) {
     )
   }
 
+  let serviceRoles = []
+  if (isSuperUser(user)) {
+    try {
+      const serviceRolesResult = await api.get(
+        '/tags',
+        {
+          profile: profile.id,
+        },
+        {
+          remoteIpAddress,
+        }
+      )
+
+      serviceRoles = orderBy(
+        serviceRolesResult.tags?.filter((p) => p.parentInvitations?.endsWith('_Role')),
+        ['cdate'],
+        ['desc']
+      )
+    } catch (error) {
+      console.log('Error in page', {
+        page: 'Home',
+        error,
+      })
+    }
+  }
+
   const editBanner = isProfileOwner ? (
     <EditBanner>
       <span>
@@ -72,6 +108,7 @@ export default async function page({ searchParams }) {
         <Profile
           profile={formattedProfile}
           publicProfile={!isProfileOwner}
+          serviceRoles={serviceRoles}
           remoteIpAddress={remoteIpAddress}
         />
       </PreferredIdUpdater>

@@ -45,3 +45,9 @@
   background-color: #fa8c16;
   color: white;
 }
+
+:global(.service-roles-container) {
+  .serviceRole {
+    border: none;
+  }
+}

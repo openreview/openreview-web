@@ -86,6 +86,7 @@ export default function EditEdgeTwoDropdowns(props) {
           >
             <span className="two-dropdowns-edge-weight">{weight ?? defaultOption}</span>
             <span className="caret" />
+            <span className="sr-only">Toggle dropdown menu</span>
           </button>
           <ul className="dropdown-menu">
             {weightOptions &&

@@ -171,6 +171,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
                 name={`${pastDue ? 'repeat' : 'trash'}`}
                 tooltip={prettyInvitationId(deleteInvitation.id)}
               />
+              <span className="sr-only">Delete or restore note</span>
             </button>
           )}
         </div>
