@@ -19,8 +19,8 @@ dayjs.extend(relativeTime)
 export default function NoteActivity({ note, showGroup, showActionButtons }) {
   const { details } = note
   const { id, forum, content = {} } = note.note
-  const authorIds = getNoteAuthorIds(note, true)
-  const authors = getNoteAuthors(note, true)
+  const authorIds = getNoteAuthorIds(note.note, true)
+  const authors = getNoteAuthors(note.note, true)
 
   let actionDescription
   if (details.isDeleted) {
@@ -89,7 +89,7 @@ export default function NoteActivity({ note, showGroup, showActionButtons }) {
             </Link>
           </h4>
 
-          {content.authors && content.authorids && (
+          {authors && authorIds && (
             <div className="note-authors">
               <NoteAuthorsV2
                 authors={authors}

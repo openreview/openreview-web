@@ -114,8 +114,8 @@ export const NoteAuthorsV2 = ({
   }
 
   let authorsList
-  if (authors?.value?.length > 0) {
-    authorsList = zip(authors?.value, authorIds?.value || [])
+  if (authors?.length > 0) {
+    authorsList = zip(authors, authorIds || [])
   } else if (signatures?.length > 0) {
     authorsList = signatures.map((id) => [prettyId(id), id])
   } else {
