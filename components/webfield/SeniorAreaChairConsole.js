@@ -1,7 +1,7 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { camelCase, orderBy } from 'lodash'
+import { camelCase, chunk, orderBy } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import AreaChairStatus from './SeniorAreaChairConsole/AreaChairStatus'
@@ -97,26 +97,34 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                   : []
               )
               if (!noteNumbers.length) return []
-              return api
-                .getAll(
-                  '/notes',
-                  {
-                    invitation: submissionId,
-                    details: 'replies',
-                    select: 'id,number,forum,content,details,invitations,readers',
-                    sort: 'number:asc',
-                    domain: group.domain,
-                  },
-                  { accessToken }
+              const noteNumberChunks = chunk(
+                noteNumbers.sort((a, b) => a - b),
+                50
+              )
+              return Promise.all(
+                noteNumberChunks.map((noteNumbersInChunk) =>
+                  api
+                    .get(
+                      '/notes',
+                      {
+                        invitation: submissionId,
+                        number: noteNumbersInChunk.join(','),
+                        details: 'replies',
+                        select: 'id,number,forum,content,details,invitations,readers',
+                        sort: 'number:asc',
+                        domain: group.domain,
+                      },
+                      { accessToken }
+                    )
+                    .then((batchResult) => batchResult.notes)
                 )
-                .then((notes) =>
-                  notes.filter(
-                    (note) =>
-                      // eslint-disable-next-line no-new-func
-                      ((filterFunction && Function('note', filterFunction)(note)) ?? true) &&
-                      noteNumbers.includes(note.number)
-                  )
+              ).then((allBatchResults) =>
+                allBatchResults.flat()?.filter(
+                  (note) =>
+                    // eslint-disable-next-line no-new-func
+                    (filterFunction && Function('note', filterFunction)(note)) ?? true
                 )
+              )
             })
         : Promise.resolve([])
       // #endregion
@@ -185,6 +193,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           ithenticateEdgesP,
         ])
       const assignedAreaChairIds = assignmentEdges.map((p) => p.head)
+      console.log('notes', notes)
 
       // #region categorize result of per paper groups
       let reviewerGroups = []
