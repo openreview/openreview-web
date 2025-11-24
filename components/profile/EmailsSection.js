@@ -250,6 +250,7 @@ const EmailsSection = ({
             <div className="col-md-4 emails__value">
               {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
               <input
+                aria-label="email"
                 type="email"
                 autoFocus
                 value={emailObj.email}
@@ -266,6 +267,7 @@ const EmailsSection = ({
               emailObj.isValid && (
                 <div className="col-md-2 emails__value">
                   <input
+                    aria-label="Enter Verification Token"
                     type="text"
                     onChange={(e) =>
                       handleVerificationTokenUpdate(emailObj.key, e.target.value)

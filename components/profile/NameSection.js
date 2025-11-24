@@ -300,6 +300,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
             <div className="col-md-4 names__value">
               {isMobile && <div className="small-heading col-md-2">Full Name</div>}
               <input
+                aria-label="Full Name"
                 type="text"
                 className={`form-control full-name ${
                   profileNames.find((q) => q.key === p.key)?.valid === false

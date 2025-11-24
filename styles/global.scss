@@ -115,6 +115,9 @@ hr {
     margin-bottom: 0.625rem;
   }
 }
+.text-muted {
+  color: #757575;
+}
 
 // Spacing utils
 .mt-0 {
@@ -618,6 +621,7 @@ header {
   }
 
   &.alert-warning {
+    color: #846539;
     background-color: constants.$sandyBrown;
     border-color: constants.$backgroundGray;
   }
