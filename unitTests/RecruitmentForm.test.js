@@ -16,20 +16,17 @@ jest.mock('../components/EditorComponents/Markdown', () => (props) => {
 })
 jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
 jest.mock('../hooks/useTurnstileToken', () => () => ({ turnstileToken: 'some token' }))
-jest.mock('../lib/utils', () => {
-  const original = jest.requireActual('../lib/utils')
-  return {
-    ...original,
-    constructRecruitmentResponseNote: jest.fn((invitation, content, existingNote) => {
-      if (!existingNote) return responseEditMock
-      return responseUpdateEditMock
-    }),
-  }
-})
+
 global.marked = jest.fn()
 global.promptError = jest.fn()
 global.DOMPurify = {
   sanitize: jest.fn(),
+}
+global.view2 = {
+  constructEdit: jest.fn(({ formData, noteObj, invitationObj }) => {
+    if (!noteObj) return responseEditMock
+    return responseUpdateEditMock
+  }),
 }
 
 beforeEach(() => {
@@ -206,9 +203,7 @@ describe('RecruitmentForm', () => {
       expect(
         screen.getByText('Thank you test@email.com for accepting this invitation')
       ).toBeVisible()
-      expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, {
-        version: 2,
-      })
+      expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock)
     })
   })
 
@@ -282,11 +277,7 @@ describe('RecruitmentForm', () => {
     expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled()
 
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }))
-    expect(postResponse).toHaveBeenLastCalledWith(
-      expect.anything(),
-      responseEditMock,
-      expect.anything()
-    )
+    expect(postResponse).toHaveBeenLastCalledWith(expect.anything(), responseEditMock)
     expect(screen.getByText('You have requested a reduced load of 3 papers')).toBeVisible()
     expect(screen.getByText('Thank you for accepting this invitation')).toBeVisible()
   })
@@ -333,9 +324,7 @@ describe('RecruitmentForm', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Decline' }))
     await waitFor(() => {
       expect(screen.getByText('You test@email.com have declined the invitation')).toBeVisible()
-      expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock, {
-        version: 2,
-      })
+      expect(postResponse).toHaveBeenCalledWith('/notes/edits', responseEditMock)
       expect(screen.queryByRole('button')).not.toBeInTheDocument() // invitation does not have content
     })
   })
@@ -404,11 +393,7 @@ describe('RecruitmentForm', () => {
     await userEvent.type(screen.getByRole('textbox'), 'some comment')
 
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }))
-    expect(postResponse).toHaveBeenLastCalledWith(
-      expect.anything(),
-      responseUpdateEditMock,
-      expect.anything()
-    )
+    expect(postResponse).toHaveBeenLastCalledWith(expect.anything(), responseUpdateEditMock)
     expect(screen.getByText('You have declined the invitation')).toBeVisible()
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument() // only show message after submit comment
     expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument()
@@ -501,11 +486,7 @@ describe('RecruitmentForm', () => {
     expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled()
 
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }))
-    expect(postResponse).toHaveBeenLastCalledWith(
-      expect.anything(),
-      responseUpdateEditMock,
-      expect.anything()
-    )
+    expect(postResponse).toHaveBeenLastCalledWith(expect.anything(), responseUpdateEditMock)
     expect(screen.getByText('You have requested a reduced load of 3 papers')).toBeVisible()
     expect(screen.getByText('Thank you for accepting this invitation')).toBeVisible()
   })

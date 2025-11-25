@@ -4,7 +4,6 @@ import '../styles/global.scss'
 import '../styles/components.scss'
 // eslint-disable-next-line camelcase
 import { Noto_Sans } from 'next/font/google'
-import FlashAlert from '../components/FlashAlert'
 import AppInit from './AppInit'
 import StoreProvider from '../storeProvider'
 import Nav from './(Home)/Nav'
@@ -40,7 +39,6 @@ export default function RootLayout({ children }) {
         <body className={notoSans.className}>
           <div id="__next">
             <Nav />
-            <FlashAlert />
             <AppInit />
             {children}
           </div>
