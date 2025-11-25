@@ -29,13 +29,6 @@ test('show active venues', async (t) => {
     .eql(0)
 
 
-    // All venues
-    .expect(allVenues.find('li').count)
-    .eql(3)
-    .expect(allVenues.find('a').nth(0).textContent)
-    .eql(`Another${baseGroupId}`)
-    .expect(allVenues.find('a').nth(1).textContent)
-    .eql('ICLR')
-    .expect(allVenues.find('a').nth(2).textContent)
-    .eql(baseGroupId)
+    // Search venues
+    .expect(allVenues.find('input[placeholder="Type to search for venues..."]').exists).ok()
 })
