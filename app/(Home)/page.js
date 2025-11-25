@@ -1,5 +1,4 @@
 import { cookies, headers } from 'next/headers'
-import AllVenues from './AllVenues'
 import ActiveVenues from './ActiveVenues'
 import styles from './Home.module.scss'
 import OpenVenues from './OpenVenues'
@@ -7,6 +6,7 @@ import api from '../../lib/api-client'
 import { formatGroupResults } from '../../lib/utils'
 import VersionChecker from '../../components/VersionChecker'
 import News from './News'
+import AllVenuesWithSearch from './AllVenuesWithSearch'
 
 export const metadata = {
   title: 'Venues | OpenReview',
@@ -91,7 +91,7 @@ export default async function page() {
       </div>
 
       <div className="col-xs-12">
-        <AllVenues />
+        <AllVenuesWithSearch />
       </div>
       <VersionChecker />
     </div>
