@@ -418,12 +418,10 @@ const DateProcessesEditor = ({
         ...(!isMetaInvitation && { invitations: metaInvitationId }),
       }
       await api.post(requestPath, requestBody, { accessToken })
-      promptMessage(`${upperFirst(field)} of ${prettyId(invitation.id)} updated`, {
-        scrollToTop: false,
-      })
+      promptMessage(`${upperFirst(field)} of ${prettyId(invitation.id)} updated`)
       loadInvitation(invitation.id)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
 
     setIsSaving(false)
