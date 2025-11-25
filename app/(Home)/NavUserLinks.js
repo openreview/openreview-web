@@ -18,7 +18,7 @@ export default async function NavUserLinks() {
   }
 
   return (
-    <ul className="nav navbar-nav navbar-right">
+    <>
       <li className="hidden-sm">
         <Link href="/notifications" prefetch={false}>
           Notifications
@@ -76,6 +76,6 @@ export default async function NavUserLinks() {
           </li>
         </ul>
       </li>
-    </ul>
+    </>
   )
 }
