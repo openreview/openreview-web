@@ -1,0 +1,78 @@
+@use '../utils/constants';
+
+.donateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.section {
+  display: flex;
+  width: 100%;
+}
+
+.messageDonate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+
+  .message {
+    padding: 2rem;
+    padding-bottom: 0;
+    flex: 1;
+    min-width: 80%;
+  }
+
+  .donateButton {
+    margin-left: 2rem;
+    margin-top: 10%;
+    margin-bottom: 2rem;
+    flex: 0 0 auto;
+
+    a {
+      background-color: #ff7a1a;
+      border: 2px solid #ff7a1a;
+    }
+  }
+}
+
+.benefits {
+  display: flex;
+  flex-direction: column;
+  padding-left: 2rem;
+  padding-top: 2rem;
+}
+
+.supporters {
+  padding-left: 2rem;
+  padding-top: 2rem;
+}
+
+.statistics {
+  padding-left: 2rem;
+
+  .statisticsCards {
+    display: flex;
+    gap: 3rem;
+    width: 100%;
+    flex-wrap: wrap;
+
+    .card {
+      padding: 0.25rem 3rem;
+      border: 1px solid #ccc;
+      border-radius: 2px;
+      text-align: center;
+
+      width: 15rem;
+
+      :global {
+        h3 {
+          font-weight: bold;
+        }
+        p {
+          color: #757575;
+        }
+      }
+    }
+  }
+}

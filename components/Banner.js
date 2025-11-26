@@ -2,7 +2,7 @@ export default function Banner({ hidden, children }) {
   const defaultContent = (
     <span className="tagline">
       Support Open Science! Help us maintain OpenReview by{' '}
-      <a href="https://donate.stripe.com/eVqdR8fP48bK1R61fi0oM00" className="donate-link">
+      <a href="/donate" className="donate-link">
         making a donation
       </a>{' '}
       today.{' '}
