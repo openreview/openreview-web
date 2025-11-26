@@ -7,10 +7,14 @@ export default function Footer() {
         <div className="container">
           {/* 3 Column Layout for Tablet and Desktop */}
           <div className="row hidden-xs">
-            <div className="col-sm-4">
+            <div className="col-sm-3">
+              <h5>About OpenReview</h5>
               <ul className="list-unstyled">
                 <li>
-                  <Link href="/about">About OpenReview</Link>
+                  <Link href="/about">About</Link>
+                </li>
+                <li>
+                  <Link href="/contact">Contact</Link>
                 </li>
                 <li>
                   <Link href={`/group?id=${process.env.SUPER_USER}/Support`}>
@@ -23,32 +27,49 @@ export default function Footer() {
               </ul>
             </div>
 
-            <div className="col-sm-4">
+            <div className="col-sm-3">
+              <h5>Resources</h5>
               <ul className="list-unstyled">
                 <li>
-                  <Link href="/contact">Contact</Link>
+                  <a
+                    href="https://docs.openreview.net/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Documentation
+                  </a>
                 </li>
                 <li>
-                  <Link href="/sponsors">Sponsors</Link>
+                  <a
+                    href="https://docs.openreview.net/reference/api-v2"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    API
+                  </a>
                 </li>
                 <li>
-                  <Link href="https://donate.stripe.com/eVqdR8fP48bK1R61fi0oM00">
-                    <strong>Donate</strong>
-                  </Link>
+                  <a
+                    href="https://docs.openreview.net/getting-started/frequently-asked-questions"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    FAQ
+                  </a>
                 </li>
               </ul>
             </div>
 
-            <div className="col-sm-4">
+            <div className="col-sm-3">
+              <h5>Support</h5>
               <ul className="list-unstyled">
                 <li>
-                  <a href="https://docs.openreview.net/getting-started/frequently-asked-questions">
-                    FAQ
-                  </a>
+                  <Link href="/sponsors">Sponsors</Link>
                 </li>
                 <li>
-                  <Link href="/legal/terms">Terms of Use</Link> /{' '}
-                  <Link href="/legal/privacy">Privacy Policy</Link>
+                  <Link href={`/donate`}>
+                    <strong>Donate</strong>
+                  </Link>
                 </li>
                 <li>
                   <Link
@@ -56,6 +77,18 @@ export default function Footer() {
                   >
                     News
                   </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div className="col-sm-3">
+              <h5>Legal</h5>
+              <ul className="list-unstyled">
+                <li>
+                  <Link href="/legal/terms">Terms of Use</Link>
+                </li>
+                <li>
+                  <Link href="/legal/privacy">Privacy Policy</Link>
                 </li>
               </ul>
             </div>
@@ -66,7 +99,10 @@ export default function Footer() {
             <div className="col-xs-6">
               <ul className="list-unstyled">
                 <li>
-                  <Link href="/about">About OpenReview</Link>
+                  <Link href="/about">About</Link>
+                </li>
+                <li>
+                  <Link href="/contact">Contact</Link>
                 </li>
                 <li>
                   <Link href={`/group?id=${process.env.SUPER_USER}/Support`}>
@@ -75,9 +111,6 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link href="/venues">All Venues</Link>
-                </li>
-                <li>
-                  <Link href="/sponsors">Sponsors</Link>
                 </li>
                 <li>
                   <Link
@@ -92,15 +125,19 @@ export default function Footer() {
             <div className="col-xs-6">
               <ul className="list-unstyled">
                 <li>
-                  <a href="https://docs.openreview.net/getting-started/frequently-asked-questions">
+                  <a
+                    href="https://docs.openreview.net/getting-started/frequently-asked-questions"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     FAQ
                   </a>
                 </li>
                 <li>
-                  <Link href="/contact">Contact</Link>
+                  <Link href="/sponsors">Sponsors</Link>
                 </li>
                 <li>
-                  <Link href="https://donate.stripe.com/eVqdR8fP48bK1R61fi0oM00">
+                  <Link href="/donate">
                     <strong>Donate</strong>
                   </Link>
                 </li>
