@@ -27,7 +27,6 @@ export default async function page({ searchParams }) {
   const { user, token } = await serverAuth()
   const query = await searchParams
   const { id, email } = query
-  // if (!user && !id && !email)
   if (!user) redirect(`/login?redirect=/profile?${encodeURIComponent(stringify(query))}`)
 
   const headersList = await headers()
