@@ -773,6 +773,13 @@ const AreaChairConsole = ({ appContext }) => {
           }
         })
         const metaReview = allMetaReviews.find((p) => !p.isByOtherAC)
+        if (typeof note.content?.authors?.value === 'object') {
+          // eslint-disable-next-line no-param-reassign
+          note.authorSearchValue = note.content.authors.value.map((p) => ({
+            ...p,
+            type: 'authorObj',
+          }))
+        }
         return {
           note,
           reviewers: result[1]
