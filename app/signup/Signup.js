@@ -2,25 +2,20 @@
 
 /* globals promptError,clearMessage */
 import { debounce } from 'lodash'
-import { useState, useEffect, useCallback, useContext, createContext } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import api from '../../lib/api-client'
-import NoteList from '../../components/NoteList'
 import BasicModal from '../../components/BasicModal'
 import { isInstitutionEmail, isValidEmail, isValidPassword } from '../../lib/utils'
 import Icon from '../../components/Icon'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
-
-const LoadingContext = createContext()
 
 const SignupForm = ({ setSignupConfirmation }) => {
   const [fullName, setFullName] = useState('')
   const [confirmFullName, setConfirmFullName] = useState(false)
   const [newUsername, setNewUsername] = useState('')
   const [nameConfirmed, setNameConfirmed] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [existingProfiles, setExistingProfiles] = useState([])
   const [isComposing, setIsComposing] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState(null)
 
@@ -39,35 +34,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
     []
   )
 
-  const getMatchingProfiles = useCallback(
-    debounce(async (name) => {
-      try {
-        const { profiles } = await api.get('/profiles/search', {
-          fullname: name,
-          limit: 100,
-          es: true,
-        })
-        if (profiles) {
-          setExistingProfiles(
-            profiles.map((profile) => ({
-              id: profile.id,
-              emails: profile.content?.emails || [],
-              emailsConfirmed: profile.content?.emailsConfirmed || [],
-              active: profile.active,
-              password: profile.password,
-            }))
-          )
-        }
-      } catch (error) {
-        setExistingProfiles([])
-      }
-    }, 300),
-    []
-  )
-
   const registerUser = async (registrationType, email, password, id) => {
-    setLoading(true)
-
     let bodyData = {}
     if (registrationType === 'new') {
       bodyData = { email, password, fullname: fullName.trim(), token: turnstileToken }
@@ -85,35 +52,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
       promptError(apiError.message)
       setNameConfirmed(false)
     }
-    setLoading(false)
-  }
-
-  const resetPassword = async (username, email, token) => {
-    setLoading(true)
-
-    try {
-      const { id: registeredEmail } = await api.post('/resettable', { id: email, token })
-      setSignupConfirmation({ type: 'reset', registeredEmail: registeredEmail || email })
-    } catch (apiError) {
-      if (apiError.message === 'User not found') {
-        promptError(`The given email does not match the email on record for ${username}`)
-      } else {
-        promptError(apiError.message)
-      }
-    }
-    setLoading(false)
-  }
-
-  const sendActivationLink = async (email) => {
-    setLoading(true)
-
-    try {
-      const { id: registeredEmail } = await api.post('/activatable', { id: email })
-      setSignupConfirmation({ type: 'activate', registeredEmail: registeredEmail || email })
-    } catch (apiError) {
-      promptError(apiError.message)
-    }
-    setLoading(false)
   }
 
   useEffect(() => {
@@ -127,17 +65,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
     }
 
     getNewUsername(fullName)
-  }, [fullName, isComposing])
-
-  useEffect(() => {
-    if (isComposing) return
-
-    if (fullName.trim().length < 2) {
-      setExistingProfiles([])
-      return
-    }
-
-    getMatchingProfiles(fullName)
   }, [fullName, isComposing])
 
   return (
@@ -186,59 +113,15 @@ const SignupForm = ({ setSignupConfirmation }) => {
 
       {confirmFullName && (
         <>
-          {existingProfiles.length > 0 && (
-            <div className="existing-profiles-title">
-              We found the following profiles with the name {fullName}
-            </div>
-          )}
           <hr className="spacer" />
-          <LoadingContext.Provider value={loading}>
-            {existingProfiles.map((profile, index) => {
-              let formComponents
-              const allEmails = profile.active
-                ? profile.emailsConfirmed
-                : [...profile.emailsConfirmed, ...profile.emails]
 
-              if (allEmails.length > 0) {
-                formComponents = Array.from(new Set(allEmails)).map((email) => (
-                  <ExistingProfileForm
-                    key={`${profile.id} ${email}`}
-                    id={profile.id}
-                    obfuscatedEmail={email}
-                    hasPassword={profile.password}
-                    isActive={profile.active}
-                    registerUser={registerUser}
-                    resetPassword={resetPassword}
-                    sendActivationLink={sendActivationLink}
-                  />
-                ))
-              } else {
-                formComponents = [
-                  <ClaimProfileForm
-                    key={profile.id}
-                    id={profile.id}
-                    registerUser={registerUser}
-                  />,
-                ]
-              }
-              return formComponents.concat(
-                <hr key={`${profile.id}-spacer`} className="spacer" />
-              )
-            })}
+          <div className="new-profile-title">Create a new profile</div>
 
-            <div className="new-profile-title">
-              Create a new profile{' '}
-              {existingProfiles.length > 0
-                ? 'if none of the profiles above belong to you'
-                : ''}
-            </div>
-
-            <NewProfileForm
-              id={newUsername}
-              registerUser={registerUser}
-              nameConfirmed={nameConfirmed}
-            />
-          </LoadingContext.Provider>
+          <NewProfileForm
+            id={newUsername}
+            registerUser={registerUser}
+            nameConfirmed={nameConfirmed}
+          />
 
           <ConfirmNameModal
             fullName={fullName}
@@ -252,279 +135,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
         </>
       )}
     </div>
-  )
-}
-
-const ExistingProfileForm = ({
-  id,
-  obfuscatedEmail,
-  hasPassword,
-  isActive,
-  registerUser,
-  resetPassword,
-  sendActivationLink,
-}) => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [passwordVisible, setPasswordVisible] = useState(false)
-  const { turnstileToken, turnstileContainerRef } = useTurnstileToken(
-    'reset',
-    passwordVisible && isValidEmail(email)
-  )
-
-  let buttonLabel
-  let usernameLabel
-  if (hasPassword) {
-    buttonLabel = isActive ? 'Reset Password' : 'Send Activation Link'
-    usernameLabel = 'for'
-  } else {
-    buttonLabel = 'Claim Profile'
-    usernameLabel = 'for'
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-
-    if (!passwordVisible) {
-      setPasswordVisible(true)
-      return
-    }
-
-    if (hasPassword && isActive) {
-      resetPassword(id, email, turnstileToken)
-    } else if (hasPassword && !isActive) {
-      sendActivationLink(email)
-    } else {
-      registerUser('claim', email, password, id)
-    }
-  }
-
-  return (
-    <form className="form-inline" onSubmit={handleSubmit}>
-      <div>
-        <input
-          type="email"
-          className="form-control"
-          value={obfuscatedEmail}
-          maxLength={254}
-          readOnly
-        />
-        {!passwordVisible && (
-          <>
-            <button type="submit" className="btn">
-              {buttonLabel}
-            </button>
-            <span className="new-username hint">
-              {usernameLabel} <Link href={`/profile?id=${id}`}>{id}</Link>
-            </span>
-          </>
-        )}
-      </div>
-      {passwordVisible && (
-        <div className="email-row">
-          <input
-            type="email"
-            className="form-control"
-            placeholder={`Full email for ${obfuscatedEmail}`}
-            value={email}
-            maxLength={254}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-          />
-          {hasPassword && (
-            <>
-              <SubmitButton disabled={!isValidEmail(email)}>{buttonLabel}</SubmitButton>
-              <span className="new-username hint">
-                {usernameLabel} <Link href={`/profile?id=${id}`}>{id}</Link>
-              </span>
-              {isActive && <div className="mt-1" ref={turnstileContainerRef} />}
-            </>
-          )}
-        </div>
-      )}
-      {passwordVisible && !hasPassword && (
-        <>
-          <div className="password-row">
-            <input
-              type="password"
-              className="form-control"
-              placeholder="New password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              required
-            />
-          </div>
-          <div className="claim-button-row">
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Confirm new password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-            <SubmitButton
-              disabled={!isValidEmail(email) || !isValidPassword(password, confirmPassword)}
-            >
-              {buttonLabel}
-            </SubmitButton>
-            <span className="new-username hint">
-              {usernameLabel} <Link href={`/profile?id=${id}`}>{id}</Link>
-            </span>
-          </div>
-        </>
-      )}
-    </form>
-  )
-}
-
-const ClaimProfileForm = ({ id, registerUser }) => {
-  const [email, setEmail] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [emailVisible, setEmailVisible] = useState(false)
-  const [passwordVisible, setPasswordVisible] = useState(false)
-  const [recentPublications, setRecentPublications] = useState(null)
-
-  const validateFullName = () => {
-    // Compare the first and last words of the id and full name entered by the user
-    const idWords = id.toLowerCase().replace(/[\d~]/g, '').split('_')
-    const nameWords = fullName.toLowerCase().split(' ')
-    return `${nameWords[0]} ${nameWords.pop()}` === `${idWords[0]} ${idWords.pop()}`
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-
-    if (!emailVisible) {
-      if (!validateFullName()) {
-        promptError('Your name must match the name of the profile you are claiming')
-        return
-      }
-      setEmailVisible(true)
-      return
-    }
-
-    if (!passwordVisible) {
-      setPasswordVisible(true)
-      return
-    }
-
-    registerUser('claim', email, password, id)
-  }
-
-  const loadRecentPublications = async () => {
-    try {
-      const { notes } = await api.get('/notes', {
-        'content.authorids': id,
-        sort: 'cdate:desc',
-        limit: 3,
-      })
-      setRecentPublications(notes || [])
-    } catch (error) {
-      setRecentPublications([])
-    }
-  }
-
-  useEffect(() => {
-    loadRecentPublications()
-  }, [])
-
-  useEffect(() => {
-    if (!email && passwordVisible) {
-      setPasswordVisible(false)
-    }
-  }, [email, passwordVisible])
-
-  return (
-    <form className="form-inline" onSubmit={handleSubmit}>
-      {recentPublications && (
-        <NoteList
-          notes={recentPublications}
-          displayOptions={{ pdfLink: true, htmlLink: true }}
-        />
-      )}
-
-      <div>
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Your full name"
-          value={fullName}
-          maxLength={254}
-          onChange={(e) => setFullName(e.target.value)}
-        />
-        {!emailVisible && (
-          <>
-            <button type="submit" className="btn" disabled={!fullName}>
-              Claim Profile
-            </button>
-            <span className="new-username hint">
-              for <Link href={`/profile?id=${id}`}>{id}</Link>
-            </span>
-          </>
-        )}
-      </div>
-
-      {emailVisible && (
-        <div className="pt-2">
-          <input
-            type="email"
-            className="form-control"
-            placeholder="Your email address"
-            value={email}
-            maxLength={254}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          {!passwordVisible && (
-            <>
-              <button type="submit" className="btn" disabled={!isValidEmail(email)}>
-                Claim Profile
-              </button>
-              <span className="new-username hint">
-                for <Link href={`/profile?id=${id}`}>{id}</Link>
-              </span>
-            </>
-          )}
-        </div>
-      )}
-
-      {passwordVisible && (
-        <>
-          <div className="password-row">
-            <input
-              type="password"
-              className="form-control"
-              placeholder="New password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              required
-            />
-          </div>
-          <div className="claim-button-row">
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Confirm new password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-              required
-            />
-            <SubmitButton disabled={!isValidPassword(password, confirmPassword)}>
-              Claim Profile
-            </SubmitButton>
-            <span className="new-username hint">
-              for <Link href={`/profile?id=${id}`}>{id}</Link>
-            </span>
-          </div>
-        </>
-      )}
-    </form>
   )
 }
 
@@ -670,32 +280,18 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
               autoComplete="new-password"
               required
             />
-            <SubmitButton disabled={!isValidPassword(password, confirmPassword)}>
+            <button
+              type="submit"
+              className="btn"
+              disabled={!isValidPassword(password, confirmPassword)}
+            >
               Sign Up
-            </SubmitButton>
+            </button>
             {id && <span className="new-username hint">{`as ${id}`}</span>}
           </div>
         </>
       )}
     </form>
-  )
-}
-
-const SubmitButton = ({ disabled, children }) => {
-  const loading = useContext(LoadingContext)
-
-  return (
-    <button type="submit" className="btn" disabled={disabled || loading}>
-      {children}{' '}
-      {loading && (
-        <div className="spinner-small">
-          <div className="rect1" />
-          <div className="rect2" />
-          <div className="rect3" />
-          <div className="rect4" />
-        </div>
-      )}
-    </button>
   )
 }
 
