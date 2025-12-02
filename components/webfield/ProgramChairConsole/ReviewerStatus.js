@@ -331,7 +331,6 @@ const ReviewerStatusTab = ({
           (reviewerProfileId) => !pcConsoleData.allProfilesMap.get(reviewerProfileId)
         )
         const ids = reviewerWithoutAssignmentIds.filter((p) => p.startsWith('~'))
-        const emails = reviewerWithoutAssignmentIds.filter((p) => p.match(/.+@.+/))
         const getProfilesByIdsP = ids.length
           ? api.post(
               '/profiles/search',
@@ -341,25 +340,13 @@ const ReviewerStatusTab = ({
               { accessToken }
             )
           : Promise.resolve([])
-        const getProfilesByEmailsP = emails.length
-          ? api.post(
-              '/profiles/search',
-              {
-                emails,
-              },
-              { accessToken }
-            )
-          : Promise.resolve([])
-        const reviewerProfileResults = await Promise.all([
-          getProfilesByIdsP,
-          getProfilesByEmailsP,
-        ])
-        const reviewerProfilesWithoutAssignment = (reviewerProfileResults[0].profiles ?? [])
-          .concat(reviewerProfileResults[1].profiles ?? [])
-          .map((profile) => ({
+        const reviewerProfileResults = await getProfilesByIdsP
+        const reviewerProfilesWithoutAssignment = (reviewerProfileResults.profiles ?? []).map(
+          (profile) => ({
             ...profile,
             preferredName: getProfileName(profile),
-          }))
+          })
+        )
         const reviewerProfileWithoutAssignmentMap = new Map()
         reviewerProfilesWithoutAssignment.forEach((profile) => {
           const usernames = profile.content.names.flatMap((p) => p.username ?? [])

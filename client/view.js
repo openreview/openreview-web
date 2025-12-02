@@ -4940,7 +4940,7 @@ module.exports = (function () {
     buildSignatures: buildSignatures,
     autolinkFieldDescriptions: autolinkFieldDescriptions,
     isTildeIdAllowed: isTildeIdAllowed,
-    mkSearchProfile: mkSearchProfile,
+    // mkSearchProfile: mkSearchProfile,
     mkFileInput: mkFileInput,
     idsFromListAdder: idsFromListAdder,
     getReaders: getReaders,
