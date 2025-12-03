@@ -213,4 +213,54 @@ return officialReview.length;
     // eslint-disable-next-line no-console
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining('officialReviewCount'))
   })
+
+  test('add customStageInvitation fields to sort options', () => {
+    const providerProps = {
+      value: {
+        reviewerName: 'Reviewers',
+        anonReviewerName: 'Reviewer_',
+        officialReviewName: 'Offical_Review',
+        customStageInvitations: [
+          {
+            name: 'Custom_Stage_Field_One',
+            displayField: 'custom_stage_field_one',
+            extraDisplayFields: ['some_field'],
+          },
+          {
+            name: 'Custom_Stage_Field_Two',
+            displayField: 'custom_stage_field_two',
+            extraDisplayFields: ['some_field', 'some_other_field'],
+          },
+        ],
+      },
+    }
+    const componentProps = { reviewRatingName: 'rating' }
+    renderWithWebFieldContext(<PaperStatusMenuBar {...componentProps} />, providerProps)
+
+    expect(baseMenuBarProps.sortOptions).toContainEqual(
+      expect.objectContaining({
+        label: 'Custom Stage Field One',
+      })
+    )
+    expect(baseMenuBarProps.sortOptions).toContainEqual(
+      expect.objectContaining({
+        label: 'Custom Stage Field One - Some Field',
+      })
+    )
+    expect(baseMenuBarProps.sortOptions).toContainEqual(
+      expect.objectContaining({
+        label: 'Custom Stage Field Two',
+      })
+    )
+    expect(baseMenuBarProps.sortOptions).toContainEqual(
+      expect.objectContaining({
+        label: 'Custom Stage Field Two - Some Field',
+      })
+    )
+    expect(baseMenuBarProps.sortOptions).toContainEqual(
+      expect.objectContaining({
+        label: 'Custom Stage Field Two - Some Other Field',
+      })
+    )
+  })
 })
