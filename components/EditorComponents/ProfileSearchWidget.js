@@ -439,7 +439,6 @@ const ProfileSearchFormAndResults = ({
           onSubmit={(e) => {
             e.preventDefault()
             setShowCustomAuthorForm(false)
-            console.log('$$$$$$$$$$$$')
             searchProfiles(searchTerm, 1)
             setPageNumber(null)
           }}

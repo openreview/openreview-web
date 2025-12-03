@@ -34,6 +34,7 @@ import ConsoleTabs from './ConsoleTabs'
 import { clearCache, getCache, setCache } from '../../lib/console-cache'
 import SpinnerButton from '../SpinnerButton'
 import LoadingSpinner from '../LoadingSpinner'
+import { isSuperUser } from '../../lib/clientAuth'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -521,6 +522,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #region get all profiles(with assignments)
       const allIds = [...allGroupMembers]
       const ids = allIds.filter((p) => p.startsWith('~'))
+      const emails = allIds.filter((p) => p.match(/.+@.+/))
       const getProfilesByIdsP = ids.length
         ? api.post(
             '/profiles/search',
@@ -530,22 +532,34 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             { accessToken }
           )
         : Promise.resolve([])
+      const getProfilesByEmailsP =
+        emails.length && isSuperUser(user)
+          ? api.post(
+              '/profiles/search',
+              {
+                emails,
+              },
+              { accessToken }
+            )
+          : Promise.resolve([])
       setDataLoadingStatusMessage('Loading profiles')
-      const profileResults = await getProfilesByIdsP
+      const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
       const allProfilesMap = new Map()
-      const _ = (profileResults.profiles ?? []).forEach((profile) => {
-        const reducedProfile = {
-          id: profile.id,
-          preferredName: getProfileName(profile),
-          title: formatProfileContent(profile.content).title,
-          usernames: profile.content.names.flatMap((p) => p.username ?? []),
-        }
+      const _ = (profileResults[0].profiles ?? [])
+        .concat(profileResults[1].profiles ?? [])
+        .forEach((profile) => {
+          const reducedProfile = {
+            id: profile.id,
+            preferredName: getProfileName(profile),
+            title: formatProfileContent(profile.content).title,
+            usernames: profile.content.names.flatMap((p) => p.username ?? []),
+          }
 
-        const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-        usernames.concat(profile.email ?? []).forEach((key) => {
-          allProfilesMap.set(key, reducedProfile)
+          const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+          usernames.concat(profile.email ?? []).forEach((key) => {
+            allProfilesMap.set(key, reducedProfile)
+          })
         })
-      })
       // #endregion
       const officialReviewsByPaperNumberMap = new Map()
       const metaReviewsByPaperNumberMap = new Map()
@@ -1171,6 +1185,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       seniorAreaChairWithoutAssignmentIds
     )
     const ids = allIdsNoAssignment.filter((p) => p.startsWith('~'))
+    const emails = allIdsNoAssignment.filter((p) => p.match(/.+@.+/))
     const getProfilesByIdsP = ids.length
       ? api.post(
           '/profiles/search',
@@ -1180,12 +1195,24 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           { accessToken }
         )
       : Promise.resolve([])
-    const profileResults = await getProfilesByIdsP
-    const acSacProfilesWithoutAssignment = (profileResults.profiles ?? []).map((profile) => ({
-      ...profile,
-      preferredName: getProfileName(profile),
-      title: formatProfileContent(profile.content).title,
-    }))
+    const getProfilesByEmailsP =
+      emails.length && isSuperUser(user)
+        ? api.post(
+            '/profiles/search',
+            {
+              emails,
+            },
+            { accessToken }
+          )
+        : Promise.resolve([])
+    const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
+    const acSacProfilesWithoutAssignment = (profileResults[0].profiles ?? [])
+      .concat(profileResults[1].profiles ?? [])
+      .map((profile) => ({
+        ...profile,
+        preferredName: getProfileName(profile),
+        title: formatProfileContent(profile.content).title,
+      }))
 
     const acSacProfileWithoutAssignmentMap = new Map()
     acSacProfilesWithoutAssignment.forEach((profile) => {
