@@ -330,7 +330,6 @@ const ProfileSearchFormAndResults = ({
       <div className={styles.noMatchingProfile}>
         {showCustomAuthorForm ? (
           <CustomAuthorForm
-            searchTerm={searchTerm}
             setTotalCount={setTotalCount}
             setProfileSearchResults={setProfileSearchResults}
             setSearchTerm={setSearchTerm}
@@ -469,7 +468,6 @@ const ProfileSearchFormAndResults = ({
 }
 
 const CustomAuthorForm = ({
-  searchTerm,
   setTotalCount,
   setProfileSearchResults,
   setSearchTerm,
@@ -512,14 +510,6 @@ const CustomAuthorForm = ({
     setProfileSearchResults(null)
     setSearchTerm('')
   }
-
-  useEffect(() => {
-    if (!searchTerm) return
-    const cleanSearchTerm = searchTerm.trim()
-    if (isValidEmail(cleanSearchTerm)) {
-      setCustomAuthorEmail(cleanSearchTerm.toLowerCase())
-    }
-  }, [searchTerm])
 
   return (
     <form className={styles.customAuthorForm}>
