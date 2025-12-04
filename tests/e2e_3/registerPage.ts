@@ -204,27 +204,47 @@ test('create a new profile with an institutional email', async (t) => {
     .contains('http://localhost:3030/profile/activate?token=')
 })
 
-test('enter invalid name', async (t) => {
+test('sign up with invalid name', async (t) => {
   await t
-    .typeText(fullNameInputSelector, '1', { speed: 0.8 })
+    .typeText(fullNameInputSelector, '1')
+    .click(Selector('label.name-confirmation'))
+    .typeText(emailAddressInputSelector, 'testemailaaa@test.com')
+    .click(signupButtonSelector)
+    .typeText(newPasswordInputSelector, strongPassword)
+    .typeText(confirmPasswordInputSelector, strongPassword)
+    .click(signupButtonSelector)
+    .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
+    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
+    .notOk({ timeout: 8000 })
+    .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(messageSelector.innerText)
     .eql(
       'Error: The name 1 is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
-    .typeText(fullNameInputSelector, 'abc', { replace: true })
-    .expect(messageSelector.exists).notOk() // page calls clearMessage
-    .typeText(fullNameInputSelector, 'abc `', { replace: true })
+})
+
+test('sign up with another invalid name', async (t) => {
+  await t
+    .typeText(fullNameInputSelector, 'abc `')
+    .click(Selector('label.name-confirmation'))
+    .typeText(emailAddressInputSelector, 'testemailaaa@test.com')
+    .click(signupButtonSelector)
+    .typeText(newPasswordInputSelector, strongPassword)
+    .typeText(confirmPasswordInputSelector, strongPassword)
+    .click(signupButtonSelector)
+    .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
+    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
+    .notOk({ timeout: 8000 })
+    .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(messageSelector.innerText)
     .eql(
       'Error: The name Abc ` is invalid. Only letters, single hyphens, single dots at the end of a name, and single spaces are allowed'
     )
-    .click(Selector('.rc-notification-notice-close')) // close message
-    .expect(messageSelector.exists).notOk()
 })
 
 test('enter valid name invalid email and change to valid email and register', async (t) => {
   const fullName = 'FirstNameaac LastNameaac' // must be new each test run
-  const email = 'testemailaac@test.com' // must be new each test run
+  const email = 'testemailaab@test.com' // must be new each test run
   await t
     .typeText(fullNameInputSelector, fullName) // must be new each test run
     .wait(500)
