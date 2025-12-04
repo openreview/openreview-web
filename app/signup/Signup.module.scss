@@ -53,18 +53,6 @@
           width: 180px;
           margin-right: 10px;
         }
-        .new-username {
-          display: inline-block;
-          vertical-align: middle;
-          width: calc(100% - 520px);
-
-          a {
-            color: constants.$subtleGray;
-          }
-          a:hover {
-            text-decoration: underline;
-          }
-        }
         .password-row,
         .claim-button-row {
           padding-top: 0.5rem;

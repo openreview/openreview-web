@@ -1,8 +1,7 @@
 'use client'
 
-/* globals promptError,clearMessage */
-import { debounce } from 'lodash'
-import { useState, useEffect, useCallback } from 'react'
+/* globals promptError,clearMessage,$ */
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import api from '../../lib/api-client'
@@ -14,33 +13,13 @@ import useTurnstileToken from '../../hooks/useTurnstileToken'
 const SignupForm = ({ setSignupConfirmation }) => {
   const [fullName, setFullName] = useState('')
   const [confirmFullName, setConfirmFullName] = useState(false)
-  const [newUsername, setNewUsername] = useState('')
   const [nameConfirmed, setNameConfirmed] = useState(false)
   const [isComposing, setIsComposing] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState(null)
 
-  const getNewUsername = useCallback(
-    debounce(async (name) => {
-      try {
-        const { username } = await api.get('/tildeusername', { fullname: name })
-        if (username) {
-          setNewUsername(username)
-        }
-      } catch (apiError) {
-        setNewUsername('')
-        promptError(apiError.message)
-      }
-    }, 500),
-    []
-  )
-
-  const registerUser = async (registrationType, email, password, id) => {
+  const registerUser = async (email, password) => {
     let bodyData = {}
-    if (registrationType === 'new') {
-      bodyData = { email, password, fullname: fullName.trim(), token: turnstileToken }
-    } else if (registrationType === 'claim') {
-      bodyData = { id, email, password }
-    }
+    bodyData = { email, password, fullname: fullName.trim(), token: turnstileToken }
 
     try {
       const { content } = await api.post('/register', bodyData)
@@ -49,7 +28,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
         registeredEmail: content?.preferredEmail || email,
       })
     } catch (apiError) {
-      promptError(apiError.message)
+      promptError(apiError.message, 8)
       setNameConfirmed(false)
     }
   }
@@ -58,13 +37,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
     if (isComposing) return
 
     if (fullName.length === 1) setFullName(fullName.toUpperCase())
-
-    if (fullName.trim().length < 1) {
-      setNewUsername('')
-      return
-    }
-
-    getNewUsername(fullName)
   }, [fullName, isComposing])
 
   return (
@@ -96,8 +68,9 @@ const SignupForm = ({ setSignupConfirmation }) => {
             <input
               type="checkbox"
               checked={confirmFullName}
+              disabled={!fullName.length}
               onChange={() => {
-                if (!newUsername) {
+                if (!fullName) {
                   setConfirmFullName(false)
                   return
                 }
@@ -115,17 +88,10 @@ const SignupForm = ({ setSignupConfirmation }) => {
         <>
           <hr className="spacer" />
 
-          <div className="new-profile-title">Create a new profile</div>
-
-          <NewProfileForm
-            id={newUsername}
-            registerUser={registerUser}
-            nameConfirmed={nameConfirmed}
-          />
+          <NewProfileForm registerUser={registerUser} nameConfirmed={nameConfirmed} />
 
           <ConfirmNameModal
             fullName={fullName}
-            newUsername={newUsername}
             onConfirm={() => {
               setNameConfirmed(true)
               $('#confirm-name-modal').modal('hide')
@@ -138,7 +104,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
   )
 }
 
-const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
+const NewProfileForm = ({ registerUser, nameConfirmed }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -195,14 +161,14 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
     if (passwordVisible) {
       $('[data-toggle="tooltip"]').tooltip({ html: true })
     }
-    if ((!id || !email) && passwordVisible) {
+    if (!email && passwordVisible) {
       setPasswordVisible(false)
     }
-  }, [id, email, passwordVisible])
+  }, [email, passwordVisible])
 
   useEffect(() => {
     if (nameConfirmed) {
-      registerUser('new', email, password)
+      registerUser(email, password)
     }
   }, [nameConfirmed])
 
@@ -211,91 +177,96 @@ const NewProfileForm = ({ id, registerUser, nameConfirmed }) => {
   }, [])
 
   return (
-    <form className="form-inline" onSubmit={handleSubmit}>
-      <div>
-        <input
-          type="email"
-          className="form-control"
-          placeholder="Email address"
-          value={email}
-          maxLength={254}
-          onChange={(e) => {
-            const cleanEmail = e.target.value.trim()
-            setEmail(cleanEmail)
-            if (!cleanEmail) setNonInstitutionEmail(null)
-          }}
-          onBlur={(e) => {
-            const cleanEmail = e.target.value.trim()
-            if (cleanEmail && !isInstitutionEmail(cleanEmail, institutionDomains)) {
-              setNonInstitutionEmail(cleanEmail)
-            }
-            if (!cleanEmail || isInstitutionEmail(cleanEmail, institutionDomains))
-              setNonInstitutionEmail(null)
-          }}
-          autoComplete="email"
-        />
-        {!passwordVisible && (
-          <button type="submit" className="btn" disabled={!id || !isValidEmail(email)}>
-            Sign Up
-          </button>
-        )}
-        {!passwordVisible && id && <span className="new-username hint">{`as ${id}`}</span>}
+    <>
+      <div className="new-profile-title">
+        {passwordVisible
+          ? 'Enter a password'
+          : 'Enter an email address to be associated with your profile'}
       </div>
-      {nonInstitutionEmail && (
-        <div className="activation-message-row">
-          <div>
-            <Icon name="warning-sign" extraClasses="email-tooltip" />
-            <InstitutionErrorMessage email={nonInstitutionEmail} />
-          </div>
-        </div>
-      )}
-      {passwordVisible && (
-        <>
-          <div className="password-row">
-            <input
-              type="password"
-              className="form-control"
-              placeholder="New password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              minLength={10}
-              maxLength={64}
-              required
-            />
-            <Icon
-              name="info-sign"
-              extraClasses="password-tooltip"
-              tooltip="Password must be between 10 and 64 characters long and contain at least one
-              uppercase letter, one lowercase letter and one digit."
-            />
-          </div>
-          <div className="claim-button-row">
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Confirm new password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-              required
-            />
-            <button
-              type="submit"
-              className="btn"
-              disabled={!isValidPassword(password, confirmPassword)}
-            >
+      <form className="form-inline" onSubmit={handleSubmit}>
+        <div>
+          <input
+            type="email"
+            className="form-control"
+            placeholder="Email address"
+            value={email}
+            maxLength={254}
+            onChange={(e) => {
+              const cleanEmail = e.target.value.trim()
+              setEmail(cleanEmail)
+              if (!cleanEmail) setNonInstitutionEmail(null)
+            }}
+            onBlur={(e) => {
+              const cleanEmail = e.target.value.trim()
+              if (cleanEmail && !isInstitutionEmail(cleanEmail, institutionDomains)) {
+                setNonInstitutionEmail(cleanEmail)
+              }
+              if (!cleanEmail || isInstitutionEmail(cleanEmail, institutionDomains))
+                setNonInstitutionEmail(null)
+            }}
+            autoComplete="email"
+          />
+          {!passwordVisible && (
+            <button type="submit" className="btn" disabled={!isValidEmail(email)}>
               Sign Up
             </button>
-            {id && <span className="new-username hint">{`as ${id}`}</span>}
+          )}
+        </div>
+        {nonInstitutionEmail && (
+          <div className="activation-message-row">
+            <div>
+              <Icon name="warning-sign" extraClasses="email-tooltip" />
+              <InstitutionErrorMessage email={nonInstitutionEmail} />
+            </div>
           </div>
-        </>
-      )}
-    </form>
+        )}
+        {passwordVisible && (
+          <>
+            <div className="password-row">
+              <input
+                type="password"
+                className="form-control"
+                placeholder="New password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={10}
+                maxLength={64}
+                required
+              />
+              <Icon
+                name="info-sign"
+                extraClasses="password-tooltip"
+                tooltip="Password must be between 10 and 64 characters long and contain at least one
+              uppercase letter, one lowercase letter and one digit."
+              />
+            </div>
+            <div className="claim-button-row">
+              <input
+                type="password"
+                className="form-control"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+              />
+              <button
+                type="submit"
+                className="btn"
+                disabled={!isValidPassword(password, confirmPassword)}
+              >
+                Sign Up
+              </button>
+            </div>
+          </>
+        )}
+      </form>
+    </>
   )
 }
 
-const ConfirmNameModal = ({ fullName, newUsername, onConfirm, setTurnstileToken }) => {
+const ConfirmNameModal = ({ fullName, onConfirm, setTurnstileToken }) => {
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('registration', isOpen)
@@ -321,8 +292,7 @@ const ConfirmNameModal = ({ fullName, newUsername, onConfirm, setTurnstileToken 
       onOpen={() => setIsOpen(true)}
     >
       <p className="mb-3">
-        You are registering with the name <strong>{fullName}</strong>. On your OpenReview
-        profile your username will be <strong>{newUsername}</strong>.
+        You are registering with the name <strong>{fullName}</strong>.
       </p>
       <div className="checkbox mb-3">
         <label>
