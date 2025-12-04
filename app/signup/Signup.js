@@ -1,6 +1,6 @@
 'use client'
 
-/* globals promptError,clearMessage,$ */
+/* globals promptError,$ */
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -37,6 +37,10 @@ const SignupForm = ({ setSignupConfirmation }) => {
     if (isComposing) return
 
     if (fullName.length === 1) setFullName(fullName.toUpperCase())
+
+    if (fullName.trim().length < 1) {
+      setConfirmFullName(false)
+    }
   }, [fullName, isComposing])
 
   return (
@@ -55,7 +59,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
               onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
               onCompositionEnd={() => setIsComposing(false)}
               onChange={(e) => {
-                clearMessage()
                 setFullName(e.target.value)
               }}
               placeholder="Full name"
