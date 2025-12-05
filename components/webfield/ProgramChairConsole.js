@@ -34,6 +34,7 @@ import ConsoleTabs from './ConsoleTabs'
 import { clearCache, getCache, setCache } from '../../lib/console-cache'
 import SpinnerButton from '../SpinnerButton'
 import LoadingSpinner from '../LoadingSpinner'
+import { isSuperUser } from '../../lib/clientAuth'
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
@@ -531,15 +532,16 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             { accessToken }
           )
         : Promise.resolve([])
-      const getProfilesByEmailsP = emails.length
-        ? api.post(
-            '/profiles/search',
-            {
-              emails,
-            },
-            { accessToken }
-          )
-        : Promise.resolve([])
+      const getProfilesByEmailsP =
+        emails.length && isSuperUser(user)
+          ? api.post(
+              '/profiles/search',
+              {
+                emails,
+              },
+              { accessToken }
+            )
+          : Promise.resolve([])
       setDataLoadingStatusMessage('Loading profiles')
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
       const allProfilesMap = new Map()
@@ -1193,15 +1195,16 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           { accessToken }
         )
       : Promise.resolve([])
-    const getProfilesByEmailsP = emails.length
-      ? api.post(
-          '/profiles/search',
-          {
-            emails,
-          },
-          { accessToken }
-        )
-      : Promise.resolve([])
+    const getProfilesByEmailsP =
+      emails.length && isSuperUser(user)
+        ? api.post(
+            '/profiles/search',
+            {
+              emails,
+            },
+            { accessToken }
+          )
+        : Promise.resolve([])
     const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
     const acSacProfilesWithoutAssignment = (profileResults[0].profiles ?? [])
       .concat(profileResults[1].profiles ?? [])

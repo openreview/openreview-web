@@ -20,6 +20,7 @@ import WebFieldContext from '../../WebFieldContext'
 import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 import { formatProfileContent } from '../../../lib/edge-utils'
+import { isSuperUser } from '../../../lib/clientAuth'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.reviewerProfile ?? {}
@@ -307,7 +308,7 @@ const ReviewerStatusTab = ({
     officialReviewName,
     submissionName,
   } = useContext(WebFieldContext)
-  const { accessToken } = useUser()
+  const { user, accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.reviewers?.length ?? 0)
   const pageSize = 25
@@ -341,15 +342,16 @@ const ReviewerStatusTab = ({
               { accessToken }
             )
           : Promise.resolve([])
-        const getProfilesByEmailsP = emails.length
-          ? api.post(
-              '/profiles/search',
-              {
-                emails,
-              },
-              { accessToken }
-            )
-          : Promise.resolve([])
+        const getProfilesByEmailsP =
+          emails.length && isSuperUser(user)
+            ? api.post(
+                '/profiles/search',
+                {
+                  emails,
+                },
+                { accessToken }
+              )
+            : Promise.resolve([])
         const reviewerProfileResults = await Promise.all([
           getProfilesByIdsP,
           getProfilesByEmailsP,

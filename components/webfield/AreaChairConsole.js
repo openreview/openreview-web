@@ -657,7 +657,6 @@ const AreaChairConsole = ({ appContext }) => {
         ]),
       ]
       const ids = allIds.filter((p) => p.startsWith('~'))
-      const emails = allIds.filter((p) => p.match(/.+@.+/))
       const getProfilesByIdsP = ids.length
         ? api.post(
             '/profiles/search',
@@ -667,27 +666,17 @@ const AreaChairConsole = ({ appContext }) => {
             { accessToken }
           )
         : Promise.resolve([])
-      const getProfilesByEmailsP = emails.length
-        ? api.post(
-            '/profiles/search',
-            {
-              emails,
-            },
-            { accessToken }
-          )
-        : Promise.resolve([])
-      const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
+
+      const profileResult = await getProfilesByIdsP
       // #endregion
 
       // #region calculate reviewProgressData and metaReviewData
       const notes = result[0]
       const ithenticateEdges = result[3]
-      const allProfiles = (profileResults[0].profiles ?? [])
-        .concat(profileResults[1].profiles ?? [])
-        .map((profile) => ({
-          ...profile,
-          title: formatProfileContent(profile.content).title,
-        }))
+      const allProfiles = (profileResult.profiles ?? []).map((profile) => ({
+        ...profile,
+        title: formatProfileContent(profile.content).title,
+      }))
       const tableRows = notes.map((note) => {
         const assignedReviewers =
           result[1].find((p) => p.number === note.number)?.reviewers ?? []
