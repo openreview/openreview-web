@@ -155,6 +155,9 @@ const addMissingReaders = (
         }
       }
     } else {
+      if (readersDefinedInInvitation?.includes(signatureId)) {
+        return [...new Set([...readersSelected, signatureId])]
+      }
       const acIndex = signatureId.indexOf(anonAreaChairName)
       const secondaryAcIndex = signatureId.indexOf(secondaryAreaChairName)
 

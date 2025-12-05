@@ -447,7 +447,7 @@ const PaperStatusMenuBar = ({
       ? customStageInvitations
           .map((invitation) =>
             invitation.extraDisplayFields
-              .map((extraDisplayField) => ({
+              ?.map((extraDisplayField) => ({
                 label: `${prettyId(invitation.name)} - ${prettyField(extraDisplayField)}`,
                 value: `${invitation.name} ${extraDisplayField}`,
                 getValue: (p) =>
