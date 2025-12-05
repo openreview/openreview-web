@@ -1,0 +1,30 @@
+@use '../utils/constants';
+
+.pastStatesContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.pastState {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 0.15rem;
+}
+
+.pastStateLabel {
+  margin-right: 0.25rem;
+  align-content: center;
+}
+
+.pastStateDate {
+  margin-right: 0.25rem;
+}
+
+.pastStateMessage {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+}
