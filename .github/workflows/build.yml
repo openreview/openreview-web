@@ -206,13 +206,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Add SSH key
-        run: |
-          mkdir -p /home/runner/.ssh
-          echo "${{ secrets.GCLOUD_SSH_KEY }}" > /home/runner/.ssh/google_compute_engine
-          echo "${{ secrets.GCLOUD_SSH_KEY_PUB }}" > /home/runner/.ssh/google_compute_engine.pub
-          chmod 600 /home/runner/.ssh/google_compute_engine
-          chmod 600 /home/runner/.ssh/google_compute_engine.pub
       - name: Authenticate with Google Cloud
         id: auth
         uses: google-github-actions/auth@v2
@@ -229,5 +222,5 @@ jobs:
           skip_install: true
       - name: Deploy to dev
         run: |
-          gcloud compute ssh --zone "us-central1-b" openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy-web.sh' --quiet
-          gcloud compute ssh --zone "us-central1-b" openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy-openreview-py.sh' --quiet
+          gcloud compute ssh --zone "us-central1-b" --tunnel-through-iap openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy-web.sh' --quiet
+          gcloud compute ssh --zone "us-central1-b" --tunnel-through-iap openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy-openreview-py.sh' --quiet
