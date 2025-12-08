@@ -61,14 +61,14 @@ export default function InvitationReply({
         accessToken,
         version: 1,
       })
-      promptMessage(`Settings for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      promptMessage(`Settings for '${prettyId(invitation.id)} updated`)
       loadInvitation(invitation.id)
     } catch (error) {
       let { message } = error
       if (error instanceof SyntaxError) {
         message = `Reply content is not valid JSON - ${error.message}. Make sure all quotes and brackets match.`
       }
-      promptError(message, { scrollToTop: false })
+      promptError(message)
     }
     setIsSaving(false)
   }
@@ -175,14 +175,14 @@ export function InvitationReplyV2({
       const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
       const requestBody = getRequestBody(replyObj)
       await api.post('/invitations/edits', requestBody, { accessToken })
-      promptMessage(`Settings for ${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      promptMessage(`Settings for ${prettyId(invitation.id)} updated`)
       loadInvitation(invitation.id)
     } catch (error) {
       let { message } = error
       if (error instanceof SyntaxError) {
         message = `Reply is not valid JSON: ${error.message}. Make sure all quotes and brackets match.`
       }
-      promptError(message, { scrollToTop: false })
+      promptError(message)
     }
     setIsSaving(false)
   }
@@ -305,7 +305,7 @@ export function InvitationReplyWithPreview({ invitation, accessToken, loadInvita
         rdate: undefined,
       }
     } catch (error) {
-      promptError(`Reply is not valid JSON: ${error.message}.`, { scrollToTop: false })
+      promptError(`Reply is not valid JSON: ${error.message}.`)
     }
     return {}
   }
@@ -318,14 +318,14 @@ export function InvitationReplyWithPreview({ invitation, accessToken, loadInvita
         accessToken,
         version: 1,
       })
-      promptMessage(`Settings for '${prettyId(invitation.id)} updated`, { scrollToTop: false })
+      promptMessage(`Settings for '${prettyId(invitation.id)} updated`)
       loadInvitation(invitation.id)
     } catch (error) {
       let { message } = error
       if (error instanceof SyntaxError) {
         message = `Reply is not valid JSON: ${error.message}. Make sure all quotes and brackets match.`
       }
-      promptError(message, { scrollToTop: false })
+      promptError(message)
     }
     setIsSaving(false)
   }

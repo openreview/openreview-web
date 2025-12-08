@@ -368,10 +368,7 @@ const GroupMembers = ({
         payload: { newMembers, existingDeleted },
       })
       getMemberAnonIds()
-      promptMessage(
-        `${newMembersMessage} ${existingDeletedMessage} ${existingActiveMessage}`,
-        { scrollToTop: false }
-      )
+      promptMessage(`${newMembersMessage} ${existingDeletedMessage} ${existingActiveMessage}`)
       reloadGroup()
     } catch (error) {
       promptError(error.message)
@@ -412,11 +409,9 @@ const GroupMembers = ({
     const selectedMemberIds = groupMembers.filter((p) => p.isSelected).map((q) => q.id)
     const success = copy(selectedMemberIds.join(','))
     if (success) {
-      promptMessage(`${selectedMemberIds.length} IDs copied to clipboard`, {
-        scrollToTop: false,
-      })
+      promptMessage(`${selectedMemberIds.length} IDs copied to clipboard`)
     } else {
-      promptError('Could not copy selected member IDs to clipboard', { scrollToTop: false })
+      promptError('Could not copy selected member IDs to clipboard')
     }
   }
 
