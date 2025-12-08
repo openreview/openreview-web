@@ -158,23 +158,22 @@ const addMissingReaders = (
       if (readersDefinedInInvitation?.includes(signatureId)) {
         return [...new Set([...readersSelected, signatureId])]
       }
-      const acIndex = signatureId.indexOf(anonAreaChairName)
+
       const secondaryAcIndex = signatureId.indexOf(secondaryAreaChairName)
+      if (secondaryAcIndex > 0) {
+        const secondaryACsGroup = signatureId
+          .slice(0, secondaryAcIndex)
+          .concat(`Secondary_${areaChairName}`)
+        return [...new Set([...readersSelected, secondaryACsGroup])]
+      }
 
-      const acGroupId =
-        acIndex >= 0 ? signatureId.slice(0, acIndex).concat(areaChairName) : signatureId
-      const secondaryAcGroupId =
-        secondaryAcIndex >= 0
-          ? signatureId.slice(0, secondaryAcIndex).concat(areaChairName)
-          : signatureId
+      const acIndex = signatureId.indexOf(anonAreaChairName)
+      if (acIndex > 0) {
+        const acsGroup = signatureId.slice(0, acIndex).concat(areaChairName)
+        return [...new Set([...readersSelected, acsGroup])]
+      }
 
-      const groupToAdd = [acGroupId, secondaryAcGroupId].filter((p) =>
-        readersDefinedInInvitation?.includes(p)
-      )
-
-      return groupToAdd.length
-        ? [...new Set([...readersSelected, ...groupToAdd])]
-        : readersSelected
+      return readersSelected
     }
   }
   return readersSelected
