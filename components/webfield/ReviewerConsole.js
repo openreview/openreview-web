@@ -240,7 +240,13 @@ const AssignedPaperRow = ({
   )
 }
 
-const ReviewerConsoleTasks = ({ venueId, reviewerName, submissionName, noteNumbers }) => {
+const ReviewerConsoleTasks = ({
+  venueId,
+  reviewerName,
+  submissionName,
+  noteNumbers,
+  additionalDomains,
+}) => {
   const reviewerUrlFormat = getRoleHashFragment(reviewerName)
   const referrer = `${encodeURIComponent(
     `[${prettyField(
@@ -256,6 +262,7 @@ const ReviewerConsoleTasks = ({ venueId, reviewerName, submissionName, noteNumbe
       filterAssignedInvitation={true}
       submissionName={submissionName}
       submissionNumbers={noteNumbers}
+      additionalDomains={additionalDomains}
     />
   )
 }
@@ -272,6 +279,7 @@ const ReviewerConsoleTabs = ({
     officialReviewName,
     submissionName,
     reviewDisplayFields = ['review'],
+    additionalDomains = [],
   } = useContext(WebFieldContext)
   const defaultActiveTabId = `assigned-${pluralizeString(submissionName ?? '').toLowerCase()}`
   const [activeTabId, setActiveTabId] = useState(defaultActiveTabId)
@@ -358,6 +366,7 @@ const ReviewerConsoleTabs = ({
               reviewerName={reviewerName}
               submissionName={submissionName}
               noteNumbers={reviewerConsoleData.noteNumbers}
+              additionalDomains={additionalDomains}
             />
           ),
           visible: true,

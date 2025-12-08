@@ -114,6 +114,7 @@ const AreaChairConsoleTasks = ({
   venueId,
   areaChairName,
   defaultAreaChairName = areaChairName,
+  additionalDomains,
 }) => {
   const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
   const referrer = encodeURIComponent(
@@ -128,6 +129,7 @@ const AreaChairConsoleTasks = ({
       roleName={areaChairName}
       filterAssignedInvitation={true}
       referrer={referrer}
+      additionalDomains={additionalDomains}
     />
   )
 }
@@ -154,6 +156,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
     extraRoleNames,
     sortOptions,
     displayReplyInvitations,
+    additionalDomains = [],
   } = useContext(WebFieldContext)
   const defaultActiveTabId = `assigned-${pluralizeString(submissionName).toLowerCase()}`
   const [activeTabId, setActiveTabId] = useState(defaultActiveTabId)
@@ -368,7 +371,13 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
         {
           id: `${areaChairUrlFormat}-tasks`,
           label: `${getSingularRoleName(prettyField(areaChairName))} Tasks`,
-          content: <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />,
+          content: (
+            <AreaChairConsoleTasks
+              venueId={venueId}
+              areaChairName={areaChairName}
+              additionalDomains={additionalDomains}
+            />
+          ),
           visible: true,
         },
         ...(extraRoleNamesWithUrlFormat?.length > 0
@@ -380,6 +389,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
                   venueId={venueId}
                   areaChairName={role.name}
                   defaultAreaChairName={areaChairName}
+                  additionalDomains={additionalDomains}
                 />
               ),
               visible: true,

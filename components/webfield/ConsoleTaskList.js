@@ -14,53 +14,68 @@ const ConsoleTaskList = ({
   filterAssignedInvitation = false,
   submissionName,
   submissionNumbers,
+  additionalDomains = [],
 }) => {
   const { accessToken } = useUser()
   const [invitations, setInvitations] = useState(null)
 
   const loadInvitations = async () => {
     try {
-      let allInvitations = await Promise.all([
-        api.getAll(
-          '/invitations',
-          {
-            domain: venueId,
-            invitee: true,
-            duedate: true,
-            replyto: true,
-            type: 'note',
-            details: 'replytoNote,repliedNotes,repliedEdits',
-          },
-          { accessToken }
-        ),
-        api.getAll(
-          '/invitations',
-          {
-            domain: venueId,
-            invitee: true,
-            duedate: true,
-            type: 'edge',
-            details: 'repliedEdges',
-          },
-          { accessToken }
-        ),
-        api.getAll(
-          '/invitations',
-          {
-            domain: venueId,
-            invitee: true,
-            duedate: true,
-            type: 'tag',
-            details: 'repliedTags',
-          },
-          { accessToken }
-        ),
-      ]).then(([noteInvitations, edgeInvitations, tagInvitations]) =>
-        noteInvitations
-          .map((inv) => ({ ...inv, noteInvitation: true }))
-          .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
-          .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
+      const domainsToQuery = [venueId, ...additionalDomains]
+
+      // Query all domains and merge results
+      const allInvitationsNested = await Promise.all(
+        domainsToQuery.map(async (domain) => {
+          const [noteInvitations, edgeInvitations, tagInvitations] = await Promise.all([
+            api.getAll(
+              '/invitations',
+              {
+                domain,
+                invitee: true,
+                duedate: true,
+                replyto: true,
+                type: 'note',
+                details: 'replytoNote,repliedNotes,repliedEdits',
+              },
+              { accessToken }
+            ),
+            api.getAll(
+              '/invitations',
+              {
+                domain,
+                invitee: true,
+                duedate: true,
+                type: 'edge',
+                details: 'repliedEdges',
+              },
+              { accessToken }
+            ),
+            api.getAll(
+              '/invitations',
+              {
+                domain,
+                invitee: true,
+                duedate: true,
+                type: 'tag',
+                details: 'repliedTags',
+              },
+              { accessToken }
+            ),
+          ])
+          return noteInvitations
+            .map((inv) => ({ ...inv, noteInvitation: true }))
+            .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
+            .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
+        })
       )
+
+      // Flatten and deduplicate by invitation ID
+      const seenIds = new Set()
+      let allInvitations = allInvitationsNested.flat().filter((inv) => {
+        if (seenIds.has(inv.id)) return false
+        seenIds.add(inv.id)
+        return true
+      })
 
       allInvitations = allInvitations.filter((p) =>
         filterAssignedInvitation

@@ -93,6 +93,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     displayReplyInvitations,
     metaReviewAgreementConfig,
     useCache = false,
+    additionalRegistrationDomains = [],
+    registrationFormDomainMap = {},
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
   const { user, accessToken, isRefreshing } = useUser()
@@ -211,22 +213,27 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       // #region getRegistrationForms
       const prefixes = [reviewersId, areaChairsId, seniorAreaChairsId].filter(Boolean)
+      const domainsToQuery = [venueId, ...additionalRegistrationDomains]
       const getRegistrationFormResultsP = Promise.all(
-        prefixes.map((prefix) =>
-          api
-            .getAll(
-              '/notes',
-              {
-                invitation: `${prefix}/-/.*`,
-                signature: venueId,
-                select: 'id,invitation,invitations,content.title',
-                domain: venueId,
-              },
-              { accessToken }
-            )
-            .then((notes) =>
-              notes.filter((note) => note.invitations.some((p) => p.endsWith('_Form')))
-            )
+        prefixes.flatMap((prefix) =>
+          domainsToQuery.map((domain) =>
+            api
+              .getAll(
+                '/notes',
+                {
+                  invitation: `${prefix}/-/.*`,
+                  signature: domain,
+                  select: 'id,invitation,invitations,content.title',
+                  domain,
+                },
+                { accessToken }
+              )
+              .then((notes) =>
+                notes
+                  .filter((note) => note.invitations.some((p) => p.endsWith('_Form')))
+                  .map((note) => ({ ...note, sourceDomain: domain }))
+              )
+          )
         )
       )
       // #endregion
@@ -240,7 +247,13 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       const invitationResults = TimelineDataResult[0].flat()
       const requestForm = TimelineDataResult[1]
-      const registrationForms = TimelineDataResult[2].flatMap((p) => p ?? [])
+      // Deduplicate registration forms by ID
+      const seenFormIds = new Set()
+      const registrationForms = TimelineDataResult[2].flatMap((p) => p ?? []).filter((form) => {
+        if (seenFormIds.has(form.id)) return false
+        seenFormIds.add(form.id)
+        return true
+      })
 
       setTimelineData({
         invitations: invitationResults,
@@ -1250,18 +1263,28 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     if (pcConsoleData.registrationNoteMap) return
     try {
       const registrationNoteResults = await Promise.all(
-        pcConsoleData.registrationForms.map((regForm) =>
-          api.get(
+        pcConsoleData.registrationForms.map((regForm) => {
+          // Determine the domain for this registration form
+          // First check the registrationFormDomainMap, then fall back to sourceDomain, then venueId
+          const formInvitation = regForm.invitations?.[0] || ''
+          const formSuffix = Object.keys(registrationFormDomainMap).find((suffix) =>
+            formInvitation.endsWith(suffix.replace('/-/', '/-/').replace('_Form', ''))
+          )
+          const domain = formSuffix
+            ? registrationFormDomainMap[formSuffix]
+            : regForm.sourceDomain || venueId
+
+          return api.get(
             '/notes',
             {
               forum: regForm.id,
               select: 'id,signatures,invitations,content',
-              domain: venueId,
+              domain,
               stream: true,
             },
             { accessToken }
           )
-        )
+        })
       )
       const registrationNoteMap = groupBy(
         registrationNoteResults.flatMap((result) => result.notes ?? []),
@@ -1269,7 +1292,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       )
       setPcConsoleData((data) => ({ ...data, registrationNoteMap }))
     } catch (error) {
-      promptError(`Erro loading registration notes: ${error.message}`)
+      promptError(`Error loading registration notes: ${error.message}`)
     }
   }
 
