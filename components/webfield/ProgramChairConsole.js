@@ -94,6 +94,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     metaReviewAgreementConfig,
     useCache = false,
     additionalRegistrationDomains = [],
+    additionalRegistrationPrefixes = [],
     registrationFormDomainMap = {},
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
@@ -212,9 +213,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       // #region getRegistrationForms
       const prefixes = [reviewersId, areaChairsId, seniorAreaChairsId].filter(Boolean)
+      const allPrefixes = [...prefixes, ...additionalRegistrationPrefixes]
       const domainsToQuery = [venueId, ...additionalRegistrationDomains]
       const getRegistrationFormResultsP = Promise.all(
-        prefixes.flatMap((prefix) =>
+        allPrefixes.flatMap((prefix) =>
           domainsToQuery.map((domain) =>
             api
               .getAll(
