@@ -155,6 +155,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
     extraRoleNames,
     sortOptions,
     displayReplyInvitations,
+    customStageInvitations,
   } = useContext(WebFieldContext)
   const defaultActiveTabId = `assigned-${pluralizeString(submissionName).toLowerCase()}`
   const [activeTabId, setActiveTabId] = useState(defaultActiveTabId)
@@ -201,6 +202,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
             areaChairName={areaChairName}
             ithenticateInvitationId={ithenticateInvitationId}
             sortOptions={sortOptions}
+            customStageInvitations={customStageInvitations}
           />
           <p className="empty-message">
             No assigned {submissionName.toLowerCase()} matching search criteria.
@@ -230,6 +232,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
           areaChairName={areaChairName}
           ithenticateInvitationId={ithenticateInvitationId}
           sortOptions={sortOptions}
+          customStageInvitations={customStageInvitations}
         />
         <Table
           className="console-table table-striped areachair-console-table"
