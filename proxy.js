@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getTokenPayload } from './lib/clientAuth'
 
-// eslint-disable-next-line import/prefer-default-export
-export async function middleware(request) {
+export async function proxy(request) {
   const response = NextResponse.next()
   const accessToken = request.cookies.get(process.env.ACCESS_TOKEN_NAME)
   const refreshToken = request.cookies.get(process.env.REFRESH_TOKEN_NAME)

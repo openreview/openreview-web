@@ -33,7 +33,6 @@ export default function GroupAdmin({ id, query }) {
     try {
       const { groups } = await api.get('/groups', { id }, { accessToken })
       if (!groups?.length) throw new Error('Group not found')
-      // eslint-disable-next-line no-shadow
       const group = groups[0]
       if (group.details?.writable) {
         // Get venue group to pass to webfield component

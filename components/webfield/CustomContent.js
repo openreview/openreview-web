@@ -3,14 +3,8 @@ import { useSearchParams } from 'next/navigation'
 import WebFieldContext from '../WebFieldContext'
 
 export default function CustomContent({ appContext }) {
-  const {
-    entity: group,
-    parentGroupId,
-    header,
-    HeaderComponent,
-    content,
-    BodyComponent,
-  } = useContext(WebFieldContext)
+  const { entity, parentGroupId, header, HeaderComponent, content, BodyComponent } =
+    useContext(WebFieldContext)
   const query = useSearchParams()
   const { setBannerContent } = appContext ?? {}
 
@@ -28,10 +22,10 @@ export default function CustomContent({ appContext }) {
 
   return (
     <>
+      {/* eslint-disable-next-line react-hooks/static-components */}
       {HeaderComponent && <DynamicHeaderComponent headerInfo={header} />}
-      <div id="notes">
-        {DynamicBodyComponent && <DynamicBodyComponent content={content} />}
-      </div>
+      {/* eslint-disable-next-line react-hooks/static-components */}
+      <div id="notes">{BodyComponent && <DynamicBodyComponent content={content} />}</div>
     </>
   )
 }

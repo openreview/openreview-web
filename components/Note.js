@@ -95,7 +95,6 @@ const Note = ({ note, invitation, options }) => {
             />
           )}
         </li>
-        {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
         <li className="readers">
           Readers: <NoteReaders readers={note.readers} />
         </li>

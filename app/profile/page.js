@@ -41,7 +41,6 @@ export default async function page({ searchParams }) {
 
   let profileResult
   try {
-    // eslint-disable-next-line no-nested-ternary
     profileResult = await api.get('/profiles', isProfileOwner ? {} : id ? { id } : { email }, {
       accessToken: token,
       remoteIpAddress,

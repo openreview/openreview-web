@@ -290,7 +290,6 @@ test('request a reset password with no active profile', async (t) => {
     .contains('http://localhost:3030/reset', { timeout: 10000 })
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Send Activation Link from signup page`
   .page`http://localhost:${process.env.NEXT_PORT}/signup`
 
@@ -320,7 +319,6 @@ test('Send Activation Link', async (t) => {
     .eql(inactiveUser.email)
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Claim Profile`.page`http://localhost:${process.env.NEXT_PORT}/signup`
 
 test('enter invalid name', async (t) => {
@@ -341,7 +339,6 @@ test('enter invalid name', async (t) => {
     .ok()
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Sign up`.page`http://localhost:${process.env.NEXT_PORT}/signup`
 
 test('email address should be masked', async (t) => {
@@ -354,7 +351,6 @@ test('email address should be masked', async (t) => {
     .contains('****') // email should be masked
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=melisa@test.com`
 
@@ -445,7 +441,6 @@ test('reset password should have turnstile token', async (t) => {
   await t.expect(resetPasswordLogger.contains((record) => record.request.body.includes('token'))).ok()
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=kevin@umass.edu`
 
@@ -510,7 +505,6 @@ test('register a profile with an institutional email', async (t) => {
     .eql('Your OpenReview profile has been successfully created')
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Activate with errors`
 
 test('try to activate a profile with no token and get an error', async (t) => {
@@ -626,7 +620,6 @@ test('add alternate email', async (t) => {
     )
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Issue related tests`
 
 test('#160 allow user to overwrite last/middle/first name to be lowercase', async (t) => {

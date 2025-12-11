@@ -17,7 +17,6 @@ export default function CustomInvitation({ webfieldCode, user }) {
     script.innerHTML = webfieldCode
     document.body.appendChild(script)
 
-    // eslint-disable-next-line consistent-return
     return () => {
       document.body.removeChild(script)
       window.user = null

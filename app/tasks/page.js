@@ -76,7 +76,6 @@ export default function Page() {
             .then((result) => result.groupedEdges)
         )
         const edgeResults = await Promise.all(aERecommendationEdgesP)
-        // eslint-disable-next-line no-param-reassign
         allInvitations[2] = allInvitations[2].map((p, i) => {
           if (!p.id.endsWith('/Action_Editors/-/Recommendation')) return p
           const submissionId = p.edge?.head?.param?.const

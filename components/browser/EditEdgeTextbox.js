@@ -1,5 +1,3 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-/* eslint-disable react/destructuring-assignment */
 /* globals $: false */
 
 import { useCallback, useEffect, useState } from 'react'

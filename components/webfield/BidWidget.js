@@ -27,7 +27,6 @@ export const BidRadioButtonGroup = ({
 
   return (
     <div className={`tag-widget edge-widget ${className ?? ''}`} data-type="radio">
-      {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
       <label>{label}:</label>
 
       <div

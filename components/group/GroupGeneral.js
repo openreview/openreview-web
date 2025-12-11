@@ -250,9 +250,7 @@ const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup 
           'deanonymizers',
         ]
         arrayFields.forEach((field) => {
-          // eslint-disable-next-line no-prototype-builtins
           if (generalInfo.hasOwnProperty(field)) {
-            // eslint-disable-next-line no-param-reassign
             generalInfo[field] = convertInfoToArray(generalInfo[field])
           }
         })

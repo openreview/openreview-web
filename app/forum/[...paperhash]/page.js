@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 import { headers } from 'next/headers'
 import { pickBy, truncate } from 'lodash'
 import api from '../../../lib/api-client'
@@ -57,7 +56,6 @@ export async function generateMetadata({ params }) {
     // #region Metadata
     const metaData = {}
     const content = Object.keys(forumNote.content ?? {}).reduce((translatedContent, key) => {
-      // eslint-disable-next-line no-param-reassign
       translatedContent[key] = forumNote.content[key].value
       return translatedContent
     }, {})
@@ -153,7 +151,6 @@ export default async function page({ params, searchParams }) {
   if (errorMessage) return <ErrorDisplay message={errorMessage} />
 
   const content = Object.keys(forumNote.content ?? {}).reduce((translatedContent, key) => {
-    // eslint-disable-next-line no-param-reassign
     translatedContent[key] = forumNote.content[key].value
     return translatedContent
   }, {})

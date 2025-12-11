@@ -20,7 +20,6 @@ const hasNoTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, asyn
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Tasks Page`
 
 test('user with no tasks should see an empty tasks page', async (t) => {

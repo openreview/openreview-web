@@ -159,7 +159,6 @@ export const NewNoteReaders = ({
             field={{ reader: { value: fieldDescription } }}
             value={value}
             options={readerOptions}
-            // eslint-disable-next-line no-shadow
             onChange={({ fieldName, value: updatedValue }) => {
               if (isEqual(value, ['everyone'])) {
                 onChange(updatedValue?.filter((p) => p !== 'everyone'))
@@ -451,7 +450,6 @@ export const NewReplyEditNoteReaders = ({
       return
     }
     const parentReaders = replyToNote.readers
-    // eslint-disable-next-line no-template-curly-in-string
     if (replyReaders[0] === '${{note.replyto}.readers}') {
       setReaderOptions(parentReaders)
       return
@@ -508,7 +506,6 @@ export const NewReplyEditNoteReaders = ({
             field={{ reader: { value: fieldDescription } }}
             value={value}
             options={readerOptions}
-            // eslint-disable-next-line no-shadow
             onChange={({ fieldName, value: updatedValue }) => {
               if (isEqual(value, ['everyone'])) {
                 onChange(updatedValue?.filter((p) => p !== 'everyone'))

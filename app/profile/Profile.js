@@ -37,10 +37,6 @@ export default async function Profile({
     )
   }
 
-  let count = 0
-  let publications = null
-  let coAuthors = null
-
   const loadPublications = async () => {
     let apiRes
     const queryParam = {
@@ -56,10 +52,9 @@ export default async function Profile({
         { accessToken: token, remoteIpAddress }
       )
       if (apiRes.notes) {
-        publications = apiRes.notes
-        // eslint-disable-next-line prefer-destructuring
-        count = apiRes.count
-        coAuthors = getCoAuthorsFromPublications(profile, publications)
+        const publications = apiRes.notes
+        const coAuthors = getCoAuthorsFromPublications(profile, publications)
+        return { publications, count: apiRes.count, coAuthors }
       }
     } catch (error) {
       apiRes = error
@@ -75,7 +70,7 @@ export default async function Profile({
       })
     }
   }
-  await loadPublications()
+  const { publications, count, coAuthors } = await loadPublications()
 
   return (
     <div className={styles.profile}>

@@ -154,7 +154,6 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
         { accessToken, version: apiVersion }
       )
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.warn(`Error marking invitation as completed: ${error.message}`)
     }
   }
@@ -177,7 +176,6 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
         )
         const publicNotes = notes.filter((note) => note.readers.includes('everyone'))
         publicNotes.forEach((note) => {
-          // eslint-disable-next-line no-param-reassign
           note.searchText = buildNoteSearchText(note, note.apiVersion === 2)
         })
         setUserNotes(publicNotes)

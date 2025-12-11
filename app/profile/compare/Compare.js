@@ -163,7 +163,6 @@ const Publications = ({ publications, highlightValue }) => (
             <tr>
               <td style={{ paddingBottom: '.75rem' }}>
                 {publication.authorids.map((authorid, index) => (
-                  // eslint-disable-next-line react/no-array-index-key
                   <a
                     key={index}
                     href={`/group?id=${authorid}`}
@@ -207,7 +206,6 @@ const Others = ({ fieldContent, highlightValue, isEmailSection }) => {
         {fieldContent &&
           fieldContent.map((content, i) => (
             <tr
-              // eslint-disable-next-line react/no-array-index-key
               key={`${content.value}-${i}`}
               data-toggle={content.signatures && 'tooltip'}
               title={content.signature && `Edited by ${content.signatures}`}
@@ -337,11 +335,9 @@ const getHighlightValue = (withSignatureProfile) => {
     if (key === 'publications') {
       value.forEach((publication) => {
         compareFields.push(publication?.title)
-        // eslint-disable-next-line no-unused-expressions
         publication?.authors?.forEach((author) => {
           compareFields.push(author)
         })
-        // eslint-disable-next-line no-unused-expressions
         publication?.authorids?.forEach((authorids) => {
           compareFields.push(authorids)
         })
@@ -443,7 +439,6 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
 
     if (toProfile.active === false && fromProfile.active === true) {
       if (
-        // eslint-disable-next-line no-alert
         window.confirm(
           `You are merging an ${fromProfile.state} profile into an ${toProfile.state} profile. Are you sure you want to proceed?`
         )

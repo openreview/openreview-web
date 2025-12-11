@@ -103,7 +103,6 @@ const RelationRow = ({
     return selectedValues.join(',')
   }
 
-  // eslint-disable-next-line no-shadow
   const renderRelationName = (relation) => {
     if (relation.name) {
       if (relation.username) {
@@ -209,7 +208,6 @@ const RelationRow = ({
             defaultValue={
               relation.relation ? { value: relation.relation, label: relation.relation } : null
             }
-            // eslint-disable-next-line max-len
             onChange={(e) => {
               setRelation({
                 type: relationType,

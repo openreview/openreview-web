@@ -307,7 +307,6 @@ export default function Forum({
       )
       return notes?.length > 0 ? notes : []
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.warn('Error loading new replies: ', error.message)
       return []
     }
@@ -702,7 +701,6 @@ export default function Forum({
 
     window.onhashchange = handleRouteChange
 
-    // eslint-disable-next-line consistent-return
     return () => {
       window.onhashchange = null
     }
@@ -928,15 +926,11 @@ export default function Forum({
         newReplies.forEach((note) => {
           const invId = note.invitations[0]
           const sigId = note.signatures[0]
-          // eslint-disable-next-line no-param-reassign
           note.details.invitation = invitationMapRef.current[invId]?.[0]
-          // eslint-disable-next-line no-param-reassign
           note.details.presentation = invitationMapRef.current[invId]?.[1]
-          // eslint-disable-next-line no-param-reassign
           note.details.signatures = signaturesMapRef.current[sigId]
             ? [signaturesMapRef.current[sigId]]
             : []
-          // eslint-disable-next-line no-param-reassign
           note.details.tags = groupedTags[note.id]
 
           const isNewNote = updateNote(note)

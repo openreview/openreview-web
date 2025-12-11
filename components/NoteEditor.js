@@ -278,7 +278,6 @@ const NoteEditor = ({
   const [errors, setErrors] = useState([])
   const { noteEditorPreview } = useContext(WebFieldContext) ?? {}
   if (noteEditorPreview)
-    // eslint-disable-next-line no-param-reassign
     customValidator = () => ({
       isValid: false,
       errorMessage: 'This is a note editor preview',

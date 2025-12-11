@@ -33,7 +33,6 @@ const WebfieldContainer = forwardRef((props, ref) => {
   }
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div id={props.id} ref={ref} onClick={handleLinkClick}>
       {props.children}
     </div>
